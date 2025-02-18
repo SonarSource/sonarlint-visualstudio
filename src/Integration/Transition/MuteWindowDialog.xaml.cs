@@ -78,4 +78,14 @@ public partial class MuteWindowDialog : DialogWindow
             radioButton.IsChecked = true;
         }
     }
+
+    private void RadioButton_OnChecked(object sender, RoutedEventArgs e)
+    {
+        // The RadioButton consumes the click event, so the click event is not bubbled back to the parent
+        // ListBox.SelectedItem is not triggered, so we have to update the view model manually
+        if (sender is RadioButton { IsChecked: true, DataContext: StatusViewModel statusViewModel })
+        {
+            ViewModel.SelectedStatusViewModel = statusViewModel;
+        }
+    }
 }
