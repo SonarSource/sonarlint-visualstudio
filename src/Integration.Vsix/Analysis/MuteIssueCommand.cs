@@ -23,14 +23,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.ConnectedMode;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Core.Transition;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.IssueVisualization.Models;
 using MessageBox = SonarLint.VisualStudio.Core.MessageBox;
 using Task = System.Threading.Tasks.Task;
 
@@ -40,7 +38,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     internal sealed class MuteIssueCommand
     {
         private readonly IErrorListHelper errorListHelper;
-        private readonly IServerIssueFinder serverIssueFinder;
         private readonly IMuteIssuesService muteIssuesService;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly IThreadHandling threadHandling;
@@ -72,7 +69,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             Instance = new MuteIssueCommand(commandService,
                 await package.GetMefServiceAsync<IErrorListHelper>(),
                 await package.GetMefServiceAsync<IRoslynIssueLineHashCalculator>(),
-                await package.GetMefServiceAsync<IServerIssueFinder>(),
                 await package.GetMefServiceAsync<IMuteIssuesService>(),
                 await package.GetMefServiceAsync<IActiveSolutionBoundTracker>(),
                 await package.GetMefServiceAsync<IThreadHandling>(),
@@ -85,7 +81,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             IMenuCommandService menuCommandService,
             IErrorListHelper errorListHelper,
             IRoslynIssueLineHashCalculator roslynIssueLineHashCalculator,
-            IServerIssueFinder serverIssueFinder,
             IMuteIssuesService muteIssuesService,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             IThreadHandling threadHandling,
@@ -103,7 +98,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
 
             this.errorListHelper = errorListHelper ?? throw new ArgumentNullException(nameof(errorListHelper));
-            this.serverIssueFinder = serverIssueFinder ?? throw new ArgumentNullException(nameof(serverIssueFinder));
             this.roslynIssueLineHashCalculator = roslynIssueLineHashCalculator ?? throw new ArgumentNullException(nameof(roslynIssueLineHashCalculator));
             this.muteIssuesService = muteIssuesService ?? throw new ArgumentNullException(nameof(muteIssuesService));
             this.activeSolutionBoundTracker = activeSolutionBoundTracker ?? throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
@@ -180,9 +174,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         {
             try
             {
-                var issueServerKey = await GetIssueServerKeyAsync(issue);
-                await muteIssuesService.ResolveIssueWithDialogAsync(issueServerKey);
-                logger.WriteLine(AnalysisStrings.MuteIssue_HaveMuted, issueServerKey);
+                await muteIssuesService.ResolveIssueWithDialogAsync(issue);
+                logger.WriteLine(AnalysisStrings.MuteIssue_HaveMuted);
                 return true;
             }
             catch (MuteIssueException.MuteIssueCommentFailedException)
@@ -199,24 +192,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 messageBox.Show(ex.Message, AnalysisStrings.MuteIssue_FailureCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 return false;
             }
-        }
-
-        private async Task<string> GetIssueServerKeyAsync(IFilterableIssue issue)
-        {
-            // Non-Roslyn issues already have the issue server key
-            if (issue is IAnalysisIssueVisualization issueViz)
-            {
-                return issueViz.Issue.IssueServerKey;
-            }
-
-            // Roslyn issues need to be converted to SonarQube issues to get the server key as they are handled by SLCore
-            var serverIssue = await serverIssueFinder.FindServerIssueAsync(issue, CancellationToken.None);
-            if (serverIssue is { IsResolved: true })
-            {
-                logger.WriteLine(AnalysisStrings.MuteIssue_ErrorIssueAlreadyResolved, issue);
-                throw new MuteIssueException(AnalysisStrings.MuteIssue_ErrorIssueAlreadyResolved);
-            }
-            return serverIssue?.IssueKey;
         }
 
         private bool IsSupportedSonarRule(SonarCompositeRuleId rule) => SupportedRepos.Contains(rule.RepoKey);

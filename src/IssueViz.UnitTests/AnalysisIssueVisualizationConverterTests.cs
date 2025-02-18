@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             var issueFilePath = Path.GetRandomFileName();
             var locationInSameFile = CreateLocation(issueFilePath);
             var flow = CreateFlow(locationInSameFile);
-            var issue = CreateIssue(issueFilePath, flow);
+            var issue = CreateIssue(issueFilePath, flows: flow);
 
             var result = testSubject.Convert(issue, textSnapshot: null);
 
@@ -152,7 +152,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         {
             var flows = Array.Empty<IAnalysisIssueFlow>();
             var issueSpan = CreateNonEmptySpan();
-            var issue = CreateIssue(Path.GetRandomFileName(), flows);
+            var issue = CreateIssue(Path.GetRandomFileName(), flows: flows);
             SetupSpanCalculator(issue.PrimaryLocation.TextRange, issueSpan);
 
             var expectedIssueVisualization = new AnalysisIssueVisualization(
@@ -173,7 +173,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             var flow = CreateFlow(location);
 
             var issueSpan = CreateNonEmptySpan();
-            var issue = CreateIssue(Path.GetRandomFileName(), flow);
+            var issue = CreateIssue(Path.GetRandomFileName(), flows: flow);
             SetupSpanCalculator(issue.PrimaryLocation.TextRange, issueSpan);
 
             var expectedLocationVisualization = new AnalysisIssueLocationVisualization(1, location);
@@ -202,7 +202,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             var secondFlow = CreateFlow(secondFlowFirstLocation, secondFlowSecondLocation);
 
             var issueSpan = CreateNonEmptySpan();
-            var issue = CreateIssue(Path.GetRandomFileName(), firstFlow, secondFlow);
+            var issue = CreateIssue(Path.GetRandomFileName(), isResolved: false, firstFlow, secondFlow);
             SetupSpanCalculator(issue.PrimaryLocation.TextRange, issueSpan);
 
             var expectedFirstFlowFirstLocationVisualization = new AnalysisIssueLocationVisualization(1, firstFlowFirstLocation);
@@ -235,7 +235,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             var flow = CreateFlow(locationInSameFile, locationInAnotherFile);
 
             var issueSpan = CreateNonEmptySpan();
-            var issue = CreateIssue(issueFilePath, flow);
+            var issue = CreateIssue(issueFilePath, flows: flow);
             SetupSpanCalculator(issue.PrimaryLocation.TextRange, issueSpan);
 
             var locationSpan = CreateNonEmptySpan();
@@ -254,6 +254,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             var actualIssueVisualization = testSubject.Convert(issue, textSnapshotMock);
 
             AssertConversion(expectedIssueVisualization, actualIssueVisualization);
+        }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void Convert_IssueIsResolved_SetsIsSuppressed(bool isResolved)
+        {
+            var issue = CreateIssue(Path.GetRandomFileName(), isResolved);
+
+            var result = testSubject.Convert(issue, textSnapshotMock);
+
+            result.Should().NotBeNull();
+            result.IsSuppressed.Should().Be(isResolved);
         }
 
         private void AssertConversion(IAnalysisIssueVisualization expectedIssueVisualization, IAnalysisIssueVisualization actualIssueVisualization)
@@ -281,13 +294,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             return issue;
         }
 
-        private IAnalysisIssue CreateIssue(string filePath, params IAnalysisIssueFlow[] flows)
+        private IAnalysisIssue CreateIssue(string filePath, bool isResolved = false, params IAnalysisIssueFlow[] flows)
         {
             var issue = new AnalysisIssue(
                 Guid.NewGuid(),
                 Guid.NewGuid().ToString(),
                 Guid.NewGuid().ToString(),
-                false,
+                isResolved,
                 AnalysisIssueSeverity.Blocker,
                 AnalysisIssueType.Bug,
                 new Impact(SoftwareQuality.Maintainability, SoftwareQualitySeverity.High),
