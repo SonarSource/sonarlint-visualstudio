@@ -54,6 +54,7 @@ public class MuteIssuesServiceTests
     private IIssueSLCoreService issueSlCoreService;
     private IServerIssueFinder serverIssueFinder;
     private ISuppressionUpdater suppressionUpdater;
+    private IAnalysisRequester analysisRequester;
 
     [TestInitialize]
     public void TestInitialize()
@@ -63,10 +64,11 @@ public class MuteIssuesServiceTests
         slCoreServiceProvider = Substitute.For<ISLCoreServiceProvider>();
         serverIssueFinder = Substitute.For<IServerIssueFinder>();
         suppressionUpdater = Substitute.For<ISuppressionUpdater>();
+        analysisRequester = Substitute.For<IAnalysisRequester>();
         logger = new TestLogger();
         threadHandling = new NoOpThreadHandler();
         issueSlCoreService = Substitute.For<IIssueSLCoreService>();
-        testSubject = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, serverIssueFinder, suppressionUpdater, logger, threadHandling);
+        testSubject = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, serverIssueFinder, suppressionUpdater, analysisRequester, logger, threadHandling);
 
         MockNonRoslynIssue();
         activeConfigScopeTracker.Current.Returns(new Core.ConfigurationScope.ConfigurationScope("CONFIG_SCOPE_ID", RootPath: "C:\\", ConnectionId: "CONNECTION_ID"));
@@ -85,6 +87,7 @@ public class MuteIssuesServiceTests
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
             MefTestHelpers.CreateExport<IServerIssueFinder>(),
             MefTestHelpers.CreateExport<ISuppressionUpdater>(),
+            MefTestHelpers.CreateExport<IAnalysisRequester>(),
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
 
@@ -96,7 +99,7 @@ public class MuteIssuesServiceTests
     {
         var substituteLogger = Substitute.For<ILogger>();
 
-        _ = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, serverIssueFinder, suppressionUpdater, substituteLogger, threadHandling);
+        _ = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, serverIssueFinder, suppressionUpdater, analysisRequester, substituteLogger, threadHandling);
 
         substituteLogger.Received(1).ForContext("MuteIssuesService");
     }
@@ -344,6 +347,29 @@ public class MuteIssuesServiceTests
         suppressionUpdater.DidNotReceiveWithAnyArgs().UpdateSuppressedIssuesAsync(default, default, default);
     }
 
+    [TestMethod]
+    public void ResolveIssueWithDialogAsync_RoslynIssueMutedSuccessfully_RequestsAnalysis()
+    {
+        MuteIssuePermitted();
+        MockRoslynIssueOnServer(RoslynIssueServerKey);
+        MockIssueAcceptedInWindow();
+
+        _ = testSubject.ResolveIssueWithDialogAsync(roslynIssue);
+
+        analysisRequester.Received(1).RequestAnalysis(Arg.Is<AnalyzerOptions>(x => !x.IsOnOpen), Arg.Is<string[]>(x => x.SequenceEqual(new[] { roslynIssue.FilePath })));
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialogAsync_NonRoslynIssueMutedSuccessfully_RequestsAnalysis()
+    {
+        MuteIssuePermitted();
+        MockIssueAcceptedInWindow();
+
+        _ = testSubject.ResolveIssueWithDialogAsync(nonRoslynIssue);
+
+        analysisRequester.Received(1).RequestAnalysis(Arg.Is<AnalyzerOptions>(x => !x.IsOnOpen), Arg.Is<string[]>(x => x.SequenceEqual(new[] { nonRoslynIssue.FilePath })));
+    }
+
     private void NotInConnectedMode() => activeConfigScopeTracker.Current.Returns(new Core.ConfigurationScope.ConfigurationScope("CONFIG_SCOPE_ID"));
 
     private void ServiceProviderNotInitialized() => slCoreServiceProvider.TryGetTransientService(out Arg.Any<ISLCoreService>()).ReturnsForAnyArgs(false);
@@ -367,19 +393,19 @@ public class MuteIssuesServiceTests
         var analysisBase = Substitute.For<IAnalysisIssueBase>();
         analysisBase.IssueServerKey.Returns(AnIssueServerKey);
         nonRoslynIssue.Issue.Returns(analysisBase);
+        nonRoslynIssue.FilePath.Returns("C:\\somePath.cs");
     }
 
     private SonarQubeIssue MockRoslynIssueOnServer(string issueServerKey)
     {
+        roslynIssue.FilePath.Returns("C:\\someOtherPath.cs");
         var serverIssue = CreateServerIssue(issueServerKey);
         serverIssueFinder.FindServerIssueAsync(roslynIssue, Arg.Any<CancellationToken>()).Returns(serverIssue);
         return serverIssue;
     }
 
-    public static SonarQubeIssue CreateServerIssue(string issueKey, bool isResolved = false)
-    {
-        return new SonarQubeIssue(issueKey, default, default, default, default, default, isResolved, default, default, default, default, default);
-    }
+    public static SonarQubeIssue CreateServerIssue(string issueKey, bool isResolved = false) =>
+        new(issueKey, default, default, default, default, default, isResolved, default, default, default, default, default);
 
     private void MockIssueAcceptedInWindow(string comment = null) =>
         muteIssuesWindowService.Show(Arg.Any<IEnumerable<SonarQubeIssueTransition>>())
