@@ -86,7 +86,8 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <RadioButton Grid.Row="0" GroupName="StatusGroup" Content="{Binding Path=Title}" Style="{StaticResource RadioButtonStyle}" IsChecked="{Binding IsChecked}"/>
+                            <RadioButton Grid.Row="0" GroupName="StatusGroup" Content="{Binding Path=Title}" Style="{StaticResource RadioButtonStyle}" 
+                                         IsChecked="{Binding IsChecked}" Checked="RadioButton_OnChecked"/>
                             <Label Grid.Row="1" Content="{Binding Path=Description}" Style="{StaticResource LabelStyle}" Margin="5,5" />
                         </Grid>
                     </Border>
