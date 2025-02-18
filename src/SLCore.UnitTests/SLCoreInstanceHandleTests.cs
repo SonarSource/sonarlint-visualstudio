@@ -57,6 +57,7 @@ public class SLCoreInstanceHandleTests
     private static readonly List<string> JarList = new() { "jar1" };
     private static readonly Dictionary<string, string> ConnectedModeJarList = new() { { "key", "jar1" } };
     private ISLCoreRpcFactory slCoreRpcFactory;
+    private ISLCoreServiceProvider serviceProvider;
     private ISLCoreConstantsProvider constantsProvider;
     private ISLCoreLanguageProvider slCoreLanguageProvider;
     private ISLCoreFoldersProvider foldersProvider;
@@ -74,6 +75,7 @@ public class SLCoreInstanceHandleTests
     public void TestInitialize()
     {
         slCoreRpcFactory = Substitute.For<ISLCoreRpcFactory>();
+        serviceProvider = Substitute.For<ISLCoreServiceProvider>();
         constantsProvider = Substitute.For<ISLCoreConstantsProvider>();
         slCoreLanguageProvider = Substitute.For<ISLCoreLanguageProvider>();
         foldersProvider = Substitute.For<ISLCoreFoldersProvider>();
@@ -86,7 +88,9 @@ public class SLCoreInstanceHandleTests
         slCoreRuleSettingsProvider = Substitute.For<ISLCoreRuleSettingsProvider>();
         telemetryMigrationProvider = Substitute.For<ISlCoreTelemetryMigrationProvider>();
 
-        testSubject = new SLCoreInstanceHandle(slCoreRpcFactory,
+        testSubject = new SLCoreInstanceHandle(
+            slCoreRpcFactory,
+            serviceProvider,
             constantsProvider,
             slCoreLanguageProvider,
             foldersProvider,
@@ -103,8 +107,7 @@ public class SLCoreInstanceHandleTests
     [TestMethod]
     public void Initialize_ThrowsIfServicesUnavailable()
     {
-        SetUpSLCoreRpcFactory(slCoreRpcFactory, out var rpc);
-        SetUpSLCoreRpc(rpc, out var serviceProvider);
+        SetUpSLCoreRpcFactory(slCoreRpcFactory, out _);
         serviceProvider.TryGetTransientService(out Arg.Any<AnySLCoreService>()).ReturnsForAnyArgs(false);
 
         var act = () => testSubject.Initialize();
@@ -186,7 +189,6 @@ public class SLCoreInstanceHandleTests
         SetUpSuccessfulInitialization(out var lifecycleManagement, out var rpc);
         testSubject.Initialize();
 
-        var serviceProvider = rpc.ServiceProvider;
         serviceProvider.ClearReceivedCalls();
         testSubject.Dispose();
 
@@ -210,7 +212,6 @@ public class SLCoreInstanceHandleTests
         SetUpSuccessfulInitialization(out var lifecycleManagement, out var rpc);
         lifecycleManagement.When(x => x.Shutdown()).Do(_ => throw new Exception());
         testSubject.Initialize();
-        var serviceProvider = rpc.ServiceProvider;
         serviceProvider.ClearSubstitute();
         serviceProvider.ClearReceivedCalls();
         serviceProvider.TryGetTransientService(out Arg.Any<AnySLCoreService>()).Throws(new Exception());
@@ -230,7 +231,6 @@ public class SLCoreInstanceHandleTests
         lifecycleManagement.When(x => x.Shutdown()).Do(_ => throw new Exception());
         testSubject.Initialize();
 
-        var serviceProvider = rpc.ServiceProvider;
         serviceProvider.ClearReceivedCalls();
         var act = () => testSubject.Dispose();
 
@@ -246,7 +246,6 @@ public class SLCoreInstanceHandleTests
         SetUpSuccessfulInitialization(out var lifecycleManagement, out var rpc);
         testSubject.Initialize();
 
-        var serviceProvider = rpc.ServiceProvider;
         serviceProvider.ClearSubstitute();
         serviceProvider.ClearReceivedCalls();
         serviceProvider.TryGetTransientService(out Arg.Any<AnySLCoreService>()).Returns(false);
@@ -274,7 +273,6 @@ public class SLCoreInstanceHandleTests
     private void SetUpSuccessfulInitialization(out ILifecycleManagementSLCoreService lifecycleManagement, out ISLCoreRpc rpc)
     {
         SetUpSLCoreRpcFactory(slCoreRpcFactory, out rpc);
-        SetUpSLCoreRpc(rpc, out var serviceProvider);
         SetUpSLCoreServiceProvider(serviceProvider, out lifecycleManagement);
         constantsProvider.ClientConstants.Returns(ClientConstantInfo);
         constantsProvider.FeatureFlags.Returns(FeatureFlags);
@@ -308,12 +306,6 @@ public class SLCoreInstanceHandleTests
     {
         slCoreRpc = Substitute.For<ISLCoreRpc>();
         slCoreRpcFactory.StartNewRpcInstance().Returns(slCoreRpc);
-    }
-
-    private void SetUpSLCoreRpc(ISLCoreRpc slCoreRpc, out ISLCoreServiceProvider slCoreServiceProvider)
-    {
-        slCoreServiceProvider = Substitute.For<ISLCoreServiceProvider>();
-        slCoreRpc.ServiceProvider.Returns(slCoreServiceProvider);
     }
 
     private void SetUpSLCoreServiceProvider(

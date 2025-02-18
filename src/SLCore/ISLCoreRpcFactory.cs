@@ -69,15 +69,12 @@ internal class SLCoreRpcFactory : ISLCoreRpcFactory
 
 public interface ISLCoreRpc : IDisposable
 {
-    ISLCoreServiceProvider ServiceProvider { get; }
-
     public Task ShutdownTask { get; }
 }
 
 internal sealed class SlCoreRpc : ISLCoreRpc
 {
     private readonly ISLCoreProcess slCoreProcess;
-    public ISLCoreServiceProvider ServiceProvider { get; set; }
     public Task ShutdownTask { get; set; }
 
     public SlCoreRpc(ISLCoreProcess slCoreProcess,
@@ -93,7 +90,6 @@ internal sealed class SlCoreRpc : ISLCoreRpc
         listenerSetUp.Setup(slCoreJsonRpc);
 
         ShutdownTask = jsonRpc.Completion;
-        ServiceProvider = slCoreServiceProvider;
     }
 
     public void Dispose()

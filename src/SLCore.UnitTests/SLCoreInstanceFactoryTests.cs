@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Configuration;
+using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.NodeJS;
 using SonarLint.VisualStudio.SLCore.State;
 
@@ -36,6 +37,7 @@ public class SLCoreInstanceFactoryTests
     {
         MefTestHelpers.CheckTypeCanBeImported<SLCoreInstanceFactory, ISLCoreInstanceFactory>(
             MefTestHelpers.CreateExport<ISLCoreRpcFactory>(),
+            MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
             MefTestHelpers.CreateExport<ISLCoreConstantsProvider>(),
             MefTestHelpers.CreateExport<ISLCoreLanguageProvider>(),
             MefTestHelpers.CreateExport<ISLCoreFoldersProvider>(),
@@ -59,6 +61,7 @@ public class SLCoreInstanceFactoryTests
     public void CreateInstance_ReturnsNonNull()
     {
         var islCoreRpcFactory = Substitute.For<ISLCoreRpcFactory>();
+        var slCoreServiceProvider = Substitute.For<ISLCoreServiceProvider>();
         var islCoreConstantsProvider = Substitute.For<ISLCoreConstantsProvider>();
         var slCoreLanguageProvider = Substitute.For<ISLCoreLanguageProvider>();
         var islCoreFoldersProvider = Substitute.For<ISLCoreFoldersProvider>();
@@ -71,7 +74,9 @@ public class SLCoreInstanceFactoryTests
         var slCoreRuleSettingsProvider = Substitute.For<ISLCoreRuleSettingsProvider>();
         var telemetryMigrationProvider = Substitute.For<ISlCoreTelemetryMigrationProvider>();
 
-        var testSubject = new SLCoreInstanceFactory(islCoreRpcFactory,
+        var testSubject = new SLCoreInstanceFactory(
+            islCoreRpcFactory,
+            slCoreServiceProvider,
             islCoreConstantsProvider,
             slCoreLanguageProvider,
             islCoreFoldersProvider,

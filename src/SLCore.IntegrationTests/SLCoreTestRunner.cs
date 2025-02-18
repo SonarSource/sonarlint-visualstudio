@@ -46,19 +46,21 @@ public sealed class SLCoreTestRunner : IDisposable
 {
     private readonly ILogger infrastructureLogger;
     private readonly List<ISLCoreListener> listenersToSetUp = new();
+    private readonly ISLCoreProcessFactory slCoreTestProcessFactory;
+    private readonly string testName;
     private string privateFolder;
     private string storageRoot;
     private string workDir;
     private string userHome;
-    private readonly ISLCoreProcessFactory slCoreTestProcessFactory;
     private SLCoreInstanceHandle slCoreInstanceHandle;
-    internal ISLCoreServiceProvider SLCoreServiceProvider => slCoreInstanceHandle?.SLCoreRpc?.ServiceProvider;
-    private readonly string testName;
     private readonly ISLCoreRuleSettingsProvider slCoreRulesSettingsProvider = Substitute.For<ISLCoreRuleSettingsProvider>();
+    internal readonly SLCoreServiceProvider SLCoreServiceProvider;
 
     public SLCoreTestRunner(ILogger infrastructureLogger, ILogger slCoreStdErrorLogger, string testName)
     {
         this.infrastructureLogger = infrastructureLogger;
+
+        SLCoreServiceProvider = new SLCoreServiceProvider(new NoOpThreadHandler(), infrastructureLogger);
 
         this.testName = testName;
 
@@ -115,11 +117,13 @@ public sealed class SLCoreTestRunner : IDisposable
             noOpActiveSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
             var noOpConfigScopeUpdater = Substitute.For<IConfigScopeUpdater>();
 
+
             slCoreInstanceHandle = new SLCoreInstanceHandle(new SLCoreRpcFactory(slCoreTestProcessFactory, slCoreLocator,
                     new SLCoreJsonRpcFactory(new RpcMethodNameTransformer()),
                     new RpcDebugger(new FileSystem(), Path.Combine(privateFolder, "logrpc.log")),
-                    new SLCoreServiceProvider(new NoOpThreadHandler(), infrastructureLogger),
+                    SLCoreServiceProvider,
                     new SLCoreListenerSetUp(listenersToSetUp)),
+                SLCoreServiceProvider,
                 constantsProvider,
                 sLCoreLanguageProvider,
                 foldersProvider,

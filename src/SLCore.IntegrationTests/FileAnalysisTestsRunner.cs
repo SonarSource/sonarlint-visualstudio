@@ -72,15 +72,16 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         slCoreTestRunner.AddListener(new AnalysisConfigurationProviderListener());
 
         slCoreTestRunner.MockInitialSlCoreRulesSettings(initialRuleConfig ?? []);
+
+        activeConfigScopeTracker = new ActiveConfigScopeTracker(slCoreTestRunner.SLCoreServiceProvider,
+            new AsyncLockFactory(),
+            new NoOpThreadHandler());
     }
 
     public static async Task <FileAnalysisTestsRunner> CreateInstance(string testClassName, Dictionary<string, StandaloneRuleConfigDto> initialRuleConfig = null)
     {
         var runner = new FileAnalysisTestsRunner(testClassName, initialRuleConfig);
         await runner.slCoreTestRunner.Start(runner.rpcLogger);
-        runner.activeConfigScopeTracker = new ActiveConfigScopeTracker(runner.slCoreTestRunner.SLCoreServiceProvider,
-            new AsyncLockFactory(),
-            new NoOpThreadHandler());
         return runner;
     }
 
