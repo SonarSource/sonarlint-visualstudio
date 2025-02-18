@@ -18,10 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Transition
+namespace SonarLint.VisualStudio.ConnectedMode.Transition;
+
+public class MuteIssueException : Exception
 {
-    public interface IMuteIssuesService
+    private MuteIssueException()
     {
-        Task ResolveIssueWithDialogAsync(string issueServerKey);
     }
+
+    public MuteIssueException(string message)
+        : base(message)
+    {
+    }
+
+    public MuteIssueException(Exception ex)
+        : base(ex.Message, ex.InnerException)
+    {
+    }
+
+    public class MuteIssueCancelledException : MuteIssueException;
+
+    public class MuteIssueCommentFailedException : MuteIssueException;
 }

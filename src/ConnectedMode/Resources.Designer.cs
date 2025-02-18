@@ -385,47 +385,47 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error.
+        ///   Looks up a localized string similar to An error occurred while adding the comment on muted issue [issueKey: {0}]: {1}.
         /// </summary>
-        internal static string MuteIssuesService_Error_Caption {
+        internal static string MuteIssue_AddCommentFailed {
             get {
-                return ResourceManager.GetString("MuteIssuesService_Error_Caption", resourceCulture);
+                return ResourceManager.GetString("MuteIssue_AddCommentFailed", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Issue is resolved but an error occured while adding the comment, please refer to the logs for more information..
+        ///   Looks up a localized string similar to An error occurred while muting issue [issueKey: {0}]: {1}.
         /// </summary>
-        internal static string MuteIssuesService_Error_CommentAdditionFailed {
+        internal static string MuteIssue_AnErrorOccurred {
             get {
-                return ResourceManager.GetString("MuteIssuesService_Error_CommentAdditionFailed", resourceCulture);
+                return ResourceManager.GetString("MuteIssue_AnErrorOccurred", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to resolve the issue, please refer to the logs for more information..
+        ///   Looks up a localized string similar to Could not find a matching issue on the server..
         /// </summary>
-        internal static string MuteIssuesService_Error_FailedToTransition {
+        internal static string MuteIssue_IssueNotFound {
             get {
-                return ResourceManager.GetString("MuteIssuesService_Error_FailedToTransition", resourceCulture);
+                return ResourceManager.GetString("MuteIssue_IssueNotFound", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Credentials you have provided do not have enough permission to resolve issues. It requires the permission &apos;Administer Issues&apos;..
+        ///   Looks up a localized string similar to Issue muting is only supported in connected mode.
         /// </summary>
-        internal static string MuteIssuesService_Error_InsufficientPermissions {
+        internal static string MuteIssue_NotInConnectedMode {
             get {
-                return ResourceManager.GetString("MuteIssuesService_Error_InsufficientPermissions", resourceCulture);
+                return ResourceManager.GetString("MuteIssue_NotInConnectedMode", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Transition]Issue muting is only supported in connected mode.
+        ///   Looks up a localized string similar to Issue muting was not permitted [issueKey: {0}]: {1}.
         /// </summary>
-        internal static string MuteWindowService_NotInConnectedMode {
+        internal static string MuteIssue_NotPermitted {
             get {
-                return ResourceManager.GetString("MuteWindowService_NotInConnectedMode", resourceCulture);
+                return ResourceManager.GetString("MuteIssue_NotPermitted", resourceCulture);
             }
         }
         
