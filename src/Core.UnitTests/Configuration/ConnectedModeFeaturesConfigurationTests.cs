@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Configuration;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -36,43 +33,6 @@ public class ConnectedModeFeaturesConfigurationTests
     {
         MefTestHelpers.CheckTypeCanBeImported<ConnectedModeFeaturesConfiguration, IConnectedModeFeaturesConfiguration>(
             MefTestHelpers.CreateExport<ISonarQubeService>());
-    }
-
-    [TestMethod]
-    public void IsAcceptTransitionAvailable_NoServerInfo_ReturnsFalse()
-    {
-        var testSubject = CreateTestSubject(null);
-
-        testSubject.IsAcceptTransitionAvailable().Should().BeFalse();
-    }
-
-    [DataRow(1, 2, 3)]
-    [DataRow(1231923123, 31312, 0)]
-    [DataRow(9, 7, 3)]
-    [DataRow(9, 6, 9)]
-    [DataRow(0, 0, 0)]
-    [DataTestMethod]
-    public void IsAcceptTransitionAvailable_AnySonarCloudVersion_ReturnsTrue(int major, int minor, int build)
-    {
-        var testSubject = CreateTestSubject(new ServerInfo(new Version(major, minor, build), ServerType.SonarCloud));
-
-        testSubject.IsAcceptTransitionAvailable().Should().BeTrue();
-    }
-
-    [DataRow(0, 0, 0, false)]
-    [DataRow(10, 0, 0, false)]
-    [DataRow(10, 5, 0, true)]
-    [DataRow(10, 4, 0, true)]
-    [DataRow(10, 3, 0, false)]
-    [DataRow(12, 0, 0, true)]
-    [DataRow(10, 0, 99, false)]
-    [DataRow(9, 10, 0, false)]
-    [DataTestMethod]
-    public void IsAcceptTransitionAvailable_SonarQube_RespectsMinimumVersion(int major, int minor, int build, bool expectedResult)
-    {
-        var testSubject = CreateTestSubject(new ServerInfo(new Version(major, minor, build), ServerType.SonarQube));
-
-        testSubject.IsAcceptTransitionAvailable().Should().Be(expectedResult);
     }
 
     [TestMethod]
@@ -105,7 +65,11 @@ public class ConnectedModeFeaturesConfigurationTests
     [DataRow(10, 2, 1, true)]
     [DataRow(11111111, 2, 1, true)]
     [DataTestMethod]
-    public void IsNewCctAvailable_SonarQube_RespectsMinimumVersion(int major, int minor, int build, bool expectedResult)
+    public void IsNewCctAvailable_SonarQube_RespectsMinimumVersion(
+        int major,
+        int minor,
+        int build,
+        bool expectedResult)
     {
         var testSubject = CreateTestSubject(new ServerInfo(new Version(major, minor, build), ServerType.SonarQube));
 
@@ -140,7 +104,11 @@ public class ConnectedModeFeaturesConfigurationTests
     [DataRow(9, 6, 9, false)]
     [DataRow(0, 0, 0, false)]
     [DataTestMethod]
-    public void IsHotspotsAnalysisEnabled_SonarQube_RespectsMinimumVersion(int major, int minor, int build, bool expectedResult)
+    public void IsHotspotsAnalysisEnabled_SonarQube_RespectsMinimumVersion(
+        int major,
+        int minor,
+        int build,
+        bool expectedResult)
     {
         var testSubject = CreateTestSubject(new ServerInfo(new Version(major, minor, build), ServerType.SonarQube));
 
