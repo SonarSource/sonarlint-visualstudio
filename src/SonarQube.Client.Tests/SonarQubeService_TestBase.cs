@@ -36,6 +36,7 @@ namespace SonarQube.Client.Tests
     {
         protected Mock<HttpClientHandler> httpClientHandler;
         protected Mock<IHttpClientHandlerFactory> httpClientHandlerFactory;
+        protected Mock<IProxyDetector> proxyDetector;
         protected SonarQubeService service;
         protected TestLogger logger;
 
@@ -60,6 +61,7 @@ namespace SonarQube.Client.Tests
             httpClientHandlerFactory = new Mock<IHttpClientHandlerFactory>();
             httpClientHandlerFactory.Setup(x => x.Create()).Returns(httpClientHandler.Object);
 
+            proxyDetector = new Mock<IProxyDetector>();
             requestFactorySelector = new RequestFactorySelector();
             sseStreamFactory = new Mock<ISSEStreamReaderFactory>();
 
@@ -117,7 +119,7 @@ namespace SonarQube.Client.Tests
 
         protected internal virtual SonarQubeService CreateTestSubject()
         {
-            return new SonarQubeService(httpClientHandlerFactory.Object, UserAgent, logger, requestFactorySelector, sseStreamFactory.Object);
+            return new SonarQubeService(httpClientHandlerFactory.Object, UserAgent, logger, requestFactorySelector, sseStreamFactory.Object, proxyDetector.Object);
         }
 
         private static IUsernameAndPasswordCredentials MockBasicAuthCredentials(string userName, SecureString password)

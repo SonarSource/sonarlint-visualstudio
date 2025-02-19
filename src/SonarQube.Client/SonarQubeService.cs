@@ -38,6 +38,7 @@ namespace SonarQube.Client
         private readonly ILogger logger;
         private readonly IRequestFactorySelector requestFactorySelector;
         private readonly ISSEStreamReaderFactory sseStreamReaderFactory;
+        private readonly IProxyDetector proxyDetector;
 
         private const string MinSqVersionSupportingBearer = "10.4";
         private HttpClient currentHttpClient;
@@ -57,7 +58,7 @@ namespace SonarQube.Client
         public ServerInfo GetServerInfo() => currentServerInfo;
 
         public SonarQubeService(IHttpClientHandlerFactory httpClientHandlerFactory, string userAgent, ILogger logger)
-            : this(httpClientHandlerFactory, userAgent, logger, new RequestFactorySelector(), new SSEStreamReaderFactory(logger))
+            : this(httpClientHandlerFactory, userAgent, logger, new RequestFactorySelector(), new SSEStreamReaderFactory(logger), new ProxyDetector())
         {
         }
 
@@ -66,7 +67,8 @@ namespace SonarQube.Client
             string userAgent,
             ILogger logger,
             IRequestFactorySelector requestFactorySelector,
-            ISSEStreamReaderFactory sseStreamReaderFactory)
+            ISSEStreamReaderFactory sseStreamReaderFactory,
+            IProxyDetector proxyDetector)
         {
             this.httpClientHandlerFactory = httpClientHandlerFactory ?? throw new ArgumentNullException(nameof(httpClientHandlerFactory));
             this.userAgent = userAgent ?? throw new ArgumentNullException(nameof(userAgent));
@@ -74,6 +76,7 @@ namespace SonarQube.Client
 
             this.requestFactorySelector = requestFactorySelector;
             this.sseStreamReaderFactory = sseStreamReaderFactory;
+            this.proxyDetector = proxyDetector;
         }
 
         /// <summary>
@@ -564,9 +567,26 @@ namespace SonarQube.Client
         private HttpClient CreateHttpClient(Uri baseAddress, IConnectionCredentials credentials, bool shouldUseBearer)
         {
             var handler = httpClientHandlerFactory.Create();
+            ConfigureProxy(baseAddress, handler);
             var client = new HttpClient(handler) { BaseAddress = baseAddress, DefaultRequestHeaders = { Authorization = AuthenticationHeaderFactory.Create(credentials, shouldUseBearer), }, };
             client.DefaultRequestHeaders.Add("User-Agent", userAgent);
+
             return client;
+        }
+
+        private void ConfigureProxy(Uri baseAddress, HttpClientHandler httpClientHandler)
+        {
+            var proxyUri = proxyDetector.GetProxyUri(baseAddress);
+            var usesSystemProxy = baseAddress != proxyUri;
+            if (usesSystemProxy)
+            {
+                proxyDetector.ConfigureProxy(httpClientHandler, proxyUri);
+                logger.Debug($"System proxy detected and configured: {proxyUri}");
+            }
+            else
+            {
+                logger.Debug("No system proxy detected");
+            }
         }
     }
 }
