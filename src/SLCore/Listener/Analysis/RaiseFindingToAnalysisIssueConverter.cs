@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
 
         private static Impact GetHighestImpact(List<ImpactDto> impacts)
         {
-            if(impacts is null || impacts.Count == 0)
+            if (impacts is null || impacts.Count == 0)
             {
                 return null;
             }
@@ -79,13 +79,20 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
         }
 
         private static IAnalysisIssueLocation GetAnalysisIssueLocation(string filePath, string message, TextRangeDto textRangeDto) =>
-            new AnalysisIssueLocation(message,
-                filePath,
-                new TextRange(textRangeDto.startLine,
-                    textRangeDto.endLine,
-                    textRangeDto.startLineOffset,
-                    textRangeDto.endLineOffset,
-                    null));
+            new AnalysisIssueLocation(message, filePath, CopyTextRange(textRangeDto));
+
+        private static TextRange CopyTextRange(TextRangeDto textRangeDto)
+        {
+            if (textRangeDto is null)
+            {
+                return null;
+            }
+            return new TextRange(textRangeDto.startLine,
+                textRangeDto.endLine,
+                textRangeDto.startLineOffset,
+                textRangeDto.endLineOffset,
+                null);
+        }
 
         private static IAnalysisIssueFlow[] GetFlows(List<IssueFlowDto> issueFlows)
         {

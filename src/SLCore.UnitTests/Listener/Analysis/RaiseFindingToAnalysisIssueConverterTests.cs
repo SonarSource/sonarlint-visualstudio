@@ -296,7 +296,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
                     2,
                     3,
                     4),
-               [],
+                [],
                 default,
                 default,
                 new MQRModeDetails(default,
@@ -312,6 +312,35 @@ public class RaiseFindingToAnalysisIssueConverterTests
         issue.HighestImpact.Should().NotBeNull();
         issue.HighestImpact.Quality.Should().Be(VisualStudio.Core.Analysis.SoftwareQuality.Security);
         issue.HighestImpact.Severity.Should().Be(expectedSoftwareQualitySeverity);
+    }
+
+    /// <summary>
+    /// File level issues do not have a TextRange
+    /// </summary>
+    [TestMethod]
+    public void GetAnalysisIssues_TextRangeDtoIsNull_ConvertsCorrectly()
+    {
+        var dateTimeOffset = DateTimeOffset.Now;
+        var issue1 = new RaisedHotspotDto(IssueWithFlowsAndQuickFixesUseCase.Issue1Id,
+            "serverKey1",
+            "ruleKey1",
+            "PrimaryMessage1",
+            dateTimeOffset,
+            true,
+            false,
+            textRange: null,
+            null,
+            null,
+            "context1",
+            VulnerabilityProbability.HIGH,
+            HotspotStatus.FIXED,
+            new StandardModeDetails(IssueSeverity.MAJOR, RuleType.CODE_SMELL));
+
+        var analysisIssues = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedFindingDto> { issue1 }).ToList();
+
+        var issue = analysisIssues.SingleOrDefault() as AnalysisIssue;
+        issue.Should().NotBeNull();
+        issue.PrimaryLocation.TextRange.Should().BeNull();
     }
 
     private static class UnflattenedFlowsUseCase
