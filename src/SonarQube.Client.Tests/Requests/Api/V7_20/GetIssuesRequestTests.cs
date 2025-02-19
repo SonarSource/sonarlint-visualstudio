@@ -18,13 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarQube.Client.Api.V7_20;
 using SonarQube.Client.Tests.Infra;
@@ -44,11 +38,8 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
 
             var testSubject = CreateTestSubject(projectKey, statusesToRequest);
 
-            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
-            var httpClient = new HttpClient(handlerMock.Object)
-            {
-                BaseAddress = new Uri(ValidBaseAddress)
-            };
+            var handlerMock = new Mock<HttpClientHandler>(MockBehavior.Strict);
+            var httpClient = new HttpClient(handlerMock.Object) { BaseAddress = new Uri(ValidBaseAddress) };
 
             // the contents of the json below were left untouched during the cleanup of the taint related methods & requests of SonarQube.Client
             // because they still represent a valid issue format (with flows and secondary locations),
@@ -135,11 +126,8 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
 
             var testSubject = CreateTestSubject(projectKey, statusesToRequest);
 
-            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
-            var httpClient = new HttpClient(handlerMock.Object)
-            {
-                BaseAddress = new Uri(ValidBaseAddress)
-            };
+            var handlerMock = new Mock<HttpClientHandler>(MockBehavior.Strict);
+            var httpClient = new HttpClient(handlerMock.Object) { BaseAddress = new Uri(ValidBaseAddress) };
 
             // the contents of the json below were left untouched during the cleanup of the taint related methods & requests of SonarQube.Client
             // because they still represent a valid issue format (with flows and secondary locations),
@@ -326,11 +314,8 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
         {
             var testSubject = CreateTestSubject("any", "any", emptyBranch);
 
-            var handlerMock = new Mock<HttpMessageHandler>();
-            var httpClient = new HttpClient(handlerMock.Object)
-            {
-                BaseAddress = new Uri(ValidBaseAddress)
-            };
+            var handlerMock = new Mock<HttpClientHandler>();
+            var httpClient = new HttpClient(handlerMock.Object) { BaseAddress = new Uri(ValidBaseAddress) };
 
             SetupHttpRequest(handlerMock, EmptyGetIssuesResponse);
             _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
@@ -347,11 +332,8 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
 
             var testSubject = CreateTestSubject("any", "any", requestedBranch);
 
-            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
-            var httpClient = new HttpClient(handlerMock.Object)
-            {
-                BaseAddress = new Uri(ValidBaseAddress)
-            };
+            var handlerMock = new Mock<HttpClientHandler>(MockBehavior.Strict);
+            var httpClient = new HttpClient(handlerMock.Object) { BaseAddress = new Uri(ValidBaseAddress) };
 
             SetupHttpRequest(handlerMock, EmptyGetIssuesResponse);
 
@@ -367,11 +349,8 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
         {
             var testSubject = CreateTestSubject("any", "any", issueKeys: null);
 
-            var handlerMock = new Mock<HttpMessageHandler>();
-            var httpClient = new HttpClient(handlerMock.Object)
-            {
-                BaseAddress = new Uri(ValidBaseAddress)
-            };
+            var handlerMock = new Mock<HttpClientHandler>();
+            var httpClient = new HttpClient(handlerMock.Object) { BaseAddress = new Uri(ValidBaseAddress) };
 
             SetupHttpRequest(handlerMock, EmptyGetIssuesResponse);
             _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
@@ -386,11 +365,8 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
             var issueKeys = new[] { "issue1", "issue2" };
             var testSubject = CreateTestSubject("any", "any", issueKeys: issueKeys);
 
-            var handlerMock = new Mock<HttpMessageHandler>();
-            var httpClient = new HttpClient(handlerMock.Object)
-            {
-                BaseAddress = new Uri(ValidBaseAddress)
-            };
+            var handlerMock = new Mock<HttpClientHandler>();
+            var httpClient = new HttpClient(handlerMock.Object) { BaseAddress = new Uri(ValidBaseAddress) };
 
             SetupHttpRequest(handlerMock, EmptyGetIssuesResponse);
             _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
@@ -404,11 +380,8 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
         {
             var testSubject = CreateTestSubject("any", "any", ruleId: null);
 
-            var handlerMock = new Mock<HttpMessageHandler>();
-            var httpClient = new HttpClient(handlerMock.Object)
-            {
-                BaseAddress = new Uri(ValidBaseAddress)
-            };
+            var handlerMock = new Mock<HttpClientHandler>();
+            var httpClient = new HttpClient(handlerMock.Object) { BaseAddress = new Uri(ValidBaseAddress) };
 
             SetupHttpRequest(handlerMock, EmptyGetIssuesResponse);
             _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
@@ -422,11 +395,8 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
         {
             var testSubject = CreateTestSubject("any", "any", ruleId: "rule1");
 
-            var handlerMock = new Mock<HttpMessageHandler>();
-            var httpClient = new HttpClient(handlerMock.Object)
-            {
-                BaseAddress = new Uri(ValidBaseAddress)
-            };
+            var handlerMock = new Mock<HttpClientHandler>();
+            var httpClient = new HttpClient(handlerMock.Object) { BaseAddress = new Uri(ValidBaseAddress) };
 
             SetupHttpRequest(handlerMock, EmptyGetIssuesResponse);
             _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
@@ -440,11 +410,8 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
         {
             var testSubject = CreateTestSubject("any", "any", componentKey: null);
 
-            var handlerMock = new Mock<HttpMessageHandler>();
-            var httpClient = new HttpClient(handlerMock.Object)
-            {
-                BaseAddress = new Uri(ValidBaseAddress)
-            };
+            var handlerMock = new Mock<HttpClientHandler>();
+            var httpClient = new HttpClient(handlerMock.Object) { BaseAddress = new Uri(ValidBaseAddress) };
 
             SetupHttpRequest(handlerMock, EmptyGetIssuesResponse);
             _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
@@ -458,11 +425,8 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
         {
             var testSubject = CreateTestSubject("any", "any", componentKey: "project1");
 
-            var handlerMock = new Mock<HttpMessageHandler>();
-            var httpClient = new HttpClient(handlerMock.Object)
-            {
-                BaseAddress = new Uri(ValidBaseAddress)
-            };
+            var handlerMock = new Mock<HttpClientHandler>();
+            var httpClient = new HttpClient(handlerMock.Object) { BaseAddress = new Uri(ValidBaseAddress) };
 
             SetupHttpRequest(handlerMock, EmptyGetIssuesResponse);
             _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
@@ -471,7 +435,13 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
             actualQueryString.Should().NotContain("component");
         }
 
-        private static GetIssuesRequest CreateTestSubject(string projectKey, string statusesToRequest, string branch = null, string[] issueKeys = null, string ruleId = null, string componentKey = null)
+        private static GetIssuesRequest CreateTestSubject(
+            string projectKey,
+            string statusesToRequest,
+            string branch = null,
+            string[] issueKeys = null,
+            string ruleId = null,
+            string componentKey = null)
         {
             var testSubject = new GetIssuesRequest
             {
@@ -486,7 +456,7 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
             return testSubject;
         }
 
-        private static string GetSingleActualQueryString(Mock<HttpMessageHandler> handlerMock)
+        private static string GetSingleActualQueryString(Mock<HttpClientHandler> handlerMock)
         {
             handlerMock.Invocations.Count.Should().Be(1);
             var requestMessage = (HttpRequestMessage)handlerMock.Invocations[0].Arguments[0];

@@ -18,13 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Net;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Tests
@@ -142,7 +137,7 @@ namespace SonarQube.Client.Tests
             var result = await service.GetQualityProfileAsync("my_project", "my_organization", SonarQubeLanguage.CSharp,
                 CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().NotBeNull();
             result.IsDefault.Should().BeTrue();
@@ -208,7 +203,7 @@ namespace SonarQube.Client.Tests
             var result = await service.GetQualityProfileAsync("my_project", "my_organization", SonarQubeLanguage.CSharp,
                 CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().NotBeNull();
             result.IsDefault.Should().BeTrue();
@@ -232,7 +227,7 @@ namespace SonarQube.Client.Tests
             func.Should().ThrowExactly<HttpRequestException>().And
                 .Message.Should().Be("Response status code does not indicate success: 500 (Internal Server Error).");
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
         }
 
         [TestMethod]
@@ -345,7 +340,7 @@ namespace SonarQube.Client.Tests
             var result = await service.GetQualityProfileAsync("my_project", "my_organization", SonarQubeLanguage.CSharp,
                 CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().NotBeNull();
             result.IsDefault.Should().BeTrue();
@@ -415,7 +410,7 @@ namespace SonarQube.Client.Tests
             var result = await service.GetQualityProfileAsync("my_project", "my_organization", SonarQubeLanguage.CSharp,
                 CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().NotBeNull();
             result.IsDefault.Should().BeTrue();
@@ -467,7 +462,7 @@ namespace SonarQube.Client.Tests
             action.Should().ThrowExactly<InvalidOperationException>().And
                 .Message.Should().Be("The SonarC# plugin is not installed on the connected SonarQube.");
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
         }
 
         [TestMethod]
@@ -512,7 +507,7 @@ namespace SonarQube.Client.Tests
             action.Should().ThrowExactly<InvalidOperationException>().And
                 .Message.Should().Be("The SonarC# plugin is not installed on the connected SonarQube.");
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
         }
 
         [TestMethod]
@@ -535,7 +530,7 @@ namespace SonarQube.Client.Tests
             func.Should().ThrowExactly<InvalidOperationException>().And
                 .Message.Should().Be("The SonarVB plugin is not installed on the connected SonarQube.");
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
         }
 
         [TestMethod]

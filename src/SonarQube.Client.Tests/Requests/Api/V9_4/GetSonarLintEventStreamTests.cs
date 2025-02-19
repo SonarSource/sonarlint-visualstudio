@@ -41,7 +41,7 @@ namespace SonarQube.Client.Tests.Requests.Api.V9_4
         public async Task InvokeAsync_ReturnsCorrectStream()
         {
             using var testedStream = new MemoryStream(Encoding.UTF8.GetBytes("hello this is a test"));
-            var messageHandler = new Mock<HttpMessageHandler>();
+            var messageHandler = new Mock<HttpClientHandler>();
             using var httpClient = new HttpClient(messageHandler.Object) { BaseAddress = new Uri("http://localhost") };
 
             MocksHelper.SetupHttpRequest(

@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Client.Helpers;
 using SonarQube.Client.Logging;
 using SonarQube.Client.Requests;
 
@@ -46,13 +40,17 @@ namespace SonarQube.Client.Tests
 
         protected internal override SonarQubeService CreateTestSubject()
         {
-            return new DisconnectingService(messageHandler.Object, UserAgent, logger, requestFactorySelector);
+            return new DisconnectingService(httpClientHandlerFactory.Object, UserAgent, logger, requestFactorySelector);
         }
 
         internal class DisconnectingService : SonarQubeService
         {
-            internal DisconnectingService(HttpMessageHandler messageHandler, string userAgent, ILogger logger, IRequestFactorySelector requestFactorySelector)
-                : base(messageHandler, userAgent, logger, requestFactorySelector, null)
+            internal DisconnectingService(
+                IHttpClientHandlerFactory httpClientHandlerFactory,
+                string userAgent,
+                ILogger logger,
+                IRequestFactorySelector requestFactorySelector)
+                : base(httpClientHandlerFactory, userAgent, logger, requestFactorySelector, null)
             {
             }
 

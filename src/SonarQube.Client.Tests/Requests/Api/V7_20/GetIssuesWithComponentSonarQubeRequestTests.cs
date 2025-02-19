@@ -39,7 +39,7 @@ public class GetIssuesWithComponentSonarQubeRequestTests
     {
         var testSubject = CreateTestSubject("any", "any", componentKey: null);
 
-        var handlerMock = new Mock<HttpMessageHandler>();
+        var handlerMock = new Mock<HttpClientHandler>();
         var httpClient = new HttpClient(handlerMock.Object)
         {
             BaseAddress = new Uri(ValidBaseAddress)
@@ -57,7 +57,7 @@ public class GetIssuesWithComponentSonarQubeRequestTests
     {
         var testSubject = CreateTestSubject("any", "any", componentKey: "project1");
 
-        var handlerMock = new Mock<HttpMessageHandler>();
+        var handlerMock = new Mock<HttpClientHandler>();
         var httpClient = new HttpClient(handlerMock.Object)
         {
             BaseAddress = new Uri(ValidBaseAddress)
@@ -83,7 +83,7 @@ public class GetIssuesWithComponentSonarQubeRequestTests
         return testSubject;
     }
 
-    private static string GetSingleActualQueryString(Mock<HttpMessageHandler> handlerMock)
+    private static string GetSingleActualQueryString(Mock<HttpClientHandler> handlerMock)
     {
         handlerMock.Invocations.Count.Should().Be(1);
         var requestMessage = (HttpRequestMessage)handlerMock.Invocations[0].Arguments[0];

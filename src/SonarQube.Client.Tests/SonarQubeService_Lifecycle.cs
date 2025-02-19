@@ -134,7 +134,7 @@ namespace SonarQube.Client.Tests
 
             // Arrange
             var disposed = false;
-            messageHandler.Protected().Setup("Dispose", ItExpr.IsAny<bool>()).Callback(() => disposed = true);
+            httpClientHandler.Protected().Setup("Dispose", ItExpr.IsAny<bool>()).Callback(() => disposed = true);
 
             await ConnectToSonarQube();
 
@@ -145,24 +145,6 @@ namespace SonarQube.Client.Tests
             service.IsConnected.Should().BeFalse();
             service.GetServerInfo().Should().BeNull();
             disposed.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public async Task Dispose_Does_Dispose_MessageHandler()
-        {
-            // Arrange
-            var disposed = false;
-            messageHandler.Protected().Setup("Dispose", ItExpr.IsAny<bool>()).Callback(() => disposed = true);
-
-            await ConnectToSonarQube();
-
-            // Act
-            service.Dispose();
-
-            // Assert
-            service.IsConnected.Should().BeFalse();
-            service.GetServerInfo().Should().BeNull();
-            disposed.Should().BeTrue();
         }
     }
 }

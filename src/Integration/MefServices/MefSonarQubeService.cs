@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices;
 [method: ImportingConstructor]
 public sealed class MefSonarQubeService(IUserAgentProvider userAgentProvider, ILogger logger, IThreadHandling threadHandling)
     : SonarQubeService(
-        new HttpClientHandler(),
+        new HttpClientHandlerFactory(),
         userAgent: userAgentProvider.UserAgent,
         logger: new LoggerAdapter(logger))
 {
@@ -45,7 +45,7 @@ public sealed class MefSonarQubeService(IUserAgentProvider userAgentProvider, IL
     {
         CodeMarkers.Instance.WebClientCallStart(typeof(TRequest).Name);
 
-        var result = await threadHandling.RunOnBackgroundThread( () => base.InvokeUncheckedRequestAsync<TRequest, TResponse>(configure, httpClient, token));
+        var result = await threadHandling.RunOnBackgroundThread(() => base.InvokeUncheckedRequestAsync<TRequest, TResponse>(configure, httpClient, token));
 
         CodeMarkers.Instance.WebClientCallStop(typeof(TRequest).Name);
 

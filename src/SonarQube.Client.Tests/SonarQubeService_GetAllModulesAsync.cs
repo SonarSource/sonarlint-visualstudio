@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Tests
@@ -66,7 +60,7 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetAllModulesAsync("myProject", CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().HaveCount(3);
 
@@ -111,7 +105,7 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetAllModulesAsync("myProject", CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().HaveCount(2);
 
@@ -146,7 +140,7 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetAllModulesAsync("myProject", CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().ContainSingle();
 
@@ -171,7 +165,7 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetAllModulesAsync("myProject", CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().BeEmpty();
         }
@@ -243,7 +237,7 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetAllModulesAsync("myProject", CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().HaveCount(4);
 

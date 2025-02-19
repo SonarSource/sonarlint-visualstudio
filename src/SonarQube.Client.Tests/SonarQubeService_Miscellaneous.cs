@@ -18,15 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarQube.Client.Api;
-using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 using SonarQube.Client.Requests;
 using SonarQube.Client.Tests.Infra;
@@ -44,12 +38,12 @@ namespace SonarQube.Client.Tests
             var logger = new TestLogger();
 
             action = () => new SonarQubeService(null, string.Empty, logger);
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("messageHandler");
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("httpClientHandlerFactory");
 
-            action = () => new SonarQubeService(new Mock<HttpClientHandler>().Object, null, logger);
+            action = () => new SonarQubeService(new Mock<IHttpClientHandlerFactory>().Object, null, logger);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userAgent");
 
-            action = () => new SonarQubeService(new Mock<HttpClientHandler>().Object, string.Empty, null);
+            action = () => new SonarQubeService(new Mock<IHttpClientHandlerFactory>().Object, string.Empty, null);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
@@ -82,7 +76,10 @@ namespace SonarQube.Client.Tests
             var selectorMock = new Mock<IRequestFactorySelector>();
             selectorMock.Setup(x => x.Select(isSonarCloud, logger)).Returns(requestFactoryMock.Object);
 
-            var testSubject = new SonarQubeService(Mock.Of<HttpMessageHandler>(), "user-agent", logger, selectorMock.Object, null);
+            var messageHandlerFactory = new Mock<IHttpClientHandlerFactory>();
+            messageHandlerFactory.Setup(x => x.Create()).Returns(Mock.Of<HttpClientHandler>());
+
+            var testSubject = new SonarQubeService(messageHandlerFactory.Object, "user-agent", logger, selectorMock.Object, null);
             await testSubject.ConnectAsync(connectionInfo, CancellationToken.None);
 
             selectorMock.Verify(x => x.Select(isSonarCloud, logger), Times.Once);
@@ -109,7 +106,10 @@ namespace SonarQube.Client.Tests
             selectorMock.Setup(x => x.Select(false /* isSonarCloud */, logger)).Returns(qubeFactoryMock.Object);
             selectorMock.Setup(x => x.Select(true /* isSonarCloud */, logger)).Returns(cloudFactoryMock.Object);
 
-            var testSubject = new SonarQubeService(Mock.Of<HttpMessageHandler>(), "user-agent", logger, selectorMock.Object, null);
+            var messageHandlerFactory = new Mock<IHttpClientHandlerFactory>();
+            messageHandlerFactory.Setup(x => x.Create()).Returns(Mock.Of<HttpClientHandler>());
+
+            var testSubject = new SonarQubeService(messageHandlerFactory.Object, "user-agent", logger, selectorMock.Object, null);
 
             // 1. Connect to SonarQube
             await testSubject.ConnectAsync(sonarQubeConnectionInfo, CancellationToken.None);

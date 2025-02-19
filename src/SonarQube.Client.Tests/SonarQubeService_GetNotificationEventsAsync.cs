@@ -18,14 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Tests
@@ -61,16 +54,12 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetNotificationEventsAsync("my_project", now, CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().HaveCount(2);
             result.Select(x => x.Category).Should().BeEquivalentTo(new[] { "QUALITY_GATE", "NEW_ISSUES" });
             result.Select(x => x.Date).Should().BeEquivalentTo(
-                new[]
-                {
-                    DateTimeOffset.Parse("2017-11-15T17:07:34+0100"),
-                    DateTimeOffset.Parse("2017-12-20T17:07:34+0100")
-                });
+                new[] { DateTimeOffset.Parse("2017-11-15T17:07:34+0100"), DateTimeOffset.Parse("2017-12-20T17:07:34+0100") });
             result.Select(x => x.Link).Should().BeEquivalentTo(
                 new[]
                 {
@@ -78,11 +67,7 @@ namespace SonarQube.Client.Tests
                     new Uri("https://sonarcloud.io/project/issues?id=my_project&createdAfter=2017-03-01T00%3A00%3A00%2B0100&assignees=me%40github&resolved=false")
                 });
             result.Select(x => x.Message).Should().BeEquivalentTo(
-                new[]
-                {
-                    "Quality Gate of project 'My Project' is now Red (was Orange)",
-                    "You have 15 new issues on project 'My Project'"
-                });
+                new[] { "Quality Gate of project 'My Project' is now Red (was Orange)", "You have 15 new issues on project 'My Project'" });
         }
 
         [TestMethod]
@@ -99,13 +84,10 @@ namespace SonarQube.Client.Tests
 
             result.Should().BeNull();
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             logger.DebugMessages.Should().Contain(
-                new[]
-                {
-                    "Notifications not enabled on SonarQube. This feature requires Developer Edition or higher.",
-                });
+                new[] { "Notifications not enabled on SonarQube. This feature requires Developer Edition or higher.", });
         }
 
         [TestMethod]
@@ -122,13 +104,10 @@ namespace SonarQube.Client.Tests
 
             result.Should().BeEmpty();
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             logger.DebugMessages.Should().Contain(
-                new[]
-                {
-                    $"Unexpected HttpStatusCode {HttpStatusCode.InternalServerError}.",
-                });
+                new[] { $"Unexpected HttpStatusCode {HttpStatusCode.InternalServerError}.", });
         }
 
         [TestMethod]

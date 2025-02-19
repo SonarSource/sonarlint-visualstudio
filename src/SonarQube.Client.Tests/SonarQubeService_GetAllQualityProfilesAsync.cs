@@ -18,15 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Tests;
@@ -108,11 +101,10 @@ public class SonarQubeService_GetAllQualityProfilesAsync : SonarQubeService_Test
             "my_organization",
             CancellationToken.None);
 
-        messageHandler.VerifyAll();
+        httpClientHandler.VerifyAll();
         result.Select(x => x.Key).Should().BeEquivalentTo(
-            new []{"AU-TpxcA-iU5OvuD2FL3", "AU-TpxcA-iU5OvuD2FL1", "AU-TpxcB-iU5OvuD2FL7"});
-        result.Select(x => x.TimeStamp).Should().BeEquivalentTo(new[]
-            { "2016-12-22T19:10:03+0100", "2016-12-20T19:10:03+0100", "2014-12-22T19:10:03+0100" }
+            new[] { "AU-TpxcA-iU5OvuD2FL3", "AU-TpxcA-iU5OvuD2FL1", "AU-TpxcB-iU5OvuD2FL7" });
+        result.Select(x => x.TimeStamp).Should().BeEquivalentTo(new[] { "2016-12-22T19:10:03+0100", "2016-12-20T19:10:03+0100", "2014-12-22T19:10:03+0100" }
             .Select(DateTime.Parse));
     }
 
@@ -155,7 +147,7 @@ public class SonarQubeService_GetAllQualityProfilesAsync : SonarQubeService_Test
                 CancellationToken.None))
             .Single();
 
-        messageHandler.VerifyAll();
+        httpClientHandler.VerifyAll();
 
         result.Should().NotBeNull();
         result.IsDefault.Should().BeTrue();
@@ -179,7 +171,7 @@ public class SonarQubeService_GetAllQualityProfilesAsync : SonarQubeService_Test
         func.Should().ThrowExactly<HttpRequestException>().And
             .Message.Should().Be("Response status code does not indicate success: 500 (Internal Server Error).");
 
-        messageHandler.VerifyAll();
+        httpClientHandler.VerifyAll();
     }
 
     [TestMethod]
@@ -256,12 +248,12 @@ public class SonarQubeService_GetAllQualityProfilesAsync : SonarQubeService_Test
             "my_organization",
             CancellationToken.None);
 
-        messageHandler.VerifyAll();
+        httpClientHandler.VerifyAll();
         result.Select(x => x.Key).Should().BeEquivalentTo(
-            new []{"AU-TpxcA-iU5OvuD2FL3", "AU-TpxcA-iU5OvuD2FL1", "AU-TpxcB-iU5OvuD2FL7"});
+            new[] { "AU-TpxcA-iU5OvuD2FL3", "AU-TpxcA-iU5OvuD2FL1", "AU-TpxcB-iU5OvuD2FL7" });
         result.Select(x => x.TimeStamp).Should().BeEquivalentTo(
             new[] { "2016-12-22T19:10:03+0100", "2016-12-20T19:10:03+0100", "2014-12-22T19:10:03+0100" }
-            .Select(DateTime.Parse));
+                .Select(DateTime.Parse));
 
         // Regression test for #1450 - shouldn't get a warning about max items retrieved
         // https://github.com/SonarSource/sonarlint-visualstudio/issues/1450

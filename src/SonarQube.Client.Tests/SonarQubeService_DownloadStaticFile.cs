@@ -18,14 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarQube.Client.Tests
 {
@@ -41,7 +36,7 @@ namespace SonarQube.Client.Tests
 
             var result = await service.DownloadStaticFileAsync("csharp", "file1.txt", CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().NotBeNull();
 
@@ -64,7 +59,7 @@ namespace SonarQube.Client.Tests
             func.Should().ThrowExactly<HttpRequestException>().And
                 .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
         }
 
         [TestMethod]

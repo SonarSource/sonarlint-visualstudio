@@ -38,14 +38,14 @@ namespace SonarQube.Client.Tests
     [TestClass]
     public class SonarQubeService_PagedRequestTests
     {
-        private Mock<HttpMessageHandler> messageHandler;
+        private Mock<HttpClientHandler> messageHandler;
         private TestLogger logger;
         private HttpClient client;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            messageHandler = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            messageHandler = new Mock<HttpClientHandler>(MockBehavior.Strict);
             client = new HttpClient(messageHandler.Object)
             {
                 BaseAddress = new Uri(ValidBaseAddress)

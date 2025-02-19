@@ -18,13 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Tests
@@ -126,7 +119,7 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetRulesAsync(true, "quality-profile-1", CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().HaveCount(3);
             result.Select(r => r.Key).Should().ContainInOrder(new[] { "S2225", "S4524", "S2342" });
@@ -241,7 +234,7 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetRulesAsync(true, "quality-profile-1", CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().HaveCount(3);
             result.Select(r => r.Key).Should().ContainInOrder(new[] { "S2225", "S4524", "S2342" });
@@ -356,7 +349,7 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetRulesAsync(true, "quality-profile-1", CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().HaveCount(3);
             result.Select(r => r.Key).Should().ContainInOrder(new[] { "S2225", "S4524", "S2342" });
@@ -425,7 +418,7 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetRulesAsync(false, "quality-profile-1", CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().HaveCount(3);
             result.Select(r => r.Key).Should().ContainInOrder(new[] { "S2225", "S4524", "S2342" });
