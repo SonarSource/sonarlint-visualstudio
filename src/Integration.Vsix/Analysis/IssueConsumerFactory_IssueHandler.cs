@@ -19,7 +19,6 @@
  */
 
 using Microsoft.VisualStudio.Text;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 
@@ -44,7 +43,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             private readonly ITextDocument textDocument;
             private readonly string projectName;
             private readonly Guid projectGuid;
-            private readonly ISuppressedIssueMatcher suppressedIssueMatcher;
             private readonly SnapshotChangedHandler onSnapshotChanged;
             private readonly ILocalHotspotsStoreUpdater localHotspotsStore;
 
@@ -54,10 +52,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 ITextDocument textDocument,
                 string projectName,
                 Guid projectGuid,
-                ISuppressedIssueMatcher suppressedIssueMatcher,
                 SnapshotChangedHandler onSnapshotChanged,
                 ILocalHotspotsStoreUpdater localHotspotsStore)
-                : this(textDocument, projectName, projectGuid, suppressedIssueMatcher, onSnapshotChanged, localHotspotsStore, DoTranslateSpans)
+                : this(textDocument, projectName, projectGuid, onSnapshotChanged, localHotspotsStore, DoTranslateSpans)
             {
             }
 
@@ -65,7 +62,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 ITextDocument textDocument,
                 string projectName,
                 Guid projectGuid,
-                ISuppressedIssueMatcher suppressedIssueMatcher,
                 SnapshotChangedHandler onSnapshotChanged,
                 ILocalHotspotsStoreUpdater localHotspotsStore,
                 TranslateSpans translateSpans)
@@ -73,7 +69,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 this.textDocument = textDocument;
                 this.projectName = projectName;
                 this.projectGuid = projectGuid;
-                this.suppressedIssueMatcher = suppressedIssueMatcher;
                 this.onSnapshotChanged = onSnapshotChanged;
                 this.localHotspotsStore = localHotspotsStore;
 
