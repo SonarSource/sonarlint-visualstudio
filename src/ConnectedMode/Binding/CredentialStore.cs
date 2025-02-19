@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using Microsoft.Alm.Authentication;
@@ -71,8 +70,11 @@ namespace SonarLint.VisualStudio.Integration
             }
             return storedCreds;
         }
+
         public void WriteCredentials(TargetUri targetUri, Credential credentials)
         {
+            LogWindowsIdentity();
+
             var credsToStore = credentials;
 
             if (credentials != null && string.IsNullOrEmpty(credentials.Password))
@@ -81,6 +83,27 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             LogWin32Exception("write", () => store.WriteCredentials(targetUri, credsToStore));
+        }
+
+        private void LogWindowsIdentity()
+        {
+            var customLogger = logger.ForContext("IDENTITY");
+            try
+            {
+                var windowsIdentity = System.Security.Principal.WindowsIdentity.GetCurrent();
+
+                customLogger.WriteLine("Name: " + windowsIdentity.Name);
+                customLogger.WriteLine("AuthType: " + windowsIdentity.AuthenticationType);
+                customLogger.WriteLine("IsAuthenticated: " + windowsIdentity.IsAuthenticated.ToString());
+                customLogger.WriteLine("IsAnonymous: " + windowsIdentity.IsAnonymous.ToString());
+                customLogger.WriteLine("IsGuest: " + windowsIdentity.IsGuest.ToString());
+                customLogger.WriteLine("IsSystem: " + windowsIdentity.IsSystem.ToString());
+                customLogger.WriteLine("ImpersonationLevel: " + windowsIdentity.ImpersonationLevel.ToString());
+            }
+            catch (Exception e)
+            {
+                customLogger.WriteLine(e.ToString());
+            }
         }
 
         private void LogWin32Exception(string actionName, Action action)
