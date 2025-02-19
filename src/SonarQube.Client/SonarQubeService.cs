@@ -57,8 +57,8 @@ namespace SonarQube.Client
 
         public ServerInfo GetServerInfo() => currentServerInfo;
 
-        public SonarQubeService(IHttpClientHandlerFactory httpClientHandlerFactory, string userAgent, ILogger logger)
-            : this(httpClientHandlerFactory, userAgent, logger, new RequestFactorySelector(), new SSEStreamReaderFactory(logger), new ProxyDetector())
+        public SonarQubeService(string userAgent, ILogger logger)
+            : this(new HttpClientHandlerFactory(), userAgent, logger, new RequestFactorySelector(), new SSEStreamReaderFactory(logger), new ProxyDetector())
         {
         }
 

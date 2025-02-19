@@ -37,13 +37,10 @@ namespace SonarQube.Client.Tests
 
             var logger = new TestLogger();
 
-            action = () => new SonarQubeService(null, string.Empty, logger);
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("httpClientHandlerFactory");
-
-            action = () => new SonarQubeService(new Mock<IHttpClientHandlerFactory>().Object, null, logger);
+            action = () => new SonarQubeService(null, logger);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userAgent");
 
-            action = () => new SonarQubeService(new Mock<IHttpClientHandlerFactory>().Object, string.Empty, null);
+            action = () => new SonarQubeService(string.Empty, null);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 

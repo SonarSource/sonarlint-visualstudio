@@ -37,7 +37,6 @@ namespace SonarLint.VisualStudio.Integration.MefServices;
 [method: ImportingConstructor]
 public sealed class MefSonarQubeService(IUserAgentProvider userAgentProvider, ILogger logger, IThreadHandling threadHandling)
     : SonarQubeService(
-        new HttpClientHandlerFactory(),
         userAgent: userAgentProvider.UserAgent,
         logger: new LoggerAdapter(logger))
 {
