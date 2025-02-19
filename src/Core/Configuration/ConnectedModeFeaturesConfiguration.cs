@@ -47,7 +47,6 @@ namespace SonarLint.VisualStudio.Core.Configuration
     {
         private readonly Version minimalSonarQubeVersionForHotspots = new Version(9, 7);
         private readonly Version minimalSonarQubeVersionForNewTaxonomy = new Version(10, 2);
-        private readonly Version minimalSonarQubeVersionForAccept = new Version(10, 4);
         private readonly ISonarQubeService sonarQubeService;
 
         [ImportingConstructor]
