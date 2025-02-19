@@ -23,6 +23,8 @@ using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.Core.Synchronization;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
@@ -42,27 +44,29 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
 public sealed class SLCoreTestRunner : IDisposable
 {
-    private readonly ILogger logger;
+    private readonly ILogger infrastructureLogger;
     private readonly List<ISLCoreListener> listenersToSetUp = new();
+    private readonly ISLCoreProcessFactory slCoreTestProcessFactory;
+    private readonly string testName;
     private string privateFolder;
     private string storageRoot;
     private string workDir;
     private string userHome;
-    private readonly ISLCoreProcessFactory slCoreTestProcessFactory;
     private SLCoreInstanceHandle slCoreInstanceHandle;
-    internal ISLCoreServiceProvider SLCoreServiceProvider => slCoreInstanceHandle?.SLCoreRpc?.ServiceProvider;
-    private readonly string testName;
     private readonly ISLCoreRuleSettingsProvider slCoreRulesSettingsProvider = Substitute.For<ISLCoreRuleSettingsProvider>();
+    internal readonly SLCoreServiceProvider SLCoreServiceProvider;
 
-    public SLCoreTestRunner(ILogger logger, ILogger slCoreErrorLogger, string testName)
+    public SLCoreTestRunner(ILogger infrastructureLogger, ILogger slCoreStdErrorLogger, string testName)
     {
-        this.logger = logger;
+        this.infrastructureLogger = infrastructureLogger;
+
+        SLCoreServiceProvider = new SLCoreServiceProvider(new NoOpThreadHandler(), infrastructureLogger);
 
         this.testName = testName;
 
         SetUpLocalFolders();
 
-        slCoreTestProcessFactory = new SLCoreProcessFactory(new SLCoreErrorLoggerFactory(slCoreErrorLogger, new NoOpThreadHandler()));
+        slCoreTestProcessFactory = new SLCoreProcessFactory(new SLCoreErrorLoggerFactory(slCoreStdErrorLogger, new NoOpThreadHandler()));
     }
 
     public void AddListener(ISLCoreListener listener)
@@ -79,7 +83,7 @@ public sealed class SLCoreTestRunner : IDisposable
         slCoreRulesSettingsProvider.GetSLCoreRuleSettings().Returns(rulesSettings ?? []);
     }
 
-    public void Start()
+    public async Task Start(TestLogger testLogger)
     {
         try
         {
@@ -87,7 +91,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
             var rootLocator = Substitute.For<IVsixRootLocator>();
             rootLocator.GetVsixRoot().Returns(DependencyLocator.SloopBasePath);
-            var slCoreLocator = new SLCoreLocator(rootLocator, string.Empty, Substitute.For<ISonarLintSettings>(), logger, Substitute.For<IFileSystem>());
+            var slCoreLocator = new SLCoreLocator(rootLocator, string.Empty, Substitute.For<ISonarLintSettings>(), infrastructureLogger, Substitute.For<IFileSystem>());
 
             var sLCoreLanguageProvider = Substitute.For<ISLCoreLanguageProvider>();
             var constantsProvider = Substitute.For<ISLCoreConstantsProvider>();
@@ -113,11 +117,13 @@ public sealed class SLCoreTestRunner : IDisposable
             noOpActiveSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
             var noOpConfigScopeUpdater = Substitute.For<IConfigScopeUpdater>();
 
+
             slCoreInstanceHandle = new SLCoreInstanceHandle(new SLCoreRpcFactory(slCoreTestProcessFactory, slCoreLocator,
                     new SLCoreJsonRpcFactory(new RpcMethodNameTransformer()),
                     new RpcDebugger(new FileSystem(), Path.Combine(privateFolder, "logrpc.log")),
-                    new SLCoreServiceProvider(new NoOpThreadHandler(), logger),
+                    SLCoreServiceProvider,
                     new SLCoreListenerSetUp(listenersToSetUp)),
+                SLCoreServiceProvider,
                 constantsProvider,
                 sLCoreLanguageProvider,
                 foldersProvider,
@@ -130,10 +136,27 @@ public sealed class SLCoreTestRunner : IDisposable
                 Substitute.For<ISlCoreTelemetryMigrationProvider>(),
                 new NoOpThreadHandler());
             slCoreInstanceHandle.Initialize();
+
+            await WaitForSloopLog(testLogger);
         }
         finally
         {
             Environment.SetEnvironmentVariable("SONARLINT_LOG_RPC", null, EnvironmentVariableTarget.Process);
+        }
+    }
+
+    private static async Task WaitForSloopLog(TestLogger slCoreLogger)
+    {
+        var tcs = new TaskCompletionSource<bool>();
+        EventHandler eventHandler = (_, _) => tcs.TrySetResult(true);
+        slCoreLogger.LogMessageAdded += eventHandler;
+        try
+        {
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(tcs.Task, "sloop log", TimeSpan.FromSeconds(15));
+        }
+        finally
+        {
+            slCoreLogger.LogMessageAdded -= eventHandler;
         }
     }
 

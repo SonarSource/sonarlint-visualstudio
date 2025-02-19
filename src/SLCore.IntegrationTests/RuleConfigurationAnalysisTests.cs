@@ -31,9 +31,9 @@ public class RuleConfigurationAnalysisTests
     public TestContext TestContext { get; set; }
 
     [ClassInitialize]
-    public static void ClassInitialize(TestContext context)
+    public static async Task ClassInitialize(TestContext context)
     {
-        sharedFileAnalysisTestsRunner = new FileAnalysisTestsRunner(nameof(RuleConfigurationAnalysisTests));
+        sharedFileAnalysisTestsRunner = await FileAnalysisTestsRunner.CreateInstance(nameof(RuleConfigurationAnalysisTests));
     }
 
     [ClassCleanup]
@@ -73,7 +73,7 @@ public class RuleConfigurationAnalysisTests
     {
         var ruleToDisable = FileAnalysisTestsRunner.JavaScriptIssues.ExpectedIssues[0];
         var ruleConfig = CreateInactiveRuleConfig(ruleToDisable.ruleKey);
-        using var customTestRunner = new FileAnalysisTestsRunner(TestContext.TestName, ruleConfig);
+        using var customTestRunner = await FileAnalysisTestsRunner.CreateInstance(TestContext.TestName, ruleConfig);
 
         var issuesByFileUri = await customTestRunner.RunFileAnalysis(FileAnalysisTestsRunner.JavaScriptIssues, TestContext.TestName);
 
@@ -86,7 +86,7 @@ public class RuleConfigurationAnalysisTests
     {
         var multipleIssuesRule = FileAnalysisTestsRunner.SecretsIssues.RuleWithMultipleIssues;
         var secretsRuleConfig = CreateInactiveRuleConfig(multipleIssuesRule.ruleKey);
-        using var customTestRunner = new FileAnalysisTestsRunner(TestContext.TestName, secretsRuleConfig);
+        using var customTestRunner = await FileAnalysisTestsRunner.CreateInstance(TestContext.TestName, secretsRuleConfig);
 
         var issuesByFileUri = await customTestRunner.RunFileAnalysis(FileAnalysisTestsRunner.SecretsIssues, TestContext.TestName);
 
@@ -136,7 +136,7 @@ public class RuleConfigurationAnalysisTests
     {
         var multipleIssuesRule = FileAnalysisTestsRunner.HtmlIssues.RuleWithMultipleIssues;
         var htmlRuleConfig = CreateInactiveRuleConfig(multipleIssuesRule.ruleKey);
-        using var customTestRunner = new FileAnalysisTestsRunner(TestContext.TestName, htmlRuleConfig);
+        using var customTestRunner = await FileAnalysisTestsRunner.CreateInstance(TestContext.TestName, htmlRuleConfig);
 
         var issuesByFileUri = await customTestRunner.RunFileAnalysis(FileAnalysisTestsRunner.HtmlIssues, TestContext.TestName);
 

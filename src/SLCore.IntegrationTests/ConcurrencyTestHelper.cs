@@ -22,12 +22,12 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
 public static class ConcurrencyTestHelper
 {
-    private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(15);
+    private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(5);
 
-    public static Task WaitForTaskWithTimeout(Task task, TimeSpan? timeout = null) =>
-        WaitForTaskWithTimeout(_ => task, timeout);
+    public static Task WaitForTaskWithTimeout(Task task, string taskName, TimeSpan? timeout = null) =>
+        WaitForTaskWithTimeout(_ => task, taskName, timeout);
 
-    public static async Task WaitForTaskWithTimeout(Func<CancellationToken, Task> func, TimeSpan? timeout = null)
+    public static async Task WaitForTaskWithTimeout(Func<CancellationToken, Task> func, string taskName, TimeSpan? timeout = null)
     {
         var cts = new CancellationTokenSource();
         var task = func(cts.Token);
@@ -35,7 +35,7 @@ public static class ConcurrencyTestHelper
         if (whenAny != task)
         {
             cts.Cancel();
-            Assert.Fail("timeout reached");
+            Assert.Fail($"timeout reached for {taskName}");
         }
     }
 }

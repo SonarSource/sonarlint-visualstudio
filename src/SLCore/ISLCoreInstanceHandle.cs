@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Configuration;
+using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.NodeJS;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle;
@@ -43,6 +44,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
 {
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly ISLCoreRpcFactory slCoreRpcFactory;
+    private readonly ISLCoreServiceProvider serviceProvider;
     private readonly IServerConnectionsProvider serverConnectionConfigurationProvider;
     private readonly IConfigScopeUpdater configScopeUpdater;
     private readonly ISLCoreConstantsProvider constantsProvider;
@@ -54,10 +56,11 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
     private readonly INodeLocationProvider nodeLocator;
     private readonly IThreadHandling threadHandling;
     public Task ShutdownTask => SLCoreRpc.ShutdownTask;
-    internal ISLCoreRpc SLCoreRpc { get; private set; }
+    private ISLCoreRpc SLCoreRpc { get; set; }
 
     internal SLCoreInstanceHandle(
         ISLCoreRpcFactory slCoreRpcFactory,
+        ISLCoreServiceProvider serviceProvider,
         ISLCoreConstantsProvider constantsProvider,
         ISLCoreLanguageProvider slCoreLanguageProvider,
         ISLCoreFoldersProvider slCoreFoldersProvider,
@@ -71,6 +74,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         IThreadHandling threadHandling)
     {
         this.slCoreRpcFactory = slCoreRpcFactory;
+        this.serviceProvider = serviceProvider;
         this.constantsProvider = constantsProvider;
         this.slCoreLanguageProvider = slCoreLanguageProvider;
         this.slCoreFoldersProvider = slCoreFoldersProvider;
@@ -90,7 +94,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
 
         SLCoreRpc = slCoreRpcFactory.StartNewRpcInstance();
 
-        if (!SLCoreRpc.ServiceProvider.TryGetTransientService(out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService))
+        if (!serviceProvider.TryGetTransientService(out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService))
         {
             throw new InvalidOperationException(SLCoreStrings.ServiceProviderNotInitialized);
         }
@@ -135,7 +139,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             threadHandling.Run(async () =>
             {
                 await threadHandling.SwitchToBackgroundThread();
-                if (SLCoreRpc?.ServiceProvider?.TryGetTransientService(out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService) ?? false)
+                if (serviceProvider.TryGetTransientService(out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService))
                 {
                     lifecycleManagementSlCoreService.Shutdown();
                 }

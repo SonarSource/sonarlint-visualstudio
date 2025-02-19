@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Configuration;
+using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.NodeJS;
 using SonarLint.VisualStudio.SLCore.State;
 
@@ -39,6 +40,7 @@ internal interface ISLCoreInstanceFactory
 internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
 {
     private readonly ISLCoreRpcFactory slCoreRpcFactory;
+    private readonly ISLCoreServiceProvider slCoreServiceProvider;
     private readonly ISLCoreConstantsProvider constantsProvider;
     private readonly ISLCoreLanguageProvider slCoreLanguageProvider;
     private readonly ISLCoreFoldersProvider slCoreFoldersProvider;
@@ -54,6 +56,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
     [ImportingConstructor]
     public SLCoreInstanceFactory(
         ISLCoreRpcFactory slCoreRpcFactory,
+        ISLCoreServiceProvider slCoreServiceProvider,
         ISLCoreConstantsProvider constantsProvider,
         ISLCoreLanguageProvider slCoreLanguageProvider,
         ISLCoreFoldersProvider slCoreFoldersProvider,
@@ -67,6 +70,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
         IThreadHandling threadHandling)
     {
         this.slCoreRpcFactory = slCoreRpcFactory;
+        this.slCoreServiceProvider = slCoreServiceProvider;
         this.constantsProvider = constantsProvider;
         this.slCoreLanguageProvider = slCoreLanguageProvider;
         this.slCoreFoldersProvider = slCoreFoldersProvider;
@@ -81,7 +85,9 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
     }
 
     public ISLCoreInstanceHandle CreateInstance() =>
-        new SLCoreInstanceHandle(slCoreRpcFactory,
+        new SLCoreInstanceHandle(
+            slCoreRpcFactory,
+            slCoreServiceProvider,
             constantsProvider,
             slCoreLanguageProvider,
             slCoreFoldersProvider,
