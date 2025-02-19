@@ -23,7 +23,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.Configuration;
 using SonarLint.VisualStudio.Core.Transition;
 using SonarQube.Client.Models;
 
@@ -31,25 +30,16 @@ namespace SonarLint.VisualStudio.Integration.Transition
 {
     [Export(typeof(IMuteIssuesWindowService))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class MuteIssuesWindowService : IMuteIssuesWindowService
+    [method: ImportingConstructor]
+    internal class MuteIssuesWindowService(IActiveSolutionBoundTracker activeSolutionBoundTracker, IBrowserService browserService) : IMuteIssuesWindowService
     {
-        private readonly IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration;
-        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private readonly IBrowserService browserService;
-
-        [ImportingConstructor]
-        public MuteIssuesWindowService(IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration, IActiveSolutionBoundTracker activeSolutionBoundTracker, IBrowserService browserService)
-        {
-            this.connectedModeFeaturesConfiguration = connectedModeFeaturesConfiguration;
-            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
-            this.browserService = browserService;
-        }
-
         [ExcludeFromCodeCoverage]
         public MuteIssuesWindowResponse Show(IEnumerable<SonarQubeIssueTransition> allowedTransitions)
         {
-            var dialog = new MuteWindowDialog(activeSolutionBoundTracker, browserService, allowedTransitions);
-            dialog.Owner = Application.Current.MainWindow;
+            var dialog = new MuteWindowDialog(activeSolutionBoundTracker, browserService, allowedTransitions)
+            {
+                Owner = Application.Current.MainWindow
+            };
             var dialogResult = dialog.ShowDialog();
 
             return new MuteIssuesWindowResponse
