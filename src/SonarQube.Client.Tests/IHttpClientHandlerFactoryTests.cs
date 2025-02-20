@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Net.Http;
+using System.Net;
 using SonarQube.Client.Logging;
 
 namespace SonarQube.Client.Tests;
@@ -45,10 +45,13 @@ public class HttpClientHandlerFactoryTests
         var proxyUri = new Uri("http://proxy");
         proxyDetector.GetProxyUri(baseAddress).Returns(proxyUri);
 
-        var result = httpClientHandlerFactory.Create(baseAddress);
+        var httpClientHandler = httpClientHandlerFactory.Create(baseAddress);
 
-        result.Should().NotBeNull();
-        proxyDetector.Received(1).ConfigureProxy(Arg.Any<HttpClientHandler>(), proxyUri);
+        httpClientHandler.Should().NotBeNull();
+        var webProxy = httpClientHandler.Proxy as WebProxy;
+        webProxy.Should().NotBeNull();
+        webProxy.Address.Should().Be(proxyUri);
+        httpClientHandler.UseProxy.Should().BeTrue();
         logger.Received(1).Debug($"System proxy detected and configured: {proxyUri}");
     }
 
@@ -58,10 +61,11 @@ public class HttpClientHandlerFactoryTests
         var baseAddress = new Uri("http://localhost");
         proxyDetector.GetProxyUri(baseAddress).Returns(baseAddress);
 
-        var result = httpClientHandlerFactory.Create(baseAddress);
+        var httpClientHandler = httpClientHandlerFactory.Create(baseAddress);
 
-        result.Should().NotBeNull();
-        proxyDetector.DidNotReceive().ConfigureProxy(Arg.Any<HttpClientHandler>(), Arg.Any<Uri>());
+        httpClientHandler.Should().NotBeNull();
+        httpClientHandler.Proxy.Should().BeNull();
+        httpClientHandler.UseProxy.Should().BeTrue(); // default value is true
         logger.Received(1).Debug("No system proxy detected");
     }
 }

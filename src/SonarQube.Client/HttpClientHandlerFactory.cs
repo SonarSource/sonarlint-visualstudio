@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Net;
 using System.Net.Http;
 using SonarQube.Client.Logging;
 
@@ -43,7 +44,8 @@ public class HttpClientHandlerFactory(IProxyDetector proxyDetector, ILogger logg
         var usesSystemProxy = baseAddress != proxyUri;
         if (usesSystemProxy)
         {
-            proxyDetector.ConfigureProxy(httpClientHandler, proxyUri);
+            httpClientHandler.Proxy = new WebProxy(proxyUri);
+            httpClientHandler.UseProxy = true;
             logger.Debug($"System proxy detected and configured: {proxyUri}");
         }
         else

@@ -20,25 +20,16 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
-using System.Net.Http;
 
 namespace SonarQube.Client;
 
 public interface IProxyDetector
 {
     Uri GetProxyUri(Uri address);
-
-    void ConfigureProxy(HttpClientHandler httpClientHandler, Uri proxyAddress);
 }
 
 internal class ProxyDetector : IProxyDetector
 {
     [ExcludeFromCodeCoverage]
     public Uri GetProxyUri(Uri address) => WebRequest.GetSystemWebProxy().GetProxy(address);
-
-    public void ConfigureProxy(HttpClientHandler httpClientHandler, Uri proxyAddress)
-    {
-        httpClientHandler.Proxy = new WebProxy(proxyAddress);
-        httpClientHandler.UseProxy = true;
-    }
 }
