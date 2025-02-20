@@ -40,7 +40,7 @@ public class GetIssuesRequestWrapperTests
     {
         var testSubject = CreateTestSubject(componentPropertyName, "aaaProject", "xStatus", "yBranch", null, "rule1", "component1");
 
-        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        var handlerMock = new Mock<HttpClientHandler>(MockBehavior.Strict);
         var httpClient = new HttpClient(handlerMock.Object)
         {
             BaseAddress = new Uri(ValidBaseAddress)
@@ -64,7 +64,7 @@ public class GetIssuesRequestWrapperTests
         var issueKeys = new[] { "issue1", "issue2" };
         var testSubject = CreateTestSubject(componentPropertyName,"aaaProject", "xStatus", "yBranch", issueKeys, "rule1", "component1");
 
-        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        var handlerMock = new Mock<HttpClientHandler>(MockBehavior.Strict);
         var httpClient = new HttpClient(handlerMock.Object)
         {
             BaseAddress = new Uri(ValidBaseAddress)
@@ -109,7 +109,7 @@ public class GetIssuesRequestWrapperTests
     }
 
     private static void CheckExpectedQueryStringsParameters(string componentKeyName,
-        Mock<HttpMessageHandler> handlerMock,
+        Mock<HttpClientHandler> handlerMock,
         int invocationIndex,
         string expectedTypes = null,
         string[] expectedKeys = null)
@@ -144,7 +144,7 @@ public class GetIssuesRequestWrapperTests
 
     }
 
-    private static string GetActualQueryStringForInvocation(Mock<HttpMessageHandler> handlerMock, int invocationIndex)
+    private static string GetActualQueryStringForInvocation(Mock<HttpClientHandler> handlerMock, int invocationIndex)
     {
         var requestMessage = (HttpRequestMessage)handlerMock.Invocations[invocationIndex].Arguments[0];
         return requestMessage.RequestUri.Query;

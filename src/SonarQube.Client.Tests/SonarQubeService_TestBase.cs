@@ -25,7 +25,6 @@ using System.Net.Http.Headers;
 using System.Security;
 using Moq;
 using Moq.Protected;
-using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 using SonarQube.Client.Models.ServerSentEvents;
 using SonarQube.Client.Requests;
@@ -35,7 +34,9 @@ namespace SonarQube.Client.Tests
 {
     public class SonarQubeService_TestBase
     {
-        protected Mock<HttpMessageHandler> messageHandler;
+        protected Mock<HttpClientHandler> httpClientHandler;
+        protected Mock<IHttpClientHandlerFactory> httpClientHandlerFactory;
+        protected Mock<IProxyDetector> proxyDetector;
         protected SonarQubeService service;
         protected TestLogger logger;
 
@@ -56,8 +57,11 @@ namespace SonarQube.Client.Tests
 
             logger = new TestLogger();
 
-            messageHandler = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            httpClientHandler = new Mock<HttpClientHandler>(MockBehavior.Strict);
+            httpClientHandlerFactory = new Mock<IHttpClientHandlerFactory>();
+            httpClientHandlerFactory.Setup(x => x.Create(It.IsAny<Uri>())).Returns(httpClientHandler.Object);
 
+            proxyDetector = new Mock<IProxyDetector>();
             requestFactorySelector = new RequestFactorySelector();
             sseStreamFactory = new Mock<ISSEStreamReaderFactory>();
 
@@ -69,14 +73,14 @@ namespace SonarQube.Client.Tests
             string response,
             HttpStatusCode statusCode = HttpStatusCode.OK,
             string serverUrl = DefaultBasePath) =>
-            MocksHelper.SetupHttpRequest(messageHandler, relativePath, response, statusCode, serverUrl);
+            MocksHelper.SetupHttpRequest(httpClientHandler, relativePath, response, statusCode, serverUrl);
 
         protected void SetupRequest(string relativePath, HttpResponseMessage response, params MediaTypeHeaderValue[] expectedHeaderValues) =>
-            MocksHelper.SetupHttpRequest(messageHandler, relativePath, response, DefaultBasePath, expectedHeaderValues);
+            MocksHelper.SetupHttpRequest(httpClientHandler, relativePath, response, DefaultBasePath, expectedHeaderValues);
 
         protected void SetupRequestWithOperation(string relativePath, Func<Task<HttpResponseMessage>> op, string serverUrl = DefaultBasePath)
         {
-            messageHandler.Protected()
+            httpClientHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync",
                     ItExpr.Is<HttpRequestMessage>(m =>
                         m.RequestUri == new Uri(new Uri(serverUrl), relativePath) &&
@@ -109,13 +113,13 @@ namespace SonarQube.Client.Tests
 
         protected void ResetService()
         {
-            messageHandler.Reset();
+            httpClientHandler.Reset();
             service = CreateTestSubject();
         }
 
         protected internal virtual SonarQubeService CreateTestSubject()
         {
-            return new SonarQubeService(messageHandler.Object, UserAgent, logger, requestFactorySelector, sseStreamFactory.Object);
+            return new SonarQubeService(httpClientHandlerFactory.Object, UserAgent, logger, requestFactorySelector, sseStreamFactory.Object);
         }
 
         private static IUsernameAndPasswordCredentials MockBasicAuthCredentials(string userName, SecureString password)

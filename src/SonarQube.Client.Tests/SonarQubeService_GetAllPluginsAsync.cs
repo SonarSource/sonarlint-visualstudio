@@ -18,15 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Tests
@@ -60,7 +53,7 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetAllPluginsAsync(CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().HaveCount(3);
             result.Select(x => x.Key).Should().BeEquivalentTo(new[] { "findbugs", "l10nfr", "jira" });
@@ -131,7 +124,7 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetAllPluginsAsync(CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().HaveCount(3);
             result.Select(x => x.Key).Should().BeEquivalentTo(new[] { "scmgit", "java", "scmsvn" });
@@ -151,7 +144,7 @@ namespace SonarQube.Client.Tests
             func.Should().ThrowExactly<HttpRequestException>().And
                 .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
         }
 
         [TestMethod]

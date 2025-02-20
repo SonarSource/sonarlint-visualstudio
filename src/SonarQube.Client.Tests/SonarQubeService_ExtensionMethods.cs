@@ -18,13 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace SonarQube.Client.Tests
 {
     [TestClass]
@@ -112,7 +105,7 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetAllRulesAsync("quality-profile-1", CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().HaveCount(2);
             result.Select(r => r.Key).Should().Contain(new[] { "S2225", "S2342" });
@@ -141,7 +134,7 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetAllRulesAsync("quality-profile-1", CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().ContainSingle();
             result.First().Key.Should().Be("rule1");
@@ -163,7 +156,7 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetAllRulesAsync("quality-profile-1", CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().ContainSingle();
             result.First().Key.Should().Be("rule1");
@@ -203,7 +196,7 @@ namespace SonarQube.Client.Tests
 ";
 
         private static string SingleValidRuleJson(string repoId, string ruleId) =>
-@"
+            @"
 {
   'total': 1,
   'p': 1,
@@ -219,7 +212,7 @@ namespace SonarQube.Client.Tests
   'actives': { },
   'qProfiles': { }
 }"
-.Replace("***REPO_ID***", repoId)
-.Replace("***RULE_ID***", ruleId);
+                .Replace("***REPO_ID***", repoId)
+                .Replace("***RULE_ID***", ruleId);
     }
 }

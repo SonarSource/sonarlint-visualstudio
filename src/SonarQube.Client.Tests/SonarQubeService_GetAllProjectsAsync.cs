@@ -18,15 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Tests
@@ -66,23 +59,13 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetAllProjectsAsync("myorganization", CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().HaveCount(3);
             result.Select(x => x.Key).Should().BeEquivalentTo(
-                new[]
-                {
-                    "org.jenkins-ci.plugins:sonar",
-                    "org.codehaus.sonar-plugins:sonar-ant-task",
-                    "org.codehaus.sonar-plugins:sonar-build-breaker-plugin"
-                });
+                new[] { "org.jenkins-ci.plugins:sonar", "org.codehaus.sonar-plugins:sonar-ant-task", "org.codehaus.sonar-plugins:sonar-build-breaker-plugin" });
             result.Select(x => x.Name).Should().BeEquivalentTo(
-                new[]
-                {
-                    "Jenkins Sonar Plugin",
-                    "Sonar Ant Task",
-                    "Sonar Build Breaker Plugin"
-                });
+                new[] { "Jenkins Sonar Plugin", "Sonar Ant Task", "Sonar Build Breaker Plugin" });
         }
 
         [TestMethod]
@@ -98,7 +81,7 @@ namespace SonarQube.Client.Tests
             func.Should().ThrowExactly<HttpRequestException>().And
                 .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
         }
 
         [TestMethod]
@@ -184,7 +167,7 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetAllProjectsAsync("myorganization", CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().HaveCount(3);
             result.Select(x => x.Key).Should().BeEquivalentTo(new[] { "my_project", "another_project", "third_project" });
@@ -249,7 +232,7 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetAllProjectsAsync("myorganization", CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().HaveCount(1010);
             result.Select(x => x.Key).Should().BeEquivalentTo(Enumerable.Range(1, 1010).Select(i => i.ToString()));
@@ -269,7 +252,7 @@ namespace SonarQube.Client.Tests
             func.Should().ThrowExactly<HttpRequestException>().And
                 .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
         }
 
         [TestMethod]
@@ -306,7 +289,7 @@ namespace SonarQube.Client.Tests
       ""name"": ""Project{i}"" }}"));
 
                 SetupRequest($"api/components/search_projects?organization=myorganization&asc=true&p={currentPage}&ps={pageSize}",
-                $@"{{
+                    $@"{{
   ""paging"": {{
     ""pageIndex"": {currentPage},
     ""pageSize"": {pageSize},
@@ -319,8 +302,8 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetAllProjectsAsync("myorganization", CancellationToken.None);
 
-            messageHandler.VerifyAll();
-            messageHandler.VerifyNoOtherCalls();
+            httpClientHandler.VerifyAll();
+            httpClientHandler.VerifyNoOtherCalls();
 
             result.Should().HaveCount(10000);
         }

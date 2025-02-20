@@ -18,13 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading;
-using System.Threading.Tasks;
 using Moq;
 using Moq.Protected;
 
@@ -34,41 +30,41 @@ namespace SonarQube.Client.Tests.Infra
     {
         public const string ValidBaseAddress = "http://localhost";
 
-        public const string EmptyGetIssuesResponse = @"{""total"":0,""p"":1,""ps"":10,""paging"":{""pageIndex"":1,""pageSize"":10,""total"":0},""effortTotal"":0,""debtTotal"":0,""issues"":[],""components"":[],""organizations"":[],""facets"":[]}";
+        public const string EmptyGetIssuesResponse
+            = @"{""total"":0,""p"":1,""ps"":10,""paging"":{""pageIndex"":1,""pageSize"":10,""total"":0},""effortTotal"":0,""debtTotal"":0,""issues"":[],""components"":[],""organizations"":[],""facets"":[]}";
 
         /// <summary>
         /// Sets up the HTTP message handler mock to respond to any request string
         /// </summary>
-        public static void SetupHttpRequest(Mock<HttpMessageHandler> messageHandlerMock, string response,
+        public static void SetupHttpRequest(
+            Mock<HttpClientHandler> messageHandlerMock,
+            string response,
             HttpStatusCode statusCode = HttpStatusCode.OK)
         {
             messageHandlerMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync",
                     ItExpr.IsAny<HttpRequestMessage>(),
                     ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = statusCode,
-                    Content = new StringContent(response)
-                }));
+                .Returns(Task.FromResult(new HttpResponseMessage { StatusCode = statusCode, Content = new StringContent(response) }));
         }
 
         /// <summary>
         /// Sets up the HTTP message handler mock to reply to a specific request string
         /// </summary>
-        public static void SetupHttpRequest(Mock<HttpMessageHandler> messageHandlerMock, string requestRelativePath, string response,
-            HttpStatusCode statusCode = HttpStatusCode.OK, string basePath = ValidBaseAddress)
+        public static void SetupHttpRequest(
+            Mock<HttpClientHandler> messageHandlerMock,
+            string requestRelativePath,
+            string response,
+            HttpStatusCode statusCode = HttpStatusCode.OK,
+            string basePath = ValidBaseAddress)
         {
-            var responseMessage = new HttpResponseMessage
-            {
-                StatusCode = statusCode,
-                Content = new StringContent(response)
-            };
+            var responseMessage = new HttpResponseMessage { StatusCode = statusCode, Content = new StringContent(response) };
 
             SetupHttpRequest(messageHandlerMock, requestRelativePath, responseMessage, basePath);
         }
 
-        public static void SetupHttpRequest(Mock<HttpMessageHandler> messageHandlerMock,
+        public static void SetupHttpRequest(
+            Mock<HttpClientHandler> messageHandlerMock,
             string requestRelativePath,
             HttpResponseMessage responseMessage,
             string basePath = ValidBaseAddress,
@@ -88,7 +84,7 @@ namespace SonarQube.Client.Tests.Infra
         /// <summary>
         /// Returns the actual requests passed to the SendAsync method
         /// </summary>
-        public static HttpRequestMessage[] GetSendAsyncRequests(this Mock<HttpMessageHandler> handler) =>
+        public static HttpRequestMessage[] GetSendAsyncRequests(this Mock<HttpClientHandler> handler) =>
             handler.Invocations.Where(x => x.Method.Name == "SendAsync")
                 .Select(x => (HttpRequestMessage)x.Arguments[0])
                 .ToArray();

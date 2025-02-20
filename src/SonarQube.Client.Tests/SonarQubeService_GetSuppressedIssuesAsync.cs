@@ -46,7 +46,7 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
         // the one above does not have suppressed issues, hence the Count==0
         result.Should().BeEmpty();
 
-        messageHandler.VerifyAll();
+        httpClientHandler.VerifyAll();
     }
 
     [TestMethod]
@@ -62,7 +62,7 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
         func.Should().ThrowExactly<HttpRequestException>().And
             .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
 
-        messageHandler.VerifyAll();
+        httpClientHandler.VerifyAll();
     }
 
     [TestMethod]
@@ -186,7 +186,7 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
         result[1].RuleId.Should().Be("csharpsquid:S1118");
         result[1].Severity.Should().Be(SonarQubeIssueSeverity.Major);
 
-        messageHandler.VerifyAll();
+        httpClientHandler.VerifyAll();
     }
 
     [TestMethod]
@@ -202,7 +202,7 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
         func.Should().ThrowExactly<HttpRequestException>().And
             .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
 
-        messageHandler.VerifyAll();
+        httpClientHandler.VerifyAll();
     }
 
     [TestMethod]
@@ -218,7 +218,7 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
         result.Should().HaveCount(1001);
         result.Select(i => i.FilePath).Should().Match(paths => paths.All(p => p == "Program.cs"));
 
-        messageHandler.VerifyAll();
+        httpClientHandler.VerifyAll();
     }
 
     [TestMethod]
@@ -228,7 +228,8 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
     [DataRow(MaxAllowedIssues, 5)] // One issue type with too many issues
     [DataRow(1, MaxAllowedIssues)] // Multiple issue types with too many issues
     public async Task GetSuppressedIssuesAsync_From_7_20_NotifyWhenMaxIssuesReturned(
-        int numCodeSmells, int numBugs)
+        int numCodeSmells,
+        int numBugs)
     {
         await ConnectToSonarQube("7.2.0.0");
 
@@ -243,7 +244,7 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
 
         DumpWarningsToConsole();
 
-        messageHandler.VerifyAll();
+        httpClientHandler.VerifyAll();
 
         checkForExpectedWarning(numCodeSmells, "code smells");
         checkForExpectedWarning(numBugs, "bugs");
@@ -255,13 +256,13 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
     public async Task GetSuppressedIssuesAsync_From_7_20_BranchIsNotSpecified_BranchIsNotIncludedInQueryString(string emptyBranch)
     {
         await ConnectToSonarQube("7.2.0.0");
-        messageHandler.Reset();
+        httpClientHandler.Reset();
 
-        SetupHttpRequest(messageHandler, EmptyGetIssuesResponse);
+        SetupHttpRequest(httpClientHandler, EmptyGetIssuesResponse);
         _ = await service.GetSuppressedIssuesAsync("any", emptyBranch, null, CancellationToken.None);
 
         // Branch is null/empty => should not be passed
-        var actualRequests = messageHandler.GetSendAsyncRequests();
+        var actualRequests = httpClientHandler.GetSendAsyncRequests();
         actualRequests.Should().HaveCount(2);
         actualRequests.Should().NotContain(x => x.RequestUri.Query.Contains("branch"));
     }
@@ -270,13 +271,13 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
     public async Task GetSuppressedIssuesAsync_From_7_20_BranchIsSpecified_BranchIncludedInQueryString()
     {
         await ConnectToSonarQube("7.2.0.0");
-        messageHandler.Reset();
+        httpClientHandler.Reset();
 
-        SetupHttpRequest(messageHandler, EmptyGetIssuesResponse);
+        SetupHttpRequest(httpClientHandler, EmptyGetIssuesResponse);
         _ = await service.GetSuppressedIssuesAsync("any", "aBranch", null, CancellationToken.None);
 
         // The wrapper is expected to make three calls, for code smells, bugs, then vulnerabilities
-        var actualRequests = messageHandler.GetSendAsyncRequests();
+        var actualRequests = httpClientHandler.GetSendAsyncRequests();
         actualRequests.Should().HaveCount(2);
         actualRequests.Should().OnlyContain(x => x.RequestUri.Query.Contains("&branch=aBranch&"));
     }
@@ -285,13 +286,13 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
     public async Task GetSuppressedIssuesAsync_From_7_20_IssueKeysAreNotSpecified_IssueKeysAreNotIncludedInQueryString()
     {
         await ConnectToSonarQube("7.2.0.0");
-        messageHandler.Reset();
+        httpClientHandler.Reset();
 
-        SetupHttpRequest(messageHandler, EmptyGetIssuesResponse);
+        SetupHttpRequest(httpClientHandler, EmptyGetIssuesResponse);
         _ = await service.GetSuppressedIssuesAsync("any", null, null, CancellationToken.None);
 
         // The wrapper is expected to make three calls, for code smells, bugs, then vulnerabilities
-        var actualRequests = messageHandler.GetSendAsyncRequests();
+        var actualRequests = httpClientHandler.GetSendAsyncRequests();
         actualRequests.Should().HaveCount(2);
         actualRequests.Should().NotContain(x => x.RequestUri.Query.Contains("issues"));
     }
@@ -300,13 +301,13 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
     public async Task GetSuppressedIssuesAsync_From_7_20_IssueKeysAreSpecified_IssueKeysAreIncludedInQueryString()
     {
         await ConnectToSonarQube("7.2.0.0");
-        messageHandler.Reset();
+        httpClientHandler.Reset();
 
-        SetupHttpRequest(messageHandler, EmptyGetIssuesResponse);
+        SetupHttpRequest(httpClientHandler, EmptyGetIssuesResponse);
         _ = await service.GetSuppressedIssuesAsync("any", null, new[] { "issue1", "issue2" }, CancellationToken.None);
 
         // The wrapper is expected to make one call with the given issueKeys
-        var actualRequests = messageHandler.GetSendAsyncRequests();
+        var actualRequests = httpClientHandler.GetSendAsyncRequests();
         actualRequests.Should().ContainSingle();
         actualRequests.Should().OnlyContain(x => x.RequestUri.Query.Contains("issues=issue1%2Cissue2"));
     }

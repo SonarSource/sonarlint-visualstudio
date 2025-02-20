@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Tests
@@ -123,7 +117,7 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetRuleByKeyAsync("csharpsquid:S2342", "qpKey", CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().NotBeNull();
 
@@ -132,8 +126,7 @@ namespace SonarQube.Client.Tests
             result.Severity.Should().Be(SonarQubeIssueSeverity.Minor);
             result.CleanCodeAttribute.Should().Be(SonarQubeCleanCodeAttribute.Clear);
             result.SoftwareQualitySeverities.Should().BeEquivalentTo(
-                new Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity>
-                    { { SonarQubeSoftwareQuality.Reliability, SonarQubeSoftwareQualitySeverity.Medium } });
+                new Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity> { { SonarQubeSoftwareQuality.Reliability, SonarQubeSoftwareQualitySeverity.Medium } });
         }
 
         [TestMethod]
@@ -158,7 +151,7 @@ namespace SonarQube.Client.Tests
 
             var result = await service.GetRuleByKeyAsync("csharpsquid:S2342XX", "qpKey", CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().BeNull();
         }

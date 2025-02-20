@@ -32,7 +32,7 @@ namespace SonarQube.Client
 {
     public class SonarQubeService : ISonarQubeService, IDisposable
     {
-        private readonly HttpMessageHandler messageHandler;
+        private readonly IHttpClientHandlerFactory httpClientHandlerFactory;
         private IRequestFactory requestFactory;
         private readonly string userAgent;
         private readonly ILogger logger;
@@ -56,33 +56,21 @@ namespace SonarQube.Client
 
         public ServerInfo GetServerInfo() => currentServerInfo;
 
-        public SonarQubeService(HttpMessageHandler messageHandler, string userAgent, ILogger logger)
-            : this(messageHandler, userAgent, logger, new RequestFactorySelector(), new SSEStreamReaderFactory(logger))
+        public SonarQubeService(string userAgent, ILogger logger)
+            : this(new HttpClientHandlerFactory(new ProxyDetector(), logger), userAgent, logger, new RequestFactorySelector(), new SSEStreamReaderFactory(logger))
         {
         }
 
         internal /* for testing */ SonarQubeService(
-            HttpMessageHandler messageHandler,
+            IHttpClientHandlerFactory httpClientHandlerFactory,
             string userAgent,
             ILogger logger,
             IRequestFactorySelector requestFactorySelector,
             ISSEStreamReaderFactory sseStreamReaderFactory)
         {
-            if (messageHandler == null)
-            {
-                throw new ArgumentNullException(nameof(messageHandler));
-            }
-            if (userAgent == null)
-            {
-                throw new ArgumentNullException(nameof(userAgent));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-            this.messageHandler = messageHandler;
-            this.userAgent = userAgent;
-            this.logger = logger;
+            this.httpClientHandlerFactory = httpClientHandlerFactory ?? throw new ArgumentNullException(nameof(httpClientHandlerFactory));
+            this.userAgent = userAgent ?? throw new ArgumentNullException(nameof(userAgent));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             this.requestFactorySelector = requestFactorySelector;
             this.sseStreamReaderFactory = sseStreamReaderFactory;
@@ -529,7 +517,6 @@ namespace SonarQube.Client
                 if (disposing)
                 {
                     currentServerInfo = null;
-                    messageHandler.Dispose();
                 }
 
                 disposedValue = true;
@@ -553,7 +540,7 @@ namespace SonarQube.Client
             // be done.
             const string FakeInternalTestingOrgKey = "sonar.internal.testing.no.org";
 
-            if (FakeInternalTestingOrgKey.Equals(organizationKey, System.StringComparison.OrdinalIgnoreCase))
+            if (FakeInternalTestingOrgKey.Equals(organizationKey, StringComparison.OrdinalIgnoreCase))
             {
                 logger.Debug($"DEBUG: org key is {FakeInternalTestingOrgKey}. Setting it to null.");
                 return null;
@@ -576,8 +563,10 @@ namespace SonarQube.Client
 
         private HttpClient CreateHttpClient(Uri baseAddress, IConnectionCredentials credentials, bool shouldUseBearer)
         {
-            var client = new HttpClient(messageHandler) { BaseAddress = baseAddress, DefaultRequestHeaders = { Authorization = AuthenticationHeaderFactory.Create(credentials, shouldUseBearer), }, };
+            var handler = httpClientHandlerFactory.Create(baseAddress);
+            var client = new HttpClient(handler) { BaseAddress = baseAddress, DefaultRequestHeaders = { Authorization = AuthenticationHeaderFactory.Create(credentials, shouldUseBearer), }, };
             client.DefaultRequestHeaders.Add("User-Agent", userAgent);
+
             return client;
         }
     }

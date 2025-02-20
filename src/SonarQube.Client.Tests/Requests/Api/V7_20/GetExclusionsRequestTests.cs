@@ -18,12 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarQube.Client.Api.V7_20;
 using SonarQube.Client.Tests.Infra;
@@ -45,11 +40,8 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
 
             var testSubject = CreateTestSubject(projectKey);
 
-            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
-            var httpClient = new HttpClient(handlerMock.Object)
-            {
-                BaseAddress = new Uri(ValidBaseAddress)
-            };
+            var handlerMock = new Mock<HttpClientHandler>(MockBehavior.Strict);
+            var httpClient = new HttpClient(handlerMock.Object) { BaseAddress = new Uri(ValidBaseAddress) };
 
             var request = $"api/settings/values?component={projectKey}&keys=sonar.exclusions%2Csonar.global.exclusions%2Csonar.inclusions";
 
@@ -71,11 +63,8 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
 
             var testSubject = CreateTestSubject(projectKey);
 
-            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
-            var httpClient = new HttpClient(handlerMock.Object)
-            {
-                BaseAddress = new Uri(ValidBaseAddress)
-            };
+            var handlerMock = new Mock<HttpClientHandler>(MockBehavior.Strict);
+            var httpClient = new HttpClient(handlerMock.Object) { BaseAddress = new Uri(ValidBaseAddress) };
 
             var request = $"api/settings/values?component={projectKey}&keys=sonar.exclusions%2Csonar.global.exclusions%2Csonar.inclusions";
             var response = @"{
@@ -106,11 +95,8 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
 
             var testSubject = CreateTestSubject(projectKey);
 
-            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
-            var httpClient = new HttpClient(handlerMock.Object)
-            {
-                BaseAddress = new Uri(ValidBaseAddress)
-            };
+            var handlerMock = new Mock<HttpClientHandler>(MockBehavior.Strict);
+            var httpClient = new HttpClient(handlerMock.Object) { BaseAddress = new Uri(ValidBaseAddress) };
 
             var request = $"api/settings/values?component={projectKey}&keys=sonar.exclusions%2Csonar.global.exclusions%2Csonar.inclusions";
             var response = @"{
@@ -148,14 +134,9 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
             result.Inclusions.Should().BeEquivalentTo("**/111");
         }
 
-
         private static GetExclusionsRequest CreateTestSubject(string projectKey)
         {
-            var testSubject = new GetExclusionsRequest
-            {
-                Logger = new TestLogger(),
-                ProjectKey = projectKey
-            };
+            var testSubject = new GetExclusionsRequest { Logger = new TestLogger(), ProjectKey = projectKey };
 
             return testSubject;
         }

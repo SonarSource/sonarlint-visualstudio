@@ -18,14 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Messages;
 using SonarQube.Client.Models;
 
@@ -65,7 +59,7 @@ namespace SonarQube.Client.Tests
             var result = await service.GetRoslynExportProfileAsync("quality_profile", "my-org", SonarQubeLanguage.CSharp,
                 CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().NotBeNull();
             result.Configuration.Should().NotBeNull();
@@ -97,7 +91,7 @@ namespace SonarQube.Client.Tests
             func.Should().ThrowExactly<HttpRequestException>().And
                 .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
         }
 
         [TestMethod]
@@ -131,7 +125,7 @@ namespace SonarQube.Client.Tests
             var result = await service.GetRoslynExportProfileAsync("quality_profile", "my-org", SonarQubeLanguage.CSharp,
                 CancellationToken.None);
 
-            messageHandler.VerifyAll();
+            httpClientHandler.VerifyAll();
 
             result.Should().NotBeNull();
             result.Configuration.Should().NotBeNull();
@@ -156,7 +150,7 @@ namespace SonarQube.Client.Tests
 
             Func<Task<RoslynExportProfileResponse>> func = async () =>
                 await service.GetRoslynExportProfileAsync("quality_profile", "my-org", SonarQubeLanguage.CSharp,
-                CancellationToken.None);
+                    CancellationToken.None);
 
             func.Should().ThrowExactly<InvalidOperationException>().And
                 .Message.Should().Be("This operation expects the service to be connected.");

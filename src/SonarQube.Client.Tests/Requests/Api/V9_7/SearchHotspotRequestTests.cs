@@ -142,7 +142,7 @@ namespace SonarQube.Client.Tests.Requests.Api.V9_7
     ]
 }";
 
-            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            var handlerMock = new Mock<HttpClientHandler>(MockBehavior.Strict);
             var httpClient = new HttpClient(handlerMock.Object)
             {
                 BaseAddress = new Uri(ValidBaseAddress)

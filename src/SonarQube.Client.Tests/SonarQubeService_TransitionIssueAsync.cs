@@ -18,12 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 
@@ -47,7 +42,7 @@ public class SonarQubeService_TransitionIssueAsync : SonarQubeService_TestBase
         var result = await service.TransitionIssueAsync(issueKey, SonarQubeIssueTransition.FalsePositive, "some text", CancellationToken.None);
 
         result.Should().Be(SonarQubeIssueTransitionResult.FailedToTransition);
-        messageHandler.VerifyAll();
+        httpClientHandler.VerifyAll();
         logger.ErrorMessages.Should().Contain("POST api/issues/do_transition request failed.");
         logger.DebugMessages.Should().HaveCountGreaterThan(0);
     }
@@ -67,7 +62,7 @@ public class SonarQubeService_TransitionIssueAsync : SonarQubeService_TestBase
         var result = await service.TransitionIssueAsync(issueKey, SonarQubeIssueTransition.FalsePositive, "some text", CancellationToken.None);
 
         result.Should().Be(SonarQubeIssueTransitionResult.InsufficientPermissions);
-        messageHandler.VerifyAll();
+        httpClientHandler.VerifyAll();
         logger.WarningMessages.Should().Contain("Insufficient permission to transition the issue.");
     }
 
@@ -89,7 +84,7 @@ public class SonarQubeService_TransitionIssueAsync : SonarQubeService_TestBase
         var result = await service.TransitionIssueAsync(issueKey, SonarQubeIssueTransition.FalsePositive, optionalComment, CancellationToken.None);
 
         result.Should().Be(SonarQubeIssueTransitionResult.CommentAdditionFailed);
-        messageHandler.VerifyAll();
+        httpClientHandler.VerifyAll();
         logger.ErrorMessages.Should().Contain("POST api/issues/add_comment request failed.");
         logger.DebugMessages.Should().HaveCountGreaterThan(0);
     }
@@ -109,7 +104,7 @@ public class SonarQubeService_TransitionIssueAsync : SonarQubeService_TestBase
         var result = await service.TransitionIssueAsync(issueKey, SonarQubeIssueTransition.FalsePositive, optionalComment, CancellationToken.None);
 
         result.Should().Be(SonarQubeIssueTransitionResult.Success);
-        messageHandler.VerifyAll();
+        httpClientHandler.VerifyAll();
     }
 
     [DataTestMethod]
