@@ -43,4 +43,22 @@ public class SonarQubeConnectionParamsTests
 
         actual.Should().BeEquivalentTo(expected);
     }
+
+    [TestMethod]
+    public void SerializesCorrectly()
+    {
+        var sonarQubeConnection = new SonarQubeConnectionParams(new Uri("http://localhost:9000"), "myToken", "89D385F9-88CC-4AF5-B34B-7DAAE7FFB24A");
+        var expected =
+            """
+            {
+              "serverUrl": "http://localhost:9000",
+              "tokenName": "myToken",
+              "tokenValue": "89D385F9-88CC-4AF5-B34B-7DAAE7FFB24A"
+            }
+            """;
+
+        var actual = JsonConvert.SerializeObject(sonarQubeConnection, Formatting.Indented);
+
+        actual.Should().BeEquivalentTo(expected);
+    }
 }
