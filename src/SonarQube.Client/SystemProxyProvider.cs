@@ -18,25 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
-using System.Net.Http;
 
 namespace SonarQube.Client;
 
-public interface IProxyDetector
+internal interface ISystemProxyProvider
 {
     Uri GetProxyUri(Uri address);
-
-    void ConfigureProxy(HttpClientHandler httpClientHandler, Uri proxyAddress);
 }
 
-internal class ProxyDetector : IProxyDetector
+internal class SystemProxyProvider : ISystemProxyProvider
 {
+    [ExcludeFromCodeCoverage]
     public Uri GetProxyUri(Uri address) => WebRequest.GetSystemWebProxy().GetProxy(address);
-
-    public void ConfigureProxy(HttpClientHandler httpClientHandler, Uri proxyAddress)
-    {
-        httpClientHandler.Proxy = new WebProxy(proxyAddress);
-        httpClientHandler.UseProxy = true;
-    }
 }

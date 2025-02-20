@@ -18,23 +18,31 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Net;
 using System.Net.Http;
+using SonarQube.Client.Logging;
 
 namespace SonarQube.Client;
 
-internal interface IHttpClientHandlerFactory
+internal interface IProxyConfigurator
 {
-    HttpClientHandler Create(Uri baseAddress);
+    void ConfigureProxy(HttpClientHandler httpClientHandler, Uri baseAddress);
 }
 
-internal class HttpClientHandlerFactory(IProxyConfigurator proxyConfigurator) : IHttpClientHandlerFactory
+internal class ProxyConfigurator(ISystemProxyProvider proxyProvider, ILogger logger) : IProxyConfigurator
 {
-    public HttpClientHandler Create(Uri baseAddress)
+    public void ConfigureProxy(HttpClientHandler httpClientHandler, Uri baseAddress)
     {
-        var handler = new HttpClientHandler();
-
-        proxyConfigurator.ConfigureProxy(handler, baseAddress);
-
-        return handler;
+        var proxyUri = proxyProvider.GetProxyUri(baseAddress);
+        if (baseAddress != proxyUri)
+        {
+            httpClientHandler.UseProxy = true;
+            httpClientHandler.Proxy = new WebProxy(proxyUri);
+            logger.Debug($"System proxy detected and configured: {proxyUri}");
+        }
+        else
+        {
+            logger.Debug("No system proxy detected");
+        }
     }
 }
