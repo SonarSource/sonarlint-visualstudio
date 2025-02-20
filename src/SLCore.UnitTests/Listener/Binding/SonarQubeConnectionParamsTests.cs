@@ -19,12 +19,28 @@
  */
 
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.SLCore.Protocol;
+using SonarLint.VisualStudio.SLCore.Listener.Binding;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Binding;
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Binding;
 
-public record AssistCreatingConnectionParams
+[TestClass]
+public class SonarQubeConnectionParamsTests
 {
-    [JsonConverter(typeof(EitherJsonConverter<SonarQubeConnectionParams, SonarCloudConnectionParams>))]
-    public Either<SonarQubeConnectionParams, SonarCloudConnectionParams> connectionParams { get; set; }
+    [TestMethod]
+    public void DeserializesCorrectly()
+    {
+        var expected = new SonarQubeConnectionParams(new Uri("http://localhost:9000"), "myToken", "89D385F9-88CC-4AF5-B34B-7DAAE7FFB24A");
+        var serialized =
+            """
+            {
+                "serverUrl": "http://localhost:9000",
+                "tokenName": "myToken",
+                "tokenValue": "89D385F9-88CC-4AF5-B34B-7DAAE7FFB24A"
+            }
+            """;
+
+        var actual = JsonConvert.DeserializeObject<SonarQubeConnectionParams>(serialized);
+
+        actual.Should().BeEquivalentTo(expected);
+    }
 }

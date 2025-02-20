@@ -45,7 +45,10 @@ public class ConnectedModeSuggestionListenerTests
         activeConfigScopeTracer.Current.Returns(new ConfigurationScope(scopeId));
 
         var testSubject = new ConnectedModeSuggestionListener(bindingSuggestionHandler, activeConfigScopeTracer);
-        var response = testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams("a-server-url", "a-token", "a-token-value"));
+        var response = testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams()
+        {
+            connectionParams = new SonarQubeConnectionParams(new Uri("http://localhost:9000"), "a-token", "a-token-value")
+        });
 
         bindingSuggestionHandler.Received().Notify();
         response.Result.Should().Be(new AssistCreatingConnectionResponse(scopeId));
