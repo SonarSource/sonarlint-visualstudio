@@ -74,9 +74,9 @@ namespace SonarQube.Client.Tests
             selectorMock.Setup(x => x.Select(isSonarCloud, logger)).Returns(requestFactoryMock.Object);
 
             var messageHandlerFactory = new Mock<IHttpClientHandlerFactory>();
-            messageHandlerFactory.Setup(x => x.Create()).Returns(Mock.Of<HttpClientHandler>());
+            messageHandlerFactory.Setup(x => x.Create(connectionInfo.ServerUri)).Returns(Mock.Of<HttpClientHandler>());
 
-            var testSubject = new SonarQubeService(messageHandlerFactory.Object, "user-agent", logger, selectorMock.Object, null, Mock.Of<IProxyDetector>());
+            var testSubject = new SonarQubeService(messageHandlerFactory.Object, "user-agent", logger, selectorMock.Object, null);
             await testSubject.ConnectAsync(connectionInfo, CancellationToken.None);
 
             selectorMock.Verify(x => x.Select(isSonarCloud, logger), Times.Once);
@@ -104,9 +104,9 @@ namespace SonarQube.Client.Tests
             selectorMock.Setup(x => x.Select(true /* isSonarCloud */, logger)).Returns(cloudFactoryMock.Object);
 
             var messageHandlerFactory = new Mock<IHttpClientHandlerFactory>();
-            messageHandlerFactory.Setup(x => x.Create()).Returns(Mock.Of<HttpClientHandler>());
+            messageHandlerFactory.Setup(x => x.Create(It.IsAny<Uri>())).Returns(Mock.Of<HttpClientHandler>());
 
-            var testSubject = new SonarQubeService(messageHandlerFactory.Object, "user-agent", logger, selectorMock.Object, null, Mock.Of<IProxyDetector>());
+            var testSubject = new SonarQubeService(messageHandlerFactory.Object, "user-agent", logger, selectorMock.Object, null);
 
             // 1. Connect to SonarQube
             await testSubject.ConnectAsync(sonarQubeConnectionInfo, CancellationToken.None);
@@ -127,53 +127,7 @@ namespace SonarQube.Client.Tests
             cloudFactoryMock.Invocations.Count.Should().Be(2);
             testSubject.IsConnected.Should().BeTrue();
             testSubject.GetServerInfo().ServerType.Should().Be(ServerType.SonarCloud);
-        }
-
-        [TestMethod]
-        public async Task SonarQubeService_SystemProxyConfigured_ConfiguresHttpClientHandler()
-        {
-            var logger = new TestLogger();
-            var connectionInfo = new ConnectionInformation(new Uri("https://localhost:9000"));
-
-            var requestFactoryMock = CreateRequestFactory("1.2.3");
-            var selectorMock = new Mock<IRequestFactorySelector>();
-            selectorMock.Setup(x => x.Select(It.IsAny<bool>(), logger)).Returns(requestFactoryMock.Object);
-
-            var httpClientHandler = new Mock<HttpClientHandler>();
-            var messageHandlerFactory = new Mock<IHttpClientHandlerFactory>();
-            messageHandlerFactory.Setup(x => x.Create()).Returns(httpClientHandler.Object);
-
-            var proxyDetector = new Mock<IProxyDetector>();
-            var proxyUri = new Uri("http://proxy:8080");
-            proxyDetector.Setup(x => x.GetProxyUri(It.IsAny<Uri>())).Returns(proxyUri);
-
-            var testSubject = new SonarQubeService(messageHandlerFactory.Object, "user-agent", logger, selectorMock.Object, null, proxyDetector.Object);
-            await testSubject.ConnectAsync(connectionInfo, CancellationToken.None);
-
-            proxyDetector.Verify(x => x.ConfigureProxy(httpClientHandler.Object, proxyUri), Times.AtLeastOnce);
-        }
-
-        [TestMethod]
-        public async Task SonarQubeService_SystemProxyNotConfigured_DoesNotConfigureHttpClientHandler()
-        {
-            var logger = new TestLogger();
-            var connectionInfo = new ConnectionInformation(new Uri("https://localhost:9000"));
-
-            var requestFactoryMock = CreateRequestFactory("1.2.3");
-            var selectorMock = new Mock<IRequestFactorySelector>();
-            selectorMock.Setup(x => x.Select(It.IsAny<bool>(), logger)).Returns(requestFactoryMock.Object);
-
-            var httpClientHandler = new Mock<HttpClientHandler>();
-            var messageHandlerFactory = new Mock<IHttpClientHandlerFactory>();
-            messageHandlerFactory.Setup(x => x.Create()).Returns(httpClientHandler.Object);
-
-            var proxyDetector = new Mock<IProxyDetector>();
-            proxyDetector.Setup(x => x.GetProxyUri(It.IsAny<Uri>())).Returns(connectionInfo.ServerUri);
-
-            var testSubject = new SonarQubeService(messageHandlerFactory.Object, "user-agent", logger, selectorMock.Object, null, proxyDetector.Object);
-            await testSubject.ConnectAsync(connectionInfo, CancellationToken.None);
-
-            proxyDetector.Verify(x => x.ConfigureProxy(It.IsAny<HttpClientHandler>(), It.IsAny<Uri>()), Times.Never);
+            messageHandlerFactory.Verify(x => x.Create(It.IsAny<Uri>()), Times.Exactly(4));
         }
 
         private static Mock<IRequestFactory> CreateRequestFactory(string versionResponse)

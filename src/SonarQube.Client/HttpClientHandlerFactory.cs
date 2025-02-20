@@ -19,15 +19,36 @@
  */
 
 using System.Net.Http;
+using SonarQube.Client.Logging;
 
 namespace SonarQube.Client;
 
 public interface IHttpClientHandlerFactory
 {
-    HttpClientHandler Create();
+    HttpClientHandler Create(Uri baseAddress);
 }
 
-public class HttpClientHandlerFactory : IHttpClientHandlerFactory
+public class HttpClientHandlerFactory(IProxyDetector proxyDetector, ILogger logger) : IHttpClientHandlerFactory
 {
-    public HttpClientHandler Create() => new HttpClientHandler();
+    public HttpClientHandler Create(Uri baseAddress)
+    {
+        var httpClientHandler = new HttpClientHandler();
+        ConfigureProxy(baseAddress, httpClientHandler);
+        return httpClientHandler;
+    }
+
+    private void ConfigureProxy(Uri baseAddress, HttpClientHandler httpClientHandler)
+    {
+        var proxyUri = proxyDetector.GetProxyUri(baseAddress);
+        var usesSystemProxy = baseAddress != proxyUri;
+        if (usesSystemProxy)
+        {
+            proxyDetector.ConfigureProxy(httpClientHandler, proxyUri);
+            logger.Debug($"System proxy detected and configured: {proxyUri}");
+        }
+        else
+        {
+            logger.Debug("No system proxy detected");
+        }
+    }
 }

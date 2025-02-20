@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Moq;
 using SonarQube.Client.Logging;
 using SonarQube.Client.Requests;
 
@@ -51,7 +50,7 @@ namespace SonarQube.Client.Tests
                 string userAgent,
                 ILogger logger,
                 IRequestFactorySelector requestFactorySelector)
-                : base(httpClientHandlerFactory, userAgent, logger, requestFactorySelector, null, Mock.Of<IProxyDetector>())
+                : base(httpClientHandlerFactory, userAgent, logger, requestFactorySelector, null)
             {
             }
 
