@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
 
@@ -32,6 +33,7 @@ public interface IProxyDetector
 
 internal class ProxyDetector : IProxyDetector
 {
+    [ExcludeFromCodeCoverage]
     public Uri GetProxyUri(Uri address) => WebRequest.GetSystemWebProxy().GetProxy(address);
 
     public void ConfigureProxy(HttpClientHandler httpClientHandler, Uri proxyAddress)
