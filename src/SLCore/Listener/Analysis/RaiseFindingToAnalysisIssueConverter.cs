@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
@@ -28,50 +29,62 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
 {
     [Export(typeof(IRaiseFindingToAnalysisIssueConverter))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class RaiseFindingToAnalysisIssueConverter : IRaiseFindingToAnalysisIssueConverter
+    [method: ImportingConstructor]
+    public class RaiseFindingToAnalysisIssueConverter(ILogger logger) : IRaiseFindingToAnalysisIssueConverter
     {
+        private readonly ILogger logger = logger.ForContext(nameof(RaiseFindingToAnalysisIssueConverter));
+
         public IEnumerable<IAnalysisIssue> GetAnalysisIssues<T>(FileUri fileUri, IEnumerable<T> raisedFindings) where T : RaisedFindingDto =>
             raisedFindings
-                .Select(item => CreateAnalysisIssue(fileUri, item))
+                .Select(item => TryCreateAnalysisIssue(fileUri, item))
+                .Where(x => x != null)
                 .ToList();
 
-        private static AnalysisIssue CreateAnalysisIssue<T>(FileUri fileUri, T item) where T : RaisedFindingDto
+        private AnalysisIssue TryCreateAnalysisIssue<T>(FileUri fileUri, T item) where T : RaisedFindingDto
         {
-            var id = item.id;
-            var itemRuleKey = item.ruleKey;
-            var analysisIssueSeverity = item.severityMode.Left?.severity.ToAnalysisIssueSeverity();
-            var analysisIssueType = item.severityMode.Left?.type.ToAnalysisIssueType();
-            var highestSoftwareQualitySeverity = GetHighestImpact(item.severityMode.Right?.impacts);
-            var analysisIssueLocation = GetAnalysisIssueLocation(fileUri.LocalPath, item.primaryMessage, item.textRange);
-            var analysisIssueFlows = GetFlows(item.flows);
-            var readOnlyList = item.quickFixes?.Select(qf => GetQuickFix(fileUri, qf)).Where(qf => qf is not null).ToList();
-
-            if (item is RaisedHotspotDto raisedHotspotDto)
+            try
             {
-                return new AnalysisHotspotIssue(id,
+                var id = item.id;
+                var itemRuleKey = item.ruleKey;
+                var analysisIssueSeverity = item.severityMode.Left?.severity.ToAnalysisIssueSeverity();
+                var analysisIssueType = item.severityMode.Left?.type.ToAnalysisIssueType();
+                var highestSoftwareQualitySeverity = GetHighestImpact(item.severityMode.Right?.impacts);
+                var analysisIssueLocation = GetAnalysisIssueLocation(fileUri.LocalPath, item.primaryMessage, item.textRange);
+                var analysisIssueFlows = GetFlows(item.flows);
+                var readOnlyList = item.quickFixes?.Select(qf => GetQuickFix(fileUri, qf)).Where(qf => qf is not null).ToList();
+
+                if (item is RaisedHotspotDto raisedHotspotDto)
+                {
+                    return new AnalysisHotspotIssue(id,
+                        itemRuleKey,
+                        analysisIssueSeverity,
+                        analysisIssueType,
+                        highestSoftwareQualitySeverity,
+                        analysisIssueLocation,
+                        analysisIssueFlows,
+                        readOnlyList,
+                        raisedHotspotDto.vulnerabilityProbability.GetHotspotPriority());
+                }
+
+                return new AnalysisIssue(id,
                     itemRuleKey,
                     analysisIssueSeverity,
                     analysisIssueType,
                     highestSoftwareQualitySeverity,
                     analysisIssueLocation,
                     analysisIssueFlows,
-                    readOnlyList,
-                    raisedHotspotDto.vulnerabilityProbability.GetHotspotPriority());
+                    readOnlyList);
             }
-
-            return new AnalysisIssue(id,
-                itemRuleKey,
-                analysisIssueSeverity,
-                analysisIssueType,
-                highestSoftwareQualitySeverity,
-                analysisIssueLocation,
-                analysisIssueFlows,
-                readOnlyList);
+            catch (Exception exception)
+            {
+                logger.WriteLine(SLCoreStrings.RaiseFindingToAnalysisIssueConverter_CreateAnalysisIssueFailed, item?.ruleKey, exception);
+                return null;
+            }
         }
 
         private static Impact GetHighestImpact(List<ImpactDto> impacts)
         {
-            if(impacts is null || impacts.Count == 0)
+            if (impacts is null || impacts.Count == 0)
             {
                 return null;
             }
@@ -79,13 +92,20 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
         }
 
         private static IAnalysisIssueLocation GetAnalysisIssueLocation(string filePath, string message, TextRangeDto textRangeDto) =>
-            new AnalysisIssueLocation(message,
-                filePath,
-                new TextRange(textRangeDto.startLine,
-                    textRangeDto.endLine,
-                    textRangeDto.startLineOffset,
-                    textRangeDto.endLineOffset,
-                    null));
+            new AnalysisIssueLocation(message, filePath, CopyTextRange(textRangeDto));
+
+        private static TextRange CopyTextRange(TextRangeDto textRangeDto)
+        {
+            if (textRangeDto is null)
+            {
+                return null;
+            }
+            return new TextRange(textRangeDto.startLine,
+                textRangeDto.endLine,
+                textRangeDto.startLineOffset,
+                textRangeDto.endLineOffset,
+                null);
+        }
 
         private static IAnalysisIssueFlow[] GetFlows(List<IssueFlowDto> issueFlows)
         {

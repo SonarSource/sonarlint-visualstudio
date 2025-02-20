@@ -151,6 +151,15 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Creating analysis issue for {0} failed due to {1}..
+        /// </summary>
+        public static string RaiseFindingToAnalysisIssueConverter_CreateAnalysisIssueFailed {
+            get {
+                return ResourceManager.GetString("RaiseFindingToAnalysisIssueConverter_CreateAnalysisIssueFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The server certificate can not be verified. Please see the logs for more info..
         /// </summary>
         public static string ServerCertificateInfobar_CertificateInvalidMessage {
