@@ -49,43 +49,23 @@ public class AssistCreatingConnectionParamsTests
     }
 
     [TestMethod]
-    public void SonarCloudConnection_EuRegion_DeserializesCorrectly()
+    [DataRow(SonarCloudRegion.EU)]
+    [DataRow(SonarCloudRegion.US)]
+    public void SonarCloudConnection_EuRegion_DeserializesCorrectly(SonarCloudRegion region)
     {
-        var sonarCloudConnection = new SonarCloudConnectionParams("myOrganization", "myToken2", "89D385F9-88CC-4AF5-B34B-7DAAE7FFB25B", SonarCloudRegion.EU);
+        var sonarCloudConnection = new SonarCloudConnectionParams("myOrganization", "myToken2", "89D385F9-88CC-4AF5-B34B-7DAAE7FFB25B", region);
         var expected = new AssistCreatingConnectionParams { connectionParams = sonarCloudConnection };
         var serialized =
-            """
-            {
-                "connectionParams": {
-                    "organizationKey": "myOrganization",
-                    "tokenName": "myToken2",
-                    "tokenValue": "89D385F9-88CC-4AF5-B34B-7DAAE7FFB25B",
-                    "sonarCloudRegion": "EU"
-                }
-            }
-            """;
-
-        var actual = JsonConvert.DeserializeObject<AssistCreatingConnectionParams>(serialized);
-
-        actual.Should().BeEquivalentTo(expected, options => options.ComparingByMembers<AssistCreatingConnectionParams>());
-    }
-
-    [TestMethod]
-    public void SonarCloudConnection_UsRegion_DeserializesCorrectly()
-    {
-        var sonarCloudConnection = new SonarCloudConnectionParams("myOrganization", "myToken2", "89D385F9-88CC-4AF5-B34B-7DAAE7FFB25B", SonarCloudRegion.US);
-        var expected = new AssistCreatingConnectionParams { connectionParams = sonarCloudConnection };
-        var serialized =
-            """
-            {
-                "connectionParams": {
-                    "organizationKey": "myOrganization",
-                    "tokenName": "myToken2",
-                    "tokenValue": "89D385F9-88CC-4AF5-B34B-7DAAE7FFB25B",
-                    "sonarCloudRegion": "US"
-                }
-            }
-            """;
+            $$"""
+              {
+                  "connectionParams": {
+                      "organizationKey": "myOrganization",
+                      "tokenName": "myToken2",
+                      "tokenValue": "89D385F9-88CC-4AF5-B34B-7DAAE7FFB25B",
+                      "sonarCloudRegion": "{{region}}"
+                  }
+              }
+              """;
 
         var actual = JsonConvert.DeserializeObject<AssistCreatingConnectionParams>(serialized);
 
@@ -114,43 +94,23 @@ public class AssistCreatingConnectionParamsTests
     }
 
     [TestMethod]
-    public void SonarCloudConnection_EuRegion_SerializesCorrectly()
+    [DataRow(SonarCloudRegion.EU)]
+    [DataRow(SonarCloudRegion.US)]
+    public void SonarCloudConnection_SerializesCorrectly(SonarCloudRegion region)
     {
-        var sonarCloudConnection = new SonarCloudConnectionParams("myOrganization", "myToken2", "89D385F9-88CC-4AF5-B34B-7DAAE7FFB25B", SonarCloudRegion.EU);
+        var sonarCloudConnection = new SonarCloudConnectionParams("myOrganization", "myToken2", "89D385F9-88CC-4AF5-B34B-7DAAE7FFB25B", region);
         var assistCreatingConnectionParams = new AssistCreatingConnectionParams { connectionParams = sonarCloudConnection };
         var expected =
-            """
-            {
-              "connectionParams": {
-                "organizationKey": "myOrganization",
-                "tokenName": "myToken2",
-                "tokenValue": "89D385F9-88CC-4AF5-B34B-7DAAE7FFB25B",
-                "sonarCloudRegion": "EU"
+            $$"""
+              {
+                "connectionParams": {
+                  "organizationKey": "myOrganization",
+                  "tokenName": "myToken2",
+                  "tokenValue": "89D385F9-88CC-4AF5-B34B-7DAAE7FFB25B",
+                  "sonarCloudRegion": "{{region}}"
+                }
               }
-            }
-            """;
-
-        var actual = JsonConvert.SerializeObject(assistCreatingConnectionParams, Formatting.Indented);
-
-        actual.Should().BeEquivalentTo(expected);
-    }
-
-    [TestMethod]
-    public void SonarCloudConnection_UsRegion_SerializesCorrectly()
-    {
-        var sonarCloudConnection = new SonarCloudConnectionParams("myOrganization", "myToken2", "89D385F9-88CC-4AF5-B34B-7DAAE7FFB25B", SonarCloudRegion.US);
-        var assistCreatingConnectionParams = new AssistCreatingConnectionParams { connectionParams = sonarCloudConnection };
-        var expected =
-            """
-            {
-              "connectionParams": {
-                "organizationKey": "myOrganization",
-                "tokenName": "myToken2",
-                "tokenValue": "89D385F9-88CC-4AF5-B34B-7DAAE7FFB25B",
-                "sonarCloudRegion": "US"
-              }
-            }
-            """;
+              """;
 
         var actual = JsonConvert.SerializeObject(assistCreatingConnectionParams, Formatting.Indented);
 
