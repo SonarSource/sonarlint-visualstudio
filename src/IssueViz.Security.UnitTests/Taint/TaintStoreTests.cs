@@ -489,7 +489,7 @@ public class TaintStoreTests
         var issueViz = Substitute.For<IAnalysisIssueVisualization>();
         issueViz.IssueId.Returns(id.Value);
         var taintIssue = Substitute.For<ITaintIssue>();
-        taintIssue.IssueKey.Returns(issueKey);
+        taintIssue.IssueServerKey.Returns(issueKey);
         issueViz.Issue.Returns(taintIssue);
 
         return issueViz;

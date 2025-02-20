@@ -19,7 +19,6 @@
  */
 
 using Microsoft.VisualStudio.Text;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 
@@ -44,26 +43,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             private readonly ITextDocument textDocument;
             private readonly string projectName;
             private readonly Guid projectGuid;
-            private readonly ISuppressedIssueMatcher suppressedIssueMatcher;
             private readonly SnapshotChangedHandler onSnapshotChanged;
             private readonly ILocalHotspotsStoreUpdater localHotspotsStore;
 
             private readonly TranslateSpans translateSpans;
 
-            public IssueHandler(ITextDocument textDocument,
+            public IssueHandler(
+                ITextDocument textDocument,
                 string projectName,
                 Guid projectGuid,
-                ISuppressedIssueMatcher suppressedIssueMatcher,
                 SnapshotChangedHandler onSnapshotChanged,
                 ILocalHotspotsStoreUpdater localHotspotsStore)
-                : this (textDocument, projectName, projectGuid, suppressedIssueMatcher, onSnapshotChanged, localHotspotsStore, DoTranslateSpans)
+                : this(textDocument, projectName, projectGuid, onSnapshotChanged, localHotspotsStore, DoTranslateSpans)
             {
             }
 
-            internal /* for testing */ IssueHandler(ITextDocument textDocument,
+            internal /* for testing */ IssueHandler(
+                ITextDocument textDocument,
                 string projectName,
                 Guid projectGuid,
-                ISuppressedIssueMatcher suppressedIssueMatcher,
                 SnapshotChangedHandler onSnapshotChanged,
                 ILocalHotspotsStoreUpdater localHotspotsStore,
                 TranslateSpans translateSpans)
@@ -71,7 +69,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 this.textDocument = textDocument;
                 this.projectName = projectName;
                 this.projectGuid = projectGuid;
-                this.suppressedIssueMatcher = suppressedIssueMatcher;
                 this.onSnapshotChanged = onSnapshotChanged;
                 this.localHotspotsStore = localHotspotsStore;
 
@@ -93,21 +90,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
             private IAnalysisIssueVisualization[] PrepareIssues(IEnumerable<IAnalysisIssueVisualization> issues)
             {
-                MarkSuppressedIssues(issues);
-
                 // The text buffer might have changed since the analysis was triggered, so translate
                 // all issues to the current snapshot.
                 // See bug #1487: https://github.com/SonarSource/sonarlint-visualstudio/issues/1487
                 var translatedIssues = translateSpans(issues, textDocument.TextBuffer.CurrentSnapshot);
                 return translatedIssues;
-            }
-
-            private void MarkSuppressedIssues(IEnumerable<IAnalysisIssueVisualization> issues)
-            {
-                foreach (var issue in issues)
-                {
-                    issue.IsSuppressed = suppressedIssueMatcher.SuppressionExists(issue);
-                }
             }
 
             private static IAnalysisIssueVisualization[] DoTranslateSpans(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot)

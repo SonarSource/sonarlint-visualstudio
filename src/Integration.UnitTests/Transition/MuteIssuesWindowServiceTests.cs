@@ -18,10 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Configuration;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Transition;
 using SonarLint.VisualStudio.Integration.Transition;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -32,18 +30,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Transition
     public class MuteIssuesWindowServiceTests
     {
         [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
+        public void MefCtor_CheckIsExported() =>
             MefTestHelpers.CheckTypeCanBeImported<MuteIssuesWindowService, IMuteIssuesWindowService>(
-                MefTestHelpers.CreateExport<IConnectedModeFeaturesConfiguration>(),
                 MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
                 MefTestHelpers.CreateExport<IBrowserService>());
-        }
 
         [TestMethod]
-        public void MefCtor_CheckIsSingleton()
-        {
-            MefTestHelpers.CheckIsSingletonMefComponent<MuteIssuesWindowService>();
-        }
+        public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<MuteIssuesWindowService>();
     }
 }

@@ -31,12 +31,10 @@ public class IssuePublisherTests
     private IssuePublisher testSubject;
 
     [TestMethod]
-    public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<IssuePublisher, IIssuePublisher>(MefTestHelpers.CreateExport<IIssueConsumerStorage>());
+    public void MefCtor_CheckIsExported() => MefTestHelpers.CheckTypeCanBeImported<IssuePublisher, IIssuePublisher>(MefTestHelpers.CreateExport<IIssueConsumerStorage>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() =>
-        MefTestHelpers.CheckIsSingletonMefComponent<IssuePublisher>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<IssuePublisher>();
 
     [TestInitialize]
     public void TestInitialize()
@@ -47,8 +45,7 @@ public class IssuePublisherTests
     }
 
     [TestMethod]
-    public void FindingsType_ReturnsCorrectValue() =>
-        testSubject.FindingsType.Should().Be(CoreStrings.FindingType_Issue);
+    public void FindingsType_ReturnsCorrectValue() => testSubject.FindingsType.Should().Be(CoreStrings.FindingType_Issue);
 
     [TestMethod]
     public void PublishIssues_NoConsumerInStorage_DoesNothing()
@@ -93,6 +90,24 @@ public class IssuePublisherTests
             });
 
         testSubject.Publish("file/path", analysisId, analysisIssues);
+
+        issueConsumer.Received().SetIssues("file/path", analysisIssues);
+        issueConsumer.DidNotReceiveWithAnyArgs().SetHotspots(default, default);
+    }
+
+    [TestMethod]
+    public void PublishIssues_AnalysisIdIsNull_PublishesIssues()
+    {
+        var analysisIssues = Substitute.For<IEnumerable<IAnalysisIssue>>();
+        issueConsumerStorage.TryGet("file/path", out Arg.Any<Guid>(), out Arg.Any<IIssueConsumer>())
+            .Returns(info =>
+            {
+                info[1] = Guid.NewGuid();
+                info[2] = issueConsumer;
+                return true;
+            });
+
+        testSubject.Publish("file/path", analysisId: null, analysisIssues);
 
         issueConsumer.Received().SetIssues("file/path", analysisIssues);
         issueConsumer.DidNotReceiveWithAnyArgs().SetHotspots(default, default);

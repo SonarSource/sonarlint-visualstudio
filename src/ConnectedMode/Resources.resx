@@ -206,7 +206,7 @@
     <value>[ActionRunner] Cancelling current operation...</value>
   </data>
   <data name="Suppressions_FetchError_Short" xml:space="preserve">
-    <value>[Suppressions] Fetch operation failed: {0}</value>
+    <value>Fetch operation failed: {0}</value>
     <comment>0 = short error message</comment>
   </data>
   <data name="Suppressions_UpdateError_Short" xml:space="preserve">
@@ -214,24 +214,24 @@
     <comment>0 = short error message</comment>
   </data>
   <data name="Suppressions_FetchOperationCancelled" xml:space="preserve">
-    <value>[Suppressions] Fetch operation cancelled</value>
+    <value>Fetch operation cancelled</value>
   </data>
   <data name="Suppressions_UpdateOperationCancelled" xml:space="preserve">
     <value>[Suppressions] Update operation cancelled</value>
   </data>
-  <data name="Suppressions_Fetch_AllIssues" xml:space="preserve">
-    <value>[Suppressions] Fetching all suppressions...</value>
+  <data name="Suppressions_Fetch_Issues" xml:space="preserve">
+    <value>Fetching suppressions... All issues suppressed: {0}</value>
   </data>
   <data name="Suppression_FetchError_Verbose" xml:space="preserve">
-    <value>[Suppressions] Error fetching data: {0}</value>
+    <value>Error fetching data: {0}</value>
     <comment>0 = detailed error message</comment>
   </data>
   <data name="Suppression_UpdateError_Verbose" xml:space="preserve">
     <value>[Suppressions] Error updating data: {0}</value>
     <comment>0 = detailed error message</comment>
   </data>
-  <data name="Suppression_Fetch_AllIssues_Finished" xml:space="preserve">
-    <value>[Suppressions] Finished fetching all suppressions</value>
+  <data name="Suppression_Fetch_Issues_Finished" xml:space="preserve">
+    <value>Finished fetching suppressions. All issues suppressed: {0}</value>
   </data>
   <data name="Suppression_IssueChangedEventFinished" xml:space="preserve">
     <value>[Suppressions] IssueChangedEvent finished</value>
@@ -286,20 +286,20 @@
   <data name="SharedBindingConfigProvider_SharedFolderNotFound" xml:space="preserve">
     <value>[SharedBindingConfigProvider] The .sonarlint shared folder was not found</value>
   </data>
-  <data name="MuteWindowService_NotInConnectedMode" xml:space="preserve">
-    <value>[Transition]Issue muting is only supported in connected mode</value>
+  <data name="MuteIssue_IssueNotFound" xml:space="preserve">
+    <value>Could not find a matching issue on the server.</value>
   </data>
-  <data name="MuteIssuesService_Error_Caption" xml:space="preserve">
-    <value>Error</value>
+  <data name="MuteIssue_NotInConnectedMode" xml:space="preserve">
+    <value>Issue muting is only supported in connected mode</value>
   </data>
-  <data name="MuteIssuesService_Error_CommentAdditionFailed" xml:space="preserve">
-    <value>Issue is resolved but an error occured while adding the comment, please refer to the logs for more information.</value>
+  <data name="MuteIssue_NotPermitted" xml:space="preserve">
+    <value>Issue muting was not permitted [issueKey: {0}]: {1}</value>
   </data>
-  <data name="MuteIssuesService_Error_FailedToTransition" xml:space="preserve">
-    <value>Unable to resolve the issue, please refer to the logs for more information.</value>
+  <data name="MuteIssue_AddCommentFailed" xml:space="preserve">
+    <value>An error occurred while adding the comment on muted issue [issueKey: {0}]: {1}</value>
   </data>
-  <data name="MuteIssuesService_Error_InsufficientPermissions" xml:space="preserve">
-    <value>Credentials you have provided do not have enough permission to resolve issues. It requires the permission 'Administer Issues'.</value>
+  <data name="MuteIssue_AnErrorOccurred" xml:space="preserve">
+    <value>An error occurred while muting issue [issueKey: {0}]: {1}</value>
   </data>
   <data name="ValidateCredentials_Fails" xml:space="preserve">
     <value>[ConnectedMode] Validating credentials failed</value>
@@ -345,5 +345,8 @@
   </data>
   <data name="PromoteSonarQubeCloud" xml:space="preserve">
     <value>Try SonarQube Cloud for free</value>
+  </data>
+  <data name="MuteIssue_ErrorIssueAlreadyResolved" xml:space="preserve">
+    <value>This issue is already resolved on the server. It will be removed from the Error List after the next SonarQube for Visual Studio analysis.</value>
   </data>
 </root>

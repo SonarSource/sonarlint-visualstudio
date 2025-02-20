@@ -20,9 +20,6 @@
 
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
@@ -128,7 +125,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIde
 
             var callCount = 0;
             IssuesChangedEventArgs suppliedArgs = null;
-            testSubject.IssuesChanged += (sender, args) => { callCount++; suppliedArgs = args; };
+            testSubject.IssuesChanged += (sender, args) =>
+            {
+                callCount++;
+                suppliedArgs = args;
+            };
 
             var addedIssueViz = testSubject.GetOrAdd(CreateIssueViz(hotspotKey: "some hotspot"));
 
@@ -144,7 +145,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIde
 
             var callCount = 0;
             IssuesChangedEventArgs suppliedArgs = null;
-            testSubject.IssuesChanged += (sender, args) => { callCount++; suppliedArgs = args; };
+            testSubject.IssuesChanged += (sender, args) =>
+            {
+                callCount++;
+                suppliedArgs = args;
+            };
 
             var addedIssueViz1 = testSubject.GetOrAdd(CreateIssueViz(hotspotKey: "some hotspot1"));
             testSubject.GetOrAdd(CreateIssueViz(hotspotKey: "some hotspot2"));
@@ -160,7 +165,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIde
         private static IAnalysisIssueVisualization CreateIssueViz(string hotspotKey)
         {
             var hotspot = new Mock<IHotspot>();
-            hotspot.Setup(x => x.HotspotKey).Returns(hotspotKey);
+            hotspot.Setup(x => x.IssueServerKey).Returns(hotspotKey);
 
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.Issue).Returns(hotspot.Object);

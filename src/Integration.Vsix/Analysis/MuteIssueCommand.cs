@@ -23,7 +23,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.ConnectedMode;
+using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppressions;
@@ -38,7 +38,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     internal sealed class MuteIssueCommand
     {
         private readonly IErrorListHelper errorListHelper;
-        private readonly IServerIssueFinder serverIssueFinder;
         private readonly IMuteIssuesService muteIssuesService;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly IThreadHandling threadHandling;
@@ -70,7 +69,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             Instance = new MuteIssueCommand(commandService,
                 await package.GetMefServiceAsync<IErrorListHelper>(),
                 await package.GetMefServiceAsync<IRoslynIssueLineHashCalculator>(),
-                await package.GetMefServiceAsync<IServerIssueFinder>(),
                 await package.GetMefServiceAsync<IMuteIssuesService>(),
                 await package.GetMefServiceAsync<IActiveSolutionBoundTracker>(),
                 await package.GetMefServiceAsync<IThreadHandling>(),
@@ -83,7 +81,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             IMenuCommandService menuCommandService,
             IErrorListHelper errorListHelper,
             IRoslynIssueLineHashCalculator roslynIssueLineHashCalculator,
-            IServerIssueFinder serverIssueFinder,
             IMuteIssuesService muteIssuesService,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             IThreadHandling threadHandling,
@@ -101,16 +98,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
 
             this.errorListHelper = errorListHelper ?? throw new ArgumentNullException(nameof(errorListHelper));
-            this.serverIssueFinder = serverIssueFinder ?? throw new ArgumentNullException(nameof(serverIssueFinder));
             this.roslynIssueLineHashCalculator = roslynIssueLineHashCalculator ?? throw new ArgumentNullException(nameof(roslynIssueLineHashCalculator));
             this.muteIssuesService = muteIssuesService ?? throw new ArgumentNullException(nameof(muteIssuesService));
             this.activeSolutionBoundTracker = activeSolutionBoundTracker ?? throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
             this.threadHandling = threadHandling ?? throw new ArgumentNullException(nameof(threadHandling));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.logger = logger?.ForContext(nameof(MuteIssueCommand)) ?? throw new ArgumentNullException(nameof(logger));
             this.messageBox = messageBox ?? throw new ArgumentNullException(nameof(messageBox));
 
-            // secrets should be enabled, but there is a bug, so it was on purpose disabled (See https://sonarsource.atlassian.net/browse/SLVS-1210)
-            SupportedRepos = languageProvider.AllKnownLanguages.Except([Language.Secrets]).Select(x => x.RepoInfo.Key).ToList();
+            SupportedRepos = languageProvider.AllKnownLanguages.Select(x => x.RepoInfo.Key).ToList();
 
             var menuCommandID = new CommandID(CommandSet, CommandId);
             menuItem = new OleMenuCommand(Execute, null, QueryStatus, menuCommandID);
@@ -160,10 +155,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
         }
 
-        private bool TryGetNonRoslynIssue(out IFilterableIssue issue)
-        {
-            return errorListHelper.TryGetIssueFromSelectedRow(out issue);
-        }
+        private bool TryGetNonRoslynIssue(out IFilterableIssue issue) => errorListHelper.TryGetIssueFromSelectedRow(out issue);
 
         private bool TryGetRoslynIssue(out IFilterableIssue issue)
         {
@@ -179,24 +171,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         private async Task<bool> MuteIssueAsync(IFilterableIssue issue)
         {
-            var serverIssue = await serverIssueFinder.FindServerIssueAsync(issue, CancellationToken.None);
-            if (serverIssue == null)
+            try
             {
-                messageBox.Show(AnalysisStrings.MuteIssue_IssueNotFoundText, AnalysisStrings.MuteIssue_IssueNotFoundCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                await muteIssuesService.ResolveIssueWithDialogAsync(issue);
+                logger.WriteLine(AnalysisStrings.MuteIssue_HaveMuted);
+                return true;
+            }
+            catch (MuteIssueException.MuteIssueCommentFailedException)
+            {
+                messageBox.Show(AnalysisStrings.MuteIssue_MessageBox_AddCommentFailed, AnalysisStrings.MuteIssue_WarningCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
+                return true;
+            }
+            catch (MuteIssueException.MuteIssueCancelledException)
+            {
                 return false;
             }
-
-            if (serverIssue.IsResolved)
+            catch (MuteIssueException ex)
             {
-                muteIssuesService.CacheOutOfSyncResolvedIssue(serverIssue);
-                messageBox.Show(AnalysisStrings.MuteIssue_IssueAlreadyMutedText, AnalysisStrings.MuteIssue_IssueAlreadyMutedCaption, MessageBoxButton.OK, MessageBoxImage.Information);
+                messageBox.Show(ex.Message, AnalysisStrings.MuteIssue_FailureCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 return false;
             }
-
-            await muteIssuesService.ResolveIssueWithDialogAsync(serverIssue, CancellationToken.None);
-            logger.WriteLine(AnalysisStrings.MuteIssue_HaveMuted, serverIssue.IssueKey);
-
-            return true;
         }
 
         private bool IsSupportedSonarRule(SonarCompositeRuleId rule) => SupportedRepos.Contains(rule.RepoKey);

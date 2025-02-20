@@ -296,7 +296,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
                     2,
                     3,
                     4),
-               [],
+                [],
                 default,
                 default,
                 new MQRModeDetails(default,
@@ -364,6 +364,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
             result.Should().HaveCount(2);
 
             result[0].Id.Should().Be(Issue1Id);
+            result[0].IssueServerKey.Should().Be("serverKey1");
             result[0].RuleKey.Should().Be("ruleKey1");
             result[0].Severity.Should().Be(AnalysisIssueSeverity.Major);
             result[0].Type.Should().Be(AnalysisIssueType.CodeSmell);
@@ -381,6 +382,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
             result[0].Fixes.Should().BeEmpty();
 
             result[1].Id.Should().Be(Issue2Id);
+            result[1].IssueServerKey.Should().Be("serverKey2");
             result[1].RuleKey.Should().Be("ruleKey2");
             result[1].Severity.Should().BeNull();
             result[1].Type.Should().BeNull();

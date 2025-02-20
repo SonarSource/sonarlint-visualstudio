@@ -18,12 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots_List
@@ -63,7 +59,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots_L
 
             NotifyIssuesChanged(new IssuesChangedEventArgs(
                 Array.Empty<IAnalysisIssueVisualization>(),
-                new[] {hotspotViz}));
+                new[] { hotspotViz }));
 
             return hotspotViz;
         }
@@ -73,15 +69,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots_L
             hotspots.Remove(hotspotViz);
 
             NotifyIssuesChanged(new IssuesChangedEventArgs(
-                new[] {hotspotViz},
+                new[] { hotspotViz },
                 Array.Empty<IAnalysisIssueVisualization>()));
         }
 
         private IAnalysisIssueVisualization FindExisting(IAnalysisIssueVisualization hotspotViz)
         {
-            var key = ((IHotspot)hotspotViz.Issue).HotspotKey;
+            var key = hotspotViz.Issue.IssueServerKey;
 
-            return hotspots.FirstOrDefault(x => ((IHotspot)x.Issue).HotspotKey == key);
+            return hotspots.FirstOrDefault(x => x.Issue.IssueServerKey == key);
         }
 
         private void NotifyIssuesChanged(IssuesChangedEventArgs args)

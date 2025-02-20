@@ -54,14 +54,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal partial class IssueConsumerFactory : IIssueConsumerFactory
     {
-        private readonly ISuppressedIssueMatcher suppressedIssueMatcher;
         private readonly IAnalysisIssueVisualizationConverter converter;
         private readonly ILocalHotspotsStoreUpdater localHotspotsStore;
 
         [ImportingConstructor]
         internal IssueConsumerFactory(ISuppressedIssueMatcher suppressedIssueMatcher, IAnalysisIssueVisualizationConverter converter, ILocalHotspotsStoreUpdater localHotspotsStore)
         {
-            this.suppressedIssueMatcher = suppressedIssueMatcher;
             this.converter = converter;
             this.localHotspotsStore = localHotspotsStore;
         }
@@ -73,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             Guid projectGuid,
             SnapshotChangedHandler onSnapshotChanged)
         {
-            var issueHandler = new IssueHandler(textDocument, projectName, projectGuid, suppressedIssueMatcher, onSnapshotChanged, localHotspotsStore);
+            var issueHandler = new IssueHandler(textDocument, projectName, projectGuid, onSnapshotChanged, localHotspotsStore);
             var issueConsumer = new IssueConsumer(analysisSnapshot, analysisFilePath, issueHandler, converter);
 
             return issueConsumer;

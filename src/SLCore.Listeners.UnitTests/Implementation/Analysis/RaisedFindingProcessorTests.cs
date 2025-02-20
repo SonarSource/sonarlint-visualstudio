@@ -35,6 +35,8 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation.Analy
 [TestClass]
 public class RaisedFindingProcessorTests
 {
+    private static readonly FileUri fileUri = new FileUri("file://C:/somefile");
+    private readonly Dictionary<FileUri, List<TestFinding>> twoFindingsByFileUri = new() { { fileUri, [CreateTestFinding("csharpsquid:S100"), CreateTestFinding("csharpsquid:S101")] } };
     private const string FindingsType = "FINDING";
 
     [TestMethod]
@@ -49,9 +51,9 @@ public class RaisedFindingProcessorTests
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<RaisedFindingProcessor>();
 
     [TestMethod]
-    public void RaiseFindings_AnalysisIdIsNull_Ignores()
+    public void RaiseFindings_AnalysisIdIsNull_DoesNotIgnore()
     {
-        var raiseFindingParams = new RaiseFindingParams<TestFinding>("CONFIGURATION_ID", new Dictionary<FileUri, List<TestFinding>>(), false, null);
+        var raiseFindingParams = new RaiseFindingParams<TestFinding>("CONFIGURATION_ID", twoFindingsByFileUri, false, null);
         var publisher = Substitute.For<IFindingsPublisher>();
         var raiseFindingParamsToAnalysisIssueConverter = Substitute.For<IRaiseFindingToAnalysisIssueConverter>();
 
@@ -59,14 +61,13 @@ public class RaisedFindingProcessorTests
 
         testSubject.RaiseFinding(raiseFindingParams, publisher);
 
-        publisher.DidNotReceiveWithAnyArgs().Publish(default, default, default);
-        raiseFindingParamsToAnalysisIssueConverter.DidNotReceive().GetAnalysisIssues(Arg.Any<FileUri>(), Arg.Any<List<TestFinding>>());
+        raiseFindingParamsToAnalysisIssueConverter.Received().GetAnalysisIssues(fileUri, Arg.Is<IEnumerable<RaisedFindingDto>>(x => !x.Any()));
+        publisher.Received().Publish(fileUri.LocalPath, null, Arg.Is<IEnumerable<IAnalysisIssue>>(x => !x.Any()));
     }
 
     [TestMethod]
     public void RaiseFindings_NoFindings_Ignores()
     {
-        var fileUri = new FileUri("file://C:/somefile");
         var analysisId = Guid.NewGuid();
         var findingsByFileUri = new Dictionary<FileUri, List<TestFinding>> { { fileUri, [] } };
 
@@ -86,13 +87,10 @@ public class RaisedFindingProcessorTests
     public void RaiseFindings_NoKnownLanguages_PublishesEmpty()
     {
         var analysisId = Guid.NewGuid();
-        var fileUri = new FileUri("file://C:/somefile");
-        var findingsByFileUri = new Dictionary<FileUri, List<TestFinding>> { { fileUri, [CreateTestFinding("csharpsquid:S100"), CreateTestFinding("csharpsquid:S101")] } };
-
         var isIntermediatePublication = false;
-        var raiseFindingParams = new RaiseFindingParams<TestFinding>("CONFIGURATION_ID", findingsByFileUri, isIntermediatePublication, analysisId);
+        var raiseFindingParams = new RaiseFindingParams<TestFinding>("CONFIGURATION_ID", twoFindingsByFileUri, isIntermediatePublication, analysisId);
         var publisher = CreatePublisher();
-        IRaiseFindingToAnalysisIssueConverter raiseFindingToAnalysisIssueConverter = CreateConverter(findingsByFileUri.Single().Key, [], []);
+        IRaiseFindingToAnalysisIssueConverter raiseFindingToAnalysisIssueConverter = CreateConverter(twoFindingsByFileUri.Single().Key, [], []);
 
         var analysisStatusNotifierFactory = CreateAnalysisStatusNotifierFactory(out var analysisStatusNotifier, fileUri.LocalPath, analysisId);
         var constantsProvider = CreateConstantsProviderWithLanguages([]);
@@ -114,13 +112,10 @@ public class RaisedFindingProcessorTests
     public void RaiseFindings_NoSupportedLanguages_PublishesEmpty()
     {
         var analysisId = Guid.NewGuid();
-        var fileUri = new FileUri("file://C:/somefile");
-        var findingsByFileUri = new Dictionary<FileUri, List<TestFinding>> { { fileUri, [CreateTestFinding("csharpsquid:S100"), CreateTestFinding("csharpsquid:S101")] } };
-
         var isIntermediatePublication = false;
-        var raiseFindingParams = new RaiseFindingParams<TestFinding>("CONFIGURATION_ID", findingsByFileUri, isIntermediatePublication, analysisId);
+        var raiseFindingParams = new RaiseFindingParams<TestFinding>("CONFIGURATION_ID", twoFindingsByFileUri, isIntermediatePublication, analysisId);
         var publisher = CreatePublisher();
-        IRaiseFindingToAnalysisIssueConverter raiseFindingToAnalysisIssueConverter = CreateConverter(findingsByFileUri.Single().Key, [], []);
+        IRaiseFindingToAnalysisIssueConverter raiseFindingToAnalysisIssueConverter = CreateConverter(twoFindingsByFileUri.Single().Key, [], []);
 
         var analysisStatusNotifierFactory = CreateAnalysisStatusNotifierFactory(out var analysisStatusNotifier, fileUri.LocalPath, analysisId);
         var constantsProvider = CreateConstantsProviderWithLanguages([SloopLanguage.JAVA]);
@@ -162,7 +157,6 @@ public class RaisedFindingProcessorTests
     public void RaiseFindings_PublishFindings(bool isIntermediate)
     {
         var analysisId = Guid.NewGuid();
-        var fileUri = new FileUri("file://C:/somefile");
         var analysisIssue1 = CreateAnalysisIssue("csharpsquid:S100");
         var analysisIssue2 = CreateAnalysisIssue("secrets:S1012");
         var filteredIssues = new[] { analysisIssue1, analysisIssue2 };
@@ -206,7 +200,7 @@ public class RaisedFindingProcessorTests
     public void RaiseFindings_MultipleFiles_PublishFindingsForEachFile(bool isIntermediate)
     {
         var analysisId = Guid.NewGuid();
-        var fileUri1 = new FileUri("file://C:/somefile");
+        var fileUri1 = fileUri;
         var fileUri2 = new FileUri("file://C:/someOtherfile");
         var analysisIssue1 = CreateAnalysisIssue("secrets:S100");
         var analysisIssue2 = CreateAnalysisIssue("secrets:S101");
@@ -294,7 +288,7 @@ public class RaisedFindingProcessorTests
         analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), filePath, analysisId).Returns(analysisStatusNotifier);
     }
 
-    private TestFinding CreateTestFinding(string ruleKey)
+    private static TestFinding CreateTestFinding(string ruleKey)
     {
         return new TestFinding(default, default, ruleKey, default, default, default, default, default, default, default, default, default);
     }

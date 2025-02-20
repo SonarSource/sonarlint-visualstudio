@@ -18,10 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Helpers;
@@ -59,7 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
 
             var quickFixes = GetQuickFixVisualizations(issue, textSnapshot);
 
-            var issueVisualization = new AnalysisIssueVisualization(flows, issue, issueSpan, quickFixes);
+            var issueVisualization = new AnalysisIssueVisualization(flows, issue, issueSpan, quickFixes) { IsSuppressed = issue.IsResolved };
 
             if (textSnapshot != null)
             {

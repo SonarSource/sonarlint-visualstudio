@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
@@ -35,7 +34,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         {
             MefTestHelpers.CheckTypeCanBeImported<BoundSolutionUpdateHandler, BoundSolutionUpdateHandler>(
                 MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
-                MefTestHelpers.CreateExport<ISuppressionIssueStoreUpdater>(),
+                MefTestHelpers.CreateExport<ISuppressionUpdater>(),
                 MefTestHelpers.CreateExport<IServerHotspotStoreUpdater>(),
                 MefTestHelpers.CreateExport<IQualityProfileUpdater>());
         }
@@ -51,7 +50,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         {
             var activeSolutionTracker = new Mock<IActiveSolutionBoundTracker>();
 
-            _ = new BoundSolutionUpdateHandler(activeSolutionTracker.Object, Mock.Of<ISuppressionIssueStoreUpdater>(), Mock.Of<IServerHotspotStoreUpdater>(), Mock.Of<IQualityProfileUpdater>());
+            _ = new BoundSolutionUpdateHandler(activeSolutionTracker.Object, Mock.Of<ISuppressionUpdater>(), Mock.Of<IServerHotspotStoreUpdater>(), Mock.Of<IQualityProfileUpdater>());
 
             activeSolutionTracker.VerifyAdd(x => x.SolutionBindingChanged += It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>(), Times.Once);
             activeSolutionTracker.VerifyAdd(x => x.SolutionBindingUpdated += It.IsAny<EventHandler>(), Times.Once);
@@ -61,19 +60,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         public void InvokeEvents_ServerStoreUpdatersAreCalled()
         {
             var activeSolutionTracker = new Mock<IActiveSolutionBoundTracker>();
-            var suppressionIssueStoreUpdater = new Mock<ISuppressionIssueStoreUpdater>();
+            var suppressionUpdater = new Mock<ISuppressionUpdater>();
             var serverHotspotStoreUpdater = new Mock<IServerHotspotStoreUpdater>();
             var qualityProfileUpdater = new Mock<IQualityProfileUpdater>();
 
-            _ = new BoundSolutionUpdateHandler(activeSolutionTracker.Object, suppressionIssueStoreUpdater.Object, serverHotspotStoreUpdater.Object, qualityProfileUpdater.Object);
+            _ = new BoundSolutionUpdateHandler(activeSolutionTracker.Object, suppressionUpdater.Object, serverHotspotStoreUpdater.Object, qualityProfileUpdater.Object);
 
             activeSolutionTracker.Raise(x => x.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(BindingConfiguration.Standalone));
-            suppressionIssueStoreUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Once);
+            suppressionUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Once);
             serverHotspotStoreUpdater.Verify(x => x.UpdateAllServerHotspotsAsync(), Times.Once);
             qualityProfileUpdater.Verify(x => x.UpdateAsync(), Times.Once);
 
             activeSolutionTracker.Raise(x => x.SolutionBindingUpdated += null, EventArgs.Empty);
-            suppressionIssueStoreUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Exactly(2));
+            suppressionUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Exactly(2));
             serverHotspotStoreUpdater.Verify(x => x.UpdateAllServerHotspotsAsync(), Times.Exactly(2));
             qualityProfileUpdater.Verify(x => x.UpdateAsync(), Times.Exactly(2));
         }
@@ -83,7 +82,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         {
             var activeSolutionTracker = new Mock<IActiveSolutionBoundTracker>();
 
-            var testSubject = new BoundSolutionUpdateHandler(activeSolutionTracker.Object, Mock.Of<ISuppressionIssueStoreUpdater>(), Mock.Of<IServerHotspotStoreUpdater>(), Mock.Of<IQualityProfileUpdater>());
+            var testSubject = new BoundSolutionUpdateHandler(activeSolutionTracker.Object, Mock.Of<ISuppressionUpdater>(), Mock.Of<IServerHotspotStoreUpdater>(), Mock.Of<IQualityProfileUpdater>());
 
             testSubject.Dispose();
 

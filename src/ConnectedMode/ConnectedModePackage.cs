@@ -18,10 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
@@ -98,7 +96,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             sseSessionManager.CreateSessionIfInConnectedMode();
             importBeforeInstallTrigger = componentModel.GetService<ImportBeforeInstallTrigger>();
             importBeforeInstallTrigger.TriggerUpdateAsync().Forget();
-            var updater = componentModel.GetService<ISuppressionIssueStoreUpdater>();
+            var updater = componentModel.GetService<ISuppressionUpdater>();
             updater.UpdateAllServerSuppressionsAsync().Forget();
             var hotspotsUpdater = componentModel.GetService<IServerHotspotStoreUpdater>();
             hotspotsUpdater.UpdateAllServerHotspotsAsync().Forget();

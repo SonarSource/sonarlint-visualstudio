@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using SonarQube.Client;
 
@@ -40,12 +39,6 @@ namespace SonarLint.VisualStudio.Core.Configuration
         /// </summary>
         /// <returns>False if connected to SQube 10.1.X and below, True otherwise (including Standalone)</returns>
         bool IsNewCctAvailable();
-
-        /// <summary>
-        /// Indicates whether the Accept transition is supportted in current server
-        /// </summary>
-        /// <returns>True if connected to SCloud or SQube 10.4 and above, False otherwise</returns>
-        bool IsAcceptTransitionAvailable();
     }
 
     [Export(typeof(IConnectedModeFeaturesConfiguration))]
@@ -54,7 +47,6 @@ namespace SonarLint.VisualStudio.Core.Configuration
     {
         private readonly Version minimalSonarQubeVersionForHotspots = new Version(9, 7);
         private readonly Version minimalSonarQubeVersionForNewTaxonomy = new Version(10, 2);
-        private readonly Version minimalSonarQubeVersionForAccept = new Version(10, 4);
         private readonly ISonarQubeService sonarQubeService;
 
         [ImportingConstructor]
@@ -83,12 +75,5 @@ namespace SonarLint.VisualStudio.Core.Configuration
             serverInfo.ServerType == ServerType.SonarCloud
             || (serverInfo.ServerType == ServerType.SonarQube &&
                 serverInfo.Version >= minimumVersion);
-
-        public bool IsAcceptTransitionAvailable()
-        {
-            var serverInfo = sonarQubeService.GetServerInfo();
-
-            return serverInfo != null && IsSupportedForVersion(serverInfo, minimalSonarQubeVersionForAccept);
-        }
     }
 }

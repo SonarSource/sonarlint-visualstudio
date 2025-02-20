@@ -27,4 +27,10 @@ namespace SonarLint.VisualStudio.SLCore.Service.Issue;
 public interface IIssueSLCoreService : ISLCoreService
 {
     Task<GetEffectiveIssueDetailsResponse> GetEffectiveIssueDetailsAsync(GetEffectiveIssueDetailsParams parameters);
+
+    Task ChangeStatusAsync(ChangeIssueStatusParams parameters);
+
+    Task<CheckStatusChangePermittedResponse> CheckStatusChangePermittedAsync(CheckStatusChangePermittedParams parameters);
+
+    Task AddCommentAsync(AddIssueCommentParams parameters);
 }

@@ -74,7 +74,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         private string configurationScope;
         private Dictionary<Guid, IAnalysisIssueVisualization> taintVulnerabilities = new();
 
-
         public string ConfigurationScope
         {
             get
@@ -94,8 +93,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             }
         }
 
-        public void Reset() =>
-            SetInternal([], null);
+        public void Reset() => SetInternal([], null);
 
         public void Set(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope)
         {
@@ -229,7 +227,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 return outdatedVulnerabilityByIssueId;
             }
 
-            var issueKey = ((ITaintIssue) taintVulnerability.Issue).IssueKey;
+            var issueKey = ((ITaintIssue)taintVulnerability.Issue).IssueServerKey;
             var outdatedVulnerabilityByServerKey = MatchByServerKey(issueKey);
             if (outdatedVulnerabilityByServerKey != null)
             {
@@ -246,7 +244,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
         private IAnalysisIssueVisualization MatchByServerKey(string issueKey) =>
             taintVulnerabilities
-                .Where(x => ((ITaintIssue) x.Value.Issue).IssueKey == issueKey)
+                .Where(x => ((ITaintIssue)x.Value.Issue).IssueServerKey == issueKey)
                 .Select(x => x.Value)
                 .FirstOrDefault();
     }

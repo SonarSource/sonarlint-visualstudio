@@ -18,101 +18,195 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Resources;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Core.Transition;
-using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarQube.Client;
+using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.SLCore;
+using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Service.Issue;
+using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Transition
+namespace SonarLint.VisualStudio.ConnectedMode.Transition;
+
+[Export(typeof(IMuteIssuesService))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+internal class MuteIssuesService(
+    IMuteIssuesWindowService muteIssuesWindowService,
+    IActiveConfigScopeTracker activeConfigScopeTracker,
+    ISLCoreServiceProvider slCoreServiceProvider,
+    IServerIssueFinder serverIssueFinder,
+    ISuppressionUpdater suppressionUpdater,
+    IAnalysisRequester analysisRequester,
+    ILogger logger,
+    IThreadHandling threadHandling)
+    : IMuteIssuesService
 {
-    [Export(typeof(IMuteIssuesService))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class MuteIssuesService : IMuteIssuesService
+    private readonly ILogger logger = logger.ForContext(nameof(MuteIssuesService));
+
+    public async Task ResolveIssueWithDialogAsync(IFilterableIssue issue)
     {
-        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private readonly ILogger logger;
-        private readonly IMuteIssuesWindowService muteIssuesWindowService;
-        private readonly IThreadHandling threadHandling;
-        private readonly ISonarQubeService sonarQubeService;
-        private readonly IServerIssuesStoreWriter serverIssuesStore;
-        private readonly IMessageBox messageBox;
-        private readonly ResourceManager resourceManager;
+        threadHandling.ThrowIfOnUIThread();
+        var issueServerKey = await GetIssueServerKeyAsync(issue);
+        var currentConfigScope = activeConfigScopeTracker.Current;
+        CheckIsInConnectedMode(currentConfigScope);
+        CheckIssueServerKeyNotNullOrEmpty(issueServerKey);
 
-        [ImportingConstructor]
-        public MuteIssuesService(IActiveSolutionBoundTracker activeSolutionBoundTracker, ILogger logger, IMuteIssuesWindowService muteIssuesWindowService, ISonarQubeService sonarQubeService, IServerIssuesStoreWriter serverIssuesStore)
-            : this(activeSolutionBoundTracker, logger, muteIssuesWindowService, sonarQubeService, serverIssuesStore, ThreadHandling.Instance, new Core.MessageBox())
-        { }
+        var allowedStatuses = await GetAllowedStatusesAsync(currentConfigScope.ConnectionId, issueServerKey);
+        var windowResponse = await PromptMuteIssueResolutionAsync(allowedStatuses);
+        await MuteIssueAsync(currentConfigScope.Id, issueServerKey, windowResponse.IssueTransition.Value);
+        await AddCommentAsync(currentConfigScope.Id, issueServerKey, windowResponse.Comment);
+        await UpdateRoslynSuppressionsAsync(issue, issueServerKey);
+        RequestAnalysis(issue);
+    }
 
-        internal MuteIssuesService(IActiveSolutionBoundTracker activeSolutionBoundTracker,
-            ILogger logger,
-            IMuteIssuesWindowService muteIssuesWindowService,
-            ISonarQubeService sonarQubeService,
-            IServerIssuesStoreWriter serverIssuesStore,
-            IThreadHandling threadHandling,
-            IMessageBox messageBox)
+    private async Task<string> GetIssueServerKeyAsync(IFilterableIssue issue)
+    {
+        // Non-Roslyn issues already have the issue server key
+        if (issue is IAnalysisIssueVisualization issueViz)
         {
-            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
-            this.logger = logger;
-            this.muteIssuesWindowService = muteIssuesWindowService;
-            this.threadHandling = threadHandling;
-            this.sonarQubeService = sonarQubeService;
-            this.serverIssuesStore = serverIssuesStore;
-            this.messageBox = messageBox;
-
-            resourceManager = new ResourceManager(typeof(Resources));
+            return issueViz.Issue.IssueServerKey;
         }
 
-        public void CacheOutOfSyncResolvedIssue(SonarQubeIssue issue)
+        // Roslyn issues need to be converted to SonarQube issues to get the server key as they are handled by SLCore
+        var serverIssue = await serverIssueFinder.FindServerIssueAsync(issue, CancellationToken.None);
+        if (serverIssue is { IsResolved: true })
         {
-            threadHandling.ThrowIfOnUIThread();
+            logger.WriteLine(Resources.MuteIssue_ErrorIssueAlreadyResolved);
+            throw new MuteIssueException(Resources.MuteIssue_ErrorIssueAlreadyResolved);
+        }
+        return serverIssue?.IssueKey;
+    }
 
-            if (!issue.IsResolved)
-            {
-                throw new ArgumentException("Issue should be resolved.", nameof(issue));
-            }
+    private async Task<MuteIssuesWindowResponse> PromptMuteIssueResolutionAsync(IEnumerable<ResolutionStatus> allowedStatuses)
+    {
+        MuteIssuesWindowResponse windowResponse = null;
+        var allowedTransitions = allowedStatuses.Select(s => s.ToSonarQubeIssueTransition());
+        await threadHandling.RunOnUIThreadAsync(() => windowResponse = muteIssuesWindowService.Show(allowedTransitions));
 
-            serverIssuesStore.AddIssues(new []{ issue }, false);
+        if (windowResponse.Result)
+        {
+            return windowResponse;
         }
 
-        public async Task ResolveIssueWithDialogAsync(SonarQubeIssue issue, CancellationToken token)
+        throw new MuteIssueException.MuteIssueCancelledException();
+    }
+
+    private void CheckIssueServerKeyNotNullOrEmpty(string issueServerKey)
+    {
+        if (issueServerKey is { Length: > 0 })
         {
-            threadHandling.ThrowIfOnUIThread();
+            return;
+        }
 
-            if (!activeSolutionBoundTracker.CurrentConfiguration.Mode.IsInAConnectedMode())
-            {
-                logger.LogVerbose(Resources.MuteWindowService_NotInConnectedMode);
-                return;
-            }
+        logger.WriteLine(Resources.MuteIssue_IssueNotFound);
+        throw new MuteIssueException(Resources.MuteIssue_IssueNotFound);
+    }
 
-            MuteIssuesWindowResponse windowResponse = default;
+    private void CheckIsInConnectedMode(Core.ConfigurationScope.ConfigurationScope currentConfigScope)
+    {
+        if (currentConfigScope is { Id: not null, ConnectionId: not null })
+        {
+            return;
+        }
 
-            await threadHandling.RunOnUIThreadAsync(() => windowResponse = muteIssuesWindowService.Show());
+        logger.WriteLine(Resources.MuteIssue_NotInConnectedMode);
+        throw new MuteIssueException(Resources.MuteIssue_NotInConnectedMode);
+    }
 
-            if (windowResponse.Result)
-            {
-                var serviceResult = await sonarQubeService.TransitionIssueAsync(issue.IssueKey, windowResponse.IssueTransition, windowResponse.Comment, token);
+    private IIssueSLCoreService GetIssueSlCoreService()
+    {
+        if (slCoreServiceProvider.TryGetTransientService(out IIssueSLCoreService issueSlCoreService))
+        {
+            return issueSlCoreService;
+        }
 
-                if (serviceResult == SonarQubeIssueTransitionResult.Success || serviceResult == SonarQubeIssueTransitionResult.CommentAdditionFailed)
-                {
-                    issue.IsResolved = true;
-                    serverIssuesStore.AddIssues(new[] { issue }, false);
-                }
+        logger.WriteLine(SLCoreStrings.ServiceProviderNotInitialized);
+        throw new MuteIssueException(SLCoreStrings.ServiceProviderNotInitialized);
+    }
 
-                if (serviceResult != SonarQubeIssueTransitionResult.Success)
-                {
-                    // ideally, message box invocation should be moved to Mute command
-                    messageBox.Show(resourceManager.GetString($"MuteIssuesService_Error_{serviceResult}"), Resources.MuteIssuesService_Error_Caption, MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
+    private async Task<List<ResolutionStatus>> GetAllowedStatusesAsync(string connectionId, string issueServerKey)
+    {
+        CheckStatusChangePermittedResponse response;
+        try
+        {
+            var issueSlCoreService = GetIssueSlCoreService();
+            var checkStatusChangePermittedParams = new CheckStatusChangePermittedParams(connectionId, issueServerKey);
+            response = await issueSlCoreService.CheckStatusChangePermittedAsync(checkStatusChangePermittedParams);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.WriteLine(Resources.MuteIssue_AnErrorOccurred, issueServerKey, ex.Message);
+            throw new MuteIssueException(ex);
+        }
+
+        if (!response.permitted)
+        {
+            logger.WriteLine(Resources.MuteIssue_NotPermitted, issueServerKey, response.notPermittedReason);
+            throw new MuteIssueException(response.notPermittedReason);
+        }
+
+        return response.allowedStatuses;
+    }
+
+    private async Task MuteIssueAsync(string configurationScopeId, string issueServerKey, SonarQubeIssueTransition transition)
+    {
+        try
+        {
+            var issueSlCoreService = GetIssueSlCoreService();
+            await issueSlCoreService.ChangeStatusAsync(new ChangeIssueStatusParams
+            (
+                configurationScopeId,
+                issueServerKey,
+                transition.ToSlCoreResolutionStatus(),
+                false // Muting taints are not supported yet
+            ));
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.WriteLine(Resources.MuteIssue_AnErrorOccurred, issueServerKey, ex.Message);
+            throw new MuteIssueException(ex);
         }
     }
+
+    private async Task AddCommentAsync(string configurationScopeId, string issueServerKey, string comment)
+    {
+        try
+        {
+            var issueSlCoreService = GetIssueSlCoreService();
+            if (comment?.Trim() is { Length: > 0 })
+            {
+                await issueSlCoreService.AddCommentAsync(new AddIssueCommentParams(configurationScopeId, issueServerKey, comment));
+            }
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.WriteLine(Resources.MuteIssue_AddCommentFailed, issueServerKey, ex.Message);
+            throw new MuteIssueException.MuteIssueCommentFailedException();
+        }
+    }
+
+    /// <summary>
+    /// The suppressed issues for roslyn are not dealt by SlCore, but are stored on disk, so we need to update them manually
+    /// </summary>
+    private async Task UpdateRoslynSuppressionsAsync(IFilterableIssue issue, string serverIssueKey)
+    {
+        if (issue is IFilterableRoslynIssue)
+        {
+            await suppressionUpdater.UpdateSuppressedIssuesAsync(isResolved: true, [serverIssueKey], new CancellationToken());
+        }
+    }
+
+    /// <summary>
+    ///  Scheduling analysis is not needed from a technical perspective, but it’s easier and faster (as we don’t need to refactor the code to make the updating of the file snapshot cache in VS and SlCore separate from analysis scheduling).
+    ///  On scheduling analysis the SlCore and current snapshot of the file are updated.
+    ///  Additionally, there is a user benefit that the issue is suppressed immediately (we don’t have to wait for SlCore to call RaiseFindings, which seems to take a while)
+    /// </summary>
+    private void RequestAnalysis(IFilterableIssue issue) => analysisRequester.RequestAnalysis(new AnalyzerOptions(), issue.FilePath);
 }

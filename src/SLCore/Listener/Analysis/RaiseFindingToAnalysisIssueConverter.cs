@@ -39,6 +39,8 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
         {
             var id = item.id;
             var itemRuleKey = item.ruleKey;
+            var itemIssueServerKey = item.serverKey;
+            var isResolved = item.resolved;
             var analysisIssueSeverity = item.severityMode.Left?.severity.ToAnalysisIssueSeverity();
             var analysisIssueType = item.severityMode.Left?.type.ToAnalysisIssueType();
             var highestSoftwareQualitySeverity = GetHighestImpact(item.severityMode.Right?.impacts);
@@ -50,6 +52,8 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
             {
                 return new AnalysisHotspotIssue(id,
                     itemRuleKey,
+                    itemIssueServerKey,
+                    isResolved,
                     analysisIssueSeverity,
                     analysisIssueType,
                     highestSoftwareQualitySeverity,
@@ -61,6 +65,8 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
 
             return new AnalysisIssue(id,
                 itemRuleKey,
+                itemIssueServerKey,
+                isResolved,
                 analysisIssueSeverity,
                 analysisIssueType,
                 highestSoftwareQualitySeverity,
@@ -71,7 +77,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
 
         private static Impact GetHighestImpact(List<ImpactDto> impacts)
         {
-            if(impacts is null || impacts.Count == 0)
+            if (impacts is null || impacts.Count == 0)
             {
                 return null;
             }

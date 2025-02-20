@@ -18,10 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
@@ -49,6 +47,7 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
     {
         return new ServerIssue(Id: null,
             issueDetailDto.ruleKey,
+            IsResolved: false,
             new AnalysisIssueLocation(issueDetailDto.message,
                 Path.Combine(rootPath, issueDetailDto.ideFilePath),
                 new TextRange(issueDetailDto.textRange.startLine,
@@ -56,7 +55,6 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
                     issueDetailDto.textRange.startLineOffset,
                     issueDetailDto.textRange.endLineOffset,
                     checksumCalculator.Calculate(issueDetailDto.codeSnippet))),
-            null,
             issueDetailDto.flows
                 ?.Select(flowDto =>
                     new AnalysisIssueFlow(flowDto.locations
@@ -69,15 +67,17 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
                                     locationDto.textRange.endLineOffset,
                                     checksumCalculator.Calculate(locationDto.codeSnippet))))
                         .ToList()))
-                .ToList());
+                .ToList(),
+            issueDetailDto.issueKey);
     }
 
     private sealed record ServerIssue(
         Guid? Id,
         string RuleKey,
+        bool IsResolved,
         IAnalysisIssueLocation PrimaryLocation,
-        string RuleDescriptionContextKey,
-        IReadOnlyList<IAnalysisIssueFlow> Flows)
+        IReadOnlyList<IAnalysisIssueFlow> Flows,
+        string IssueServerKey)
         : IAnalysisIssueBase
     {
     }
