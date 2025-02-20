@@ -18,13 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Newtonsoft.Json;
-using SonarLint.VisualStudio.SLCore.Protocol;
+using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Binding;
 
-public record AssistCreatingConnectionParams
-{
-    [JsonConverter(typeof(EitherJsonConverter<SonarQubeConnectionParams, SonarCloudConnectionParams>))]
-    public Either<SonarQubeConnectionParams, SonarCloudConnectionParams> connectionParams { get; set; }
-}
+public record SonarCloudConnectionParams(
+    string organizationKey,
+    string tokenName,
+    string tokenValue,
+    SonarCloudRegion sonarCloudRegion);
