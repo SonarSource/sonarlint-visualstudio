@@ -8,7 +8,7 @@
     <EmbeddedSonarCFamilyAnalyzerVersion>6.63.0.79828</EmbeddedSonarCFamilyAnalyzerVersion>
     <EmbeddedSonarJSAnalyzerVersion>10.20.0.29356</EmbeddedSonarJSAnalyzerVersion>
     <EmbeddedSonarHtmlAnalyzerVersion>3.18.0.5605</EmbeddedSonarHtmlAnalyzerVersion>
-    <EmbeddedSonarSecretsJarVersion>2.20.0.5038</EmbeddedSonarSecretsJarVersion>
+    <EmbeddedSonarSecretsJarVersion>2.21.0.5225</EmbeddedSonarSecretsJarVersion>
     <!-- SLOOP: Binaries for SonarLint Out Of Process -->
     <EmbeddedSloopVersion>10.15.0.80289</EmbeddedSloopVersion>
   </PropertyGroup>
