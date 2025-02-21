@@ -27,17 +27,24 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers;
 
 [Export(typeof(IClientFileDtoFactory))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class ClientFileDtoFactory : IClientFileDtoFactory
+[method: ImportingConstructor]
+public class ClientFileDtoFactory(ILogger logger) : IClientFileDtoFactory
 {
-    public ClientFileDto Create(string configScopeId, string rootPath, SourceFile sourceFile)
+    private readonly ILogger logger = logger.ForVerboseContext(nameof(ClientFileDtoFactory));
+
+    public ClientFileDto CreateOrNull(string configScopeId, string rootPath, SourceFile sourceFile)
     {
-        var ideRelativePath = GetRelativePath(rootPath, sourceFile.FilePath);
+        var ideRelativePath = RelativePathHelper.GetRelativePathToRootFolder(rootPath, sourceFile.FilePath);
+
+        if (ideRelativePath == null)
+        {
+            logger.WriteLine(
+                new MessageLevelContext {Context = [configScopeId]},
+                SLCoreStrings.ClientFile_NotRelative_Skipped, sourceFile.FilePath, rootPath);
+            return null;
+        }
+
         var uri = new FileUri(sourceFile.FilePath);
         return new ClientFileDto(uri, ideRelativePath, configScopeId, null, sourceFile.Encoding, sourceFile.FilePath, sourceFile.Content);
-    }
-
-    private static string GetRelativePath(string root, string fullPath)
-    {
-        return fullPath.Substring(root.Length);
     }
 }

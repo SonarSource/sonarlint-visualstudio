@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Files;
+using SonarLint.VisualStudio.SLCore.Listener.Files.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
 {
@@ -147,6 +148,17 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             var files = result.files.ToList();
             files.Should().BeEmpty();
         }
+
+        private static void SetUpDtoFactory(
+            IClientFileDtoFactory factory,
+            string filePath,
+            ClientFileDto clientFileDto,
+            string rootPath,
+            string configScopeId = ConfigScopeId) => factory.CreateOrNull(configScopeId, rootPath, Arg.Is<SourceFile>(x => x.FilePath == filePath)).Returns(clientFileDto);
+
+        private static ClientFileDto CreateDefaultClientFileDto() => new(default, default, default, default, default, default);
+
+
 
         private IFolderWorkspaceService CreateFolderWorkSpaceService(string root, params string[] files)
         {
