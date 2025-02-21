@@ -31,17 +31,19 @@ internal static class RelativePathHelper
     {
         Validate(root, filePath);
 
-        var commonPathLength = CalculateCommonPathLength(root, filePath);
+        var commonParentPathLength = CalculateCommonPathLength(root, filePath);
 
-        if (commonPathLength == 0)
+        if (commonParentPathLength == 0)
         {
             return null;
         }
 
-        var directoriesUp  = CalculateRemainingPathDepth(root, commonPathLength);
-        var relativeSubPath = filePath.Substring(commonPathLength);
+        var depthOfRootRelativeToCommonParent  = CalculateRemainingPathDepth(root, commonParentPathLength);
+        var filePathRelativeToCommonParent = filePath.Substring(commonParentPathLength);
 
-        return directoriesUp == 0 ? relativeSubPath : MovePathUpwards(directoriesUp, relativeSubPath);
+        return depthOfRootRelativeToCommonParent == 0
+            ? filePathRelativeToCommonParent
+            : MovePathUpwards(depthOfRootRelativeToCommonParent, filePathRelativeToCommonParent);
     }
 
     private static void Validate(string root, string filePath)
@@ -62,13 +64,19 @@ internal static class RelativePathHelper
         }
     }
 
+    /// <summary>
+    /// Returns true if it is a fully qualified local or UNC path
+    /// </summary>
     private static bool IsPathFullyQualified(string path)
     {
         var root = Path.GetPathRoot(path);
         return root.StartsWith(@"\\") || root.EndsWith(@"\") && root != @"\";
     }
 
-    private static string MovePathUpwards(int directoriesUp, string substring)
+    /// <summary>
+    /// Constructs relative path by adding `..\` to filePathRelativeToCommonParent as many times, as it takes to get from root to common parent by doing `cd ..`
+    /// </summary>
+    private static string MovePathUpwards(int directoriesUp, string filePathRelativeToCommonParent)
     {
         var sb = new StringBuilder();
 
@@ -78,11 +86,14 @@ internal static class RelativePathHelper
             sb.Append(Separator);
         }
 
-        sb.Append(substring);
+        sb.Append(filePathRelativeToCommonParent);
 
         return sb.ToString();
     }
 
+    /// <summary>
+    /// Calculates the depth of root path relative to common parent
+    /// </summary>
     private static int CalculateRemainingPathDepth(string root, int commonPathLength)
     {
         var depth = 0;
@@ -97,6 +108,10 @@ internal static class RelativePathHelper
         return depth;
     }
 
+    /// <summary>
+    /// Calculates the length of the common string prefix that ends on the directory separator, which is equivalent to the common parent path.
+    /// If there is no common parent path, returns 0.
+    /// </summary>
     private static int CalculateCommonPathLength(string path1, string path2)
     {
         int commonFilePathLenght;
@@ -112,6 +127,9 @@ internal static class RelativePathHelper
         return commonFilePathLenght;
     }
 
+    /// <summary>
+    /// Calculates the length of the common string prefix. If there is no common prefix, returns 0.
+    /// </summary>
     private static int CalculateCommonPrefixLength(string path1, string path2)
     {
         int index;

@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.IO;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers;
@@ -28,8 +29,10 @@ public class RelativePathHelperTests
     [DataRow("C:\\", "D:\\file.json", null)]
     [DataRow("C:\\", "C:\\file.json", "file.json")]
     [DataRow("C:\\one\\", "C:\\one\\file.json", "file.json")]
+    [DataRow("C:\\one\\", "C:\\file.json", "..\\file.json")]
     [DataRow("C:\\one\\", "C:\\onetwo\\file.json", "..\\onetwo\\file.json")]
     [DataRow("C:\\one\\two\\", "C:\\one\\two\\file.json", "file.json")]
+    [DataRow("C:\\one\\two\\", "C:\\one\\file.json", "..\\file.json")]
     [DataRow("C:\\one\\two\\", "C:\\one\\twothree\\file.json", "..\\twothree\\file.json")]
     [DataRow("C:\\one\\two\\", "C:\\twothree\\file.json", "..\\..\\twothree\\file.json")]
     [DataRow("C:\\one\\two\\", "C:\\oneone\\twothree\\file.json", "..\\..\\oneone\\twothree\\file.json")]
@@ -37,38 +40,55 @@ public class RelativePathHelperTests
     [DataRow("C:\\one\\two\\", "D:\\one\\two\\file.json", null)]
     [DataRow("\\\\network\\one\\two\\three\\", "\\\\network\\file.json", "..\\..\\..\\file.json")]
     [DataTestMethod]
-    public void GetRelativePathToRootFolder_ReturnsExpectedValues(string root, string file, string expected) =>
-        RelativePathHelper.GetRelativePathToRootFolder(root, file).Should().Be(expected);
+    public void GetRelativePathToRootFolder_ReturnsExpectedValues(string root, string file, string expected) => RelativePathHelper.GetRelativePathToRootFolder(root, file).Should().Be(expected);
 
     [TestMethod]
     public void GetRelativePathToRootFolder_RootPathNotEndsWithSeparator_Throws()
     {
-        var act = () => RelativePathHelper.GetRelativePathToRootFolder("C:\\dirwithoutseparatorattheend", "C:\\dirwithoutseparatorattheend\\file.json");
+        const string root = "C:\\dirwithoutseparatorattheend";
+        var act = () => RelativePathHelper.GetRelativePathToRootFolder(root, "C:\\dirwithoutseparatorattheend\\file.json");
 
-        act.Should().Throw<ArgumentException>();
+        act.Should().Throw<ArgumentException>().WithMessage(
+            $"""
+             {string.Format(SLCoreStrings.RelativePathHelper_RootDoesNotEndWithSeparator, Path.DirectorySeparatorChar)}
+             Parameter name: root
+             """
+        );
     }
 
     [DataRow("path\\123")]
     [DataRow("\\path\\123")]
     [DataRow(".\\path\\123")]
     [DataRow("..\\path\\123")]
+    [DataRow("notnetwork\\one\\two\\three\\")]
     [DataTestMethod]
     public void GetRelativePathToRootFolder_RootPathRelative_Throws(string path)
     {
         var act = () => RelativePathHelper.GetRelativePathToRootFolder(path, "C:\\path\\123\\file.json");
 
-        act.Should().Throw<ArgumentException>();
+        act.Should().Throw<ArgumentException>().WithMessage(
+            $"""
+             {string.Format(SLCoreStrings.RelativePathHelper_NonAbsolutePath, path)}
+             Parameter name: root
+             """
+        );
     }
 
     [DataRow("path\\123\\file.json")]
     [DataRow("\\path\\123\\file.json")]
     [DataRow(".\\path\\123\\file.json")]
     [DataRow("..\\path\\123\\file.json")]
+    [DataRow("notnetwork\\one\\two\\three.json")]
     [DataTestMethod]
     public void GetRelativePathToRootFolder_FilePathRelative_Throws(string path)
     {
         var act = () => RelativePathHelper.GetRelativePathToRootFolder("C:\\path\\", path);
 
-        act.Should().Throw<ArgumentException>();
+        act.Should().Throw<ArgumentException>().WithMessage(
+            $"""
+             {string.Format(SLCoreStrings.RelativePathHelper_NonAbsolutePath, path)}
+             Parameter name: filePath
+             """
+        );
     }
 }
