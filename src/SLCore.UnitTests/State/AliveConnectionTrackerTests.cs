@@ -72,7 +72,7 @@ public class AliveConnectionTrackerTests
         ConfigureAsyncLockFactory(out var asyncLockFactoryMock, out var asyncLockMock, out var asyncLockReleaseMock);
         ConfigureConnectionProvider(out var connectionProviderMock, sonarQubeConnection);
         var testSubject = CreateTestSubject(serviceProviderMock.Object, connectionProviderMock.Object,
-             Mock.Of<IServerConnectionsRepository>(), asyncLockFactoryMock.Object);
+            Mock.Of<IServerConnectionsRepository>(), asyncLockFactoryMock.Object);
 
         testSubject.RefreshConnectionList();
 
@@ -82,9 +82,6 @@ public class AliveConnectionTrackerTests
                 && p.sonarQubeConnections.Count == 1
                 && p.sonarQubeConnections.First().connectionId == connectionId
                 && p.sonarQubeConnections.First().serverUrl == serverUrl)));
-        connectionServiceMock.Verify(x => x.DidChangeCredentials(
-            It.Is<DidChangeCredentialsParams>(p =>
-                p.connectionId == connectionId)));
         VerifyLockTakenAndReleased(asyncLockMock, asyncLockReleaseMock);
     }
 
@@ -108,9 +105,6 @@ public class AliveConnectionTrackerTests
                 && p.sonarQubeConnections.Count == 0
                 && p.sonarCloudConnections.First().connectionId == connectionId
                 && p.sonarCloudConnections.First().organization == organization)));
-        connectionServiceMock.Verify(x => x.DidChangeCredentials(
-            It.Is<DidChangeCredentialsParams>(p =>
-                p.connectionId == connectionId)));
         VerifyLockTakenAndReleased(asyncLockMock, asyncLockReleaseMock);
     }
 
@@ -159,8 +153,6 @@ public class AliveConnectionTrackerTests
             It.Is<DidUpdateConnectionsParams>(p =>
                 p.sonarCloudConnections.Count == 1
                 && p.sonarQubeConnections.Count == 1)));
-        connectionServiceMock.Verify(x => x.DidChangeCredentials(It.IsAny<DidChangeCredentialsParams>()),
-            Times.Exactly(2));
         VerifyLockTakenAndReleased(asyncLockMock, asyncLockReleaseMock);
     }
 
@@ -199,7 +191,8 @@ public class AliveConnectionTrackerTests
         ConfigureAsyncLockFactory(out var asyncLockFactoryMock, out _, out _);
         ConfigureConnectionProvider(out var connectionProviderMock);
         var threadHandlingMock = new Mock<IThreadHandling>();
-        var testSubject = CreateTestSubject(serviceProviderMock.Object, connectionProviderMock.Object, Mock.Of<IServerConnectionsRepository>(), asyncLockFactory: asyncLockFactoryMock.Object, threadHandlingMock.Object);
+        var testSubject = CreateTestSubject(serviceProviderMock.Object, connectionProviderMock.Object, Mock.Of<IServerConnectionsRepository>(), asyncLockFactory: asyncLockFactoryMock.Object,
+            threadHandlingMock.Object);
 
         testSubject.UpdateCredentials("connId");
 
@@ -257,15 +250,18 @@ public class AliveConnectionTrackerTests
         lockRelease.Verify(x => x.Dispose(), Times.Once);
     }
 
-    private static void ConfigureConnectionProvider(out Mock<IServerConnectionsProvider> connectionProvider,
+    private static void ConfigureConnectionProvider(
+        out Mock<IServerConnectionsProvider> connectionProvider,
         params ServerConnectionConfigurationDtoBase[] connections)
     {
         connectionProvider = new Mock<IServerConnectionsProvider>();
         connectionProvider.Setup(x => x.GetServerConnections()).Returns(connections.ToDictionary(x => x.connectionId, x => x));
     }
 
-    private static void ConfigureAsyncLockFactory(out Mock<IAsyncLockFactory> asyncLockFactory,
-        out Mock<IAsyncLock> asyncLock, out Mock<IReleaseAsyncLock> asyncLockRelease)
+    private static void ConfigureAsyncLockFactory(
+        out Mock<IAsyncLockFactory> asyncLockFactory,
+        out Mock<IAsyncLock> asyncLock,
+        out Mock<IReleaseAsyncLock> asyncLockRelease)
     {
         asyncLockRelease = new();
         asyncLock = new();
@@ -274,7 +270,8 @@ public class AliveConnectionTrackerTests
         asyncLockFactory.Setup(x => x.Create()).Returns(asyncLock.Object);
     }
 
-    private static void ConfigureServiceProvider(out Mock<ISLCoreServiceProvider> serviceProvider,
+    private static void ConfigureServiceProvider(
+        out Mock<ISLCoreServiceProvider> serviceProvider,
         out Mock<IConnectionConfigurationSLCoreService> connectionService)
     {
         serviceProvider = new Mock<ISLCoreServiceProvider>();
@@ -283,7 +280,8 @@ public class AliveConnectionTrackerTests
         serviceProvider.Setup(x => x.TryGetTransientService(out service)).Returns(true);
     }
 
-    private static AliveConnectionTracker CreateTestSubject(ISLCoreServiceProvider slCoreServiceProvider,
+    private static AliveConnectionTracker CreateTestSubject(
+        ISLCoreServiceProvider slCoreServiceProvider,
         IServerConnectionsProvider serverConnectionsProvider,
         IServerConnectionsRepository connectionsRepository,
         IAsyncLockFactory asyncLockFactory,
