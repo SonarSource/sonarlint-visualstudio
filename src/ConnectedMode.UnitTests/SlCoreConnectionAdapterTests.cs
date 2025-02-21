@@ -452,6 +452,77 @@ public class SlCoreConnectionAdapterTests
         logger.Received(1).LogVerbose(Resources.FuzzySearchProjects_Fails, sonarCloudConnection.Id, searchTerm, exception);
     }
 
+    [TestMethod]
+    public async Task GenerateTokenAsync_SwitchesToBackgroundThread()
+    {
+        var threadHandlingMock = Substitute.For<IThreadHandling>();
+        var slCoreConnectionAdapter = new SlCoreConnectionAdapter(slCoreServiceProvider, threadHandlingMock, logger);
+
+        await slCoreConnectionAdapter.GenerateTokenAsync(sonarCloudConnectionInfo);
+
+        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<string>>>>());
+    }
+
+    [TestMethod]
+    public async Task GenerateTokenAsync_GettingConnectionConfigurationSLCoreServiceFails_ReturnsUnsuccessfulResponseAndLogs()
+    {
+        slCoreServiceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService _).Returns(false);
+
+        var response = await testSubject.GenerateTokenAsync(sonarCloudConnectionInfo);
+
+        logger.Received(1).LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
+        response.Success.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public async Task GenerateTokenAsync_SonarCloudConnectionInfo_CallsSlCoreWithCorrectParams()
+    {
+        var connection = sonarCloudConnection.ToConnection();
+
+        await testSubject.GenerateTokenAsync(connection.Info);
+
+        await connectionConfigurationSlCoreService.Received(1).HelpGenerateUserTokenAsync(
+            Arg.Is<HelpGenerateUserTokenParams>(param => param.serverUrl == sonarCloudConnection.ServerUri.ToString()));
+    }
+
+    [TestMethod]
+    public async Task GenerateTokenAsync_SonarQubeConnectionInfo__CallsSlCoreWithCorrectParams()
+    {
+        var connection = sonarQubeConnection.ToConnection();
+
+        await testSubject.GenerateTokenAsync(connection.Info);
+
+        await connectionConfigurationSlCoreService.Received(1).HelpGenerateUserTokenAsync(
+            Arg.Is<HelpGenerateUserTokenParams>(param => param.serverUrl == sonarQubeConnection.ServerUri.ToString()));
+    }
+
+    [TestMethod]
+    public async Task GenerateTokenAsync_ReturnsResponseFromSlCore()
+    {
+        var token = Guid.NewGuid().ToString();
+        connectionConfigurationSlCoreService.HelpGenerateUserTokenAsync(Arg.Any<HelpGenerateUserTokenParams>()).Returns(new HelpGenerateUserTokenResponse(token));
+
+        var response = await testSubject.GenerateTokenAsync(sonarCloudConnectionInfo);
+
+        response.Success.Should().BeTrue();
+        response.ResponseData.Should().Be(token);
+    }
+
+    [TestMethod]
+    public async Task GenerateTokenAsync_ThrowsException_ReturnsFalse()
+    {
+        var exception = "error";
+        connectionConfigurationSlCoreService
+            .When(slCore => slCore.HelpGenerateUserTokenAsync(Arg.Any<HelpGenerateUserTokenParams>()))
+            .Do(_ => throw new Exception(exception));
+
+        var response = await testSubject.GenerateTokenAsync(sonarCloudConnectionInfo);
+
+        response.Success.Should().BeFalse();
+        response.ResponseData.Should().BeNull();
+        logger.Received(1).LogVerbose(Resources.GenerateToken_Fails, sonarCloudConnection.ServerUri, exception);
+    }
+
     private bool IsExpectedSonarQubeConnectionParams(ValidateConnectionParams receivedParams, string token) => IsExpectedSonarQubeConnectionParams(receivedParams.transientConnection, token);
 
     private bool IsExpectedSonarQubeConnectionParams(Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> transientConnection, string token)
