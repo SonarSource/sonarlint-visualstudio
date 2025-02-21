@@ -346,4 +346,7 @@
   <data name="PromoteSonarQubeCloud" xml:space="preserve">
     <value>Try SonarQube Cloud for free</value>
   </data>
+  <data name="GenerateToken_Fails" xml:space="preserve">
+    <value>[ConnectedMode] Generating a token for the url {0} failed due to: {1}</value>
+  </data>
 </root>
