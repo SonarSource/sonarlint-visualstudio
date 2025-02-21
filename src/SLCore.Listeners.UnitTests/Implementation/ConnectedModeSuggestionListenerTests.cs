@@ -55,6 +55,18 @@ public class ConnectedModeSuggestionListenerTests
     }
 
     [TestMethod]
+    public void AssistBindingAsync_NotImplemented()
+    {
+        var bindingSuggestionHandler = Substitute.For<IBindingSuggestionHandler>();
+        var activeConfigScopeTracer = Substitute.For<IActiveConfigScopeTracker>();
+
+        var testSubject = new ConnectedModeSuggestionListener(bindingSuggestionHandler, activeConfigScopeTracer);
+        Action act = () => testSubject.AssistBindingAsync(new AssistBindingParams("A_CONNECTION_ID", "A_PROJECT_KEY", "A_CONFIG_SCOPE_ID", false));
+
+        act.Should().Throw<NotImplementedException>();
+    }
+
+    [TestMethod]
     public void NoBindingSuggestionFound_Notifies()
     {
         var bindingSuggestionHandler = Substitute.For<IBindingSuggestionHandler>();
