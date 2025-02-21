@@ -198,5 +198,26 @@ public class ConnectionInfoTests
         connectionId.Should().Be(new Uri(region.Url, "organizations/myOrg").ToString());
     }
 
+    [TestMethod]
+    public void GetServerConnectionFromConnectionInfo_SonarQube_ReturnsAsExpected()
+    {
+        var connectionInfo = new ConnectionInfo("http://localhost:9000/", ConnectionServerType.SonarQube);
+
+        var serverConnection = connectionInfo.GetServerConnectionFromConnectionInfo();
+
+        serverConnection.Should().BeEquivalentTo(new ServerConnection.SonarQube(new Uri(connectionInfo.Id)));
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(GetCloudServerRegions), DynamicDataSourceType.Method)]
+    public void GetServerServerConnectionFromConnectionInfo_SonarCloud_ReturnsAsExpected(CloudServerRegion region)
+    {
+        var connectionInfo = new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud, region);
+
+        var serverConnection = connectionInfo.GetServerConnectionFromConnectionInfo();
+
+        serverConnection.Should().BeEquivalentTo(new ServerConnection.SonarCloud("myOrg", region));
+    }
+
     public static IEnumerable<object[]> GetCloudServerRegions() => [[CloudServerRegion.Eu], [CloudServerRegion.Us],];
 }
