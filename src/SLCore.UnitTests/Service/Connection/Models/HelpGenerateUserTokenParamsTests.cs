@@ -29,7 +29,7 @@ public class HelpGenerateUserTokenParamsTests
     [TestMethod]
     public void Serialize_AsExpected()
     {
-        var helpGenerateUserTokenParams = new HelpGenerateUserTokenParams("http://localhost:9000");
+        var helpGenerateUserTokenParams = new HelpGenerateUserTokenParams(new Uri("http://localhost:9000"));
         var expected = """
                        {
                          "serverUrl": "http://localhost:9000"
