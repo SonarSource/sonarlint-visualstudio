@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
@@ -199,7 +200,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             activeConfigScopeTracker ??= CreateActiveConfigScopeTracker();
             clientFileDtoFactory ??= Substitute.For<IClientFileDtoFactory>();
 
-            var testSubject = new ListFilesListener(folderWorkspaceService, solutionWorkspaceService, activeConfigScopeTracker, clientFileDtoFactory);
+            var testSubject = new ListFilesListener(folderWorkspaceService, solutionWorkspaceService, Substitute.For<ISharedBindingConfigProvider>(), activeConfigScopeTracker, clientFileDtoFactory);
             return testSubject;
         }
     }

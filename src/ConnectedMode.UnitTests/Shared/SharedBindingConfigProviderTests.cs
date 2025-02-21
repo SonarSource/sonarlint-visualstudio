@@ -21,6 +21,7 @@
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
@@ -36,7 +37,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
                 MefTestHelpers.CreateExport<ISharedFolderProvider>(),
                 MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
                 MefTestHelpers.CreateExport<ISharedBindingConfigFileProvider>(),
-                MefTestHelpers.CreateExport<ILogger>());
+                MefTestHelpers.CreateExport<ILogger>(),
+                MefTestHelpers.CreateExport<IFileSystemService>());
         }
 
         [TestMethod]
@@ -169,12 +171,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
             return solutionInfoProvider.Object;
         }
 
-        private IFileSystem CreateFileSystem(bool doesExist)
+        private IFileSystemService CreateFileSystem(bool doesExist)
         {
             var file = new Mock<IFile>();
             file.Setup(f => f.Exists(It.IsAny<string>())).Returns(doesExist);
 
-            var fileSystem = new Mock<IFileSystem>();
+            var fileSystem = new Mock<IFileSystemService>();
             fileSystem.Setup(fs => fs.File).Returns(file.Object);
 
             return fileSystem.Object;
@@ -193,14 +195,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
             ISolutionInfoProvider solutionInfoProvider = null,
             ISharedBindingConfigFileProvider sharedBindingConfigFileProvider = null,
             ILogger logger = null,
-            IFileSystem fileSystem = null)
+            IFileSystemService fileSystem = null)
         {
             gitWorkspaceService ??= Mock.Of<IGitWorkspaceService>();
             sharedFolderProvider ??= Mock.Of<ISharedFolderProvider>();
             solutionInfoProvider ??= Mock.Of<ISolutionInfoProvider>();
             sharedBindingConfigFileProvider ??= Mock.Of<ISharedBindingConfigFileProvider>();
-            logger ??= Mock.Of<ILogger>();
-            fileSystem ??= Mock.Of<IFileSystem>();
+            logger ??= new TestLogger();
+            fileSystem ??= Mock.Of<IFileSystemService>();
 
             return new SharedBindingConfigProvider(gitWorkspaceService, sharedFolderProvider, solutionInfoProvider, sharedBindingConfigFileProvider, logger, fileSystem);
         }

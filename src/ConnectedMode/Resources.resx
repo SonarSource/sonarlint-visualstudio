@@ -280,11 +280,17 @@
   <data name="TimedUpdateTriggered" xml:space="preserve">
     <value>[ConnectedMode/TimedUpdate] Triggering refresh of server settings...</value>
   </data>
+  <data name="SharedBindingConfigProvider_LogContext" xml:space="preserve">
+    <value>SharedBindingConfigProvider</value>
+  </data>
   <data name="SharedBindingConfigProvider_SavePathNotFound" xml:space="preserve">
-    <value>[SharedBindingConfigProvider] There's no .sonarlint shared folder or solution is not under git</value>
+    <value>Git root not found, can't create .sonarlint shared folder</value>
   </data>
   <data name="SharedBindingConfigProvider_SharedFolderNotFound" xml:space="preserve">
-    <value>[SharedBindingConfigProvider] The .sonarlint shared folder was not found</value>
+    <value>The .sonarlint shared folder was not found</value>
+  </data>
+  <data name="SharedBindingConfigProvider_SharedFileNotFound" xml:space="preserve">
+    <value>The shared binding file was not found. Probed path: {0}</value>
   </data>
   <data name="MuteWindowService_NotInConnectedMode" xml:space="preserve">
     <value>[Transition]Issue muting is only supported in connected mode</value>
