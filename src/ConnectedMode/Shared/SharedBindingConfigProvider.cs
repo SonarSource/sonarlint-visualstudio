@@ -22,46 +22,71 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Shared
 {
     [Export(typeof(ISharedBindingConfigProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class SharedBindingConfigProvider : ISharedBindingConfigProvider
+    [method: ImportingConstructor]
+    internal class SharedBindingConfigProvider(
+        IGitWorkspaceService gitWorkspaceService,
+        ISharedFolderProvider sharedFolderProvider,
+        ISolutionInfoProvider solutionInfoProvider,
+        ISharedBindingConfigFileProvider sharedBindingConfigFileProvider,
+        ILogger logger,
+        IFileSystemService fileSystem)
+        : ISharedBindingConfigProvider
     {
-        private const string sharedFolderName = ".sonarlint";
+        private const string SharedFolderName = ".sonarlint";
 
-        private readonly IGitWorkspaceService gitWorkspaceService;
-        private readonly ISharedFolderProvider sharedFolderProvider;
-        private readonly ISolutionInfoProvider solutionInfoProvider;
-        private readonly ISharedBindingConfigFileProvider sharedBindingConfigFileProvider;
-        private readonly IFileSystem fileSystem;
-        private readonly ILogger logger;
-
-        [ImportingConstructor]
-        public SharedBindingConfigProvider(IGitWorkspaceService gitWorkspaceService,
-            ISharedFolderProvider sharedFolderProvider,
-            ISolutionInfoProvider solutionInfoProvider,
-            ISharedBindingConfigFileProvider sharedBindingConfigFileProvider,
-            ILogger logger) : this(gitWorkspaceService, sharedFolderProvider, solutionInfoProvider, sharedBindingConfigFileProvider, logger, new FileSystem())
-        { }
-
-        internal SharedBindingConfigProvider(IGitWorkspaceService gitWorkspaceService,
-            ISharedFolderProvider sharedFolderProvider,
-            ISolutionInfoProvider solutionInfoProvider,
-            ISharedBindingConfigFileProvider sharedBindingConfigFileProvider,
-            ILogger logger,
-            IFileSystem fileSystem)
-        {
-            this.gitWorkspaceService = gitWorkspaceService;
-            this.sharedFolderProvider = sharedFolderProvider;
-            this.solutionInfoProvider = solutionInfoProvider;
-            this.sharedBindingConfigFileProvider = sharedBindingConfigFileProvider;
-            this.logger = logger;
-            this.fileSystem = fileSystem;
-        }
+        private readonly ILogger logger = logger.ForContext(Resources.SharedBindingConfigProvider_LogContext);
 
         public SharedBindingConfigModel GetSharedBinding()
+        {
+            if (GetSharedBindingFilePathOrNull() is { } sharedBindingFilePath)
+            {
+                return sharedBindingConfigFileProvider.ReadSharedBindingConfigFile(sharedBindingFilePath);
+            }
+
+            return null;
+        }
+
+        public string GetSharedBindingFilePathOrNull()
+        {
+            var sharedBindingFilePath = CalculateSharedBindingPathUnderExistingFolder();
+
+            if (sharedBindingFilePath == null)
+            {
+                return null;
+            }
+
+            if (!fileSystem.File.Exists(sharedBindingFilePath))
+            {
+                logger.WriteLine(Resources.SharedBindingConfigProvider_SharedFileNotFound, sharedBindingFilePath);
+                return null;
+            }
+
+            return sharedBindingFilePath;
+        }
+
+        public bool HasSharedBinding() => GetSharedBindingFilePathOrNull() != null;
+
+        public string SaveSharedBinding(SharedBindingConfigModel sharedBindingConfigModel)
+        {
+            var fileSavePath = ChooseNewSharedBindingLocation();
+
+            if (fileSavePath == null)
+            {
+                return null;
+            }
+            return sharedBindingConfigFileProvider.WriteSharedBindingConfigFile(fileSavePath, sharedBindingConfigModel) ? fileSavePath : null;
+        }
+
+        private string ChooseNewSharedBindingLocation() =>
+            CalculateSharedBindingPathUnderExistingFolder() ?? CalculateSharedBindingPathUnderGitRoot();
+
+        private string CalculateSharedBindingPathUnderExistingFolder()
         {
             var sonarLintFolder = sharedFolderProvider.GetSharedFolderPath();
             if (sonarLintFolder == null)
@@ -70,39 +95,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
                 return null;
             }
 
-            return sharedBindingConfigFileProvider.ReadSharedBindingConfigFile(SharedFilePath);
+            var sharedBindingFilePath = Path.Combine(sonarLintFolder, SharedFileName);
+            return sharedBindingFilePath;
         }
 
-        public bool HasSharedBinding()
+        private string CalculateSharedBindingPathUnderGitRoot()
         {
-            return sharedFolderProvider.GetSharedFolderPath() != null && fileSystem.File.Exists(SharedFilePath);
-        }
+            var gitRepoDir = gitWorkspaceService.GetRepoRoot();
 
-        public string SaveSharedBinding(SharedBindingConfigModel sharedBindingConfigModel)
-        {
-            string fileSavePath = null;
-            if (sharedFolderProvider.GetSharedFolderPath() != null)
-            {
-                fileSavePath = SharedFilePath;
-            }
-            else
-            {
-                var gitRepoDir = gitWorkspaceService.GetRepoRoot();
-                if (gitRepoDir != null)
-                {
-                    fileSavePath = Path.Combine(gitRepoDir, sharedFolderName, SharedFileName);
-                }
-            }
-
-            if (fileSavePath == null)
+            if (gitRepoDir == null)
             {
                 logger.WriteLine(Resources.SharedBindingConfigProvider_SavePathNotFound);
                 return null;
             }
-            return sharedBindingConfigFileProvider.WriteSharedBindingConfigFile(fileSavePath, sharedBindingConfigModel) ? fileSavePath : null;
-        }
 
-        private string SharedFilePath => Path.Combine(sharedFolderProvider.GetSharedFolderPath(), SharedFileName);
+            return Path.Combine(gitRepoDir, SharedFolderName, SharedFileName);
+        }
 
         private string SharedFileName => solutionInfoProvider.GetSolutionName() + ".json";
     }
