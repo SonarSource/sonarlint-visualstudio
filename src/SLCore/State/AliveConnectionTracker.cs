@@ -45,7 +45,8 @@ internal sealed class AliveConnectionTracker : IAliveConnectionTracker
     private readonly IServerConnectionsRepository serverConnectionsRepository;
 
     [ImportingConstructor]
-    public AliveConnectionTracker(ISLCoreServiceProvider serviceProvider,
+    public AliveConnectionTracker(
+        ISLCoreServiceProvider serviceProvider,
         IServerConnectionsProvider serverConnectionsProvider,
         IServerConnectionsRepository serverConnectionsRepository,
         IAsyncLockFactory asyncLockFactory,
@@ -76,11 +77,6 @@ internal sealed class AliveConnectionTracker : IAliveConnectionTracker
             connectionConfigurationService.DidUpdateConnections(new DidUpdateConnectionsParams(
                 serverConnections.Values.OfType<SonarQubeConnectionConfigurationDto>().ToList(),
                 serverConnections.Values.OfType<SonarCloudConnectionConfigurationDto>().ToList()));
-
-            foreach (var connectionId in serverConnections.Keys)
-            {
-                connectionConfigurationService.DidChangeCredentials(new DidChangeCredentialsParams(connectionId));
-            }
         }
     }
 

@@ -31,8 +31,5 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 [method: ImportingConstructor]
 public class BrowserListener(IBrowserService browserService) : IBrowserListener
 {
-    public void OpenUrlInBrowser(OpenUrlInBrowserParams parameters)
-    {
-        browserService.Navigate(parameters.url);
-    }
+    public void OpenUrlInBrowser(OpenUrlInBrowserParams parameters) => browserService.Navigate(parameters.url);
 }
