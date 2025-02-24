@@ -45,5 +45,6 @@ namespace SonarLint.VisualStudio.Core
 
         public static readonly Uri UnbindingProjectUri = new(UnbindingProject);
         public static readonly Uri ConnectedModeUri = new(ConnectedMode);
+        public static readonly Uri ConnectedModeBenefitsUri = new(ConnectedModeBenefits);
     }
 }
