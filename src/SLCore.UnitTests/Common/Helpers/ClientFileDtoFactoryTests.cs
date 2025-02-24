@@ -50,9 +50,11 @@ public class ClientFileDtoFactoryTests
     [DataRow(@"C:\user\projectA\directoryA\file.cs", @"C:\", @"user\projectA\directoryA\file.cs")]
     [DataRow(@"C:\user\projectA\directoryA\file.cs", @"C:\user\projectA\", @"directoryA\file.cs")]
     [DataRow(@"C:\user\projectA\directoryA\file.cs", @"C:\user\projectA\directoryA\", @"file.cs")]
+    [DataRow(@"C:\user\projectA\directoryA\file.cs", @"C:\user\projectB\directoryA\", @"..\..\projectA\directoryA\file.cs")]
     [DataRow(@"\\servername\user\projectA\directoryA\file.cs", @"\\servername\user\", @"projectA\directoryA\file.cs")]
     [DataRow(@"\\servername\user\projectA\directoryA\file.cs", @"\\servername\user\projectA\", @"directoryA\file.cs")]
     [DataRow(@"\\servername\user\projectA\directoryA\file.cs", @"\\servername\user\projectA\directoryA\", @"file.cs")]
+    [DataRow(@"\\servername\user\projectA\directoryA\file.cs", @"\\servername\user\projectB\directoryA\", @"..\..\projectA\directoryA\file.cs")]
     public void Create_CalculatesCorrectRelativePath(string filePath, string rootPath, string expectedRelativePath)
     {
         var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", rootPath, new SourceFile(filePath));
