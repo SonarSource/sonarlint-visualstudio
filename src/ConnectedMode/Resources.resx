@@ -302,19 +302,19 @@
     <value>Credentials you have provided do not have enough permission to resolve issues. It requires the permission 'Administer Issues'.</value>
   </data>
   <data name="ValidateCredentials_Fails" xml:space="preserve">
-    <value>[ConnectedMode] Validating credentials failed</value>
+    <value>Validating credentials failed</value>
   </data>
   <data name="ListUserOrganizations_Fails" xml:space="preserve">
-    <value>[ConnectedMode] Listing user organizations failed</value>
+    <value>Listing user organizations failed</value>
   </data>
   <data name="GetServerProjectByKey_Fails" xml:space="preserve">
-    <value>[ConnectedMode] Failed to get project name by key</value>
+    <value>Failed to get project name by key</value>
   </data>
   <data name="GetServerProjectByKey_ProjectNotFound" xml:space="preserve">
-    <value>[ConnectedMode] Server did not return a project name for the specified project key {0}</value>
+    <value>Server did not return a project name for the specified project key {0}</value>
   </data>
   <data name="GetAllProjects_Fails" xml:space="preserve">
-    <value>[ConnectedMode] Getting all projects failed</value>
+    <value>Getting all projects failed</value>
   </data>
   <data name="Binding_Fails" xml:space="preserve">
     <value>[ConnectedMode] Binding failed due to: {0}</value>
@@ -329,7 +329,7 @@
     <value>[ConnectedMode/UseSharedBinding] The credentials for the connection {0} could not be found</value>
   </data>
   <data name="FuzzySearchProjects_Fails" xml:space="preserve">
-    <value>[ConnectedMode] The search for projects for the connectionId {0} with the search term "{1}" failed: {2}</value>
+    <value>The search for projects for the connectionId {0} with the search term "{1}" failed: {2}</value>
   </data>
   <data name="DotnetAnalyzerIndicatorTemplate" xml:space="preserve">
     <value>[ConnectedMode/DotnetAnalyzerIndicator] {0}</value>
@@ -345,5 +345,8 @@
   </data>
   <data name="PromoteSonarQubeCloud" xml:space="preserve">
     <value>Try SonarQube Cloud for free</value>
+  </data>
+  <data name="GenerateToken_Fails" xml:space="preserve">
+    <value>Generating a token for the url {0} failed due to: {1}</value>
   </data>
 </root>
