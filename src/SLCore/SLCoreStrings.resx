@@ -198,4 +198,10 @@
   <data name="RaiseFindingToAnalysisIssueConverter_CreateAnalysisIssueFailed" xml:space="preserve">
     <value>Creating analysis issue for {0} failed due to {1}.</value>
   </data>
+  <data name="RelativePathHelper_NonAbsolutePath" xml:space="preserve">
+    <value>Path must be fully-qualified. ({0})</value>
+  </data>
+  <data name="RelativePathHelper_RootDoesNotEndWithSeparator" xml:space="preserve">
+    <value>Root path must end with a {0} separator</value>
+  </data>
 </root>

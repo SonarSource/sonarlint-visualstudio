@@ -160,6 +160,24 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Path must be fully-qualified. ({0}).
+        /// </summary>
+        public static string RelativePathHelper_NonAbsolutePath {
+            get {
+                return ResourceManager.GetString("RelativePathHelper_NonAbsolutePath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Root path must end with a {0} separator.
+        /// </summary>
+        public static string RelativePathHelper_RootDoesNotEndWithSeparator {
+            get {
+                return ResourceManager.GetString("RelativePathHelper_RootDoesNotEndWithSeparator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The server certificate can not be verified. Please see the logs for more info..
         /// </summary>
         public static string ServerCertificateInfobar_CertificateInvalidMessage {
