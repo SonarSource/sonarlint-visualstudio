@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
@@ -77,6 +78,10 @@ public partial class CredentialsDialog : Window
     private async void Generate_OnClick(object sender, RoutedEventArgs e)
     {
         var responseWithData = await ViewModel.GenerateTokenWithProgressAsync();
+        if (ViewModel.CancellationTokenSource.IsCancellationRequested)
+        {
+            return;
+        }
         if (responseWithData.Success)
         {
             TokenBox.Password = responseWithData.ResponseData;
@@ -88,4 +93,6 @@ public partial class CredentialsDialog : Window
             connectedModeServices.BrowserService.Navigate(ViewModel.AccountSecurityUrl);
         }
     }
+
+    private void CredentialsDialog_OnClosing(object sender, CancelEventArgs e) => ViewModel.CancellationTokenSource.Cancel();
 }

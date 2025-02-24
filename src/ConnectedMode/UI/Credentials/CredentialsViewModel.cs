@@ -30,9 +30,21 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
 {
     public const string SecurityPageUrl = "account/security";
     private SecureString token = new();
+    private CancellationTokenSource cancellationTokenSource;
 
     public ConnectionInfo ConnectionInfo { get; } = connectionInfo;
     public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
+
+    public CancellationTokenSource CancellationTokenSource
+    {
+        get => cancellationTokenSource;
+        internal set
+        {
+            cancellationTokenSource?.Cancel();
+            cancellationTokenSource?.Dispose();
+            cancellationTokenSource = value;
+        }
+    }
 
     public SecureString Token
     {
@@ -80,7 +92,11 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
         return adapterResponse;
     }
 
-    internal async Task<AdapterResponseWithData<string>> GenerateTokenAsync() => await slCoreConnectionAdapter.GenerateTokenAsync(ConnectionInfo);
+    internal async Task<AdapterResponseWithData<string>> GenerateTokenAsync()
+    {
+        CancellationTokenSource = new CancellationTokenSource();
+        return await slCoreConnectionAdapter.GenerateTokenAsync(ConnectionInfo, CancellationTokenSource.Token);
+    }
 
     internal void AfterProgressStatusUpdated() => RaisePropertyChanged(nameof(IsConfirmationEnabled));
 }
