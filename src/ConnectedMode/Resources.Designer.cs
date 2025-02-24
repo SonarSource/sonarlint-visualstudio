@@ -187,7 +187,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [ConnectedMode] The search for projects for the connectionId {0} with the search term &quot;{1}&quot; failed: {2}.
+        ///   Looks up a localized string similar to The search for projects for the connectionId {0} with the search term &quot;{1}&quot; failed: {2}.
         /// </summary>
         internal static string FuzzySearchProjects_Fails {
             get {
@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [ConnectedMode] Generating a token for the url {0} failed due to: {1}.
+        ///   Looks up a localized string similar to Generating a token for the url {0} failed due to: {1}.
         /// </summary>
         internal static string GenerateToken_Fails {
             get {
@@ -205,7 +205,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [ConnectedMode] Getting all projects failed.
+        ///   Looks up a localized string similar to Getting all projects failed.
         /// </summary>
         internal static string GetAllProjects_Fails {
             get {
@@ -214,7 +214,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [ConnectedMode] Failed to get project name by key.
+        ///   Looks up a localized string similar to Failed to get project name by key.
         /// </summary>
         internal static string GetServerProjectByKey_Fails {
             get {
@@ -223,7 +223,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [ConnectedMode] Server did not return a project name for the specified project key {0}.
+        ///   Looks up a localized string similar to Server did not return a project name for the specified project key {0}.
         /// </summary>
         internal static string GetServerProjectByKey_ProjectNotFound {
             get {
@@ -385,7 +385,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [ConnectedMode] Listing user organizations failed.
+        ///   Looks up a localized string similar to Listing user organizations failed.
         /// </summary>
         internal static string ListUserOrganizations_Fails {
             get {
@@ -727,7 +727,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [ConnectedMode] Validating credentials failed.
+        ///   Looks up a localized string similar to Validating credentials failed.
         /// </summary>
         internal static string ValidateCredentials_Fails {
             get {
