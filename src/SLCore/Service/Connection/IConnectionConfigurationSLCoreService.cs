@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
@@ -79,6 +78,5 @@ public interface IConnectionConfigurationSLCoreService : ISLCoreService
     /// If the local server is not started or the server URL can not be reached, the future will fail
     /// </summary>
     /// <returns></returns>
-    [ExcludeFromCodeCoverage] // TODO by https://sonarsource.atlassian.net/browse/SLVS-1793 - remove this attribute
     Task<HelpGenerateUserTokenResponse> HelpGenerateUserTokenAsync(HelpGenerateUserTokenParams parameters);
 }
