@@ -20,7 +20,6 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Navigation;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
@@ -69,7 +68,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
         private async void OkButton_OnClick(object sender, RoutedEventArgs e)
         {
             var isConnectionValid = await IsConnectionValidAsync();
-            if(!isConnectionValid)
+            if (!isConnectionValid)
             {
                 return;
             }
@@ -88,6 +87,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
                 connectedModeServices.Logger.WriteLine(e.ToString());
                 return false;
             }
+        }
+
+        private void Generate_OnClick(object sender, RoutedEventArgs e)
+        {
+            throw new NotImplementedException();
         }
     }
 }

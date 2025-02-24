@@ -437,4 +437,7 @@ Please manually add the credentials for the connection and then try again.</valu
   <data name="UsRegionName" xml:space="preserve">
     <value>US</value>
   </data>
+  <data name="GenerateTokenButton" xml:space="preserve">
+    <value>Generate Token</value>
+  </data>
 </root>
