@@ -75,6 +75,8 @@ public partial class CredentialsDialog : Window
         if (responseWithData.Success)
         {
             TokenBox.Password = responseWithData.ResponseData;
+            DialogResult = true;
+            Close();
         }
         else
         {
