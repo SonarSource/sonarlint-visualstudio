@@ -22,12 +22,16 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
+using SonarLint.VisualStudio.ConnectedMode.UI.TrustConnection;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
 public interface IConnectedModeUIManager
 {
     void ShowManageBindingDialog(bool useSharedBindingOnInitialization = false);
+
+    void ShowTrustConnectionDialog(ServerConnection serverConnection);
 }
 
 [Export(typeof(IConnectedModeUIManager))]
@@ -49,5 +53,12 @@ internal sealed class ConnectedModeUIManager : IConnectedModeUIManager
     {
         var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices, useSharedBindingOnInitialization);
         manageBindingDialog.ShowDialog(Application.Current.MainWindow);
+    }
+
+    [ExcludeFromCodeCoverage] // UI, not really unit-testable
+    public void ShowTrustConnectionDialog(ServerConnection serverConnection)
+    {
+        var trustConnectionDialog = new TrustConnectionDialog(connectedModeServices.BrowserService, serverConnection);
+        trustConnectionDialog.ShowDialog(Application.Current.MainWindow);
     }
 }
