@@ -52,6 +52,11 @@ public partial class CredentialsDialog : Window
         {
             return;
         }
+        CloseWindowWithSuccess();
+    }
+
+    private void CloseWindowWithSuccess()
+    {
         DialogResult = true;
         Close();
     }
@@ -75,8 +80,8 @@ public partial class CredentialsDialog : Window
         if (responseWithData.Success)
         {
             TokenBox.Password = responseWithData.ResponseData;
-            DialogResult = true;
-            Close();
+            connectedModeServices.IdeWindowService.BringToFront();
+            CloseWindowWithSuccess();
         }
         else
         {
