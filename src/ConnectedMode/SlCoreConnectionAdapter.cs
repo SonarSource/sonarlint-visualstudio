@@ -179,15 +179,15 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
                 return failedResponse;
             }
 
-            var serverConnection = connectionInfo.GetServerConnectionFromConnectionInfo();
+            var serverUri = connectionInfo.ServerType == ConnectionServerType.SonarCloud ? connectionInfo.CloudServerRegion.Url.ToString() : connectionInfo.Id;
             try
             {
-                var slCoreResponse = await connectionConfigurationSlCoreService.HelpGenerateUserTokenAsync(new HelpGenerateUserTokenParams(serverConnection.ServerUri.ToString()));
+                var slCoreResponse = await connectionConfigurationSlCoreService.HelpGenerateUserTokenAsync(new HelpGenerateUserTokenParams(serverUri));
                 return new AdapterResponseWithData<string>(true, slCoreResponse.token);
             }
             catch (Exception ex)
             {
-                logger.LogVerbose(Resources.GenerateToken_Fails, serverConnection.ServerUri, ex.Message);
+                logger.LogVerbose(Resources.GenerateToken_Fails, serverUri, ex.Message);
                 return failedResponse;
             }
         });
