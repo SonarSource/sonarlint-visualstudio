@@ -20,6 +20,6 @@
 
 namespace SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
-public record HelpGenerateUserTokenParams(Uri serverUrl)
+public record HelpGenerateUserTokenParams(string serverUrl)
 {
 }
