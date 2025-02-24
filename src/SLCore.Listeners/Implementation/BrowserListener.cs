@@ -20,15 +20,19 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 
-[Export(typeof(IBrowserListener))]
+[Export(typeof(ISLCoreListener))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
 public class BrowserListener(IBrowserService browserService) : IBrowserListener
 {
-    public void OpenUrlInBrowser(OpenUrlInBrowserParams parameters) => browserService.Navigate(parameters.url);
+    public void OpenUrlInBrowser(OpenUrlInBrowserParams parameters)
+    {
+        browserService.Navigate(parameters.url);
+    }
 }
