@@ -73,7 +73,7 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
 {
     private static readonly AdapterResponseWithData<List<OrganizationDisplay>> FailedResponseWithData = new(false, []);
     private static readonly AdapterResponse FailedResponse = new(false);
-    private readonly ILogger logger = logger.ForContext(nameof(SlCoreConnectionAdapter));
+    private readonly ILogger logger = logger.ForVerboseContext(nameof(SlCoreConnectionAdapter));
 
     public async Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, ICredentialsModel credentialsModel)
     {
