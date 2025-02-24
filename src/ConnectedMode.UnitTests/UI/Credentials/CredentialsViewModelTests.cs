@@ -183,6 +183,33 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
             ((TokenCredentialsModel)credentialsModel).Token.Should().Be(testSubject.Token);
         }
 
+        [TestMethod]
+        [DataRow(true, "token")]
+        [DataRow(false, null)]
+        public async Task GenerateTokenWithProgressAsync_ReturnsResponseFromSlCore(bool success, string token)
+        {
+            progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponseWithData<string>>>()).Returns(new AdapterResponseWithData<string>(success, token));
+
+            var response = await testSubject.GenerateTokenWithProgressAsync();
+
+            response.Should().NotBeNull();
+            response.Success.Should().Be(success);
+            response.ResponseData.Should().Be(token);
+        }
+
+        [TestMethod]
+        public async Task GenerateTokenWithProgressAsync_ExecutesTaskWithCorrectParameters()
+        {
+            await testSubject.GenerateTokenWithProgressAsync();
+
+            await progressReporterViewModel.Received(1)
+                .ExecuteTaskWithProgressAsync(Arg.Is<TaskToPerformParams<AdapterResponseWithData<string>>>(x =>
+                    x.TaskToPerform == testSubject.GenerateTokenAsync &&
+                    x.ProgressStatus == UiResources.GeneratingTokenProgressText &&
+                    x.WarningText == UiResources.GeneratingTokenFailedText &&
+                    x.AfterProgressUpdated == testSubject.AfterProgressStatusUpdated));
+        }
+
         private void MockAdapterValidateConnectionAsync(bool success = true)
         {
             slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<ICredentialsModel>())

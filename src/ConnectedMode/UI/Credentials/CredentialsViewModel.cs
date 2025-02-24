@@ -28,8 +28,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 
 public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnectionAdapter slCoreConnectionAdapter, IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
 {
-    private SecureString token = new();
     public const string SecurityPageUrl = "account/security";
+    private SecureString token = new();
 
     public ConnectionInfo ConnectionInfo { get; } = connectionInfo;
     public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
@@ -54,10 +54,9 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
             ? Path.Combine(ConnectionInfo.CloudServerRegion.Url.ToString(), SecurityPageUrl)
             : Path.Combine(ConnectionInfo.Id, SecurityPageUrl);
 
-    private static bool IsSecureStringFilled(SecureString secureString)
-    {
-        return !string.IsNullOrWhiteSpace(secureString?.ToUnsecureString());
-    }
+    private static bool IsSecureStringFilled(SecureString secureString) => !string.IsNullOrWhiteSpace(secureString?.ToUnsecureString());
+
+    public ICredentialsModel GetCredentialsModel() => new TokenCredentialsModel(Token);
 
     internal async Task<bool> ValidateConnectionAsync()
     {
@@ -69,18 +68,19 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
         return adapterResponse.Success;
     }
 
-    internal async Task<AdapterResponse> AdapterValidateConnectionAsync()
+    internal async Task<AdapterResponse> AdapterValidateConnectionAsync() => await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, GetCredentialsModel());
+
+    internal async Task<AdapterResponseWithData<string>> GenerateTokenWithProgressAsync()
     {
-        return await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, GetCredentialsModel());
+        var validationParams = new TaskToPerformParams<AdapterResponseWithData<string>>(GenerateTokenAsync, UiResources.GeneratingTokenProgressText, UiResources.GeneratingTokenFailedText)
+        {
+            AfterProgressUpdated = AfterProgressStatusUpdated
+        };
+        var adapterResponse = await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
+        return adapterResponse;
     }
 
-    internal void AfterProgressStatusUpdated()
-    {
-        RaisePropertyChanged(nameof(IsConfirmationEnabled));
-    }
+    internal async Task<AdapterResponseWithData<string>> GenerateTokenAsync() => await slCoreConnectionAdapter.GenerateTokenAsync(ConnectionInfo);
 
-    public ICredentialsModel GetCredentialsModel()
-    {
-        return new TokenCredentialsModel(Token);
-    }
+    internal void AfterProgressStatusUpdated() => RaisePropertyChanged(nameof(IsConfirmationEnabled));
 }

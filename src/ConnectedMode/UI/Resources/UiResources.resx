@@ -437,4 +437,13 @@ Please manually add the credentials for the connection and then try again.</valu
   <data name="UsRegionName" xml:space="preserve">
     <value>US</value>
   </data>
+  <data name="GenerateTokenButton" xml:space="preserve">
+    <value>Generate Token</value>
+  </data>
+  <data name="GeneratingTokenFailedText" xml:space="preserve">
+    <value>Automatic generation of a token failed. Please see the Output window for more information.</value>
+  </data>
+  <data name="GeneratingTokenProgressText" xml:space="preserve">
+    <value>Generating token...</value>
+  </data>
 </root>

@@ -40,5 +40,7 @@ public class ConnectedModeServicesTests
             MefTestHelpers.CreateExport<IMessageBox>(),
             MefTestHelpers.CreateExport<ITelemetryManager>(),
             MefTestHelpers.CreateExport<ILogger>(),
-            MefTestHelpers.CreateExport<IDogfoodingService>());
+            MefTestHelpers.CreateExport<IDogfoodingService>(),
+            MefTestHelpers.CreateExport<IIDEWindowService>()
+        );
 }
