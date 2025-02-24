@@ -57,11 +57,15 @@ public class SlCoreConnectionAdapterTests
         slCoreServiceProvider = Substitute.For<ISLCoreServiceProvider>();
         threadHandling = new NoOpThreadHandler();
         logger = Substitute.For<ILogger>();
+        logger.ForContext(Arg.Any<string[]>()).Returns(logger);
         connectionConfigurationSlCoreService = Substitute.For<IConnectionConfigurationSLCoreService>();
         testSubject = new SlCoreConnectionAdapter(slCoreServiceProvider, threadHandling, logger);
 
         SetupConnection();
     }
+
+    [TestMethod]
+    public void Ctor_LoggerSetsContext() => logger.Received(1).ForContext(nameof(SlCoreConnectionAdapter));
 
     [TestMethod]
     public async Task ValidateConnectionAsync_SwitchesToBackgroundThread()
