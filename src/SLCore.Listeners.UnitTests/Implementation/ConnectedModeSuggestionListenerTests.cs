@@ -28,23 +28,30 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation;
 [TestClass]
 public class ConnectedModeSuggestionListenerTests
 {
-    [TestMethod]
-    public void MefCtor_CheckExports()
+    private IBindingSuggestionHandler bindingSuggestionHandler;
+    private IActiveConfigScopeTracker activeConfigScopeTracer;
+    private ConnectedModeSuggestionListener testSubject;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
+        bindingSuggestionHandler = Substitute.For<IBindingSuggestionHandler>();
+        activeConfigScopeTracer = Substitute.For<IActiveConfigScopeTracker>();
+        testSubject = new ConnectedModeSuggestionListener(bindingSuggestionHandler, activeConfigScopeTracer);
+    }
+
+    [TestMethod]
+    public void MefCtor_CheckExports() =>
         MefTestHelpers.CheckTypeCanBeImported<ConnectedModeSuggestionListener, ISLCoreListener>(
             MefTestHelpers.CreateExport<IBindingSuggestionHandler>(),
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>());
-    }
 
     [TestMethod]
     public void AssistCreatingConnectionAsync_Notifies()
     {
-        var bindingSuggestionHandler = Substitute.For<IBindingSuggestionHandler>();
-        var activeConfigScopeTracer = Substitute.For<IActiveConfigScopeTracker>();
         const string scopeId = "scope-id";
         activeConfigScopeTracer.Current.Returns(new ConfigurationScope(scopeId));
 
-        var testSubject = new ConnectedModeSuggestionListener(bindingSuggestionHandler, activeConfigScopeTracer);
         var response = testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams()
         {
             connectionParams = new SonarQubeConnectionParams(new Uri("http://localhost:9000"), "a-token", "a-token-value")
@@ -55,12 +62,16 @@ public class ConnectedModeSuggestionListenerTests
     }
 
     [TestMethod]
+    public void AssistBindingAsync_NotImplemented()
+    {
+        Action act = () => testSubject.AssistBindingAsync(new AssistBindingParams("A_CONNECTION_ID", "A_PROJECT_KEY", "A_CONFIG_SCOPE_ID", false));
+
+        act.Should().Throw<NotImplementedException>();
+    }
+
+    [TestMethod]
     public void NoBindingSuggestionFound_Notifies()
     {
-        var bindingSuggestionHandler = Substitute.For<IBindingSuggestionHandler>();
-        var activeConfigScopeTracer = Substitute.For<IActiveConfigScopeTracker>();
-
-        var testSubject = new ConnectedModeSuggestionListener(bindingSuggestionHandler, activeConfigScopeTracer);
         testSubject.NoBindingSuggestionFound(new NoBindingSuggestionFoundParams("a-project-key"));
 
         bindingSuggestionHandler.Received().Notify();
