@@ -93,6 +93,31 @@ public class FileTrackerTests
     }
 
     [TestMethod]
+    public void AddFiles_NoActiveConfigScope_EventIgnored()
+    {
+        const string filePath = "C:\\Users\\test\\TestProject\\AFile.cs";
+        activeConfigScopeTracker.Current.Returns((ConfigurationScope)null);
+
+        testSubject.AddFiles(new SourceFile(filePath));
+
+        clientFileDtoFactory.DidNotReceiveWithAnyArgs().CreateOrNull(default, default, default);
+        fileRpcSlCoreService.DidNotReceiveWithAnyArgs().DidUpdateFileSystem(default);
+    }
+
+
+    [TestMethod]
+    public void AddFiles_NoRootForConfigScope_EventIgnored()
+    {
+        const string filePath = "C:\\Users\\test\\TestProject\\AFile.cs";
+        activeConfigScopeTracker.Current.Returns(new ConfigurationScope(ConfigScopeId, RootPath: null));
+
+        testSubject.AddFiles(new SourceFile(filePath));
+
+        clientFileDtoFactory.DidNotReceiveWithAnyArgs().CreateOrNull(default, default, default);
+        fileRpcSlCoreService.DidNotReceiveWithAnyArgs().DidUpdateFileSystem(default);
+    }
+
+    [TestMethod]
     public void AddFiles_ShouldForwardFilesToSlCore()
     {
         const string filePath = "C:\\Users\\test\\TestProject\\AFile.cs";
@@ -152,6 +177,31 @@ public class FileTrackerTests
     }
 
     [TestMethod]
+    public void RemoveFiles_NoActiveConfigScope_EventIgnored()
+    {
+        const string filePath = "C:\\Users\\test\\TestProject\\AFile.cs";
+        activeConfigScopeTracker.Current.Returns((ConfigurationScope)null);
+
+        testSubject.RemoveFiles(filePath);
+
+        clientFileDtoFactory.DidNotReceiveWithAnyArgs().CreateOrNull(default, default, default);
+        fileRpcSlCoreService.DidNotReceiveWithAnyArgs().DidUpdateFileSystem(default);
+    }
+
+
+    [TestMethod]
+    public void RemoveFiles_NoRootForConfigScope_EventIgnored()
+    {
+        const string filePath = "C:\\Users\\test\\TestProject\\AFile.cs";
+        activeConfigScopeTracker.Current.Returns(new ConfigurationScope(ConfigScopeId, RootPath: null));
+
+        testSubject.RemoveFiles(filePath);
+
+        clientFileDtoFactory.DidNotReceiveWithAnyArgs().CreateOrNull(default, default, default);
+        fileRpcSlCoreService.DidNotReceiveWithAnyArgs().DidUpdateFileSystem(default);
+    }
+
+    [TestMethod]
     public void RenameFiles_ShouldForwardFilesToSlCore()
     {
         const string renamedFilePath = "C:\\Users\\test\\TestProject\\ARenamedFile.cs";
@@ -184,6 +234,31 @@ public class FileTrackerTests
         result.removedFiles[0].Should().BeEquivalentTo(new FileUri("C:\\Users\\test\\TestProject\\AFile.cs"));
         result.addedFiles.Should().BeEmpty();
         result.changedFiles.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void RenameFiles_NoActiveConfigScope_EventIgnored()
+    {
+        const string filePath = "C:\\Users\\test\\TestProject\\ARenamedFile.cs";
+        activeConfigScopeTracker.Current.Returns((ConfigurationScope)null);
+
+        testSubject.RenameFiles(["C:\\Users\\test\\TestProject\\AFile.cs"], [new SourceFile(filePath)]);
+
+        clientFileDtoFactory.DidNotReceiveWithAnyArgs().CreateOrNull(default, default, default);
+        fileRpcSlCoreService.DidNotReceiveWithAnyArgs().DidUpdateFileSystem(default);
+    }
+
+
+    [TestMethod]
+    public void RenameFiles_NoRootForConfigScope_EventIgnored()
+    {
+        const string filePath = "C:\\Users\\test\\TestProject\\ARenamedFile.cs";
+        activeConfigScopeTracker.Current.Returns(new ConfigurationScope(ConfigScopeId, RootPath: null));
+
+        testSubject.RenameFiles(["C:\\Users\\test\\TestProject\\AFile.cs"], [new SourceFile(filePath)]);
+
+        clientFileDtoFactory.DidNotReceiveWithAnyArgs().CreateOrNull(default, default, default);
+        fileRpcSlCoreService.DidNotReceiveWithAnyArgs().DidUpdateFileSystem(default);
     }
 
     private void SetUpDtoFactory(string filePath, ClientFileDto clientFileDto) =>

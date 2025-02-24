@@ -44,6 +44,16 @@ public class ClientFileDtoFactoryTests
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
+    public void Ctor_SetsVerboseContext()
+    {
+        var logger = Substitute.For<ILogger>();
+
+        _ = new ClientFileDtoFactory(logger);
+
+        logger.Received().ForVerboseContext(nameof(ClientFileDtoFactory));
+    }
+
+    [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ClientFileDtoFactory>();
 
     [DataTestMethod]
@@ -119,6 +129,41 @@ public class ClientFileDtoFactoryTests
         const string rootPath = @"D:\";
 
         var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", rootPath, new SourceFile(filePath));
+
+        result.Should().BeNull();
+        testLogger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ClientFile_NotRelative_Skipped, filePath, rootPath));
+    }
+
+    [TestMethod]
+    public void Create_RootIsNull_ReturnsNullAndLogs()
+    {
+        const string filePath = @"C:\folder\project\file1.js";
+        const string rootPath = null;
+
+        var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", rootPath, new SourceFile(filePath));
+
+        result.Should().BeNull();
+        testLogger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ClientFile_NotRelative_Skipped, filePath, rootPath));
+    }
+
+    [TestMethod]
+    public void Create_FileIsNull_ReturnsNullAndLogs()
+    {
+        const string rootPath = @"D:\";
+
+        var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", rootPath, null);
+
+        result.Should().BeNull();
+        testLogger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ClientFile_NotRelative_Skipped, null, rootPath));
+    }
+
+    [TestMethod]
+    public void Create_FilePathIsNull_ReturnsNullAndLogs()
+    {
+        const string filePath = null;
+        const string rootPath = @"D:\";
+
+        var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", rootPath, new SourceFile(null));
 
         result.Should().BeNull();
         testLogger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ClientFile_NotRelative_Skipped, filePath, rootPath));
