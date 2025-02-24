@@ -81,6 +81,21 @@ public class FileTrackerTests
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<FileTracker>();
 
     [TestMethod]
+    public void Ctor_SetsLogContext()
+    {
+        var logger = Substitute.For<ILogger>();
+
+        _ = new FileTracker(
+            Substitute.For<ISLCoreServiceProvider>(),
+            Substitute.For<IActiveConfigScopeTracker>(),
+            Substitute.For<IThreadHandling>(),
+            Substitute.For<IClientFileDtoFactory>(),
+            logger);
+
+        logger.Received().ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.FileTracker_LogContext);
+    }
+
+    [TestMethod]
     public void AddFiles_ServiceProviderFailed_LogsError()
     {
         threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>())
@@ -89,7 +104,7 @@ public class FileTrackerTests
 
         testSubject.AddFiles(new SourceFile("C:\\Users\\test\\TestProject\\AFile.cs"));
 
-        logger.AssertOutputStrings($"[FileTracker] {SLCoreStrings.ServiceProviderNotInitialized}");
+        logger.AssertPartialOutputStringExists(SLCoreStrings.ServiceProviderNotInitialized);
     }
 
     [TestMethod]
@@ -102,6 +117,7 @@ public class FileTrackerTests
 
         clientFileDtoFactory.DidNotReceiveWithAnyArgs().CreateOrNull(default, default, default);
         fileRpcSlCoreService.DidNotReceiveWithAnyArgs().DidUpdateFileSystem(default);
+        logger.AssertPartialOutputStringExists(SLCoreStrings.ConfigScopeNotInitialized);
     }
 
 
@@ -115,6 +131,7 @@ public class FileTrackerTests
 
         clientFileDtoFactory.DidNotReceiveWithAnyArgs().CreateOrNull(default, default, default);
         fileRpcSlCoreService.DidNotReceiveWithAnyArgs().DidUpdateFileSystem(default);
+        logger.AssertPartialOutputStringExists(SLCoreStrings.ConfigScopeNotInitialized);
     }
 
     [TestMethod]
@@ -186,6 +203,7 @@ public class FileTrackerTests
 
         clientFileDtoFactory.DidNotReceiveWithAnyArgs().CreateOrNull(default, default, default);
         fileRpcSlCoreService.DidNotReceiveWithAnyArgs().DidUpdateFileSystem(default);
+        logger.AssertPartialOutputStringExists(SLCoreStrings.ConfigScopeNotInitialized);
     }
 
 
@@ -199,6 +217,7 @@ public class FileTrackerTests
 
         clientFileDtoFactory.DidNotReceiveWithAnyArgs().CreateOrNull(default, default, default);
         fileRpcSlCoreService.DidNotReceiveWithAnyArgs().DidUpdateFileSystem(default);
+        logger.AssertPartialOutputStringExists(SLCoreStrings.ConfigScopeNotInitialized);
     }
 
     [TestMethod]
@@ -246,6 +265,7 @@ public class FileTrackerTests
 
         clientFileDtoFactory.DidNotReceiveWithAnyArgs().CreateOrNull(default, default, default);
         fileRpcSlCoreService.DidNotReceiveWithAnyArgs().DidUpdateFileSystem(default);
+        logger.AssertPartialOutputStringExists(SLCoreStrings.ConfigScopeNotInitialized);
     }
 
 
@@ -259,6 +279,7 @@ public class FileTrackerTests
 
         clientFileDtoFactory.DidNotReceiveWithAnyArgs().CreateOrNull(default, default, default);
         fileRpcSlCoreService.DidNotReceiveWithAnyArgs().DidUpdateFileSystem(default);
+        logger.AssertPartialOutputStringExists(SLCoreStrings.ConfigScopeNotInitialized);
     }
 
     private void SetUpDtoFactory(string filePath, ClientFileDto clientFileDto) =>
