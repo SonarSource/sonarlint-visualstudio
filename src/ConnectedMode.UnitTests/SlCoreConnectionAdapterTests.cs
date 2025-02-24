@@ -531,9 +531,6 @@ public class SlCoreConnectionAdapterTests
         return transientSonarQubeDto.serverUrl == sonarQubeConnectionInfo.Id && IsExpectedCredentials(transientSonarQubeDto.credentials, token);
     }
 
-    private bool IsExpectedSonarQubeConnectionParams(ValidateConnectionParams receivedParams, string username, string password) =>
-        IsExpectedSonarQubeConnectionParams(receivedParams.transientConnection, username, password);
-
     private bool IsExpectedSonarQubeConnectionParams(Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> transientConnection, string username, string password)
     {
         var transientSonarQubeDto = transientConnection.Left;
@@ -547,10 +544,10 @@ public class SlCoreConnectionAdapterTests
     private static bool IsExpectedCredentials(Either<TokenDto, UsernamePasswordDto> credentials, string username, string password) =>
         credentials.Right.username == username && credentials.Right.password == password;
 
-    private bool IsExpectedSonarCloudConnectionParams(ValidateConnectionParams receivedParams, ServerConnection.SonarCloud expectedConnection, string token) =>
+    private static bool IsExpectedSonarCloudConnectionParams(ValidateConnectionParams receivedParams, ServerConnection.SonarCloud expectedConnection, string token) =>
         IsExpectedSonarCloudConnectionParams(receivedParams.transientConnection, expectedConnection, token);
 
-    private bool IsExpectedSonarCloudConnectionParams(
+    private static bool IsExpectedSonarCloudConnectionParams(
         Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> transientConnection,
         ServerConnection.SonarCloud expectedConnection,
         string token)
@@ -560,9 +557,6 @@ public class SlCoreConnectionAdapterTests
                transientSonarCloudDto.region == expectedConnection.Region.ToSlCoreRegion() &&
                IsExpectedCredentials(transientSonarCloudDto.credentials, token);
     }
-
-    private bool IsExpectedSonarCloudConnectionParams(ValidateConnectionParams receivedParams, string username, string password) =>
-        IsExpectedSonarCloudConnectionParams(receivedParams.transientConnection, username, password);
 
     private bool IsExpectedSonarCloudConnectionParams(Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> transientConnection, string username, string password)
     {
