@@ -34,46 +34,71 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices;
 [TestClass]
 public class FileTrackerTests
 {
-    const string configScopeId = "CONFIG_SCOPE_ID";
-    const string rootPath = "C:\\";
+    private const string ConfigScopeId = "CONFIG_SCOPE_ID";
+    private const string RootPath = "C:\\";
+    private IActiveConfigScopeTracker activeConfigScopeTracker;
+    private IClientFileDtoFactory clientFileDtoFactory;
+    private IFileRpcSLCoreService fileRpcSlCoreService;
+    private TestLogger logger;
+    private ISLCoreServiceProvider serviceProvider;
+    private FileTracker testSubject;
+    private IThreadHandling threadHandling;
+
+    [TestInitialize]
+    public void TestInitialize()
+    {
+        serviceProvider = Substitute.For<ISLCoreServiceProvider>();
+        fileRpcSlCoreService = Substitute.For<IFileRpcSLCoreService>();
+        serviceProvider.TryGetTransientService(out IFileRpcSLCoreService _).Returns(x =>
+        {
+            x[0] = fileRpcSlCoreService;
+            return true;
+        });
+
+        activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
+        activeConfigScopeTracker.Current.Returns(new ConfigurationScope(ConfigScopeId, RootPath: RootPath));
+        clientFileDtoFactory = Substitute.For<IClientFileDtoFactory>();
+
+        threadHandling = Substitute.For<IThreadHandling>();
+        threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>())
+            .Returns(async info => await info.Arg<Func<Task<int>>>()());
+
+        logger = new TestLogger();
+
+        testSubject = new FileTracker(serviceProvider, activeConfigScopeTracker, threadHandling, clientFileDtoFactory, logger);
+    }
 
     [TestMethod]
-    public void MefCtor_CheckExports()
-    {
+    public void MefCtor_CheckExports() =>
         MefTestHelpers.CheckTypeCanBeImported<FileTracker, IFileTracker>(
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<IClientFileDtoFactory>(),
             MefTestHelpers.CreateExport<ILogger>());
-    }
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<FileTracker>();
 
     [TestMethod]
     public void AddFiles_ServiceProviderFailed_LogsError()
     {
-        var serviceProvider = Substitute.For<ISLCoreServiceProvider>();
-        var activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
-        var clientFileDtoFactory = Substitute.For<IClientFileDtoFactory>();
-        var threadHandling = Substitute.For<IThreadHandling>();
         threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>())
             .Returns(async info => await info.Arg<Func<Task<int>>>()());
-        var testLogger = new TestLogger();
-
-        var testSubject = new FileTracker(serviceProvider, activeConfigScopeTracker, threadHandling, clientFileDtoFactory, testLogger);
+        serviceProvider.TryGetTransientService(out Arg.Any<IFileRpcSLCoreService>()).Returns(false);
 
         testSubject.AddFiles(new SourceFile("C:\\Users\\test\\TestProject\\AFile.cs"));
 
-        testLogger.AssertOutputStrings($"[FileTracker] {SLCoreStrings.ServiceProviderNotInitialized}");
+        logger.AssertOutputStrings($"[FileTracker] {SLCoreStrings.ServiceProviderNotInitialized}");
     }
 
     [TestMethod]
     public void AddFiles_ShouldForwardFilesToSlCore()
     {
-        var testSubject = CreateTestSubject(out var fileRpcSlCoreService, out var factory);
         const string filePath = "C:\\Users\\test\\TestProject\\AFile.cs";
         DidUpdateFileSystemParams result = null;
         var clientFileDto = CreateDefaultClientFileDto();
-        SetUpDtoFactory(factory, filePath, clientFileDto);
+        SetUpDtoFactory(filePath, clientFileDto);
         fileRpcSlCoreService.DidUpdateFileSystem(Arg.Do<DidUpdateFileSystemParams>(parameters => result = parameters));
 
         testSubject.AddFiles(new SourceFile(filePath));
@@ -86,13 +111,12 @@ public class FileTrackerTests
     [TestMethod]
     public void AddFiles_CanNotConvertSomeDtos_SkipsNotConvertedDtos()
     {
-        var testSubject = CreateTestSubject(out var fileRpcSlCoreService, out var factory);
         var filePath1 = "C:\\Users\\test\\TestProject\\AFile.cs";
         var clientFileDto1 = CreateDefaultClientFileDto();
         var filePath2 = "C:\\Users\\test\\TestProject\\BFile.cs";
         DidUpdateFileSystemParams result = null;
-        SetUpDtoFactory(factory, filePath1, clientFileDto1);
-        SetUpDtoFactory(factory, filePath2, null);
+        SetUpDtoFactory(filePath1, clientFileDto1);
+        SetUpDtoFactory(filePath2, null);
         fileRpcSlCoreService.DidUpdateFileSystem(Arg.Do<DidUpdateFileSystemParams>(parameters => result = parameters));
 
         testSubject.AddFiles(new SourceFile(filePath1), new SourceFile(filePath2));
@@ -105,10 +129,8 @@ public class FileTrackerTests
     [TestMethod]
     public void AddFiles_CanNotCreateDto_ShouldNotNotifySlCore()
     {
-        var testSubject = CreateTestSubject(out var fileRpcSlCoreService, out var factory);
         var filePath = "C:\\Users\\test\\TestProject\\AFile.cs";
-        var clientFileDto = (ClientFileDto)null;
-        factory.CreateOrNull(configScopeId, rootPath, Arg.Is<SourceFile>(x => x.FilePath == filePath)).Returns(clientFileDto);
+        SetUpDtoFactory(filePath, null);
 
         testSubject.AddFiles(new SourceFile(filePath));
 
@@ -118,7 +140,6 @@ public class FileTrackerTests
     [TestMethod]
     public void RemoveFiles_ShouldForwardFilesToSlCore()
     {
-        var testSubject = CreateTestSubject(out var fileRpcSlCoreService, out _);
         DidUpdateFileSystemParams result = null;
         fileRpcSlCoreService.DidUpdateFileSystem(Arg.Do<DidUpdateFileSystemParams>(parameters => result = parameters));
 
@@ -135,8 +156,7 @@ public class FileTrackerTests
     {
         const string renamedFilePath = "C:\\Users\\test\\TestProject\\ARenamedFile.cs";
         var clientFileDto = CreateDefaultClientFileDto();
-        var testSubject = CreateTestSubject(out var fileRpcSlCoreService, out var factory);
-        SetUpDtoFactory(factory, renamedFilePath, clientFileDto);
+        SetUpDtoFactory(renamedFilePath, clientFileDto);
         DidUpdateFileSystemParams result = null;
         fileRpcSlCoreService.DidUpdateFileSystem(Arg.Do<DidUpdateFileSystemParams>(parameters => result = parameters));
 
@@ -153,8 +173,7 @@ public class FileTrackerTests
     public void RenameFiles_CanNotCreateDto_ShouldForwardOnlyRemovedFilesToSlCore()
     {
         const string renamedFilePath = "C:\\Users\\test\\TestProject\\ARenamedFile.cs";
-        var testSubject = CreateTestSubject(out var fileRpcSlCoreService, out var factory);
-        SetUpDtoFactory(factory, renamedFilePath, null);
+        SetUpDtoFactory(renamedFilePath, null);
         DidUpdateFileSystemParams result = null;
         fileRpcSlCoreService.DidUpdateFileSystem(Arg.Do<DidUpdateFileSystemParams>(parameters => result = parameters));
 
@@ -167,31 +186,8 @@ public class FileTrackerTests
         result.changedFiles.Should().BeEmpty();
     }
 
-    private static void SetUpDtoFactory(IClientFileDtoFactory factory, string filePath, ClientFileDto clientFileDto) => factory.CreateOrNull(configScopeId, rootPath, Arg.Is<SourceFile>(x => x.FilePath == filePath)).Returns(clientFileDto);
+    private void SetUpDtoFactory(string filePath, ClientFileDto clientFileDto) =>
+        clientFileDtoFactory.CreateOrNull(ConfigScopeId, RootPath, Arg.Is<SourceFile>(x => x.FilePath == filePath)).Returns(clientFileDto);
 
     private static ClientFileDto CreateDefaultClientFileDto() => new(default, default, default, default, default, default);
-
-    private static FileTracker CreateTestSubject(out IFileRpcSLCoreService slCoreService, out IClientFileDtoFactory clientFileDtoFactory)
-    {
-        var serviceProvider = Substitute.For<ISLCoreServiceProvider>();
-        var fileRpcSlCoreService = Substitute.For<IFileRpcSLCoreService>();
-        serviceProvider.TryGetTransientService(out IFileRpcSLCoreService _).Returns(x =>
-        {
-            x[0] = fileRpcSlCoreService;
-            return true;
-        });
-        slCoreService = fileRpcSlCoreService;
-
-        var activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
-        activeConfigScopeTracker.Current.Returns(new ConfigurationScope(configScopeId, RootPath: rootPath));
-        clientFileDtoFactory = Substitute.For<IClientFileDtoFactory>();
-
-        var threadHandling = Substitute.For<IThreadHandling>();
-        threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>())
-            .Returns(async info => await info.Arg<Func<Task<int>>>()());
-
-        var logger = Substitute.For<ILogger>();
-
-        return new FileTracker(serviceProvider, activeConfigScopeTracker, threadHandling, clientFileDtoFactory, logger);
-    }
 }
