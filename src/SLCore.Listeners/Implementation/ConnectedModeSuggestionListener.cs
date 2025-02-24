@@ -48,6 +48,8 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
             return Task.FromResult(result);
         }
 
+        public Task<AssistBindingResponse> AssistBindingAsync(AssistBindingParams parameters) => throw new NotImplementedException();
+
         public void NoBindingSuggestionFound(NoBindingSuggestionFoundParams parameters)
         {
             bindingSuggestionHandler.Notify();
