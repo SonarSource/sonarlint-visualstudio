@@ -23,66 +23,62 @@ using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
+namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+
+[ExcludeFromCodeCoverage] // UI, not really unit-testable
+public partial class CredentialsDialog : Window
 {
-    [ExcludeFromCodeCoverage] // UI, not really unit-testable
-    public partial class CredentialsDialog : Window
+    private readonly IConnectedModeServices connectedModeServices;
+
+    public CredentialsViewModel ViewModel { get; }
+
+    public CredentialsDialog(IConnectedModeServices connectedModeServices, ConnectionInfo connectionInfo, bool withNextButton)
     {
-        private readonly IConnectedModeServices connectedModeServices;
+        this.connectedModeServices = connectedModeServices;
+        ViewModel = new CredentialsViewModel(connectionInfo,
+            connectedModeServices.SlCoreConnectionAdapter,
+            new ProgressReporterViewModel(connectedModeServices.Logger));
+        InitializeComponent();
 
-        public CredentialsDialog(IConnectedModeServices connectedModeServices, ConnectionInfo connectionInfo, bool withNextButton)
+        ConfirmationBtn.Content = withNextButton ? UiResources.NextButton : UiResources.OkButton;
+    }
+
+    private void TokenPasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e) => ViewModel.Token = TokenBox.SecurePassword;
+
+    private async void OkButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        var isConnectionValid = await IsConnectionValidAsync();
+        if (!isConnectionValid)
         {
-            this.connectedModeServices = connectedModeServices;
-            ViewModel = new CredentialsViewModel(connectionInfo,
-                connectedModeServices.SlCoreConnectionAdapter,
-                new ProgressReporterViewModel(connectedModeServices.Logger));
-            InitializeComponent();
-
-            ConfirmationBtn.Content = withNextButton ? UiResources.NextButton : UiResources.OkButton;
+            return;
         }
+        DialogResult = true;
+        Close();
+    }
 
-        public CredentialsViewModel ViewModel { get; }
-
-        private void TokenPasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e)
+    private async Task<bool> IsConnectionValidAsync()
+    {
+        try
         {
-            ViewModel.Token = TokenBox.SecurePassword;
+            return await ViewModel.ValidateConnectionAsync();
         }
-
-        private async void OkButton_OnClick(object sender, RoutedEventArgs e)
+        catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
         {
-            var isConnectionValid = await IsConnectionValidAsync();
-            if (!isConnectionValid)
-            {
-                return;
-            }
-            DialogResult = true;
-            Close();
+            connectedModeServices.Logger.WriteLine(e.ToString());
+            return false;
         }
+    }
 
-        private async Task<bool> IsConnectionValidAsync()
+    private async void Generate_OnClick(object sender, RoutedEventArgs e)
+    {
+        var responseWithData = await ViewModel.GenerateTokenWithProgressAsync();
+        if (responseWithData.Success)
         {
-            try
-            {
-                return await ViewModel.ValidateConnectionAsync();
-            }
-            catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
-            {
-                connectedModeServices.Logger.WriteLine(e.ToString());
-                return false;
-            }
+            TokenBox.Password = responseWithData.ResponseData;
         }
-
-        private async void Generate_OnClick(object sender, RoutedEventArgs e)
+        else
         {
-            var responseWithData = await ViewModel.GenerateTokenWithProgressAsync();
-            if (responseWithData.Success)
-            {
-                TokenBox.Password = responseWithData.ResponseData;
-            }
-            else
-            {
-                connectedModeServices.BrowserService.Navigate(ViewModel.AccountSecurityUrl);
-            }
+            connectedModeServices.BrowserService.Navigate(ViewModel.AccountSecurityUrl);
         }
     }
 }
