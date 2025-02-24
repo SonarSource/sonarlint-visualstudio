@@ -74,6 +74,18 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
         return await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, GetCredentialsModel());
     }
 
+    internal async Task<AdapterResponseWithData<string>> GenerateTokenWithProgressAsync()
+    {
+        var validationParams = new TaskToPerformParams<AdapterResponseWithData<string>>(GenerateTokenAsync, UiResources.GeneratingTokenProgressText, UiResources.GeneratingTokenFailedText)
+        {
+            AfterProgressUpdated = AfterProgressStatusUpdated
+        };
+        var adapterResponse = await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
+        return adapterResponse;
+    }
+
+    internal async Task<AdapterResponseWithData<string>> GenerateTokenAsync() => await slCoreConnectionAdapter.GenerateTokenAsync(ConnectionInfo);
+
     internal void AfterProgressStatusUpdated()
     {
         RaisePropertyChanged(nameof(IsConfirmationEnabled));

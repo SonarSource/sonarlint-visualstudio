@@ -20,8 +20,6 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
-using System.Windows.Input;
-using System.Windows.Navigation;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 
@@ -44,21 +42,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
         }
 
         public CredentialsViewModel ViewModel { get; }
-
-        private void GenerateTokenHyperlink_Navigate(object sender, RequestNavigateEventArgs e)
-        {
-            NavigateToAccountSecurityUrl();
-        }
-
-        private void NavigateToAccountSecurityUrl()
-        {
-            connectedModeServices.BrowserService.Navigate(ViewModel.AccountSecurityUrl);
-        }
-
-        private void GenerateLinkIcon_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            NavigateToAccountSecurityUrl();
-        }
 
         private void TokenPasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e)
         {
@@ -89,9 +72,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
             }
         }
 
-        private void Generate_OnClick(object sender, RoutedEventArgs e)
+        private async void Generate_OnClick(object sender, RoutedEventArgs e)
         {
-            throw new NotImplementedException();
+            var responseWithData = await ViewModel.GenerateTokenWithProgressAsync();
+            if (responseWithData.Success)
+            {
+                TokenBox.Password = responseWithData.ResponseData;
+            }
+            else
+            {
+                connectedModeServices.BrowserService.Navigate(ViewModel.AccountSecurityUrl);
+            }
         }
     }
 }
