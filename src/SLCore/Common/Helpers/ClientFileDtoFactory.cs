@@ -27,17 +27,22 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers;
 
 [Export(typeof(IClientFileDtoFactory))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class ClientFileDtoFactory : IClientFileDtoFactory
+[method: ImportingConstructor]
+public class ClientFileDtoFactory(ILogger logger) : IClientFileDtoFactory
 {
-    public ClientFileDto Create(string configScopeId, string rootPath, SourceFile sourceFile)
-    {
-        var ideRelativePath = GetRelativePath(rootPath, sourceFile.FilePath);
-        var uri = new FileUri(sourceFile.FilePath);
-        return new ClientFileDto(uri, ideRelativePath, configScopeId, null, sourceFile.Encoding, sourceFile.FilePath, sourceFile.Content);
-    }
+    private readonly ILogger logger = logger.ForVerboseContext(nameof(ClientFileDtoFactory));
 
-    private static string GetRelativePath(string root, string fullPath)
+    public ClientFileDto CreateOrNull(string configScopeId, string rootPath, SourceFile sourceFile)
     {
-        return fullPath.Substring(root.Length);
+        if (rootPath is not null && sourceFile?.FilePath is not null && RelativePathHelper.GetRelativePathToRootFolder(rootPath, sourceFile.FilePath) is {} ideRelativePath)
+        {
+            var uri = new FileUri(sourceFile.FilePath);
+            return new ClientFileDto(uri, ideRelativePath, configScopeId, null, sourceFile.Encoding, sourceFile.FilePath, sourceFile.Content);
+        }
+
+        logger.WriteLine(
+            new MessageLevelContext {Context = [configScopeId]},
+            SLCoreStrings.ClientFile_NotRelative_Skipped, sourceFile?.FilePath, rootPath);
+        return null;
     }
 }

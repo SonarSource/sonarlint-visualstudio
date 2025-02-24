@@ -96,6 +96,15 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to File &apos;{0}&apos; can&apos;t be relativized against root &apos;{1}&apos; and is skipped.
+        /// </summary>
+        public static string ClientFile_NotRelative_Skipped {
+            get {
+                return ResourceManager.GetString("ClientFile_NotRelative_Skipped", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [SLCoreAnalyzer] No compilation database found for file: {0}. Check that the file is part of a supported project type in the current solution..
         /// </summary>
         public static string CompilationDatabaseNotFound {
@@ -119,6 +128,15 @@ namespace SonarLint.VisualStudio.SLCore {
         public static string ConfigScopeNotInitialized {
             get {
                 return ResourceManager.GetString("ConfigScopeNotInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File Tracking.
+        /// </summary>
+        public static string FileTracker_LogContext {
+            get {
+                return ResourceManager.GetString("FileTracker_LogContext", resourceCulture);
             }
         }
         

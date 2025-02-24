@@ -25,5 +25,5 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers;
 
 public interface IClientFileDtoFactory
 {
-    ClientFileDto Create(string configScopeId, string rootPath, SourceFile sourceFile);
+    ClientFileDto CreateOrNull(string configScopeId, string rootPath, SourceFile sourceFile);
 }
