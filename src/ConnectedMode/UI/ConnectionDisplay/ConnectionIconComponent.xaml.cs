@@ -27,7 +27,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay;
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
 public partial class ConnectionIconComponent : UserControl
 {
-    public static readonly DependencyProperty ServerTypeProp = DependencyProperty.Register(nameof(ServerType), typeof(ConnectionServerType), typeof(ConnectionIconComponent), new PropertyMetadata(ConnectionServerType.SonarCloud));
+    public static readonly DependencyProperty ServerTypeProp
+        = DependencyProperty.Register(nameof(ServerType), typeof(ConnectionServerType), typeof(ConnectionIconComponent), new PropertyMetadata(ConnectionServerType.SonarCloud));
 
     public ConnectionIconComponent()
     {
@@ -40,4 +41,3 @@ public partial class ConnectionIconComponent : UserControl
         set => SetValue(ServerTypeProp, value);
     }
 }
-

@@ -92,11 +92,24 @@ public class ConnectionNameViewModelTests
     }
 
     [TestMethod]
-    public void DisplayName_SonarCloud_HasId_ReturnsId()
+    public void DisplayName_SonarCloud_HasId_AlwaysShowUrlFalse_ReturnsId()
     {
+        testSubject.AlwaysShowUrl = false;
+
         testSubject.ConnectionInfo = new ConnectionInfo("any id", ConnectionServerType.SonarCloud, CloudServerRegion.Eu);
 
         testSubject.DisplayName.Should().Be("any id");
+    }
+
+    [DynamicData(nameof(Regions))]
+    [DataTestMethod]
+    public void DisplayName_SonarCloud_HasId_AlwaysShowUrlTrue_ReturnsUrl(CloudServerRegion region)
+    {
+        testSubject.AlwaysShowUrl = true;
+
+        testSubject.ConnectionInfo = new ConnectionInfo("any id", ConnectionServerType.SonarCloud, region);
+
+        testSubject.DisplayName.Should().Be(region.Url.ToString());
     }
 
     [TestMethod]
@@ -145,6 +158,18 @@ public class ConnectionNameViewModelTests
         testSubject.ConnectionInfo = new ConnectionInfo(id, ConnectionServerType.SonarCloud, CloudServerRegion.Us);
 
         VerifyDoesNotDisplayRegion();
+    }
+
+    [TestMethod]
+    public void AlwaysShowUrl_Set_RaisesPropertyChanged()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+
+        testSubject.AlwaysShowUrl = true;
+
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.AlwaysShowUrl)));
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.DisplayName)));
     }
 
     private void VerifyDoesNotDisplayRegion()

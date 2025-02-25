@@ -34,6 +34,7 @@ public class ConnectionNameViewModel : ViewModelBase
 
     private ConnectionInfo connectionInfo;
     private readonly IDogfoodingService dogfoodingService;
+    private bool alwaysShowUrl;
 
     public ConnectionInfo ConnectionInfo
     {
@@ -48,9 +49,20 @@ public class ConnectionNameViewModel : ViewModelBase
         }
     }
 
+    public bool AlwaysShowUrl
+    {
+        get => alwaysShowUrl;
+        set
+        {
+            alwaysShowUrl = value;
+            RaisePropertyChanged();
+            RaisePropertyChanged(nameof(DisplayName));
+        }
+    }
+
     public string DisplayName =>
-        connectionInfo is { Id: null, ServerType: ConnectionServerType.SonarCloud }
-            ? connectionInfo.CloudServerRegion.Url.ToString()
+        connectionInfo is { Id: null, ServerType: ConnectionServerType.SonarCloud } || AlwaysShowUrl
+            ? connectionInfo?.CloudServerRegion.Url.ToString()
             : connectionInfo?.Id ?? string.Empty;
 
     public bool ShouldDisplayRegion => dogfoodingService.IsDogfoodingEnvironment && connectionInfo?.ServerType is ConnectionServerType.SonarCloud;

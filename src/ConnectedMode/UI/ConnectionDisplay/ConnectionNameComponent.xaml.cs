@@ -27,9 +27,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay;
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
 public sealed partial class ConnectionNameComponent : UserControl
 {
-    public static readonly DependencyProperty ConnectionNameFontWeightProp = DependencyProperty.Register(nameof(ConnectionNameFontWeight), typeof(FontWeight), typeof(ConnectionNameComponent), new PropertyMetadata(FontWeights.DemiBold));
+    public static readonly DependencyProperty ConnectionNameFontWeightProp
+        = DependencyProperty.Register(nameof(ConnectionNameFontWeight), typeof(FontWeight), typeof(ConnectionNameComponent), new PropertyMetadata(FontWeights.DemiBold));
     public static readonly DependencyProperty ConnectionInfoProp
         = DependencyProperty.Register(nameof(ConnectionInfo), typeof(ConnectionInfo), typeof(ConnectionNameComponent), new PropertyMetadata(OnConnectionInfoSet));
+    public static readonly DependencyProperty AlwaysShowUrlProp
+        = DependencyProperty.Register(nameof(AlwaysShowUrl), typeof(bool), typeof(ConnectionNameComponent), new PropertyMetadata(OnAlwaysShowUrlSet));
 
     public ConnectionNameViewModel ViewModel { get; } = new();
 
@@ -50,11 +53,25 @@ public sealed partial class ConnectionNameComponent : UserControl
         set => SetValue(ConnectionNameFontWeightProp, value);
     }
 
+    public bool AlwaysShowUrl
+    {
+        get => (bool)GetValue(AlwaysShowUrlProp);
+        set => SetValue(AlwaysShowUrlProp, value);
+    }
+
     private static void OnConnectionInfoSet(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is ConnectionNameComponent component && e.NewValue is ConnectionInfo connectionInfo)
         {
             component.ViewModel.ConnectionInfo = connectionInfo;
+        }
+    }
+
+    private static void OnAlwaysShowUrlSet(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is ConnectionNameComponent component && e.NewValue is bool newAlwaysShowUrl)
+        {
+            component.ViewModel.AlwaysShowUrl = newAlwaysShowUrl;
         }
     }
 }

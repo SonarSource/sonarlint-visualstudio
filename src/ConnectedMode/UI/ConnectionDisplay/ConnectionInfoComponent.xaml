@@ -18,7 +18,8 @@
             Margin="5, 0, 0, 0"
             ConnectionInfo="{Binding Path=.}"
             VerticalAlignment="{Binding ElementName=ConnectionInfoUc, Path=TextAndIconVerticalAlignment}"
-            ConnectionNameFontWeight="{Binding ElementName=ConnectionInfoUc, Path=ConnectionNameFontWeight}"/>
+            ConnectionNameFontWeight="{Binding ElementName=ConnectionInfoUc, Path=ConnectionNameFontWeight}"
+            AlwaysShowUrl="{Binding ElementName=ConnectionInfoUc, Path=ShowUrlForName}"/>
     </Grid>
 
 </UserControl>
