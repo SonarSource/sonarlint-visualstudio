@@ -23,7 +23,6 @@ using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Binding;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
@@ -32,25 +31,11 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 {
     [Export(typeof(ISLCoreListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class ConnectedModeSuggestionListener : IConnectedModeSuggestionListener
+    [method: ImportingConstructor]
+    public class ConnectedModeSuggestionListener(IBindingSuggestionHandler bindingSuggestionHandler, IConnectedModeUIManager connectedModeUiManager, ILogger logger)
+        : IConnectedModeSuggestionListener
     {
-        private readonly IBindingSuggestionHandler bindingSuggestionHandler;
-        private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
-        private readonly IConnectedModeUIManager connectedModeUiManager;
-        private readonly ILogger logger;
-
-        [ImportingConstructor]
-        public ConnectedModeSuggestionListener(
-            IBindingSuggestionHandler bindingSuggestionHandler,
-            IActiveConfigScopeTracker activeConfigScopeTracker,
-            IConnectedModeUIManager connectedModeUiManager,
-            ILogger logger)
-        {
-            this.bindingSuggestionHandler = bindingSuggestionHandler;
-            this.activeConfigScopeTracker = activeConfigScopeTracker;
-            this.connectedModeUiManager = connectedModeUiManager;
-            this.logger = logger.ForContext("Connected Mode Suggestion");
-        }
+        private readonly ILogger logger = logger.ForContext("Connected Mode Suggestion");
 
         public Task<AssistCreatingConnectionResponse> AssistCreatingConnectionAsync(AssistCreatingConnectionParams parameters)
         {

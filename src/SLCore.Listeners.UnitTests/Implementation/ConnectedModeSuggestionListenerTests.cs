@@ -32,9 +32,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation;
 [TestClass]
 public class ConnectedModeSuggestionListenerTests
 {
-    private const string ScopeId = "scope-id";
     private IBindingSuggestionHandler bindingSuggestionHandler;
-    private IActiveConfigScopeTracker activeConfigScopeTracer;
     private ConnectedModeSuggestionListener testSubject;
     private IConnectedModeUIManager connectedModeUIManager;
     private readonly SonarQubeConnectionParams sonarQubeConnectionParams = new(new Uri("http://localhost:9000"), "a-token", Guid.NewGuid().ToString());
@@ -44,13 +42,10 @@ public class ConnectedModeSuggestionListenerTests
     public void TestInitialize()
     {
         bindingSuggestionHandler = Substitute.For<IBindingSuggestionHandler>();
-        activeConfigScopeTracer = Substitute.For<IActiveConfigScopeTracker>();
         connectedModeUIManager = Substitute.For<IConnectedModeUIManager>();
         logger = Substitute.For<ILogger>();
         logger.ForContext(Arg.Any<string[]>()).Returns(logger);
-        testSubject = new ConnectedModeSuggestionListener(bindingSuggestionHandler, activeConfigScopeTracer, connectedModeUIManager, logger);
-
-        MockCurrentConfigurationScope();
+        testSubject = new ConnectedModeSuggestionListener(bindingSuggestionHandler, connectedModeUIManager, logger);
     }
 
     [TestMethod]
@@ -164,8 +159,6 @@ public class ConnectedModeSuggestionListenerTests
     private void MockTrustConnectionDialogSucceeds() => connectedModeUIManager.ShowTrustConnectionDialog(Arg.Any<ServerConnection>(), Arg.Any<string>()).Returns(true);
 
     private void MockTrustConnectionDialogFails(bool? failedResult) => connectedModeUIManager.ShowTrustConnectionDialog(Arg.Any<ServerConnection>(), Arg.Any<string>()).Returns(failedResult);
-
-    private void MockCurrentConfigurationScope() => activeConfigScopeTracer.Current.Returns(new ConfigurationScope(ScopeId));
 
     private static SonarCloudConnectionParams CreateSonarCloudParams(SonarCloudRegion expectedRegion) => new("myOrg", "a-token", Guid.NewGuid().ToString(), expectedRegion);
 }
