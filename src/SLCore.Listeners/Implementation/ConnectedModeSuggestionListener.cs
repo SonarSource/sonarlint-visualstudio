@@ -20,32 +20,42 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
-using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Binding;
+using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 {
     [Export(typeof(ISLCoreListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class ConnectedModeSuggestionListener : IConnectedModeSuggestionListener
+    [method: ImportingConstructor]
+    public class ConnectedModeSuggestionListener(
+        IBindingSuggestionHandler bindingSuggestionHandler,
+        IConnectedModeUIManager connectedModeUiManager,
+        ILogger logger,
+        IIDEWindowService ideWindowService)
+        : IConnectedModeSuggestionListener
     {
-        private readonly IBindingSuggestionHandler bindingSuggestionHandler;
-        private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
-
-        [ImportingConstructor]
-        public ConnectedModeSuggestionListener(IBindingSuggestionHandler bindingSuggestionHandler, IActiveConfigScopeTracker activeConfigScopeTracker)
-        {
-            this.bindingSuggestionHandler = bindingSuggestionHandler;
-            this.activeConfigScopeTracker = activeConfigScopeTracker;
-        }
+        private readonly ILogger logger = logger.ForContext("Connected Mode Suggestion");
 
         public Task<AssistCreatingConnectionResponse> AssistCreatingConnectionAsync(AssistCreatingConnectionParams parameters)
         {
-            bindingSuggestionHandler.Notify();
+            var serverConnection = ConvertSeverConnection(parameters);
+            var token = parameters.connectionParams.Right?.tokenValue ?? parameters.connectionParams.Left?.tokenValue;
 
-            AssistCreatingConnectionResponse result = new(activeConfigScopeTracker.Current.Id);
-            return Task.FromResult(result);
+            ideWindowService.BringToFront();
+            var trustConnectionDialogResult = connectedModeUiManager.ShowTrustConnectionDialog(serverConnection, token);
+            if (trustConnectionDialogResult == true)
+            {
+                AssistCreatingConnectionResponse result = new(serverConnection.Id);
+                logger.LogVerbose(SLCoreStrings.AssistConnectionSucceeds, result.newConnectionId);
+                return Task.FromResult(result);
+            }
+
+            throw new OperationCanceledException(SLCoreStrings.AssistConnectionCancelled);
         }
 
         public Task<AssistBindingResponse> AssistBindingAsync(AssistBindingParams parameters) => throw new NotImplementedException();
@@ -53,6 +63,21 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
         public void NoBindingSuggestionFound(NoBindingSuggestionFoundParams parameters)
         {
             bindingSuggestionHandler.Notify();
+        }
+
+        private ServerConnection ConvertSeverConnection(AssistCreatingConnectionParams parameters)
+        {
+            if (parameters.connectionParams?.Right is { } sonarCloudConnectionParams)
+            {
+                return new ServerConnection.SonarCloud(sonarCloudConnectionParams.organizationKey, region: sonarCloudConnectionParams.sonarCloudRegion.ToCloudServerRegion());
+            }
+            if (parameters.connectionParams?.Left is { } sonarQubeConnectionParams)
+            {
+                return new ServerConnection.SonarQube(sonarQubeConnectionParams.serverUrl);
+            }
+
+            logger.LogVerbose(SLCoreStrings.AssistConnectionInvalidServerConnection, nameof(AssistCreatingConnectionParams));
+            throw new ArgumentNullException(nameof(parameters));
         }
     }
 }

@@ -43,9 +43,32 @@ public class SonarCloudRegionExtensionsTests
         act.Should().Throw<Exception>();
     }
 
+    [TestMethod]
+    [DynamicData(nameof(GetSlCoreToExpectedCoreRegion))]
+    public void ToCloudServerRegion_MapsAsExpects(SonarCloudRegion slCoreRegion, CloudServerRegion expectedCoreRegion)
+    {
+        var result = slCoreRegion.ToCloudServerRegion();
+
+        result.Should().Be(expectedCoreRegion);
+    }
+
+    [TestMethod]
+    public void ToCloudServerRegion_UnknownRegion_Throws()
+    {
+        var act = () => ((SonarCloudRegion)666).ToCloudServerRegion();
+
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
     public static IEnumerable<object[]> GetCoreToExpectedSlCoreRegion =>
     [
         [CloudServerRegion.Eu, SonarCloudRegion.EU],
         [CloudServerRegion.Us, SonarCloudRegion.US]
+    ];
+
+    public static IEnumerable<object[]> GetSlCoreToExpectedCoreRegion =>
+    [
+        [SonarCloudRegion.EU, CloudServerRegion.Eu],
+        [SonarCloudRegion.US, CloudServerRegion.Us]
     ];
 }
