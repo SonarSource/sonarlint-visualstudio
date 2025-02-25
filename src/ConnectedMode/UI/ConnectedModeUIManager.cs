@@ -31,7 +31,7 @@ public interface IConnectedModeUIManager
 {
     void ShowManageBindingDialog(bool useSharedBindingOnInitialization = false);
 
-    void ShowTrustConnectionDialog(ServerConnection serverConnection);
+    bool? ShowTrustConnectionDialog(ServerConnection serverConnection);
 }
 
 [Export(typeof(IConnectedModeUIManager))]
@@ -56,9 +56,9 @@ internal sealed class ConnectedModeUIManager : IConnectedModeUIManager
     }
 
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
-    public void ShowTrustConnectionDialog(ServerConnection serverConnection)
+    public bool? ShowTrustConnectionDialog(ServerConnection serverConnection)
     {
         var trustConnectionDialog = new TrustConnectionDialog(connectedModeServices.BrowserService, serverConnection);
-        trustConnectionDialog.ShowDialog(Application.Current.MainWindow);
+        return trustConnectionDialog.ShowDialog(Application.Current.MainWindow);
     }
 }
