@@ -18,76 +18,81 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
-using System.Windows.Data;
-using System.Windows.Input;
-using System.Windows.Navigation;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
+namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+
+[ExcludeFromCodeCoverage] // UI, not really unit-testable
+public partial class CredentialsDialog : Window
 {
-    [ExcludeFromCodeCoverage] // UI, not really unit-testable
-    public partial class CredentialsDialog : Window
+    private readonly IConnectedModeServices connectedModeServices;
+
+    public CredentialsViewModel ViewModel { get; }
+
+    public CredentialsDialog(IConnectedModeServices connectedModeServices, ConnectionInfo connectionInfo, bool withNextButton)
     {
-        private readonly IConnectedModeServices connectedModeServices;
+        this.connectedModeServices = connectedModeServices;
+        ViewModel = new CredentialsViewModel(connectionInfo,
+            connectedModeServices.SlCoreConnectionAdapter,
+            new ProgressReporterViewModel(connectedModeServices.Logger));
+        InitializeComponent();
 
-        public CredentialsDialog(IConnectedModeServices connectedModeServices, ConnectionInfo connectionInfo, bool withNextButton)
+        ConfirmationBtn.Content = withNextButton ? UiResources.NextButton : UiResources.OkButton;
+    }
+
+    private void TokenPasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e) => ViewModel.Token = TokenBox.SecurePassword;
+
+    private async void OkButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        var isConnectionValid = await IsConnectionValidAsync();
+        if (!isConnectionValid)
         {
-            this.connectedModeServices = connectedModeServices;
-            ViewModel = new CredentialsViewModel(connectionInfo,
-                connectedModeServices.SlCoreConnectionAdapter,
-                new ProgressReporterViewModel(connectedModeServices.Logger));
-            InitializeComponent();
-
-            ConfirmationBtn.Content = withNextButton ? UiResources.NextButton : UiResources.OkButton;
+            return;
         }
+        CloseWindowWithSuccess();
+    }
 
-        public CredentialsViewModel ViewModel { get; }
+    private void CloseWindowWithSuccess()
+    {
+        DialogResult = true;
+        Close();
+    }
 
-        private void GenerateTokenHyperlink_Navigate(object sender, RequestNavigateEventArgs e)
+    private async Task<bool> IsConnectionValidAsync()
+    {
+        try
         {
-            NavigateToAccountSecurityUrl();
+            return await ViewModel.ValidateConnectionAsync();
         }
+        catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
+        {
+            connectedModeServices.Logger.WriteLine(e.ToString());
+            return false;
+        }
+    }
 
-        private void NavigateToAccountSecurityUrl()
+    private async void Generate_OnClick(object sender, RoutedEventArgs e)
+    {
+        var responseWithData = await ViewModel.GenerateTokenWithProgressAsync();
+        if (ViewModel.TokenGenerationCancellationSource.IsCancellationRequested)
+        {
+            return;
+        }
+        if (responseWithData.Success)
+        {
+            TokenBox.Password = responseWithData.ResponseData;
+            connectedModeServices.IdeWindowService.BringToFront();
+            CloseWindowWithSuccess();
+        }
+        else
         {
             connectedModeServices.BrowserService.Navigate(ViewModel.AccountSecurityUrl);
         }
-
-        private void GenerateLinkIcon_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            NavigateToAccountSecurityUrl();
-        }
-
-        private void TokenPasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e)
-        {
-            ViewModel.Token = TokenBox.SecurePassword;
-        }
-
-        private async void OkButton_OnClick(object sender, RoutedEventArgs e)
-        {
-            var isConnectionValid = await IsConnectionValidAsync();
-            if(!isConnectionValid)
-            {
-                return;
-            }
-            DialogResult = true;
-            Close();
-        }
-
-        private async Task<bool> IsConnectionValidAsync()
-        {
-            try
-            {
-                return await ViewModel.ValidateConnectionAsync();
-            }
-            catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
-            {
-                connectedModeServices.Logger.WriteLine(e.ToString());
-                return false;
-            }
-        }
     }
+
+    private void CredentialsDialog_OnClosing(object sender, CancelEventArgs e) => CredentialsViewModel.CancelAndDisposeCancellationToken(ViewModel.TokenGenerationCancellationSource);
 }
