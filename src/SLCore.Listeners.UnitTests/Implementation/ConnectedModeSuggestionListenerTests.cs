@@ -22,7 +22,6 @@ using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Binding;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
@@ -37,30 +36,46 @@ public class ConnectedModeSuggestionListenerTests
     private IConnectedModeUIManager connectedModeUIManager;
     private readonly SonarQubeConnectionParams sonarQubeConnectionParams = new(new Uri("http://localhost:9000"), "a-token", Guid.NewGuid().ToString());
     private ILogger logger;
+    private IIDEWindowService ideWindowService;
 
     [TestInitialize]
     public void TestInitialize()
     {
         bindingSuggestionHandler = Substitute.For<IBindingSuggestionHandler>();
         connectedModeUIManager = Substitute.For<IConnectedModeUIManager>();
+        ideWindowService = Substitute.For<IIDEWindowService>();
         logger = Substitute.For<ILogger>();
         logger.ForContext(Arg.Any<string[]>()).Returns(logger);
-        testSubject = new ConnectedModeSuggestionListener(bindingSuggestionHandler, connectedModeUIManager, logger);
+        testSubject = new ConnectedModeSuggestionListener(bindingSuggestionHandler, connectedModeUIManager, logger, ideWindowService);
     }
 
     [TestMethod]
     public void MefCtor_CheckExports() =>
         MefTestHelpers.CheckTypeCanBeImported<ConnectedModeSuggestionListener, ISLCoreListener>(
             MefTestHelpers.CreateExport<IBindingSuggestionHandler>(),
-            MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
             MefTestHelpers.CreateExport<IConnectedModeUIManager>(),
-            MefTestHelpers.CreateExport<ILogger>());
+            MefTestHelpers.CreateExport<ILogger>(),
+            MefTestHelpers.CreateExport<IIDEWindowService>());
 
     [TestMethod]
     public void MefCtor_IsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ConnectedModeSuggestionListener>();
 
     [TestMethod]
     public void Ctor_LoggerContextIsSet() => logger.Received(1).ForContext("Connected Mode Suggestion");
+
+    [TestMethod]
+    public void AssistCreatingConnectionAsync_IdeWindowIsBroughtToFront()
+    {
+        MockTrustConnectionDialogSucceeds();
+
+        testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams { connectionParams = sonarQubeConnectionParams });
+
+        Received.InOrder(() =>
+        {
+            ideWindowService.BringToFront();
+            connectedModeUIManager.ShowTrustConnectionDialog(Arg.Any<ServerConnection>(), Arg.Any<string>());
+        });
+    }
 
     [TestMethod]
     public void AssistCreatingConnectionAsync_SonarQube_ShowsDialogWithCorrectParameters()

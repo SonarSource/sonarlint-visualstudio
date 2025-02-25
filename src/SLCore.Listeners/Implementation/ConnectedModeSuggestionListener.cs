@@ -32,7 +32,11 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
     [Export(typeof(ISLCoreListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     [method: ImportingConstructor]
-    public class ConnectedModeSuggestionListener(IBindingSuggestionHandler bindingSuggestionHandler, IConnectedModeUIManager connectedModeUiManager, ILogger logger)
+    public class ConnectedModeSuggestionListener(
+        IBindingSuggestionHandler bindingSuggestionHandler,
+        IConnectedModeUIManager connectedModeUiManager,
+        ILogger logger,
+        IIDEWindowService ideWindowService)
         : IConnectedModeSuggestionListener
     {
         private readonly ILogger logger = logger.ForContext("Connected Mode Suggestion");
@@ -42,6 +46,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
             var serverConnection = ConvertSeverConnection(parameters);
             var token = parameters.connectionParams.Right?.tokenValue ?? parameters.connectionParams.Left?.tokenValue;
 
+            ideWindowService.BringToFront();
             var trustConnectionDialogResult = connectedModeUiManager.ShowTrustConnectionDialog(serverConnection, token);
             if (trustConnectionDialogResult == true)
             {
