@@ -42,16 +42,23 @@ internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedMod
     : IConnectedModeUIManager
 {
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
-    public void ShowManageBindingDialog(bool useSharedBindingOnInitialization = false)
-    {
-        var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices, useSharedBindingOnInitialization);
-        manageBindingDialog.ShowDialog(Application.Current.MainWindow);
-    }
+    public void ShowManageBindingDialog(bool useSharedBindingOnInitialization = false) =>
+        connectedModeServices.ThreadHandling.RunOnUIThread(() =>
+        {
+            var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices, useSharedBindingOnInitialization);
+            manageBindingDialog.ShowDialog(Application.Current.MainWindow);
+        });
 
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     public bool? ShowTrustConnectionDialog(ServerConnection serverConnection, string token)
     {
-        var trustConnectionDialog = new TrustConnectionDialog(connectedModeServices, serverConnection, token?.ToSecureString());
-        return trustConnectionDialog.ShowDialog(Application.Current.MainWindow);
+        bool? dialogResult = null;
+        connectedModeServices.ThreadHandling.RunOnUIThread(() =>
+        {
+            var trustConnectionDialog = new TrustConnectionDialog(connectedModeServices, serverConnection, token?.ToSecureString());
+            dialogResult = trustConnectionDialog.ShowDialog(Application.Current.MainWindow);
+        });
+
+        return dialogResult;
     }
 }
