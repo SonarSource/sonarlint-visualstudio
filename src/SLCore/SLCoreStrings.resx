@@ -204,4 +204,10 @@
   <data name="RelativePathHelper_RootDoesNotEndWithSeparator" xml:space="preserve">
     <value>Root path must end with a {0} separator</value>
   </data>
+  <data name="ClientFile_NotRelative_Skipped" xml:space="preserve">
+    <value>File '{0}' can't be relativized against root '{1}' and is skipped</value>
+  </data>
+  <data name="FileTracker_LogContext" xml:space="preserve">
+    <value>File Tracking</value>
+  </data>
 </root>
