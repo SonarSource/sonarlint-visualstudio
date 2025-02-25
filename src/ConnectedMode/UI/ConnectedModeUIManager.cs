@@ -24,6 +24,7 @@ using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.TrustConnection;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
@@ -31,23 +32,15 @@ public interface IConnectedModeUIManager
 {
     void ShowManageBindingDialog(bool useSharedBindingOnInitialization = false);
 
-    bool? ShowTrustConnectionDialog(ServerConnection serverConnection);
+    bool? ShowTrustConnectionDialog(ServerConnection serverConnection, string token);
 }
 
 [Export(typeof(IConnectedModeUIManager))]
 [PartCreationPolicy(CreationPolicy.NonShared)]
-internal sealed class ConnectedModeUIManager : IConnectedModeUIManager
+[method: ImportingConstructor]
+internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices)
+    : IConnectedModeUIManager
 {
-    private readonly IConnectedModeServices connectedModeServices;
-    private readonly IConnectedModeBindingServices connectedModeBindingServices;
-
-    [ImportingConstructor]
-    public ConnectedModeUIManager(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices)
-    {
-        this.connectedModeServices = connectedModeServices;
-        this.connectedModeBindingServices = connectedModeBindingServices;
-    }
-
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     public void ShowManageBindingDialog(bool useSharedBindingOnInitialization = false)
     {
@@ -56,9 +49,9 @@ internal sealed class ConnectedModeUIManager : IConnectedModeUIManager
     }
 
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
-    public bool? ShowTrustConnectionDialog(ServerConnection serverConnection)
+    public bool? ShowTrustConnectionDialog(ServerConnection serverConnection, string token)
     {
-        var trustConnectionDialog = new TrustConnectionDialog(connectedModeServices.BrowserService, serverConnection);
+        var trustConnectionDialog = new TrustConnectionDialog(connectedModeServices, serverConnection, token?.ToSecureString());
         return trustConnectionDialog.ShowDialog(Application.Current.MainWindow);
     }
 }

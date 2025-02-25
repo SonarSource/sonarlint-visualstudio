@@ -19,9 +19,9 @@
  */
 
 using System.Diagnostics.CodeAnalysis;
+using System.Security;
 using System.Windows;
 using System.Windows.Navigation;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.TrustConnection;
@@ -29,18 +29,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.TrustConnection;
 [ExcludeFromCodeCoverage]
 public partial class TrustConnectionDialog : Window
 {
-    private readonly IBrowserService browserService;
+    private readonly IConnectedModeServices connectedModeServices;
 
     public ConnectionInfo ConnectionInfo { get; }
 
-    public TrustConnectionDialog(IBrowserService browserService, ServerConnection serverConnection)
+    public TrustConnectionDialog(IConnectedModeServices connectedModeServices, ServerConnection serverConnection, SecureString token)
     {
-        this.browserService = browserService;
+        this.connectedModeServices = connectedModeServices;
         ConnectionInfo = serverConnection.ToConnection().Info;
         InitializeComponent();
     }
 
-    private void ViewWebsite(object sender, RequestNavigateEventArgs e) => browserService.Navigate(e.Uri.AbsoluteUri);
+    private void ViewWebsite(object sender, RequestNavigateEventArgs e) => connectedModeServices.BrowserService.Navigate(e.Uri.AbsoluteUri);
 
     private void TrustServerButton_OnClick(object sender, RoutedEventArgs e)
     {
