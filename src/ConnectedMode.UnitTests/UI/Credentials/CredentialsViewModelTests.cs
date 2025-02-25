@@ -183,10 +183,75 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
             ((TokenCredentialsModel)credentialsModel).Token.Should().Be(testSubject.Token);
         }
 
-        private void MockAdapterValidateConnectionAsync(bool success = true)
+        [TestMethod]
+        [DataRow(true, "token")]
+        [DataRow(false, null)]
+        public async Task GenerateTokenWithProgressAsync_ReturnsResponseFromTaskToPerformParams(bool success, string token)
         {
+            progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponseWithData<string>>>()).Returns(new AdapterResponseWithData<string>(success, token));
+
+            var response = await testSubject.GenerateTokenWithProgressAsync();
+
+            response.Should().NotBeNull();
+            response.Success.Should().Be(success);
+            response.ResponseData.Should().Be(token);
+        }
+
+        [TestMethod]
+        public async Task GenerateTokenWithProgressAsync_ExecutesTaskWithCorrectParameters()
+        {
+            await testSubject.GenerateTokenWithProgressAsync();
+
+            await progressReporterViewModel.Received(1)
+                .ExecuteTaskWithProgressAsync(Arg.Is<TaskToPerformParams<AdapterResponseWithData<string>>>(x =>
+                    x.TaskToPerform == testSubject.GenerateTokenAsync &&
+                    x.ProgressStatus == UiResources.GeneratingTokenProgressText &&
+                    x.WarningText == UiResources.GeneratingTokenFailedText &&
+                    x.AfterProgressUpdated == testSubject.AfterProgressStatusUpdated));
+        }
+
+        [TestMethod]
+        public async Task GenerateTokenAsync_InitializesTokenGenerationCancellationSource()
+        {
+            testSubject.TokenGenerationCancellationSource.Should().BeNull();
+
+            await testSubject.GenerateTokenAsync();
+
+            testSubject.TokenGenerationCancellationSource.Should().NotBeNull();
+        }
+
+        [TestMethod]
+        [DataRow(true, "token")]
+        [DataRow(false, null)]
+        public async Task GenerateTokenAsync_ReturnsResponseFromSlCore(bool success, string token)
+        {
+            slCoreConnectionAdapter.GenerateTokenAsync(Arg.Any<ConnectionInfo>(), Arg.Any<CancellationToken>()).Returns(new AdapterResponseWithData<string>(success, token));
+
+            var result = await testSubject.GenerateTokenAsync();
+
+            await slCoreConnectionAdapter.Received(1).GenerateTokenAsync(testSubject.ConnectionInfo, testSubject.TokenGenerationCancellationSource.Token);
+            result.Success.Should().Be(success);
+            result.ResponseData.Should().Be(token);
+        }
+
+        [TestMethod]
+        public void Ctor_TokenGenerationCancellationSource_NotInitialized() => testSubject.TokenGenerationCancellationSource.Should().BeNull();
+
+        [TestMethod]
+        public async Task TokenGenerationCancellationSource_Sets_CancelsPreviousCancellationTokenSource()
+        {
+            await testSubject.GenerateTokenAsync();
+            var cancellationTokenSource1 = testSubject.TokenGenerationCancellationSource;
+
+            await testSubject.GenerateTokenAsync();
+            var cancellationTokenSource2 = testSubject.TokenGenerationCancellationSource;
+
+            cancellationTokenSource1.IsCancellationRequested.Should().BeTrue();
+            cancellationTokenSource2.IsCancellationRequested.Should().BeFalse();
+        }
+
+        private void MockAdapterValidateConnectionAsync(bool success = true) =>
             slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<ICredentialsModel>())
                 .Returns(new AdapterResponse(success));
-        }
     }
 }

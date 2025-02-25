@@ -28,11 +28,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 
 public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnectionAdapter slCoreConnectionAdapter, IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
 {
-    private SecureString token = new();
     public const string SecurityPageUrl = "account/security";
+    private SecureString token = new();
+    private CancellationTokenSource tokenGenerationCancellationSource;
 
     public ConnectionInfo ConnectionInfo { get; } = connectionInfo;
     public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
+
+    public CancellationTokenSource TokenGenerationCancellationSource
+    {
+        get => tokenGenerationCancellationSource;
+        private set
+        {
+            CancelAndDisposeCancellationToken(tokenGenerationCancellationSource);
+            tokenGenerationCancellationSource = value;
+        }
+    }
 
     public SecureString Token
     {
@@ -54,10 +65,9 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
             ? Path.Combine(ConnectionInfo.CloudServerRegion.Url.ToString(), SecurityPageUrl)
             : Path.Combine(ConnectionInfo.Id, SecurityPageUrl);
 
-    private static bool IsSecureStringFilled(SecureString secureString)
-    {
-        return !string.IsNullOrWhiteSpace(secureString?.ToUnsecureString());
-    }
+    private static bool IsSecureStringFilled(SecureString secureString) => !string.IsNullOrWhiteSpace(secureString?.ToUnsecureString());
+
+    public ICredentialsModel GetCredentialsModel() => new TokenCredentialsModel(Token);
 
     internal async Task<bool> ValidateConnectionAsync()
     {
@@ -69,18 +79,29 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
         return adapterResponse.Success;
     }
 
-    internal async Task<AdapterResponse> AdapterValidateConnectionAsync()
+    internal async Task<AdapterResponse> AdapterValidateConnectionAsync() => await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, GetCredentialsModel());
+
+    internal async Task<AdapterResponseWithData<string>> GenerateTokenWithProgressAsync()
     {
-        return await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, GetCredentialsModel());
+        var validationParams = new TaskToPerformParams<AdapterResponseWithData<string>>(GenerateTokenAsync, UiResources.GeneratingTokenProgressText, UiResources.GeneratingTokenFailedText)
+        {
+            AfterProgressUpdated = AfterProgressStatusUpdated
+        };
+        var adapterResponse = await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
+        return adapterResponse;
     }
 
-    internal void AfterProgressStatusUpdated()
+    internal async Task<AdapterResponseWithData<string>> GenerateTokenAsync()
     {
-        RaisePropertyChanged(nameof(IsConfirmationEnabled));
+        TokenGenerationCancellationSource = new CancellationTokenSource();
+        return await slCoreConnectionAdapter.GenerateTokenAsync(ConnectionInfo, TokenGenerationCancellationSource.Token);
     }
 
-    public ICredentialsModel GetCredentialsModel()
+    internal void AfterProgressStatusUpdated() => RaisePropertyChanged(nameof(IsConfirmationEnabled));
+
+    internal static void CancelAndDisposeCancellationToken(CancellationTokenSource cancellationTokenSource)
     {
-        return new TokenCredentialsModel(Token);
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource?.Dispose();
     }
 }
