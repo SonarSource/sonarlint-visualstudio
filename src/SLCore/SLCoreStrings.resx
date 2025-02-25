@@ -207,4 +207,13 @@
   <data name="FileTracker_LogContext" xml:space="preserve">
     <value>File Tracking</value>
   </data>
+  <data name="AssistConnectionCancelled" xml:space="preserve">
+    <value>Automatic connection setup was cancelled</value>
+  </data>
+  <data name="AssistConnectionInvalidServerConnection" xml:space="preserve">
+    <value>No valid server connection can be created from {1}</value>
+  </data>
+  <data name="AssistConnectionSucceeds" xml:space="preserve">
+    <value>Automatic connection setup succeeded for connection {0}</value>
+  </data>
 </root>
