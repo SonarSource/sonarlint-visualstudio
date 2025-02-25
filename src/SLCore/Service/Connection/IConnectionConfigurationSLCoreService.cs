@@ -20,6 +20,7 @@
 
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Protocol;
+using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Connection;
 
@@ -71,4 +72,11 @@ public interface IConnectionConfigurationSLCoreService : ISLCoreService
     /// <param name="parameters"></param>
     /// <returns></returns>
     Task<GetProjectNamesByKeyResponse> GetProjectNamesByKeyAsync(GetProjectNamesByKeyParams parameters);
+
+    /// <summary>
+    /// For servers that support automatic token generation, will return the token in the response. Else no token will be returned.
+    /// If the local server is not started or the server URL can not be reached, the future will fail
+    /// </summary>
+    /// <returns></returns>
+    Task<HelpGenerateUserTokenResponse> HelpGenerateUserTokenAsync(HelpGenerateUserTokenParams parameters);
 }

@@ -87,12 +87,14 @@ public static class ConnectionExtensions
 
 public static class ConnectionInfoExtensions
 {
-    public static string GetServerIdFromConnectionInfo(this ConnectionInfo connectionInfo)
+    public static string GetServerIdFromConnectionInfo(this ConnectionInfo connectionInfo) => GetServerConnectionFromConnectionInfo(connectionInfo).Id;
+
+    public static ServerConnection GetServerConnectionFromConnectionInfo(this ConnectionInfo connectionInfo)
     {
         ServerConnection partialServerConnection = connectionInfo.ServerType == ConnectionServerType.SonarCloud
             ? new ServerConnection.SonarCloud(connectionInfo.Id, connectionInfo.CloudServerRegion)
             : new ServerConnection.SonarQube(new Uri(connectionInfo.Id));
 
-        return partialServerConnection.Id;
+        return partialServerConnection;
     }
 }

@@ -18,14 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
+namespace SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Binding
+public record OpenUrlInBrowserParams(string url)
 {
-    public interface IConnectedModeSuggestionListener : ISLCoreListener
-    {
-        Task<AssistCreatingConnectionResponse> AssistCreatingConnectionAsync(AssistCreatingConnectionParams parameters);
-        Task<AssistBindingResponse> AssistBindingAsync(AssistBindingParams parameters);
-        void NoBindingSuggestionFound(NoBindingSuggestionFoundParams parameters);
-    }
 }

@@ -19,13 +19,11 @@
  */
 
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Binding
+namespace SonarLint.VisualStudio.SLCore.Listener.Visualization;
+
+public interface IBrowserListener : ISLCoreListener
 {
-    public interface IConnectedModeSuggestionListener : ISLCoreListener
-    {
-        Task<AssistCreatingConnectionResponse> AssistCreatingConnectionAsync(AssistCreatingConnectionParams parameters);
-        Task<AssistBindingResponse> AssistBindingAsync(AssistBindingParams parameters);
-        void NoBindingSuggestionFound(NoBindingSuggestionFoundParams parameters);
-    }
+    void OpenUrlInBrowser(OpenUrlInBrowserParams parameters);
 }

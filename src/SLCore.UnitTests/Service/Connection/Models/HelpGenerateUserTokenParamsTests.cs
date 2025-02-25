@@ -18,14 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Binding
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Connection.Models;
+
+[TestClass]
+public class HelpGenerateUserTokenParamsTests
 {
-    public interface IConnectedModeSuggestionListener : ISLCoreListener
+    [TestMethod]
+    public void Serialize_AsExpected()
     {
-        Task<AssistCreatingConnectionResponse> AssistCreatingConnectionAsync(AssistCreatingConnectionParams parameters);
-        Task<AssistBindingResponse> AssistBindingAsync(AssistBindingParams parameters);
-        void NoBindingSuggestionFound(NoBindingSuggestionFoundParams parameters);
+        var helpGenerateUserTokenParams = new HelpGenerateUserTokenParams("http://localhost:9000");
+        var expected = """
+                       {
+                         "serverUrl": "http://localhost:9000"
+                       }
+                       """;
+
+        var actual = JsonConvert.SerializeObject(helpGenerateUserTokenParams, Formatting.Indented);
+
+        actual.Should().Be(expected);
     }
 }

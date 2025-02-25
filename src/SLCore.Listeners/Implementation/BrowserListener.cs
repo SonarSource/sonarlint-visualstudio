@@ -18,14 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
+using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.SLCore.Listener.Visualization;
+using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Binding
+namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
+
+[Export(typeof(IBrowserListener))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+public class BrowserListener(IBrowserService browserService) : IBrowserListener
 {
-    public interface IConnectedModeSuggestionListener : ISLCoreListener
-    {
-        Task<AssistCreatingConnectionResponse> AssistCreatingConnectionAsync(AssistCreatingConnectionParams parameters);
-        Task<AssistBindingResponse> AssistBindingAsync(AssistBindingParams parameters);
-        void NoBindingSuggestionFound(NoBindingSuggestionFoundParams parameters);
-    }
+    public void OpenUrlInBrowser(OpenUrlInBrowserParams parameters) => browserService.Navigate(parameters.url);
 }

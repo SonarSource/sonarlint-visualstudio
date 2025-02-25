@@ -34,17 +34,15 @@ public class ClientFileDtoFactory(ILogger logger) : IClientFileDtoFactory
 
     public ClientFileDto CreateOrNull(string configScopeId, string rootPath, SourceFile sourceFile)
     {
-        var ideRelativePath = RelativePathHelper.GetRelativePathToRootFolder(rootPath, sourceFile.FilePath);
-
-        if (ideRelativePath == null)
+        if (rootPath is not null && sourceFile?.FilePath is not null && RelativePathHelper.GetRelativePathToRootFolder(rootPath, sourceFile.FilePath) is {} ideRelativePath)
         {
-            logger.WriteLine(
-                new MessageLevelContext {Context = [configScopeId]},
-                SLCoreStrings.ClientFile_NotRelative_Skipped, sourceFile.FilePath, rootPath);
-            return null;
+            var uri = new FileUri(sourceFile.FilePath);
+            return new ClientFileDto(uri, ideRelativePath, configScopeId, null, sourceFile.Encoding, sourceFile.FilePath, sourceFile.Content);
         }
 
-        var uri = new FileUri(sourceFile.FilePath);
-        return new ClientFileDto(uri, ideRelativePath, configScopeId, null, sourceFile.Encoding, sourceFile.FilePath, sourceFile.Content);
+        logger.WriteLine(
+            new MessageLevelContext {Context = [configScopeId]},
+            SLCoreStrings.ClientFile_NotRelative_Skipped, sourceFile?.FilePath, rootPath);
+        return null;
     }
 }

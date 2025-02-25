@@ -72,7 +72,6 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
             IReadOnlyCollection<string> fullFilePathList) =>
             clientFileDtos.AddRange(
                 fullFilePathList
-                    // bug
                     .Select(fp => clientFileDtoFactory.CreateOrNull(parameters.configScopeId, root, new SourceFile(fp)))
                     .Where(x => x is not null));
 

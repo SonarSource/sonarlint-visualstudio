@@ -132,6 +132,15 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to File Tracking.
+        /// </summary>
+        public static string FileTracker_LogContext {
+            get {
+                return ResourceManager.GetString("FileTracker_LogContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Received server trust verification request....
         /// </summary>
         public static string HttpConfiguration_ServerTrustVerificationRequest {

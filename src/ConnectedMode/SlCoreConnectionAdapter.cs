@@ -43,12 +43,13 @@ public interface ISlCoreConnectionAdapter
 
     Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel, CloudServerRegion cloudServerRegion);
 
-
     Task<AdapterResponseWithData<ServerProject>> GetServerProjectByKeyAsync(ServerConnection serverConnection, string serverProjectKey);
 
     Task<AdapterResponseWithData<List<ServerProject>>> GetAllProjectsAsync(ServerConnection serverConnection);
 
     Task<AdapterResponseWithData<List<ServerProject>>> FuzzySearchProjectsAsync(ServerConnection serverConnection, string searchTerm);
+
+    Task<AdapterResponseWithData<string>> GenerateTokenAsync(ConnectionInfo connectionInfo);
 }
 
 public class AdapterResponseWithData<T>(bool success, T responseData) : IResponseStatus
@@ -72,6 +73,7 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
 {
     private static readonly AdapterResponseWithData<List<OrganizationDisplay>> FailedResponseWithData = new(false, []);
     private static readonly AdapterResponse FailedResponse = new(false);
+    private readonly ILogger logger = logger.ForVerboseContext(nameof(SlCoreConnectionAdapter));
 
     public async Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, ICredentialsModel credentialsModel)
     {
@@ -162,6 +164,30 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
             catch (Exception ex)
             {
                 logger.LogVerbose(Resources.FuzzySearchProjects_Fails, serverConnection.Id, searchTerm, ex.Message);
+                return failedResponse;
+            }
+        });
+    }
+
+    public async Task<AdapterResponseWithData<string>> GenerateTokenAsync(ConnectionInfo connectionInfo)
+    {
+        var failedResponse = new AdapterResponseWithData<string>(false, null);
+        return await threadHandling.RunOnBackgroundThread(async () =>
+        {
+            if (!TryGetConnectionConfigurationSlCoreService(out var connectionConfigurationSlCoreService))
+            {
+                return failedResponse;
+            }
+
+            var serverUri = connectionInfo.ServerType == ConnectionServerType.SonarCloud ? connectionInfo.CloudServerRegion.Url.ToString() : connectionInfo.Id;
+            try
+            {
+                var slCoreResponse = await connectionConfigurationSlCoreService.HelpGenerateUserTokenAsync(new HelpGenerateUserTokenParams(serverUri));
+                return new AdapterResponseWithData<string>(true, slCoreResponse.token);
+            }
+            catch (Exception ex)
+            {
+                logger.LogVerbose(Resources.GenerateToken_Fails, serverUri, ex.Message);
                 return failedResponse;
             }
         });
