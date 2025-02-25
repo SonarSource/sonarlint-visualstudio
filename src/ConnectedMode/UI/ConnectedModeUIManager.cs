@@ -41,24 +41,34 @@ public interface IConnectedModeUIManager
 internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices)
     : IConnectedModeUIManager
 {
-    [ExcludeFromCodeCoverage] // UI, not really unit-testable
     public void ShowManageBindingDialog(bool useSharedBindingOnInitialization = false) =>
         connectedModeServices.ThreadHandling.RunOnUIThread(() =>
         {
-            var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices, useSharedBindingOnInitialization);
-            manageBindingDialog.ShowDialog(Application.Current.MainWindow);
+            GetShowManageBindingDialogResult(useSharedBindingOnInitialization);
         });
 
-    [ExcludeFromCodeCoverage] // UI, not really unit-testable
     public bool? ShowTrustConnectionDialog(ServerConnection serverConnection, string token)
     {
         bool? dialogResult = null;
         connectedModeServices.ThreadHandling.RunOnUIThread(() =>
         {
-            var trustConnectionDialog = new TrustConnectionDialog(connectedModeServices, serverConnection, token?.ToSecureString());
-            dialogResult = trustConnectionDialog.ShowDialog(Application.Current.MainWindow);
+            dialogResult = GetTrustConnectionDialogResult(serverConnection, token);
         });
 
         return dialogResult;
+    }
+
+    [ExcludeFromCodeCoverage] // UI, not really unit-testable
+    private bool? GetTrustConnectionDialogResult(ServerConnection serverConnection, string token)
+    {
+        var trustConnectionDialog = new TrustConnectionDialog(connectedModeServices, serverConnection, token?.ToSecureString());
+        return trustConnectionDialog.ShowDialog(Application.Current.MainWindow);
+    }
+
+    [ExcludeFromCodeCoverage] // UI, not really unit-testable
+    private bool? GetShowManageBindingDialogResult(bool useSharedBindingOnInitialization)
+    {
+        var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices, useSharedBindingOnInitialization);
+        return manageBindingDialog.ShowDialog(Application.Current.MainWindow);
     }
 }
