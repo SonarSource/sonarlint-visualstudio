@@ -178,6 +178,43 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
         }
 
         [TestMethod]
+        public async Task ListFilesAsync_SharedBindingPresentButNotConverted_IgnoresSharedBinding()
+        {
+            SetUpFolderWorkSpaceService(null);
+            string[] filePaths = ["C:\\Code\\Project\\File1.js", "C:\\Code\\Project\\File2.js", "C:\\Code\\Project\\Folder1\\File3.js"];
+            const string rootPath = "C:\\";
+            var clientFileDtos = SetUpDefaultDtosForFiles(filePaths, rootPath);
+            const string sharedbindingJson = "C:\\Code\\.sonarlint\\sharedbinding.json";
+            sharedBindingConfigProvider.GetSharedBindingFilePathOrNull().Returns(sharedbindingJson);
+            SetUpDtoFactory(sharedbindingJson, null, rootPath);
+            SetUpSolutionWorkspaceService(filePaths);
+
+            var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
+
+            var files = result.files.ToList();
+            files.Should().BeEquivalentTo(clientFileDtos);
+        }
+
+        [TestMethod]
+        public async Task ListFilesAsync_SharedBindingPresent_AppendsSharedBindingToFileList()
+        {
+            SetUpFolderWorkSpaceService(null);
+            string[] filePaths = ["C:\\Code\\Project\\File1.js", "C:\\Code\\Project\\File2.js", "C:\\Code\\Project\\Folder1\\File3.js"];
+            const string rootPath = "C:\\";
+            var clientFileDtos = SetUpDefaultDtosForFiles(filePaths, rootPath);
+            const string sharedbindingJson = "C:\\Code\\.sonarlint\\sharedbinding.json";
+            sharedBindingConfigProvider.GetSharedBindingFilePathOrNull().Returns(sharedbindingJson);
+            var sharedBindingDto = CreateDefaultClientFileDto();
+            SetUpDtoFactory(sharedbindingJson, sharedBindingDto, rootPath);
+            SetUpSolutionWorkspaceService(filePaths);
+
+            var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
+
+            var files = result.files.ToList();
+            files.Should().BeEquivalentTo(clientFileDtos.Append(sharedBindingDto));
+        }
+
+        [TestMethod]
         public async Task ListFilesAsync_ConfigScopeChanged_ReturnsEmpty()
         {
             SetUpFolderWorkSpaceService(null);
