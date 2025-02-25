@@ -20,96 +20,88 @@
 
 using System.ComponentModel.Composition;
 using System.IO;
-using System.IO.Abstractions;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Shared
+namespace SonarLint.VisualStudio.ConnectedMode.Shared;
+
+public interface ISharedBindingConfigFileProvider
 {
-    public interface ISharedBindingConfigFileProvider
-    {
-        SharedBindingConfigModel ReadSharedBindingConfigFile(string filePath);
+    SharedBindingConfigModel Read(string filePath);
 
-        bool WriteSharedBindingConfigFile(string filePath, SharedBindingConfigModel sharedBindingConfigModel);
+    bool Exists(string filePath);
+
+    bool Write(string filePath, SharedBindingConfigModel sharedBindingConfigModel);
+}
+
+[Export(typeof(ISharedBindingConfigFileProvider))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+internal class SharedBindingConfigFileProvider(ILogger logger, IFileSystemService fileSystem) : ISharedBindingConfigFileProvider
+{
+    private static readonly JsonSerializerSettings SerializerSettings = new()
+    {
+        Formatting = Formatting.Indented
+    };
+
+    public SharedBindingConfigModel Read(string filePath)
+    {
+        try
+        {
+            var result = JsonConvert.DeserializeObject<SharedBindingConfigModel>(fileSystem.File.ReadAllText(filePath));
+
+            if (result.IsSonarCloud())
+            {
+                var region = CloudServerRegion.GetRegionByName(result.Region);
+                result.Region = region.Name;
+                result.Uri = region.Url;
+            }
+
+            if (!string.IsNullOrWhiteSpace(result.ProjectKey)
+                && result.Uri != null
+                && (result.Uri.Scheme == Uri.UriSchemeHttp || result.Uri.Scheme == Uri.UriSchemeHttps))
+            {
+                return result;
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogVerbose($"[SharedBindingConfigFileProvider] Unable to read shared config file: {ex.Message}");
+        }
+
+        return null;
     }
 
-    [Export(typeof(ISharedBindingConfigFileProvider))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class SharedBindingConfigFileProvider : ISharedBindingConfigFileProvider
+    public bool Exists(string filePath) =>
+        fileSystem.File.Exists(filePath);
+
+    public bool Write(string filePath, SharedBindingConfigModel sharedBindingConfigModel)
     {
-        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        bool result = false;
+        try
         {
-            Formatting = Formatting.Indented
-        };
+            if (sharedBindingConfigModel.IsSonarCloud())
+            {
+                sharedBindingConfigModel.Uri = null;
+                sharedBindingConfigModel.Region ??= CloudServerRegion.Eu.Name;
+            }
 
-        private readonly ILogger logger;
-        private readonly IFileSystem fileSystem;
+            var fileContent = JsonConvert.SerializeObject(sharedBindingConfigModel, SerializerSettings);
 
-        [ImportingConstructor]
-        public SharedBindingConfigFileProvider(ILogger logger) : this(logger, new FileSystem())
-        { }
-
-        internal SharedBindingConfigFileProvider(ILogger logger, IFileSystem fileSystem)
-        {
-            this.fileSystem = fileSystem;
-            this.logger = logger;
+            var sharedDirectory = Path.GetDirectoryName(filePath);
+            if (!fileSystem.Directory.Exists(sharedDirectory))
+            {
+                fileSystem.Directory.CreateDirectory(sharedDirectory);
+            }
+            fileSystem.File.WriteAllText(filePath, fileContent);
+            result = true;
         }
-
-        public SharedBindingConfigModel ReadSharedBindingConfigFile(string filePath)
+        catch (Exception ex)
         {
-            try
-            {
-                var result = JsonConvert.DeserializeObject<SharedBindingConfigModel>(fileSystem.File.ReadAllText(filePath));
-
-                if (result.IsSonarCloud())
-                {
-                    var region = CloudServerRegion.GetRegionByName(result.Region);
-                    result.Region = region.Name;
-                    result.Uri = region.Url;
-                }
-
-                if (!string.IsNullOrWhiteSpace(result.ProjectKey)
-                    && result.Uri != null
-                    && (result.Uri.Scheme == Uri.UriSchemeHttp || result.Uri.Scheme == Uri.UriSchemeHttps))
-                {
-                    return result;
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogVerbose($"[SharedBindingConfigFileProvider] Unable to read shared config file: {ex.Message}");
-            }
-
-            return null;
+            logger.LogVerbose($"[SharedBindingConfigFileProvider] Unable to write shared config file: {ex.Message}");
         }
-
-        public bool WriteSharedBindingConfigFile(string filePath, SharedBindingConfigModel sharedBindingConfigModel)
-        {
-            bool result = false;
-            try
-            {
-                if (sharedBindingConfigModel.IsSonarCloud())
-                {
-                    sharedBindingConfigModel.Uri = null;
-                    sharedBindingConfigModel.Region ??= CloudServerRegion.Eu.Name;
-                }
-
-                var fileContent = JsonConvert.SerializeObject(sharedBindingConfigModel, SerializerSettings);
-
-                var sharedDirectory = Path.GetDirectoryName(filePath);
-                if (!fileSystem.Directory.Exists(sharedDirectory))
-                {
-                    fileSystem.Directory.CreateDirectory(sharedDirectory);
-                }
-                fileSystem.File.WriteAllText(filePath, fileContent);
-                result = true;
-            }
-            catch (Exception ex)
-            {
-                logger.LogVerbose($"[SharedBindingConfigFileProvider] Unable to write shared config file: {ex.Message}");
-            }
-            return result;
-        }
+        return result;
     }
 }

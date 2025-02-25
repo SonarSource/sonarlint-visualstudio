@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
@@ -35,6 +36,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
         private IActiveConfigScopeTracker activeConfigScopeTracker;
         private IClientFileDtoFactory clientFileDtoFactory;
         private ListFilesListener testSubject;
+        private ISharedBindingConfigProvider sharedBindingConfigProvider;
         private const string ConfigScopeId = "Some ID";
 
         [TestInitialize]
@@ -45,8 +47,8 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
             SetUpActiveConfigScopeTracker();
             clientFileDtoFactory = Substitute.For<IClientFileDtoFactory>();
-
-            testSubject = new ListFilesListener(folderWorkspaceService, solutionWorkspaceService, activeConfigScopeTracker, clientFileDtoFactory);
+            sharedBindingConfigProvider = Substitute.For<ISharedBindingConfigProvider>();
+            testSubject = new ListFilesListener(folderWorkspaceService, solutionWorkspaceService, sharedBindingConfigProvider, activeConfigScopeTracker, clientFileDtoFactory);
         }
 
         [TestMethod]
@@ -54,6 +56,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             MefTestHelpers.CheckTypeCanBeImported<ListFilesListener, ISLCoreListener>(
                 MefTestHelpers.CreateExport<IFolderWorkspaceService>(),
                 MefTestHelpers.CreateExport<ISolutionWorkspaceService>(),
+                MefTestHelpers.CreateExport<ISharedBindingConfigProvider>(),
                 MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
                 MefTestHelpers.CreateExport<IClientFileDtoFactory>());
 
@@ -172,6 +175,43 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             var files = result.files.ToList();
             files.Should().BeEquivalentTo(clientFileDtos);
             activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, expectedRootPath);
+        }
+
+        [TestMethod]
+        public async Task ListFilesAsync_SharedBindingPresentButNotConverted_IgnoresSharedBinding()
+        {
+            SetUpFolderWorkSpaceService(null);
+            string[] filePaths = ["C:\\Code\\Project\\File1.js", "C:\\Code\\Project\\File2.js", "C:\\Code\\Project\\Folder1\\File3.js"];
+            const string rootPath = "C:\\";
+            var clientFileDtos = SetUpDefaultDtosForFiles(filePaths, rootPath);
+            const string sharedbindingJson = "C:\\Code\\.sonarlint\\sharedbinding.json";
+            sharedBindingConfigProvider.GetSharedBindingFilePathOrNull().Returns(sharedbindingJson);
+            SetUpDtoFactory(sharedbindingJson, null, rootPath);
+            SetUpSolutionWorkspaceService(filePaths);
+
+            var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
+
+            var files = result.files.ToList();
+            files.Should().BeEquivalentTo(clientFileDtos);
+        }
+
+        [TestMethod]
+        public async Task ListFilesAsync_SharedBindingPresent_AppendsSharedBindingToFileList()
+        {
+            SetUpFolderWorkSpaceService(null);
+            string[] filePaths = ["C:\\Code\\Project\\File1.js", "C:\\Code\\Project\\File2.js", "C:\\Code\\Project\\Folder1\\File3.js"];
+            const string rootPath = "C:\\";
+            var clientFileDtos = SetUpDefaultDtosForFiles(filePaths, rootPath);
+            const string sharedbindingJson = "C:\\Code\\.sonarlint\\sharedbinding.json";
+            sharedBindingConfigProvider.GetSharedBindingFilePathOrNull().Returns(sharedbindingJson);
+            var sharedBindingDto = CreateDefaultClientFileDto();
+            SetUpDtoFactory(sharedbindingJson, sharedBindingDto, rootPath);
+            SetUpSolutionWorkspaceService(filePaths);
+
+            var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
+
+            var files = result.files.ToList();
+            files.Should().BeEquivalentTo(clientFileDtos.Append(sharedBindingDto));
         }
 
         [TestMethod]

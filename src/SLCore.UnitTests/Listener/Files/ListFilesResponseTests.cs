@@ -33,7 +33,7 @@ public class ListFilesResponseTests
         var file1 = new ClientFileDto(new("C:\\Code\\Solution\\Project\\file1.cs"), "Project\\file1.cs", "configScope", false, "UTF-8", "C:\\Code\\Solution\\Project\\file1.cs", "some content");
         var file2 = new ClientFileDto(new("C:\\Code\\Solution\\Project\\file 2.cs"), "Project\\file 2.cs", "configScope", false, "UTF-8", "C:\\Code\\Solution\\Project\\file 2.cs", null);
 
-        var response = new ListFilesResponse(new[] { file1, file2 });
+        var response = new ListFilesResponse([file1, file2]);
 
         var responseString = JsonConvert.SerializeObject(response, Formatting.Indented);
 

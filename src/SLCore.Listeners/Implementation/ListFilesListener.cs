@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using System.IO;
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
@@ -27,69 +28,61 @@ using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Files;
 using SonarLint.VisualStudio.SLCore.Listener.Files.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
+namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
+
+[Export(typeof(ISLCoreListener))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+public class ListFilesListener(
+    IFolderWorkspaceService folderWorkspaceService,
+    ISolutionWorkspaceService solutionWorkspaceService,
+    ISharedBindingConfigProvider sharedBindingConfigProvider,
+    IActiveConfigScopeTracker activeConfigScopeTracker,
+    IClientFileDtoFactory clientFileDtoFactory)
+    : IListFilesListener
 {
-    [Export(typeof(ISLCoreListener))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    public class ListFilesListener : IListFilesListener
+    public Task<ListFilesResponse> ListFilesAsync(ListFilesParams parameters) => Task.FromResult(new ListFilesResponse(GetFilesList(parameters)));
+
+    private List<ClientFileDto> GetFilesList(ListFilesParams parameters) =>
+        activeConfigScopeTracker.Current.Id == parameters.configScopeId
+        && GetWorkspaceFiles() is { Count: > 0 } workspaceFilePaths
+        && GetRoot(workspaceFilePaths.First()) is { } root
+        && activeConfigScopeTracker.TryUpdateRootOnCurrentConfigScope(parameters.configScopeId, root)
+            ? GetClientFilesDtos(parameters, root, GetAllFiles(workspaceFilePaths))
+            : [];
+
+    private IEnumerable<string> GetAllFiles(IReadOnlyCollection<string> workspaceFilePaths) =>
+        sharedBindingConfigProvider.GetSharedBindingFilePathOrNull() is { } sharedBindingFilePath
+            ? workspaceFilePaths.Append(sharedBindingFilePath)
+            : workspaceFilePaths;
+
+    private IReadOnlyCollection<string> GetWorkspaceFiles() =>
+        folderWorkspaceService.IsFolderWorkspace()
+            ? folderWorkspaceService.ListFiles()
+            : solutionWorkspaceService.ListFiles();
+
+    private List<ClientFileDto> GetClientFilesDtos(
+        ListFilesParams parameters,
+        string root,
+        IEnumerable<string> fullFilePathList) =>
+        fullFilePathList
+            .Select(fp => clientFileDtoFactory.CreateOrNull(parameters.configScopeId, root, new SourceFile(fp)))
+            .Where(x => x is not null)
+            .ToList();
+
+    private string GetRoot(string filePath)
     {
-        private readonly IFolderWorkspaceService folderWorkspaceService;
-        private readonly ISolutionWorkspaceService solutionWorkspaceService;
-        private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
-        private readonly IClientFileDtoFactory clientFileDtoFactory;
+        var root = folderWorkspaceService.FindRootDirectory();
 
-        [ImportingConstructor]
-        public ListFilesListener(IFolderWorkspaceService folderWorkspaceService, ISolutionWorkspaceService solutionWorkspaceService,
-            IActiveConfigScopeTracker activeConfigScopeTracker, IClientFileDtoFactory clientFileDtoFactory)
+        root ??= Path.GetPathRoot(filePath);
+
+        Debug.Assert(root != string.Empty);
+
+        if (root[root.Length - 1] != Path.DirectorySeparatorChar)
         {
-            this.folderWorkspaceService = folderWorkspaceService;
-            this.solutionWorkspaceService = solutionWorkspaceService;
-            this.activeConfigScopeTracker = activeConfigScopeTracker;
-            this.clientFileDtoFactory = clientFileDtoFactory;
+            root += Path.DirectorySeparatorChar;
         }
 
-        public Task<ListFilesResponse> ListFilesAsync(ListFilesParams parameters)
-        {
-            var clientFileDtos = new List<ClientFileDto>();
-            if (activeConfigScopeTracker.Current.Id == parameters.configScopeId)
-            {
-                var fullFilePathList = folderWorkspaceService.IsFolderWorkspace() ? folderWorkspaceService.ListFiles() : solutionWorkspaceService.ListFiles();
-                if (fullFilePathList.Any())
-                {
-                    var root = GetRoot(fullFilePathList.First());
-                    if (activeConfigScopeTracker.TryUpdateRootOnCurrentConfigScope(parameters.configScopeId, root))
-                    {
-                        AddWorkspaceFilesDtos(parameters, clientFileDtos, root, fullFilePathList);
-                    }
-                }
-            }
-            return Task.FromResult(new ListFilesResponse(clientFileDtos));
-        }
-
-        private void AddWorkspaceFilesDtos(
-            ListFilesParams parameters,
-            List<ClientFileDto> clientFileDtos,
-            string root,
-            IReadOnlyCollection<string> fullFilePathList) =>
-            clientFileDtos.AddRange(
-                fullFilePathList
-                    .Select(fp => clientFileDtoFactory.CreateOrNull(parameters.configScopeId, root, new SourceFile(fp)))
-                    .Where(x => x is not null));
-
-        private string GetRoot(string filePath)
-        {
-            var root = folderWorkspaceService.FindRootDirectory();
-
-            root ??= Path.GetPathRoot(filePath);
-
-            Debug.Assert(root != string.Empty);
-
-            if (root[root.Length - 1] != Path.DirectorySeparatorChar)
-            {
-                root += Path.DirectorySeparatorChar;
-            }
-
-            return root;
-        }
+        return root;
     }
 }
