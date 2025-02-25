@@ -22,30 +22,45 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
+using SonarLint.VisualStudio.ConnectedMode.UI.TrustConnection;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
 public interface IConnectedModeUIManager
 {
     void ShowManageBindingDialog(bool useSharedBindingOnInitialization = false);
+
+    bool? ShowTrustConnectionDialog(ServerConnection serverConnection, string token);
 }
 
 [Export(typeof(IConnectedModeUIManager))]
 [PartCreationPolicy(CreationPolicy.NonShared)]
-internal sealed class ConnectedModeUIManager : IConnectedModeUIManager
+[method: ImportingConstructor]
+internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices)
+    : IConnectedModeUIManager
 {
-    private readonly IConnectedModeServices connectedModeServices;
-    private readonly IConnectedModeBindingServices connectedModeBindingServices;
+    public void ShowManageBindingDialog(bool useSharedBindingOnInitialization = false) =>
+        connectedModeServices.ThreadHandling.RunOnUIThread(() => ShowDialogManageBinding(useSharedBindingOnInitialization));
 
-    [ImportingConstructor]
-    public ConnectedModeUIManager(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices)
+    public bool? ShowTrustConnectionDialog(ServerConnection serverConnection, string token)
     {
-        this.connectedModeServices = connectedModeServices;
-        this.connectedModeBindingServices = connectedModeBindingServices;
+        bool? dialogResult = null;
+        connectedModeServices.ThreadHandling.RunOnUIThread(() => dialogResult = GetTrustConnectionDialogResult(serverConnection, token));
+
+        return dialogResult;
     }
 
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
-    public void ShowManageBindingDialog(bool useSharedBindingOnInitialization = false)
+    private bool? GetTrustConnectionDialogResult(ServerConnection serverConnection, string token)
+    {
+        var trustConnectionDialog = new TrustConnectionDialog(connectedModeServices, serverConnection, token?.ToSecureString());
+        return trustConnectionDialog.ShowDialog(Application.Current.MainWindow);
+    }
+
+    [ExcludeFromCodeCoverage] // UI, not really unit-testable
+    private void ShowDialogManageBinding(bool useSharedBindingOnInitialization)
     {
         var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices, useSharedBindingOnInitialization);
         manageBindingDialog.ShowDialog(Application.Current.MainWindow);
