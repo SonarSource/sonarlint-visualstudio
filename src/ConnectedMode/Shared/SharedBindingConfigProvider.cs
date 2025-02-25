@@ -20,9 +20,7 @@
 
 using System.ComponentModel.Composition;
 using System.IO;
-using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Shared
 {
@@ -34,23 +32,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
         ISharedFolderProvider sharedFolderProvider,
         ISolutionInfoProvider solutionInfoProvider,
         ISharedBindingConfigFileProvider sharedBindingConfigFileProvider,
-        ILogger logger,
-        IFileSystemService fileSystem)
+        ILogger logger)
         : ISharedBindingConfigProvider
     {
         private const string SharedFolderName = ".sonarlint";
 
         private readonly ILogger logger = logger.ForContext(Resources.SharedBindingConfigProvider_LogContext);
 
-        public SharedBindingConfigModel GetSharedBinding()
-        {
-            if (GetSharedBindingFilePathOrNull() is { } sharedBindingFilePath)
-            {
-                return sharedBindingConfigFileProvider.ReadSharedBindingConfigFile(sharedBindingFilePath);
-            }
-
-            return null;
-        }
+        public SharedBindingConfigModel GetSharedBinding() =>
+            GetSharedBindingFilePathOrNull() is { } sharedBindingFilePath
+                ? sharedBindingConfigFileProvider.Read(sharedBindingFilePath)
+                : null;
 
         public string GetSharedBindingFilePathOrNull()
         {
@@ -61,7 +53,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
                 return null;
             }
 
-            if (!fileSystem.File.Exists(sharedBindingFilePath))
+            if (!sharedBindingConfigFileProvider.Exists(sharedBindingFilePath))
             {
                 logger.WriteLine(Resources.SharedBindingConfigProvider_SharedFileNotFound, sharedBindingFilePath);
                 return null;
@@ -70,17 +62,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
             return sharedBindingFilePath;
         }
 
-        public bool HasSharedBinding() => GetSharedBindingFilePathOrNull() != null;
-
         public string SaveSharedBinding(SharedBindingConfigModel sharedBindingConfigModel)
         {
             var fileSavePath = ChooseNewSharedBindingLocation();
 
             if (fileSavePath == null)
             {
+                logger.WriteLine(Resources.SharedBindingConfigProvider_NoSaveLocationFound);
                 return null;
             }
-            return sharedBindingConfigFileProvider.WriteSharedBindingConfigFile(fileSavePath, sharedBindingConfigModel) ? fileSavePath : null;
+            return sharedBindingConfigFileProvider.Write(fileSavePath, sharedBindingConfigModel) ? fileSavePath : null;
         }
 
         private string ChooseNewSharedBindingLocation() =>
@@ -105,7 +96,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
 
             if (gitRepoDir == null)
             {
-                logger.WriteLine(Resources.SharedBindingConfigProvider_SavePathNotFound);
+                logger.WriteLine(Resources.SharedBindingConfigProvider_GitRootNotFound);
                 return null;
             }
 

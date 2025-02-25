@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
@@ -35,6 +36,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
         private IActiveConfigScopeTracker activeConfigScopeTracker;
         private IClientFileDtoFactory clientFileDtoFactory;
         private ListFilesListener testSubject;
+        private ISharedBindingConfigProvider sharedBindingConfigProvider;
         private const string ConfigScopeId = "Some ID";
 
         [TestInitialize]
@@ -45,8 +47,8 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
             SetUpActiveConfigScopeTracker();
             clientFileDtoFactory = Substitute.For<IClientFileDtoFactory>();
-
-            testSubject = new ListFilesListener(folderWorkspaceService, solutionWorkspaceService, activeConfigScopeTracker, clientFileDtoFactory);
+            sharedBindingConfigProvider = Substitute.For<ISharedBindingConfigProvider>();
+            testSubject = new ListFilesListener(folderWorkspaceService, solutionWorkspaceService, sharedBindingConfigProvider, activeConfigScopeTracker, clientFileDtoFactory);
         }
 
         [TestMethod]
@@ -54,6 +56,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             MefTestHelpers.CheckTypeCanBeImported<ListFilesListener, ISLCoreListener>(
                 MefTestHelpers.CreateExport<IFolderWorkspaceService>(),
                 MefTestHelpers.CreateExport<ISolutionWorkspaceService>(),
+                MefTestHelpers.CreateExport<ISharedBindingConfigProvider>(),
                 MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
                 MefTestHelpers.CreateExport<IClientFileDtoFactory>());
 

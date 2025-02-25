@@ -281,13 +281,16 @@
     <value>[ConnectedMode/TimedUpdate] Triggering refresh of server settings...</value>
   </data>
   <data name="SharedBindingConfigProvider_LogContext" xml:space="preserve">
-    <value>SharedBindingConfigProvider</value>
+    <value>Shared Binding</value>
   </data>
-  <data name="SharedBindingConfigProvider_SavePathNotFound" xml:space="preserve">
+  <data name="SharedBindingConfigProvider_GitRootNotFound" xml:space="preserve">
     <value>Git root not found, can't create .sonarlint shared folder</value>
   </data>
   <data name="SharedBindingConfigProvider_SharedFolderNotFound" xml:space="preserve">
     <value>The .sonarlint shared folder was not found</value>
+  </data>
+  <data name="SharedBindingConfigProvider_NoSaveLocationFound" xml:space="preserve">
+    <value>The file could not be saved because none of the possible save locations was found</value>
   </data>
   <data name="SharedBindingConfigProvider_SharedFileNotFound" xml:space="preserve">
     <value>The shared binding file was not found. Probed path: {0}</value>
