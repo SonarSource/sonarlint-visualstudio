@@ -28,24 +28,46 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers;
 [TestClass]
 public class ClientFileDtoFactoryTests
 {
-    [TestMethod]
-    public void MefCtor_CheckIsSingleton()
+    private TestLogger testLogger;
+    private ClientFileDtoFactory testSubject;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
-        MefTestHelpers.CheckIsSingletonMefComponent<ClientFileDtoFactory>();
+        testLogger = new TestLogger();
+        testSubject = new ClientFileDtoFactory(testLogger);
     }
+
+    [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<ClientFileDtoFactory, IClientFileDtoFactory>(
+            MefTestHelpers.CreateExport<ILogger>());
+
+    [TestMethod]
+    public void Ctor_SetsVerboseContext()
+    {
+        var logger = Substitute.For<ILogger>();
+
+        _ = new ClientFileDtoFactory(logger);
+
+        logger.Received().ForVerboseContext(nameof(ClientFileDtoFactory));
+    }
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ClientFileDtoFactory>();
 
     [DataTestMethod]
     [DataRow(@"C:\user\projectA\directoryA\file.cs", @"C:\", @"user\projectA\directoryA\file.cs")]
     [DataRow(@"C:\user\projectA\directoryA\file.cs", @"C:\user\projectA\", @"directoryA\file.cs")]
     [DataRow(@"C:\user\projectA\directoryA\file.cs", @"C:\user\projectA\directoryA\", @"file.cs")]
+    [DataRow(@"C:\user\projectA\directoryA\file.cs", @"C:\user\projectB\directoryA\", @"..\..\projectA\directoryA\file.cs")]
     [DataRow(@"\\servername\user\projectA\directoryA\file.cs", @"\\servername\user\", @"projectA\directoryA\file.cs")]
     [DataRow(@"\\servername\user\projectA\directoryA\file.cs", @"\\servername\user\projectA\", @"directoryA\file.cs")]
     [DataRow(@"\\servername\user\projectA\directoryA\file.cs", @"\\servername\user\projectA\directoryA\", @"file.cs")]
+    [DataRow(@"\\servername\user\projectA\directoryA\file.cs", @"\\servername\user\projectB\directoryA\", @"..\..\projectA\directoryA\file.cs")]
     public void Create_CalculatesCorrectRelativePath(string filePath, string rootPath, string expectedRelativePath)
     {
-        var testSubject = new ClientFileDtoFactory();
-
-        var result = testSubject.Create("CONFIG_SCOPE_ID", rootPath, new SourceFile(filePath));
+        var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", rootPath, new SourceFile(filePath));
 
         result.ideRelativePath.Should().BeEquivalentTo(expectedRelativePath);
     }
@@ -53,9 +75,7 @@ public class ClientFileDtoFactoryTests
     [TestMethod]
     public void Create_ConstructsValidDto()
     {
-        var testSubject = new ClientFileDtoFactory();
-
-        var result = testSubject.Create("CONFIG_SCOPE_ID", @"C:\", new SourceFile(@"C:\Code\Project\File1.js"));
+        var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", @"C:\", new SourceFile(@"C:\Code\Project\File1.js"));
 
         ValidateDto(result, @"C:\Code\Project\File1.js", @"Code\Project\File1.js");
     }
@@ -65,9 +85,7 @@ public class ClientFileDtoFactoryTests
     {
         const string content = "somecontent";
 
-        var testSubject = new ClientFileDtoFactory();
-
-        var result = testSubject.Create("CONFIG_SCOPE_ID", @"C:\", new SourceFile(@"C:\Code\Project\File1.js", content: content));
+        var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", @"C:\", new SourceFile(@"C:\Code\Project\File1.js", content: content));
 
         ValidateDto(result, @"C:\Code\Project\File1.js", @"Code\Project\File1.js", expectedContent: content);
     }
@@ -75,9 +93,7 @@ public class ClientFileDtoFactoryTests
     [TestMethod]
     public void Create_WithLocalizedPath_ConstructsValidDto()
     {
-        var testSubject = new ClientFileDtoFactory();
-
-        var result = testSubject.Create("CONFIG_SCOPE_ID", @"C:\", new SourceFile(@"C:\привет\project\file1.js"));
+        var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", @"C:\", new SourceFile(@"C:\привет\project\file1.js"));
 
         ValidateDto(result,  @"C:\привет\project\file1.js", @"привет\project\file1.js");
     }
@@ -85,9 +101,7 @@ public class ClientFileDtoFactoryTests
     [TestMethod]
     public void Create_WithUNCPath_ConstructsValidDto()
     {
-        var testSubject = new ClientFileDtoFactory();
-
-        var result = testSubject.Create("CONFIG_SCOPE_ID", @"\\servername\work\", new SourceFile(@"\\servername\work\project\file1.js"));
+        var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", @"\\servername\work\", new SourceFile(@"\\servername\work\project\file1.js"));
 
         ValidateDto(result, @"\\servername\work\project\file1.js", @"project\file1.js");
     }
@@ -95,11 +109,64 @@ public class ClientFileDtoFactoryTests
     [TestMethod]
     public void Create_WithWhitespacesPath_ConstructsValidDto()
     {
-        var testSubject = new ClientFileDtoFactory();
-
-        var result = testSubject.Create("CONFIG_SCOPE_ID", @"C:\", new SourceFile(@"C:\Code\My Project\My Favorite File2.js"));
+        var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", @"C:\", new SourceFile(@"C:\Code\My Project\My Favorite File2.js"));
 
         ValidateDto(result, @"C:\Code\My Project\My Favorite File2.js", @"Code\My Project\My Favorite File2.js");
+    }
+
+    [TestMethod]
+    public void Create_WithPathAboveRoot_ConstructsValidDto()
+    {
+        var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", @"C:\Code\OtherProject\", new SourceFile(@"C:\Code\Project\File1.js"));
+
+        ValidateDto(result, @"C:\Code\Project\File1.js", @"..\Project\File1.js");
+    }
+
+    [TestMethod]
+    public void Create_WithNonRelativezablePath_ReturnsNullAndLogs()
+    {
+        const string filePath = @"C:\folder\project\file1.js";
+        const string rootPath = @"D:\";
+
+        var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", rootPath, new SourceFile(filePath));
+
+        result.Should().BeNull();
+        testLogger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ClientFile_NotRelative_Skipped, filePath, rootPath));
+    }
+
+    [TestMethod]
+    public void Create_RootIsNull_ReturnsNullAndLogs()
+    {
+        const string filePath = @"C:\folder\project\file1.js";
+        const string rootPath = null;
+
+        var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", rootPath, new SourceFile(filePath));
+
+        result.Should().BeNull();
+        testLogger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ClientFile_NotRelative_Skipped, filePath, rootPath));
+    }
+
+    [TestMethod]
+    public void Create_FileIsNull_ReturnsNullAndLogs()
+    {
+        const string rootPath = @"D:\";
+
+        var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", rootPath, null);
+
+        result.Should().BeNull();
+        testLogger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ClientFile_NotRelative_Skipped, null, rootPath));
+    }
+
+    [TestMethod]
+    public void Create_FilePathIsNull_ReturnsNullAndLogs()
+    {
+        const string filePath = null;
+        const string rootPath = @"D:\";
+
+        var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", rootPath, new SourceFile(null));
+
+        result.Should().BeNull();
+        testLogger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ClientFile_NotRelative_Skipped, filePath, rootPath));
     }
 
     private static void ValidateDto(ClientFileDto actual, string expectedFsPath, string expectedIdeRelativePath, string expectedContent = null)
