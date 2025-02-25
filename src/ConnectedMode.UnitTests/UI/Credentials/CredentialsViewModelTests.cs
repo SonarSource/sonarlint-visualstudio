@@ -211,13 +211,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         }
 
         [TestMethod]
-        public async Task GenerateTokenAsync_InitializesCancellationTokenSource()
+        public async Task GenerateTokenAsync_InitializesTokenGenerationCancellationSource()
         {
-            testSubject.CancellationTokenSource.Should().BeNull();
+            testSubject.TokenGenerationCancellationSource.Should().BeNull();
 
             await testSubject.GenerateTokenAsync();
 
-            testSubject.CancellationTokenSource.Should().NotBeNull();
+            testSubject.TokenGenerationCancellationSource.Should().NotBeNull();
         }
 
         [TestMethod]
@@ -229,22 +229,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
 
             var result = await testSubject.GenerateTokenAsync();
 
-            await slCoreConnectionAdapter.Received(1).GenerateTokenAsync(testSubject.ConnectionInfo, testSubject.CancellationTokenSource.Token);
+            await slCoreConnectionAdapter.Received(1).GenerateTokenAsync(testSubject.ConnectionInfo, testSubject.TokenGenerationCancellationSource.Token);
             result.Success.Should().Be(success);
             result.ResponseData.Should().Be(token);
         }
 
         [TestMethod]
-        public void Ctor_CancellationTokenSource_NotInitialized() => testSubject.CancellationTokenSource.Should().BeNull();
+        public void Ctor_TokenGenerationCancellationSource_NotInitialized() => testSubject.TokenGenerationCancellationSource.Should().BeNull();
 
         [TestMethod]
-        public async Task CancellationTokenSource_Sets_CancelsPreviousCancellationTokenSource()
+        public async Task TokenGenerationCancellationSource_Sets_CancelsPreviousCancellationTokenSource()
         {
             await testSubject.GenerateTokenAsync();
-            var cancellationTokenSource1 = testSubject.CancellationTokenSource;
+            var cancellationTokenSource1 = testSubject.TokenGenerationCancellationSource;
 
             await testSubject.GenerateTokenAsync();
-            var cancellationTokenSource2 = testSubject.CancellationTokenSource;
+            var cancellationTokenSource2 = testSubject.TokenGenerationCancellationSource;
 
             cancellationTokenSource1.IsCancellationRequested.Should().BeTrue();
             cancellationTokenSource2.IsCancellationRequested.Should().BeFalse();

@@ -78,7 +78,7 @@ public partial class CredentialsDialog : Window
     private async void Generate_OnClick(object sender, RoutedEventArgs e)
     {
         var responseWithData = await ViewModel.GenerateTokenWithProgressAsync();
-        if (ViewModel.CancellationTokenSource.IsCancellationRequested)
+        if (ViewModel.TokenGenerationCancellationSource.IsCancellationRequested)
         {
             return;
         }
@@ -94,5 +94,5 @@ public partial class CredentialsDialog : Window
         }
     }
 
-    private void CredentialsDialog_OnClosing(object sender, CancelEventArgs e) => CredentialsViewModel.CancelAndDisposeCancellationToken(ViewModel.CancellationTokenSource);
+    private void CredentialsDialog_OnClosing(object sender, CancelEventArgs e) => CredentialsViewModel.CancelAndDisposeCancellationToken(ViewModel.TokenGenerationCancellationSource);
 }
