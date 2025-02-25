@@ -445,6 +445,7 @@ Please manually add the credentials for the connection and then try again.</valu
   </data>
   <data name="GeneratingTokenProgressText" xml:space="preserve">
     <value>Generating token...</value>
+  </data>
   <data name="DoNotTrustServerButton" xml:space="preserve">
     <value>I Don't Trust This Server</value>
   </data>
