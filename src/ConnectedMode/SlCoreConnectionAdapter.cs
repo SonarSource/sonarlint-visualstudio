@@ -49,7 +49,7 @@ public interface ISlCoreConnectionAdapter
 
     Task<AdapterResponseWithData<List<ServerProject>>> FuzzySearchProjectsAsync(ServerConnection serverConnection, string searchTerm);
 
-    Task<AdapterResponseWithData<string>> GenerateTokenAsync(ConnectionInfo connectionInfo);
+    Task<AdapterResponseWithData<string>> GenerateTokenAsync(ConnectionInfo connectionInfo, CancellationToken cancellationToken);
 }
 
 public class AdapterResponseWithData<T>(bool success, T responseData) : IResponseStatus
@@ -169,7 +169,7 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
         });
     }
 
-    public async Task<AdapterResponseWithData<string>> GenerateTokenAsync(ConnectionInfo connectionInfo)
+    public async Task<AdapterResponseWithData<string>> GenerateTokenAsync(ConnectionInfo connectionInfo, CancellationToken cancellationToken)
     {
         var failedResponse = new AdapterResponseWithData<string>(false, null);
         return await threadHandling.RunOnBackgroundThread(async () =>
@@ -182,7 +182,7 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
             var serverUri = connectionInfo.ServerType == ConnectionServerType.SonarCloud ? connectionInfo.CloudServerRegion.Url.ToString() : connectionInfo.Id;
             try
             {
-                var slCoreResponse = await connectionConfigurationSlCoreService.HelpGenerateUserTokenAsync(new HelpGenerateUserTokenParams(serverUri));
+                var slCoreResponse = await connectionConfigurationSlCoreService.HelpGenerateUserTokenAsync(new HelpGenerateUserTokenParams(serverUri), cancellationToken);
                 return new AdapterResponseWithData<string>(true, slCoreResponse.token);
             }
             catch (Exception ex)

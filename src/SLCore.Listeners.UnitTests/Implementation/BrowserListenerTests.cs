@@ -19,7 +19,7 @@
  */
 
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.SLCore.Listener.Visualization;
+using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation;
@@ -39,7 +39,7 @@ public class BrowserListenerTests
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<BrowserListener, IBrowserListener>(
+        MefTestHelpers.CheckTypeCanBeImported<BrowserListener, ISLCoreListener>(
             MefTestHelpers.CreateExport<IBrowserService>());
 
     [TestMethod]

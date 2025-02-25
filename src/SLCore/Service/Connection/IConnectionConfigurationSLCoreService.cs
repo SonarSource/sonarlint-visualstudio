@@ -78,5 +78,5 @@ public interface IConnectionConfigurationSLCoreService : ISLCoreService
     /// If the local server is not started or the server URL can not be reached, the future will fail
     /// </summary>
     /// <returns></returns>
-    Task<HelpGenerateUserTokenResponse> HelpGenerateUserTokenAsync(HelpGenerateUserTokenParams parameters);
+    Task<HelpGenerateUserTokenResponse> HelpGenerateUserTokenAsync(HelpGenerateUserTokenParams parameters, CancellationToken cancellationToken);
 }

@@ -462,7 +462,7 @@ public class SlCoreConnectionAdapterTests
         var threadHandlingMock = Substitute.For<IThreadHandling>();
         var slCoreConnectionAdapter = new SlCoreConnectionAdapter(slCoreServiceProvider, threadHandlingMock, logger);
 
-        await slCoreConnectionAdapter.GenerateTokenAsync(sonarCloudConnectionInfo);
+        await slCoreConnectionAdapter.GenerateTokenAsync(sonarCloudConnectionInfo, CancellationToken.None);
 
         await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<string>>>>());
     }
@@ -472,7 +472,7 @@ public class SlCoreConnectionAdapterTests
     {
         slCoreServiceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService _).Returns(false);
 
-        var response = await testSubject.GenerateTokenAsync(sonarCloudConnectionInfo);
+        var response = await testSubject.GenerateTokenAsync(sonarCloudConnectionInfo, CancellationToken.None);
 
         logger.Received(1).LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
         response.Success.Should().BeFalse();
@@ -483,10 +483,10 @@ public class SlCoreConnectionAdapterTests
     {
         var connection = sonarCloudConnection.ToConnection();
 
-        await testSubject.GenerateTokenAsync(connection.Info);
+        await testSubject.GenerateTokenAsync(connection.Info, CancellationToken.None);
 
         await connectionConfigurationSlCoreService.Received(1).HelpGenerateUserTokenAsync(
-            Arg.Is<HelpGenerateUserTokenParams>(param => param.serverUrl == sonarCloudConnection.ServerUri.ToString()));
+            Arg.Is<HelpGenerateUserTokenParams>(param => param.serverUrl == sonarCloudConnection.ServerUri.ToString()), Arg.Any<CancellationToken>());
     }
 
     [TestMethod]
@@ -494,19 +494,19 @@ public class SlCoreConnectionAdapterTests
     {
         var connection = sonarQubeConnection.ToConnection();
 
-        await testSubject.GenerateTokenAsync(connection.Info);
+        await testSubject.GenerateTokenAsync(connection.Info, CancellationToken.None);
 
         await connectionConfigurationSlCoreService.Received(1).HelpGenerateUserTokenAsync(
-            Arg.Is<HelpGenerateUserTokenParams>(param => param.serverUrl == sonarQubeConnection.ServerUri.ToString()));
+            Arg.Is<HelpGenerateUserTokenParams>(param => param.serverUrl == sonarQubeConnection.ServerUri.ToString()), Arg.Any<CancellationToken>());
     }
 
     [TestMethod]
     public async Task GenerateTokenAsync_ReturnsResponseFromSlCore()
     {
         var token = Guid.NewGuid().ToString();
-        connectionConfigurationSlCoreService.HelpGenerateUserTokenAsync(Arg.Any<HelpGenerateUserTokenParams>()).Returns(new HelpGenerateUserTokenResponse(token));
+        connectionConfigurationSlCoreService.HelpGenerateUserTokenAsync(Arg.Any<HelpGenerateUserTokenParams>(), Arg.Any<CancellationToken>()).Returns(new HelpGenerateUserTokenResponse(token));
 
-        var response = await testSubject.GenerateTokenAsync(sonarCloudConnectionInfo);
+        var response = await testSubject.GenerateTokenAsync(sonarCloudConnectionInfo, CancellationToken.None);
 
         response.Success.Should().BeTrue();
         response.ResponseData.Should().Be(token);
@@ -517,10 +517,10 @@ public class SlCoreConnectionAdapterTests
     {
         var exception = "error";
         connectionConfigurationSlCoreService
-            .When(slCore => slCore.HelpGenerateUserTokenAsync(Arg.Any<HelpGenerateUserTokenParams>()))
+            .When(slCore => slCore.HelpGenerateUserTokenAsync(Arg.Any<HelpGenerateUserTokenParams>(), Arg.Any<CancellationToken>()))
             .Do(_ => throw new Exception(exception));
 
-        var response = await testSubject.GenerateTokenAsync(sonarCloudConnectionInfo);
+        var response = await testSubject.GenerateTokenAsync(sonarCloudConnectionInfo, CancellationToken.None);
 
         response.Success.Should().BeFalse();
         response.ResponseData.Should().BeNull();

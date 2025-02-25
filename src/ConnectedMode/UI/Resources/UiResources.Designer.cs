@@ -439,6 +439,33 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Generate Token.
+        /// </summary>
+        public static string GenerateTokenButton {
+            get {
+                return ResourceManager.GetString("GenerateTokenButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Automatic generation of a token failed. Please see the Output window for more information..
+        /// </summary>
+        public static string GeneratingTokenFailedText {
+            get {
+                return ResourceManager.GetString("GeneratingTokenFailedText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generating token....
+        /// </summary>
+        public static string GeneratingTokenProgressText {
+            get {
+                return ResourceManager.GetString("GeneratingTokenProgressText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The URL you entered is not secure. Use HTTPS connections to protect sensitive information..
         /// </summary>
         public static string InsecureProtocolWarningDescription {
@@ -908,7 +935,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
             }
         }
         
-     
         /// <summary>
         ///   Looks up a localized string similar to An open-source, self-managed tool that easily integrates into the developers&apos; CI/CD pipeline and DevOps platform to systematically help developers and organizations deliver Clean Code..
         /// </summary>
