@@ -38,10 +38,9 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
     public CancellationTokenSource CancellationTokenSource
     {
         get => cancellationTokenSource;
-        internal set
+        private set
         {
-            cancellationTokenSource?.Cancel();
-            cancellationTokenSource?.Dispose();
+            CancelAndDisposeCancellationToken(cancellationTokenSource);
             cancellationTokenSource = value;
         }
     }
@@ -99,4 +98,10 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
     }
 
     internal void AfterProgressStatusUpdated() => RaisePropertyChanged(nameof(IsConfirmationEnabled));
+
+    internal static void CancelAndDisposeCancellationToken(CancellationTokenSource cancellationTokenSource)
+    {
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource?.Dispose();
+    }
 }

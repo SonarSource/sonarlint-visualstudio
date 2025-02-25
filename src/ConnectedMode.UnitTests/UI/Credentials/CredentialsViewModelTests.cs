@@ -238,13 +238,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         public void Ctor_CancellationTokenSource_NotInitialized() => testSubject.CancellationTokenSource.Should().BeNull();
 
         [TestMethod]
-        public void CancellationTokenSource_Sets_CancelsPreviousCancellationTokenSource()
+        public async Task CancellationTokenSource_Sets_CancelsPreviousCancellationTokenSource()
         {
-            var cancellationTokenSource1 = new CancellationTokenSource();
-            var cancellationTokenSource2 = new CancellationTokenSource();
+            await testSubject.GenerateTokenAsync();
+            var cancellationTokenSource1 = testSubject.CancellationTokenSource;
 
-            testSubject.CancellationTokenSource = cancellationTokenSource1;
-            testSubject.CancellationTokenSource = cancellationTokenSource2;
+            await testSubject.GenerateTokenAsync();
+            var cancellationTokenSource2 = testSubject.CancellationTokenSource;
 
             cancellationTokenSource1.IsCancellationRequested.Should().BeTrue();
             cancellationTokenSource2.IsCancellationRequested.Should().BeFalse();

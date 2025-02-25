@@ -94,5 +94,5 @@ public partial class CredentialsDialog : Window
         }
     }
 
-    private void CredentialsDialog_OnClosing(object sender, CancelEventArgs e) => ViewModel.CancellationTokenSource.Cancel();
+    private void CredentialsDialog_OnClosing(object sender, CancelEventArgs e) => CredentialsViewModel.CancelAndDisposeCancellationToken(ViewModel.CancellationTokenSource);
 }
