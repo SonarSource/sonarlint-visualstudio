@@ -23,6 +23,7 @@ using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
 
@@ -329,8 +330,8 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
             return true;
         }
 
-        connectedModeServices.Logger.WriteLine(ConnectedMode.Resources.UseSharedBinding_ConnectionNotFound, connectionInfo.Id);
-        connectedModeServices.MessageBox.Show(UiResources.NotFoundConnectionForSharedBindingMessageBoxText, UiResources.NotFoundConnectionForSharedBindingMessageBoxCaption, MessageBoxButton.OK,
+        connectedModeServices.Logger.WriteLine(new MessageLevelContext { Context = [ConnectedMode.Resources.ConnectedModeAutomaticBindingLogContext] }, ConnectedMode.Resources.AutomaticBinding_ConnectionNotFound, connectionInfo.Id);
+        connectedModeServices.MessageBox.Show(UiResources.NotFoundConnectionForAutomaticBindingMessageBoxText, UiResources.NotFoundConnectionForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
             MessageBoxImage.Warning);
         return false;
     }
@@ -341,8 +342,8 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         {
             return true;
         }
-        connectedModeServices.Logger.WriteLine(ConnectedMode.Resources.UseSharedBinding_CredentiasNotFound, connectionInfo.Id);
-        connectedModeServices.MessageBox.Show(UiResources.NotFoundCredentialsForSharedBindingMessageBoxText, UiResources.NotFoundCredentialsForSharedBindingMessageBoxCaption, MessageBoxButton.OK,
+        connectedModeServices.Logger.WriteLine(new MessageLevelContext { Context = [ConnectedMode.Resources.ConnectedModeAutomaticBindingLogContext] }, ConnectedMode.Resources.AutomaticBinding_CredentiasNotFound, connectionInfo.Id);
+        connectedModeServices.MessageBox.Show(UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxText, UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
             MessageBoxImage.Warning);
         return false;
     }

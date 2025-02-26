@@ -62,7 +62,7 @@ public class ConnectedModeServices(
     public IIDEWindowService IdeWindowService { get; } = ideWindowService;
     public IBrowserService BrowserService { get; } = browserService;
     public IThreadHandling ThreadHandling { get; } = threadHandling;
-    public ILogger Logger { get; } = logger;
+    public ILogger Logger { get; } = logger.ForContext(ConnectedMode.Resources.ConnectedModeLogContext);
     public ISlCoreConnectionAdapter SlCoreConnectionAdapter { get; } = slCoreConnectionAdapter;
     public IConfigurationProvider ConfigurationProvider { get; } = configurationProvider;
 }
