@@ -501,7 +501,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Git root not found, can&apos;t create .sonarlint shared folder.
+        ///   Looks up a localized string similar to Git root not found, can&apos;t calculate location for .sonarlint shared folder.
         /// </summary>
         internal static string SharedBindingConfigProvider_GitRootNotFound {
             get {
@@ -528,11 +528,20 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The shared binding file was not found. Probed path: {0}.
+        ///   Looks up a localized string similar to The shared binding configuration file was not found and will not be used. Probed path: {0}.
         /// </summary>
         internal static string SharedBindingConfigProvider_SharedFileNotFound {
             get {
                 return ResourceManager.GetString("SharedBindingConfigProvider_SharedFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to not found.
+        /// </summary>
+        internal static string SharedBindingConfigProvider_SharedFileNotFound_ProbePathDefaultValue {
+            get {
+                return ResourceManager.GetString("SharedBindingConfigProvider_SharedFileNotFound_ProbePathDefaultValue", resourceCulture);
             }
         }
         

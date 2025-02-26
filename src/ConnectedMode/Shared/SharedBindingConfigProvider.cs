@@ -48,14 +48,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
         {
             var sharedBindingFilePath = CalculateSharedBindingPathUnderExistingFolder();
 
-            if (sharedBindingFilePath == null)
+            if (sharedBindingFilePath == null || !sharedBindingConfigFileProvider.Exists(sharedBindingFilePath))
             {
-                return null;
-            }
-
-            if (!sharedBindingConfigFileProvider.Exists(sharedBindingFilePath))
-            {
-                logger.WriteLine(Resources.SharedBindingConfigProvider_SharedFileNotFound, sharedBindingFilePath);
+                logger.WriteLine(Resources.SharedBindingConfigProvider_SharedFileNotFound, sharedBindingFilePath ?? Resources.SharedBindingConfigProvider_SharedFileNotFound_ProbePathDefaultValue);
                 return null;
             }
 
@@ -65,7 +60,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
         public string SaveSharedBinding(SharedBindingConfigModel sharedBindingConfigModel)
         {
             var fileSavePath = ChooseNewSharedBindingLocation();
-
             if (fileSavePath == null)
             {
                 logger.WriteLine(Resources.SharedBindingConfigProvider_NoSaveLocationFound);
@@ -74,33 +68,35 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
             return sharedBindingConfigFileProvider.Write(fileSavePath, sharedBindingConfigModel) ? fileSavePath : null;
         }
 
-        private string ChooseNewSharedBindingLocation() =>
-            CalculateSharedBindingPathUnderExistingFolder() ?? CalculateSharedBindingPathUnderGitRoot();
+        private string ChooseNewSharedBindingLocation()
+        {
+            var sharedBindingPath = CalculateSharedBindingPathUnderExistingFolder();
+            if (sharedBindingPath != null)
+            {
+                return sharedBindingPath;
+            }
+            logger.LogVerbose(Resources.SharedBindingConfigProvider_SharedFolderNotFound);
+
+            sharedBindingPath = CalculateSharedBindingPathUnderGitRoot();
+            if (sharedBindingPath != null)
+            {
+                return sharedBindingPath;
+            }
+            logger.LogVerbose(Resources.SharedBindingConfigProvider_GitRootNotFound);
+
+            return null;
+        }
 
         private string CalculateSharedBindingPathUnderExistingFolder()
         {
             var sonarLintFolder = sharedFolderProvider.GetSharedFolderPath();
-            if (sonarLintFolder == null)
-            {
-                logger.WriteLine(Resources.SharedBindingConfigProvider_SharedFolderNotFound);
-                return null;
-            }
-
-            var sharedBindingFilePath = Path.Combine(sonarLintFolder, SharedFileName);
-            return sharedBindingFilePath;
+            return sonarLintFolder != null ? Path.Combine(sonarLintFolder, SharedFileName) : null;
         }
 
         private string CalculateSharedBindingPathUnderGitRoot()
         {
             var gitRepoDir = gitWorkspaceService.GetRepoRoot();
-
-            if (gitRepoDir == null)
-            {
-                logger.WriteLine(Resources.SharedBindingConfigProvider_GitRootNotFound);
-                return null;
-            }
-
-            return Path.Combine(gitRepoDir, SharedFolderName, SharedFileName);
+            return gitRepoDir != null ? Path.Combine(gitRepoDir, SharedFolderName, SharedFileName) : null;
         }
 
         private string SharedFileName => solutionInfoProvider.GetSolutionName() + ".json";

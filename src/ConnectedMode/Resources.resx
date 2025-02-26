@@ -284,7 +284,7 @@
     <value>Shared Binding</value>
   </data>
   <data name="SharedBindingConfigProvider_GitRootNotFound" xml:space="preserve">
-    <value>Git root not found, can't create .sonarlint shared folder</value>
+    <value>Git root not found, can't calculate location for .sonarlint shared folder</value>
   </data>
   <data name="SharedBindingConfigProvider_SharedFolderNotFound" xml:space="preserve">
     <value>The .sonarlint shared folder was not found</value>
@@ -293,7 +293,10 @@
     <value>The file could not be saved because none of the possible save locations was found</value>
   </data>
   <data name="SharedBindingConfigProvider_SharedFileNotFound" xml:space="preserve">
-    <value>The shared binding file was not found. Probed path: {0}</value>
+    <value>The shared binding configuration file was not found and will not be used. Probed path: {0}</value>
+  </data>
+  <data name="SharedBindingConfigProvider_SharedFileNotFound_ProbePathDefaultValue" xml:space="preserve">
+    <value>not found</value>
   </data>
   <data name="MuteWindowService_NotInConnectedMode" xml:space="preserve">
     <value>[Transition]Issue muting is only supported in connected mode</value>

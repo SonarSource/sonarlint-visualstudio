@@ -41,17 +41,32 @@ public class ListFilesListener(
     IClientFileDtoFactory clientFileDtoFactory)
     : IListFilesListener
 {
+    private readonly List<ClientFileDto> NoFiles = [];
+
     public Task<ListFilesResponse> ListFilesAsync(ListFilesParams parameters) => Task.FromResult(new ListFilesResponse(GetFilesList(parameters)));
 
-    private List<ClientFileDto> GetFilesList(ListFilesParams parameters) =>
-        activeConfigScopeTracker.Current.Id == parameters.configScopeId
-        && GetWorkspaceFiles() is { Count: > 0 } workspaceFilePaths
-        && GetRoot(workspaceFilePaths.First()) is { } root
-        && activeConfigScopeTracker.TryUpdateRootOnCurrentConfigScope(parameters.configScopeId, root)
-            ? GetClientFilesDtos(parameters, root, GetAllFiles(workspaceFilePaths))
-            : [];
+    private List<ClientFileDto> GetFilesList(ListFilesParams parameters)
+    {
+        if (activeConfigScopeTracker.Current.Id != parameters.configScopeId)
+        {
+            return NoFiles;
+        }
 
-    private IEnumerable<string> GetAllFiles(IReadOnlyCollection<string> workspaceFilePaths) =>
+        if (GetWorkspaceFiles() is not { Count: > 0 } workspaceFilePaths)
+        {
+            return NoFiles;
+        }
+
+        if (GetRoot(workspaceFilePaths.First()) is not { } root
+            || !activeConfigScopeTracker.TryUpdateRootOnCurrentConfigScope(parameters.configScopeId, root))
+        {
+            return NoFiles;
+        }
+
+        return GetClientFilesDtos(parameters, root, AddExtraFiles(workspaceFilePaths));
+    }
+
+    private IEnumerable<string> AddExtraFiles(IReadOnlyCollection<string> workspaceFilePaths) =>
         sharedBindingConfigProvider.GetSharedBindingFilePathOrNull() is { } sharedBindingFilePath
             ? workspaceFilePaths.Append(sharedBindingFilePath)
             : workspaceFilePaths;

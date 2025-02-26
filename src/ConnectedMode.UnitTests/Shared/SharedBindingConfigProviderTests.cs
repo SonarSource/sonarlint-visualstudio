@@ -67,7 +67,7 @@ public class SharedBindingConfigProviderTests
 
         result.Should().BeNull();
         logger.AssertOutputStrings(1);
-        logger.AssertPartialOutputStringExists(Resources.SharedBindingConfigProvider_SharedFolderNotFound);
+        logger.AssertPartialOutputStringExists(string.Format(Resources.SharedBindingConfigProvider_SharedFileNotFound, Resources.SharedBindingConfigProvider_SharedFileNotFound_ProbePathDefaultValue));
     }
 
     [TestMethod]
@@ -112,7 +112,7 @@ public class SharedBindingConfigProviderTests
         sharedBindingConfigFileProvider.DidNotReceiveWithAnyArgs().Exists(default);
         sharedBindingConfigFileProvider.DidNotReceiveWithAnyArgs().Read(default);
         logger.AssertOutputStrings(1);
-        logger.AssertPartialOutputStringExists(Resources.SharedBindingConfigProvider_SharedFolderNotFound);
+        logger.AssertPartialOutputStringExists(string.Format(Resources.SharedBindingConfigProvider_SharedFileNotFound, Resources.SharedBindingConfigProvider_SharedFileNotFound_ProbePathDefaultValue));
     }
 
     [TestMethod]
