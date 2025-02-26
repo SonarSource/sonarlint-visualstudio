@@ -41,18 +41,18 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
     {
         private readonly ILogger logger = logger.ForContext("Connected Mode Suggestion");
 
-        public Task<AssistCreatingConnectionResponse> AssistCreatingConnectionAsync(AssistCreatingConnectionParams parameters)
+        public async Task<AssistCreatingConnectionResponse> AssistCreatingConnectionAsync(AssistCreatingConnectionParams parameters)
         {
             var serverConnection = ConvertSeverConnection(parameters);
             var token = parameters.connectionParams.Right?.tokenValue ?? parameters.connectionParams.Left?.tokenValue;
 
             ideWindowService.BringToFront();
-            var trustConnectionDialogResult = connectedModeUiManager.ShowTrustConnectionDialog(serverConnection, token);
+            var trustConnectionDialogResult = await connectedModeUiManager.ShowTrustConnectionDialogAsync(serverConnection, token);
             if (trustConnectionDialogResult == true)
             {
                 AssistCreatingConnectionResponse result = new(serverConnection.Id);
                 logger.LogVerbose(SLCoreStrings.AssistConnectionSucceeds, result.newConnectionId);
-                return Task.FromResult(result);
+                return result;
             }
 
             throw new OperationCanceledException(SLCoreStrings.AssistConnectionCancelled);
