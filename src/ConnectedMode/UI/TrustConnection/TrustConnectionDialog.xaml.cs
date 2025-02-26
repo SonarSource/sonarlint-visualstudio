@@ -31,19 +31,20 @@ public partial class TrustConnectionDialog : Window
 {
     private readonly IConnectedModeServices connectedModeServices;
 
-    public ConnectionInfo ConnectionInfo { get; }
+    public TrustConnectionViewModel ViewModel { get; }
 
     public TrustConnectionDialog(IConnectedModeServices connectedModeServices, ServerConnection serverConnection, SecureString token)
     {
         this.connectedModeServices = connectedModeServices;
-        ConnectionInfo = serverConnection.ToConnection().Info;
+        ViewModel = new TrustConnectionViewModel(connectedModeServices, new ProgressReporterViewModel(connectedModeServices.Logger), serverConnection, token);
         InitializeComponent();
     }
 
     private void ViewWebsite(object sender, RequestNavigateEventArgs e) => connectedModeServices.BrowserService.Navigate(e.Uri.AbsoluteUri);
 
-    private void TrustServerButton_OnClick(object sender, RoutedEventArgs e)
+    private async void TrustServerButton_OnClick(object sender, RoutedEventArgs e)
     {
+        await ViewModel.CreateConnectionsWithProgressAsync();
         DialogResult = true;
         Close();
     }

@@ -450,7 +450,7 @@ Please manually add the credentials for the connection and then try again.</valu
     <value>I Don't Trust This Server</value>
   </data>
   <data name="TrustServerButton" xml:space="preserve">
-    <value>Connect to This SonarQube (Server, Cloud)</value>
+    <value>Connect to This SonarQube Server</value>
   </data>
   <data name="TrustConnectionDescriptionText" xml:space="preserve">
     <value>Connecting to SonarQube (Server, Cloud) will enable issues to be opened directly in your IDE and enable other</value>
