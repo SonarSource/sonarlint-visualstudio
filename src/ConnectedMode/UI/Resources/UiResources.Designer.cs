@@ -1008,7 +1008,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Connect to This SonarQube (Server, Cloud).
+        ///   Looks up a localized string similar to Connect to This SonarQube Server.
         /// </summary>
         public static string TrustServerButton {
             get {

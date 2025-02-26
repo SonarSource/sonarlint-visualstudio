@@ -79,6 +79,33 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Automatic connection setup was cancelled.
+        /// </summary>
+        public static string AssistConnectionCancelled {
+            get {
+                return ResourceManager.GetString("AssistConnectionCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No valid server connection can be created from {1}.
+        /// </summary>
+        public static string AssistConnectionInvalidServerConnection {
+            get {
+                return ResourceManager.GetString("AssistConnectionInvalidServerConnection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Automatic connection setup succeeded for connection {0}.
+        /// </summary>
+        public static string AssistConnectionSucceeds {
+            get {
+                return ResourceManager.GetString("AssistConnectionSucceeds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [CertificateChainValidator] Certificate validation failed for the following reason(s):.
         /// </summary>
         public static string CertificateValidator_Failed {
