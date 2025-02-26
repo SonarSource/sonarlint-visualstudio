@@ -33,11 +33,13 @@ public class TrustConnectionViewModel(
     SecureString token)
     : ViewModelBase
 {
+    private ServerConnection ServerConnection { get; } = serverConnection;
+
     public IConnectedModeServices ConnectedModeServices { get; } = connectedModeServices;
-    public ServerConnection ServerConnection { get; } = serverConnection;
     public SecureString Token { get; } = token;
     public Connection Connection => ServerConnection.ToConnection();
     public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
+    public bool IsCloud => Connection.Info.ServerType == ConnectionServerType.SonarCloud;
 
     internal async Task CreateConnectionsWithProgressAsync()
     {
