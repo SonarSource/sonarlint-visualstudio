@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using System.IO;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -28,6 +29,11 @@ using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding;
 
+/// <summary>
+/// Turn server Quality Profile information into a set of config files for a particular language
+/// </summary>
+[Export(typeof(IBindingConfigProvider))]
+[PartCreationPolicy(CreationPolicy.Shared)]
 internal class RoslynBindingConfigProvider : IBindingConfigProvider
 {
     private readonly ILanguageProvider languageProvider;
@@ -38,6 +44,7 @@ internal class RoslynBindingConfigProvider : IBindingConfigProvider
     private readonly IGlobalConfigGenerator globalConfigGenerator;
     private readonly ISonarLintConfigGenerator sonarLintConfigGenerator;
 
+    [ImportingConstructor]
     public RoslynBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger, ILanguageProvider languageProvider)
         : this(sonarQubeService, logger, new GlobalConfigGenerator(), new SonarLintConfigGenerator(languageProvider), languageProvider)
     {
