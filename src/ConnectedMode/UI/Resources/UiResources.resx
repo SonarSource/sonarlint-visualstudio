@@ -453,18 +453,42 @@ Please manually add the credentials for the connection and then try again.</valu
     <value>Connect to This SonarQube Server</value>
   </data>
   <data name="TrustConnectionDescriptionText" xml:space="preserve">
-    <value>Connecting to SonarQube (Server, Cloud) will enable issues to be opened directly in your IDE and enable other</value>
+    <value>Connecting to SonarQube Server will enable issues to be opened directly in your IDE and enable other</value>
   </data>
-  <data name="TrustConnectionDialogTitle" xml:space="preserve">
-    <value>Trust This SonarQube (Server, Cloud)?</value>
+  <data name="TrustServerDialogTitle" xml:space="preserve">
+    <value>Trust This SonarQube Server?</value>
   </data>
   <data name="TrustConnectionTokenInfoText" xml:space="preserve">
-    <value>A token will be automatically generated to allow access to your SonarQube (Server, Cloud) instance.</value>
+    <value>A token will be automatically generated to allow access to your</value>
   </data>
   <data name="TrustConnectionWarningText" xml:space="preserve">
-    <value>Always ensure that your server URL matches your SonarQube (Server, Cloud) instance. Letting SonarQube for Visual Studio connect to an untrusted server is potentially dangerous.</value>
+    <value>Always ensure that your server URL matches your SonarQube Server instance. Letting SonarQube for Visual Studio connect to an untrusted SonarQube Server is potentially dangerous.</value>
   </data>
   <data name="TrustConnectionServerUrl" xml:space="preserve">
-    <value >Server URL </value>
+    <value>Server URL </value>
+  </data>
+  <data name="DoNotTrustOrganizationButton" xml:space="preserve">
+    <value>I Don't Trust This Organization</value>
+  </data>
+  <data name="SonarQubeCloud" xml:space="preserve">
+    <value>SonarQube Cloud</value>
+  </data>
+  <data name="SonarQubeServer" xml:space="preserve">
+    <value>SonarQube Server</value>
+  </data>
+  <data name="TrustCloudConnectionDescriptionText" xml:space="preserve">
+    <value>Connecting to SonarQube Cloud will enable issues to be opened directly in your IDE and enable other</value>
+  </data>
+  <data name="TrustOrganizationWarningText" xml:space="preserve">
+    <value>Ensure that the organization matches your SonarQube Cloud organization.</value>
+  </data>
+  <data name="TrustConnectionOrganizationName" xml:space="preserve">
+    <value>Organization Name</value>
+  </data>
+  <data name="TrustOrganizationButton" xml:space="preserve">
+    <value>Connect to This SonarQube Cloud Organization</value>
+  </data>
+  <data name="TrustOrganizationDialogTitle" xml:space="preserve">
+    <value>Trust This SonarQube Cloud Organization?</value>
   </data>
 </root>
