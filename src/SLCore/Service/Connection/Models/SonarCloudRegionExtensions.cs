@@ -37,4 +37,13 @@ public static class SonarCloudRegionExtensions
         }
         throw new ArgumentOutOfRangeException(region.Name);
     }
+
+    public static CloudServerRegion ToCloudServerRegion(this SonarCloudRegion slCoreRegion)
+    {
+        if (CoreToSlCoreLanguageMap.FirstOrDefault(x => x.Value == slCoreRegion) is { Key: not null } kvp)
+        {
+            return kvp.Key;
+        }
+        throw new ArgumentOutOfRangeException(slCoreRegion.ToString());
+    }
 }
