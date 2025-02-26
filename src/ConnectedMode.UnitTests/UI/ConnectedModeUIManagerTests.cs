@@ -19,6 +19,8 @@
  */
 
 using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI
@@ -26,6 +28,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI
     [TestClass]
     public class ConnectedModeUIManagerTests
     {
+        private ConnectedModeUIManager testSubject;
+        private IConnectedModeServices connectedModeServices;
+        private IConnectedModeBindingServices connectedModeBindingServices;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            connectedModeServices = Substitute.For<IConnectedModeServices>();
+            connectedModeBindingServices = Substitute.For<IConnectedModeBindingServices>();
+            connectedModeServices.ThreadHandling.Returns(Substitute.For<IThreadHandling>());
+            testSubject = new ConnectedModeUIManager(connectedModeServices, connectedModeBindingServices);
+        }
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
@@ -35,7 +50,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI
         }
 
         [TestMethod]
-        public void MefCtor_CheckIsNonShared()
-            => MefTestHelpers.CheckIsNonSharedMefComponent<ConnectedModeUIManager>();
+        public void MefCtor_CheckIsNonShared() => MefTestHelpers.CheckIsNonSharedMefComponent<ConnectedModeUIManager>();
+
+        [TestMethod]
+        public void ShowManageBindingDialog_RunsOnUIThread()
+        {
+            testSubject.ShowManageBindingDialog();
+
+            connectedModeServices.ThreadHandling.Received(1).RunOnUIThread(Arg.Any<Action>());
+        }
+
+        [TestMethod]
+        public void ShowTrustConnectionDialog_RunsOnUIThread()
+        {
+            testSubject.ShowTrustConnectionDialog(new ServerConnection.SonarCloud("myOrg"), null);
+
+            connectedModeServices.ThreadHandling.Received(1).RunOnUIThread(Arg.Any<Action>());
+        }
     }
 }
