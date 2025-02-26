@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             this.bindingConfigProvider = bindingConfigProvider;
             this.configurationPersister = configurationPersister;
             this.logger = logger;
-            languagesToBind = languageProvider.AllKnownLanguages;
+            languagesToBind = languageProvider.RoslynLanguages;
             this.outOfDateQualityProfileFinder = outOfDateQualityProfileFinder;
         }
 
