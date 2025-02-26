@@ -349,6 +349,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to I Don&apos;t Trust This Organization.
+        /// </summary>
+        public static string DoNotTrustOrganizationButton {
+            get {
+                return ResourceManager.GetString("DoNotTrustOrganizationButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to I Don&apos;t Trust This Server.
         /// </summary>
         public static string DoNotTrustServerButton {
@@ -945,11 +954,29 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarQube Cloud.
+        /// </summary>
+        public static string SonarQubeCloud {
+            get {
+                return ResourceManager.GetString("SonarQubeCloud", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An open-source, self-managed tool that easily integrates into the developers&apos; CI/CD pipeline and DevOps platform to systematically help developers and organizations deliver Clean Code..
         /// </summary>
         public static string SonarQubeDescription {
             get {
                 return ResourceManager.GetString("SonarQubeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube Server.
+        /// </summary>
+        public static string SonarQubeServer {
+            get {
+                return ResourceManager.GetString("SonarQubeServer", resourceCulture);
             }
         }
         
@@ -963,7 +990,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Connecting to SonarQube (Server, Cloud) will enable issues to be opened directly in your IDE and enable other.
+        ///   Looks up a localized string similar to Connecting to SonarQube Cloud will enable issues to be opened directly in your IDE and enable other.
+        /// </summary>
+        public static string TrustCloudConnectionDescriptionText {
+            get {
+                return ResourceManager.GetString("TrustCloudConnectionDescriptionText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Connecting to SonarQube Server will enable issues to be opened directly in your IDE and enable other.
         /// </summary>
         public static string TrustConnectionDescriptionText {
             get {
@@ -972,11 +1008,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Trust This SonarQube (Server, Cloud)?.
+        ///   Looks up a localized string similar to Organization Name.
         /// </summary>
-        public static string TrustConnectionDialogTitle {
+        public static string TrustConnectionOrganizationName {
             get {
-                return ResourceManager.GetString("TrustConnectionDialogTitle", resourceCulture);
+                return ResourceManager.GetString("TrustConnectionOrganizationName", resourceCulture);
             }
         }
         
@@ -990,7 +1026,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A token will be automatically generated to allow access to your SonarQube (Server, Cloud) instance..
+        ///   Looks up a localized string similar to A token will be automatically generated to allow access to your.
         /// </summary>
         public static string TrustConnectionTokenInfoText {
             get {
@@ -999,11 +1035,38 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Always ensure that your server URL matches your SonarQube (Server, Cloud) instance. Letting SonarQube for Visual Studio connect to an untrusted server is potentially dangerous..
+        ///   Looks up a localized string similar to Always ensure that your server URL matches your SonarQube Server instance. Letting SonarQube for Visual Studio connect to an untrusted SonarQube Server is potentially dangerous..
         /// </summary>
         public static string TrustConnectionWarningText {
             get {
                 return ResourceManager.GetString("TrustConnectionWarningText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Connect to This SonarQube Cloud Organization.
+        /// </summary>
+        public static string TrustOrganizationButton {
+            get {
+                return ResourceManager.GetString("TrustOrganizationButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Trust This SonarQube Cloud Organization?.
+        /// </summary>
+        public static string TrustOrganizationDialogTitle {
+            get {
+                return ResourceManager.GetString("TrustOrganizationDialogTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ensure that the organization matches your SonarQube Cloud organization..
+        /// </summary>
+        public static string TrustOrganizationWarningText {
+            get {
+                return ResourceManager.GetString("TrustOrganizationWarningText", resourceCulture);
             }
         }
         
@@ -1013,6 +1076,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         public static string TrustServerButton {
             get {
                 return ResourceManager.GetString("TrustServerButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Trust This SonarQube Server?.
+        /// </summary>
+        public static string TrustServerDialogTitle {
+            get {
+                return ResourceManager.GetString("TrustServerDialogTitle", resourceCulture);
             }
         }
         
