@@ -46,7 +46,7 @@
                 <Grid>
                     <TextBlock VerticalAlignment="Center" Padding="5,0">
                         <InlineUIContainer Style="{StaticResource ConnectionInfoInlineWrapper}">
-                            <connectionDisplay:ConnectionInfoComponent ConnectionInfo="{Binding ElementName=This, Path=ConnectionInfo}" />
+                            <connectionDisplay:ConnectionInfoComponent ConnectionInfo="{Binding ElementName=This, Path=ConnectionInfo}" ShowUrlForName="True"/>
                         </InlineUIContainer>
                     </TextBlock>
                 </Grid>
