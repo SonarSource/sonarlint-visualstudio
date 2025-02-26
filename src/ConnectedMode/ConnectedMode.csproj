@@ -76,6 +76,9 @@
     </Page>
     <Page Include="UI\Resources\LogoImages.xaml" />
     <Page Include="UI\Resources\TrashCanImage.xaml" />
+    <Page Include="UI\TrustConnection\TrustConnectionDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UI\WarningMessage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
