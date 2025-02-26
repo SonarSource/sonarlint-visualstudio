@@ -22,6 +22,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security;
 using System.Windows;
 using System.Windows.Navigation;
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.TrustConnection;
@@ -38,6 +39,7 @@ public partial class TrustConnectionDialog : Window
         this.connectedModeServices = connectedModeServices;
         ViewModel = new TrustConnectionViewModel(connectedModeServices, new ProgressReporterViewModel(connectedModeServices.Logger), serverConnection, token);
         InitializeComponent();
+        Title = ViewModel.IsCloud ? UiResources.TrustOrganizationDialogTitle : UiResources.TrustServerDialogTitle;
     }
 
     private void ViewWebsite(object sender, RequestNavigateEventArgs e) => connectedModeServices.BrowserService.Navigate(e.Uri.AbsoluteUri);

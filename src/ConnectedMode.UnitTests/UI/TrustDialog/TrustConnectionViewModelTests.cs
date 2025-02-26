@@ -57,9 +57,11 @@ public class TrustConnectionViewModelTests
     {
         trustSonarCloudConnectionViewModel.Connection.Info.Id.Should().Be("myOrg");
         trustSonarCloudConnectionViewModel.Connection.Info.ServerType.Should().Be(ConnectionServerType.SonarCloud);
+        trustSonarCloudConnectionViewModel.IsCloud.Should().BeTrue();
 
         trustSonarQubeConnectionViewModel.Connection.Info.Id.Should().Be("http://localhost:9000/");
         trustSonarQubeConnectionViewModel.Connection.Info.ServerType.Should().Be(ConnectionServerType.SonarQube);
+        trustSonarQubeConnectionViewModel.IsCloud.Should().BeFalse();
 
         trustSonarCloudConnectionViewModel.ProgressReporterViewModel.Should().NotBeNull();
     }
