@@ -36,7 +36,7 @@ public class TrustConnectionViewModel(
     private ServerConnection ServerConnection { get; } = serverConnection;
 
     public IConnectedModeServices ConnectedModeServices { get; } = connectedModeServices;
-    public SecureString Token { get; } = token;
+    public SecureString Token { get; set; } = token;
     public Connection Connection => ServerConnection.ToConnection();
     public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
     public bool IsCloud => Connection.Info.ServerType == ConnectionServerType.SonarCloud;

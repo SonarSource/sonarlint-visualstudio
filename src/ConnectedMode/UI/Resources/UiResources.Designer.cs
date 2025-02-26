@@ -1008,6 +1008,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not generate token, so server connection could not be created..
+        /// </summary>
+        public static string TrustConnectionGenerateTokenFailed {
+            get {
+                return ResourceManager.GetString("TrustConnectionGenerateTokenFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Organization Name.
         /// </summary>
         public static string TrustConnectionOrganizationName {
