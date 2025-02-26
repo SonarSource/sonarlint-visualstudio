@@ -349,6 +349,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to I Don&apos;t Trust This Server.
+        /// </summary>
+        public static string DoNotTrustServerButton {
+            get {
+                return ResourceManager.GetString("DoNotTrustServerButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit the authentication details of the connection.
         /// </summary>
         public static string EditConnectionToolTip {
@@ -950,6 +959,60 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         public static string TokenLabel {
             get {
                 return ResourceManager.GetString("TokenLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Connecting to SonarQube (Server, Cloud) will enable issues to be opened directly in your IDE and enable other.
+        /// </summary>
+        public static string TrustConnectionDescriptionText {
+            get {
+                return ResourceManager.GetString("TrustConnectionDescriptionText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Trust This SonarQube (Server, Cloud)?.
+        /// </summary>
+        public static string TrustConnectionDialogTitle {
+            get {
+                return ResourceManager.GetString("TrustConnectionDialogTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server URL .
+        /// </summary>
+        public static string TrustConnectionServerUrl {
+            get {
+                return ResourceManager.GetString("TrustConnectionServerUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A token will be automatically generated to allow access to your SonarQube (Server, Cloud) instance..
+        /// </summary>
+        public static string TrustConnectionTokenInfoText {
+            get {
+                return ResourceManager.GetString("TrustConnectionTokenInfoText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Always ensure that your server URL matches your SonarQube (Server, Cloud) instance. Letting SonarQube for Visual Studio connect to an untrusted server is potentially dangerous..
+        /// </summary>
+        public static string TrustConnectionWarningText {
+            get {
+                return ResourceManager.GetString("TrustConnectionWarningText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Connect to This SonarQube (Server, Cloud).
+        /// </summary>
+        public static string TrustServerButton {
+            get {
+                return ResourceManager.GetString("TrustServerButton", resourceCulture);
             }
         }
         

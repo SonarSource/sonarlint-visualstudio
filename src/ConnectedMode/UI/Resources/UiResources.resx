@@ -446,4 +446,25 @@ Please manually add the credentials for the connection and then try again.</valu
   <data name="GeneratingTokenProgressText" xml:space="preserve">
     <value>Generating token...</value>
   </data>
+  <data name="DoNotTrustServerButton" xml:space="preserve">
+    <value>I Don't Trust This Server</value>
+  </data>
+  <data name="TrustServerButton" xml:space="preserve">
+    <value>Connect to This SonarQube (Server, Cloud)</value>
+  </data>
+  <data name="TrustConnectionDescriptionText" xml:space="preserve">
+    <value>Connecting to SonarQube (Server, Cloud) will enable issues to be opened directly in your IDE and enable other</value>
+  </data>
+  <data name="TrustConnectionDialogTitle" xml:space="preserve">
+    <value>Trust This SonarQube (Server, Cloud)?</value>
+  </data>
+  <data name="TrustConnectionTokenInfoText" xml:space="preserve">
+    <value>A token will be automatically generated to allow access to your SonarQube (Server, Cloud) instance.</value>
+  </data>
+  <data name="TrustConnectionWarningText" xml:space="preserve">
+    <value>Always ensure that your server URL matches your SonarQube (Server, Cloud) instance. Letting SonarQube for Visual Studio connect to an untrusted server is potentially dangerous.</value>
+  </data>
+  <data name="TrustConnectionServerUrl" xml:space="preserve">
+    <value >Server URL </value>
+  </data>
 </root>
