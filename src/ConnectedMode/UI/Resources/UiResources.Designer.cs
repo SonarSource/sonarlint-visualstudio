@@ -963,7 +963,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Connecting to SonarQube will enable issues to be opened directly in your IDE and enable other.
+        ///   Looks up a localized string similar to Connecting to SonarQube (Server, Cloud) will enable issues to be opened directly in your IDE and enable other.
         /// </summary>
         public static string TrustConnectionDescriptionText {
             get {
@@ -972,7 +972,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Trust This SonarQube Server?.
+        ///   Looks up a localized string similar to Trust This SonarQube (Server, Cloud)?.
         /// </summary>
         public static string TrustConnectionDialogTitle {
             get {
@@ -990,7 +990,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A token will be automatically generated to allow access to your SonarQube instance..
+        ///   Looks up a localized string similar to A token will be automatically generated to allow access to your SonarQube (Server, Cloud) instance..
         /// </summary>
         public static string TrustConnectionTokenInfoText {
             get {
@@ -999,7 +999,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Always ensure that your server URL matches your SonarQube instance. Letting SonarQube for Visual Studio connect to an untrusted SonarQube server is pottentially dangerous..
+        ///   Looks up a localized string similar to Always ensure that your server URL matches your SonarQube (Server, Cloud) instance. Letting SonarQube for Visual Studio connect to an untrusted server is potentially dangerous..
         /// </summary>
         public static string TrustConnectionWarningText {
             get {
