@@ -18,17 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
 {
-    internal interface IQualityProfileUpdater : INotifyQualityProfilesChanged
+    internal interface IQualityProfileUpdater
     {
         /// <summary>
         /// When in Connected Mode, ensures that all of the Quality Profiles are up to date
@@ -37,7 +35,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
     }
 
     [Export(typeof(IQualityProfileUpdater))]
-    [Export(typeof(INotifyQualityProfilesChanged))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class QualityProfileUpdater : IQualityProfileUpdater, IDisposable
     {
@@ -45,8 +42,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
         private readonly IQualityProfileDownloader qualityProfileDownloader;
         private readonly ICancellableActionRunner runner;
         private readonly ILogger logger;
-
-        public event EventHandler QualityProfilesChanged;
 
         [ImportingConstructor]
         public QualityProfileUpdater(IConfigurationProvider configProvider,
@@ -71,13 +66,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
 
             try
             {
-                await runner.RunAsync(async token =>
-                {
-                    if (await qualityProfileDownloader.UpdateAsync(config.Project, null, token))
-                    {
-                        QualityProfilesChanged?.Invoke(this, EventArgs.Empty);
-                    }
-                });
+                await runner.RunAsync(async token => await qualityProfileDownloader.UpdateAsync(config.Project, null, token));
             }
             catch (Exception e) when (e is OperationCanceledException || e is InvalidOperationException)
             {
