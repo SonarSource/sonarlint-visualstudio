@@ -18,12 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
-
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
@@ -31,7 +30,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
     [TestClass]
     public class MigrationCheckerTests
     {
-        private static BoundSonarQubeProject AnyBoundProject = new BoundSonarQubeProject(new Uri("http://localhost:9000"), "any-key", "any-name");
+        private static readonly BoundSonarQubeProject AnyBoundProject = new BoundSonarQubeProject(new Uri("http://localhost:9000"), "any-key", "any-name");
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
@@ -162,7 +161,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             return mefFactory.Object;
         }
 
-        private static MigrationChecker CreateTestSubject(IActiveSolutionTracker activeSolutionTracker = null, IMigrationPrompt migrationPromp = null, IConfigurationProvider configurationProvider = null, IObsoleteConfigurationProvider obsoleteConfigurationProvider = null)
+        private static MigrationChecker CreateTestSubject(
+            IActiveSolutionTracker activeSolutionTracker = null,
+            IMigrationPrompt migrationPromp = null,
+            IConfigurationProvider configurationProvider = null,
+            IObsoleteConfigurationProvider obsoleteConfigurationProvider = null)
         {
             activeSolutionTracker ??= Mock.Of<IActiveSolutionTracker>();
             var mefFactory = CreateMefFactory(migrationPromp);

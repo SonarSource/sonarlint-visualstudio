@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Models;
 
@@ -240,7 +238,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private static void CheckAreNotEqual(LegacyBindingConfiguration left, LegacyBindingConfiguration right)
         {
-            left.Equals(right).Should().BeFalse();  // strongly-typed Equals
+            left.Equals(right).Should().BeFalse(); // strongly-typed Equals
             left.Equals((object)right).Should().BeFalse(); // untyped Equals
         }
 

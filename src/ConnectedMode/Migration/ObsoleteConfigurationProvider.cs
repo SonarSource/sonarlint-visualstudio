@@ -18,9 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using System.IO;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -46,7 +46,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         {
         }
 
-        internal /* for testing */ ObsoleteConfigurationProvider(ISolutionBindingPathProvider legacyPathProvider,
+        internal /* for testing */ ObsoleteConfigurationProvider(
+            ISolutionBindingPathProvider legacyPathProvider,
             ISolutionBindingPathProvider connectedModePathProvider,
             ILegacySolutionBindingRepository solutionBindingRepository)
         {
