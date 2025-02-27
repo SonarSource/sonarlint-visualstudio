@@ -61,15 +61,6 @@ namespace SonarLint.VisualStudio.Integration.Binding {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ConnectedMode: The current solution is not bound to a SonarQube (Server, Cloud) project..
-        /// </summary>
-        internal static string BindingSuggestionProjectNotBound {
-            get {
-                return ResourceManager.GetString("BindingSuggestionProjectNotBound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Failed to add SonarLint.xml file to the project &apos;{0}&apos;.
         ///Error: {1}.
         /// </summary>
