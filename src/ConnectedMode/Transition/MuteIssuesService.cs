@@ -24,7 +24,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Suppressions;
-using SonarLint.VisualStudio.Core.Transition;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Core;
