@@ -41,7 +41,6 @@ internal sealed class SuppressionUpdater : ISuppressionUpdater, IDisposable
     public SuppressionUpdater(
         ISonarQubeService server,
         IServerQueryInfoProvider serverQueryInfoProvider,
-        IServerIssuesStoreWriter storeWriter,
         ICancellableActionRunner actionRunner,
         ILogger logger)
         : this(server, serverQueryInfoProvider, actionRunner, logger, ThreadHandling.Instance)
