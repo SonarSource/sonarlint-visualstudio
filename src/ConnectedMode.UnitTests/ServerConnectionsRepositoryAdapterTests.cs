@@ -55,6 +55,21 @@ public class ServerConnectionsRepositoryAdapterTests
             return true;
         });
 
+        testSubject.TryGet("https://sonarcloud.io/organizations/myOrg", out var serverConnection);
+
+        serverConnection.Should().Be(expectedServerConnection);
+    }
+
+    [TestMethod]
+    public void TryGet_ConnectionInfo_CallServerConnectionsRepository()
+    {
+        var expectedServerConnection = new SonarCloud("myOrg");
+        serverConnectionsRepository.TryGet("https://sonarcloud.io/organizations/myOrg", out _).Returns(callInfo =>
+        {
+            callInfo[1] = expectedServerConnection;
+            return true;
+        });
+
         testSubject.TryGet(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud), out var serverConnection);
 
         serverConnection.Should().Be(expectedServerConnection);
@@ -295,7 +310,7 @@ public class ServerConnectionsRepositoryAdapterTests
     [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
-    public void TryGet_ReturnsStatusFromSlCore(bool expectedStatus)
+    public void TryGet_ConnectionInfo_ReturnsStatusFromSlCore(bool expectedStatus)
     {
         const string connectionInfoId = "myOrg";
         var connectionInfo = new ConnectionInfo(connectionInfoId, ConnectionServerType.SonarCloud);
@@ -303,6 +318,21 @@ public class ServerConnectionsRepositoryAdapterTests
         MockTryGet("https://sonarcloud.io/organizations/myOrg", expectedStatus, expectedServerConnection);
 
         var succeeded = testSubject.TryGet(connectionInfo, out var receivedServerConnection);
+
+        succeeded.Should().Be(expectedStatus);
+        receivedServerConnection.Should().Be(expectedServerConnection);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void TryGet_ReturnsStatusFromSlCore(bool expectedStatus)
+    {
+        const string serverConnectionId = "https://sonarcloud.io/organizations/myOrg";
+        var expectedServerConnection = new SonarCloud("myOrg");
+        MockTryGet("https://sonarcloud.io/organizations/myOrg", expectedStatus, expectedServerConnection);
+
+        var succeeded = testSubject.TryGet(serverConnectionId, out var receivedServerConnection);
 
         succeeded.Should().Be(expectedStatus);
         receivedServerConnection.Should().Be(expectedServerConnection);
