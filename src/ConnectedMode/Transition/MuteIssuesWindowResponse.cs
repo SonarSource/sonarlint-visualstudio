@@ -20,10 +20,12 @@
 
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Core.Transition
+namespace SonarLint.VisualStudio.ConnectedMode.Transition
 {
-    public interface IMuteIssuesWindowService
+    public class MuteIssuesWindowResponse
     {
-        MuteIssuesWindowResponse Show(IEnumerable<SonarQubeIssueTransition> allowedTransitions);
+        public bool Result { get; set; }
+        public SonarQubeIssueTransition? IssueTransition { get; set; }
+        public string Comment { get; set; }
     }
 }
