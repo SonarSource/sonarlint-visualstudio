@@ -61,11 +61,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI
         }
 
         [TestMethod]
-        public void ShowTrustConnectionDialog_RunsOnUIThread()
+        public async Task ShowTrustConnectionDialogAsync_RunsOnUIThread()
         {
-            testSubject.ShowTrustConnectionDialog(new ServerConnection.SonarCloud("myOrg"), null);
+            await testSubject.ShowTrustConnectionDialogAsync(new ServerConnection.SonarCloud("myOrg"), null);
 
-            connectedModeServices.ThreadHandling.Received(1).RunOnUIThread(Arg.Any<Action>());
+            await connectedModeServices.ThreadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
         }
     }
 }

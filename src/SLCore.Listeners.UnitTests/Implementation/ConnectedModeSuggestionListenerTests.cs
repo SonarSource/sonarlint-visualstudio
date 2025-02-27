@@ -64,43 +64,43 @@ public class ConnectedModeSuggestionListenerTests
     public void Ctor_LoggerContextIsSet() => logger.Received(1).ForContext("Connected Mode Suggestion");
 
     [TestMethod]
-    public void AssistCreatingConnectionAsync_IdeWindowIsBroughtToFront()
+    public async Task AssistCreatingConnectionAsync_IdeWindowIsBroughtToFront()
     {
         MockTrustConnectionDialogSucceeds();
 
-        testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams { connectionParams = sonarQubeConnectionParams });
+        await testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams { connectionParams = sonarQubeConnectionParams });
 
         Received.InOrder(() =>
         {
             ideWindowService.BringToFront();
-            connectedModeUIManager.ShowTrustConnectionDialog(Arg.Any<ServerConnection>(), Arg.Any<string>());
+            connectedModeUIManager.ShowTrustConnectionDialogAsync(Arg.Any<ServerConnection>(), Arg.Any<string>());
         });
     }
 
     [TestMethod]
-    public void AssistCreatingConnectionAsync_SonarQube_ShowsDialogWithCorrectParameters()
+    public async Task AssistCreatingConnectionAsync_SonarQube_ShowsDialogWithCorrectParameters()
     {
         MockTrustConnectionDialogSucceeds();
 
-        testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams { connectionParams = sonarQubeConnectionParams });
+        await testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams { connectionParams = sonarQubeConnectionParams });
 
-        connectedModeUIManager.Received(1)
-            .ShowTrustConnectionDialog(Arg.Is<ServerConnection.SonarQube>(x => x.ServerUri == sonarQubeConnectionParams.serverUrl && x.Credentials == null),
+        await connectedModeUIManager.Received(1)
+            .ShowTrustConnectionDialogAsync(Arg.Is<ServerConnection.SonarQube>(x => x.ServerUri == sonarQubeConnectionParams.serverUrl && x.Credentials == null),
                 Arg.Is<string>(x => x == sonarQubeConnectionParams.tokenValue));
     }
 
     [TestMethod]
     [DataRow(SonarCloudRegion.US)]
     [DataRow(SonarCloudRegion.EU)]
-    public void AssistCreatingConnectionAsync_SonarCloud_ShowsDialogWithCorrectParameters(SonarCloudRegion expectedRegion)
+    public async Task AssistCreatingConnectionAsync_SonarCloud_ShowsDialogWithCorrectParameters(SonarCloudRegion expectedRegion)
     {
         MockTrustConnectionDialogSucceeds();
         var sonarCloudParams = CreateSonarCloudParams(expectedRegion);
 
-        testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams { connectionParams = sonarCloudParams });
+        await testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams { connectionParams = sonarCloudParams });
 
-        connectedModeUIManager.Received(1)
-            .ShowTrustConnectionDialog(
+        await connectedModeUIManager.Received(1)
+            .ShowTrustConnectionDialogAsync(
                 Arg.Is<ServerConnection.SonarCloud>(x => x.OrganizationKey == sonarCloudParams.organizationKey && x.Region.ToSlCoreRegion() == expectedRegion && x.Credentials == null),
                 Arg.Is<string>(x => x == sonarCloudParams.tokenValue));
     }
@@ -110,36 +110,36 @@ public class ConnectedModeSuggestionListenerTests
     {
         MockTrustConnectionDialogSucceeds();
 
-        Action act = () => testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams { connectionParams = null });
+        var act = async () => await testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams { connectionParams = null });
 
         act.Should().Throw<ArgumentNullException>();
         logger.Received(1).LogVerbose(SLCoreStrings.AssistConnectionInvalidServerConnection, nameof(AssistCreatingConnectionParams));
     }
 
     [TestMethod]
-    public void AssistCreatingConnectionAsync_SonarQube_TrustConnectionDialogSucceeds_ReturnsNewConnectionIdAndLogs()
+    public async Task AssistCreatingConnectionAsync_SonarQube_TrustConnectionDialogSucceeds_ReturnsNewConnectionIdAndLogs()
     {
         MockTrustConnectionDialogSucceeds();
         var expectedNewConnectionId = new ServerConnection.SonarQube(sonarQubeConnectionParams.serverUrl).Id;
 
-        var response = testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams() { connectionParams = sonarQubeConnectionParams });
+        var response = await testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams() { connectionParams = sonarQubeConnectionParams });
 
-        response.Result.Should().Be(new AssistCreatingConnectionResponse(expectedNewConnectionId));
+        response.Should().Be(new AssistCreatingConnectionResponse(expectedNewConnectionId));
         logger.Received(1).LogVerbose(SLCoreStrings.AssistConnectionSucceeds, expectedNewConnectionId);
     }
 
     [TestMethod]
     [DataRow(SonarCloudRegion.US)]
     [DataRow(SonarCloudRegion.EU)]
-    public void AssistCreatingConnectionAsync_SonarCloud_TrustConnectionDialogSucceeds_ReturnsNewConnectionIdAndLogs(SonarCloudRegion expectedRegion)
+    public async Task AssistCreatingConnectionAsync_SonarCloud_TrustConnectionDialogSucceeds_ReturnsNewConnectionIdAndLogs(SonarCloudRegion expectedRegion)
     {
         MockTrustConnectionDialogSucceeds();
         var sonarCloudParams = CreateSonarCloudParams(expectedRegion);
         var expectedNewConnectionId = new ServerConnection.SonarCloud(sonarCloudParams.organizationKey, region: expectedRegion.ToCloudServerRegion()).Id;
 
-        var response = testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams() { connectionParams = sonarCloudParams });
+        var response = await testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams() { connectionParams = sonarCloudParams });
 
-        response.Result.Should().Be(new AssistCreatingConnectionResponse(expectedNewConnectionId));
+        response.Should().Be(new AssistCreatingConnectionResponse(expectedNewConnectionId));
         logger.Received(1).LogVerbose(SLCoreStrings.AssistConnectionSucceeds, expectedNewConnectionId);
     }
 
@@ -150,7 +150,7 @@ public class ConnectedModeSuggestionListenerTests
     {
         MockTrustConnectionDialogFails(failedResult);
 
-        Action act = () => testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams() { connectionParams = sonarQubeConnectionParams });
+        var act = async () => await testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams() { connectionParams = sonarQubeConnectionParams });
 
         act.Should().Throw<OperationCanceledException>(SLCoreStrings.AssistConnectionCancelled);
     }
@@ -171,9 +171,9 @@ public class ConnectedModeSuggestionListenerTests
         bindingSuggestionHandler.Received().Notify();
     }
 
-    private void MockTrustConnectionDialogSucceeds() => connectedModeUIManager.ShowTrustConnectionDialog(Arg.Any<ServerConnection>(), Arg.Any<string>()).Returns(true);
+    private void MockTrustConnectionDialogSucceeds() => connectedModeUIManager.ShowTrustConnectionDialogAsync(Arg.Any<ServerConnection>(), Arg.Any<string>()).Returns(true);
 
-    private void MockTrustConnectionDialogFails(bool? failedResult) => connectedModeUIManager.ShowTrustConnectionDialog(Arg.Any<ServerConnection>(), Arg.Any<string>()).Returns(failedResult);
+    private void MockTrustConnectionDialogFails(bool? failedResult) => connectedModeUIManager.ShowTrustConnectionDialogAsync(Arg.Any<ServerConnection>(), Arg.Any<string>()).Returns(failedResult);
 
     private static SonarCloudConnectionParams CreateSonarCloudParams(SonarCloudRegion expectedRegion) => new("myOrg", "a-token", Guid.NewGuid().ToString(), expectedRegion);
 }
