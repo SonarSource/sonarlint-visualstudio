@@ -879,7 +879,7 @@ public class ManageBindingViewModelTests
     {
         var connectionInfo = new ConnectionInfo("organization", ConnectionServerType.SonarCloud);
         testSubject.SelectedConnectionInfo = connectionInfo;
-        serverConnectionsRepositoryAdapter.TryGet(connectionInfo.GetServerIdFromConnectionInfo(), out _).Returns(callInfo =>
+        serverConnectionsRepositoryAdapter.TryGet(connectionInfo, out _).Returns(callInfo =>
         {
             callInfo[1] = null;
             return false;
@@ -1005,7 +1005,7 @@ public class ManageBindingViewModelTests
         var response = await testSubject.UseSharedBindingAsync();
 
         response.Success.Should().BeTrue();
-        serverConnectionsRepositoryAdapter.Received(1).TryGet(testSubject.SharedBindingConfigModel.Uri.ToString(), out _);
+        serverConnectionsRepositoryAdapter.Received(1).TryGet(new ConnectionInfo(testSubject.SharedBindingConfigModel.Uri.ToString(), ConnectionServerType.SonarQube), out _);
         await bindingController.Received(1)
             .BindAsync(Arg.Is<BoundServerProject>(proj => proj.ServerConnection == expectedServerConnection), Arg.Any<CancellationToken>());
     }
@@ -1021,7 +1021,7 @@ public class ManageBindingViewModelTests
         var response = await testSubject.UseSharedBindingAsync();
 
         response.Success.Should().BeTrue();
-        serverConnectionsRepositoryAdapter.Received(1).TryGet(new ConnectionInfo(testSubject.SharedBindingConfigModel.Organization, ConnectionServerType.SonarCloud).GetServerIdFromConnectionInfo(), out _);
+        serverConnectionsRepositoryAdapter.Received(1).TryGet(new ConnectionInfo(testSubject.SharedBindingConfigModel.Organization, ConnectionServerType.SonarCloud), out _);
         await bindingController.Received(1)
             .BindAsync(Arg.Is<BoundServerProject>(proj => proj.ServerConnection == expectedServerConnection), Arg.Any<CancellationToken>());
     }
@@ -1167,7 +1167,7 @@ public class ManageBindingViewModelTests
 
     private void MockTryGetServerConnection(ServerConnection expectedServerConnection = null)
     {
-        serverConnectionsRepositoryAdapter.TryGet(Arg.Any<string>(), out _).Returns(callInfo =>
+        serverConnectionsRepositoryAdapter.TryGet(Arg.Any<ConnectionInfo>(), out _).Returns(callInfo =>
         {
             callInfo[1] = expectedServerConnection;
             return true;

@@ -235,7 +235,7 @@ public class ProjectSelectionViewModelTests
 
         await testSubject.AdapterGetAllProjectsAsync();
 
-        serverConnectionsRepositoryAdapter.Received(1).TryGet(AConnectionInfo.GetServerIdFromConnectionInfo(), out Arg.Any<ServerConnection>());
+        serverConnectionsRepositoryAdapter.Received(1).TryGet(AConnectionInfo, out Arg.Any<ServerConnection>());
         await slCoreConnectionAdapter.Received(1).GetAllProjectsAsync(Arg.Is<ServerConnection>(x => x.Credentials == expectedCredentials));
     }
 
@@ -307,7 +307,7 @@ public class ProjectSelectionViewModelTests
 
     private void MockTrySonarQubeConnection(ConnectionInfo connectionInfo, bool success = true, IConnectionCredentials expectedCredentials = null)
     {
-        serverConnectionsRepositoryAdapter.TryGet(connectionInfo.GetServerIdFromConnectionInfo(), out _).Returns(callInfo =>
+        serverConnectionsRepositoryAdapter.TryGet(connectionInfo, out _).Returns(callInfo =>
         {
             callInfo[1] = new ServerConnection.SonarQube(new Uri(connectionInfo.Id), credentials: expectedCredentials);
             return success;

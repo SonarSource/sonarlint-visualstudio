@@ -447,7 +447,7 @@ public class ManageConnectionsViewModelTest
     [TestMethod]
     public async Task RebindAsync_WhenServerConnectionCannotBeFound_Fails()
     {
-        connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(Arg.Any<string>(), out Arg.Any<ServerConnection>()).Returns(false);
+        connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(Arg.Any<ConnectionInfo>(), out Arg.Any<ServerConnection>()).Returns(false);
         var connectionToUpdate = CreateSonarCloudConnection();
 
         var response = await testSubject.RebindAsync(connectionToUpdate, "serverProjectKey");
@@ -660,7 +660,7 @@ public class ManageConnectionsViewModelTest
 
     private void MockTryGetServerConnection(ServerConnection expectedServerConnection = null)
     {
-        serverConnectionsRepositoryAdapter.TryGet(Arg.Any<string>(), out _).Returns(callInfo =>
+        serverConnectionsRepositoryAdapter.TryGet(Arg.Any<ConnectionInfo>(), out _).Returns(callInfo =>
         {
             callInfo[1] = expectedServerConnection;
             return true;
