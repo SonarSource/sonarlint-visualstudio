@@ -18,191 +18,184 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO.Abstractions;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared;
+
+[TestClass]
+public class SharedBindingConfigProviderTests
 {
-    [TestClass]
-    public class SharedBindingConfigProviderTests
+    private IGitWorkspaceService gitWorkspaceService;
+    private ISharedFolderProvider sharedFolderProvider;
+    private ISolutionInfoProvider solutionInfoProvider;
+    private ISharedBindingConfigFileProvider sharedBindingConfigFileProvider;
+    private TestLogger logger;
+    private SharedBindingConfigProvider testSubject;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<SharedBindingConfigProvider, ISharedBindingConfigProvider>(
-                MefTestHelpers.CreateExport<IGitWorkspaceService>(),
-                MefTestHelpers.CreateExport<ISharedFolderProvider>(),
-                MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
-                MefTestHelpers.CreateExport<ISharedBindingConfigFileProvider>(),
-                MefTestHelpers.CreateExport<ILogger>());
-        }
+        gitWorkspaceService = Substitute.For<IGitWorkspaceService>();
+        sharedFolderProvider = Substitute.For<ISharedFolderProvider>();
+        solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
+        sharedBindingConfigFileProvider = Substitute.For<ISharedBindingConfigFileProvider>();
+        logger = new TestLogger();
 
-        [TestMethod]
-        public void MefCtor_CheckIsSingleton()
-        {
-            MefTestHelpers.CheckIsSingletonMefComponent<SharedBindingConfigProvider>();
-        }
-
-        [DataRow("Path", true, true)]
-        [DataRow("Path", false, false)]
-        [DataRow(null, true, false)]
-        [DataRow(null, false, false)]
-        [TestMethod]
-        public void HasSharedBinding_ReturnsCorrect(string sharedFolder, bool fileExist, bool expectedResult)
-        {
-            var sharedFolderProvider = CreateSharedFolderProvider(sharedFolder);
-            var fileSystem = CreateFileSystem(fileExist);
-
-            var testSubject = CreateTestSubject(sharedFolderProvider: sharedFolderProvider, fileSystem: fileSystem);
-
-            var result = testSubject.HasSharedBinding();
-
-            result.Should().Be(expectedResult);
-        }
-
-        [TestMethod]
-        public void GetSharedBinding_NoSharedFolder_ReturnsNull()
-        {
-            var sharedFolderProvider = CreateSharedFolderProvider();
-            var logger = new TestLogger();
-
-            var testSubject = CreateTestSubject(sharedFolderProvider: sharedFolderProvider, logger: logger);
-
-            var result = testSubject.GetSharedBinding();
-
-            result.Should().BeNull();
-            logger.AssertOutputStrings(1);
-            logger.AssertPartialOutputStringExists(Resources.SharedBindingConfigProvider_SharedFolderNotFound);
-        }
-
-        [TestMethod]
-        public void GetSharedBinding_HasSharedFolder_ReturnsConfig()
-        {
-            var config = new SharedBindingConfigModel();
-
-            var sharedFolderProvider = CreateSharedFolderProvider("C:\\Folder\\.sonarlint");
-            var solutionInfoProvider = CreateSolutionInfoProvider("Solution");
-
-            var sharedBindingConfigFileProvider = new Mock<ISharedBindingConfigFileProvider>();
-            sharedBindingConfigFileProvider.Setup(x => x.ReadSharedBindingConfigFile("C:\\Folder\\.sonarlint\\Solution.json")).Returns(config);
-
-            var testSubject = CreateTestSubject(sharedFolderProvider: sharedFolderProvider, solutionInfoProvider: solutionInfoProvider, sharedBindingConfigFileProvider: sharedBindingConfigFileProvider.Object);
-
-            var result = testSubject.GetSharedBinding();
-
-            result.Should().Be(config);
-        }
-
-        [TestMethod]
-        public void SaveSharedBinding_HasSharedFolder_Saves()
-        {
-            var config = new SharedBindingConfigModel();
-
-            var sharedFolderProvider = CreateSharedFolderProvider("C:\\Folder\\.sonarlint");
-            var solutionInfoProvider = CreateSolutionInfoProvider("Solution");
-
-            var sharedBindingConfigFileProvider = new Mock<ISharedBindingConfigFileProvider>();
-            sharedBindingConfigFileProvider.Setup(x => x.WriteSharedBindingConfigFile("C:\\Folder\\.sonarlint\\Solution.json", config)).Returns(true);
-
-            var testSubject = CreateTestSubject(sharedFolderProvider: sharedFolderProvider, solutionInfoProvider: solutionInfoProvider, sharedBindingConfigFileProvider: sharedBindingConfigFileProvider.Object);
-
-            var result = testSubject.SaveSharedBinding(config);
-
-            result.Should().Be("C:\\Folder\\.sonarlint\\Solution.json");
-        }
-
-        [TestMethod]
-        public void SaveSharedBinding_HasNotSharedFolder_InGit_Saves()
-        {
-            var config = new SharedBindingConfigModel();
-
-            var sharedFolderProvider = CreateSharedFolderProvider();
-            var solutionInfoProvider = CreateSolutionInfoProvider("Solution");
-            var gitWorkspaceService = CreateGitWorkspaceService("C:\\Folder");
-
-            var sharedBindingConfigFileProvider = new Mock<ISharedBindingConfigFileProvider>();
-            sharedBindingConfigFileProvider.Setup(x => x.WriteSharedBindingConfigFile("C:\\Folder\\.sonarlint\\Solution.json", config)).Returns(true);
-
-            var testSubject = CreateTestSubject(sharedFolderProvider: sharedFolderProvider, solutionInfoProvider: solutionInfoProvider, gitWorkspaceService: gitWorkspaceService, sharedBindingConfigFileProvider: sharedBindingConfigFileProvider.Object);
-
-            var result = testSubject.SaveSharedBinding(config);
-
-            result.Should().Be("C:\\Folder\\.sonarlint\\Solution.json");
-        }
-
-        [TestMethod]
-        public void SaveSharedBinding_HasNotSharedFolder_NotInGit_ReturnsFalse()
-        {
-            var config = new SharedBindingConfigModel();
-
-            var sharedFolderProvider = CreateSharedFolderProvider();
-            var gitWorkspaceService = CreateGitWorkspaceService(null);
-
-            var sharedBindingConfigFileProvider = new Mock<ISharedBindingConfigFileProvider>();
-            var logger = new TestLogger();
-
-            var testSubject = CreateTestSubject(sharedFolderProvider: sharedFolderProvider, gitWorkspaceService: gitWorkspaceService, sharedBindingConfigFileProvider: sharedBindingConfigFileProvider.Object, logger: logger);
-
-            var result = testSubject.SaveSharedBinding(config);
-
-            result.Should().BeNull();
-            sharedBindingConfigFileProvider.VerifyNoOtherCalls();
-            logger.AssertOutputStrings(1);
-            logger.AssertPartialOutputStringExists(Resources.SharedBindingConfigProvider_SavePathNotFound);
-        }
-
-        private IGitWorkspaceService CreateGitWorkspaceService(string gitRepo)
-        {
-            var gitService = new Mock<IGitWorkspaceService>();
-            gitService.Setup(gs => gs.GetRepoRoot()).Returns(gitRepo);
-
-            return gitService.Object;
-        }
-
-        private ISolutionInfoProvider CreateSolutionInfoProvider(string solutionName)
-        {
-            var solutionInfoProvider = new Mock<ISolutionInfoProvider>();
-            solutionInfoProvider.Setup(sip => sip.GetSolutionName()).Returns(solutionName);
-
-            return solutionInfoProvider.Object;
-        }
-
-        private IFileSystem CreateFileSystem(bool doesExist)
-        {
-            var file = new Mock<IFile>();
-            file.Setup(f => f.Exists(It.IsAny<string>())).Returns(doesExist);
-
-            var fileSystem = new Mock<IFileSystem>();
-            fileSystem.Setup(fs => fs.File).Returns(file.Object);
-
-            return fileSystem.Object;
-        }
-
-        private ISharedFolderProvider CreateSharedFolderProvider(string folder = null)
-        {
-            var sharedFolderProvider = new Mock<ISharedFolderProvider>();
-            sharedFolderProvider.Setup(sfp => sfp.GetSharedFolderPath()).Returns(folder);
-
-            return sharedFolderProvider.Object;
-        }
-
-        private ISharedBindingConfigProvider CreateTestSubject(IGitWorkspaceService gitWorkspaceService = null,
-            ISharedFolderProvider sharedFolderProvider = null,
-            ISolutionInfoProvider solutionInfoProvider = null,
-            ISharedBindingConfigFileProvider sharedBindingConfigFileProvider = null,
-            ILogger logger = null,
-            IFileSystem fileSystem = null)
-        {
-            gitWorkspaceService ??= Mock.Of<IGitWorkspaceService>();
-            sharedFolderProvider ??= Mock.Of<ISharedFolderProvider>();
-            solutionInfoProvider ??= Mock.Of<ISolutionInfoProvider>();
-            sharedBindingConfigFileProvider ??= Mock.Of<ISharedBindingConfigFileProvider>();
-            logger ??= Mock.Of<ILogger>();
-            fileSystem ??= Mock.Of<IFileSystem>();
-
-            return new SharedBindingConfigProvider(gitWorkspaceService, sharedFolderProvider, solutionInfoProvider, sharedBindingConfigFileProvider, logger, fileSystem);
-        }
+        testSubject = new SharedBindingConfigProvider(gitWorkspaceService, sharedFolderProvider, solutionInfoProvider, sharedBindingConfigFileProvider, logger);
     }
+
+    [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<SharedBindingConfigProvider, ISharedBindingConfigProvider>(
+            MefTestHelpers.CreateExport<IGitWorkspaceService>(),
+            MefTestHelpers.CreateExport<ISharedFolderProvider>(),
+            MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
+            MefTestHelpers.CreateExport<ISharedBindingConfigFileProvider>(),
+            MefTestHelpers.CreateExport<ILogger>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SharedBindingConfigProvider>();
+
+    [TestMethod]
+    public void GetSharedBinding_NoSharedFolder_ReturnsNull()
+    {
+        SetUpSharedFolderProvider();
+
+        var result = testSubject.GetSharedBinding();
+
+        result.Should().BeNull();
+        logger.AssertOutputStrings(1);
+        logger.AssertPartialOutputStringExists(string.Format(Resources.SharedBindingConfigProvider_SharedFileNotFound, Resources.SharedBindingConfigProvider_SharedFileNotFound_ProbePathDefaultValue));
+    }
+
+    [TestMethod]
+    public void GetSharedBinding_HasSharedFolder_ReturnsConfig()
+    {
+        const string filePath = "C:\\Folder\\.sonarlint\\Solution.json";
+        var config = new SharedBindingConfigModel();
+        SetUpSharedFolderProvider("C:\\Folder\\.sonarlint");
+        SetUpSolutionInfoProvider("Solution");
+        sharedBindingConfigFileProvider.Exists(filePath).Returns(true);
+        sharedBindingConfigFileProvider.Read(filePath).Returns(config);
+
+        var result = testSubject.GetSharedBinding();
+
+        result.Should().Be(config);
+        logger.AssertNoOutputMessages();
+    }
+
+    [TestMethod]
+    public void GetSharedBinding_HasSharedFolderButNoConfig_ReturnsNull()
+    {
+        const string filePath = "C:\\Folder\\.sonarlint\\Solution.json";
+        SetUpSharedFolderProvider("C:\\Folder\\.sonarlint");
+        SetUpSolutionInfoProvider("Solution");
+        sharedBindingConfigFileProvider.Exists(filePath).Returns(false);
+
+        var result = testSubject.GetSharedBinding();
+
+        result.Should().BeNull();
+        logger.AssertOutputStrings(1);
+        logger.AssertPartialOutputStringExists(string.Format(Resources.SharedBindingConfigProvider_SharedFileNotFound, filePath));
+    }
+
+    [TestMethod]
+    public void GetSharedBindingFilePathOrNull_NoSharedFolder_ReturnsNull()
+    {
+        SetUpSharedFolderProvider();
+
+        var result = testSubject.GetSharedBindingFilePathOrNull();
+
+        result.Should().BeNull();
+        sharedBindingConfigFileProvider.DidNotReceiveWithAnyArgs().Exists(default);
+        sharedBindingConfigFileProvider.DidNotReceiveWithAnyArgs().Read(default);
+        logger.AssertOutputStrings(1);
+        logger.AssertPartialOutputStringExists(string.Format(Resources.SharedBindingConfigProvider_SharedFileNotFound, Resources.SharedBindingConfigProvider_SharedFileNotFound_ProbePathDefaultValue));
+    }
+
+    [TestMethod]
+    public void GetSharedBindingFilePathOrNull_HasSharedFolder_ReturnsConfig()
+    {
+        const string filePath = "C:\\Folder\\.sonarlint\\Solution.json";
+        SetUpSharedFolderProvider("C:\\Folder\\.sonarlint");
+        SetUpSolutionInfoProvider("Solution");
+        sharedBindingConfigFileProvider.Exists(filePath).Returns(true);
+
+        var result = testSubject.GetSharedBindingFilePathOrNull();
+
+        result.Should().Be(filePath);
+        sharedBindingConfigFileProvider.DidNotReceiveWithAnyArgs().Read(default);
+    }
+
+    [TestMethod]
+    public void GetSharedBindingFilePathOrNull_HasSharedFolderButNoConfig_ReturnsNull()
+    {
+        const string filePath = "C:\\Folder\\.sonarlint\\Solution.json";
+        SetUpSharedFolderProvider("C:\\Folder\\.sonarlint");
+        SetUpSolutionInfoProvider("Solution");
+        sharedBindingConfigFileProvider.Exists(filePath).Returns(false);
+
+        var result = testSubject.GetSharedBindingFilePathOrNull();
+
+        result.Should().BeNull();
+        sharedBindingConfigFileProvider.DidNotReceiveWithAnyArgs().Read(default);
+        logger.AssertOutputStrings(1);
+        logger.AssertPartialOutputStringExists(string.Format(Resources.SharedBindingConfigProvider_SharedFileNotFound, filePath));
+    }
+
+    [TestMethod]
+    public void SaveSharedBinding_HasSharedFolder_Saves()
+    {
+        var config = new SharedBindingConfigModel();
+        SetUpSharedFolderProvider("C:\\Folder\\.sonarlint");
+        SetUpSolutionInfoProvider("Solution");
+        sharedBindingConfigFileProvider.Write("C:\\Folder\\.sonarlint\\Solution.json", config).Returns(true);
+
+        var result = testSubject.SaveSharedBinding(config);
+
+        result.Should().Be("C:\\Folder\\.sonarlint\\Solution.json");
+        logger.AssertNoOutputMessages();
+    }
+
+    [TestMethod]
+    public void SaveSharedBinding_HasNotSharedFolder_InGit_Saves()
+    {
+        var config = new SharedBindingConfigModel();
+        SetUpSharedFolderProvider();
+        SetUpSolutionInfoProvider("Solution");
+        CreateGitWorkspaceService("C:\\Folder");
+        sharedBindingConfigFileProvider.Write("C:\\Folder\\.sonarlint\\Solution.json", config).Returns(true);
+
+        var result = testSubject.SaveSharedBinding(config);
+
+        result.Should().Be("C:\\Folder\\.sonarlint\\Solution.json");
+        logger.AssertOutputStrings(1);
+        logger.AssertPartialOutputStringExists(Resources.SharedBindingConfigProvider_SharedFolderNotFound);
+    }
+
+    [TestMethod]
+    public void SaveSharedBinding_HasNotSharedFolder_NotInGit_ReturnsFalse()
+    {
+        var config = new SharedBindingConfigModel();
+
+        SetUpSharedFolderProvider();
+        CreateGitWorkspaceService(null);
+
+        var result = testSubject.SaveSharedBinding(config);
+
+        result.Should().BeNull();
+        sharedBindingConfigFileProvider.DidNotReceiveWithAnyArgs().Write(default, default);
+        logger.AssertOutputStrings(3);
+        logger.AssertPartialOutputStringExists(Resources.SharedBindingConfigProvider_GitRootNotFound);
+        logger.AssertPartialOutputStringExists(Resources.SharedBindingConfigProvider_SharedFolderNotFound);
+        logger.AssertPartialOutputStringExists(Resources.SharedBindingConfigProvider_NoSaveLocationFound);
+    }
+
+    private void CreateGitWorkspaceService(string gitRepo) => gitWorkspaceService.GetRepoRoot().Returns(gitRepo);
+
+    private void SetUpSolutionInfoProvider(string solutionName) => solutionInfoProvider.GetSolutionName().Returns(solutionName);
+
+    private void SetUpSharedFolderProvider(string folder = null) => sharedFolderProvider.GetSharedFolderPath().Returns(folder);
 }

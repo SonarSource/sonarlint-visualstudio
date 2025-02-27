@@ -23,4 +23,4 @@ using SonarLint.VisualStudio.SLCore.Listener.Files.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Files;
 
-public record ListFilesResponse(IEnumerable<ClientFileDto> files);
+public record ListFilesResponse(List<ClientFileDto> files);

@@ -160,7 +160,25 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to File Tracking.
+        ///   Looks up a localized string similar to The requested configuration scope {0} differs from the currently active {1}.
+        /// </summary>
+        public static string ConfigurationScopeMismatch {
+            get {
+                return ResourceManager.GetString("ConfigurationScopeMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Workspace Files.
+        /// </summary>
+        public static string FileSubsystem_LogContext {
+            get {
+                return ResourceManager.GetString("FileSubsystem_LogContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tracking.
         /// </summary>
         public static string FileTracker_LogContext {
             get {
@@ -183,6 +201,24 @@ namespace SonarLint.VisualStudio.SLCore {
         public static string HttpConfiguration_ServerTrustVerificationResult {
             get {
                 return ResourceManager.GetString("HttpConfiguration_ServerTrustVerificationResult", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to List.
+        /// </summary>
+        public static string ListFiles_LogContext {
+            get {
+                return ResourceManager.GetString("ListFiles_LogContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not calculate configuration scope root.
+        /// </summary>
+        public static string ListFiles_NoRoot {
+            get {
+                return ResourceManager.GetString("ListFiles_NoRoot", resourceCulture);
             }
         }
         

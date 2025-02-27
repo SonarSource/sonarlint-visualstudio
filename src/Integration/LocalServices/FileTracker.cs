@@ -52,7 +52,7 @@ public class FileTracker : IFileTracker
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.threadHandling = threadHandling;
         this.clientFileDtoFactory = clientFileDtoFactory;
-        this.logger = logger.ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.FileTracker_LogContext);
+        this.logger = logger.ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.FileSubsystem_LogContext, SLCoreStrings.FileTracker_LogContext);
     }
 
     public void AddFiles(params SourceFile[] addedFiles)
