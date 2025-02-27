@@ -36,10 +36,14 @@ public class TrustConnectionViewModel(
     private ServerConnection ServerConnection { get; } = serverConnection;
 
     public IConnectedModeServices ConnectedModeServices { get; } = connectedModeServices;
-    public SecureString Token { get; set; } = token;
     public Connection Connection => ServerConnection.ToConnection();
     public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
     public bool IsCloud => Connection.Info.ServerType == ConnectionServerType.SonarCloud;
+    /// <summary>
+    /// The token to be used for the connection
+    /// <remarks>Due to the fact that is nullable and that a connection requires a token, it has to be updatable</remarks>
+    /// </summary>
+    public SecureString Token { get; set; } = token;
 
     internal async Task CreateConnectionsWithProgressAsync()
     {

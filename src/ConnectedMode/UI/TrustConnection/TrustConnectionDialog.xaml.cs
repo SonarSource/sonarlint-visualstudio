@@ -47,9 +47,9 @@ public partial class TrustConnectionDialog : Window
 
     private async void TrustServerButton_OnClick(object sender, RoutedEventArgs e)
     {
-        if (ViewModel.Token == null && !GenerateToken())
+        if (ViewModel.Token == null && !AddToken())
         {
-            ViewModel.ProgressReporterViewModel.Warning = UiResources.TrustConnectionGenerateTokenFailed;
+            ViewModel.ProgressReporterViewModel.Warning = UiResources.TrustConnectionAddTokenFailed;
             return;
         }
         await ViewModel.CreateConnectionsWithProgressAsync();
@@ -57,15 +57,15 @@ public partial class TrustConnectionDialog : Window
         Close();
     }
 
-    private bool GenerateToken()
+    private bool AddToken()
     {
         var credentialsDialog = new CredentialsDialog(connectedModeServices, ViewModel.Connection.Info, withNextButton: false);
-        var wasTokenGenerated = credentialsDialog.ShowDialog(this) == true;
-        if (wasTokenGenerated)
+        var wasTokenAdded = credentialsDialog.ShowDialog(this) == true;
+        if (wasTokenAdded)
         {
             ViewModel.Token = credentialsDialog.ViewModel.Token;
         }
 
-        return wasTokenGenerated;
+        return wasTokenAdded;
     }
 }

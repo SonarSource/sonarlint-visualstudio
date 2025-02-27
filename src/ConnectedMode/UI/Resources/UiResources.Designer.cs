@@ -999,20 +999,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not add token, so server connection could not be created..
+        /// </summary>
+        public static string TrustConnectionAddTokenFailed {
+            get {
+                return ResourceManager.GetString("TrustConnectionAddTokenFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Connecting to SonarQube Server will enable issues to be opened directly in your IDE and enable other.
         /// </summary>
         public static string TrustConnectionDescriptionText {
             get {
                 return ResourceManager.GetString("TrustConnectionDescriptionText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Could not generate token, so server connection could not be created..
-        /// </summary>
-        public static string TrustConnectionGenerateTokenFailed {
-            get {
-                return ResourceManager.GetString("TrustConnectionGenerateTokenFailed", resourceCulture);
             }
         }
         

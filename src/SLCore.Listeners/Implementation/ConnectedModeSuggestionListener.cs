@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
             var token = parameters.connectionParams.Right?.tokenValue ?? parameters.connectionParams.Left?.tokenValue;
 
             ideWindowService.BringToFront();
-            var trustConnectionDialogResult = await connectedModeUiManager.ShowTrustConnectionDialogAsync(serverConnection, token);
+            var trustConnectionDialogResult = await connectedModeUiManager.ShowTrustConnectionDialogAsync(serverConnection, token).ConfigureAwait(false);
             if (trustConnectionDialogResult == true)
             {
                 AssistCreatingConnectionResponse result = new(serverConnection.Id);

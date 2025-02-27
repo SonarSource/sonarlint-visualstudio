@@ -491,7 +491,7 @@ Please manually add the credentials for the connection and then try again.</valu
   <data name="TrustOrganizationDialogTitle" xml:space="preserve">
     <value>Trust This SonarQube Cloud Organization?</value>
   </data>
-  <data name="TrustConnectionGenerateTokenFailed" xml:space="preserve">
-    <value>Could not generate token, so server connection could not be created.</value>
+  <data name="TrustConnectionAddTokenFailed" xml:space="preserve">
+    <value>Could not add token, so server connection could not be created.</value>
   </data>
 </root>

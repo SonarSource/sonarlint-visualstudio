@@ -47,7 +47,7 @@ internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedMod
     public async Task<bool?> ShowTrustConnectionDialogAsync(ServerConnection serverConnection, string token)
     {
         bool? dialogResult = null;
-        await connectedModeServices.ThreadHandling.RunOnUIThreadAsync(() => dialogResult = GetTrustConnectionDialogResult(serverConnection, token)).ConfigureAwait(false);
+        await connectedModeServices.ThreadHandling.RunOnUIThreadAsync(() => dialogResult = GetTrustConnectionDialogResult(serverConnection, token));
 
         return dialogResult;
     }
