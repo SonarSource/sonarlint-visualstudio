@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     /// new format.
     /// See https://github.com/SonarSource/sonarlint-visualstudio/issues/4171
     /// </remarks>
-    public interface IObsoleteConfigurationProvider
+    internal interface IObsoleteConfigurationProvider
     {
         /// <summary>
         /// Returns the binding configuration for the current solution

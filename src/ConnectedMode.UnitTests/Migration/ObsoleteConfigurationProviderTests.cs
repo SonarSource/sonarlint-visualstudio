@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
@@ -30,14 +31,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration;
 public class ObsoleteConfigurationProviderTests
 {
     [TestMethod]
-    public void MefCtor_CheckIsExported()
-        => MefTestHelpers.CheckTypeCanBeImported<ObsoleteConfigurationProvider, IObsoleteConfigurationProvider>(
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<ObsoleteConfigurationProvider, IObsoleteConfigurationProvider>(
             MefTestHelpers.CreateExport<ILegacySolutionBindingRepository>(),
             MefTestHelpers.CreateExport<ISolutionInfoProvider>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton()
-        => MefTestHelpers.CheckIsSingletonMefComponent<ObsoleteConfigurationProvider>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ObsoleteConfigurationProvider>();
 
     [TestMethod]
     public void Ctor_DoesNotCallServices()
@@ -202,7 +202,8 @@ public class ObsoleteConfigurationProviderTests
         return repo;
     }
 
-    private static ObsoleteConfigurationProvider CreateTestSubject(ISolutionBindingPathProvider legacyProvider = null,
+    private static ObsoleteConfigurationProvider CreateTestSubject(
+        ISolutionBindingPathProvider legacyProvider = null,
         ISolutionBindingPathProvider connectedModePathProvider = null,
         ILegacySolutionBindingRepository slnDataRepo = null)
     {
