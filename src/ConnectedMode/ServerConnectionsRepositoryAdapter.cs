@@ -39,6 +39,8 @@ public interface IServerConnectionsRepositoryAdapter
     bool TryUpdateCredentials(Connection connection, ICredentialsModel credentialsModel);
 
     bool TryGet(string serverConnectionId, out ServerConnection serverConnection);
+
+    bool TryGet(ConnectionInfo connection, out ServerConnection serverConnection);
 }
 
 [Export(typeof(IServerConnectionsRepositoryAdapter))]
@@ -73,6 +75,9 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
         return serverConnectionsRepository.TryUpdateCredentialsById(serverConnection.Id, serverConnection.Credentials);
     }
 
+    public bool TryGet(ConnectionInfo connection, out ServerConnection serverConnection) =>
+        TryGet(connection.GetServerIdFromConnectionInfo(), out serverConnection);
+
     public bool TryGet(string serverConnectionId, out ServerConnection serverConnection) =>
         serverConnectionsRepository.TryGet(serverConnectionId, out serverConnection);
 
@@ -92,10 +97,4 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
                 return null;
         }
     }
-}
-
-internal static class ServerConnectionsRepositoryAdapterExtensions
-{
-    public static bool TryGet(this IServerConnectionsRepositoryAdapter adapter, ConnectionInfo connection, out ServerConnection serverConnection) =>
-        adapter.TryGet(connection.GetServerIdFromConnectionInfo(), out serverConnection);
 }
