@@ -46,7 +46,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
         private IQualityProfileServerEventsListener qualityProfileServerEventsListener;
         private BoundSolutionUpdateHandler boundSolutionUpdateHandler;
         private TimedUpdateHandler timedUpdateHandler;
-        private LocalSuppressionsChangedHandler localSuppressionsChangedHandler;
         private ImportBeforeInstallTrigger importBeforeInstallTrigger;
         private IHotspotDocumentClosedHandler hotspotDocumentClosedHandler;
         private IHotspotSolutionClosedHandler hotspotSolutionClosedHandler;
@@ -71,7 +70,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
             boundSolutionUpdateHandler = componentModel.GetService<BoundSolutionUpdateHandler>();
             timedUpdateHandler = componentModel.GetService<TimedUpdateHandler>();
-            localSuppressionsChangedHandler = componentModel.GetService<LocalSuppressionsChangedHandler>();
 
             hotspotDocumentClosedHandler = componentModel.GetService<IHotspotDocumentClosedHandler>();
 
@@ -108,7 +106,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 issueServerEventsListener?.Dispose();
                 boundSolutionUpdateHandler?.Dispose();
                 timedUpdateHandler?.Dispose();
-                localSuppressionsChangedHandler?.Dispose();
                 importBeforeInstallTrigger?.Dispose();
             }
 
