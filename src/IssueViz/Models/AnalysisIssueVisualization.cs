@@ -76,11 +76,7 @@ internal class AnalysisIssueVisualization : IAnalysisIssueVisualization
     public bool IsSuppressed
     {
         get => isSuppressed;
-        set
-        {
-            isSuppressed = value;
-            NotifyPropertyChanged();
-        }
+        set => isSuppressed = value;
     }
 
     public string CurrentFilePath

@@ -144,19 +144,6 @@ public class AnalysisIssueVisualizationTests
     }
 
     [TestMethod]
-    public void SetIsSuppressed_HasSubscribers_VerifyRaised()
-    {
-        issueVisualizationWithNotEmptySpan.IsSuppressed.Should().BeFalse();
-        var propertyChangedEventHandler = MockSubscriberToPropertyChanged();
-
-        issueVisualizationWithNotEmptySpan.IsSuppressed = true;
-
-        VerifyPropertyChangedRaised(propertyChangedEventHandler, issueVisualizationWithNotEmptySpan, nameof(issueVisualizationWithNotEmptySpan.IsSuppressed));
-        propertyChangedEventHandler.ReceivedCalls().Count().Should().Be(1);
-        issueVisualizationWithNotEmptySpan.IsSuppressed.Should().BeTrue();
-    }
-
-    [TestMethod]
     public void IsFilterable()
     {
         issueVisualizationWithEmptySpan.Should().BeAssignableTo<IFilterableIssue>();
