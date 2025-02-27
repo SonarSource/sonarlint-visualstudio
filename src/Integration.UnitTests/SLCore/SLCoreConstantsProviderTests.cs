@@ -70,7 +70,7 @@ public class SLCoreConstantsProviderTests
     [TestMethod]
     public void FeatureFlags_ShouldBeExpected()
     {
-        var expectedFeatureFlags = new FeatureFlagsDto(true, true, true, true, true, false, true, true, true);
+        var expectedFeatureFlags = new FeatureFlagsDto(true, true, true, true, true, false, true, true, true, enableMonitoring: true);
         var actual = testSubject.FeatureFlags;
 
         actual.Should().BeEquivalentTo(expectedFeatureFlags);
