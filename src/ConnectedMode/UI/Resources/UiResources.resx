@@ -357,11 +357,11 @@
   <data name="LoadingProjectsFailedTextForNotFoundServerConnection" xml:space="preserve">
     <value>Server connection was not found. Projects could not be loaded.</value>
   </data>
-  <data name="NotFoundConnectionForSharedBindingMessageBoxText" xml:space="preserve">
-    <value>The shared binding could not be executed, because the connection to the server could not be found. 
+  <data name="NotFoundConnectionForAutomaticBindingMessageBoxText" xml:space="preserve">
+    <value>The automatic binding could not be executed, because the connection to the server could not be found. 
 Please manually add the connection through "Manage Connections" and then try again.</value>
   </data>
-  <data name="NotFoundConnectionForSharedBindingMessageBoxCaption" xml:space="preserve">
+  <data name="NotFoundConnectionForAutomaticBindingMessageBoxCaption" xml:space="preserve">
     <value>Connection not found</value>
   </data>
   <data name="DeleteBindingHelpText" xml:space="preserve">
@@ -379,10 +379,10 @@ Please manually add the connection through "Manage Connections" and then try aga
   <data name="CalculatingConnectionReferencesText" xml:space="preserve">
     <value>Calculating connection references...</value>
   </data>
-  <data name="NotFoundCredentialsForSharedBindingMessageBoxCaption" xml:space="preserve">
+  <data name="NotFoundCredentialsForAutomaticBindingMessageBoxCaption" xml:space="preserve">
     <value>Credentials not found</value>
   </data>
-  <data name="NotFoundCredentialsForSharedBindingMessageBoxText" xml:space="preserve">
+  <data name="NotFoundCredentialsForAutomaticBindingMessageBoxText" xml:space="preserve">
     <value>The shared binding could not be executed, because the credentials for the connection to the server could not be found. 
 Please manually add the credentials for the connection and then try again.</value>
   </data>
@@ -417,7 +417,7 @@ Please manually add the credentials for the connection and then try again.</valu
     <value>Close</value>
   </data>
   <data name="DeleteConnection_DeleteBindingFails" xml:space="preserve">
-    <value>[ConnectedMode] Removing the connection failed. The '{0}' project could not be unbound.</value>
+    <value>Removing the connection failed. The '{0}' project could not be unbound.</value>
   </data>
   <data name="ManageBindingDialog_NothingToBindText" xml:space="preserve">
     <value>The binding status is not available. Please open a solution or a folder.</value>
