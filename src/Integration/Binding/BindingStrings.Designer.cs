@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration.Binding {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ConnectedMode: SonarQube for Visual Studio couldn&apos;t match the {0} project &apos;{1}&apos; to the currently opened solution. Please make sure the correct solution is opened or try configuring the binding manually..
+        ///   Looks up a localized string similar to ConnectedMode: SonarQube for Visual Studio couldn&apos;t match the {0} project &apos;{1}&apos; to the currently opened solution. Please make sure the correct solution is open or try configuring the binding manually..
         /// </summary>
         internal static string NoBindingSuggestionNotification_Message {
             get {
