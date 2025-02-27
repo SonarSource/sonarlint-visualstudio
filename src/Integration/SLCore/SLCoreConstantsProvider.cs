@@ -43,7 +43,8 @@ public class SLCoreConstantsProvider(IUserAgentProvider userAgentProvider, IVsIn
             enableDataflowBugDetection: false,
             shouldManageFullSynchronization: true,
             enableTelemetry: true,
-            canOpenFixSuggestion: true);
+            canOpenFixSuggestion: true,
+            enableMonitoring: true);
 
     public TelemetryClientConstantAttributesDto TelemetryConstants =>
         new("visualstudio", "SonarLint Visual Studio", VersionHelper.SonarLintVersion, VisualStudioHelpers.VisualStudioVersion,
