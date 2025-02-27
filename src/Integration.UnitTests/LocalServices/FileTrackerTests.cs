@@ -92,7 +92,7 @@ public class FileTrackerTests
             Substitute.For<IClientFileDtoFactory>(),
             logger);
 
-        logger.Received().ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.FileTracker_LogContext);
+        logger.Received().ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.FileSubsystem_LogContext, SLCoreStrings.FileTracker_LogContext);
     }
 
     [TestMethod]

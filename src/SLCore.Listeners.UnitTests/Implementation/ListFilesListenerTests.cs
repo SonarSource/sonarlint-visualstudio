@@ -37,6 +37,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
         private IClientFileDtoFactory clientFileDtoFactory;
         private ListFilesListener testSubject;
         private ISharedBindingConfigProvider sharedBindingConfigProvider;
+        private TestLogger logger;
         private const string ConfigScopeId = "Some ID";
 
         [TestInitialize]
@@ -48,7 +49,8 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             SetUpActiveConfigScopeTracker();
             clientFileDtoFactory = Substitute.For<IClientFileDtoFactory>();
             sharedBindingConfigProvider = Substitute.For<ISharedBindingConfigProvider>();
-            testSubject = new ListFilesListener(folderWorkspaceService, solutionWorkspaceService, sharedBindingConfigProvider, activeConfigScopeTracker, clientFileDtoFactory);
+            logger = new TestLogger();
+            testSubject = new ListFilesListener(folderWorkspaceService, solutionWorkspaceService, sharedBindingConfigProvider, activeConfigScopeTracker, clientFileDtoFactory, logger);
         }
 
         [TestMethod]
@@ -58,10 +60,21 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
                 MefTestHelpers.CreateExport<ISolutionWorkspaceService>(),
                 MefTestHelpers.CreateExport<ISharedBindingConfigProvider>(),
                 MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
-                MefTestHelpers.CreateExport<IClientFileDtoFactory>());
+                MefTestHelpers.CreateExport<IClientFileDtoFactory>(),
+                MefTestHelpers.CreateExport<ILogger>());
 
         [TestMethod]
         public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ListFilesListener>();
+
+        [TestMethod]
+        public void Ctor_SetsLogContext()
+        {
+            var logger = Substitute.For<ILogger>();
+
+            new ListFilesListener(folderWorkspaceService, solutionWorkspaceService, sharedBindingConfigProvider, activeConfigScopeTracker, clientFileDtoFactory, logger);
+
+            logger.Received().ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.FileSubsystem_LogContext, SLCoreStrings.ListFiles_LogContext);
+        }
 
         [TestMethod]
         public async Task ListFilesAsync_DifferentConfigScopeId_ReturnsEmpty()
@@ -72,6 +85,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
 
             result.files.Should().BeEmpty();
             sharedBindingConfigProvider.DidNotReceive().GetSharedBindingFilePathOrNull();
+            logger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ConfigurationScopeMismatch, ConfigScopeId, "Not Matching Id"));
         }
 
         [DataTestMethod]
@@ -141,6 +155,22 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             folderWorkspaceService.DidNotReceive().ListFiles();
             activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "C:\\");
             sharedBindingConfigProvider.Received().GetSharedBindingFilePathOrNull();
+        }
+
+
+        [TestMethod]
+        public async Task ListFilesAsync_SolutionWorkSpace_NoFilesNoRoot_ReturnsEmptyAndLogs()
+        {
+            SetUpSolutionFiles(filePaths: []);
+
+            var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
+
+            var files = result.files.ToList();
+            files.Should().BeEmpty();
+            folderWorkspaceService.DidNotReceive().ListFiles();
+            activeConfigScopeTracker.DidNotReceiveWithAnyArgs().TryUpdateRootOnCurrentConfigScope(default, default);
+            sharedBindingConfigProvider.DidNotReceive().GetSharedBindingFilePathOrNull();
+            logger.AssertPartialOutputStringExists(SLCoreStrings.ListFiles_NoRoot);
         }
 
         [TestMethod]
@@ -219,6 +249,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             var files = result.files.ToList();
             files.Should().BeEmpty();
             sharedBindingConfigProvider.DidNotReceive().GetSharedBindingFilePathOrNull();
+            logger.AssertPartialOutputStringExists(SLCoreStrings.ConfigScopeConflict);
         }
 
 

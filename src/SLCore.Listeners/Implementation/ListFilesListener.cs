@@ -38,32 +38,37 @@ public class ListFilesListener(
     ISolutionWorkspaceService solutionWorkspaceService,
     ISharedBindingConfigProvider sharedBindingConfigProvider,
     IActiveConfigScopeTracker activeConfigScopeTracker,
-    IClientFileDtoFactory clientFileDtoFactory)
+    IClientFileDtoFactory clientFileDtoFactory,
+    ILogger logger)
     : IListFilesListener
 {
-    private readonly List<ClientFileDto> NoFiles = [];
+    private readonly ILogger logger = logger.ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.FileSubsystem_LogContext, SLCoreStrings.ListFiles_LogContext);
 
     public Task<ListFilesResponse> ListFilesAsync(ListFilesParams parameters) => Task.FromResult(new ListFilesResponse(GetFilesList(parameters)));
 
     private List<ClientFileDto> GetFilesList(ListFilesParams parameters)
     {
-        if (activeConfigScopeTracker.Current.Id != parameters.configScopeId)
+        if (activeConfigScopeTracker.Current?.Id is var activeConfigScope && activeConfigScope != parameters.configScopeId)
         {
-            return NoFiles;
+            logger.WriteLine(SLCoreStrings.ConfigurationScopeMismatch, parameters.configScopeId, activeConfigScope);
+            return [];
         }
 
-        if (GetWorkspaceFiles() is not { Count: > 0 } workspaceFilePaths)
+        var (workspaceFilesPaths, workspaceRootPath) = GetWorkspaceFiles();
+
+        if (workspaceRootPath is null)
         {
-            return NoFiles;
+            logger.WriteLine(SLCoreStrings.ListFiles_NoRoot);
+            return [];
         }
 
-        if (GetRoot(workspaceFilePaths.First()) is not { } root
-            || !activeConfigScopeTracker.TryUpdateRootOnCurrentConfigScope(parameters.configScopeId, root))
+        if (!activeConfigScopeTracker.TryUpdateRootOnCurrentConfigScope(parameters.configScopeId, workspaceRootPath))
         {
-            return NoFiles;
+            logger.WriteLine(SLCoreStrings.ConfigScopeConflict);
+            return [];
         }
 
-        return GetClientFilesDtos(parameters, root, AddExtraFiles(workspaceFilePaths));
+        return GetClientFilesDtos(parameters, workspaceRootPath, AddExtraFiles(workspaceFilesPaths));
     }
 
     private IEnumerable<string> AddExtraFiles(IReadOnlyCollection<string> workspaceFilePaths) =>
@@ -71,10 +76,16 @@ public class ListFilesListener(
             ? workspaceFilePaths.Append(sharedBindingFilePath)
             : workspaceFilePaths;
 
-    private IReadOnlyCollection<string> GetWorkspaceFiles() =>
-        folderWorkspaceService.IsFolderWorkspace()
-            ? folderWorkspaceService.ListFiles()
-            : solutionWorkspaceService.ListFiles();
+    private (IReadOnlyCollection<string> workspaceFilesPaths, string workspaceRootPath) GetWorkspaceFiles()
+    {
+        if (folderWorkspaceService.IsFolderWorkspace())
+        {
+            return (folderWorkspaceService.ListFiles(), GetFolderModeRoot());
+        }
+
+        var solutionFiles = solutionWorkspaceService.ListFiles();
+        return (solutionFiles, GetSolutionModeRoot(solutionFiles.FirstOrDefault()));
+    }
 
     private List<ClientFileDto> GetClientFilesDtos(
         ListFilesParams parameters,
@@ -85,11 +96,16 @@ public class ListFilesListener(
             .Where(x => x is not null)
             .ToList();
 
-    private string GetRoot(string filePath)
-    {
-        var root = folderWorkspaceService.FindRootDirectory();
+    private string GetFolderModeRoot() => NormalizeRoot(folderWorkspaceService.FindRootDirectory());
 
-        root ??= Path.GetPathRoot(filePath);
+    private static string GetSolutionModeRoot(string filePath) => NormalizeRoot(Path.GetPathRoot(filePath));
+
+    private static string NormalizeRoot(string root)
+    {
+        if (root is null)
+        {
+            return null;
+        }
 
         Debug.Assert(root != string.Empty);
 
