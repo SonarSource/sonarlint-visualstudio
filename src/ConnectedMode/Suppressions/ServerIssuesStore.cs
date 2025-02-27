@@ -18,20 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
-using Microsoft;
 using SonarLint.VisualStudio.Core;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
     [Export(typeof(IServerIssuesStore))]
-    [Export(typeof(IServerIssuesStoreWriter))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ServerIssuesStore : IServerIssuesStoreWriter
+    internal class ServerIssuesStore : IServerIssuesStore
     {
         private readonly ILogger logger;
         private readonly object serverIssuesLock = new object();

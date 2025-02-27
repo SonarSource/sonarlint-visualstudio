@@ -44,32 +44,4 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         /// <returns>True if issue with the same key is present, False otherwise</returns>
         bool TryGetIssue(string issueKey, out SonarQubeIssue issue);
     }
-
-    /// <summary>
-    /// Write-interface for <see cref="IServerIssuesStore"/> i.e. contains methods to update the store
-    /// </summary>
-    internal interface IServerIssuesStoreWriter : IServerIssuesStore
-    {
-        /// <summary>
-        /// Updates the IsResolved status of the issues with the specified keys
-        /// </summary>
-        /// <remarks>If an issue key cannot be matched to an issue in the store it will be ignored.
-        /// </remarks>
-        void UpdateIssues(bool isResolved, IEnumerable<string> issueKeys);
-
-        /// <summary>
-        /// Adds the specified issues to the repository
-        /// </summary>
-        /// <param name="issues">The issues to add to the store. Can be empty.</param>
-        /// <param name="clearAllExistingIssues">True if the store should be emptied before adding the new issues.
-        /// If false, existing issues with matching keys will be updated.</param>
-        /// <remarks>Passing an empty list to <paramref name="issues"/> and false to <paramref name="clearAllExistingIssues"/>
-        /// has the effect of clearing the store in a single atomic operation.</remarks>
-        void AddIssues(IEnumerable<SonarQubeIssue> issues, bool clearAllExistingIssues);
-
-        /// <summary>
-        /// Removes all existing issues. Can be called multiple times.
-        /// </summary>
-        void Reset();
-    }
 }

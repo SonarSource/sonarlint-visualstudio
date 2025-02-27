@@ -43,14 +43,9 @@ public class ServerIssuesStoreTests
     }
 
     [TestMethod]
-    public void MefCtor_CheckIsExported()
-    {
+    public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<ServerIssuesStore, IServerIssuesStore>(
             MefTestHelpers.CreateExport<ILogger>());
-
-        MefTestHelpers.CheckTypeCanBeImported<ServerIssuesStore, IServerIssuesStoreWriter>(
-            MefTestHelpers.CreateExport<ILogger>());
-    }
 
     [TestMethod]
     public void MefCtor_Check_SameInstanceExported() =>
