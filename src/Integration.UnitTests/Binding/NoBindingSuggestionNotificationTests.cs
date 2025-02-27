@@ -30,10 +30,10 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding;
 
 [TestClass]
-public class BindingSuggestionHandlerTests
+public class NoBindingSuggestionNotificationTests
 {
     private const string ProjectKey = "projectKey";
-    private BindingSuggestionHandler testSubject;
+    private NoBindingSuggestionNotification testSubject;
     private INotificationService notificationService;
     private IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private IIDEWindowService ideWindowService;
@@ -48,12 +48,12 @@ public class BindingSuggestionHandlerTests
         ideWindowService = Substitute.For<IIDEWindowService>();
         connectedModeManager = Substitute.For<IConnectedModeUIManager>();
         browserService = Substitute.For<IBrowserService>();
-        testSubject = new BindingSuggestionHandler(notificationService, activeSolutionBoundTracker, ideWindowService, connectedModeManager, browserService);
+        testSubject = new NoBindingSuggestionNotification(notificationService, activeSolutionBoundTracker, ideWindowService, connectedModeManager, browserService);
     }
 
     [TestMethod]
     public void MefCtor_CheckExports() =>
-        MefTestHelpers.CheckTypeCanBeImported<BindingSuggestionHandler, IBindingSuggestionHandler>(
+        MefTestHelpers.CheckTypeCanBeImported<NoBindingSuggestionNotification, INoBindingSuggestionNotification>(
             MefTestHelpers.CreateExport<INotificationService>(),
             MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
             MefTestHelpers.CreateExport<IIDEWindowService>(),
@@ -63,49 +63,49 @@ public class BindingSuggestionHandlerTests
     [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
-    public void Notify_BringsWindowToFront(bool isSonarCloud)
+    public void Show_BringsWindowToFront(bool isSonarCloud)
     {
-        testSubject.Notify(ProjectKey, isSonarCloud);
+        testSubject.Show(ProjectKey, isSonarCloud);
 
         ideWindowService.Received().BringToFront();
     }
 
     [TestMethod]
-    public void Notify_SonarCloud_ShowsMessageAndActions()
+    public void Show_SonarCloud_ShowsMessageAndActions()
     {
-        var expectedMessage = string.Format(BindingStrings.NoBindingMatch, UiResources.SonarQubeCloud, ProjectKey);
+        var expectedMessage = string.Format(BindingStrings.NoBindingSuggestionNotification_Message, UiResources.SonarQubeCloud, ProjectKey);
 
-        testSubject.Notify(ProjectKey, isSonarCloud: true);
+        testSubject.Show(ProjectKey, isSonarCloud: true);
 
         notificationService.Received().ShowNotification(Arg.Is<INotification>(
             n => n.Message.Equals(expectedMessage)
                  && n.Actions
                      .Select(x => x.CommandText)
-                     .SequenceEqual(new[] { BindingStrings.ConfigureBinding, BindingStrings.BindingSuggestionLearnMore })));
+                     .SequenceEqual(new[] { BindingStrings.NoBindingSuggestionNotification_ConfigureBindingAction, BindingStrings.NoBindingSuggestionNotification_LearnMoreAction })));
     }
 
     [TestMethod]
-    public void Notify_SonarQube_ShowsMessageAndActions()
+    public void Show_SonarQube_ShowsMessageAndActions()
     {
-        var expectedMessage = string.Format(BindingStrings.NoBindingMatch, UiResources.SonarQubeServer, ProjectKey);
+        var expectedMessage = string.Format(BindingStrings.NoBindingSuggestionNotification_Message, UiResources.SonarQubeServer, ProjectKey);
 
-        testSubject.Notify(ProjectKey, isSonarCloud: false);
+        testSubject.Show(ProjectKey, isSonarCloud: false);
 
         notificationService.Received().ShowNotification(Arg.Is<INotification>(
             n => n.Message.Equals(expectedMessage)
                  && n.Actions
                      .Select(x => x.CommandText)
-                     .SequenceEqual(new[] { BindingStrings.ConfigureBinding, BindingStrings.BindingSuggestionLearnMore })));
+                     .SequenceEqual(new[] { BindingStrings.NoBindingSuggestionNotification_ConfigureBindingAction, BindingStrings.NoBindingSuggestionNotification_LearnMoreAction })));
     }
 
     [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
-    public void Notify_ConnectAction_ShowsManageBindingDialog(bool isSonarCloud)
+    public void Show_ConnectAction_ShowsManageBindingDialog(bool isSonarCloud)
     {
-        testSubject.Notify(ProjectKey, isSonarCloud);
+        testSubject.Show(ProjectKey, isSonarCloud);
         var notification = GetNotification();
-        var connectAction = GetAction(notification, BindingStrings.ConfigureBinding);
+        var connectAction = GetAction(notification, BindingStrings.NoBindingSuggestionNotification_ConfigureBindingAction);
         connectedModeManager.DidNotReceive().ShowManageBindingDialog();
 
         connectAction.Action(notification);
@@ -116,11 +116,11 @@ public class BindingSuggestionHandlerTests
     [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
-    public void Notify_LearnMoreAction_OpensDocumentationInBrowser(bool isSonarCloud)
+    public void Show_LearnMoreAction_OpensDocumentationInBrowser(bool isSonarCloud)
     {
-        testSubject.Notify(ProjectKey, isSonarCloud);
+        testSubject.Show(ProjectKey, isSonarCloud);
         var notification = GetNotification();
-        var connectAction = GetAction(notification, BindingStrings.BindingSuggestionLearnMore);
+        var connectAction = GetAction(notification, BindingStrings.NoBindingSuggestionNotification_LearnMoreAction);
         browserService.DidNotReceiveWithAnyArgs().Navigate(default);
 
         connectAction.Action(notification);

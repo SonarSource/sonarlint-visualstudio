@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
     [PartCreationPolicy(CreationPolicy.Shared)]
     [method: ImportingConstructor]
     public class ConnectedModeSuggestionListener(
-        IBindingSuggestionHandler bindingSuggestionHandler,
+        INoBindingSuggestionNotification noBindingSuggestionNotification,
         IConnectedModeUIManager connectedModeUiManager,
         ILogger logger,
         IIDEWindowService ideWindowService)
@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 
         public Task<AssistBindingResponse> AssistBindingAsync(AssistBindingParams parameters) => throw new NotImplementedException();
 
-        public void NoBindingSuggestionFound(NoBindingSuggestionFoundParams parameters) => bindingSuggestionHandler.Notify(parameters.projectKey, parameters.isSonarCloud);
+        public void NoBindingSuggestionFound(NoBindingSuggestionFoundParams parameters) => noBindingSuggestionNotification.Show(parameters.projectKey, parameters.isSonarCloud);
 
         private ServerConnection ConvertSeverConnection(AssistCreatingConnectionParams parameters)
         {

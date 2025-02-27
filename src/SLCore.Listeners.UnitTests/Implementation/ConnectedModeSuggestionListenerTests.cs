@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation;
 [TestClass]
 public class ConnectedModeSuggestionListenerTests
 {
-    private IBindingSuggestionHandler bindingSuggestionHandler;
+    private INoBindingSuggestionNotification noBindingSuggestionNotification;
     private ConnectedModeSuggestionListener testSubject;
     private IConnectedModeUIManager connectedModeUIManager;
     private readonly SonarQubeConnectionParams sonarQubeConnectionParams = new(new Uri("http://localhost:9000"), "a-token", Guid.NewGuid().ToString());
@@ -41,18 +41,18 @@ public class ConnectedModeSuggestionListenerTests
     [TestInitialize]
     public void TestInitialize()
     {
-        bindingSuggestionHandler = Substitute.For<IBindingSuggestionHandler>();
+        noBindingSuggestionNotification = Substitute.For<INoBindingSuggestionNotification>();
         connectedModeUIManager = Substitute.For<IConnectedModeUIManager>();
         ideWindowService = Substitute.For<IIDEWindowService>();
         logger = Substitute.For<ILogger>();
         logger.ForContext(Arg.Any<string[]>()).Returns(logger);
-        testSubject = new ConnectedModeSuggestionListener(bindingSuggestionHandler, connectedModeUIManager, logger, ideWindowService);
+        testSubject = new ConnectedModeSuggestionListener(noBindingSuggestionNotification, connectedModeUIManager, logger, ideWindowService);
     }
 
     [TestMethod]
     public void MefCtor_CheckExports() =>
         MefTestHelpers.CheckTypeCanBeImported<ConnectedModeSuggestionListener, ISLCoreListener>(
-            MefTestHelpers.CreateExport<IBindingSuggestionHandler>(),
+            MefTestHelpers.CreateExport<INoBindingSuggestionNotification>(),
             MefTestHelpers.CreateExport<IConnectedModeUIManager>(),
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IIDEWindowService>());
@@ -172,7 +172,7 @@ public class ConnectedModeSuggestionListenerTests
 
         testSubject.NoBindingSuggestionFound(new NoBindingSuggestionFoundParams(projectKey, isSonarCloud));
 
-        bindingSuggestionHandler.Received().Notify(projectKey, isSonarCloud);
+        noBindingSuggestionNotification.Received().Show(projectKey, isSonarCloud);
     }
 
     private void MockTrustConnectionDialogSucceeds() => connectedModeUIManager.ShowTrustConnectionDialogAsync(Arg.Any<ServerConnection>(), Arg.Any<string>()).Returns(true);

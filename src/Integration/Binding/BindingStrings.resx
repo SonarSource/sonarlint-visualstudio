@@ -117,16 +117,16 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ConfigureBinding" xml:space="preserve">
+  <data name="NoBindingSuggestionNotification_ConfigureBindingAction" xml:space="preserve">
     <value>Configure Binding</value>
   </data>
-  <data name="BindingSuggestionLearnMore" xml:space="preserve">
+  <data name="NoBindingSuggestionNotification_LearnMoreAction" xml:space="preserve">
     <value>Learn more</value>
   </data>
   <data name="BindingSuggestionProjectNotBound" xml:space="preserve">
     <value>ConnectedMode: The current solution is not bound to a SonarQube (Server, Cloud) project.</value>
   </data>
-  <data name="NoBindingMatch" xml:space="preserve">
+  <data name="NoBindingSuggestionNotification_Message" xml:space="preserve">
     <value>ConnectedMode: SonarQube for Visual Studio couldn't match the {0} project '{1}' to the currently opened solution. Please make sure the solution is opened, or try configuring the binding manually.</value>
   </data>
   <data name="CSharpVB_FailedToAddSonarLintXml" xml:space="preserve">

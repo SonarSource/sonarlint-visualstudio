@@ -61,29 +61,11 @@ namespace SonarLint.VisualStudio.Integration.Binding {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Learn more.
-        /// </summary>
-        internal static string BindingSuggestionLearnMore {
-            get {
-                return ResourceManager.GetString("BindingSuggestionLearnMore", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to ConnectedMode: The current solution is not bound to a SonarQube (Server, Cloud) project..
         /// </summary>
         internal static string BindingSuggestionProjectNotBound {
             get {
                 return ResourceManager.GetString("BindingSuggestionProjectNotBound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Configure Binding.
-        /// </summary>
-        internal static string ConfigureBinding {
-            get {
-                return ResourceManager.GetString("ConfigureBinding", resourceCulture);
             }
         }
         
@@ -129,11 +111,29 @@ namespace SonarLint.VisualStudio.Integration.Binding {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Configure Binding.
+        /// </summary>
+        internal static string NoBindingSuggestionNotification_ConfigureBindingAction {
+            get {
+                return ResourceManager.GetString("NoBindingSuggestionNotification_ConfigureBindingAction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Learn more.
+        /// </summary>
+        internal static string NoBindingSuggestionNotification_LearnMoreAction {
+            get {
+                return ResourceManager.GetString("NoBindingSuggestionNotification_LearnMoreAction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ConnectedMode: SonarQube for Visual Studio couldn&apos;t match the {0} project &apos;{1}&apos; to the currently opened solution. Please make sure the solution is opened, or try configuring the binding manually..
         /// </summary>
-        internal static string NoBindingMatch {
+        internal static string NoBindingSuggestionNotification_Message {
             get {
-                return ResourceManager.GetString("NoBindingMatch", resourceCulture);
+                return ResourceManager.GetString("NoBindingSuggestionNotification_Message", resourceCulture);
             }
         }
     }
