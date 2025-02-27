@@ -73,15 +73,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             Language language,
             SonarQubeQualityProfile serverQualityProfile)
         {
-            if (language == default)
+            if (language == null || !sonarQubeProject.Profiles.TryGetValue(language, out var localQualityProfile))
             {
                 return false;
             }
-
-            // if we know the language, it's in the dictionary
-            Debug.Assert(sonarQubeProject.Profiles.ContainsKey(language));
-
-            var localQualityProfile = sonarQubeProject.Profiles[language];
 
             return !serverQualityProfile.Key.Equals(localQualityProfile.ProfileKey)
                    || serverQualityProfile.TimeStamp > localQualityProfile.ProfileTimestamp;
