@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             }
             catch (Exception ex)
             {
-                connectedModeServices.Logger.WriteLine(nameof(GetConnectionReferences), ex.Message);
+                connectedModeServices.Logger.WriteLine(ex.ToString());
                 return new AdapterResponseWithData<List<string>>(false, []);
             }
         }

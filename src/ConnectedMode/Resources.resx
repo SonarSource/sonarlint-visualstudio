@@ -317,16 +317,16 @@
     <value>Getting all projects failed</value>
   </data>
   <data name="Binding_Fails" xml:space="preserve">
-    <value>[ConnectedMode] Binding failed due to: {0}</value>
+    <value>Binding failed due to: {0}</value>
   </data>
-  <data name="UseSharedBinding_ConnectionNotFound" xml:space="preserve">
-    <value>[ConnectedMode/UseSharedBinding] Connection to server {0} could not be found</value>
+  <data name="AutomaticBinding_ConnectionNotFound" xml:space="preserve">
+    <value>Connection to server {0} could not be found</value>
   </data>
   <data name="UnexpectedConnectionType" xml:space="preserve">
     <value>Unexpected server connection type</value>
   </data>
-  <data name="UseSharedBinding_CredentiasNotFound" xml:space="preserve">
-    <value>[ConnectedMode/UseSharedBinding] The credentials for the connection {0} could not be found</value>
+  <data name="AutomaticBinding_CredentiasNotFound" xml:space="preserve">
+    <value>The credentials for the connection {0} could not be found</value>
   </data>
   <data name="FuzzySearchProjects_Fails" xml:space="preserve">
     <value>The search for projects for the connectionId {0} with the search term "{1}" failed: {2}</value>
@@ -348,5 +348,11 @@
   </data>
   <data name="GenerateToken_Fails" xml:space="preserve">
     <value>Generating a token for the url {0} failed due to: {1}</value>
+  </data>
+  <data name="ConnectedModeLogContext" xml:space="preserve">
+    <value>Connected Mode</value>
+  </data>
+  <data name="ConnectedModeAutomaticBindingLogContext" xml:space="preserve">
+    <value>Automatic Binding</value>
   </data>
 </root>

@@ -596,13 +596,14 @@ public class ManageConnectionsViewModelTest
     public void GetConnectionReferences_BindingRepositoryThrowsException_ReturnsEmptyList()
     {
         var exceptionMsg = "Failed to retrieve bindings";
-        solutionBindingRepository.When(repo => repo.List()).Do(_ => throw new Exception(exceptionMsg));
+        var exception = new Exception(exceptionMsg);
+        solutionBindingRepository.When(repo => repo.List()).Do(_ => throw exception);
 
         var response = testSubject.GetConnectionReferences(new ConnectionViewModel(twoConnections.First()));
 
         response.Success.Should().BeFalse();
         response.ResponseData.Should().BeEmpty();
-        logger.Received(1).WriteLine(nameof(testSubject.GetConnectionReferences), exceptionMsg);
+        logger.Received(1).WriteLine(exception.ToString());
     }
 
     private void HasExpectedConnections(IEnumerable<Connection> expectedConnections)
