@@ -32,16 +32,16 @@ internal partial class ManageBindingDialog : Window
 {
     private readonly IConnectedModeServices connectedModeServices;
     private readonly IConnectedModeBindingServices connectedModeBindingServices;
-    private readonly bool useSharedBindingOnInitialization;
+    private readonly AutomaticBindingRequest automaticBinding;
 
     public ManageBindingDialog(
         IConnectedModeServices connectedModeServices,
         IConnectedModeBindingServices connectedModeBindingServices,
-        bool useSharedBindingOnInitialization = false)
+        AutomaticBindingRequest automaticBinding = null)
     {
         this.connectedModeServices = connectedModeServices;
         this.connectedModeBindingServices = connectedModeBindingServices;
-        this.useSharedBindingOnInitialization = useSharedBindingOnInitialization;
+        this.automaticBinding = automaticBinding;
         ViewModel = new ManageBindingViewModel(connectedModeServices,
             connectedModeBindingServices,
             new ProgressReporterViewModel(connectedModeServices.Logger));
@@ -73,9 +73,10 @@ internal partial class ManageBindingDialog : Window
     private async void ManageBindingDialog_OnInitialized(object sender, EventArgs e)
     {
         await ViewModel.InitializeDataAsync();
-        if (useSharedBindingOnInitialization)
+
+        if (automaticBinding is not null)
         {
-            await ViewModel.UseSharedBindingWithProgressAsync();
+            await ViewModel.PerformAutomaticBindingWithProgressAsync(automaticBinding);
         }
     }
 
@@ -86,7 +87,7 @@ internal partial class ManageBindingDialog : Window
 
     private async void UseSharedBinding_OnClick(object sender, RoutedEventArgs e)
     {
-        await ViewModel.UseSharedBindingWithProgressAsync();
+        await ViewModel.PerformAutomaticBindingWithProgressAsync(AutomaticBindingRequest.Shared.Current);
     }
 
     private void ExportBindingConfigurationButton_OnClick(object sender, RoutedEventArgs e)

@@ -62,7 +62,7 @@ internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedMod
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     private void ShowDialogManageBinding(bool useSharedBindingOnInitialization)
     {
-        var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices, useSharedBindingOnInitialization);
+        var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices, useSharedBindingOnInitialization ? AutomaticBindingRequest.Shared.Current : null);
         manageBindingDialog.ShowDialog(Application.Current.MainWindow);
     }
 }

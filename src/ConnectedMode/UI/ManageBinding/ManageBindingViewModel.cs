@@ -157,8 +157,7 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         await ProgressReporter.ExecuteTaskWithProgressAsync(displayBindStatus);
 
         var detectSharedBinding = new TaskToPerformParams<AdapterResponse>(CheckForSharedBindingAsync, UiResources.CheckingForSharedBindingText,
-                UiResources.CheckingForSharedBindingFailedText)
-            { AfterProgressUpdated = OnProgressUpdated };
+            UiResources.CheckingForSharedBindingFailedText) { AfterProgressUpdated = OnProgressUpdated };
         await ProgressReporter.ExecuteTaskWithProgressAsync(detectSharedBinding);
     }
 
@@ -168,9 +167,12 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         await ProgressReporter.ExecuteTaskWithProgressAsync(bind);
     }
 
-    public async Task UseSharedBindingWithProgressAsync()
+    public async Task PerformAutomaticBindingWithProgressAsync(AutomaticBindingRequest automaticBinding)
     {
-        var bind = new TaskToPerformParams<AdapterResponse>(UseSharedBindingAsync, UiResources.BindingInProgressText, UiResources.BindingFailedText) { AfterProgressUpdated = OnProgressUpdated };
+        var bind = new TaskToPerformParams<AdapterResponse>(() => PerformAutomaticBindingInternalAsync(automaticBinding), UiResources.BindingInProgressText, UiResources.BindingFailedText)
+        {
+            AfterProgressUpdated = OnProgressUpdated
+        };
         await ProgressReporter.ExecuteTaskWithProgressAsync(bind);
     }
 
@@ -198,18 +200,6 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
     {
         SharedBindingConfigModel = connectedModeBindingServices.SharedBindingConfigProvider.GetSharedBinding();
         return Task.FromResult(new AdapterResponse(true));
-    }
-
-    internal async Task<AdapterResponse> UseSharedBindingAsync()
-    {
-        var connectionInfo = CreateConnectionInfoFromSharedBinding();
-        if (!ConnectionExists(connectionInfo, out var serverConnection) || !CredentialsExists(connectionInfo, serverConnection))
-        {
-            return new AdapterResponse(false);
-        }
-
-        var response = await BindAsync(serverConnection, SharedBindingConfigModel.ProjectKey);
-        return new AdapterResponse(response.Success);
     }
 
     internal void UpdateProgress(string status)
@@ -318,34 +308,9 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            connectedModeServices.Logger.WriteLine($"{ConnectedMode.Resources.Binding_Fails}", ex.Message);
+            connectedModeServices.Logger.WriteLine(ConnectedMode.Resources.Binding_Fails, ex.Message);
             return new AdapterResponse(false);
         }
-    }
-
-    private bool ConnectionExists(ConnectionInfo connectionInfo, out ServerConnection serverConnection)
-    {
-        if (connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(connectionInfo, out serverConnection))
-        {
-            return true;
-        }
-
-        connectedModeServices.Logger.WriteLine(new MessageLevelContext { Context = [ConnectedMode.Resources.ConnectedModeAutomaticBindingLogContext] }, ConnectedMode.Resources.AutomaticBinding_ConnectionNotFound, connectionInfo.Id);
-        connectedModeServices.MessageBox.Show(UiResources.NotFoundConnectionForAutomaticBindingMessageBoxText, UiResources.NotFoundConnectionForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
-            MessageBoxImage.Warning);
-        return false;
-    }
-
-    private bool CredentialsExists(ConnectionInfo connectionInfo, ServerConnection serverConnection)
-    {
-        if (serverConnection.Credentials != null)
-        {
-            return true;
-        }
-        connectedModeServices.Logger.WriteLine(new MessageLevelContext { Context = [ConnectedMode.Resources.ConnectedModeAutomaticBindingLogContext] }, ConnectedMode.Resources.AutomaticBinding_CredentiasNotFound, connectionInfo.Id);
-        connectedModeServices.MessageBox.Show(UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxText, UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
-            MessageBoxImage.Warning);
-        return false;
     }
 
     private ConnectionInfo CreateConnectionInfoFromSharedBinding() =>
@@ -366,4 +331,82 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         var isFolderWorkspace = await connectedModeBindingServices.SolutionInfoProvider.IsFolderWorkspaceAsync();
         return new SolutionInfoModel(solutionName, isFolderWorkspace ? SolutionType.Folder : SolutionType.Solution);
     }
+
+    #region Automatic Binding Implementation
+
+    internal async Task<AdapterResponse> PerformAutomaticBindingInternalAsync(AutomaticBindingRequest automaticBinding)
+    {
+        var logContext = new MessageLevelContext { Context = [ConnectedMode.Resources.ConnectedModeAutomaticBindingLogContext, automaticBinding.TypeName], VerboseContext = [automaticBinding.ToString()]};
+
+        if (!SelectAutomaticBindingArguments(logContext, automaticBinding, out var serverConnectionId, out var serverProjectKey)
+            || !AutomaticBindingConnectionExists(logContext, serverConnectionId, out var serverConnection)
+            || !AutomaticBindingCredentialsExists(logContext, serverConnection))
+        {
+            return new AdapterResponse(false);
+        }
+
+        var response = await BindAsync(serverConnection, serverProjectKey);
+        return new AdapterResponse(response.Success);
+    }
+
+    private bool SelectAutomaticBindingArguments(MessageLevelContext logContext, AutomaticBindingRequest automaticBinding, out string serverConnectionId, out string serverProjectKey)
+    {
+        switch (automaticBinding)
+        {
+            case AutomaticBindingRequest.Assisted assistedBinding:
+                serverConnectionId = assistedBinding.ServerConnectionId;
+                serverProjectKey = assistedBinding.ServerProjectKey;
+                return true;
+            case AutomaticBindingRequest.Shared:
+                Debug.Assert(SharedBindingConfigModel != null,"Shared binding should never be called when it's not available");
+                serverConnectionId = CreateConnectionInfoFromSharedBinding().GetServerIdFromConnectionInfo();
+                serverProjectKey = SharedBindingConfigModel.ProjectKey;
+                return true;
+            default:
+                connectedModeServices.Logger.WriteLine(logContext, ConnectedMode.Resources.AutomaticBinding_ConfigurationNotAvailable);
+                serverConnectionId = null;
+                serverProjectKey = null;
+                return false;
+        }
+    }
+
+    private bool AutomaticBindingConnectionExists(MessageLevelContext logContext, string connectionId, out ServerConnection serverConnection)
+    {
+        if (connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(connectionId, out serverConnection))
+        {
+            return true;
+        }
+
+        connectedModeServices.Logger.WriteLine(
+            logContext,
+            ConnectedMode.Resources.AutomaticBinding_ConnectionNotFound,
+            connectionId);
+        connectedModeServices.MessageBox.Show(
+            UiResources.NotFoundConnectionForAutomaticBindingMessageBoxText,
+            UiResources.NotFoundConnectionForAutomaticBindingMessageBoxCaption,
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        return false;
+    }
+
+    private bool AutomaticBindingCredentialsExists(MessageLevelContext logContext, ServerConnection serverConnection)
+    {
+        if (serverConnection.Credentials != null)
+        {
+            return true;
+        }
+
+        connectedModeServices.Logger.WriteLine(
+            logContext,
+            ConnectedMode.Resources.AutomaticBinding_CredentiasNotFound,
+            serverConnection.Id);
+        connectedModeServices.MessageBox.Show(
+            UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxText,
+            UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxCaption,
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+        return false;
+    }
+
+    #endregion
 }
