@@ -19,63 +19,57 @@
  */
 
 using Microsoft.VisualStudio.Text;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
+namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis;
+
+[TestClass]
+public class IssueConsumerFactoryTests
 {
-    [TestClass]
-    public class IssueConsumerFactoryTests
+    [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<IssueConsumerFactory, IIssueConsumerFactory>(
+            MefTestHelpers.CreateExport<IAnalysisIssueVisualizationConverter>(),
+            MefTestHelpers.CreateExport<ILocalHotspotsStoreUpdater>());
+
+    [TestMethod]
+    public void Create_InitializedIssueConsumerReturned()
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<IssueConsumerFactory, IIssueConsumerFactory>(
-                MefTestHelpers.CreateExport<ISuppressedIssueMatcher>(),
-                MefTestHelpers.CreateExport<IAnalysisIssueVisualizationConverter>(),
-                MefTestHelpers.CreateExport<ILocalHotspotsStoreUpdater>());
-        }
+        IIssuesSnapshot publishedIssuesSnapshot = null;
+        var validTextDocument = CreateValidTextDocument("updatedfile.txt");
 
-        [TestMethod]
-        public void Create_InitializedIssueConsumerReturned()
-        {
-            IIssuesSnapshot publishedIssuesSnapshot = null;
-            var validTextDocument = CreateValidTextDocument("updatedfile.txt");
+        var testSubject = new IssueConsumerFactory(Substitute.For<IAnalysisIssueVisualizationConverter>(), Substitute.For<ILocalHotspotsStoreUpdater>());
 
-            var testSubject = new IssueConsumerFactory(Substitute.For<ISuppressedIssueMatcher>(),
-                Substitute.For<IAnalysisIssueVisualizationConverter>(), Substitute.For<ILocalHotspotsStoreUpdater>());
+        var consumer = testSubject.Create(validTextDocument,
+            "analysisfile.txt",
+            Substitute.For<ITextSnapshot>(),
+            "project name",
+            projectGuid: Guid.NewGuid(),
+            x => { publishedIssuesSnapshot = x; });
+        consumer.Should().NotBeNull();
+        /* The empty issues list is passed as an argument here because
+        it's impossible to verify the actual pipeline due to the fact
+        that mocking ITextSnapshot in a way that then can be used by a SnapshotSpan takes a lot of effort */
+        consumer.SetIssues("analysisfile.txt", []);
 
-            var consumer = testSubject.Create(validTextDocument,
-                "analysisfile.txt",
-                Substitute.For<ITextSnapshot>(),
-                "project name",
-                projectGuid: Guid.NewGuid(),
-                x => { publishedIssuesSnapshot = x; });
-            consumer.Should().NotBeNull();
-            /* The empty issues list is passed as an argument here because
-            it's impossible to verify the actual pipeline due to the fact
-            that mocking ITextSnapshot in a way that then can be used by a SnapshotSpan takes a lot of effort */
-            consumer.SetIssues("analysisfile.txt", []);
+        publishedIssuesSnapshot.Should().NotBeNull();
+        publishedIssuesSnapshot.AnalyzedFilePath.Should().Be("updatedfile.txt"); // filename should be updted by this point
+        publishedIssuesSnapshot.Issues.Should().BeEquivalentTo([]);
+    }
 
-            publishedIssuesSnapshot.Should().NotBeNull();
-            publishedIssuesSnapshot.AnalyzedFilePath.Should().Be("updatedfile.txt"); // filename should be updted by this point
-            publishedIssuesSnapshot.Issues.Should().BeEquivalentTo([]);
-        }
+    private static ITextDocument CreateValidTextDocument(string filePath)
+    {
+        var document = Substitute.For<ITextDocument>();
+        var buffer = Substitute.For<ITextBuffer>();
+        var snapshot = Substitute.For<ITextSnapshot>();
 
-        private static ITextDocument CreateValidTextDocument(string filePath)
-        {
-            var document = Substitute.For<ITextDocument>();
-            var buffer = Substitute.For<ITextBuffer>();
-            var snapshot = Substitute.For<ITextSnapshot>();
+        document.FilePath.Returns(filePath);
+        document.TextBuffer.Returns(buffer);
+        buffer.CurrentSnapshot.Returns(snapshot);
 
-            document.FilePath.Returns(filePath);
-            document.TextBuffer.Returns(buffer);
-            buffer.CurrentSnapshot.Returns(snapshot);
-
-            return document;
-        }
+        return document;
     }
 }
