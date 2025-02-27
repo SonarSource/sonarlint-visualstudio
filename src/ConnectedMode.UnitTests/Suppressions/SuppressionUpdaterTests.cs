@@ -62,7 +62,6 @@ public class SuppressionUpdaterTests
         MefTestHelpers.CheckTypeCanBeImported<SuppressionUpdater, ISuppressionUpdater>(
             MefTestHelpers.CreateExport<ISonarQubeService>(),
             MefTestHelpers.CreateExport<IServerQueryInfoProvider>(),
-            MefTestHelpers.CreateExport<IServerIssuesStoreWriter>(),
             MefTestHelpers.CreateExport<ICancellableActionRunner>(),
             MefTestHelpers.CreateExport<ILogger>());
 
@@ -216,8 +215,7 @@ public class SuppressionUpdaterTests
 
         AssertMessageExists(Resources.Suppressions_FetchOperationCancelled);
 
-        // If cancellation worked then we should only have made one call to each
-        // of the SonarQubeService and store writer
+        // If cancellation worked then we should only have made one call to the SonarQubeService
         server.ReceivedCalls().Should().HaveCount(1);
         VerifySuppressedIssuesReloadedInvoked([]);
 
