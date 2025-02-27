@@ -60,10 +60,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 
         public Task<AssistBindingResponse> AssistBindingAsync(AssistBindingParams parameters) => throw new NotImplementedException();
 
-        public void NoBindingSuggestionFound(NoBindingSuggestionFoundParams parameters)
-        {
-            bindingSuggestionHandler.Notify();
-        }
+        public void NoBindingSuggestionFound(NoBindingSuggestionFoundParams parameters) => bindingSuggestionHandler.Notify(parameters.projectKey, parameters.isSonarCloud);
 
         private ServerConnection ConvertSeverConnection(AssistCreatingConnectionParams parameters)
         {

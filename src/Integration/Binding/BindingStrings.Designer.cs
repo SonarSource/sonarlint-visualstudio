@@ -61,15 +61,6 @@ namespace SonarLint.VisualStudio.Integration.Binding {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Connect.
-        /// </summary>
-        internal static string BindingSuggestionConnect {
-            get {
-                return ResourceManager.GetString("BindingSuggestionConnect", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Learn more.
         /// </summary>
         internal static string BindingSuggestionLearnMore {
@@ -88,11 +79,11 @@ namespace SonarLint.VisualStudio.Integration.Binding {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ConnectedMode: The current bound project does not match the SonarQube (Server, Cloud) project. Please make sure you have the correct solution opened..
+        ///   Looks up a localized string similar to Configure Binding.
         /// </summary>
-        internal static string BindingSuggetsionBindingConflict {
+        internal static string ConfigureBinding {
             get {
-                return ResourceManager.GetString("BindingSuggetsionBindingConflict", resourceCulture);
+                return ResourceManager.GetString("ConfigureBinding", resourceCulture);
             }
         }
         
@@ -134,6 +125,15 @@ namespace SonarLint.VisualStudio.Integration.Binding {
         internal static string FoundConflictingAdditionalFile {
             get {
                 return ResourceManager.GetString("FoundConflictingAdditionalFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ConnectedMode: SonarQube for Visual Studio couldn&apos;t match the {0} project &apos;{1}&apos; to the currently opened solution. Please make sure the solution is opened, or try configuring the binding manually..
+        /// </summary>
+        internal static string NoBindingMatch {
+            get {
+                return ResourceManager.GetString("NoBindingMatch", resourceCulture);
             }
         }
     }

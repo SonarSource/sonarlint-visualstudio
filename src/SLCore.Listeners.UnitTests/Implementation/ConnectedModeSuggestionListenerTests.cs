@@ -164,11 +164,15 @@ public class ConnectedModeSuggestionListenerTests
     }
 
     [TestMethod]
-    public void NoBindingSuggestionFound_Notifies()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void NoBindingSuggestionFound_Notifies(bool isSonarCloud)
     {
-        testSubject.NoBindingSuggestionFound(new NoBindingSuggestionFoundParams("a-project-key"));
+        var projectKey = "a-project-key";
 
-        bindingSuggestionHandler.Received().Notify();
+        testSubject.NoBindingSuggestionFound(new NoBindingSuggestionFoundParams(projectKey, isSonarCloud));
+
+        bindingSuggestionHandler.Received().Notify(projectKey, isSonarCloud);
     }
 
     private void MockTrustConnectionDialogSucceeds() => connectedModeUIManager.ShowTrustConnectionDialogAsync(Arg.Any<ServerConnection>(), Arg.Any<string>()).Returns(true);

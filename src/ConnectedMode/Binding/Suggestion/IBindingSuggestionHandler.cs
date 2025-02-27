@@ -22,5 +22,5 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 
 public interface IBindingSuggestionHandler
 {
-    void Notify();
+    void Notify(string projectKey, bool isSonarCloud);
 }
