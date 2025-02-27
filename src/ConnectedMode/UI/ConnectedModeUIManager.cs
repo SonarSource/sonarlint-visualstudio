@@ -32,7 +32,7 @@ public interface IConnectedModeUIManager
 {
     void ShowManageBindingDialog(bool useSharedBindingOnInitialization = false);
 
-    bool? ShowTrustConnectionDialog(ServerConnection serverConnection, string token);
+    Task<bool?> ShowTrustConnectionDialogAsync(ServerConnection serverConnection, string token);
 }
 
 [Export(typeof(IConnectedModeUIManager))]
@@ -44,10 +44,10 @@ internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedMod
     public void ShowManageBindingDialog(bool useSharedBindingOnInitialization = false) =>
         connectedModeServices.ThreadHandling.RunOnUIThread(() => ShowDialogManageBinding(useSharedBindingOnInitialization));
 
-    public bool? ShowTrustConnectionDialog(ServerConnection serverConnection, string token)
+    public async Task<bool?> ShowTrustConnectionDialogAsync(ServerConnection serverConnection, string token)
     {
         bool? dialogResult = null;
-        connectedModeServices.ThreadHandling.RunOnUIThread(() => dialogResult = GetTrustConnectionDialogResult(serverConnection, token));
+        await connectedModeServices.ThreadHandling.RunOnUIThreadAsync(() => dialogResult = GetTrustConnectionDialogResult(serverConnection, token));
 
         return dialogResult;
     }

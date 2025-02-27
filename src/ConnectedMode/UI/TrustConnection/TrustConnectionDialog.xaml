@@ -7,8 +7,8 @@
         xmlns:links="clr-namespace:SonarLint.VisualStudio.Core;assembly=SonarLint.VisualStudio.Core"
         xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
         xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
-        Height="400"
-        MinHeight="400"
+        Height="500"
+        MinHeight="500"
         WindowStartupLocation="CenterOwner"
         x:Name="This">
     <Window.Resources>
@@ -20,6 +20,21 @@
 
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
             <wpf:BoolToVisibilityConverter x:Key="FalseToVisibleConverter" FalseValue="Visible" TrueValue="Collapsed" />
+
+            <Style x:Key="AutomaticTokenTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                <Setter Property="FontStyle" Value="Italic" />
+                <Setter Property="Margin" Value="0,0,0,10" />
+                <Setter Property="VerticalAlignment" Value="Bottom" />
+                <Setter Property="FontSize" Value="{DynamicResource {x:Static vsShell:VsFonts.Environment111PercentFontSizeKey}}" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Path=ProgressReporterViewModel.IsOperationInProgress}" Value="True">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Path=ProgressReporterViewModel.HasWarning}" Value="True">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
         </ResourceDictionary>
     </Window.Resources>
     <Window.Style>
@@ -64,19 +79,27 @@
                                    Margin="0,10" VerticalAlignment="Bottom" />
             </Grid>
 
-            <TextBlock Grid.Row="2" Margin="0,20" FontStyle="Italic"
-                       FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment111PercentFontSizeKey}}"
-                       VerticalAlignment="Bottom">
-                <Run Text="{x:Static res:UiResources.TrustConnectionTokenInfoText}" />
-                <Underline>
-                    <Run Text="{x:Static res:UiResources.SonarQubeServer}" />
-                </Underline>
-            </TextBlock>
+            <Grid Grid.Row="2" Margin="0,5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <ui:ProgressAndErrorHandlerComponent Grid.Row="0" Grid.Column="0" Margin="0,5" ProgressReporterViewModel="{Binding Path=ProgressReporterViewModel}" 
+                                                     VerticalAlignment="Bottom"/>
+
+                <TextBlock Grid.Row="1" Style="{StaticResource AutomaticTokenTextBlockStyle}">
+                    <Run Text="{x:Static res:UiResources.TrustConnectionTokenInfoText}" />
+                    <Underline>
+                        <Run Text="{x:Static res:UiResources.SonarQubeServer}" />
+                    </Underline>
+                </TextBlock>
+            </Grid>
 
             <Grid Grid.Row="3" HorizontalAlignment="Right">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Button Grid.Column="0" Content="{x:Static res:UiResources.DoNotTrustServerButton}" IsCancel="True" />
                 <Button Grid.Column="1" Content="{x:Static res:UiResources.TrustServerButton}" IsDefault="True"
@@ -122,19 +145,27 @@
                                    Margin="0,10" VerticalAlignment="Bottom" />
             </Grid>
 
-            <TextBlock Grid.Row="2" Margin="0,20" FontStyle="Italic"
-                       FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment111PercentFontSizeKey}}"
-                       VerticalAlignment="Bottom">
-                <Run Text="{x:Static res:UiResources.TrustConnectionTokenInfoText}" />
-                <Underline>
-                    <Run Text="{x:Static res:UiResources.SonarQubeCloud}" />
-                </Underline>
-            </TextBlock>
+            <Grid Grid.Row="2" Margin="0,5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <ui:ProgressAndErrorHandlerComponent Grid.Row="0" Grid.Column="0" Margin="0,5" ProgressReporterViewModel="{Binding Path=ProgressReporterViewModel}" 
+                                                     VerticalAlignment="Bottom"/>
+
+                <TextBlock Grid.Row="1" Style="{StaticResource AutomaticTokenTextBlockStyle}">
+                    <Run Text="{x:Static res:UiResources.TrustConnectionTokenInfoText}" />
+                    <Underline>
+                        <Run Text="{x:Static res:UiResources.SonarQubeCloud}" />
+                    </Underline>
+                </TextBlock>
+            </Grid>
 
             <Grid Grid.Row="3" HorizontalAlignment="Right">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Button Grid.Column="0" Content="{x:Static res:UiResources.DoNotTrustOrganizationButton}"
                         IsCancel="True" />
