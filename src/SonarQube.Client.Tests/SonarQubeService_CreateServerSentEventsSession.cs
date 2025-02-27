@@ -18,73 +18,67 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarQube.Client.Models.ServerSentEvents;
 
-namespace SonarQube.Client.Tests
+namespace SonarQube.Client.Tests;
+
+[TestClass]
+public class SonarQubeService_CreateSSEStreamReader : SonarQubeService_TestBase
 {
-    [TestClass]
-    public class SonarQubeService_CreateSSEStreamReader : SonarQubeService_TestBase
+    [TestMethod]
+    public async Task CreateSSEStreamReader_SupportedServerVersion_CreatesSession()
     {
-        [TestMethod]
-        public async Task CreateSSEStreamReader_SupportedServerVersion_CreatesSession()
-        {
-            var expectedCreatedSSEStream = Mock.Of<ISSEStreamReader>();
+        var expectedCreatedSSEStream = Mock.Of<ISSEStreamReader>();
 
-            sseStreamFactory
-                .Setup(x => x.Create(It.IsAny<Stream>(), CancellationToken.None))
-                .Returns(expectedCreatedSSEStream);
+        sseStreamFactory
+            .Setup(x => x.Create(It.IsAny<Stream>(), CancellationToken.None))
+            .Returns(expectedCreatedSSEStream);
 
-            await ConnectToSonarQube("9.4.0.0");
+        await ConnectToSonarQube("9.4.0.0");
 
-            SetupRequest("api/push/sonarlint_events?languages=cs%2Cvbnet%2Ccpp%2Cc%2Cjs%2Cts%2Csecrets%2Ccss%2Cweb%2Ctsql&projectKeys=myProject",
-                new HttpResponseMessage
-                {
-                    Content = new StreamContent(Stream.Null)
-                },
-                MediaTypeHeaderValue.Parse("text/event-stream"));
+        SetupRequest("api/push/sonarlint_events?languages=cs%2Cvbnet&projectKeys=myProject",
+            new HttpResponseMessage
+            {
+                Content = new StreamContent(Stream.Null)
+            },
+            MediaTypeHeaderValue.Parse("text/event-stream"));
 
-            var result = await service.CreateSSEStreamReader("myProject", CancellationToken.None);
+        var result = await service.CreateSSEStreamReader("myProject", CancellationToken.None);
 
-            result.Should().NotBeNull();
-            result.Should().Be(expectedCreatedSSEStream);
-        }
+        result.Should().NotBeNull();
+        result.Should().Be(expectedCreatedSSEStream);
+    }
 
-        [TestMethod]
-        public async Task CreateSSEStreamReader_UnsupportedServerVersion_InvalidOperationException()
-        {
-            await ConnectToSonarQube("3.3.0.0");
+    [TestMethod]
+    public async Task CreateSSEStreamReader_UnsupportedServerVersion_InvalidOperationException()
+    {
+        await ConnectToSonarQube("3.3.0.0");
 
-            Func<Task<ISSEStreamReader>> func = async () => await service.CreateSSEStreamReader("myProject", CancellationToken.None);
+        Func<Task<ISSEStreamReader>> func = async () => await service.CreateSSEStreamReader("myProject", CancellationToken.None);
 
-            const string expectedErrorMessage =
-                "Could not find compatible implementation of 'IGetSonarLintEventStream' for SonarQube 3.3.0.0.";
+        const string expectedErrorMessage =
+            "Could not find compatible implementation of 'IGetSonarLintEventStream' for SonarQube 3.3.0.0.";
 
-            func.Should().ThrowExactly<InvalidOperationException>().WithMessage(expectedErrorMessage);
+        func.Should().ThrowExactly<InvalidOperationException>().WithMessage(expectedErrorMessage);
 
-            logger.ErrorMessages.Should().Contain(expectedErrorMessage);
-        }
+        logger.ErrorMessages.Should().Contain(expectedErrorMessage);
+    }
 
-        [TestMethod]
-        public void CreateSSEStreamReader_NotConnected_InvalidOperationException()
-        {
-            // No calls to Connect
-            // No need to setup request, the operation should fail
+    [TestMethod]
+    public void CreateSSEStreamReader_NotConnected_InvalidOperationException()
+    {
+        // No calls to Connect
+        // No need to setup request, the operation should fail
 
-            Func<Task<ISSEStreamReader>> func = async () => await service.CreateSSEStreamReader("myProject", CancellationToken.None);
+        Func<Task<ISSEStreamReader>> func = async () => await service.CreateSSEStreamReader("myProject", CancellationToken.None);
 
-            func.Should().ThrowExactly<InvalidOperationException>()
-                .WithMessage("This operation expects the service to be connected.");
+        func.Should().ThrowExactly<InvalidOperationException>()
+            .WithMessage("This operation expects the service to be connected.");
 
-            logger.ErrorMessages.Should().Contain("The service is expected to be connected.");
-        }
+        logger.ErrorMessages.Should().Contain("The service is expected to be connected.");
     }
 }
