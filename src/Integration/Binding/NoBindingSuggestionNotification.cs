@@ -21,16 +21,18 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Notifications;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    [Export(typeof(IBindingSuggestionHandler))]
+    [Export(typeof(INoBindingSuggestionNotification))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class BindingSuggestionHandler : IBindingSuggestionHandler, IDisposable
+    internal sealed class NoBindingSuggestionNotification : INoBindingSuggestionNotification, IDisposable
     {
+        private const string NotificationId = "ConnectedModeSuggestionId";
         private readonly INotificationService notificationService;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly IIDEWindowService ideWindowService;
@@ -38,7 +40,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IBrowserService browserService;
 
         [ImportingConstructor]
-        public BindingSuggestionHandler(INotificationService notificationService,
+        public NoBindingSuggestionNotification(
+            INotificationService notificationService,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             IIDEWindowService ideWindowService,
             IConnectedModeUIManager connectedModeUiManager,
@@ -53,38 +56,22 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.activeSolutionBoundTracker.SolutionBindingChanged += OnActiveSolutionBindingChanged;
         }
 
-        public void Notify()
+        public void Show(string projectKey, bool isSonarCloud)
         {
-            const string id = "ConnectedModeSuggestionId";
-
-            var isStandaloneMode = activeSolutionBoundTracker.CurrentConfiguration.Mode == SonarLintMode.Standalone;
-
-            var message = isStandaloneMode
-                ? BindingStrings.BindingSuggestionProjectNotBound
-                : BindingStrings.BindingSuggetsionBindingConflict;
-
-            var connectAction = new NotificationAction(BindingStrings.BindingSuggestionConnect,
-                _ => connectedModeUiManager.ShowManageBindingDialog(),
-                true);
-            var learnMoreAction = new NotificationAction(BindingStrings.BindingSuggestionLearnMore,
-                _ => browserService.Navigate(DocumentationLinks.OpenInIdeBindingSetup),
-                false);
+            var connectAction = new NotificationAction(BindingStrings.NoBindingSuggestionNotification_ConfigureBindingAction, _ => connectedModeUiManager.ShowManageBindingDialog(), true);
+            var learnMoreAction = new NotificationAction(BindingStrings.NoBindingSuggestionNotification_LearnMoreAction, _ => browserService.Navigate(DocumentationLinks.OpenInIdeBindingSetup), false);
 
             var notification = new Notification(
-                id: id,
-                message: message,
+                id: NotificationId,
+                message: FormatNotificationMessage(projectKey, isSonarCloud),
                 showOncePerSession: false,
-                actions: isStandaloneMode ? [connectAction, learnMoreAction] : [learnMoreAction]);
+                actions: [connectAction, learnMoreAction]);
 
             notificationService.ShowNotification(notification);
-
             ideWindowService.BringToFront();
         }
 
-        public void Dispose()
-        {
-            activeSolutionBoundTracker.SolutionBindingChanged -= OnActiveSolutionBindingChanged;
-        }
+        public void Dispose() => activeSolutionBoundTracker.SolutionBindingChanged -= OnActiveSolutionBindingChanged;
 
         private void OnActiveSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
         {
@@ -92,6 +79,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 notificationService.CloseNotification();
             }
+        }
+
+        private static string FormatNotificationMessage(string projectKey, bool isSonarCloud)
+        {
+            var serverName = isSonarCloud ? UiResources.SonarQubeCloud : UiResources.SonarQubeServer;
+            return string.Format(BindingStrings.NoBindingSuggestionNotification_Message, serverName, projectKey);
         }
     }
 }
