@@ -665,7 +665,7 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public async Task InitializeDataAsync_WhenStandalone_ChecksForSharedBindingAndReportsProgress()
+    public async Task InitializeDataAsync_WhenStandalone_ChecksForAutomaticBindingAndReportsProgress()
     {
         SetupUnboundProject();
 
@@ -681,7 +681,7 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public async Task InitializeDataAsync_WhenBound_ChecksForSharedBindingAndReportsProgress()
+    public async Task InitializeDataAsync_WhenBound_ChecksForAutomaticBindingAndReportsProgress()
     {
         testSubject.BoundProject = serverProject;
 
@@ -1035,9 +1035,9 @@ public class ManageBindingViewModelTests
         var response = await testSubject.UseSharedBindingAsync();
 
         response.Success.Should().BeFalse();
-        messageBox.Received(1).Show(UiResources.NotFoundConnectionForSharedBindingMessageBoxText, UiResources.NotFoundConnectionForSharedBindingMessageBoxCaption, MessageBoxButton.OK,
+        messageBox.Received(1).Show(UiResources.NotFoundConnectionForAutomaticBindingMessageBoxText, UiResources.NotFoundConnectionForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
             MessageBoxImage.Warning);
-        logger.WriteLine(Resources.UseSharedBinding_ConnectionNotFound, testSubject.SharedBindingConfigModel.Uri);
+        logger.WriteLine(Resources.AutomaticBinding_ConnectionNotFound, testSubject.SharedBindingConfigModel.Uri);
         await bindingController.DidNotReceive()
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
                 proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
@@ -1052,8 +1052,8 @@ public class ManageBindingViewModelTests
         var response = await testSubject.UseSharedBindingAsync();
 
         response.Success.Should().BeFalse();
-        logger.WriteLine(Resources.UseSharedBinding_ConnectionNotFound, testSubject.SharedBindingConfigModel.Organization);
-        messageBox.Received(1).Show(UiResources.NotFoundConnectionForSharedBindingMessageBoxText, UiResources.NotFoundConnectionForSharedBindingMessageBoxCaption, MessageBoxButton.OK,
+        logger.WriteLine(Resources.AutomaticBinding_ConnectionNotFound, testSubject.SharedBindingConfigModel.Organization);
+        messageBox.Received(1).Show(UiResources.NotFoundConnectionForAutomaticBindingMessageBoxText, UiResources.NotFoundConnectionForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
             MessageBoxImage.Warning);
         await bindingController.DidNotReceive()
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
@@ -1071,8 +1071,8 @@ public class ManageBindingViewModelTests
         var response = await testSubject.UseSharedBindingAsync();
 
         response.Success.Should().BeFalse();
-        logger.WriteLine(Resources.UseSharedBinding_CredentiasNotFound, testSubject.SharedBindingConfigModel.Organization);
-        messageBox.Received(1).Show(UiResources.NotFoundCredentialsForSharedBindingMessageBoxText, UiResources.NotFoundCredentialsForSharedBindingMessageBoxCaption, MessageBoxButton.OK,
+        logger.WriteLine(Resources.AutomaticBinding_CredentiasNotFound, testSubject.SharedBindingConfigModel.Organization);
+        messageBox.Received(1).Show(UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxText, UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
             MessageBoxImage.Warning);
         await bindingController.DidNotReceive()
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
@@ -1090,8 +1090,8 @@ public class ManageBindingViewModelTests
         var response = await testSubject.UseSharedBindingAsync();
 
         response.Success.Should().BeFalse();
-        logger.WriteLine(Resources.UseSharedBinding_CredentiasNotFound, testSubject.SharedBindingConfigModel.Uri);
-        messageBox.Received(1).Show(UiResources.NotFoundCredentialsForSharedBindingMessageBoxText, UiResources.NotFoundCredentialsForSharedBindingMessageBoxCaption, MessageBoxButton.OK,
+        logger.WriteLine(Resources.AutomaticBinding_CredentiasNotFound, testSubject.SharedBindingConfigModel.Uri);
+        messageBox.Received(1).Show(UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxText, UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
             MessageBoxImage.Warning);
         await bindingController.DidNotReceive()
             .BindAsync(Arg.Is<BoundServerProject>(proj =>

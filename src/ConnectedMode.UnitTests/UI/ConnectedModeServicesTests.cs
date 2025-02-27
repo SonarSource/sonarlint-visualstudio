@@ -43,4 +43,24 @@ public class ConnectedModeServicesTests
             MefTestHelpers.CreateExport<IDogfoodingService>(),
             MefTestHelpers.CreateExport<IIDEWindowService>()
         );
+
+    [TestMethod]
+    public void Ctor_SetsLogContext()
+    {
+        var logger = Substitute.For<ILogger>();
+        _ = new ConnectedModeServices(
+            Substitute.For<IBrowserService>(),
+            Substitute.For<IThreadHandling>(),
+            Substitute.For<ISlCoreConnectionAdapter>(),
+            Substitute.For<IConfigurationProvider>(),
+            Substitute.For<IServerConnectionsRepositoryAdapter>(),
+            Substitute.For<IMessageBox>(),
+            logger,
+            Substitute.For<ITelemetryManager>(),
+            Substitute.For<IDogfoodingService>(),
+            Substitute.For<IIDEWindowService>()
+        );
+
+        logger.Received().ForContext(Resources.ConnectedModeLogContext);
+    }
 }
