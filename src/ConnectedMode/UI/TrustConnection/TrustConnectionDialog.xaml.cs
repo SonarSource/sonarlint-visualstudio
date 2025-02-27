@@ -22,6 +22,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security;
 using System.Windows;
 using System.Windows.Navigation;
+using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.Binding;
 
@@ -46,8 +47,25 @@ public partial class TrustConnectionDialog : Window
 
     private async void TrustServerButton_OnClick(object sender, RoutedEventArgs e)
     {
+        if (ViewModel.Token == null && !AddToken())
+        {
+            ViewModel.ProgressReporterViewModel.Warning = UiResources.TrustConnectionAddTokenFailed;
+            return;
+        }
         await ViewModel.CreateConnectionsWithProgressAsync();
         DialogResult = true;
         Close();
+    }
+
+    private bool AddToken()
+    {
+        var credentialsDialog = new CredentialsDialog(connectedModeServices, ViewModel.Connection.Info, withNextButton: false);
+        var wasTokenAdded = credentialsDialog.ShowDialog(this) == true;
+        if (wasTokenAdded)
+        {
+            ViewModel.Token = credentialsDialog.ViewModel.Token;
+        }
+
+        return wasTokenAdded;
     }
 }
