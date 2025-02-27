@@ -23,6 +23,7 @@ using System.IO.Abstractions;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
@@ -31,16 +32,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
     public class SharedBindingConfigFileProviderTests
     {
         [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
+        public void MefCtor_CheckIsExported() =>
             MefTestHelpers.CheckTypeCanBeImported<SharedBindingConfigFileProvider, ISharedBindingConfigFileProvider>(
-                MefTestHelpers.CreateExport<ILogger>());
-        }
+                MefTestHelpers.CreateExport<ILogger>(), MefTestHelpers.CreateExport<IFileSystemService>());
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton() =>
+            MefTestHelpers.CheckIsSingletonMefComponent<SharedBindingConfigFileProvider>();
 
         [DataRow("""{"SonarQubeUri":"https://127.0.0.1:9000","ProjectKey":"projectKey"}""")]
         [DataRow("""{"sonarQubeUri":"https://127.0.0.1:9000","projectKey":"projectKey"}""")]
         [TestMethod]
-        public void ReadSharedBindingConfigFile_SQConfig_Reads(string configFileContent)
+        public void Read_SQConfig_Reads(string configFileContent)
         {
             var filePath = "Some Path";
             var uri = new Uri("https://127.0.0.1:9000");
@@ -51,7 +54,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 
             var testSubject = CreateTestSubject(fileSystem.Object);
 
-            var result = testSubject.ReadSharedBindingConfigFile(filePath);
+            var result = testSubject.Read(filePath);
 
             result.Uri.Should().BeEquivalentTo(uri);
             result.ProjectKey.Should().Be("projectKey");
@@ -65,7 +68,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         [DataRow("""{"SonarCloudOrganization":"Some Organisation","Region": "US","ProjectKey":"projectKey"}""", "US")]
         [DataRow("""{"sonarCloudOrganization":"Some Organisation","region": "US","projectKey":"projectKey"}""", "US")]
         [DataTestMethod]
-        public void ReadSharedBindingConfigFile_SCConfig_Reads(string configFileContent, string region)
+        public void Read_SCConfig_Reads(string configFileContent, string region)
         {
             string filePath = "Some Path";
             var cloudServerRegion = CloudServerRegion.GetRegionByName(region);
@@ -75,7 +78,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 
             var testSubject = CreateTestSubject(fileSystem.Object);
 
-            var result = testSubject.ReadSharedBindingConfigFile(filePath);
+            var result = testSubject.Read(filePath);
 
             result.Organization.Should().Be("Some Organisation");
             result.ProjectKey.Should().Be("projectKey");
@@ -94,7 +97,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
             var fileSystem = GetFileSystem(file.Object);
             var testSubject = CreateTestSubject(fileSystem.Object);
 
-            var result = testSubject.ReadSharedBindingConfigFile(filePath);
+            var result = testSubject.Read(filePath);
 
             result.Should().BeNull();
         }
@@ -110,7 +113,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
             var fileSystem = GetFileSystem(file.Object);
             var testSubject = CreateTestSubject(fileSystem.Object);
 
-            var result = testSubject.ReadSharedBindingConfigFile(filePath);
+            var result = testSubject.Read(filePath);
 
             result.Should().BeNull();
         }
@@ -118,7 +121,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         [DataRow("""{"SonarQubeUri":"not URI","ProjectKey":"projectKey"}""")]
         [DataRow("""{"sonarQubeUri":"not URI","projectKey":"projectKey"}""")]
         [DataTestMethod]
-        public void ReadSharedBindingConfigFile_InvalidUri_ReturnsNull(string configFileContent)
+        public void Read_InvalidUri_ReturnsNull(string configFileContent)
         {
             var filePath = "Some Path";
 
@@ -127,7 +130,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 
             var testSubject = CreateTestSubject(fileSystem.Object);
 
-            var result = testSubject.ReadSharedBindingConfigFile(filePath);
+            var result = testSubject.Read(filePath);
 
             result.Should().BeNull();
         }
@@ -135,7 +138,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         [DataRow("""{"SonarQubeUri":"http://localhost","ProjectKey":"  "}""")]
         [DataRow("""{"sonarQubeUri":"http://localhost","projectKey":"  "}""")]
         [TestMethod]
-        public void ReadSharedBindingConfigFile_InvalidProjectKey_ReturnsNull(string configFileContent)
+        public void Read_InvalidProjectKey_ReturnsNull(string configFileContent)
         {
             var filePath = "Some Path";
 
@@ -144,13 +147,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 
             var testSubject = CreateTestSubject(fileSystem.Object);
 
-            var result = testSubject.ReadSharedBindingConfigFile(filePath);
+            var result = testSubject.Read(filePath);
 
             result.Should().BeNull();
         }
 
         [TestMethod]
-        public void WriteSharedBindingConfigFile_SQConfig_Writes()
+        public void Write_SQConfig_Writes()
         {
             var configFileContent = """
                                     {
@@ -166,7 +169,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 
             var testSubject = CreateTestSubject(fileSystem.Object);
 
-            var result = testSubject.WriteSharedBindingConfigFile(filePath, config);
+            var result = testSubject.Write(filePath, config);
 
             result.Should().BeTrue();
 
@@ -175,7 +178,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         }
 
         [TestMethod]
-        public void WriteSharedBindingConfigFile_SCConfig_DefaultRegion_Writes()
+        public void Write_SCConfig_DefaultRegion_Writes()
         {
             string configFileContent = """
                                        {
@@ -192,7 +195,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 
             var testSubject = CreateTestSubject(fileSystem.Object);
 
-            var result = testSubject.WriteSharedBindingConfigFile(filePath, config);
+            var result = testSubject.Write(filePath, config);
 
             result.Should().BeTrue();
 
@@ -219,7 +222,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
             """,
             "US")]
         [DataTestMethod]
-        public void WriteSharedBindingConfigFile_SCConfig_NonDefaultRegion_Writes(string configFileContent, string region)
+        public void Write_SCConfig_NonDefaultRegion_Writes(string configFileContent, string region)
         {
             var config = new SharedBindingConfigModel() { Organization = "Some Organisation", ProjectKey = "projectKey", Region = region };
             var filePath = "C:\\Solution\\.sonarlint\\Solution.json";
@@ -229,7 +232,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 
             var testSubject = CreateTestSubject(fileSystem.Object);
 
-            var result = testSubject.WriteSharedBindingConfigFile(filePath, config);
+            var result = testSubject.Write(filePath, config);
 
             result.Should().BeTrue();
 
@@ -238,7 +241,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         }
 
         [TestMethod]
-        public void WriteSharedBindingConfigFile_WriteError_ReturnsFalse()
+        public void Write_WriteError_ReturnsFalse()
         {
             var config = new SharedBindingConfigModel() { Organization = "Some Organisation", ProjectKey = "projectKey" };
             var filePath = "C:\\Solution\\.sonarlint\\Solution.json";
@@ -250,7 +253,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 
             var testSubject = CreateTestSubject(fileSystem.Object);
 
-            var result = testSubject.WriteSharedBindingConfigFile(filePath, config);
+            var result = testSubject.Write(filePath, config);
 
             result.Should().BeFalse();
 
@@ -259,7 +262,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         }
 
         [TestMethod]
-        public void WriteSharedBindingConfigFile_DirectoryDoesNotExist_Creates()
+        public void Write_DirectoryDoesNotExist_Creates()
         {
             var config = new SharedBindingConfigModel();
             var filePath = "C:\\Solution\\.sonarlint\\Solution.json";
@@ -274,7 +277,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 
             var testSubject = CreateTestSubject(fileSystem.Object);
 
-            var result = testSubject.WriteSharedBindingConfigFile(filePath, config);
+            var result = testSubject.Write(filePath, config);
 
             result.Should().BeTrue();
             directory.Verify(d => d.CreateDirectory("C:\\Solution\\.sonarlint"), Times.Once);
@@ -282,19 +285,32 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
             directory.VerifyNoOtherCalls();
         }
 
-        static SharedBindingConfigFileProvider CreateTestSubject(IFileSystem fileSystem)
+        [DataRow(true)]
+        [DataRow(false)]
+        [DataTestMethod]
+        public void Exists_CallsFileSystemExists(bool exists)
+        {
+            const string filePath = "C:\\Solution\\.sonarlint\\Solution.json";
+            var fileSystemService = Substitute.For<IFileSystemService>();
+            fileSystemService.File.Exists(filePath).Returns(exists);
+            var testSubject = CreateTestSubject(fileSystemService);
+
+            testSubject.Exists(filePath).Should().Be(exists);
+        }
+
+        static SharedBindingConfigFileProvider CreateTestSubject(IFileSystemService fileSystem)
         {
             return new SharedBindingConfigFileProvider(Mock.Of<ILogger>(), fileSystem);
         }
 
-        private static Mock<IFileSystem> GetFileSystem(IFile file, Mock<IDirectory> directory = null)
+        private static Mock<IFileSystemService> GetFileSystem(IFile file, Mock<IDirectory> directory = null)
         {
             if (directory == null)
             {
                 directory = new Mock<IDirectory>();
                 directory.Setup(d => d.Exists(It.IsAny<string>())).Returns(true);
             }
-            var fileSystem = new Mock<IFileSystem>();
+            var fileSystem = new Mock<IFileSystemService>();
             fileSystem.Setup(fs => fs.File).Returns(file);
             fileSystem.Setup(fs => fs.Directory).Returns(directory.Object);
 

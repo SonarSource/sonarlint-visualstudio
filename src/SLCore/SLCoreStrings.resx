@@ -207,8 +207,20 @@
   <data name="ClientFile_NotRelative_Skipped" xml:space="preserve">
     <value>File '{0}' can't be relativized against root '{1}' and is skipped</value>
   </data>
+  <data name="FileSubsystem_LogContext" xml:space="preserve">
+    <value>Workspace Files</value>
+  </data>
   <data name="FileTracker_LogContext" xml:space="preserve">
-    <value>File Tracking</value>
+    <value>Tracking</value>
+  </data>
+  <data name="ListFiles_LogContext" xml:space="preserve">
+    <value>List</value>
+  </data>
+  <data name="ListFiles_NoRoot" xml:space="preserve">
+    <value>Could not calculate configuration scope root</value>
+  </data>
+  <data name="ConfigurationScopeMismatch" xml:space="preserve">
+    <value>The requested configuration scope {0} differs from the currently active {1}</value>
   </data>
   <data name="AssistConnectionCancelled" xml:space="preserve">
     <value>Automatic connection setup was cancelled</value>
