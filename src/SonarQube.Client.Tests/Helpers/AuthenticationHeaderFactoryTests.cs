@@ -19,8 +19,8 @@
  */
 
 using System.Security;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Helpers;
-using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Tests.Helpers
 {
@@ -65,7 +65,7 @@ namespace SonarQube.Client.Tests.Helpers
         [TestMethod]
         public void Create_NoCredentials_ReturnsNull()
         {
-            var authenticationHeaderValue = AuthenticationHeaderFactory.Create(new SonarQube.Client.Models.NoCredentials());
+            var authenticationHeaderValue = AuthenticationHeaderFactory.Create(new NoCredentials());
 
             authenticationHeaderValue.Should().BeNull();
         }

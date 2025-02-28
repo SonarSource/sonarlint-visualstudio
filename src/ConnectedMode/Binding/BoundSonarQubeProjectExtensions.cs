@@ -45,8 +45,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
                 throw new ArgumentNullException(nameof(binding));
             }
 
-            // TODO by https://sonarsource.atlassian.net/browse/SLVS-1816 Remove this cast once SonarQube.Client has reference to CORE assembly
-            var connection = new ConnectionInformation(binding.ServerUri, binding.Credentials as SonarQube.Client.Models.IConnectionCredentials);
+            var connection = new ConnectionInformation(binding.ServerUri, binding.Credentials);
 
             connection.Organization = binding.Organization;
             return connection;
@@ -59,8 +58,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
                 throw new ArgumentNullException(nameof(binding));
             }
 
-            // TODO by https://sonarsource.atlassian.net/browse/SLVS-1816 Remove this cast once SonarQube.Client has reference to CORE assembly
-            var connection = new ConnectionInformation(binding.ServerConnection.ServerUri, binding.ServerConnection.Credentials as SonarQube.Client.Models.IConnectionCredentials);
+            var connection = new ConnectionInformation(binding.ServerConnection.ServerUri, binding.ServerConnection.Credentials);
 
             connection.Organization = binding.ServerConnection is ServerConnection.SonarCloud sc ? new SonarQubeOrganization(sc.OrganizationKey, null) : null;
             return connection;

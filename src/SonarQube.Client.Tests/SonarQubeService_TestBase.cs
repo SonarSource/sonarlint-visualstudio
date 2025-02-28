@@ -25,6 +25,7 @@ using System.Net.Http.Headers;
 using System.Security;
 using Moq;
 using Moq.Protected;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Models;
 using SonarQube.Client.Models.ServerSentEvents;
 using SonarQube.Client.Requests;

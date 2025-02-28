@@ -24,6 +24,8 @@ using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
+using SonarQube.Client.Helpers;
+using SonarQube.Client.Models;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding;
@@ -70,25 +72,24 @@ public class UnintrusiveBindingControllerTests
             MefTestHelpers.CreateExport<IActiveSolutionChangedHandler>(),
             MefTestHelpers.CreateExport<ISolutionBindingRepository>());
 
-    // TODO by https://sonarsource.atlassian.net/browse/SLVS-1816 Fix these test class once SonarQube.Client has reference to Core assembly
-    //[TestMethod]
-    //public async Task BindAsync_EstablishesConnection()
-    //{
-    //    var projectToBind = new BoundServerProject(
-    //        "local-key",
-    //        "server-key",
-    //        new ServerConnection.SonarCloud("organization", credentials: ValidToken));
+    [TestMethod]
+    public async Task BindAsync_EstablishesConnection()
+    {
+        var projectToBind = new BoundServerProject(
+            "local-key",
+            "server-key",
+            new ServerConnection.SonarCloud("organization", credentials: ValidToken));
 
-    //    await testSubject.BindAsync(projectToBind, ACancellationToken);
+        await testSubject.BindAsync(projectToBind, ACancellationToken);
 
-    //    await sonarQubeService
-    //        .Received()
-    //        .ConnectAsync(
-    //            Arg.Is<ConnectionInformation>(x => x.ServerUri.Equals("https://sonarcloud.io/")
-    //                                               && ((IUsernameAndPasswordCredentials)x.Credentials).UserName.Equals(ValidToken.UserName)
-    //                                               && string.IsNullOrEmpty(((IUsernameAndPasswordCredentials)x.Credentials).Password.ToUnsecureString())),
-    //            ACancellationToken);
-    //}
+        await sonarQubeService
+            .Received()
+            .ConnectAsync(
+                Arg.Is<ConnectionInformation>(x => x.ServerUri.Equals("https://sonarcloud.io/")
+                                                   && ((IUsernameAndPasswordCredentials)x.Credentials).UserName.Equals(ValidToken.UserName)
+                                                   && string.IsNullOrEmpty(((IUsernameAndPasswordCredentials)x.Credentials).Password.ToUnsecureString())),
+                ACancellationToken);
+    }
 
     [TestMethod]
     public async Task BindAsync_NotifiesBindingChanged()

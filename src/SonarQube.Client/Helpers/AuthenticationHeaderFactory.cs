@@ -21,7 +21,7 @@
 using System.Net.Http.Headers;
 using System.Security;
 using System.Text;
-using SonarQube.Client.Models;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarQube.Client.Helpers
 {
