@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Binding;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
@@ -33,32 +34,61 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
     [PartCreationPolicy(CreationPolicy.Shared)]
     [method: ImportingConstructor]
     public class ConnectedModeSuggestionListener(
-        INoBindingSuggestionNotification noBindingSuggestionNotification,
+        IActiveConfigScopeTracker activeConfigScopeTracker,
         IConnectedModeUIManager connectedModeUiManager,
-        ILogger logger,
-        IIDEWindowService ideWindowService)
+        INoBindingSuggestionNotification noBindingSuggestionNotification,
+        IIDEWindowService ideWindowService,
+        ILogger logger)
         : IConnectedModeSuggestionListener
     {
-        private readonly ILogger logger = logger.ForContext("Connected Mode Suggestion");
+        private readonly ILogger logger = logger.ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.ConnectedMode_LogContext, SLCoreStrings.ConnectedModeSuggestion_LogContext);
 
         public async Task<AssistCreatingConnectionResponse> AssistCreatingConnectionAsync(AssistCreatingConnectionParams parameters)
         {
+            ideWindowService.BringToFront();
             var serverConnection = ConvertSeverConnection(parameters);
             var token = parameters.connectionParams.Right?.tokenValue ?? parameters.connectionParams.Left?.tokenValue;
 
-            ideWindowService.BringToFront();
             var trustConnectionDialogResult = await connectedModeUiManager.ShowTrustConnectionDialogAsync(serverConnection, token).ConfigureAwait(false);
             if (trustConnectionDialogResult == true)
             {
                 AssistCreatingConnectionResponse result = new(serverConnection.Id);
-                logger.LogVerbose(SLCoreStrings.AssistConnectionSucceeds, result.newConnectionId);
+                logger.WriteLine(SLCoreStrings.AssistConnectionSucceeds, result.newConnectionId);
                 return result;
             }
 
-            throw new OperationCanceledException(SLCoreStrings.AssistConnectionCancelled);
+            logger.WriteLine(SLCoreStrings.AssistConnectionFailed);
+            throw new OperationCanceledException(SLCoreStrings.AssistConnectionFailed);
         }
 
-        public Task<AssistBindingResponse> AssistBindingAsync(AssistBindingParams parameters) => throw new NotImplementedException();
+        public async Task<AssistBindingResponse> AssistBindingAsync(AssistBindingParams parameters)
+        {
+            ideWindowService.BringToFront();
+            return new AssistBindingResponse(await BindToConfigScopeAsync(parameters));
+        }
+
+        private async Task<string> BindToConfigScopeAsync(AssistBindingParams parameters)
+        {
+            if (activeConfigScopeTracker.Current?.Id != parameters.configScopeId)
+            {
+                logger.WriteLine(SLCoreStrings.ConfigurationScopeMismatch);
+                return null;
+            }
+
+            var boundConfigScope = await connectedModeUiManager.ShowManageBindingDialogAsync(new AutomaticBindingRequest.Assisted(parameters.connectionId, parameters.projectKey, parameters.isFromSharedConfiguration)).ConfigureAwait(false)
+                ? parameters.configScopeId
+                : null;
+
+            if (boundConfigScope == null)
+            {
+                logger.WriteLine(SLCoreStrings.AssistBindingFailed);
+            }
+            else
+            {
+                logger.WriteLine(SLCoreStrings.AssistBindingSucceeded, boundConfigScope);
+            }
+            return boundConfigScope;
+        }
 
         public void NoBindingSuggestionFound(NoBindingSuggestionFoundParams parameters) => noBindingSuggestionNotification.Show(parameters.projectKey, parameters.isSonarCloud);
 
@@ -73,7 +103,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
                 return new ServerConnection.SonarQube(sonarQubeConnectionParams.serverUrl);
             }
 
-            logger.LogVerbose(SLCoreStrings.AssistConnectionInvalidServerConnection, nameof(AssistCreatingConnectionParams));
+            logger.WriteLine(SLCoreStrings.AssistConnectionInvalidServerConnection, parameters.ToString());
             throw new ArgumentNullException(nameof(parameters));
         }
     }

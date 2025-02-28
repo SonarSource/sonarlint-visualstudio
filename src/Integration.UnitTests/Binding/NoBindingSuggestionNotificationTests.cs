@@ -106,11 +106,11 @@ public class NoBindingSuggestionNotificationTests
         testSubject.Show(ProjectKey, isSonarCloud);
         var notification = GetNotification();
         var connectAction = GetAction(notification, BindingStrings.NoBindingSuggestionNotification_ConfigureBindingAction);
-        connectedModeManager.DidNotReceive().ShowManageBindingDialog();
+        connectedModeManager.DidNotReceive().ShowManageBindingDialogAsync();
 
         connectAction.Action(notification);
 
-        connectedModeManager.Received().ShowManageBindingDialog();
+        connectedModeManager.Received().ShowManageBindingDialogAsync();
     }
 
     [TestMethod]

@@ -219,13 +219,25 @@
   <data name="ConfigurationScopeMismatch" xml:space="preserve">
     <value>The requested configuration scope {0} differs from the currently active {1}</value>
   </data>
-  <data name="AssistConnectionCancelled" xml:space="preserve">
-    <value>Automatic connection setup was cancelled</value>
+  <data name="AssistConnectionFailed" xml:space="preserve">
+    <value>Automatic connection setup failed</value>
   </data>
   <data name="AssistConnectionInvalidServerConnection" xml:space="preserve">
-    <value>No valid server connection can be created from {1}</value>
+    <value>No valid server connection can be created from {0}</value>
   </data>
   <data name="AssistConnectionSucceeds" xml:space="preserve">
     <value>Automatic connection setup succeeded for connection {0}</value>
+  </data>
+  <data name="AssistBindingFailed" xml:space="preserve">
+    <value>Automatic binding setup failed</value>
+  </data>
+  <data name="AssistBindingSucceeded" xml:space="preserve">
+    <value>Automatic binding setup succeeded for configuration scope {0}</value>
+  </data>
+  <data name="ConnectedMode_LogContext" xml:space="preserve">
+    <value>Connected Mode</value>
+  </data>
+  <data name="ConnectedModeSuggestion_LogContext" xml:space="preserve">
+    <value>Suggestion</value>
   </data>
 </root>
