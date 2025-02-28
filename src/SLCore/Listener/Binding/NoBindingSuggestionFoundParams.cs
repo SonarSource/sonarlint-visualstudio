@@ -20,4 +20,4 @@
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Binding;
 
-public record NoBindingSuggestionFoundParams(string projectKey);
+public record NoBindingSuggestionFoundParams(string projectKey, bool isSonarCloud);

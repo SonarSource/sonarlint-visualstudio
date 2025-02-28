@@ -61,42 +61,6 @@ namespace SonarLint.VisualStudio.Integration.Binding {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Connect.
-        /// </summary>
-        internal static string BindingSuggestionConnect {
-            get {
-                return ResourceManager.GetString("BindingSuggestionConnect", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Learn more.
-        /// </summary>
-        internal static string BindingSuggestionLearnMore {
-            get {
-                return ResourceManager.GetString("BindingSuggestionLearnMore", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ConnectedMode: The current solution is not bound to a SonarQube (Server, Cloud) project..
-        /// </summary>
-        internal static string BindingSuggestionProjectNotBound {
-            get {
-                return ResourceManager.GetString("BindingSuggestionProjectNotBound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ConnectedMode: The current bound project does not match the SonarQube (Server, Cloud) project. Please make sure you have the correct solution opened..
-        /// </summary>
-        internal static string BindingSuggetsionBindingConflict {
-            get {
-                return ResourceManager.GetString("BindingSuggetsionBindingConflict", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Failed to add SonarLint.xml file to the project &apos;{0}&apos;.
         ///Error: {1}.
         /// </summary>
@@ -134,6 +98,33 @@ namespace SonarLint.VisualStudio.Integration.Binding {
         internal static string FoundConflictingAdditionalFile {
             get {
                 return ResourceManager.GetString("FoundConflictingAdditionalFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configure Binding.
+        /// </summary>
+        internal static string NoBindingSuggestionNotification_ConfigureBindingAction {
+            get {
+                return ResourceManager.GetString("NoBindingSuggestionNotification_ConfigureBindingAction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Learn more.
+        /// </summary>
+        internal static string NoBindingSuggestionNotification_LearnMoreAction {
+            get {
+                return ResourceManager.GetString("NoBindingSuggestionNotification_LearnMoreAction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ConnectedMode: SonarQube for Visual Studio couldn&apos;t match the {0} project &apos;{1}&apos; to the currently opened solution. Please make sure the correct solution is open or try configuring the binding manually..
+        /// </summary>
+        internal static string NoBindingSuggestionNotification_Message {
+            get {
+                return ResourceManager.GetString("NoBindingSuggestionNotification_Message", resourceCulture);
             }
         }
     }
