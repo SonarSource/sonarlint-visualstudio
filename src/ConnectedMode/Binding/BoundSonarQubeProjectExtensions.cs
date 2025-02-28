@@ -18,13 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Core.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     public static class BoundSonarQubeProjectExtensions
     {
+        public static ServerConnection FromBoundSonarQubeProject(BoundSonarQubeProject boundProject) =>
+            boundProject switch
+            {
+                { Organization: not null } => new ServerConnection.SonarCloud(boundProject.Organization.Key, credentials: boundProject.Credentials),
+                { ServerUri: not null } => new ServerConnection.SonarQube(boundProject.ServerUri, credentials: boundProject.Credentials),
+                _ => null
+            };
+
         public static ConnectionInformation CreateConnectionInformation(this BoundSonarQubeProject binding)
         {
             if (binding == null)
@@ -37,6 +45,11 @@ namespace SonarLint.VisualStudio.Core.Binding
             connection.Organization = binding.Organization;
             return connection;
         }
+
+        public static BoundServerProject FromBoundSonarQubeProject(BoundSonarQubeProject boundProject, string localBindingKey, ServerConnection connection) =>
+            new(localBindingKey ?? throw new ArgumentNullException(nameof(localBindingKey)),
+                boundProject?.ProjectKey ?? throw new ArgumentNullException(nameof(boundProject)),
+                connection ?? throw new ArgumentNullException(nameof(connection))) { Profiles = boundProject.Profiles };
 
         public static ConnectionInformation CreateConnectionInformation(this BoundServerProject binding)
         {

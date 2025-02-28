@@ -25,6 +25,7 @@ using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client;
+using static SonarLint.VisualStudio.ConnectedMode.Binding.BoundSonarQubeProjectExtensions;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
@@ -152,7 +153,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             var progressAdapter = new FixedStepsProgressToMigrationProgressAdapter(progress);
             var serverConnection = GetServerConnectionWithMigration(oldBinding);
-            await unintrusiveBindingController.BindAsync(BoundServerProject.FromBoundSonarQubeProject(oldBinding, await solutionInfoProvider.GetSolutionNameAsync(), serverConnection), progressAdapter,
+            await unintrusiveBindingController.BindAsync(FromBoundSonarQubeProject(oldBinding, await solutionInfoProvider.GetSolutionNameAsync(), serverConnection),
+                progressAdapter,
                 token);
 
             // Now make all of the files changes required to remove the legacy settings
@@ -288,7 +290,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         private ServerConnection GetServerConnectionWithMigration(BoundSonarQubeProject project)
         {
-            if (ServerConnection.FromBoundSonarQubeProject(project) is not { } proposedConnection)
+            if (FromBoundSonarQubeProject(project) is not { } proposedConnection)
             {
                 throw new InvalidOperationException(BindingStrings.UnintrusiveController_InvalidConnection);
             }

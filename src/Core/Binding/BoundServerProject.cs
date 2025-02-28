@@ -43,12 +43,4 @@ public class BoundServerProject
         ServerConnection = serverConnection ?? throw new ArgumentNullException(nameof(serverConnection));
         LocalBindingKey = localBindingKey;
     }
-
-    public static BoundServerProject FromBoundSonarQubeProject(BoundSonarQubeProject boundProject, string localBindingKey, ServerConnection connection) =>
-        new(localBindingKey ?? throw new ArgumentNullException(nameof(localBindingKey)),
-            boundProject?.ProjectKey ?? throw new ArgumentNullException(nameof(boundProject)),
-            connection ?? throw new ArgumentNullException(nameof(connection)))
-        {
-            Profiles = boundProject.Profiles
-        };
 }

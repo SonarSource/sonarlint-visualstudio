@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using Newtonsoft.Json;
 using SonarQube.Client.Models;
 
@@ -31,8 +29,12 @@ namespace SonarLint.VisualStudio.Core.Binding
         {
         }
 
-        public BoundSonarQubeProject(Uri serverUri, string projectKey, string projectName,
-            IConnectionCredentials credentials = null, SonarQubeOrganization organization = null)
+        public BoundSonarQubeProject(
+            Uri serverUri,
+            string projectKey,
+            string projectName,
+            IConnectionCredentials credentials = null,
+            SonarQubeOrganization organization = null)
             : this()
         {
             if (serverUri == null)
@@ -45,11 +47,11 @@ namespace SonarLint.VisualStudio.Core.Binding
                 throw new ArgumentNullException(nameof(projectKey));
             }
 
-            this.ServerUri = serverUri;
-            this.Organization = organization;
-            this.ProjectKey = projectKey;
-            this.ProjectName = projectName;
-            this.Credentials = credentials;
+            ServerUri = serverUri;
+            Organization = organization;
+            ProjectKey = projectKey;
+            ProjectName = projectName;
+            Credentials = credentials;
         }
 
         public Uri ServerUri { get; set; }
