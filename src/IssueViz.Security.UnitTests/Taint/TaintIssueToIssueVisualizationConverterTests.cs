@@ -232,16 +232,13 @@ public class TaintIssueToIssueVisualizationConverterTests
     [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
-    public void Convert_IssueVizIsCorrectlyMarkedAsSuppressed(bool isIssueSuppressed)
+    public void Convert_IssueVizIsCorrectlyMarkedAsSuppressed(bool isResolved)
     {
-        var taintVulnerabilityDto = CreateDefaultTaintDto(resolved: isIssueSuppressed);
-        var expectedConvertedIssueViz = CreateIssueViz();
-        issueVizConverter.Convert(Arg.Any<IAnalysisIssueBase>())
-            .Returns(expectedConvertedIssueViz);
+        var taintVulnerabilityDto = CreateDefaultTaintDto(resolved: isResolved);
 
         testSubject.Convert(taintVulnerabilityDto, "C:\\root");
 
-        expectedConvertedIssueViz.Received().IsSuppressed = isIssueSuppressed;
+        issueVizConverter.Received(1).Convert(Arg.Is<IAnalysisIssueBase>(x => x.IsResolved == isResolved));
     }
 
     private static TaintVulnerabilityDto CreateDefaultTaintDto(Either<StandardModeDetails, MQRModeDetails> severity = null, bool resolved = true) =>

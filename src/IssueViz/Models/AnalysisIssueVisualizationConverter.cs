@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
 
             var quickFixes = GetQuickFixVisualizations(issue, textSnapshot);
 
-            var issueVisualization = new AnalysisIssueVisualization(flows, issue, issueSpan, quickFixes) { IsSuppressed = issue.IsResolved };
+            var issueVisualization = new AnalysisIssueVisualization(flows, issue, issueSpan, quickFixes);
 
             if (textSnapshot != null)
             {
