@@ -20,14 +20,9 @@
 
 using SonarLint.VisualStudio.Core.Binding;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Persistence
+public sealed class NoCredentials : INoCredentials
 {
-    interface ISolutionBindingCredentialsLoader
-    {
-        void DeleteCredentials(Uri boundServerUri);
+    public void Dispose() { }
 
-        IConnectionCredentials Load(Uri boundServerUri);
-
-        void Save(IConnectionCredentials credentials, Uri boundServerUri);
-    }
+    public object Clone() => new NoCredentials();
 }

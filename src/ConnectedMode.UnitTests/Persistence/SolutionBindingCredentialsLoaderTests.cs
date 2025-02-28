@@ -23,7 +23,6 @@ using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Helpers;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 {
@@ -146,7 +145,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
             store.Received(1)
                 .WriteCredentials(
                     Arg.Is<TargetUri>(t => t.ActualUri == mockUri),
-                    Arg.Is<Credential>(c=> c.Username == "user" && c.Password == "password"));
+                    Arg.Is<Credential>(c => c.Username == "user" && c.Password == "password"));
         }
 
         [TestMethod]

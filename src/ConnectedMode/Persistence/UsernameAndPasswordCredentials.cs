@@ -19,8 +19,8 @@
  */
 
 using System.Security;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Helpers;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 

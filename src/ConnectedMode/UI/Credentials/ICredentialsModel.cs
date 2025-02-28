@@ -20,7 +20,7 @@
 
 using System.Security;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
-using SonarQube.Client.Models;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 

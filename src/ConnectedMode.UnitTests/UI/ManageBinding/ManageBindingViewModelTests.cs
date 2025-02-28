@@ -33,7 +33,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarQube.Client.Models;
+using IConnectionCredentials = SonarLint.VisualStudio.Core.Binding.IConnectionCredentials;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageBinding;
 
@@ -76,7 +76,6 @@ public class ManageBindingViewModelTests
         MockServices();
     }
 
-
     [TestMethod]
     public void SolutionInfo_Set_RaisesEvents()
     {
@@ -103,7 +102,6 @@ public class ManageBindingViewModelTests
         eventHandler.Received().Invoke(testSubject,
             Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsUseSharedBindingButtonVisible)));
     }
-
 
     [TestMethod]
     public void BoundProject_Set_RaisesEvents()
@@ -1020,7 +1018,8 @@ public class ManageBindingViewModelTests
         var response = await testSubject.PerformAutomaticBindingInternalAsync(new AutomaticBindingRequest.Shared());
 
         response.Success.Should().BeTrue();
-        serverConnectionsRepositoryAdapter.Received(1).TryGet(new ConnectionInfo(testSubject.SharedBindingConfigModel.Uri.ToString(), ConnectionServerType.SonarQube).GetServerIdFromConnectionInfo(), out _);
+        serverConnectionsRepositoryAdapter.Received(1)
+            .TryGet(new ConnectionInfo(testSubject.SharedBindingConfigModel.Uri.ToString(), ConnectionServerType.SonarQube).GetServerIdFromConnectionInfo(), out _);
         await bindingController.Received(1)
             .BindAsync(Arg.Is<BoundServerProject>(proj => proj.ServerConnection == expectedServerConnection), Arg.Any<CancellationToken>());
         VerifyAutomaticBindingTelemetrySent(true);
@@ -1037,7 +1036,8 @@ public class ManageBindingViewModelTests
         var response = await testSubject.PerformAutomaticBindingInternalAsync(new AutomaticBindingRequest.Shared());
 
         response.Success.Should().BeTrue();
-        serverConnectionsRepositoryAdapter.Received(1).TryGet(new ConnectionInfo(testSubject.SharedBindingConfigModel.Organization, ConnectionServerType.SonarCloud).GetServerIdFromConnectionInfo() , out _);
+        serverConnectionsRepositoryAdapter.Received(1)
+            .TryGet(new ConnectionInfo(testSubject.SharedBindingConfigModel.Organization, ConnectionServerType.SonarCloud).GetServerIdFromConnectionInfo(), out _);
         await bindingController.Received(1)
             .BindAsync(Arg.Is<BoundServerProject>(proj => proj.ServerConnection == expectedServerConnection), Arg.Any<CancellationToken>());
         VerifyAutomaticBindingTelemetrySent(true);
@@ -1055,7 +1055,8 @@ public class ManageBindingViewModelTests
         response.Success.Should().BeFalse();
         messageBox.Received(1).Show(UiResources.NotFoundConnectionForAutomaticBindingMessageBoxText, UiResources.NotFoundConnectionForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
             MessageBoxImage.Warning);
-        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_ConnectionNotFound, testSubject.SharedBindingConfigModel.Uri);
+        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_ConnectionNotFound,
+            testSubject.SharedBindingConfigModel.Uri);
         await bindingController.DidNotReceive()
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
                 proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
@@ -1072,7 +1073,8 @@ public class ManageBindingViewModelTests
         var response = await testSubject.PerformAutomaticBindingInternalAsync(automaticBindingRequest);
 
         response.Success.Should().BeFalse();
-        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_ConnectionNotFound, Arg.Is<string>(x => x.Contains(sonarCloudSharedBindingConfigModel.Organization)));
+        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_ConnectionNotFound,
+            Arg.Is<string>(x => x.Contains(sonarCloudSharedBindingConfigModel.Organization)));
         messageBox.Received(1).Show(UiResources.NotFoundConnectionForAutomaticBindingMessageBoxText, UiResources.NotFoundConnectionForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
             MessageBoxImage.Warning);
         await bindingController.DidNotReceive()
@@ -1093,7 +1095,8 @@ public class ManageBindingViewModelTests
         var response = await testSubject.PerformAutomaticBindingInternalAsync(automaticBindingRequest);
 
         response.Success.Should().BeFalse();
-        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_CredentiasNotFound, expectedServerConnection.Id);
+        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_CredentiasNotFound,
+            expectedServerConnection.Id);
         messageBox.Received(1).Show(UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxText, UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
             MessageBoxImage.Warning);
         await bindingController.DidNotReceive()
@@ -1114,7 +1117,8 @@ public class ManageBindingViewModelTests
         var response = await testSubject.PerformAutomaticBindingInternalAsync(automaticBindingRequest);
 
         response.Success.Should().BeFalse();
-        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_CredentiasNotFound, expectedServerConnection.Id);
+        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_CredentiasNotFound,
+            expectedServerConnection.Id);
         messageBox.Received(1).Show(UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxText, UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
             MessageBoxImage.Warning);
         await bindingController.DidNotReceive()
@@ -1180,7 +1184,8 @@ public class ManageBindingViewModelTests
         response.Success.Should().BeFalse();
         messageBox.Received(1).Show(UiResources.NotFoundConnectionForAutomaticBindingMessageBoxText, UiResources.NotFoundConnectionForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
             MessageBoxImage.Warning);
-        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_ConnectionNotFound, automaticBindingRequest.ServerConnectionId);
+        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_ConnectionNotFound,
+            automaticBindingRequest.ServerConnectionId);
         await bindingController.DidNotReceiveWithAnyArgs().BindAsync(default, default);
         VerifyBindingTelemetryNotSent();
     }
@@ -1196,7 +1201,8 @@ public class ManageBindingViewModelTests
         var response = await testSubject.PerformAutomaticBindingInternalAsync(automaticBindingRequest);
 
         response.Success.Should().BeFalse();
-        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_CredentiasNotFound, automaticBindingRequest.ServerConnectionId);
+        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_CredentiasNotFound,
+            automaticBindingRequest.ServerConnectionId);
         messageBox.Received(1).Show(UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxText, UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
             MessageBoxImage.Warning);
         await bindingController.DidNotReceiveWithAnyArgs().BindAsync(default, default);
@@ -1220,10 +1226,10 @@ public class ManageBindingViewModelTests
 
     public static object[][] AssistedBindingParameters =>
     [
-        [new ServerConnection.SonarCloud("some org") {Credentials = Substitute.For<IConnectionCredentials>()}, true],
-        [new ServerConnection.SonarCloud("some org") {Credentials = Substitute.For<IConnectionCredentials>()}, false],
-        [new ServerConnection.SonarQube(new Uri("http://someurl")) {Credentials = Substitute.For<IConnectionCredentials>()}, true],
-        [new ServerConnection.SonarQube(new Uri("http://someurl")) {Credentials = Substitute.For<IConnectionCredentials>()}, false],
+        [new ServerConnection.SonarCloud("some org") { Credentials = Substitute.For<IConnectionCredentials>() }, true],
+        [new ServerConnection.SonarCloud("some org") { Credentials = Substitute.For<IConnectionCredentials>() }, false],
+        [new ServerConnection.SonarQube(new Uri("http://someurl")) { Credentials = Substitute.For<IConnectionCredentials>() }, true],
+        [new ServerConnection.SonarQube(new Uri("http://someurl")) { Credentials = Substitute.For<IConnectionCredentials>() }, false],
     ];
 
     private void VerifyManualBindingTelemetrySent()

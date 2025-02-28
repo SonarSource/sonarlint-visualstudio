@@ -19,7 +19,7 @@
  */
 
 using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarQube.Client.Models;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 {
@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 
         public void DeleteCredentials(Uri boundServerUri)
         {
-            if(boundServerUri == null)
+            if (boundServerUri == null)
             {
                 return;
             }

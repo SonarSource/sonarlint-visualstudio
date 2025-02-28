@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel;
 using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
@@ -27,7 +26,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Persistence;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarQube.Client.Models;
 using static SonarLint.VisualStudio.Core.Binding.ServerConnection;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence;
@@ -175,7 +173,7 @@ public class ServerConnectionsRepositoryTests
         MockReadingFile(new ServerConnectionsListJsonModel());
         jsonFileHandler.When(x => x.ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>())).Do(x => throw new FileNotFoundException());
 
-       testSubject.TryGetAll(out var connections);
+        testSubject.TryGetAll(out var connections);
 
         connections.Should().BeEmpty();
     }
@@ -197,7 +195,7 @@ public class ServerConnectionsRepositoryTests
     {
         MockReadingFile(new ServerConnectionsListJsonModel());
 
-       testSubject.TryGetAll(out var connections);
+        testSubject.TryGetAll(out var connections);
 
         connections.Should().BeEmpty();
     }
@@ -530,7 +528,8 @@ public class ServerConnectionsRepositoryTests
         Received.InOrder(() =>
         {
             jsonFileHandler.ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>());
-            serverConnectionModelMapper.GetServerConnectionsListJsonModel(Arg.Is<IEnumerable<ServerConnection>>(x => x.Count() == 1 && x.Single().Settings.IsSmartNotificationsEnabled == newSmartNotifications));
+            serverConnectionModelMapper.GetServerConnectionsListJsonModel(Arg.Is<IEnumerable<ServerConnection>>(x =>
+                x.Count() == 1 && x.Single().Settings.IsSmartNotificationsEnabled == newSmartNotifications));
             jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>());
         });
     }
@@ -696,22 +695,11 @@ public class ServerConnectionsRepositoryTests
 
     private static ServerConnectionJsonModel GetSonarCloudJsonModel(bool isSmartNotificationsEnabled = false)
     {
-        return new ServerConnectionJsonModel
-        {
-            Id = "https://sonarcloud.io/organizations/myOrg",
-            OrganizationKey = "myOrg",
-            Settings = new ServerConnectionSettings(isSmartNotificationsEnabled)
-        };
+        return new ServerConnectionJsonModel { Id = "https://sonarcloud.io/organizations/myOrg", OrganizationKey = "myOrg", Settings = new ServerConnectionSettings(isSmartNotificationsEnabled) };
     }
 
     private static ServerConnectionJsonModel GetSonarQubeJsonModel(Uri id, bool isSmartNotificationsEnabled = false)
     {
-        return new ServerConnectionJsonModel
-        {
-            Id = id.ToString(),
-            ServerUri = id.ToString(),
-            Settings = new ServerConnectionSettings(isSmartNotificationsEnabled)
-        };
+        return new ServerConnectionJsonModel { Id = id.ToString(), ServerUri = id.ToString(), Settings = new ServerConnectionSettings(isSmartNotificationsEnabled) };
     }
-
 }

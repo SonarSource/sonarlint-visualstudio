@@ -22,7 +22,6 @@ using Microsoft.Alm.Authentication;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Helpers;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence;
 
@@ -70,7 +69,6 @@ public class CredentialsExtensionMethodsTests
     /// <summary>
     /// For backward compatibility
     /// </summary>
-
     [TestMethod]
     public void ToConnectionCredentials_PasswordIsEmpty_ReturnsTokenAuthCredentialsWithUsernameAsToken()
     {

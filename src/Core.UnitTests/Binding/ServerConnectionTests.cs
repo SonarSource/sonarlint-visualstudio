@@ -21,6 +21,7 @@
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Models;
 using static SonarLint.VisualStudio.ConnectedMode.Binding.BoundSonarQubeProjectExtensions;
+using IConnectionCredentials = SonarLint.VisualStudio.Core.Binding.IConnectionCredentials;
 
 namespace SonarLint.VisualStudio.Core.UnitTests.Binding;
 
