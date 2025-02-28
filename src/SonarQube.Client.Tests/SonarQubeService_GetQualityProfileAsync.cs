@@ -134,7 +134,7 @@ namespace SonarQube.Client.Tests
   ]
 }");
 
-            var result = await service.GetQualityProfileAsync("my_project", "my_organization", SonarQubeLanguage.CSharp,
+            var result = await service.GetQualityProfileAsync("my_project", "my_organization", CreateSonarQubeCsharpLanguage(),
                 CancellationToken.None);
 
             httpClientHandler.VerifyAll();
@@ -200,7 +200,7 @@ namespace SonarQube.Client.Tests
   ]
 }");
 
-            var result = await service.GetQualityProfileAsync("my_project", "my_organization", SonarQubeLanguage.CSharp,
+            var result = await service.GetQualityProfileAsync("my_project", "my_organization", CreateSonarQubeCsharpLanguage(),
                 CancellationToken.None);
 
             httpClientHandler.VerifyAll();
@@ -222,7 +222,7 @@ namespace SonarQube.Client.Tests
                 HttpStatusCode.InternalServerError);
 
             Func<Task<SonarQubeQualityProfile>> func = async () =>
-                await service.GetQualityProfileAsync("my_project", "my_organization", SonarQubeLanguage.CSharp, CancellationToken.None);
+                await service.GetQualityProfileAsync("my_project", "my_organization", CreateSonarQubeCsharpLanguage(), CancellationToken.None);
 
             func.Should().ThrowExactly<HttpRequestException>().And
                 .Message.Should().Be("Response status code does not indicate success: 500 (Internal Server Error).");
@@ -337,7 +337,7 @@ namespace SonarQube.Client.Tests
   ]
 }");
 
-            var result = await service.GetQualityProfileAsync("my_project", "my_organization", SonarQubeLanguage.CSharp,
+            var result = await service.GetQualityProfileAsync("my_project", "my_organization", CreateSonarQubeCsharpLanguage(),
                 CancellationToken.None);
 
             httpClientHandler.VerifyAll();
@@ -407,7 +407,7 @@ namespace SonarQube.Client.Tests
   ]
 }");
 
-            var result = await service.GetQualityProfileAsync("my_project", "my_organization", SonarQubeLanguage.CSharp,
+            var result = await service.GetQualityProfileAsync("my_project", "my_organization", CreateSonarQubeCsharpLanguage(),
                 CancellationToken.None);
 
             httpClientHandler.VerifyAll();
@@ -456,11 +456,11 @@ namespace SonarQube.Client.Tests
   }
 }");
 
-            var action = new Func<Task>(async () => await service.GetQualityProfileAsync("my_project", "my_organization", SonarQubeLanguage.CSharp,
+            var action = new Func<Task>(async () => await service.GetQualityProfileAsync("my_project", "my_organization", CreateSonarQubeCsharpLanguage(),
                 CancellationToken.None));
 
             action.Should().ThrowExactly<InvalidOperationException>().And
-                .Message.Should().Be("The SonarC# plugin is not installed on the connected SonarQube.");
+                .Message.Should().Be("The plugin for C# is not installed on the connected SonarQube.");
 
             httpClientHandler.VerifyAll();
         }
@@ -501,11 +501,11 @@ namespace SonarQube.Client.Tests
   }
 }");
 
-            var action = new Func<Task>(async () => await service.GetQualityProfileAsync("my_project", "my_organization", SonarQubeLanguage.CSharp,
+            var action = new Func<Task>(async () => await service.GetQualityProfileAsync("my_project", "my_organization", CreateSonarQubeCsharpLanguage(),
                 CancellationToken.None));
 
             action.Should().ThrowExactly<InvalidOperationException>().And
-                .Message.Should().Be("The SonarC# plugin is not installed on the connected SonarQube.");
+                .Message.Should().Be("The plugin for C# is not installed on the connected SonarQube.");
 
             httpClientHandler.VerifyAll();
         }
@@ -524,11 +524,11 @@ namespace SonarQube.Client.Tests
   }
 }");
 
-            var func = new Func<Task>(async () => await service.GetQualityProfileAsync("my_project", "my_organization", SonarQubeLanguage.VbNet,
+            var func = new Func<Task>(async () => await service.GetQualityProfileAsync("my_project", "my_organization", CreateSonarQubeVbNetLanguage(),
                 CancellationToken.None));
 
             func.Should().ThrowExactly<InvalidOperationException>().And
-                .Message.Should().Be("The SonarVB plugin is not installed on the connected SonarQube.");
+                .Message.Should().Be("The plugin for VB.NET is not installed on the connected SonarQube.");
 
             httpClientHandler.VerifyAll();
         }
@@ -539,7 +539,7 @@ namespace SonarQube.Client.Tests
             // No calls to Connect
             // No need to setup request, the operation should fail
 
-            var func = new Func<Task>(async () => await service.GetQualityProfileAsync("my_project", "my_organization", SonarQubeLanguage.VbNet,
+            var func = new Func<Task>(async () => await service.GetQualityProfileAsync("my_project", "my_organization", CreateSonarQubeCsharpLanguage(),
                 CancellationToken.None));
 
             func.Should().ThrowExactly<InvalidOperationException>().And
@@ -547,5 +547,9 @@ namespace SonarQube.Client.Tests
 
             logger.ErrorMessages.Should().Contain("The service is expected to be connected.");
         }
+
+        private static SonarQubeLanguage CreateSonarQubeCsharpLanguage() => new("cs", "C#");
+
+        private static SonarQubeLanguage CreateSonarQubeVbNetLanguage() => new("vbnet", "VB.NET");
     }
 }

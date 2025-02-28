@@ -22,22 +22,18 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using Newtonsoft.Json;
-using SonarQube.Client.Models;
+using SonarLint.VisualStudio.Core;
 using SonarQube.Client.Requests;
 
 namespace SonarQube.Client.Api.V9_4;
 
 internal class GetSonarLintEventStream : RequestBase<Stream>, IGetSonarLintEventStream
 {
-    private static readonly string RoslynLanguages = string.Join(",", SonarQubeLanguage.CSharp.Key, SonarQubeLanguage.VbNet.Key);
+    private static readonly string RoslynServerLanguageKeys = string.Join(",", LanguageProvider.Instance.RoslynLanguages.Select(x => x.ServerLanguageKey));
 
     protected override string Path => "api/push/sonarlint_events";
 
-    protected override MediaTypeWithQualityHeaderValue[] AllowedMediaTypeHeaders =>
-        new[]
-        {
-            MediaTypeWithQualityHeaderValue.Parse("text/event-stream")
-        };
+    protected override MediaTypeWithQualityHeaderValue[] AllowedMediaTypeHeaders => new[] { MediaTypeWithQualityHeaderValue.Parse("text/event-stream") };
 
     protected override async Task<Result<Stream>> ReadResponseAsync(HttpResponseMessage httpResponse)
     {
@@ -56,7 +52,7 @@ internal class GetSonarLintEventStream : RequestBase<Stream>, IGetSonarLintEvent
     /// Supports only Roslyn languages as the SSE for non-Roslyn languages are handled by SLCore.
     /// </summary>
     [JsonProperty("languages")]
-    public string Languages { get; set; } = RoslynLanguages;
+    public string Languages { get; set; } = RoslynServerLanguageKeys;
 
     [JsonProperty("projectKeys")]
     public string ProjectKey { get; set; }

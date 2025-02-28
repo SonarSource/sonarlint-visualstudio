@@ -266,7 +266,7 @@ namespace SonarQube.Client
 
             if (profilesWithGivenLanguage.Count == 0)
             {
-                throw new InvalidOperationException($"The {language.PluginName} plugin is not installed on the connected SonarQube.");
+                throw new InvalidOperationException($"The plugin for {language.Name} is not installed on the connected SonarQube.");
             }
 
             var qualityProfile = profilesWithGivenLanguage.Count > 1
