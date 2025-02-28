@@ -28,8 +28,7 @@ public abstract record AutomaticBindingRequest
 
     public record Shared : AutomaticBindingRequest
     {
-        public static readonly AutomaticBindingRequest Current = new Shared();
-        private Shared() { }
+        public Shared() { }
 
         internal override string TypeName => ConnectedMode.Resources.AutomaticBindingType_Shared;
     }
@@ -37,8 +36,8 @@ public abstract record AutomaticBindingRequest
     public record Assisted(
         string ServerConnectionId,
         string ServerProjectKey,
-        bool IsShared) : AutomaticBindingRequest
+        bool IsFromSharedBinding) : AutomaticBindingRequest
     {
-        internal override string TypeName => IsShared ? ConnectedMode.Resources.AutomaticBindingType_Shared : ConnectedMode.Resources.AutomaticBindingType_Suggested;
+        internal override string TypeName => IsFromSharedBinding ? ConnectedMode.Resources.AutomaticBindingType_Shared : ConnectedMode.Resources.AutomaticBindingType_Suggested;
     }
 }

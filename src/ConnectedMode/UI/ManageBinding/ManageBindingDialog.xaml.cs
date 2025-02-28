@@ -87,7 +87,7 @@ internal partial class ManageBindingDialog : Window
 
     private async void UseSharedBinding_OnClick(object sender, RoutedEventArgs e)
     {
-        await ViewModel.PerformAutomaticBindingWithProgressAsync(AutomaticBindingRequest.Shared.Current);
+        await ViewModel.PerformAutomaticBindingWithProgressAsync(new AutomaticBindingRequest.Shared());
     }
 
     private void ExportBindingConfigurationButton_OnClick(object sender, RoutedEventArgs e)

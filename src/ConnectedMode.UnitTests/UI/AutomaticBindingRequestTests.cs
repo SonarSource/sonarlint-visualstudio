@@ -28,15 +28,10 @@ public class AutomaticBindingRequestTests
     [TestMethod]
     public void Shared_Instance_NotNull()
     {
-        AutomaticBindingRequest.Shared.Current.Should().NotBeNull();
-        AutomaticBindingRequest.Shared.Current.TypeName.Should().Be(Resources.AutomaticBindingType_Shared);
+        new AutomaticBindingRequest.Shared().Should().NotBeNull();
+        new AutomaticBindingRequest.Shared().TypeName.Should().Be(Resources.AutomaticBindingType_Shared);
     }
 
-    public static object[][] AssistedBindingSubtypes =>
-    [
-        [true, Resources.AutomaticBindingType_Shared],
-        [false, Resources.AutomaticBindingType_Suggested]
-    ];
     [DynamicData(nameof(AssistedBindingSubtypes))]
     [DataTestMethod]
     public void Assisted_ReturnsTypeNameDependingOnParameter(bool isShared, string typeName)
@@ -46,6 +41,12 @@ public class AutomaticBindingRequestTests
         testSubject.ServerConnectionId.Should().Be("con id");
         testSubject.ServerProjectKey.Should().Be("proj id");
         testSubject.TypeName.Should().Be(typeName);
-        testSubject.IsShared.Should().Be(isShared);
+        testSubject.IsFromSharedBinding.Should().Be(isShared);
     }
+
+    public static object[][] AssistedBindingSubtypes =>
+    [
+        [true, Resources.AutomaticBindingType_Shared],
+        [false, Resources.AutomaticBindingType_Suggested]
+    ];
 }

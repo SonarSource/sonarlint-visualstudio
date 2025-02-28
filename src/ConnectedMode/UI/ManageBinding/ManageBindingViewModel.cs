@@ -334,8 +334,6 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         return new SolutionInfoModel(solutionName, isFolderWorkspace ? SolutionType.Folder : SolutionType.Solution);
     }
 
-    #region Automatic Binding Implementation
-
     internal async Task<AdapterResponse> PerformAutomaticBindingInternalAsync(AutomaticBindingRequest automaticBinding)
     {
         var logContext = new MessageLevelContext { Context = [ConnectedMode.Resources.ConnectedModeAutomaticBindingLogContext, automaticBinding.TypeName], VerboseContext = [automaticBinding.ToString()]};
@@ -411,6 +409,4 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
             MessageBoxImage.Warning);
         return false;
     }
-
-    #endregion
 }
