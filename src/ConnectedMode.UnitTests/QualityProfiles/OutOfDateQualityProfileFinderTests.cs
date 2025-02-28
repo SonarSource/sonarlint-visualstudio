@@ -67,7 +67,7 @@ public class OutOfDateQualityProfileFinderTests
         var timestamp = DateTime.UtcNow;
 
         var testSubject = CreateTestSubject(out var sonarQubeServiceMock, Project, Organization,
-            new SonarQubeQualityProfile(qpKey, "name", Language.Ts.ServerLanguage.Key, false, timestamp));
+            new SonarQubeQualityProfile(qpKey, "name", Language.Ts.ServerLanguageKey, false, timestamp));
 
         var profiles = await testSubject.GetAsync(
             CreateArgument(Project,
@@ -86,7 +86,7 @@ public class OutOfDateQualityProfileFinderTests
         var timestamp = DateTime.UtcNow;
 
         var testSubject = CreateTestSubject(out var sonarQubeServiceMock, Project, Organization,
-            new SonarQubeQualityProfile(qpKey, "name", Language.Ts.ServerLanguage.Key, false, timestamp));
+            new SonarQubeQualityProfile(qpKey, "name", Language.Ts.ServerLanguageKey, false, timestamp));
 
         var profiles = await testSubject.GetAsync(
             CreateArgument(Project,
@@ -105,7 +105,7 @@ public class OutOfDateQualityProfileFinderTests
         const string localQpKey = "key2";
         var timestampServer = DateTime.UtcNow;
         var timestampLocal = timestampServer.AddHours(1); // local timestamp is greater, but the key is more important
-        var sonarQubeQualityProfile = new SonarQubeQualityProfile(serverQpKey, "name", Language.Ts.ServerLanguage.Key, false, timestampServer);
+        var sonarQubeQualityProfile = new SonarQubeQualityProfile(serverQpKey, "name", Language.Ts.ServerLanguageKey, false, timestampServer);
 
         var testSubject = CreateTestSubject(out var sonarQubeServiceMock, Project, Organization,
             sonarQubeQualityProfile);
@@ -126,7 +126,7 @@ public class OutOfDateQualityProfileFinderTests
         const string qpKey = "key";
         var localTimestamp = DateTime.UtcNow;
         var serverTimestamp = localTimestamp.AddHours(1);
-        var sonarQubeQualityProfile = new SonarQubeQualityProfile(qpKey, "name", Language.Ts.ServerLanguage.Key, false, serverTimestamp);
+        var sonarQubeQualityProfile = new SonarQubeQualityProfile(qpKey, "name", Language.Ts.ServerLanguageKey, false, serverTimestamp);
 
         var testSubject = CreateTestSubject(out var sonarQubeServiceMock, Project, Organization,
             sonarQubeQualityProfile);
@@ -146,7 +146,7 @@ public class OutOfDateQualityProfileFinderTests
     {
         const string qpKey = "key";
         var serverTimestamp = DateTime.UtcNow;
-        var sonarQubeQualityProfile = new SonarQubeQualityProfile(qpKey, "name", Language.Ts.ServerLanguage.Key, false, serverTimestamp);
+        var sonarQubeQualityProfile = new SonarQubeQualityProfile(qpKey, "name", Language.Ts.ServerLanguageKey, false, serverTimestamp);
 
         var testSubject = CreateTestSubject(out var sonarQubeServiceMock, Project, Organization,
             sonarQubeQualityProfile);
@@ -185,9 +185,9 @@ public class OutOfDateQualityProfileFinderTests
         var serverKey = "key";
         var localKey = "localKey";
         var timestamp = DateTime.UtcNow;
-        var csharpQp = new SonarQubeQualityProfile(serverKey, "name", Language.CSharp.ServerLanguage.Key, false, timestamp);
-        var cssQp = new SonarQubeQualityProfile(serverKey, "name", Language.Css.ServerLanguage.Key, false, timestamp);
-        var jsQp = new SonarQubeQualityProfile(serverKey, "name", Language.Js.ServerLanguage.Key, false, timestamp);
+        var csharpQp = new SonarQubeQualityProfile(serverKey, "name", Language.CSharp.ServerLanguageKey, false, timestamp);
+        var cssQp = new SonarQubeQualityProfile(serverKey, "name", Language.Css.ServerLanguageKey, false, timestamp);
+        var jsQp = new SonarQubeQualityProfile(serverKey, "name", Language.Js.ServerLanguageKey, false, timestamp);
 
         var testSubject = CreateTestSubject(out var sonarQubeServiceMock, Project, Organization,
             csharpQp,

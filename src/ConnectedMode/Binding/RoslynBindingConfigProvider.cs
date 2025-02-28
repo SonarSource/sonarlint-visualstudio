@@ -87,8 +87,8 @@ internal class RoslynBindingConfigProvider : IBindingConfigProvider
         BindingConfiguration bindingConfiguration,
         CancellationToken cancellationToken)
     {
-        var serverLanguage = language.ServerLanguage;
-        Debug.Assert(serverLanguage != null,
+        var serverLanguageKey = language.ServerLanguageKey;
+        Debug.Assert(serverLanguageKey != null,
             $"Server language should not be null for supported language: {language.Id}");
 
         // First, fetch the active rules
