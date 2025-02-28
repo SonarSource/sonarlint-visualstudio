@@ -237,7 +237,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             issueVizMock.Setup(x => x.Location).Returns(issue.PrimaryLocation);
             issueVizMock.Setup(x => x.Flows).Returns(Array.Empty<IAnalysisIssueFlowVisualization>());
             issueVizMock.SetupProperty(x => x.Span);
-            issueVizMock.SetupProperty(x => x.IsSuppressed);
             issueVizMock.Object.Span = new SnapshotSpan(CreateMockTextSnapshot(1000, "any line text").Object, 0, 1);
 
             return issueVizMock.Object;
