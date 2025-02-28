@@ -29,11 +29,11 @@ using SonarQube.Client.Models;
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles;
 
 [TestClass]
-public class QualityProfileDownloaderTests
+public class RoslynQualityProfileDownloaderTests
 {
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<QualityProfileDownloader, IQualityProfileDownloader>(
+        MefTestHelpers.CheckTypeCanBeImported<RoslynQualityProfileDownloader, IQualityProfileDownloader>(
             MefTestHelpers.CreateExport<IBindingConfigProvider>(),
             MefTestHelpers.CreateExport<IConfigurationPersister>(),
             MefTestHelpers.CreateExport<IOutOfDateQualityProfileFinder>(),
@@ -41,7 +41,7 @@ public class QualityProfileDownloaderTests
             MefTestHelpers.CreateExport<ILanguageProvider>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<QualityProfileDownloader>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<RoslynQualityProfileDownloader>();
 
     [TestMethod]
     public async Task UpdateAsync_NothingToUpdate_ReturnsFalse()
@@ -249,7 +249,7 @@ public class QualityProfileDownloaderTests
 
     #region Helpers
 
-    private static QualityProfileDownloader CreateTestSubject(
+    private static RoslynQualityProfileDownloader CreateTestSubject(
         IOutOfDateQualityProfileFinder outOfDateQualityProfileFinder = null,
         IBindingConfigProvider bindingConfigProvider = null,
         DummyConfigPersister configurationPersister = null,
@@ -259,7 +259,7 @@ public class QualityProfileDownloaderTests
         var languageProvider = new Mock<ILanguageProvider>();
         languageProvider.Setup(x => x.RoslynLanguages).Returns(languagesToBind ?? []);
 
-        return new QualityProfileDownloader(
+        return new RoslynQualityProfileDownloader(
             bindingConfigProvider ?? Mock.Of<IBindingConfigProvider>(),
             configurationPersister ?? new DummyConfigPersister(),
             outOfDateQualityProfileFinder ?? Mock.Of<IOutOfDateQualityProfileFinder>(),

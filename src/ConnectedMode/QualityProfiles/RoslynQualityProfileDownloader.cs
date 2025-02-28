@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
 
     [Export(typeof(IQualityProfileDownloader))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class QualityProfileDownloader : IQualityProfileDownloader
+    internal class RoslynQualityProfileDownloader : IQualityProfileDownloader
     {
         private readonly IBindingConfigProvider bindingConfigProvider;
         private readonly IConfigurationPersister configurationPersister;
@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
         private readonly IEnumerable<Language> languagesToBind;
 
         [ImportingConstructor]
-        public QualityProfileDownloader(
+        public RoslynQualityProfileDownloader(
             IBindingConfigProvider bindingConfigProvider,
             IConfigurationPersister configurationPersister,
             IOutOfDateQualityProfileFinder outOfDateQualityProfileFinder,
