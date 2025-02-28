@@ -18,25 +18,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
-namespace SonarLint.VisualStudio.Core.ServerSentEvents
+namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
 {
     /// <summary>
-    /// The publishing side for the <see cref="IServerSentEventSource{T}"/>
+    /// Source for the server sent events about certain server side changes to the SQ/SC project
     /// </summary>
-    /// <remarks>This interface is not intended to be thread safe.
-    /// The only permitted type of multi threaded calling is calling Publish and Dispose concurrently, although it may result in <see cref="ObjectDisposedException"/></remarks>
+    /// <remarks>This interface is not intended to be thread safe</remarks>
     /// <typeparam name="T">Server sent event type inherited from <see cref="IServerEvent"/></typeparam>
-    public interface IServerSentEventSourcePublisher<in T> : IDisposable where T : class, IServerEvent
+    public interface IServerSentEventSource<T> where T : class, IServerEvent
     {
         /// <summary>
-        /// Publishes the event to the consumer channel.
-        /// <exception cref="ObjectDisposedException">After the instance has been disposed</exception>.
+        /// Method that is used to await for the next server sent event <see cref="IServerEvent"/>.
         /// </summary>
-        /// <param name="serverEvent">Server event (<see cref="IServerEvent"/>) that needs to be delivered to the consumer</param>
-        /// <returns></returns>
-        void Publish(T serverEvent);
+        /// <remarks>Does not throw, always returns null after it's disposed</remarks>
+        /// <returns>
+        /// Task which result is:
+        ///     <list type="bullet">
+        ///         <item>
+        ///             <description>Next server event in queue</description>
+        ///         </item>
+        ///         <item>
+        ///             <description>Or null, when the channel has been Disposed</description>
+        ///         </item>
+        ///     </list>
+        /// </returns>
+        Task<T> GetNextEventOrNullAsync();
     }
 }
