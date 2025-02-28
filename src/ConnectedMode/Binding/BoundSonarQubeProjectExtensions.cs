@@ -33,6 +33,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
                 _ => null
             };
 
+        public static BoundServerProject FromBoundSonarQubeProject(BoundSonarQubeProject boundProject, string localBindingKey, ServerConnection connection) =>
+            new(localBindingKey ?? throw new ArgumentNullException(nameof(localBindingKey)),
+                boundProject?.ProjectKey ?? throw new ArgumentNullException(nameof(boundProject)),
+                connection ?? throw new ArgumentNullException(nameof(connection))) { Profiles = boundProject.Profiles };
+
         public static ConnectionInformation CreateConnectionInformation(this BoundSonarQubeProject binding)
         {
             if (binding == null)
@@ -46,11 +51,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             connection.Organization = binding.Organization;
             return connection;
         }
-
-        public static BoundServerProject FromBoundSonarQubeProject(BoundSonarQubeProject boundProject, string localBindingKey, ServerConnection connection) =>
-            new(localBindingKey ?? throw new ArgumentNullException(nameof(localBindingKey)),
-                boundProject?.ProjectKey ?? throw new ArgumentNullException(nameof(boundProject)),
-                connection ?? throw new ArgumentNullException(nameof(connection))) { Profiles = boundProject.Profiles };
 
         public static ConnectionInformation CreateConnectionInformation(this BoundServerProject binding)
         {
