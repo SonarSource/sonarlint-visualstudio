@@ -34,8 +34,6 @@ public abstract record AutomaticBindingRequest
     /// </summary>
     public record Shared : AutomaticBindingRequest
     {
-        public Shared() { }
-
         internal override string TypeName => ConnectedMode.Resources.AutomaticBindingType_Shared;
     }
 
