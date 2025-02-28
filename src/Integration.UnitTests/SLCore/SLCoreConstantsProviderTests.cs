@@ -77,7 +77,7 @@ public class SLCoreConstantsProviderTests
             shouldManageServerSentEvents: true,
             enableDataflowBugDetection: false,
             shouldManageFullSynchronization: true,
-            true,
+            enableTelemetry: true,
             canOpenFixSuggestion: true,
             enableMonitoring: true);
         var actual = testSubject.FeatureFlags;
