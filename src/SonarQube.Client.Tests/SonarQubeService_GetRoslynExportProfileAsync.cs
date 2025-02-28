@@ -56,7 +56,7 @@ namespace SonarQube.Client.Tests
   </Deployment>
 </RoslynExportProfile>");
 
-            var result = await service.GetRoslynExportProfileAsync("quality_profile", "my-org", SonarQubeLanguage.CSharp,
+            var result = await service.GetRoslynExportProfileAsync("quality_profile", "my-org", CreateSonarQubeCsharpLanguage(),
                 CancellationToken.None);
 
             httpClientHandler.VerifyAll();
@@ -85,7 +85,7 @@ namespace SonarQube.Client.Tests
                 "", HttpStatusCode.NotFound);
 
             Func<Task<RoslynExportProfileResponse>> func = async () =>
-                await service.GetRoslynExportProfileAsync("quality_profile", "my-org", SonarQubeLanguage.CSharp,
+                await service.GetRoslynExportProfileAsync("quality_profile", "my-org", CreateSonarQubeCsharpLanguage(),
                     CancellationToken.None);
 
             func.Should().ThrowExactly<HttpRequestException>().And
@@ -122,7 +122,7 @@ namespace SonarQube.Client.Tests
   </Deployment>
 </RoslynExportProfile>");
 
-            var result = await service.GetRoslynExportProfileAsync("quality_profile", "my-org", SonarQubeLanguage.CSharp,
+            var result = await service.GetRoslynExportProfileAsync("quality_profile", "my-org", CreateSonarQubeCsharpLanguage(),
                 CancellationToken.None);
 
             httpClientHandler.VerifyAll();
@@ -149,7 +149,7 @@ namespace SonarQube.Client.Tests
             // No need to setup request, the operation should fail
 
             Func<Task<RoslynExportProfileResponse>> func = async () =>
-                await service.GetRoslynExportProfileAsync("quality_profile", "my-org", SonarQubeLanguage.CSharp,
+                await service.GetRoslynExportProfileAsync("quality_profile", "my-org", CreateSonarQubeCsharpLanguage(),
                     CancellationToken.None);
 
             func.Should().ThrowExactly<InvalidOperationException>().And
@@ -157,5 +157,7 @@ namespace SonarQube.Client.Tests
 
             logger.ErrorMessages.Should().Contain("The service is expected to be connected.");
         }
+
+        private static SonarQubeLanguage CreateSonarQubeCsharpLanguage() => new("cs", "C#");
     }
 }

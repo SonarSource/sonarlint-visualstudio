@@ -148,6 +148,21 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             LanguageHasExpectedPlugin(Language.TSql, "tsql", null);
         }
 
+        [TestMethod]
+        public void Language_HasExpectedServerLanguageKey()
+        {
+            LanguageHasExpectedServerLanguageKey(Language.CSharp, "cs");
+            LanguageHasExpectedServerLanguageKey(Language.VBNET, "vbnet");
+            LanguageHasExpectedServerLanguageKey(Language.Cpp, "cpp");
+            LanguageHasExpectedServerLanguageKey(Language.C, "c");
+            LanguageHasExpectedServerLanguageKey(Language.Js, "js");
+            LanguageHasExpectedServerLanguageKey(Language.Ts, "ts");
+            LanguageHasExpectedServerLanguageKey(Language.Css, "css");
+            LanguageHasExpectedServerLanguageKey(Language.Html, "web");
+            LanguageHasExpectedServerLanguageKey(Language.Secrets, "secrets");
+            LanguageHasExpectedServerLanguageKey(Language.TSql, "tsql");
+        }
+
         private static void LanguageHasExpectedPlugin(Language language, string pluginKey, string filePattern)
         {
             language.PluginInfo.Key.Should().Be(pluginKey);
@@ -166,5 +181,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             repoInfo.Key.Should().Be(repoKey);
             repoInfo.FolderName.Should().Be(folderName);
         }
+
+        private static void LanguageHasExpectedServerLanguageKey(Language language, string key) => language.ServerLanguageKey.Should().Be(key);
     }
 }
