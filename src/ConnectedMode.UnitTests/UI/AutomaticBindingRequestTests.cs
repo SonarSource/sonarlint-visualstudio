@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI;
 public class AutomaticBindingRequestTests
 {
     [TestMethod]
-    public void Shared_TtpeName_ShouldBeShared()
+    public void Shared_TypeName_ShouldBeShared()
     {
         new AutomaticBindingRequest.Shared().TypeName.Should().Be(Resources.AutomaticBindingType_Shared);
     }
