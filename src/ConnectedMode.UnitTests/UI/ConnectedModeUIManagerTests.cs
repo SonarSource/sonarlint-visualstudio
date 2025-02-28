@@ -53,11 +53,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI
         public void MefCtor_CheckIsNonShared() => MefTestHelpers.CheckIsNonSharedMefComponent<ConnectedModeUIManager>();
 
         [TestMethod]
-        public void ShowManageBindingDialog_RunsOnUIThread()
+        public async Task ShowManageBindingDialogAsync_RunsOnUIThread()
         {
-            testSubject.ShowManageBindingDialog();
+            await testSubject.ShowManageBindingDialogAsync();
 
-            connectedModeServices.ThreadHandling.Received(1).RunOnUIThread(Arg.Any<Action>());
+            await connectedModeServices.ThreadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
         }
 
         [TestMethod]

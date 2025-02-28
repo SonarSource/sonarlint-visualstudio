@@ -22,6 +22,7 @@ using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Binding;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
@@ -31,12 +32,14 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation;
 [TestClass]
 public class ConnectedModeSuggestionListenerTests
 {
+    private const string ConfigScopeId = "A-ConfigScope";
+    private readonly SonarQubeConnectionParams sonarQubeConnectionParams = new(new Uri("http://localhost:9000"), "a-token", Guid.NewGuid().ToString());
     private INoBindingSuggestionNotification noBindingSuggestionNotification;
     private ConnectedModeSuggestionListener testSubject;
     private IConnectedModeUIManager connectedModeUIManager;
-    private readonly SonarQubeConnectionParams sonarQubeConnectionParams = new(new Uri("http://localhost:9000"), "a-token", Guid.NewGuid().ToString());
-    private ILogger logger;
+    private TestLogger logger;
     private IIDEWindowService ideWindowService;
+    private IActiveConfigScopeTracker activeConfigScopeTracker;
 
     [TestInitialize]
     public void TestInitialize()
@@ -44,15 +47,16 @@ public class ConnectedModeSuggestionListenerTests
         noBindingSuggestionNotification = Substitute.For<INoBindingSuggestionNotification>();
         connectedModeUIManager = Substitute.For<IConnectedModeUIManager>();
         ideWindowService = Substitute.For<IIDEWindowService>();
-        logger = Substitute.For<ILogger>();
-        logger.ForContext(Arg.Any<string[]>()).Returns(logger);
-        testSubject = new ConnectedModeSuggestionListener(noBindingSuggestionNotification, connectedModeUIManager, logger, ideWindowService);
+        logger = new TestLogger();
+        activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
+        testSubject = new ConnectedModeSuggestionListener(activeConfigScopeTracker, connectedModeUIManager, noBindingSuggestionNotification, ideWindowService, logger);
     }
 
     [TestMethod]
     public void MefCtor_CheckExports() =>
         MefTestHelpers.CheckTypeCanBeImported<ConnectedModeSuggestionListener, ISLCoreListener>(
             MefTestHelpers.CreateExport<INoBindingSuggestionNotification>(),
+            MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
             MefTestHelpers.CreateExport<IConnectedModeUIManager>(),
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IIDEWindowService>());
@@ -61,7 +65,12 @@ public class ConnectedModeSuggestionListenerTests
     public void MefCtor_IsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ConnectedModeSuggestionListener>();
 
     [TestMethod]
-    public void Ctor_LoggerContextIsSet() => logger.Received(1).ForContext("Connected Mode Suggestion");
+    public void Ctor_LoggerContextIsSet()
+    {
+        var logger = Substitute.For<ILogger>();
+        _ = new ConnectedModeSuggestionListener(activeConfigScopeTracker, connectedModeUIManager, noBindingSuggestionNotification, ideWindowService, logger);
+        logger.Received().ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.ConnectedMode_LogContext, SLCoreStrings.ConnectedModeSuggestion_LogContext);
+    }
 
     [TestMethod]
     public async Task AssistCreatingConnectionAsync_IdeWindowIsBroughtToFront()
@@ -109,11 +118,12 @@ public class ConnectedModeSuggestionListenerTests
     public void AssistCreatingConnectionAsync_AssistCreatingConnectionParamsIsNull_ThrowsExceptionAndLogs()
     {
         MockTrustConnectionDialogSucceeds();
+        var assistCreatingConnectionParams = new AssistCreatingConnectionParams { connectionParams = null };
 
-        var act = async () => await testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams { connectionParams = null });
+        var act = async () => await testSubject.AssistCreatingConnectionAsync(assistCreatingConnectionParams);
 
         act.Should().Throw<ArgumentNullException>();
-        logger.Received(1).LogVerbose(SLCoreStrings.AssistConnectionInvalidServerConnection, nameof(AssistCreatingConnectionParams));
+        logger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.AssistConnectionInvalidServerConnection, assistCreatingConnectionParams));
     }
 
     [TestMethod]
@@ -125,7 +135,7 @@ public class ConnectedModeSuggestionListenerTests
         var response = await testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams() { connectionParams = sonarQubeConnectionParams });
 
         response.Should().Be(new AssistCreatingConnectionResponse(expectedNewConnectionId));
-        logger.Received(1).LogVerbose(SLCoreStrings.AssistConnectionSucceeds, expectedNewConnectionId);
+        logger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.AssistConnectionSucceeds, expectedNewConnectionId));
     }
 
     [TestMethod]
@@ -140,7 +150,7 @@ public class ConnectedModeSuggestionListenerTests
         var response = await testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams() { connectionParams = sonarCloudParams });
 
         response.Should().Be(new AssistCreatingConnectionResponse(expectedNewConnectionId));
-        logger.Received(1).LogVerbose(SLCoreStrings.AssistConnectionSucceeds, expectedNewConnectionId);
+        logger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.AssistConnectionSucceeds, expectedNewConnectionId));
     }
 
     [TestMethod]
@@ -152,16 +162,73 @@ public class ConnectedModeSuggestionListenerTests
 
         var act = async () => await testSubject.AssistCreatingConnectionAsync(new AssistCreatingConnectionParams() { connectionParams = sonarQubeConnectionParams });
 
-        act.Should().Throw<OperationCanceledException>(SLCoreStrings.AssistConnectionCancelled);
+        act.Should().Throw<OperationCanceledException>(SLCoreStrings.AssistConnectionFailed);
+        logger.AssertPartialOutputStringExists(SLCoreStrings.AssistConnectionFailed);
     }
 
     [TestMethod]
-    public void AssistBindingAsync_NotImplemented()
+    public async Task AssistBindingAsync_IdeWindowIsBroughtToFront()
     {
-        Action act = () => testSubject.AssistBindingAsync(new AssistBindingParams("A_CONNECTION_ID", "A_PROJECT_KEY", "A_CONFIG_SCOPE_ID", false));
+        activeConfigScopeTracker.Current.Returns(new ConfigurationScope(ConfigScopeId));
 
-        act.Should().Throw<NotImplementedException>();
+        await testSubject.AssistBindingAsync(new AssistBindingParams("a-connection", "a-project", ConfigScopeId, true));
+
+        Received.InOrder(() =>
+        {
+            ideWindowService.BringToFront();
+            connectedModeUIManager.ShowManageBindingDialogAsync(Arg.Any<AutomaticBindingRequest.Assisted>());
+        });
     }
+
+    [TestMethod]
+    public async Task AssistBindingAsync_ConfigScopeMismatch_LogsAndNotBinds()
+    {
+        activeConfigScopeTracker.Current.Returns(new ConfigurationScope("DIFFERENT CONFIG SCOPE"));
+
+        var response = await testSubject.AssistBindingAsync(new AssistBindingParams("a-connection", "a-project", ConfigScopeId, true));
+
+        response.configurationScopeId.Should().BeNull();
+        connectedModeUIManager.DidNotReceiveWithAnyArgs().ShowManageBindingDialogAsync(default);
+        logger.AssertPartialOutputStringExists(SLCoreStrings.ConfigurationScopeMismatch);
+    }
+
+    [DataRow(true)]
+    [DataRow(false)]
+    [DataTestMethod]
+    public async Task AssistBindingAsync_BindingSucceeds_ReturnsSuccess(bool isShared)
+    {
+        var assistBindingParams = new AssistBindingParams("a-connection", "a-project", ConfigScopeId, isShared);
+        activeConfigScopeTracker.Current.Returns(new ConfigurationScope(ConfigScopeId));
+        SetUpAutoBinding(assistBindingParams, true);
+
+        var response = await testSubject.AssistBindingAsync(assistBindingParams);
+
+        response.configurationScopeId.Should().Be(ConfigScopeId);
+        logger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.AssistBindingSucceeded, ConfigScopeId));
+    }
+
+    [DataRow(true)]
+    [DataRow(false)]
+    [DataTestMethod]
+    public async Task AssistBindingAsync_BindingFails_ReturnsFailed(bool isShared)
+    {
+        var assistBindingParams = new AssistBindingParams("a-connection", "a-project", ConfigScopeId, isShared);
+        activeConfigScopeTracker.Current.Returns(new ConfigurationScope(ConfigScopeId));
+        SetUpAutoBinding(assistBindingParams, false);
+
+        var response = await testSubject.AssistBindingAsync(assistBindingParams);
+
+        response.configurationScopeId.Should().BeNull();
+        logger.AssertPartialOutputStringExists(SLCoreStrings.AssistBindingFailed);
+    }
+
+    private void SetUpAutoBinding(AssistBindingParams assistBindingParams, bool result) =>
+        connectedModeUIManager
+            .ShowManageBindingDialogAsync(Arg.Is<AutomaticBindingRequest.Assisted>(x =>
+                x.ServerConnectionId == assistBindingParams.connectionId
+                && x.ServerProjectKey == assistBindingParams.projectKey
+                && x.IsFromSharedBinding == assistBindingParams.isFromSharedConfiguration))
+            .Returns(result);
 
     [TestMethod]
     [DataRow(true)]
