@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
+using IConnectionCredentials = SonarLint.VisualStudio.Core.Binding.IConnectionCredentials;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence;
 
@@ -75,10 +76,7 @@ public class BindingJsonModelConverterTests
     [TestMethod]
     public void ConvertToModel_SonarCloudConnection_ConvertsCorrectly()
     {
-        var boundServerProject = new BoundServerProject("localBinding", "serverProject", new ServerConnection.SonarCloud("myorg"))
-        {
-            Profiles = new Dictionary<Language, ApplicableQualityProfile>()
-        };
+        var boundServerProject = new BoundServerProject("localBinding", "serverProject", new ServerConnection.SonarCloud("myorg")) { Profiles = new Dictionary<Language, ApplicableQualityProfile>() };
 
         var bindingModel = testSubject.ConvertToModel(boundServerProject);
 

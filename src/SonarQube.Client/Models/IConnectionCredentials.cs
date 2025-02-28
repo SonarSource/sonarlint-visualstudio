@@ -22,21 +22,22 @@ using System.Security;
 
 namespace SonarQube.Client.Models;
 
+// TODO by https://sonarsource.atlassian.net/browse/SLVS-1816 drop this class once SonarQube.Client has reference to Core assembly
 public interface IConnectionCredentials : IDisposable, ICloneable
 {
 }
 
-public interface IUsernameAndPasswordCredentials : IConnectionCredentials
+internal interface IUsernameAndPasswordCredentials : IConnectionCredentials
 {
     public string UserName { get; }
     public SecureString Password { get; }
 }
 
-public interface ITokenCredentials : IConnectionCredentials
+internal interface ITokenCredentials : IConnectionCredentials
 {
     public SecureString Token { get; }
 }
 
-public interface INoCredentials : IConnectionCredentials
+internal interface INoCredentials : IConnectionCredentials
 {
 }

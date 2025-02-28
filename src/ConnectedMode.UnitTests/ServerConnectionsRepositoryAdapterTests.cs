@@ -23,8 +23,8 @@ using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Helpers;
-using SonarQube.Client.Models;
 using static SonarLint.VisualStudio.Core.Binding.ServerConnection;
+using IConnectionCredentials = SonarLint.VisualStudio.Core.Binding.IConnectionCredentials;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests;
 

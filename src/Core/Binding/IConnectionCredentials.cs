@@ -18,16 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Binding;
+using System.Security;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Persistence
+namespace SonarLint.VisualStudio.Core.Binding;
+
+public interface IConnectionCredentials : IDisposable, ICloneable
 {
-    interface ISolutionBindingCredentialsLoader
-    {
-        void DeleteCredentials(Uri boundServerUri);
+}
 
-        IConnectionCredentials Load(Uri boundServerUri);
+public interface IUsernameAndPasswordCredentials : IConnectionCredentials
+{
+    public string UserName { get; }
+    public SecureString Password { get; }
+}
 
-        void Save(IConnectionCredentials credentials, Uri boundServerUri);
-    }
+public interface ITokenCredentials : IConnectionCredentials
+{
+    public SecureString Token { get; }
+}
+
+public interface INoCredentials : IConnectionCredentials
+{
 }

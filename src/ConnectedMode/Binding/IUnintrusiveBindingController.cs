@@ -63,7 +63,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
         public async Task BindAsync(BoundServerProject project, CancellationToken cancellationToken)
         {
-            var connectionInformation = new ConnectionInformation(project.ServerConnection.ServerUri, project.ServerConnection.Credentials);
+            // TODO by https://sonarsource.atlassian.net/browse/SLVS-1816 Remove this cast once SonarQube.Client has reference to CORE assembly
+            var connectionInformation = new ConnectionInformation(project.ServerConnection.ServerUri, project.ServerConnection.Credentials as SonarQube.Client.Models.IConnectionCredentials);
             await sonarQubeService.ConnectAsync(connectionInformation, cancellationToken);
             await BindAsync(project, null, cancellationToken);
             activeSolutionChangedHandler.HandleBindingChange();

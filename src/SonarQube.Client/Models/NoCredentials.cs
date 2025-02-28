@@ -20,6 +20,7 @@
 
 namespace SonarQube.Client.Models;
 
+// TODO by https://sonarsource.atlassian.net/browse/SLVS-1816 Remove this class once SonarQube.Client has reference to Core assembly
 internal sealed class NoCredentials : INoCredentials
 {
     public void Dispose() { }

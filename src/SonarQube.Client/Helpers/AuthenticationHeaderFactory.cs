@@ -36,20 +36,20 @@ namespace SonarQube.Client.Helpers
         /// </summary>
         internal static readonly Encoding BasicAuthEncoding = Encoding.UTF8;
 
-        public static AuthenticationHeaderValue Create(IConnectionCredentials credentials, bool shouldUseBearer = true)
+        internal static AuthenticationHeaderValue Create(IConnectionCredentials credentials, bool shouldUseBearer = true)
         {
             switch (credentials)
             {
                 case ITokenCredentials tokenCredentials:
-                {
-                    ValidateSecureString(tokenCredentials.Token, nameof(tokenCredentials.Token));
-                    return CreateAuthenticationHeaderValueForTokenAuth(shouldUseBearer, tokenCredentials);
-                }
+                    {
+                        ValidateSecureString(tokenCredentials.Token, nameof(tokenCredentials.Token));
+                        return CreateAuthenticationHeaderValueForTokenAuth(shouldUseBearer, tokenCredentials);
+                    }
                 case IUsernameAndPasswordCredentials basicAuthCredentials:
-                {
-                    ValidateCredentials(basicAuthCredentials);
-                    return CreateAuthenticationHeaderValueForBasicAuth(basicAuthCredentials.UserName, basicAuthCredentials.Password);
-                }
+                    {
+                        ValidateCredentials(basicAuthCredentials);
+                        return CreateAuthenticationHeaderValueForBasicAuth(basicAuthCredentials.UserName, basicAuthCredentials.Password);
+                    }
                 case INoCredentials:
                     return null;
                 default:

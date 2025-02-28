@@ -18,17 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
-using SonarLint.VisualStudio.Core.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarQube.Client.Models;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Persistence;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
-
 
 [Export(typeof(IServerConnectionsRepository))]
 [PartCreationPolicy(CreationPolicy.Shared)]
@@ -57,7 +55,9 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
         new SolutionBindingCredentialsLoader(credentialStoreService),
         EnvironmentVariableProvider.Instance,
         new FileSystem(),
-        logger) { }
+        logger)
+    {
+    }
 
     internal /* for testing */ ServerConnectionsRepository(
         IJsonFileHandler jsonFileHandle,
@@ -85,7 +85,6 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
 
         serverConnection.Credentials = credentialsLoader.Load(serverConnection.CredentialsUri);
         return true;
-
     }
 
     public bool TryGetAll(out IReadOnlyList<ServerConnection> serverConnections)
@@ -172,7 +171,6 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
         return false;
     }
 
-
     private void TryDeleteCredentials(ServerConnection removedConnection)
     {
         try
@@ -215,7 +213,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
             // file not existing should not be treated as an error, as it will be created at the first write
             return [];
         }
-        catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
             logger.WriteLine($"Failed reading the {ConnectionsFileName}: {ex.Message}");
         }
@@ -252,5 +250,6 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
     }
 
     private void OnConnectionChanged() => ConnectionChanged?.Invoke(this, EventArgs.Empty);
+
     private void OnCredentialsChanged(ServerConnection serverConnection) => CredentialsChanged?.Invoke(this, new ServerConnectionUpdatedEventArgs(serverConnection));
 }
