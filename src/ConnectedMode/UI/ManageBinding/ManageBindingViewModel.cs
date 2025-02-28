@@ -19,6 +19,7 @@
  */
 
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
@@ -182,6 +183,7 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         await ProgressReporter.ExecuteTaskWithProgressAsync(unbind);
     }
 
+    [ExcludeFromCodeCoverage]
     public async Task ExportBindingConfigurationAsync()
     {
         try
@@ -351,14 +353,16 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
 
     private bool SelectAutomaticBindingArguments(MessageLevelContext logContext, AutomaticBindingRequest automaticBinding, out string serverConnectionId, out string serverProjectKey)
     {
+        Debug.Assert(automaticBinding is not AutomaticBindingRequest.Shared || SharedBindingConfigModel != null,
+            "Shared binding should never be called when it's not available");
+
         switch (automaticBinding)
         {
             case AutomaticBindingRequest.Assisted assistedBinding:
                 serverConnectionId = assistedBinding.ServerConnectionId;
                 serverProjectKey = assistedBinding.ServerProjectKey;
                 return true;
-            case AutomaticBindingRequest.Shared:
-                Debug.Assert(SharedBindingConfigModel != null,"Shared binding should never be called when it's not available");
+            case AutomaticBindingRequest.Shared when SharedBindingConfigModel != null:
                 serverConnectionId = CreateConnectionInfoFromSharedBinding().GetServerIdFromConnectionInfo();
                 serverProjectKey = SharedBindingConfigModel.ProjectKey;
                 return true;

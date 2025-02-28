@@ -980,6 +980,26 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
+    public async Task PerformAutomaticBindingInternalAsync_Shared_NoSharedBinding_FailsAndLogs()
+    {
+        testSubject.SharedBindingConfigModel = null;
+        SetupBoundProject(sonarQubeConnectionInfo.GetServerConnectionFromConnectionInfo());
+
+        using (new AssertIgnoreScope())
+        {
+            var response = await testSubject.PerformAutomaticBindingInternalAsync(AutomaticBindingRequest.Shared.Current);
+
+            response.Success.Should().BeFalse();
+        }
+
+        await bindingController.DidNotReceiveWithAnyArgs().BindAsync(default, default);
+        logger.Received().WriteLine(
+            Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(AutomaticBindingRequest.Shared.Current.TypeName)),
+            Resources.AutomaticBinding_ConfigurationNotAvailable);
+
+    }
+
+    [TestMethod]
     public async Task PerformAutomaticBindingInternalAsync_Shared_SharedBindingForSonarCloudConnection_BindsWithTheCorrectProjectKey()
     {
         testSubject.SelectedConnectionInfo = sonarQubeConnectionInfo; // this is to make sure the SelectedConnectionInfo is ignored and the shared config is used instead
