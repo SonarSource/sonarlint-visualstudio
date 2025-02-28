@@ -69,6 +69,15 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Configuration not available.
+        /// </summary>
+        internal static string AutomaticBinding_ConfigurationNotAvailable {
+            get {
+                return ResourceManager.GetString("AutomaticBinding_ConfigurationNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Connection to server {0} could not be found.
         /// </summary>
         internal static string AutomaticBinding_ConnectionNotFound {
@@ -83,6 +92,24 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         internal static string AutomaticBinding_CredentiasNotFound {
             get {
                 return ResourceManager.GetString("AutomaticBinding_CredentiasNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shared.
+        /// </summary>
+        internal static string AutomaticBindingType_Shared {
+            get {
+                return ResourceManager.GetString("AutomaticBindingType_Shared", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Suggested.
+        /// </summary>
+        internal static string AutomaticBindingType_Suggested {
+            get {
+                return ResourceManager.GetString("AutomaticBindingType_Suggested", resourceCulture);
             }
         }
         

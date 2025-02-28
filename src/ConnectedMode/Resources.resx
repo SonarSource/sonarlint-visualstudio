@@ -334,6 +334,9 @@
   <data name="AutomaticBinding_ConnectionNotFound" xml:space="preserve">
     <value>Connection to server {0} could not be found</value>
   </data>
+  <data name="AutomaticBinding_ConfigurationNotAvailable" xml:space="preserve">
+    <value>Configuration not available</value>
+  </data>
   <data name="UnexpectedConnectionType" xml:space="preserve">
     <value>Unexpected server connection type</value>
   </data>
@@ -366,5 +369,11 @@
   </data>
   <data name="ConnectedModeAutomaticBindingLogContext" xml:space="preserve">
     <value>Automatic Binding</value>
+  </data>
+  <data name="AutomaticBindingType_Shared" xml:space="preserve">
+    <value>Shared</value>
+  </data>
+  <data name="AutomaticBindingType_Suggested" xml:space="preserve">
+    <value>Suggested</value>
   </data>
 </root>
