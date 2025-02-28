@@ -28,6 +28,9 @@
       <SonarQubeExclude>true</SonarQubeExclude>
     </Compile>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj" />
+  </ItemGroup>
 
   <!-- Generate protobuf classes, only supports Windows execution, adapted from SonarAnalyzer.Common -->
   <Target Name="GenerateProtobufClasses" BeforeTargets="CoreCompile" AfterTargets="RestorePackages" Outputs="Messages/Protobuf/ScannerInput.cs,Messages/Protobuf/Constants.cs" Inputs="Messages/Protobuf/scanner_input.proto,Messages/Protobuf/constants.proto">

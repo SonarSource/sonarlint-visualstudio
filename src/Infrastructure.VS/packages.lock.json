@@ -1332,7 +1332,6 @@
         "type": "Project",
         "dependencies": {
           "Newtonsoft.Json": "[13.0.3, )",
-          "SonarQube.Client": "[1.0.0, )",
           "System.Collections.Immutable": "[5.0.0, )",
           "System.IO.Abstractions": "[9.0.4, )",
           "System.Threading.Channels": "[7.0.0, )"
@@ -1345,6 +1344,7 @@
           "Google.Protobuf": "[3.6.1, )",
           "Grpc.Tools": "[1.4.1, )",
           "Newtonsoft.Json": "[13.0.3, )",
+          "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "System.Net.Http": "[4.0.0, )"
         }
       }
