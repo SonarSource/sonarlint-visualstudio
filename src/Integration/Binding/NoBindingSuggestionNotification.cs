@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
@@ -58,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public void Show(string projectKey, bool isSonarCloud)
         {
-            var connectAction = new NotificationAction(BindingStrings.NoBindingSuggestionNotification_ConfigureBindingAction, _ => connectedModeUiManager.ShowManageBindingDialog(), true);
+            var connectAction = new NotificationAction(BindingStrings.NoBindingSuggestionNotification_ConfigureBindingAction, _ => connectedModeUiManager.ShowManageBindingDialogAsync().Forget(), true);
             var learnMoreAction = new NotificationAction(BindingStrings.NoBindingSuggestionNotification_LearnMoreAction, _ => browserService.Navigate(DocumentationLinks.OpenInIdeBindingSetup), false);
 
             var notification = new Notification(

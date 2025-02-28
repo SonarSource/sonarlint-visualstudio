@@ -106,7 +106,7 @@ public sealed class PromoteNotification : IPromoteNotification, IDisposable
         }
     }
 
-    private void OnBind() => connectedModeUiManager.ShowManageBindingDialog();
+    private void OnBind() => connectedModeUiManager.ShowManageBindingDialogAsync();
 
     private void OnTrySonarQubeCloud()
     {

@@ -147,7 +147,7 @@ public class PromoteNotificationTests
 
         bindAction.Action(null);
 
-        connectedModeUiManager.Received(1).ShowManageBindingDialog();
+        connectedModeUiManager.Received(1).ShowManageBindingDialogAsync();
     }
 
     [TestMethod]
