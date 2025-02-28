@@ -220,7 +220,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
             var issueViz = ((ITaintIssueViewModel)viewModel).TaintIssueViz;
 
-            if (issueViz.IsSuppressed)
+            if (issueViz.IsResolved)
             {
                 return false;
             }
@@ -281,30 +281,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         private void UpdateIssues()
         {
-            foreach (var taintIssueViewModel in unfilteredIssues)
-            {
-                taintIssueViewModel.TaintIssueViz.PropertyChanged -= OnTaintIssuePropertyChanged;
-            }
-
             unfilteredIssues.Clear();
 
             foreach (var issueViz in store.GetAll())
             {
                 var taintIssueViewModel = new TaintIssueViewModel(issueViz);
                 unfilteredIssues.Add(taintIssueViewModel);
-
-                taintIssueViewModel.TaintIssueViz.PropertyChanged += OnTaintIssuePropertyChanged;
             }
 
             NotifyPropertyChanged(nameof(HasServerIssues));
-        }
-
-        private void OnTaintIssuePropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(IAnalysisIssueVisualization.IsSuppressed))
-            {
-                UpdateCaptionAndListFilter();
-            }
         }
 
         private void UpdateCaptionAndListFilter()
