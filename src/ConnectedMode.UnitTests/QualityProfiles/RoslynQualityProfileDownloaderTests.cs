@@ -56,8 +56,7 @@ public class RoslynQualityProfileDownloaderTests
 
         var testSubject = CreateTestSubject(outOfDateQualityProfileFinderMock.Object,
             bindingConfigProvider.Object,
-            logger: logger,
-            languagesToBind: LanguageProvider.Instance.RoslynLanguages.ToArray());
+            logger: logger);
 
         var result = await testSubject.UpdateAsync(boundSonarQubeProject, null, CancellationToken.None);
 
@@ -89,7 +88,7 @@ public class RoslynQualityProfileDownloaderTests
             .ReturnsAsync(Mock.Of<IBindingConfig>());
 
         var testSubject = CreateTestSubject(
-            languagesToBind: languagesToBind,
+            languageProvider: CreateLanguageProvider(languagesToBind).Object,
             outOfDateQualityProfileFinder: outOfDateQualityProfileFinderMock.Object,
             bindingConfigProvider: bindingConfigProviderMock.Object,
             logger: logger);
@@ -120,6 +119,91 @@ public class RoslynQualityProfileDownloaderTests
     }
 
     [TestMethod]
+    public async Task UpdateAsync_OnNewBoundProject_InitializesOnlyRoslynLanguages()
+    {
+        // Arrange
+        var boundProject = CreateBoundProject();
+        var logger = new TestLogger();
+        var progressAdapter = new Mock<IProgress<FixedStepsProgress>>();
+        var mockLanguageProvider = CreateLanguageProvider();
+
+        var outOfDateQualityProfileFinder = new Mock<IOutOfDateQualityProfileFinder>();
+        outOfDateQualityProfileFinder
+            .Setup(x => x.GetAsync(boundProject, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+
+        boundProject.Profiles.Should().BeNull();
+
+        var testSubject = CreateTestSubject(
+            bindingConfigProvider: new Mock<IBindingConfigProvider>().Object,
+            configurationPersister: new DummyConfigPersister(),
+            outOfDateQualityProfileFinder: outOfDateQualityProfileFinder.Object,
+            languageProvider: mockLanguageProvider.Object,
+            logger: logger);
+
+        // Act
+        await testSubject.UpdateAsync(boundProject, progressAdapter.Object, CancellationToken.None);
+
+        // Assert
+        boundProject.Profiles.Count.Should().Be(2);
+        boundProject.Profiles.ContainsKey(Language.VBNET).Should().BeTrue();
+        boundProject.Profiles.ContainsKey(Language.CSharp).Should().BeTrue();
+        mockLanguageProvider.Verify(x => x.RoslynLanguages, Times.Once);
+        mockLanguageProvider.VerifyNoOtherCalls();
+    }
+
+    [TestMethod]
+    public async Task UpdateAsync_UpdatesOnlyRoslynLanguages()
+    {
+        // Arrange
+        var boundProject = CreateBoundProject();
+        var logger = new TestLogger(logToConsole: true);
+
+        var mockLanguageProvider = CreateLanguageProvider();
+
+        // Configure available languages on the server
+        SetupLanguagesToUpdate(out var outOfDateQualityProfileFinderMock,
+            boundProject,
+            Language.CSharp, Language.VBNET, Language.Cpp);
+
+        var configProvider = new Mock<IBindingConfigProvider>();
+        var csharpConfig = SetupConfigProvider(configProvider, Language.CSharp);
+        var vbnetConfig = SetupConfigProvider(configProvider, Language.VBNET);
+        var cppConfig = SetupConfigProvider(configProvider, Language.Cpp);
+
+        var configPersister = new DummyConfigPersister();
+
+        var testSubject = CreateTestSubject(
+            bindingConfigProvider: configProvider.Object,
+            configurationPersister: configPersister,
+            outOfDateQualityProfileFinder: outOfDateQualityProfileFinderMock.Object,
+            languageProvider: mockLanguageProvider.Object,
+            logger: logger);
+
+        var notifications = new ConfigurableProgressStepExecutionEvents();
+        var progressAdapter = new Mock<IProgress<FixedStepsProgress>>();
+        progressAdapter.Setup(x => x.Report(It.IsAny<FixedStepsProgress>()))
+            .Callback<FixedStepsProgress>(x =>
+                ((IProgressStepExecutionEvents)notifications).ProgressChanged(x.Message, x.CurrentStep));
+
+        // Act
+        var result = await testSubject.UpdateAsync(boundProject, progressAdapter.Object, CancellationToken.None);
+
+        // Assert
+        result.Should().BeTrue();
+
+        CheckRuleConfigSaved(csharpConfig);
+        CheckRuleConfigSaved(vbnetConfig);
+        CheckRuleConfigNotSaved(cppConfig);
+
+        boundProject.Profiles.Count.Should().Be(2);
+        boundProject.Profiles[Language.VBNET].ProfileKey.Should().NotBeNull();
+        boundProject.Profiles[Language.CSharp].ProfileKey.Should().NotBeNull();
+        mockLanguageProvider.Verify(x => x.RoslynLanguages, Times.Once);
+        mockLanguageProvider.VerifyNoOtherCalls();
+    }
+
+    [TestMethod]
     public async Task UpdateAsync_WhenQualityProfileIsNotAvailable_OtherLanguagesDownloadedSuccessfully()
     {
         var boundProject = CreateBoundProject();
@@ -128,7 +212,8 @@ public class RoslynQualityProfileDownloaderTests
         var languagesToBind = new[]
         {
             Language.Cpp, // unavailable
-            Language.CSharp, Language.Secrets, // unavailable
+            Language.CSharp,
+            Language.Secrets, // unavailable
             Language.VBNET
         };
 
@@ -149,7 +234,7 @@ public class RoslynQualityProfileDownloaderTests
         var testSubject = CreateTestSubject(
             bindingConfigProvider: configProvider.Object,
             configurationPersister: configPersister,
-            languagesToBind: languagesToBind,
+            languageProvider: CreateLanguageProvider(languagesToBind).Object,
             outOfDateQualityProfileFinder: outOfDateQualityProfileFinderMock.Object,
             logger: logger);
 
@@ -192,7 +277,7 @@ public class RoslynQualityProfileDownloaderTests
         var bindingConfigProvider = new Mock<IBindingConfigProvider>();
         var testSubject = CreateTestSubject(
             bindingConfigProvider: bindingConfigProvider.Object,
-            languagesToBind: new[] { language },
+            languageProvider: CreateLanguageProvider([language]).Object,
             outOfDateQualityProfileFinder: outOfDateQualityProfileFinderMock.Object,
             logger: logger);
 
@@ -232,7 +317,7 @@ public class RoslynQualityProfileDownloaderTests
             outOfDateQualityProfileFinderMock.Object,
             configProviderMock.Object,
             configurationPersister: configPersister,
-            languagesToBind: new[] { language });
+            languageProvider: CreateLanguageProvider([language]).Object);
 
         // Act
         await testSubject.UpdateAsync(boundProject, null, CancellationToken.None);
@@ -254,33 +339,23 @@ public class RoslynQualityProfileDownloaderTests
         IBindingConfigProvider bindingConfigProvider = null,
         DummyConfigPersister configurationPersister = null,
         ILogger logger = null,
-        Language[] languagesToBind = null)
-    {
-        var languageProvider = new Mock<ILanguageProvider>();
-        languageProvider.Setup(x => x.RoslynLanguages).Returns(languagesToBind ?? []);
-
-        return new RoslynQualityProfileDownloader(
+        ILanguageProvider languageProvider = null) =>
+        new(
             bindingConfigProvider ?? Mock.Of<IBindingConfigProvider>(),
             configurationPersister ?? new DummyConfigPersister(),
             outOfDateQualityProfileFinder ?? Mock.Of<IOutOfDateQualityProfileFinder>(),
             logger ?? new TestLogger(logToConsole: true),
-            languageProvider.Object);
-    }
+            languageProvider ?? CreateLanguageProvider().Object);
 
-    private static SonarQubeQualityProfile CreateQualityProfile(string key = "key", DateTime timestamp = default)
-    {
-        return new SonarQubeQualityProfile(key, default, default, default, timestamp);
-    }
+    private static SonarQubeQualityProfile CreateQualityProfile(string key = "key", DateTime timestamp = default) => new(key, default, default, default, timestamp);
 
     private static void SetupLanguagesToUpdate(
         out Mock<IOutOfDateQualityProfileFinder> outOfDateQualityProfileFinderMock,
         BoundServerProject boundProject,
-        params Language[] languages)
-    {
+        params Language[] languages) =>
         SetupLanguagesToUpdate(out outOfDateQualityProfileFinderMock,
             boundProject,
             languages.Select(x => (x, CreateQualityProfile())).ToArray());
-    }
 
     private static void SetupLanguagesToUpdate(
         out Mock<IOutOfDateQualityProfileFinder> outOfDateQualityProfileFinderMock,
@@ -330,6 +405,14 @@ public class RoslynQualityProfileDownloaderTests
             SavedProject = project;
             return new BindingConfiguration(project, SonarLintMode.Connected, "c:\\any");
         }
+    }
+
+    private static Mock<ILanguageProvider> CreateLanguageProvider(Language[] languagesToBind = null)
+    {
+        var mockLanguageProvider = new Mock<ILanguageProvider>();
+        mockLanguageProvider.Setup(x => x.RoslynLanguages)
+            .Returns(languagesToBind ?? LanguageProvider.Instance.RoslynLanguages.ToArray());
+        return mockLanguageProvider;
     }
 
     #endregion Helpers

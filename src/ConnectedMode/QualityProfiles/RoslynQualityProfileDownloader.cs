@@ -38,30 +38,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
 
     [Export(typeof(IQualityProfileDownloader))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class RoslynQualityProfileDownloader : IQualityProfileDownloader
+    [method: ImportingConstructor]
+    internal class RoslynQualityProfileDownloader(
+        IBindingConfigProvider bindingConfigProvider,
+        IConfigurationPersister configurationPersister,
+        IOutOfDateQualityProfileFinder outOfDateQualityProfileFinder,
+        ILogger logger,
+        ILanguageProvider languageProvider)
+        : IQualityProfileDownloader
     {
-        private readonly IBindingConfigProvider bindingConfigProvider;
-        private readonly IConfigurationPersister configurationPersister;
-        private readonly IOutOfDateQualityProfileFinder outOfDateQualityProfileFinder;
-
-        private readonly ILogger logger;
-
-        private readonly IEnumerable<Language> languagesToBind;
-
-        [ImportingConstructor]
-        public RoslynQualityProfileDownloader(
-            IBindingConfigProvider bindingConfigProvider,
-            IConfigurationPersister configurationPersister,
-            IOutOfDateQualityProfileFinder outOfDateQualityProfileFinder,
-            ILogger logger,
-            ILanguageProvider languageProvider)
-        {
-            this.bindingConfigProvider = bindingConfigProvider;
-            this.configurationPersister = configurationPersister;
-            this.logger = logger;
-            languagesToBind = languageProvider.RoslynLanguages;
-            this.outOfDateQualityProfileFinder = outOfDateQualityProfileFinder;
-        }
+        private readonly IEnumerable<Language> languagesToBind = languageProvider.RoslynLanguages;
 
         public async Task<bool> UpdateAsync(
             BoundServerProject boundProject,
@@ -83,6 +69,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
 
             foreach (var (language, qualityProfileInfo) in outOfDateProfiles)
             {
+                if (!languagesToBind.Contains(language))
+                {
+                    continue;
+                }
                 currentLanguage++;
 
                 var progressMessage = string.Format(QualityProfilesStrings.DownloadingQualityProfileProgressMessage, language.Name);
@@ -142,10 +132,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             }
         }
 
-        private static void UpdateProfile(BoundServerProject boundSonarQubeProject, Language language, SonarQubeQualityProfile serverProfile)
-        {
+        private static void UpdateProfile(BoundServerProject boundSonarQubeProject, Language language, SonarQubeQualityProfile serverProfile) =>
             boundSonarQubeProject.Profiles[language] = new ApplicableQualityProfile { ProfileKey = serverProfile.Key, ProfileTimestamp = serverProfile.TimeStamp };
-        }
 
         private void LogWithBindingPrefix(string text) => logger.WriteLine(QualityProfilesStrings.QPMessagePrefix + text);
     }
