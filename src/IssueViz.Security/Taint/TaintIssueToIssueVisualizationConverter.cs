@@ -43,8 +43,6 @@ internal class TaintIssueToIssueVisualizationConverter(IAnalysisIssueVisualizati
     {
         var analysisIssue = ConvertToAnalysisIssue(slcoreTaintIssue, configScopeRoot);
         var issueViz = CreateAnalysisIssueVisualization(analysisIssue);
-        issueViz.IsSuppressed = slcoreTaintIssue.resolved;
-
         return issueViz;
     }
 

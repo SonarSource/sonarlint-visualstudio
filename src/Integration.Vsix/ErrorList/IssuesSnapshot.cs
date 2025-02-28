@@ -244,7 +244,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case StandardTableKeyNames.SuppressionState:
-                    content = issueViz.IsSuppressed ? Boxes.SuppressionState.Suppressed : Boxes.SuppressionState.Active;
+                    content = issueViz.IsResolved ? Boxes.SuppressionState.Suppressed : Boxes.SuppressionState.Active;
                     return true;
 
                 // Not a visible field - returns the issue object
