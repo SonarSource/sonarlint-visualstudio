@@ -1331,6 +1331,7 @@
       "SonarLint.VisualStudio.Core": {
         "type": "Project",
         "dependencies": {
+          "BouncyCastle.Cryptography": "[2.4.0, )",
           "Newtonsoft.Json": "[13.0.3, )",
           "System.Collections.Immutable": "[5.0.0, )",
           "System.IO.Abstractions": "[9.0.4, )",
@@ -1340,7 +1341,6 @@
       "sonarqube.client": {
         "type": "Project",
         "dependencies": {
-          "BouncyCastle.Cryptography": "[2.4.0, )",
           "Google.Protobuf": "[3.6.1, )",
           "Grpc.Tools": "[1.4.1, )",
           "Newtonsoft.Json": "[13.0.3, )",
