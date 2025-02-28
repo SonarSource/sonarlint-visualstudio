@@ -18,9 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Threading.Channels;
-using System.Threading.Tasks;
+using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
+using SonarLint.VisualStudio.ConnectedMode.SonarQubeClient;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
 namespace SonarLint.VisualStudio.Core.ServerSentEvents
@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Core.ServerSentEvents
         /// <summary>
         /// Channel that is used for storing and awaiting new items
         /// </summary>
-        private readonly Channel<T> channel = Channel.CreateUnbounded<T>(new UnboundedChannelOptions{SingleReader = true, SingleWriter = true});
+        private readonly Channel<T> channel = Channel.CreateUnbounded<T>(new UnboundedChannelOptions { SingleReader = true, SingleWriter = true });
 
         public async Task<T> GetNextEventOrNullAsync()
         {

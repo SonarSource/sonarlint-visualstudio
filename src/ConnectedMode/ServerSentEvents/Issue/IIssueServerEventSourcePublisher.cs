@@ -18,11 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.ServerSentEvents;
+using SonarLint.VisualStudio.ConnectedMode.SonarQubeClient;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
 namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
 {
     /// <inheritdoc cref="IServerSentEventSourcePublisher{T}"/>
-    public interface IIssueServerEventSourcePublisher : IServerSentEventSourcePublisher<IIssueChangedServerEvent> { }
+    public interface IIssueServerEventSourcePublisher : IServerSentEventSourcePublisher<IIssueChangedServerEvent>
+    {
+    }
 }
