@@ -124,16 +124,6 @@
           "Microsoft.VisualStudio.Interop": "17.0.31902.203"
         }
       },
-      "Google.Protobuf": {
-        "type": "Transitive",
-        "resolved": "3.6.1",
-        "contentHash": "741fGeDQjixBJaU2j+0CbrmZXsNJkTn/hWbOh4fLVXndHsCclJmWznCPWrJmPoZKvajBvAz3e8ECJOUvRtwjNQ=="
-      },
-      "Grpc.Tools": {
-        "type": "Transitive",
-        "resolved": "1.4.1",
-        "contentHash": "D5AcNr0yPFz5dqftJYKnMtwg6AEMUics+UysxTXKVuZtresqWUcHIrnscM+KsAIreG7wvdumWzjdIXRIMekCLg=="
-      },
       "MessagePack": {
         "type": "Transitive",
         "resolved": "2.2.85",
@@ -1117,6 +1107,7 @@
       "SonarLint.VisualStudio.Core": {
         "type": "Project",
         "dependencies": {
+          "BouncyCastle.Cryptography": "[2.4.0, )",
           "Newtonsoft.Json": "[13.0.3, )",
           "System.Collections.Immutable": "[5.0.0, )",
           "System.IO.Abstractions": "[9.0.4, )",
@@ -1127,8 +1118,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
-          "SonarLint.VisualStudio.Core": "[1.0.0, )",
-          "SonarQube.Client": "[1.0.0, )"
+          "SonarLint.VisualStudio.Core": "[1.0.0, )"
         }
       },
       "SonarLint.VisualStudio.SLCore": {
@@ -1136,17 +1126,6 @@
         "dependencies": {
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "StreamJsonRpc": "[2.6.121, )"
-        }
-      },
-      "sonarqube.client": {
-        "type": "Project",
-        "dependencies": {
-          "BouncyCastle.Cryptography": "[2.4.0, )",
-          "Google.Protobuf": "[3.6.1, )",
-          "Grpc.Tools": "[1.4.1, )",
-          "Newtonsoft.Json": "[13.0.3, )",
-          "SonarLint.VisualStudio.Core": "[1.0.0, )",
-          "System.Net.Http": "[4.0.0, )"
         }
       }
     }

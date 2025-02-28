@@ -23,6 +23,11 @@
           "System.Threading.Tasks.Extensions": "4.5.4"
         }
       },
+      "BouncyCastle.Cryptography": {
+        "type": "Transitive",
+        "resolved": "2.4.0",
+        "contentHash": "SwXsAV3sMvAU/Nn31pbjhWurYSjJ+/giI/0n6tCrYoupEK34iIHCuk3STAd9fx8yudM85KkLSVdn951vTng/vQ=="
+      },
       "MessagePack": {
         "type": "Transitive",
         "resolved": "2.1.194",
@@ -247,6 +252,7 @@
       "SonarLint.VisualStudio.Core": {
         "type": "Project",
         "dependencies": {
+          "BouncyCastle.Cryptography": "[2.4.0, )",
           "Newtonsoft.Json": "[13.0.3, )",
           "System.Collections.Immutable": "[5.0.0, )",
           "System.IO.Abstractions": "[9.0.4, )",
