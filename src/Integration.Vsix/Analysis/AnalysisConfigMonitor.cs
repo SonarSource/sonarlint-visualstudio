@@ -80,12 +80,6 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
         OnSettingsChangedAsync().Forget();
     }
 
-    private void OnQualityProfilesUpdated(object sender, EventArgs e)
-    {
-        logger.WriteLine(AnalysisStrings.ConfigMonitor_QualityProfilesChanged);
-        OnSettingsChangedAsync().Forget();
-    }
-
     #endregion Incoming notifications
 
     private async Task OnSettingsChangedAsync()
