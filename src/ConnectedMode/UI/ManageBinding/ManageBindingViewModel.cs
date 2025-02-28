@@ -336,9 +336,15 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
 
     internal async Task<AdapterResponse> PerformAutomaticBindingInternalAsync(AutomaticBindingRequest automaticBinding)
     {
-        var logContext = new MessageLevelContext { Context = [ConnectedMode.Resources.ConnectedModeAutomaticBindingLogContext, automaticBinding.TypeName], VerboseContext = [automaticBinding.ToString()]};
+        var logContext = new MessageLevelContext
+        {
+            Context = [ConnectedMode.Resources.ConnectedModeAutomaticBindingLogContext, automaticBinding.TypeName], VerboseContext = [automaticBinding.ToString()]
+        };
 
-        if (!SelectAutomaticBindingArguments(logContext, automaticBinding, out var serverConnectionId, out var serverProjectKey)
+        var serverConnectionId = GetServerConnectionId(automaticBinding);
+        var serverProjectKey = GetServerProjectKey(automaticBinding);
+
+        if (!ValidateConnectionParameters(logContext, automaticBinding, serverConnectionId, serverProjectKey)
             || !AutomaticBindingConnectionExists(logContext, serverConnectionId, out var serverConnection)
             || !AutomaticBindingCredentialsExists(logContext, serverConnection))
         {
@@ -349,26 +355,47 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         return new AdapterResponse(response.Success);
     }
 
-    private bool SelectAutomaticBindingArguments(MessageLevelContext logContext, AutomaticBindingRequest automaticBinding, out string serverConnectionId, out string serverProjectKey)
+    private bool ValidateConnectionParameters(
+        MessageLevelContext logContext,
+        AutomaticBindingRequest automaticBinding,
+        string serverConnectionId,
+        string serverProjectKey)
     {
-        Debug.Assert(automaticBinding is not AutomaticBindingRequest.Shared || SharedBindingConfigModel != null,
-            "Shared binding should never be called when it's not available");
+        switch (automaticBinding)
+        {
+            case AutomaticBindingRequest.Assisted:
+                return serverConnectionId != null && serverProjectKey != null;
+            case AutomaticBindingRequest.Shared:
+                return SharedBindingConfigModel != null && serverConnectionId != null && serverProjectKey != null;
+            default:
+                connectedModeServices.Logger.WriteLine(logContext, ConnectedMode.Resources.AutomaticBinding_ConfigurationNotAvailable);
+                return false;
+        }
+    }
 
+    private string GetServerProjectKey(AutomaticBindingRequest automaticBinding)
+    {
         switch (automaticBinding)
         {
             case AutomaticBindingRequest.Assisted assistedBinding:
-                serverConnectionId = assistedBinding.ServerConnectionId;
-                serverProjectKey = assistedBinding.ServerProjectKey;
-                return true;
+                return assistedBinding.ServerProjectKey;
             case AutomaticBindingRequest.Shared when SharedBindingConfigModel != null:
-                serverConnectionId = CreateConnectionInfoFromSharedBinding().GetServerIdFromConnectionInfo();
-                serverProjectKey = SharedBindingConfigModel.ProjectKey;
-                return true;
+                return SharedBindingConfigModel.ProjectKey;
             default:
-                connectedModeServices.Logger.WriteLine(logContext, ConnectedMode.Resources.AutomaticBinding_ConfigurationNotAvailable);
-                serverConnectionId = null;
-                serverProjectKey = null;
-                return false;
+                return null;
+        }
+    }
+
+    private string GetServerConnectionId(AutomaticBindingRequest automaticBinding)
+    {
+        switch (automaticBinding)
+        {
+            case AutomaticBindingRequest.Assisted assistedBinding:
+                return assistedBinding.ServerConnectionId;
+            case AutomaticBindingRequest.Shared when SharedBindingConfigModel != null:
+                return CreateConnectionInfoFromSharedBinding().GetServerIdFromConnectionInfo();
+            default:
+                return null;
         }
     }
 
