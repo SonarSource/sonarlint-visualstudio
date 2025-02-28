@@ -20,6 +20,7 @@
 
 using Moq;
 using Moq.Protected;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Tests

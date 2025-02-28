@@ -20,6 +20,7 @@
 
 using System.IO;
 using System.Net.Http;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Api;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Logging;
@@ -555,7 +556,7 @@ namespace SonarQube.Client
 
         private async Task<ServerInfo> GetServerInfo(ConnectionInformation connection, CancellationToken token)
         {
-            var http = CreateHttpClient(connection.ServerUri, new Client.Models.NoCredentials(), shouldUseBearer: true);
+            var http = CreateHttpClient(connection.ServerUri, new NoCredentials(), shouldUseBearer: true);
             var versionResponse = await InvokeUncheckedRequestAsync<IGetVersionRequest, string>(request => { }, http, token);
             var serverInfo = new ServerInfo(Version.Parse(versionResponse), connection.IsSonarCloud ? ServerType.SonarCloud : ServerType.SonarQube);
             return serverInfo;
