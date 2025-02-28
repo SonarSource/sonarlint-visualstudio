@@ -1,27 +1,7 @@
-﻿/*
- * SonarLint for Visual Studio
- * Copyright (C) 2016-2025 SonarSource SA
- * mailto:info AT sonarsource DOT com
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
-
-using System.ComponentModel.Composition;
+﻿using System.ComponentModel.Composition;
 using SonarQube.Client;
 
-namespace SonarLint.VisualStudio.Core.Configuration
+namespace SonarLint.VisualStudio.ConnectedMode.SonarQubeClient
 {
     /// <summary>
     /// Contains version specific feature configuration
@@ -47,6 +27,7 @@ namespace SonarLint.VisualStudio.Core.Configuration
     {
         private readonly Version minimalSonarQubeVersionForHotspots = new Version(9, 7);
         private readonly Version minimalSonarQubeVersionForNewTaxonomy = new Version(10, 2);
+        private readonly Version minimalSonarQubeVersionForAccept = new Version(10, 4);
         private readonly ISonarQubeService sonarQubeService;
 
         [ImportingConstructor]
@@ -73,7 +54,14 @@ namespace SonarLint.VisualStudio.Core.Configuration
 
         private static bool IsSupportedForVersion(ServerInfo serverInfo, Version minimumVersion) =>
             serverInfo.ServerType == ServerType.SonarCloud
-            || (serverInfo.ServerType == ServerType.SonarQube &&
-                serverInfo.Version >= minimumVersion);
+            || serverInfo.ServerType == ServerType.SonarQube &&
+            serverInfo.Version >= minimumVersion;
+
+        public bool IsAcceptTransitionAvailable()
+        {
+            var serverInfo = sonarQubeService.GetServerInfo();
+
+            return serverInfo != null && IsSupportedForVersion(serverInfo, minimalSonarQubeVersionForAccept);
+        }
     }
 }

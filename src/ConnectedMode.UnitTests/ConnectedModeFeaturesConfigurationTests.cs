@@ -18,8 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Moq;
-using SonarLint.VisualStudio.Core.Configuration;
+using SonarLint.VisualStudio.ConnectedMode.SonarQubeClient;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 
