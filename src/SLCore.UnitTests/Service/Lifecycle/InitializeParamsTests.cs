@@ -36,11 +36,11 @@ public class InitializeParamsTests
         var testSubject = new InitializeParams(
             new ClientConstantInfoDto("TESTname", "TESTagent"),
             new HttpConfigurationDto(new SslConfigurationDto()),
-            new FeatureFlagsDto(false, true, false, true, false, true, false, false, false),
+            new FeatureFlagsDto(false, true, false, true, false, true, false, false, false, false),
             "storageRoot",
             "workDir",
             ["myplugin1", "myplugin2"],
-            new() {{"myplugin3", "location"}},
+            new() { { "myplugin3", "location" } },
             [Language.JS],
             [Language.CPP],
             ["csharp"],
@@ -52,112 +52,113 @@ public class InitializeParamsTests
             "userHome",
             new Dictionary<string, StandaloneRuleConfigDto>
             {
-                { "javascript:S1940", new StandaloneRuleConfigDto(true, new Dictionary<string, string>{{"prop", "val"}}) },
+                { "javascript:S1940", new StandaloneRuleConfigDto(true, new Dictionary<string, string> { { "prop", "val" } }) },
                 { "typescript:S1940", new StandaloneRuleConfigDto(false, new Dictionary<string, string>()) },
             },
             false,
-            new TelemetryClientConstantAttributesDto("TESTkey", "TESTname", "TESTversion", "TESTde", new Dictionary<string, object>{{"telemetryObj", new {field = 10}}}),
+            new TelemetryClientConstantAttributesDto("TESTkey", "TESTname", "TESTversion", "TESTde", new Dictionary<string, object> { { "telemetryObj", new { field = 10 } } }),
             new TelemetryMigrationDto(true, new DateTimeOffset(2024, 07, 30, 14, 46, 28, TimeSpan.FromHours(1)), 123),
             new LanguageSpecificRequirements(new JsTsRequirementsDto("node", "bundlePath"))
         );
 
         const string expectedString = """
-                                {
-                                  "clientConstantInfo": {
-                                    "name": "TESTname",
-                                    "userAgent": "TESTagent"
-                                  },
-                                  "httpConfiguration": {
-                                    "sslConfiguration": {}
-                                  },
-                                  "featureFlags": {
-                                    "taintVulnerabilitiesEnabled": false,
-                                    "shouldSynchronizeProjects": true,
-                                    "shouldManageLocalServer": false,
-                                    "enableSecurityHotspots": true,
-                                    "shouldManageServerSentEvents": false,
-                                    "enableDataflowBugDetection": true,
-                                    "shouldManageFullSynchronization": false,
-                                    "enableTelemetry": false,
-                                    "canOpenFixSuggestion": false
-                                  },
-                                  "storageRoot": "storageRoot",
-                                  "workDir": "workDir",
-                                  "embeddedPluginPaths": [
-                                    "myplugin1",
-                                    "myplugin2"
-                                  ],
-                                  "connectedModeEmbeddedPluginPathsByKey": {
-                                    "myplugin3": "location"
-                                  },
-                                  "enabledLanguagesInStandaloneMode": [
-                                    "JS"
-                                  ],
-                                  "extraEnabledLanguagesInConnectedMode": [
-                                    "CPP"
-                                  ],
-                                  "disabledPluginKeysForAnalysis": [
-                                    "csharp"
-                                  ],
-                                  "sonarQubeConnections": [
-                                    {
-                                      "serverUrl": "localhost",
-                                      "connectionId": "con1",
-                                      "disableNotification": true
-                                    }
-                                  ],
-                                  "sonarCloudConnections": [
-                                    {
-                                      "organization": "organization1",
-                                      "region": "EU",
-                                      "connectionId": "con2",
-                                      "disableNotification": false
-                                    },
-                                    {
-                                      "organization": "organization2",
-                                      "region": "US",
-                                      "connectionId": "con3",
-                                      "disableNotification": true
-                                    }
-                                  ],
-                                  "sonarlintUserHome": "userHome",
-                                  "standaloneRuleConfigByKey": {
-                                    "javascript:S1940": {
-                                      "isActive": true,
-                                      "paramValueByKey": {
-                                        "prop": "val"
+                                      {
+                                        "clientConstantInfo": {
+                                          "name": "TESTname",
+                                          "userAgent": "TESTagent"
+                                        },
+                                        "httpConfiguration": {
+                                          "sslConfiguration": {}
+                                        },
+                                        "featureFlags": {
+                                          "taintVulnerabilitiesEnabled": false,
+                                          "shouldSynchronizeProjects": true,
+                                          "shouldManageLocalServer": false,
+                                          "enableSecurityHotspots": true,
+                                          "shouldManageServerSentEvents": false,
+                                          "enableDataflowBugDetection": true,
+                                          "shouldManageFullSynchronization": false,
+                                          "enableTelemetry": false,
+                                          "canOpenFixSuggestion": false,
+                                          "enableMonitoring": false
+                                        },
+                                        "storageRoot": "storageRoot",
+                                        "workDir": "workDir",
+                                        "embeddedPluginPaths": [
+                                          "myplugin1",
+                                          "myplugin2"
+                                        ],
+                                        "connectedModeEmbeddedPluginPathsByKey": {
+                                          "myplugin3": "location"
+                                        },
+                                        "enabledLanguagesInStandaloneMode": [
+                                          "JS"
+                                        ],
+                                        "extraEnabledLanguagesInConnectedMode": [
+                                          "CPP"
+                                        ],
+                                        "disabledPluginKeysForAnalysis": [
+                                          "csharp"
+                                        ],
+                                        "sonarQubeConnections": [
+                                          {
+                                            "serverUrl": "localhost",
+                                            "connectionId": "con1",
+                                            "disableNotification": true
+                                          }
+                                        ],
+                                        "sonarCloudConnections": [
+                                          {
+                                            "organization": "organization1",
+                                            "region": "EU",
+                                            "connectionId": "con2",
+                                            "disableNotification": false
+                                          },
+                                          {
+                                            "organization": "organization2",
+                                            "region": "US",
+                                            "connectionId": "con3",
+                                            "disableNotification": true
+                                          }
+                                        ],
+                                        "sonarlintUserHome": "userHome",
+                                        "standaloneRuleConfigByKey": {
+                                          "javascript:S1940": {
+                                            "isActive": true,
+                                            "paramValueByKey": {
+                                              "prop": "val"
+                                            }
+                                          },
+                                          "typescript:S1940": {
+                                            "isActive": false,
+                                            "paramValueByKey": {}
+                                          }
+                                        },
+                                        "isFocusOnNewCode": false,
+                                        "telemetryConstantAttributes": {
+                                          "productKey": "TESTkey",
+                                          "productName": "TESTname",
+                                          "productVersion": "TESTversion",
+                                          "ideVersion": "TESTde",
+                                          "additionalAttributes": {
+                                            "telemetryObj": {
+                                              "field": 10
+                                            }
+                                          }
+                                        },
+                                        "telemetryMigration": {
+                                          "isEnabled": true,
+                                          "installTime": "2024-07-30T14:46:28+01:00",
+                                          "numUseDays": 123
+                                        },
+                                        "languageSpecificRequirements": {
+                                          "jsTsRequirements": {
+                                            "clientNodeJsPath": "node",
+                                            "bundlePath": "bundlePath"
+                                          }
+                                        }
                                       }
-                                    },
-                                    "typescript:S1940": {
-                                      "isActive": false,
-                                      "paramValueByKey": {}
-                                    }
-                                  },
-                                  "isFocusOnNewCode": false,
-                                  "telemetryConstantAttributes": {
-                                    "productKey": "TESTkey",
-                                    "productName": "TESTname",
-                                    "productVersion": "TESTversion",
-                                    "ideVersion": "TESTde",
-                                    "additionalAttributes": {
-                                      "telemetryObj": {
-                                        "field": 10
-                                      }
-                                    }
-                                  },
-                                  "telemetryMigration": {
-                                    "isEnabled": true,
-                                    "installTime": "2024-07-30T14:46:28+01:00",
-                                    "numUseDays": 123
-                                  },
-                                  "languageSpecificRequirements": {
-                                    "jsTsRequirements": {
-                                      "clientNodeJsPath": "node",
-                                      "bundlePath": "bundlePath"
-                                    }
-                                  }
-                                }
-                                """;
+                                      """;
 
         var serializedString = JsonConvert.SerializeObject(testSubject, Formatting.Indented);
 

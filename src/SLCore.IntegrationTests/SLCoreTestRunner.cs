@@ -23,8 +23,6 @@ using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
-using SonarLint.VisualStudio.Core.Synchronization;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
@@ -96,7 +94,7 @@ public sealed class SLCoreTestRunner : IDisposable
             var sLCoreLanguageProvider = Substitute.For<ISLCoreLanguageProvider>();
             var constantsProvider = Substitute.For<ISLCoreConstantsProvider>();
             constantsProvider.ClientConstants.Returns(new ClientConstantInfoDto("SLVS_Integration_Tests", $"SLVS_Integration_Tests/{VersionHelper.SonarLintVersion}"));
-            constantsProvider.FeatureFlags.Returns(new FeatureFlagsDto(true, true, false, true, false, false, true, false, false));
+            constantsProvider.FeatureFlags.Returns(new FeatureFlagsDto(true, true, false, true, false, false, true, false, false, false));
             constantsProvider.TelemetryConstants.Returns(new TelemetryClientConstantAttributesDto("slvs_integration_tests", "SLVS Integration Tests",
                 VersionHelper.SonarLintVersion, "17.0", new()));
             SetLanguagesConfigurationToDefaults(sLCoreLanguageProvider);
@@ -116,7 +114,6 @@ public sealed class SLCoreTestRunner : IDisposable
             var noOpActiveSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
             noOpActiveSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
             var noOpConfigScopeUpdater = Substitute.For<IConfigScopeUpdater>();
-
 
             slCoreInstanceHandle = new SLCoreInstanceHandle(new SLCoreRpcFactory(slCoreTestProcessFactory, slCoreLocator,
                     new SLCoreJsonRpcFactory(new RpcMethodNameTransformer()),
