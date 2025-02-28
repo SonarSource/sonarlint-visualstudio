@@ -44,22 +44,9 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
     private readonly IThreadHandling threadHandling;
     private readonly ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater;
 
-
     [ImportingConstructor]
-    public AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
-        IUserSettingsProvider userSettingsUpdater, // reports changes to user settings.json
-        IActiveSolutionBoundTracker activeSolutionBoundTracker,
-        ILogger logger,
-        ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater)
-        : this(analysisRequester,
-            userSettingsUpdater,
-            activeSolutionBoundTracker,
-            logger,
-            ThreadHandling.Instance,
-            slCoreRuleSettingsUpdater)
-    { }
-
-    internal AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
+    public AnalysisConfigMonitor(
+        IAnalysisRequester analysisRequester,
         IUserSettingsProvider userSettingsUpdater,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         ILogger logger,
