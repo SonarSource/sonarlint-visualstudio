@@ -23,21 +23,6 @@
           "System.Threading.Tasks.Extensions": "4.5.4"
         }
       },
-      "BouncyCastle.Cryptography": {
-        "type": "Transitive",
-        "resolved": "2.4.0",
-        "contentHash": "SwXsAV3sMvAU/Nn31pbjhWurYSjJ+/giI/0n6tCrYoupEK34iIHCuk3STAd9fx8yudM85KkLSVdn951vTng/vQ=="
-      },
-      "Google.Protobuf": {
-        "type": "Transitive",
-        "resolved": "3.6.1",
-        "contentHash": "741fGeDQjixBJaU2j+0CbrmZXsNJkTn/hWbOh4fLVXndHsCclJmWznCPWrJmPoZKvajBvAz3e8ECJOUvRtwjNQ=="
-      },
-      "Grpc.Tools": {
-        "type": "Transitive",
-        "resolved": "1.4.1",
-        "contentHash": "D5AcNr0yPFz5dqftJYKnMtwg6AEMUics+UysxTXKVuZtresqWUcHIrnscM+KsAIreG7wvdumWzjdIXRIMekCLg=="
-      },
       "MessagePack": {
         "type": "Transitive",
         "resolved": "2.1.194",
@@ -263,20 +248,9 @@
         "type": "Project",
         "dependencies": {
           "Newtonsoft.Json": "[13.0.3, )",
-          "SonarQube.Client": "[1.0.0, )",
           "System.Collections.Immutable": "[5.0.0, )",
           "System.IO.Abstractions": "[9.0.4, )",
           "System.Threading.Channels": "[7.0.0, )"
-        }
-      },
-      "sonarqube.client": {
-        "type": "Project",
-        "dependencies": {
-          "BouncyCastle.Cryptography": "[2.4.0, )",
-          "Google.Protobuf": "[3.6.1, )",
-          "Grpc.Tools": "[1.4.1, )",
-          "Newtonsoft.Json": "[13.0.3, )",
-          "System.Net.Http": "[4.0.0, )"
         }
       }
     }
