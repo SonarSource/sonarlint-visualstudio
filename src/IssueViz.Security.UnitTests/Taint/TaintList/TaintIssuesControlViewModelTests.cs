@@ -147,10 +147,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         public void Ctor_ActiveDocumentExists_SuppressedIssuesAreFilteredOut()
         {
             var location1 = CreateLocationViz("current.cpp");
-            var issueViz1 = CreateIssueViz(null, locations: new[] { location1 }, isSuppressed: true);
+            var issueViz1 = CreateIssueViz(null, locations: [location1], isResolved: true);
 
             var location2 = CreateLocationViz(null);
-            var issueViz2 = CreateIssueViz("current.cpp", locations: new[] { location2 }, isSuppressed: false);
+            var issueViz2 = CreateIssueViz("current.cpp", locations: [location2], isResolved: false);
 
             var storeCollection = new[] { issueViz1, issueViz2 };
 
@@ -736,88 +736,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             RaiseStoreIssuesChangedEvent(store, issueViz1, issueViz2);
 
-            // there are two registrations to the event: one in TaintIssueViewModel, and one in TaintIssuesControlViewModel
-            Mock.Get(issueViz1).VerifyAdd(x => x.PropertyChanged += It.IsAny<PropertyChangedEventHandler>(), Times.Exactly(2));
+            // there is exactly one registrations to the event in TaintIssuesControlViewModel
+            Mock.Get(issueViz1).VerifyAdd(x => x.PropertyChanged += It.IsAny<PropertyChangedEventHandler>(), Times.Once);
             Mock.Get(issueViz1).VerifyRemove(x => x.PropertyChanged -= It.IsAny<PropertyChangedEventHandler>(), Times.Never);
 
-            Mock.Get(issueViz2).VerifyAdd(x => x.PropertyChanged += It.IsAny<PropertyChangedEventHandler>(), Times.Exactly(2));
+            Mock.Get(issueViz2).VerifyAdd(x => x.PropertyChanged += It.IsAny<PropertyChangedEventHandler>(), Times.Once);
             Mock.Get(issueViz2).VerifyRemove(x => x.PropertyChanged -= It.IsAny<PropertyChangedEventHandler>(), Times.Never);
 
             var issueViz3 = CreateIssueViz();
 
             RaiseStoreIssuesChangedEvent(store, issueViz3);
 
-            Mock.Get(issueViz1).VerifyRemove(x => x.PropertyChanged -= It.IsAny<PropertyChangedEventHandler>(), Times.Once);
-            Mock.Get(issueViz2).VerifyRemove(x => x.PropertyChanged -= It.IsAny<PropertyChangedEventHandler>(), Times.Once);
-
-            Mock.Get(issueViz3).VerifyAdd(x => x.PropertyChanged += It.IsAny<PropertyChangedEventHandler>(), Times.Exactly(2));
+            Mock.Get(issueViz3).VerifyAdd(x => x.PropertyChanged += It.IsAny<PropertyChangedEventHandler>(), Times.Once);
             Mock.Get(issueViz3).VerifyRemove(x => x.PropertyChanged -= It.IsAny<PropertyChangedEventHandler>(), Times.Never);
-        }
-
-        [TestMethod]
-        public void OnIssueVizPropertyChanged_NotSuppressedProperty_NoChanges()
-        {
-            var issueViz = CreateIssueViz(filePath: "current.cpp");
-            var locator = CreateLocatorAndSetActiveDocument("current.cpp");
-
-            var testSubject = CreateTestSubject(issueVizs: new[] { issueViz }, activeDocumentLocator: locator);
-
-            CheckExpectedSourceIssueCount(testSubject, 1);
-            VerifyFilterIsNotNull(testSubject);
-
-            var filteredItems = GetIssueVizsFromView(testSubject);
-            filteredItems.Count.Should().Be(1);
-            filteredItems[0].Should().Be(issueViz);
-
-            issueViz.IsSuppressed = true;
-            Mock.Get(issueViz).Raise(x => x.PropertyChanged += null, new PropertyChangedEventArgs("some prop"));
-
-            filteredItems = GetIssueVizsFromView(testSubject);
-            filteredItems.Count.Should().Be(1);
-        }
-
-        [TestMethod]
-        public void OnIssueVizPropertyChanged_SuppressedProperty_FromNotSuppressedToSuppressed_IssueIsFilteredOut()
-        {
-            var issueViz = CreateIssueViz(filePath: "current.cpp");
-            var locator = CreateLocatorAndSetActiveDocument("current.cpp");
-
-            var testSubject = CreateTestSubject(issueVizs: new[] { issueViz }, activeDocumentLocator: locator);
-
-            CheckExpectedSourceIssueCount(testSubject, 1);
-            VerifyFilterIsNotNull(testSubject);
-
-            var filteredItems = GetIssueVizsFromView(testSubject);
-            filteredItems.Count.Should().Be(1);
-            filteredItems[0].Should().Be(issueViz);
-
-            issueViz.IsSuppressed = true;
-            Mock.Get(issueViz).Raise(x => x.PropertyChanged += null, new PropertyChangedEventArgs(nameof(IAnalysisIssueVisualization.IsSuppressed)));
-
-            filteredItems = GetIssueVizsFromView(testSubject);
-            filteredItems.Count.Should().Be(0);
-        }
-
-        [TestMethod]
-        public void OnIssueVizPropertyChanged_SuppressedProperty_FromSuppressedToNotSuppressed_IssueIsShown()
-        {
-            var issueViz = CreateIssueViz(filePath: "current.cpp", isSuppressed: true);
-            var locator = CreateLocatorAndSetActiveDocument("current.cpp");
-
-            var testSubject = CreateTestSubject(issueVizs: new[] { issueViz }, activeDocumentLocator: locator);
-
-            CheckExpectedSourceIssueCount(testSubject, 1);
-            VerifyFilterIsNotNull(testSubject);
-
-            var filteredItems = GetIssueVizsFromView(testSubject);
-            filteredItems.Count.Should().Be(0);
-
-            issueViz.IsSuppressed = false;
-            Mock.Get(issueViz).Raise(x => x.PropertyChanged += null, new PropertyChangedEventArgs(nameof(IAnalysisIssueVisualization.IsSuppressed)));
-
-            filteredItems = GetIssueVizsFromView(testSubject);
-            filteredItems.Count.Should().Be(1);
-            filteredItems[0].Should().Be(issueViz);
         }
 
         private static TaintIssuesControlViewModel CreateTestSubject(
@@ -882,20 +813,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             string filePath = "test.cpp",
             string issueKey = "issue key",
             DateTimeOffset created = default,
-            bool isSuppressed = false,
+            bool isResolved = false,
             params IAnalysisIssueLocationVisualization[] locations)
         {
             var issue = new Mock<ITaintIssue>();
             issue.Setup(x => x.Severity).Returns(AnalysisIssueSeverity.Major);
             issue.Setup(x => x.IssueServerKey).Returns(issueKey);
             issue.Setup(x => x.CreationTimestamp).Returns(created);
+            issue.Setup(x => x.IsResolved).Returns(isResolved);
 
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.CurrentFilePath).Returns(filePath);
             issueViz.Setup(x => x.Issue).Returns(issue.Object);
-
-            issueViz.SetupProperty(x => x.IsSuppressed);
-            issueViz.Object.IsSuppressed = isSuppressed;
 
             var flowViz = new Mock<IAnalysisIssueFlowVisualization>();
             flowViz.Setup(x => x.Locations).Returns(locations);
