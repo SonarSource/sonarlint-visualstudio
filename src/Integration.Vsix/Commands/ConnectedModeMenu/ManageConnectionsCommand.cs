@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
@@ -35,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 
         protected override void InvokeInternal()
         {
-            connectedModeUiManager.ShowManageBindingDialog();
+            connectedModeUiManager.ShowManageBindingDialogAsync().Forget();
         }
     }
 }
