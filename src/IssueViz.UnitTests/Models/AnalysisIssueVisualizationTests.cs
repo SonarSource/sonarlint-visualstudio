@@ -156,6 +156,15 @@ public class AnalysisIssueVisualizationTests
         filterable.LineHash.Should().Be(issue.PrimaryLocation.TextRange.LineHash);
     }
 
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void IsResolved_IsComputedPropertyOfIssueIsResolved(bool isResolved)
+    {
+        issue.IsResolved.Returns(isResolved);
+        issueVisualizationWithEmptySpan.IsResolved.Should().Be(isResolved);
+    }
+
     private void MockAnalysisIssue()
     {
         var id = Guid.NewGuid();

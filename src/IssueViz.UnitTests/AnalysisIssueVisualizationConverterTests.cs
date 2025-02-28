@@ -266,7 +266,7 @@ public class AnalysisIssueVisualizationConverterTests
         var result = testSubject.Convert(issue, textSnapshotMock);
 
         result.Should().NotBeNull();
-        result.Issue.IsResolved.Should().Be(isResolved);
+        result.IsResolved.Should().Be(isResolved);
     }
 
     private void AssertConversion(IAnalysisIssueVisualization expectedIssueVisualization, IAnalysisIssueVisualization actualIssueVisualization)

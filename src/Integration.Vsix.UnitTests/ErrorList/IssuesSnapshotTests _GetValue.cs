@@ -227,6 +227,7 @@ public class IssuesSnapshotTests_GetValue
     {
         var issueVizMock = new Mock<IAnalysisIssueVisualization>();
         issueVizMock.Setup(x => x.Issue).Returns(issue);
+        issueVizMock.Setup(x => x.IsResolved).Returns(issue.IsResolved);
         issueVizMock.Setup(x => x.Location).Returns(new DummyAnalysisIssueLocation { FilePath = "any.txt" });
         issueVizMock.Setup(x => x.Flows).Returns(Array.Empty<IAnalysisIssueFlowVisualization>());
         issueVizMock.SetupProperty(x => x.Span);

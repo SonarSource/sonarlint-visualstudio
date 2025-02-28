@@ -220,7 +220,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
             var issueViz = ((ITaintIssueViewModel)viewModel).TaintIssueViz;
 
-            if (issueViz.Issue.IsResolved)
+            if (issueViz.IsResolved)
             {
                 return false;
             }

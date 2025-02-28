@@ -111,6 +111,7 @@ internal static class TaggerTestHelper
                 PrimaryLocation = new DummyAnalysisIssueLocation {Message = locationMessage},
                 IsResolved = isResolved
             });
+        issueVizMock.Setup(x => x.IsResolved).Returns(isResolved);
         return issueVizMock.Object;
     }
 

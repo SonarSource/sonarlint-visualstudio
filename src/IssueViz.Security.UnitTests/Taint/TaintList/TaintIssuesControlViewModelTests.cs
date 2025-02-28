@@ -825,6 +825,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.CurrentFilePath).Returns(filePath);
             issueViz.Setup(x => x.Issue).Returns(issue.Object);
+            issueViz.Setup(x => x.IsResolved).Returns(isResolved);
 
             var flowViz = new Mock<IAnalysisIssueFlowVisualization>();
             flowViz.Setup(x => x.Locations).Returns(locations);

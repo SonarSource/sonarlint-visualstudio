@@ -34,14 +34,13 @@ public interface IAnalysisIssueVisualization : IAnalysisIssueLocationVisualizati
 
     IReadOnlyList<IQuickFixVisualization> QuickFixes { get; }
 
-    bool IsSuppressed { get; set; }
+    bool IsResolved { get; }
 }
 
 internal class AnalysisIssueVisualization : IAnalysisIssueVisualization
 {
     private static readonly SnapshotSpan EmptySpan = new();
     private string currentFilePath;
-    private bool isSuppressed;
     private SnapshotSpan? span;
 
     public AnalysisIssueVisualization(
@@ -73,11 +72,7 @@ internal class AnalysisIssueVisualization : IAnalysisIssueVisualization
         }
     }
 
-    public bool IsSuppressed
-    {
-        get => isSuppressed;
-        set => isSuppressed = value;
-    }
+    public bool IsResolved => Issue.IsResolved;
 
     public string CurrentFilePath
     {
