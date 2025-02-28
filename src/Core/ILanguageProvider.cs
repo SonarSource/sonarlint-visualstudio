@@ -61,5 +61,5 @@ public class LanguageProvider : ILanguageProvider
     public IReadOnlyList<Language> LanguagesInStandaloneMode { get; }
     public IReadOnlyList<Language> ExtraLanguagesInConnectedMode { get; } = [Language.TSql];
 
-    public Language GetLanguageFromLanguageKey(string languageKey) => AllKnownLanguages.FirstOrDefault(l => languageKey.Equals(l.ServerLanguage.Key, StringComparison.OrdinalIgnoreCase));
+    public Language GetLanguageFromLanguageKey(string languageKey) => AllKnownLanguages.FirstOrDefault(l => languageKey.Equals(l.ServerLanguageKey, StringComparison.OrdinalIgnoreCase));
 }

@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core
 {
@@ -62,17 +61,17 @@ namespace SonarLint.VisualStudio.Core
         private static readonly RepoInfo TsqlRepo = new("tsql");
 
         public static readonly Language Unknown = new();
-        public static readonly Language CSharp = new("CSharp", CoreStrings.CSharpLanguageName, SonarQubeLanguage.CSharp, CSharpPlugin, CSharpRepo, CSharpSecurityRepo,
+        public static readonly Language CSharp = new("CSharp", CoreStrings.CSharpLanguageName, "cs", CSharpPlugin, CSharpRepo, CSharpSecurityRepo,
             settingsFileName: "sonarlint_csharp.globalconfig");
-        public static readonly Language VBNET = new("VB", CoreStrings.VBNetLanguageName, SonarQubeLanguage.VbNet, VbNetPlugin, VbNetRepo, settingsFileName: "sonarlint_vb.globalconfig");
-        public static readonly Language Cpp = new("C++", CoreStrings.CppLanguageName, SonarQubeLanguage.Cpp, CFamilyPlugin, CppRepo);
-        public static readonly Language C = new("C", "C", SonarQubeLanguage.C, CFamilyPlugin, CRepo);
-        public static readonly Language Js = new("Js", "JavaScript", SonarQubeLanguage.Js, JavascriptPlugin, JsRepo, JsSecurityRepo);
-        public static readonly Language Ts = new("Ts", "TypeScript", SonarQubeLanguage.Ts, JavascriptPlugin, TsRepo, TsSecurityRepo);
-        public static readonly Language Css = new("Css", "CSS", SonarQubeLanguage.Css, JavascriptPlugin, CssRepo);
-        public static readonly Language Html = new("Html", "HTML", SonarQubeLanguage.Html, HtmlPlugin, HtmlRepo);
-        public static readonly Language Secrets = new("Secrets", "Secrets", SonarQubeLanguage.Secrets, SecretsPlugin, SecretsRepo);
-        public static readonly Language TSql = new("TSql", "T-SQL", SonarQubeLanguage.TSql, TsqlPlugin, TsqlRepo);
+        public static readonly Language VBNET = new("VB", CoreStrings.VBNetLanguageName, "vbnet", VbNetPlugin, VbNetRepo, settingsFileName: "sonarlint_vb.globalconfig");
+        public static readonly Language Cpp = new("C++", CoreStrings.CppLanguageName, "cpp", CFamilyPlugin, CppRepo);
+        public static readonly Language C = new("C", "C", "c", CFamilyPlugin, CRepo);
+        public static readonly Language Js = new("Js", "JavaScript", "js", JavascriptPlugin, JsRepo, JsSecurityRepo);
+        public static readonly Language Ts = new("Ts", "TypeScript", "ts", JavascriptPlugin, TsRepo, TsSecurityRepo);
+        public static readonly Language Css = new("Css", "CSS", "css", JavascriptPlugin, CssRepo);
+        public static readonly Language Html = new("Html", "HTML", "web", HtmlPlugin, HtmlRepo);
+        public static readonly Language Secrets = new("Secrets", "Secrets", "secrets", SecretsPlugin, SecretsRepo);
+        public static readonly Language TSql = new("TSql", "T-SQL", "tsql", TsqlPlugin, TsqlRepo);
 
         /// <summary>
         /// A stable identifier for this language.
@@ -85,7 +84,7 @@ namespace SonarLint.VisualStudio.Core
         /// <remarks>The server-side language key is the stable id used server-side to identify a language. Ideally this would have been used as the
         /// Id here originally. However, it wasn't and we can't easily change the Id values now since they are serialized in the
         /// solution-level binding file.</remarks>
-        public SonarQubeLanguage ServerLanguage { get; }
+        public string ServerLanguageKey { get; }
 
         public PluginInfo PluginInfo { get; }
 
@@ -120,7 +119,7 @@ namespace SonarLint.VisualStudio.Core
         public Language(
             string id,
             string name,
-            SonarQubeLanguage serverLanguage,
+            string serverLanguageKey,
             PluginInfo pluginInfo,
             RepoInfo repoInfo,
             RepoInfo securityRepoInfo = null,
@@ -139,7 +138,7 @@ namespace SonarLint.VisualStudio.Core
             Id = id;
             Name = name;
             SettingsFileNameAndExtension = settingsFileName;
-            ServerLanguage = serverLanguage ?? throw new ArgumentNullException(nameof(serverLanguage));
+            ServerLanguageKey = serverLanguageKey ?? throw new ArgumentNullException(nameof(serverLanguageKey));
             PluginInfo = pluginInfo ?? throw new ArgumentNullException(nameof(pluginInfo));
             RepoInfo = repoInfo ?? throw new ArgumentNullException(nameof(repoInfo));
             SecurityRepoInfo = securityRepoInfo;

@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+// TODO by https://sonarsource.atlassian.net/browse/SLVS-1816 Drop this model and use the Language from Core assembly. There should only be one source of truth for the language.
+
 namespace SonarQube.Client.Models
 {
     public class SonarQubeLanguage
@@ -33,10 +35,7 @@ namespace SonarQube.Client.Models
         public static readonly SonarQubeLanguage Secrets = new SonarQubeLanguage("secrets", "Secrets", "SonarSecrets");
         public static readonly SonarQubeLanguage TSql = new SonarQubeLanguage("tsql", "Secrets", "T-SQL");
 
-        public static readonly SonarQubeLanguage[] AllLanguages =
-        {
-            CSharp, VbNet, Cpp, C, Js, Ts, Secrets, Css, Html, TSql
-        };
+        public static readonly SonarQubeLanguage[] AllLanguages = { CSharp, VbNet, Cpp, C, Js, Ts, Secrets, Css, Html, TSql };
 
         public string Key { get; }
 

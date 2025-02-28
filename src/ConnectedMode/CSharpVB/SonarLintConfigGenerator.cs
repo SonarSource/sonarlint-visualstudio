@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
         }
 
         private static List<SonarLintKeyValuePair> GetSettingsForLanguage(Language language, IDictionary<string, string> sonarProperties) =>
-            sonarProperties.Where(kvp => IsSettingForLanguage(language.ServerLanguage.Key, kvp.Key) && !IsSecuredServerProperty(kvp.Key))
+            sonarProperties.Where(kvp => IsSettingForLanguage(language.ServerLanguageKey, kvp.Key) && !IsSecuredServerProperty(kvp.Key))
                 .Select(ToSonarLintKeyValue)
                 .OrderBy(s => s.Key)
                 .ToList();
