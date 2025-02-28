@@ -33,14 +33,6 @@ public abstract class ServerConnection
     public abstract Uri ServerUri { get; }
     public Uri CredentialsUri => new(Id);
 
-    public static ServerConnection FromBoundSonarQubeProject(BoundSonarQubeProject boundProject) =>
-        boundProject switch
-        {
-            { Organization: not null } => new SonarCloud(boundProject.Organization.Key, credentials: boundProject.Credentials),
-            { ServerUri: not null } => new SonarQube(boundProject.ServerUri, credentials: boundProject.Credentials),
-            _ => null
-        };
-
     private ServerConnection(string id, ServerConnectionSettings settings = null, IConnectionCredentials credentials = null)
     {
         Id = id ?? throw new ArgumentNullException(nameof(id));

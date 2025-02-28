@@ -19,11 +19,11 @@
  */
 
 using System.ComponentModel.Composition;
-using System.IO.Abstractions;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using static SonarLint.VisualStudio.ConnectedMode.Binding.BoundSonarQubeProjectExtensions;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration;
 
@@ -61,7 +61,8 @@ internal class BindingToConnectionMigration : IBindingToConnectionMigration
             unintrusiveBindingPathProvider,
             ThreadHandling.Instance,
             logger)
-    { }
+    {
+    }
 
     internal /* for testing */ BindingToConnectionMigration(
         IServerConnectionsRepository serverConnectionsRepository,
@@ -104,13 +105,13 @@ internal class BindingToConnectionMigration : IBindingToConnectionMigration
     {
         try
         {
-            if (legacyBindingRepository.Read(bindingFilePath) is not {} legacyBoundProject)
+            if (legacyBindingRepository.Read(bindingFilePath) is not { } legacyBoundProject)
             {
                 logger.WriteLine(string.Format(MigrationStrings.ConnectionMigration_BindingNotMigrated, bindingFilePath, $"{nameof(legacyBoundProject)} was not found"));
                 return;
             }
 
-            if (MigrateServerConnection(legacyBoundProject) is {} serverConnection)
+            if (MigrateServerConnection(legacyBoundProject) is { } serverConnection)
             {
                 MigrateBinding(bindingFilePath, legacyBoundProject, serverConnection);
             }
@@ -123,7 +124,7 @@ internal class BindingToConnectionMigration : IBindingToConnectionMigration
 
     private ServerConnection MigrateServerConnection(BoundSonarQubeProject legacyBoundProject)
     {
-        var serverConnection = ServerConnection.FromBoundSonarQubeProject(legacyBoundProject);
+        var serverConnection = FromBoundSonarQubeProject(legacyBoundProject);
         serverConnection.Credentials = legacyBoundProject.Credentials;
 
         if (serverConnectionsRepository.TryGet(serverConnection.Id, out _))
@@ -143,7 +144,7 @@ internal class BindingToConnectionMigration : IBindingToConnectionMigration
 
     private void MigrateBinding(string bindingPath, BoundSonarQubeProject legacyBoundProject, ServerConnection serverConnection)
     {
-        var boundServerProject = BoundServerProject.FromBoundSonarQubeProject(legacyBoundProject, bindingPath, serverConnection);
+        var boundServerProject = FromBoundSonarQubeProject(legacyBoundProject, bindingPath, serverConnection);
         solutionBindingRepository.Write(bindingPath, boundServerProject);
     }
 }

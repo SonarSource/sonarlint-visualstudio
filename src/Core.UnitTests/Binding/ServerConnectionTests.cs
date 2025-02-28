@@ -20,6 +20,7 @@
 
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Models;
+using static SonarLint.VisualStudio.ConnectedMode.Binding.BoundSonarQubeProjectExtensions;
 
 namespace SonarLint.VisualStudio.Core.UnitTests.Binding;
 
@@ -124,7 +125,7 @@ public class ServerConnectionTests
         var credentials = Substitute.For<IConnectionCredentials>();
         var expectedConnection = new ServerConnection.SonarQube(Localhost, credentials: credentials);
 
-        var connection = ServerConnection.FromBoundSonarQubeProject(new BoundSonarQubeProject(Localhost, "any", "any", credentials));
+        var connection = FromBoundSonarQubeProject(new BoundSonarQubeProject(Localhost, "any", "any", credentials));
 
         connection.Should().BeEquivalentTo(expectedConnection, options => options.ComparingByMembers<ServerConnection>());
     }
@@ -137,7 +138,7 @@ public class ServerConnectionTests
         var credentials = Substitute.For<IConnectionCredentials>();
         var expectedConnection = new ServerConnection.SonarCloud(organization, credentials: credentials);
 
-        var connection = ServerConnection.FromBoundSonarQubeProject(new BoundSonarQubeProject(uri, "any", "any", credentials, new SonarQubeOrganization(organization, null)));
+        var connection = FromBoundSonarQubeProject(new BoundSonarQubeProject(uri, "any", "any", credentials, new SonarQubeOrganization(organization, null)));
 
         connection.Should().BeEquivalentTo(expectedConnection, options => options.ComparingByMembers<ServerConnection>());
     }
@@ -145,7 +146,7 @@ public class ServerConnectionTests
     [TestMethod]
     public void FromBoundSonarQubeProject_InvalidConnection_ReturnsNull()
     {
-        var connection = ServerConnection.FromBoundSonarQubeProject(new BoundSonarQubeProject() { ProjectKey = "project" });
+        var connection = FromBoundSonarQubeProject(new BoundSonarQubeProject() { ProjectKey = "project" });
 
         connection.Should().BeNull();
     }
@@ -153,7 +154,7 @@ public class ServerConnectionTests
     [TestMethod]
     public void FromBoundSonarQubeProject_NullConnection_ReturnsNull()
     {
-        var connection = ServerConnection.FromBoundSonarQubeProject(null);
+        var connection = FromBoundSonarQubeProject(null);
 
         connection.Should().BeNull();
     }

@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
+using static SonarLint.VisualStudio.ConnectedMode.Binding.BoundSonarQubeProjectExtensions;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 {
@@ -317,7 +318,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         public async Task Migrate_ConnectionDoesNotExist_AddsConnectionAndEstablishesBinding()
         {
             var unintrusiveBindingControllerMock = new Mock<IUnintrusiveBindingController>();
-            var convertedConnection = ServerConnection.FromBoundSonarQubeProject(AnyBoundProject);
+            var convertedConnection = FromBoundSonarQubeProject(AnyBoundProject);
             var serverConnectionsRepositoryMock = CreateServerConnectionsRepositoryMock();
             var solutionInfoProviderMock = CreateSolutionInfoProviderMock();
             var testSubject = CreateTestSubject(unintrusiveBindingController: unintrusiveBindingControllerMock.Object,
@@ -343,7 +344,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         public async Task Migrate_ConnectionDoesNotExist_CannotAdd_DoesNotCreateConnection()
         {
             var unintrusiveBindingController = new Mock<IUnintrusiveBindingController>();
-            var convertedConnection = ServerConnection.FromBoundSonarQubeProject(AnyBoundProject);
+            var convertedConnection = FromBoundSonarQubeProject(AnyBoundProject);
             var serverConnectionsRepositoryMock = new Mock<IServerConnectionsRepository>();
             serverConnectionsRepositoryMock.Setup(x => x.ConnectionsFileExists()).Returns(true);
             serverConnectionsRepositoryMock.Setup(x => x.TryAdd(convertedConnection)).Returns(false);
@@ -367,7 +368,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         public async Task Migrate_ConnectionDoesNotExist_Throws_DoesNotCreateConnection()
         {
             var unintrusiveBindingController = new Mock<IUnintrusiveBindingController>();
-            var convertedConnection = ServerConnection.FromBoundSonarQubeProject(AnyBoundProject);
+            var convertedConnection = FromBoundSonarQubeProject(AnyBoundProject);
             var serverConnectionsRepositoryMock = new Mock<IServerConnectionsRepository>();
             serverConnectionsRepositoryMock.Setup(x => x.ConnectionsFileExists()).Returns(true);
             serverConnectionsRepositoryMock.Setup(x => x.TryAdd(convertedConnection)).Throws(new Exception());
