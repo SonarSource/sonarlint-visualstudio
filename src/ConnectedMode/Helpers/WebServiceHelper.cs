@@ -18,11 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Net.Http;
-using System.Threading.Tasks;
+using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Core
+namespace SonarLint.VisualStudio.ConnectedMode.Helpers
 {
     public static class WebServiceHelper
     {
@@ -53,12 +52,16 @@ namespace SonarLint.VisualStudio.Core
                 logger.WriteLine(CoreStrings.SonarQubeRequestFailed, ex.Message, null);
             }
 
-            return default(T);
+            return default;
         }
 
         public static async Task SafeServiceCallAsync(Func<Task> call, ILogger logger)
         {
-            await SafeServiceCallAsync(async () => { await call(); return 0; }, logger);
+            await SafeServiceCallAsync(async () =>
+            {
+                await call();
+                return 0;
+            }, logger);
         }
     }
 }

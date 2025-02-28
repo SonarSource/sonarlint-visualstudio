@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
@@ -59,7 +60,8 @@ namespace SonarLint.VisualStudio.Integration
         public BindingConfiguration CurrentConfiguration { get; private set; }
 
         [ImportingConstructor]
-        public ActiveSolutionBoundTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+        public ActiveSolutionBoundTracker(
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IActiveSolutionTracker activeSolutionTracker,
             IConfigScopeUpdater configScopeUpdater,
             ILogger logger,
@@ -97,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration
                 return;
             }
 
-            this.RaiseAnalyzersChangedIfBindingChanged(GetBindingConfiguration());
+            RaiseAnalyzersChangedIfBindingChanged(GetBindingConfiguration());
         }
 
         private BindingConfiguration GetBindingConfiguration()
@@ -107,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private void GitEventsMonitor_HeadChanged(object sender, EventArgs e)
         {
-            var boundProject = this.configurationProvider.GetConfiguration().Project;
+            var boundProject = configurationProvider.GetConfiguration().Project;
 
             if (boundProject != null)
             {
@@ -199,16 +201,16 @@ namespace SonarLint.VisualStudio.Integration
         {
             if (disposing)
             {
-                this.disposed = true;
-                this.solutionTracker.ActiveSolutionChanged -= this.OnActiveSolutionChanged;
-                this.gitEventsMonitor.HeadChanged -= GitEventsMonitor_HeadChanged;
+                disposed = true;
+                solutionTracker.ActiveSolutionChanged -= OnActiveSolutionChanged;
+                gitEventsMonitor.HeadChanged -= GitEventsMonitor_HeadChanged;
             }
         }
 
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            this.Dispose(true);
+            Dispose(true);
         }
 
         #endregion
