@@ -20,19 +20,26 @@
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
+/// <summary>
+/// Indicates binding parameters that were computed automatically as opposed to manual UI interaction
+/// </summary>
 public abstract record AutomaticBindingRequest
 {
     internal abstract string TypeName { get; }
 
     private AutomaticBindingRequest() { }
 
+    /// <summary>
+    /// Indicates binding parameters derived from shared binding
+    /// </summary>
     public record Shared : AutomaticBindingRequest
     {
-        public Shared() { }
-
         internal override string TypeName => ConnectedMode.Resources.AutomaticBindingType_Shared;
     }
 
+    /// <summary>
+    /// Indicates binding parameters received from SLCore during assistBinding operation
+    /// </summary>
     public record Assisted(
         string ServerConnectionId,
         string ServerProjectKey,
