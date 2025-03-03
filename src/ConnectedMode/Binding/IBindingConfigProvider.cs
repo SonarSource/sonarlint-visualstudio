@@ -18,39 +18,33 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding;
+
+/// <summary>
+/// Contract to provide the binding-related configuration for one or more languages
+/// </summary>
+public interface IBindingConfigProvider
 {
     /// <summary>
-    /// Contract to provide the binding-related configuration for one or more languages
+    /// Returns a configuration file for the specified language
     /// </summary>
-    public interface IBindingConfigProvider
-    {
-        bool IsLanguageSupported(Language language);
+    Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language,
+        BindingConfiguration bindingConfiguration, CancellationToken cancellationToken);
+}
 
-        /// <summary>
-        /// Returns a configuration file for the specified language
-        /// </summary>
-        Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language,
-            BindingConfiguration bindingConfiguration, CancellationToken cancellationToken);
-    }
-
+/// <summary>
+/// Abstraction of the various types of configuration file used to store binding configuration information
+/// </summary>
+/// <remarks>e.g. for C# and VB.NET the configuration will be in a ruleset file.</remarks>
+public interface IBindingConfig
+{
     /// <summary>
-    /// Abstraction of the various types of configuration file used to store binding configuration information
+    /// Saves the file, replacing any existing file
     /// </summary>
-    /// <remarks>e.g. for C# and VB.NET the configuration will be in a ruleset file.
-    /// For C++ it will be in a json file in a Sonar-specific format</remarks>
-    public interface IBindingConfig
-    {
-        /// <summary>
-        /// Saves the file, replacing any existing file
-        /// </summary>
-        /// <remarks>The component is responsible for ensuring that any necessary sub-directories exist</remarks>
-        void Save();
-    }
+    /// <remarks>The component is responsible for ensuring that any necessary subdirectories exist</remarks>
+    void Save();
 }
