@@ -80,6 +80,25 @@ public class OutOfDateQualityProfileFinderTests
     }
 
     [TestMethod]
+    public async Task GetAsync_WhenBoundProjectDoesNotContainLanguage_SkipsUpToDateQualityProfile()
+    {
+        const string qpKey = "key";
+        var timestamp = DateTime.UtcNow;
+
+        var testSubject = CreateTestSubject(out var sonarQubeServiceMock, Project, Organization,
+            new SonarQubeQualityProfile(qpKey, "name", Language.Ts.ServerLanguage.Key, false, timestamp));
+
+        var profiles = await testSubject.GetAsync(
+            CreateArgument(Project,
+                Organization,
+                new Dictionary<Language, ApplicableQualityProfile>()),
+            CancellationToken.None);
+
+        profiles.Should().BeEmpty();
+        sonarQubeServiceMock.Verify(x => x.GetAllQualityProfilesAsync(Project, Organization, CancellationToken.None), Times.Once);
+    }
+
+    [TestMethod]
     public async Task GetAsync_DifferentKey_ReturnsQP()
     {
         const string serverQpKey = "key1";
