@@ -58,7 +58,7 @@ internal partial class ManageBindingDialog : Window
 
     private async void Binding_OnClick(object sender, RoutedEventArgs e)
     {
-        await ViewModel.BindWithProgressAsync();
+        await ViewModel.PerformManualBindingWithProgressAsync();
     }
 
     private void SelectProject_OnClick(object sender, RoutedEventArgs e)
