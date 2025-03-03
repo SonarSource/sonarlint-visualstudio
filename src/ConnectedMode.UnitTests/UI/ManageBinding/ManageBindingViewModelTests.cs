@@ -862,21 +862,21 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public async Task BindWithProgressAsync_BindsProjectAndReportsProgress()
+    public async Task PerformManualBindingWithProgressAsync_BindsProjectAndReportsProgress()
     {
-        await testSubject.BindWithProgressAsync();
+        await testSubject.PerformManualBindingWithProgressAsync();
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
-                    x.TaskToPerform == testSubject.BindAsync &&
+                    x.TaskToPerform == testSubject.PerformManualBindingAsync &&
                     x.ProgressStatus == UiResources.BindingInProgressText &&
                     x.WarningText == UiResources.BindingFailedText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated));
     }
 
     [TestMethod]
-    public async Task BindAsync_WhenConnectionNotFound_Fails()
+    public async Task PerformManualBindingAsync_WhenConnectionNotFound_Fails()
     {
         var connectionInfo = new ConnectionInfo("organization", ConnectionServerType.SonarCloud);
         testSubject.SelectedConnectionInfo = connectionInfo;
@@ -886,44 +886,37 @@ public class ManageBindingViewModelTests
             return false;
         });
 
-        var response = await testSubject.BindAsync();
+        var response = await testSubject.PerformManualBindingAsync();
 
         response.Success.Should().BeFalse();
+        VerifyBindingTelemetryNotSent();
     }
 
     [TestMethod]
-    public async Task BindAsync_WhenBindingFailsUnexpectedly_FailsAndLogs()
+    public async Task PerformManualBindingAsync_WhenBindingFailsUnexpectedly_FailsAndLogs()
     {
         var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
         SetupConnectionAndProjectToBind(sonarCloudConnection, serverProject);
         bindingController.BindAsync(Arg.Any<BoundServerProject>(), Arg.Any<CancellationToken>()).ThrowsAsync(new Exception("Failed unexpectedly"));
 
-        var response = await testSubject.BindAsync();
+        var response = await testSubject.PerformManualBindingAsync();
 
         response.Success.Should().BeFalse();
         logger.Received(1).WriteLine(Resources.Binding_Fails, "Failed unexpectedly");
+        VerifyBindingTelemetryNotSent();
     }
 
     [TestMethod]
-    public async Task BindAsync_WhenBindingCompletesSuccessfully_Succeeds()
+    public async Task PerformManualBindingAsync_WhenBindingCompletesSuccessfully_SucceedsAndSetsBoundProject()
     {
         var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
         SetupConnectionAndProjectToBind(sonarCloudConnection, serverProject);
 
-        var response = await testSubject.BindAsync();
+        var response = await testSubject.PerformManualBindingAsync();
 
         response.Success.Should().BeTrue();
-    }
-
-    [TestMethod]
-    public async Task BindAsync_WhenBindingCompletesSuccessfully_SetsBoundProjectToSelectedProject()
-    {
-        var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
-        SetupConnectionAndProjectToBind(sonarCloudConnection, serverProject);
-
-        await testSubject.BindAsync();
-
         testSubject.BoundProject.Should().BeEquivalentTo(serverProject);
+        VerifyManualBindingTelemetrySent();
     }
 
     [TestMethod]
@@ -977,6 +970,7 @@ public class ManageBindingViewModelTests
         await bindingController.Received(1)
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
                 proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
+        VerifyAutomaticBindingTelemetrySent(true);
     }
 
     [TestMethod]
@@ -996,7 +990,7 @@ public class ManageBindingViewModelTests
         logger.Received().WriteLine(
             Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(new AutomaticBindingRequest.Shared().TypeName)),
             Resources.AutomaticBinding_ConfigurationNotAvailable);
-
+        VerifyBindingTelemetryNotSent();
     }
 
     [TestMethod]
@@ -1012,6 +1006,7 @@ public class ManageBindingViewModelTests
         await bindingController.Received(1)
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
                 proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
+        VerifyAutomaticBindingTelemetrySent(true);
     }
 
     [TestMethod]
@@ -1028,6 +1023,7 @@ public class ManageBindingViewModelTests
         serverConnectionsRepositoryAdapter.Received(1).TryGet(new ConnectionInfo(testSubject.SharedBindingConfigModel.Uri.ToString(), ConnectionServerType.SonarQube).GetServerIdFromConnectionInfo(), out _);
         await bindingController.Received(1)
             .BindAsync(Arg.Is<BoundServerProject>(proj => proj.ServerConnection == expectedServerConnection), Arg.Any<CancellationToken>());
+        VerifyAutomaticBindingTelemetrySent(true);
     }
 
     [TestMethod]
@@ -1044,6 +1040,7 @@ public class ManageBindingViewModelTests
         serverConnectionsRepositoryAdapter.Received(1).TryGet(new ConnectionInfo(testSubject.SharedBindingConfigModel.Organization, ConnectionServerType.SonarCloud).GetServerIdFromConnectionInfo() , out _);
         await bindingController.Received(1)
             .BindAsync(Arg.Is<BoundServerProject>(proj => proj.ServerConnection == expectedServerConnection), Arg.Any<CancellationToken>());
+        VerifyAutomaticBindingTelemetrySent(true);
     }
 
     [TestMethod]
@@ -1062,6 +1059,7 @@ public class ManageBindingViewModelTests
         await bindingController.DidNotReceive()
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
                 proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
+        VerifyBindingTelemetryNotSent();
     }
 
     [TestMethod]
@@ -1080,6 +1078,7 @@ public class ManageBindingViewModelTests
         await bindingController.DidNotReceive()
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
                 proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
+        VerifyBindingTelemetryNotSent();
     }
 
     [TestMethod]
@@ -1100,6 +1099,7 @@ public class ManageBindingViewModelTests
         await bindingController.DidNotReceive()
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
                 proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
+        VerifyBindingTelemetryNotSent();
     }
 
     [TestMethod]
@@ -1120,6 +1120,7 @@ public class ManageBindingViewModelTests
         await bindingController.DidNotReceive()
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
                 proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
+        VerifyBindingTelemetryNotSent();
     }
 
     [TestMethod]
@@ -1134,6 +1135,7 @@ public class ManageBindingViewModelTests
         var response = await testSubject.PerformAutomaticBindingInternalAsync(new AutomaticBindingRequest.Shared());
 
         response.Success.Should().BeFalse();
+        VerifyBindingTelemetryNotSent();
     }
 
     [TestMethod]
@@ -1164,6 +1166,7 @@ public class ManageBindingViewModelTests
         await bindingController.Received(1)
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
                 proj.ServerProjectKey == serverProject.Key), Arg.Any<CancellationToken>());
+        VerifyAutomaticBindingTelemetrySent(isShared);
     }
 
     [DynamicData(nameof(AssistedBindingParameters))]
@@ -1179,6 +1182,7 @@ public class ManageBindingViewModelTests
             MessageBoxImage.Warning);
         logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_ConnectionNotFound, automaticBindingRequest.ServerConnectionId);
         await bindingController.DidNotReceiveWithAnyArgs().BindAsync(default, default);
+        VerifyBindingTelemetryNotSent();
     }
 
     [DynamicData(nameof(AssistedBindingParameters))]
@@ -1196,6 +1200,7 @@ public class ManageBindingViewModelTests
         messageBox.Received(1).Show(UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxText, UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
             MessageBoxImage.Warning);
         await bindingController.DidNotReceiveWithAnyArgs().BindAsync(default, default);
+        VerifyBindingTelemetryNotSent();
     }
 
     [DynamicData(nameof(AssistedBindingParameters))]
@@ -1210,6 +1215,7 @@ public class ManageBindingViewModelTests
         var response = await testSubject.PerformAutomaticBindingInternalAsync(automaticBindingRequest);
 
         response.Success.Should().BeFalse();
+        VerifyBindingTelemetryNotSent();
     }
 
     public static object[][] AssistedBindingParameters =>
@@ -1219,6 +1225,30 @@ public class ManageBindingViewModelTests
         [new ServerConnection.SonarQube(new Uri("http://someurl")) {Credentials = Substitute.For<IConnectionCredentials>()}, true],
         [new ServerConnection.SonarQube(new Uri("http://someurl")) {Credentials = Substitute.For<IConnectionCredentials>()}, false],
     ];
+
+    private void VerifyManualBindingTelemetrySent()
+    {
+        connectedModeServices.TelemetryManager.Received().AddedManualBindings();
+    }
+
+    private void VerifyAutomaticBindingTelemetrySent(bool isShared)
+    {
+        if (isShared)
+        {
+            connectedModeServices.TelemetryManager.Received().AddedFromSharedBindings();
+        }
+        else
+        {
+            connectedModeServices.TelemetryManager.Received().AddedAutomaticBindings();
+        }
+    }
+
+    private void VerifyBindingTelemetryNotSent()
+    {
+        connectedModeServices.TelemetryManager.DidNotReceive().AddedAutomaticBindings();
+        connectedModeServices.TelemetryManager.DidNotReceive().AddedFromSharedBindings();
+        connectedModeServices.TelemetryManager.DidNotReceive().AddedManualBindings();
+    }
 
     private void MockServices()
     {
