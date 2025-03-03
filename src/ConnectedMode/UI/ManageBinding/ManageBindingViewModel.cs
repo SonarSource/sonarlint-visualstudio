@@ -162,9 +162,9 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         await ProgressReporter.ExecuteTaskWithProgressAsync(detectSharedBinding);
     }
 
-    public async Task BindWithProgressAsync()
+    public async Task PerformManualBindingWithProgressAsync()
     {
-        var bind = new TaskToPerformParams<AdapterResponse>(BindAsync, UiResources.BindingInProgressText, UiResources.BindingFailedText) { AfterProgressUpdated = OnProgressUpdated };
+        var bind = new TaskToPerformParams<AdapterResponse>(PerformManualBindingAsync, UiResources.BindingInProgressText, UiResources.BindingFailedText) { AfterProgressUpdated = OnProgressUpdated };
         await ProgressReporter.ExecuteTaskWithProgressAsync(bind);
     }
 
@@ -273,7 +273,7 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         return new AdapterResponse(BoundProject != null);
     }
 
-    internal /* for testing */ async Task<AdapterResponse> BindAsync()
+    internal /* for testing */ async Task<AdapterResponse> PerformManualBindingAsync()
     {
         if (!connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(SelectedConnectionInfo, out var serverConnection))
         {

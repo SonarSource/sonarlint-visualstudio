@@ -862,21 +862,21 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public async Task BindWithProgressAsync_BindsProjectAndReportsProgress()
+    public async Task PerformManualBindingWithProgressAsync_BindsProjectAndReportsProgress()
     {
-        await testSubject.BindWithProgressAsync();
+        await testSubject.PerformManualBindingWithProgressAsync();
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
-                    x.TaskToPerform == testSubject.BindAsync &&
+                    x.TaskToPerform == testSubject.PerformManualBindingAsync &&
                     x.ProgressStatus == UiResources.BindingInProgressText &&
                     x.WarningText == UiResources.BindingFailedText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated));
     }
 
     [TestMethod]
-    public async Task BindAsync_WhenConnectionNotFound_Fails()
+    public async Task PerformManualBindingAsync_WhenConnectionNotFound_Fails()
     {
         var connectionInfo = new ConnectionInfo("organization", ConnectionServerType.SonarCloud);
         testSubject.SelectedConnectionInfo = connectionInfo;
@@ -886,20 +886,20 @@ public class ManageBindingViewModelTests
             return false;
         });
 
-        var response = await testSubject.BindAsync();
+        var response = await testSubject.PerformManualBindingAsync();
 
         response.Success.Should().BeFalse();
         VerifyBindingTelemetryNotSent();
     }
 
     [TestMethod]
-    public async Task BindAsync_WhenBindingFailsUnexpectedly_FailsAndLogs()
+    public async Task PerformManualBindingAsync_WhenBindingFailsUnexpectedly_FailsAndLogs()
     {
         var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
         SetupConnectionAndProjectToBind(sonarCloudConnection, serverProject);
         bindingController.BindAsync(Arg.Any<BoundServerProject>(), Arg.Any<CancellationToken>()).ThrowsAsync(new Exception("Failed unexpectedly"));
 
-        var response = await testSubject.BindAsync();
+        var response = await testSubject.PerformManualBindingAsync();
 
         response.Success.Should().BeFalse();
         logger.Received(1).WriteLine(Resources.Binding_Fails, "Failed unexpectedly");
@@ -907,12 +907,12 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public async Task BindAsync_WhenBindingCompletesSuccessfully_SucceedsAndSetsBoundProject()
+    public async Task PerformManualBindingAsync_WhenBindingCompletesSuccessfully_SucceedsAndSetsBoundProject()
     {
         var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
         SetupConnectionAndProjectToBind(sonarCloudConnection, serverProject);
 
-        var response = await testSubject.BindAsync();
+        var response = await testSubject.PerformManualBindingAsync();
 
         response.Success.Should().BeTrue();
         testSubject.BoundProject.Should().BeEquivalentTo(serverProject);
