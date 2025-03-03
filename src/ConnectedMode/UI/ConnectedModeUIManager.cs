@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
 public interface IConnectedModeUIManager
 {
-    void ShowManageBindingDialog(bool useSharedBindingOnInitialization = false);
+    Task<bool> ShowManageBindingDialogAsync(AutomaticBindingRequest automaticBinding = null);
 
     Task<bool?> ShowTrustConnectionDialogAsync(ServerConnection serverConnection, string token);
 }
@@ -41,8 +41,13 @@ public interface IConnectedModeUIManager
 internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices)
     : IConnectedModeUIManager
 {
-    public void ShowManageBindingDialog(bool useSharedBindingOnInitialization = false) =>
-        connectedModeServices.ThreadHandling.RunOnUIThread(() => ShowDialogManageBinding(useSharedBindingOnInitialization));
+    public async Task<bool> ShowManageBindingDialogAsync(AutomaticBindingRequest automaticBinding = null)
+    {
+        var result = false;
+        await connectedModeServices.ThreadHandling.RunOnUIThreadAsync(() => result = ShowDialogManageBinding(automaticBinding));
+
+        return result;
+    }
 
     public async Task<bool?> ShowTrustConnectionDialogAsync(ServerConnection serverConnection, string token)
     {
@@ -60,9 +65,10 @@ internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedMod
     }
 
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
-    private void ShowDialogManageBinding(bool useSharedBindingOnInitialization)
+    private bool ShowDialogManageBinding(AutomaticBindingRequest automaticBinding)
     {
-        var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices, useSharedBindingOnInitialization ? new AutomaticBindingRequest.Shared() : null);
+        var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices, automaticBinding);
         manageBindingDialog.ShowDialog(Application.Current.MainWindow);
+        return manageBindingDialog.ViewModel.BoundProject != null;
     }
 }

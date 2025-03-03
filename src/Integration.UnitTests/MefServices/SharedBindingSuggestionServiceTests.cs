@@ -156,7 +156,7 @@ public class SharedBindingSuggestionServiceTests
         showAction();
 
         showAction.Should().NotBeNull();
-        connectedModeManager.Received(1).ShowManageBindingDialog(true);
+        connectedModeManager.Received(1).ShowManageBindingDialogAsync(new AutomaticBindingRequest.Shared());
     }
 
     private void RaiseActiveSolutionChanged(bool isSolutionOpened)

@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.UI;
@@ -80,10 +81,8 @@ namespace SonarLint.VisualStudio.Integration.MefServices
             activeSolutionBoundTracker.SolutionBindingChanged -= OnActiveSolutionBindingChanged;
         }
 
-        private void ShowManageBindingDialog()
-        {
-            connectedModeUiManager.ShowManageBindingDialog(useSharedBindingOnInitialization:true);
-        }
+        private void ShowManageBindingDialog() =>
+            connectedModeUiManager.ShowManageBindingDialogAsync(new AutomaticBindingRequest.Shared()).Forget();
 
         private void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
         {
