@@ -196,6 +196,42 @@ public class TelemetryManagerTests
         });
     }
 
+    [TestMethod]
+    public void AddedFromSharedBindings_CallsRpcService()
+    {
+        telemetryManager.AddedFromSharedBindings();
+
+        Received.InOrder(() =>
+        {
+            telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
+            telemetryService.AddedImportedBindings();
+        });
+    }
+
+    [TestMethod]
+    public void AddedAutomaticBindings_CallsRpcService()
+    {
+        telemetryManager.AddedAutomaticBindings();
+
+        Received.InOrder(() =>
+        {
+            telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
+            telemetryService.AddedAutomaticBindings();
+        });
+    }
+
+    [TestMethod]
+    public void AddedManualBindings_CallsRpcService()
+    {
+        telemetryManager.AddedManualBindings();
+
+        Received.InOrder(() =>
+        {
+            telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
+            telemetryService.AddedManualBindings();
+        });
+    }
+
     private void MockTelemetryService()
     {
         telemetryService = Substitute.For<ITelemetrySLCoreService>();

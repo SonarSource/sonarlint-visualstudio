@@ -60,6 +60,12 @@ internal sealed class TelemetryManager : ITelemetryManager,
             }
         });
 
+    public void AddedManualBindings() => telemetryHelper.Notify(telemetryService => telemetryService.AddedManualBindings());
+
+    public void AddedFromSharedBindings() => telemetryHelper.Notify(telemetryService => telemetryService.AddedImportedBindings());
+
+    public void AddedAutomaticBindings() => telemetryHelper.Notify(telemetryService => telemetryService.AddedAutomaticBindings());
+
     private static IEnumerable<FixSuggestionResolvedParams> ConvertFixSuggestionChangeToResolvedParams(string suggestionId, IEnumerable<bool> changeApplicationStatus) =>
         changeApplicationStatus
             .Select((status, index) =>

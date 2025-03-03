@@ -35,4 +35,10 @@ public interface ITelemetryManager
     void LinkClicked(string linkId);
 
     void FixSuggestionResolved(string suggestionId, IEnumerable<bool> changeResolutionStatus);
+
+    void AddedManualBindings();
+
+    void AddedFromSharedBindings();
+
+    void AddedAutomaticBindings();
 }

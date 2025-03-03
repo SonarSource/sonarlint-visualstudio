@@ -162,9 +162,9 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         await ProgressReporter.ExecuteTaskWithProgressAsync(detectSharedBinding);
     }
 
-    public async Task BindWithProgressAsync()
+    public async Task PerformManualBindingWithProgressAsync()
     {
-        var bind = new TaskToPerformParams<AdapterResponse>(BindAsync, UiResources.BindingInProgressText, UiResources.BindingFailedText) { AfterProgressUpdated = OnProgressUpdated };
+        var bind = new TaskToPerformParams<AdapterResponse>(PerformManualBindingAsync, UiResources.BindingInProgressText, UiResources.BindingFailedText) { AfterProgressUpdated = OnProgressUpdated };
         await ProgressReporter.ExecuteTaskWithProgressAsync(bind);
     }
 
@@ -273,13 +273,18 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         return new AdapterResponse(BoundProject != null);
     }
 
-    internal /* for testing */ async Task<AdapterResponse> BindAsync()
+    internal /* for testing */ async Task<AdapterResponse> PerformManualBindingAsync()
     {
         if (!connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(SelectedConnectionInfo, out var serverConnection))
         {
             return new AdapterResponse(false);
         }
-        return await BindAsync(serverConnection, SelectedProject?.Key);
+        var adapterResponse = await BindAsync(serverConnection, SelectedProject?.Key);
+        if (adapterResponse.Success)
+        {
+            connectedModeServices.TelemetryManager.AddedManualBindings();
+        }
+        return adapterResponse;
     }
 
     internal async Task<AdapterResponse> UnbindAsync()
@@ -346,7 +351,26 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         }
 
         var response = await BindAsync(serverConnection, serverProjectKey);
-        return new AdapterResponse(response.Success);
+        Telemetry(response, automaticBinding);
+        return response;
+    }
+
+    private void Telemetry(AdapterResponse response, AutomaticBindingRequest automaticBinding)
+    {
+        if (!response.Success)
+        {
+            return;
+        }
+
+        switch (automaticBinding)
+        {
+            case AutomaticBindingRequest.Assisted { IsFromSharedBinding: true } or AutomaticBindingRequest.Shared:
+                connectedModeServices.TelemetryManager.AddedFromSharedBindings();
+                break;
+            case AutomaticBindingRequest.Assisted:
+                connectedModeServices.TelemetryManager.AddedAutomaticBindings();
+                break;
+        }
     }
 
     private bool SelectAutomaticBindingArguments(MessageLevelContext logContext, AutomaticBindingRequest automaticBinding, out string serverConnectionId, out string serverProjectKey)
