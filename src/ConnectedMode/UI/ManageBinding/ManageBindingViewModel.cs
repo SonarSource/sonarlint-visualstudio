@@ -279,7 +279,12 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         {
             return new AdapterResponse(false);
         }
-        return await BindAsync(serverConnection, SelectedProject?.Key);
+        var adapterResponse = await BindAsync(serverConnection, SelectedProject?.Key);
+        if (adapterResponse.Success)
+        {
+            connectedModeServices.TelemetryManager.AddedManualBindings();
+        }
+        return adapterResponse;
     }
 
     internal async Task<AdapterResponse> UnbindAsync()
@@ -346,7 +351,26 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         }
 
         var response = await BindAsync(serverConnection, serverProjectKey);
-        return new AdapterResponse(response.Success);
+        Telemetry(response, automaticBinding);
+        return response;
+    }
+
+    private void Telemetry(AdapterResponse response, AutomaticBindingRequest automaticBinding)
+    {
+        if (!response.Success)
+        {
+            return;
+        }
+
+        switch (automaticBinding)
+        {
+            case AutomaticBindingRequest.Assisted { IsFromSharedBinding: true } or AutomaticBindingRequest.Shared:
+                connectedModeServices.TelemetryManager.AddedFromSharedBindings();
+                break;
+            case AutomaticBindingRequest.Assisted:
+                connectedModeServices.TelemetryManager.AddedAutomaticBindings();
+                break;
+        }
     }
 
     private bool SelectAutomaticBindingArguments(MessageLevelContext logContext, AutomaticBindingRequest automaticBinding, out string serverConnectionId, out string serverProjectKey)
