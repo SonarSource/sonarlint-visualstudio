@@ -144,19 +144,6 @@ public class AnalysisIssueVisualizationTests
     }
 
     [TestMethod]
-    public void SetIsSuppressed_HasSubscribers_VerifyRaised()
-    {
-        issueVisualizationWithNotEmptySpan.IsSuppressed.Should().BeFalse();
-        var propertyChangedEventHandler = MockSubscriberToPropertyChanged();
-
-        issueVisualizationWithNotEmptySpan.IsSuppressed = true;
-
-        VerifyPropertyChangedRaised(propertyChangedEventHandler, issueVisualizationWithNotEmptySpan, nameof(issueVisualizationWithNotEmptySpan.IsSuppressed));
-        propertyChangedEventHandler.ReceivedCalls().Count().Should().Be(1);
-        issueVisualizationWithNotEmptySpan.IsSuppressed.Should().BeTrue();
-    }
-
-    [TestMethod]
     public void IsFilterable()
     {
         issueVisualizationWithEmptySpan.Should().BeAssignableTo<IFilterableIssue>();
@@ -167,6 +154,15 @@ public class AnalysisIssueVisualizationTests
         filterable.FilePath.Should().Be(issue.PrimaryLocation.FilePath);
         filterable.StartLine.Should().Be(issue.PrimaryLocation.TextRange.StartLine);
         filterable.LineHash.Should().Be(issue.PrimaryLocation.TextRange.LineHash);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void IsResolved_IsComputedPropertyOfIssueIsResolved(bool isResolved)
+    {
+        issue.IsResolved.Returns(isResolved);
+        issueVisualizationWithEmptySpan.IsResolved.Should().Be(isResolved);
     }
 
     private void MockAnalysisIssue()

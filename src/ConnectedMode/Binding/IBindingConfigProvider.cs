@@ -29,8 +29,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding;
 /// </summary>
 public interface IBindingConfigProvider
 {
-    bool IsLanguageSupported(Language language);
-
     /// <summary>
     /// Returns a configuration file for the specified language
     /// </summary>

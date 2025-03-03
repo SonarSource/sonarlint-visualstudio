@@ -30,7 +30,7 @@ using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
 
 /// <summary>
-/// Responsible for listening to <see cref="IServerIssuesStore.ServerIssuesChanged" /> and calling
+/// Responsible for listening to server suppression events and calling
 /// <see cref="IRoslynSettingsFileStorage.Update" /> with the new suppressions.
 /// </summary>
 public interface IRoslynSettingsFileSynchronizer : IDisposable

@@ -44,22 +44,9 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
     private readonly IThreadHandling threadHandling;
     private readonly ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater;
 
-
     [ImportingConstructor]
-    public AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
-        IUserSettingsProvider userSettingsUpdater, // reports changes to user settings.json
-        IActiveSolutionBoundTracker activeSolutionBoundTracker,
-        ILogger logger,
-        ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater)
-        : this(analysisRequester,
-            userSettingsUpdater,
-            activeSolutionBoundTracker,
-            logger,
-            ThreadHandling.Instance,
-            slCoreRuleSettingsUpdater)
-    { }
-
-    internal AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
+    public AnalysisConfigMonitor(
+        IAnalysisRequester analysisRequester,
         IUserSettingsProvider userSettingsUpdater,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         ILogger logger,
@@ -90,12 +77,6 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
         // There is a corner-case where we want to raise the event even in Connected Mode - see https://github.com/SonarSource/sonarlint-visualstudio/issues/3701
         logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
         slCoreRuleSettingsUpdater.UpdateStandaloneRulesConfiguration();
-        OnSettingsChangedAsync().Forget();
-    }
-
-    private void OnQualityProfilesUpdated(object sender, EventArgs e)
-    {
-        logger.WriteLine(AnalysisStrings.ConfigMonitor_QualityProfilesChanged);
         OnSettingsChangedAsync().Forget();
     }
 
