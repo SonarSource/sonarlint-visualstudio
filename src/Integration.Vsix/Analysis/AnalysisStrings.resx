@@ -175,9 +175,6 @@
   <data name="ConfigMonitor_BindingChanged" xml:space="preserve">
     <value>Binding has changed. Open documents will be re-analysed.</value>
   </data>
-  <data name="ConfigMonitor_QualityProfilesChanged" xml:space="preserve">
-    <value>Quality Profiles have changed. Open documents will be re-analyzed.</value>
-  </data>
   <data name="MuteIssue_HaveMuted" xml:space="preserve">
     <value>Issue {0} resolved</value>
   </data>
