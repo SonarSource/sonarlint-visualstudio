@@ -124,10 +124,10 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
         // The set of assemblies in which we should look for diagnostics
         private readonly Assembly[] AssembliesWithDiagnostics = new Assembly[]
         {
-            typeof(SonarAnalyzer.Rules.CSharp.CommentKeyword).Assembly,
-            typeof(SonarAnalyzer.Rules.CSharp.SymbolicExecutionRunner).Assembly,
-            typeof(SonarAnalyzer.Rules.VisualBasic.CommentKeyword).Assembly,
-            typeof(SonarAnalyzer.Rules.VisualBasic.SymbolicExecutionRunner).Assembly
+            typeof(SonarAnalyzer.CSharp.Rules.CommentKeyword).Assembly,
+            typeof(SonarAnalyzer.Enterprise.CSharp.Rules.SymbolicExecutionRunner).Assembly,
+            typeof(SonarAnalyzer.VisualBasic.Rules.CommentKeyword).Assembly,
+            typeof(SonarAnalyzer.Enterprise.VisualBasic.Rules.SymbolicExecutionRunner).Assembly
         };
 
         private IEnumerable<string> GetAllDiagnosticIds() =>
