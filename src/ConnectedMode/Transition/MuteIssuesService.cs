@@ -60,10 +60,8 @@ internal class MuteIssuesService(
 
         var allowedStatuses = await GetAllowedStatusesAsync(currentConfigScope.ConnectionId, issueServerKey);
         var windowResponse = await PromptMuteIssueResolutionAsync(allowedStatuses);
-        await MuteIssueAsync(currentConfigScope.Id, issueServerKey, windowResponse.IssueTransition.Value);
+        await MuteIssueAsync(currentConfigScope.Id, issueServerKey, issue, windowResponse.IssueTransition.Value);
         await AddCommentAsync(currentConfigScope.Id, issueServerKey, windowResponse.Comment);
-        await UpdateRoslynSuppressionsAsync(issue, issueServerKey);
-        RequestAnalysis(issue);
     }
 
     private async Task<string> GetIssueServerKeyAsync(IFilterableIssue issue)
@@ -155,7 +153,11 @@ internal class MuteIssuesService(
         return response.allowedStatuses;
     }
 
-    private async Task MuteIssueAsync(string configurationScopeId, string issueServerKey, SonarQubeIssueTransition transition)
+    private async Task MuteIssueAsync(
+        string configurationScopeId,
+        string issueServerKey,
+        IFilterableIssue issue,
+        SonarQubeIssueTransition transition)
     {
         try
         {
@@ -167,6 +169,8 @@ internal class MuteIssuesService(
                 transition.ToSlCoreResolutionStatus(),
                 false // Muting taints are not supported yet
             ));
+            await UpdateRoslynSuppressionsAsync(issue, issueServerKey);
+            RequestAnalysis(issue);
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
