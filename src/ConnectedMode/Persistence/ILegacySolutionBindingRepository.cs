@@ -20,7 +20,7 @@
 
 using SonarLint.VisualStudio.Core.Binding;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Binding;
+namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 
 internal interface ILegacySolutionBindingRepository
 {

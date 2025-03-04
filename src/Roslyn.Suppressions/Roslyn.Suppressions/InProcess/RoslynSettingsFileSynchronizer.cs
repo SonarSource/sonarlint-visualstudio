@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;

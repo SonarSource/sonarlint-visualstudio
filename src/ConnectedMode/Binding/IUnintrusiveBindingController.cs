@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client;
 using SonarQube.Client.Models;
