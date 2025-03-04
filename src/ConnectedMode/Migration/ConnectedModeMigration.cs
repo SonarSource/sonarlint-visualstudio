@@ -25,7 +25,6 @@ using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client;
-using static SonarLint.VisualStudio.ConnectedMode.Binding.BoundSonarQubeProjectExtensions;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
@@ -153,7 +152,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             var progressAdapter = new FixedStepsProgressToMigrationProgressAdapter(progress);
             var serverConnection = GetServerConnectionWithMigration(oldBinding);
-            await unintrusiveBindingController.BindAsync(FromBoundSonarQubeProject(oldBinding, await solutionInfoProvider.GetSolutionNameAsync(), serverConnection),
+            await unintrusiveBindingController.BindAsync(oldBinding.FromBoundSonarQubeProject(await solutionInfoProvider.GetSolutionNameAsync(), serverConnection),
                 progressAdapter,
                 token);
 
@@ -290,7 +289,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         private ServerConnection GetServerConnectionWithMigration(BoundSonarQubeProject project)
         {
-            if (FromBoundSonarQubeProject(project) is not { } proposedConnection)
+            if (project.FromBoundSonarQubeProject() is not { } proposedConnection)
             {
                 throw new InvalidOperationException(BindingStrings.UnintrusiveController_InvalidConnection);
             }

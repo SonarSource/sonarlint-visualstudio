@@ -23,7 +23,6 @@ using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using static SonarLint.VisualStudio.ConnectedMode.Binding.BoundSonarQubeProjectExtensions;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration;
 
@@ -124,7 +123,7 @@ internal class BindingToConnectionMigration : IBindingToConnectionMigration
 
     private ServerConnection MigrateServerConnection(BoundSonarQubeProject legacyBoundProject)
     {
-        var serverConnection = FromBoundSonarQubeProject(legacyBoundProject);
+        var serverConnection = legacyBoundProject.FromBoundSonarQubeProject();
         serverConnection.Credentials = legacyBoundProject.Credentials;
 
         if (serverConnectionsRepository.TryGet(serverConnection.Id, out _))
@@ -144,7 +143,7 @@ internal class BindingToConnectionMigration : IBindingToConnectionMigration
 
     private void MigrateBinding(string bindingPath, BoundSonarQubeProject legacyBoundProject, ServerConnection serverConnection)
     {
-        var boundServerProject = FromBoundSonarQubeProject(legacyBoundProject, bindingPath, serverConnection);
+        var boundServerProject = legacyBoundProject.FromBoundSonarQubeProject(bindingPath, serverConnection);
         solutionBindingRepository.Write(bindingPath, boundServerProject);
     }
 }

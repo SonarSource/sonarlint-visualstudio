@@ -257,7 +257,7 @@ public class ManageConnectionsViewModelTest
 
         testSubject.AddConnectionViewModel(connectionToAdd);
 
-        testSubject.ConnectionViewModels.Count.Should().Be( 1);
+        testSubject.ConnectionViewModels.Count.Should().Be(1);
         testSubject.ConnectionViewModels[0].Connection.Should().Be(connectionToAdd);
     }
 
@@ -299,7 +299,7 @@ public class ManageConnectionsViewModelTest
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
                     x.ProgressStatus == UiResources.LoadingConnectionsText &&
-                x.WarningText == UiResources.LoadingConnectionsFailedText));
+                    x.WarningText == UiResources.LoadingConnectionsFailedText));
     }
 
     [TestMethod]
@@ -482,7 +482,7 @@ public class ManageConnectionsViewModelTest
         var response = await testSubject.RebindAsync(connectionToUpdate, "serverProjectKey");
 
         await bindingController.Received().BindAsync(Arg.Is<BoundServerProject>(
-            x => x.LocalBindingKey == "mySolution" && x.ServerConnection == serverConnectionToUpdate),
+                x => x.LocalBindingKey == "mySolution" && x.ServerConnection == serverConnectionToUpdate),
             CancellationToken.None);
         response.Success.Should().BeTrue();
     }

@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
@@ -310,7 +309,7 @@ public class SolutionBindingRepositoryTests
     {
         var eventHandler = Substitute.For<EventHandler<LocalBindingKeyEventArgs>>();
         testSubject.BindingDeleted += eventHandler;
-        MockDeletingBindingDirectory(LocalBindingKey, deleted:false);
+        MockDeletingBindingDirectory(LocalBindingKey, deleted: false);
 
         testSubject.DeleteBinding(LocalBindingKey);
 
