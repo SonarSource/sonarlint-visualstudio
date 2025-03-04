@@ -370,6 +370,35 @@ public class MuteIssuesServiceTests
         analysisRequester.Received(1).RequestAnalysis(Arg.Is<AnalyzerOptions>(x => !x.IsOnOpen), Arg.Is<string[]>(x => x.SequenceEqual(new[] { nonRoslynIssue.FilePath })));
     }
 
+    [TestMethod]
+    public void ResolveIssueWithDialogAsync_RoslynIssueMutedSuccessfullyButCommentFails_CallsSuppressionsUpdaterAndRequestsAnalysis()
+    {
+        MuteIssuePermitted();
+        MockRoslynIssueOnServer(RoslynIssueServerKey);
+        const string comment = "No you are not an issue, you are a feature";
+        MockIssueAcceptedInWindow(comment);
+        issueSlCoreService.AddCommentAsync(Arg.Any<AddIssueCommentParams>()).ThrowsAsync(new Exception("Some error"));
+
+        _ = testSubject.ResolveIssueWithDialogAsync(roslynIssue);
+
+        suppressionUpdater.Received(1).UpdateSuppressedIssuesAsync(isResolved: true, Arg.Is<string[]>(x => x.SequenceEqual(new[] { RoslynIssueServerKey })), Arg.Any<CancellationToken>());
+        analysisRequester.Received(1).RequestAnalysis(Arg.Is<AnalyzerOptions>(x => !x.IsOnOpen), Arg.Is<string[]>(x => x.SequenceEqual(new[] { roslynIssue.FilePath })));
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialogAsync_NonRoslynIssueMutedSuccessfullyButCommentFails_RequestsAnalysis()
+    {
+        MuteIssuePermitted();
+        const string comment = "No you are not an issue, you are a feature";
+        MockIssueAcceptedInWindow(comment);
+        issueSlCoreService.AddCommentAsync(Arg.Any<AddIssueCommentParams>()).ThrowsAsync(new Exception("Some error"));
+
+        _ = testSubject.ResolveIssueWithDialogAsync(nonRoslynIssue);
+
+        suppressionUpdater.DidNotReceive().UpdateSuppressedIssuesAsync(Arg.Any<bool>(), Arg.Any<string[]>(), Arg.Any<CancellationToken>());
+        analysisRequester.Received(1).RequestAnalysis(Arg.Is<AnalyzerOptions>(x => !x.IsOnOpen), Arg.Is<string[]>(x => x.SequenceEqual(new[] { nonRoslynIssue.FilePath })));
+    }
+
     private void NotInConnectedMode() => activeConfigScopeTracker.Current.Returns(new Core.ConfigurationScope.ConfigurationScope("CONFIG_SCOPE_ID"));
 
     private void ServiceProviderNotInitialized() => slCoreServiceProvider.TryGetTransientService(out Arg.Any<ISLCoreService>()).ReturnsForAnyArgs(false);
