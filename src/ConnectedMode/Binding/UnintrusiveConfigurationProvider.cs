@@ -23,9 +23,6 @@ using System.IO;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
-dio.Core;
-using SonarLint.VisualStudio.Core.Binding;
-
 namespace SonarLint.VisualStudio.ConnectedMode.Binding;
 
 [Export(typeof(IConfigurationProvider))]
@@ -37,7 +34,9 @@ internal class UnintrusiveConfigurationProvider : IConfigurationProvider
     private readonly ISolutionInfoProvider solutionInfoProvider;
 
     [ImportingConstructor]
-    public UnintrusiveConfigurationProvider(IUnintrusiveBindingPathProvider pathProvider, ISolutionInfoProvider solutionInfoProvider,
+    public UnintrusiveConfigurationProvider(
+        IUnintrusiveBindingPathProvider pathProvider,
+        ISolutionInfoProvider solutionInfoProvider,
         ISolutionBindingRepository solutionBindingRepository)
     {
         this.pathProvider = pathProvider;
@@ -45,8 +44,7 @@ internal class UnintrusiveConfigurationProvider : IConfigurationProvider
         this.solutionInfoProvider = solutionInfoProvider;
     }
 
-    public BindingConfiguration GetConfiguration() =>
-        TryGetBindingConfiguration() ?? BindingConfiguration.Standalone;
+    public BindingConfiguration GetConfiguration() => TryGetBindingConfiguration() ?? BindingConfiguration.Standalone;
 
     private BindingConfiguration TryGetBindingConfiguration()
     {
@@ -68,6 +66,5 @@ internal class UnintrusiveConfigurationProvider : IConfigurationProvider
         return BindingConfiguration.CreateBoundConfiguration(boundProject,
             SonarLintMode.Connected,
             bindingConfigDirectory);
-
     }
 }

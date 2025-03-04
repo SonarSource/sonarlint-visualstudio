@@ -24,8 +24,6 @@ using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
-dio.Core;
-
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
 public interface IConnectedModeBindingServices
