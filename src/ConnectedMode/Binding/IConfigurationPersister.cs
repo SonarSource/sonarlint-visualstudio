@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using System.IO;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
