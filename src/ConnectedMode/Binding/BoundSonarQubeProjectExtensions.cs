@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     public static class BoundSonarQubeProjectExtensions
     {
-        public static ServerConnection FromBoundSonarQubeProject(BoundSonarQubeProject boundProject) =>
+        public static ServerConnection FromBoundSonarQubeProject(this BoundSonarQubeProject boundProject) =>
             boundProject switch
             {
                 { Organization: not null } => new ServerConnection.SonarCloud(boundProject.Organization.Key, credentials: boundProject.Credentials),
@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
                 _ => null
             };
 
-        public static BoundServerProject FromBoundSonarQubeProject(BoundSonarQubeProject boundProject, string localBindingKey, ServerConnection connection) =>
+        public static BoundServerProject FromBoundSonarQubeProject(this BoundSonarQubeProject boundProject, string localBindingKey, ServerConnection connection) =>
             new(localBindingKey ?? throw new ArgumentNullException(nameof(localBindingKey)),
                 boundProject?.ProjectKey ?? throw new ArgumentNullException(nameof(boundProject)),
                 connection ?? throw new ArgumentNullException(nameof(connection))) { Profiles = boundProject.Profiles };

@@ -126,7 +126,7 @@ public class ServerConnectionTests
         var credentials = Substitute.For<IConnectionCredentials>();
         var expectedConnection = new ServerConnection.SonarQube(Localhost, credentials: credentials);
 
-        var connection = FromBoundSonarQubeProject(new BoundSonarQubeProject(Localhost, "any", "any", credentials));
+        var connection = new BoundSonarQubeProject(Localhost, "any", "any", credentials).FromBoundSonarQubeProject();
 
         connection.Should().BeEquivalentTo(expectedConnection, options => options.ComparingByMembers<ServerConnection>());
     }
@@ -139,7 +139,7 @@ public class ServerConnectionTests
         var credentials = Substitute.For<IConnectionCredentials>();
         var expectedConnection = new ServerConnection.SonarCloud(organization, credentials: credentials);
 
-        var connection = FromBoundSonarQubeProject(new BoundSonarQubeProject(uri, "any", "any", credentials, new SonarQubeOrganization(organization, null)));
+        var connection = new BoundSonarQubeProject(uri, "any", "any", credentials, new SonarQubeOrganization(organization, null)).FromBoundSonarQubeProject();
 
         connection.Should().BeEquivalentTo(expectedConnection, options => options.ComparingByMembers<ServerConnection>());
     }
@@ -147,7 +147,7 @@ public class ServerConnectionTests
     [TestMethod]
     public void FromBoundSonarQubeProject_InvalidConnection_ReturnsNull()
     {
-        var connection = FromBoundSonarQubeProject(new BoundSonarQubeProject() { ProjectKey = "project" });
+        var connection = new BoundSonarQubeProject() { ProjectKey = "project" }.FromBoundSonarQubeProject();
 
         connection.Should().BeNull();
     }
@@ -155,7 +155,7 @@ public class ServerConnectionTests
     [TestMethod]
     public void FromBoundSonarQubeProject_NullConnection_ReturnsNull()
     {
-        var connection = FromBoundSonarQubeProject(null);
+        var connection = ((BoundSonarQubeProject)null).FromBoundSonarQubeProject();
 
         connection.Should().BeNull();
     }

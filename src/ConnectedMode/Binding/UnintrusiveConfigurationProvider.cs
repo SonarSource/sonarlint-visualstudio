@@ -23,6 +23,9 @@ using System.IO;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
+dio.Core;
+using SonarLint.VisualStudio.Core.Binding;
+
 namespace SonarLint.VisualStudio.ConnectedMode.Binding;
 
 [Export(typeof(IConfigurationProvider))]
