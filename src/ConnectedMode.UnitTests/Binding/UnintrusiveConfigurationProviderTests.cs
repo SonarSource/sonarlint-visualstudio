@@ -23,9 +23,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-ng;
-using SonarLint.VisualStudio.TestInfrastructure;
-
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 {
     [TestClass]
@@ -44,7 +41,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         public void GetConfig_NoActiveSolution_ReturnsStandalone()
         {
             // Arrange
-            var (pathProvider, solutionInfoProvider) = SetUpConfiguration(null,null);
+            var (pathProvider, solutionInfoProvider) = SetUpConfiguration(null, null);
             var configRepository = Substitute.For<ISolutionBindingRepository>();
             var testSubject = CreateTestSubject(pathProvider, solutionInfoProvider, configRepository);
 
@@ -64,7 +61,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         public void GetConfig_NoConfig_ReturnsStandalone()
         {
             // Arrange
-            var (pathProvider, solutionInfoProvider) = SetUpConfiguration("solution123",null);
+            var (pathProvider, solutionInfoProvider) = SetUpConfiguration("solution123", null);
             var configRepository = Substitute.For<ISolutionBindingRepository>();
             var testSubject = CreateTestSubject(pathProvider, solutionInfoProvider, configRepository);
 
@@ -125,7 +122,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             actual.Should().BeSameAs(BindingConfiguration.Standalone);
         }
 
-        private static UnintrusiveConfigurationProvider CreateTestSubject(IUnintrusiveBindingPathProvider pathProvider,
+        private static UnintrusiveConfigurationProvider CreateTestSubject(
+            IUnintrusiveBindingPathProvider pathProvider,
             ISolutionInfoProvider solutionInfoProvider = null,
             ISolutionBindingRepository configRepo = null) =>
             new(pathProvider,
@@ -148,7 +146,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             return repo;
         }
 
-        private static void CheckExpectedFileRead(ISolutionBindingRepository configReader, string expectedFilePath)
-            => configReader.Received().Read(expectedFilePath);
+        private static void CheckExpectedFileRead(ISolutionBindingRepository configReader, string expectedFilePath) => configReader.Received().Read(expectedFilePath);
     }
 }
