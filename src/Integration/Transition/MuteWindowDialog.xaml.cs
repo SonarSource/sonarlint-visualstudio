@@ -38,7 +38,6 @@ namespace SonarLint.VisualStudio.Integration.Transition;
 [ExcludeFromCodeCoverage]
 public partial class MuteWindowDialog : DialogWindow
 {
-    private const string SonarcloudHost = "sonarcloud.io";
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly IBrowserService browserService;
 
@@ -59,10 +58,10 @@ public partial class MuteWindowDialog : DialogWindow
 
     private void FormattingHelpHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
     {
-        var serverUri = activeSolutionBoundTracker.CurrentConfiguration.Project.ServerConnection.ServerUri.ToString();
-        var isSonarCloud = serverUri.Contains(SonarcloudHost);
+        var serverConnection = activeSolutionBoundTracker.CurrentConfiguration.Project.ServerConnection;
+        var serverUri = serverConnection.ServerUri.ToString();
 
-        browserService.Navigate(isSonarCloud ? $"{serverUri}markdown/help" : $"{serverUri}formatting/help");
+        browserService.Navigate(serverConnection is ServerConnection.SonarCloud ? $"{serverUri}markdown/help" : $"{serverUri}formatting/help");
         e.Handled = true;
     }
 
