@@ -428,12 +428,6 @@ Please manually add the credentials for the connection and then try again.</valu
   <data name="EuRegionName" xml:space="preserve">
     <value>EU</value>
   </data>
-  <data name="SonarCloudForEuRegion" xml:space="preserve">
-    <value>sonarcloud.io</value>
-  </data>
-  <data name="SonarCloudForUsRegion" xml:space="preserve">
-    <value>us.sonarcloud.io</value>
-  </data>
   <data name="UsRegionName" xml:space="preserve">
     <value>US</value>
   </data>
