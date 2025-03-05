@@ -293,9 +293,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
         }
 
         [TestMethod]
-        public void SonarCloudForEuRegion_FormatsCorrectly() => testSubject.SonarCloudForEuRegion.Should().Be("sonarcloud.io");
+        public void SonarCloudForEuRegion_FormatsCorrectly() => ServerSelectionViewModel.SonarCloudForEuRegion.Should().Be("sonarcloud.io");
 
         [TestMethod]
-        public void SonarCloudForUsRegion_FormatsCorrectly() => testSubject.SonarCloudForUsRegion.Should().Be("us.sonarcloud.io");
+        public void SonarCloudForUsRegion_FormatsCorrectly() => ServerSelectionViewModel.SonarCloudForUsRegion.Should().Be("us.sonarcloud.io");
     }
 }
