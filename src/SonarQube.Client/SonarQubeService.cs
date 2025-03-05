@@ -44,15 +44,6 @@ namespace SonarQube.Client
         private HttpClient currentHttpClient;
         private ServerInfo currentServerInfo;
 
-        public async Task<bool> HasOrganizations(CancellationToken token)
-        {
-            EnsureIsConnected();
-
-            var hasOrganisations = currentHttpClient.BaseAddress.Host.Equals("sonarcloud.io", StringComparison.OrdinalIgnoreCase);
-
-            return await Task.FromResult<bool>(hasOrganisations);
-        }
-
         public bool IsConnected => GetServerInfo() != null;
 
         public ServerInfo GetServerInfo() => currentServerInfo;

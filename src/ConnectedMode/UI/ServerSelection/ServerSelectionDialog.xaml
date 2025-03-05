@@ -87,7 +87,7 @@
                                     </TextBlock.Style>
                                     <Run Text="{x:Static res:UiResources.EuRegionName}" FontWeight="DemiBold"/>
                                     <Run Text="-"></Run>
-                                    <Run Text="{x:Static res:UiResources.SonarCloudForEuRegion}"/> 
+                                    <Run Text="{Binding SonarCloudForEuRegion, Mode=OneWay}"/> 
                                 </TextBlock>
                             </RadioButton>
                             <RadioButton Grid.Row="1" GroupName="RegionSelection" VerticalContentAlignment="Center" Margin="0,2"
@@ -107,7 +107,7 @@
                                     </TextBlock.Style>
                                     <Run Text="{x:Static res:UiResources.UsRegionName}" FontWeight="DemiBold"/>
                                     <Run Text="-"></Run>
-                                    <Run Text="{x:Static res:UiResources.SonarCloudForUsRegion}"/>
+                                    <Run Text="{Binding SonarCloudForUsRegion, Mode=OneWay}"/>
                                 </TextBlock>
                             </RadioButton>
                         </Grid>

@@ -18,11 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using SonarQube.Client.Messages;
 using SonarQube.Client.Models;
 using SonarQube.Client.Models.ServerSentEvents;
@@ -36,12 +32,6 @@ namespace SonarQube.Client
         /// </summary>
         ServerInfo GetServerInfo();
 
-        /// <summary>
-        /// Returns whether organizations are available and being used
-        /// on the server
-        /// </summary>
-        Task<bool> HasOrganizations(CancellationToken token);
-
         bool IsConnected { get; }
 
         Task ConnectAsync(ConnectionInformation connection, CancellationToken token);
@@ -50,7 +40,9 @@ namespace SonarQube.Client
 
         Task<IList<SonarQubeOrganization>> GetAllOrganizationsAsync(CancellationToken token);
 
-        Task<IList<SonarQubeRule>> GetRulesAsync(bool isActive, string qualityProfileKey,
+        Task<IList<SonarQubeRule>> GetRulesAsync(
+            bool isActive,
+            string qualityProfileKey,
             CancellationToken token);
 
         /// <summary>
@@ -80,14 +72,22 @@ namespace SonarQube.Client
         /// Wrapper for GET api/qualityprofiles/search
         /// </summary>
         /// <returns></returns>
-        Task<IList<SonarQubeQualityProfile>> GetAllQualityProfilesAsync(string project, string organizationKey,
+        Task<IList<SonarQubeQualityProfile>> GetAllQualityProfilesAsync(
+            string project,
+            string organizationKey,
             CancellationToken token);
 
-        Task<SonarQubeQualityProfile> GetQualityProfileAsync(string projectKey, string organizationKey,
-            SonarQubeLanguage language, CancellationToken token);
+        Task<SonarQubeQualityProfile> GetQualityProfileAsync(
+            string projectKey,
+            string organizationKey,
+            SonarQubeLanguage language,
+            CancellationToken token);
 
-        Task<RoslynExportProfileResponse> GetRoslynExportProfileAsync(string qualityProfileName, string organizationKey,
-            SonarQubeLanguage language, CancellationToken token);
+        Task<RoslynExportProfileResponse> GetRoslynExportProfileAsync(
+            string qualityProfileName,
+            string organizationKey,
+            SonarQubeLanguage language,
+            CancellationToken token);
 
         /// <summary>
         /// Returns the suppressed issues for the specified project/branch.
@@ -97,7 +97,11 @@ namespace SonarQube.Client
         ///     the issues for the "main" branch will be returned.</param>
         /// <param name="token"></param>
         /// <param name="issueKeys">(optional) The ids of the issues to return. If empty, all issues will be returned.</param>
-        Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(string projectKey, string branch, string[] issueKeys, CancellationToken token);
+        Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(
+            string projectKey,
+            string branch,
+            string[] issueKeys,
+            CancellationToken token);
 
         /// <summary>
         /// Returns the issues in the specified server component with the same rule id
@@ -108,12 +112,20 @@ namespace SonarQube.Client
         /// <param name="componentKey">The component identifier. Project/Directory/File</param>
         /// <param name="ruleId">The Rule identifier. Is used to limit the number of issues in the response</param>
         /// <param name="token"></param>
-        Task<IList<SonarQubeIssue>> GetIssuesForComponentAsync(string projectKey, string branch, string componentKey, string ruleId, CancellationToken token);
+        Task<IList<SonarQubeIssue>> GetIssuesForComponentAsync(
+            string projectKey,
+            string branch,
+            string componentKey,
+            string ruleId,
+            CancellationToken token);
 
-        Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(string projectKey,
-            DateTimeOffset eventsSince, CancellationToken token);
+        Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(
+            string projectKey,
+            DateTimeOffset eventsSince,
+            CancellationToken token);
 
         Task<IList<SonarQubeModule>> GetAllModulesAsync(string projectKey, CancellationToken token);
+
         /// <summary>
         /// Returns the list of server paths with matching file names
         /// </summary>
@@ -122,7 +134,11 @@ namespace SonarQube.Client
         ///     the issues for the "main" branch will be returned</param>
         /// <param name="fileName">The file name used for the search</param>
         /// <param name="token"></param>
-        Task<IList<string>> SearchFilesByNameAsync(string projectKey, string branch, string fileName, CancellationToken token);
+        Task<IList<string>> SearchFilesByNameAsync(
+            string projectKey,
+            string branch,
+            string fileName,
+            CancellationToken token);
 
         Task<SonarQubeHotspot> GetHotspotAsync(string hotspotKey, CancellationToken token);
 
@@ -159,6 +175,10 @@ namespace SonarQube.Client
         /// Sets review status for an issue and adds an optional comment.
         /// See api/issues/do_transition and api/issues/add_comment
         /// </summary>
-        Task<SonarQubeIssueTransitionResult> TransitionIssueAsync(string issueKey, SonarQubeIssueTransition transition, string optionalComment, CancellationToken token);
+        Task<SonarQubeIssueTransitionResult> TransitionIssueAsync(
+            string issueKey,
+            SonarQubeIssueTransition transition,
+            string optionalComment,
+            CancellationToken token);
     }
 }

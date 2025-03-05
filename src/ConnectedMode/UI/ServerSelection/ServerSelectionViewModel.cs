@@ -95,6 +95,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
 
         public bool IsNextButtonEnabled => (IsSonarCloudSelected && IsSonarCloudRegionSelected) || (IsSonarQubeSelected && IsSonarQubeUrlProvided);
         public bool ShouldSonarQubeUrlBeFilled => IsSonarQubeSelected && !IsSonarQubeUrlProvided;
+        public static string SonarCloudForEuRegion => CloudServerRegion.Eu.Url.Host;
+        public static string SonarCloudForUsRegion => CloudServerRegion.Us.Url.Host;
         private bool IsSonarQubeUrlProvided => !string.IsNullOrWhiteSpace(SonarQubeUrl);
         public bool ShowSecurityWarning => Uri.TryCreate(SonarQubeUrl, UriKind.Absolute, out Uri uriResult) && uriResult.Scheme != Uri.UriSchemeHttps;
         private bool IsSonarCloudRegionSelected => IsEuRegionSelected || IsUsRegionSelected;

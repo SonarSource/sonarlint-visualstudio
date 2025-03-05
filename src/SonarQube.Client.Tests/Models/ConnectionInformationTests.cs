@@ -64,7 +64,7 @@ namespace SonarQube.Client.Tests.Models
         {
             var testSubject = new ConnectionInformation(new Uri(inputUrl));
 
-            testSubject.ServerUri.Should().Be(ConnectionInformation.FixedSonarCloudUri);
+            testSubject.ServerUri.Should().Be(CloudServerRegion.Eu.Url);
             testSubject.IsSonarCloud.Should().BeTrue();
         }
 
@@ -81,7 +81,7 @@ namespace SonarQube.Client.Tests.Models
         {
             var testSubject = new ConnectionInformation(new Uri(inputUrl));
 
-            testSubject.ServerUri.Should().Be(ConnectionInformation.FixedUsSonarCloudUri);
+            testSubject.ServerUri.Should().Be(CloudServerRegion.Us.Url);
             testSubject.IsSonarCloud.Should().BeTrue();
         }
 

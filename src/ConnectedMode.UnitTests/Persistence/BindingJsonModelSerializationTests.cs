@@ -31,18 +31,12 @@ public class BindingJsonModelSerializationTests
 {
     private static readonly DateTime Date = new DateTime(2020, 12, 31, 23, 59, 59);
 
-    private static readonly Dictionary<Language, ApplicableQualityProfile> QualityProfiles = new()
-    {
-        { Language.C, new ApplicableQualityProfile { ProfileKey = "qpkey", ProfileTimestamp = Date } }
-    };
+    private static readonly Dictionary<Language, ApplicableQualityProfile> QualityProfiles = new() { { Language.C, new ApplicableQualityProfile { ProfileKey = "qpkey", ProfileTimestamp = Date } } };
     private readonly BoundSonarQubeProject boundSonarQubeProject = new(new Uri("http://next.sonarqube.com/sonarqube"),
         "my_project_123",
         "My Project",
         /* ignored */ null,
-        new SonarQubeOrganization("org_key_123", "My Org"))
-    {
-        Profiles = QualityProfiles
-    };
+        new SonarQubeOrganization("org_key_123", "My Org")) { Profiles = QualityProfiles };
 
     private readonly BindingJsonModel bindingJsonModel = new()
     {
@@ -54,8 +48,9 @@ public class BindingJsonModelSerializationTests
         Profiles = QualityProfiles
     };
 
-    private readonly BoundServerProject boundSonarCloudServerProject = new("solution123", "my_project_123", new ServerConnection.SonarCloud("org_key_123")){ Profiles = QualityProfiles };
-    private readonly BoundServerProject boundSonarQubeServerProject = new("solution123", "my_project_123", new ServerConnection.SonarQube(new Uri("http://next.sonarqube.com/sonarqube"))){ Profiles = QualityProfiles };
+    private readonly BoundServerProject boundSonarCloudServerProject = new("solution123", "my_project_123", new ServerConnection.SonarCloud("org_key_123")) { Profiles = QualityProfiles };
+    private readonly BoundServerProject boundSonarQubeServerProject
+        = new("solution123", "my_project_123", new ServerConnection.SonarQube(new Uri("http://next.sonarqube.com/sonarqube"))) { Profiles = QualityProfiles };
 
     private readonly BindingJsonModelConverter bindingJsonModelConverter = new();
 
@@ -94,7 +89,7 @@ public class BindingJsonModelSerializationTests
             """
             {
               "ServerConnectionId": "https://sonarcloud.io/organizations/org_key_123",
-              "ServerUri": "https://sonarcloud.io",
+              "ServerUri": "https://sonarcloud.io/",
               "Organization": {
                 "Key": "org_key_123",
                 "Name": null

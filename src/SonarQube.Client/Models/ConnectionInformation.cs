@@ -28,12 +28,6 @@ namespace SonarQube.Client.Models
     /// </summary>
     public sealed class ConnectionInformation : ICloneable, IDisposable
     {
-        // TODO by https://sonarsource.atlassian.net/browse/SLVS-1816 - Remove these constants and use the single source of truth of the SonarCloud URIs
-#pragma warning disable S1075
-        internal static readonly Uri FixedSonarCloudUri = new("https://sonarcloud.io/");
-        internal static readonly Uri FixedUsSonarCloudUri = new("https://us.sonarcloud.io/");
-#pragma warning restore S1075
-
         private bool isDisposed;
 
         public ConnectionInformation(Uri serverUri, IConnectionCredentials credentials)
@@ -45,7 +39,7 @@ namespace SonarQube.Client.Models
 
             ServerUri = GetFormattedSonarCloudUri(serverUri).EnsureTrailingSlash();
             Credentials = (IConnectionCredentials)credentials?.Clone() ?? new NoCredentials();
-            IsSonarCloud = ServerUri == FixedSonarCloudUri || ServerUri == FixedUsSonarCloudUri;
+            IsSonarCloud = ServerUri == CloudServerRegion.Eu.Url || ServerUri == CloudServerRegion.Us.Url;
         }
 
         public ConnectionInformation(Uri serverUri)
@@ -79,7 +73,7 @@ namespace SonarQube.Client.Models
         /// http instead of https, or www.sonarcloud.io instead of sonarcloud.io) from redirecting to the
         /// correct scheme and url. See https://github.com/SonarSource/sonarlint-visualstudio/issues/796
         /// </summary>
-        private static Uri GetFormattedSonarCloudUri(Uri serverUri) => FixSonarCloudUri(serverUri, FixedSonarCloudUri) ?? FixSonarCloudUri(serverUri, FixedUsSonarCloudUri) ?? serverUri;
+        private static Uri GetFormattedSonarCloudUri(Uri serverUri) => FixSonarCloudUri(serverUri, CloudServerRegion.Eu.Url) ?? FixSonarCloudUri(serverUri, CloudServerRegion.Us.Url) ?? serverUri;
 
         private static Uri FixSonarCloudUri(Uri serverUri, Uri expectedUri) =>
             (serverUri.Host.Equals(expectedUri.Host, StringComparison.OrdinalIgnoreCase) || serverUri.Host.Equals($"www.{expectedUri.Host}", StringComparison.OrdinalIgnoreCase))

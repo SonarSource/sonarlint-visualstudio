@@ -291,5 +291,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
             eventHandler.Received().Invoke(testSubject,
                 Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsNextButtonEnabled)));
         }
+
+        [TestMethod]
+        public void SonarCloudForEuRegion_FormatsCorrectly() => ServerSelectionViewModel.SonarCloudForEuRegion.Should().Be("sonarcloud.io");
+
+        [TestMethod]
+        public void SonarCloudForUsRegion_FormatsCorrectly() => ServerSelectionViewModel.SonarCloudForUsRegion.Should().Be("us.sonarcloud.io");
     }
 }
