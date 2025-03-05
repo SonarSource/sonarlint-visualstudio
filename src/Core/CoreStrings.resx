@@ -190,9 +190,6 @@
   <data name="NoGitFolder" xml:space="preserve">
     <value>Solution/folder is not in a git repository</value>
   </data>
-  <data name="SonarCloudUrl" xml:space="preserve">
-    <value>https://sonarcloud.io</value>
-  </data>
   <data name="FindingType_Issue" xml:space="preserve">
     <value>issue</value>
   </data>
