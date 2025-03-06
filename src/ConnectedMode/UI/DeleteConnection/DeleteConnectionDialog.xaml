@@ -39,7 +39,7 @@
         <TextBlock Grid.Row="0" Margin="0, 0, 0, 20">
             <Run Text="{x:Static res:UiResources.DeleteConnectionDescription}" />
             <InlineUIContainer Style="{StaticResource ConnectionInfoInlineWrapper}">
-                <connectionDisplay:ConnectionInfoComponent ConnectionInfo="{Binding ConnectionInfo}"/>
+                <connectionDisplay:ConnectionInfoComponent ConnectedModeServices="{Binding ElementName=This, Path=ConnectedModeUiServices}" ConnectionInfo="{Binding ConnectionInfo}"/>
             </InlineUIContainer>
             <Run Text="?" />
         </TextBlock>

@@ -68,7 +68,7 @@
                     <Grid>
                         <TextBlock VerticalAlignment="Center" Padding="5,0">
                             <InlineUIContainer Style="{StaticResource ConnectionInfoInlineWrapper}">
-                                <connectionDisplay:ConnectionInfoComponent
+                                <connectionDisplay:ConnectionInfoComponent ConnectedModeServices="{Binding ElementName=This, Path=ConnectedModeUiServices}"
                                     ConnectionInfo="{Binding Path=Connection.Info}" />
                             </InlineUIContainer>
                         </TextBlock>
@@ -134,7 +134,7 @@
                     <Grid>
                         <TextBlock VerticalAlignment="Center" Padding="5,0">
                             <InlineUIContainer Style="{StaticResource ConnectionInfoInlineWrapper}">
-                                <connectionDisplay:ConnectionInfoComponent
+                                <connectionDisplay:ConnectionInfoComponent ConnectedModeServices="{Binding ElementName=This, Path=ConnectedModeUiServices}"
                                     ConnectionInfo="{Binding Path=Connection.Info}" />
                             </InlineUIContainer>
                         </TextBlock>

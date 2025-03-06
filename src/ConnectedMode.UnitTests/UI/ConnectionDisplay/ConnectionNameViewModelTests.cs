@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -32,14 +33,18 @@ public class ConnectionNameViewModelTests
 
     private ConnectionNameViewModel testSubject;
     private IDogfoodingService dogfoodingService;
+    private IConnectedModeUIServices connectedModeUIServices;
 
     [TestInitialize]
     public void TestInitialize()
     {
         dogfoodingService = Substitute.For<IDogfoodingService>();
-        testSubject = new ConnectionNameViewModel(dogfoodingService);
+        connectedModeUIServices = Substitute.For<IConnectedModeUIServices>();
+        testSubject = new ConnectionNameViewModel();
 
+        connectedModeUIServices.DogfoodingService.Returns(dogfoodingService);
         dogfoodingService.IsDogfoodingEnvironment.Returns(true);
+        testSubject.ConnectedModeUiServices = connectedModeUIServices;
     }
 
     [TestMethod]
@@ -145,6 +150,22 @@ public class ConnectionNameViewModelTests
         testSubject.ConnectionInfo = new ConnectionInfo(id, ConnectionServerType.SonarCloud, CloudServerRegion.Us);
 
         VerifyDoesNotDisplayRegion();
+    }
+
+    [TestMethod]
+    public void ConnectedModeUiServices_Set_RaisesPropertyChanged()
+    {
+        var connectedModeUiServices = Substitute.For<IConnectedModeUIServices>();
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+
+        testSubject.ConnectedModeUiServices = connectedModeUiServices;
+
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.ConnectedModeUiServices)));
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.DisplayName)));
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.ShouldDisplayRegion)));
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.DisplayRegion)));
+        testSubject.ConnectedModeUiServices.Should().BeSameAs(connectedModeUiServices);
     }
 
     private void VerifyDoesNotDisplayRegion()

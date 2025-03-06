@@ -18,22 +18,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay;
 
 public class ConnectionNameViewModel : ViewModelBase
 {
-    public ConnectionNameViewModel() : this(DogfoodingService.Instance) { }
-
-    internal ConnectionNameViewModel(IDogfoodingService dogfoodingService)
-    {
-        this.dogfoodingService = dogfoodingService ?? throw new ArgumentNullException(nameof(dogfoodingService));
-    }
-
     private ConnectionInfo connectionInfo;
-    private readonly IDogfoodingService dogfoodingService;
+    private IConnectedModeUIServices connectedModeUiServices;
+
+    public IConnectedModeUIServices ConnectedModeUiServices
+    {
+        get => connectedModeUiServices;
+        set
+        {
+            connectedModeUiServices = value;
+            RaisePropertyChanged();
+            RaisePropertyChanged(nameof(DisplayName));
+            RaisePropertyChanged(nameof(ShouldDisplayRegion));
+            RaisePropertyChanged(nameof(DisplayRegion));
+        }
+    }
 
     public ConnectionInfo ConnectionInfo
     {
@@ -53,6 +58,6 @@ public class ConnectionNameViewModel : ViewModelBase
             ? connectionInfo.CloudServerRegion.Url.ToString()
             : connectionInfo?.Id ?? string.Empty;
 
-    public bool ShouldDisplayRegion => dogfoodingService.IsDogfoodingEnvironment && connectionInfo?.ServerType is ConnectionServerType.SonarCloud;
+    public bool ShouldDisplayRegion => ConnectedModeUiServices?.DogfoodingService.IsDogfoodingEnvironment == true && connectionInfo?.ServerType is ConnectionServerType.SonarCloud;
     public string DisplayRegion => ShouldDisplayRegion ? connectionInfo.CloudServerRegion.Name : string.Empty;
 }
