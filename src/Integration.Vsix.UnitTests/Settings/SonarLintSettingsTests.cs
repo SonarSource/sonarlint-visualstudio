@@ -28,13 +28,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings;
 public class SonarLintSettingsTests
 {
     [TestMethod]
-    public void MefCtor_CheckIsExported()
-        => MefTestHelpers.CheckTypeCanBeImported<SonarLintSettings, ISonarLintSettings>(
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<SonarLintSettings, ISonarLintSettings>(
             MefTestHelpers.CreateExport<IWritableSettingsStoreFactory>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton()
-        => MefTestHelpers.CheckIsSingletonMefComponent<SonarLintSettings>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SonarLintSettings>();
 
     [TestMethod]
     public void Ctor_DoesNotCallAnyServices()
@@ -333,6 +332,28 @@ public class SonarLintSettingsTests
         jreLocation.Should().BeEmpty();
     }
 
+    [TestMethod]
+    public void ShowCloudRegion_DefaultValue_ShouldBeFalse()
+    {
+        var store = new Mock<WritableSettingsStore>();
+
+        var testSubject = CreateTestSubject(store.Object);
+
+        testSubject.ShowCloudRegion.Should().BeFalse();
+        store.Verify(x => x.GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.ShowCloudRegion), false), Times.AtLeastOnce);
+    }
+
+    [TestMethod]
+    public void ShowCloudRegion_WhenDisposed_ReturnsDefault()
+    {
+        var testSubject = CreateComDetachedTestSubject();
+
+        testSubject.ShowCloudRegion = true;
+        var showCloudRegion = testSubject.ShowCloudRegion;
+
+        showCloudRegion.Should().BeFalse();
+    }
+
     private static SonarLintSettings CreateComDetachedTestSubject()
     {
         var comException = new InvalidComObjectException("COM object that has been separated from its underlying RCW cannot be used.");
@@ -356,11 +377,9 @@ public class SonarLintSettingsTests
         return testSubject;
     }
 
-    private static SonarLintSettings CreateTestSubject(IWritableSettingsStoreFactory storeFactory)
-        => new SonarLintSettings(storeFactory);
+    private static SonarLintSettings CreateTestSubject(IWritableSettingsStoreFactory storeFactory) => new SonarLintSettings(storeFactory);
 
-    private static SonarLintSettings CreateTestSubject(WritableSettingsStore storeToReturn)
-        => CreateTestSubject(CreateStoreFactory(storeToReturn).Object);
+    private static SonarLintSettings CreateTestSubject(WritableSettingsStore storeToReturn) => CreateTestSubject(CreateStoreFactory(storeToReturn).Object);
 
     private static Mock<IWritableSettingsStoreFactory> CreateStoreFactory(
         WritableSettingsStore storeToReturn = null)
@@ -370,12 +389,12 @@ public class SonarLintSettingsTests
         return factory;
     }
 
-    private static void CheckPropertySet(Mock<WritableSettingsStore> store, string propertyKey, bool value)
-        => store.Verify(x => x.SetBoolean(SonarLintSettings.SettingsRoot, propertyKey, value), Times.Once);
+    private static void CheckPropertySet(Mock<WritableSettingsStore> store, string propertyKey, bool value) =>
+        store.Verify(x => x.SetBoolean(SonarLintSettings.SettingsRoot, propertyKey, value), Times.Once);
 
-    private static void CheckPropertySet(Mock<WritableSettingsStore> store, string propertyKey, int value)
-        => store.Verify(x => x.SetInt32(SonarLintSettings.SettingsRoot, propertyKey, value), Times.Once);
+    private static void CheckPropertySet(Mock<WritableSettingsStore> store, string propertyKey, int value) =>
+        store.Verify(x => x.SetInt32(SonarLintSettings.SettingsRoot, propertyKey, value), Times.Once);
 
-    private static void CheckPropertySet(Mock<WritableSettingsStore> store, string propertyKey, string value)
-        => store.Verify(x => x.SetString(SonarLintSettings.SettingsRoot, propertyKey, value), Times.Once);
+    private static void CheckPropertySet(Mock<WritableSettingsStore> store, string propertyKey, string value) =>
+        store.Verify(x => x.SetString(SonarLintSettings.SettingsRoot, propertyKey, value), Times.Once);
 }
