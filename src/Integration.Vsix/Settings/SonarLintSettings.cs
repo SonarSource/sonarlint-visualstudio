@@ -49,14 +49,20 @@ internal sealed class SonarLintSettings : ISonarLintSettings, IDisposable
 
     public DaemonLogLevel DaemonLogLevel
     {
-        get => (DaemonLogLevel) GetValueOrDefault(nameof(DaemonLogLevel), (int) DaemonLogLevel.Minimal);
-        set => SetValue(nameof(DaemonLogLevel), (int) value);
+        get => (DaemonLogLevel)GetValueOrDefault(nameof(DaemonLogLevel), (int)DaemonLogLevel.Minimal);
+        set => SetValue(nameof(DaemonLogLevel), (int)value);
     }
 
     public string JreLocation
     {
         get => GetValueOrDefault(nameof(JreLocation), string.Empty);
         set => SetValue(nameof(JreLocation), value);
+    }
+
+    public bool ShowCloudRegion
+    {
+        get => GetValueOrDefault(nameof(ShowCloudRegion), false);
+        set => SetValue(nameof(ShowCloudRegion), value);
     }
 
     public void Dispose() => disposed = true;

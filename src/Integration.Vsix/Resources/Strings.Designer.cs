@@ -106,6 +106,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarQube Cloud settings.
+        /// </summary>
+        public static string CloudSettings {
+            get {
+                return ResourceManager.GetString("CloudSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No embbedded plugins for connected mode found.
         /// </summary>
         public static string ConnectedModeEmbeddedPluginJarLocator_JarsNotFound {
@@ -384,6 +393,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         public static string SaveSharedConnectionCommand_SaveSuccess_Message {
             get {
                 return ResourceManager.GetString("SaveSharedConnectionCommand_SaveSuccess_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show region selection for SonarQube Cloud (early access).
+        /// </summary>
+        public static string ShowRegionCheckbox {
+            get {
+                return ResourceManager.GetString("ShowRegionCheckbox", resourceCulture);
             }
         }
         

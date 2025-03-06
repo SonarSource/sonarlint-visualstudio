@@ -92,6 +92,17 @@ public class GeneralOptionsDialogControlViewModelTests
     }
 
     [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void Ctor_SetsShowCloudRegionToValueFromSettings(bool expectedShowRegion)
+    {
+        settings.ShowCloudRegion.Returns(expectedShowRegion);
+
+        _ = settings.Received().ShowCloudRegion;
+        testSubject.ShowCloudRegion = expectedShowRegion;
+    }
+
+    [TestMethod]
     [DataRow(DaemonLogLevel.Verbose)]
     [DataRow(DaemonLogLevel.Info)]
     [DataRow(DaemonLogLevel.Minimal)]
@@ -137,6 +148,18 @@ public class GeneralOptionsDialogControlViewModelTests
         testSubject.SaveSettings();
 
         settings.Received().JreLocation = JreLocation;
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void SaveSettings_SavesShowCloudRegionToSettings(bool expectedShowCloudRegion)
+    {
+        testSubject.ShowCloudRegion = expectedShowCloudRegion;
+
+        testSubject.SaveSettings();
+
+        settings.Received().ShowCloudRegion = expectedShowCloudRegion;
     }
 
     [TestMethod]
