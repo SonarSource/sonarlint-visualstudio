@@ -29,7 +29,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 internal interface IRoslynWorkspaceWrapper
 {
     IRoslynSolutionWrapper CurrentSolution { get; }
-    bool TryApplyChanges(IRoslynSolutionWrapper solution);
+
+    Task<IRoslynSolutionWrapper> TryApplyChangesAsync(Func<IRoslynSolutionWrapper, IRoslynSolutionWrapper> change);
 }
 
 [Export(typeof(IRoslynWorkspaceWrapper))]
@@ -54,7 +55,30 @@ internal class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
     public IRoslynSolutionWrapper CurrentSolution =>
         new RoslynSolutionWrapper(workspace.CurrentSolution);
 
-    public bool TryApplyChanges(IRoslynSolutionWrapper solution)
+    public async Task<IRoslynSolutionWrapper> TryApplyChangesAsync(Func<IRoslynSolutionWrapper, IRoslynSolutionWrapper> change)
+    {
+        const int retryCount = 3;
+        const int retryDelayMilliseconds = 500;
+
+        for (var attempt = 1; attempt <= retryCount; attempt++)
+        {
+            var currentSolution = CurrentSolution;
+            var updatedSolution = change(currentSolution);
+            if (updatedSolution == currentSolution || TryApplyChanges(updatedSolution))
+            {
+                return updatedSolution;
+            }
+
+            if (attempt < retryCount)
+            {
+                await Task.Delay(retryDelayMilliseconds);
+            }
+        }
+
+        return null;
+    }
+
+    private bool TryApplyChanges(IRoslynSolutionWrapper solution)
     {
         var wasApplied = false;
         threadHandling.RunOnUIThread(() => wasApplied = workspace.TryApplyChanges(solution.GetRoslynSolution()));

@@ -20,6 +20,8 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Text;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
@@ -57,13 +59,13 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         IAsyncLockFactory asyncLockFactory,
         ILogger logger)
         : this(basicAnalyzerProvider,
-              enterpriseAnalyzerProvider,
-              roslynWorkspace,
-              AnalyzerArrayComparer.Instance,
-              activeConfigScopeTracker,
-              activeSolutionTracker,
-              asyncLockFactory,
-              logger)
+            enterpriseAnalyzerProvider,
+            roslynWorkspace,
+            AnalyzerArrayComparer.Instance,
+            activeConfigScopeTracker,
+            activeSolutionTracker,
+            asyncLockFactory,
+            logger)
     {
     }
 
@@ -84,7 +86,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.activeSolutionTracker = activeSolutionTracker;
         this.asyncLock = asyncLockFactory.Create();
-        this.logger = logger;
+        this.logger = logger.ForVerboseContext("Roslyn Analyzers");
 
         activeConfigScopeTracker.CurrentConfigurationScopeChanged += OnConfigurationScopeChanged;
         activeSolutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
@@ -92,18 +94,24 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
 
     internal /*for testing*/ async Task OnSolutionStateChangedAsync(string solutionName)
     {
-        using (await asyncLock.AcquireAsync())
+        try
         {
-            ThrowIfDisposed();
-
-            if (solutionName is null)
+            using (await asyncLock.AcquireAsync())
             {
-                RemoveCurrentAnalyzers();
-                return;
-            }
+                ThrowIfDisposed();
 
-            var analyzersToUse = await ChooseAnalyzersAsync(solutionName);
-            UpdateAnalyzersIfChanged(analyzersToUse);
+                if (solutionName is null)
+                {
+                    currentAnalyzers = null;
+                    return;
+                }
+
+                await UpdateAnalyzersIfChangedAsync(await ChooseAnalyzersAsync(solutionName));
+            }
+        }
+        catch (Exception e)
+        {
+            logger.WriteLine(e.ToString());
         }
     }
 
@@ -129,51 +137,60 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
     private async Task<ImmutableArray<AnalyzerFileReference>> ChooseAnalyzersAsync(string configurationScopeId) =>
         await enterpriseAnalyzerProvider.GetEnterpriseOrNullAsync(configurationScopeId) ?? await basicAnalyzerProvider.GetBasicAsync();
 
-    private void UpdateAnalyzersIfChanged(ImmutableArray<AnalyzerFileReference> analyzersToUse)
+    private async Task UpdateAnalyzersIfChangedAsync(ImmutableArray<AnalyzerFileReference> analyzersToUse)
     {
+        logger.LogVerbose(new MessageLevelContext { VerboseContext = ["To Update"] }, PrintAnalyzersChoice(analyzersToUse));
         if (!DidAnalyzerChoiceChange(analyzersToUse))
         {
+            logger.LogVerbose(new MessageLevelContext { VerboseContext = ["No Update"] }, "Nothing to update");
             return;
         }
 
-        RemoveCurrentAnalyzers();
-        AddAnalyzer(analyzersToUse);
+        logger.LogVerbose(new MessageLevelContext { VerboseContext = ["Before Update"] }, roslynWorkspace.CurrentSolution.DisplayCurrentAnalyzerState());
+        await RemoveCurrentAnalyzersAsync();
+        var updatedSolution = await AddAnalyzersAsync(analyzersToUse);
+        logger.LogVerbose(new MessageLevelContext { VerboseContext = ["After Update"] }, updatedSolution.DisplayCurrentAnalyzerState());
     }
 
-    private bool DidAnalyzerChoiceChange(ImmutableArray<AnalyzerFileReference> analyzersToUse)
-    {
-        return !analyzerComparer.Equals(currentAnalyzers, analyzersToUse);
-    }
+    private bool DidAnalyzerChoiceChange(ImmutableArray<AnalyzerFileReference> analyzersToUse) => !analyzerComparer.Equals(currentAnalyzers, analyzersToUse);
 
-    private void RemoveCurrentAnalyzers()
+    private async Task RemoveCurrentAnalyzersAsync()
     {
-        if (currentAnalyzers.HasValue && !roslynWorkspace.TryApplyChanges(roslynWorkspace.CurrentSolution.RemoveAnalyzerReferences(currentAnalyzers.Value)))
+        if (!currentAnalyzers.HasValue || await roslynWorkspace.TryApplyChangesAsync(s => s.RemoveAnalyzerReferences(currentAnalyzers.Value)) is not null)
         {
-            logger.LogVerbose(Resources.RoslynAnalyzersNotRemoved);
-            throw new InvalidOperationException(Resources.RoslynAnalyzersNotRemoved);
+            currentAnalyzers = null;
+            return;
         }
 
-        currentAnalyzers = null;
+        logger.LogVerbose(Resources.RoslynAnalyzersNotRemoved);
+        throw new InvalidOperationException(Resources.RoslynAnalyzersNotRemoved);
     }
 
-    private void AddAnalyzer(ImmutableArray<AnalyzerFileReference> analyzerToUse)
+    private async Task<IRoslynSolutionWrapper> AddAnalyzersAsync(ImmutableArray<AnalyzerFileReference> analyzersToUse)
     {
-        if (!roslynWorkspace.TryApplyChanges(roslynWorkspace.CurrentSolution.AddAnalyzerReferences(analyzerToUse)))
+        if (await roslynWorkspace.TryApplyChangesAsync(s => s.AddAnalyzerReferences(analyzersToUse)) is { } solution)
         {
-            logger.LogVerbose(Resources.RoslynAnalyzersNotAdded);
-            throw new InvalidOperationException(Resources.RoslynAnalyzersNotAdded);
+            currentAnalyzers = analyzersToUse;
+            return solution;
         }
 
-        currentAnalyzers = analyzerToUse;
+        logger.LogVerbose(Resources.RoslynAnalyzersNotAdded);
+        throw new InvalidOperationException(Resources.RoslynAnalyzersNotAdded);
     }
 
-    private void OnConfigurationScopeChanged(object sender, EventArgs e)
+    private static string PrintAnalyzersChoice(ImmutableArray<AnalyzerFileReference> analyzersToUse)
     {
-        OnSolutionStateChangedAsync(activeConfigScopeTracker.Current?.Id).Forget();
+        var stringBuilder = new StringBuilder();
+        stringBuilder.AppendLine("Analyzer update. Registering the following analyzers:");
+        foreach (var analyzer in analyzersToUse)
+        {
+            stringBuilder.AppendLine($"    {analyzer.DisplayInfo()}");
+        }
+        var messageFormat = stringBuilder.ToString();
+        return messageFormat;
     }
 
-    private void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
-    {
-        OnSolutionStateChangedAsync(e?.SolutionName).Forget();
-    }
+    private void OnConfigurationScopeChanged(object sender, EventArgs e) => OnSolutionStateChangedAsync(activeConfigScopeTracker.Current?.Id).Forget();
+
+    private void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e) => OnSolutionStateChangedAsync(e?.SolutionName).Forget();
 }
