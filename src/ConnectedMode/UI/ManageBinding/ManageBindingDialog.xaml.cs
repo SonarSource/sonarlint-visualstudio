@@ -32,18 +32,22 @@ internal partial class ManageBindingDialog : Window
 {
     private readonly IConnectedModeServices connectedModeServices;
     private readonly IConnectedModeBindingServices connectedModeBindingServices;
+    private readonly IConnectedModeUIServices connectedModeUiServices;
     private readonly AutomaticBindingRequest automaticBinding;
 
     public ManageBindingDialog(
         IConnectedModeServices connectedModeServices,
         IConnectedModeBindingServices connectedModeBindingServices,
+        IConnectedModeUIServices connectedModeUiServices,
         AutomaticBindingRequest automaticBinding = null)
     {
         this.connectedModeServices = connectedModeServices;
         this.connectedModeBindingServices = connectedModeBindingServices;
+        this.connectedModeUiServices = connectedModeUiServices;
         this.automaticBinding = automaticBinding;
         ViewModel = new ManageBindingViewModel(connectedModeServices,
             connectedModeBindingServices,
+            connectedModeUiServices,
             new ProgressReporterViewModel(connectedModeServices.Logger));
         InitializeComponent();
     }
@@ -52,7 +56,7 @@ internal partial class ManageBindingDialog : Window
 
     private async void ManageConnections_OnClick(object sender, RoutedEventArgs e)
     {
-        new ManageConnectionsDialog(connectedModeServices, connectedModeBindingServices).ShowDialog(this);
+        new ManageConnectionsDialog(connectedModeServices, connectedModeBindingServices, connectedModeUiServices).ShowDialog(this);
         await ViewModel.InitializeDataAsync();
     }
 
@@ -64,7 +68,7 @@ internal partial class ManageBindingDialog : Window
     private void SelectProject_OnClick(object sender, RoutedEventArgs e)
     {
         var projectSelection = new ProjectSelectionDialog(ViewModel.SelectedConnectionInfo, connectedModeServices);
-        if(projectSelection.ShowDialog(this) == true)
+        if (projectSelection.ShowDialog(this) == true)
         {
             ViewModel.SelectedProject = projectSelection.ViewModel.SelectedProject;
         }
@@ -95,8 +99,5 @@ internal partial class ManageBindingDialog : Window
         ViewModel.ExportBindingConfigurationAsync().Forget();
     }
 
-    private void ViewWebsite(object sender, RequestNavigateEventArgs e)
-    {
-        connectedModeServices.BrowserService.Navigate(e.Uri.AbsoluteUri);
-    }
+    private void ViewWebsite(object sender, RequestNavigateEventArgs e) => connectedModeUiServices.BrowserService.Navigate(e.Uri.AbsoluteUri);
 }

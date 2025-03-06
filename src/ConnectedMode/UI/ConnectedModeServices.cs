@@ -27,40 +27,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
 public interface IConnectedModeServices
 {
-    public IBrowserService BrowserService { get; }
     public IThreadHandling ThreadHandling { get; }
     public ILogger Logger { get; }
     public ISlCoreConnectionAdapter SlCoreConnectionAdapter { get; }
     public IConfigurationProvider ConfigurationProvider { get; }
     public IServerConnectionsRepositoryAdapter ServerConnectionsRepositoryAdapter { get; }
-    public IMessageBox MessageBox { get; }
     public ITelemetryManager TelemetryManager { get; }
-    public IDogfoodingService DogfoodingService { get; }
-    public IIDEWindowService IdeWindowService { get; }
 }
 
 [Export(typeof(IConnectedModeServices))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
 public class ConnectedModeServices(
-    IBrowserService browserService,
     IThreadHandling threadHandling,
     ISlCoreConnectionAdapter slCoreConnectionAdapter,
     IConfigurationProvider configurationProvider,
     IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter,
-    IMessageBox messageBox,
     ILogger logger,
-    ITelemetryManager telemetryManager,
-    IDogfoodingService dogfoodingService,
-    IIDEWindowService ideWindowService)
+    ITelemetryManager telemetryManager)
     : IConnectedModeServices
 {
     public IServerConnectionsRepositoryAdapter ServerConnectionsRepositoryAdapter { get; } = serverConnectionsRepositoryAdapter;
-    public IMessageBox MessageBox { get; } = messageBox;
     public ITelemetryManager TelemetryManager { get; } = telemetryManager;
-    public IDogfoodingService DogfoodingService { get; } = dogfoodingService;
-    public IIDEWindowService IdeWindowService { get; } = ideWindowService;
-    public IBrowserService BrowserService { get; } = browserService;
     public IThreadHandling ThreadHandling { get; } = threadHandling;
     public ILogger Logger { get; } = logger.ForContext(ConnectedMode.Resources.ConnectedModeLogContext);
     public ISlCoreConnectionAdapter SlCoreConnectionAdapter { get; } = slCoreConnectionAdapter;

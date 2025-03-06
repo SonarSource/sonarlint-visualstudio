@@ -19,10 +19,8 @@
  */
 
 using System.ComponentModel.Design;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
@@ -47,9 +45,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var cmdSet = new Guid(CommonGuids.SonarLintMenuCommandSet);
             IList<CommandID> allCommands = Enum.GetValues(typeof(PackageCommandId))
-                                               .Cast<int>()
-                                               .Select(x => new CommandID(cmdSet, x))
-                                               .ToList();
+                .Cast<int>()
+                .Select(x => new CommandID(cmdSet, x))
+                .ToList();
 
             // Act
             testSubject.Initialize(
@@ -58,7 +56,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Mock.Of<IShowInBrowserService>(),
                 Mock.Of<PackageCommandManager.ShowOptionsPage>(),
                 Mock.Of<IConnectedModeServices>(),
-Mock.Of<IConnectedModeBindingServices>(),
+                Mock.Of<IConnectedModeBindingServices>(),
+                Mock.Of<IConnectedModeUIServices>(),
                 Mock.Of<IConnectedModeUIManager>());
 
             // Assert

@@ -30,12 +30,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 public partial class CredentialsDialog : Window
 {
     private readonly IConnectedModeServices connectedModeServices;
+    private readonly IConnectedModeUIServices connectedModeUiServices;
 
     public CredentialsViewModel ViewModel { get; }
 
-    public CredentialsDialog(IConnectedModeServices connectedModeServices, ConnectionInfo connectionInfo, bool withNextButton)
+    public CredentialsDialog(
+        IConnectedModeServices connectedModeServices,
+        IConnectedModeUIServices connectedModeUiServices,
+        ConnectionInfo connectionInfo,
+        bool withNextButton)
     {
         this.connectedModeServices = connectedModeServices;
+        this.connectedModeUiServices = connectedModeUiServices;
         ViewModel = new CredentialsViewModel(connectionInfo,
             connectedModeServices.SlCoreConnectionAdapter,
             new ProgressReporterViewModel(connectedModeServices.Logger));
@@ -85,12 +91,12 @@ public partial class CredentialsDialog : Window
         if (responseWithData.Success)
         {
             TokenBox.Password = responseWithData.ResponseData;
-            connectedModeServices.IdeWindowService.BringToFront();
+            connectedModeUiServices.IdeWindowService.BringToFront();
             CloseWindowWithSuccess();
         }
         else
         {
-            connectedModeServices.BrowserService.Navigate(ViewModel.AccountSecurityUrl);
+            connectedModeUiServices.BrowserService.Navigate(ViewModel.AccountSecurityUrl);
         }
     }
 

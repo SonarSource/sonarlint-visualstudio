@@ -31,14 +31,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI
         private ConnectedModeUIManager testSubject;
         private IConnectedModeServices connectedModeServices;
         private IConnectedModeBindingServices connectedModeBindingServices;
+        private IConnectedModeUIServices connectedModeUIServices;
 
         [TestInitialize]
         public void TestInitialize()
         {
             connectedModeServices = Substitute.For<IConnectedModeServices>();
             connectedModeBindingServices = Substitute.For<IConnectedModeBindingServices>();
+            connectedModeUIServices = Substitute.For<IConnectedModeUIServices>();
             connectedModeServices.ThreadHandling.Returns(Substitute.For<IThreadHandling>());
-            testSubject = new ConnectedModeUIManager(connectedModeServices, connectedModeBindingServices);
+            testSubject = new ConnectedModeUIManager(connectedModeServices, connectedModeBindingServices, connectedModeUIServices);
         }
 
         [TestMethod]
@@ -46,7 +48,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI
         {
             MefTestHelpers.CheckTypeCanBeImported<ConnectedModeUIManager, IConnectedModeUIManager>(
                 MefTestHelpers.CreateExport<IConnectedModeServices>(),
-                MefTestHelpers.CreateExport<IConnectedModeBindingServices>());
+                MefTestHelpers.CreateExport<IConnectedModeBindingServices>(),
+                MefTestHelpers.CreateExport<IConnectedModeUIServices>()
+            );
         }
 
         [TestMethod]
