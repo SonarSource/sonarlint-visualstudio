@@ -48,7 +48,7 @@
                         </RadioButton>
                     </StackPanel>
                     <TextBlock Grid.Row="1" Text="{x:Static res:UiResources.SonarCloudDescription}" Margin="10, 0"/>
-                    <Grid Grid.Row="2" Margin="10" Visibility="{Binding DogfoodingService.IsDogfoodingEnvironment, Converter={StaticResource TrueToVisibleConverter}}">
+                    <Grid Grid.Row="2" Margin="10" Visibility="{Binding Path=ShowCloudRegion, Converter={StaticResource TrueToVisibleConverter}}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>

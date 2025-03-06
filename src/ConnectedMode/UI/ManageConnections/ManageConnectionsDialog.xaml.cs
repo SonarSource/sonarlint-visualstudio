@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         private ConnectionInfo GetTransientConnection()
         {
-            var serverSelectionDialog = new ServerSelectionDialog(ConnectedModeUiServices.BrowserService, connectedModeServices.TelemetryManager, ConnectedModeUiServices.DogfoodingService);
+            var serverSelectionDialog = new ServerSelectionDialog(ConnectedModeUiServices, connectedModeServices.TelemetryManager);
             return serverSelectionDialog.ShowDialog(this) != true ? null : serverSelectionDialog.ViewModel.CreateTransientConnectionInfo();
         }
 

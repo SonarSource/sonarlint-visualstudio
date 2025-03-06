@@ -21,7 +21,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Navigation;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
@@ -29,23 +28,23 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
 public partial class ServerSelectionDialog : Window
 {
-    private readonly IBrowserService browserService;
+    private readonly IConnectedModeUIServices connectedModeUiServices;
     private readonly ITelemetryManager telemetryManager;
 
     public ServerSelectionViewModel ViewModel { get; }
 
-    public ServerSelectionDialog(IBrowserService browserService, ITelemetryManager telemetryManager, IDogfoodingService dogfoodingService)
+    public ServerSelectionDialog(IConnectedModeUIServices connectedModeUiServices, ITelemetryManager telemetryManager)
     {
-        this.browserService = browserService;
+        this.connectedModeUiServices = connectedModeUiServices;
         this.telemetryManager = telemetryManager;
-        ViewModel = new ServerSelectionViewModel(dogfoodingService);
+        ViewModel = new ServerSelectionViewModel(connectedModeUiServices);
         InitializeComponent();
     }
 
     private void FreeSonaQubeCloudFreeTier_OnRequestNavigate(object sender, RequestNavigateEventArgs e)
     {
         var telemetryLinkId = TelemetryLinks.SonarQubeCloudFreeSignUpId;
-        browserService.Navigate(TelemetryLinks.LinkIdToUrls[telemetryLinkId]);
+        connectedModeUiServices.BrowserService.Navigate(TelemetryLinks.LinkIdToUrls[telemetryLinkId]);
         telemetryManager.LinkClicked(telemetryLinkId);
     }
 

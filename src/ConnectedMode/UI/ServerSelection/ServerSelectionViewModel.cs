@@ -18,21 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
 {
-    public class ServerSelectionViewModel(IDogfoodingService dogfoodingService) : ViewModelBase
+    public class ServerSelectionViewModel(IConnectedModeUIServices connectedModeUiServices) : ViewModelBase
     {
         private bool isSonarCloudSelected = true;
         private bool isSonarQubeSelected;
         private bool isEuRegionSelected = true;
         private bool isUsRegionSelected;
         private string sonarQubeUrl;
-
-        public IDogfoodingService DogfoodingService { get; } = dogfoodingService;
 
         public bool IsSonarCloudSelected
         {
@@ -93,6 +90,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
             }
         }
 
+        public bool ShowCloudRegion => connectedModeUiServices.DogfoodingService.IsDogfoodingEnvironment && connectedModeUiServices.SonarLintSettings.ShowCloudRegion;
         public bool IsNextButtonEnabled => (IsSonarCloudSelected && IsSonarCloudRegionSelected) || (IsSonarQubeSelected && IsSonarQubeUrlProvided);
         public bool ShouldSonarQubeUrlBeFilled => IsSonarQubeSelected && !IsSonarQubeUrlProvided;
         public static string SonarCloudForEuRegion => CloudServerRegion.Eu.Url.Host;
