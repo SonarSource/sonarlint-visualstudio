@@ -58,6 +58,8 @@ public class ConnectionNameViewModel : ViewModelBase
             ? connectionInfo.CloudServerRegion.Url.ToString()
             : connectionInfo?.Id ?? string.Empty;
 
-    public bool ShouldDisplayRegion => ConnectedModeUiServices?.DogfoodingService.IsDogfoodingEnvironment == true && connectionInfo?.ServerType is ConnectionServerType.SonarCloud;
+    public bool ShouldDisplayRegion =>
+        ConnectedModeUiServices?.DogfoodingService.IsDogfoodingEnvironment == true && ConnectedModeUiServices?.SonarLintSettings.ShowCloudRegion == true &&
+        connectionInfo?.ServerType is ConnectionServerType.SonarCloud;
     public string DisplayRegion => ShouldDisplayRegion ? connectionInfo.CloudServerRegion.Name : string.Empty;
 }

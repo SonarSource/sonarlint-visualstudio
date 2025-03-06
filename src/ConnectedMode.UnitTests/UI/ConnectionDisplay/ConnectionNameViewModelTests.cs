@@ -23,34 +23,36 @@ using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ConnectionDisplay;
 
 [TestClass]
 public class ConnectionNameViewModelTests
 {
+    private const string Id = "any id";
     public static object[][] Regions => [[CloudServerRegion.Eu], [CloudServerRegion.Us]];
 
     private ConnectionNameViewModel testSubject;
     private IDogfoodingService dogfoodingService;
     private IConnectedModeUIServices connectedModeUIServices;
+    private ISonarLintSettings sonarLintSettings;
 
     [TestInitialize]
     public void TestInitialize()
     {
         dogfoodingService = Substitute.For<IDogfoodingService>();
+        sonarLintSettings = Substitute.For<ISonarLintSettings>();
         connectedModeUIServices = Substitute.For<IConnectedModeUIServices>();
         testSubject = new ConnectionNameViewModel();
 
-        connectedModeUIServices.DogfoodingService.Returns(dogfoodingService);
-        dogfoodingService.IsDogfoodingEnvironment.Returns(true);
-        testSubject.ConnectedModeUiServices = connectedModeUIServices;
+        MockConnectedModeUiServices();
     }
 
     [TestMethod]
     public void ConnectionInfo_Set_RaisesPropertyChanged()
     {
-        var connectionInfo = new ConnectionInfo("any id", ConnectionServerType.SonarQube);
+        var connectionInfo = new ConnectionInfo(Id, ConnectionServerType.SonarQube);
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 
@@ -82,9 +84,9 @@ public class ConnectionNameViewModelTests
     [TestMethod]
     public void DisplayName_SonarQube_ReturnsId()
     {
-        testSubject.ConnectionInfo = new ConnectionInfo("any id", ConnectionServerType.SonarQube);
+        testSubject.ConnectionInfo = new ConnectionInfo(Id, ConnectionServerType.SonarQube);
 
-        testSubject.DisplayName.Should().Be("any id");
+        testSubject.DisplayName.Should().Be(Id);
     }
 
     [DynamicData(nameof(Regions))]
@@ -99,9 +101,9 @@ public class ConnectionNameViewModelTests
     [TestMethod]
     public void DisplayName_SonarCloud_HasId_ReturnsId()
     {
-        testSubject.ConnectionInfo = new ConnectionInfo("any id", ConnectionServerType.SonarCloud, CloudServerRegion.Eu);
+        testSubject.ConnectionInfo = new ConnectionInfo(Id, ConnectionServerType.SonarCloud, CloudServerRegion.Eu);
 
-        testSubject.DisplayName.Should().Be("any id");
+        testSubject.DisplayName.Should().Be(Id);
     }
 
     [TestMethod]
@@ -115,7 +117,7 @@ public class ConnectionNameViewModelTests
     [TestMethod]
     public void DisplayRegion_SonarQube_DoesNotDisplayRegion()
     {
-        testSubject.ConnectionInfo = new ConnectionInfo("any id", ConnectionServerType.SonarQube);
+        testSubject.ConnectionInfo = new ConnectionInfo(Id, ConnectionServerType.SonarQube);
 
         VerifyDoesNotDisplayRegion();
     }
@@ -134,14 +136,14 @@ public class ConnectionNameViewModelTests
     [DataTestMethod]
     public void DisplayRegion_SonarCloud_HasId_DisplaysRegion(CloudServerRegion region)
     {
-        testSubject.ConnectionInfo = new ConnectionInfo("any id", ConnectionServerType.SonarCloud, region);
+        testSubject.ConnectionInfo = new ConnectionInfo(Id, ConnectionServerType.SonarCloud, region);
 
         testSubject.ShouldDisplayRegion.Should().BeTrue();
         testSubject.DisplayRegion.Should().Be(region.Name);
     }
 
     [DataRow(null)]
-    [DataRow("any id")]
+    [DataRow(Id)]
     [DataTestMethod]
     public void DisplayRegion_SonarCloud_NotInDogfoodingEnvironment_DoesNotDisplayRegion(string id)
     {
@@ -168,9 +170,62 @@ public class ConnectionNameViewModelTests
         testSubject.ConnectedModeUiServices.Should().BeSameAs(connectedModeUiServices);
     }
 
+    [DynamicData(nameof(Regions))]
+    [DataTestMethod]
+    public void ShouldDisplayRegion_NotInDogfoodingEnvironment_ReturnsFalse(CloudServerRegion region)
+    {
+        testSubject.ConnectionInfo = new ConnectionInfo(Id, ConnectionServerType.SonarCloud, CloudServerRegion.Eu);
+        dogfoodingService.IsDogfoodingEnvironment.Returns(false);
+
+        testSubject.ShouldDisplayRegion.Should().BeFalse();
+    }
+
+    [DynamicData(nameof(Regions))]
+    [DataTestMethod]
+    public void ShouldDisplayRegion_ShowCloudRegionSettingUnchecked_ReturnsFalse(CloudServerRegion region)
+    {
+        testSubject.ConnectionInfo = new ConnectionInfo(Id, ConnectionServerType.SonarCloud, region);
+        dogfoodingService.IsDogfoodingEnvironment.Returns(true);
+        sonarLintSettings.ShowCloudRegion.Returns(false);
+
+        testSubject.ShouldDisplayRegion.Should().BeFalse();
+    }
+
+    [DynamicData(nameof(Regions))]
+    [DataTestMethod]
+    public void ShouldDisplayRegion_InDogfoodingEnvironment_ShowCloudRegionSettingChecked_ReturnsTrue(CloudServerRegion region)
+    {
+        testSubject.ConnectionInfo = new ConnectionInfo(Id, ConnectionServerType.SonarCloud, region);
+        dogfoodingService.IsDogfoodingEnvironment.Returns(true);
+        sonarLintSettings.ShowCloudRegion.Returns(true);
+
+        testSubject.ShouldDisplayRegion.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void ShouldDisplayRegion_SonarQube_InDogfoodingEnvironment_ShowCloudRegionSettingChecked_ReturnsFalse()
+    {
+        testSubject.ConnectionInfo = new ConnectionInfo(Id, ConnectionServerType.SonarQube);
+        dogfoodingService.IsDogfoodingEnvironment.Returns(true);
+        sonarLintSettings.ShowCloudRegion.Returns(true);
+
+        testSubject.ShouldDisplayRegion.Should().BeFalse();
+    }
+
     private void VerifyDoesNotDisplayRegion()
     {
         testSubject.ShouldDisplayRegion.Should().BeFalse();
         testSubject.DisplayRegion.Should().BeEmpty();
+    }
+
+    private void MockConnectedModeUiServices()
+    {
+        connectedModeUIServices.DogfoodingService.Returns(dogfoodingService);
+        dogfoodingService.IsDogfoodingEnvironment.Returns(true);
+
+        connectedModeUIServices.SonarLintSettings.Returns(sonarLintSettings);
+        sonarLintSettings.ShowCloudRegion.Returns(true);
+
+        testSubject.ConnectedModeUiServices = connectedModeUIServices;
     }
 }
