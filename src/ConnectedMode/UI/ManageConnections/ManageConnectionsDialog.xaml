@@ -82,7 +82,8 @@
                                     <RowDefinition Height="*" />
                                 </Grid.RowDefinitions>
 
-                                <connectionDisplay:ConnectionNameComponent Grid.Row="0" Grid.RowSpan="2" ConnectionInfo="{Binding Path=Connection.Info}" VerticalAlignment="Center" ConnectionNameFontWeight="Normal"/>
+                                <connectionDisplay:ConnectionNameComponent Grid.Row="0" Grid.RowSpan="2" ConnectedModeUiServices="{Binding ElementName=This, Path=ConnectedModeUiServices}"
+                                                                           ConnectionInfo="{Binding Path=Connection.Info}" VerticalAlignment="Center" ConnectionNameFontWeight="Normal"/>
                                 <CheckBox Visibility="Collapsed" Grid.Row="1"
                                           Content="{x:Static res:UiResources.SmartNotificationsCheckboxLabel}"
                                           IsChecked="{Binding Path=EnableSmartNotifications}"

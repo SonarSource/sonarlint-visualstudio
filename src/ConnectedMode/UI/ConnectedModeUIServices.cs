@@ -28,7 +28,6 @@ public interface IConnectedModeUIServices
 {
     public IBrowserService BrowserService { get; }
     public IMessageBox MessageBox { get; }
-    public IDogfoodingService DogfoodingService { get; }
     public IIDEWindowService IdeWindowService { get; }
     public ISonarLintSettings SonarLintSettings { get; }
 }
@@ -39,14 +38,12 @@ public interface IConnectedModeUIServices
 public class ConnectedModeUIServices(
     IBrowserService browserService,
     IMessageBox messageBox,
-    IDogfoodingService dogfoodingService,
     IIDEWindowService ideWindowService,
     ISonarLintSettings sonarLintSettings)
     : IConnectedModeUIServices
 {
     public IBrowserService BrowserService { get; } = browserService;
     public IMessageBox MessageBox { get; } = messageBox;
-    public IDogfoodingService DogfoodingService { get; } = dogfoodingService;
     public IIDEWindowService IdeWindowService { get; } = ideWindowService;
     public ISonarLintSettings SonarLintSettings { get; } = sonarLintSettings;
 }

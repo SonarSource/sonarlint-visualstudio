@@ -32,6 +32,8 @@ public sealed partial class ConnectionInfoComponent : UserControl
     public static readonly DependencyProperty ConnectionInfoProp = DependencyProperty.Register(nameof(ConnectionInfo), typeof(ConnectionInfo), typeof(ConnectionInfoComponent), new PropertyMetadata());
     public static readonly DependencyProperty TextAndIconVerticalAlignmentProp = DependencyProperty.Register(nameof(TextAndIconVerticalAlignment), typeof(VerticalAlignment),
         typeof(ConnectionInfoComponent), new PropertyMetadata(VerticalAlignment.Center));
+    public static readonly DependencyProperty ConnectedModeServicesProp
+        = DependencyProperty.Register(nameof(ConnectedModeServices), typeof(IConnectedModeUIServices), typeof(ConnectionInfoComponent));
 
     public ConnectionInfoComponent()
     {
@@ -54,5 +56,11 @@ public sealed partial class ConnectionInfoComponent : UserControl
     {
         get => (VerticalAlignment)GetValue(TextAndIconVerticalAlignmentProp);
         set => SetValue(TextAndIconVerticalAlignmentProp, value);
+    }
+
+    public IConnectedModeUIServices ConnectedModeServices
+    {
+        get => (IConnectedModeUIServices)GetValue(ConnectedModeServicesProp);
+        set => SetValue(ConnectedModeServicesProp, value);
     }
 }

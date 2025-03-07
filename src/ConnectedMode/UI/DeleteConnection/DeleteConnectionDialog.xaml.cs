@@ -27,9 +27,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.DeleteConnection;
 public partial class DeleteConnectionDialog : Window
 {
     public DeleteConnectionDialogViewModel ViewModel { get; }
+    public IConnectedModeUIServices ConnectedModeUiServices { get; }
 
-    public DeleteConnectionDialog(IReadOnlyList<string> projectsToUnbind, ConnectionInfo connectionInfo)
+    public DeleteConnectionDialog(IConnectedModeUIServices connectedModeUiServices, IReadOnlyList<string> projectsToUnbind, ConnectionInfo connectionInfo)
     {
+        ConnectedModeUiServices = connectedModeUiServices;
         ViewModel = new DeleteConnectionDialogViewModel(projectsToUnbind, connectionInfo);
         InitializeComponent();
     }
@@ -39,4 +41,3 @@ public partial class DeleteConnectionDialog : Window
         DialogResult = true;
     }
 }
-

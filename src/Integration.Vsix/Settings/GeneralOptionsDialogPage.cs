@@ -45,9 +45,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 if (viewModel == null)
                 {
-                    Debug.Assert(this.Site != null, "Expecting the page to be sited");
-                    var browserService = this.Site.GetMefService<IBrowserService>();
-                    viewModel = new GeneralOptionsDialogControlViewModel(Settings, browserService, GetOpenSettingsFileWpfCommand());
+                    Debug.Assert(Site != null, "Expecting the page to be sited");
+                    var browserService = Site.GetMefService<IBrowserService>();
+                    var dogfoodService = Site.GetMefService<IDogfoodingService>();
+                    viewModel = new GeneralOptionsDialogControlViewModel(Settings, browserService, dogfoodService, GetOpenSettingsFileWpfCommand());
                 }
                 return viewModel;
             }
@@ -57,13 +58,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             get
             {
-                if (this.settings == null)
+                if (settings == null)
                 {
-                    Debug.Assert(this.Site != null, "Expecting the page to be sited");
-                    this.settings = this.Site.GetMefService<ISonarLintSettings>();
+                    Debug.Assert(Site != null, "Expecting the page to be sited");
+                    settings = Site.GetMefService<ISonarLintSettings>();
                 }
 
-                return this.settings;
+                return settings;
             }
         }
 
@@ -79,9 +80,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private ICommand GetOpenSettingsFileWpfCommand()
         {
-            var userSettingsProvider = this.Site.GetMefService<IUserSettingsProvider>();
-            var logger = this.Site.GetMefService<ILogger>();
-            return new OpenSettingsFileWpfCommand(this.Site, userSettingsProvider, this, logger);
+            var userSettingsProvider = Site.GetMefService<IUserSettingsProvider>();
+            var logger = Site.GetMefService<ILogger>();
+            return new OpenSettingsFileWpfCommand(Site, userSettingsProvider, this, logger);
         }
     }
 }

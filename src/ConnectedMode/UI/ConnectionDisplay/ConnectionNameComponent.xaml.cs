@@ -27,9 +27,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay;
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
 public sealed partial class ConnectionNameComponent : UserControl
 {
-    public static readonly DependencyProperty ConnectionNameFontWeightProp = DependencyProperty.Register(nameof(ConnectionNameFontWeight), typeof(FontWeight), typeof(ConnectionNameComponent), new PropertyMetadata(FontWeights.DemiBold));
+    public static readonly DependencyProperty ConnectionNameFontWeightProp
+        = DependencyProperty.Register(nameof(ConnectionNameFontWeight), typeof(FontWeight), typeof(ConnectionNameComponent), new PropertyMetadata(FontWeights.DemiBold));
     public static readonly DependencyProperty ConnectionInfoProp
         = DependencyProperty.Register(nameof(ConnectionInfo), typeof(ConnectionInfo), typeof(ConnectionNameComponent), new PropertyMetadata(OnConnectionInfoSet));
+    public static readonly DependencyProperty ConnectedModeUiServicesProp
+        = DependencyProperty.Register(nameof(ConnectedModeUiServices), typeof(IConnectedModeUIServices), typeof(ConnectionNameComponent), new PropertyMetadata(OnConnectedModeUiServicesSet));
 
     public ConnectionNameViewModel ViewModel { get; } = new();
 
@@ -50,11 +53,25 @@ public sealed partial class ConnectionNameComponent : UserControl
         set => SetValue(ConnectionNameFontWeightProp, value);
     }
 
+    public IConnectedModeUIServices ConnectedModeUiServices
+    {
+        get => (IConnectedModeUIServices)GetValue(ConnectedModeUiServicesProp);
+        set => SetValue(ConnectedModeUiServicesProp, value);
+    }
+
     private static void OnConnectionInfoSet(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is ConnectionNameComponent component && e.NewValue is ConnectionInfo connectionInfo)
         {
             component.ViewModel.ConnectionInfo = connectionInfo;
+        }
+    }
+
+    private static void OnConnectedModeUiServicesSet(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is ConnectionNameComponent component && e.NewValue is IConnectedModeUIServices connectedModeUiServices)
+        {
+            component.ViewModel.ConnectedModeUiServices = connectedModeUiServices;
         }
     }
 }

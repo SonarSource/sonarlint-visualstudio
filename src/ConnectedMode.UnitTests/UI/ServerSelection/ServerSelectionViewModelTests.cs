@@ -19,9 +19,10 @@
  */
 
 using System.ComponentModel;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
 {
@@ -29,11 +30,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
     public class ServerSelectionViewModelTests
     {
         private ServerSelectionViewModel testSubject;
+        private IConnectedModeUIServices connectedModeUIServices;
+        private ISonarLintSettings sonarLintSettings;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            testSubject = new ServerSelectionViewModel(Substitute.For<IDogfoodingService>());
+            connectedModeUIServices = Substitute.For<IConnectedModeUIServices>();
+            testSubject = new ServerSelectionViewModel(connectedModeUIServices);
+            MockConnectedModeUiServices();
         }
 
         [TestMethod]
@@ -297,5 +302,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
 
         [TestMethod]
         public void SonarCloudForUsRegion_FormatsCorrectly() => ServerSelectionViewModel.SonarCloudForUsRegion.Should().Be("us.sonarcloud.io");
+
+        [TestMethod]
+        public void ShouldDisplayRegion_ShowCloudRegionSettingUnchecked_ReturnsFalse()
+        {
+            sonarLintSettings.ShowCloudRegion.Returns(false);
+
+            testSubject.ShowCloudRegion.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void ShouldDisplayRegion_ShowCloudRegionSettingChecked_ReturnsTrue()
+        {
+            sonarLintSettings.ShowCloudRegion.Returns(true);
+
+            testSubject.ShowCloudRegion.Should().BeTrue();
+        }
+
+        private void MockConnectedModeUiServices()
+        {
+            sonarLintSettings = Substitute.For<ISonarLintSettings>();
+            connectedModeUIServices.SonarLintSettings.Returns(sonarLintSettings);
+            sonarLintSettings.ShowCloudRegion.Returns(true);
+        }
     }
 }
