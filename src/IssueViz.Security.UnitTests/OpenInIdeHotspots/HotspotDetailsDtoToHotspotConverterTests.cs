@@ -32,41 +32,45 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIde
 [TestClass]
 public class HotspotDetailsDtoToHotspotConverterTests
 {
-    [TestMethod]
-    public void MefCtor_CheckIsExported()
+    private IChecksumCalculator checksumCalculator;
+    private HotspotDetailsDtoToHotspotConverter testSubject;
+    private readonly TextRangeDto textRangeDto = new TextRangeDto(1, 2, 3, 4);
+    private readonly HotspotRuleDto hotspotRuleDto = new HotspotRuleDto("rule:key",
+        "ruleName",
+        "security category",
+        "LOW",
+        "riskDescription",
+        "vulnerability description",
+        "fix recomendations");
+
+    [TestInitialize]
+    public void TestInitialize()
     {
-        MefTestHelpers.CheckTypeCanBeImported<HotspotDetailsDtoToHotspotConverter, IHotspotDetailsDtoToHotspotConverter>();
+        checksumCalculator = Substitute.For<IChecksumCalculator>();
+        testSubject = new HotspotDetailsDtoToHotspotConverter(checksumCalculator);
     }
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton()
-    {
-        MefTestHelpers.CheckIsSingletonMefComponent<HotspotDetailsDtoToHotspotConverter>();
-    }
+    public void MefCtor_CheckIsExported() => MefTestHelpers.CheckTypeCanBeImported<HotspotDetailsDtoToHotspotConverter, IHotspotDetailsDtoToHotspotConverter>();
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<HotspotDetailsDtoToHotspotConverter>();
 
     [TestMethod]
     public void Convert_CalculatesChecksumForCodeSnippet()
     {
         const string codeSnippet = "code snippet; 123";
         const string checksum = "checksum123";
-        var checksumCalculator = Substitute.For<IChecksumCalculator>();
         checksumCalculator.Calculate(codeSnippet).Returns(checksum);
-        var testSubject = new HotspotDetailsDtoToHotspotConverter(checksumCalculator);
 
         var hotspot = testSubject.Convert(new HotspotDetailsDto("key",
                 "msg",
                 "ide\\path",
-                new TextRangeDto(1, 2, 3, 4),
+                textRangeDto,
                 "author",
                 "status",
                 "resolution",
-                new HotspotRuleDto("rule:key",
-                    "ruleName",
-                    "security category",
-                    "LOW",
-                    "riskDescription",
-                    "vulnerability description",
-                    "fix recomendations"),
+                hotspotRuleDto,
                 codeSnippet),
             "some\\path");
 
@@ -76,22 +80,14 @@ public class HotspotDetailsDtoToHotspotConverterTests
     [TestMethod]
     public void Convert_PathTranslated()
     {
-        var testSubject = new HotspotDetailsDtoToHotspotConverter(Substitute.For<IChecksumCalculator>());
-
         var hotspot = testSubject.Convert(new HotspotDetailsDto("key",
                 "msg",
                 "ide\\path",
-                new TextRangeDto(1, 2, 3, 4),
+                textRangeDto,
                 "author",
                 "status",
                 "resolution",
-                new HotspotRuleDto("rule:key",
-                    "ruleName",
-                    "security category",
-                    "LOW",
-                    "riskDescription",
-                    "vulnerability description",
-                    "fix recomendations"),
+                hotspotRuleDto,
                 "code snippet"),
             "some\\path");
 
@@ -106,7 +102,6 @@ public class HotspotDetailsDtoToHotspotConverterTests
         const int endLine = 11;
         const int endLineOffset = 22;
         const string message = "msg";
-        var testSubject = new HotspotDetailsDtoToHotspotConverter(Substitute.For<IChecksumCalculator>());
 
         var hotspot = testSubject.Convert(new HotspotDetailsDto("key",
                 message,
@@ -115,13 +110,7 @@ public class HotspotDetailsDtoToHotspotConverterTests
                 "author",
                 "status",
                 "resolution",
-                new HotspotRuleDto("rule:key",
-                    "ruleName",
-                    "security category",
-                    "LOW",
-                    "riskDescription",
-                    "vulnerability description",
-                    "fix recomendations"),
+                hotspotRuleDto,
                 "code snippet"),
             "some\\path");
 
@@ -133,12 +122,11 @@ public class HotspotDetailsDtoToHotspotConverterTests
     public void Convert_RuleKeyPreserved()
     {
         const string ruleKey = "ruleKey:123";
-        var testSubject = new HotspotDetailsDtoToHotspotConverter(Substitute.For<IChecksumCalculator>());
 
         var hotspot = testSubject.Convert(new HotspotDetailsDto("key",
                 "msg",
                 "ide\\path",
-                new TextRangeDto(1, 2, 3, 4),
+                textRangeDto,
                 "author",
                 "status",
                 "resolution",
@@ -159,22 +147,15 @@ public class HotspotDetailsDtoToHotspotConverterTests
     public void Convert_HotspotKeyPreserved()
     {
         const string hotspotKey = "hotspotKey123";
-        var testSubject = new HotspotDetailsDtoToHotspotConverter(Substitute.For<IChecksumCalculator>());
 
         var hotspot = testSubject.Convert(new HotspotDetailsDto(hotspotKey,
                 "msg",
                 "ide\\path",
-                new TextRangeDto(1, 2, 3, 4),
+                textRangeDto,
                 "author",
                 "status",
                 "resolution",
-                new HotspotRuleDto("rule:key",
-                    "ruleName",
-                    "security category",
-                    "LOW",
-                    "riskDescription",
-                    "vulnerability description",
-                    "fix recomendations"),
+                hotspotRuleDto,
                 "code snippet"),
             "some\\path").Should().BeOfType<Hotspot>().Subject;
 
@@ -184,19 +165,10 @@ public class HotspotDetailsDtoToHotspotConverterTests
     [TestMethod]
     public void Convert_HotspotRulePreserved()
     {
-        var testSubject = new HotspotDetailsDtoToHotspotConverter(Substitute.For<IChecksumCalculator>());
-
-        var hotspotRuleDto = new HotspotRuleDto("rule:key",
-            "ruleName",
-            "security category",
-            "LOW",
-            "riskDescription",
-            "vulnerability description",
-            "fix recomendations");
         var hotspot = testSubject.Convert(new HotspotDetailsDto("key",
                 "msg",
                 "ide\\path",
-                new TextRangeDto(1, 2, 3, 4),
+                textRangeDto,
                 "author",
                 "status",
                 "resolution",
@@ -224,9 +196,7 @@ public class HotspotDetailsDtoToHotspotConverterTests
     [DataRow("hIGh", HotspotPriority.High)]
     public void Convert_HotspotPriorityConverted(string vulnerabilityProbability, HotspotPriority priority)
     {
-        var testSubject = new HotspotDetailsDtoToHotspotConverter(Substitute.For<IChecksumCalculator>());
-
-        var hotspotRuleDto = new HotspotRuleDto("rule:key",
+        var ruleDto = new HotspotRuleDto("rule:key",
             "ruleName",
             "security category",
             vulnerabilityProbability,
@@ -236,11 +206,11 @@ public class HotspotDetailsDtoToHotspotConverterTests
         var hotspot = testSubject.Convert(new HotspotDetailsDto("key",
                 "msg",
                 "ide\\path",
-                new TextRangeDto(1, 2, 3, 4),
+                textRangeDto,
                 "author",
                 "status",
                 "resolution",
-                hotspotRuleDto,
+                ruleDto,
                 "code snippet"),
             "some\\path").Should().BeOfType<Hotspot>().Subject;
 
@@ -250,12 +220,10 @@ public class HotspotDetailsDtoToHotspotConverterTests
     [TestMethod]
     public void Convert_PriorityOutOfRange_Throws()
     {
-        var testSubject = new HotspotDetailsDtoToHotspotConverter(Substitute.For<IChecksumCalculator>());
-
         var act = () => testSubject.Convert(new HotspotDetailsDto("key",
                 "msg",
                 "ide\\path",
-                new TextRangeDto(1, 2, 3, 4),
+                textRangeDto,
                 "author",
                 "status",
                 "resolution",
@@ -275,12 +243,10 @@ public class HotspotDetailsDtoToHotspotConverterTests
     [TestMethod]
     public void Convert_PriorityNull_Throws()
     {
-        var testSubject = new HotspotDetailsDtoToHotspotConverter(Substitute.For<IChecksumCalculator>());
-
         var act = () => testSubject.Convert(new HotspotDetailsDto("key",
                 "msg",
                 "ide\\path",
-                new TextRangeDto(1, 2, 3, 4),
+                textRangeDto,
                 "author",
                 "status",
                 "resolution",
@@ -300,22 +266,14 @@ public class HotspotDetailsDtoToHotspotConverterTests
     [TestMethod]
     public void Convert_Flows()
     {
-        var testSubject = new HotspotDetailsDtoToHotspotConverter(Substitute.For<IChecksumCalculator>());
-
         var hotspot = testSubject.Convert(new HotspotDetailsDto("key",
                 "msg",
                 "ide\\path",
-                new TextRangeDto(1, 2, 3, 4),
+                textRangeDto,
                 "author",
                 "status",
                 "resolution",
-                new HotspotRuleDto("rule:key",
-                    "ruleName",
-                    "security category",
-                    "LOW",
-                    "riskDescription",
-                    "vulnerability description",
-                    "fix recomendations"),
+                hotspotRuleDto,
                 "code snippet"),
             "some\\path");
 
@@ -325,25 +283,34 @@ public class HotspotDetailsDtoToHotspotConverterTests
     [TestMethod]
     public void Convert_IsResolved_DefaultsToFalse()
     {
-        var testSubject = new HotspotDetailsDtoToHotspotConverter(Substitute.For<IChecksumCalculator>());
-
         var hotspot = testSubject.Convert(new HotspotDetailsDto("key",
                 "msg",
                 "ide\\path",
-                new TextRangeDto(1, 2, 3, 4),
+                textRangeDto,
                 "author",
                 "status",
                 "resolution",
-                new HotspotRuleDto("rule:key",
-                    "ruleName",
-                    "security category",
-                    "LOW",
-                    "riskDescription",
-                    "vulnerability description",
-                    "fix recomendations"),
+                hotspotRuleDto,
                 "code snippet"),
             "some\\path");
 
         hotspot.IsResolved.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void Convert_CodeSnippetIsNull_SetsLineHashToNull()
+    {
+        var hotspot = testSubject.Convert(new HotspotDetailsDto("key",
+                "msg",
+                "ide\\path",
+                textRangeDto,
+                "author",
+                "status",
+                "resolution",
+                hotspotRuleDto,
+                codeSnippet: null),
+            "some\\path");
+
+        hotspot.PrimaryLocation.TextRange.LineHash.Should().BeNull();
     }
 }
