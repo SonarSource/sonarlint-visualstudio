@@ -30,6 +30,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
     private DaemonLogLevel selectedDaemonLogLevel;
     private bool isActivateMoreEnabled;
     private readonly ISonarLintSettings slSettings;
+    private bool showCloudRegion;
 
     public ICommand OpenSettingsFileCommand { get; }
     public ICommand ShowWikiCommand { get; }
@@ -65,6 +66,16 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         }
     }
 
+    public bool ShowCloudRegion
+    {
+        get => showCloudRegion;
+        set
+        {
+            showCloudRegion = value;
+            RaisePropertyChanged();
+        }
+    }
+
     public GeneralOptionsDialogControlViewModel(ISonarLintSettings slSettings, IBrowserService browserService, ICommand openSettingsFileCommand)
     {
         OpenSettingsFileCommand = openSettingsFileCommand ?? throw new ArgumentNullException(nameof(openSettingsFileCommand));
@@ -74,6 +85,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         SelectedDaemonLogLevel = slSettings.DaemonLogLevel;
         IsActivateMoreEnabled = slSettings.IsActivateMoreEnabled;
         JreLocation = slSettings.JreLocation;
+        ShowCloudRegion = slSettings.ShowCloudRegion;
     }
 
     public void SaveSettings()
@@ -81,6 +93,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         slSettings.DaemonLogLevel = SelectedDaemonLogLevel;
         slSettings.IsActivateMoreEnabled = IsActivateMoreEnabled;
         slSettings.JreLocation = JreLocation?.Trim();
+        slSettings.ShowCloudRegion = ShowCloudRegion;
     }
 
     private static RelayCommand CreateShowWikiCommand(IBrowserService browserService)
