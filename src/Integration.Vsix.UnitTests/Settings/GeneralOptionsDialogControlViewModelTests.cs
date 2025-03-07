@@ -31,6 +31,7 @@ public class GeneralOptionsDialogControlViewModelTests
     private ISonarLintSettings settings;
     private ICommand openSettingsFileCommand;
     private IBrowserService browserService;
+    private IDogfoodingService dogfoodingService;
     private const string JreLocation = "C:/jrePath";
 
     [TestInitialize]
@@ -39,20 +40,21 @@ public class GeneralOptionsDialogControlViewModelTests
         settings = Substitute.For<ISonarLintSettings>();
         openSettingsFileCommand = Substitute.For<ICommand>();
         browserService = Substitute.For<IBrowserService>();
-        testSubject = new GeneralOptionsDialogControlViewModel(settings, browserService, openSettingsFileCommand);
+        dogfoodingService = Substitute.For<IDogfoodingService>();
+        testSubject = new GeneralOptionsDialogControlViewModel(settings, browserService, dogfoodingService, openSettingsFileCommand);
     }
 
     [TestMethod]
     public void Ctor_OpenSettingsFileCommandNull_ThrowsException()
     {
-        Action act = () => _ = new GeneralOptionsDialogControlViewModel(settings, browserService, null);
+        Action act = () => _ = new GeneralOptionsDialogControlViewModel(settings, browserService, dogfoodingService, null);
         act.Should().Throw<ArgumentNullException>(nameof(openSettingsFileCommand));
     }
 
     [TestMethod]
     public void Ctor_BrowserServiceNull_ThrowsException()
     {
-        Action act = () => _ = new GeneralOptionsDialogControlViewModel(settings, null, openSettingsFileCommand);
+        Action act = () => _ = new GeneralOptionsDialogControlViewModel(settings, null, dogfoodingService, openSettingsFileCommand);
         act.Should().Throw<ArgumentNullException>(nameof(browserService));
     }
 
@@ -170,5 +172,21 @@ public class GeneralOptionsDialogControlViewModelTests
         testSubject.ShowWikiCommand.Execute(null);
 
         browserService.Received(1).Navigate(DocumentationLinks.DisablingARule);
+    }
+
+    [TestMethod]
+    public void ShouldShowCloudRegionOption_IsInDogfood_ReturnsTrue()
+    {
+        dogfoodingService.IsDogfoodingEnvironment.Returns(true);
+
+        testSubject.ShouldShowCloudRegionOption.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void ShouldShowCloudRegionOption_NotInDogfood_ReturnsTrue()
+    {
+        dogfoodingService.IsDogfoodingEnvironment.Returns(false);
+
+        testSubject.ShouldShowCloudRegionOption.Should().BeFalse();
     }
 }

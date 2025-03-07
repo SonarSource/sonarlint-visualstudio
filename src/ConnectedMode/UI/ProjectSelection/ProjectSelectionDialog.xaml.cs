@@ -20,7 +20,6 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
-using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 
@@ -28,9 +27,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 public partial class ProjectSelectionDialog
 {
     public ProjectSelectionViewModel ViewModel { get; }
+    public IConnectedModeUIServices ConnectedModeUiServices { get; }
 
-    public ProjectSelectionDialog(ConnectionInfo connectionInfo, IConnectedModeServices connectedModeServices)
+    public ProjectSelectionDialog(ConnectionInfo connectionInfo, IConnectedModeServices connectedModeServices, IConnectedModeUIServices connectedModeUiServices)
     {
+        ConnectedModeUiServices = connectedModeUiServices;
         ViewModel = new ProjectSelectionViewModel(connectionInfo,
             connectedModeServices,
             new ProgressReporterViewModel(connectedModeServices.Logger));
@@ -48,4 +49,3 @@ public partial class ProjectSelectionDialog
         await ViewModel.InitializeProjectWithProgressAsync();
     }
 }
-

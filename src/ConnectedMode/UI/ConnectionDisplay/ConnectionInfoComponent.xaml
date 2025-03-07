@@ -16,6 +16,7 @@
         <connectionDisplay:ConnectionNameComponent
             Grid.Column="1"
             Margin="5, 0, 0, 0"
+            ConnectedModeUiServices="{Binding ElementName=ConnectionInfoUc, Path=ConnectedModeServices}"
             ConnectionInfo="{Binding Path=.}"
             VerticalAlignment="{Binding ElementName=ConnectionInfoUc, Path=TextAndIconVerticalAlignment}"
             ConnectionNameFontWeight="{Binding ElementName=ConnectionInfoUc, Path=ConnectionNameFontWeight}"/>

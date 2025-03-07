@@ -30,6 +30,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
     private DaemonLogLevel selectedDaemonLogLevel;
     private bool isActivateMoreEnabled;
     private readonly ISonarLintSettings slSettings;
+    private readonly IDogfoodingService dogfoodingService;
     private bool showCloudRegion;
 
     public ICommand OpenSettingsFileCommand { get; }
@@ -66,6 +67,8 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         }
     }
 
+    public bool ShouldShowCloudRegionOption => dogfoodingService.IsDogfoodingEnvironment;
+
     public bool ShowCloudRegion
     {
         get => showCloudRegion;
@@ -76,12 +79,17 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         }
     }
 
-    public GeneralOptionsDialogControlViewModel(ISonarLintSettings slSettings, IBrowserService browserService, ICommand openSettingsFileCommand)
+    public GeneralOptionsDialogControlViewModel(
+        ISonarLintSettings slSettings,
+        IBrowserService browserService,
+        IDogfoodingService dogfoodingService,
+        ICommand openSettingsFileCommand)
     {
         OpenSettingsFileCommand = openSettingsFileCommand ?? throw new ArgumentNullException(nameof(openSettingsFileCommand));
         ShowWikiCommand = CreateShowWikiCommand(browserService);
 
         this.slSettings = slSettings;
+        this.dogfoodingService = dogfoodingService;
         SelectedDaemonLogLevel = slSettings.DaemonLogLevel;
         IsActivateMoreEnabled = slSettings.IsActivateMoreEnabled;
         JreLocation = slSettings.JreLocation;
