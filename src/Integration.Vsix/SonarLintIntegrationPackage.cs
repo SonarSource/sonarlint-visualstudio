@@ -93,6 +93,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     ShowOptionPage,
                     serviceProvider.GetMefService<IConnectedModeServices>(),
                     serviceProvider.GetMefService<IConnectedModeBindingServices>(),
+                    serviceProvider.GetMefService<IConnectedModeUIServices>(),
                     serviceProvider.GetMefService<IConnectedModeUIManager>());
 
                 // make sure roslynSettingsFileSynchronizer is initialized

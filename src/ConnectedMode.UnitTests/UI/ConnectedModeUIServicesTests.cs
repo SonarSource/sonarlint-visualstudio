@@ -20,39 +20,24 @@
 
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI;
 
 [TestClass]
-public class ConnectedModeServicesTests
+public class ConnectedModeUIServicesTests
 {
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<ConnectedModeServices, IConnectedModeServices>(
-            MefTestHelpers.CreateExport<IThreadHandling>(),
-            MefTestHelpers.CreateExport<ISlCoreConnectionAdapter>(),
-            MefTestHelpers.CreateExport<IConfigurationProvider>(),
-            MefTestHelpers.CreateExport<IServerConnectionsRepositoryAdapter>(),
-            MefTestHelpers.CreateExport<ITelemetryManager>(),
-            MefTestHelpers.CreateExport<ILogger>()
+        MefTestHelpers.CheckTypeCanBeImported<ConnectedModeUIServices, IConnectedModeUIServices>(
+            MefTestHelpers.CreateExport<IBrowserService>(),
+            MefTestHelpers.CreateExport<IMessageBox>(),
+            MefTestHelpers.CreateExport<IDogfoodingService>(),
+            MefTestHelpers.CreateExport<IIDEWindowService>(),
+            MefTestHelpers.CreateExport<ISonarLintSettings>()
         );
 
     [TestMethod]
-    public void Ctor_SetsLogContext()
-    {
-        var logger = Substitute.For<ILogger>();
-        _ = new ConnectedModeServices(
-            Substitute.For<IThreadHandling>(),
-            Substitute.For<ISlCoreConnectionAdapter>(),
-            Substitute.For<IConfigurationProvider>(),
-            Substitute.For<IServerConnectionsRepositoryAdapter>(),
-            logger,
-            Substitute.For<ITelemetryManager>()
-        );
-
-        logger.Received().ForContext(Resources.ConnectedModeLogContext);
-    }
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ConnectedModeUIServices>();
 }

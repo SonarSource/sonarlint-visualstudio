@@ -62,6 +62,7 @@ public class ManageBindingViewModelTests
     private IConnectedModeBindingServices connectedModeBindingServices;
     private ISharedBindingConfigProvider sharedBindingConfigProvider;
     private IMessageBox messageBox;
+    private IConnectedModeUIServices connectedModeUIServices;
 
     [TestInitialize]
     public void TestInitialize()
@@ -69,8 +70,9 @@ public class ManageBindingViewModelTests
         connectedModeServices = Substitute.For<IConnectedModeServices>();
         progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
         connectedModeBindingServices = Substitute.For<IConnectedModeBindingServices>();
+        connectedModeUIServices = Substitute.For<IConnectedModeUIServices>();
 
-        testSubject = new ManageBindingViewModel(connectedModeServices, connectedModeBindingServices, progressReporterViewModel);
+        testSubject = new ManageBindingViewModel(connectedModeServices, connectedModeBindingServices, connectedModeUIServices, progressReporterViewModel);
 
         testSubject.SolutionInfo = DefaultSolution;
         MockServices();
@@ -1266,7 +1268,7 @@ public class ManageBindingViewModelTests
         connectedModeServices.ServerConnectionsRepositoryAdapter.Returns(serverConnectionsRepositoryAdapter);
         connectedModeServices.ThreadHandling.Returns(threadHandling);
         connectedModeServices.Logger.Returns(logger);
-        connectedModeServices.MessageBox.Returns(messageBox);
+        connectedModeUIServices.MessageBox.Returns(messageBox);
 
         bindingController = Substitute.For<IBindingController>();
         solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();

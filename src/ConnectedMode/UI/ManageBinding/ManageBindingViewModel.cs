@@ -34,6 +34,7 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
 {
     private readonly CancellationTokenSource cancellationTokenSource = new();
     private readonly IConnectedModeBindingServices connectedModeBindingServices;
+    private readonly IConnectedModeUIServices connectedModeUiServices;
     private readonly IConnectedModeServices connectedModeServices;
     private ServerProject boundProject;
     private ConnectionInfo selectedConnectionInfo;
@@ -138,10 +139,12 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
     public ManageBindingViewModel(
         IConnectedModeServices connectedModeServices,
         IConnectedModeBindingServices connectedModeBindingServices,
+        IConnectedModeUIServices connectedModeUiServices,
         IProgressReporterViewModel progressReporterViewModel)
     {
         this.connectedModeServices = connectedModeServices;
         this.connectedModeBindingServices = connectedModeBindingServices;
+        this.connectedModeUiServices = connectedModeUiServices;
         ProgressReporter = progressReporterViewModel;
     }
 
@@ -341,7 +344,10 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
 
     internal async Task<AdapterResponse> PerformAutomaticBindingInternalAsync(AutomaticBindingRequest automaticBinding)
     {
-        var logContext = new MessageLevelContext { Context = [ConnectedMode.Resources.ConnectedModeAutomaticBindingLogContext, automaticBinding.TypeName], VerboseContext = [automaticBinding.ToString()]};
+        var logContext = new MessageLevelContext
+        {
+            Context = [ConnectedMode.Resources.ConnectedModeAutomaticBindingLogContext, automaticBinding.TypeName], VerboseContext = [automaticBinding.ToString()]
+        };
 
         if (!SelectAutomaticBindingArguments(logContext, automaticBinding, out var serverConnectionId, out var serverProjectKey)
             || !AutomaticBindingConnectionExists(logContext, serverConnectionId, out var serverConnection)
@@ -373,7 +379,11 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private bool SelectAutomaticBindingArguments(MessageLevelContext logContext, AutomaticBindingRequest automaticBinding, out string serverConnectionId, out string serverProjectKey)
+    private bool SelectAutomaticBindingArguments(
+        MessageLevelContext logContext,
+        AutomaticBindingRequest automaticBinding,
+        out string serverConnectionId,
+        out string serverProjectKey)
     {
         Debug.Assert(automaticBinding is not AutomaticBindingRequest.Shared || SharedBindingConfigModel != null,
             "Shared binding should never be called when it's not available");
@@ -407,7 +417,7 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
             logContext,
             ConnectedMode.Resources.AutomaticBinding_ConnectionNotFound,
             connectionId);
-        connectedModeServices.MessageBox.Show(
+        connectedModeUiServices.MessageBox.Show(
             UiResources.NotFoundConnectionForAutomaticBindingMessageBoxText,
             UiResources.NotFoundConnectionForAutomaticBindingMessageBoxCaption,
             MessageBoxButton.OK,
@@ -426,7 +436,7 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
             logContext,
             ConnectedMode.Resources.AutomaticBinding_CredentiasNotFound,
             serverConnection.Id);
-        connectedModeServices.MessageBox.Show(
+        connectedModeUiServices.MessageBox.Show(
             UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxText,
             UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxCaption,
             MessageBoxButton.OK,

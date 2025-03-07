@@ -32,18 +32,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.TrustConnection;
 public partial class TrustConnectionDialog : Window
 {
     private readonly IConnectedModeServices connectedModeServices;
+    private readonly IConnectedModeUIServices connectedModeUiServices;
 
     public TrustConnectionViewModel ViewModel { get; }
 
-    public TrustConnectionDialog(IConnectedModeServices connectedModeServices, ServerConnection serverConnection, SecureString token)
+    public TrustConnectionDialog(
+        IConnectedModeServices connectedModeServices,
+        IConnectedModeUIServices connectedModeUiServices,
+        ServerConnection serverConnection,
+        SecureString token)
     {
         this.connectedModeServices = connectedModeServices;
+        this.connectedModeUiServices = connectedModeUiServices;
         ViewModel = new TrustConnectionViewModel(connectedModeServices, new ProgressReporterViewModel(connectedModeServices.Logger), serverConnection, token);
         InitializeComponent();
         Title = ViewModel.IsCloud ? UiResources.TrustOrganizationDialogTitle : UiResources.TrustServerDialogTitle;
     }
 
-    private void ViewWebsite(object sender, RequestNavigateEventArgs e) => connectedModeServices.BrowserService.Navigate(e.Uri.AbsoluteUri);
+    private void ViewWebsite(object sender, RequestNavigateEventArgs e) => connectedModeUiServices.BrowserService.Navigate(e.Uri.AbsoluteUri);
 
     private async void TrustServerButton_OnClick(object sender, RoutedEventArgs e)
     {
@@ -59,7 +65,7 @@ public partial class TrustConnectionDialog : Window
 
     private bool AddToken()
     {
-        var credentialsDialog = new CredentialsDialog(connectedModeServices, ViewModel.Connection.Info, withNextButton: false);
+        var credentialsDialog = new CredentialsDialog(connectedModeServices, connectedModeUiServices, ViewModel.Connection.Info, withNextButton: false);
         var wasTokenAdded = credentialsDialog.ShowDialog(this) == true;
         if (wasTokenAdded)
         {
