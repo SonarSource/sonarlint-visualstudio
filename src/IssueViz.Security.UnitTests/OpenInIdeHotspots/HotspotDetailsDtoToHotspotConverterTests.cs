@@ -346,4 +346,29 @@ public class HotspotDetailsDtoToHotspotConverterTests
 
         hotspot.IsResolved.Should().BeFalse();
     }
+
+    [TestMethod]
+    public void Convert_CodeSnippetIsNull_SetsLineHashToNull()
+    {
+        var testSubject = new HotspotDetailsDtoToHotspotConverter(Substitute.For<IChecksumCalculator>());
+
+        var hotspot = testSubject.Convert(new HotspotDetailsDto("key",
+                "msg",
+                "ide\\path",
+                new TextRangeDto(1, 2, 3, 4),
+                "author",
+                "status",
+                "resolution",
+                new HotspotRuleDto("rule:key",
+                    "ruleName",
+                    "security category",
+                    "LOW",
+                    "riskDescription",
+                    "vulnerability description",
+                    "fix recomendations"),
+                codeSnippet: null),
+            "some\\path");
+
+        hotspot.PrimaryLocation.TextRange.LineHash.Should().BeNull();
+    }
 }
