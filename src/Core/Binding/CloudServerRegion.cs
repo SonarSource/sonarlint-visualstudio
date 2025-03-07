@@ -26,7 +26,7 @@ public sealed class CloudServerRegion
     public const string UsRegionName = "US";
 
     public static readonly CloudServerRegion Eu = new(EuRegionName, new("https://sonarcloud.io/"));
-    public static readonly CloudServerRegion Us = new(UsRegionName, new("https://us.sonarcloud.io/"));
+    public static readonly CloudServerRegion Us = new(UsRegionName, new("https://sonarqube.us/"));
 
     private CloudServerRegion(string name, Uri url)
     {
