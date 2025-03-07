@@ -311,10 +311,16 @@ E.g. C:\Program Files\Java\jdk-17</value>
     <value>Note: The IDE must be restarted for this setting to be applied.</value>
   </data>
   <data name="ConnectedModeEmbeddedPluginJarLocator_JarsNotFound" xml:space="preserve">
-    <value>No embbedded plugins for connected mode found</value>
+    <value>No embedded plugins for connected mode found</value>
   </data>
   <data name="ConnectedModeEmbeddedPluginJarLocator_MultipleJars" xml:space="preserve">
-    <value>Multiple embbedded plugins for connected mode were found for the plugin key {0}</value>
+    <value>Multiple embedded plugins for connected mode were found for the plugin key {0}</value>
+  </data>
+  <data name="ShowRegionCheckbox" xml:space="preserve">
+    <value>Show region selection for SonarQube Cloud (Early Access)</value>
+  </data>
+  <data name="CloudSettings" xml:space="preserve">
+    <value>SonarQube Cloud settings</value>
   </data>
   <data name="ShowRegionCheckbox" xml:space="preserve">
     <value>Show region selection for SonarQube Cloud (early access)</value>
