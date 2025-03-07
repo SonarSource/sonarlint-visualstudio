@@ -322,10 +322,4 @@ E.g. C:\Program Files\Java\jdk-17</value>
   <data name="CloudSettings" xml:space="preserve">
     <value>SonarQube Cloud settings</value>
   </data>
-  <data name="ShowRegionCheckbox" xml:space="preserve">
-    <value>Show region selection for SonarQube Cloud (early access)</value>
-  </data>
-  <data name="CloudSettings" xml:space="preserve">
-    <value>SonarQube Cloud settings</value>
-  </data>
 </root>
