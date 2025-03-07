@@ -115,7 +115,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No embbedded plugins for connected mode found.
+        ///   Looks up a localized string similar to No embedded plugins for connected mode found.
         /// </summary>
         public static string ConnectedModeEmbeddedPluginJarLocator_JarsNotFound {
             get {
@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Multiple embbedded plugins for connected mode were found for the plugin key {0}.
+        ///   Looks up a localized string similar to Multiple embedded plugins for connected mode were found for the plugin key {0}.
         /// </summary>
         public static string ConnectedModeEmbeddedPluginJarLocator_MultipleJars {
             get {
