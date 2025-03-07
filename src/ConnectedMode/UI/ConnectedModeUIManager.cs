@@ -38,7 +38,7 @@ public interface IConnectedModeUIManager
 [Export(typeof(IConnectedModeUIManager))]
 [PartCreationPolicy(CreationPolicy.NonShared)]
 [method: ImportingConstructor]
-internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices)
+internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices, IConnectedModeUIServices connectedModeUiServices)
     : IConnectedModeUIManager
 {
     public async Task<bool> ShowManageBindingDialogAsync(AutomaticBindingRequest automaticBinding = null)
@@ -60,14 +60,14 @@ internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedMod
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     private bool? GetTrustConnectionDialogResult(ServerConnection serverConnection, string token)
     {
-        var trustConnectionDialog = new TrustConnectionDialog(connectedModeServices, serverConnection, token?.ToSecureString());
+        var trustConnectionDialog = new TrustConnectionDialog(connectedModeServices, connectedModeUiServices, serverConnection, token?.ToSecureString());
         return trustConnectionDialog.ShowDialog(Application.Current.MainWindow);
     }
 
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     private bool ShowDialogManageBinding(AutomaticBindingRequest automaticBinding)
     {
-        var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices, automaticBinding);
+        var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices, connectedModeUiServices, automaticBinding);
         manageBindingDialog.ShowDialog(Application.Current.MainWindow);
         return manageBindingDialog.ViewModel.BoundProject != null;
     }

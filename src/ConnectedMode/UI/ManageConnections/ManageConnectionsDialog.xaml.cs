@@ -32,12 +32,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
     public partial class ManageConnectionsDialog : Window
     {
         private readonly IConnectedModeServices connectedModeServices;
+        private readonly IConnectedModeUIServices connectedModeUiServices;
 
         public ManageConnectionsViewModel ViewModel { get; }
 
-        public ManageConnectionsDialog(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices)
+        public ManageConnectionsDialog(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices, IConnectedModeUIServices connectedModeUiServices)
         {
             this.connectedModeServices = connectedModeServices;
+            this.connectedModeUiServices = connectedModeUiServices;
             ViewModel = new ManageConnectionsViewModel(connectedModeServices,
                 connectedModeBindingServices,
                 new ProgressReporterViewModel(connectedModeServices.Logger));
@@ -51,7 +53,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
                 return;
             }
 
-            var credentialsDialog = new CredentialsDialog(connectedModeServices, connectionViewModel.Connection.Info, false);
+            var credentialsDialog = new CredentialsDialog(connectedModeServices, connectedModeUiServices, connectionViewModel.Connection.Info, false);
             if (!CredentialsDialogSucceeded(credentialsDialog))
             {
                 return;
@@ -78,14 +80,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         private ConnectionInfo GetTransientConnection()
         {
-            var serverSelectionDialog = new ServerSelectionDialog(connectedModeServices.BrowserService, connectedModeServices.TelemetryManager, connectedModeServices.DogfoodingService);
+            var serverSelectionDialog = new ServerSelectionDialog(connectedModeUiServices.BrowserService, connectedModeServices.TelemetryManager, connectedModeUiServices.DogfoodingService);
             return serverSelectionDialog.ShowDialog(this) != true ? null : serverSelectionDialog.ViewModel.CreateTransientConnectionInfo();
         }
 
         private CredentialsDialog GetCredentialsDialog(ConnectionInfo newConnectionInfo)
         {
             var isAnyDialogFollowing = newConnectionInfo.ServerType == ConnectionServerType.SonarCloud;
-            return new CredentialsDialog(connectedModeServices, newConnectionInfo, withNextButton: isAnyDialogFollowing);
+            return new CredentialsDialog(connectedModeServices, connectedModeUiServices, newConnectionInfo, withNextButton: isAnyDialogFollowing);
         }
 
         private bool CredentialsDialogSucceeded(CredentialsDialog credentialsDialog)
