@@ -301,7 +301,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
         public void SonarCloudForEuRegion_FormatsCorrectly() => ServerSelectionViewModel.SonarCloudForEuRegion.Should().Be("sonarcloud.io");
 
         [TestMethod]
-        public void SonarCloudForUsRegion_FormatsCorrectly() => ServerSelectionViewModel.SonarCloudForUsRegion.Should().Be("us.sonarcloud.io");
+        public void SonarCloudForUsRegion_FormatsCorrectly() => ServerSelectionViewModel.SonarCloudForUsRegion.Should().Be("sonarqube.us");
 
         [TestMethod]
         public void ShouldDisplayRegion_ShowCloudRegionSettingUnchecked_ReturnsFalse()

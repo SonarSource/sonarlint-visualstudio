@@ -36,7 +36,7 @@ public class CloudServerRegionTests
     public void UsRegion_ExpectedProperties()
     {
         CloudServerRegion.Us.Name.Should().Be("US");
-        CloudServerRegion.Us.Url.Should().Be(new Uri("https://us.sonarcloud.io"));
+        CloudServerRegion.Us.Url.Should().Be(new Uri("https://sonarqube.us"));
     }
 
     [TestMethod]
