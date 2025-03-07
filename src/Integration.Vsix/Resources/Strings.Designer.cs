@@ -397,7 +397,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Show region selection for SonarQube Cloud (early access).
+        ///   Looks up a localized string similar to Show region selection for SonarQube Cloud (Early Access).
         /// </summary>
         public static string ShowRegionCheckbox {
             get {
