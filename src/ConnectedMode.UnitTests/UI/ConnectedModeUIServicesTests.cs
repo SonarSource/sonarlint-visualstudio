@@ -33,7 +33,6 @@ public class ConnectedModeUIServicesTests
         MefTestHelpers.CheckTypeCanBeImported<ConnectedModeUIServices, IConnectedModeUIServices>(
             MefTestHelpers.CreateExport<IBrowserService>(),
             MefTestHelpers.CreateExport<IMessageBox>(),
-            MefTestHelpers.CreateExport<IDogfoodingService>(),
             MefTestHelpers.CreateExport<IIDEWindowService>(),
             MefTestHelpers.CreateExport<ISonarLintSettings>()
         );

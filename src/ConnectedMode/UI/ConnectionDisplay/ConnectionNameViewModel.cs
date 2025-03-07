@@ -59,7 +59,7 @@ public class ConnectionNameViewModel : ViewModelBase
             : connectionInfo?.Id ?? string.Empty;
 
     public bool ShouldDisplayRegion =>
-        ConnectedModeUiServices?.DogfoodingService.IsDogfoodingEnvironment == true && ConnectedModeUiServices?.SonarLintSettings.ShowCloudRegion == true &&
+        ConnectedModeUiServices?.SonarLintSettings.ShowCloudRegion == true &&
         connectionInfo?.ServerType is ConnectionServerType.SonarCloud;
     public string DisplayRegion => ShouldDisplayRegion ? connectionInfo.CloudServerRegion.Name : string.Empty;
 }

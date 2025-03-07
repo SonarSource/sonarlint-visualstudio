@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
             }
         }
 
-        public bool ShowCloudRegion => connectedModeUiServices.DogfoodingService.IsDogfoodingEnvironment && connectedModeUiServices.SonarLintSettings.ShowCloudRegion;
+        public bool ShowCloudRegion => connectedModeUiServices.SonarLintSettings.ShowCloudRegion;
         public bool IsNextButtonEnabled => (IsSonarCloudSelected && IsSonarCloudRegionSelected) || (IsSonarQubeSelected && IsSonarQubeUrlProvided);
         public bool ShouldSonarQubeUrlBeFilled => IsSonarQubeSelected && !IsSonarQubeUrlProvided;
         public static string SonarCloudForEuRegion => CloudServerRegion.Eu.Url.Host;

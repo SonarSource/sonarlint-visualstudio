@@ -21,7 +21,6 @@
 using System.ComponentModel;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 
@@ -34,14 +33,12 @@ public class ConnectionNameViewModelTests
     public static object[][] Regions => [[CloudServerRegion.Eu], [CloudServerRegion.Us]];
 
     private ConnectionNameViewModel testSubject;
-    private IDogfoodingService dogfoodingService;
     private IConnectedModeUIServices connectedModeUIServices;
     private ISonarLintSettings sonarLintSettings;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        dogfoodingService = Substitute.For<IDogfoodingService>();
         sonarLintSettings = Substitute.For<ISonarLintSettings>();
         connectedModeUIServices = Substitute.For<IConnectedModeUIServices>();
         testSubject = new ConnectionNameViewModel();
@@ -142,18 +139,6 @@ public class ConnectionNameViewModelTests
         testSubject.DisplayRegion.Should().Be(region.Name);
     }
 
-    [DataRow(null)]
-    [DataRow(Id)]
-    [DataTestMethod]
-    public void DisplayRegion_SonarCloud_NotInDogfoodingEnvironment_DoesNotDisplayRegion(string id)
-    {
-        dogfoodingService.IsDogfoodingEnvironment.Returns(false);
-
-        testSubject.ConnectionInfo = new ConnectionInfo(id, ConnectionServerType.SonarCloud, CloudServerRegion.Us);
-
-        VerifyDoesNotDisplayRegion();
-    }
-
     [TestMethod]
     public void ConnectedModeUiServices_Set_RaisesPropertyChanged()
     {
@@ -172,20 +157,9 @@ public class ConnectionNameViewModelTests
 
     [DynamicData(nameof(Regions))]
     [DataTestMethod]
-    public void ShouldDisplayRegion_NotInDogfoodingEnvironment_ReturnsFalse(CloudServerRegion region)
-    {
-        testSubject.ConnectionInfo = new ConnectionInfo(Id, ConnectionServerType.SonarCloud, CloudServerRegion.Eu);
-        dogfoodingService.IsDogfoodingEnvironment.Returns(false);
-
-        testSubject.ShouldDisplayRegion.Should().BeFalse();
-    }
-
-    [DynamicData(nameof(Regions))]
-    [DataTestMethod]
     public void ShouldDisplayRegion_ShowCloudRegionSettingUnchecked_ReturnsFalse(CloudServerRegion region)
     {
         testSubject.ConnectionInfo = new ConnectionInfo(Id, ConnectionServerType.SonarCloud, region);
-        dogfoodingService.IsDogfoodingEnvironment.Returns(true);
         sonarLintSettings.ShowCloudRegion.Returns(false);
 
         testSubject.ShouldDisplayRegion.Should().BeFalse();
@@ -193,20 +167,18 @@ public class ConnectionNameViewModelTests
 
     [DynamicData(nameof(Regions))]
     [DataTestMethod]
-    public void ShouldDisplayRegion_InDogfoodingEnvironment_ShowCloudRegionSettingChecked_ReturnsTrue(CloudServerRegion region)
+    public void ShouldDisplayRegion_ShowCloudRegionSettingChecked_ReturnsTrue(CloudServerRegion region)
     {
         testSubject.ConnectionInfo = new ConnectionInfo(Id, ConnectionServerType.SonarCloud, region);
-        dogfoodingService.IsDogfoodingEnvironment.Returns(true);
         sonarLintSettings.ShowCloudRegion.Returns(true);
 
         testSubject.ShouldDisplayRegion.Should().BeTrue();
     }
 
     [TestMethod]
-    public void ShouldDisplayRegion_SonarQube_InDogfoodingEnvironment_ShowCloudRegionSettingChecked_ReturnsFalse()
+    public void ShouldDisplayRegion_SonarQube_ShowCloudRegionSettingChecked_ReturnsFalse()
     {
         testSubject.ConnectionInfo = new ConnectionInfo(Id, ConnectionServerType.SonarQube);
-        dogfoodingService.IsDogfoodingEnvironment.Returns(true);
         sonarLintSettings.ShowCloudRegion.Returns(true);
 
         testSubject.ShouldDisplayRegion.Should().BeFalse();
@@ -220,9 +192,6 @@ public class ConnectionNameViewModelTests
 
     private void MockConnectedModeUiServices()
     {
-        connectedModeUIServices.DogfoodingService.Returns(dogfoodingService);
-        dogfoodingService.IsDogfoodingEnvironment.Returns(true);
-
         connectedModeUIServices.SonarLintSettings.Returns(sonarLintSettings);
         sonarLintSettings.ShowCloudRegion.Returns(true);
 
