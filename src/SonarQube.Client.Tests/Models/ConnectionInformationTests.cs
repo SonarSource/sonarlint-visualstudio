@@ -69,14 +69,14 @@ namespace SonarQube.Client.Tests.Models
         }
 
         [TestMethod]
-        [DataRow("http://us.sonarcloud.io")]
-        [DataRow("http://us.sonarcloud.io/")]
-        [DataRow("https://us.sonarcloud.io")]
-        [DataRow("https://us.sonarcloud.io/")]
-        [DataRow("http://us.sonarcloud.io")]
-        [DataRow("http://www.us.sonarcloud.io")]
-        [DataRow("https://www.us.sonarcloud.io/")]
-        [DataRow("http://us.sonarcloud.io:9999")]
+        [DataRow("http://sonarqube.us")]
+        [DataRow("http://sonarqube.us/")]
+        [DataRow("https://sonarqube.us")]
+        [DataRow("https://sonarqube.us/")]
+        [DataRow("http://sonarqube.us")]
+        [DataRow("http://www.sonarqube.us")]
+        [DataRow("https://www.sonarqube.us/")]
+        [DataRow("http://sonarqube.us:9999")]
         public void Ctor_SonarCloudUrlForUsRegion_IsProcessedCorrectly(string inputUrl)
         {
             var testSubject = new ConnectionInformation(new Uri(inputUrl));

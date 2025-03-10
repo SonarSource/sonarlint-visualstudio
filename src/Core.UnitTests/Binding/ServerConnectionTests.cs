@@ -63,7 +63,7 @@ public class ServerConnectionTests
         var region = CloudServerRegion.Us;
         var sonarCloud = new ServerConnection.SonarCloud(Org, region, serverConnectionSettings, credentials);
 
-        var expectedId = "https://us.sonarcloud.io/organizations/myOrg";
+        var expectedId = "https://sonarqube.us/organizations/myOrg";
         sonarCloud.Id.Should().Be(expectedId);
         sonarCloud.OrganizationKey.Should().BeSameAs(Org);
         sonarCloud.Region.Should().BeSameAs(region);

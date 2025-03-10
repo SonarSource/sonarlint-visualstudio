@@ -91,10 +91,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             new ConnectionInformation(new Uri("http://www.sonarcloud.io")).ServerUri.ToString().Should().Be("https://sonarcloud.io/");
             new ConnectionInformation(new Uri("https://www.sonarcloud.io")).ServerUri.ToString().Should().Be("https://sonarcloud.io/");
             new ConnectionInformation(new Uri("https://WWW.SONARCLOUD.IO")).ServerUri.ToString().Should().Be("https://sonarcloud.io/");
-            new ConnectionInformation(new Uri("http://us.sonarcloud.io")).ServerUri.ToString().Should().Be("https://us.sonarcloud.io/");
-            new ConnectionInformation(new Uri("http://www.us.sonarcloud.io")).ServerUri.ToString().Should().Be("https://us.sonarcloud.io/");
-            new ConnectionInformation(new Uri("https://www.us.sonarcloud.io")).ServerUri.ToString().Should().Be("https://us.sonarcloud.io/");
-            new ConnectionInformation(new Uri("https://WWW.us.SONARCLOUD.IO")).ServerUri.ToString().Should().Be("https://us.sonarcloud.io/");
+            new ConnectionInformation(new Uri("http://sonarqube.us")).ServerUri.ToString().Should().Be("https://sonarqube.us/");
+            new ConnectionInformation(new Uri("http://www.sonarqube.us")).ServerUri.ToString().Should().Be("https://sonarqube.us/");
+            new ConnectionInformation(new Uri("https://www.sonarqube.us")).ServerUri.ToString().Should().Be("https://sonarqube.us/");
+            new ConnectionInformation(new Uri("https://WWW.SONARQUBE.us")).ServerUri.ToString().Should().Be("https://sonarqube.us/");
         }
 
         [TestMethod]
