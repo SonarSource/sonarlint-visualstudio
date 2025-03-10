@@ -27,15 +27,16 @@ public static class ConcurrencyTestHelper
     public static Task WaitForTaskWithTimeout(Task task, string taskName, TimeSpan? timeout = null) =>
         WaitForTaskWithTimeout(_ => task, taskName, timeout);
 
-    public static async Task WaitForTaskWithTimeout(Func<CancellationToken, Task> func, string taskName, TimeSpan? timeout = null)
+    private static async Task WaitForTaskWithTimeout(Func<CancellationToken, Task> func, string taskName, TimeSpan? timeout = null)
     {
         var cts = new CancellationTokenSource();
         var task = func(cts.Token);
-        var whenAny = await Task.WhenAny(task, Task.Delay(timeout ?? DefaultTimeout, cts.Token));
-        if (whenAny != task)
+        var duration = Stopwatch.StartNew();
+        var taskOrTimeout = await Task.WhenAny(task, Task.Delay(timeout ?? DefaultTimeout, cts.Token));
+        if (taskOrTimeout != task)
         {
             cts.Cancel();
-            Assert.Fail($"timeout reached for {taskName}");
+            Assert.Fail($"Task [{taskName}] timed out after {duration.Elapsed.TotalSeconds}s");
         }
     }
 }
