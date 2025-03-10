@@ -24,18 +24,12 @@ public static class ConcurrencyTestHelper
 {
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(15);
 
-    public static Task WaitForTaskWithTimeout(Task task, string taskName, TimeSpan? timeout = null) =>
-        WaitForTaskWithTimeout(_ => task, taskName, timeout);
-
-    private static async Task WaitForTaskWithTimeout(Func<CancellationToken, Task> func, string taskName, TimeSpan? timeout = null)
+    public static async Task WaitForTaskWithTimeout(Task task, string taskName, TimeSpan? timeout = null)
     {
-        var cts = new CancellationTokenSource();
-        var task = func(cts.Token);
         var duration = Stopwatch.StartNew();
-        var taskOrTimeout = await Task.WhenAny(task, Task.Delay(timeout ?? DefaultTimeout, cts.Token));
+        var taskOrTimeout = await Task.WhenAny(task, Task.Delay(timeout ?? DefaultTimeout));
         if (taskOrTimeout != task)
         {
-            cts.Cancel();
             Assert.Fail($"Task [{taskName}] timed out after {duration.Elapsed.TotalSeconds}s");
         }
     }
