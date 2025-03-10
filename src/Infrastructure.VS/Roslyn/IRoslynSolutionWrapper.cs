@@ -28,58 +28,59 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
 internal interface IRoslynSolutionWrapper
 {
-    IRoslynSolutionWrapper RemoveAnalyzerReferences(ImmutableArray<AnalyzerFileReference> analyzers);
+    IRoslynSolutionWrapper RemoveAnalyzerReferences(IReadOnlyCollection<AnalyzerFileReference> analyzers);
 
-    IRoslynSolutionWrapper AddAnalyzerReferences(ImmutableArray<AnalyzerFileReference> analyzers);
+    IRoslynSolutionWrapper AddAnalyzerReferences(IReadOnlyCollection<AnalyzerFileReference> analyzers);
 
-    Solution GetRoslynSolution();
+    Solution RoslynSolution { get; }
 
     string DisplayCurrentAnalyzerState();
+
+    bool ContainsAnalyzer(AnalyzerFileReference analyzer);
 }
 
 [ExcludeFromCodeCoverage]
 internal class RoslynSolutionWrapper(Solution solution) : IRoslynSolutionWrapper
 {
-    public IRoslynSolutionWrapper RemoveAnalyzerReferences(ImmutableArray<AnalyzerFileReference> analyzers)
-    {
-        var analyzersToRemove = analyzers.Where(solution.AnalyzerReferences.Contains);
-        if (!analyzersToRemove.Any())
-        {
-            return this;
-        }
+    public bool ContainsAnalyzer(AnalyzerFileReference analyzer) => solution.AnalyzerReferences.Contains(analyzer);
 
-        return new RoslynSolutionWrapper(
-            analyzers
-                .Aggregate<AnalyzerFileReference, Solution>(
-                    solution,
-                    (current, analyzer) => current.RemoveAnalyzerReference(analyzer)));
-    }
+    public IRoslynSolutionWrapper RemoveAnalyzerReferences(IReadOnlyCollection<AnalyzerFileReference> analyzers) =>
+        new RoslynSolutionWrapper(analyzers.Aggregate(solution, (current, analyzer) => current.RemoveAnalyzerReference(analyzer)));
 
-    public IRoslynSolutionWrapper AddAnalyzerReferences(ImmutableArray<AnalyzerFileReference> analyzers) => new RoslynSolutionWrapper(solution.AddAnalyzerReferences(analyzers));
+    public IRoslynSolutionWrapper AddAnalyzerReferences(IReadOnlyCollection<AnalyzerFileReference> analyzers) =>
+        new RoslynSolutionWrapper(solution.AddAnalyzerReferences(analyzers));
 
-    public Solution GetRoslynSolution() => solution;
+    public Solution RoslynSolution => solution;
 
     public string DisplayCurrentAnalyzerState()
     {
-        var stringBuilder = new StringBuilder();
-
-        stringBuilder.AppendLine($"Solution {solution.FilePath}, {solution.Version} Analyzers");
-        foreach (var currentSolutionAnalyzer in solution.AnalyzerReferences)
+        try
         {
-            PrintAnalyzer(stringBuilder, currentSolutionAnalyzer);
-        }
+            var stringBuilder = new StringBuilder();
 
-        foreach (var projectId in solution.ProjectIds)
-        {
-            var project = solution.GetProject(projectId)!;
-            stringBuilder.AppendLine($"Project {project.Name} Analyzers");
-            foreach (var projectAnalyzer in project.AnalyzerReferences)
+            stringBuilder.AppendLine($"Solution {solution.FilePath}, {solution.Version} Analyzers");
+            foreach (var currentSolutionAnalyzer in solution.AnalyzerReferences)
             {
-                PrintAnalyzer(stringBuilder, projectAnalyzer);
+                PrintAnalyzer(stringBuilder, currentSolutionAnalyzer);
             }
-        }
 
-        return stringBuilder.ToString();
+            foreach (var projectId in solution.ProjectIds)
+            {
+                var project = solution.GetProject(projectId)!;
+                stringBuilder.AppendLine($"Project {project.Name} Analyzers");
+                foreach (var projectAnalyzer in project.AnalyzerReferences)
+                {
+                    PrintAnalyzer(stringBuilder, projectAnalyzer);
+                }
+            }
+
+            return stringBuilder.ToString();
+        }
+        catch
+        {
+            // this code is purely for debugging/investigating, so we don't care about exceptions here
+            return null;
+        }
     }
 
     private static void PrintAnalyzer(StringBuilder stringBuilder, AnalyzerReference analyzer) => stringBuilder.AppendLine($"    {analyzer.DisplayInfo()}");
@@ -87,5 +88,5 @@ internal class RoslynSolutionWrapper(Solution solution) : IRoslynSolutionWrapper
 
 internal static class AnalyzerReferenceExtensions
 {
-    public static string DisplayInfo(this AnalyzerReference analyzer) => $"{analyzer.Display}, {analyzer.Id}, {analyzer.FullPath}";
+    public static string DisplayInfo(this AnalyzerReference analyzer) => $"{analyzer?.Display}, {analyzer?.Id}, {analyzer?.FullPath}";
 }
