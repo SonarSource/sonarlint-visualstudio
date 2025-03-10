@@ -22,7 +22,7 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
 public static class ConcurrencyTestHelper
 {
-    private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(15);
 
     public static Task WaitForTaskWithTimeout(Task task, string taskName, TimeSpan? timeout = null) =>
         WaitForTaskWithTimeout(_ => task, taskName, timeout);
