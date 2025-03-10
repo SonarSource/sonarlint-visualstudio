@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         {
             var viewModel = new CredentialsViewModel(sonarCloudUsConnectionInfo, slCoreConnectionAdapter, progressReporterViewModel);
 
-            viewModel.AccountSecurityUrl.Should().Be("https://us.sonarcloud.io/account/security");
+            viewModel.AccountSecurityUrl.Should().Be("https://sonarqube.us/account/security");
         }
 
         [TestMethod]

@@ -74,7 +74,7 @@ public class ServerConnectionsProviderTests
 
     [TestMethod]
     [DataRow("eu", SonarCloudRegion.EU, "https://sonarcloud.io/organizations/org")]
-    [DataRow("us", SonarCloudRegion.US, "https://us.sonarcloud.io/organizations/org")]
+    [DataRow("us", SonarCloudRegion.US, "https://sonarqube.us/organizations/org")]
     public void GetServerConnections_CorrectlyReturnsSonarCloudConnection(string regionName, SonarCloudRegion expectedRegion, string expectedId)
     {
         const string organizationKey = "org";
@@ -120,7 +120,7 @@ public class ServerConnectionsProviderTests
 
         serverConnections.Should().HaveCount(4);
         serverConnections["https://sonarcloud.io/organizations/myorg"].Should().BeOfType<SonarCloudConnectionConfigurationDto>();
-        serverConnections["https://us.sonarcloud.io/organizations/myorg"].Should().BeOfType<SonarCloudConnectionConfigurationDto>();
+        serverConnections["https://sonarqube.us/organizations/myorg"].Should().BeOfType<SonarCloudConnectionConfigurationDto>();
         serverConnections["http://localhost/"].Should().BeOfType<SonarQubeConnectionConfigurationDto>();
         serverConnections["https://next.sonarqube.org/sonarqube/"].Should().BeOfType<SonarQubeConnectionConfigurationDto>();
     }
