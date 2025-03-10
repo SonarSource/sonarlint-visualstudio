@@ -209,10 +209,10 @@ public class SolutionRoslynAnalyzerManagerTests
 
         Received.InOrder(() =>
         {
-            roslynWorkspaceWrapper.Received().TryApplyChangesAsync(Arg.Is<IAnalyzerChange>(x => x.AnalyzersToAdd.Length == 0 && x.AnalyzersToRemove.SequenceEqual(embeddedAnalyzers, DefaultComparer)));
+            roslynWorkspaceWrapper.TryApplyChangesAsync(Arg.Is<IAnalyzerChange>(x => x.AnalyzersToAdd.Length == 0 && x.AnalyzersToRemove.SequenceEqual(embeddedAnalyzers, DefaultComparer)));
             enterpriseRoslynAnalyzerProvider.GetEnterpriseOrNullAsync(solutionName);
             basicRoslynAnalyzerProvider.GetBasicAsync();
-            roslynWorkspaceWrapper.Received().TryApplyChangesAsync(Arg.Is<IAnalyzerChange>(x => x.AnalyzersToAdd.SequenceEqual(embeddedAnalyzers, DefaultComparer) && x.AnalyzersToRemove.Length == 0));
+            roslynWorkspaceWrapper.TryApplyChangesAsync(Arg.Is<IAnalyzerChange>(x => x.AnalyzersToAdd.SequenceEqual(embeddedAnalyzers, DefaultComparer) && x.AnalyzersToRemove.Length == 0));
         });
         AssertNoErrorsInLogs();
     }
@@ -232,10 +232,9 @@ public class SolutionRoslynAnalyzerManagerTests
 
         Received.InOrder(() =>
         {
-            roslynWorkspaceWrapper.Received().TryApplyChangesAsync(Arg.Is<IAnalyzerChange>(x => x.AnalyzersToAdd.Length == 0 && x.AnalyzersToRemove.SequenceEqual(embeddedAnalyzers, DefaultComparer)));
+            roslynWorkspaceWrapper.TryApplyChangesAsync(Arg.Is<IAnalyzerChange>(x => x.AnalyzersToAdd.Length == 0 && x.AnalyzersToRemove.SequenceEqual(embeddedAnalyzers, DefaultComparer)));
             enterpriseRoslynAnalyzerProvider.GetEnterpriseOrNullAsync(solutionName);
-            roslynWorkspaceWrapper.Received()
-                .TryApplyChangesAsync(Arg.Is<IAnalyzerChange>(x => x.AnalyzersToAdd.SequenceEqual(connectedAnalyzers, DefaultComparer) && x.AnalyzersToRemove.Length == 0));
+            roslynWorkspaceWrapper.TryApplyChangesAsync(Arg.Is<IAnalyzerChange>(x => x.AnalyzersToAdd.SequenceEqual(connectedAnalyzers, DefaultComparer) && x.AnalyzersToRemove.Length == 0));
         });
         AssertNoErrorsInLogs();
     }
