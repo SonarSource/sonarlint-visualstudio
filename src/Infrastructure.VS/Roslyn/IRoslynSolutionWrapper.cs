@@ -79,7 +79,7 @@ internal class RoslynSolutionWrapper(Solution solution) : IRoslynSolutionWrapper
         catch
         {
             // this code is purely for debugging/investigating, so we don't care about exceptions here
-            return null;
+            return "Failed to list solution analyzers";
         }
     }
 
