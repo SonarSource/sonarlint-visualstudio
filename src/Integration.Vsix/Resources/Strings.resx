@@ -277,19 +277,6 @@
   <data name="TextBufferIssueTracker_ProjectGuidError" xml:space="preserve">
     <value>Failed to calculate project guid of file {0}, error occurred: {1}</value>
   </data>
-  <data name="SaveSharedConnectionCommand_SaveSuccess_Message" xml:space="preserve">
-    <value>SonarQube for Visual Studio saved the binding configuration to: "{0}"
-Please commit this file to share it with other contributors. See documentation for more info.</value>
-  </data>
-  <data name="SaveSharedConnectionCommand_SaveFail_Caption" xml:space="preserve">
-    <value>Failure</value>
-  </data>
-  <data name="SaveSharedConnectionCommand_SaveFail_Message" xml:space="preserve">
-    <value>Failed to save the binding configuration. See output window for more information</value>
-  </data>
-  <data name="SaveSharedConnectionCommand_SaveSuccess_Caption" xml:space="preserve">
-    <value>Success</value>
-  </data>
   <data name="Analysis_NotSupported" xml:space="preserve">
     <value>[Analysis] Unable to analyze: {0}</value>
   </data>
@@ -322,4 +309,8 @@ E.g. C:\Program Files\Java\jdk-17</value>
   <data name="CloudSettings" xml:space="preserve">
     <value>SonarQube Cloud settings</value>
   </data>
+  <data name="CloudSettings2" xml:space="preserve">
+    <value>SonarQube Cloud settings</value>
+  </data>
+  
 </root>

@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
     {
         private const string SharedFolderName = ".sonarlint";
 
-        private readonly ILogger logger = logger.ForContext(Resources.SharedBindingConfigProvider_LogContext);
+        private readonly ILogger logger = logger.ForContext(Resources.ConnectedModeLogContext, Resources.SharedBindingConfigProvider_LogContext);
 
         public SharedBindingConfigModel GetSharedBinding() =>
             GetSharedBindingFilePathOrNull() is { } sharedBindingFilePath

@@ -94,9 +94,9 @@ internal partial class ManageBindingDialog : Window
         await ViewModel.PerformAutomaticBindingWithProgressAsync(new AutomaticBindingRequest.Shared());
     }
 
-    private void ExportBindingConfigurationButton_OnClick(object sender, RoutedEventArgs e)
+    private async void ExportBindingConfigurationButton_OnClick(object sender, RoutedEventArgs e)
     {
-        ViewModel.ExportBindingConfigurationAsync().Forget();
+        await ViewModel.ExportBindingConfigurationWithProgressAsync();
     }
 
     private void ViewWebsite(object sender, RequestNavigateEventArgs e) => ConnectedModeUiServices.BrowserService.Navigate(e.Uri.AbsoluteUri);

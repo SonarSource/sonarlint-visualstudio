@@ -114,6 +114,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarQube Cloud settings.
+        /// </summary>
+        public static string CloudSettings2 {
+            get {
+                return ResourceManager.GetString("CloudSettings2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No embedded plugins for connected mode found.
         /// </summary>
         public static string ConnectedModeEmbeddedPluginJarLocator_JarsNotFound {
@@ -355,43 +364,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         public static string RestartIdeToApplyOptionLabel {
             get {
                 return ResourceManager.GetString("RestartIdeToApplyOptionLabel", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failure.
-        /// </summary>
-        public static string SaveSharedConnectionCommand_SaveFail_Caption {
-            get {
-                return ResourceManager.GetString("SaveSharedConnectionCommand_SaveFail_Caption", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to save the binding configuration. See output window for more information.
-        /// </summary>
-        public static string SaveSharedConnectionCommand_SaveFail_Message {
-            get {
-                return ResourceManager.GetString("SaveSharedConnectionCommand_SaveFail_Message", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Success.
-        /// </summary>
-        public static string SaveSharedConnectionCommand_SaveSuccess_Caption {
-            get {
-                return ResourceManager.GetString("SaveSharedConnectionCommand_SaveSuccess_Caption", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SonarQube for Visual Studio saved the binding configuration to: &quot;{0}&quot;
-        ///Please commit this file to share it with other contributors. See documentation for more info..
-        /// </summary>
-        public static string SaveSharedConnectionCommand_SaveSuccess_Message {
-            get {
-                return ResourceManager.GetString("SaveSharedConnectionCommand_SaveSuccess_Message", resourceCulture);
             }
         }
         

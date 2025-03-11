@@ -488,4 +488,14 @@ Please manually add the credentials for the connection and then try again.</valu
   <data name="TrustConnectionAddTokenFailed" xml:space="preserve">
     <value>Could not add token, so server connection could not be created.</value>
   </data>
+  <data name="ExportBindingConfigurationMessageBoxTextSuccess" xml:space="preserve">
+    <value>SonarQube for Visual Studio saved the binding configuration to: "{0}"
+Please commit this file to share it with other contributors. See documentation for more info.</value>
+  </data>
+  <data name="ExportBindingConfigurationMessageBoxCaptionSuccess" xml:space="preserve">
+    <value>Successfully Exported Shared Binding</value>
+  </data>
+  <data name="ExportBindingConfigurationWarningText" xml:space="preserve">
+    <value>Failed to save the binding configuration. Please check the SonarQube for Visual Studio logs for more details.</value>
+  </data>
 </root>

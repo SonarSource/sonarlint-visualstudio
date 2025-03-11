@@ -31,12 +31,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI;
 public class ConnectedModeBindingServicesTests
 {
     [TestMethod]
-    public void MefCtor_CheckIsExported()
-    {
+    public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<ConnectedModeBindingServices, IConnectedModeBindingServices>(
             MefTestHelpers.CreateExport<IBindingController>(),
             MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
             MefTestHelpers.CreateExport<ISharedBindingConfigProvider>(),
             MefTestHelpers.CreateExport<ISolutionBindingRepository>());
-    }
 }

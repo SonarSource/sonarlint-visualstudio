@@ -59,6 +59,16 @@ public class SharedBindingConfigProviderTests
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SharedBindingConfigProvider>();
 
     [TestMethod]
+    public void Ctor_SetsLogContext()
+    {
+        var mockLogger = Substitute.For<ILogger>();
+
+        _ = new SharedBindingConfigProvider(gitWorkspaceService, sharedFolderProvider, solutionInfoProvider, sharedBindingConfigFileProvider, mockLogger);
+
+        mockLogger.Received().ForContext(Resources.ConnectedModeLogContext, Resources.SharedBindingConfigProvider_LogContext);
+    }
+
+    [TestMethod]
     public void GetSharedBinding_NoSharedFolder_ReturnsNull()
     {
         SetUpSharedFolderProvider();
