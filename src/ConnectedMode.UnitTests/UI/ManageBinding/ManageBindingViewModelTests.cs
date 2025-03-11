@@ -1065,8 +1065,6 @@ public class ManageBindingViewModelTests
 
         response.Success.Should().BeFalse();
         response.ResponseData.Should().Be(BindingResult.ConnectionNotFound);
-        messageBox.Received(1).Show(UiResources.NotFoundConnectionForAutomaticBindingMessageBoxText, UiResources.NotFoundConnectionForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
-            MessageBoxImage.Warning);
         logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_ConnectionNotFound,
             testSubject.SharedBindingConfigModel.Uri);
         await bindingController.DidNotReceive()
@@ -1088,8 +1086,6 @@ public class ManageBindingViewModelTests
         response.ResponseData.Should().Be(BindingResult.ConnectionNotFound);
         logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_ConnectionNotFound,
             Arg.Is<string>(x => x.Contains(sonarCloudSharedBindingConfigModel.Organization)));
-        messageBox.Received(1).Show(UiResources.NotFoundConnectionForAutomaticBindingMessageBoxText, UiResources.NotFoundConnectionForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
-            MessageBoxImage.Warning);
         await bindingController.DidNotReceive()
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
                 proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
@@ -1201,8 +1197,6 @@ public class ManageBindingViewModelTests
 
         response.Success.Should().BeFalse();
         response.ResponseData.Should().Be(BindingResult.ConnectionNotFound);
-        messageBox.Received(1).Show(UiResources.NotFoundConnectionForAutomaticBindingMessageBoxText, UiResources.NotFoundConnectionForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
-            MessageBoxImage.Warning);
         logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_ConnectionNotFound,
             automaticBindingRequest.ServerConnectionId);
         await bindingController.DidNotReceiveWithAnyArgs().BindAsync(default, default);

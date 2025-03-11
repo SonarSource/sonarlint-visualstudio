@@ -345,7 +345,7 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private ConnectionInfo CreateConnectionInfoFromSharedBinding() =>
+    internal ConnectionInfo CreateConnectionInfoFromSharedBinding() =>
         SharedBindingConfigModel.IsSonarCloud()
             ? new ConnectionInfo(SharedBindingConfigModel.Organization, ConnectionServerType.SonarCloud)
             : new ConnectionInfo(SharedBindingConfigModel.Uri.ToString(), ConnectionServerType.SonarQube);
@@ -450,11 +450,6 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
             logContext,
             ConnectedMode.Resources.AutomaticBinding_ConnectionNotFound,
             connectionId);
-        connectedModeUiServices.MessageBox.Show(
-            UiResources.NotFoundConnectionForAutomaticBindingMessageBoxText,
-            UiResources.NotFoundConnectionForAutomaticBindingMessageBoxCaption,
-            MessageBoxButton.OK,
-            MessageBoxImage.Warning);
         return BindingResult.ConnectionNotFound;
     }
 

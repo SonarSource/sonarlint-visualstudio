@@ -718,25 +718,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Connection not found.
-        /// </summary>
-        public static string NotFoundConnectionForAutomaticBindingMessageBoxCaption {
-            get {
-                return ResourceManager.GetString("NotFoundConnectionForAutomaticBindingMessageBoxCaption", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The automatic binding could not be executed, because the connection to the server could not be found. 
-        ///Please manually add the connection through &quot;Manage Connections&quot; and then try again..
-        /// </summary>
-        public static string NotFoundConnectionForAutomaticBindingMessageBoxText {
-            get {
-                return ResourceManager.GetString("NotFoundConnectionForAutomaticBindingMessageBoxText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Credentials not found.
         /// </summary>
         public static string NotFoundCredentialsForAutomaticBindingMessageBoxCaption {
