@@ -4,7 +4,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:res="clr-namespace:SonarLint.VisualStudio.Integration.Vsix.Resources"
-             xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
              d:DesignHeight="350"
              d:DesignWidth="450"
              mc:Ignorable="d" Name="GeneralOptionsUserControl">
@@ -15,7 +14,6 @@
                 <Setter Property="TextTrimming" Value="None" />
                 <Setter Property="LineStackingStrategy" Value="MaxHeight" />
             </Style>
-            <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -77,8 +75,7 @@
             </Grid>
         </GroupBox>
 
-        <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="5" Orientation="Vertical"
-                    Visibility="{Binding Path=ShouldShowCloudRegionOption, Converter={StaticResource TrueToVisibleConverter}}">
+        <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="5" Orientation="Vertical">
             <TextBlock Text="{x:Static res:Strings.CloudSettings}" Margin="0,0,0,5"/>
             <CheckBox Content="{x:Static res:Strings.ShowRegionCheckbox}" IsChecked="{Binding Path=ShowCloudRegion}"
                       VerticalContentAlignment="Center"/>

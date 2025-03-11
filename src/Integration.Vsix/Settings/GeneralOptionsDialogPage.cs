@@ -47,8 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     Debug.Assert(Site != null, "Expecting the page to be sited");
                     var browserService = Site.GetMefService<IBrowserService>();
-                    var dogfoodService = Site.GetMefService<IDogfoodingService>();
-                    viewModel = new GeneralOptionsDialogControlViewModel(Settings, browserService, dogfoodService, GetOpenSettingsFileWpfCommand());
+                    viewModel = new GeneralOptionsDialogControlViewModel(Settings, browserService, GetOpenSettingsFileWpfCommand());
                 }
                 return viewModel;
             }
