@@ -18,46 +18,86 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
+
+internal interface IAnalyzerChange
+{
+    ImmutableArray<AnalyzerFileReference> AnalyzersToAdd { get; }
+    ImmutableArray<AnalyzerFileReference> AnalyzersToRemove { get; }
+
+    IRoslynSolutionWrapper Change(IRoslynSolutionWrapper solution);
+}
+
+internal class AnalyzerChange(ImmutableArray<AnalyzerFileReference> analyzersToRemove, ImmutableArray<AnalyzerFileReference> analyzersToAdd) : IAnalyzerChange
+{
+    public ImmutableArray<AnalyzerFileReference> AnalyzersToAdd { get; } = analyzersToAdd;
+    public ImmutableArray<AnalyzerFileReference> AnalyzersToRemove { get; } = analyzersToRemove;
+
+    public IRoslynSolutionWrapper Change(IRoslynSolutionWrapper solution)
+    {
+        var analyzersToRemoveFiltered = AnalyzersToRemove.RemoveAll(x => !solution.ContainsAnalyzer(x));
+        if (analyzersToRemoveFiltered.Any())
+        {
+            solution = solution.RemoveAnalyzerReferences(analyzersToRemoveFiltered);
+        }
+        var analyzersToAddFiltered = AnalyzersToAdd.RemoveAll(x => solution.ContainsAnalyzer(x));
+        if (analyzersToAddFiltered.Any())
+        {
+            solution = solution.AddAnalyzerReferences(analyzersToAddFiltered);
+        }
+        return solution;
+    }
+}
 
 internal interface IRoslynWorkspaceWrapper
 {
     IRoslynSolutionWrapper CurrentSolution { get; }
-    bool TryApplyChanges(IRoslynSolutionWrapper solution);
+
+    Task<IRoslynSolutionWrapper> TryApplyChangesAsync(IAnalyzerChange analyzerChange);
 }
 
 [Export(typeof(IRoslynWorkspaceWrapper))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
+[method: ImportingConstructor]
+internal class RoslynWorkspaceWrapper([Import(typeof(VisualStudioWorkspace))] Workspace workspace, IThreadHandling threadHandling) : IRoslynWorkspaceWrapper
 {
-    private readonly Workspace workspace;
-    private readonly IThreadHandling threadHandling;
-
-    [ImportingConstructor]
-    [ExcludeFromCodeCoverage] // not mef-testable
-    public RoslynWorkspaceWrapper(VisualStudioWorkspace workspace) : this(workspace as Workspace, ThreadHandling.Instance)
-    {
-    }
-
-    internal /* for testing */ RoslynWorkspaceWrapper(Workspace workspace, IThreadHandling threadHandling)
-    {
-        this.workspace = workspace;
-        this.threadHandling = threadHandling;
-    }
+    private const int ApplyRetryCount = 5;
 
     public IRoslynSolutionWrapper CurrentSolution =>
         new RoslynSolutionWrapper(workspace.CurrentSolution);
 
-    public bool TryApplyChanges(IRoslynSolutionWrapper solution)
+    public async Task<IRoslynSolutionWrapper> TryApplyChangesAsync(IAnalyzerChange analyzerChange)
     {
-        var wasApplied = false;
-        threadHandling.RunOnUIThread(() => wasApplied = workspace.TryApplyChanges(solution.GetRoslynSolution()));
+        for (var attempt = 0; attempt < ApplyRetryCount; attempt++)
+        {
+            if (await TryApplyChangesInternalAsync(analyzerChange) is {} result)
+            {
+                return result;
+            }
+        }
+
+        return null;
+    }
+
+    private async Task<IRoslynSolutionWrapper> TryApplyChangesInternalAsync(IAnalyzerChange analyzerChange)
+    {
+        IRoslynSolutionWrapper wasApplied = null;
+        await threadHandling.RunOnUIThreadAsync(() =>
+        {
+            var currentSolution = CurrentSolution;
+            var updatedSolution = analyzerChange.Change(currentSolution);
+
+            wasApplied = updatedSolution == currentSolution || workspace.TryApplyChanges(updatedSolution.RoslynSolution) ? CurrentSolution : null;
+        });
         return wasApplied;
     }
 }
