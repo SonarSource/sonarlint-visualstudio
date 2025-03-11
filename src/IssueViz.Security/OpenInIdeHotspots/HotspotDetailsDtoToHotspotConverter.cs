@@ -63,8 +63,13 @@ internal class HotspotDetailsDtoToHotspotConverter : IHotspotDetailsDtoToHotspot
             hotspotDetailsDto.textRange.endLine,
             hotspotDetailsDto.textRange.startLineOffset,
             hotspotDetailsDto.textRange.endLineOffset,
-            checksumCalculator.Calculate(hotspotDetailsDto.codeSnippet));
+            CalculateLineHash(hotspotDetailsDto));
     }
+
+    /// <summary>
+    /// The <see cref="HotspotDetailsDto.codeSnippet"/> is nullable, see https://sonarsource.atlassian.net/browse/SLVS-1886
+    /// </summary>
+    private string CalculateLineHash(HotspotDetailsDto hotspotDetailsDto) => hotspotDetailsDto.codeSnippet == null ? null : checksumCalculator.Calculate(hotspotDetailsDto.codeSnippet);
 
     private HotspotRule GetHotspotRule(HotspotDetailsDto hotspotDetailsDto)
     {
