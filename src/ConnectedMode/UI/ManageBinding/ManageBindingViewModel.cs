@@ -345,11 +345,6 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         }
     }
 
-    internal ConnectionInfo CreateConnectionInfoFromSharedBinding() =>
-        SharedBindingConfigModel.IsSonarCloud()
-            ? new ConnectionInfo(SharedBindingConfigModel.Organization, ConnectionServerType.SonarCloud)
-            : new ConnectionInfo(SharedBindingConfigModel.Uri.ToString(), ConnectionServerType.SonarQube);
-
     private void UpdateBoundProjectProperties(ServerConnection serverConnection, ServerProject serverProject)
     {
         SelectedConnectionInfo = serverConnection == null ? null : ConnectionInfo.From(serverConnection);
@@ -428,7 +423,7 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
                 serverProjectKey = assistedBinding.ServerProjectKey;
                 return BindingResult.Success;
             case AutomaticBindingRequest.Shared when SharedBindingConfigModel != null:
-                serverConnectionId = CreateConnectionInfoFromSharedBinding().GetServerIdFromConnectionInfo();
+                serverConnectionId = sharedBindingConfigModel.CreateConnectionInfo().GetServerIdFromConnectionInfo();
                 serverProjectKey = SharedBindingConfigModel.ProjectKey;
                 return BindingResult.Success;
             default:

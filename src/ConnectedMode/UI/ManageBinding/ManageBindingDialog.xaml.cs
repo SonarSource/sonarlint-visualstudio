@@ -21,6 +21,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Navigation;
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.TrustConnection;
@@ -94,8 +95,8 @@ internal partial class ManageBindingDialog : Window
     {
         if (bindingResult == BindingResult.ConnectionNotFound && automaticBindingRequest is AutomaticBindingRequest.Shared && ViewModel.SharedBindingConfigModel != null)
         {
-            var connection = ViewModel.CreateConnectionInfoFromSharedBinding();
-            var trustConnectionDialog = new TrustConnectionDialog(connectedModeServices, ConnectedModeUiServices, connection.GetServerConnectionFromConnectionInfo(), null);
+            var connectionInfo = ViewModel.SharedBindingConfigModel.CreateConnectionInfo();
+            var trustConnectionDialog = new TrustConnectionDialog(connectedModeServices, ConnectedModeUiServices, connectionInfo.GetServerConnectionFromConnectionInfo(), null);
             trustConnectionDialog.ShowDialog(Application.Current.MainWindow);
             await ViewModel.PerformAutomaticBindingWithProgressAsync(automaticBindingRequest);
         }
