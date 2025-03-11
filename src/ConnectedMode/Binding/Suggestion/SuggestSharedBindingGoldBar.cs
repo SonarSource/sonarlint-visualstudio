@@ -44,7 +44,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion
         internal /* for testing */ const string IdTemplate = "shared.binding.suggestion.for.{0}";
 
         [ImportingConstructor]
-        public SuggestSharedBindingGoldBar(INotificationService notificationService,
+        public SuggestSharedBindingGoldBar(
+            INotificationService notificationService,
             IDoNotShowAgainNotificationAction doNotShowAgainNotificationAction,
             ISolutionInfoProvider solutionInfoProvider,
             IBrowserService browserService)
@@ -65,7 +66,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion
                     new NotificationAction(BindingStrings.SharedBindingSuggestionConnectOptionText, _ => onConnectHandler(), true),
                     new NotificationAction(BindingStrings.SharedBindingSuggestionInfoOptionText, _ => OnLearnMore(), false),
                     doNotShowAgainNotificationAction
-                ]);
+                ],
+                showOncePerSession: false);
 
             notificationService.ShowNotification(notification);
         }
