@@ -22,49 +22,47 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes
+namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
+
+[Export(typeof(ISuggestedActionsSourceProvider))]
+[Name(CategoryName)]
+[ContentType("text")]
+[method: ImportingConstructor]
+internal class QuickFixActionsSourceProvider(
+    IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
+    ILightBulbBroker lightBulbBroker,
+    IQuickFixesTelemetryManager quickFixesTelemetryManager,
+    ILogger logger,
+    IThreadHandling threadHandling)
+    : ISuggestedActionsSourceProvider
 {
-    [Export(typeof(ISuggestedActionsSourceProvider))]
-    [Name(CategoryName)]
-    [ContentType("text")]
-    internal class QuickFixActionsSourceProvider : ISuggestedActionsSourceProvider
+    private const string CategoryName = "SonarLint Quick Fixes";
+
+    public ISuggestedActionsSource CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)
     {
-        internal const string CategoryName = "SonarLint Quick Fixes";
-
-        private readonly IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService;
-        private readonly ILightBulbBroker lightBulbBroker;
-        private readonly IQuickFixesTelemetryManager quickFixesTelemetryManager;
-        private readonly ILogger logger;
-
-        [ImportingConstructor]
-        public QuickFixActionsSourceProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
-            ILightBulbBroker lightBulbBroker,
-            IQuickFixesTelemetryManager quickFixesTelemetryManager,
-            ILogger logger)
+        if (textView == null || textBuffer == null)
         {
-            this.bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
-            this.lightBulbBroker = lightBulbBroker;
-            this.quickFixesTelemetryManager = quickFixesTelemetryManager;
-            this.logger = logger;
+            return null;
         }
 
-        public ISuggestedActionsSource CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)
+        // projection buffers are ignored because they contain partial contents of a file and that can't be used for mapping IAnalysisIssueVisualization Locations
+        if (textBuffer is IProjectionBuffer)
         {
-            if (textView == null || textBuffer == null)
-            {
-                return null;
-            }
-
-            return new QuickFixActionsSource(lightBulbBroker,
-                bufferTagAggregatorFactoryService,
-                textView,
-                quickFixesTelemetryManager,
-                logger);
+            return null;
         }
+
+        return new QuickFixActionsSource(lightBulbBroker,
+            bufferTagAggregatorFactoryService,
+            textView,
+            textBuffer.CurrentSnapshot,
+            quickFixesTelemetryManager,
+            logger,
+            threadHandling);
     }
 }
