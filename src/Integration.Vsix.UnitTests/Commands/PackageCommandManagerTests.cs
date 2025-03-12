@@ -21,6 +21,7 @@
 using System.ComponentModel.Design;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
@@ -55,8 +56,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Mock.Of<IOutputWindowService>(),
                 Mock.Of<IShowInBrowserService>(),
                 Mock.Of<PackageCommandManager.ShowOptionsPage>(),
+                Mock.Of<IActiveSolutionBoundTracker>(),
                 Mock.Of<IConnectedModeServices>(),
-                Mock.Of<IConnectedModeBindingServices>(),
                 Mock.Of<IConnectedModeUIServices>(),
                 Mock.Of<IConnectedModeUIManager>());
 

@@ -24,6 +24,7 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
@@ -91,8 +92,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     serviceProvider.GetMefService<IOutputWindowService>(),
                     serviceProvider.GetMefService<IShowInBrowserService>(),
                     ShowOptionPage,
+                    serviceProvider.GetMefService<IActiveSolutionBoundTracker>(),
                     serviceProvider.GetMefService<IConnectedModeServices>(),
-                    serviceProvider.GetMefService<IConnectedModeBindingServices>(),
                     serviceProvider.GetMefService<IConnectedModeUIServices>(),
                     serviceProvider.GetMefService<IConnectedModeUIManager>());
 

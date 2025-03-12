@@ -18,20 +18,30 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 {
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     internal class ManageConnectionsCommand : VsCommandBase
     {
+        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly IConnectedModeUIManager connectedModeUiManager;
         internal const int Id = 0x102;
 
-        public ManageConnectionsCommand(IConnectedModeUIManager connectedModeUiManager)
+        public ManageConnectionsCommand(IActiveSolutionBoundTracker activeSolutionBoundTracker, IConnectedModeUIManager connectedModeUiManager)
         {
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.connectedModeUiManager = connectedModeUiManager;
+        }
+
+        protected override void QueryStatusInternal(OleMenuCommand command)
+        {
+            var isConnected = activeSolutionBoundTracker.CurrentConfiguration.Mode.IsInAConnectedMode();
+            command.Text = isConnected ? Resources.Strings.BindingButton_ConnectedText : Resources.Strings.BindingButton_StandaloneText;
         }
 
         protected override void InvokeInternal()

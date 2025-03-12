@@ -11,6 +11,7 @@
     <Buttons>
       <Button guid="ConnectedModeMenuCmdSet" id="ManageServerConnectionsCommand">
         <Parent guid="ConnectedModeMenuCmdSet" id="ConnectedModeGroup" />
+        <CommandFlag>TextChanges</CommandFlag>
         <Strings>
           <ButtonText>Bind to SonarQube (Server, Cloud)...</ButtonText>
         </Strings>
