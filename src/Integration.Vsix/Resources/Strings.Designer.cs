@@ -96,6 +96,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Manage Binding.
+        /// </summary>
+        public static string BindingButton_ConnectedText {
+            get {
+                return ResourceManager.GetString("BindingButton_ConnectedText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bind to SonarQube (Server, Cloud)....
+        /// </summary>
+        public static string BindingButton_StandaloneText {
+            get {
+                return ResourceManager.GetString("BindingButton_StandaloneText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot find tool window with the specified guid: {0}.
         /// </summary>
         public static string CannotFindToolWindow {

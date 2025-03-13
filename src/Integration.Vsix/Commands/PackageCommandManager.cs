@@ -22,6 +22,7 @@ using System.ComponentModel.Design;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Vsix.Commands;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu;
@@ -45,8 +46,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             IOutputWindowService outputWindowService,
             IShowInBrowserService showInBrowserService,
             ShowOptionsPage showOptionsPage,
+            IActiveSolutionBoundTracker activeSolutionBoundTracker,
             IConnectedModeServices connectedModeServices,
-            IConnectedModeBindingServices connectedModeBindingServices,
             IConnectedModeUIServices connectedModeUiServices,
             IConnectedModeUIManager connectedModeManager)
         {
@@ -68,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowCommunityPageCommand.Id, new ShowCommunityPageCommand(showInBrowserService));
 
             // Connected mode buttons
-            RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, ManageConnectionsCommand.Id, new ManageConnectionsCommand(connectedModeManager));
+            RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, ManageConnectionsCommand.Id, new ManageConnectionsCommand(activeSolutionBoundTracker, connectedModeManager));
         }
 
         internal /* testing purposes */ OleMenuCommand RegisterCommand(int commandId, VsCommandBase command)

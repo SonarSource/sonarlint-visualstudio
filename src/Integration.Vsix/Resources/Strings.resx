@@ -313,4 +313,10 @@ E.g. C:\Program Files\Java\jdk-17</value>
     <value>SonarQube Cloud settings</value>
   </data>
   
+  <data name="BindingButton_ConnectedText" xml:space="preserve">
+    <value>Manage Binding</value>
+  </data>
+  <data name="BindingButton_StandaloneText" xml:space="preserve">
+    <value>Bind to SonarQube (Server, Cloud)...</value>
+  </data>
 </root>
