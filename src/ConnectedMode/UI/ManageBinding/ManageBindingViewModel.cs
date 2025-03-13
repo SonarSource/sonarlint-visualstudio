@@ -361,27 +361,12 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
 
     internal async Task<AdapterResponseWithData<BindingResult>> PerformAutomaticBindingInternalAsync(AutomaticBindingRequest automaticBinding)
     {
-        var logContext = new MessageLevelContext
-        {
-            Context = [ConnectedMode.Resources.ConnectedModeAutomaticBindingLogContext, automaticBinding.TypeName], VerboseContext = [automaticBinding.ToString()]
-        };
+        var serverConnection = GetServerConnection(automaticBinding);
+        var serverProjectKey = GetServerProjectKey(automaticBinding);
 
-        var sharedConfigResult = SelectAutomaticBindingArguments(logContext, automaticBinding, out var serverConnectionId, out var serverProjectKey);
-        if (sharedConfigResult != BindingResult.Success)
+        if (ValidateAutomaticBindingArguments(automaticBinding, serverConnection, serverProjectKey) is var validationResult && validationResult != BindingResult.Success)
         {
-            return new AdapterResponseWithData<BindingResult>(false, sharedConfigResult);
-        }
-
-        var connectionExistsResult = AutomaticBindingConnectionExists(logContext, serverConnectionId, out var serverConnection);
-        if (connectionExistsResult != BindingResult.Success)
-        {
-            return new AdapterResponseWithData<BindingResult>(false, connectionExistsResult);
-        }
-
-        var credentialsFoundResult = AutomaticBindingCredentialsExists(logContext, serverConnection);
-        if (credentialsFoundResult != BindingResult.Success)
-        {
-            return new AdapterResponseWithData<BindingResult>(false, credentialsFoundResult);
+            return new AdapterResponseWithData<BindingResult>(false, validationResult);
         }
 
         var response = await BindAsync(serverConnection, serverProjectKey);
@@ -407,46 +392,56 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private BindingResult SelectAutomaticBindingArguments(
-        MessageLevelContext logContext,
+    internal BindingResult ValidateAutomaticBindingArguments(
         AutomaticBindingRequest automaticBinding,
-        out string serverConnectionId,
-        out string serverProjectKey)
+        ServerConnection serverConnection,
+        string serverProjectKey)
     {
-        Debug.Assert(automaticBinding is not AutomaticBindingRequest.Shared || SharedBindingConfigModel != null,
-            "Shared binding should never be called when it's not available");
-
-        switch (automaticBinding)
+        var logContext = new MessageLevelContext
         {
-            case AutomaticBindingRequest.Assisted assistedBinding:
-                serverConnectionId = assistedBinding.ServerConnectionId;
-                serverProjectKey = assistedBinding.ServerProjectKey;
-                return BindingResult.Success;
-            case AutomaticBindingRequest.Shared when SharedBindingConfigModel != null:
-                serverConnectionId = sharedBindingConfigModel.CreateConnectionInfo().GetServerIdFromConnectionInfo();
-                serverProjectKey = SharedBindingConfigModel.ProjectKey;
-                return BindingResult.Success;
-            default:
-                connectedModeServices.Logger.WriteLine(logContext, ConnectedMode.Resources.AutomaticBinding_ConfigurationNotAvailable);
-                serverConnectionId = null;
-                serverProjectKey = null;
-                return BindingResult.SharedConfigurationNotAvailable;
-        }
-    }
+            Context = [ConnectedMode.Resources.ConnectedModeAutomaticBindingLogContext, automaticBinding.TypeName], VerboseContext = [automaticBinding.ToString()]
+        };
 
-    private BindingResult AutomaticBindingConnectionExists(MessageLevelContext logContext, string connectionId, out ServerConnection serverConnection)
-    {
-        if (connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(connectionId, out serverConnection))
+        if (automaticBinding is AutomaticBindingRequest.Shared && SharedBindingConfigModel == null)
         {
-            return BindingResult.Success;
+            connectedModeServices.Logger.WriteLine(logContext, ConnectedMode.Resources.AutomaticBinding_ConfigurationNotAvailable);
+            return BindingResult.SharedConfigurationNotAvailable;
         }
 
-        connectedModeServices.Logger.WriteLine(
-            logContext,
-            ConnectedMode.Resources.AutomaticBinding_ConnectionNotFound,
-            connectionId);
-        return BindingResult.ConnectionNotFound;
+        if (serverConnection == null)
+        {
+            connectedModeServices.Logger.WriteLine(logContext, ConnectedMode.Resources.AutomaticBinding_ConnectionNotFound);
+            return BindingResult.ConnectionNotFound;
+        }
+
+        if (string.IsNullOrEmpty(serverProjectKey))
+        {
+            connectedModeServices.Logger.WriteLine(logContext, ConnectedMode.Resources.AutomaticBinding_ProjectKeyNotFound);
+            return BindingResult.ProjectKeyNotFound;
+        }
+
+        return AutomaticBindingCredentialsExists(logContext, serverConnection);
     }
+
+    internal ServerConnection GetServerConnection(AutomaticBindingRequest automaticBinding)
+    {
+        var serverConnectionId = automaticBinding switch
+        {
+            AutomaticBindingRequest.Assisted assistedBinding => assistedBinding.ServerConnectionId,
+            AutomaticBindingRequest.Shared => sharedBindingConfigModel?.CreateConnectionInfo().GetServerIdFromConnectionInfo(),
+            _ => null
+        };
+
+        return connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(serverConnectionId, out var serverConnection) ? serverConnection : null;
+    }
+
+    internal string GetServerProjectKey(AutomaticBindingRequest automaticBinding) =>
+        automaticBinding switch
+        {
+            AutomaticBindingRequest.Assisted assistedBinding => assistedBinding.ServerProjectKey,
+            AutomaticBindingRequest.Shared => SharedBindingConfigModel?.ProjectKey,
+            _ => null
+        };
 
     private BindingResult AutomaticBindingCredentialsExists(MessageLevelContext logContext, ServerConnection serverConnection)
     {

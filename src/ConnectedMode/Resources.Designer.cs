@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Connection to server {0} could not be found.
+        ///   Looks up a localized string similar to Connection to server could not be found.
         /// </summary>
         internal static string AutomaticBinding_ConnectionNotFound {
             get {
@@ -93,6 +93,15 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         internal static string AutomaticBinding_CredentiasNotFound {
             get {
                 return ResourceManager.GetString("AutomaticBinding_CredentiasNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The project key could not be found.
+        /// </summary>
+        internal static string AutomaticBinding_ProjectKeyNotFound {
+            get {
+                return ResourceManager.GetString("AutomaticBinding_ProjectKeyNotFound", resourceCulture);
             }
         }
         

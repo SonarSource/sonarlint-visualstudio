@@ -33,6 +33,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
+using static SonarLint.VisualStudio.ConnectedMode.UI.AutomaticBindingRequest;
 using IConnectionCredentials = SonarLint.VisualStudio.Core.Binding.IConnectionCredentials;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageBinding;
@@ -1065,8 +1066,7 @@ public class ManageBindingViewModelTests
 
         response.Success.Should().BeFalse();
         response.ResponseData.Should().Be(BindingResult.ConnectionNotFound);
-        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_ConnectionNotFound,
-            testSubject.SharedBindingConfigModel.Uri);
+        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_ConnectionNotFound);
         await bindingController.DidNotReceive()
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
                 proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
@@ -1084,8 +1084,7 @@ public class ManageBindingViewModelTests
 
         response.Success.Should().BeFalse();
         response.ResponseData.Should().Be(BindingResult.ConnectionNotFound);
-        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_ConnectionNotFound,
-            Arg.Is<string>(x => x.Contains(sonarCloudSharedBindingConfigModel.Organization)));
+        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_ConnectionNotFound);
         await bindingController.DidNotReceive()
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
                 proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
@@ -1139,6 +1138,40 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
+    public async Task PerformAutomaticBindingInternalAsync_Shared_ForSonarQubeNonExistingProjectKey_ReturnsFalseAndLogsAndInformsUser()
+    {
+        testSubject.SelectedProject = serverProject; // this is to make sure the SelectedProject is ignored and the shared config is used instead
+        testSubject.SharedBindingConfigModel = sonarQubeSharedBindingConfigModel;
+        testSubject.SharedBindingConfigModel.ProjectKey = null;
+        SetupBoundProject(new ServerConnection.SonarQube(testSubject.SharedBindingConfigModel.Uri));
+
+        var response = await testSubject.PerformAutomaticBindingInternalAsync(new AutomaticBindingRequest.Shared());
+
+        response.Success.Should().BeFalse();
+        response.ResponseData.Should().Be(BindingResult.ProjectKeyNotFound);
+        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(new AutomaticBindingRequest.Shared().TypeName)), Resources.AutomaticBinding_ProjectKeyNotFound);
+        await bindingController.DidNotReceive().BindAsync(Arg.Any<BoundServerProject>(), Arg.Any<CancellationToken>());
+        VerifyBindingTelemetryNotSent();
+    }
+
+    [TestMethod]
+    public async Task PerformAutomaticBindingInternalAsync_Shared_ForSonarCloudNonExistingProjectKey_ReturnsFalseAndLogsAndInformsUser()
+    {
+        testSubject.SelectedProject = serverProject; // this is to make sure the SelectedProject is ignored and the shared config is used instead
+        testSubject.SharedBindingConfigModel = sonarCloudSharedBindingConfigModel;
+        testSubject.SharedBindingConfigModel.ProjectKey = null;
+        SetupBoundProject(new ServerConnection.SonarCloud(testSubject.SharedBindingConfigModel.Organization));
+
+        var response = await testSubject.PerformAutomaticBindingInternalAsync(new AutomaticBindingRequest.Shared());
+
+        response.Success.Should().BeFalse();
+        response.ResponseData.Should().Be(BindingResult.ProjectKeyNotFound);
+        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(new AutomaticBindingRequest.Shared().TypeName)), Resources.AutomaticBinding_ProjectKeyNotFound);
+        await bindingController.DidNotReceive().BindAsync(Arg.Any<BoundServerProject>(), Arg.Any<CancellationToken>());
+        VerifyBindingTelemetryNotSent();
+    }
+
+    [TestMethod]
     public async Task PerformAutomaticBindingInternalAsync_Shared_BindingFails_ReturnsFalse()
     {
         var sonarCloudConnection = new ServerConnection.SonarCloud(sonarCloudSharedBindingConfigModel.Organization, credentials: validCredentials);
@@ -1160,7 +1193,7 @@ public class ManageBindingViewModelTests
         testSubject.SharedBindingConfigModel = sonarQubeSharedBindingConfigModel;
         MockProgressResult();
 
-        await testSubject.PerformAutomaticBindingWithProgressAsync(new AutomaticBindingRequest.Assisted("any connection", "any project", default));
+        await testSubject.PerformAutomaticBindingWithProgressAsync(new Assisted("any connection", "any project", default));
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
@@ -1174,7 +1207,7 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public async Task PerformAutomaticBindingInternalAsync_Assisted_ExistingConnection_BindsWithTheCorrectProjectKey(ServerConnection serverConnection, bool isShared)
     {
-        var automaticBindingRequest = new AutomaticBindingRequest.Assisted(serverConnection.Id, serverProject.Key, isShared);
+        var automaticBindingRequest = new Assisted(serverConnection.Id, serverProject.Key, isShared);
         SetupBoundProject(serverConnection, serverProject);
 
         var response = await testSubject.PerformAutomaticBindingInternalAsync(automaticBindingRequest);
@@ -1191,14 +1224,13 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public async Task PerformAutomaticBindingInternalAsync_Assisted_NonExistingConnection_ReturnsFalseAndLogsAndInformsUser(ServerConnection serverConnection, bool isShared)
     {
-        var automaticBindingRequest = new AutomaticBindingRequest.Assisted(serverConnection.Id, serverProject.Key, isShared);
+        var automaticBindingRequest = new Assisted(serverConnection.Id, serverProject.Key, isShared);
 
         var response = await testSubject.PerformAutomaticBindingInternalAsync(automaticBindingRequest);
 
         response.Success.Should().BeFalse();
         response.ResponseData.Should().Be(BindingResult.ConnectionNotFound);
-        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_ConnectionNotFound,
-            automaticBindingRequest.ServerConnectionId);
+        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_ConnectionNotFound);
         await bindingController.DidNotReceiveWithAnyArgs().BindAsync(default, default);
         VerifyBindingTelemetryNotSent();
     }
@@ -1209,7 +1241,7 @@ public class ManageBindingViewModelTests
     {
         SetupBoundProject(serverConnection, serverProject);
         serverConnection.Credentials = null;
-        var automaticBindingRequest = new AutomaticBindingRequest.Assisted(serverConnection.Id, serverProject.Key, isShared);
+        var automaticBindingRequest = new Assisted(serverConnection.Id, serverProject.Key, isShared);
 
         var response = await testSubject.PerformAutomaticBindingInternalAsync(automaticBindingRequest);
 
@@ -1225,12 +1257,28 @@ public class ManageBindingViewModelTests
 
     [DynamicData(nameof(AssistedBindingParameters))]
     [TestMethod]
+    public async Task PerformAutomaticBindingInternalAsync_Assisted_ForNonExistingProjectKey_ReturnsFalseAndLogsAndInformsUser(ServerConnection serverConnection, bool isShared)
+    {
+        SetupBoundProject(serverConnection, serverProject);
+        var automaticBindingRequest = new Assisted(serverConnection.Id, null, isShared);
+
+        var response = await testSubject.PerformAutomaticBindingInternalAsync(automaticBindingRequest);
+
+        response.Success.Should().BeFalse();
+        response.ResponseData.Should().Be(BindingResult.ProjectKeyNotFound);
+        logger.Received().WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.Context.Contains(automaticBindingRequest.TypeName)), Resources.AutomaticBinding_ProjectKeyNotFound);
+        await bindingController.DidNotReceive().BindAsync(Arg.Any<BoundServerProject>(), Arg.Any<CancellationToken>());
+        VerifyBindingTelemetryNotSent();
+    }
+
+    [DynamicData(nameof(AssistedBindingParameters))]
+    [TestMethod]
     public async Task PerformAutomaticBindingInternalAsync_Assisted_BindingFails_ReturnsFalse(ServerConnection serverConnection, bool isShared)
     {
         SetupBoundProject(serverConnection, serverProject);
         bindingController.When(x => x.BindAsync(Arg.Any<BoundServerProject>(), Arg.Any<CancellationToken>()))
             .Do(_ => throw new Exception());
-        var automaticBindingRequest = new AutomaticBindingRequest.Assisted(serverConnection.Id, serverProject.Key, isShared);
+        var automaticBindingRequest = new Assisted(serverConnection.Id, serverProject.Key, isShared);
 
         var response = await testSubject.PerformAutomaticBindingInternalAsync(automaticBindingRequest);
 

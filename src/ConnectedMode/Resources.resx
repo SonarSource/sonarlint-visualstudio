@@ -332,7 +332,7 @@
     <value>Binding failed due to: {0}</value>
   </data>
   <data name="AutomaticBinding_ConnectionNotFound" xml:space="preserve">
-    <value>Connection to server {0} could not be found</value>
+    <value>Connection to server could not be found</value>
   </data>
   <data name="AutomaticBinding_ConfigurationNotAvailable" xml:space="preserve">
     <value>Configuration not available</value>
@@ -342,6 +342,10 @@
   </data>
   <data name="AutomaticBinding_CredentiasNotFound" xml:space="preserve">
     <value>The credentials for the connection {0} could not be found</value>
+  </data>
+
+  <data name="AutomaticBinding_ProjectKeyNotFound" xml:space="preserve">
+    <value>The project key could not be found</value>
   </data>
   <data name="FuzzySearchProjects_Fails" xml:space="preserve">
     <value>The search for projects for the connectionId {0} with the search term "{1}" failed: {2}</value>

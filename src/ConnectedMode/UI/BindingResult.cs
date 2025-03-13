@@ -26,5 +26,6 @@ internal enum BindingResult
     Failed,
     ConnectionNotFound,
     SharedConfigurationNotAvailable,
-    CredentialsNotFound
+    CredentialsNotFound,
+    ProjectKeyNotFound
 }

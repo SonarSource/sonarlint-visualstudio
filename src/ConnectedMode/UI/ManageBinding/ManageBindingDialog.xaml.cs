@@ -87,19 +87,21 @@ internal partial class ManageBindingDialog : Window
 
     private async Task PerformAutomaticBindingAsync(AutomaticBindingRequest automaticBindingRequest)
     {
-        var bindingResult = await ViewModel.PerformAutomaticBindingWithProgressAsync(automaticBindingRequest);
-        await OnSharedAutomaticBindingFailedAsync(bindingResult, automaticBindingRequest);
+        var validationResult = ViewModel.ValidateAutomaticBindingArguments(automaticBindingRequest, ViewModel.GetServerConnection(automaticBindingRequest),
+            ViewModel.GetServerProjectKey(automaticBindingRequest));
+        CreateConnectionIfMissing(validationResult, automaticBindingRequest);
+        await ViewModel.PerformAutomaticBindingWithProgressAsync(automaticBindingRequest);
     }
 
-    private async Task OnSharedAutomaticBindingFailedAsync(BindingResult bindingResult, AutomaticBindingRequest automaticBindingRequest)
+    private void CreateConnectionIfMissing(BindingResult result, AutomaticBindingRequest automaticBindingRequest)
     {
-        if (bindingResult == BindingResult.ConnectionNotFound && automaticBindingRequest is AutomaticBindingRequest.Shared && ViewModel.SharedBindingConfigModel != null)
+        if (result != BindingResult.ConnectionNotFound || automaticBindingRequest is not AutomaticBindingRequest.Shared || ViewModel.SharedBindingConfigModel == null)
         {
-            var connectionInfo = ViewModel.SharedBindingConfigModel.CreateConnectionInfo();
-            var trustConnectionDialog = new TrustConnectionDialog(connectedModeServices, ConnectedModeUiServices, connectionInfo.GetServerConnectionFromConnectionInfo(), null);
-            trustConnectionDialog.ShowDialog(Application.Current.MainWindow);
-            await ViewModel.PerformAutomaticBindingWithProgressAsync(automaticBindingRequest);
+            return;
         }
+        var connectionInfo = ViewModel.SharedBindingConfigModel.CreateConnectionInfo();
+        var trustConnectionDialog = new TrustConnectionDialog(connectedModeServices, ConnectedModeUiServices, connectionInfo.GetServerConnectionFromConnectionInfo(), token: null);
+        trustConnectionDialog.ShowDialog(Application.Current.MainWindow);
     }
 
     private async void ExportBindingConfigurationButton_OnClick(object sender, RoutedEventArgs e)
