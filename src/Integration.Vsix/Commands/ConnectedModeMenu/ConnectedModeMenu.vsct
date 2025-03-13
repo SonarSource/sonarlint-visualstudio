@@ -15,12 +15,6 @@
           <ButtonText>Bind to SonarQube (Server, Cloud)...</ButtonText>
         </Strings>
       </Button>
-      <Button guid="ConnectedModeMenuCmdSet" id="SaveSharedConnectionCommand">
-        <Parent guid="ConnectedModeMenuCmdSet" id="ConnectedModeGroup" />
-        <Strings>
-          <ButtonText>Export Binding Configuration</ButtonText>
-        </Strings>
-      </Button>
     </Buttons>
   </Commands>
 
@@ -28,7 +22,6 @@
     <GuidSymbol name="ConnectedModeMenuCmdSet" value="{E5D50D82-248A-4300-A2B2-B640FCC4D4FD}">
       <IDSymbol name="ConnectedModeGroup" value="0x101" />
       <IDSymbol name="ManageServerConnectionsCommand" value="0x102" />
-      <IDSymbol name="SaveSharedConnectionCommand" value="0x103" />
     </GuidSymbol>
 
     <GuidSymbol name="SonarLintCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">

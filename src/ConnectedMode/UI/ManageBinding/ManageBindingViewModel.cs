@@ -160,6 +160,11 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
             UiResources.FetchingBindingStatusFailedText) { AfterProgressUpdated = OnProgressUpdated };
         await ProgressReporter.ExecuteTaskWithProgressAsync(displayBindStatus);
 
+        await UpdateSharedBindingStateAsync();
+    }
+
+    private async Task UpdateSharedBindingStateAsync()
+    {
         var detectSharedBinding = new TaskToPerformParams<AdapterResponse>(CheckForSharedBindingAsync, UiResources.CheckingForSharedBindingText,
             UiResources.CheckingForSharedBindingFailedText) { AfterProgressUpdated = OnProgressUpdated };
         await ProgressReporter.ExecuteTaskWithProgressAsync(detectSharedBinding);
@@ -186,19 +191,33 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         await ProgressReporter.ExecuteTaskWithProgressAsync(unbind);
     }
 
-    [ExcludeFromCodeCoverage]
-    public async Task ExportBindingConfigurationAsync()
+    public async Task ExportBindingConfigurationWithProgressAsync()
     {
-        try
+        var export = new TaskToPerformParams<AdapterResponseWithData<string>>(ExportBindingConfigurationAsync, UiResources.ExportingBindingConfigurationProgressText, UiResources.ExportBindingConfigurationWarningText) { AfterProgressUpdated = OnProgressUpdated };
+
+        var result = await ProgressReporter.ExecuteTaskWithProgressAsync(export);
+        if (result.Success)
         {
-            UpdateProgress(UiResources.ExportingBindingConfigurationProgressText);
-            // this is only for demo purposes. When it will be replaced with real SlCore binding logic, it can be removed
-            await Task.Delay(3000);
+            connectedModeUiServices.MessageBox.Show(string.Format(UiResources.ExportBindingConfigurationMessageBoxTextSuccess, result.ResponseData),
+                UiResources.ExportBindingConfigurationMessageBoxCaptionSuccess, MessageBoxButton.OK, MessageBoxImage.Information);
+            await UpdateSharedBindingStateAsync();
         }
-        finally
+    }
+
+    internal Task<AdapterResponseWithData<string>> ExportBindingConfigurationAsync()
+    {
+        var connection = SelectedConnectionInfo.GetServerConnectionFromConnectionInfo();
+        var sharedBindingConfig = new SharedBindingConfigModel
         {
-            UpdateProgress(null);
-        }
+            ProjectKey = selectedProject.Key,
+            Uri = connection.ServerUri,
+            Organization = (connection as ServerConnection.SonarCloud)?.OrganizationKey,
+            Region = (connection as ServerConnection.SonarCloud)?.Region.Name,
+        };
+
+        var savePath = connectedModeBindingServices.SharedBindingConfigProvider.SaveSharedBinding(sharedBindingConfig);
+
+        return Task.FromResult(new AdapterResponseWithData<string>(savePath != null, savePath));
     }
 
     internal Task<AdapterResponse> CheckForSharedBindingAsync()

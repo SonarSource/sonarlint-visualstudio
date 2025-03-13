@@ -1226,6 +1226,101 @@ public class ManageBindingViewModelTests
         VerifyBindingTelemetryNotSent();
     }
 
+    [TestMethod]
+    public async Task ExportBindingConfigurationWithProgressAsync_Fails_DelegatesWarningToProgressViewModel()
+    {
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponseWithData<string>>>()).Returns(new AdapterResponseWithData<string>(false, null));
+
+        await testSubject.ExportBindingConfigurationWithProgressAsync();
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponseWithData<string>>>(x =>
+                    x.ProgressStatus == UiResources.ExportingBindingConfigurationProgressText &&
+                    x.WarningText == UiResources.ExportBindingConfigurationWarningText &&
+                    x.AfterProgressUpdated == testSubject.OnProgressUpdated));
+        messageBox.DidNotReceiveWithAnyArgs().Show(default, default, default, default);
+    }
+
+    [TestMethod]
+    public async Task ExportBindingConfigurationWithProgressAsync_Success_ShowsMessageAndHasUpToDateState()
+    {
+        const string filePath = "file path";
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponseWithData<string>>>()).Returns(new AdapterResponseWithData<string>(true, filePath));
+
+        await testSubject.ExportBindingConfigurationWithProgressAsync();
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponseWithData<string>>>(x =>
+                    x.ProgressStatus == UiResources.ExportingBindingConfigurationProgressText &&
+                    x.WarningText == UiResources.ExportBindingConfigurationWarningText &&
+                    x.AfterProgressUpdated == testSubject.OnProgressUpdated));
+        messageBox.Received().Show(string.Format(UiResources.ExportBindingConfigurationMessageBoxTextSuccess, filePath),
+            UiResources.ExportBindingConfigurationMessageBoxCaptionSuccess, MessageBoxButton.OK, MessageBoxImage.Information);
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                    x.TaskToPerform == testSubject.CheckForSharedBindingAsync &&
+                    x.ProgressStatus == UiResources.CheckingForSharedBindingText &&
+                    x.WarningText == UiResources.CheckingForSharedBindingFailedText &&
+                    x.AfterProgressUpdated == testSubject.OnProgressUpdated));
+    }
+
+    [DynamicData(nameof(SonarCloudRegions))]
+    [DataTestMethod]
+    public async Task ExportBindingConfigurationAsync_SonarCloud_Success_SavesBinding(CloudServerRegion region)
+    {
+        const string serverProjectKey = "SomeServerProject";
+        const string organizationKey = "SomeOrganization";
+        const string exportedPath = "some exported path";
+        SetupConnectionAndProjectToBind(new ServerConnection.SonarCloud(organizationKey, region), new ServerProject(serverProjectKey, "any name"));
+        connectedModeBindingServices.SharedBindingConfigProvider.SaveSharedBinding(Arg.Is<SharedBindingConfigModel>(x =>
+            x.ProjectKey == serverProjectKey
+            && x.Organization == organizationKey
+            && x.Region == region.Name
+            && x.Uri == region.Url)).Returns(exportedPath);
+
+        var result = await testSubject.ExportBindingConfigurationAsync();
+
+        result.Should().BeEquivalentTo(new AdapterResponseWithData<string>(true, exportedPath));
+    }
+
+    [TestMethod]
+    public async Task ExportBindingConfigurationAsync_SonarQube_Success_SavesBinding()
+    {
+        const string serverProjectKey = "SomeServerProject";
+        const string exportedPath = "some exported path";
+        var serverUri = new Uri("http://anyhost");
+        SetupConnectionAndProjectToBind(new ServerConnection.SonarQube(serverUri), new ServerProject(serverProjectKey, "any name"));
+        connectedModeBindingServices.SharedBindingConfigProvider.SaveSharedBinding(Arg.Is<SharedBindingConfigModel>(x =>
+            x.ProjectKey == serverProjectKey
+            && x.Organization == null
+            && x.Region == null
+            && x.Uri == serverUri)).Returns(exportedPath);
+
+        var result = await testSubject.ExportBindingConfigurationAsync();
+
+        result.Should().BeEquivalentTo(new AdapterResponseWithData<string>(true, exportedPath));
+    }
+
+    [TestMethod]
+    public async Task ExportBindingConfigurationAsync_SaveFails_ReturnsNonSuccess()
+    {
+        SetupConnectionAndProjectToBind(new ServerConnection.SonarQube(new Uri("http://anyhost")), new ServerProject("any key", "any name"));
+        connectedModeBindingServices.SharedBindingConfigProvider.SaveSharedBinding(Arg.Any<SharedBindingConfigModel>()).Returns(null as string);
+
+        var result = await testSubject.ExportBindingConfigurationAsync();
+
+        result.Should().BeEquivalentTo(new AdapterResponseWithData<string>(false, null));
+    }
+
+    public static object[][] SonarCloudRegions =>
+    [
+        [CloudServerRegion.Eu],
+        [CloudServerRegion.Us],
+    ];
+
     public static object[][] AssistedBindingParameters =>
     [
         [new ServerConnection.SonarCloud("some org") { Credentials = Substitute.For<IConnectionCredentials>() }, true],
@@ -1292,7 +1387,7 @@ public class ManageBindingViewModelTests
     private void SetupConnectionAndProjectToBind(ServerConnection selectedServerConnection, ServerProject selectedServerProject)
     {
         SetupBoundProject(selectedServerConnection, selectedServerProject);
-        testSubject.SelectedConnectionInfo = sonarCloudConnectionInfo;
+        testSubject.SelectedConnectionInfo = ConnectionInfo.From(selectedServerConnection);
         testSubject.SelectedProject = selectedServerProject;
     }
 
