@@ -936,7 +936,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Share configuration.
+        ///   Looks up a localized string similar to Share Configuration.
         /// </summary>
         public static string ShareConfigurationButton {
             get {

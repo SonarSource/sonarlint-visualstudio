@@ -274,7 +274,7 @@
     <value>Binding configuration is being exported...</value>
   </data>
   <data name="ShareConfigurationButton" xml:space="preserve">
-    <value>Share configuration</value>
+    <value>Share Configuration</value>
   </data>
   <data name="NoConnectionExistsLabel" xml:space="preserve">
     <value>No connection exists</value>
