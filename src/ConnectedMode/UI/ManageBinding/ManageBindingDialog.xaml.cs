@@ -89,11 +89,11 @@ internal partial class ManageBindingDialog : Window
     {
         var validationResult = ViewModel.ValidateAutomaticBindingArguments(automaticBindingRequest, ViewModel.GetServerConnection(automaticBindingRequest),
             ViewModel.GetServerProjectKey(automaticBindingRequest));
-        CreateConnectionIfMissing(validationResult, automaticBindingRequest);
+        await CreateConnectionIfMissingAsync(validationResult, automaticBindingRequest);
         await ViewModel.PerformAutomaticBindingWithProgressAsync(automaticBindingRequest);
     }
 
-    private void CreateConnectionIfMissing(BindingResult result, AutomaticBindingRequest automaticBindingRequest)
+    private async Task CreateConnectionIfMissingAsync(BindingResult result, AutomaticBindingRequest automaticBindingRequest)
     {
         if (result != BindingResult.ConnectionNotFound || automaticBindingRequest is not AutomaticBindingRequest.Shared || ViewModel.SharedBindingConfigModel == null)
         {
@@ -102,6 +102,7 @@ internal partial class ManageBindingDialog : Window
         var connectionInfo = ViewModel.SharedBindingConfigModel.CreateConnectionInfo();
         var trustConnectionDialog = new TrustConnectionDialog(connectedModeServices, ConnectedModeUiServices, connectionInfo.GetServerConnectionFromConnectionInfo(), token: null);
         trustConnectionDialog.ShowDialog(Application.Current.MainWindow);
+        await ViewModel.InitializeDataAsync();
     }
 
     private async void ExportBindingConfigurationButton_OnClick(object sender, RoutedEventArgs e)
