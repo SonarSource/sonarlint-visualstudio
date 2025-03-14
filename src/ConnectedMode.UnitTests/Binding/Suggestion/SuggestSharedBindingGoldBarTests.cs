@@ -72,8 +72,8 @@ public class SuggestSharedBindingGoldBarTests
         notificationActions[1].ShouldDismissAfterAction.Should().BeFalse();
         notificationActions[2].Should().BeSameAs(doNotShowAgainMock.Object);
         notification.CloseOnSolutionClose.Should().Be(true);
+        notification.ShowOncePerSession.Should().Be(false);
     }
-
 
     [DataTestMethod]
     [DataRow(ServerType.SonarQube)]
@@ -134,7 +134,7 @@ public class SuggestSharedBindingGoldBarTests
 
         var testSubject = CreateTestSubject(notificationServiceMock.Object);
 
-        testSubject.Show(default, () => { connectExecuted = true;});
+        testSubject.Show(default, () => { connectExecuted = true; });
 
         var notification = (INotification)notificationServiceMock.Invocations.Single().Arguments.First();
         var connectAction = notification.Actions.ToArray()[0];
@@ -156,7 +156,8 @@ public class SuggestSharedBindingGoldBarTests
         notificationServiceMock.Verify(x => x.CloseNotification(), Times.Once);
     }
 
-    private SuggestSharedBindingGoldBar CreateTestSubject(INotificationService notificationServiceMock,
+    private SuggestSharedBindingGoldBar CreateTestSubject(
+        INotificationService notificationServiceMock,
         IDoNotShowAgainNotificationAction doNotShowAgainNotificationAction = null,
         ISolutionInfoProvider solutionInfoProvider = null,
         IBrowserService browserService = null)

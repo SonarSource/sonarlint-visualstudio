@@ -19,7 +19,6 @@
  */
 
 using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
@@ -30,12 +29,15 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 
-internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
+internal sealed class ManageBindingViewModel(
+    IConnectedModeServices connectedModeServices,
+    IConnectedModeBindingServices connectedModeBindingServices,
+    IConnectedModeUIServices connectedModeUiServices,
+    IConnectedModeUIManager connectedModeUiManager,
+    IProgressReporterViewModel progressReporterViewModel)
+    : ViewModelBase, IDisposable
 {
     private readonly CancellationTokenSource cancellationTokenSource = new();
-    private readonly IConnectedModeBindingServices connectedModeBindingServices;
-    private readonly IConnectedModeUIServices connectedModeUiServices;
-    private readonly IConnectedModeServices connectedModeServices;
     private ServerProject boundProject;
     private ConnectionInfo selectedConnectionInfo;
     private ServerProject selectedProject;
@@ -59,7 +61,7 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         }
     }
 
-    public IProgressReporterViewModel ProgressReporter { get; }
+    public IProgressReporterViewModel ProgressReporter { get; } = progressReporterViewModel;
 
     public ServerProject BoundProject
     {
@@ -136,18 +138,6 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
     public bool IsExportButtonEnabled => !ProgressReporter.IsOperationInProgress && IsOpenSolutionBound;
     public string ConnectionSelectionCaptionText => Connections.Any() ? UiResources.SelectConnectionToBindDescription : UiResources.NoConnectionExistsLabel;
 
-    public ManageBindingViewModel(
-        IConnectedModeServices connectedModeServices,
-        IConnectedModeBindingServices connectedModeBindingServices,
-        IConnectedModeUIServices connectedModeUiServices,
-        IProgressReporterViewModel progressReporterViewModel)
-    {
-        this.connectedModeServices = connectedModeServices;
-        this.connectedModeBindingServices = connectedModeBindingServices;
-        this.connectedModeUiServices = connectedModeUiServices;
-        ProgressReporter = progressReporterViewModel;
-    }
-
     public void Dispose() => cancellationTokenSource?.Dispose();
 
     public async Task InitializeDataAsync()
@@ -156,7 +146,7 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
             UiResources.LoadingConnectionsFailedText) { AfterProgressUpdated = OnProgressUpdated };
         await ProgressReporter.ExecuteTaskWithProgressAsync(loadData);
 
-        var displayBindStatus = new TaskToPerformParams<AdapterResponse>(DisplayBindStatusAsync, UiResources.FetchingBindingStatusText,
+        var displayBindStatus = new TaskToPerformParams<AdapterResponseWithData<BindingResult>>(DisplayBindStatusAsync, UiResources.FetchingBindingStatusText,
             UiResources.FetchingBindingStatusFailedText) { AfterProgressUpdated = OnProgressUpdated };
         await ProgressReporter.ExecuteTaskWithProgressAsync(displayBindStatus);
 
@@ -172,17 +162,19 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
 
     public async Task PerformManualBindingWithProgressAsync()
     {
-        var bind = new TaskToPerformParams<AdapterResponse>(PerformManualBindingAsync, UiResources.BindingInProgressText, UiResources.BindingFailedText) { AfterProgressUpdated = OnProgressUpdated };
-        await ProgressReporter.ExecuteTaskWithProgressAsync(bind);
-    }
-
-    public async Task PerformAutomaticBindingWithProgressAsync(AutomaticBindingRequest automaticBinding)
-    {
-        var bind = new TaskToPerformParams<AdapterResponse>(() => PerformAutomaticBindingInternalAsync(automaticBinding), UiResources.BindingInProgressText, UiResources.BindingFailedText)
+        var bind = new TaskToPerformParams<AdapterResponseWithData<BindingResult>>(PerformManualBindingAsync, UiResources.BindingInProgressText, UiResources.BindingFailedText)
         {
             AfterProgressUpdated = OnProgressUpdated
         };
         await ProgressReporter.ExecuteTaskWithProgressAsync(bind);
+    }
+
+    public async Task<BindingResult> PerformAutomaticBindingWithProgressAsync(AutomaticBindingRequest automaticBinding)
+    {
+        var bind = new TaskToPerformParams<AdapterResponseWithData<BindingResult>>(() => PerformAutomaticBindingInternalAsync(automaticBinding), UiResources.BindingInProgressText,
+            UiResources.BindingFailedText) { AfterProgressUpdated = OnProgressUpdated };
+        var result = await ProgressReporter.ExecuteTaskWithProgressAsync(bind);
+        return result.ResponseData;
     }
 
     public async Task UnbindWithProgressAsync()
@@ -193,7 +185,8 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
 
     public async Task ExportBindingConfigurationWithProgressAsync()
     {
-        var export = new TaskToPerformParams<AdapterResponseWithData<string>>(ExportBindingConfigurationAsync, UiResources.ExportingBindingConfigurationProgressText, UiResources.ExportBindingConfigurationWarningText) { AfterProgressUpdated = OnProgressUpdated };
+        var export = new TaskToPerformParams<AdapterResponseWithData<string>>(ExportBindingConfigurationAsync, UiResources.ExportingBindingConfigurationProgressText,
+            UiResources.ExportBindingConfigurationWarningText) { AfterProgressUpdated = OnProgressUpdated };
 
         var result = await ProgressReporter.ExecuteTaskWithProgressAsync(export);
         if (result.Success)
@@ -270,14 +263,14 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         return succeeded;
     }
 
-    internal /* for testing */ async Task<AdapterResponse> DisplayBindStatusAsync()
+    internal /* for testing */ async Task<AdapterResponseWithData<BindingResult>> DisplayBindStatusAsync()
     {
         SolutionInfo = await GetSolutionInfoModelAsync();
 
         var bindingConfiguration = connectedModeServices.ConfigurationProvider.GetConfiguration();
         if (bindingConfiguration == null || bindingConfiguration.Mode == SonarLintMode.Standalone)
         {
-            var successResponse = new AdapterResponse(true);
+            var successResponse = new AdapterResponseWithData<BindingResult>(true, BindingResult.Success);
             UpdateBoundProjectProperties(null, null);
             return successResponse;
         }
@@ -286,20 +279,21 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         var serverConnection = boundServerProject?.ServerConnection;
         if (serverConnection == null)
         {
-            return new AdapterResponse(false);
+            return new AdapterResponseWithData<BindingResult>(false, BindingResult.ConnectionNotFound);
         }
 
         var response = await connectedModeServices.SlCoreConnectionAdapter.GetServerProjectByKeyAsync(serverConnection, boundServerProject.ServerProjectKey);
         UpdateBoundProjectProperties(serverConnection, response.ResponseData);
+        var bindingSucceeded = BoundProject != null;
 
-        return new AdapterResponse(BoundProject != null);
+        return new AdapterResponseWithData<BindingResult>(bindingSucceeded, bindingSucceeded ? BindingResult.Success : BindingResult.Failed);
     }
 
-    internal /* for testing */ async Task<AdapterResponse> PerformManualBindingAsync()
+    internal /* for testing */ async Task<AdapterResponseWithData<BindingResult>> PerformManualBindingAsync()
     {
         if (!connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(SelectedConnectionInfo, out var serverConnection))
         {
-            return new AdapterResponse(false);
+            return new AdapterResponseWithData<BindingResult>(false, BindingResult.ConnectionNotFound);
         }
         var adapterResponse = await BindAsync(serverConnection, SelectedProject?.Key);
         if (adapterResponse.Success)
@@ -326,7 +320,7 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         return new AdapterResponse(succeeded);
     }
 
-    private async Task<AdapterResponse> BindAsync(ServerConnection serverConnection, string serverProjectKey)
+    private async Task<AdapterResponseWithData<BindingResult>> BindAsync(ServerConnection serverConnection, string serverProjectKey)
     {
         try
         {
@@ -338,14 +332,9 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         catch (Exception ex)
         {
             connectedModeServices.Logger.WriteLine(ConnectedMode.Resources.Binding_Fails, ex.Message);
-            return new AdapterResponse(false);
+            return new AdapterResponseWithData<BindingResult>(false, BindingResult.Failed);
         }
     }
-
-    private ConnectionInfo CreateConnectionInfoFromSharedBinding() =>
-        SharedBindingConfigModel.IsSonarCloud()
-            ? new ConnectionInfo(SharedBindingConfigModel.Organization, ConnectionServerType.SonarCloud)
-            : new ConnectionInfo(SharedBindingConfigModel.Uri.ToString(), ConnectionServerType.SonarQube);
 
     private void UpdateBoundProjectProperties(ServerConnection serverConnection, ServerProject serverProject)
     {
@@ -361,26 +350,43 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         return new SolutionInfoModel(solutionName, isFolderWorkspace ? SolutionType.Folder : SolutionType.Solution);
     }
 
-    internal async Task<AdapterResponse> PerformAutomaticBindingInternalAsync(AutomaticBindingRequest automaticBinding)
+    internal async Task<AdapterResponseWithData<BindingResult>> PerformAutomaticBindingInternalAsync(AutomaticBindingRequest automaticBinding)
     {
-        var logContext = new MessageLevelContext
-        {
-            Context = [ConnectedMode.Resources.ConnectedModeAutomaticBindingLogContext, automaticBinding.TypeName], VerboseContext = [automaticBinding.ToString()]
-        };
+        var serverProjectKey = GetServerProjectKey(automaticBinding);
 
-        if (!SelectAutomaticBindingArguments(logContext, automaticBinding, out var serverConnectionId, out var serverProjectKey)
-            || !AutomaticBindingConnectionExists(logContext, serverConnectionId, out var serverConnection)
-            || !AutomaticBindingCredentialsExists(logContext, serverConnection))
+        if (ValidateAutomaticBindingArguments(automaticBinding, GetServerConnection(automaticBinding), serverProjectKey) is var validationResult and not BindingResult.Success &&
+            !(await CreateConnectionIfMissingAsync(validationResult, automaticBinding)))
         {
-            return new AdapterResponse(false);
+            return new AdapterResponseWithData<BindingResult>(false, validationResult);
         }
 
+        var serverConnection = GetServerConnection(automaticBinding); // reload connection in case it was created
         var response = await BindAsync(serverConnection, serverProjectKey);
         Telemetry(response, automaticBinding);
         return response;
     }
 
-    private void Telemetry(AdapterResponse response, AutomaticBindingRequest automaticBinding)
+    private async Task<bool> CreateConnectionIfMissingAsync(BindingResult result, AutomaticBindingRequest automaticBindingRequest)
+    {
+        if (result != BindingResult.ConnectionNotFound ||
+            automaticBindingRequest is not AutomaticBindingRequest.Shared ||
+            SharedBindingConfigModel == null)
+        {
+            return false;
+        }
+
+        var connectionInfo = SharedBindingConfigModel.CreateConnectionInfo();
+        if (await connectedModeUiManager.ShowTrustConnectionDialogAsync(connectionInfo.GetServerConnectionFromConnectionInfo(), token: null) is not true)
+        {
+            return false;
+        }
+
+        // this is to ensure that the newly added connection is added to the view model properties
+        await LoadDataAsync();
+        return true;
+    }
+
+    private void Telemetry(AdapterResponseWithData<BindingResult> response, AutomaticBindingRequest automaticBinding)
     {
         if (!response.Success)
         {
@@ -398,57 +404,62 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private bool SelectAutomaticBindingArguments(
-        MessageLevelContext logContext,
+    private BindingResult ValidateAutomaticBindingArguments(
         AutomaticBindingRequest automaticBinding,
-        out string serverConnectionId,
-        out string serverProjectKey)
+        ServerConnection serverConnection,
+        string serverProjectKey)
     {
-        Debug.Assert(automaticBinding is not AutomaticBindingRequest.Shared || SharedBindingConfigModel != null,
-            "Shared binding should never be called when it's not available");
-
-        switch (automaticBinding)
+        var logContext = new MessageLevelContext
         {
-            case AutomaticBindingRequest.Assisted assistedBinding:
-                serverConnectionId = assistedBinding.ServerConnectionId;
-                serverProjectKey = assistedBinding.ServerProjectKey;
-                return true;
-            case AutomaticBindingRequest.Shared when SharedBindingConfigModel != null:
-                serverConnectionId = CreateConnectionInfoFromSharedBinding().GetServerIdFromConnectionInfo();
-                serverProjectKey = SharedBindingConfigModel.ProjectKey;
-                return true;
-            default:
-                connectedModeServices.Logger.WriteLine(logContext, ConnectedMode.Resources.AutomaticBinding_ConfigurationNotAvailable);
-                serverConnectionId = null;
-                serverProjectKey = null;
-                return false;
-        }
-    }
+            Context = [ConnectedMode.Resources.ConnectedModeAutomaticBindingLogContext, automaticBinding.TypeName], VerboseContext = [automaticBinding.ToString()]
+        };
 
-    private bool AutomaticBindingConnectionExists(MessageLevelContext logContext, string connectionId, out ServerConnection serverConnection)
-    {
-        if (connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(connectionId, out serverConnection))
+        if (automaticBinding is AutomaticBindingRequest.Shared && SharedBindingConfigModel == null)
         {
-            return true;
+            connectedModeServices.Logger.WriteLine(logContext, ConnectedMode.Resources.AutomaticBinding_ConfigurationNotAvailable);
+            return BindingResult.SharedConfigurationNotAvailable;
         }
 
-        connectedModeServices.Logger.WriteLine(
-            logContext,
-            ConnectedMode.Resources.AutomaticBinding_ConnectionNotFound,
-            connectionId);
-        connectedModeUiServices.MessageBox.Show(
-            UiResources.NotFoundConnectionForAutomaticBindingMessageBoxText,
-            UiResources.NotFoundConnectionForAutomaticBindingMessageBoxCaption,
-            MessageBoxButton.OK,
-            MessageBoxImage.Warning);
-        return false;
+        if (string.IsNullOrEmpty(serverProjectKey))
+        {
+            connectedModeServices.Logger.WriteLine(logContext, ConnectedMode.Resources.AutomaticBinding_ProjectKeyNotFound);
+            return BindingResult.ProjectKeyNotFound;
+        }
+
+        if (serverConnection == null)
+        {
+            connectedModeServices.Logger.WriteLine(logContext, ConnectedMode.Resources.AutomaticBinding_ConnectionNotFound);
+            return BindingResult.ConnectionNotFound;
+        }
+
+        return AutomaticBindingCredentialsExists(logContext, serverConnection);
     }
 
-    private bool AutomaticBindingCredentialsExists(MessageLevelContext logContext, ServerConnection serverConnection)
+    private ServerConnection GetServerConnection(AutomaticBindingRequest automaticBinding)
+    {
+        var serverConnectionId = automaticBinding switch
+        {
+            AutomaticBindingRequest.Assisted assistedBinding => assistedBinding.ServerConnectionId,
+            AutomaticBindingRequest.Shared => sharedBindingConfigModel?.CreateConnectionInfo().GetServerIdFromConnectionInfo(),
+            _ => null
+        };
+
+        return connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(serverConnectionId, out var serverConnection) ? serverConnection : null;
+    }
+
+    private string GetServerProjectKey(AutomaticBindingRequest automaticBinding) =>
+        automaticBinding switch
+        {
+            AutomaticBindingRequest.Assisted assistedBinding => assistedBinding.ServerProjectKey,
+            AutomaticBindingRequest.Shared => SharedBindingConfigModel?.ProjectKey,
+            _ => null
+        };
+
+    private BindingResult AutomaticBindingCredentialsExists(MessageLevelContext logContext, ServerConnection serverConnection)
     {
         if (serverConnection.Credentials != null)
         {
-            return true;
+            return BindingResult.Success;
         }
 
         connectedModeServices.Logger.WriteLine(
@@ -460,6 +471,6 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
             UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxCaption,
             MessageBoxButton.OK,
             MessageBoxImage.Warning);
-        return false;
+        return BindingResult.CredentialsNotFound;
     }
 }

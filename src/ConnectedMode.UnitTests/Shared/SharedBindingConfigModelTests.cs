@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
@@ -27,6 +27,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
     [TestClass]
     public class SharedBindingConfigModelTests
     {
+        private readonly SharedBindingConfigModel sonarQubeModel = new() { Uri = new Uri("https://localhost:9000"), ProjectKey = "abc" };
+        private readonly SharedBindingConfigModel sonarCloudModel = new() { ProjectKey = "abc", Organization = "my org" };
+
         [DataRow("some Organisation", true)]
         [DataRow("    ", false)]
         [DataRow("", false)]
@@ -50,19 +53,43 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         }
 
         [TestMethod]
-        public void GetServerType_NoOrganization_ReturnsQube()
-        {
-            SharedBindingConfigModel model = new SharedBindingConfigModel{ProjectKey = "abc", Uri = new Uri("https://next.sonarqube.com")};
+        public void GetServerType_NoOrganization_ReturnsQube() => sonarQubeModel.GetServerType().Should().Be(ServerType.SonarQube);
 
-            model.GetServerType().Should().Be(ServerType.SonarQube);
+        [TestMethod]
+        public void GetServerType_HasOrganization_ReturnsCloud() => sonarCloudModel.GetServerType().Should().Be(ServerType.SonarCloud);
+
+        [TestMethod]
+        public void CreateConnectionInfo_NoOrganization_ReturnsQube()
+        {
+            var result = sonarQubeModel.CreateConnectionInfo();
+
+            result.ServerType.Should().Be(ConnectionServerType.SonarQube);
+            result.Id.Should().Be(sonarQubeModel.Uri.ToString());
         }
 
         [TestMethod]
-        public void GetServerType_HasOrganization_ReturnsCloud()
+        public void CreateConnectionInfo_HasOrganizationAndNoRegion_ReturnsCloudForEu()
         {
-            SharedBindingConfigModel model = new SharedBindingConfigModel{ProjectKey = "abc", Organization = "my org"};
+            var result = sonarCloudModel.CreateConnectionInfo();
 
-            model.GetServerType().Should().Be(ServerType.SonarCloud);
+            result.ServerType.Should().Be(ConnectionServerType.SonarCloud);
+            result.Id.Should().Be(sonarCloudModel.Organization);
+            result.CloudServerRegion.Should().Be(CloudServerRegion.Eu);
         }
+
+        [TestMethod]
+        [DynamicData(nameof(GetCloudServerRegions), DynamicDataSourceType.Method)]
+        public void CreateConnectionInfo_HasOrganizationAndRegion_ReturnsCloud(CloudServerRegion region)
+        {
+            sonarCloudModel.Region = region.Name;
+
+            var result = sonarCloudModel.CreateConnectionInfo();
+
+            result.ServerType.Should().Be(ConnectionServerType.SonarCloud);
+            result.Id.Should().Be(sonarCloudModel.Organization);
+            result.CloudServerRegion.Should().Be(region);
+        }
+
+        public static IEnumerable<object[]> GetCloudServerRegions() => [[CloudServerRegion.Eu], [CloudServerRegion.Us],];
     }
 }
