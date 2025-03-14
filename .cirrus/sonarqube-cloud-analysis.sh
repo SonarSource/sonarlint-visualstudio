@@ -19,6 +19,8 @@ if [ "$CIRRUS_BRANCH" == "master" ] && [ -z "$CIRRUS_PR" ]; then
   dotnet sonarscanner begin "${SONAR_PARAMS[@]}"
 
 elif [ -n "$CIRRUS_PR" ]; then
+  version=$(grep -oP '<MainVersion>\K[^<]+' ./build/Version.props)
+  echo "Version: $version"
   echo '======= Analyze pull request'
   dotnet sonarscanner begin "${SONAR_PARAMS[@]}" \
     -d:sonar.pullrequest.key="${CIRRUS_PR}" \
