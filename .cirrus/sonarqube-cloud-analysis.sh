@@ -14,20 +14,20 @@ SONAR_PARAMS=(
   -d:sonar.scanner.scanAll=false
 )
 
+version=$(grep -oP '<MainVersion>\K[^<]+' ./build/Version.props)
+
 if [ "$CIRRUS_BRANCH" == "master" ] && [ -z "$CIRRUS_PR" ]; then
   echo '======= Analyze master branch'
-  dotnet sonarscanner begin "${SONAR_PARAMS[@]}"
+  dotnet sonarscanner begin -v:"${version}" "${SONAR_PARAMS[@]}"
 
 elif [ -n "$CIRRUS_PR" ]; then
-  version=$(grep -oP '<MainVersion>\K[^<]+' ./build/Version.props)
-  echo "Version: $version"
   echo '======= Analyze pull request'
-  dotnet sonarscanner begin "${SONAR_PARAMS[@]}" \
+  dotnet sonarscanner begin -v:"${version}" "${SONAR_PARAMS[@]}" \
     -d:sonar.pullrequest.key="${CIRRUS_PR}" \
     -d:sonar.pullrequest.branch="${CIRRUS_BRANCH}" \
     -d:sonar.pullrequest.base="${CIRRUS_BASE_BRANCH}"
 
 else
     echo '======= Analyze branch'
-    dotnet sonarscanner begin "${SONAR_PARAMS[@]}" -d:sonar.branch.name="${CIRRUS_BRANCH}"
+    dotnet sonarscanner begin -v:"${version}" "${SONAR_PARAMS[@]}" -d:sonar.branch.name="${CIRRUS_BRANCH}"
 fi
