@@ -352,17 +352,38 @@ internal sealed class ManageBindingViewModel(
 
     internal async Task<AdapterResponseWithData<BindingResult>> PerformAutomaticBindingInternalAsync(AutomaticBindingRequest automaticBinding)
     {
-        var serverConnection = GetServerConnection(automaticBinding);
         var serverProjectKey = GetServerProjectKey(automaticBinding);
 
-        if (ValidateAutomaticBindingArguments(automaticBinding, serverConnection, serverProjectKey) is var validationResult && validationResult != BindingResult.Success)
+        if (ValidateAutomaticBindingArguments(automaticBinding, GetServerConnection(automaticBinding), serverProjectKey) is var validationResult and not BindingResult.Success &&
+            !(await CreateConnectionIfMissingAsync(validationResult, automaticBinding)))
         {
             return new AdapterResponseWithData<BindingResult>(false, validationResult);
         }
 
+        var serverConnection = GetServerConnection(automaticBinding); // reload connection in case it was created
         var response = await BindAsync(serverConnection, serverProjectKey);
         Telemetry(response, automaticBinding);
         return response;
+    }
+
+    private async Task<bool> CreateConnectionIfMissingAsync(BindingResult result, AutomaticBindingRequest automaticBindingRequest)
+    {
+        if (result != BindingResult.ConnectionNotFound ||
+            automaticBindingRequest is not AutomaticBindingRequest.Shared ||
+            SharedBindingConfigModel == null)
+        {
+            return false;
+        }
+
+        var connectionInfo = SharedBindingConfigModel.CreateConnectionInfo();
+        if (await connectedModeUiManager.ShowTrustConnectionDialogAsync(connectionInfo.GetServerConnectionFromConnectionInfo(), token: null) is not true)
+        {
+            return false;
+        }
+
+        // this is to ensure that the newly added connection is added to the view model properties
+        await LoadDataAsync();
+        return true;
     }
 
     private void Telemetry(AdapterResponseWithData<BindingResult> response, AutomaticBindingRequest automaticBinding)
@@ -383,7 +404,7 @@ internal sealed class ManageBindingViewModel(
         }
     }
 
-    internal BindingResult ValidateAutomaticBindingArguments(
+    private BindingResult ValidateAutomaticBindingArguments(
         AutomaticBindingRequest automaticBinding,
         ServerConnection serverConnection,
         string serverProjectKey)
@@ -399,22 +420,22 @@ internal sealed class ManageBindingViewModel(
             return BindingResult.SharedConfigurationNotAvailable;
         }
 
-        if (serverConnection == null)
-        {
-            connectedModeServices.Logger.WriteLine(logContext, ConnectedMode.Resources.AutomaticBinding_ConnectionNotFound);
-            return BindingResult.ConnectionNotFound;
-        }
-
         if (string.IsNullOrEmpty(serverProjectKey))
         {
             connectedModeServices.Logger.WriteLine(logContext, ConnectedMode.Resources.AutomaticBinding_ProjectKeyNotFound);
             return BindingResult.ProjectKeyNotFound;
         }
 
+        if (serverConnection == null)
+        {
+            connectedModeServices.Logger.WriteLine(logContext, ConnectedMode.Resources.AutomaticBinding_ConnectionNotFound);
+            return BindingResult.ConnectionNotFound;
+        }
+
         return AutomaticBindingCredentialsExists(logContext, serverConnection);
     }
 
-    internal ServerConnection GetServerConnection(AutomaticBindingRequest automaticBinding)
+    private ServerConnection GetServerConnection(AutomaticBindingRequest automaticBinding)
     {
         var serverConnectionId = automaticBinding switch
         {
@@ -426,7 +447,7 @@ internal sealed class ManageBindingViewModel(
         return connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(serverConnectionId, out var serverConnection) ? serverConnection : null;
     }
 
-    internal string GetServerProjectKey(AutomaticBindingRequest automaticBinding) =>
+    private string GetServerProjectKey(AutomaticBindingRequest automaticBinding) =>
         automaticBinding switch
         {
             AutomaticBindingRequest.Assisted assistedBinding => assistedBinding.ServerProjectKey,
