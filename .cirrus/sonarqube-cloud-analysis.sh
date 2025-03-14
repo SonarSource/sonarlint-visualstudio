@@ -2,7 +2,10 @@
 
 set -xeo pipefail
 
+version=$(grep -oP '<MainVersion>\K[^<]+' ./build/Version.props)
+
 SONAR_PARAMS=(
+  -v:"${version}"
   -k:"${CIRRUS_REPO_NAME}"
   -o:"sonarsource"
   -d:sonar.host.url="${SONAR_URL}"
