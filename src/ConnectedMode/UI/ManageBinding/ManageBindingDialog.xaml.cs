@@ -39,6 +39,7 @@ internal partial class ManageBindingDialog : Window
         IConnectedModeServices connectedModeServices,
         IConnectedModeBindingServices connectedModeBindingServices,
         IConnectedModeUIServices connectedModeUiServices,
+        IConnectedModeUIManager connectedModeUiManager,
         AutomaticBindingRequest automaticBinding = null)
     {
         this.connectedModeServices = connectedModeServices;
@@ -48,6 +49,7 @@ internal partial class ManageBindingDialog : Window
         ViewModel = new ManageBindingViewModel(connectedModeServices,
             connectedModeBindingServices,
             connectedModeUiServices,
+            connectedModeUiManager,
             new ProgressReporterViewModel(connectedModeServices.Logger));
         InitializeComponent();
     }

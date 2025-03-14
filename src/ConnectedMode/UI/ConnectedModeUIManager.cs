@@ -67,7 +67,7 @@ internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedMod
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     private bool ShowDialogManageBinding(AutomaticBindingRequest automaticBinding)
     {
-        var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices, connectedModeUiServices, automaticBinding);
+        var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices, connectedModeUiServices, this, automaticBinding);
         manageBindingDialog.ShowDialog(Application.Current.MainWindow);
         return manageBindingDialog.ViewModel.BoundProject != null;
     }

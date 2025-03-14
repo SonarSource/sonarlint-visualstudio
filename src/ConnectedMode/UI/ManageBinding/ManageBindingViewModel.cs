@@ -19,7 +19,6 @@
  */
 
 using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
@@ -30,12 +29,15 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 
-internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
+internal sealed class ManageBindingViewModel(
+    IConnectedModeServices connectedModeServices,
+    IConnectedModeBindingServices connectedModeBindingServices,
+    IConnectedModeUIServices connectedModeUiServices,
+    IConnectedModeUIManager connectedModeUiManager,
+    IProgressReporterViewModel progressReporterViewModel)
+    : ViewModelBase, IDisposable
 {
     private readonly CancellationTokenSource cancellationTokenSource = new();
-    private readonly IConnectedModeBindingServices connectedModeBindingServices;
-    private readonly IConnectedModeUIServices connectedModeUiServices;
-    private readonly IConnectedModeServices connectedModeServices;
     private ServerProject boundProject;
     private ConnectionInfo selectedConnectionInfo;
     private ServerProject selectedProject;
@@ -59,7 +61,7 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         }
     }
 
-    public IProgressReporterViewModel ProgressReporter { get; }
+    public IProgressReporterViewModel ProgressReporter { get; } = progressReporterViewModel;
 
     public ServerProject BoundProject
     {
@@ -136,18 +138,6 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
     public bool IsExportButtonEnabled => !ProgressReporter.IsOperationInProgress && IsOpenSolutionBound;
     public string ConnectionSelectionCaptionText => Connections.Any() ? UiResources.SelectConnectionToBindDescription : UiResources.NoConnectionExistsLabel;
 
-    public ManageBindingViewModel(
-        IConnectedModeServices connectedModeServices,
-        IConnectedModeBindingServices connectedModeBindingServices,
-        IConnectedModeUIServices connectedModeUiServices,
-        IProgressReporterViewModel progressReporterViewModel)
-    {
-        this.connectedModeServices = connectedModeServices;
-        this.connectedModeBindingServices = connectedModeBindingServices;
-        this.connectedModeUiServices = connectedModeUiServices;
-        ProgressReporter = progressReporterViewModel;
-    }
-
     public void Dispose() => cancellationTokenSource?.Dispose();
 
     public async Task InitializeDataAsync()
@@ -195,7 +185,8 @@ internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
 
     public async Task ExportBindingConfigurationWithProgressAsync()
     {
-        var export = new TaskToPerformParams<AdapterResponseWithData<string>>(ExportBindingConfigurationAsync, UiResources.ExportingBindingConfigurationProgressText, UiResources.ExportBindingConfigurationWarningText) { AfterProgressUpdated = OnProgressUpdated };
+        var export = new TaskToPerformParams<AdapterResponseWithData<string>>(ExportBindingConfigurationAsync, UiResources.ExportingBindingConfigurationProgressText,
+            UiResources.ExportBindingConfigurationWarningText) { AfterProgressUpdated = OnProgressUpdated };
 
         var result = await ProgressReporter.ExecuteTaskWithProgressAsync(export);
         if (result.Success)
