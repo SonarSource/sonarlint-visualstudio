@@ -29,7 +29,8 @@ public interface IProgressReporterViewModel
     string Warning { get; set; }
     bool IsOperationInProgress { get; }
     bool HasWarning { get; }
-    Task<T> ExecuteTaskWithProgressAsync<T>(ITaskToPerformParams<T> parameters) where T : IResponseStatus;
+
+    Task<T> ExecuteTaskWithProgressAsync<T>(ITaskToPerformParams<T> parameters, bool clearPreviousState = true) where T : IResponseStatus;
 }
 
 public interface IResponseStatus
@@ -48,9 +49,8 @@ public interface ITaskToPerformParams<T> where T : IResponseStatus
     public T FailureResponse { get; }
 }
 
-public class ProgressReporterViewModel : ViewModelBase, IProgressReporterViewModel
+public class ProgressReporterViewModel(ILogger logger) : ViewModelBase, IProgressReporterViewModel
 {
-    private readonly ILogger logger;
     private string progressStatus;
     private string warning;
 
@@ -79,18 +79,15 @@ public class ProgressReporterViewModel : ViewModelBase, IProgressReporterViewMod
     public bool IsOperationInProgress => !string.IsNullOrEmpty(ProgressStatus);
     public bool HasWarning => !string.IsNullOrEmpty(Warning);
 
-    public ProgressReporterViewModel(ILogger logger)
-    {
-        this.logger = logger;
-    }
-
-    public async Task<T> ExecuteTaskWithProgressAsync<T>(ITaskToPerformParams<T> parameters) where T: IResponseStatus
+    public async Task<T> ExecuteTaskWithProgressAsync<T>(ITaskToPerformParams<T> parameters, bool clearPreviousState = true) where T : IResponseStatus
     {
         try
         {
-            Warning = null;
-            ProgressStatus = parameters.ProgressStatus;
-            parameters.AfterProgressUpdated?.Invoke();
+            if (clearPreviousState)
+            {
+                Warning = null;
+            }
+            UpdateProgress(parameters.ProgressStatus, parameters);
             var response = await parameters.TaskToPerform();
 
             if (response.Success)
@@ -99,7 +96,7 @@ public class ProgressReporterViewModel : ViewModelBase, IProgressReporterViewMod
             }
             else
             {
-                OnFailure(parameters, response);
+                OnFailure(parameters, response, clearPreviousState);
             }
 
             return response;
@@ -108,20 +105,37 @@ public class ProgressReporterViewModel : ViewModelBase, IProgressReporterViewMod
         {
             var response = parameters.FailureResponse;
             logger.WriteLine(ex.ToString());
-            OnFailure(parameters, response);
+            OnFailure(parameters, response, clearPreviousState);
             return response;
         }
         finally
         {
-            ProgressStatus = null;
-            parameters.AfterProgressUpdated?.Invoke();
+            UpdateProgress(null, parameters);
         }
     }
 
-    private void OnFailure<T>(ITaskToPerformParams<T> parameters, T response) where T : IResponseStatus
+    private void UpdateProgress<T>(string status, ITaskToPerformParams<T> parameters) where T : IResponseStatus
     {
-        Warning = parameters.WarningText;
+        ProgressStatus = status;
+        parameters.AfterProgressUpdated?.Invoke();
+    }
+
+    private void OnFailure<T>(ITaskToPerformParams<T> parameters, T response, bool clearPreviousState) where T : IResponseStatus
+    {
+        UpdateWarning(parameters.WarningText, clearPreviousState);
         parameters.AfterFailure?.Invoke(response);
+    }
+
+    private void UpdateWarning(string warningText, bool clearPreviousState)
+    {
+        if (clearPreviousState)
+        {
+            Warning = warningText;
+        }
+        else
+        {
+            Warning += warningText;
+        }
     }
 }
 
@@ -134,5 +148,5 @@ public class TaskToPerformParams<T>(Func<Task<T>> taskToPerform, string progress
     public Func<Task<T>> TaskToPerform { get; } = taskToPerform;
     public string ProgressStatus { get; } = progressStatus;
     public string WarningText { get; } = warningText;
-    public T FailureResponse { get; } = new T();
+    public T FailureResponse { get; } = new();
 }

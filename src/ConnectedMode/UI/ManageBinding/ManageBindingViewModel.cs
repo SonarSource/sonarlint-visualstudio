@@ -43,6 +43,7 @@ internal sealed class ManageBindingViewModel(
     private ServerProject selectedProject;
     private SharedBindingConfigModel sharedBindingConfigModel;
     private SolutionInfoModel solutionInfo;
+    private bool bindingSucceeded;
 
     public SolutionInfoModel SolutionInfo
     {
@@ -123,6 +124,16 @@ internal sealed class ManageBindingViewModel(
         }
     }
 
+    public bool BindingSucceeded
+    {
+        get => bindingSucceeded;
+        set
+        {
+            bindingSucceeded = value;
+            RaisePropertyChanged();
+        }
+    }
+
     public bool IsSolutionOpen => SolutionInfo is { Name: not null };
     public bool IsOpenSolutionBound => IsSolutionOpen && BoundProject is not null;
     public bool IsOpenSolutionStandalone => IsSolutionOpen && BoundProject is null;
@@ -144,12 +155,13 @@ internal sealed class ManageBindingViewModel(
     {
         var loadData = new TaskToPerformParams<AdapterResponse>(LoadDataAsync, UiResources.LoadingConnectionsText,
             UiResources.LoadingConnectionsFailedText) { AfterProgressUpdated = OnProgressUpdated };
-        await ProgressReporter.ExecuteTaskWithProgressAsync(loadData);
+        var loadDataResult = await ProgressReporter.ExecuteTaskWithProgressAsync(loadData);
 
         var displayBindStatus = new TaskToPerformParams<AdapterResponseWithData<BindingResult>>(DisplayBindStatusAsync, UiResources.FetchingBindingStatusText,
             UiResources.FetchingBindingStatusFailedText) { AfterProgressUpdated = OnProgressUpdated };
-        await ProgressReporter.ExecuteTaskWithProgressAsync(displayBindStatus);
+        var displayBindStatusResult = await ProgressReporter.ExecuteTaskWithProgressAsync(displayBindStatus, clearPreviousState: false);
 
+        BindingSucceeded = loadDataResult.Success && displayBindStatusResult.Success;
         await UpdateSharedBindingStateAsync();
     }
 
@@ -157,7 +169,7 @@ internal sealed class ManageBindingViewModel(
     {
         var detectSharedBinding = new TaskToPerformParams<AdapterResponse>(CheckForSharedBindingAsync, UiResources.CheckingForSharedBindingText,
             UiResources.CheckingForSharedBindingFailedText) { AfterProgressUpdated = OnProgressUpdated };
-        await ProgressReporter.ExecuteTaskWithProgressAsync(detectSharedBinding);
+        await ProgressReporter.ExecuteTaskWithProgressAsync(detectSharedBinding, clearPreviousState: false);
     }
 
     public async Task PerformManualBindingWithProgressAsync()
@@ -263,7 +275,7 @@ internal sealed class ManageBindingViewModel(
         return succeeded;
     }
 
-    internal /* for testing */ async Task<AdapterResponseWithData<BindingResult>> DisplayBindStatusAsync()
+    internal async Task<AdapterResponseWithData<BindingResult>> DisplayBindStatusAsync()
     {
         SolutionInfo = await GetSolutionInfoModelAsync();
 
@@ -283,13 +295,15 @@ internal sealed class ManageBindingViewModel(
         }
 
         var response = await connectedModeServices.SlCoreConnectionAdapter.GetServerProjectByKeyAsync(serverConnection, boundServerProject.ServerProjectKey);
-        UpdateBoundProjectProperties(serverConnection, response.ResponseData);
-        var bindingSucceeded = BoundProject != null;
+        // even if the response is not successful, we still want to update the UI with the bound project, because the binding does exist
+        var selectedServerProject = response.ResponseData ?? new ServerProject(boundServerProject.ServerProjectKey, boundServerProject.ServerProjectKey);
+        UpdateBoundProjectProperties(serverConnection, selectedServerProject);
+        var projectRetrieved = response.ResponseData != null;
 
-        return new AdapterResponseWithData<BindingResult>(bindingSucceeded, bindingSucceeded ? BindingResult.Success : BindingResult.Failed);
+        return new AdapterResponseWithData<BindingResult>(projectRetrieved, projectRetrieved ? BindingResult.Success : BindingResult.Failed);
     }
 
-    internal /* for testing */ async Task<AdapterResponseWithData<BindingResult>> PerformManualBindingAsync()
+    internal async Task<AdapterResponseWithData<BindingResult>> PerformManualBindingAsync()
     {
         if (!connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(SelectedConnectionInfo, out var serverConnection))
         {
@@ -336,10 +350,10 @@ internal sealed class ManageBindingViewModel(
         }
     }
 
-    private void UpdateBoundProjectProperties(ServerConnection serverConnection, ServerProject serverProject)
+    private void UpdateBoundProjectProperties(ServerConnection serverConnection, ServerProject selectedServerProject)
     {
         SelectedConnectionInfo = serverConnection == null ? null : ConnectionInfo.From(serverConnection);
-        SelectedProject = serverProject;
+        SelectedProject = selectedServerProject;
         BoundProject = SelectedProject;
     }
 

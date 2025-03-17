@@ -193,11 +193,57 @@ public class ProgressReporterViewModelTests
         await act.Should().NotThrowAsync();
     }
 
-    private static ITaskToPerformParams<IResponseStatus> GetTaskWithResponse(bool success)
+    [TestMethod]
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    public async Task ExecuteTaskWithProgressAsync_TwoTasksThatDoNotClearPreviousResponse_OneOfTheTaskFails_ShowsWarning(bool task1Response, bool task2Response)
+    {
+        var task1Warning = "task1 failed";
+        var task2Warning = "task2 failed";
+        var parameters1 = GetTaskWithResponse(task1Response, task1Warning);
+        var parameters2 = GetTaskWithResponse(task2Response, task2Warning);
+
+        await testSubject.ExecuteTaskWithProgressAsync(parameters1, clearPreviousState: false);
+        await testSubject.ExecuteTaskWithProgressAsync(parameters2, clearPreviousState: false);
+
+        testSubject.Warning.Trim().Should().Be(task1Response ? task2Warning : task1Warning);
+        testSubject.ProgressStatus.Should().BeNull();
+    }
+
+    [TestMethod]
+    public async Task ExecuteTaskWithProgressAsync_TwoTasksThatDoNotClearPreviousResponse_BothTasksFail_ShowsWarning()
+    {
+        var task1Warning = "task1 failed";
+        var task2Warning = "task2 failed";
+        var parameters1 = GetTaskWithResponse(false, task1Warning);
+        var parameters2 = GetTaskWithResponse(false, task2Warning);
+
+        await testSubject.ExecuteTaskWithProgressAsync(parameters1, clearPreviousState: false);
+        await testSubject.ExecuteTaskWithProgressAsync(parameters2, clearPreviousState: false);
+
+        testSubject.Warning.Should().Be($"{task1Warning}{task2Warning}");
+        testSubject.ProgressStatus.Should().BeNull();
+    }
+
+    [TestMethod]
+    public async Task ExecuteTaskWithProgressAsync_TwoTasksThatDoNotClearPreviousResponse_BothTasksSucceed_HasCorrectState()
+    {
+        var parameters1 = GetTaskWithResponse(true, "task1 failed");
+        var parameters2 = GetTaskWithResponse(true, "task2 failed");
+
+        await testSubject.ExecuteTaskWithProgressAsync(parameters1, clearPreviousState: false);
+        await testSubject.ExecuteTaskWithProgressAsync(parameters2, clearPreviousState: false);
+
+        testSubject.Warning.Should().BeNull();
+        testSubject.ProgressStatus.Should().BeNull();
+    }
+
+    private static ITaskToPerformParams<IResponseStatus> GetTaskWithResponse(bool success, string warningText = null)
     {
         var parameters = Substitute.For<ITaskToPerformParams<IResponseStatus>>();
         var taskResponse = Substitute.For<IResponseStatus>();
         parameters.TaskToPerform().Returns(taskResponse);
+        parameters.WarningText.Returns(warningText);
         taskResponse.Success.Returns(success);
 
         return parameters;
