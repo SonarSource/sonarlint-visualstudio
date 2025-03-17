@@ -292,6 +292,56 @@ public class ProjectSelectionViewModelTests
         testSubject.HasSearchTerm.Should().BeTrue();
     }
 
+    [TestMethod]
+    public async Task AddManualProjectWithProgressAsync_HasCorrectMessages()
+    {
+        await testSubject.AddManualProjectWithProgressAsync("a-project-key");
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponseWithData<ServerProject>>>(x =>
+                    x.ProgressStatus == UiResources.FetchingProjectInfoProgressText &&
+                    x.WarningText == UiResources.FetchingProjectInfoFailedText));
+    }
+
+    [TestMethod]
+    public async Task AddManualProjectWithProgressAsync_FetchesProjectNameByProjectKey()
+    {
+        await progressReporterViewModel.ExecuteTaskWithProgressAsync(
+            Arg.Do<TaskToPerformParams<AdapterResponseWithData<ServerProject>>>(x => x.TaskToPerform()));
+
+        await testSubject.AddManualProjectWithProgressAsync("a-project-key");
+
+        await slCoreConnectionAdapter.Received(1).GetServerProjectByKeyAsync(Arg.Any<ServerConnection>(), "a-project-key");
+    }
+
+    [TestMethod]
+    public async Task AddManualProjectWithProgressAsync_AfterSuccess_SelectManuallyAddedProject()
+    {
+        ServerProject expectedProject = new("a-project-key", "A Project");
+        await MockExecuteTaskWithProgressAsyncSuccess(expectedProject);
+
+        await testSubject.AddManualProjectWithProgressAsync("a-project-key");
+
+        testSubject.ProjectResults.Should().Contain(expectedProject);
+        testSubject.SelectedProject.Should().Be(expectedProject);
+    }
+
+    [TestMethod]
+    public async Task AddManualProjectWithProgressAsync_AfterSuccess_RaisesNoProjectExistsEvent()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+
+        ServerProject expectedProject = new("a-project-key", "A Project");
+        await MockExecuteTaskWithProgressAsyncSuccess(expectedProject);
+
+        await testSubject.AddManualProjectWithProgressAsync("a-project-key");
+
+        eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoProjectExists)));
+        testSubject.NoProjectExists.Should().BeFalse();
+    }
+
     private void MockInitializedProjects(List<ServerProject> serverProjects)
     {
         testSubject.InitProjects(new AdapterResponseWithData<List<ServerProject>>(true, serverProjects));
@@ -316,5 +366,12 @@ public class ProjectSelectionViewModelTests
     private ProjectSelectionViewModel CreateTestSubjectWithNotMockedProgress()
     {
         return new ProjectSelectionViewModel(AConnectionInfo, connectedModeServices, new ProgressReporterViewModel(logger));
+    }
+
+    private async Task MockExecuteTaskWithProgressAsyncSuccess(ServerProject expectedProject)
+    {
+        var expectedResponse = new AdapterResponseWithData<ServerProject>(true, expectedProject);
+        await progressReporterViewModel.ExecuteTaskWithProgressAsync(
+            Arg.Do<TaskToPerformParams<AdapterResponseWithData<ServerProject>>>(x => x.AfterSuccess(expectedResponse)));
     }
 }

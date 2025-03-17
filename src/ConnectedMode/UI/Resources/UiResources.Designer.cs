@@ -502,6 +502,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Project was not found..
+        /// </summary>
+        public static string FetchingProjectInfoFailedText {
+            get {
+                return ResourceManager.GetString("FetchingProjectInfoFailedText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fetching project info....
+        /// </summary>
+        public static string FetchingProjectInfoProgressText {
+            get {
+                return ResourceManager.GetString("FetchingProjectInfoProgressText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate Token.
         /// </summary>
         public static string GenerateTokenButton {

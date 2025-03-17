@@ -59,6 +59,6 @@ public partial class ProjectSelectionDialog
             return;
         }
 
-        ViewModel.AddManualProject(manualProjectSelectionDialog.ViewModel.ProjectKey);
+        await ViewModel.AddManualProjectWithProgressAsync(manualProjectSelectionDialog.ViewModel.ProjectKey);
     }
 }

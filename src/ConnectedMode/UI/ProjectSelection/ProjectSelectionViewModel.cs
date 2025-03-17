@@ -75,10 +75,7 @@ public class ProjectSelectionViewModel(
         var initializeProjectsParams = new TaskToPerformParams<AdapterResponseWithData<List<ServerProject>>>(
             AdapterGetAllProjectsAsync,
             UiResources.LoadingProjectsProgressText,
-            UiResources.LoadingProjectsFailedText)
-        {
-            AfterSuccess = InitProjects
-        };
+            UiResources.LoadingProjectsFailedText) { AfterSuccess = InitProjects };
         await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(initializeProjectsParams);
     }
 
@@ -101,11 +98,21 @@ public class ProjectSelectionViewModel(
         InitialServerProjects = response.ResponseData;
     }
 
-    internal void AddManualProject(string projectKey)
+    internal async Task AddManualProjectWithProgressAsync(string projectKey)
     {
-        var project = new ServerProject(projectKey, projectKey);
-        ProjectResults.Add(project);
-        SelectedProject = project;
+        var addManualProject = new TaskToPerformParams<AdapterResponseWithData<ServerProject>>(
+            () => FindServerProjectByKeyAsync(projectKey),
+            UiResources.FetchingProjectInfoProgressText,
+            UiResources.FetchingProjectInfoFailedText)
+        {
+            AfterSuccess = response =>
+            {
+                ProjectResults.Add(response.ResponseData);
+                SelectedProject = response.ResponseData;
+                RaisePropertyChanged(nameof(NoProjectExists));
+            }
+        };
+        await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(addManualProject);
     }
 
     private void FillProjects(List<ServerProject> projects)
@@ -135,16 +142,13 @@ public class ProjectSelectionViewModel(
         var initializeProjectsParams = new TaskToPerformParams<AdapterResponseWithData<List<ServerProject>>>(
             FuzzySearchProjectsAsync,
             UiResources.SearchingProjectInProgressText,
-            UiResources.SearchingProjectFailedText)
-        {
-            AfterSuccess = response => FillProjects(response.ResponseData)
-        };
+            UiResources.SearchingProjectFailedText) { AfterSuccess = response => FillProjects(response.ResponseData) };
         await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(initializeProjectsParams);
     }
 
-    private async Task<AdapterResponseWithData<List<ServerProject>>> FuzzySearchProjectsAsync()
-    {
-        return await connectedModeServices.SlCoreConnectionAdapter.FuzzySearchProjectsAsync(ServerConnection, ProjectSearchTerm);
-    }
+    private async Task<AdapterResponseWithData<List<ServerProject>>> FuzzySearchProjectsAsync() =>
+        await connectedModeServices.SlCoreConnectionAdapter.FuzzySearchProjectsAsync(ServerConnection, ProjectSearchTerm);
 
+    private async Task<AdapterResponseWithData<ServerProject>> FindServerProjectByKeyAsync(string projectKey) =>
+        await connectedModeServices.SlCoreConnectionAdapter.GetServerProjectByKeyAsync(ServerConnection, projectKey);
 }
