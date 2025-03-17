@@ -6,59 +6,7 @@
   <!-- The VSSDK targets need to be imported after the Net.Sdk targets which means we  have to import the
        .NET.Sdk targets using Import rather than specifying it as the Sdk in the Project element. -->
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
-
-  <!-- Executive summary:
-       * to build the VS2019 vsix, build from inside VS2019.
-       * to build the VS2022 vsix, build from inside VS2022.
-       
-       or
-
-       * build from a 2019/2022 command line, without specifying the VSTargetVersion property.
-         The version of the command prompt determines the version of SLVS that is built.
-         e.g. building from the VS2022 command prompt will build SLVS2022.
-
-       or
-
-       * build from a 2019/2022 command line, and specify the version of VS to target by
-         setting the vsTargetVersion property to 2019 or 2022 e.g.
-           /p:vsTargetVersion=2019
-
-
-       Switching between debugging in VS2022 and VS2019
-       ************************************************
-       By default, the solution is set up to debug VS2022, so you should use that as the primary IDE.
-       
-       Debugging in VS2019 as possible, but you have to take care when switching between VS versions to
-       ensure that the correct NuGet packages are used.
-       
-       The following process should work reliably:
-       
-       1. Close all open IDEs
-       2. Open the appropriate version of the developer command prompt
-       3. Execute the following command from the command line:
-       
-          msbuild /t:restore,rebuild
-          
-       4. Open SLVS in the corresponding VS versio
-       5. F5
-       
-
-       ************************************************
-       
-       Background:
-       We want to be able to use the same set of projects to develop in multiple versions of VS (VS2019, VS2022).
-
-       To achieve this, this project file has the following features:
-
-       * wherever possible, VS assemblies are referenced using NuGet packages. See the file SonarLint.VsPkgRefs.props.
-
-       * the TeamFoundation assemblies specific to a particular version of VS, and are not available as NuGet packages.
-         This only affects the Integration.TeamExplorer project. However, it does mean we need to build two versions
-         of that assembly, which in turns we need to build separate VSIX packages.
-         To achieve this, this project conditionally imports different VSIX manifests based on the version of VS being
-         used to build the project/solution.
-  -->
-
+  
   <Import Project="..\..\build\version.props" />
 
   <PropertyGroup>
@@ -72,7 +20,7 @@
     <RequiresLanguageServices>true</RequiresLanguageServices>
   </PropertyGroup>
   
-  <!-- This project references the SonarLint TeamExplorer assembly which is VS-version specific -->
+  <!-- This project references the VCProjectEngine assembly which is VS-version specific, todo https://sonarsource.atlassian.net/browse/SLVS-1973 -->
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
   <!-- ********************************************************** -->

@@ -59,8 +59,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SonarQube.Client", "SonarQu
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Integration.Vsix", "Integration.Vsix", "{41145B06-4EAD-4B9E-B1ED-C5B98AC55932}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Integration.TeamExplorer", "Integration.TeamExplorer", "{AC08E30A-2039-4E2F-A789-0D6FE056CC0D}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Integration", "Integration", "{2F01B58F-6F39-4B8F-B451-57D4F14D4EDF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestInfrastructure", "TestInfrastructure", "{4F0E4002-62BD-4FCA-8E3F-D20420B5F9B3}"

@@ -1189,16 +1189,6 @@
           "SonarQube.Client": "[1.0.0, )"
         }
       },
-      "SonarLint.VisualStudio.Progress": {
-        "type": "Project"
-      },
-      "SonarLint.VisualStudio.ProgressVS": {
-        "type": "Project",
-        "dependencies": {
-          "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
-          "SonarLint.VisualStudio.Progress": "[1.0.0, )"
-        }
-      },
       "SonarLint.VisualStudio.SLCore": {
         "type": "Project",
         "dependencies": {
