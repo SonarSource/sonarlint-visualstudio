@@ -263,7 +263,7 @@ internal sealed class ManageBindingViewModel(
         return succeeded;
     }
 
-    internal /* for testing */ async Task<AdapterResponseWithData<BindingResult>> DisplayBindStatusAsync()
+    internal async Task<AdapterResponseWithData<BindingResult>> DisplayBindStatusAsync()
     {
         SolutionInfo = await GetSolutionInfoModelAsync();
 
@@ -283,13 +283,15 @@ internal sealed class ManageBindingViewModel(
         }
 
         var response = await connectedModeServices.SlCoreConnectionAdapter.GetServerProjectByKeyAsync(serverConnection, boundServerProject.ServerProjectKey);
-        UpdateBoundProjectProperties(serverConnection, response.ResponseData);
-        var bindingSucceeded = BoundProject != null;
+        // even if the response is not successful, we still want to update the UI with the bound project, because the binding does exist
+        var selectedServerProject = response.ResponseData ?? new ServerProject(boundServerProject.ServerProjectKey, boundServerProject.ServerProjectKey);
+        UpdateBoundProjectProperties(serverConnection, selectedServerProject);
+        var bindingSucceeded = response.ResponseData != null;
 
         return new AdapterResponseWithData<BindingResult>(bindingSucceeded, bindingSucceeded ? BindingResult.Success : BindingResult.Failed);
     }
 
-    internal /* for testing */ async Task<AdapterResponseWithData<BindingResult>> PerformManualBindingAsync()
+    internal async Task<AdapterResponseWithData<BindingResult>> PerformManualBindingAsync()
     {
         if (!connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(SelectedConnectionInfo, out var serverConnection))
         {
@@ -336,10 +338,10 @@ internal sealed class ManageBindingViewModel(
         }
     }
 
-    private void UpdateBoundProjectProperties(ServerConnection serverConnection, ServerProject serverProject)
+    private void UpdateBoundProjectProperties(ServerConnection serverConnection, ServerProject selectedServerProject)
     {
         SelectedConnectionInfo = serverConnection == null ? null : ConnectionInfo.From(serverConnection);
-        SelectedProject = serverProject;
+        SelectedProject = selectedServerProject;
         BoundProject = SelectedProject;
     }
 

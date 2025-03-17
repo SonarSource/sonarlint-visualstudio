@@ -722,15 +722,20 @@ public class ManageBindingViewModelTests
         response.Should().BeEquivalentTo(new AdapterResponse(true));
     }
 
+    /// <summary>
+    /// Even if the project can not be found on the server, we still want to update the UI with the bound project, because the binding does exist
+    /// </summary>
     [TestMethod]
-    public async Task DisplayBindStatusAsync_WhenProjectIsBoundButBindingStatusIsNotFetched_Fails()
+    public async Task DisplayBindStatusAsync_WhenProjectIsBoundButBindingStatusIsNotFetched_FailsButStillShowsProject()
     {
         var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
-        SetupBoundProjectThatDoesNotExistOnServer(sonarCloudConnection);
+        var expectedSeverProject = new ServerProject("a-server-project", "a-server-project");
+        SetupBoundProjectThatDoesNotExistOnServer(sonarCloudConnection, "a-server-project");
 
         var response = await testSubject.DisplayBindStatusAsync();
 
-        testSubject.BoundProject.Should().BeNull();
+        testSubject.BoundProject.Should().BeEquivalentTo(expectedSeverProject);
+        testSubject.SelectedProject.Should().BeEquivalentTo(expectedSeverProject);
         response.Should().BeEquivalentTo(new AdapterResponse(false));
     }
 
@@ -801,16 +806,20 @@ public class ManageBindingViewModelTests
         testSubject.BoundProject.Should().BeEquivalentTo(testSubject.SelectedProject);
     }
 
+    /// <summary>
+    /// Even if the project can not be found on the server, we still want to update the UI with the bound project, because the binding does exist
+    /// </summary>
     [TestMethod]
-    public async Task DisplayBindStatusAsync_WhenProjectIsBoundButProjectNotFoundOnServer_SelectedProjectShouldBeEmpty()
+    public async Task DisplayBindStatusAsync_WhenProjectIsBoundButProjectNotFoundOnServer_SelectedProjectShouldNotBeEmpty()
     {
         var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
-        SetupBoundProjectThatDoesNotExistOnServer(sonarCloudConnection);
+        var expectedSeverProject = new ServerProject("a-server-project", "a-server-project");
+        SetupBoundProjectThatDoesNotExistOnServer(sonarCloudConnection, "a-server-project");
 
         await testSubject.DisplayBindStatusAsync();
 
-        testSubject.SelectedProject.Should().BeNull();
-        testSubject.BoundProject.Should().BeNull();
+        testSubject.SelectedProject.Should().BeEquivalentTo(expectedSeverProject);
+        testSubject.BoundProject.Should().BeEquivalentTo(expectedSeverProject);
     }
 
     [TestMethod]
@@ -1446,9 +1455,9 @@ public class ManageBindingViewModelTests
         connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
     }
 
-    private void SetupBoundProjectThatDoesNotExistOnServer(ServerConnection serverConnection)
+    private void SetupBoundProjectThatDoesNotExistOnServer(ServerConnection serverConnection, string serverProjectKey)
     {
-        var boundServerProject = new BoundServerProject(ALocalProjectKey, "a-server-project", serverConnection);
+        var boundServerProject = new BoundServerProject(ALocalProjectKey, serverProjectKey, serverConnection);
         SetupConfigurationProvider(new BindingConfiguration(boundServerProject, SonarLintMode.Connected, "binding-dir"));
 
         MockGetServerProjectByKey(false, null);
