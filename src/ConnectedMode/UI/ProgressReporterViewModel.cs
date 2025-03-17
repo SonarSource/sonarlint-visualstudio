@@ -148,5 +148,5 @@ public class TaskToPerformParams<T>(Func<Task<T>> taskToPerform, string progress
     public Func<Task<T>> TaskToPerform { get; } = taskToPerform;
     public string ProgressStatus { get; } = progressStatus;
     public string WarningText { get; } = warningText;
-    public T FailureResponse { get; } = new T();
+    public T FailureResponse { get; } = new();
 }

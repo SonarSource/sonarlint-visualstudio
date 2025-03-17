@@ -298,9 +298,9 @@ internal sealed class ManageBindingViewModel(
         // even if the response is not successful, we still want to update the UI with the bound project, because the binding does exist
         var selectedServerProject = response.ResponseData ?? new ServerProject(boundServerProject.ServerProjectKey, boundServerProject.ServerProjectKey);
         UpdateBoundProjectProperties(serverConnection, selectedServerProject);
-        var bindingSucceeded = response.ResponseData != null;
+        var projectRetrieved = response.ResponseData != null;
 
-        return new AdapterResponseWithData<BindingResult>(bindingSucceeded, bindingSucceeded ? BindingResult.Success : BindingResult.Failed);
+        return new AdapterResponseWithData<BindingResult>(projectRetrieved, projectRetrieved ? BindingResult.Success : BindingResult.Failed);
     }
 
     internal async Task<AdapterResponseWithData<BindingResult>> PerformManualBindingAsync()
