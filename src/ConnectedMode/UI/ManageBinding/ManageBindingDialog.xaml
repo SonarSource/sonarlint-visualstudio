@@ -17,6 +17,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml"/>
                 <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/CheckImage.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/WarningImage.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible"/>
             <wpf:BoolToVisibilityConverter x:Key="TrueToCollapsedConverter" FalseValue="Visible" TrueValue="Collapsed"/>
@@ -56,8 +57,29 @@
                                Height="20" 
                                VerticalAlignment="Center" 
                                Margin="10, 0,10,0" 
-                               Source="{StaticResource CheckDrawingImage}" 
-                               Visibility="{Binding  Path=IsOpenSolutionBound, Converter={StaticResource TrueToVisibleConverter}}"/>
+                               Visibility="{Binding  Path=IsOpenSolutionBound, Converter={StaticResource TrueToVisibleConverter}}">
+                            <Image.Style>
+                                <Style TargetType="Image">
+                                    <Style.Triggers>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding Path=IsOpenSolutionBound}" Value="True" />
+                                                <Condition Binding="{Binding Path=BindingSucceeded}" Value="True" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Source" Value="{StaticResource CheckDrawingImage}" />
+                                        </MultiDataTrigger>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding Path=IsOpenSolutionBound}" Value="True" />
+                                                <Condition Binding="{Binding Path=BindingSucceeded}" Value="False" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Source" Value="{StaticResource WarningDrawingImage}" />
+                                            <Setter Property="ToolTip" Value="{x:Static res:UiResources.BindingErrorTooltip}" />
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Image.Style>
+                        </Image>
                         <TextBlock Grid.Column="1" 
                                    Margin="5,0" 
                                    FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment155PercentFontSizeKey}}" 

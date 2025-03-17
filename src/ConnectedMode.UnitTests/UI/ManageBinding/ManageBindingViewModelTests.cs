@@ -258,6 +258,19 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
+    public void BindingSucceeded_Set_RaisesEvents()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+        eventHandler.ReceivedCalls().Should().BeEmpty();
+
+        testSubject.BindingSucceeded = !testSubject.BindingSucceeded;
+
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.BindingSucceeded)));
+    }
+
+    [TestMethod]
     public async Task UnbindWithProgressAsync_BindsProjectAndReportsProgress()
     {
         await testSubject.UnbindWithProgressAsync();
@@ -643,6 +656,8 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public async Task InitializeDataAsync_InitializesDataAndReportsProgress()
     {
+        MockProgressReporter();
+
         await testSubject.InitializeDataAsync();
 
         await progressReporterViewModel.Received(1)
@@ -658,6 +673,8 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public async Task InitializeDataAsync_DisplaysBindStatusAndReportsProgress()
     {
+        MockProgressReporter();
+
         await testSubject.InitializeDataAsync();
 
         await progressReporterViewModel.Received(1)
@@ -673,6 +690,7 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public async Task InitializeDataAsync_WhenStandalone_ChecksForAutomaticBindingAndReportsProgress()
     {
+        MockProgressReporter();
         SetupUnboundProject();
 
         await testSubject.InitializeDataAsync();
@@ -690,6 +708,7 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public async Task InitializeDataAsync_WhenBound_ChecksForAutomaticBindingAndReportsProgress()
     {
+        MockProgressReporter();
         testSubject.BoundProject = serverProject;
 
         await testSubject.InitializeDataAsync();
@@ -702,6 +721,21 @@ public class ManageBindingViewModelTests
                     x.WarningText == UiResources.CheckingForSharedBindingFailedText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated),
                 clearPreviousState: false);
+    }
+
+    [TestMethod]
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    [DataRow(false, false)]
+    [DataRow(true, true)]
+    public async Task InitializeDataAsync_WhenBindingExistsButBindingProcessFails_SetsBindingSucceededOnlyWhenBothTasksSucceed(bool task1Response, bool task2Response)
+    {
+        testSubject.BoundProject = serverProject;
+        MockProgressReporter(task1Response, task2Response);
+
+        await testSubject.InitializeDataAsync();
+
+        testSubject.BindingSucceeded.Should().Be(task1Response && task2Response);
     }
 
     [TestMethod]
@@ -1533,5 +1567,13 @@ public class ManageBindingViewModelTests
             expectedLogMessage,
             Arg.Is<object[]>(p => p.SequenceEqual(logParams)));
         VerifyBindingTelemetryNotSent();
+    }
+
+    private void MockProgressReporter(bool task1Response = true, bool task2Response = true)
+    {
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponseWithData<BindingResult>>>(), Arg.Any<bool>())
+            .Returns(Task.FromResult(new AdapterResponseWithData<BindingResult>(task1Response, BindingResult.Success)));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponse>>(), Arg.Any<bool>())
+            .Returns(Task.FromResult(new AdapterResponse(task2Response)));
     }
 }

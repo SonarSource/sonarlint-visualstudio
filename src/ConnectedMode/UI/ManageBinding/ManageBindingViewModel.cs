@@ -43,6 +43,7 @@ internal sealed class ManageBindingViewModel(
     private ServerProject selectedProject;
     private SharedBindingConfigModel sharedBindingConfigModel;
     private SolutionInfoModel solutionInfo;
+    private bool bindingSucceeded;
 
     public SolutionInfoModel SolutionInfo
     {
@@ -123,6 +124,16 @@ internal sealed class ManageBindingViewModel(
         }
     }
 
+    public bool BindingSucceeded
+    {
+        get => bindingSucceeded;
+        set
+        {
+            bindingSucceeded = value;
+            RaisePropertyChanged();
+        }
+    }
+
     public bool IsSolutionOpen => SolutionInfo is { Name: not null };
     public bool IsOpenSolutionBound => IsSolutionOpen && BoundProject is not null;
     public bool IsOpenSolutionStandalone => IsSolutionOpen && BoundProject is null;
@@ -144,12 +155,13 @@ internal sealed class ManageBindingViewModel(
     {
         var loadData = new TaskToPerformParams<AdapterResponse>(LoadDataAsync, UiResources.LoadingConnectionsText,
             UiResources.LoadingConnectionsFailedText) { AfterProgressUpdated = OnProgressUpdated };
-        await ProgressReporter.ExecuteTaskWithProgressAsync(loadData);
+        var loadDataResult = await ProgressReporter.ExecuteTaskWithProgressAsync(loadData);
 
         var displayBindStatus = new TaskToPerformParams<AdapterResponseWithData<BindingResult>>(DisplayBindStatusAsync, UiResources.FetchingBindingStatusText,
             UiResources.FetchingBindingStatusFailedText) { AfterProgressUpdated = OnProgressUpdated };
-        await ProgressReporter.ExecuteTaskWithProgressAsync(displayBindStatus, clearPreviousState: false);
+        var displayBindStatusResult = await ProgressReporter.ExecuteTaskWithProgressAsync(displayBindStatus, clearPreviousState: false);
 
+        BindingSucceeded = loadDataResult.Success && displayBindStatusResult.Success;
         await UpdateSharedBindingStateAsync();
     }
 

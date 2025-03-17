@@ -491,4 +491,7 @@ Please commit this file to share it with other contributors. See documentation f
   <data name="ExportBindingConfigurationWarningText" xml:space="preserve">
     <value>Failed to save the binding configuration. Please check the SonarQube for Visual Studio logs for more details.</value>
   </data>
+  <data name="BindingErrorTooltip" xml:space="preserve">
+    <value>An error occured when binding to the project on the server.</value>
+  </data>
 </root>
