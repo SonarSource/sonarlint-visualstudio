@@ -20,7 +20,8 @@
 
 using System.Windows.Input;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration.Vsix.MVVM;
+using SonarLint.VisualStudio.Core.WPF;
+using SonarLint.VisualStudio.Integration.WPF;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings;
 
