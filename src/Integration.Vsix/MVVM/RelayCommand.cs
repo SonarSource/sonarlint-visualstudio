@@ -18,11 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Diagnostics;
 using System.Windows.Input;
 
-namespace SonarLint.VisualStudio.Progress.MVVM
+namespace SonarLint.VisualStudio.Integration.Vsix.MVVM
 {
     /// MSDN Implementation - http://msdn.microsoft.com/en-us/magazine/dd419663.aspx#id0090030
     /// <summary>

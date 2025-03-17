@@ -59,7 +59,6 @@
     <None Remove="Progress\ProgressControl.xaml" />
     <None Remove="Transition\MuteWindowDialog.xaml" />
     <Page Include="Notifications\NotificationIndicator.xaml" />
-    <Page Include="Progress\ProgressControl.xaml" />
     <Page Include="Transition\MuteWindowDialog.xaml" />
   </ItemGroup>
 
@@ -68,8 +67,10 @@
     <ProjectReference Include="..\SonarQube.Client\SonarQube.Client.csproj" />
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\Infrastructure.VS\Infrastructure.VS.csproj" />
-    <ProjectReference Include="..\Progress\Progress.csproj" />
-    <ProjectReference Include="..\ProgressVS\ProgressVS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Progress\" />
   </ItemGroup>
 
 

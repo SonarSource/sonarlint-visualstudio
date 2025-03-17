@@ -22,7 +22,6 @@ using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Progress.Controller;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 
@@ -93,11 +92,11 @@ public class RoslynQualityProfileDownloaderTests
             bindingConfigProvider: bindingConfigProviderMock.Object,
             logger: logger);
 
-        var notifications = new ConfigurableProgressStepExecutionEvents();
+        var notifications = new List<FixedStepsProgress>();
         var progressAdapter = new Mock<IProgress<FixedStepsProgress>>();
         progressAdapter.Setup(x => x.Report(It.IsAny<FixedStepsProgress>()))
             .Callback<FixedStepsProgress>(x =>
-                ((IProgressStepExecutionEvents)notifications).ProgressChanged(x.Message, x.CurrentStep));
+                (notifications).Add(x));
 
         // Act
         var result = await testSubject.UpdateAsync(boundProject, progressAdapter.Object, CancellationToken.None);
@@ -106,16 +105,11 @@ public class RoslynQualityProfileDownloaderTests
         result.Should().BeTrue();
 
         // Progress notifications - percentage complete and messages
-        notifications.AssertProgress(1.0, 2.0);
-        CheckProgressMessages(languagesToBind);
-
-        void CheckProgressMessages(params Language[] languages)
+        notifications.Should().BeEquivalentTo(new[]
         {
-            var expected = languages.Select(GetDownloadProgressMessages).ToArray();
-            notifications.AssertProgressMessages(expected);
-        }
-
-        static string GetDownloadProgressMessages(Language language) => string.Format(QualityProfilesStrings.DownloadingQualityProfileProgressMessage, language.Name);
+            new FixedStepsProgress(string.Format(QualityProfilesStrings.DownloadingQualityProfileProgressMessage, Language.CSharp.Name), 1, 2),
+            new FixedStepsProgress(string.Format(QualityProfilesStrings.DownloadingQualityProfileProgressMessage, Language.VBNET.Name), 2, 2),
+        });
     }
 
     [TestMethod]
@@ -180,14 +174,8 @@ public class RoslynQualityProfileDownloaderTests
             languageProvider: mockLanguageProvider.Object,
             logger: logger);
 
-        var notifications = new ConfigurableProgressStepExecutionEvents();
-        var progressAdapter = new Mock<IProgress<FixedStepsProgress>>();
-        progressAdapter.Setup(x => x.Report(It.IsAny<FixedStepsProgress>()))
-            .Callback<FixedStepsProgress>(x =>
-                ((IProgressStepExecutionEvents)notifications).ProgressChanged(x.Message, x.CurrentStep));
-
         // Act
-        var result = await testSubject.UpdateAsync(boundProject, progressAdapter.Object, CancellationToken.None);
+        var result = await testSubject.UpdateAsync(boundProject, Mock.Of<IProgress<FixedStepsProgress>>(), CancellationToken.None);
 
         // Assert
         result.Should().BeTrue();
@@ -238,14 +226,8 @@ public class RoslynQualityProfileDownloaderTests
             outOfDateQualityProfileFinder: outOfDateQualityProfileFinderMock.Object,
             logger: logger);
 
-        var notifications = new ConfigurableProgressStepExecutionEvents();
-        var progressAdapter = new Mock<IProgress<FixedStepsProgress>>();
-        progressAdapter.Setup(x => x.Report(It.IsAny<FixedStepsProgress>()))
-            .Callback<FixedStepsProgress>(x =>
-                ((IProgressStepExecutionEvents)notifications).ProgressChanged(x.Message, x.CurrentStep));
-
         // Act
-        var result = await testSubject.UpdateAsync(boundProject, progressAdapter.Object, CancellationToken.None);
+        var result = await testSubject.UpdateAsync(boundProject, Mock.Of<IProgress<FixedStepsProgress>>(), CancellationToken.None);
 
         // Assert
         result.Should().BeTrue();

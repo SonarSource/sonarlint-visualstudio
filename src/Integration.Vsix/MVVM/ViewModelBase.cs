@@ -18,12 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-namespace SonarLint.VisualStudio.Progress.MVVM
+namespace SonarLint.VisualStudio.Integration.Vsix.MVVM
 {
     public class ViewModelBase : INotifyPropertyChanged
     {
