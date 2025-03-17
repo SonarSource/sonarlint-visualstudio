@@ -85,21 +85,30 @@
                      VirtualizingPanel.IsVirtualizing="True" 
                      ScrollViewer.CanContentScroll="True"/>
 
-            <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center"
-                       Visibility="{Binding Path=NoProjectExists, Converter={StaticResource TrueToVisibleConverter}}">
-                <TextBlock.Style>
-                    <Style TargetType="{x:Type TextBlock}">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding Path=HasSearchTerm}" Value="True">
-                                <Setter Property="Text" Value="{x:Static res:UiResources.NoProjectsFoundForSearchTermLabel}" />
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Path=HasSearchTerm}" Value="False">
-                                <Setter Property="Text" Value="{x:Static res:UiResources.NoProjectsExistLabel}" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </TextBlock.Style>
-            </TextBlock>
+            <Grid Grid.Row="2" VerticalAlignment="Center"
+                  Visibility="{Binding Path=NoProjectExists, Converter={StaticResource TrueToVisibleConverter}}">
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock HorizontalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=HasSearchTerm}" Value="True">
+                                        <Setter Property="Text" Value="{x:Static res:UiResources.NoProjectsFoundForSearchTermLabel}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Path=HasSearchTerm}" Value="False">
+                                        <Setter Property="Text" Value="{x:Static res:UiResources.NoProjectsExistLabel}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBlock HorizontalAlignment="Center">
+                        <Hyperlink Click="ChooseAnotherProjectButton_OnClick">
+                            <Run Text="{x:Static res:UiResources.ChooseAnotherProjectButton}" />
+                        </Hyperlink>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
         </Grid>
 
         <ui:ProgressAndErrorHandlerComponent Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,10" ProgressReporterViewModel="{Binding Path=ProgressReporterViewModel}"/>

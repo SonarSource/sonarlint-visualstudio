@@ -494,4 +494,7 @@ Please commit this file to share it with other contributors. See documentation f
   <data name="BindingErrorTooltip" xml:space="preserve">
     <value>An error occured when binding to the project on the server.</value>
   </data>
+  <data name="ChooseAnotherProjectButton" xml:space="preserve">
+    <value>Having trouble? Manually enter a project key</value>
+  </data>
 </root>

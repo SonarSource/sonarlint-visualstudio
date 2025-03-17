@@ -48,4 +48,9 @@ public partial class ProjectSelectionDialog
     {
         await ViewModel.InitializeProjectWithProgressAsync();
     }
+
+    private async void ChooseAnotherProjectButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        Console.WriteLine("Choose another project button clicked");
+    }
 }
