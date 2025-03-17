@@ -51,6 +51,14 @@ public partial class ProjectSelectionDialog
 
     private async void ChooseAnotherProjectButton_OnClick(object sender, RoutedEventArgs e)
     {
-        Console.WriteLine("Choose another project button clicked");
+        ViewModel.SelectedProject = null;
+        var manualProjectSelectionDialog = new ManualProjectSelectionDialog();
+        var manualSelectionDialogSucceeded = manualProjectSelectionDialog.ShowDialog(this);
+        if (manualSelectionDialogSucceeded is not true)
+        {
+            return;
+        }
+
+        ViewModel.AddManualProject(manualProjectSelectionDialog.ViewModel.ProjectKey);
     }
 }

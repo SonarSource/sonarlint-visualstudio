@@ -497,4 +497,10 @@ Please commit this file to share it with other contributors. See documentation f
   <data name="ChooseAnotherProjectButton" xml:space="preserve">
     <value>Having trouble? Manually enter a project key</value>
   </data>
+  <data name="ManualProjectSelectionDialogTitle" xml:space="preserve">
+    <value>Use Another Project</value>
+  </data>
+  <data name="ManualProjectSelectionLabel" xml:space="preserve">
+    <value>Enter project key:</value>
+  </data>
 </root>

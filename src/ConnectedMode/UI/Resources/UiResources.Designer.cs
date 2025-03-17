@@ -682,6 +682,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use Another Project.
+        /// </summary>
+        public static string ManualProjectSelectionDialogTitle {
+            get {
+                return ResourceManager.GetString("ManualProjectSelectionDialogTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter project key:.
+        /// </summary>
+        public static string ManualProjectSelectionLabel {
+            get {
+                return ResourceManager.GetString("ManualProjectSelectionLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to New Connection.
         /// </summary>
         public static string NewConnectionButton {

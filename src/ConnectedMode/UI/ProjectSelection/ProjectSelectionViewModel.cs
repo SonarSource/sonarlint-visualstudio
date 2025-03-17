@@ -101,6 +101,13 @@ public class ProjectSelectionViewModel(
         InitialServerProjects = response.ResponseData;
     }
 
+    internal void AddManualProject(string projectKey)
+    {
+        var project = new ServerProject(projectKey, projectKey);
+        ProjectResults.Add(project);
+        SelectedProject = project;
+    }
+
     private void FillProjects(List<ServerProject> projects)
     {
         ProjectResults.Clear();
