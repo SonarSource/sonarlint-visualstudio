@@ -651,7 +651,8 @@ public class ManageBindingViewModelTests
                     x.TaskToPerform == testSubject.LoadDataAsync &&
                     x.ProgressStatus == UiResources.LoadingConnectionsText &&
                     x.WarningText == UiResources.LoadingConnectionsFailedText &&
-                    x.AfterProgressUpdated == testSubject.OnProgressUpdated));
+                    x.AfterProgressUpdated == testSubject.OnProgressUpdated),
+                clearPreviousState: true);
     }
 
     [TestMethod]
@@ -665,7 +666,8 @@ public class ManageBindingViewModelTests
                     x.TaskToPerform == testSubject.DisplayBindStatusAsync &&
                     x.ProgressStatus == UiResources.FetchingBindingStatusText &&
                     x.WarningText == UiResources.FetchingBindingStatusFailedText &&
-                    x.AfterProgressUpdated == testSubject.OnProgressUpdated));
+                    x.AfterProgressUpdated == testSubject.OnProgressUpdated),
+                clearPreviousState: false);
     }
 
     [TestMethod]
@@ -681,7 +683,8 @@ public class ManageBindingViewModelTests
                     x.TaskToPerform == testSubject.CheckForSharedBindingAsync &&
                     x.ProgressStatus == UiResources.CheckingForSharedBindingText &&
                     x.WarningText == UiResources.CheckingForSharedBindingFailedText &&
-                    x.AfterProgressUpdated == testSubject.OnProgressUpdated));
+                    x.AfterProgressUpdated == testSubject.OnProgressUpdated),
+                clearPreviousState: false);
     }
 
     [TestMethod]
@@ -697,7 +700,8 @@ public class ManageBindingViewModelTests
                     x.TaskToPerform == testSubject.CheckForSharedBindingAsync &&
                     x.ProgressStatus == UiResources.CheckingForSharedBindingText &&
                     x.WarningText == UiResources.CheckingForSharedBindingFailedText &&
-                    x.AfterProgressUpdated == testSubject.OnProgressUpdated));
+                    x.AfterProgressUpdated == testSubject.OnProgressUpdated),
+                clearPreviousState: false);
     }
 
     [TestMethod]
@@ -1279,7 +1283,8 @@ public class ManageBindingViewModelTests
                 Arg.Is<TaskToPerformParams<AdapterResponseWithData<string>>>(x =>
                     x.ProgressStatus == UiResources.ExportingBindingConfigurationProgressText &&
                     x.WarningText == UiResources.ExportBindingConfigurationWarningText &&
-                    x.AfterProgressUpdated == testSubject.OnProgressUpdated));
+                    x.AfterProgressUpdated == testSubject.OnProgressUpdated),
+                clearPreviousState: true);
         messageBox.Received().Show(string.Format(UiResources.ExportBindingConfigurationMessageBoxTextSuccess, filePath),
             UiResources.ExportBindingConfigurationMessageBoxCaptionSuccess, MessageBoxButton.OK, MessageBoxImage.Information);
         await progressReporterViewModel.Received(1)
@@ -1288,7 +1293,8 @@ public class ManageBindingViewModelTests
                     x.TaskToPerform == testSubject.CheckForSharedBindingAsync &&
                     x.ProgressStatus == UiResources.CheckingForSharedBindingText &&
                     x.WarningText == UiResources.CheckingForSharedBindingFailedText &&
-                    x.AfterProgressUpdated == testSubject.OnProgressUpdated));
+                    x.AfterProgressUpdated == testSubject.OnProgressUpdated),
+                clearPreviousState: false);
     }
 
     [DynamicData(nameof(SonarCloudRegions))]
