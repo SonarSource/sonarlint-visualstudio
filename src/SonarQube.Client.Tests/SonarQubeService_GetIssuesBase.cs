@@ -31,7 +31,7 @@ namespace SonarQube.Client.Tests
         protected const int MaxAllowedIssues = PagedRequestBase<IGetIssuesRequest>.MaximumItemsCount;
         protected const int PageSize = PagedRequestBase<IGetIssuesRequest>.MaximumPageSize;
 
-        protected void SetupPageOfResponses(string projectName, int pageNumber, int numberOfIssues, string issueType)
+        protected void SetupPageOfResponses(string projectName, int pageNumber, int numberOfIssues, string issueType, string[] languages=null)
         {
             // Sanity check of the issue types
             issueType.Should().BeOneOf("CODE_SMELL", "BUG", "VULNERABILITY");
@@ -46,7 +46,9 @@ namespace SonarQube.Client.Tests
                 componentJson = CreateComponentJson();
             }
 
-            SetupRequest($"api/issues/search?projects={projectName}&statuses=RESOLVED&types={issueType}&p={pageNumber}&ps={PageSize}", $@"
+            var languagesParameter = languages is null ? string.Empty : "&languages=" + string.Join("%2C", languages);
+
+            SetupRequest($"api/issues/search?projects={projectName}&statuses=RESOLVED&types={issueType}{languagesParameter}&p={pageNumber}&ps={PageSize}", $@"
 {{
   ""paging"": {{
     ""pageIndex"": {pageNumber},
@@ -62,7 +64,7 @@ namespace SonarQube.Client.Tests
 }}");
         }
 
-        protected void SetupPageOfResponses(string projectName, string ruleId, string componentKey, string branch, int pageNumber, int numberOfIssues, string issueType)
+        protected void SetupPageOfResponses(string projectName, string ruleId, string componentKey, string branch, int pageNumber, int numberOfIssues, string issueType, string[] languages=null)
         {
             // Sanity check of the issue types
             issueType.Should().BeOneOf("CODE_SMELL", "BUG", "VULNERABILITY");
@@ -77,7 +79,9 @@ namespace SonarQube.Client.Tests
                 componentJson = CreateComponentJson();
             }
 
-            SetupRequest($"api/issues/search?components={componentKey}&projects={projectName}&rules={ruleId}&branch={branch}&types={issueType}&p={pageNumber}&ps={PageSize}", $@"
+            var languagesParameter = languages is null ? string.Empty : "&languages=" + string.Join("%2C", languages);
+
+            SetupRequest($"api/issues/search?components={componentKey}&projects={projectName}&rules={ruleId}&branch={branch}&types={issueType}{languagesParameter}&p={pageNumber}&ps={PageSize}", $@"
 {{
   ""paging"": {{
     ""pageIndex"": {pageNumber},
@@ -93,14 +97,14 @@ namespace SonarQube.Client.Tests
 }}");
         }
 
-        protected void SetupPagesOfResponses(string projectName, int numberOfIssues, string issueType)
+        protected void SetupPagesOfResponses(string projectName, int numberOfIssues, string issueType, string[] languages = null)
         {
             var pageNumber = 1;
             var remainingIssues = numberOfIssues;
             while (remainingIssues > 0)
             {
                 var issuesOnNewPage = Math.Min(remainingIssues, PageSize);
-                SetupPageOfResponses(projectName, pageNumber, issuesOnNewPage, issueType);
+                SetupPageOfResponses(projectName, pageNumber, issuesOnNewPage, issueType, languages);
 
                 pageNumber++;
                 remainingIssues -= issuesOnNewPage;

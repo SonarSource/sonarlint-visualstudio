@@ -220,7 +220,7 @@
     <value>[Suppressions] Update operation cancelled</value>
   </data>
   <data name="Suppressions_Fetch_Issues" xml:space="preserve">
-    <value>Fetching suppressions... All issues suppressed: {0}</value>
+    <value>Fetching C# &amp; VB.NET suppressions... All issues suppressed: {0}</value>
   </data>
   <data name="Suppression_FetchError_Verbose" xml:space="preserve">
     <value>Error fetching data: {0}</value>
@@ -229,6 +229,9 @@
   <data name="Suppression_UpdateError_Verbose" xml:space="preserve">
     <value>[Suppressions] Error updating data: {0}</value>
     <comment>0 = detailed error message</comment>
+  </data>
+  <data name="RoslynSuppressionsLogContext" xml:space="preserve">
+    <value>Roslyn Suppressions</value>
   </data>
   <data name="Suppression_Fetch_Issues_Finished" xml:space="preserve">
     <value>Finished fetching suppressions. All issues suppressed: {0}</value>

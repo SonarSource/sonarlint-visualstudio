@@ -35,10 +35,11 @@ namespace SonarLint.VisualStudio.Integration.MefServices;
 [Export(typeof(ISonarQubeService))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-public sealed class MefSonarQubeService(IUserAgentProvider userAgentProvider, ILogger logger, IThreadHandling threadHandling)
+public sealed class MefSonarQubeService(IUserAgentProvider userAgentProvider, ILogger logger, ILanguageProvider languageProvider, IThreadHandling threadHandling)
     : SonarQubeService(
         userAgent: userAgentProvider.UserAgent,
-        logger: new LoggerAdapter(logger))
+        logger: new LoggerAdapter(logger),
+        languageProvider: languageProvider)
 {
     protected override async Task<TResponse> InvokeUncheckedRequestAsync<TRequest, TResponse>(Action<TRequest> configure, HttpClient httpClient, CancellationToken token)
     {

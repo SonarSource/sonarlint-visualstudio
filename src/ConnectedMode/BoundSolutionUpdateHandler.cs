@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
     internal sealed class BoundSolutionUpdateHandler : IDisposable
     {
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private readonly ISuppressionUpdater suppressionUpdater;
+        private readonly IRoslynSuppressionUpdater roslynSuppressionUpdater;
         private readonly IServerHotspotStoreUpdater serverHotspotStoreUpdater;
         private readonly IQualityProfileUpdater qualityProfileUpdater;
 
@@ -41,12 +41,12 @@ namespace SonarLint.VisualStudio.ConnectedMode
         [ImportingConstructor]
         public BoundSolutionUpdateHandler(
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
-            ISuppressionUpdater suppressionUpdater,
+            IRoslynSuppressionUpdater roslynSuppressionUpdater,
             IServerHotspotStoreUpdater serverHotspotStoreUpdater,
             IQualityProfileUpdater qualityProfileUpdater)
         {
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
-            this.suppressionUpdater = suppressionUpdater;
+            this.roslynSuppressionUpdater = roslynSuppressionUpdater;
             this.serverHotspotStoreUpdater = serverHotspotStoreUpdater;
             this.qualityProfileUpdater = qualityProfileUpdater;
 
@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
         private void TriggerUpdate()
         {
-            suppressionUpdater.UpdateAllServerSuppressionsAsync().Forget();
+            roslynSuppressionUpdater.UpdateAllServerSuppressionsAsync().Forget();
             serverHotspotStoreUpdater.UpdateAllServerHotspotsAsync().Forget();
             qualityProfileUpdater.UpdateAsync().Forget();
         }

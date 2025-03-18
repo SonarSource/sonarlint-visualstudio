@@ -18,59 +18,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarQube.Client.Models;
 using static SonarQube.Client.Tests.Infra.MocksHelper;
 
 namespace SonarQube.Client.Tests;
 
 [TestClass]
-public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIssuesBase
+public class SonarQubeService_GetSuppressedRoslynIssuesAsync : SonarQubeService_GetIssuesBase
 {
-    [TestMethod]
-    public async Task GetSuppressedIssuesAsync_Old_ExampleFromSonarQube()
-    {
-        await ConnectToSonarQube();
-
-        using (var reader = new StreamReader(@"TestResources\IssuesProtobufResponse"))
-        {
-            SetupRequest("batch/issues?key=project1", reader.ReadToEnd());
-        }
-
-        var result = await service.GetSuppressedIssuesAsync("project1", null, null, CancellationToken.None);
-
-        // TODO: create a protobuf file with more than one issue with different states
-        // the one above does not have suppressed issues, hence the Count==0
-        result.Should().BeEmpty();
-
-        httpClientHandler.VerifyAll();
-    }
+    protected override Language[] MockRoslynLanguages => [Language.CSharp, Language.VBNET, Language.Cpp];
+    private string[] MockRoslynServerLanguageKeys => MockRoslynLanguages.Select(x => x.ServerLanguageKey).ToArray();
 
     [TestMethod]
-    public async Task GetSuppressedIssuesAsync_Old_NotFound()
-    {
-        await ConnectToSonarQube();
-
-        SetupRequest("batch/issues?key=project1", "", HttpStatusCode.NotFound);
-
-        Func<Task<IList<SonarQubeIssue>>> func = async () =>
-            await service.GetSuppressedIssuesAsync("project1", null, null, CancellationToken.None);
-
-        func.Should().ThrowExactly<HttpRequestException>().And
-            .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
-
-        httpClientHandler.VerifyAll();
-    }
-
-    [TestMethod]
-    public async Task GetSuppressedIssuesAsync_From_7_20()
+    public async Task GetSuppressedRoslynIssuesAsync_From_7_20()
     {
         await ConnectToSonarQube("7.2.0.0");
 
-        SetupRequest("api/issues/search?projects=shared&statuses=RESOLVED&types=CODE_SMELL&p=1&ps=500", @"
+        SetupRequest("api/issues/search?projects=shared&statuses=RESOLVED&types=CODE_SMELL&languages=cs%2Cvbnet%2Ccpp&p=1&ps=500", @"
 {
   ""total"": 5,
   ""p"": 1,
@@ -106,7 +74,7 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
   ""components"": [ ]
 }
 ");
-        SetupRequest("api/issues/search?projects=shared&statuses=RESOLVED&types=BUG&p=1&ps=500", @"
+        SetupRequest("api/issues/search?projects=shared&statuses=RESOLVED&types=BUG&languages=cs%2Cvbnet%2Ccpp&p=1&ps=500", @"
 {
   ""total"": 5,
   ""p"": 1,
@@ -163,7 +131,7 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
 }
 ");
 
-        var result = await service.GetSuppressedIssuesAsync("shared", null, null, CancellationToken.None);
+        var result = await service.GetSuppressedRoslynIssuesAsync("shared", null, null, CancellationToken.None);
 
         result.Should().HaveCount(2);
 
@@ -190,14 +158,14 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
     }
 
     [TestMethod]
-    public async Task GetSuppressedIssuesAsync_From_7_20_NotFound()
+    public async Task GetSuppressedRoslynIssuesAsync_From_7_20_NotFound()
     {
         await ConnectToSonarQube("7.2.0.0");
 
-        SetupRequest("api/issues/search?projects=project1&statuses=RESOLVED&types=CODE_SMELL&p=1&ps=500", "", HttpStatusCode.NotFound);
+        SetupRequest("api/issues/search?projects=project1&statuses=RESOLVED&types=CODE_SMELL&languages=cs%2Cvbnet%2Ccpp&p=1&ps=500", "", HttpStatusCode.NotFound);
 
         Func<Task<IList<SonarQubeIssue>>> func = async () =>
-            await service.GetSuppressedIssuesAsync("project1", null, null, CancellationToken.None);
+            await service.GetSuppressedRoslynIssuesAsync("project1", null, null, CancellationToken.None);
 
         func.Should().ThrowExactly<HttpRequestException>().And
             .Message.Should().Be("Response status code does not indicate success: 404 (Not Found).");
@@ -206,14 +174,14 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
     }
 
     [TestMethod]
-    public async Task GetSuppressedIssuesAsync_From_7_20_Paging()
+    public async Task GetSuppressedRoslynIssuesAsync_From_7_20_Paging()
     {
         await ConnectToSonarQube("7.2.0.0");
 
-        SetupPagesOfResponses("simplcom", 1001, "CODE_SMELL");
-        SetupPageOfResponses("simplcom", 1, 0, "BUG");
+        SetupPagesOfResponses("simplcom", 1001, "CODE_SMELL", MockRoslynServerLanguageKeys);
+        SetupPageOfResponses("simplcom", 1, 0, "BUG", MockRoslynServerLanguageKeys);
 
-        var result = await service.GetSuppressedIssuesAsync("simplcom", null, null, CancellationToken.None);
+        var result = await service.GetSuppressedRoslynIssuesAsync("simplcom", null, null, CancellationToken.None);
 
         result.Should().HaveCount(1001);
         result.Select(i => i.FilePath).Should().Match(paths => paths.All(p => p == "Program.cs"));
@@ -227,16 +195,16 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
     [DataRow(5, 5)] // No issue types with too many issues
     [DataRow(MaxAllowedIssues, 5)] // One issue type with too many issues
     [DataRow(1, MaxAllowedIssues)] // Multiple issue types with too many issues
-    public async Task GetSuppressedIssuesAsync_From_7_20_NotifyWhenMaxIssuesReturned(
+    public async Task GetSuppressedRoslynIssuesAsync_From_7_20_NotifyWhenMaxIssuesReturned(
         int numCodeSmells,
         int numBugs)
     {
         await ConnectToSonarQube("7.2.0.0");
 
-        SetupPagesOfResponses("proj1", numCodeSmells, "CODE_SMELL");
-        SetupPagesOfResponses("proj1", numBugs, "BUG");
+        SetupPagesOfResponses("proj1", numCodeSmells, "CODE_SMELL", MockRoslynServerLanguageKeys);
+        SetupPagesOfResponses("proj1", numBugs, "BUG", MockRoslynServerLanguageKeys);
 
-        var result = await service.GetSuppressedIssuesAsync("proj1", null, null, CancellationToken.None);
+        var result = await service.GetSuppressedRoslynIssuesAsync("proj1", null, null, CancellationToken.None);
 
         result.Should().HaveCount(
             Math.Min(MaxAllowedIssues, numCodeSmells) +
@@ -253,13 +221,13 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
     [TestMethod]
     [DataRow("")]
     [DataRow(null)]
-    public async Task GetSuppressedIssuesAsync_From_7_20_BranchIsNotSpecified_BranchIsNotIncludedInQueryString(string emptyBranch)
+    public async Task GetSuppressedRoslynIssuesAsync_From_7_20_BranchIsNotSpecified_BranchIsNotIncludedInQueryString(string emptyBranch)
     {
         await ConnectToSonarQube("7.2.0.0");
         httpClientHandler.Reset();
 
         SetupHttpRequest(httpClientHandler, EmptyGetIssuesResponse);
-        _ = await service.GetSuppressedIssuesAsync("any", emptyBranch, null, CancellationToken.None);
+        _ = await service.GetSuppressedRoslynIssuesAsync("any", emptyBranch, null, CancellationToken.None);
 
         // Branch is null/empty => should not be passed
         var actualRequests = httpClientHandler.GetSendAsyncRequests();
@@ -268,13 +236,13 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
     }
 
     [TestMethod]
-    public async Task GetSuppressedIssuesAsync_From_7_20_BranchIsSpecified_BranchIncludedInQueryString()
+    public async Task GetSuppressedRoslynIssuesAsync_From_7_20_BranchIsSpecified_BranchIncludedInQueryString()
     {
         await ConnectToSonarQube("7.2.0.0");
         httpClientHandler.Reset();
 
         SetupHttpRequest(httpClientHandler, EmptyGetIssuesResponse);
-        _ = await service.GetSuppressedIssuesAsync("any", "aBranch", null, CancellationToken.None);
+        _ = await service.GetSuppressedRoslynIssuesAsync("any", "aBranch", null, CancellationToken.None);
 
         // The wrapper is expected to make three calls, for code smells, bugs, then vulnerabilities
         var actualRequests = httpClientHandler.GetSendAsyncRequests();
@@ -283,13 +251,13 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
     }
 
     [TestMethod]
-    public async Task GetSuppressedIssuesAsync_From_7_20_IssueKeysAreNotSpecified_IssueKeysAreNotIncludedInQueryString()
+    public async Task GetSuppressedRoslynIssuesAsync_From_7_20_IssueKeysAreNotSpecified_IssueKeysAreNotIncludedInQueryString()
     {
         await ConnectToSonarQube("7.2.0.0");
         httpClientHandler.Reset();
 
         SetupHttpRequest(httpClientHandler, EmptyGetIssuesResponse);
-        _ = await service.GetSuppressedIssuesAsync("any", null, null, CancellationToken.None);
+        _ = await service.GetSuppressedRoslynIssuesAsync("any", null, null, CancellationToken.None);
 
         // The wrapper is expected to make three calls, for code smells, bugs, then vulnerabilities
         var actualRequests = httpClientHandler.GetSendAsyncRequests();
@@ -298,13 +266,13 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
     }
 
     [TestMethod]
-    public async Task GetSuppressedIssuesAsync_From_7_20_IssueKeysAreSpecified_IssueKeysAreIncludedInQueryString()
+    public async Task GetSuppressedRoslynIssuesAsync_From_7_20_IssueKeysAreSpecified_IssueKeysAreIncludedInQueryString()
     {
         await ConnectToSonarQube("7.2.0.0");
         httpClientHandler.Reset();
 
         SetupHttpRequest(httpClientHandler, EmptyGetIssuesResponse);
-        _ = await service.GetSuppressedIssuesAsync("any", null, new[] { "issue1", "issue2" }, CancellationToken.None);
+        _ = await service.GetSuppressedRoslynIssuesAsync("any", null, new[] { "issue1", "issue2" }, CancellationToken.None);
 
         // The wrapper is expected to make one call with the given issueKeys
         var actualRequests = httpClientHandler.GetSendAsyncRequests();
@@ -313,13 +281,13 @@ public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIss
     }
 
     [TestMethod]
-    public void GetSuppressedIssuesAsync_NotConnected()
+    public void GetSuppressedRoslynIssuesAsync_NotConnected()
     {
         // No calls to Connect
         // No need to setup request, the operation should fail
 
         Func<Task<IList<SonarQubeIssue>>> func = async () =>
-            await service.GetSuppressedIssuesAsync("simplcom", null, null, CancellationToken.None);
+            await service.GetSuppressedRoslynIssuesAsync("simplcom", null, null, CancellationToken.None);
 
         func.Should().ThrowExactly<InvalidOperationException>().And
             .Message.Should().Be("This operation expects the service to be connected.");

@@ -66,7 +66,7 @@ public interface ISonarQubeService
     /// </param>
     /// <param name="token"></param>
     /// <param name="issueKeys">(optional) The ids of the issues to return. If empty, all issues will be returned.</param>
-    Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(
+    Task<IList<SonarQubeIssue>> GetSuppressedRoslynIssuesAsync(
         string projectKey,
         string branch,
         string[] issueKeys,

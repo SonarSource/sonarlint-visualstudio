@@ -64,6 +64,9 @@ internal class GetIssuesRequest : PagedRequestBase<SonarQubeIssue>
     [JsonProperty("types")]
     public string Types { get; set; }
 
+    [JsonProperty("languages", DefaultValueHandling = DefaultValueHandling.Ignore), DefaultValue(null)]
+    public string Languages { get; set; }
+
     protected override string Path => "api/issues/search";
 
     protected override SonarQubeIssue[] ParseResponse(string response)

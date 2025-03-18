@@ -30,13 +30,13 @@ using SonarQube.Client.Models;
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions;
 
 [TestClass]
-public class SuppressionUpdaterTests
+public class RoslynSuppressionUpdaterTests
 {
     private ICancellableActionRunner actionRunner;
     private ILogger logger;
     private IServerQueryInfoProvider queryInfo;
     private ISonarQubeService server;
-    private SuppressionUpdater testSubject;
+    private RoslynSuppressionUpdater testSubject;
     private IThreadHandling threadHandling;
     private readonly EventHandler<SuppressionsEventArgs> suppressedIssuesReloaded = Substitute.For<EventHandler<SuppressionsEventArgs>>();
     private readonly EventHandler<SuppressionsEventArgs> newIssuesSuppressed = Substitute.For<EventHandler<SuppressionsEventArgs>>();
@@ -59,14 +59,15 @@ public class SuppressionUpdaterTests
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<SuppressionUpdater, ISuppressionUpdater>(
+        MefTestHelpers.CheckTypeCanBeImported<RoslynSuppressionUpdater, IRoslynSuppressionUpdater>(
             MefTestHelpers.CreateExport<ISonarQubeService>(),
             MefTestHelpers.CreateExport<IServerQueryInfoProvider>(),
             MefTestHelpers.CreateExport<ICancellableActionRunner>(),
+            MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
-    public void Ctor_SetsLoggerContext() => logger.Received(1).ForContext(nameof(SuppressionUpdater));
+    public void Ctor_SetsLoggerContext() => logger.Received(1).ForContext(Resources.ConnectedModeLogContext, Resources.RoslynSuppressionsLogContext);
 
     [TestMethod]
     [DataRow(null, null)]
@@ -95,7 +96,7 @@ public class SuppressionUpdaterTests
         await testSubject.UpdateAllServerSuppressionsAsync();
 
         await queryInfo.Received(1).GetProjectKeyAndBranchAsync(Arg.Any<CancellationToken>());
-        await server.Received(1).GetSuppressedIssuesAsync("project", "branch", null, Arg.Any<CancellationToken>());
+        await server.Received(1).GetSuppressedRoslynIssuesAsync("project", "branch", null, Arg.Any<CancellationToken>());
         server.ReceivedCalls().Should().HaveCount(1);
         VerifySuppressedIssuesReloadedInvoked(expectedAllSuppressedIssues: [issue]);
     }
@@ -267,7 +268,7 @@ public class SuppressionUpdaterTests
 
         await testSubject.UpdateSuppressedIssuesAsync(isResolved: true, ["issue1"], CancellationToken.None);
 
-        await server.Received(1).GetSuppressedIssuesAsync(
+        await server.Received(1).GetSuppressedRoslynIssuesAsync(
             "proj1",
             "branch1",
             Arg.Is<string[]>(x => x.SequenceEqual(new[] { "issue1" })),
@@ -317,7 +318,7 @@ public class SuppressionUpdaterTests
         VerifyNewIssuesSuppressedNotInvoked();
     }
 
-    private SuppressionUpdater CreateTestSubject(ICancellableActionRunner mockedActionRunner, IThreadHandling mockedThreadHandling) =>
+    private RoslynSuppressionUpdater CreateTestSubject(ICancellableActionRunner mockedActionRunner, IThreadHandling mockedThreadHandling) =>
         new(server, queryInfo, mockedActionRunner, logger, mockedThreadHandling);
 
     private void MockQueryInfoProvider(string projectKey, string branchName) => queryInfo.GetProjectKeyAndBranchAsync(Arg.Any<CancellationToken>()).Returns((projectKey, branchName));
@@ -327,7 +328,7 @@ public class SuppressionUpdaterTests
         string branchName,
         string[] issueKeys,
         params SonarQubeIssue[] issuesToReturn) =>
-        server.GetSuppressedIssuesAsync(projectKey, branchName, Arg.Is<string[]>(x => issueKeys == null || x.SequenceEqual(issueKeys)), Arg.Any<CancellationToken>()).Returns(issuesToReturn);
+        server.GetSuppressedRoslynIssuesAsync(projectKey, branchName, Arg.Is<string[]>(x => issueKeys == null || x.SequenceEqual(issueKeys)), Arg.Any<CancellationToken>()).Returns(issuesToReturn);
 
     private static SonarQubeIssue CreateIssue(string issueKey) =>
         new(issueKey,
