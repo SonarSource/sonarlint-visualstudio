@@ -32,6 +32,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
     public partial class ManageConnectionsDialog : Window
     {
         private readonly IConnectedModeServices connectedModeServices;
+        private readonly IConnectedModeBindingServices connectedModeBindingServices;
 
         public IConnectedModeUIServices ConnectedModeUiServices { get; }
         public ManageConnectionsViewModel ViewModel { get; }
@@ -39,6 +40,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
         public ManageConnectionsDialog(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices, IConnectedModeUIServices connectedModeUiServices)
         {
             this.connectedModeServices = connectedModeServices;
+            this.connectedModeBindingServices = connectedModeBindingServices;
             ConnectedModeUiServices = connectedModeUiServices;
             ViewModel = new ManageConnectionsViewModel(connectedModeServices,
                 connectedModeBindingServices,
@@ -46,20 +48,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             InitializeComponent();
         }
 
-        private async void EditConnection_Clicked(object sender, RoutedEventArgs e)
+        private void EditConnection_Clicked(object sender, RoutedEventArgs e)
         {
             if (sender is not Button { DataContext: ConnectionViewModel connectionViewModel })
             {
                 return;
             }
 
-            var credentialsDialog = new CredentialsDialog(connectedModeServices, ConnectedModeUiServices, connectionViewModel.Connection.Info, false);
-            if (!CredentialsDialogSucceeded(credentialsDialog))
-            {
-                return;
-            }
-
-            await ViewModel.UpdateConnectionCredentialsWithProgressAsync(connectionViewModel.Connection, credentialsDialog.ViewModel.GetCredentialsModel());
+            var editConnectionTokenDialog = new EditCredentialsDialog(connectedModeServices, ConnectedModeUiServices, connectedModeBindingServices, connectionViewModel.Connection);
+            editConnectionTokenDialog.ShowDialog(this);
         }
 
         private async void NewConnection_Clicked(object sender, RoutedEventArgs e)
@@ -90,10 +87,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             return new CredentialsDialog(connectedModeServices, ConnectedModeUiServices, newConnectionInfo, withNextButton: isAnyDialogFollowing);
         }
 
-        private bool CredentialsDialogSucceeded(CredentialsDialog credentialsDialog)
-        {
-            return credentialsDialog.ShowDialog(this) == true;
-        }
+        private bool CredentialsDialogSucceeded(CredentialsDialog credentialsDialog) => credentialsDialog.ShowDialog(this) == true;
 
         private ConnectionInfo FinalizeConnection(ConnectionInfo newConnectionInfo, CredentialsDialog credentialsDialog)
         {
