@@ -46,28 +46,6 @@
   </PropertyGroup>
 
   <!-- ******************************************************************************* -->
-  <!-- Team foundation assemblies -->
-  <!-- ******************************************************************************* -->
-  <ItemGroup Label="TeamFoundation" Condition="$(RequiresTeamFoundation)=='true'">
-    <Reference Include="Microsoft.TeamFoundation.Controls">
-      <HintPath>$(ThirdPartyPath)\Microsoft.TeamFoundation.Controls.dll</HintPath>
-      <Private>$(CopyVSAssembliesToOutput)</Private>
-    </Reference>
-  </ItemGroup>
-
-  <!-- The following dependencies are required by the test projects at runtime but are not required for compile time -->
-  <ItemGroup Label="TeamFoundation" Condition="$(RequiresTeamFoundation)=='true' AND $(IsTestProject) == 'true'">
-    <Reference Include="Microsoft.TeamFoundation.Common">
-      <HintPath>$(ThirdPartyPath)\Microsoft.TeamFoundation.Common.dll</HintPath>
-      <Private>$(CopyVSAssembliesToOutput)</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Services.Common">
-      <HintPath>$(ThirdPartyPath)\Microsoft.VisualStudio.Services.Common.dll</HintPath>
-      <Private>$(CopyVSAssembliesToOutput)</Private>
-    </Reference>
-  </ItemGroup>
-
-  <!-- ******************************************************************************* -->
 
   <!-- ******************************************************************************* -->
   <!-- Alm authentication package -->

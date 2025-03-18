@@ -1305,8 +1305,6 @@
           "SonarLint.VisualStudio.ConnectedMode": "[1.0.0, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
-          "SonarLint.VisualStudio.Progress": "[1.0.0, )",
-          "SonarLint.VisualStudio.ProgressVS": "[1.0.0, )",
           "SonarQube.Client": "[1.0.0, )",
           "StrongNamer": "[0.0.8, )",
           "System.IO.Abstractions": "[9.0.4, )"
@@ -1329,7 +1327,6 @@
           "NuGet.VisualStudio": "[3.3.0, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.Integration": "[1.0.0, )",
-          "SonarLint.VisualStudio.Progress": "[1.0.0, )",
           "SonarQube.Client": "[1.0.0, )",
           "StrongNamer": "[0.0.8, )",
           "System.IO.Abstractions.TestingHelpers": "[9.0.4, )"
@@ -1343,16 +1340,6 @@
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
           "SonarLint.VisualStudio.SLCore": "[1.0.0, )",
           "SonarQube.Client": "[1.0.0, )"
-        }
-      },
-      "SonarLint.VisualStudio.Progress": {
-        "type": "Project"
-      },
-      "SonarLint.VisualStudio.ProgressVS": {
-        "type": "Project",
-        "dependencies": {
-          "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
-          "SonarLint.VisualStudio.Progress": "[1.0.0, )"
         }
       },
       "SonarLint.VisualStudio.Roslyn.Suppressions": {

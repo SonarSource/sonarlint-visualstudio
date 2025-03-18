@@ -125,10 +125,6 @@
     <value>Cancel</value>
     <comment>Button text (with access key) for canceling an action – access key 'n'</comment>
   </data>
-  <data name="TeamExplorerPageTitle" xml:space="preserve">
-    <value>SonarQube (Server, Cloud)</value>
-    <comment>Title for the SonarQube Team Explorer page</comment>
-  </data>
   <data name="CannotCompareVersionStrings" xml:space="preserve">
     <value>A SonarQube (Server, Cloud) server plugin has a malformed version and cannot be compared. Version was '{0}'.</value>
     <comment>Exception message indicating that the provided version string is malformed and cannot be compared. {0} version string</comment>
