@@ -69,10 +69,6 @@
     <ProjectReference Include="..\Infrastructure.VS\Infrastructure.VS.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Progress\" />
-  </ItemGroup>
-
 
   <!--**********************************************************************-->
   <!-- Workarounds -->

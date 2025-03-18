@@ -20,7 +20,7 @@
     <RequiresLanguageServices>true</RequiresLanguageServices>
   </PropertyGroup>
   
-  <!-- This project references the VCProjectEngine assembly which is VS-version specific, todo https://sonarsource.atlassian.net/browse/SLVS-1973 -->
+  <!-- This project references the VCProjectEngine assembly which is VS-version specific, todo https://sonarsource.atlassian.net/browse/SLVS-1973 replace VCProjectEngine dll with nuget -->
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
   <!-- ********************************************************** -->
