@@ -123,5 +123,32 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding {
                 return ResourceManager.GetString("UnintrusiveController_InvalidConnection", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dismiss.
+        /// </summary>
+        internal static string UpdateTokenDismissOptionText {
+            get {
+                return ResourceManager.GetString("UpdateTokenDismissOptionText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit Credentials.
+        /// </summary>
+        internal static string UpdateTokenNotificationEditCredentialsOptionText {
+            get {
+                return ResourceManager.GetString("UpdateTokenNotificationEditCredentialsOptionText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The token used for the server connection &quot;{0}&quot; is invalid, please update the credentials..
+        /// </summary>
+        internal static string UpdateTokenNotificationText {
+            get {
+                return ResourceManager.GetString("UpdateTokenNotificationText", resourceCulture);
+            }
+        }
     }
 }

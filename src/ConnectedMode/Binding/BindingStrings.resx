@@ -141,4 +141,13 @@
   <data name="UnintrusiveController_InvalidConnection" xml:space="preserve">
     <value>Could not convert connection information for the binding</value>
   </data>
+  <data name="UpdateTokenDismissOptionText" xml:space="preserve">
+    <value>Dismiss</value>
+  </data>
+  <data name="UpdateTokenNotificationEditCredentialsOptionText" xml:space="preserve">
+    <value>Edit Credentials</value>
+  </data>
+  <data name="UpdateTokenNotificationText" xml:space="preserve">
+    <value>The token used for the server connection "{0}" is invalid, please update the credentials.</value>
+  </data>
 </root>
