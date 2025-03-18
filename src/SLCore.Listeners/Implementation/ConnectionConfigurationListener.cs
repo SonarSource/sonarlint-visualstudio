@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Connection;
 
@@ -26,16 +27,11 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 {
     [Export(typeof(ISLCoreListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class ConnectionConfigurationListener : IConnectionConfigurationListener
+    [method: ImportingConstructor]
+    public class ConnectionConfigurationListener(IUpdateTokenNotification updateTokenNotification) : IConnectionConfigurationListener
     {
-        public Task DidSynchronizeConfigurationScopesAsync(object parameters)
-        {
-            return Task.CompletedTask;
-        }
+        public Task DidSynchronizeConfigurationScopesAsync(object parameters) => Task.CompletedTask;
 
-        public void InvalidToken(InvalidTokenParams parameters)
-        {
-            // TODO by https://sonarsource.atlassian.net/browse/SLVS-1908 Add implementation
-        }
+        public void InvalidToken(InvalidTokenParams parameters) => updateTokenNotification.Show(parameters.connectionId);
     }
 }
