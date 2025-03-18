@@ -45,21 +45,22 @@ internal class UpdateTokenNotification(INotificationService notificationService,
             return;
         }
 
-        var connectionInfo = serverConnection.ToConnection().Info;
+        var connection = serverConnection.ToConnection();
+        var connectionInfo = connection.Info;
+
         var notification = new Notification(
             id: string.Format(IdTemplate, connectionInfo.Id),
             message: string.Format(BindingStrings.UpdateTokenNotificationText, connectionInfo.Id),
             actions:
             [
-                new NotificationAction(BindingStrings.UpdateTokenNotificationEditCredentialsOptionText, _ => OnUpdateTokenHandler(connectionInfo), true),
+                new NotificationAction(BindingStrings.UpdateTokenNotificationEditCredentialsOptionText, _ => OnUpdateTokenHandler(connection), true),
                 new NotificationAction(BindingStrings.UpdateTokenDismissOptionText, _ => OnDismissHandler(), true),
             ],
             showOncePerSession: true);
-
         notificationService.ShowNotification(notification);
     }
 
-    private void OnUpdateTokenHandler(ConnectionInfo connectionInfo) => connectedModeUiManager.ShowEditCredentialsDialog(connectionInfo, withNextButton: false);
+    private void OnUpdateTokenHandler(Connection connection) => connectedModeUiManager.ShowEditCredentialsDialog(connection);
 
     private void OnDismissHandler() => notificationService.CloseNotification();
 }

@@ -83,7 +83,7 @@ public class UpdateTokenNotificationTests
         testSubject.Show(serverConnection.Id);
 
         InvokeNotificationCommand(BindingStrings.UpdateTokenNotificationEditCredentialsOptionText);
-        connectedModeUiManager.Received(1).ShowEditCredentialsDialog(Arg.Is<ConnectionInfo>(info => info.Id == serverConnection.ToConnection().Info.Id), withNextButton: false);
+        connectedModeUiManager.Received(1).ShowEditCredentialsDialog(Arg.Is<Connection>(connection => connection.Info.Id == serverConnection.ToConnection().Info.Id));
     }
 
     [TestMethod]

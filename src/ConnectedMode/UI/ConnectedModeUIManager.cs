@@ -35,7 +35,7 @@ public interface IConnectedModeUIManager
 
     Task<bool?> ShowTrustConnectionDialogAsync(ServerConnection serverConnection, string token);
 
-    bool? ShowEditCredentialsDialog(ConnectionInfo connectionInfo, bool withNextButton);
+    bool? ShowEditCredentialsDialog(Connection connection);
 }
 
 [Export(typeof(IConnectedModeUIManager))]
@@ -60,10 +60,10 @@ internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedMod
         return dialogResult;
     }
 
-    public bool? ShowEditCredentialsDialog(ConnectionInfo connectionInfo, bool withNextButton)
+    public bool? ShowEditCredentialsDialog(Connection connection)
     {
         bool? dialogResult = null;
-        connectedModeServices.ThreadHandling.RunOnUIThread(() => dialogResult = GetEditCredentialsDialogResult(connectionInfo, withNextButton));
+        connectedModeServices.ThreadHandling.RunOnUIThread(() => dialogResult = GetEditCredentialsDialogResult(connection));
 
         return dialogResult;
     }
@@ -84,9 +84,9 @@ internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedMod
     }
 
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
-    private bool? GetEditCredentialsDialogResult(ConnectionInfo connectionInfo, bool withNextButton)
+    private bool? GetEditCredentialsDialogResult(Connection connection)
     {
-        var trustConnectionDialog = new CredentialsDialog(connectedModeServices, connectedModeUiServices, connectionInfo, withNextButton);
-        return trustConnectionDialog.ShowDialog(Application.Current.MainWindow);
+        var editCredentialsDialog = new EditCredentialsDialog(connectedModeServices, connectedModeUiServices, connectedModeBindingServices, connection);
+        return editCredentialsDialog.ShowDialog(Application.Current.MainWindow);
     }
 }
