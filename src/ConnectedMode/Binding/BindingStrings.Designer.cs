@@ -150,5 +150,23 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding {
                 return ResourceManager.GetString("UpdateTokenNotificationText", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Credentials Updated Successfully.
+        /// </summary>
+        internal static string UpdateTokenSuccessfullyMessageBoxCaption {
+            get {
+                return ResourceManager.GetString("UpdateTokenSuccessfullyMessageBoxCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The credentials of the connection &quot;{0}&quot; have been updated successfully.
+        /// </summary>
+        internal static string UpdateTokenSuccessfullyMessageBoxText {
+            get {
+                return ResourceManager.GetString("UpdateTokenSuccessfullyMessageBoxText", resourceCulture);
+            }
+        }
     }
 }

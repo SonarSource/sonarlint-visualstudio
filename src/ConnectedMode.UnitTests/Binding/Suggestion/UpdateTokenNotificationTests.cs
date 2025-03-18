@@ -18,9 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -35,6 +37,7 @@ public class UpdateTokenNotificationTests
     private IConnectedModeUIManager connectedModeUiManager;
     private readonly ServerConnection.SonarCloud serverConnection = new("myOrg");
     private IServerConnectionsRepository serverConnectionsRepository;
+    private IMessageBox messageBox;
 
     [TestInitialize]
     public void TestInitialize()
@@ -42,7 +45,8 @@ public class UpdateTokenNotificationTests
         notificationService = Substitute.For<INotificationService>();
         connectedModeUiManager = Substitute.For<IConnectedModeUIManager>();
         serverConnectionsRepository = Substitute.For<IServerConnectionsRepository>();
-        testSubject = new UpdateTokenNotification(notificationService, connectedModeUiManager, serverConnectionsRepository);
+        messageBox = Substitute.For<IMessageBox>();
+        testSubject = new UpdateTokenNotification(notificationService, connectedModeUiManager, serverConnectionsRepository, messageBox);
     }
 
     [TestMethod]
@@ -50,7 +54,8 @@ public class UpdateTokenNotificationTests
         MefTestHelpers.CheckTypeCanBeImported<UpdateTokenNotification, IUpdateTokenNotification>(
             MefTestHelpers.CreateExport<INotificationService>(),
             MefTestHelpers.CreateExport<IConnectedModeUIManager>(),
-            MefTestHelpers.CreateExport<IServerConnectionsRepository>());
+            MefTestHelpers.CreateExport<IServerConnectionsRepository>(),
+            MefTestHelpers.CreateExport<IMessageBox>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<UpdateTokenNotification>();
@@ -76,7 +81,7 @@ public class UpdateTokenNotificationTests
     }
 
     [TestMethod]
-    public void Show_EditCredentialsCommand_ShowsCredentialsDialog()
+    public void Show_EditCredentialsCommand_ShowsEditCredentialsDialog()
     {
         MockServerConnection(serverConnection);
 
@@ -84,6 +89,32 @@ public class UpdateTokenNotificationTests
 
         InvokeNotificationCommand(BindingStrings.UpdateTokenNotificationEditCredentialsOptionText);
         connectedModeUiManager.Received(1).ShowEditCredentialsDialog(Arg.Is<Connection>(connection => connection.Info.Id == serverConnection.ToConnection().Info.Id));
+    }
+
+    [TestMethod]
+    public void Show_EditCredentialsCommand_EditingCredentialsSucceeds_ShowsMessage()
+    {
+        MockServerConnection(serverConnection);
+        MockShowEditCredentialsDialog(success: true);
+
+        testSubject.Show(serverConnection.Id);
+        InvokeNotificationCommand(BindingStrings.UpdateTokenNotificationEditCredentialsOptionText);
+
+        messageBox.Received(1).Show(string.Format(BindingStrings.UpdateTokenSuccessfullyMessageBoxText, serverConnection.ToConnection().Info.Id),
+            BindingStrings.UpdateTokenSuccessfullyMessageBoxCaption,
+            MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    [TestMethod]
+    public void Show_EditCredentialsCommand_EditingCredentialsFails_DoesNotShowMessage()
+    {
+        MockServerConnection(serverConnection);
+        MockShowEditCredentialsDialog(success: false);
+
+        testSubject.Show(serverConnection.Id);
+        InvokeNotificationCommand(BindingStrings.UpdateTokenNotificationEditCredentialsOptionText);
+
+        messageBox.DidNotReceiveWithAnyArgs().Show(default, default, MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     [TestMethod]
@@ -125,4 +156,7 @@ public class UpdateTokenNotificationTests
             x[1] = serverConnectionToReturn;
             return serverConnectionToReturn != null;
         });
+
+    private void MockShowEditCredentialsDialog(bool success) =>
+        connectedModeUiManager.ShowEditCredentialsDialog(Arg.Is<Connection>(connection => connection.Info.Id == serverConnection.ToConnection().Info.Id)).Returns(success);
 }

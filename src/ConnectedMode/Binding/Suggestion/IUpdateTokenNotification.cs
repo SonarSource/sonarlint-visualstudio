@@ -19,7 +19,10 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Windows;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Notifications;
 
@@ -33,7 +36,11 @@ public interface IUpdateTokenNotification
 [Export(typeof(IUpdateTokenNotification))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class UpdateTokenNotification(INotificationService notificationService, IConnectedModeUIManager connectedModeUiManager, IServerConnectionsRepository serverConnectionsRepository)
+internal class UpdateTokenNotification(
+    INotificationService notificationService,
+    IConnectedModeUIManager connectedModeUiManager,
+    IServerConnectionsRepository serverConnectionsRepository,
+    IMessageBox messageBox)
     : IUpdateTokenNotification
 {
     internal const string IdTemplate = "update.token.for.{0}";
@@ -53,14 +60,22 @@ internal class UpdateTokenNotification(INotificationService notificationService,
             message: string.Format(BindingStrings.UpdateTokenNotificationText, connectionInfo.Id),
             actions:
             [
-                new NotificationAction(BindingStrings.UpdateTokenNotificationEditCredentialsOptionText, _ => OnUpdateTokenHandler(connection), true),
+                new NotificationAction(BindingStrings.UpdateTokenNotificationEditCredentialsOptionText, _ => OnUpdateTokenHandlerAsync(connection).Forget(), true),
                 new NotificationAction(BindingStrings.UpdateTokenDismissOptionText, _ => OnDismissHandler(), true),
             ],
             showOncePerSession: true);
         notificationService.ShowNotification(notification);
     }
 
-    private void OnUpdateTokenHandler(Connection connection) => connectedModeUiManager.ShowEditCredentialsDialog(connection);
+    private async Task OnUpdateTokenHandlerAsync(Connection connection)
+    {
+        var result = await connectedModeUiManager.ShowEditCredentialsDialog(connection);
+        if (result == true)
+        {
+            messageBox.Show(string.Format(BindingStrings.UpdateTokenSuccessfullyMessageBoxText, connection.Info.Id), BindingStrings.UpdateTokenSuccessfullyMessageBoxCaption, MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+    }
 
     private void OnDismissHandler() => notificationService.CloseNotification();
 }
