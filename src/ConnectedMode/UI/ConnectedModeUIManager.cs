@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.TrustConnection;
 using SonarLint.VisualStudio.Core.Binding;
@@ -33,6 +34,8 @@ public interface IConnectedModeUIManager
     Task<bool> ShowManageBindingDialogAsync(AutomaticBindingRequest automaticBinding = null);
 
     Task<bool?> ShowTrustConnectionDialogAsync(ServerConnection serverConnection, string token);
+
+    bool? ShowEditCredentialsDialog(ConnectionInfo connectionInfo, bool withNextButton);
 }
 
 [Export(typeof(IConnectedModeUIManager))]
@@ -57,6 +60,14 @@ internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedMod
         return dialogResult;
     }
 
+    public bool? ShowEditCredentialsDialog(ConnectionInfo connectionInfo, bool withNextButton)
+    {
+        bool? dialogResult = null;
+        connectedModeServices.ThreadHandling.RunOnUIThread(() => dialogResult = GetEditCredentialsDialogResult(connectionInfo, withNextButton));
+
+        return dialogResult;
+    }
+
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     private bool? GetTrustConnectionDialogResult(ServerConnection serverConnection, string token)
     {
@@ -70,5 +81,12 @@ internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedMod
         var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices, connectedModeUiServices, this, automaticBinding);
         manageBindingDialog.ShowDialog(Application.Current.MainWindow);
         return manageBindingDialog.ViewModel.BoundProject != null;
+    }
+
+    [ExcludeFromCodeCoverage] // UI, not really unit-testable
+    private bool? GetEditCredentialsDialogResult(ConnectionInfo connectionInfo, bool withNextButton)
+    {
+        var trustConnectionDialog = new CredentialsDialog(connectedModeServices, connectedModeUiServices, connectionInfo, withNextButton);
+        return trustConnectionDialog.ShowDialog(Application.Current.MainWindow);
     }
 }
