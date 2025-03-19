@@ -52,7 +52,7 @@ public class MuteIssuesServiceTests
     private IThreadHandling threadHandling;
     private IIssueSLCoreService issueSlCoreService;
     private IServerIssueFinder serverIssueFinder;
-    private ISuppressionUpdater suppressionUpdater;
+    private IRoslynSuppressionUpdater roslynSuppressionUpdater;
     private IAnalysisRequester analysisRequester;
 
     [TestInitialize]
@@ -62,12 +62,12 @@ public class MuteIssuesServiceTests
         activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
         slCoreServiceProvider = Substitute.For<ISLCoreServiceProvider>();
         serverIssueFinder = Substitute.For<IServerIssueFinder>();
-        suppressionUpdater = Substitute.For<ISuppressionUpdater>();
+        roslynSuppressionUpdater = Substitute.For<IRoslynSuppressionUpdater>();
         analysisRequester = Substitute.For<IAnalysisRequester>();
         logger = new TestLogger();
         threadHandling = new NoOpThreadHandler();
         issueSlCoreService = Substitute.For<IIssueSLCoreService>();
-        testSubject = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, serverIssueFinder, suppressionUpdater, analysisRequester, logger, threadHandling);
+        testSubject = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, serverIssueFinder, roslynSuppressionUpdater, analysisRequester, logger, threadHandling);
 
         MockNonRoslynIssue();
         activeConfigScopeTracker.Current.Returns(new Core.ConfigurationScope.ConfigurationScope("CONFIG_SCOPE_ID", RootPath: "C:\\", ConnectionId: "CONNECTION_ID"));
@@ -85,7 +85,7 @@ public class MuteIssuesServiceTests
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
             MefTestHelpers.CreateExport<IServerIssueFinder>(),
-            MefTestHelpers.CreateExport<ISuppressionUpdater>(),
+            MefTestHelpers.CreateExport<IRoslynSuppressionUpdater>(),
             MefTestHelpers.CreateExport<IAnalysisRequester>(),
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
@@ -98,7 +98,7 @@ public class MuteIssuesServiceTests
     {
         var substituteLogger = Substitute.For<ILogger>();
 
-        _ = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, serverIssueFinder, suppressionUpdater, analysisRequester, substituteLogger, threadHandling);
+        _ = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, serverIssueFinder, roslynSuppressionUpdater, analysisRequester, substituteLogger, threadHandling);
 
         substituteLogger.Received(1).ForContext("MuteIssuesService");
     }
@@ -332,7 +332,7 @@ public class MuteIssuesServiceTests
 
         _ = testSubject.ResolveIssueWithDialogAsync(roslynIssue);
 
-        suppressionUpdater.Received(1).UpdateSuppressedIssuesAsync(isResolved: true, Arg.Is<string[]>(x => x.SequenceEqual(new[] { RoslynIssueServerKey })), Arg.Any<CancellationToken>());
+        roslynSuppressionUpdater.Received(1).UpdateSuppressedIssuesAsync(isResolved: true, Arg.Is<string[]>(x => x.SequenceEqual(new[] { RoslynIssueServerKey })), Arg.Any<CancellationToken>());
     }
 
     [TestMethod]
@@ -343,7 +343,7 @@ public class MuteIssuesServiceTests
 
         _ = testSubject.ResolveIssueWithDialogAsync(nonRoslynIssue);
 
-        suppressionUpdater.DidNotReceiveWithAnyArgs().UpdateSuppressedIssuesAsync(default, default, default);
+        roslynSuppressionUpdater.DidNotReceiveWithAnyArgs().UpdateSuppressedIssuesAsync(default, default, default);
     }
 
     [TestMethod]
@@ -380,7 +380,7 @@ public class MuteIssuesServiceTests
 
         _ = testSubject.ResolveIssueWithDialogAsync(roslynIssue);
 
-        suppressionUpdater.Received(1).UpdateSuppressedIssuesAsync(isResolved: true, Arg.Is<string[]>(x => x.SequenceEqual(new[] { RoslynIssueServerKey })), Arg.Any<CancellationToken>());
+        roslynSuppressionUpdater.Received(1).UpdateSuppressedIssuesAsync(isResolved: true, Arg.Is<string[]>(x => x.SequenceEqual(new[] { RoslynIssueServerKey })), Arg.Any<CancellationToken>());
         analysisRequester.Received(1).RequestAnalysis(Arg.Is<AnalyzerOptions>(x => !x.IsOnOpen), Arg.Is<string[]>(x => x.SequenceEqual(new[] { roslynIssue.FilePath })));
     }
 
@@ -394,7 +394,7 @@ public class MuteIssuesServiceTests
 
         _ = testSubject.ResolveIssueWithDialogAsync(nonRoslynIssue);
 
-        suppressionUpdater.DidNotReceive().UpdateSuppressedIssuesAsync(Arg.Any<bool>(), Arg.Any<string[]>(), Arg.Any<CancellationToken>());
+        roslynSuppressionUpdater.DidNotReceive().UpdateSuppressedIssuesAsync(Arg.Any<bool>(), Arg.Any<string[]>(), Arg.Any<CancellationToken>());
         analysisRequester.Received(1).RequestAnalysis(Arg.Is<AnalyzerOptions>(x => !x.IsOnOpen), Arg.Is<string[]>(x => x.SequenceEqual(new[] { nonRoslynIssue.FilePath })));
     }
 

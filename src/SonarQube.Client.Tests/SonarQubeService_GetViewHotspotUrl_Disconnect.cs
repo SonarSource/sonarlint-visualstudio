@@ -18,8 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Client.Logging;
+using SonarLint.VisualStudio.Core;
 using SonarQube.Client.Requests;
+using ILogger = SonarQube.Client.Logging.ILogger;
 
 namespace SonarQube.Client.Tests
 {
@@ -40,7 +41,7 @@ namespace SonarQube.Client.Tests
 
         protected internal override SonarQubeService CreateTestSubject()
         {
-            return new DisconnectingService(httpClientHandlerFactory.Object, UserAgent, logger, requestFactorySelector);
+            return new DisconnectingService(httpClientHandlerFactory.Object, UserAgent, logger, languageProvider, requestFactorySelector);
         }
 
         internal class DisconnectingService : SonarQubeService
@@ -49,8 +50,9 @@ namespace SonarQube.Client.Tests
                 IHttpClientHandlerFactory httpClientHandlerFactory,
                 string userAgent,
                 ILogger logger,
+                ILanguageProvider languageProvider,
                 IRequestFactorySelector requestFactorySelector)
-                : base(httpClientHandlerFactory, userAgent, logger, requestFactorySelector, null)
+                : base(httpClientHandlerFactory, userAgent, logger, languageProvider, requestFactorySelector, null)
             {
             }
 

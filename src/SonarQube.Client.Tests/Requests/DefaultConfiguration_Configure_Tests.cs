@@ -37,7 +37,6 @@ public class DefaultConfiguration_Configure_Tests
             "Registered SonarQube.Client.Api.V2_10.GetVersionRequest for 2.1",
             "Registered SonarQube.Client.Api.V2_60.GetPropertiesRequest for 2.6",
             "Registered SonarQube.Client.Api.V3_30.ValidateCredentialsRequest for 3.3",
-            "Registered SonarQube.Client.Api.V5_10.GetIssuesRequest for 5.1",
             "Registered SonarQube.Client.Api.V5_20.GetQualityProfilesRequest for 5.2",
             "Registered SonarQube.Client.Api.V5_50.GetRulesRequest for 5.5",
             "Registered SonarQube.Client.Api.V6_30.GetPropertiesRequest for 6.3",

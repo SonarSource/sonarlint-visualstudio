@@ -51,6 +51,7 @@ internal class GetIssuesRequestWrapper<T> : IGetIssuesRequest
     public string RuleId { get; set; }
 
     public string ComponentKey { get; set; }
+    public string Languages { get; set; }
     public ILogger Logger { get; set; }
 
     public async Task<SonarQubeIssue[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
@@ -64,6 +65,7 @@ internal class GetIssuesRequestWrapper<T> : IGetIssuesRequest
         innerRequest.IssueKeys = IssueKeys;
         innerRequest.RuleId = RuleId;
         innerRequest.ComponentKey = ComponentKey;
+        innerRequest.Languages = Languages;
 
         if (innerRequest.IssueKeys != null)
         {

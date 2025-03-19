@@ -41,5 +41,7 @@ interface IGetIssuesRequest : IRequest<SonarQubeIssue[]>
 
     string ComponentKey { get; set; }
 
+    string Languages { get; set; }
+
     // Update <see cref="V7_20.GetIssuesRequestWrapper"/> when adding properties here.
 }

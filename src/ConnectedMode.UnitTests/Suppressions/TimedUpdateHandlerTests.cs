@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<TimedUpdateHandler, TimedUpdateHandler>(
-                MefTestHelpers.CreateExport<ISuppressionUpdater>(),
+                MefTestHelpers.CreateExport<IRoslynSuppressionUpdater>(),
                 MefTestHelpers.CreateExport<IServerHotspotStoreUpdater>(),
                 MefTestHelpers.CreateExport<IQualityProfileUpdater>(),
                 MefTestHelpers.CreateExport<ILogger>(),
@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var refreshTimer = new Mock<ITimer>();
             var timerFactory = CreateTimerFactory(refreshTimer.Object);
             var activeSolutionBoundTracker = CreateActiveSolutionBoundTrackerWihtBindingConfig(SonarLintMode.Connected);
-            var suppressionUpdater = new Mock<ISuppressionUpdater>();
+            var suppressionUpdater = new Mock<IRoslynSuppressionUpdater>();
             var serverHotspotStoreUpdater = new Mock<IServerHotspotStoreUpdater>();
             var qualityProfileUpdater = new Mock<IQualityProfileUpdater>();
 
@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var refreshTimer = new Mock<ITimer>();
             var timerFactory = CreateTimerFactory(refreshTimer.Object);
             var activeSolutionBoundTracker = CreateActiveSolutionBoundTrackerWihtBindingConfig(SonarLintMode.Connected);
-            var suppressionUpdater = new Mock<ISuppressionUpdater>();
+            var suppressionUpdater = new Mock<IRoslynSuppressionUpdater>();
             var serverHotspotStoreUpdater = new Mock<IServerHotspotStoreUpdater>();
             var qualityProfileUpdater = new Mock<IQualityProfileUpdater>();
 
@@ -153,13 +153,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         }
 
         private static TimedUpdateHandler CreateTestSubject(IActiveSolutionBoundTracker activeSolutionBoundTracker,
-            ISuppressionUpdater suppressionUpdater = null,
+            IRoslynSuppressionUpdater roslynSuppressionUpdater = null,
             IServerHotspotStoreUpdater serverHotspotStoreUpdater = null ,
             IQualityProfileUpdater qualityProfileUpdater = null,
             ITimerFactory timerFactory = null)
         {
             return new TimedUpdateHandler(
-                suppressionUpdater ?? Mock.Of<ISuppressionUpdater>(),
+                roslynSuppressionUpdater ?? Mock.Of<IRoslynSuppressionUpdater>(),
                 serverHotspotStoreUpdater ?? Mock.Of<IServerHotspotStoreUpdater>(),
                 qualityProfileUpdater ?? Mock.Of<IQualityProfileUpdater>(),
                 activeSolutionBoundTracker,

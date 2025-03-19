@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         {
             MefTestHelpers.CheckTypeCanBeImported<BoundSolutionUpdateHandler, BoundSolutionUpdateHandler>(
                 MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
-                MefTestHelpers.CreateExport<ISuppressionUpdater>(),
+                MefTestHelpers.CreateExport<IRoslynSuppressionUpdater>(),
                 MefTestHelpers.CreateExport<IServerHotspotStoreUpdater>(),
                 MefTestHelpers.CreateExport<IQualityProfileUpdater>());
         }
@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         {
             var activeSolutionTracker = new Mock<IActiveSolutionBoundTracker>();
 
-            _ = new BoundSolutionUpdateHandler(activeSolutionTracker.Object, Mock.Of<ISuppressionUpdater>(), Mock.Of<IServerHotspotStoreUpdater>(), Mock.Of<IQualityProfileUpdater>());
+            _ = new BoundSolutionUpdateHandler(activeSolutionTracker.Object, Mock.Of<IRoslynSuppressionUpdater>(), Mock.Of<IServerHotspotStoreUpdater>(), Mock.Of<IQualityProfileUpdater>());
 
             activeSolutionTracker.VerifyAdd(x => x.SolutionBindingChanged += It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>(), Times.Once);
             activeSolutionTracker.VerifyAdd(x => x.SolutionBindingUpdated += It.IsAny<EventHandler>(), Times.Once);
@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         public void InvokeEvents_ServerStoreUpdatersAreCalled()
         {
             var activeSolutionTracker = new Mock<IActiveSolutionBoundTracker>();
-            var suppressionUpdater = new Mock<ISuppressionUpdater>();
+            var suppressionUpdater = new Mock<IRoslynSuppressionUpdater>();
             var serverHotspotStoreUpdater = new Mock<IServerHotspotStoreUpdater>();
             var qualityProfileUpdater = new Mock<IQualityProfileUpdater>();
 
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         {
             var activeSolutionTracker = new Mock<IActiveSolutionBoundTracker>();
 
-            var testSubject = new BoundSolutionUpdateHandler(activeSolutionTracker.Object, Mock.Of<ISuppressionUpdater>(), Mock.Of<IServerHotspotStoreUpdater>(), Mock.Of<IQualityProfileUpdater>());
+            var testSubject = new BoundSolutionUpdateHandler(activeSolutionTracker.Object, Mock.Of<IRoslynSuppressionUpdater>(), Mock.Of<IServerHotspotStoreUpdater>(), Mock.Of<IQualityProfileUpdater>());
 
             testSubject.Dispose();
 

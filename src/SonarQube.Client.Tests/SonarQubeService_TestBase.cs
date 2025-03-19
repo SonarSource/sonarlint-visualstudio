@@ -25,6 +25,7 @@ using System.Net.Http.Headers;
 using System.Security;
 using Moq;
 using Moq.Protected;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Models;
 using SonarQube.Client.Models.ServerSentEvents;
@@ -38,6 +39,7 @@ namespace SonarQube.Client.Tests
         protected Mock<HttpClientHandler> httpClientHandler;
         protected Mock<IHttpClientHandlerFactory> httpClientHandlerFactory;
         protected Mock<IProxyDetector> proxyDetector;
+        protected ILanguageProvider languageProvider;
         protected SonarQubeService service;
         protected TestLogger logger;
 
@@ -49,6 +51,8 @@ namespace SonarQube.Client.Tests
 
         protected const string UserAgent = "the-test-user-agent/1.0";
 
+        protected virtual Language[] MockRoslynLanguages { get; }
+
         [TestInitialize]
         public void TestInitialize()
         {
@@ -57,6 +61,9 @@ namespace SonarQube.Client.Tests
             Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
 
             logger = new TestLogger();
+
+            languageProvider = Substitute.For<ILanguageProvider>();
+            languageProvider.RoslynLanguages.Returns(MockRoslynLanguages);
 
             httpClientHandler = new Mock<HttpClientHandler>(MockBehavior.Strict);
             httpClientHandlerFactory = new Mock<IHttpClientHandlerFactory>();
@@ -120,7 +127,7 @@ namespace SonarQube.Client.Tests
 
         protected internal virtual SonarQubeService CreateTestSubject()
         {
-            return new SonarQubeService(httpClientHandlerFactory.Object, UserAgent, logger, requestFactorySelector, sseStreamFactory.Object);
+            return new SonarQubeService(httpClientHandlerFactory.Object, UserAgent, logger, languageProvider, requestFactorySelector, sseStreamFactory.Object);
         }
 
         private static IUsernameAndPasswordCredentials MockBasicAuthCredentials(string userName, SecureString password)

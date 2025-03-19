@@ -41,7 +41,7 @@ internal class MuteIssuesService(
     IActiveConfigScopeTracker activeConfigScopeTracker,
     ISLCoreServiceProvider slCoreServiceProvider,
     IServerIssueFinder serverIssueFinder,
-    ISuppressionUpdater suppressionUpdater,
+    IRoslynSuppressionUpdater roslynSuppressionUpdater,
     IAnalysisRequester analysisRequester,
     ILogger logger,
     IThreadHandling threadHandling)
@@ -202,7 +202,7 @@ internal class MuteIssuesService(
     {
         if (issue is IFilterableRoslynIssue)
         {
-            await suppressionUpdater.UpdateSuppressedIssuesAsync(isResolved: true, [serverIssueKey], new CancellationToken());
+            await roslynSuppressionUpdater.UpdateSuppressedIssuesAsync(isResolved: true, [serverIssueKey], new CancellationToken());
         }
     }
 

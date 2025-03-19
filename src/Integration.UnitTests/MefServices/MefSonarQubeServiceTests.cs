@@ -35,6 +35,7 @@ public class MefSonarQubeServiceTests
         MefTestHelpers.CheckTypeCanBeImported<MefSonarQubeService, ISonarQubeService> (
             MefTestHelpers.CreateExport<IUserAgentProvider>(Substitute.For<IUserAgentProvider>()),
             MefTestHelpers.CreateExport<ILogger>(),
+            MefTestHelpers.CreateExport<ILanguageProvider>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
 
     [TestMethod]
@@ -42,7 +43,7 @@ public class MefSonarQubeServiceTests
     {
         var userAgentProvider = Substitute.For<IUserAgentProvider>();
 
-        _ = new MefSonarQubeService(userAgentProvider, Substitute.For<ILogger>(), Substitute.For<IThreadHandling>());
+        _ = new MefSonarQubeService(userAgentProvider, Substitute.For<ILogger>(), Substitute.For<ILanguageProvider>(), Substitute.For<IThreadHandling>());
 
         _ = userAgentProvider.Received().UserAgent;
     }
@@ -62,7 +63,7 @@ public class MefSonarQubeServiceTests
         threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<string>>>())
             .ThrowsAsync(new IndexOutOfRangeException("this is a test"));
 
-        var testSubject = new MefSonarQubeService(userAgentProvider,Substitute.For<ILogger>(), threadHandling);
+        var testSubject = new MefSonarQubeService(userAgentProvider,Substitute.For<ILogger>(), Substitute.For<ILanguageProvider>(), threadHandling);
 
         var func = async () => await testSubject.ConnectAsync(connectionInfo, CancellationToken.None);
 

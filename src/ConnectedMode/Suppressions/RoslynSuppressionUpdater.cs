@@ -21,15 +21,14 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions;
 
-[Export(typeof(ISuppressionUpdater))]
+[Export(typeof(IRoslynSuppressionUpdater))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class SuppressionUpdater : ISuppressionUpdater, IDisposable
+internal sealed class RoslynSuppressionUpdater : IRoslynSuppressionUpdater, IDisposable
 {
     private readonly ICancellableActionRunner actionRunner;
     private readonly ILogger logger;
@@ -38,16 +37,7 @@ internal sealed class SuppressionUpdater : ISuppressionUpdater, IDisposable
     private readonly IThreadHandling threadHandling;
 
     [ImportingConstructor]
-    public SuppressionUpdater(
-        ISonarQubeService server,
-        IServerQueryInfoProvider serverQueryInfoProvider,
-        ICancellableActionRunner actionRunner,
-        ILogger logger)
-        : this(server, serverQueryInfoProvider, actionRunner, logger, ThreadHandling.Instance)
-    {
-    }
-
-    internal SuppressionUpdater(
+    public RoslynSuppressionUpdater(
         ISonarQubeService server,
         IServerQueryInfoProvider serverQueryInfoProvider,
         ICancellableActionRunner actionRunner,
@@ -57,7 +47,7 @@ internal sealed class SuppressionUpdater : ISuppressionUpdater, IDisposable
         this.server = server;
         this.serverQueryInfoProvider = serverQueryInfoProvider;
         this.actionRunner = actionRunner;
-        this.logger = logger.ForContext(nameof(SuppressionUpdater));
+        this.logger = logger.ForContext(Resources.ConnectedModeLogContext, Resources.RoslynSuppressionsLogContext);
         this.threadHandling = threadHandling;
     }
 
@@ -125,7 +115,7 @@ internal sealed class SuppressionUpdater : ISuppressionUpdater, IDisposable
             }
 
             ThrowIfCancelled(cancellationToken, token);
-            suppressedIssues = await server.GetSuppressedIssuesAsync(projectKey, serverBranch, issueKeys, token);
+            suppressedIssues = await server.GetSuppressedRoslynIssuesAsync(projectKey, serverBranch, issueKeys, token);
             logger.WriteLine(Resources.Suppression_Fetch_Issues_Finished, allServerIssuesFetched);
         }
         catch (OperationCanceledException)

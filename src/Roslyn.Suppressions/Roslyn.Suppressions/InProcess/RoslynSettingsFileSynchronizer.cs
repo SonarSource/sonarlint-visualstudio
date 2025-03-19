@@ -47,7 +47,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
     private readonly IRoslynSettingsFileStorage roslynSettingsFileStorage;
     private readonly ISolutionInfoProvider solutionInfoProvider;
     private readonly ISolutionBindingRepository solutionBindingRepository;
-    private readonly ISuppressionUpdater suppressionUpdater;
+    private readonly IRoslynSuppressionUpdater roslynSuppressionUpdater;
     private readonly IThreadHandling threadHandling;
     private readonly object lockObject = new();
 
@@ -57,13 +57,13 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         IConfigurationProvider configurationProvider,
         ISolutionInfoProvider solutionInfoProvider,
         ISolutionBindingRepository solutionBindingRepository,
-        ISuppressionUpdater suppressionUpdater,
+        IRoslynSuppressionUpdater roslynSuppressionUpdater,
         ISuppressedIssuesCalculatorFactory suppressedIssuesCalculatorFactory)
         : this(roslynSettingsFileStorage,
             configurationProvider,
             solutionInfoProvider,
             solutionBindingRepository,
-            suppressionUpdater,
+            roslynSuppressionUpdater,
             suppressedIssuesCalculatorFactory,
             ThreadHandling.Instance)
     {
@@ -74,7 +74,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         IConfigurationProvider configurationProvider,
         ISolutionInfoProvider solutionInfoProvider,
         ISolutionBindingRepository solutionBindingRepository,
-        ISuppressionUpdater suppressionUpdater,
+        IRoslynSuppressionUpdater roslynSuppressionUpdater,
         ISuppressedIssuesCalculatorFactory suppressedIssuesCalculatorFactory,
         IThreadHandling threadHandling)
     {
@@ -82,13 +82,13 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         this.configurationProvider = configurationProvider;
         this.solutionInfoProvider = solutionInfoProvider;
         this.solutionBindingRepository = solutionBindingRepository;
-        this.suppressionUpdater = suppressionUpdater;
+        this.roslynSuppressionUpdater = roslynSuppressionUpdater;
         this.suppressedIssuesCalculatorFactory = suppressedIssuesCalculatorFactory;
         this.threadHandling = threadHandling;
 
-        this.suppressionUpdater.SuppressedIssuesReloaded += OnSuppressedIssuesReloaded;
-        this.suppressionUpdater.NewIssuesSuppressed += OnNewIssuesSuppressed;
-        this.suppressionUpdater.SuppressionsRemoved += OnSuppressionsRemoved;
+        this.roslynSuppressionUpdater.SuppressedIssuesReloaded += OnSuppressedIssuesReloaded;
+        this.roslynSuppressionUpdater.NewIssuesSuppressed += OnNewIssuesSuppressed;
+        this.roslynSuppressionUpdater.SuppressionsRemoved += OnRoslynSuppressionsRemoved;
         solutionBindingRepository.BindingDeleted += OnBindingDeleted;
     }
 
@@ -97,9 +97,9 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
     public void Dispose()
     {
         solutionBindingRepository.BindingDeleted -= OnBindingDeleted;
-        suppressionUpdater.SuppressedIssuesReloaded -= OnSuppressedIssuesReloaded;
-        suppressionUpdater.NewIssuesSuppressed -= OnNewIssuesSuppressed;
-        suppressionUpdater.SuppressionsRemoved -= OnSuppressionsRemoved;
+        roslynSuppressionUpdater.SuppressedIssuesReloaded -= OnSuppressedIssuesReloaded;
+        roslynSuppressionUpdater.NewIssuesSuppressed -= OnNewIssuesSuppressed;
+        roslynSuppressionUpdater.SuppressionsRemoved -= OnRoslynSuppressionsRemoved;
     }
 
     private void OnSuppressedIssuesReloaded(object sender, SuppressionsEventArgs e) =>
@@ -115,7 +115,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         UpdateFileStorageAsync(suppressedIssuesCalculatorFactory.CreateNewSuppressedIssuesCalculator(e.SuppressedIssues)).Forget();
     }
 
-    private void OnSuppressionsRemoved(object sender, SuppressionsRemovedEventArgs e)
+    private void OnRoslynSuppressionsRemoved(object sender, SuppressionsRemovedEventArgs e)
     {
         if (!e.IssueServerKeys.Any())
         {

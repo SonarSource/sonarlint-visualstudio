@@ -20,13 +20,14 @@
 
 using System.IO;
 using System.Net.Http;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Api;
 using SonarQube.Client.Helpers;
-using SonarQube.Client.Logging;
 using SonarQube.Client.Models;
 using SonarQube.Client.Models.ServerSentEvents;
 using SonarQube.Client.Requests;
+using ILogger = SonarQube.Client.Logging.ILogger;
 
 namespace SonarQube.Client;
 
@@ -35,6 +36,7 @@ public class SonarQubeService : ISonarQubeService, IDisposable
     private const string MinSqVersionSupportingBearer = "10.4";
     private readonly IHttpClientHandlerFactory httpClientHandlerFactory;
     private readonly ILogger logger;
+    private readonly ILanguageProvider languageProvider;
     private readonly IRequestFactorySelector requestFactorySelector;
     private readonly ISSEStreamReaderFactory sseStreamReaderFactory;
     private readonly string userAgent;
@@ -42,8 +44,8 @@ public class SonarQubeService : ISonarQubeService, IDisposable
     private ServerInfo currentServerInfo;
     private IRequestFactory requestFactory;
 
-    public SonarQubeService(string userAgent, ILogger logger)
-        : this(new HttpClientHandlerFactory(new ProxyDetector(), logger), userAgent, logger, new RequestFactorySelector(), new SSEStreamReaderFactory(logger))
+    public SonarQubeService(string userAgent, ILogger logger, ILanguageProvider languageProvider)
+        : this(new HttpClientHandlerFactory(new ProxyDetector(), logger), userAgent, logger, languageProvider, new RequestFactorySelector(), new SSEStreamReaderFactory(logger))
     {
     }
 
@@ -51,12 +53,14 @@ public class SonarQubeService : ISonarQubeService, IDisposable
         IHttpClientHandlerFactory httpClientHandlerFactory,
         string userAgent,
         ILogger logger,
+        ILanguageProvider languageProvider,
         IRequestFactorySelector requestFactorySelector,
         ISSEStreamReaderFactory sseStreamReaderFactory)
     {
         this.httpClientHandlerFactory = httpClientHandlerFactory ?? throw new ArgumentNullException(nameof(httpClientHandlerFactory));
         this.userAgent = userAgent ?? throw new ArgumentNullException(nameof(userAgent));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.languageProvider = languageProvider ?? throw new ArgumentNullException(nameof(languageProvider));
 
         this.requestFactorySelector = requestFactorySelector;
         this.sseStreamReaderFactory = sseStreamReaderFactory;
@@ -128,7 +132,7 @@ public class SonarQubeService : ISonarQubeService, IDisposable
             },
             token);
 
-    public async Task<IList<SonarQubeIssue>> GetSuppressedIssuesAsync(
+    public async Task<IList<SonarQubeIssue>> GetSuppressedRoslynIssuesAsync(
         string projectKey,
         string branch,
         string[] issueKeys,
@@ -139,6 +143,7 @@ public class SonarQubeService : ISonarQubeService, IDisposable
                 request.ProjectKey = projectKey;
                 request.Branch = branch;
                 request.IssueKeys = issueKeys;
+                request.Languages = string.Join(",", languageProvider.RoslynLanguages.Select(x => x.ServerLanguageKey));
                 request.Statuses = "RESOLVED"; // Resolved issues will be hidden in SLVS
             },
             token);
