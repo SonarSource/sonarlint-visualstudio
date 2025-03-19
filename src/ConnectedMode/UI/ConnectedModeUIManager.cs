@@ -35,7 +35,7 @@ public interface IConnectedModeUIManager
 
     Task<bool?> ShowTrustConnectionDialogAsync(ServerConnection serverConnection, string token);
 
-    Task<bool?> ShowEditCredentialsDialog(Connection connection);
+    Task<bool?> ShowEditCredentialsDialogAsync(Connection connection);
 }
 
 [Export(typeof(IConnectedModeUIManager))]
@@ -60,7 +60,7 @@ internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedMod
         return dialogResult;
     }
 
-    public async Task<bool?> ShowEditCredentialsDialog(Connection connection)
+    public async Task<bool?> ShowEditCredentialsDialogAsync(Connection connection)
     {
         bool? dialogResult = null;
         await connectedModeServices.ThreadHandling.RunOnUIThreadAsync(() => dialogResult = GetEditCredentialsDialogResult(connection));

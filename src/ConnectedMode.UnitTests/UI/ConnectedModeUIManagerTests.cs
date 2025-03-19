@@ -73,9 +73,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI
         [TestMethod]
         [DataRow(ConnectionServerType.SonarCloud)]
         [DataRow(ConnectionServerType.SonarQube)]
-        public async Task ShowEditCredentialsDialog_RunsOnUIThread(ConnectionServerType serverType)
+        public async Task ShowEditCredentialsDialogAsync_RunsOnUIThread(ConnectionServerType serverType)
         {
-            await testSubject.ShowEditCredentialsDialog(new Connection(new ConnectionInfo("id", serverType)));
+            await testSubject.ShowEditCredentialsDialogAsync(new Connection(new ConnectionInfo("id", serverType)));
 
             await connectedModeServices.ThreadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
         }

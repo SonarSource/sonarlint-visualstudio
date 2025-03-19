@@ -69,7 +69,7 @@ internal class UpdateTokenNotification(
 
     private async Task OnUpdateTokenHandlerAsync(Connection connection)
     {
-        var result = await connectedModeUiManager.ShowEditCredentialsDialog(connection);
+        var result = await connectedModeUiManager.ShowEditCredentialsDialogAsync(connection);
         if (result == true)
         {
             messageBox.Show(string.Format(BindingStrings.UpdateTokenSuccessfullyMessageBoxText, connection.Info.Id), BindingStrings.UpdateTokenSuccessfullyMessageBoxCaption, MessageBoxButton.OK,
