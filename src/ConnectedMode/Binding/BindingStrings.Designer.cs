@@ -123,5 +123,50 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding {
                 return ResourceManager.GetString("UnintrusiveController_InvalidConnection", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dismiss.
+        /// </summary>
+        internal static string UpdateTokenDismissOptionText {
+            get {
+                return ResourceManager.GetString("UpdateTokenDismissOptionText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit Credentials.
+        /// </summary>
+        internal static string UpdateTokenNotificationEditCredentialsOptionText {
+            get {
+                return ResourceManager.GetString("UpdateTokenNotificationEditCredentialsOptionText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The token used for the server connection &quot;{0}&quot; is invalid, please update the credentials..
+        /// </summary>
+        internal static string UpdateTokenNotificationText {
+            get {
+                return ResourceManager.GetString("UpdateTokenNotificationText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Credentials Updated Successfully.
+        /// </summary>
+        internal static string UpdateTokenSuccessfullyMessageBoxCaption {
+            get {
+                return ResourceManager.GetString("UpdateTokenSuccessfullyMessageBoxCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The credentials of the connection &quot;{0}&quot; have been updated successfully.
+        /// </summary>
+        internal static string UpdateTokenSuccessfullyMessageBoxText {
+            get {
+                return ResourceManager.GetString("UpdateTokenSuccessfullyMessageBoxText", resourceCulture);
+            }
+        }
     }
 }

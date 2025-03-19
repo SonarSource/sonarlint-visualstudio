@@ -18,20 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Listener.Connection;
-
-namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
+namespace SonarLint.VisualStudio.SLCore.Listener.Connection
 {
-    [Export(typeof(ISLCoreListener))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    [method: ImportingConstructor]
-    public class ConnectionConfigurationListener(IUpdateTokenNotification updateTokenNotification) : IConnectionConfigurationListener
+    public record InvalidTokenParams(string connectionId)
     {
-        public Task DidSynchronizeConfigurationScopesAsync(object parameters) => Task.CompletedTask;
-
-        public void InvalidToken(InvalidTokenParams parameters) => updateTokenNotification.Show(parameters.connectionId);
     }
 }

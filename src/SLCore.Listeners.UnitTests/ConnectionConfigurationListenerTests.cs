@@ -18,25 +18,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
+using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Listener.Connection;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
 {
     [TestClass]
     public class ConnectionConfigurationListenerTests
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
+        private IUpdateTokenNotification updateTokenNotification;
+        private ConnectionConfigurationListener testSubject;
+
+        [TestInitialize]
+        public void TestInitialize()
         {
-            MefTestHelpers.CheckTypeCanBeImported<ConnectionConfigurationListener, ISLCoreListener>();
+            updateTokenNotification = Substitute.For<IUpdateTokenNotification>();
+            testSubject = new ConnectionConfigurationListener(updateTokenNotification);
         }
 
         [TestMethod]
-        public void Mef_CheckIsSingleton()
-        {
-            MefTestHelpers.CheckIsSingletonMefComponent<ConnectionConfigurationListener>();
-        }
+        public void MefCtor_CheckIsExported() =>
+            MefTestHelpers.CheckTypeCanBeImported<ConnectionConfigurationListener, ISLCoreListener>(
+                MefTestHelpers.CreateExport<IUpdateTokenNotification>());
+
+        [TestMethod]
+        public void Mef_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ConnectionConfigurationListener>();
 
         [TestMethod]
         [DataRow(null)]
@@ -44,11 +51,19 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
         [DataRow("something")]
         public void DidSynchronizeConfigurationScopesAsync_ReturnsTaskCompleted(object parameter)
         {
-            var testSubject = new ConnectionConfigurationListener();
-
             var result = testSubject.DidSynchronizeConfigurationScopesAsync(parameter);
 
             result.Should().Be(Task.CompletedTask);
+        }
+
+        [TestMethod]
+        public void InvalidToken_CallsUpdateTokenNotification()
+        {
+            var parameters = new InvalidTokenParams("myConnectionId");
+
+            testSubject.InvalidToken(parameters);
+
+            updateTokenNotification.Received(1).Show(parameters.connectionId);
         }
     }
 }

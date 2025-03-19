@@ -44,14 +44,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI
         }
 
         [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
+        public void MefCtor_CheckIsExported() =>
             MefTestHelpers.CheckTypeCanBeImported<ConnectedModeUIManager, IConnectedModeUIManager>(
                 MefTestHelpers.CreateExport<IConnectedModeServices>(),
                 MefTestHelpers.CreateExport<IConnectedModeBindingServices>(),
                 MefTestHelpers.CreateExport<IConnectedModeUIServices>()
             );
-        }
 
         [TestMethod]
         public void MefCtor_CheckIsNonShared() => MefTestHelpers.CheckIsNonSharedMefComponent<ConnectedModeUIManager>();
@@ -68,6 +66,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI
         public async Task ShowTrustConnectionDialogAsync_RunsOnUIThread()
         {
             await testSubject.ShowTrustConnectionDialogAsync(new ServerConnection.SonarCloud("myOrg"), null);
+
+            await connectedModeServices.ThreadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
+        }
+
+        [TestMethod]
+        [DataRow(ConnectionServerType.SonarCloud)]
+        [DataRow(ConnectionServerType.SonarQube)]
+        public async Task ShowEditCredentialsDialogAsync_RunsOnUIThread(ConnectionServerType serverType)
+        {
+            await testSubject.ShowEditCredentialsDialogAsync(new Connection(new ConnectionInfo("id", serverType)));
 
             await connectedModeServices.ThreadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
         }
