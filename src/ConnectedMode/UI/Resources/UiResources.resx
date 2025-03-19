@@ -144,6 +144,9 @@
   <data name="EditConnectionToolTip" xml:space="preserve">
     <value>Edit the authentication details of the connection</value>
   </data>
+  <data name="InvalidTokenToolTip" xml:space="preserve">
+    <value>The token for this connection is invalid. Edit the authentication details by clicking on the edit button.</value>
+  </data>
   <data name="ExistingConnectionsLabel" xml:space="preserve">
     <value>Existing Connections</value>
   </data>

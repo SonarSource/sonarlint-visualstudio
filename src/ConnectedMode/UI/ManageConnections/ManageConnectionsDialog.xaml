@@ -20,6 +20,8 @@
                     Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/TrashCanImage.xaml" />
                 <ResourceDictionary
                     Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Pencil.xaml" />
+                <ResourceDictionary
+                    Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/WarningImage.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
         </ResourceDictionary>
@@ -94,16 +96,22 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <Button Grid.Column="0" Style="{StaticResource IconButtonStyle}"
+                               
+                                <Image Grid.Column="0" Width="20" Height="20" VerticalAlignment="Center"
+                                       Source="{StaticResource WarningDrawingImage}"
+                                       ToolTip="{x:Static res:UiResources.InvalidTokenToolTip}"
+                                       Visibility="{Binding Path=HasInvalidToken, Converter={StaticResource TrueToVisibleConverter}}"/>
+                                <Button Grid.Column="1" Style="{StaticResource IconButtonStyle}"
                                         ToolTip="{x:Static res:UiResources.EditConnectionToolTip}"
                                         Click="EditConnection_Clicked">
                                     <Image Width="20" Height="20" VerticalAlignment="Center" Cursor="Hand"
                                            Source="{StaticResource PencilDrawingImage}"
                                            Margin="5,0" />
                                 </Button>
-                                <Button Grid.Column="1" Style="{StaticResource IconButtonStyle}"
+                                <Button Grid.Column="2" Style="{StaticResource IconButtonStyle}"
                                         ToolTip="{x:Static res:UiResources.RemoveConnectionToolTip}"
                                         Click="RemoveConnectionButton_OnClick">
                                     <Image VerticalAlignment="Center" Cursor="Hand"
