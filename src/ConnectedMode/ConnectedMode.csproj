@@ -70,6 +70,7 @@
     <Page Include="UI\Resources\WarningImage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="UI\ProjectSelection\ManualProjectSelectionDialog.xaml" />
     <Page Include="UI\Resources\CheckImage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

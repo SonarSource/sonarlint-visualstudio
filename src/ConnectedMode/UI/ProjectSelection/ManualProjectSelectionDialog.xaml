@@ -1,0 +1,42 @@
+﻿<Window x:Class="SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection.ManualProjectSelectionDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
+        Title="{x:Static ui:UiResources.ManualProjectSelectionDialogTitle}"
+        Width="400"
+        Height="200"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        x:Name="This">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary
+                    Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Window.Style>
+        <Style TargetType="Window" BasedOn="{StaticResource {x:Type Window}}"></Style>
+    </Window.Style>
+
+    <Grid Margin="10" DataContext="{Binding ElementName=This, Path=ViewModel}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Orientation="Vertical" >
+            <TextBlock Text="{x:Static ui:UiResources.ManualProjectSelectionLabel}" Margin="0,0,0, 20"/>
+            <TextBox
+                Text="{Binding ProjectKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+            </TextBox>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Style="{StaticResource DialogButtonsPanel}">
+            <Button Content="{x:Static ui:UiResources.OkButton}" 
+                               IsDefault="True"
+                               Click="OkButton_OnClick"
+                               IsEnabled="{Binding IsValidProjectKey, UpdateSourceTrigger=PropertyChanged}" />
+            <Button Content="{x:Static ui:UiResources.CancelButton}" IsCancel="True" />
+        </StackPanel>
+    </Grid>
+</Window>

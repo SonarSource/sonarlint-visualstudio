@@ -494,4 +494,19 @@ Please commit this file to share it with other contributors. See documentation f
   <data name="BindingErrorTooltip" xml:space="preserve">
     <value>An error occured when binding to the project on the server.</value>
   </data>
+  <data name="ChooseAnotherProjectButton" xml:space="preserve">
+    <value>Having trouble? Manually enter a project key</value>
+  </data>
+  <data name="ManualProjectSelectionDialogTitle" xml:space="preserve">
+    <value>Use Another Project</value>
+  </data>
+  <data name="ManualProjectSelectionLabel" xml:space="preserve">
+    <value>Enter project key:</value>
+  </data>
+  <data name="FetchingProjectInfoProgressText" xml:space="preserve">
+    <value>Fetching project info...</value>
+  </data>
+  <data name="FetchingProjectInfoFailedText" xml:space="preserve">
+    <value>Project was not found.</value>
+  </data>
 </root>

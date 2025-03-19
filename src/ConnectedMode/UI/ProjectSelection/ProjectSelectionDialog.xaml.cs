@@ -48,4 +48,17 @@ public partial class ProjectSelectionDialog
     {
         await ViewModel.InitializeProjectWithProgressAsync();
     }
+
+    private async void ChooseAnotherProjectButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        ViewModel.SelectedProject = null;
+        var manualProjectSelectionDialog = new ManualProjectSelectionDialog();
+        var manualSelectionDialogSucceeded = manualProjectSelectionDialog.ShowDialog(this);
+        if (manualSelectionDialogSucceeded is not true)
+        {
+            return;
+        }
+
+        await ViewModel.AddManualProjectWithProgressAsync(manualProjectSelectionDialog.ViewModel.ProjectKey);
+    }
 }
