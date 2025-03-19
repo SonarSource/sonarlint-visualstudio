@@ -18,17 +18,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 
 public class ConnectionViewModel : ViewModelBase
 {
+    private readonly ServerConnection serverConnection;
+    private readonly IServerConnectionWithInvalidTokenRepository serverConnectionWithInvalidTokenRepository;
+
     public Connection Connection { get; }
 
     public string Name => Connection.Info.Id;
 
     public string ServerType => Connection.Info.ServerType.ToString();
+
+    public bool HasInvalidToken => serverConnectionWithInvalidTokenRepository.HasInvalidToken(serverConnection.Id);
 
     public bool EnableSmartNotifications
     {
@@ -40,9 +46,13 @@ public class ConnectionViewModel : ViewModelBase
         }
     }
 
-    public ConnectionViewModel(Connection connection)
+    public ConnectionViewModel(Connection connection, IServerConnectionWithInvalidTokenRepository serverConnectionWithInvalidTokenRepository)
     {
+        this.serverConnectionWithInvalidTokenRepository = serverConnectionWithInvalidTokenRepository;
         Connection = connection;
+        serverConnection = connection.ToServerConnection();
         EnableSmartNotifications = connection.EnableSmartNotifications;
     }
+
+    public void RefreshInvalidToken() => RaisePropertyChanged(nameof(HasInvalidToken));
 }
