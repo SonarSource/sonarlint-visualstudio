@@ -357,138 +357,6 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public async Task UpdateConnectionCredentialsWithProgressAsync_UpdatesConnectionAndReportsProgress()
-    {
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponse>>()).Returns(Task.FromResult(new AdapterResponse(true)));
-        var connectionToUpdate = CreateSonarCloudConnection();
-
-        await testSubject.UpdateConnectionCredentialsWithProgressAsync(connectionToUpdate, Substitute.For<ICredentialsModel>());
-
-        await progressReporterViewModel.Received(1)
-            .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
-                    x.ProgressStatus == UiResources.UpdatingConnectionCredentialsProgressText &&
-                    x.WarningText == UiResources.UpdatingConnectionCredentialsFailedText));
-    }
-
-    [TestMethod]
-    public async Task UpdateConnectionCredentialsWithProgressAsync_WhenCurrentSolutionIsBoundToUpdatedConnection_RebindsAndReportsProgress()
-    {
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponse>>()).Returns(Task.FromResult(new AdapterResponse(true)));
-        var connectionToUpdate = CreateSonarCloudConnection();
-        var serverConnectionToUpdate = CreateSonarCloudServerConnection(connectionToUpdate);
-        var configurationProvider = Substitute.For<IConfigurationProvider>();
-        configurationProvider.GetConfiguration().Returns(new BindingConfiguration(new BoundServerProject("local", "server", serverConnectionToUpdate), SonarLintMode.Connected, "binding-dir"));
-        connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
-
-        await testSubject.UpdateConnectionCredentialsWithProgressAsync(connectionToUpdate, Substitute.For<ICredentialsModel>());
-
-        await progressReporterViewModel.Received(1)
-            .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
-                    x.ProgressStatus == UiResources.RebindingProgressText &&
-                    x.WarningText == UiResources.RebindingFailedText));
-    }
-
-    [TestMethod]
-    public async Task UpdateConnectionCredentialsWithProgressAsync_WhenCurrentSolutionIsStandalone_DoesNotRebindAndReportsProgress()
-    {
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponse>>()).Returns(Task.FromResult(new AdapterResponse(true)));
-        var connectionToUpdate = CreateSonarCloudConnection();
-        var configurationProvider = Substitute.For<IConfigurationProvider>();
-        configurationProvider.GetConfiguration().Returns(BindingConfiguration.Standalone);
-        connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
-
-        await testSubject.UpdateConnectionCredentialsWithProgressAsync(connectionToUpdate, Substitute.For<ICredentialsModel>());
-
-        await progressReporterViewModel.DidNotReceive()
-            .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
-                    x.ProgressStatus == UiResources.RebindingProgressText &&
-                    x.WarningText == UiResources.RebindingFailedText));
-    }
-
-    [TestMethod]
-    public async Task UpdateConnectionCredentialsWithProgressAsync_WhenConnectionFailedToUpdate_DoesNotRebindAndReportsProgress()
-    {
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponse>>()).Returns(Task.FromResult(new AdapterResponse(false)));
-        var connectionToUpdate = CreateSonarCloudConnection();
-
-        await testSubject.UpdateConnectionCredentialsWithProgressAsync(connectionToUpdate, Substitute.For<ICredentialsModel>());
-
-        await progressReporterViewModel.DidNotReceive()
-            .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
-                    x.ProgressStatus == UiResources.RebindingProgressText &&
-                    x.WarningText == UiResources.RebindingFailedText));
-    }
-
-    [TestMethod]
-    public void UpdateConnectionCredentials_UpdatesProvidedConnection()
-    {
-        var connectionToUpdate = CreateSonarCloudConnection();
-        var credentials = Substitute.For<ICredentialsModel>();
-        serverConnectionsRepositoryAdapter.TryUpdateCredentials(connectionToUpdate, credentials).Returns(true);
-
-        var succeeded = testSubject.UpdateConnectionCredentials(connectionToUpdate, credentials);
-
-        succeeded.Should().BeTrue();
-        serverConnectionsRepositoryAdapter.Received(1).TryUpdateCredentials(connectionToUpdate, credentials);
-    }
-
-    [TestMethod]
-    public void UpdateConnectionCredentials_ConnectionIsNull_DoesNotUpdateConnection()
-    {
-        var succeeded = testSubject.UpdateConnectionCredentials(null, Substitute.For<ICredentialsModel>());
-
-        succeeded.Should().BeFalse();
-        serverConnectionsRepositoryAdapter.DidNotReceive().TryUpdateCredentials(Arg.Any<Connection>(), Arg.Any<ICredentialsModel>());
-    }
-
-    [TestMethod]
-    public async Task RebindAsync_WhenServerConnectionCannotBeFound_Fails()
-    {
-        connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(Arg.Any<ConnectionInfo>(), out Arg.Any<ServerConnection>()).Returns(false);
-        var connectionToUpdate = CreateSonarCloudConnection();
-
-        var response = await testSubject.RebindAsync(connectionToUpdate, "serverProjectKey");
-
-        await bindingController.DidNotReceiveWithAnyArgs().BindAsync(Arg.Any<BoundServerProject>(), Arg.Any<CancellationToken>());
-        response.Success.Should().BeFalse();
-    }
-
-    [TestMethod]
-    public async Task RebindAsync_WhenExceptionThrownDuringBinding_Fails()
-    {
-        var connectionToUpdate = CreateSonarCloudConnection();
-        var serverConnectionToUpdate = CreateSonarCloudServerConnection(connectionToUpdate);
-        MockTryGetServerConnection(serverConnectionToUpdate);
-        solutionInfoProvider.GetSolutionNameAsync().Returns(Task.FromResult("mySolution"));
-        bindingController.BindAsync(Arg.Any<BoundServerProject>(), Arg.Any<CancellationToken>()).Returns(_ => throw new Exception("Failed to bind"));
-
-        var response = await testSubject.RebindAsync(connectionToUpdate, "serverProjectKey");
-
-        await bindingController.ReceivedWithAnyArgs().BindAsync(Arg.Any<BoundServerProject>(), Arg.Any<CancellationToken>());
-        response.Success.Should().BeFalse();
-    }
-
-    [TestMethod]
-    public async Task RebindAsync_WhenBindingSucceeds_Succeed()
-    {
-        var connectionToUpdate = CreateSonarCloudConnection();
-        var serverConnectionToUpdate = CreateSonarCloudServerConnection(connectionToUpdate);
-        MockTryGetServerConnection(serverConnectionToUpdate);
-        solutionInfoProvider.GetSolutionNameAsync().Returns(Task.FromResult("mySolution"));
-
-        var response = await testSubject.RebindAsync(connectionToUpdate, "serverProjectKey");
-
-        await bindingController.Received().BindAsync(Arg.Is<BoundServerProject>(
-                x => x.LocalBindingKey == "mySolution" && x.ServerConnection == serverConnectionToUpdate),
-            CancellationToken.None);
-        response.Success.Should().BeTrue();
-    }
-
-    [TestMethod]
     public async Task GetConnectionReferencesWithProgressAsync_CalculatesReferencesAndReportsProgress()
     {
         progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponseWithData<List<string>>>>()).Returns(new AdapterResponseWithData<List<string>>(true, []));
@@ -651,38 +519,18 @@ public class ManageConnectionsViewModelTest
         connectedModeBindingServices.BindingController.Returns(bindingController);
     }
 
-    private void MockTryGetConnections(List<Connection> connections)
-    {
+    private void MockTryGetConnections(List<Connection> connections) =>
         serverConnectionsRepositoryAdapter.TryGetAllConnections(out _).Returns(callInfo =>
         {
             callInfo[0] = connections;
             return true;
         });
-    }
 
-    private void MockTryGetServerConnection(ServerConnection expectedServerConnection = null)
-    {
-        serverConnectionsRepositoryAdapter.TryGet(Arg.Any<ConnectionInfo>(), out _).Returns(callInfo =>
-        {
-            callInfo[1] = expectedServerConnection;
-            return true;
-        });
-    }
+    private static Connection CreateSonarCloudConnection() => new(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false);
 
-    private static Connection CreateSonarCloudConnection()
-    {
-        return new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false);
-    }
+    private static ServerConnection.SonarCloud CreateSonarCloudServerConnection(Connection sonarCloud) => new(sonarCloud.Info.Id);
 
-    private static ServerConnection.SonarCloud CreateSonarCloudServerConnection(Connection sonarCloud)
-    {
-        return new ServerConnection.SonarCloud(sonarCloud.Info.Id);
-    }
-
-    private static ServerConnection.SonarQube CreateSonarQubeServerConnection(Connection sonarQube)
-    {
-        return new ServerConnection.SonarQube(new Uri(sonarQube.Info.Id));
-    }
+    private static ServerConnection.SonarQube CreateSonarQubeServerConnection(Connection sonarQube) => new(new Uri(sonarQube.Info.Id));
 
     private void MockDeleteBinding(string localBindingKey, bool success) => connectedModeBindingServices.SolutionBindingRepository.DeleteBinding(localBindingKey).Returns(success);
 

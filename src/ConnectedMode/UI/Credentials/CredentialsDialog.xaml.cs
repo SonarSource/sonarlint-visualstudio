@@ -38,17 +38,29 @@ public partial class CredentialsDialog : Window
         IConnectedModeServices connectedModeServices,
         IConnectedModeUIServices connectedModeUiServices,
         ConnectionInfo connectionInfo,
+        bool withNextButton) :
+        this(connectedModeServices,
+            connectedModeUiServices,
+            new CredentialsViewModel(connectionInfo, connectedModeServices.SlCoreConnectionAdapter, new ProgressReporterViewModel(connectedModeServices.Logger)),
+            withNextButton)
+    {
+    }
+
+    protected CredentialsDialog(
+        IConnectedModeServices connectedModeServices,
+        IConnectedModeUIServices connectedModeUiServices,
+        CredentialsViewModel viewModel,
         bool withNextButton)
     {
         this.connectedModeServices = connectedModeServices;
         ConnectedModeUiServices = connectedModeUiServices;
-        ViewModel = new CredentialsViewModel(connectionInfo,
-            connectedModeServices.SlCoreConnectionAdapter,
-            new ProgressReporterViewModel(connectedModeServices.Logger));
+        ViewModel = viewModel;
         InitializeComponent();
 
         ConfirmationBtn.Content = withNextButton ? UiResources.NextButton : UiResources.OkButton;
     }
+
+    protected virtual Task BeforeWindowCloseWithSuccessAsync() => Task.CompletedTask;
 
     private void TokenPasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e) => ViewModel.Token = TokenBox.SecurePassword;
 
@@ -59,11 +71,12 @@ public partial class CredentialsDialog : Window
         {
             return;
         }
-        CloseWindowWithSuccess();
+        await CloseWindowWithSuccessAsync();
     }
 
-    private void CloseWindowWithSuccess()
+    private async Task CloseWindowWithSuccessAsync()
     {
+        await BeforeWindowCloseWithSuccessAsync();
         DialogResult = true;
         Close();
     }
@@ -92,7 +105,7 @@ public partial class CredentialsDialog : Window
         {
             TokenBox.Password = responseWithData.ResponseData;
             ConnectedModeUiServices.IdeWindowService.BringToFront();
-            CloseWindowWithSuccess();
+            await CloseWindowWithSuccessAsync();
         }
         else
         {

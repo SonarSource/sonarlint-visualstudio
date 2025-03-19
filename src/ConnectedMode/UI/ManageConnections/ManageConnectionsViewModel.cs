@@ -21,12 +21,14 @@
 using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 {
-    public class ManageConnectionsViewModel(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices, IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
+    public class ManageConnectionsViewModel(
+        IConnectedModeServices connectedModeServices,
+        IConnectedModeBindingServices connectedModeBindingServices,
+        IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
     {
         public IConnectedModeBindingServices ConnectedModeBindingServices { get; } = connectedModeBindingServices;
         public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
@@ -97,30 +99,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
         }
 
-        internal async Task UpdateConnectionCredentialsWithProgressAsync(Connection connection, ICredentialsModel credentialsModel)
-        {
-            var validationParams = new TaskToPerformParams<AdapterResponse>(
-                async () => await SafeExecuteActionAsync(() => UpdateConnectionCredentials(connection, credentialsModel)),
-                UiResources.UpdatingConnectionCredentialsProgressText,
-                UiResources.UpdatingConnectionCredentialsFailedText);
-            var response = await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
-
-            if (!response.Success)
-            {
-                return;
-            }
-
-            var boundServerProject = connectedModeServices.ConfigurationProvider.GetConfiguration()?.Project;
-            if (boundServerProject != null && ConnectionInfo.From(boundServerProject.ServerConnection).Id == connection.Info.Id)
-            {
-                var refreshBinding = new TaskToPerformParams<AdapterResponse>(
-                    async () => await RebindAsync(connection, boundServerProject.ServerProjectKey),
-                    UiResources.RebindingProgressText,
-                    UiResources.RebindingFailedText);
-                await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(refreshBinding);
-            }
-        }
-
         internal async Task<AdapterResponse> SafeExecuteActionAsync(Func<bool> funcToExecute)
         {
             var succeeded = false;
@@ -174,7 +152,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             var currentSolutionName = ConnectedModeBindingServices.SolutionInfoProvider.GetSolutionName();
             foreach (var connectionReference in connectionReferences)
             {
-                var bindingDeleted = currentSolutionName == connectionReference ? ConnectedModeBindingServices.BindingController.Unbind(connectionReference) : ConnectedModeBindingServices.SolutionBindingRepository.DeleteBinding(connectionReference);
+                var bindingDeleted = currentSolutionName == connectionReference
+                    ? ConnectedModeBindingServices.BindingController.Unbind(connectionReference)
+                    : ConnectedModeBindingServices.SolutionBindingRepository.DeleteBinding(connectionReference);
                 if (!bindingDeleted)
                 {
                     connectedModeServices.Logger.WriteLine(UiResources.DeleteConnection_DeleteBindingFails, connectionReference);
@@ -195,40 +175,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             return succeeded;
         }
 
-        internal bool UpdateConnectionCredentials(Connection connection, ICredentialsModel credentialsModel)
-        {
-            if (connection is null)
-            {
-                return false;
-            }
-
-            return connectedModeServices.ServerConnectionsRepositoryAdapter.TryUpdateCredentials(connection, credentialsModel);
-        }
-
-        internal async Task<AdapterResponse> RebindAsync(Connection connection, string serverProjectKey)
-        {
-            if (!connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(connection.Info, out var serverConnection))
-            {
-                return new AdapterResponse(false);
-            }
-
-            try
-            {
-                var localBindingKey = await ConnectedModeBindingServices.SolutionInfoProvider.GetSolutionNameAsync();
-                var boundServerProject = new BoundServerProject(localBindingKey, serverProjectKey, serverConnection);
-                await ConnectedModeBindingServices.BindingController.BindAsync(boundServerProject, CancellationToken.None);
-                return new AdapterResponse(true);
-            }
-            catch (Exception)
-            {
-                return new AdapterResponse(false);
-            }
-        }
-
         internal void AddConnectionViewModel(Connection connection)
         {
-           ConnectionViewModels.Add(new ConnectionViewModel(connection));
-           RaisePropertyChanged(nameof(NoConnectionExists));
+            ConnectionViewModels.Add(new ConnectionViewModel(connection));
+            RaisePropertyChanged(nameof(NoConnectionExists));
         }
     }
 }
