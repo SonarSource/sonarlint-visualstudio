@@ -20,18 +20,23 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Connection;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
-{
-    [Export(typeof(ISLCoreListener))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    [method: ImportingConstructor]
-    public class ConnectionConfigurationListener(IUpdateTokenNotification updateTokenNotification) : IConnectionConfigurationListener
-    {
-        public Task DidSynchronizeConfigurationScopesAsync(object parameters) => Task.CompletedTask;
+namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 
-        public void InvalidToken(InvalidTokenParams parameters) => updateTokenNotification.Show(parameters.connectionId);
+[Export(typeof(ISLCoreListener))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+public class ConnectionConfigurationListener(IUpdateTokenNotification updateTokenNotification, IServerConnectionWithInvalidTokenRepository serverConnectionWithInvalidTokenRepository)
+    : IConnectionConfigurationListener
+{
+    public Task DidSynchronizeConfigurationScopesAsync(object parameters) => Task.CompletedTask;
+
+    public void InvalidToken(InvalidTokenParams parameters)
+    {
+        serverConnectionWithInvalidTokenRepository.AddConnectionIdWithInvalidToken(parameters.connectionId);
+        updateTokenNotification.Show(parameters.connectionId);
     }
 }

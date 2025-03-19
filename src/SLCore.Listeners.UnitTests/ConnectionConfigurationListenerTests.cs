@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Connection;
 
@@ -29,18 +30,21 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
     {
         private IUpdateTokenNotification updateTokenNotification;
         private ConnectionConfigurationListener testSubject;
+        private IServerConnectionWithInvalidTokenRepository serverConnectionWithInvalidTokenRepository;
 
         [TestInitialize]
         public void TestInitialize()
         {
             updateTokenNotification = Substitute.For<IUpdateTokenNotification>();
-            testSubject = new ConnectionConfigurationListener(updateTokenNotification);
+            serverConnectionWithInvalidTokenRepository = Substitute.For<IServerConnectionWithInvalidTokenRepository>();
+            testSubject = new ConnectionConfigurationListener(updateTokenNotification, serverConnectionWithInvalidTokenRepository);
         }
 
         [TestMethod]
         public void MefCtor_CheckIsExported() =>
             MefTestHelpers.CheckTypeCanBeImported<ConnectionConfigurationListener, ISLCoreListener>(
-                MefTestHelpers.CreateExport<IUpdateTokenNotification>());
+                MefTestHelpers.CreateExport<IUpdateTokenNotification>(),
+                MefTestHelpers.CreateExport<IServerConnectionWithInvalidTokenRepository>());
 
         [TestMethod]
         public void Mef_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ConnectionConfigurationListener>();
@@ -64,6 +68,16 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
             testSubject.InvalidToken(parameters);
 
             updateTokenNotification.Received(1).Show(parameters.connectionId);
+        }
+
+        [TestMethod]
+        public void InvalidToken_AddsConnectionIdToTheInvalid()
+        {
+            var parameters = new InvalidTokenParams("myConnectionId");
+
+            testSubject.InvalidToken(parameters);
+
+            serverConnectionWithInvalidTokenRepository.Received(1).AddConnectionIdWithInvalidToken(parameters.connectionId);
         }
     }
 }
