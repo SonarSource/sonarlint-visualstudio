@@ -18,8 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 
+[ExcludeFromCodeCoverage] // UI, not really unit-testable
 public class EditCredentialsDialog : CredentialsDialog
 {
     private readonly EditCredentialsViewModel editConnectionTokenViewModel;
