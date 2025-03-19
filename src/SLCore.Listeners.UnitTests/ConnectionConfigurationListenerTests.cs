@@ -38,7 +38,9 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
         }
 
         [TestMethod]
-        public void MefCtor_CheckIsExported() => MefTestHelpers.CheckTypeCanBeImported<ConnectionConfigurationListener, ISLCoreListener>();
+        public void MefCtor_CheckIsExported() =>
+            MefTestHelpers.CheckTypeCanBeImported<ConnectionConfigurationListener, ISLCoreListener>(
+                MefTestHelpers.CreateExport<IUpdateTokenNotification>());
 
         [TestMethod]
         public void Mef_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ConnectionConfigurationListener>();
