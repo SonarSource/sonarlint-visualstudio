@@ -351,6 +351,32 @@ same 1</Paragraph>
             result.Replace("\r\n", "\n").Should().Be(expectedText.Replace("\r\n", "\n"));
         }
 
+        [TestMethod]
+        public void TranslateHtmlToXaml_CompliantCodeExists_AndNonCompliantDoesNotExist_ShowsJustCompliantCodeWithoutAnyHighlighting()
+        {
+            var htmlText = "<pre data-diff-type=\"compliant\" data-diff-id=\"1\">Some text</pre>";
+            var expectedText = @"<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
+  <Paragraph>Some text</Paragraph>
+</Section>";
+
+            var result = testSubject.TranslateHtmlToXaml(htmlText);
+
+            result.Should().Be(expectedText);
+        }
+
+        [TestMethod]
+        public void TranslateHtmlToXaml_NonCompliantCodeExists_AndCompliantDoesNotExist_ShowsJustNonCompliantCodeWithoutAnyHighlighting()
+        {
+            var htmlText = "<pre data-diff-type=\"noncompliant\" data-diff-id=\"1\">Some text</pre>";
+            var expectedText = @"<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
+  <Paragraph>Some text</Paragraph>
+</Section>";
+
+            var result = testSubject.TranslateHtmlToXaml(htmlText);
+
+            result.Should().Be(expectedText);
+        }
+
         private static IRuleHelpXamlTranslator CreateTestSubject(IXamlWriterFactory xamlWriterFactory, IDiffTranslator diffTranslator) =>
             new RuleHelpXamlTranslatorFactory(xamlWriterFactory, diffTranslator).Create();
     }
