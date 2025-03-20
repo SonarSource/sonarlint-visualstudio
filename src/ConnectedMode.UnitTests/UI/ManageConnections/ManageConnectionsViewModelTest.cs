@@ -539,5 +539,5 @@ public class ManageConnectionsViewModelTest
 
     private void InitializeCurrentSolution(string solutionName) => connectedModeBindingServices.SolutionInfoProvider.GetSolutionName().Returns(solutionName);
 
-    private ConnectionViewModel CreateConnectionViewModel(Connection connection) => new(connection, connectedModeServices.ServerConnectionWithInvalidTokenRepository);
+    private ConnectionViewModel CreateConnectionViewModel(Connection connection) => new(connection, connectedModeServices.ServerConnectionsRepositoryAdapter);
 }
