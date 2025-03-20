@@ -72,7 +72,7 @@ public class ConnectionViewModelTests
     }
 
     [TestMethod]
-    public void ERefreshInvalidToken_RaisesPropertyChangedForHasInvalidToken()
+    public void RefreshInvalidToken_RaisesPropertyChangedForHasInvalidToken()
     {
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
