@@ -20,7 +20,6 @@
 
 using System.ComponentModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
-using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageConnections;
 
@@ -28,14 +27,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageConnections;
 public class ConnectionViewModelTests
 {
     private readonly Connection sonarCloudConnection = new(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud));
-    private IServerConnectionWithInvalidTokenRepository serverConnectionWithInvalidTokenRepository;
+    private IServerConnectionsRepositoryAdapter serverConnectionRepositoryAdapter;
     private ConnectionViewModel testSubject;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        serverConnectionWithInvalidTokenRepository = Substitute.For<IServerConnectionWithInvalidTokenRepository>();
-        testSubject = new ConnectionViewModel(sonarCloudConnection, serverConnectionWithInvalidTokenRepository);
+        serverConnectionRepositoryAdapter = Substitute.For<IServerConnectionsRepositoryAdapter>();
+        testSubject = new ConnectionViewModel(sonarCloudConnection, serverConnectionRepositoryAdapter);
     }
 
     [TestMethod]
@@ -66,7 +65,7 @@ public class ConnectionViewModelTests
     [DataRow(false)]
     public void HasInvalidToken_ReturnsTrueOnlyIfConnectionIdExistsInRepository(bool hasInvalidToken)
     {
-        serverConnectionWithInvalidTokenRepository.HasInvalidToken(sonarCloudConnection.ToServerConnection().Id).Returns(hasInvalidToken);
+        serverConnectionRepositoryAdapter.HasInvalidToken(sonarCloudConnection).Returns(hasInvalidToken);
 
         testSubject.HasInvalidToken.Should().Be(hasInvalidToken);
     }

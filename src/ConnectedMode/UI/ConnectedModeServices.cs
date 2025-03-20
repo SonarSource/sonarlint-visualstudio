@@ -32,7 +32,6 @@ public interface IConnectedModeServices
     public ISlCoreConnectionAdapter SlCoreConnectionAdapter { get; }
     public IConfigurationProvider ConfigurationProvider { get; }
     public IServerConnectionsRepositoryAdapter ServerConnectionsRepositoryAdapter { get; }
-    public IServerConnectionWithInvalidTokenRepository ServerConnectionWithInvalidTokenRepository { get; }
     public ITelemetryManager TelemetryManager { get; }
 }
 
@@ -44,13 +43,11 @@ public class ConnectedModeServices(
     ISlCoreConnectionAdapter slCoreConnectionAdapter,
     IConfigurationProvider configurationProvider,
     IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter,
-    IServerConnectionWithInvalidTokenRepository serverConnectionWithInvalidTokenRepository,
     ILogger logger,
     ITelemetryManager telemetryManager)
     : IConnectedModeServices
 {
     public IServerConnectionsRepositoryAdapter ServerConnectionsRepositoryAdapter { get; } = serverConnectionsRepositoryAdapter;
-    public IServerConnectionWithInvalidTokenRepository ServerConnectionWithInvalidTokenRepository { get; } = serverConnectionWithInvalidTokenRepository;
     public ITelemetryManager TelemetryManager { get; } = telemetryManager;
     public IThreadHandling ThreadHandling { get; } = threadHandling;
     public ILogger Logger { get; } = logger.ForContext(ConnectedMode.Resources.ConnectedModeLogContext);

@@ -36,7 +36,6 @@ public class ConnectedModeServicesTests
             MefTestHelpers.CreateExport<ISlCoreConnectionAdapter>(),
             MefTestHelpers.CreateExport<IConfigurationProvider>(),
             MefTestHelpers.CreateExport<IServerConnectionsRepositoryAdapter>(),
-            MefTestHelpers.CreateExport<IServerConnectionWithInvalidTokenRepository>(),
             MefTestHelpers.CreateExport<ITelemetryManager>(),
             MefTestHelpers.CreateExport<ILogger>()
         );
@@ -50,7 +49,6 @@ public class ConnectedModeServicesTests
             Substitute.For<ISlCoreConnectionAdapter>(),
             Substitute.For<IConfigurationProvider>(),
             Substitute.For<IServerConnectionsRepositoryAdapter>(),
-            Substitute.For<IServerConnectionWithInvalidTokenRepository>(),
             logger,
             Substitute.For<ITelemetryManager>()
         );
