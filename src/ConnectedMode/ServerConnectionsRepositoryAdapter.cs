@@ -82,11 +82,11 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
 
     public bool TryGet(ConnectionInfo connection, out ServerConnection serverConnection) => TryGet(connection.GetServerIdFromConnectionInfo(), out serverConnection);
 
+    public bool TryGet(string serverConnectionId, out ServerConnection serverConnection) => serverConnectionsRepository.TryGet(serverConnectionId, out serverConnection);
+
     public void AddConnectionWithInvalidToken(Connection connection) => serverConnectionWithInvalidToken.AddConnectionIdWithInvalidToken(connection.ToServerConnection().Id);
 
     public bool HasInvalidToken(Connection connection) => serverConnectionWithInvalidToken.HasInvalidToken(connection.ToServerConnection().Id);
-
-    public bool TryGet(string serverConnectionId, out ServerConnection serverConnection) => serverConnectionsRepository.TryGet(serverConnectionId, out serverConnection);
 
     public bool TryRemoveConnection(ConnectionInfo connectionInfo)
     {
