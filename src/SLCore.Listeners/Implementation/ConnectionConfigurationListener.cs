@@ -29,7 +29,10 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 [Export(typeof(ISLCoreListener))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-public class ConnectionConfigurationListener(IUpdateTokenNotification updateTokenNotification, IServerConnectionWithInvalidTokenRepository serverConnectionWithInvalidTokenRepository)
+public class ConnectionConfigurationListener(
+    IUpdateTokenNotification updateTokenNotification,
+    IServerConnectionWithInvalidTokenRepository serverConnectionWithInvalidTokenRepository,
+    IConfigurationProvider configurationProvider)
     : IConnectionConfigurationListener
 {
     public Task DidSynchronizeConfigurationScopesAsync(object parameters) => Task.CompletedTask;
@@ -37,6 +40,11 @@ public class ConnectionConfigurationListener(IUpdateTokenNotification updateToke
     public void InvalidToken(InvalidTokenParams parameters)
     {
         serverConnectionWithInvalidTokenRepository.AddConnectionIdWithInvalidToken(parameters.connectionId);
-        updateTokenNotification.Show(parameters.connectionId);
+
+        if (configurationProvider.GetConfiguration().Mode == SonarLintMode.Standalone ||
+            configurationProvider.GetConfiguration().Project?.ServerConnection.Id == parameters.connectionId)
+        {
+            updateTokenNotification.Show(parameters.connectionId);
+        }
     }
 }
