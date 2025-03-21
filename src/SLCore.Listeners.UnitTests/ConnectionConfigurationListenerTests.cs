@@ -31,20 +31,23 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
         private IUpdateTokenNotification updateTokenNotification;
         private ConnectionConfigurationListener testSubject;
         private IServerConnectionWithInvalidTokenRepository serverConnectionWithInvalidTokenRepository;
+        private IConfigurationProvider configurationProvider;
 
         [TestInitialize]
         public void TestInitialize()
         {
             updateTokenNotification = Substitute.For<IUpdateTokenNotification>();
             serverConnectionWithInvalidTokenRepository = Substitute.For<IServerConnectionWithInvalidTokenRepository>();
-            testSubject = new ConnectionConfigurationListener(updateTokenNotification, serverConnectionWithInvalidTokenRepository);
+            configurationProvider = Substitute.For<IConfigurationProvider>();
+            testSubject = new ConnectionConfigurationListener(updateTokenNotification, serverConnectionWithInvalidTokenRepository, configurationProvider);
         }
 
         [TestMethod]
         public void MefCtor_CheckIsExported() =>
             MefTestHelpers.CheckTypeCanBeImported<ConnectionConfigurationListener, ISLCoreListener>(
                 MefTestHelpers.CreateExport<IUpdateTokenNotification>(),
-                MefTestHelpers.CreateExport<IServerConnectionWithInvalidTokenRepository>());
+                MefTestHelpers.CreateExport<IServerConnectionWithInvalidTokenRepository>(),
+                MefTestHelpers.CreateExport<IConfigurationProvider>());
 
         [TestMethod]
         public void Mef_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ConnectionConfigurationListener>();
@@ -61,23 +64,46 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
         }
 
         [TestMethod]
-        public void InvalidToken_CallsUpdateTokenNotification()
+        public void InvalidToken_ConnectedMode_ConnectionIdIsCurrentConnection_CallsUpdateTokenNotificationAndUpdatesCache()
         {
-            var parameters = new InvalidTokenParams("myConnectionId");
+            var sonarCloud = new ServerConnection.SonarCloud("myOrg");
+            var parameters = new InvalidTokenParams(sonarCloud.Id);
+            MockActiveSolutionBoundTrackerForConnectedMode(sonarCloud);
 
             testSubject.InvalidToken(parameters);
 
             updateTokenNotification.Received(1).Show(parameters.connectionId);
+            serverConnectionWithInvalidTokenRepository.Received(1).AddConnectionIdWithInvalidToken(parameters.connectionId);
         }
 
         [TestMethod]
-        public void InvalidToken_AddsConnectionIdToTheInvalid()
+        public void InvalidToken_ConnectedMode_ConnectionIdForDifferentConnection_DoesNotCallUpdateTokenNotificationButUpdatesCache()
         {
             var parameters = new InvalidTokenParams("myConnectionId");
+            MockActiveSolutionBoundTrackerForConnectedMode(new ServerConnection.SonarCloud("myOrg"));
 
             testSubject.InvalidToken(parameters);
 
+            updateTokenNotification.DidNotReceiveWithAnyArgs().Show(Arg.Any<string>());
             serverConnectionWithInvalidTokenRepository.Received(1).AddConnectionIdWithInvalidToken(parameters.connectionId);
         }
+
+        [TestMethod]
+        public void InvalidToken_Standalone_CallsUpdateTokenNotificationAndUpdatesCache()
+        {
+            var parameters = new InvalidTokenParams("myConnectionId");
+            MockActiveSolutionBoundTrackerForStandalone();
+
+            testSubject.InvalidToken(parameters);
+
+            updateTokenNotification.Received(1).Show(parameters.connectionId);
+            serverConnectionWithInvalidTokenRepository.Received(1).AddConnectionIdWithInvalidToken(parameters.connectionId);
+        }
+
+        private void MockActiveSolutionBoundTrackerForStandalone() => configurationProvider.GetConfiguration().Returns(new BindingConfiguration(null, SonarLintMode.Standalone, null));
+
+        private void MockActiveSolutionBoundTrackerForConnectedMode(ServerConnection boundServerConnection) =>
+            configurationProvider.GetConfiguration().Returns(new BindingConfiguration(new BoundServerProject("solution", "projectKey", boundServerConnection),
+                SonarLintMode.Connected, string.Empty));
     }
 }
