@@ -595,18 +595,24 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     var noncompliantKey = $"[noncompliant:{id}]";
                     var compliantKey = $"[compliant:{id}]";
 
-                    if (invalidIds.Contains(id))
+                    var compliantHtml = GetDiffCodeIfExists(compliantKey);
+                    var nonCompliantHtml = GetDiffCodeIfExists(noncompliantKey);
+
+                    // if one of the compliant/nonCompliant html is missing (for example is in another tab), we don't have to generate a diff
+                    if (invalidIds.Contains(id) || compliantHtml is null || nonCompliantHtml is null)
                     {
                         ProcessInvalidDiffId(sb, compliantKey, noncompliantKey);
                         continue;
                     }
 
-                    var diffXaml = diffTranslator.GetDiffXaml(diffCodes[noncompliantKey], diffCodes[compliantKey]);
+                    var diffXaml = diffTranslator.GetDiffXaml(nonCompliantHtml, compliantHtml);
 
                     sb.Replace(noncompliantKey, diffXaml.noncompliantXaml);
                     sb.Replace(compliantKey, diffXaml.compliantXaml);
                 }
             }
+
+            private string GetDiffCodeIfExists(string key) => diffCodes.ContainsKey(key) ? diffCodes[key] : null;
 
             private void ProcessInvalidDiffId(StringBuilder sb, string compliantKey, string noncompliantKey)
             {

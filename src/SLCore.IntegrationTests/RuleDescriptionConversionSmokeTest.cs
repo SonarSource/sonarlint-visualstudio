@@ -64,14 +64,11 @@ public class RuleDescriptionConversionSmokeTest
                 "cpp:S1232", // unsupported <caption> tag https://github.com/SonarSource/sonarlint-visualstudio/issues/5014
                 "csharpsquid:S6932", // unsupported <dl> and <dt> tag https://github.com/SonarSource/sonarlint-visualstudio/issues/5414
                 "csharpsquid:S6966", // unsupported <dl> and <dt> tag https://github.com/SonarSource/sonarlint-visualstudio/issues/5414
-                "typescript:S6811", // unsupported <caption> tag https://github.com/SonarSource/sonarlint-visualstudio/issues/5014
-                "javascript:S6811", // unsupported <caption> tag https://github.com/SonarSource/sonarlint-visualstudio/issues/5014
-                "Web:S6811" // unsupported compliant & non-compliant code snippets in different tabs https://sonarsource.atlassian.net/browse/SLVS-1776
             });
     }
 
-
-    private static async Task<List<IRuleInfo>> GetAllRuleDescriptions(ListAllStandaloneRulesDefinitionsResponse ruleDefinitions,
+    private static async Task<List<IRuleInfo>> GetAllRuleDescriptions(
+        ListAllStandaloneRulesDefinitionsResponse ruleDefinitions,
         IRuleMetaDataProvider slCoreRuleMetaDataProvider)
     {
         ruleDefinitions.rulesByKey.Count.Should().BeGreaterThan(1500);
@@ -88,8 +85,9 @@ public class RuleDescriptionConversionSmokeTest
         return ruleDescriptions;
     }
 
-
-    private static void CheckRuleDescriptionsOnSTAThread(List<IRuleInfo> ruleDescriptions, RuleHelpXamlBuilder ruleHelpXamlBuilder,
+    private static void CheckRuleDescriptionsOnSTAThread(
+        List<IRuleInfo> ruleDescriptions,
+        RuleHelpXamlBuilder ruleHelpXamlBuilder,
         List<string> failedRuleDescriptions)
     {
         var thread = new Thread(() =>
@@ -102,7 +100,9 @@ public class RuleDescriptionConversionSmokeTest
         thread.Join();
     }
 
-    private static void CheckRuleDescriptions(List<IRuleInfo> ruleDescriptions, RuleHelpXamlBuilder ruleHelpXamlBuilder,
+    private static void CheckRuleDescriptions(
+        List<IRuleInfo> ruleDescriptions,
+        RuleHelpXamlBuilder ruleHelpXamlBuilder,
         List<string> failedRuleDescriptions)
     {
         foreach (var ruleDescription in ruleDescriptions)
@@ -130,8 +130,10 @@ public class RuleDescriptionConversionSmokeTest
         docLength.Should().BeGreaterThan(30);
     }
 
-    private static SLCoreRuleMetaDataProvider CreateSlCoreRuleMetaDataProvider(SLCoreTestRunner slCoreTestRunner,
-        IActiveConfigScopeTracker activeConfigScopeTracker, ILogger testLogger) =>
+    private static SLCoreRuleMetaDataProvider CreateSlCoreRuleMetaDataProvider(
+        SLCoreTestRunner slCoreTestRunner,
+        IActiveConfigScopeTracker activeConfigScopeTracker,
+        ILogger testLogger) =>
         new(slCoreTestRunner.SLCoreServiceProvider,
             activeConfigScopeTracker,
             new RuleInfoConverter(),
