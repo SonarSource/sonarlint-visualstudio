@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.EsLintBridge;
 using SonarLint.VisualStudio.SLCore.NodeJS;
 using SonarLint.VisualStudio.SLCore.State;
 
@@ -48,6 +49,7 @@ public class SLCoreInstanceFactoryTests
             MefTestHelpers.CreateExport<IConfigScopeUpdater>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<ISLCoreRuleSettingsProvider>(),
+            MefTestHelpers.CreateExport<IEsLintBridgeLocator>(),
             MefTestHelpers.CreateExport<ISlCoreTelemetryMigrationProvider>());
     }
 
@@ -68,6 +70,7 @@ public class SLCoreInstanceFactoryTests
         var serverConnectionsProvider = Substitute.For<IServerConnectionsProvider>();
         var islCoreEmbeddedPluginJarLocator = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
         var compatibleNodeLocator = Substitute.For<INodeLocationProvider>();
+        var esLintBridgeLocator = Substitute.For<IEsLintBridgeLocator>();
         var activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
         var configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
         var threadHandling = Substitute.For<IThreadHandling>();
@@ -86,7 +89,9 @@ public class SLCoreInstanceFactoryTests
             activeSolutionBoundTracker,
             configScopeUpdater,
             slCoreRuleSettingsProvider,
-            telemetryMigrationProvider, threadHandling);
+            telemetryMigrationProvider,
+            esLintBridgeLocator,
+            threadHandling);
 
         testSubject.CreateInstance().Should().NotBeNull();
     }

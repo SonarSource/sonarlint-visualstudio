@@ -175,3 +175,4 @@ $RECYCLE.BIN/
 /src/Integration.Vsix/DownloadedJars
 /src/Integration.Vsix/Sloop
 /src/Integration.Vsix/EmbeddedDotnetAnalyzerDLLs
+/src/Integration.Vsix/EmbeddedEsLintBridge

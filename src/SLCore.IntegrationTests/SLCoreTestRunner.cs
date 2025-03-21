@@ -31,6 +31,7 @@ using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Core.Process;
+using SonarLint.VisualStudio.SLCore.EsLintBridge;
 using SonarLint.VisualStudio.SLCore.NodeJS;
 using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
@@ -111,6 +112,9 @@ public sealed class SLCoreTestRunner : IDisposable
             var compatibleNodeLocator = Substitute.For<INodeLocationProvider>();
             compatibleNodeLocator.Get().Returns((string)null);
 
+            var esLintBridgeLocator = Substitute.For<IEsLintBridgeLocator>();
+            esLintBridgeLocator.Get().Returns((string)null);
+
             var noOpActiveSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
             noOpActiveSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
             var noOpConfigScopeUpdater = Substitute.For<IConfigScopeUpdater>();
@@ -127,6 +131,7 @@ public sealed class SLCoreTestRunner : IDisposable
                 connectionProvider,
                 jarProvider,
                 compatibleNodeLocator,
+                esLintBridgeLocator,
                 noOpActiveSolutionBoundTracker,
                 noOpConfigScopeUpdater,
                 slCoreRulesSettingsProvider,

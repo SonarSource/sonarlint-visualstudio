@@ -29,6 +29,7 @@
     <CallTarget Targets="DownloadRepoxJars" />
     <CallTarget Targets="UnzipEnterpriseSonarCSharp" />
     <CallTarget Targets="UnzipEnterpriseSonarVBNet" />
+    <CallTarget Targets="UnzipEsLintBridge" />
     <CallTarget Targets="DownloadSloop" />
     <CallTarget Targets="UnzipSloop" />
     <CallTarget Targets="WriteOutputFile" />
@@ -71,6 +72,12 @@
   <Target Name="UnzipEnterpriseSonarVBNet">
     <Unzip SourceFiles="$(EnterpriseSonarVBNetPluginDownloadPath)" DestinationFolder="$(DotnetPluginsExtractDir)\$(EnterpriseSonarVBNetPluginFileNameWithoutExtension)" OverwriteReadOnlyFiles="true" />
     <Unzip SourceFiles="$(DotnetPluginsExtractDir)\$(EnterpriseSonarVBNetPluginFileNameWithoutExtension)\static\SonarAnalyzer-vbnetenterprise-$(EmbeddedSonarAnalyzerVersion).zip" DestinationFolder="$(EnterpriseDotnetAnalyzersExtractDir)" OverwriteReadOnlyFiles="true" />
+  </Target>
+
+  <Target Name="UnzipEsLintBridge">
+    <Unzip SourceFiles="$(JarDownloadDir)\sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar" DestinationFolder="$(JavaScriptPluginExtractDir)" OverwriteReadOnlyFiles="true" />
+    <MakeDir Directories="$(EsLintBridgeExtractDir)" />
+    <Exec Command="tar -xzf $(JavaScriptPluginExtractDir)\sonarjs-$(EmbeddedEsLintBridgeVersion).tgz -C $(EsLintBridgeExtractDir)" />
   </Target>
 
   <Target Name="WriteOutputFile">

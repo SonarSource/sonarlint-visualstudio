@@ -65,6 +65,11 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <JavaScriptPluginExtractDir>$(LOCALAPPDATA)\SLVS_Build_Javascript</JavaScriptPluginExtractDir>
+    <EsLintBridgeExtractDir>$(JavaScriptPluginExtractDir)\EsLintBridge</EsLintBridgeExtractDir>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <EnterpriseSonarVBNetPluginFileNameWithoutExtension>sonar-vbnet-enterprise-plugin-$(EmbeddedSonarAnalyzerVersion)</EnterpriseSonarVBNetPluginFileNameWithoutExtension>
     <EnterpriseSonarVBNetPluginFileName>$(EnterpriseSonarVBNetPluginFileNameWithoutExtension).jar</EnterpriseSonarVBNetPluginFileName>
     <EnterpriseSonarVBNetPluginDownloadPath>$(JarDownloadDir)\$(EnterpriseSonarVBNetPluginFileName)</EnterpriseSonarVBNetPluginDownloadPath>

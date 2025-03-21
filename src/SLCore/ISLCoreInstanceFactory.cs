@@ -25,6 +25,7 @@ using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.EsLintBridge;
 using SonarLint.VisualStudio.SLCore.NodeJS;
 using SonarLint.VisualStudio.SLCore.State;
 
@@ -52,6 +53,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
     private readonly IThreadHandling threadHandling;
     private readonly ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider;
     private readonly ISlCoreTelemetryMigrationProvider telemetryMigrationProvider;
+    private readonly IEsLintBridgeLocator esLintBridgeLocator;
 
     [ImportingConstructor]
     public SLCoreInstanceFactory(
@@ -67,6 +69,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
         IConfigScopeUpdater configScopeUpdater,
         ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider,
         ISlCoreTelemetryMigrationProvider telemetryMigrationProvider,
+        IEsLintBridgeLocator esLintBridgeLocator,
         IThreadHandling threadHandling)
     {
         this.slCoreRpcFactory = slCoreRpcFactory;
@@ -81,6 +84,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
         this.configScopeUpdater = configScopeUpdater;
         this.slCoreRuleSettingsProvider = slCoreRuleSettingsProvider;
         this.telemetryMigrationProvider = telemetryMigrationProvider;
+        this.esLintBridgeLocator = esLintBridgeLocator;
         this.threadHandling = threadHandling;
     }
 
@@ -94,6 +98,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
             serverConnectionConfigurationProvider,
             slCoreEmbeddedPluginJarProvider,
             nodeLocator,
+            esLintBridgeLocator,
             activeSolutionBoundTracker,
             configScopeUpdater,
             slCoreRuleSettingsProvider,

@@ -6,6 +6,7 @@
     <CallTarget Targets="CopyJars" />
     <CallTarget Targets="CopyEnterpriseDotnet" />
     <CallTarget Targets="CopySloop" />
+    <CallTarget Targets="CopyEsLintBridge" />
   </Target>
 
   <PropertyGroup>
@@ -16,6 +17,8 @@
     <EmbeddedJarDir>$(VsixDir)\DownloadedJars</EmbeddedJarDir>
     <SloopDowloadDir>$(LOCALAPPDATA)\SLVS_Build_SLOOP\sonarlint-backend-cli-$(EmbeddedSloopVersion)-windows_x64</SloopDowloadDir>
     <EmbeddedSloopDir>$(VsixDir)\Sloop</EmbeddedSloopDir>
+    <EsLintBridgeExtractDir>$(LOCALAPPDATA)\SLVS_Build_Javascript\EsLintBridge</EsLintBridgeExtractDir>
+    <EmbeddedEsLintBridgeDir>$(VsixDir)\EmbeddedEsLintBridge</EmbeddedEsLintBridgeDir>
   </PropertyGroup>
   
   
@@ -23,6 +26,7 @@
     <RemoveDir Directories="$(EmbeddedJarDir)" />
     <RemoveDir Directories="$(EmbeddedSloopDir)" />
     <RemoveDir Directories="$(EmbeddedEnterpriseDotnetAnalyzersDir)" />
+    <RemoveDir Directories="$(EmbeddedEsLintBridgeDir)" />
   </Target>
 
   <Target Name="CopyJars">
@@ -50,5 +54,13 @@
     </ItemGroup>
     <Message Text="$(SloopDowloadDir)\**\*" Importance="high" />
     <Copy SourceFiles="@(SloopSource)" DestinationFolder="$(EmbeddedSloopDir)\%(RecursiveDir)" />
+  </Target>
+
+  <Target Name="CopyEsLintBridge">
+    <ItemGroup>
+      <JavaScriptPluginSource Include="$(EsLintBridgeExtractDir)\**\*.*"/>
+    </ItemGroup>
+    <Message Text="$(EsLintBridgeExtractDir)\**\*" Importance="high" />
+    <Copy SourceFiles="@(JavaScriptPluginSource)" DestinationFolder="$(EmbeddedEsLintBridgeDir)\%(RecursiveDir)"/>
   </Target>
 </Project>
