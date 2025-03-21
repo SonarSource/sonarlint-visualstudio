@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.EsLintBridge;
 using SonarLint.VisualStudio.SLCore.NodeJS;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle;
@@ -64,6 +65,7 @@ public class SLCoreInstanceHandleTests
     private IServerConnectionsProvider connectionsProvider;
     private ISLCoreEmbeddedPluginJarLocator jarLocator;
     private INodeLocationProvider nodeLocator;
+    private IEsLintBridgeLocator esLintBridgeLocator;
     private IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private IConfigScopeUpdater configScopeUpdater;
     private IThreadHandling threadHandling;
@@ -82,6 +84,7 @@ public class SLCoreInstanceHandleTests
         connectionsProvider = Substitute.For<IServerConnectionsProvider>();
         jarLocator = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
         nodeLocator = Substitute.For<INodeLocationProvider>();
+        esLintBridgeLocator = Substitute.For<IEsLintBridgeLocator>();
         activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
         configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
         threadHandling = Substitute.For<IThreadHandling>();
@@ -97,6 +100,7 @@ public class SLCoreInstanceHandleTests
             connectionsProvider,
             jarLocator,
             nodeLocator,
+            esLintBridgeLocator,
             activeSolutionBoundTracker,
             configScopeUpdater,
             slCoreRuleSettingsProvider,
@@ -116,13 +120,14 @@ public class SLCoreInstanceHandleTests
     }
 
     [DataTestMethod]
-    [DataRow("some/node/path")]
-    [DataRow(null)]
-    public void Initialize_SuccessfullyInitializesInCorrectOrder(string nodeJsPath)
+    [DataRow("some/node/path", "vsix/esLintBridge")]
+    [DataRow(null, null)]
+    public void Initialize_SuccessfullyInitializesInCorrectOrder(string nodeJsPath, string esLintBridgePath)
     {
         SetUpLanguages(slCoreLanguageProvider, [], [], []);
         SetUpSuccessfulInitialization(out var lifecycleManagement, out _);
         nodeLocator.Get().Returns(nodeJsPath);
+        esLintBridgeLocator.Get().Returns(esLintBridgePath);
         var telemetryMigrationDto = new TelemetryMigrationDto(default, default, default);
         telemetryMigrationProvider.Get().Returns(telemetryMigrationDto);
 
@@ -146,7 +151,7 @@ public class SLCoreInstanceHandleTests
                 && !parameters.isFocusOnNewCode
                 && parameters.telemetryConstantAttributes == TelemetryConstants
                 && parameters.languageSpecificRequirements.jsTsRequirements.clientNodeJsPath == nodeJsPath
-                && parameters.languageSpecificRequirements.jsTsRequirements.bundlePath == null
+                && parameters.languageSpecificRequirements.jsTsRequirements.bundlePath == esLintBridgePath
                 && parameters.telemetryMigration == telemetryMigrationDto));
             configScopeUpdater.UpdateConfigScopeForCurrentSolution(Binding);
         });
