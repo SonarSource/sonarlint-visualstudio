@@ -29,8 +29,9 @@ using SonarLint.VisualStudio.Core.Persistence;
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 
 [Export(typeof(IServerConnectionsRepository))]
+[Export(typeof(IServerConnectionWithInvalidTokenRepository))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class ServerConnectionsRepository : IServerConnectionsRepository
+internal class ServerConnectionsRepository : IServerConnectionsRepository, IServerConnectionWithInvalidTokenRepository
 {
     internal const string ConnectionsFileName = "connections.json";
 
@@ -40,7 +41,9 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
     private readonly IJsonFileHandler jsonFileHandle;
     private readonly IServerConnectionModelMapper serverConnectionModelMapper;
     private readonly string connectionsStorageFilePath;
+    private readonly HashSet<string> connectionIdsWithInvalidToken = new();
     private static readonly object LockObject = new();
+    private static readonly object TokenLockObject = new();
 
     public event EventHandler ConnectionChanged;
     public event EventHandler<ServerConnectionUpdatedEventArgs> CredentialsChanged;
@@ -94,10 +97,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
         return serverConnections != null;
     }
 
-    public bool TryAdd(ServerConnection connectionToAdd)
-    {
-        return SafeUpdateConnectionsFile(connections => TryAddConnection(connections, connectionToAdd));
-    }
+    public bool TryAdd(ServerConnection connectionToAdd) => SafeUpdateConnectionsFile(connections => TryAddConnection(connections, connectionToAdd));
 
     public bool TryDelete(string connectionId)
     {
@@ -112,6 +112,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
         if (wasDeleted)
         {
             TryDeleteCredentials(removedConnection);
+            RemoveConnectionIdWithInvalidToken(connectionId);
         }
 
         return wasDeleted;
@@ -130,6 +131,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
             if (wasFound)
             {
                 credentialsLoader.Save(credentials, serverConnection.CredentialsUri);
+                RemoveConnectionIdWithInvalidToken(connectionId);
                 OnCredentialsChanged(serverConnection);
                 return true;
             }
@@ -142,6 +144,30 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
     }
 
     public bool ConnectionsFileExists() => fileSystem.File.Exists(connectionsStorageFilePath);
+
+    public void AddConnectionIdWithInvalidToken(string connectionId)
+    {
+        lock (TokenLockObject)
+        {
+            connectionIdsWithInvalidToken.Add(connectionId);
+        }
+    }
+
+    public bool HasInvalidToken(string connectionId)
+    {
+        lock (TokenLockObject)
+        {
+            return connectionIdsWithInvalidToken.Contains(connectionId);
+        }
+    }
+
+    internal void RemoveConnectionIdWithInvalidToken(string connectionId)
+    {
+        lock (TokenLockObject)
+        {
+            connectionIdsWithInvalidToken.Remove(connectionId);
+        }
+    }
 
     private bool TryAddConnection(List<ServerConnection> connections, ServerConnection connection)
     {

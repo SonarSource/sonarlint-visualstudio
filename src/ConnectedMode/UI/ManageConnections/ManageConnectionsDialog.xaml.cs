@@ -57,6 +57,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
             var editConnectionTokenDialog = new EditCredentialsDialog(connectedModeServices, ConnectedModeUiServices, connectedModeBindingServices, connectionViewModel.Connection);
             editConnectionTokenDialog.ShowDialog(this);
+            connectionViewModel.RefreshInvalidToken();
         }
 
         private async void NewConnection_Clicked(object sender, RoutedEventArgs e)

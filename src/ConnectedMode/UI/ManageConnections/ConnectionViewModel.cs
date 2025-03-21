@@ -24,11 +24,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 
 public class ConnectionViewModel : ViewModelBase
 {
+    private readonly IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter;
+
     public Connection Connection { get; }
 
     public string Name => Connection.Info.Id;
 
     public string ServerType => Connection.Info.ServerType.ToString();
+
+    public bool HasInvalidToken => serverConnectionsRepositoryAdapter.HasInvalidToken(Connection);
 
     public bool EnableSmartNotifications
     {
@@ -40,9 +44,12 @@ public class ConnectionViewModel : ViewModelBase
         }
     }
 
-    public ConnectionViewModel(Connection connection)
+    public ConnectionViewModel(Connection connection, IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter)
     {
+        this.serverConnectionsRepositoryAdapter = serverConnectionsRepositoryAdapter;
         Connection = connection;
         EnableSmartNotifications = connection.EnableSmartNotifications;
     }
+
+    public void RefreshInvalidToken() => RaisePropertyChanged(nameof(HasInvalidToken));
 }

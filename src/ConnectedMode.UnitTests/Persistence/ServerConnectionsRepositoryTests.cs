@@ -33,15 +33,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence;
 [TestClass]
 public class ServerConnectionsRepositoryTests
 {
-    private ServerConnectionsRepository testSubject;
-    private IJsonFileHandler jsonFileHandler;
-    private ILogger logger;
-    private IEnvironmentVariableProvider environmentVariableProvider;
-    private IServerConnectionModelMapper serverConnectionModelMapper;
-    private ISolutionBindingCredentialsLoader credentialsLoader;
     private readonly SonarCloud sonarCloudServerConnection = new("myOrganization", new ServerConnectionSettings(true), Substitute.For<IConnectionCredentials>());
     private readonly ServerConnection.SonarQube sonarQubeServerConnection = new(new Uri("http://localhost"), new ServerConnectionSettings(true), Substitute.For<IConnectionCredentials>());
+    private ISolutionBindingCredentialsLoader credentialsLoader;
+    private IEnvironmentVariableProvider environmentVariableProvider;
     private IFileSystem fileSystem;
+    private IJsonFileHandler jsonFileHandler;
+    private ILogger logger;
+    private IServerConnectionModelMapper serverConnectionModelMapper;
+    private ServerConnectionsRepository testSubject;
 
     [TestInitialize]
     public void TestInitialize()
@@ -57,20 +57,23 @@ public class ServerConnectionsRepositoryTests
     }
 
     [TestMethod]
-    public void MefCtor_CheckExports()
-    {
+    public void MefCtor_CheckExports() =>
         MefTestHelpers.CheckTypeCanBeImported<ServerConnectionsRepository, IServerConnectionsRepository>(
             MefTestHelpers.CreateExport<IJsonFileHandler>(),
             MefTestHelpers.CreateExport<IServerConnectionModelMapper>(),
             MefTestHelpers.CreateExport<ICredentialStoreService>(),
             MefTestHelpers.CreateExport<ILogger>());
-    }
 
     [TestMethod]
-    public void Mef_CheckIsSingleton()
-    {
-        MefTestHelpers.CheckIsSingletonMefComponent<ServerConnectionsRepository>();
-    }
+    public void MefCtor_IServerConnectionWithInvalidTokenRepository_CheckExports() =>
+        MefTestHelpers.CheckTypeCanBeImported<ServerConnectionsRepository, IServerConnectionWithInvalidTokenRepository>(
+            MefTestHelpers.CreateExport<IJsonFileHandler>(),
+            MefTestHelpers.CreateExport<IServerConnectionModelMapper>(),
+            MefTestHelpers.CreateExport<ICredentialStoreService>(),
+            MefTestHelpers.CreateExport<ILogger>());
+
+    [TestMethod]
+    public void Mef_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ServerConnectionsRepository>();
 
     [TestMethod]
     public void TryGet_FileDoesNotExist_ReturnsFalse()
@@ -78,7 +81,7 @@ public class ServerConnectionsRepositoryTests
         MockReadingFile(new ServerConnectionsListJsonModel());
         jsonFileHandler.When(x => x.ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>())).Do(x => throw new FileNotFoundException());
 
-        var succeeded = testSubject.TryGet("myId", out ServerConnection serverConnection);
+        var succeeded = testSubject.TryGet("myId", out var serverConnection);
 
         succeeded.Should().BeFalse();
         serverConnection.Should().BeNull();
@@ -91,7 +94,7 @@ public class ServerConnectionsRepositoryTests
         MockReadingFile(new ServerConnectionsListJsonModel());
         jsonFileHandler.When(x => x.ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>())).Do(x => throw new Exception());
 
-        var succeeded = testSubject.TryGet("myId", out ServerConnection serverConnection);
+        var succeeded = testSubject.TryGet("myId", out var serverConnection);
 
         succeeded.Should().BeFalse();
         serverConnection.Should().BeNull();
@@ -103,7 +106,7 @@ public class ServerConnectionsRepositoryTests
     {
         MockFileWithOneSonarCloudConnection();
 
-        var succeeded = testSubject.TryGet("non-existing connectionId", out ServerConnection serverConnection);
+        var succeeded = testSubject.TryGet("non-existing connectionId", out var serverConnection);
 
         succeeded.Should().BeFalse();
         serverConnection.Should().BeNull();
@@ -117,7 +120,7 @@ public class ServerConnectionsRepositoryTests
         MockReadingFile(new ServerConnectionsListJsonModel { ServerConnections = [sonarCloudModel] });
         serverConnectionModelMapper.GetServerConnection(sonarCloudModel).Returns(expectedConnection);
 
-        var succeeded = testSubject.TryGet(sonarCloudModel.Id, out ServerConnection serverConnection);
+        var succeeded = testSubject.TryGet(sonarCloudModel.Id, out var serverConnection);
 
         succeeded.Should().BeTrue();
         serverConnection.Should().Be(expectedConnection);
@@ -130,7 +133,7 @@ public class ServerConnectionsRepositoryTests
         var credentials = Substitute.For<IConnectionCredentials>();
         credentialsLoader.Load(expectedConnection.CredentialsUri).Returns(credentials);
 
-        var succeeded = testSubject.TryGet(expectedConnection.Id, out ServerConnection serverConnection);
+        var succeeded = testSubject.TryGet(expectedConnection.Id, out var serverConnection);
 
         succeeded.Should().BeTrue();
         serverConnection.Should().Be(expectedConnection);
@@ -146,7 +149,7 @@ public class ServerConnectionsRepositoryTests
         MockReadingFile(new ServerConnectionsListJsonModel { ServerConnections = [sonarQubeModel] });
         serverConnectionModelMapper.GetServerConnection(sonarQubeModel).Returns(expectedConnection);
 
-        var succeeded = testSubject.TryGet(sonarQubeModel.Id, out ServerConnection serverConnection);
+        var succeeded = testSubject.TryGet(sonarQubeModel.Id, out var serverConnection);
 
         succeeded.Should().BeTrue();
         serverConnection.Should().Be(expectedConnection);
@@ -159,7 +162,7 @@ public class ServerConnectionsRepositoryTests
         var credentials = Substitute.For<IConnectionCredentials>();
         credentialsLoader.Load(expectedConnection.CredentialsUri).Returns(credentials);
 
-        var succeeded = testSubject.TryGet(expectedConnection.Id, out ServerConnection serverConnection);
+        var succeeded = testSubject.TryGet(expectedConnection.Id, out var serverConnection);
 
         succeeded.Should().BeTrue();
         serverConnection.Should().Be(expectedConnection);
@@ -185,7 +188,7 @@ public class ServerConnectionsRepositoryTests
         MockReadingFile(new ServerConnectionsListJsonModel());
         jsonFileHandler.When(x => x.ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>())).Do(x => throw new Exception(exceptionMsg));
 
-        var succeeded = testSubject.TryGetAll(out var connections);
+        var succeeded = testSubject.TryGetAll(out _);
 
         succeeded.Should().BeFalse();
     }
@@ -409,7 +412,7 @@ public class ServerConnectionsRepositoryTests
     public void TryDelete_SonarCloudConnectionWasRemoved_RemovesCredentials()
     {
         var sonarCloud = MockFileWithOneSonarCloudConnection();
-        jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>()).Returns(true);
+        MockTryWriteToFile(true);
 
         var succeeded = testSubject.TryDelete(sonarCloud.Id);
 
@@ -421,7 +424,7 @@ public class ServerConnectionsRepositoryTests
     public void TryDelete_SonarQubeConnectionWasRemoved_RemovesCredentials()
     {
         var sonarQube = MockFileWithOneSonarQubeConnection();
-        jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>()).Returns(true);
+        MockTryWriteToFile(true);
 
         var succeeded = testSubject.TryDelete(sonarQube.Id);
 
@@ -430,10 +433,46 @@ public class ServerConnectionsRepositoryTests
     }
 
     [TestMethod]
+    public void TryDelete_SonarCloudConnectionWasRemoved_AndHasInvalidToken_RemovedInvalidToken()
+    {
+        var sonarCloud = MockFileWithOneSonarCloudConnection();
+        MockTryWriteToFile(true);
+        testSubject.AddConnectionIdWithInvalidToken(sonarCloud.Id);
+
+        testSubject.TryDelete(sonarCloud.Id);
+
+        testSubject.HasInvalidToken(sonarCloud.Id).Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void TryDelete_SonarQubeConnectionWasRemoved_AndHasInvalidToken_RemovedInvalidToken()
+    {
+        var sonarQube = MockFileWithOneSonarQubeConnection();
+        MockTryWriteToFile(true);
+        testSubject.AddConnectionIdWithInvalidToken(sonarQube.Id);
+
+        testSubject.TryDelete(sonarQube.Id);
+
+        testSubject.HasInvalidToken(sonarQube.Id).Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void TryDelete_DeletingFails_AndHasInvalidToken_DoesNotRemoveInvalidToken()
+    {
+        var sonarQube = MockFileWithOneSonarQubeConnection();
+        MockTryWriteToFile(false);
+        testSubject.AddConnectionIdWithInvalidToken(sonarQube.Id);
+
+        testSubject.TryDelete(sonarQube.Id);
+
+        testSubject.HasInvalidToken(sonarQube.Id).Should().BeTrue();
+    }
+
+    [TestMethod]
     public void TryDelete_ConnectionWasNotRemoved_DoesNotRemoveCredentials()
     {
         var sonarCloud = MockFileWithOneSonarCloudConnection();
-        jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>()).Returns(false);
+        MockTryWriteToFile(false);
 
         var succeeded = testSubject.TryDelete(sonarCloud.Id);
 
@@ -445,7 +484,7 @@ public class ServerConnectionsRepositoryTests
     public void TryDelete_WritingToFileFails_ReturnsFalse()
     {
         MockReadingFile(new ServerConnectionsListJsonModel());
-        jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>()).Returns(false);
+        MockTryWriteToFile(false);
 
         var succeeded = testSubject.TryDelete("myOrg");
 
@@ -566,7 +605,7 @@ public class ServerConnectionsRepositoryTests
         var eventHandler = Substitute.For<EventHandler>();
         testSubject.ConnectionChanged += eventHandler;
 
-        testSubject.TryDelete(sonarQube.Id);
+        testSubject.TryUpdateSettingsById(sonarQube.Id, new ServerConnectionSettings(true));
 
         eventHandler.DidNotReceive().Invoke(testSubject, Arg.Any<EventArgs>());
     }
@@ -620,6 +659,40 @@ public class ServerConnectionsRepositoryTests
     }
 
     [TestMethod]
+    public void TryUpdateCredentialsById_SonarCloudConnectionExists_AndHasInvalidToken_RemovedInvalidToken()
+    {
+        var sonarCloud = MockFileWithOneSonarCloudConnection();
+        testSubject.AddConnectionIdWithInvalidToken(sonarCloud.Id);
+
+        testSubject.TryUpdateCredentialsById(sonarCloud.Id, Substitute.For<IConnectionCredentials>());
+
+        testSubject.HasInvalidToken(sonarCloud.Id).Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void TryUpdateCredentialsById_SonarQubeConnectionExists_AndHasInvalidToken_RemovedInvalidToken()
+    {
+        var sonarQube = MockFileWithOneSonarQubeConnection();
+        testSubject.AddConnectionIdWithInvalidToken(sonarQube.Id);
+
+        testSubject.TryUpdateCredentialsById(sonarQube.Id, Substitute.For<IConnectionCredentials>());
+
+        testSubject.HasInvalidToken(sonarQube.Id).Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void TryUpdateCredentialsById_DoesNotUpdateCredentials_DoesNotRemoveInvalidToken()
+    {
+        var sonarQube = MockFileWithOneSonarQubeConnection();
+        testSubject.AddConnectionIdWithInvalidToken(sonarQube.Id);
+        credentialsLoader.When(x => x.Save(Arg.Any<IConnectionCredentials>(), Arg.Any<Uri>())).Do(x => throw new Exception());
+
+        testSubject.TryUpdateCredentialsById(sonarQube.Id, Substitute.For<IConnectionCredentials>());
+
+        testSubject.HasInvalidToken(sonarQube.Id).Should().BeTrue();
+    }
+
+    [TestMethod]
     public void TryUpdateCredentialsById_DoesNotUpdateCredentials_DoesNotInvokeConnectionChangedEvent()
     {
         MockReadingFile(new ServerConnectionsListJsonModel());
@@ -668,6 +741,36 @@ public class ServerConnectionsRepositoryTests
         logger.Received(1).WriteLine($"Failed updating credentials: {exceptionMsg}");
     }
 
+    [TestMethod]
+    public void HasInvalidToken_ConnectionWithInvalidToken_ReturnsTrue()
+    {
+        var connectionId = "myConn";
+        testSubject.AddConnectionIdWithInvalidToken(connectionId);
+
+        testSubject.HasInvalidToken(connectionId).Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void HasInvalidToken_NoConnectionWithInvalidToken_ReturnsFalse()
+    {
+        var connectionId = "myConn";
+
+        testSubject.HasInvalidToken(connectionId).Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void AddConnectionIdWithInvalidToken_ConnectionIdAddedMultipleTimes_ItOnlyAddsItOnce()
+    {
+        var connectionId = "myConn";
+
+        testSubject.AddConnectionIdWithInvalidToken(connectionId);
+        testSubject.AddConnectionIdWithInvalidToken(connectionId);
+        testSubject.AddConnectionIdWithInvalidToken(connectionId);
+
+        testSubject.RemoveConnectionIdWithInvalidToken(connectionId);
+        testSubject.HasInvalidToken(connectionId).Should().BeFalse();
+    }
+
     private SonarCloud MockFileWithOneSonarCloudConnection(bool isSmartNotificationsEnabled = true)
     {
         var sonarCloudModel = GetSonarCloudJsonModel(isSmartNotificationsEnabled);
@@ -688,18 +791,13 @@ public class ServerConnectionsRepositoryTests
         return sonarQube;
     }
 
-    private void MockReadingFile(ServerConnectionsListJsonModel modelToReturn)
-    {
-        jsonFileHandler.ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>()).Returns(modelToReturn);
-    }
+    private void MockReadingFile(ServerConnectionsListJsonModel modelToReturn) => jsonFileHandler.ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>()).Returns(modelToReturn);
 
-    private static ServerConnectionJsonModel GetSonarCloudJsonModel(bool isSmartNotificationsEnabled = false)
-    {
-        return new ServerConnectionJsonModel { Id = "https://sonarcloud.io/organizations/myOrg", OrganizationKey = "myOrg", Settings = new ServerConnectionSettings(isSmartNotificationsEnabled) };
-    }
+    private static ServerConnectionJsonModel GetSonarCloudJsonModel(bool isSmartNotificationsEnabled = false) =>
+        new() { Id = "https://sonarcloud.io/organizations/myOrg", OrganizationKey = "myOrg", Settings = new ServerConnectionSettings(isSmartNotificationsEnabled) };
 
-    private static ServerConnectionJsonModel GetSonarQubeJsonModel(Uri id, bool isSmartNotificationsEnabled = false)
-    {
-        return new ServerConnectionJsonModel { Id = id.ToString(), ServerUri = id.ToString(), Settings = new ServerConnectionSettings(isSmartNotificationsEnabled) };
-    }
+    private static ServerConnectionJsonModel GetSonarQubeJsonModel(Uri id, bool isSmartNotificationsEnabled = false) =>
+        new() { Id = id.ToString(), ServerUri = id.ToString(), Settings = new ServerConnectionSettings(isSmartNotificationsEnabled) };
+
+    private void MockTryWriteToFile(bool success) => jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>()).Returns(success);
 }

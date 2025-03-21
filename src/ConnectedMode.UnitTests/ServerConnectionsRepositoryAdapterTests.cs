@@ -33,17 +33,21 @@ public class ServerConnectionsRepositoryAdapterTests
 {
     private IServerConnectionsRepository serverConnectionsRepository;
     private ServerConnectionsRepositoryAdapter testSubject;
+    private IServerConnectionWithInvalidTokenRepository serverConnectionWithInvalidTokenRepository;
 
     [TestInitialize]
     public void TestInitialize()
     {
         serverConnectionsRepository = Substitute.For<IServerConnectionsRepository>();
-        testSubject = new ServerConnectionsRepositoryAdapter(serverConnectionsRepository);
+        serverConnectionWithInvalidTokenRepository = Substitute.For<IServerConnectionWithInvalidTokenRepository>();
+        testSubject = new ServerConnectionsRepositoryAdapter(serverConnectionsRepository, serverConnectionWithInvalidTokenRepository);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<ServerConnectionsRepositoryAdapter, IServerConnectionsRepositoryAdapter>(MefTestHelpers.CreateExport<IServerConnectionsRepository>());
+        MefTestHelpers.CheckTypeCanBeImported<ServerConnectionsRepositoryAdapter, IServerConnectionsRepositoryAdapter>(
+            MefTestHelpers.CreateExport<IServerConnectionsRepository>(),
+            MefTestHelpers.CreateExport<IServerConnectionWithInvalidTokenRepository>());
 
     [TestMethod]
     public void TryGet_CallServerConnectionsRepository()
@@ -336,6 +340,54 @@ public class ServerConnectionsRepositoryAdapterTests
 
         succeeded.Should().Be(expectedStatus);
         receivedServerConnection.Should().Be(expectedServerConnection);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(GetBoolWithCloudServerRegion), DynamicDataSourceType.Method)]
+    public void AddConnectionWithInvalidToken_SonarCloud_AddsConnectionIdToRepository(bool enableSmartNotifications, CloudServerRegion region)
+    {
+        var sonarCloud = CreateSonarCloudServerConnection(enableSmartNotifications, region);
+
+        testSubject.AddConnectionWithInvalidToken(new Connection(new ConnectionInfo(sonarCloud.OrganizationKey, ConnectionServerType.SonarCloud, region)));
+
+        serverConnectionWithInvalidTokenRepository.Received(1).AddConnectionIdWithInvalidToken(sonarCloud.Id);
+    }
+
+    [TestMethod]
+    public void AddConnectionWithInvalidToken_SonarQube_AddsConnectionIdToRepository()
+    {
+        var sonarQube = CreateSonarQubeServerConnection();
+
+        testSubject.AddConnectionWithInvalidToken(new Connection(new ConnectionInfo(sonarQube.Id, ConnectionServerType.SonarQube)));
+
+        serverConnectionWithInvalidTokenRepository.Received(1).AddConnectionIdWithInvalidToken(sonarQube.Id);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(GetBoolWithCloudServerRegion), DynamicDataSourceType.Method)]
+    public void HasInvalidToken_SonarCloud_ReturnsResultFromRepository(bool expectedResult, CloudServerRegion region)
+    {
+        var sonarCloud = CreateSonarCloudServerConnection(region: region);
+        serverConnectionWithInvalidTokenRepository.HasInvalidToken(sonarCloud.Id).Returns(expectedResult);
+
+        var result = testSubject.HasInvalidToken(new Connection(new ConnectionInfo(sonarCloud.OrganizationKey, ConnectionServerType.SonarCloud, region)));
+
+        result.Should().Be(expectedResult);
+        serverConnectionWithInvalidTokenRepository.Received(1).HasInvalidToken(sonarCloud.Id);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void HasInvalidToken_SonarQube_ReturnsResultFromRepository(bool expectedResult)
+    {
+        var sonarQube = CreateSonarQubeServerConnection();
+        serverConnectionWithInvalidTokenRepository.HasInvalidToken(sonarQube.Id).Returns(expectedResult);
+
+        var result = testSubject.HasInvalidToken(new Connection(new ConnectionInfo(sonarQube.Id, ConnectionServerType.SonarQube)));
+
+        result.Should().Be(expectedResult);
+        serverConnectionWithInvalidTokenRepository.Received(1).HasInvalidToken(sonarQube.Id);
     }
 
     private static SonarCloud CreateSonarCloudServerConnection(bool isSmartNotificationsEnabled = true, CloudServerRegion region = null) =>

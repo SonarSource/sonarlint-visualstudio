@@ -177,7 +177,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         internal void AddConnectionViewModel(Connection connection)
         {
-            ConnectionViewModels.Add(new ConnectionViewModel(connection));
+            ConnectionViewModels.Add(new ConnectionViewModel(connection, connectedModeServices.ServerConnectionsRepositoryAdapter));
             RaisePropertyChanged(nameof(NoConnectionExists));
         }
     }

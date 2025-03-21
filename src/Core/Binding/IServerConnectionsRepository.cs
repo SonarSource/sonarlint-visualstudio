@@ -40,6 +40,13 @@ public interface IServerConnectionsRepository
     event EventHandler<ServerConnectionUpdatedEventArgs> CredentialsChanged;
 }
 
+public interface IServerConnectionWithInvalidTokenRepository
+{
+    void AddConnectionIdWithInvalidToken(string connectionId);
+
+    bool HasInvalidToken(string connectionId);
+}
+
 public class ServerConnectionUpdatedEventArgs : EventArgs
 {
     public ServerConnectionUpdatedEventArgs(ServerConnection serverConnection)
