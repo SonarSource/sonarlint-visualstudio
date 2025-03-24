@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.SLCore;
 using SonarLint.VisualStudio.SLCore.EsLintBridge;
@@ -28,14 +30,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore;
 public class EsLintBridgeLocatorTests
 {
     private IVsixRootLocator vsixRootLocator;
+    private IFileSystemService fileSystemService;
     private EsLintBridgeLocator testSubject;
+    private ILogger logger;
+    private const string ExpectedPath = $"{VsixRoot}\\EmbeddedEsLintBridge";
     private const string VsixRoot = "C:\\SomePath";
 
     [TestInitialize]
     public void TestInitialize()
     {
         vsixRootLocator = Substitute.For<IVsixRootLocator>();
-        testSubject = new EsLintBridgeLocator(vsixRootLocator);
+        fileSystemService = Substitute.For<IFileSystemService>();
+        logger = Substitute.For<ILogger>();
+        testSubject = new EsLintBridgeLocator(vsixRootLocator, fileSystemService, logger);
 
         vsixRootLocator.GetVsixRoot().Returns(VsixRoot);
     }
@@ -43,11 +50,27 @@ public class EsLintBridgeLocatorTests
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<EsLintBridgeLocator, IEsLintBridgeLocator>(
-            MefTestHelpers.CreateExport<IVsixRootLocator>());
+            MefTestHelpers.CreateExport<IVsixRootLocator>(),
+            MefTestHelpers.CreateExport<IFileSystemService>(),
+            MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SLCoreLocator>();
 
     [TestMethod]
-    public void Get_ReturnsLaunchParameters() => testSubject.Get().Should().Be($"{VsixRoot}\\EmbeddedEsLintBridge");
+    public void Get_PathExists_ReturnsLaunchParameters()
+    {
+        fileSystemService.Directory.Exists(ExpectedPath).Returns(true);
+
+        testSubject.Get().Should().Be(ExpectedPath);
+    }
+
+    [TestMethod]
+    public void Get_PathDoesNotExist_ReturnsNullAndLogs()
+    {
+        fileSystemService.Directory.Exists(ExpectedPath).Returns(false);
+
+        testSubject.Get().Should().Be(null);
+        logger.Received(1).WriteLine(Vsix.Resources.Strings.EsLintBridgeLocator_PathNotFound, ExpectedPath);
+    }
 }

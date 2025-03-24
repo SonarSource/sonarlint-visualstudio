@@ -20,6 +20,8 @@
 
 using System.ComponentModel.Composition;
 using System.IO;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 using SonarLint.VisualStudio.SLCore.EsLintBridge;
 
@@ -28,14 +30,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SLCore;
 [Export(typeof(IEsLintBridgeLocator))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class EsLintBridgeLocator(IVsixRootLocator vsixRootLocator) : IEsLintBridgeLocator
+internal class EsLintBridgeLocator(IVsixRootLocator vsixRootLocator, IFileSystemService fileSystemService, ILogger logger) : IEsLintBridgeLocator
 {
     private const string EsLintBridgeSubPath = "EmbeddedEsLintBridge";
 
     public string Get()
     {
         var vsixRoot = vsixRootLocator.GetVsixRoot();
+        var expectedPath = Path.Combine(vsixRoot, EsLintBridgeSubPath);
+        if (fileSystemService.Directory.Exists(expectedPath))
+        {
+            return expectedPath;
+        }
 
-        return Path.Combine(vsixRoot, EsLintBridgeSubPath);
+        logger.WriteLine(Resources.Strings.EsLintBridgeLocator_PathNotFound, expectedPath);
+        return null;
     }
 }
