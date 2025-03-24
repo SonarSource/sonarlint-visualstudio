@@ -172,6 +172,9 @@
     <Content Include="$(DotnetDLLsFolderName)\**\*">
       <IncludeInVSIX>True</IncludeInVSIX>
     </Content>
+    <Content Include="$(EsLintBridgeFolderName)\**\*">
+      <IncludeInVSIX>True</IncludeInVSIX>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -257,6 +260,7 @@
     <JarsFolderName>DownloadedJars</JarsFolderName>
     <DotnetDLLsFolderName>EmbeddedDotnetAnalyzerDLLs</DotnetDLLsFolderName>
     <SloopFolderName>Sloop</SloopFolderName>
+    <EsLintBridgeFolderName>EmbeddedEsLintBridge</EsLintBridgeFolderName>
   </PropertyGroup>
 
   <!-- *************************************************************************** -->

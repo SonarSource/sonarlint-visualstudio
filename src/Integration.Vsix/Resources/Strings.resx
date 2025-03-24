@@ -312,11 +312,13 @@ E.g. C:\Program Files\Java\jdk-17</value>
   <data name="CloudSettings2" xml:space="preserve">
     <value>SonarQube Cloud settings</value>
   </data>
-  
   <data name="BindingButton_ConnectedText" xml:space="preserve">
     <value>Manage Binding</value>
   </data>
   <data name="BindingButton_StandaloneText" xml:space="preserve">
     <value>Bind to SonarQube (Server, Cloud)...</value>
+  </data>
+  <data name="EsLintBridgeLocator_PathNotFound" xml:space="preserve">
+    <value>ESlint bridge bundle not found at: {0}</value>
   </data>
 </root>

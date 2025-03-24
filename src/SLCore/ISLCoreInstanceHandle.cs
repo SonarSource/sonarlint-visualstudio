@@ -25,6 +25,7 @@ using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.EsLintBridge;
 using SonarLint.VisualStudio.SLCore.NodeJS;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle;
@@ -53,6 +54,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
     private readonly ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider;
     private readonly ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider;
     private readonly ISlCoreTelemetryMigrationProvider telemetryMigrationProvider;
+    private readonly IEsLintBridgeLocator esLintBridgeLocator;
     private readonly INodeLocationProvider nodeLocator;
     private readonly IThreadHandling threadHandling;
     public Task ShutdownTask => SLCoreRpc.ShutdownTask;
@@ -67,6 +69,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         IServerConnectionsProvider serverConnectionConfigurationProvider,
         ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider,
         INodeLocationProvider nodeLocator,
+        IEsLintBridgeLocator esLintBridgeLocator,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IConfigScopeUpdater configScopeUpdater,
         ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider,
@@ -86,6 +89,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         this.threadHandling = threadHandling;
         this.slCoreRuleSettingsProvider = slCoreRuleSettingsProvider;
         this.telemetryMigrationProvider = telemetryMigrationProvider;
+        this.esLintBridgeLocator = esLintBridgeLocator;
     }
 
     public void Initialize()
@@ -120,7 +124,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             isFocusOnNewCode: false,
             constantsProvider.TelemetryConstants,
             telemetryMigrationProvider.Get(),
-            new LanguageSpecificRequirements(new JsTsRequirementsDto(nodeLocator.Get(), null))));
+            new LanguageSpecificRequirements(new JsTsRequirementsDto(nodeLocator.Get(), esLintBridgeLocator.Get()))));
 
         configScopeUpdater.UpdateConfigScopeForCurrentSolution(activeSolutionBoundTracker.CurrentConfiguration.Project);
     }
