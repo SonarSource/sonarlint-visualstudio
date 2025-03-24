@@ -75,7 +75,8 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
                 return null;
             }
 
-            var boundConfigScope = await connectedModeUiManager.ShowManageBindingDialogAsync(new AutomaticBindingRequest.Assisted(parameters.connectionId, parameters.projectKey, parameters.isFromSharedConfiguration)).ConfigureAwait(false)
+            var boundConfigScope = await connectedModeUiManager
+                .ShowManageBindingDialogAsync(new AutomaticBindingRequest.Assisted(parameters.connectionId, parameters.projectKey, parameters.isFromSharedConfiguration)).ConfigureAwait(false)
                 ? parameters.configScopeId
                 : null;
 
@@ -96,7 +97,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
         {
             if (parameters.connectionParams?.Right is { } sonarCloudConnectionParams)
             {
-                return new ServerConnection.SonarCloud(sonarCloudConnectionParams.organizationKey, region: sonarCloudConnectionParams.sonarCloudRegion.ToCloudServerRegion());
+                return new ServerConnection.SonarCloud(sonarCloudConnectionParams.organizationKey, region: sonarCloudConnectionParams.region.ToCloudServerRegion());
             }
             if (parameters.connectionParams?.Left is { } sonarQubeConnectionParams)
             {

@@ -39,7 +39,7 @@ public class SonarCloudConnectionParamsTests
                   "organizationKey": "myOrg",
                   "tokenName": "myToken",
                   "tokenValue": "89D385F9-88CC-4AF5-B34B-7DAAE7FFB24A",
-                  "sonarCloudRegion": "{{region}}"
+                  "region": "{{region}}"
               }
               """;
 
@@ -59,7 +59,7 @@ public class SonarCloudConnectionParamsTests
                            "organizationKey": "myOrg",
                            "tokenName": "myToken",
                            "tokenValue": "89D385F9-88CC-4AF5-B34B-7DAAE7FFB24A",
-                           "sonarCloudRegion": "{{region}}"
+                           "region": "{{region}}"
                          }
                          """;
 
