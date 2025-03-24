@@ -26,4 +26,4 @@ public record SonarCloudConnectionParams(
     string organizationKey,
     string tokenName,
     string tokenValue,
-    SonarCloudRegion sonarCloudRegion);
+    SonarCloudRegion region);
