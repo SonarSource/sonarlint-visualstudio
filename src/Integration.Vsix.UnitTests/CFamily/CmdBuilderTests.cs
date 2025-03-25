@@ -145,7 +145,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [DataRow("8Bytes", "/Zp8")]
         [DataRow("4Bytes", "/Zp4")]
         [DataRow("2Bytes", "/Zp2")]
-        [DataRow("1Bytes", "/Zp1")]
+        [DataRow("1Byte", "/Zp1")]
         [DataRow("Invalid", "Unsupported StructMemberAlignment: Invalid")]
         public void ConvertStructMemberAlignment(string input, string output)
         {
@@ -213,7 +213,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [DataRow("StructMemberAlignment", "8Bytes", "/Zp8 ")]
         [DataRow("StructMemberAlignment", "4Bytes", "/Zp4 ")]
         [DataRow("StructMemberAlignment", "2Bytes", "/Zp2 ")]
-        [DataRow("StructMemberAlignment", "1Bytes", "/Zp1 ")]
+        [DataRow("StructMemberAlignment", "1Byte", "/Zp1 ")]
         [DataRow("AdditionalIncludeDirectories", "a;;b;c", "/I\"a\" /I\"b\" /I\"c\" ")]
         [DataRow("AdditionalIncludeDirectories", ";;;", "")]
         [DataRow("PreprocessorDefinitions", "a;;b;;c;", "/D\"a\" /D\"b\" /D\"c\" ")]

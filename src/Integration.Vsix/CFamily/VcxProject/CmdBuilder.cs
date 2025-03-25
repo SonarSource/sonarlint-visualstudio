@@ -238,7 +238,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                     return "/Zp4";
                 case "2Bytes":
                     return "/Zp2";
-                case "1Bytes":
+                case "1Byte":
                     return "/Zp1";
             }
         }
