@@ -89,7 +89,7 @@ public class ManageConnectionsViewModelTest
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.RemovingConnectionText &&
                     x.WarningText == UiResources.RemovingConnectionFailedText));
     }
@@ -299,7 +299,7 @@ public class ManageConnectionsViewModelTest
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.LoadingConnectionsText &&
                     x.WarningText == UiResources.LoadingConnectionsFailedText));
     }
@@ -325,7 +325,7 @@ public class ManageConnectionsViewModelTest
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.CreatingConnectionProgressText &&
                     x.WarningText == UiResources.CreatingConnectionFailedText));
     }
@@ -360,13 +360,13 @@ public class ManageConnectionsViewModelTest
     [TestMethod]
     public async Task GetConnectionReferencesWithProgressAsync_CalculatesReferencesAndReportsProgress()
     {
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponseWithData<List<string>>>>()).Returns(new AdapterResponseWithData<List<string>>(true, []));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus<List<string>>>>()).Returns(new ResponseStatus<List<string>>(true, []));
 
         await testSubject.GetConnectionReferencesWithProgressAsync(CreateConnectionViewModel(twoConnections[0]));
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponseWithData<List<string>>>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus<List<string>>>>(x =>
                     x.ProgressStatus == UiResources.CalculatingConnectionReferencesText &&
                     x.WarningText == UiResources.CalculatingConnectionReferencesFailedText));
     }
@@ -374,11 +374,11 @@ public class ManageConnectionsViewModelTest
     [TestMethod]
     public async Task GetConnectionReferencesOnBackgroundThreadAsync_RunsOnBackgroundThread()
     {
-        threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<List<string>>>>>()).Returns(new AdapterResponseWithData<List<string>>(true, []));
+        threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatus<List<string>>>>>()).Returns(new ResponseStatus<List<string>>(true, []));
 
         await testSubject.GetConnectionReferencesOnBackgroundThreadAsync(CreateConnectionViewModel(twoConnections[0]));
 
-        await threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<List<string>>>>>());
+        await threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatus<List<string>>>>>());
     }
 
     [TestMethod]
@@ -387,7 +387,7 @@ public class ManageConnectionsViewModelTest
     public async Task GetConnectionReferencesOnBackgroundThreadAsync_ReturnsCalculatedReferences(bool expectedResponse)
     {
         var bindingKey = "localBindingKey";
-        threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<List<string>>>>>()).Returns(new AdapterResponseWithData<List<string>>(expectedResponse, [bindingKey]));
+        threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatus<List<string>>>>>()).Returns(new ResponseStatus<List<string>>(expectedResponse, [bindingKey]));
 
         var responses = await testSubject.GetConnectionReferencesOnBackgroundThreadAsync(CreateConnectionViewModel(twoConnections[0]));
 

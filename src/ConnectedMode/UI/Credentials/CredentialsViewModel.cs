@@ -71,7 +71,7 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
 
     internal async Task<bool> ValidateConnectionAsync()
     {
-        var validationParams = new TaskToPerformParams<AdapterResponse>(AdapterValidateConnectionAsync, UiResources.ValidatingConnectionProgressText, UiResources.ValidatingConnectionFailedText)
+        var validationParams = new TaskToPerformParams<ResponseStatus>(AdapterValidateConnectionAsync, UiResources.ValidatingConnectionProgressText, UiResources.ValidatingConnectionFailedText)
         {
             AfterProgressUpdated = AfterProgressStatusUpdated
         };
@@ -79,11 +79,11 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
         return adapterResponse.Success;
     }
 
-    internal async Task<AdapterResponse> AdapterValidateConnectionAsync() => await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, GetCredentialsModel());
+    internal async Task<ResponseStatus> AdapterValidateConnectionAsync() => await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, GetCredentialsModel());
 
-    internal async Task<AdapterResponseWithData<string>> GenerateTokenWithProgressAsync()
+    internal async Task<ResponseStatus<string>> GenerateTokenWithProgressAsync()
     {
-        var validationParams = new TaskToPerformParams<AdapterResponseWithData<string>>(GenerateTokenAsync, UiResources.GeneratingTokenProgressText, UiResources.GeneratingTokenFailedText)
+        var validationParams = new TaskToPerformParams<ResponseStatus<string>>(GenerateTokenAsync, UiResources.GeneratingTokenProgressText, UiResources.GeneratingTokenFailedText)
         {
             AfterProgressUpdated = AfterProgressStatusUpdated
         };
@@ -91,7 +91,7 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
         return adapterResponse;
     }
 
-    internal async Task<AdapterResponseWithData<string>> GenerateTokenAsync()
+    internal async Task<ResponseStatus<string>> GenerateTokenAsync()
     {
         TokenGenerationCancellationSource = new CancellationTokenSource();
         return await slCoreConnectionAdapter.GenerateTokenAsync(ConnectionInfo, TokenGenerationCancellationSource.Token);

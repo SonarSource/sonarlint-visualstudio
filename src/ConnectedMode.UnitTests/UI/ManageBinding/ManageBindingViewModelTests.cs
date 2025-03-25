@@ -33,7 +33,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
-using static SonarLint.VisualStudio.ConnectedMode.UI.AutomaticBindingRequest;
+using static SonarLint.VisualStudio.ConnectedMode.UI.BindingRequest;
 using IConnectionCredentials = SonarLint.VisualStudio.Core.Binding.IConnectionCredentials;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageBinding;
@@ -291,7 +291,7 @@ public class ManageBindingViewModelTests
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.TaskToPerform == testSubject.UnbindAsync &&
                     x.ProgressStatus == UiResources.UnbindingInProgressText &&
                     x.WarningText == UiResources.UnbindingFailedText &&
@@ -676,7 +676,7 @@ public class ManageBindingViewModelTests
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.TaskToPerform == testSubject.LoadDataAsync &&
                     x.ProgressStatus == UiResources.LoadingConnectionsText &&
                     x.WarningText == UiResources.LoadingConnectionsFailedText &&
@@ -693,7 +693,7 @@ public class ManageBindingViewModelTests
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponseWithData<BindingResult>>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus<BindingResult>>>(x =>
                     x.TaskToPerform == testSubject.DisplayBindStatusAsync &&
                     x.ProgressStatus == UiResources.FetchingBindingStatusText &&
                     x.WarningText == UiResources.FetchingBindingStatusFailedText &&
@@ -711,7 +711,7 @@ public class ManageBindingViewModelTests
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.TaskToPerform == testSubject.CheckForSharedBindingAsync &&
                     x.ProgressStatus == UiResources.CheckingForSharedBindingText &&
                     x.WarningText == UiResources.CheckingForSharedBindingFailedText &&
@@ -729,7 +729,7 @@ public class ManageBindingViewModelTests
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.TaskToPerform == testSubject.CheckForSharedBindingAsync &&
                     x.ProgressStatus == UiResources.CheckingForSharedBindingText &&
                     x.WarningText == UiResources.CheckingForSharedBindingFailedText &&
@@ -759,7 +759,7 @@ public class ManageBindingViewModelTests
 
         var response = await testSubject.DisplayBindStatusAsync();
 
-        response.Should().BeEquivalentTo(new AdapterResponse(true));
+        response.Should().BeEquivalentTo(new ResponseStatus(true));
     }
 
     [TestMethod]
@@ -771,7 +771,7 @@ public class ManageBindingViewModelTests
         var response = await testSubject.DisplayBindStatusAsync();
 
         testSubject.BoundProject.Should().NotBeNull();
-        response.Should().BeEquivalentTo(new AdapterResponse(true));
+        response.Should().BeEquivalentTo(new ResponseStatus(true));
     }
 
     /// <summary>
@@ -788,7 +788,7 @@ public class ManageBindingViewModelTests
 
         testSubject.BoundProject.Should().BeEquivalentTo(expectedSeverProject);
         testSubject.SelectedProject.Should().BeEquivalentTo(expectedSeverProject);
-        response.Should().BeEquivalentTo(new AdapterResponse(false));
+        response.Should().BeEquivalentTo(new ResponseStatus(false));
     }
 
     [TestMethod]
@@ -928,15 +928,14 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public async Task PerformManualBindingWithProgressAsync_BindsProjectAndReportsProgress()
     {
-        await testSubject.PerformManualBindingWithProgressAsync();
+        await testSubject.PerformBindingWithProgressAsync(new Manual());
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponseWithData<BindingResult>>>(x =>
-                    x.TaskToPerform == testSubject.PerformManualBindingAsync &&
-                    x.ProgressStatus == UiResources.BindingInProgressText &&
-                    x.WarningText == UiResources.BindingFailedText &&
-                    x.AfterProgressUpdated == testSubject.OnProgressUpdated));
+                Arg.Is<TaskToPerformParams<ResponseStatus<BindingResult>>>(x =>
+                    x.ProgressStatus == UiResources.BindingInProgressText
+                    && x.WarningText == UiResources.BindingFailedText
+                    && x.AfterProgressUpdated == testSubject.OnProgressUpdated));
     }
 
     [TestMethod]
@@ -944,16 +943,48 @@ public class ManageBindingViewModelTests
     {
         var connectionInfo = new ConnectionInfo("organization", ConnectionServerType.SonarCloud);
         testSubject.SelectedConnectionInfo = connectionInfo;
-        serverConnectionsRepositoryAdapter.TryGet(connectionInfo, out _).Returns(callInfo =>
+        testSubject.SelectedProject = ServerProject;
+        serverConnectionsRepositoryAdapter.TryGet(connectionInfo.GetServerIdFromConnectionInfo(), out _).Returns(callInfo =>
         {
             callInfo[1] = null;
             return false;
         });
 
-        var response = await testSubject.PerformManualBindingAsync();
+        var response = await testSubject.PerformBindingInternalAsync(new Manual());
 
         response.Success.Should().BeFalse();
-        response.ResponseData.Should().Be(BindingResult.ConnectionNotFound);
+        response.ResponseData.Should().BeSameAs(BindingResult.ConnectionNotFound);
+        VerifyBindingTelemetryNotSent();
+    }
+
+    [TestMethod]
+    public async Task PerformManualBindingAsync_WhenCredentialsNotFound_Fails()
+    {
+        var connectionInfo = new ConnectionInfo("organization", ConnectionServerType.SonarCloud);
+        testSubject.SelectedConnectionInfo = connectionInfo;
+        testSubject.SelectedProject = ServerProject;
+        serverConnectionsRepositoryAdapter.TryGet(connectionInfo.GetServerIdFromConnectionInfo(), out _).Returns(callInfo =>
+        {
+            callInfo[1] = new ServerConnection.SonarCloud("organization", credentials: null);
+            return true;
+        });
+
+        var response = await testSubject.PerformBindingInternalAsync(new Manual());
+
+        response.Success.Should().BeFalse();
+        response.ResponseData.Should().BeSameAs(BindingResult.CredentialsNotFound);
+        VerifyBindingTelemetryNotSent();
+    }
+
+
+    [TestMethod]
+    public async Task PerformManualBindingAsync_WhenProjectNotFound_Fails()
+    {
+        testSubject.SelectedProject = null;
+        var response = await testSubject.PerformBindingInternalAsync(new Manual());
+
+        response.Success.Should().BeFalse();
+        response.ResponseData.Should().BeSameAs(BindingResult.ProjectKeyNotFound);
         VerifyBindingTelemetryNotSent();
     }
 
@@ -964,10 +995,10 @@ public class ManageBindingViewModelTests
         SetupConnectionAndProjectToBind(sonarCloudConnection, ServerProject);
         bindingController.BindAsync(Arg.Any<BoundServerProject>(), Arg.Any<CancellationToken>()).ThrowsAsync(new Exception("Failed unexpectedly"));
 
-        var response = await testSubject.PerformManualBindingAsync();
+        var response = await testSubject.PerformBindingInternalAsync(new Manual());
 
         response.Success.Should().BeFalse();
-        response.ResponseData.Should().Be(BindingResult.Failed);
+        response.ResponseData.Should().BeSameAs(BindingResult.Failed);
         logger.Received(1).WriteLine(Resources.Binding_Fails, "Failed unexpectedly");
         VerifyBindingTelemetryNotSent();
     }
@@ -978,10 +1009,10 @@ public class ManageBindingViewModelTests
         var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
         SetupConnectionAndProjectToBind(sonarCloudConnection, ServerProject);
 
-        var response = await testSubject.PerformManualBindingAsync();
+        var response = await testSubject.PerformBindingInternalAsync(new Manual());
 
         response.Success.Should().BeTrue();
-        response.ResponseData.Should().Be(BindingResult.Success);
+        response.ResponseData.Should().BeSameAs(BindingResult.Success);
         testSubject.BoundProject.Should().BeEquivalentTo(ServerProject);
         VerifyManualBindingTelemetrySent();
     }
@@ -1015,11 +1046,11 @@ public class ManageBindingViewModelTests
         testSubject.SharedBindingConfigModel = sonarQubeSharedBindingConfigModel;
         MockProgressResult();
 
-        await testSubject.PerformAutomaticBindingWithProgressAsync(new AutomaticBindingRequest.Shared());
+        await testSubject.PerformBindingWithProgressAsync(new BindingRequest.Shared());
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponseWithData<BindingResult>>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus<BindingResult>>>(x =>
                     x.ProgressStatus == UiResources.BindingInProgressText &&
                     x.WarningText == UiResources.BindingFailedText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated));
@@ -1033,7 +1064,7 @@ public class ManageBindingViewModelTests
         var sonarQubeServerConnection = new ServerConnection.SonarQube(testSubject.SharedBindingConfigModel.Uri);
         SetupBoundProject(sonarQubeServerConnection);
 
-        var response = await testSubject.PerformAutomaticBindingInternalAsync(new AutomaticBindingRequest.Shared());
+        var response = await testSubject.PerformBindingInternalAsync(new BindingRequest.Shared());
 
         await VerifyBindingSucceeded(response, testSubject.SharedBindingConfigModel.ProjectKey, sonarQubeServerConnection);
     }
@@ -1044,9 +1075,9 @@ public class ManageBindingViewModelTests
         testSubject.SharedBindingConfigModel = null;
         SetupBoundProject(SonarQubeConnectionInfo.GetServerConnectionFromConnectionInfo());
 
-        var response = await testSubject.PerformAutomaticBindingInternalAsync(new AutomaticBindingRequest.Shared());
+        var response = await testSubject.PerformBindingInternalAsync(new BindingRequest.Shared());
 
-        await VerifyBindingNotPerformed(response, BindingResult.SharedConfigurationNotAvailable, new AutomaticBindingRequest.Shared().TypeName, Resources.AutomaticBinding_ConfigurationNotAvailable);
+        await VerifyBindingNotPerformed(response, BindingResult.SharedConfigurationNotAvailable, new BindingRequest.Shared().TypeName, Resources.SharedBinding_ConfigurationNotAvailable);
     }
 
     [TestMethod]
@@ -1057,7 +1088,7 @@ public class ManageBindingViewModelTests
         var sonarCloudServerConnection = new ServerConnection.SonarCloud(testSubject.SharedBindingConfigModel.Organization);
         SetupBoundProject(sonarCloudServerConnection);
 
-        var response = await testSubject.PerformAutomaticBindingInternalAsync(new AutomaticBindingRequest.Shared());
+        var response = await testSubject.PerformBindingInternalAsync(new BindingRequest.Shared());
 
         await VerifyBindingSucceeded(response, testSubject.SharedBindingConfigModel.ProjectKey, sonarCloudServerConnection);
     }
@@ -1070,7 +1101,7 @@ public class ManageBindingViewModelTests
         var expectedServerConnection = new ServerConnection.SonarQube(testSubject.SharedBindingConfigModel.Uri);
         SetupBoundProject(expectedServerConnection);
 
-        var response = await testSubject.PerformAutomaticBindingInternalAsync(new AutomaticBindingRequest.Shared());
+        var response = await testSubject.PerformBindingInternalAsync(new BindingRequest.Shared());
 
         await VerifyBindingSucceeded(response, testSubject.SharedBindingConfigModel.ProjectKey, expectedServerConnection);
     }
@@ -1083,7 +1114,7 @@ public class ManageBindingViewModelTests
         var expectedServerConnection = new ServerConnection.SonarCloud(testSubject.SharedBindingConfigModel.Organization);
         SetupBoundProject(expectedServerConnection);
 
-        var response = await testSubject.PerformAutomaticBindingInternalAsync(new AutomaticBindingRequest.Shared());
+        var response = await testSubject.PerformBindingInternalAsync(new BindingRequest.Shared());
 
         await VerifyBindingSucceeded(response, testSubject.SharedBindingConfigModel.ProjectKey, expectedServerConnection);
     }
@@ -1093,11 +1124,11 @@ public class ManageBindingViewModelTests
     {
         testSubject.SelectedProject = ServerProject; // this is to make sure the SelectedProject is ignored and the shared config is used instead
         testSubject.SharedBindingConfigModel = sonarQubeSharedBindingConfigModel;
-        var automaticBindingRequest = new AutomaticBindingRequest.Shared();
+        var automaticBindingRequest = new BindingRequest.Shared();
 
-        var response = await testSubject.PerformAutomaticBindingInternalAsync(automaticBindingRequest);
+        var response = await testSubject.PerformBindingInternalAsync(automaticBindingRequest);
 
-        await VerifyBindingNotPerformed(response, BindingResult.ConnectionNotFound, automaticBindingRequest.TypeName, Resources.AutomaticBinding_ConnectionNotFound);
+        await VerifyBindingNotPerformed(response, BindingResult.ConnectionNotFound, automaticBindingRequest.TypeName, Resources.Binding_ConnectionNotFound);
     }
 
     [TestMethod]
@@ -1105,11 +1136,11 @@ public class ManageBindingViewModelTests
     {
         testSubject.SelectedProject = ServerProject; // this is to make su`re the SelectedProject is ignored and the shared config is used instead
         testSubject.SharedBindingConfigModel = sonarCloudSharedBindingConfigModel;
-        var automaticBindingRequest = new AutomaticBindingRequest.Shared();
+        var automaticBindingRequest = new BindingRequest.Shared();
 
-        var response = await testSubject.PerformAutomaticBindingInternalAsync(automaticBindingRequest);
+        var response = await testSubject.PerformBindingInternalAsync(automaticBindingRequest);
 
-        await VerifyBindingNotPerformed(response, BindingResult.ConnectionNotFound, automaticBindingRequest.TypeName, Resources.AutomaticBinding_ConnectionNotFound);
+        await VerifyBindingNotPerformed(response, BindingResult.ConnectionNotFound, automaticBindingRequest.TypeName, Resources.Binding_ConnectionNotFound);
     }
 
     [TestMethod]
@@ -1120,7 +1151,7 @@ public class ManageBindingViewModelTests
         var sonarQubeServerConnection = new ServerConnection.SonarQube(testSubject.SharedBindingConfigModel.Uri);
         MockConnectionCreatedWithTrustServerDialog(true, sonarQubeServerConnection);
 
-        var response = await testSubject.PerformAutomaticBindingInternalAsync(new AutomaticBindingRequest.Shared());
+        var response = await testSubject.PerformBindingInternalAsync(new BindingRequest.Shared());
 
         await VerifyBindingSucceeded(response, testSubject.SharedBindingConfigModel.ProjectKey, sonarQubeServerConnection);
         connectedModeServices.ServerConnectionsRepositoryAdapter.Received(1).TryGetAllConnectionsInfo(out _);
@@ -1134,7 +1165,7 @@ public class ManageBindingViewModelTests
         var sonarCloudServerConnection = new ServerConnection.SonarCloud(testSubject.SharedBindingConfigModel.Organization);
         MockConnectionCreatedWithTrustServerDialog(true, sonarCloudServerConnection);
 
-        var response = await testSubject.PerformAutomaticBindingInternalAsync(new AutomaticBindingRequest.Shared());
+        var response = await testSubject.PerformBindingInternalAsync(new BindingRequest.Shared());
 
         await VerifyBindingSucceeded(response, testSubject.SharedBindingConfigModel.ProjectKey, sonarCloudServerConnection);
         connectedModeServices.ServerConnectionsRepositoryAdapter.Received(1).TryGetAllConnectionsInfo(out _);
@@ -1147,13 +1178,13 @@ public class ManageBindingViewModelTests
         var expectedServerConnection = new ServerConnection.SonarCloud(testSubject.SharedBindingConfigModel.Organization);
         SetupBoundProject(expectedServerConnection);
         expectedServerConnection.Credentials = null;
-        var automaticBindingRequest = new AutomaticBindingRequest.Shared();
+        var automaticBindingRequest = new BindingRequest.Shared();
 
-        var response = await testSubject.PerformAutomaticBindingInternalAsync(automaticBindingRequest);
+        var response = await testSubject.PerformBindingInternalAsync(automaticBindingRequest);
 
-        await VerifyBindingNotPerformed(response, BindingResult.CredentialsNotFound, automaticBindingRequest.TypeName, Resources.AutomaticBinding_CredentiasNotFound, expectedServerConnection.Id);
-        messageBox.Received(1).Show(UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxText, UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
-            MessageBoxImage.Warning);
+        await VerifyBindingNotPerformed(response, BindingResult.CredentialsNotFound, automaticBindingRequest.TypeName, Resources.Binding_CredentiasNotFound, expectedServerConnection.Id);
+        // messageBox.Received(1).Show(UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxText, UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
+        //     MessageBoxImage.Warning);
     }
 
     [TestMethod]
@@ -1163,13 +1194,13 @@ public class ManageBindingViewModelTests
         var expectedServerConnection = new ServerConnection.SonarQube(testSubject.SharedBindingConfigModel.Uri);
         SetupBoundProject(expectedServerConnection);
         expectedServerConnection.Credentials = null;
-        var automaticBindingRequest = new AutomaticBindingRequest.Shared();
+        var automaticBindingRequest = new BindingRequest.Shared();
 
-        var response = await testSubject.PerformAutomaticBindingInternalAsync(automaticBindingRequest);
+        var response = await testSubject.PerformBindingInternalAsync(automaticBindingRequest);
 
-        await VerifyBindingNotPerformed(response, BindingResult.CredentialsNotFound, automaticBindingRequest.TypeName, Resources.AutomaticBinding_CredentiasNotFound, expectedServerConnection.Id);
-        messageBox.Received(1).Show(UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxText, UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
-            MessageBoxImage.Warning);
+        await VerifyBindingNotPerformed(response, BindingResult.CredentialsNotFound, automaticBindingRequest.TypeName, Resources.Binding_CredentiasNotFound, expectedServerConnection.Id);
+        // messageBox.Received(1).Show(UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxText, UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
+        //     MessageBoxImage.Warning);
     }
 
     [TestMethod]
@@ -1180,9 +1211,9 @@ public class ManageBindingViewModelTests
         testSubject.SharedBindingConfigModel.ProjectKey = null;
         SetupBoundProject(new ServerConnection.SonarQube(testSubject.SharedBindingConfigModel.Uri));
 
-        var response = await testSubject.PerformAutomaticBindingInternalAsync(new AutomaticBindingRequest.Shared());
+        var response = await testSubject.PerformBindingInternalAsync(new BindingRequest.Shared());
 
-        await VerifyBindingNotPerformed(response, BindingResult.ProjectKeyNotFound, new AutomaticBindingRequest.Shared().TypeName, Resources.AutomaticBinding_ProjectKeyNotFound);
+        await VerifyBindingNotPerformed(response, BindingResult.ProjectKeyNotFound, new BindingRequest.Shared().TypeName, Resources.Binding_ProjectKeyNotFound);
     }
 
     [TestMethod]
@@ -1193,9 +1224,9 @@ public class ManageBindingViewModelTests
         testSubject.SharedBindingConfigModel.ProjectKey = null;
         SetupBoundProject(new ServerConnection.SonarCloud(testSubject.SharedBindingConfigModel.Organization));
 
-        var response = await testSubject.PerformAutomaticBindingInternalAsync(new AutomaticBindingRequest.Shared());
+        var response = await testSubject.PerformBindingInternalAsync(new BindingRequest.Shared());
 
-        await VerifyBindingNotPerformed(response, BindingResult.ProjectKeyNotFound, new AutomaticBindingRequest.Shared().TypeName, Resources.AutomaticBinding_ProjectKeyNotFound);
+        await VerifyBindingNotPerformed(response, BindingResult.ProjectKeyNotFound, new BindingRequest.Shared().TypeName, Resources.Binding_ProjectKeyNotFound);
     }
 
     [TestMethod]
@@ -1207,10 +1238,10 @@ public class ManageBindingViewModelTests
             .Do(_ => throw new Exception());
         testSubject.SharedBindingConfigModel = sonarCloudSharedBindingConfigModel;
 
-        var response = await testSubject.PerformAutomaticBindingInternalAsync(new AutomaticBindingRequest.Shared());
+        var response = await testSubject.PerformBindingInternalAsync(new BindingRequest.Shared());
 
         response.Success.Should().BeFalse();
-        response.ResponseData.Should().Be(BindingResult.Failed);
+        response.ResponseData.Should().BeSameAs(BindingResult.Failed);
         VerifyBindingTelemetryNotSent();
     }
 
@@ -1220,11 +1251,11 @@ public class ManageBindingViewModelTests
         testSubject.SharedBindingConfigModel = sonarQubeSharedBindingConfigModel;
         MockProgressResult();
 
-        await testSubject.PerformAutomaticBindingWithProgressAsync(new Assisted("any connection", "any project", default));
+        await testSubject.PerformBindingWithProgressAsync(new Assisted("any connection", "any project", default));
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponseWithData<BindingResult>>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus<BindingResult>>>(x =>
                     x.ProgressStatus == UiResources.BindingInProgressText &&
                     x.WarningText == UiResources.BindingFailedText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated));
@@ -1237,10 +1268,10 @@ public class ManageBindingViewModelTests
         var automaticBindingRequest = new Assisted(serverConnection.Id, ServerProject.Key, isShared);
         SetupBoundProject(serverConnection, ServerProject);
 
-        var response = await testSubject.PerformAutomaticBindingInternalAsync(automaticBindingRequest);
+        var response = await testSubject.PerformBindingInternalAsync(automaticBindingRequest);
 
         response.Success.Should().BeTrue();
-        response.ResponseData.Should().Be(BindingResult.Success);
+        response.ResponseData.Should().BeSameAs(BindingResult.Success);
         await bindingController.Received(1)
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
                 proj.ServerProjectKey == ServerProject.Key), Arg.Any<CancellationToken>());
@@ -1253,9 +1284,9 @@ public class ManageBindingViewModelTests
     {
         var automaticBindingRequest = new Assisted(serverConnection.Id, ServerProject.Key, isShared);
 
-        var response = await testSubject.PerformAutomaticBindingInternalAsync(automaticBindingRequest);
+        var response = await testSubject.PerformBindingInternalAsync(automaticBindingRequest);
 
-        await VerifyBindingNotPerformed(response, BindingResult.ConnectionNotFound, automaticBindingRequest.TypeName, Resources.AutomaticBinding_ConnectionNotFound);
+        await VerifyBindingNotPerformed(response, BindingResult.ConnectionNotFound, automaticBindingRequest.TypeName, Resources.Binding_ConnectionNotFound);
     }
 
     [DynamicData(nameof(AssistedBindingParameters))]
@@ -1266,12 +1297,12 @@ public class ManageBindingViewModelTests
         serverConnection.Credentials = null;
         var automaticBindingRequest = new Assisted(serverConnection.Id, ServerProject.Key, isShared);
 
-        var response = await testSubject.PerformAutomaticBindingInternalAsync(automaticBindingRequest);
+        var response = await testSubject.PerformBindingInternalAsync(automaticBindingRequest);
 
-        await VerifyBindingNotPerformed(response, BindingResult.CredentialsNotFound, automaticBindingRequest.TypeName, Resources.AutomaticBinding_CredentiasNotFound,
+        await VerifyBindingNotPerformed(response, BindingResult.CredentialsNotFound, automaticBindingRequest.TypeName, Resources.Binding_CredentiasNotFound,
             automaticBindingRequest.ServerConnectionId);
-        messageBox.Received(1).Show(UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxText, UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
-            MessageBoxImage.Warning);
+        // messageBox.Received(1).Show(UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxText, UiResources.NotFoundCredentialsForAutomaticBindingMessageBoxCaption, MessageBoxButton.OK,
+        //     MessageBoxImage.Warning);
     }
 
     [DynamicData(nameof(AssistedBindingParameters))]
@@ -1281,9 +1312,9 @@ public class ManageBindingViewModelTests
         SetupBoundProject(serverConnection, ServerProject);
         var automaticBindingRequest = new Assisted(serverConnection.Id, null, isShared);
 
-        var response = await testSubject.PerformAutomaticBindingInternalAsync(automaticBindingRequest);
+        var response = await testSubject.PerformBindingInternalAsync(automaticBindingRequest);
 
-        await VerifyBindingNotPerformed(response, BindingResult.ProjectKeyNotFound, automaticBindingRequest.TypeName, Resources.AutomaticBinding_ProjectKeyNotFound);
+        await VerifyBindingNotPerformed(response, BindingResult.ProjectKeyNotFound, automaticBindingRequest.TypeName, Resources.Binding_ProjectKeyNotFound);
     }
 
     [DynamicData(nameof(AssistedBindingParameters))]
@@ -1295,23 +1326,23 @@ public class ManageBindingViewModelTests
             .Do(_ => throw new Exception());
         var automaticBindingRequest = new Assisted(serverConnection.Id, ServerProject.Key, isShared);
 
-        var response = await testSubject.PerformAutomaticBindingInternalAsync(automaticBindingRequest);
+        var response = await testSubject.PerformBindingInternalAsync(automaticBindingRequest);
 
         response.Success.Should().BeFalse();
-        response.ResponseData.Should().Be(BindingResult.Failed);
+        response.ResponseData.Should().BeSameAs(BindingResult.Failed);
         VerifyBindingTelemetryNotSent();
     }
 
     [TestMethod]
     public async Task ExportBindingConfigurationWithProgressAsync_Fails_DelegatesWarningToProgressViewModel()
     {
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponseWithData<string>>>()).Returns(new AdapterResponseWithData<string>(false, null));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus<string>>>()).Returns(new ResponseStatus<string>(false, null));
 
         await testSubject.ExportBindingConfigurationWithProgressAsync();
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponseWithData<string>>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus<string>>>(x =>
                     x.ProgressStatus == UiResources.ExportingBindingConfigurationProgressText &&
                     x.WarningText == UiResources.ExportBindingConfigurationWarningText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated));
@@ -1322,13 +1353,13 @@ public class ManageBindingViewModelTests
     public async Task ExportBindingConfigurationWithProgressAsync_Success_ShowsMessageAndHasUpToDateState()
     {
         const string filePath = "file path";
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponseWithData<string>>>()).Returns(new AdapterResponseWithData<string>(true, filePath));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus<string>>>()).Returns(new ResponseStatus<string>(true, filePath));
 
         await testSubject.ExportBindingConfigurationWithProgressAsync();
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponseWithData<string>>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus<string>>>(x =>
                     x.ProgressStatus == UiResources.ExportingBindingConfigurationProgressText &&
                     x.WarningText == UiResources.ExportBindingConfigurationWarningText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated),
@@ -1337,7 +1368,7 @@ public class ManageBindingViewModelTests
             UiResources.ExportBindingConfigurationMessageBoxCaptionSuccess, MessageBoxButton.OK, MessageBoxImage.Information);
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.TaskToPerform == testSubject.CheckForSharedBindingAsync &&
                     x.ProgressStatus == UiResources.CheckingForSharedBindingText &&
                     x.WarningText == UiResources.CheckingForSharedBindingFailedText &&
@@ -1361,7 +1392,7 @@ public class ManageBindingViewModelTests
 
         var result = await testSubject.ExportBindingConfigurationAsync();
 
-        result.Should().BeEquivalentTo(new AdapterResponseWithData<string>(true, exportedPath));
+        result.Should().BeEquivalentTo(new ResponseStatus<string>(true, exportedPath));
     }
 
     [TestMethod]
@@ -1379,7 +1410,7 @@ public class ManageBindingViewModelTests
 
         var result = await testSubject.ExportBindingConfigurationAsync();
 
-        result.Should().BeEquivalentTo(new AdapterResponseWithData<string>(true, exportedPath));
+        result.Should().BeEquivalentTo(new ResponseStatus<string>(true, exportedPath));
     }
 
     [TestMethod]
@@ -1390,7 +1421,7 @@ public class ManageBindingViewModelTests
 
         var result = await testSubject.ExportBindingConfigurationAsync();
 
-        result.Should().BeEquivalentTo(new AdapterResponseWithData<string>(false, null));
+        result.Should().BeEquivalentTo(new ResponseStatus<string>(false, null));
     }
 
     private void VerifyManualBindingTelemetrySent() => connectedModeServices.TelemetryManager.Received().AddedManualBindings();
@@ -1505,7 +1536,7 @@ public class ManageBindingViewModelTests
     {
         var slCoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
         slCoreConnectionAdapter.GetServerProjectByKeyAsync(Arg.Any<ServerConnection>(), Arg.Any<string>())
-            .Returns(Task.FromResult(new AdapterResponseWithData<ServerProject>(success, responseData)));
+            .Returns(Task.FromResult(new ResponseStatus<ServerProject>(success, responseData)));
         connectedModeServices.SlCoreConnectionAdapter.Returns(slCoreConnectionAdapter);
     }
 
@@ -1516,8 +1547,8 @@ public class ManageBindingViewModelTests
     }
 
     private void MockProgressResult() =>
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponseWithData<BindingResult>>>())
-            .Returns(new AdapterResponseWithData<BindingResult>(true, BindingResult.Success));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus<BindingResult>>>())
+            .Returns(new ResponseStatus<BindingResult>(true, BindingResult.Success));
 
     private void MockConnectionCreatedWithTrustServerDialog(bool isCreated, ServerConnection serverConnection)
     {
@@ -1533,7 +1564,7 @@ public class ManageBindingViewModelTests
         });
     }
 
-    private async Task VerifyBindingSucceeded(AdapterResponseWithData<BindingResult> actualResponse, string expectedProjectKey, ServerConnection expectedServerConnection)
+    private async Task VerifyBindingSucceeded(ResponseStatus<BindingResult> actualResponse, string expectedProjectKey, ServerConnection expectedServerConnection)
     {
         var expectedServerType = expectedServerConnection is ServerConnection.SonarCloud ? ConnectionServerType.SonarCloud : ConnectionServerType.SonarQube;
         var expectedConnectionInfoId = expectedServerConnection is ServerConnection.SonarCloud cloud
@@ -1541,7 +1572,7 @@ public class ManageBindingViewModelTests
             : expectedServerConnection.Id;
 
         actualResponse.Success.Should().BeTrue();
-        actualResponse.ResponseData.Should().Be(BindingResult.Success);
+        actualResponse.ResponseData.Should().BeSameAs(BindingResult.Success);
         serverConnectionsRepositoryAdapter.Received()
             .TryGet(new ConnectionInfo(expectedConnectionInfoId, expectedServerType).GetServerIdFromConnectionInfo(), out _);
         await bindingController.Received(1)
@@ -1551,7 +1582,7 @@ public class ManageBindingViewModelTests
     }
 
     private async Task VerifyBindingNotPerformed(
-        AdapterResponseWithData<BindingResult> response,
+        ResponseStatus<BindingResult> response,
         BindingResult expectedResult,
         string expectedLogContext,
         string expectedLogMessage,
@@ -1569,9 +1600,9 @@ public class ManageBindingViewModelTests
 
     private void MockProgressReporter(bool task1Response = true, bool task2Response = true)
     {
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponseWithData<BindingResult>>>(), Arg.Any<bool>())
-            .Returns(Task.FromResult(new AdapterResponseWithData<BindingResult>(task1Response, BindingResult.Success)));
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponse>>(), Arg.Any<bool>())
-            .Returns(Task.FromResult(new AdapterResponse(task2Response)));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus<BindingResult>>>(), Arg.Any<bool>())
+            .Returns(Task.FromResult(new ResponseStatus<BindingResult>(task1Response, BindingResult.Success)));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus>>(), Arg.Any<bool>())
+            .Returns(Task.FromResult(new ResponseStatus(task2Response)));
     }
 }

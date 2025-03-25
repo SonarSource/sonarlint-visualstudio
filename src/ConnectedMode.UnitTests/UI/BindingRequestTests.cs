@@ -23,19 +23,19 @@ using SonarLint.VisualStudio.ConnectedMode.UI;
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI;
 
 [TestClass]
-public class AutomaticBindingRequestTests
+public class BindingRequestTests
 {
     [TestMethod]
     public void Shared_TypeName_ShouldBeShared()
     {
-        new AutomaticBindingRequest.Shared().TypeName.Should().Be(Resources.AutomaticBindingType_Shared);
+        new BindingRequest.Shared().TypeName.Should().Be(Resources.BindingType_Shared);
     }
 
     [DynamicData(nameof(AssistedBindingSubtypes))]
     [DataTestMethod]
     public void Assisted_ReturnsTypeNameDependingOnParameter(bool isShared, string typeName)
     {
-        var testSubject = new AutomaticBindingRequest.Assisted("con id", "proj id", isShared);
+        var testSubject = new BindingRequest.Assisted("con id", "proj id", isShared);
 
         testSubject.ServerConnectionId.Should().Be("con id");
         testSubject.ServerProjectKey.Should().Be("proj id");
@@ -45,7 +45,7 @@ public class AutomaticBindingRequestTests
 
     public static object[][] AssistedBindingSubtypes =>
     [
-        [true, Resources.AutomaticBindingType_Shared],
-        [false, Resources.AutomaticBindingType_Suggested]
+        [true, Resources.BindingType_SuggestedShared],
+        [false, Resources.BindingType_Suggested]
     ];
 }

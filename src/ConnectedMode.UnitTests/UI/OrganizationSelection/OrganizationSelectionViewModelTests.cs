@@ -43,7 +43,7 @@ public class OrganizationSelectionViewModelTests
         credentialsModel = Substitute.For<ICredentialsModel>();
         slCoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
         progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<ITaskToPerformParams<AdapterResponse>>()).Returns(new AdapterResponse(true));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<ITaskToPerformParams<ResponseStatus>>()).Returns(new ResponseStatus(true));
 
         testSubject = new(region, credentialsModel, slCoreConnectionAdapter, progressReporterViewModel);
     }
@@ -180,7 +180,7 @@ public class OrganizationSelectionViewModelTests
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponseWithData<List<OrganizationDisplay>>>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus<List<OrganizationDisplay>>>>(x =>
                     x.TaskToPerform == testSubject.AdapterLoadOrganizationsAsync &&
                     x.ProgressStatus == UiResources.LoadingOrganizationsProgressText &&
                     x.WarningText == UiResources.LoadingOrganizationsFailedText &&
@@ -199,7 +199,7 @@ public class OrganizationSelectionViewModelTests
     public void UpdateOrganizations_AddsOrganization()
     {
         var loadedOrganizations = new List<OrganizationDisplay> { new("key", "name") };
-        var response = new AdapterResponseWithData<List<OrganizationDisplay>>(true, loadedOrganizations);
+        var response = new ResponseStatus<List<OrganizationDisplay>>(true, loadedOrganizations);
 
         testSubject.UpdateOrganizations(response);
 
@@ -211,7 +211,7 @@ public class OrganizationSelectionViewModelTests
     {
         testSubject.Organizations.Add(new("key", "name"));
         var loadedOrganizations = new List<OrganizationDisplay> { new("new_key", "new_name") };
-        var response = new AdapterResponseWithData<List<OrganizationDisplay>>(true, loadedOrganizations);
+        var response = new ResponseStatus<List<OrganizationDisplay>>(true, loadedOrganizations);
 
         testSubject.UpdateOrganizations(response);
 
@@ -224,7 +224,7 @@ public class OrganizationSelectionViewModelTests
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
         eventHandler.ReceivedCalls().Should().BeEmpty();
-        var response = new AdapterResponseWithData<List<OrganizationDisplay>>(true, []);
+        var response = new ResponseStatus<List<OrganizationDisplay>>(true, []);
 
         testSubject.UpdateOrganizations(response);
 
@@ -237,7 +237,7 @@ public class OrganizationSelectionViewModelTests
     [DataRow(false)]
     public async Task ValidateConnectionForOrganizationAsync_ReturnsResponseFromSlCore(bool success)
     {
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<ITaskToPerformParams<AdapterResponse>>()).Returns(new AdapterResponse(success));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<ITaskToPerformParams<ResponseStatus>>()).Returns(new ResponseStatus(success));
 
         var response = await testSubject.ValidateConnectionForOrganizationAsync("key", CloudServerRegion.Eu, "warning");
 
@@ -254,7 +254,7 @@ public class OrganizationSelectionViewModelTests
         await testSubject.ValidateConnectionForOrganizationAsync(organizationKey, region, warningText);
 
         await progressReporterViewModel.Received(1)
-            .ExecuteTaskWithProgressAsync(Arg.Is<ITaskToPerformParams<AdapterResponse>>(x =>
+            .ExecuteTaskWithProgressAsync(Arg.Is<ITaskToPerformParams<ResponseStatus>>(x =>
                 IsExpectedSlCoreAdapterValidateConnectionAsync(x.TaskToPerform, organizationKey, region) &&
                 x.ProgressStatus == UiResources.ValidatingConnectionProgressText &&
                 x.WarningText == warningText));
@@ -272,7 +272,7 @@ public class OrganizationSelectionViewModelTests
         testSubject.FinalConnectionInfo.CloudServerRegion.Should().Be(serverConnection);
     }
 
-    private bool IsExpectedSlCoreAdapterValidateConnectionAsync(Func<Task<AdapterResponse>> xTaskToPerform, string organizationKey, CloudServerRegion region)
+    private bool IsExpectedSlCoreAdapterValidateConnectionAsync(Func<Task<ResponseStatus>> xTaskToPerform, string organizationKey, CloudServerRegion region)
     {
         xTaskToPerform().Forget();
         slCoreConnectionAdapter.Received(1).ValidateConnectionAsync(Arg.Is<ConnectionInfo>(x => x.Id == organizationKey && x.CloudServerRegion == region), Arg.Any<ICredentialsModel>());

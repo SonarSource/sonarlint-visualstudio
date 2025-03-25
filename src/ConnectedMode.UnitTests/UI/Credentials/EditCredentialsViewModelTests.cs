@@ -54,13 +54,13 @@ public class EditCredentialsViewModelTests
     [TestMethod]
     public async Task UpdateConnectionCredentialsWithProgressAsync_UpdatesConnectionAndReportsProgress()
     {
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponse>>()).Returns(Task.FromResult(new AdapterResponse(true)));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus>>()).Returns(Task.FromResult(new ResponseStatus(true)));
 
         await testSubject.UpdateConnectionCredentialsWithProgressAsync();
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.TaskToPerform == testSubject.UpdateConnectionCredentialsAsync &&
                     x.ProgressStatus == UiResources.UpdatingConnectionCredentialsProgressText &&
                     x.WarningText == UiResources.UpdatingConnectionCredentialsFailedText));
@@ -69,14 +69,14 @@ public class EditCredentialsViewModelTests
     [TestMethod]
     public async Task UpdateConnectionCredentialsWithProgressAsync_WhenCurrentSolutionIsBoundToUpdatedConnection_RebindsAndReportsProgress()
     {
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponse>>()).Returns(Task.FromResult(new AdapterResponse(true)));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus>>()).Returns(Task.FromResult(new ResponseStatus(true)));
         MockConfigurationProvider();
 
         await testSubject.UpdateConnectionCredentialsWithProgressAsync();
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.RebindingProgressText &&
                     x.WarningText == UiResources.RebindingFailedText));
     }
@@ -84,7 +84,7 @@ public class EditCredentialsViewModelTests
     [TestMethod]
     public async Task UpdateConnectionCredentialsWithProgressAsync_WhenCurrentSolutionIsStandalone_DoesNotRebindAndReportsProgress()
     {
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponse>>()).Returns(Task.FromResult(new AdapterResponse(true)));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus>>()).Returns(Task.FromResult(new ResponseStatus(true)));
         var configurationProvider = Substitute.For<IConfigurationProvider>();
         configurationProvider.GetConfiguration().Returns(BindingConfiguration.Standalone);
         connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
@@ -93,7 +93,7 @@ public class EditCredentialsViewModelTests
 
         await progressReporterViewModel.DidNotReceive()
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.RebindingProgressText &&
                     x.WarningText == UiResources.RebindingFailedText));
     }
@@ -101,13 +101,13 @@ public class EditCredentialsViewModelTests
     [TestMethod]
     public async Task UpdateConnectionCredentialsWithProgressAsync_WhenConnectionFailedToUpdate_DoesNotRebindAndReportsProgress()
     {
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponse>>()).Returns(Task.FromResult(new AdapterResponse(false)));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus>>()).Returns(Task.FromResult(new ResponseStatus(false)));
 
         await testSubject.UpdateConnectionCredentialsWithProgressAsync();
 
         await progressReporterViewModel.DidNotReceive()
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.RebindingProgressText &&
                     x.WarningText == UiResources.RebindingFailedText));
     }

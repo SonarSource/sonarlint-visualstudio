@@ -120,9 +120,6 @@
   <data name="AuthenticationDescription" xml:space="preserve">
     <value>Please fill the authentication details for</value>
   </data>
-  <data name="AuthenticationTypeLabel" xml:space="preserve">
-    <value>Authentication type</value>
-  </data>
   <data name="CancelButton" xml:space="preserve">
     <value>Cancel</value>
   </data>
@@ -131,9 +128,6 @@
   </data>
   <data name="ConnectionDiscoveringText" xml:space="preserve">
     <value>Explore SonarQube Cloud with our </value>
-  </data>
-  <data name="CredentialsLabel" xml:space="preserve">
-    <value>Credentials</value>
   </data>
   <data name="CredentialsDialogTitle" xml:space="preserve">
     <value>Edit Authentication Details</value>
@@ -303,9 +297,6 @@
   <data name="ExistingProjectsLabel" xml:space="preserve">
     <value>Existing Projects</value>
   </data>
-  <data name="BoundToLabel" xml:space="preserve">
-    <value>bound to</value>
-  </data>
   <data name="ValidatingConnectionProgressText" xml:space="preserve">
     <value>Validating connection...</value>
   </data>
@@ -329,6 +320,18 @@
   </data>
   <data name="FetchingBindingStatusFailedText" xml:space="preserve">
     <value>Binding could not be established. Please check the SonarQube for Visual Studio logs for more details.</value>
+  </data>
+  <data name="FetchingBindingStatusFailedTextNoSharedConfiguration" xml:space="preserve">
+    <value>Binding could not be established because Shared Binding configuration was not available. Please check the SonarQube for Visual Studio logs for more details.</value>
+  </data>
+  <data name="FetchingBindingStatusFailedTextProjectNotFound" xml:space="preserve">
+    <value>Binding could not be established because Project Key could not be found. Please check the SonarQube for Visual Studio logs for more details.</value>
+  </data>
+  <data name="FetchingBindingStatusFailedTextConnectionNotFound" xml:space="preserve">
+    <value>Binding could not be established because Server Connection could not be found. Please check the SonarQube for Visual Studio logs for more details.</value>
+  </data>
+  <data name="FetchingBindingStatusFailedTextCredentialsNotFound" xml:space="preserve">
+    <value>Binding could not be established because Server Connection's Credentials could not be found. Please check the SonarQube for Visual Studio logs for more details.</value>
   </data>
   <data name="FetchingBindingStatusText" xml:space="preserve">
     <value>Fetching binding status...</value>
@@ -360,27 +363,11 @@
   <data name="LoadingProjectsFailedTextForNotFoundServerConnection" xml:space="preserve">
     <value>Server connection was not found. Projects could not be loaded.</value>
   </data>
-  <data name="DeleteBindingHelpText" xml:space="preserve">
-    <value>To manually delete a binding, please follow the "Unbinding a project" documentation </value>
-  </data>
-  <data name="DeleteConnectionBindingListToUnbindLabel" xml:space="preserve">
-    <value>The following project bindings must first be manually removed:</value>
-  </data>
-  <data name="DeleteConnectionNotPossibleDescription" xml:space="preserve">
-    <value>The following connection can not be deleted:</value>
-  </data>
   <data name="CalculatingConnectionReferencesFailedText" xml:space="preserve">
     <value>Calculating the connection references failed</value>
   </data>
   <data name="CalculatingConnectionReferencesText" xml:space="preserve">
     <value>Calculating connection references...</value>
-  </data>
-  <data name="NotFoundCredentialsForAutomaticBindingMessageBoxCaption" xml:space="preserve">
-    <value>Credentials not found</value>
-  </data>
-  <data name="NotFoundCredentialsForAutomaticBindingMessageBoxText" xml:space="preserve">
-    <value>The shared binding could not be executed, because the credentials for the connection to the server could not be found. 
-Please manually add the credentials for the connection and then try again.</value>
   </data>
   <data name="SearchingProjectFailedText" xml:space="preserve">
     <value>Searching for project failed</value>

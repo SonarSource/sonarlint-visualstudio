@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
         }
 
         private void ShowManageBindingDialog() =>
-            connectedModeUiManager.ShowManageBindingDialogAsync(new AutomaticBindingRequest.Shared()).Forget();
+            connectedModeUiManager.ShowManageBindingDialogAsync(new BindingRequest.Shared()).Forget();
 
         private void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
         {

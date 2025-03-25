@@ -23,18 +23,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI;
 /// <summary>
 /// Indicates binding parameters that were computed automatically as opposed to manual UI interaction
 /// </summary>
-public abstract record AutomaticBindingRequest
+public abstract record BindingRequest
 {
     internal abstract string TypeName { get; }
 
-    private AutomaticBindingRequest() { }
+    private BindingRequest() { }
+
+    /// <summary>
+    /// Indicates binding parameters set in binding ui
+    /// </summary>
+    public record Manual : BindingRequest
+    {
+        internal override string TypeName => ConnectedMode.Resources.BindingType_Manual;
+    }
+
+    public abstract record AutomaticBindingRequest : BindingRequest;
 
     /// <summary>
     /// Indicates binding parameters derived from shared binding
     /// </summary>
     public record Shared : AutomaticBindingRequest
     {
-        internal override string TypeName => ConnectedMode.Resources.AutomaticBindingType_Shared;
+        internal override string TypeName => ConnectedMode.Resources.BindingType_Shared;
     }
 
     /// <summary>
@@ -45,6 +55,6 @@ public abstract record AutomaticBindingRequest
         string ServerProjectKey,
         bool IsFromSharedBinding) : AutomaticBindingRequest
     {
-        internal override string TypeName => IsFromSharedBinding ? ConnectedMode.Resources.AutomaticBindingType_Shared : ConnectedMode.Resources.AutomaticBindingType_Suggested;
+        internal override string TypeName => IsFromSharedBinding ? ConnectedMode.Resources.BindingType_SuggestedShared : ConnectedMode.Resources.BindingType_Suggested;
     }
 }

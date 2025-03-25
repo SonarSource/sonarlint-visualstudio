@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         internal async Task LoadConnectionsWithProgressAsync()
         {
-            var validationParams = new TaskToPerformParams<AdapterResponse>(
+            var validationParams = new TaskToPerformParams<ResponseStatus>(
                 async () => await SafeExecuteActionAsync(InitializeConnectionViewModels),
                 UiResources.LoadingConnectionsText,
                 UiResources.LoadingConnectionsFailedText);
@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         internal async Task RemoveConnectionWithProgressAsync(List<string> bindingKeysReferencedByConnection, ConnectionViewModel connectionViewModel)
         {
-            var validationParams = new TaskToPerformParams<AdapterResponse>(
+            var validationParams = new TaskToPerformParams<ResponseStatus>(
                 async () => await SafeExecuteActionAsync(() => RemoveConnectionViewModel(bindingKeysReferencedByConnection, connectionViewModel)),
                 UiResources.RemovingConnectionText,
                 UiResources.RemovingConnectionFailedText);
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         internal async Task<List<string>> GetConnectionReferencesWithProgressAsync(ConnectionViewModel connectionViewModel)
         {
-            var validationParams = new TaskToPerformParams<AdapterResponseWithData<List<string>>>(
+            var validationParams = new TaskToPerformParams<ResponseStatus<List<string>>>(
                 async () => await GetConnectionReferencesOnBackgroundThreadAsync(connectionViewModel),
                 UiResources.CalculatingConnectionReferencesText,
                 UiResources.CalculatingConnectionReferencesFailedText);
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             return response.ResponseData;
         }
 
-        internal async Task<AdapterResponseWithData<List<string>>> GetConnectionReferencesOnBackgroundThreadAsync(ConnectionViewModel connectionViewModel)
+        internal async Task<ResponseStatus<List<string>>> GetConnectionReferencesOnBackgroundThreadAsync(ConnectionViewModel connectionViewModel)
         {
             return await connectedModeServices.ThreadHandling.RunOnBackgroundThread(() =>
             {
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             });
         }
 
-        internal AdapterResponseWithData<List<string>> GetConnectionReferences(ConnectionViewModel connectionViewModel)
+        internal ResponseStatus<List<string>> GetConnectionReferences(ConnectionViewModel connectionViewModel)
         {
             try
             {
@@ -81,25 +81,25 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
                 var references = bindings
                     .Where(x => ConnectionInfo.From(x.ServerConnection).Id == connectionViewModel.Connection.Info.Id)
                     .Select(x => x.LocalBindingKey).ToList();
-                return new AdapterResponseWithData<List<string>>(true, references);
+                return new ResponseStatus<List<string>>(true, references);
             }
             catch (Exception ex)
             {
                 connectedModeServices.Logger.WriteLine(ex.ToString());
-                return new AdapterResponseWithData<List<string>>(false, []);
+                return new ResponseStatus<List<string>>(false, []);
             }
         }
 
         internal async Task CreateConnectionsWithProgressAsync(Connection connection, ICredentialsModel credentialsModel)
         {
-            var validationParams = new TaskToPerformParams<AdapterResponse>(
+            var validationParams = new TaskToPerformParams<ResponseStatus>(
                 async () => await SafeExecuteActionAsync(() => CreateNewConnection(connection, credentialsModel)),
                 UiResources.CreatingConnectionProgressText,
                 UiResources.CreatingConnectionFailedText);
             await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
         }
 
-        internal async Task<AdapterResponse> SafeExecuteActionAsync(Func<bool> funcToExecute)
+        internal async Task<ResponseStatus> SafeExecuteActionAsync(Func<bool> funcToExecute)
         {
             var succeeded = false;
             try
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
                 succeeded = false;
             }
 
-            return new AdapterResponse(succeeded);
+            return new ResponseStatus(succeeded);
         }
 
         internal bool InitializeConnectionViewModels()

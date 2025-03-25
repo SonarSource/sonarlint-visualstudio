@@ -33,11 +33,6 @@ public interface IProgressReporterViewModel
     Task<T> ExecuteTaskWithProgressAsync<T>(ITaskToPerformParams<T> parameters, bool clearPreviousState = true) where T : IResponseStatus;
 }
 
-public interface IResponseStatus
-{
-    bool Success { get; }
-}
-
 public interface ITaskToPerformParams<T> where T : IResponseStatus
 {
     public Action AfterProgressUpdated { get; }
@@ -122,7 +117,7 @@ public class ProgressReporterViewModel(ILogger logger) : ViewModelBase, IProgres
 
     private void OnFailure<T>(ITaskToPerformParams<T> parameters, T response, bool clearPreviousState) where T : IResponseStatus
     {
-        UpdateWarning(parameters.WarningText, clearPreviousState);
+        UpdateWarning(response?.WarningText ?? parameters.WarningText, clearPreviousState);
         parameters.AfterFailure?.Invoke(response);
     }
 

@@ -32,7 +32,7 @@ internal class EditCredentialsViewModel(
 {
     internal async Task UpdateConnectionCredentialsWithProgressAsync()
     {
-        var validationParams = new TaskToPerformParams<AdapterResponse>(
+        var validationParams = new TaskToPerformParams<ResponseStatus>(
             UpdateConnectionCredentialsAsync,
             UiResources.UpdatingConnectionCredentialsProgressText,
             UiResources.UpdatingConnectionCredentialsFailedText);
@@ -46,7 +46,7 @@ internal class EditCredentialsViewModel(
         var boundServerProject = connectedModeServices.ConfigurationProvider.GetConfiguration()?.Project;
         if (boundServerProject != null && ConnectionInfo.From(boundServerProject.ServerConnection).Id == connection.Info.Id)
         {
-            var refreshBinding = new TaskToPerformParams<AdapterResponse>(
+            var refreshBinding = new TaskToPerformParams<ResponseStatus>(
                 async () => await RebindAsync(boundServerProject.ServerProjectKey),
                 UiResources.RebindingProgressText,
                 UiResources.RebindingFailedText);
@@ -54,17 +54,17 @@ internal class EditCredentialsViewModel(
         }
     }
 
-    internal Task<AdapterResponse> UpdateConnectionCredentialsAsync()
+    internal Task<ResponseStatus> UpdateConnectionCredentialsAsync()
     {
         var success = connectedModeServices.ServerConnectionsRepositoryAdapter.TryUpdateCredentials(connection, GetCredentialsModel());
-        return Task.FromResult(new AdapterResponse(success));
+        return Task.FromResult(new ResponseStatus(success));
     }
 
-    internal async Task<AdapterResponse> RebindAsync(string serverProjectKey)
+    internal async Task<ResponseStatus> RebindAsync(string serverProjectKey)
     {
         if (!connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(connection.Info, out var serverConnection))
         {
-            return new AdapterResponse(false);
+            return new ResponseStatus(false);
         }
 
         try
@@ -72,11 +72,11 @@ internal class EditCredentialsViewModel(
             var localBindingKey = await connectedModeBindingServices.SolutionInfoProvider.GetSolutionNameAsync();
             var boundServerProject = new BoundServerProject(localBindingKey, serverProjectKey, serverConnection);
             await connectedModeBindingServices.BindingController.BindAsync(boundServerProject, CancellationToken.None);
-            return new AdapterResponse(true);
+            return new ResponseStatus(true);
         }
         catch (Exception)
         {
-            return new AdapterResponse(false);
+            return new ResponseStatus(false);
         }
     }
 }

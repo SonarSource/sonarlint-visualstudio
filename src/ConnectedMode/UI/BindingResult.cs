@@ -18,14 +18,35 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
-internal enum BindingResult
+internal class BindingResult
 {
-    Success,
-    Failed,
-    ConnectionNotFound,
-    SharedConfigurationNotAvailable,
-    CredentialsNotFound,
-    ProjectKeyNotFound
+    public static BindingResult Success { get; } = new(null, true);
+    public static BindingResult Failed { get; } = new(UiResources.FetchingBindingStatusFailedText, false);
+    public static ValidationFailure ConnectionNotFound => ValidationFailure.ConnectionNotFound;
+    public static ValidationFailure SharedConfigurationNotAvailable => ValidationFailure.SharedConfigurationNotAvailable;
+    public static ValidationFailure CredentialsNotFound => ValidationFailure.CredentialsNotFound;
+    public static ValidationFailure ProjectKeyNotFound => ValidationFailure.ProjectKeyNotFound;
+
+    private BindingResult(string problemDescription, bool isSuccessful)
+    {
+        ProblemDescription = problemDescription;
+        IsSuccessful = isSuccessful;
+    }
+
+    internal class ValidationFailure : BindingResult
+    {
+        public static new readonly ValidationFailure ConnectionNotFound = new(UiResources.FetchingBindingStatusFailedTextConnectionNotFound);
+        public static new readonly ValidationFailure SharedConfigurationNotAvailable = new(UiResources.FetchingBindingStatusFailedTextNoSharedConfiguration);
+        public static new readonly ValidationFailure CredentialsNotFound = new(UiResources.FetchingBindingStatusFailedTextCredentialsNotFound);
+        public static new readonly ValidationFailure ProjectKeyNotFound = new(UiResources.FetchingBindingStatusFailedTextProjectNotFound);
+
+        private ValidationFailure(string problemDescription) : base(problemDescription, false) { }
+    }
+
+    public bool IsSuccessful { get; }
+    public string ProblemDescription { get; }
 }
