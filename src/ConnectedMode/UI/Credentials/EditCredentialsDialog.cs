@@ -27,7 +27,7 @@ public class EditCredentialsDialog : CredentialsDialog
 {
     private readonly EditCredentialsViewModel editConnectionTokenViewModel;
 
-    public EditCredentialsDialog(
+    internal EditCredentialsDialog(
         IConnectedModeServices connectedModeServices,
         IConnectedModeUIServices connectedModeUiServices,
         IConnectedModeBindingServices connectedModeBinding,

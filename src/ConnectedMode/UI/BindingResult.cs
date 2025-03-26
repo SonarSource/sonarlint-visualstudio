@@ -27,7 +27,6 @@ internal class BindingResult
     public static BindingResult Success { get; } = new(null, true);
     public static BindingResult Failed { get; } = new(UiResources.FetchingBindingStatusFailedText, false);
     public static ValidationFailure ConnectionNotFound => ValidationFailure.ConnectionNotFound;
-    public static ValidationFailure SharedConfigurationNotAvailable => ValidationFailure.SharedConfigurationNotAvailable;
     public static ValidationFailure CredentialsNotFound => ValidationFailure.CredentialsNotFound;
     public static ValidationFailure ProjectKeyNotFound => ValidationFailure.ProjectKeyNotFound;
 
@@ -40,7 +39,6 @@ internal class BindingResult
     internal class ValidationFailure : BindingResult
     {
         public static new readonly ValidationFailure ConnectionNotFound = new(UiResources.FetchingBindingStatusFailedTextConnectionNotFound);
-        public static new readonly ValidationFailure SharedConfigurationNotAvailable = new(UiResources.FetchingBindingStatusFailedTextNoSharedConfiguration);
         public static new readonly ValidationFailure CredentialsNotFound = new(UiResources.FetchingBindingStatusFailedTextCredentialsNotFound);
         public static new readonly ValidationFailure ProjectKeyNotFound = new(UiResources.FetchingBindingStatusFailedTextProjectNotFound);
 

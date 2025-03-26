@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 {
-    public class ManageConnectionsViewModel(
+    internal class ManageConnectionsViewModel(
         IConnectedModeServices connectedModeServices,
         IConnectedModeBindingServices connectedModeBindingServices,
         IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
@@ -147,13 +147,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             return succeeded;
         }
 
-        private bool DeleteBindings(List<string> connectionReferences)
+        private bool DeleteBindings(List<string> bindingReferences)
         {
             var currentSolutionName = ConnectedModeBindingServices.SolutionInfoProvider.GetSolutionName();
-            foreach (var connectionReference in connectionReferences)
+            foreach (var connectionReference in bindingReferences)
             {
                 var bindingDeleted = currentSolutionName == connectionReference
-                    ? ConnectedModeBindingServices.BindingController.Unbind(connectionReference)
+                    ? ConnectedModeBindingServices.BindingControllerAdapter.Unbind(connectionReference)
                     : ConnectedModeBindingServices.SolutionBindingRepository.DeleteBinding(connectionReference);
                 if (!bindingDeleted)
                 {

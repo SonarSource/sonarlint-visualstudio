@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.Binding;
 
@@ -30,6 +31,8 @@ internal class EditCredentialsViewModel(
     IProgressReporterViewModel progressReporterViewModel)
     : CredentialsViewModel(connection.Info, connectedModeServices.SlCoreConnectionAdapter, progressReporterViewModel)
 {
+    private readonly IConnectionForBindingProvider connectionForBindingProvider = new ExistingConnectionForBindingProvider(connectedModeServices.ServerConnectionsRepositoryAdapter);
+
     internal async Task UpdateConnectionCredentialsWithProgressAsync()
     {
         var validationParams = new TaskToPerformParams<ResponseStatus>(
@@ -47,7 +50,7 @@ internal class EditCredentialsViewModel(
         if (boundServerProject != null && ConnectionInfo.From(boundServerProject.ServerConnection).Id == connection.Info.Id)
         {
             var refreshBinding = new TaskToPerformParams<ResponseStatus>(
-                async () => await RebindAsync(boundServerProject.ServerProjectKey),
+                async () => await RebindAsync(boundServerProject.ServerProjectKey, boundServerProject.ServerConnection.Id),
                 UiResources.RebindingProgressText,
                 UiResources.RebindingFailedText);
             await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(refreshBinding);
@@ -60,23 +63,12 @@ internal class EditCredentialsViewModel(
         return Task.FromResult(new ResponseStatus(success));
     }
 
-    internal async Task<ResponseStatus> RebindAsync(string serverProjectKey)
+    internal async Task<ResponseStatus> RebindAsync(string serverProjectKey, string serverConnectionId)
     {
-        if (!connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(connection.Info, out var serverConnection))
-        {
-            return new ResponseStatus(false);
-        }
-
-        try
-        {
-            var localBindingKey = await connectedModeBindingServices.SolutionInfoProvider.GetSolutionNameAsync();
-            var boundServerProject = new BoundServerProject(localBindingKey, serverProjectKey, serverConnection);
-            await connectedModeBindingServices.BindingController.BindAsync(boundServerProject, CancellationToken.None);
-            return new ResponseStatus(true);
-        }
-        catch (Exception)
-        {
-            return new ResponseStatus(false);
-        }
+        var validateAndBindAsync = await connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(
+            new BindingRequest.Manual(serverProjectKey, serverConnectionId),
+            connectionForBindingProvider,
+            CancellationToken.None);
+        return new ResponseStatus(validateAndBindAsync.IsSuccessful, validateAndBindAsync.ProblemDescription);
     }
 }

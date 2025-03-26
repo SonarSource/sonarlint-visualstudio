@@ -29,7 +29,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 {
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
-    public partial class ManageConnectionsDialog : Window
+    internal partial class ManageConnectionsDialog : Window
     {
         private readonly IConnectedModeServices connectedModeServices;
         private readonly IConnectedModeBindingServices connectedModeBindingServices;
@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
         public IConnectedModeUIServices ConnectedModeUiServices { get; }
         public ManageConnectionsViewModel ViewModel { get; }
 
-        public ManageConnectionsDialog(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices, IConnectedModeUIServices connectedModeUiServices)
+        internal ManageConnectionsDialog(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices, IConnectedModeUIServices connectedModeUiServices)
         {
             this.connectedModeServices = connectedModeServices;
             this.connectedModeBindingServices = connectedModeBindingServices;

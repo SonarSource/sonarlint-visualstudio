@@ -22,6 +22,7 @@ using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -125,53 +126,22 @@ public class EditCredentialsViewModelTests
         serverConnectionsRepositoryAdapter.Received(1).TryUpdateCredentials(sonarQubeConnection, Arg.Is<TokenCredentialsModel>(x => x.Token == testSubject.Token));
     }
 
-    [TestMethod]
-    public async Task RebindAsync_WhenServerConnectionCannotBeFound_Fails()
+    [DataTestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task RebindAsync_CallsBindingControllerAdapter(bool success)
     {
-        connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(Arg.Any<ConnectionInfo>(), out Arg.Any<ServerConnection>()).Returns(false);
+        const string serverProjectKey = "serverProjectKey";
+        const string serverConnectionId = "serverConnectionId";
+        connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(
+            Arg.Is<BindingRequest.Manual>(x => x.ConnectionId == serverConnectionId && x.ProjectKey == serverProjectKey),
+            Arg.Any<ExistingConnectionForBindingProvider>(),
+            CancellationToken.None).Returns(success ? BindingResult.Success : BindingResult.Failed);
 
-        var response = await testSubject.RebindAsync("serverProjectKey");
+        var response = await testSubject.RebindAsync(serverProjectKey, serverConnectionId);
 
-        await bindingController.DidNotReceiveWithAnyArgs().BindAsync(Arg.Any<BoundServerProject>(), Arg.Any<CancellationToken>());
-        response.Success.Should().BeFalse();
+        response.Success.Should().Be(success);
     }
-
-    [TestMethod]
-    public async Task RebindAsync_WhenExceptionThrownDuringBinding_Fails()
-    {
-        MockTryGetServerConnection(CreateSonarCloudServerConnection());
-        MockSolutionInfoProvider("mySolution");
-        bindingController.BindAsync(Arg.Any<BoundServerProject>(), Arg.Any<CancellationToken>()).Returns(_ => throw new Exception("Failed to bind"));
-
-        var response = await testSubject.RebindAsync("serverProjectKey");
-
-        await bindingController.ReceivedWithAnyArgs().BindAsync(Arg.Any<BoundServerProject>(), Arg.Any<CancellationToken>());
-        response.Success.Should().BeFalse();
-    }
-
-    [TestMethod]
-    public async Task RebindAsync_WhenBindingSucceeds_Succeed()
-    {
-        var serverConnectionToUpdate = CreateSonarCloudServerConnection();
-        MockTryGetServerConnection(serverConnectionToUpdate);
-        MockSolutionInfoProvider("mySolution");
-
-        var response = await testSubject.RebindAsync("serverProjectKey");
-
-        await bindingController.Received().BindAsync(Arg.Is<BoundServerProject>(
-                x => x.LocalBindingKey == "mySolution" && x.ServerConnection.Id == serverConnectionToUpdate.Id),
-            CancellationToken.None);
-        response.Success.Should().BeTrue();
-    }
-
-    private void MockSolutionInfoProvider(string solutionName) => solutionInfoProvider.GetSolutionNameAsync().Returns(Task.FromResult(solutionName));
-
-    private void MockTryGetServerConnection(ServerConnection expectedServerConnection = null) =>
-        connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(Arg.Any<ConnectionInfo>(), out _).Returns(callInfo =>
-        {
-            callInfo[1] = expectedServerConnection;
-            return true;
-        });
 
     private void MockServices()
     {
@@ -185,7 +155,6 @@ public class EditCredentialsViewModelTests
         connectedModeServices.ServerConnectionsRepositoryAdapter.Returns(serverConnectionsRepositoryAdapter);
         connectedModeBindingServices.SolutionBindingRepository.Returns(solutionBindingRepository);
         connectedModeBindingServices.SolutionInfoProvider.Returns(solutionInfoProvider);
-        connectedModeBindingServices.BindingController.Returns(bindingController);
     }
 
     private void MockConfigurationProvider()

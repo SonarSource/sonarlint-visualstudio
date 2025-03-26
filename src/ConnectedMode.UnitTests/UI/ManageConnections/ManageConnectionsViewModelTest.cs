@@ -42,7 +42,6 @@ public class ManageConnectionsViewModelTest
     private IThreadHandling threadHandling;
     private ILogger logger;
     private ISolutionInfoProvider solutionInfoProvider;
-    private IBindingController bindingController;
     private IConnectedModeBindingServices connectedModeBindingServices;
     private ISolutionBindingRepository solutionBindingRepository;
     private const string LocalBindingKey1 = "solution name 1";
@@ -209,7 +208,7 @@ public class ManageConnectionsViewModelTest
         Received.InOrder(() =>
         {
             solutionBindingRepository.DeleteBinding(LocalBindingKey1);
-            bindingController.Unbind(LocalBindingKey2);
+            connectedModeBindingServices.BindingControllerAdapter.Unbind(LocalBindingKey2);
             serverConnectionsRepositoryAdapter.TryRemoveConnection(testSubject.ConnectionViewModels[0].Connection.Info);
         });
         solutionBindingRepository.DidNotReceive().DeleteBinding(LocalBindingKey2);
@@ -226,7 +225,7 @@ public class ManageConnectionsViewModelTest
         testSubject.RemoveConnectionViewModel([LocalBindingKey1, LocalBindingKey2], testSubject.ConnectionViewModels[0]);
 
         solutionBindingRepository.Received(1).DeleteBinding(LocalBindingKey1);
-        bindingController.Received(1).Unbind(LocalBindingKey2);
+        connectedModeBindingServices.BindingControllerAdapter.Received(1).Unbind(LocalBindingKey2);
         serverConnectionsRepositoryAdapter.DidNotReceive().TryRemoveConnection(testSubject.ConnectionViewModels[0].Connection.Info);
     }
 
@@ -515,9 +514,6 @@ public class ManageConnectionsViewModelTest
 
         solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
         connectedModeBindingServices.SolutionInfoProvider.Returns(solutionInfoProvider);
-
-        bindingController = Substitute.For<IBindingController>();
-        connectedModeBindingServices.BindingController.Returns(bindingController);
     }
 
     private void MockTryGetConnections(List<Connection> connections) =>
@@ -535,7 +531,7 @@ public class ManageConnectionsViewModelTest
 
     private void MockDeleteBinding(string localBindingKey, bool success) => connectedModeBindingServices.SolutionBindingRepository.DeleteBinding(localBindingKey).Returns(success);
 
-    private void MockUnbind(string localBindingKey, bool success) => connectedModeBindingServices.BindingController.Unbind(localBindingKey).Returns(success);
+    private void MockUnbind(string localBindingKey, bool success) => connectedModeBindingServices.BindingControllerAdapter.Unbind(localBindingKey).Returns(success);
 
     private void InitializeCurrentSolution(string solutionName) => connectedModeBindingServices.SolutionInfoProvider.GetSolutionName().Returns(solutionName);
 

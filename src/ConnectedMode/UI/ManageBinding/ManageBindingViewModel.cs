@@ -28,7 +28,7 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 
-internal sealed partial class ManageBindingViewModel(
+internal sealed class ManageBindingViewModel(
     IConnectedModeServices connectedModeServices,
     IConnectedModeBindingServices connectedModeBindingServices,
     IConnectedModeUIServices connectedModeUiServices,
@@ -36,6 +36,7 @@ internal sealed partial class ManageBindingViewModel(
     IProgressReporterViewModel progressReporterViewModel)
     : ViewModelBase, IDisposable
 {
+    private readonly IConnectionForBindingProvider connectionForBindingProvider = new InteractiveConnectionForBindingProvider(connectedModeUiManager, connectedModeServices.ServerConnectionsRepositoryAdapter);
     private readonly CancellationTokenSource cancellationTokenSource = new();
     private ServerProject boundProject;
     private ConnectionInfo selectedConnectionInfo;
@@ -152,7 +153,7 @@ internal sealed partial class ManageBindingViewModel(
 
     public async Task InitializeDataAsync()
     {
-        var loadData = new TaskToPerformParams<ResponseStatus>(LoadDataAsync, UiResources.LoadingConnectionsText,
+        var loadData = new TaskToPerformParams<ResponseStatus>(() => Task.FromResult(ReloadConnectionData()), UiResources.LoadingConnectionsText,
             UiResources.LoadingConnectionsFailedText) { AfterProgressUpdated = OnProgressUpdated };
         var loadDataResult = await ProgressReporter.ExecuteTaskWithProgressAsync(loadData);
 
@@ -171,6 +172,10 @@ internal sealed partial class ManageBindingViewModel(
         await ProgressReporter.ExecuteTaskWithProgressAsync(detectSharedBinding, clearPreviousState: false);
     }
 
+    public Task PerformSharedBindingWithProgressAsync() => PerformBindingWithProgressAsync(new BindingRequest.Shared(SharedBindingConfigModel));
+
+    public Task PerformManualBindingWithProgressAsync() => PerformBindingWithProgressAsync(new BindingRequest.Manual(SelectedProject?.Key, SelectedConnectionInfo?.GetServerIdFromConnectionInfo()));
+
     public async Task PerformBindingWithProgressAsync(BindingRequest binding)
     {
         var bind = new TaskToPerformParams<ResponseStatus<BindingResult>>(() => PerformBindingInternalAsync(binding), UiResources.BindingInProgressText,
@@ -178,11 +183,40 @@ internal sealed partial class ManageBindingViewModel(
         await ProgressReporter.ExecuteTaskWithProgressAsync(bind);
     }
 
-    internal async Task<ResponseStatus<BindingResult>> PerformBindingInternalAsync(BindingRequest binding)
+    internal async Task<ResponseStatus<BindingResult>> PerformBindingInternalAsync(BindingRequest request)
     {
-        var bindingResult = await ValidateAndBindAsync(binding);
-        UpdateBindingTelemetry(binding, bindingResult);
+        var bindingResult = await connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(
+            request,
+            connectionForBindingProvider,
+            cancellationTokenSource.Token);
+        ReloadConnectionData(); // this is to ensure that the newly added connection is added to the view model properties
+        if (bindingResult == BindingResult.Success)
+        {
+            bindingResult = (await DisplayBindStatusAsync()).ResponseData;
+        }
+        UpdateBindingTelemetry(request, bindingResult);
         return new ResponseStatus<BindingResult>(bindingResult.IsSuccessful, bindingResult, bindingResult.ProblemDescription);
+    }
+
+    private void UpdateBindingTelemetry(BindingRequest binding, BindingResult bindingResult)
+    {
+        if (bindingResult != BindingResult.Success)
+        {
+            return;
+        }
+
+        switch (binding)
+        {
+            case BindingRequest.Assisted { IsFromSharedBinding: true } or BindingRequest.Shared:
+                connectedModeServices.TelemetryManager.AddedFromSharedBindings();
+                break;
+            case BindingRequest.Assisted:
+                connectedModeServices.TelemetryManager.AddedAutomaticBindings();
+                break;
+            case BindingRequest.Manual:
+                connectedModeServices.TelemetryManager.AddedManualBindings();
+                break;
+        }
     }
 
     public async Task UnbindWithProgressAsync()
@@ -244,23 +278,7 @@ internal sealed partial class ManageBindingViewModel(
         RaisePropertyChanged(nameof(IsExportButtonEnabled));
     }
 
-    internal async Task<ResponseStatus> LoadDataAsync()
-    {
-        var succeeded = false;
-        try
-        {
-            await connectedModeServices.ThreadHandling.RunOnUIThreadAsync(() => succeeded = LoadConnections());
-        }
-        catch (Exception ex)
-        {
-            connectedModeServices.Logger.WriteLine(ex.Message);
-            succeeded = false;
-        }
-
-        return new ResponseStatus(succeeded);
-    }
-
-    internal bool LoadConnections()
+    internal ResponseStatus ReloadConnectionData()
     {
         Connections.Clear();
         var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryGetAllConnectionsInfo(out var slCoreConnections);
@@ -268,7 +286,7 @@ internal sealed partial class ManageBindingViewModel(
 
         RaisePropertyChanged(nameof(IsConnectionSelectionEnabled));
         RaisePropertyChanged(nameof(ConnectionSelectionCaptionText));
-        return succeeded;
+        return new ResponseStatus(succeeded);
     }
 
     internal async Task<ResponseStatus<BindingResult>> DisplayBindStatusAsync()
@@ -304,7 +322,7 @@ internal sealed partial class ManageBindingViewModel(
         bool succeeded;
         try
         {
-            succeeded = connectedModeBindingServices.BindingController.Unbind(SolutionInfo.Name);
+            succeeded = connectedModeBindingServices.BindingControllerAdapter.Unbind();
             await DisplayBindStatusAsync();
         }
         catch (Exception ex)

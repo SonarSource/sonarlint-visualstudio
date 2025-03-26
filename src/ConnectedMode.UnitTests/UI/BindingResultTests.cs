@@ -44,7 +44,6 @@ public class BindingResultTests
     public static object[][] ResultValues =>
     [
         [BindingResult.ValidationFailure.ConnectionNotFound, BindingResult.ConnectionNotFound],
-        [BindingResult.ValidationFailure.SharedConfigurationNotAvailable, BindingResult.SharedConfigurationNotAvailable],
         [BindingResult.ValidationFailure.CredentialsNotFound, BindingResult.CredentialsNotFound],
         [BindingResult.ValidationFailure.ProjectKeyNotFound, BindingResult.ProjectKeyNotFound],
     ];
@@ -54,7 +53,6 @@ public class BindingResultTests
         [BindingResult.Success, null, true],
         [BindingResult.Failed, UiResources.FetchingBindingStatusFailedText, false],
         [BindingResult.ConnectionNotFound, UiResources.FetchingBindingStatusFailedTextConnectionNotFound, false],
-        [BindingResult.SharedConfigurationNotAvailable, UiResources.FetchingBindingStatusFailedTextNoSharedConfiguration, false],
         [BindingResult.CredentialsNotFound, UiResources.FetchingBindingStatusFailedTextCredentialsNotFound, false],
         [BindingResult.ProjectKeyNotFound, UiResources.FetchingBindingStatusFailedTextProjectNotFound, false],
     ];

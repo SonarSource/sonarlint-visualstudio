@@ -61,7 +61,7 @@ internal partial class ManageBindingDialog : Window
         await ViewModel.InitializeDataAsync();
     }
 
-    private async void Binding_OnClick(object sender, RoutedEventArgs e) => await ViewModel.PerformBindingWithProgressAsync(new BindingRequest.Manual());
+    private async void Binding_OnClick(object sender, RoutedEventArgs e) => await ViewModel.PerformManualBindingWithProgressAsync();
 
     private void SelectProject_OnClick(object sender, RoutedEventArgs e)
     {
@@ -83,7 +83,7 @@ internal partial class ManageBindingDialog : Window
 
     private async void Unbind_OnClick(object sender, RoutedEventArgs e) => await ViewModel.UnbindWithProgressAsync();
 
-    private async void UseSharedBinding_OnClick(object sender, RoutedEventArgs e) => await ViewModel.PerformBindingWithProgressAsync(new BindingRequest.Shared());
+    private async void UseSharedBinding_OnClick(object sender, RoutedEventArgs e) => await ViewModel.PerformSharedBindingWithProgressAsync();
 
     private async void ExportBindingConfigurationButton_OnClick(object sender, RoutedEventArgs e)
     {

@@ -321,9 +321,6 @@
   <data name="FetchingBindingStatusFailedText" xml:space="preserve">
     <value>Binding could not be established. Please check the SonarQube for Visual Studio logs for more details.</value>
   </data>
-  <data name="FetchingBindingStatusFailedTextNoSharedConfiguration" xml:space="preserve">
-    <value>Binding could not be established because Shared Binding configuration was not available. Please check the SonarQube for Visual Studio logs for more details.</value>
-  </data>
   <data name="FetchingBindingStatusFailedTextProjectNotFound" xml:space="preserve">
     <value>Binding could not be established because Project Key could not be found. Please check the SonarQube for Visual Studio logs for more details.</value>
   </data>

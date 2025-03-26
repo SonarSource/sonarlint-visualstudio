@@ -457,15 +457,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Binding could not be established because Shared Binding configuration was not available. Please check the SonarQube for Visual Studio logs for more details..
-        /// </summary>
-        public static string FetchingBindingStatusFailedTextNoSharedConfiguration {
-            get {
-                return ResourceManager.GetString("FetchingBindingStatusFailedTextNoSharedConfiguration", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Binding could not be established because Project Key could not be found. Please check the SonarQube for Visual Studio logs for more details..
         /// </summary>
         public static string FetchingBindingStatusFailedTextProjectNotFound {
