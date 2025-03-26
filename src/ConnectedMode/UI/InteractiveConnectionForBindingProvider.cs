@@ -29,33 +29,16 @@ internal class InteractiveConnectionForBindingProvider(IConnectedModeUIManager c
     {
         if (serverConnectionsRepositoryAdapter.TryGet(request.ConnectionId, out var existingConnection))
         {
-            return await CheckCredentialsAsync(existingConnection);
+            return existingConnection;
         }
 
         if (request is BindingRequest.Shared shared
             && await connectedModeUiManager.ShowTrustConnectionDialogAsync(shared.Model.CreateConnectionInfo().GetServerConnectionFromConnectionInfo(), token: null) is true
             && serverConnectionsRepositoryAdapter.TryGet(shared.ConnectionId, out var newConnection))
         {
-            return await CheckCredentialsAsync(newConnection);
+            return newConnection;
         }
 
         return null;
-    }
-
-    private async Task<ServerConnection> CheckCredentialsAsync(ServerConnection originalConnection)
-    {
-        if (originalConnection.Credentials != null)
-        {
-            return originalConnection;
-        }
-
-        if (await connectedModeUiManager.ShowEditCredentialsDialogAsync(originalConnection.ToConnection()) is not true)
-        {
-            return originalConnection;
-        }
-
-        return serverConnectionsRepositoryAdapter.TryGet(originalConnection.Id, out var updatedConnection)
-            ? updatedConnection
-            : null;
     }
 }

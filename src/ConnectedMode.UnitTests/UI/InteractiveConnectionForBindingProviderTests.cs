@@ -48,47 +48,18 @@ public class InteractiveConnectionForBindingProviderTests
         var result = await testSubject.GetServerConnectionAsync(request);
 
         result.Should().BeSameAs(connection);
-        connectedModeUiManager.DidNotReceiveWithAnyArgs().ShowEditCredentialsDialogAsync(default);
     }
 
     [DynamicData(nameof(RequestsAndConnections))]
     [DataTestMethod]
     public async Task GetServerConnectionAsync_ExistingConnectionWithoutCredentials_SuccessfulCredentialsUpdate_ReturnsUpdatedConnection(BindingRequest request, ServerConnection connection)
     {
-        var copyOfConnectionWithoutCredentials = connection.ToConnection().ToServerConnection();
-        SetUpConnectionsAdapter(request, (true, copyOfConnectionWithoutCredentials), (true, connection));
-        connectedModeUiManager.ShowEditCredentialsDialogAsync(Arg.Any<Connection>()).Returns(true);
+        connection.Credentials = null;
+        SetUpConnectionsAdapter(request, (true, connection));
 
         var result = await testSubject.GetServerConnectionAsync(request);
 
         result.Should().BeSameAs(connection);
-    }
-
-    [DynamicData(nameof(RequestsAndConnections))]
-    [DataTestMethod]
-    public async Task GetServerConnectionAsync_ExistingConnectionWithoutCredentials_FailedCredentialsUpdate_ReturnsConnectionWithoutCredentials(BindingRequest request, ServerConnection connection)
-    {
-        var copyOfConnectionWithoutCredentials = connection.ToConnection().ToServerConnection();
-        SetUpConnectionsAdapter(request, (true, copyOfConnectionWithoutCredentials));
-        connectedModeUiManager.ShowEditCredentialsDialogAsync(Arg.Any<Connection>()).Returns(false);
-
-        var result = await testSubject.GetServerConnectionAsync(request);
-
-        result.Should().BeSameAs(copyOfConnectionWithoutCredentials);
-    }
-
-
-    [DynamicData(nameof(RequestsAndConnections))]
-    [DataTestMethod]
-    public async Task GetServerConnectionAsync_ExistingConnectionWithoutCredentials_SuccessfulCredentialsUpdate_ConnectionNotStored_ReturnsNull(BindingRequest request, ServerConnection connection)
-    {
-        var copyOfConnectionWithoutCredentials = connection.ToConnection().ToServerConnection();
-        SetUpConnectionsAdapter(request, (true, copyOfConnectionWithoutCredentials), (false, null));
-        connectedModeUiManager.ShowEditCredentialsDialogAsync(Arg.Is<Connection>(x => x.ToServerConnection().Id == connection.Id)).Returns(true);
-
-        var result = await testSubject.GetServerConnectionAsync(request);
-
-        result.Should().BeNull();
     }
 
     [DynamicData(nameof(OtherThanSharedRequestsAndConnections))]
@@ -101,13 +72,12 @@ public class InteractiveConnectionForBindingProviderTests
         var result = await testSubject.GetServerConnectionAsync(request);
 
         result.Should().BeNull();
-        connectedModeUiManager.DidNotReceiveWithAnyArgs().ShowEditCredentialsDialogAsync(default);
     }
 
 
     [DynamicData(nameof(SharedRequestsAndConnections))]
     [DataTestMethod]
-    public async Task GetServerConnectionAsync_SharedRequest_MissingConnection_NewConnectionTrusted_ExistingStoredCredentials_ReturnsNewConnectionWithCredentials(BindingRequest request, ServerConnection connection)
+    public async Task GetServerConnectionAsync_SharedRequest_MissingConnection_NewConnectionTrusted_ReturnsNewConnection(BindingRequest request, ServerConnection connection)
     {
         connectedModeUiManager.ShowTrustConnectionDialogAsync(Arg.Is<ServerConnection>(x => x.Id == connection.Id), null).Returns(true);
         SetUpConnectionsAdapter(request, (false, null), (true, connection));
@@ -115,52 +85,32 @@ public class InteractiveConnectionForBindingProviderTests
         var result = await testSubject.GetServerConnectionAsync(request);
 
         result.Should().BeSameAs(connection);
-        connectedModeUiManager.DidNotReceiveWithAnyArgs().ShowEditCredentialsDialogAsync(default);
     }
 
     [DynamicData(nameof(SharedRequestsAndConnections))]
     [DataTestMethod]
-    public async Task GetServerConnectionAsync_SharedRequest_MissingConnection_NewConnectionTrusted_NoStoredCredentials_SuccessfulCredentialsUpdate_ReturnsNewConnectionWithAddedCredentials(BindingRequest request, ServerConnection connection)
+    public async Task GetServerConnectionAsync_SharedRequest_MissingConnection_NewConnectionTrusted__ConnectionNotStored_ReturnsNull(BindingRequest request, ServerConnection connection)
     {
-
-        var copyOfConnectionWithoutCredentials = connection.ToConnection().ToServerConnection();
         connectedModeUiManager.ShowTrustConnectionDialogAsync(Arg.Is<ServerConnection>(x => x.Id == connection.Id), null).Returns(true);
-        SetUpConnectionsAdapter(request, (false, null), (true, copyOfConnectionWithoutCredentials), (true, connection));
-        connectedModeUiManager.ShowEditCredentialsDialogAsync(Arg.Is<Connection>(x => x.ToServerConnection().Id == connection.Id)).Returns(true);
-
-        var result = await testSubject.GetServerConnectionAsync(request);
-
-        result.Should().BeSameAs(connection);
-    }
-
-    [DynamicData(nameof(SharedRequestsAndConnections))]
-    [DataTestMethod]
-    public async Task GetServerConnectionAsync_SharedRequest_MissingConnection_NewConnectionTrusted_NoStoredCredentials_FailedCredentialsUpdate_ReturnsConnectionWithoutCredentials(BindingRequest request, ServerConnection connection)
-    {
-
-        var copyOfConnectionWithoutCredentials = connection.ToConnection().ToServerConnection();
-        connectedModeUiManager.ShowTrustConnectionDialogAsync(Arg.Is<ServerConnection>(x => x.Id == connection.Id), null).Returns(true);
-        SetUpConnectionsAdapter(request, (false, null), (true, copyOfConnectionWithoutCredentials));
-        connectedModeUiManager.ShowEditCredentialsDialogAsync(Arg.Is<Connection>(x => x.ToServerConnection().Id == connection.Id)).Returns(false);
-
-        var result = await testSubject.GetServerConnectionAsync(request);
-
-        result.Should().Be(copyOfConnectionWithoutCredentials);
-    }
-
-    [DynamicData(nameof(SharedRequestsAndConnections))]
-    [DataTestMethod]
-    public async Task GetServerConnectionAsync_SharedRequest_MissingConnection_NewConnectionTrusted_NoStoredCredentials_SuccessfulCredentialsUpdate_ConnectionNotStored_Connection(BindingRequest request, ServerConnection connection)
-    {
-
-        var copyOfConnectionWithoutCredentials = connection.ToConnection().ToServerConnection();
-        connectedModeUiManager.ShowTrustConnectionDialogAsync(Arg.Is<ServerConnection>(x => x.Id == connection.Id), null).Returns(true);
-        SetUpConnectionsAdapter(request, (false, null), (true, copyOfConnectionWithoutCredentials), (false, null));
-        connectedModeUiManager.ShowEditCredentialsDialogAsync(Arg.Is<Connection>(x => x.ToServerConnection().Id == connection.Id)).Returns(true);
+        SetUpConnectionsAdapter(request, (false, null));
 
         var result = await testSubject.GetServerConnectionAsync(request);
 
         result.Should().BeNull();
+        serverConnectionsRepositoryAdapter.ReceivedWithAnyArgs(2).TryGet(default(string), out _);
+    }
+
+    [DynamicData(nameof(SharedRequestsAndConnections))]
+    [DataTestMethod]
+    public async Task GetServerConnectionAsync_SharedRequest_MissingConnection_NewConnectionNotTrusted_ReturnsNull(BindingRequest request, ServerConnection connection)
+    {
+        connectedModeUiManager.ShowTrustConnectionDialogAsync(Arg.Is<ServerConnection>(x => x.Id == connection.Id), null).Returns(false);
+        SetUpConnectionsAdapter(request, (false, null));
+
+        var result = await testSubject.GetServerConnectionAsync(request);
+
+        result.Should().BeNull();
+        serverConnectionsRepositoryAdapter.ReceivedWithAnyArgs(1).TryGet(default(string), out _);
     }
 
     private void SetUpConnectionsAdapter(BindingRequest request, params (bool result, ServerConnection connection)[] connections)

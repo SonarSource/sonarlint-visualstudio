@@ -51,8 +51,9 @@ public abstract record BindingRequest
     public record Shared(SharedBindingConfigModel Model) : AutomaticBindingRequest
     {
         internal override string TypeName => ConnectedMode.Resources.BindingType_Shared;
-        internal override string ProjectKey => Model?.ProjectKey;
-        internal override string ConnectionId => Model?.CreateConnectionInfo().GetServerIdFromConnectionInfo();
+        internal override string ProjectKey => Model.ProjectKey;
+        internal override string ConnectionId => Model.CreateConnectionInfo().GetServerIdFromConnectionInfo();
+        public SharedBindingConfigModel Model { get; init; } = Model ?? throw new ArgumentNullException(nameof(Model));
     }
 
     /// <summary>
