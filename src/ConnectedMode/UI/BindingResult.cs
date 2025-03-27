@@ -26,9 +26,9 @@ internal class BindingResult
 {
     public static BindingResult Success { get; } = new(null, true);
     public static BindingResult Failed { get; } = new(UiResources.FetchingBindingStatusFailedText, false);
-    public static ValidationFailure ConnectionNotFound => ValidationFailure.ConnectionNotFound;
-    public static ValidationFailure CredentialsNotFound => ValidationFailure.CredentialsNotFound;
-    public static ValidationFailure ProjectKeyNotFound => ValidationFailure.ProjectKeyNotFound;
+    public static ValidationFailure ConnectionNotFound => ValidationFailure.ConnectionNotFoundFailure;
+    public static ValidationFailure CredentialsNotFound => ValidationFailure.CredentialsNotFoundFailure;
+    public static ValidationFailure ProjectKeyNotFound => ValidationFailure.ProjectKeyNotFoundFailure;
 
     private BindingResult(string problemDescription, bool isSuccessful)
     {
@@ -38,9 +38,9 @@ internal class BindingResult
 
     internal class ValidationFailure : BindingResult
     {
-        public static new readonly ValidationFailure ConnectionNotFound = new(UiResources.FetchingBindingStatusFailedTextConnectionNotFound);
-        public static new readonly ValidationFailure CredentialsNotFound = new(UiResources.FetchingBindingStatusFailedTextCredentialsNotFound);
-        public static new readonly ValidationFailure ProjectKeyNotFound = new(UiResources.FetchingBindingStatusFailedTextProjectNotFound);
+        internal static readonly ValidationFailure ConnectionNotFoundFailure = new(UiResources.FetchingBindingStatusFailedTextConnectionNotFound);
+        internal static readonly ValidationFailure CredentialsNotFoundFailure = new(UiResources.FetchingBindingStatusFailedTextCredentialsNotFound);
+        internal static readonly ValidationFailure ProjectKeyNotFoundFailure = new(UiResources.FetchingBindingStatusFailedTextProjectNotFound);
 
         private ValidationFailure(string problemDescription) : base(problemDescription, false) { }
     }

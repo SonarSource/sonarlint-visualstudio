@@ -44,10 +44,10 @@ public interface IConnectedModeUIManager
 internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices, IConnectedModeUIServices connectedModeUiServices)
     : IConnectedModeUIManager
 {
-    public async Task<bool> ShowManageBindingDialogAsync(BindingRequest.AutomaticBindingRequest binding = null)
+    public async Task<bool> ShowManageBindingDialogAsync(BindingRequest.AutomaticBindingRequest automaticBinding = null)
     {
         var result = false;
-        await connectedModeServices.ThreadHandling.RunOnUIThreadAsync(() => result = ShowDialogManageBinding(binding));
+        await connectedModeServices.ThreadHandling.RunOnUIThreadAsync(() => result = ShowDialogManageBinding(automaticBinding));
 
         return result;
     }
