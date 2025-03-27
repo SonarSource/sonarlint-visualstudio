@@ -909,14 +909,14 @@ public class ManageBindingViewModelTests
     {
         var connection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
         SetupConnectionAndProjectToBind(connection, ServerProject);
-        connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(Arg.Is<Manual>(x => x.ProjectKey == ServerProject.Key && x.ConnectionId == connection.Id), Arg.Any<InteractiveConnectionForBindingProvider>(), Arg.Any<CancellationToken>()).Returns(BindingResult.Success);
+        connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(Arg.Is<Manual>(x => x.ProjectKey == ServerProject.Key && x.ConnectionId == connection.Id), connectedModeUIManager, Arg.Any<CancellationToken>()).Returns(BindingResult.Success);
 
 
         await testSubject.PerformManualBindingWithProgressAsync();
         var taskToPerformParams = (TaskToPerformParams<ResponseStatus<BindingResult>>)progressReporterViewModel.ReceivedCalls().Single().GetArguments()[0];
         await taskToPerformParams.TaskToPerform.Invoke();
 
-        connectedModeBindingServices.BindingControllerAdapter.Received(1).ValidateAndBindAsync(Arg.Is<Manual>(x => x.ProjectKey == ServerProject.Key && x.ConnectionId == connection.Id), Arg.Any<InteractiveConnectionForBindingProvider>(), Arg.Any<CancellationToken>());
+        connectedModeBindingServices.BindingControllerAdapter.Received(1).ValidateAndBindAsync(Arg.Is<Manual>(x => x.ProjectKey == ServerProject.Key && x.ConnectionId == connection.Id), connectedModeUIManager, Arg.Any<CancellationToken>());
     }
 
 
@@ -927,14 +927,14 @@ public class ManageBindingViewModelTests
         testSubject.SharedBindingConfigModel = bindingConfig;
         SetupBoundProject(bindingConfig.CreateConnectionInfo().GetServerConnectionFromConnectionInfo(), new ServerProject(bindingConfig.ProjectKey, default));
         connectedModeBindingServices.BindingControllerAdapter
-            .ValidateAndBindAsync(Arg.Is<BindingRequest.Shared>(x => x.Model == bindingConfig), Arg.Any<InteractiveConnectionForBindingProvider>(), Arg.Any<CancellationToken>())
+            .ValidateAndBindAsync(Arg.Is<BindingRequest.Shared>(x => x.Model == bindingConfig), connectedModeUIManager, Arg.Any<CancellationToken>())
             .Returns(BindingResult.Success);
 
         await testSubject.PerformSharedBindingWithProgressAsync();
         var taskToPerformParams = (TaskToPerformParams<ResponseStatus<BindingResult>>)progressReporterViewModel.ReceivedCalls().Single().GetArguments()[0];
         await taskToPerformParams.TaskToPerform.Invoke();
 
-        connectedModeBindingServices.BindingControllerAdapter.Received(1).ValidateAndBindAsync(Arg.Is<BindingRequest.Shared>(x => x.Model == bindingConfig), Arg.Any<InteractiveConnectionForBindingProvider>(), Arg.Any<CancellationToken>());
+        connectedModeBindingServices.BindingControllerAdapter.Received(1).ValidateAndBindAsync(Arg.Is<BindingRequest.Shared>(x => x.Model == bindingConfig), connectedModeUIManager, Arg.Any<CancellationToken>());
     }
 
     [TestMethod]
@@ -980,12 +980,12 @@ public class ManageBindingViewModelTests
     {
         var connection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
         SetupBoundProject(connection, ServerProject);
-        connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(bindingRequest, Arg.Any<InteractiveConnectionForBindingProvider>(), Arg.Any<CancellationToken>())
+        connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(bindingRequest, connectedModeUIManager, Arg.Any<CancellationToken>())
             .Returns(BindingResult.Success);
 
         var response = await testSubject.PerformBindingInternalAsync(bindingRequest);
 
-        connectedModeBindingServices.BindingControllerAdapter.Received(1).ValidateAndBindAsync(bindingRequest, Arg.Any<InteractiveConnectionForBindingProvider>(), Arg.Any<CancellationToken>());
+        connectedModeBindingServices.BindingControllerAdapter.Received(1).ValidateAndBindAsync(bindingRequest, connectedModeUIManager, Arg.Any<CancellationToken>());
         VerifyBindingSucceeded(response, bindingRequest, ServerProject.Key, connection);
     }
 
@@ -997,12 +997,12 @@ public class ManageBindingViewModelTests
         var connection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
         SetupBoundProject(connection, ServerProject);
         var bindingRequest = new Manual("any", "any");
-        connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(bindingRequest, Arg.Any<InteractiveConnectionForBindingProvider>(), Arg.Any<CancellationToken>())
+        connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(bindingRequest, connectedModeUIManager, Arg.Any<CancellationToken>())
             .Returns(bindingResult);
 
         var response = await testSubject.PerformBindingInternalAsync(bindingRequest);
 
-        connectedModeBindingServices.BindingControllerAdapter.Received(1).ValidateAndBindAsync(bindingRequest, Arg.Any<InteractiveConnectionForBindingProvider>(), Arg.Any<CancellationToken>());
+        connectedModeBindingServices.BindingControllerAdapter.Received(1).ValidateAndBindAsync(bindingRequest, connectedModeUIManager, Arg.Any<CancellationToken>());
         VerifyBindingNotPerformed(response, bindingResult, bindingRequest);
     }
 
@@ -1013,14 +1013,14 @@ public class ManageBindingViewModelTests
          SetupBoundProject(connection, ServerProject);
          connectedModeServices.SlCoreConnectionAdapter.GetServerProjectByKeyAsync(default, default).ReturnsForAnyArgs(new ResponseStatus<ServerProject>(false, null));
          var bindingRequest = new Manual("any", "any");
-         connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(bindingRequest, Arg.Any<InteractiveConnectionForBindingProvider>(), Arg.Any<CancellationToken>())
+         connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(bindingRequest, connectedModeUIManager, Arg.Any<CancellationToken>())
              .Returns(BindingResult.Success);
 
          var response = await testSubject.PerformBindingInternalAsync(bindingRequest);
 
          response.Success.Should().BeFalse();
          response.ResponseData.Should().BeSameAs(BindingResult.Failed);
-         connectedModeBindingServices.BindingControllerAdapter.Received(1).ValidateAndBindAsync(bindingRequest, Arg.Any<InteractiveConnectionForBindingProvider>(), Arg.Any<CancellationToken>());
+         connectedModeBindingServices.BindingControllerAdapter.Received(1).ValidateAndBindAsync(bindingRequest, connectedModeUIManager, Arg.Any<CancellationToken>());
          VerifyConnectionsRefreshed();
          VerifyBindingTelemetryNotSent();
      }
@@ -1239,7 +1239,7 @@ public class ManageBindingViewModelTests
     {
         actualResponse.Success.Should().BeTrue();
         actualResponse.ResponseData.Should().BeSameAs(BindingResult.Success);
-        connectedModeBindingServices.BindingControllerAdapter.Received(1).ValidateAndBindAsync(request, Arg.Any<InteractiveConnectionForBindingProvider>(), Arg.Any<CancellationToken>());
+        connectedModeBindingServices.BindingControllerAdapter.Received(1).ValidateAndBindAsync(request, connectedModeUIManager, Arg.Any<CancellationToken>());
         VerifyConnectionsRefreshed();
         connectedModeServices.SlCoreConnectionAdapter.Received().GetServerProjectByKeyAsync(expectedServerConnection, expectedProjectKey);
     }
@@ -1252,7 +1252,7 @@ public class ManageBindingViewModelTests
     {
         response.Success.Should().BeFalse();
         response.ResponseData.Should().Be(expectedResult);
-        connectedModeBindingServices.BindingControllerAdapter.Received(1).ValidateAndBindAsync(request, Arg.Any<InteractiveConnectionForBindingProvider>(), Arg.Any<CancellationToken>());
+        connectedModeBindingServices.BindingControllerAdapter.Received(1).ValidateAndBindAsync(request, connectedModeUIManager, Arg.Any<CancellationToken>());
         VerifyConnectionsRefreshed();
         connectedModeServices.SlCoreConnectionAdapter.DidNotReceiveWithAnyArgs().GetServerProjectByKeyAsync(default, default);
         VerifyBindingTelemetryNotSent();

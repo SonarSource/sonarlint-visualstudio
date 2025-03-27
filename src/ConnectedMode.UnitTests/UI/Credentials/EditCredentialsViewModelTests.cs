@@ -34,7 +34,7 @@ public class EditCredentialsViewModelTests
 {
     private static readonly ConnectionInfo SonarQubeConnectionInfo = new("http://localhost:9000/", ConnectionServerType.SonarCloud, CloudServerRegion.Us);
     private readonly Connection sonarQubeConnection = new(SonarQubeConnectionInfo, false);
-    private IBindingController bindingController;
+    private IConnectedModeUIManager uiManager;
     private IConnectedModeBindingServices connectedModeBindingServices;
     private IConnectedModeServices connectedModeServices;
     private IProgressReporterViewModel progressReporterViewModel;
@@ -49,7 +49,7 @@ public class EditCredentialsViewModelTests
         MockServices();
         progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
 
-        testSubject = new EditCredentialsViewModel(sonarQubeConnection, connectedModeServices, connectedModeBindingServices, progressReporterViewModel);
+        testSubject = new EditCredentialsViewModel(sonarQubeConnection, uiManager, connectedModeServices, connectedModeBindingServices, progressReporterViewModel);
     }
 
     [TestMethod]
@@ -135,7 +135,7 @@ public class EditCredentialsViewModelTests
         const string serverConnectionId = "serverConnectionId";
         connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(
             Arg.Is<BindingRequest.Manual>(x => x.ConnectionId == serverConnectionId && x.ProjectKey == serverProjectKey),
-            Arg.Any<ExistingConnectionForBindingProvider>(),
+            uiManager,
             CancellationToken.None).Returns(success ? BindingResult.Success : BindingResult.Failed);
 
         var response = await testSubject.RebindAsync(serverProjectKey, serverConnectionId);
@@ -150,7 +150,7 @@ public class EditCredentialsViewModelTests
         serverConnectionsRepositoryAdapter = Substitute.For<IServerConnectionsRepositoryAdapter>();
         solutionBindingRepository = Substitute.For<ISolutionBindingRepository>();
         solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
-        bindingController = Substitute.For<IBindingController>();
+        uiManager = Substitute.For<IConnectedModeUIManager>();
 
         connectedModeServices.ServerConnectionsRepositoryAdapter.Returns(serverConnectionsRepositoryAdapter);
         connectedModeBindingServices.SolutionBindingRepository.Returns(solutionBindingRepository);

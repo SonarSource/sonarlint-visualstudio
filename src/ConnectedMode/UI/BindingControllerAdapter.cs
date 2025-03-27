@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.SLCore.Protocol;
@@ -28,7 +29,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
 internal interface IBindingControllerAdapter
 {
-    Task<BindingResult> ValidateAndBindAsync(BindingRequest request, IConnectionForBindingProvider connectionForBindingProvider, CancellationToken token);
+    Task<BindingResult> ValidateAndBindAsync(BindingRequest request, IConnectedModeUIManager uiManager, CancellationToken token);
 
     bool Unbind(string bindingKey = null);
 }
@@ -39,16 +40,17 @@ internal interface IBindingControllerAdapter
 internal class BindingControllerAdapter(
     IBindingController bindingController,
     ISolutionInfoProvider solutionInfoProvider,
+    IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter,
     ILogger logger)
     : IBindingControllerAdapter
 {
     private readonly ILogger logger = logger.ForContext(ConnectedMode.Resources.ConnectedModeLogContext, ConnectedMode.Resources.ConnectedModeBindingLogContext);
 
-    public async Task<BindingResult> ValidateAndBindAsync(BindingRequest request, IConnectionForBindingProvider connectionForBindingProvider, CancellationToken token)
+    public async Task<BindingResult> ValidateAndBindAsync(BindingRequest request, IConnectedModeUIManager uiManager, CancellationToken token)
     {
         var logContext = new MessageLevelContext { Context = [request.TypeName], VerboseContext = [request.ToString()] };
 
-        var validationResult = await ValidateRequestAsync(request, logContext, connectionForBindingProvider);
+        var validationResult = await ValidateRequestAsync(request, logContext, uiManager);
 
         if (validationResult is { Right: { } validationFailure })
         {
@@ -78,7 +80,7 @@ internal class BindingControllerAdapter(
     private async Task<Either<ServerConnection, BindingResult.ValidationFailure>> ValidateRequestAsync(
         BindingRequest request,
         MessageLevelContext logContext,
-        IConnectionForBindingProvider connectionForBindingProvider)
+        IConnectedModeUIManager uiManager)
     {
         if (string.IsNullOrEmpty(request.ProjectKey))
         {
@@ -86,7 +88,7 @@ internal class BindingControllerAdapter(
             return BindingResult.ValidationFailure.ProjectKeyNotFound;
         }
 
-        var connection = await connectionForBindingProvider.GetServerConnectionAsync(request);
+        var connection = GetExistingServerConnectionOrNull(request.ConnectionId) ?? await GetNewServerConnectionOrNullAsync(request, uiManager);
 
         if (connection == null)
         {
@@ -102,4 +104,12 @@ internal class BindingControllerAdapter(
 
         return connection;
     }
+
+    private ServerConnection GetExistingServerConnectionOrNull(string connectionId) => serverConnectionsRepositoryAdapter.TryGet(connectionId, out var connection) ? connection : null;
+
+    private async Task<ServerConnection> GetNewServerConnectionOrNullAsync(BindingRequest request, IConnectedModeUIManager uiManager) =>
+        request is BindingRequest.Shared shared
+        && await uiManager.ShowTrustConnectionDialogAsync(shared.Model.CreateConnectionInfo().GetServerConnectionFromConnectionInfo(), null) is true
+            ? GetExistingServerConnectionOrNull(shared.ConnectionId)
+            : null;
 }

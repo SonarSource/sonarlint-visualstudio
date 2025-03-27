@@ -28,16 +28,17 @@ public class EditCredentialsDialog : CredentialsDialog
     private readonly EditCredentialsViewModel editConnectionTokenViewModel;
 
     internal EditCredentialsDialog(
+        IConnectedModeUIManager connectedModeUiManager,
         IConnectedModeServices connectedModeServices,
         IConnectedModeUIServices connectedModeUiServices,
         IConnectedModeBindingServices connectedModeBinding,
-        Connection connection) : base(connectedModeServices, connectedModeUiServices, CreateViewModel(connectedModeServices, connectedModeBinding, connection), withNextButton: false)
+        Connection connection) : base(connectedModeServices, connectedModeUiServices, CreateViewModel(connectedModeUiManager, connectedModeServices, connectedModeBinding, connection), withNextButton: false)
     {
         editConnectionTokenViewModel = (EditCredentialsViewModel)ViewModel;
     }
 
-    private static EditCredentialsViewModel CreateViewModel(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBinding, Connection connection) =>
-        new(connection, connectedModeServices, connectedModeBinding, new ProgressReporterViewModel(connectedModeServices.Logger));
+    private static EditCredentialsViewModel CreateViewModel(IConnectedModeUIManager connectedModeUiManager, IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBinding, Connection connection) =>
+        new(connection, connectedModeUiManager, connectedModeServices, connectedModeBinding, new ProgressReporterViewModel(connectedModeServices.Logger));
 
     protected override async Task BeforeWindowCloseWithSuccessAsync() => await editConnectionTokenViewModel.UpdateConnectionCredentialsWithProgressAsync();
 }

@@ -36,7 +36,6 @@ internal sealed class ManageBindingViewModel(
     IProgressReporterViewModel progressReporterViewModel)
     : ViewModelBase, IDisposable
 {
-    private readonly IConnectionForBindingProvider connectionForBindingProvider = new InteractiveConnectionForBindingProvider(connectedModeUiManager, connectedModeServices.ServerConnectionsRepositoryAdapter);
     private readonly CancellationTokenSource cancellationTokenSource = new();
     private ServerProject boundProject;
     private ConnectionInfo selectedConnectionInfo;
@@ -187,7 +186,7 @@ internal sealed class ManageBindingViewModel(
     {
         var bindingResult = await connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(
             request,
-            connectionForBindingProvider,
+            connectedModeUiManager,
             cancellationTokenSource.Token);
         ReloadConnectionData(); // this is to ensure that the newly added connection is added to the view model properties
         if (bindingResult == BindingResult.Success)

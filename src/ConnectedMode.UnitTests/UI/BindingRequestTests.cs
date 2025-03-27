@@ -79,6 +79,5 @@ public class BindingRequestTests
         [new SharedBindingConfigModel{Uri = new("http://anyhost/"), ProjectKey = "project key"}, "project key", "http://anyhost/"],
         [new SharedBindingConfigModel{Organization = "orgkey", Region = "EU", ProjectKey = "project key 2"}, "project key 2", "https://sonarcloud.io/organizations/orgkey"],
         [new SharedBindingConfigModel{Organization = "orgkey", Region = "US", ProjectKey = "project key 3"}, "project key 3", "https://sonarqube.us/organizations/orgkey"],
-        [new SharedBindingConfigModel(), null, null],
     ];
 }

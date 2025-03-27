@@ -26,13 +26,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 
 internal class EditCredentialsViewModel(
     Connection connection,
+    IConnectedModeUIManager uiManager,
     IConnectedModeServices connectedModeServices,
     IConnectedModeBindingServices connectedModeBindingServices,
     IProgressReporterViewModel progressReporterViewModel)
     : CredentialsViewModel(connection.Info, connectedModeServices.SlCoreConnectionAdapter, progressReporterViewModel)
 {
-    private readonly IConnectionForBindingProvider connectionForBindingProvider = new ExistingConnectionForBindingProvider(connectedModeServices.ServerConnectionsRepositoryAdapter);
-
     internal async Task UpdateConnectionCredentialsWithProgressAsync()
     {
         var validationParams = new TaskToPerformParams<ResponseStatus>(
@@ -67,7 +66,7 @@ internal class EditCredentialsViewModel(
     {
         var validateAndBindAsync = await connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(
             new BindingRequest.Manual(serverProjectKey, serverConnectionId),
-            connectionForBindingProvider,
+            uiManager,
             CancellationToken.None);
         return new ResponseStatus(validateAndBindAsync.IsSuccessful, validateAndBindAsync.ProblemDescription);
     }

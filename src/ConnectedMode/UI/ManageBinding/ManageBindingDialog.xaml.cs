@@ -31,6 +31,7 @@ internal partial class ManageBindingDialog : Window
 {
     private readonly IConnectedModeServices connectedModeServices;
     private readonly IConnectedModeBindingServices connectedModeBindingServices;
+    private readonly IConnectedModeUIManager connectedModeUiManager;
     private readonly BindingRequest.AutomaticBindingRequest automaticBindingRequest;
 
     public ManageBindingDialog(
@@ -42,6 +43,7 @@ internal partial class ManageBindingDialog : Window
     {
         this.connectedModeServices = connectedModeServices;
         this.connectedModeBindingServices = connectedModeBindingServices;
+        this.connectedModeUiManager = connectedModeUiManager;
         this.automaticBindingRequest = automaticBindingRequest;
         ConnectedModeUiServices = connectedModeUiServices;
         ViewModel = new ManageBindingViewModel(connectedModeServices,
@@ -57,7 +59,7 @@ internal partial class ManageBindingDialog : Window
 
     private async void ManageConnections_OnClick(object sender, RoutedEventArgs e)
     {
-        new ManageConnectionsDialog(connectedModeServices, connectedModeBindingServices, ConnectedModeUiServices).ShowDialog(this);
+        new ManageConnectionsDialog(connectedModeUiManager, connectedModeServices, connectedModeBindingServices, ConnectedModeUiServices).ShowDialog(this);
         await ViewModel.InitializeDataAsync();
     }
 

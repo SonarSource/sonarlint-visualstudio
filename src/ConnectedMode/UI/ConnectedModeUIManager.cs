@@ -86,7 +86,7 @@ internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedMod
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     private bool? GetEditCredentialsDialogResult(Connection connection)
     {
-        var editCredentialsDialog = new EditCredentialsDialog(connectedModeServices, connectedModeUiServices, connectedModeBindingServices, connection);
+        var editCredentialsDialog = new EditCredentialsDialog(this, connectedModeServices, connectedModeUiServices, connectedModeBindingServices, connection);
         return editCredentialsDialog.ShowDialog(Application.Current.MainWindow);
     }
 }

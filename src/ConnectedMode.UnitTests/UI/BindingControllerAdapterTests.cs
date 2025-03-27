@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using NSubstitute.Core;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
@@ -35,7 +36,8 @@ public class BindingControllerAdapterTests
     private ISolutionInfoProvider solutionInfoProvider;
     private TestLogger testLogger;
     private BindingControllerAdapter testSubject;
-    private IConnectionForBindingProvider connectionForBindingProvider;
+    private IServerConnectionsRepositoryAdapter serverConnectionsAdapter;
+    private IConnectedModeUIManager uiManager;
     private CancellationTokenSource cancellationTokenSource;
 
     [TestInitialize]
@@ -43,10 +45,11 @@ public class BindingControllerAdapterTests
     {
         bindingController = Substitute.For<IBindingController>();
         solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
+        serverConnectionsAdapter = Substitute.For<IServerConnectionsRepositoryAdapter>();
         testLogger = new TestLogger();
-        connectionForBindingProvider = Substitute.For<IConnectionForBindingProvider>();
+        uiManager = Substitute.For<IConnectedModeUIManager>();
         cancellationTokenSource = new CancellationTokenSource();
-        testSubject = new BindingControllerAdapter(bindingController, solutionInfoProvider, testLogger);
+        testSubject = new BindingControllerAdapter(bindingController, solutionInfoProvider, serverConnectionsAdapter, testLogger);
     }
 
     [TestMethod]
@@ -54,7 +57,7 @@ public class BindingControllerAdapterTests
     {
         var logger = Substitute.For<ILogger>();
 
-        _ = new BindingControllerAdapter(bindingController, solutionInfoProvider, logger);
+        _ = new BindingControllerAdapter(bindingController, solutionInfoProvider, serverConnectionsAdapter, logger);
 
         logger.Received().ForContext(Resources.ConnectedModeLogContext, Resources.ConnectedModeBindingLogContext);
     }
@@ -63,6 +66,7 @@ public class BindingControllerAdapterTests
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<BindingControllerAdapter, IBindingControllerAdapter>(
             MefTestHelpers.CreateExport<IBindingController>(),
+            MefTestHelpers.CreateExport<IServerConnectionsRepositoryAdapter>(),
             MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
             MefTestHelpers.CreateExport<ILogger>());
 
@@ -73,24 +77,71 @@ public class BindingControllerAdapterTests
     [DataTestMethod]
     public async Task ValidateAndBindAsync_NoProjectKey_ReturnsNoProjectKeyResult(BindingRequest request)
     {
-        var result = await testSubject.ValidateAndBindAsync(request, connectionForBindingProvider, cancellationTokenSource.Token);
+        var result = await testSubject.ValidateAndBindAsync(request, uiManager, cancellationTokenSource.Token);
 
         result.Should().Be(BindingResult.ProjectKeyNotFound);
         testLogger.AssertPartialOutputStringExists(Resources.Binding_ProjectKeyNotFound, request.TypeName);
-        bindingController.DidNotReceiveWithAnyArgs().BindAsync(default, default);
+        VerifyBindingNotAttempted();
     }
 
-    [DynamicData(nameof(Requests))]
+    [DynamicData(nameof(NonSharedRequests))]
     [DataTestMethod]
-    public async Task ValidateAndBindAsync_NoConnection_ReturnsNoConnectionResult(BindingRequest request)
+    public async Task ValidateAndBindAsync_NonSharedRequest_NoConnection_ReturnsNoConnectionResult(BindingRequest request)
     {
-        connectionForBindingProvider.GetServerConnectionAsync(request).Returns(null as ServerConnection);
+        SetUpConnectionSequence(request, null as ServerConnection);
 
-        var result = await testSubject.ValidateAndBindAsync(request, connectionForBindingProvider, cancellationTokenSource.Token);
+        var result = await testSubject.ValidateAndBindAsync(request, uiManager, cancellationTokenSource.Token);
 
         result.Should().Be(BindingResult.ConnectionNotFound);
         testLogger.AssertPartialOutputStringExists(Resources.Binding_ConnectionNotFound, request.TypeName);
-        bindingController.DidNotReceiveWithAnyArgs().BindAsync(default, default);
+        VerifyBindingNotAttempted();
+        VerifyDidNotAskForNewConnection();
+    }
+
+    [DynamicData(nameof(SharedRequests))]
+    [DataTestMethod]
+    public async Task ValidateAndBindAsync_SharedRequest_NewConnectionNotTrusted_ReturnsNoConnectionResult(BindingRequest.Shared request)
+    {
+        SetUpConnectionSequence(request, null as ServerConnection);
+        SetUpConnectionTrust(request, null);
+
+        var result = await testSubject.ValidateAndBindAsync(request, uiManager, cancellationTokenSource.Token);
+
+        result.Should().Be(BindingResult.ConnectionNotFound);
+        testLogger.AssertPartialOutputStringExists(Resources.Binding_ConnectionNotFound, request.TypeName);
+        VerifyBindingNotAttempted();
+        VerifyConnectionTrustAsked(request);
+    }
+
+    [DynamicData(nameof(SharedRequests))]
+    [DataTestMethod]
+    public async Task ValidateAndBindAsync_SharedRequest_NewConnectionTrustedButIsNotSaved_ReturnsNoConnectionResult(BindingRequest.Shared request)
+    {
+        SetUpConnectionSequence(request, null as ServerConnection);
+        SetUpConnectionTrust(request, true);
+
+        var result = await testSubject.ValidateAndBindAsync(request, uiManager, cancellationTokenSource.Token);
+
+        result.Should().Be(BindingResult.ConnectionNotFound);
+        testLogger.AssertPartialOutputStringExists(Resources.Binding_ConnectionNotFound, request.TypeName);
+        VerifyBindingNotAttempted();
+        VerifyConnectionTrustAsked(request);
+    }
+
+    [DynamicData(nameof(SharedRequests))]
+    [DataTestMethod]
+    public async Task ValidateAndBindAsync_SharedRequest_NewConnectionTrustedButSavedWithoutCredentials_ReturnsNoCredentialsResult(BindingRequest.Shared request)
+    {
+        var fakeConnection = new ServerConnection.SonarCloud("any org", credentials: null);
+        SetUpConnectionSequence(request, null, fakeConnection);
+        SetUpConnectionTrust(request, true);
+
+        var result = await testSubject.ValidateAndBindAsync(request, uiManager, cancellationTokenSource.Token);
+
+        result.Should().Be(BindingResult.CredentialsNotFound);
+        testLogger.AssertPartialOutputStringExists(string.Format(Resources.Binding_CredentiasNotFound, fakeConnection.Id), request.TypeName);
+        VerifyBindingNotAttempted();
+        VerifyConnectionTrustAsked(request);
     }
 
     [DynamicData(nameof(Requests))]
@@ -98,13 +149,14 @@ public class BindingControllerAdapterTests
     public async Task ValidateAndBindAsync_NoCredentials_ReturnsNoCredentialsResult(BindingRequest request)
     {
         var fakeConnection = new ServerConnection.SonarCloud("any org", credentials: null);
-        connectionForBindingProvider.GetServerConnectionAsync(request).Returns(fakeConnection);
+        SetUpExistingConnection(request, fakeConnection);
 
-        var result = await testSubject.ValidateAndBindAsync(request, connectionForBindingProvider, cancellationTokenSource.Token);
+        var result = await testSubject.ValidateAndBindAsync(request, uiManager, cancellationTokenSource.Token);
 
         result.Should().Be(BindingResult.CredentialsNotFound);
         testLogger.AssertPartialOutputStringExists(string.Format(Resources.Binding_CredentiasNotFound, fakeConnection.Id), request.TypeName);
-        bindingController.DidNotReceiveWithAnyArgs().BindAsync(default, default);
+        VerifyBindingNotAttempted();
+        VerifyDidNotAskForNewConnection();
     }
 
     [DynamicData(nameof(Requests))]
@@ -112,33 +164,34 @@ public class BindingControllerAdapterTests
     public async Task ValidateAndBindAsync_BindingThrows_ReturnsFailedResult(BindingRequest request)
     {
         var fakeConnection = new ServerConnection.SonarCloud("any org", credentials: Substitute.For<IConnectionCredentials>());
-        connectionForBindingProvider.GetServerConnectionAsync(request).Returns(fakeConnection);
+        SetUpExistingConnection(request, fakeConnection);
         var fakeSolutionName = "solution name";
         solutionInfoProvider.GetSolutionNameAsync().Returns(fakeSolutionName);
         var exception = new Exception("some exception");
         bindingController.BindAsync(Arg.Any<BoundServerProject>(), cancellationTokenSource.Token).ThrowsAsync(exception);
 
-        var result = await testSubject.ValidateAndBindAsync(request, connectionForBindingProvider, cancellationTokenSource.Token);
+        var result = await testSubject.ValidateAndBindAsync(request, uiManager, cancellationTokenSource.Token);
 
         result.Should().Be(BindingResult.Failed);
         testLogger.AssertPartialOutputStringExists(string.Format(Resources.Binding_Fails, exception.Message), request.TypeName);
     }
-
 
     [DynamicData(nameof(Requests))]
     [DataTestMethod]
     public async Task ValidateAndBindAsync_Success_ReturnsSuccessResult(BindingRequest request)
     {
         var fakeConnection = new ServerConnection.SonarCloud("any org", credentials: Substitute.For<IConnectionCredentials>());
-        connectionForBindingProvider.GetServerConnectionAsync(request).Returns(fakeConnection);
+        SetUpExistingConnection(request, fakeConnection);
         var fakeSolutionName = "solution name";
         solutionInfoProvider.GetSolutionNameAsync().Returns(fakeSolutionName);
 
-        var result = await testSubject.ValidateAndBindAsync(request, connectionForBindingProvider, cancellationTokenSource.Token);
+        var result = await testSubject.ValidateAndBindAsync(request, uiManager, cancellationTokenSource.Token);
 
         result.Should().Be(BindingResult.Success);
         testLogger.AssertNoOutputMessages();
-        bindingController.Received().BindAsync(Arg.Is<BoundServerProject>(x => x.LocalBindingKey == fakeSolutionName && x.ServerConnection == fakeConnection && x.ServerProjectKey == request.ProjectKey), cancellationTokenSource.Token);
+        bindingController.Received()
+            .BindAsync(Arg.Is<BoundServerProject>(x => x.LocalBindingKey == fakeSolutionName && x.ServerConnection == fakeConnection && x.ServerProjectKey == request.ProjectKey),
+                cancellationTokenSource.Token);
     }
 
     [DataRow(true)]
@@ -165,13 +218,42 @@ public class BindingControllerAdapterTests
         solutionInfoProvider.DidNotReceive().GetSolutionName();
     }
 
+    private void VerifyDidNotAskForNewConnection() => uiManager.DidNotReceiveWithAnyArgs().ShowTrustConnectionDialogAsync(default, default);
+
+    private void VerifyBindingNotAttempted() => bindingController.DidNotReceiveWithAnyArgs().BindAsync(default, default);
+
+    private void VerifyConnectionTrustAsked(BindingRequest.Shared request) => uiManager.Received().ShowTrustConnectionDialogAsync(Arg.Is<ServerConnection>(x => x.Id == request.ConnectionId), null);
+
+    private void SetUpConnectionTrust(BindingRequest.Shared request, bool? status) =>
+        uiManager
+            .ShowTrustConnectionDialogAsync(Arg.Is<ServerConnection>(x => x.Id == request.ConnectionId), null)
+            .Returns(status);
+
+    private void SetUpExistingConnection(BindingRequest request, ServerConnection.SonarCloud fakeConnection) =>
+        SetUpConnectionSequence(request, fakeConnection);
+
+    private void SetUpConnectionSequence(BindingRequest request, params ServerConnection[] returns)
+    {
+        var returnsList = returns
+            .Select<ServerConnection, Func<CallInfo, bool>>(x =>
+                info =>
+                {
+                    info[1] = x;
+                    return x != null;
+                })
+            .ToArray();
+        serverConnectionsAdapter.TryGet(request.ConnectionId, out Arg.Any<ServerConnection>())
+            .Returns(returnsList.First(), returnsList.Skip(1).ToArray());
+    }
+
     public static object[][] RequestsWithNullProjectKey =>
     [
         [new BindingRequest.Manual(null, "any")],
         [new BindingRequest.Shared(new SharedBindingConfigModel { ProjectKey = null, Uri = new("http://anyhost") })],
         [new BindingRequest.Assisted("any", null, false)]
     ];
-
+    public static object[][] NonSharedRequests => Requests.Where(x => x[0] is not BindingRequest.Shared).ToArray();
+    public static object[][] SharedRequests => Requests.Where(x => x[0] is BindingRequest.Shared).ToArray();
     public static object[][] Requests =>
     [
         [new BindingRequest.Manual("project key", "connection id")],
