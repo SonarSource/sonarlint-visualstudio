@@ -27,8 +27,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI;
 [TestClass]
 public class ProgressReporterViewModelTests
 {
-    // todo
-
     private ILogger logger;
     private ProgressReporterViewModel testSubject;
 
@@ -168,6 +166,28 @@ public class ProgressReporterViewModelTests
             parameters.AfterProgressUpdated();
         });
         testSubject.Warning.Should().Be(warningText);
+        testSubject.ProgressStatus.Should().BeNull();
+    }
+
+    [TestMethod]
+    public async Task ExecuteTaskWithProgressAsync_TaskWithFailureResponseAndCustomWarning_WorkflowIsCorrect()
+    {
+        var warningText = "warning";
+        var taskWarningText = "warning 2";
+        var parameters = GetTaskWithResponse(false, warningText, taskWarningText);
+        parameters.WarningText.Returns(warningText);
+
+        await testSubject.ExecuteTaskWithProgressAsync(parameters);
+
+        Received.InOrder(() =>
+        {
+            _ = parameters.ProgressStatus;
+            parameters.AfterProgressUpdated();
+            parameters.TaskToPerform();
+            parameters.AfterFailure(Arg.Any<IResponseStatus>());
+            parameters.AfterProgressUpdated();
+        });
+        testSubject.Warning.Should().Be(taskWarningText);
         testSubject.ProgressStatus.Should().BeNull();
     }
 
