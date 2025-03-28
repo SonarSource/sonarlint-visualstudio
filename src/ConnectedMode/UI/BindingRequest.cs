@@ -18,23 +18,42 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.Shared;
+
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
 /// <summary>
 /// Indicates binding parameters that were computed automatically as opposed to manual UI interaction
 /// </summary>
-public abstract record AutomaticBindingRequest
+public abstract record BindingRequest
 {
     internal abstract string TypeName { get; }
+    internal abstract string ProjectKey { get; }
+    internal abstract string ConnectionId { get; }
 
-    private AutomaticBindingRequest() { }
+    private BindingRequest() { }
+
+    /// <summary>
+    /// Indicates binding parameters set in binding ui
+    /// </summary>
+    public record Manual(string ProjectKey, string ConnectionId) : BindingRequest
+    {
+        internal override string TypeName => ConnectedMode.Resources.BindingType_Manual;
+        internal override string ProjectKey { get; } = ProjectKey;
+        internal override string ConnectionId { get; } = ConnectionId;
+    }
+
+    public abstract record AutomaticBindingRequest : BindingRequest;
 
     /// <summary>
     /// Indicates binding parameters derived from shared binding
     /// </summary>
-    public record Shared : AutomaticBindingRequest
+    public record Shared(SharedBindingConfigModel Model) : AutomaticBindingRequest
     {
-        internal override string TypeName => ConnectedMode.Resources.AutomaticBindingType_Shared;
+        internal override string TypeName => ConnectedMode.Resources.BindingType_Shared;
+        internal override string ProjectKey => Model.ProjectKey;
+        internal override string ConnectionId => Model.CreateConnectionInfo().GetServerIdFromConnectionInfo();
+        public SharedBindingConfigModel Model { get; init; } = Model ?? throw new ArgumentNullException(nameof(Model));
     }
 
     /// <summary>
@@ -45,6 +64,9 @@ public abstract record AutomaticBindingRequest
         string ServerProjectKey,
         bool IsFromSharedBinding) : AutomaticBindingRequest
     {
-        internal override string TypeName => IsFromSharedBinding ? ConnectedMode.Resources.AutomaticBindingType_Shared : ConnectedMode.Resources.AutomaticBindingType_Suggested;
+
+        internal override string TypeName => IsFromSharedBinding ? ConnectedMode.Resources.BindingType_SuggestedShared : ConnectedMode.Resources.BindingType_Suggested;
+        internal override string ProjectKey { get; } = ServerProjectKey;
+        internal override string ConnectionId { get; } = ServerConnectionId;
     }
 }

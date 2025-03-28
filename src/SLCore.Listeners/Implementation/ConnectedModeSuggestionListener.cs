@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
             }
 
             var boundConfigScope = await connectedModeUiManager
-                .ShowManageBindingDialogAsync(new AutomaticBindingRequest.Assisted(parameters.connectionId, parameters.projectKey, parameters.isFromSharedConfiguration)).ConfigureAwait(false)
+                .ShowManageBindingDialogAsync(new BindingRequest.Assisted(parameters.connectionId, parameters.projectKey, parameters.isFromSharedConfiguration)).ConfigureAwait(false)
                 ? parameters.configScopeId
                 : null;
 

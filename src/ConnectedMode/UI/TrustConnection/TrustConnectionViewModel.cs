@@ -47,15 +47,15 @@ public class TrustConnectionViewModel(
 
     internal async Task CreateConnectionsWithProgressAsync()
     {
-        var validationParams = new TaskToPerformParams<AdapterResponse>(CreateNewConnectionAsync,
+        var validationParams = new TaskToPerformParams<ResponseStatus>(CreateNewConnectionAsync,
             UiResources.CreatingConnectionProgressText,
             UiResources.CreatingConnectionFailedText);
         await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
     }
 
-    internal async Task<AdapterResponse> CreateNewConnectionAsync()
+    internal async Task<ResponseStatus> CreateNewConnectionAsync()
     {
         var succeeded = ConnectedModeServices.ServerConnectionsRepositoryAdapter.TryAddConnection(Connection, new TokenCredentialsModel(Token));
-        return await Task.FromResult(new AdapterResponse(succeeded));
+        return await Task.FromResult(new ResponseStatus(succeeded));
     }
 }

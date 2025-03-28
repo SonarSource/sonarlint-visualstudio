@@ -22,6 +22,7 @@ using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -33,7 +34,7 @@ public class EditCredentialsViewModelTests
 {
     private static readonly ConnectionInfo SonarQubeConnectionInfo = new("http://localhost:9000/", ConnectionServerType.SonarCloud, CloudServerRegion.Us);
     private readonly Connection sonarQubeConnection = new(SonarQubeConnectionInfo, false);
-    private IBindingController bindingController;
+    private IConnectedModeUIManager uiManager;
     private IConnectedModeBindingServices connectedModeBindingServices;
     private IConnectedModeServices connectedModeServices;
     private IProgressReporterViewModel progressReporterViewModel;
@@ -48,19 +49,19 @@ public class EditCredentialsViewModelTests
         MockServices();
         progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
 
-        testSubject = new EditCredentialsViewModel(sonarQubeConnection, connectedModeServices, connectedModeBindingServices, progressReporterViewModel);
+        testSubject = new EditCredentialsViewModel(sonarQubeConnection, uiManager, connectedModeServices, connectedModeBindingServices, progressReporterViewModel);
     }
 
     [TestMethod]
     public async Task UpdateConnectionCredentialsWithProgressAsync_UpdatesConnectionAndReportsProgress()
     {
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponse>>()).Returns(Task.FromResult(new AdapterResponse(true)));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus>>()).Returns(Task.FromResult(new ResponseStatus(true)));
 
         await testSubject.UpdateConnectionCredentialsWithProgressAsync();
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.TaskToPerform == testSubject.UpdateConnectionCredentialsAsync &&
                     x.ProgressStatus == UiResources.UpdatingConnectionCredentialsProgressText &&
                     x.WarningText == UiResources.UpdatingConnectionCredentialsFailedText));
@@ -69,14 +70,14 @@ public class EditCredentialsViewModelTests
     [TestMethod]
     public async Task UpdateConnectionCredentialsWithProgressAsync_WhenCurrentSolutionIsBoundToUpdatedConnection_RebindsAndReportsProgress()
     {
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponse>>()).Returns(Task.FromResult(new AdapterResponse(true)));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus>>()).Returns(Task.FromResult(new ResponseStatus(true)));
         MockConfigurationProvider();
 
         await testSubject.UpdateConnectionCredentialsWithProgressAsync();
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.RebindingProgressText &&
                     x.WarningText == UiResources.RebindingFailedText));
     }
@@ -84,7 +85,7 @@ public class EditCredentialsViewModelTests
     [TestMethod]
     public async Task UpdateConnectionCredentialsWithProgressAsync_WhenCurrentSolutionIsStandalone_DoesNotRebindAndReportsProgress()
     {
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponse>>()).Returns(Task.FromResult(new AdapterResponse(true)));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus>>()).Returns(Task.FromResult(new ResponseStatus(true)));
         var configurationProvider = Substitute.For<IConfigurationProvider>();
         configurationProvider.GetConfiguration().Returns(BindingConfiguration.Standalone);
         connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
@@ -93,7 +94,7 @@ public class EditCredentialsViewModelTests
 
         await progressReporterViewModel.DidNotReceive()
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.RebindingProgressText &&
                     x.WarningText == UiResources.RebindingFailedText));
     }
@@ -101,13 +102,13 @@ public class EditCredentialsViewModelTests
     [TestMethod]
     public async Task UpdateConnectionCredentialsWithProgressAsync_WhenConnectionFailedToUpdate_DoesNotRebindAndReportsProgress()
     {
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponse>>()).Returns(Task.FromResult(new AdapterResponse(false)));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus>>()).Returns(Task.FromResult(new ResponseStatus(false)));
 
         await testSubject.UpdateConnectionCredentialsWithProgressAsync();
 
         await progressReporterViewModel.DidNotReceive()
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.RebindingProgressText &&
                     x.WarningText == UiResources.RebindingFailedText));
     }
@@ -125,53 +126,22 @@ public class EditCredentialsViewModelTests
         serverConnectionsRepositoryAdapter.Received(1).TryUpdateCredentials(sonarQubeConnection, Arg.Is<TokenCredentialsModel>(x => x.Token == testSubject.Token));
     }
 
-    [TestMethod]
-    public async Task RebindAsync_WhenServerConnectionCannotBeFound_Fails()
+    [DataTestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task RebindAsync_CallsBindingControllerAdapter(bool success)
     {
-        connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(Arg.Any<ConnectionInfo>(), out Arg.Any<ServerConnection>()).Returns(false);
+        const string serverProjectKey = "serverProjectKey";
+        const string serverConnectionId = "serverConnectionId";
+        connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(
+            Arg.Is<BindingRequest.Manual>(x => x.ConnectionId == serverConnectionId && x.ProjectKey == serverProjectKey),
+            uiManager,
+            CancellationToken.None).Returns(success ? BindingResult.Success : BindingResult.Failed);
 
-        var response = await testSubject.RebindAsync("serverProjectKey");
+        var response = await testSubject.RebindAsync(serverProjectKey, serverConnectionId);
 
-        await bindingController.DidNotReceiveWithAnyArgs().BindAsync(Arg.Any<BoundServerProject>(), Arg.Any<CancellationToken>());
-        response.Success.Should().BeFalse();
+        response.Success.Should().Be(success);
     }
-
-    [TestMethod]
-    public async Task RebindAsync_WhenExceptionThrownDuringBinding_Fails()
-    {
-        MockTryGetServerConnection(CreateSonarCloudServerConnection());
-        MockSolutionInfoProvider("mySolution");
-        bindingController.BindAsync(Arg.Any<BoundServerProject>(), Arg.Any<CancellationToken>()).Returns(_ => throw new Exception("Failed to bind"));
-
-        var response = await testSubject.RebindAsync("serverProjectKey");
-
-        await bindingController.ReceivedWithAnyArgs().BindAsync(Arg.Any<BoundServerProject>(), Arg.Any<CancellationToken>());
-        response.Success.Should().BeFalse();
-    }
-
-    [TestMethod]
-    public async Task RebindAsync_WhenBindingSucceeds_Succeed()
-    {
-        var serverConnectionToUpdate = CreateSonarCloudServerConnection();
-        MockTryGetServerConnection(serverConnectionToUpdate);
-        MockSolutionInfoProvider("mySolution");
-
-        var response = await testSubject.RebindAsync("serverProjectKey");
-
-        await bindingController.Received().BindAsync(Arg.Is<BoundServerProject>(
-                x => x.LocalBindingKey == "mySolution" && x.ServerConnection.Id == serverConnectionToUpdate.Id),
-            CancellationToken.None);
-        response.Success.Should().BeTrue();
-    }
-
-    private void MockSolutionInfoProvider(string solutionName) => solutionInfoProvider.GetSolutionNameAsync().Returns(Task.FromResult(solutionName));
-
-    private void MockTryGetServerConnection(ServerConnection expectedServerConnection = null) =>
-        connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(Arg.Any<ConnectionInfo>(), out _).Returns(callInfo =>
-        {
-            callInfo[1] = expectedServerConnection;
-            return true;
-        });
 
     private void MockServices()
     {
@@ -180,12 +150,11 @@ public class EditCredentialsViewModelTests
         serverConnectionsRepositoryAdapter = Substitute.For<IServerConnectionsRepositoryAdapter>();
         solutionBindingRepository = Substitute.For<ISolutionBindingRepository>();
         solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
-        bindingController = Substitute.For<IBindingController>();
+        uiManager = Substitute.For<IConnectedModeUIManager>();
 
         connectedModeServices.ServerConnectionsRepositoryAdapter.Returns(serverConnectionsRepositoryAdapter);
         connectedModeBindingServices.SolutionBindingRepository.Returns(solutionBindingRepository);
         connectedModeBindingServices.SolutionInfoProvider.Returns(solutionInfoProvider);
-        connectedModeBindingServices.BindingController.Returns(bindingController);
     }
 
     private void MockConfigurationProvider()

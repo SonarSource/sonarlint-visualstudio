@@ -73,7 +73,7 @@ public class TrustConnectionViewModelTests
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.TaskToPerform == trustSonarCloudConnectionViewModel.CreateNewConnectionAsync &&
                     x.ProgressStatus == UiResources.CreatingConnectionProgressText &&
                     x.WarningText == UiResources.CreatingConnectionFailedText));

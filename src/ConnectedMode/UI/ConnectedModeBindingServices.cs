@@ -19,33 +19,33 @@
  */
 
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
+using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
-public interface IConnectedModeBindingServices
+internal interface IConnectedModeBindingServices
 {
-    public IBindingController BindingController { get; }
     public ISolutionInfoProvider SolutionInfoProvider { get; }
     public ISharedBindingConfigProvider SharedBindingConfigProvider { get; }
     public ISolutionBindingRepository SolutionBindingRepository { get; }
+    public IBindingControllerAdapter BindingControllerAdapter { get; }
 }
 
 [Export(typeof(IConnectedModeBindingServices))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-public class ConnectedModeBindingServices(
-    IBindingController bindingController,
+internal class ConnectedModeBindingServices(
     ISolutionInfoProvider solutionInfoProvider,
     ISharedBindingConfigProvider sharedBindingConfigProvider,
-    ISolutionBindingRepository solutionBindingRepository)
+    ISolutionBindingRepository solutionBindingRepository,
+    IBindingControllerAdapter bindingControllerAdapter)
     : IConnectedModeBindingServices
 {
-    public IBindingController BindingController { get; } = bindingController;
     public ISolutionInfoProvider SolutionInfoProvider { get; } = solutionInfoProvider;
     public ISharedBindingConfigProvider SharedBindingConfigProvider { get; } = sharedBindingConfigProvider;
     public ISolutionBindingRepository SolutionBindingRepository { get; } = solutionBindingRepository;
+    public IBindingControllerAdapter BindingControllerAdapter { get; } = bindingControllerAdapter;
 }
