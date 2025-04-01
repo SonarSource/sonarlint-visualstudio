@@ -21,6 +21,7 @@
 using System.ComponentModel;
 using System.Security;
 using System.Windows;
+using NSubstitute.ReceivedExtensions;
 using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
@@ -1019,7 +1020,7 @@ public class ManageBindingViewModelTests
         response.ResponseData.Should().BeSameAs(BindingResult.Failed);
         VerifyBindingAdapterCalled(bindingRequest);
         VerifyConnectionsRefreshed();
-        VerifyBindingTelemetryNotSent();
+        connectedModeServices.TelemetryManager.Received().AddedManualBindings();
     }
 
     [TestMethod]

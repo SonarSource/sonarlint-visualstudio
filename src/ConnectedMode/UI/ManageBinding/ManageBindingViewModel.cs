@@ -191,19 +191,14 @@ internal sealed class ManageBindingViewModel(
         ReloadConnectionData(); // this is to ensure that the newly added connection is added to the view model properties
         if (bindingResult == BindingResult.Success)
         {
+            UpdateBindingTelemetry(request);
             bindingResult = (await DisplayBindStatusAsync()).ResponseData;
         }
-        UpdateBindingTelemetry(request, bindingResult);
         return new ResponseStatusWithData<BindingResult>(bindingResult.IsSuccessful, bindingResult, bindingResult.ProblemDescription);
     }
 
-    private void UpdateBindingTelemetry(BindingRequest binding, BindingResult bindingResult)
+    private void UpdateBindingTelemetry(BindingRequest binding)
     {
-        if (bindingResult != BindingResult.Success)
-        {
-            return;
-        }
-
         switch (binding)
         {
             case BindingRequest.Assisted { Dto.isFromSharedConfiguration: true } or BindingRequest.Shared:
