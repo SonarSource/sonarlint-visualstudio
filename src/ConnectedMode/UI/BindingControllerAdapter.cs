@@ -23,7 +23,6 @@ using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.SLCore.Protocol;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
@@ -50,17 +49,18 @@ internal class BindingControllerAdapter(
     {
         var logContext = new MessageLevelContext { Context = [request.TypeName], VerboseContext = [request.ToString()] };
 
-        var validationResult = await ValidateRequestAsync(request, logContext, uiManager);
+        var connection = GetExistingServerConnectionOrNull(request.ConnectionId) ?? await GetNewServerConnectionOrNullAsync(request, uiManager);
+        var validationResult = ValidateRequest(request, connection, logContext);
 
-        if (validationResult is { Right: { } validationFailure })
+        if (validationResult != null)
         {
-            return validationFailure;
+            return validationResult;
         }
 
         try
         {
             var localBindingKey = await solutionInfoProvider.GetSolutionNameAsync();
-            var boundServerProject = new BoundServerProject(localBindingKey, request.ProjectKey, validationResult.Left);
+            var boundServerProject = new BoundServerProject(localBindingKey, request.ProjectKey, connection);
             await bindingController.BindAsync(boundServerProject, token);
             return BindingResult.Success;
         }
@@ -77,32 +77,30 @@ internal class BindingControllerAdapter(
         return bindingController.Unbind(bindingKey);
     }
 
-    private async Task<Either<ServerConnection, BindingResult.ValidationFailure>> ValidateRequestAsync(
+    private BindingResult.ValidationFailure ValidateRequest(
         BindingRequest request,
-        MessageLevelContext logContext,
-        IConnectedModeUIManager uiManager)
+        ServerConnection connection,
+        MessageLevelContext logContext)
     {
         if (string.IsNullOrEmpty(request.ProjectKey))
         {
             logger.WriteLine(logContext, ConnectedMode.Resources.Binding_ProjectKeyNotFound);
-            return BindingResult.ValidationFailure.ProjectKeyNotFound;
+            return BindingResult.ProjectKeyNotFound;
         }
-
-        var connection = GetExistingServerConnectionOrNull(request.ConnectionId) ?? await GetNewServerConnectionOrNullAsync(request, uiManager);
 
         if (connection == null)
         {
             logger.WriteLine(logContext, ConnectedMode.Resources.Binding_ConnectionNotFound);
-            return BindingResult.ValidationFailure.ConnectionNotFound;
+            return BindingResult.ConnectionNotFound;
         }
 
         if (connection.Credentials == null)
         {
             logger.WriteLine(logContext, ConnectedMode.Resources.Binding_CredentiasNotFound, connection.Id);
-            return BindingResult.ValidationFailure.CredentialsNotFound;
+            return BindingResult.CredentialsNotFound;
         }
 
-        return connection;
+        return null;
     }
 
     private ServerConnection GetExistingServerConnectionOrNull(string connectionId) => serverConnectionsRepositoryAdapter.TryGet(connectionId, out var connection) ? connection : null;
