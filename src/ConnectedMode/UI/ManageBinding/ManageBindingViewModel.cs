@@ -316,7 +316,7 @@ internal sealed class ManageBindingViewModel(
         bool succeeded;
         try
         {
-            succeeded = connectedModeBindingServices.BindingControllerAdapter.Unbind();
+            succeeded = connectedModeBindingServices.BindingControllerAdapter.UnbindCurrentSolution();
             await DisplayBindStatusAsync();
         }
         catch (Exception ex)

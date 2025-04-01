@@ -21,6 +21,7 @@
 using System.ComponentModel;
 using System.Security;
 using System.Windows;
+using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReceivedExtensions;
 using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
@@ -295,7 +296,7 @@ public class ManageBindingViewModelTests
 
         await testSubject.UnbindAsync();
 
-        connectedModeBindingServices.BindingControllerAdapter.Received(1).Unbind(null);
+        connectedModeBindingServices.BindingControllerAdapter.Received(1).UnbindCurrentSolution();
     }
 
     [TestMethod]
@@ -304,7 +305,7 @@ public class ManageBindingViewModelTests
     public async Task UnbindAsync_ReturnsResponseOfUnbinding(bool expectedResponse)
     {
         await InitializeBoundProject();
-        connectedModeBindingServices.BindingControllerAdapter.Unbind(Arg.Any<string>()).Returns(expectedResponse);
+        connectedModeBindingServices.BindingControllerAdapter.UnbindCurrentSolution().Returns(expectedResponse);
 
         var adapterResponse = await testSubject.UnbindAsync();
 
@@ -316,7 +317,7 @@ public class ManageBindingViewModelTests
     {
         await InitializeBoundProject();
         var exceptionMsg = "Failed to load connections";
-        connectedModeBindingServices.BindingControllerAdapter.When(x => x.Unbind(Arg.Any<string>())).Do(_ => throw new Exception(exceptionMsg));
+        connectedModeBindingServices.BindingControllerAdapter.UnbindCurrentSolution().Throws(new Exception(exceptionMsg));
 
         var adapterResponse = await testSubject.UnbindAsync();
 

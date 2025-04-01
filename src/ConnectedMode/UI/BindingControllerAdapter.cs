@@ -29,8 +29,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI;
 internal interface IBindingControllerAdapter
 {
     Task<BindingResult> ValidateAndBindAsync(BindingRequest request, IConnectedModeUIManager uiManager, CancellationToken token);
-
-    bool Unbind(string bindingKey = null);
+    bool UnbindCurrentSolution();
+    bool Unbind(string bindingKey);
 }
 
 [Export(typeof(IBindingControllerAdapter))]
@@ -71,11 +71,9 @@ internal class BindingControllerAdapter(
         }
     }
 
-    public bool Unbind(string bindingKey = null)
-    {
-        bindingKey ??= solutionInfoProvider.GetSolutionName();
-        return bindingController.Unbind(bindingKey);
-    }
+    public bool UnbindCurrentSolution() => solutionInfoProvider.GetSolutionName() is { } solutionName && Unbind(solutionName);
+
+    public bool Unbind(string bindingKey) => bindingController.Unbind(bindingKey);
 
     private BindingResult.ValidationFailure ValidateRequest(
         BindingRequest request,

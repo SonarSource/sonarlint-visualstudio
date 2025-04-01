@@ -198,13 +198,22 @@ public class BindingControllerAdapterTests
     [DataRow(true)]
     [DataRow(false)]
     [DataTestMethod]
-    public void Unbind_NoKey_UsesSolutionName(bool expectedResult)
+    public void UnbindCurrentSolution_UsesSolutionName(bool expectedResult)
     {
         var solutionName = "solution name";
         solutionInfoProvider.GetSolutionName().Returns(solutionName);
         bindingController.Unbind(solutionName).Returns(expectedResult);
 
-        testSubject.Unbind().Should().Be(expectedResult);
+        testSubject.UnbindCurrentSolution().Should().Be(expectedResult);
+    }
+
+    [TestMethod]
+    public void UnbindCurrentSolution_NoSolutionOpen_DoesNotUnbind()
+    {
+        solutionInfoProvider.GetSolutionName().Returns(null as string);
+
+        testSubject.UnbindCurrentSolution().Should().Be(false);
+        bindingController.DidNotReceiveWithAnyArgs().Unbind(default);
     }
 
     [DataRow(true)]
