@@ -55,7 +55,7 @@ public class BindingRequestTests
 
     [DynamicData(nameof(AssistedBindingSubtypes))]
     [DataTestMethod]
-    public void Assisted_AllPropertiesReturnExpectedValues(string connectionId, string projectKey, bool isShared, string expectedTypeName)
+    public void Assisted_AllPropertiesReturnExpectedValues(string connectionId, string projectKey, bool isShared)
     {
         var dto = new AssistBindingParams(connectionId, projectKey, default, isShared);
 
@@ -63,24 +63,24 @@ public class BindingRequestTests
 
         testSubject.ConnectionId.Should().Be(connectionId);
         testSubject.ProjectKey.Should().Be(projectKey);
-        testSubject.TypeName.Should().Be(expectedTypeName);
+        testSubject.TypeName.Should().Be(isShared ? Resources.BindingType_AssistedShared : Resources.BindingType_Assisted);
         testSubject.Dto.Should().Be(dto);
     }
 
     public static object[][] AssistedBindingSubtypes =>
     [
-        ["some connection", "some project", true, Resources.BindingType_AssistedShared],
-        [null, "some project 2", true, Resources.BindingType_AssistedShared],
-        ["some connection2", null, true, Resources.BindingType_AssistedShared],
-        ["some connection 3", "some project 3", false, Resources.BindingType_Assisted],
-        [null, "some project 4", false, Resources.BindingType_Assisted],
-        ["some connection 4", null, false, Resources.BindingType_Assisted],
+        ["some connection", "some project", true],
+        [null, "some project 2", true],
+        ["some connection2", null, true],
+        ["some connection 3", "some project 3", false],
+        [null, "some project 4", false],
+        ["some connection 4", null, false],
     ];
 
     public static object[][] SharedBindings =>
     [
         [new SharedBindingConfigModel{Uri = new("http://anyhost/"), ProjectKey = "project key"}, "project key", "http://anyhost/"],
-        [new SharedBindingConfigModel{Organization = "orgkey", Region = "EU", ProjectKey = "project key 2"}, "project key 2", "https://sonarcloud.io/organizations/orgkey"],
-        [new SharedBindingConfigModel{Organization = "orgkey", Region = "US", ProjectKey = "project key 3"}, "project key 3", "https://sonarqube.us/organizations/orgkey"],
+        [new SharedBindingConfigModel{Organization = "orgkey", Region = CloudServerRegion.Eu.Name, ProjectKey = "project key 2"}, "project key 2", "https://sonarcloud.io/organizations/orgkey"],
+        [new SharedBindingConfigModel{Organization = "orgkey", Region = CloudServerRegion.Us.Name, ProjectKey = "project key 3"}, "project key 3", "https://sonarqube.us/organizations/orgkey"],
     ];
 }
