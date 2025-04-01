@@ -22,9 +22,8 @@ using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.SLCore.Listener.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
-
 /// <summary>
-/// Indicates binding parameters that were computed automatically as opposed to manual UI interaction
+/// Base class for Binding parameters
 /// </summary>
 public abstract record BindingRequest
 {
@@ -44,6 +43,9 @@ public abstract record BindingRequest
         internal override string ConnectionId { get; } = ConnectionId;
     }
 
+    /// <summary>
+    /// Indicates binding parameters that were computed automatically as opposed to manual UI interaction
+    /// </summary>
     public abstract record AutomaticBindingRequest : BindingRequest;
 
     /// <summary>
