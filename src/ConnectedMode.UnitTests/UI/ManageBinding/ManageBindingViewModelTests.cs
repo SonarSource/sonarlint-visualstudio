@@ -528,24 +528,24 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public void IsConnectionSelectionEnabled_NoSolution_ReturnsFalse()
+    public async Task IsConnectionSelectionEnabled_NoSolution_ReturnsFalse()
     {
         testSubject.SolutionInfo = noSolution;
         testSubject.BoundProject = null;
         progressReporterViewModel.IsOperationInProgress.Returns(false);
         MockTryGetAllConnectionsInfo([SonarCloudConnectionInfo]);
-        testSubject.ReloadConnectionData();
+        await testSubject.ReloadConnectionDataAsync();
 
         testSubject.IsConnectionSelectionEnabled.Should().BeFalse();
     }
 
     [TestMethod]
-    public void IsConnectionSelectionEnabled_ProjectIsNotBoundAndBindingIsNotInProgressAndConnectionsExist_ReturnsTrue()
+    public async Task IsConnectionSelectionEnabled_ProjectIsNotBoundAndBindingIsNotInProgressAndConnectionsExist_ReturnsTrue()
     {
         testSubject.BoundProject = null;
         progressReporterViewModel.IsOperationInProgress.Returns(false);
         MockTryGetAllConnectionsInfo([SonarCloudConnectionInfo]);
-        testSubject.ReloadConnectionData();
+        await testSubject.ReloadConnectionDataAsync();
 
         testSubject.IsConnectionSelectionEnabled.Should().BeTrue();
     }
@@ -609,35 +609,35 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public void ReloadConnectionData_FillsConnections()
+    public async Task ReloadConnectionDataAsync_FillsConnections()
     {
         List<ConnectionInfo> existingConnections = [SonarQubeConnectionInfo, SonarCloudConnectionInfo];
         MockTryGetAllConnectionsInfo(existingConnections);
 
-        testSubject.ReloadConnectionData();
+        await testSubject.ReloadConnectionDataAsync();
 
         testSubject.Connections.Should().BeEquivalentTo(existingConnections);
     }
 
     [TestMethod]
-    public void ReloadConnectionData_ClearsPreviousConnections()
+    public async Task ReloadConnectionDataAsync_ClearsPreviousConnections()
     {
         MockTryGetAllConnectionsInfo([SonarQubeConnectionInfo]);
         testSubject.Connections.Add(SonarCloudConnectionInfo);
 
-        testSubject.ReloadConnectionData();
+        await testSubject.ReloadConnectionDataAsync();
 
         testSubject.Connections.Should().BeEquivalentTo([SonarQubeConnectionInfo]);
     }
 
     [TestMethod]
-    public void ReloadConnectionData_RaisesEvents()
+    public async Task ReloadConnectionDataAsync_RaisesEvents()
     {
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
         eventHandler.ReceivedCalls().Should().BeEmpty();
 
-        testSubject.ReloadConnectionData();
+        await testSubject.ReloadConnectionDataAsync();
 
         eventHandler.Received().Invoke(testSubject,
             Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsConnectionSelectionEnabled)));
@@ -648,11 +648,11 @@ public class ManageBindingViewModelTests
     [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
-    public void ReloadConnectionData_ReturnsResponseFromAdapter(bool expectedStatus)
+    public async Task ReloadConnectionDataAsync_ReturnsResponseFromAdapter(bool expectedStatus)
     {
         serverConnectionsRepositoryAdapter.TryGetAllConnectionsInfo(out Arg.Any<List<ConnectionInfo>>()).Returns(expectedStatus);
 
-        var succeeded = testSubject.ReloadConnectionData();
+        var succeeded = await testSubject.ReloadConnectionDataAsync();
 
         succeeded.Should().BeEquivalentTo(new ResponseStatus(expectedStatus));
     }
@@ -667,9 +667,10 @@ public class ManageBindingViewModelTests
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
-                    x.ProgressStatus == UiResources.LoadingConnectionsText &&
-                    x.WarningText == UiResources.LoadingConnectionsFailedText &&
-                    x.AfterProgressUpdated == testSubject.OnProgressUpdated),
+                    x.TaskToPerform == testSubject.ReloadConnectionDataAsync
+                    && x.ProgressStatus == UiResources.LoadingConnectionsText
+                    && x.WarningText == UiResources.LoadingConnectionsFailedText
+                    && x.AfterProgressUpdated == testSubject.OnProgressUpdated),
                 true);
     }
 
@@ -683,10 +684,10 @@ public class ManageBindingViewModelTests
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatusWithData<BindingResult>>>(x =>
-                    x.TaskToPerform == testSubject.DisplayBindStatusAsync &&
-                    x.ProgressStatus == UiResources.FetchingBindingStatusText &&
-                    x.WarningText == UiResources.FetchingBindingStatusFailedText &&
-                    x.AfterProgressUpdated == testSubject.OnProgressUpdated),
+                    x.TaskToPerform == testSubject.DisplayBindStatusAsync
+                    && x.ProgressStatus == UiResources.FetchingBindingStatusText
+                    && x.WarningText == UiResources.FetchingBindingStatusFailedText
+                    && x.AfterProgressUpdated == testSubject.OnProgressUpdated),
                 false);
     }
 
@@ -1266,7 +1267,8 @@ public class ManageBindingViewModelTests
         connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(bindingRequest, connectedModeUIManager, Arg.Any<CancellationToken>())
             .Returns(bindingResult);
 
-    private void VerifyBindingAdapterCalled(BindingRequest bindingRequest) => connectedModeBindingServices.BindingControllerAdapter.Received(1).ValidateAndBindAsync(bindingRequest, connectedModeUIManager, Arg.Any<CancellationToken>());
+    private void VerifyBindingAdapterCalled(BindingRequest bindingRequest) =>
+        connectedModeBindingServices.BindingControllerAdapter.Received(1).ValidateAndBindAsync(bindingRequest, connectedModeUIManager, Arg.Any<CancellationToken>());
 
     private void MockProgressReporter(bool task1Response = true, bool task2Response = true)
     {

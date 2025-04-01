@@ -152,7 +152,7 @@ internal sealed class ManageBindingViewModel(
 
     public async Task InitializeDataAsync()
     {
-        var loadData = new TaskToPerformParams<ResponseStatus>(() => Task.FromResult(ReloadConnectionData()), UiResources.LoadingConnectionsText,
+        var loadData = new TaskToPerformParams<ResponseStatus>(ReloadConnectionDataAsync, UiResources.LoadingConnectionsText,
             UiResources.LoadingConnectionsFailedText) { AfterProgressUpdated = OnProgressUpdated };
         var loadDataResult = await ProgressReporter.ExecuteTaskWithProgressAsync(loadData);
 
@@ -188,7 +188,7 @@ internal sealed class ManageBindingViewModel(
             request,
             connectedModeUiManager,
             cancellationTokenSource.Token);
-        ReloadConnectionData(); // this is to ensure that the newly added connection is added to the view model properties
+        await ReloadConnectionDataAsync(); // this is to ensure that the newly added connection is added to the view model properties
         if (bindingResult == BindingResult.Success)
         {
             UpdateBindingTelemetry(request);
@@ -272,7 +272,7 @@ internal sealed class ManageBindingViewModel(
         RaisePropertyChanged(nameof(IsExportButtonEnabled));
     }
 
-    internal ResponseStatus ReloadConnectionData()
+    internal Task<ResponseStatus> ReloadConnectionDataAsync()
     {
         Connections.Clear();
         var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryGetAllConnectionsInfo(out var slCoreConnections);
@@ -280,7 +280,7 @@ internal sealed class ManageBindingViewModel(
 
         RaisePropertyChanged(nameof(IsConnectionSelectionEnabled));
         RaisePropertyChanged(nameof(ConnectionSelectionCaptionText));
-        return new ResponseStatus(succeeded);
+        return Task.FromResult(new ResponseStatus(succeeded));
     }
 
     internal async Task<ResponseStatusWithData<BindingResult>> DisplayBindStatusAsync()
