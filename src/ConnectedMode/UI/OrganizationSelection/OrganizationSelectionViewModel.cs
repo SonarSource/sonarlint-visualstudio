@@ -61,16 +61,16 @@ public class OrganizationSelectionViewModel(
 
     public async Task LoadOrganizationsAsync()
     {
-        var organizationLoadingParams = new TaskToPerformParams<ResponseStatus<List<OrganizationDisplay>>>(
+        var organizationLoadingParams = new TaskToPerformParams<ResponseStatusWithData<List<OrganizationDisplay>>>(
             AdapterLoadOrganizationsAsync,
             UiResources.LoadingOrganizationsProgressText,
             UiResources.LoadingOrganizationsFailedText) { AfterSuccess = UpdateOrganizations };
         await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(organizationLoadingParams);
     }
 
-    internal async Task<ResponseStatus<List<OrganizationDisplay>>> AdapterLoadOrganizationsAsync() => await connectionAdapter.GetOrganizationsAsync(credentialsModel, CloudServerRegion);
+    internal async Task<ResponseStatusWithData<List<OrganizationDisplay>>> AdapterLoadOrganizationsAsync() => await connectionAdapter.GetOrganizationsAsync(credentialsModel, CloudServerRegion);
 
-    internal void UpdateOrganizations(ResponseStatus<List<OrganizationDisplay>> responseWithData)
+    internal void UpdateOrganizations(ResponseStatusWithData<List<OrganizationDisplay>> responseWithData)
     {
         Organizations.Clear();
         responseWithData.ResponseData.ForEach(AddOrganization);

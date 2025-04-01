@@ -28,9 +28,9 @@ public interface IResponseStatus
     string WarningText { get; }
 }
 
-public class ResponseStatus<T>(bool success, T responseData, string warningText = null) : IResponseStatus
+public class ResponseStatusWithData<T>(bool success, T responseData, string warningText = null) : IResponseStatus
 {
-    public ResponseStatus() : this(false, default) { }
+    public ResponseStatusWithData() : this(false, default) { }
 
     public bool Success { get; init; } = success;
     public string WarningText { get; init; } = warningText;

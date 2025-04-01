@@ -109,7 +109,7 @@ public class ProgressReporterViewModelTests
     public async Task ExecuteTaskWithProgressAsync_ReturnsReceivedResponse(bool success)
     {
         var parameters = GetTaskWithResponse(success);
-        var taskResponse = new ResponseStatus<IResponseStatus>(true, null);
+        var taskResponse = new ResponseStatusWithData<IResponseStatus>(true, null);
         parameters.TaskToPerform().Returns(taskResponse);
 
         var response = await testSubject.ExecuteTaskWithProgressAsync(parameters);

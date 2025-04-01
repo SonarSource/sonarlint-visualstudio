@@ -188,7 +188,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [DataRow(false, null)]
         public async Task GenerateTokenWithProgressAsync_ReturnsResponseFromTaskToPerformParams(bool success, string token)
         {
-            progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus<string>>>()).Returns(new ResponseStatus<string>(success, token));
+            progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatusWithData<string>>>()).Returns(new ResponseStatusWithData<string>(success, token));
 
             var response = await testSubject.GenerateTokenWithProgressAsync();
 
@@ -203,7 +203,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
             await testSubject.GenerateTokenWithProgressAsync();
 
             await progressReporterViewModel.Received(1)
-                .ExecuteTaskWithProgressAsync(Arg.Is<TaskToPerformParams<ResponseStatus<string>>>(x =>
+                .ExecuteTaskWithProgressAsync(Arg.Is<TaskToPerformParams<ResponseStatusWithData<string>>>(x =>
                     x.TaskToPerform == testSubject.GenerateTokenAsync &&
                     x.ProgressStatus == UiResources.GeneratingTokenProgressText &&
                     x.WarningText == UiResources.GeneratingTokenFailedText &&
@@ -225,7 +225,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [DataRow(false, null)]
         public async Task GenerateTokenAsync_ReturnsResponseFromSlCore(bool success, string token)
         {
-            slCoreConnectionAdapter.GenerateTokenAsync(Arg.Any<ConnectionInfo>(), Arg.Any<CancellationToken>()).Returns(new ResponseStatus<string>(success, token));
+            slCoreConnectionAdapter.GenerateTokenAsync(Arg.Any<ConnectionInfo>(), Arg.Any<CancellationToken>()).Returns(new ResponseStatusWithData<string>(success, token));
 
             var result = await testSubject.GenerateTokenAsync();
 

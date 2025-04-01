@@ -681,7 +681,7 @@ public class ManageBindingViewModelTests
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<ResponseStatus<BindingResult>>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatusWithData<BindingResult>>>(x =>
                     x.TaskToPerform == testSubject.DisplayBindStatusAsync &&
                     x.ProgressStatus == UiResources.FetchingBindingStatusText &&
                     x.WarningText == UiResources.FetchingBindingStatusFailedText &&
@@ -898,7 +898,7 @@ public class ManageBindingViewModelTests
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<ResponseStatus<BindingResult>>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatusWithData<BindingResult>>>(x =>
                     x.ProgressStatus == UiResources.BindingInProgressText
                     && x.WarningText == UiResources.BindingFailedText
                     && x.AfterProgressUpdated == testSubject.OnProgressUpdated));
@@ -913,7 +913,7 @@ public class ManageBindingViewModelTests
 
 
         await testSubject.PerformManualBindingWithProgressAsync();
-        var taskToPerformParams = (TaskToPerformParams<ResponseStatus<BindingResult>>)progressReporterViewModel.ReceivedCalls().Single().GetArguments()[0];
+        var taskToPerformParams = (TaskToPerformParams<ResponseStatusWithData<BindingResult>>)progressReporterViewModel.ReceivedCalls().Single().GetArguments()[0];
         await taskToPerformParams.TaskToPerform.Invoke();
 
         connectedModeBindingServices.BindingControllerAdapter.Received(1).ValidateAndBindAsync(Arg.Is<Manual>(x => x.ProjectKey == ServerProject.Key && x.ConnectionId == connection.Id), connectedModeUIManager, Arg.Any<CancellationToken>());
@@ -931,7 +931,7 @@ public class ManageBindingViewModelTests
             .Returns(BindingResult.Success);
 
         await testSubject.PerformSharedBindingWithProgressAsync();
-        var taskToPerformParams = (TaskToPerformParams<ResponseStatus<BindingResult>>)progressReporterViewModel.ReceivedCalls().Single().GetArguments()[0];
+        var taskToPerformParams = (TaskToPerformParams<ResponseStatusWithData<BindingResult>>)progressReporterViewModel.ReceivedCalls().Single().GetArguments()[0];
         await taskToPerformParams.TaskToPerform.Invoke();
 
         connectedModeBindingServices.BindingControllerAdapter.Received(1).ValidateAndBindAsync(Arg.Is<BindingRequest.Shared>(x => x.Model == bindingConfig), connectedModeUIManager, Arg.Any<CancellationToken>());
@@ -983,7 +983,7 @@ public class ManageBindingViewModelTests
         connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(bindingRequest, connectedModeUIManager, Arg.Any<CancellationToken>())
             .Returns(BindingResult.Success);
 
-        var response = await testSubject.PerformBindingInternalAsync(bindingRequest);
+        var response = await testSubject.PerformBindingAsync(bindingRequest);
 
         connectedModeBindingServices.BindingControllerAdapter.Received(1).ValidateAndBindAsync(bindingRequest, connectedModeUIManager, Arg.Any<CancellationToken>());
         VerifyBindingSucceeded(response, bindingRequest, ServerProject.Key, connection);
@@ -1000,7 +1000,7 @@ public class ManageBindingViewModelTests
         connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(bindingRequest, connectedModeUIManager, Arg.Any<CancellationToken>())
             .Returns(bindingResult);
 
-        var response = await testSubject.PerformBindingInternalAsync(bindingRequest);
+        var response = await testSubject.PerformBindingAsync(bindingRequest);
 
         connectedModeBindingServices.BindingControllerAdapter.Received(1).ValidateAndBindAsync(bindingRequest, connectedModeUIManager, Arg.Any<CancellationToken>());
         VerifyBindingNotPerformed(response, bindingResult, bindingRequest);
@@ -1011,12 +1011,12 @@ public class ManageBindingViewModelTests
      {
          var connection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
          SetupBoundProject(connection, ServerProject);
-         connectedModeServices.SlCoreConnectionAdapter.GetServerProjectByKeyAsync(default, default).ReturnsForAnyArgs(new ResponseStatus<ServerProject>(false, null));
+         connectedModeServices.SlCoreConnectionAdapter.GetServerProjectByKeyAsync(default, default).ReturnsForAnyArgs(new ResponseStatusWithData<ServerProject>(false, null));
          var bindingRequest = new Manual("any", "any");
          connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(bindingRequest, connectedModeUIManager, Arg.Any<CancellationToken>())
              .Returns(BindingResult.Success);
 
-         var response = await testSubject.PerformBindingInternalAsync(bindingRequest);
+         var response = await testSubject.PerformBindingAsync(bindingRequest);
 
          response.Success.Should().BeFalse();
          response.ResponseData.Should().BeSameAs(BindingResult.Failed);
@@ -1051,13 +1051,13 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public async Task ExportBindingConfigurationWithProgressAsync_Fails_DelegatesWarningToProgressViewModel()
     {
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus<string>>>()).Returns(new ResponseStatus<string>(false, null));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatusWithData<string>>>()).Returns(new ResponseStatusWithData<string>(false, null));
 
         await testSubject.ExportBindingConfigurationWithProgressAsync();
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<ResponseStatus<string>>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatusWithData<string>>>(x =>
                     x.ProgressStatus == UiResources.ExportingBindingConfigurationProgressText &&
                     x.WarningText == UiResources.ExportBindingConfigurationWarningText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated));
@@ -1068,13 +1068,13 @@ public class ManageBindingViewModelTests
     public async Task ExportBindingConfigurationWithProgressAsync_Success_ShowsMessageAndHasUpToDateState()
     {
         const string filePath = "file path";
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus<string>>>()).Returns(new ResponseStatus<string>(true, filePath));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatusWithData<string>>>()).Returns(new ResponseStatusWithData<string>(true, filePath));
 
         await testSubject.ExportBindingConfigurationWithProgressAsync();
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<ResponseStatus<string>>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatusWithData<string>>>(x =>
                     x.ProgressStatus == UiResources.ExportingBindingConfigurationProgressText &&
                     x.WarningText == UiResources.ExportBindingConfigurationWarningText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated),
@@ -1107,7 +1107,7 @@ public class ManageBindingViewModelTests
 
         var result = await testSubject.ExportBindingConfigurationAsync();
 
-        result.Should().BeEquivalentTo(new ResponseStatus<string>(true, exportedPath));
+        result.Should().BeEquivalentTo(new ResponseStatusWithData<string>(true, exportedPath));
     }
 
     [TestMethod]
@@ -1125,7 +1125,7 @@ public class ManageBindingViewModelTests
 
         var result = await testSubject.ExportBindingConfigurationAsync();
 
-        result.Should().BeEquivalentTo(new ResponseStatus<string>(true, exportedPath));
+        result.Should().BeEquivalentTo(new ResponseStatusWithData<string>(true, exportedPath));
     }
 
     [TestMethod]
@@ -1136,7 +1136,7 @@ public class ManageBindingViewModelTests
 
         var result = await testSubject.ExportBindingConfigurationAsync();
 
-        result.Should().BeEquivalentTo(new ResponseStatus<string>(false, null));
+        result.Should().BeEquivalentTo(new ResponseStatusWithData<string>(false, null));
     }
 
     private void VerifyBindingTelemetryNotSent()
@@ -1217,7 +1217,7 @@ public class ManageBindingViewModelTests
     {
         var slCoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
         slCoreConnectionAdapter.GetServerProjectByKeyAsync(Arg.Any<ServerConnection>(), Arg.Any<string>())
-            .Returns(Task.FromResult(new ResponseStatus<ServerProject>(success, responseData)));
+            .Returns(Task.FromResult(new ResponseStatusWithData<ServerProject>(success, responseData)));
         connectedModeServices.SlCoreConnectionAdapter.Returns(slCoreConnectionAdapter);
     }
 
@@ -1235,7 +1235,7 @@ public class ManageBindingViewModelTests
         [BindingResult.ProjectKeyNotFound],
     ];
 
-    private void VerifyBindingSucceeded(ResponseStatus<BindingResult> actualResponse, BindingRequest request, string expectedProjectKey, ServerConnection expectedServerConnection)
+    private void VerifyBindingSucceeded(ResponseStatusWithData<BindingResult> actualResponse, BindingRequest request, string expectedProjectKey, ServerConnection expectedServerConnection)
     {
         actualResponse.Success.Should().BeTrue();
         actualResponse.ResponseData.Should().BeSameAs(BindingResult.Success);
@@ -1246,7 +1246,7 @@ public class ManageBindingViewModelTests
 
 
     private void VerifyBindingNotPerformed(
-        ResponseStatus<BindingResult> response,
+        ResponseStatusWithData<BindingResult> response,
         BindingResult expectedResult,
         BindingRequest request)
     {
@@ -1262,8 +1262,8 @@ public class ManageBindingViewModelTests
 
     private void MockProgressReporter(bool task1Response = true, bool task2Response = true)
     {
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus<BindingResult>>>(), Arg.Any<bool>())
-            .Returns(Task.FromResult(new ResponseStatus<BindingResult>(task1Response, BindingResult.Success)));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatusWithData<BindingResult>>>(), Arg.Any<bool>())
+            .Returns(Task.FromResult(new ResponseStatusWithData<BindingResult>(task1Response, BindingResult.Success)));
         progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus>>(), Arg.Any<bool>())
             .Returns(Task.FromResult(new ResponseStatus(task2Response)));
     }

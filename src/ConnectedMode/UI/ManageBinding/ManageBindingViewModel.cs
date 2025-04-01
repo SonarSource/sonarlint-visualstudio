@@ -156,7 +156,7 @@ internal sealed class ManageBindingViewModel(
             UiResources.LoadingConnectionsFailedText) { AfterProgressUpdated = OnProgressUpdated };
         var loadDataResult = await ProgressReporter.ExecuteTaskWithProgressAsync(loadData);
 
-        var displayBindStatus = new TaskToPerformParams<ResponseStatus<BindingResult>>(DisplayBindStatusAsync, UiResources.FetchingBindingStatusText,
+        var displayBindStatus = new TaskToPerformParams<ResponseStatusWithData<BindingResult>>(DisplayBindStatusAsync, UiResources.FetchingBindingStatusText,
             UiResources.FetchingBindingStatusFailedText) { AfterProgressUpdated = OnProgressUpdated };
         var displayBindStatusResult = await ProgressReporter.ExecuteTaskWithProgressAsync(displayBindStatus, clearPreviousState: false);
 
@@ -177,12 +177,12 @@ internal sealed class ManageBindingViewModel(
 
     public async Task PerformBindingWithProgressAsync(BindingRequest binding)
     {
-        var bind = new TaskToPerformParams<ResponseStatus<BindingResult>>(() => PerformBindingInternalAsync(binding), UiResources.BindingInProgressText,
+        var bind = new TaskToPerformParams<ResponseStatusWithData<BindingResult>>(() => PerformBindingAsync(binding), UiResources.BindingInProgressText,
             UiResources.BindingFailedText) { AfterProgressUpdated = OnProgressUpdated };
         await ProgressReporter.ExecuteTaskWithProgressAsync(bind);
     }
 
-    internal async Task<ResponseStatus<BindingResult>> PerformBindingInternalAsync(BindingRequest request)
+    internal async Task<ResponseStatusWithData<BindingResult>> PerformBindingAsync(BindingRequest request)
     {
         var bindingResult = await connectedModeBindingServices.BindingControllerAdapter.ValidateAndBindAsync(
             request,
@@ -194,7 +194,7 @@ internal sealed class ManageBindingViewModel(
             bindingResult = (await DisplayBindStatusAsync()).ResponseData;
         }
         UpdateBindingTelemetry(request, bindingResult);
-        return new ResponseStatus<BindingResult>(bindingResult.IsSuccessful, bindingResult, bindingResult.ProblemDescription);
+        return new ResponseStatusWithData<BindingResult>(bindingResult.IsSuccessful, bindingResult, bindingResult.ProblemDescription);
     }
 
     private void UpdateBindingTelemetry(BindingRequest binding, BindingResult bindingResult)
@@ -226,7 +226,7 @@ internal sealed class ManageBindingViewModel(
 
     public async Task ExportBindingConfigurationWithProgressAsync()
     {
-        var export = new TaskToPerformParams<ResponseStatus<string>>(ExportBindingConfigurationAsync, UiResources.ExportingBindingConfigurationProgressText,
+        var export = new TaskToPerformParams<ResponseStatusWithData<string>>(ExportBindingConfigurationAsync, UiResources.ExportingBindingConfigurationProgressText,
             UiResources.ExportBindingConfigurationWarningText) { AfterProgressUpdated = OnProgressUpdated };
 
         var result = await ProgressReporter.ExecuteTaskWithProgressAsync(export);
@@ -238,7 +238,7 @@ internal sealed class ManageBindingViewModel(
         }
     }
 
-    internal Task<ResponseStatus<string>> ExportBindingConfigurationAsync()
+    internal Task<ResponseStatusWithData<string>> ExportBindingConfigurationAsync()
     {
         var connection = SelectedConnectionInfo.GetServerConnectionFromConnectionInfo();
         var sharedBindingConfig = new SharedBindingConfigModel
@@ -251,7 +251,7 @@ internal sealed class ManageBindingViewModel(
 
         var savePath = connectedModeBindingServices.SharedBindingConfigProvider.SaveSharedBinding(sharedBindingConfig);
 
-        return Task.FromResult(new ResponseStatus<string>(savePath != null, savePath));
+        return Task.FromResult(new ResponseStatusWithData<string>(savePath != null, savePath));
     }
 
     internal Task<ResponseStatus> CheckForSharedBindingAsync()
@@ -288,14 +288,14 @@ internal sealed class ManageBindingViewModel(
         return new ResponseStatus(succeeded);
     }
 
-    internal async Task<ResponseStatus<BindingResult>> DisplayBindStatusAsync()
+    internal async Task<ResponseStatusWithData<BindingResult>> DisplayBindStatusAsync()
     {
         SolutionInfo = await GetSolutionInfoModelAsync();
 
         var bindingConfiguration = connectedModeServices.ConfigurationProvider.GetConfiguration();
         if (bindingConfiguration == null || bindingConfiguration.Mode == SonarLintMode.Standalone)
         {
-            var successResponse = new ResponseStatus<BindingResult>(true, BindingResult.Success);
+            var successResponse = new ResponseStatusWithData<BindingResult>(true, BindingResult.Success);
             UpdateBoundProjectProperties(null, null);
             return successResponse;
         }
@@ -304,7 +304,7 @@ internal sealed class ManageBindingViewModel(
         var serverConnection = boundServerProject?.ServerConnection;
         if (serverConnection == null)
         {
-            return new ResponseStatus<BindingResult>(false, BindingResult.ConnectionNotFound);
+            return new ResponseStatusWithData<BindingResult>(false, BindingResult.ConnectionNotFound);
         }
 
         var response = await connectedModeServices.SlCoreConnectionAdapter.GetServerProjectByKeyAsync(serverConnection, boundServerProject.ServerProjectKey);
@@ -313,7 +313,7 @@ internal sealed class ManageBindingViewModel(
         UpdateBoundProjectProperties(serverConnection, selectedServerProject);
         var projectRetrieved = response.ResponseData != null;
 
-        return new ResponseStatus<BindingResult>(projectRetrieved, projectRetrieved ? BindingResult.Success : BindingResult.Failed);
+        return new ResponseStatusWithData<BindingResult>(projectRetrieved, projectRetrieved ? BindingResult.Success : BindingResult.Failed);
     }
 
     internal async Task<ResponseStatus> UnbindAsync()

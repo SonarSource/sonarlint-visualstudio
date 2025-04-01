@@ -147,7 +147,7 @@ public class SlCoreConnectionAdapterTests
 
         await slCoreConnectionAdapter.GetOrganizationsAsync(new TokenCredentialsModel("token".CreateSecureString()), CloudServerRegion.Eu);
 
-        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatus<List<OrganizationDisplay>>>>>());
+        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatusWithData<List<OrganizationDisplay>>>>>());
     }
 
     [TestMethod]
@@ -239,7 +239,7 @@ public class SlCoreConnectionAdapterTests
 
         await slCoreConnectionAdapter.GetAllProjectsAsync(sonarQubeConnection);
 
-        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatus<List<ServerProject>>>>>());
+        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatusWithData<List<ServerProject>>>>>());
     }
 
     [TestMethod]
@@ -324,7 +324,7 @@ public class SlCoreConnectionAdapterTests
 
         await slCoreConnectionAdapter.GetServerProjectByKeyAsync(sonarCloudConnection, "server-project-key");
 
-        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatus<ServerProject>>>>());
+        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatusWithData<ServerProject>>>>());
     }
 
     [TestMethod]
@@ -399,7 +399,7 @@ public class SlCoreConnectionAdapterTests
 
         await slCoreConnectionAdapter.FuzzySearchProjectsAsync(sonarCloudConnection, "proj1");
 
-        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatus<List<ServerProject>>>>>());
+        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatusWithData<List<ServerProject>>>>>());
     }
 
     [TestMethod]
@@ -465,7 +465,7 @@ public class SlCoreConnectionAdapterTests
 
         await slCoreConnectionAdapter.GenerateTokenAsync(sonarCloudConnectionInfo, CancellationToken.None);
 
-        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatus<string>>>>());
+        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatusWithData<string>>>>());
     }
 
     [TestMethod]

@@ -180,7 +180,7 @@ public class OrganizationSelectionViewModelTests
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<ResponseStatus<List<OrganizationDisplay>>>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatusWithData<List<OrganizationDisplay>>>>(x =>
                     x.TaskToPerform == testSubject.AdapterLoadOrganizationsAsync &&
                     x.ProgressStatus == UiResources.LoadingOrganizationsProgressText &&
                     x.WarningText == UiResources.LoadingOrganizationsFailedText &&
@@ -199,7 +199,7 @@ public class OrganizationSelectionViewModelTests
     public void UpdateOrganizations_AddsOrganization()
     {
         var loadedOrganizations = new List<OrganizationDisplay> { new("key", "name") };
-        var response = new ResponseStatus<List<OrganizationDisplay>>(true, loadedOrganizations);
+        var response = new ResponseStatusWithData<List<OrganizationDisplay>>(true, loadedOrganizations);
 
         testSubject.UpdateOrganizations(response);
 
@@ -211,7 +211,7 @@ public class OrganizationSelectionViewModelTests
     {
         testSubject.Organizations.Add(new("key", "name"));
         var loadedOrganizations = new List<OrganizationDisplay> { new("new_key", "new_name") };
-        var response = new ResponseStatus<List<OrganizationDisplay>>(true, loadedOrganizations);
+        var response = new ResponseStatusWithData<List<OrganizationDisplay>>(true, loadedOrganizations);
 
         testSubject.UpdateOrganizations(response);
 
@@ -224,7 +224,7 @@ public class OrganizationSelectionViewModelTests
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
         eventHandler.ReceivedCalls().Should().BeEmpty();
-        var response = new ResponseStatus<List<OrganizationDisplay>>(true, []);
+        var response = new ResponseStatusWithData<List<OrganizationDisplay>>(true, []);
 
         testSubject.UpdateOrganizations(response);
 

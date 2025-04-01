@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         internal async Task<List<string>> GetConnectionReferencesWithProgressAsync(ConnectionViewModel connectionViewModel)
         {
-            var validationParams = new TaskToPerformParams<ResponseStatus<List<string>>>(
+            var validationParams = new TaskToPerformParams<ResponseStatusWithData<List<string>>>(
                 async () => await GetConnectionReferencesOnBackgroundThreadAsync(connectionViewModel),
                 UiResources.CalculatingConnectionReferencesText,
                 UiResources.CalculatingConnectionReferencesFailedText);
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             return response.ResponseData;
         }
 
-        internal async Task<ResponseStatus<List<string>>> GetConnectionReferencesOnBackgroundThreadAsync(ConnectionViewModel connectionViewModel)
+        internal async Task<ResponseStatusWithData<List<string>>> GetConnectionReferencesOnBackgroundThreadAsync(ConnectionViewModel connectionViewModel)
         {
             return await connectedModeServices.ThreadHandling.RunOnBackgroundThread(() =>
             {
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             });
         }
 
-        internal ResponseStatus<List<string>> GetConnectionReferences(ConnectionViewModel connectionViewModel)
+        internal ResponseStatusWithData<List<string>> GetConnectionReferences(ConnectionViewModel connectionViewModel)
         {
             try
             {
@@ -81,12 +81,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
                 var references = bindings
                     .Where(x => ConnectionInfo.From(x.ServerConnection).Id == connectionViewModel.Connection.Info.Id)
                     .Select(x => x.LocalBindingKey).ToList();
-                return new ResponseStatus<List<string>>(true, references);
+                return new ResponseStatusWithData<List<string>>(true, references);
             }
             catch (Exception ex)
             {
                 connectedModeServices.Logger.WriteLine(ex.ToString());
-                return new ResponseStatus<List<string>>(false, []);
+                return new ResponseStatusWithData<List<string>>(false, []);
             }
         }
 
@@ -147,17 +147,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             return succeeded;
         }
 
-        private bool DeleteBindings(List<string> bindingReferences)
+        private bool DeleteBindings(List<string> bindingKeys)
         {
             var currentSolutionName = ConnectedModeBindingServices.SolutionInfoProvider.GetSolutionName();
-            foreach (var connectionReference in bindingReferences)
+            foreach (var bindingKey in bindingKeys)
             {
-                var bindingDeleted = currentSolutionName == connectionReference
-                    ? ConnectedModeBindingServices.BindingControllerAdapter.Unbind(connectionReference)
-                    : ConnectedModeBindingServices.SolutionBindingRepository.DeleteBinding(connectionReference);
+                var bindingDeleted = currentSolutionName == bindingKey
+                    ? ConnectedModeBindingServices.BindingControllerAdapter.Unbind(bindingKey)
+                    : ConnectedModeBindingServices.SolutionBindingRepository.DeleteBinding(bindingKey);
                 if (!bindingDeleted)
                 {
-                    connectedModeServices.Logger.WriteLine(UiResources.DeleteConnection_DeleteBindingFails, connectionReference);
+                    connectedModeServices.Logger.WriteLine(UiResources.DeleteConnection_DeleteBindingFails, bindingKey);
                     return false;
                 }
             }

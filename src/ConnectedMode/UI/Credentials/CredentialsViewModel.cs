@@ -81,9 +81,9 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
 
     internal async Task<ResponseStatus> AdapterValidateConnectionAsync() => await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, GetCredentialsModel());
 
-    internal async Task<ResponseStatus<string>> GenerateTokenWithProgressAsync()
+    internal async Task<ResponseStatusWithData<string>> GenerateTokenWithProgressAsync()
     {
-        var validationParams = new TaskToPerformParams<ResponseStatus<string>>(GenerateTokenAsync, UiResources.GeneratingTokenProgressText, UiResources.GeneratingTokenFailedText)
+        var validationParams = new TaskToPerformParams<ResponseStatusWithData<string>>(GenerateTokenAsync, UiResources.GeneratingTokenProgressText, UiResources.GeneratingTokenFailedText)
         {
             AfterProgressUpdated = AfterProgressStatusUpdated
         };
@@ -91,7 +91,7 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
         return adapterResponse;
     }
 
-    internal async Task<ResponseStatus<string>> GenerateTokenAsync()
+    internal async Task<ResponseStatusWithData<string>> GenerateTokenAsync()
     {
         TokenGenerationCancellationSource = new CancellationTokenSource();
         return await slCoreConnectionAdapter.GenerateTokenAsync(ConnectionInfo, TokenGenerationCancellationSource.Token);
