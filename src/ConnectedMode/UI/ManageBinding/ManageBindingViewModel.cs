@@ -206,7 +206,7 @@ internal sealed class ManageBindingViewModel(
 
         switch (binding)
         {
-            case BindingRequest.Assisted { IsFromSharedBinding: true } or BindingRequest.Shared:
+            case BindingRequest.Assisted { Dto.isFromSharedConfiguration: true } or BindingRequest.Shared:
                 connectedModeServices.TelemetryManager.AddedFromSharedBindings();
                 break;
             case BindingRequest.Assisted:

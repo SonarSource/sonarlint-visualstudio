@@ -105,6 +105,24 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Assisted.
+        /// </summary>
+        internal static string BindingType_Assisted {
+            get {
+                return ResourceManager.GetString("BindingType_Assisted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assisted from Shared.
+        /// </summary>
+        internal static string BindingType_AssistedShared {
+            get {
+                return ResourceManager.GetString("BindingType_AssistedShared", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Manual.
         /// </summary>
         internal static string BindingType_Manual {
@@ -119,24 +137,6 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         internal static string BindingType_Shared {
             get {
                 return ResourceManager.GetString("BindingType_Shared", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Suggested.
-        /// </summary>
-        internal static string BindingType_Suggested {
-            get {
-                return ResourceManager.GetString("BindingType_Suggested", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Suggested Shared.
-        /// </summary>
-        internal static string BindingType_SuggestedShared {
-            get {
-                return ResourceManager.GetString("BindingType_SuggestedShared", resourceCulture);
             }
         }
         

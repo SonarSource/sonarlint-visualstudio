@@ -25,6 +25,7 @@ using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.SLCore.Listener.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI;
@@ -250,7 +251,7 @@ public class BindingControllerAdapterTests
     [
         [new BindingRequest.Manual(null, "any")],
         [new BindingRequest.Shared(new SharedBindingConfigModel { ProjectKey = null, Uri = new("http://anyhost") })],
-        [new BindingRequest.Assisted("any", null, false)]
+        [new BindingRequest.Assisted(new AssistBindingParams("any", null, null,  false))]
     ];
     public static object[][] NonSharedRequests => Requests.Where(x => x[0] is not BindingRequest.Shared).ToArray();
     public static object[][] SharedRequests => Requests.Where(x => x[0] is BindingRequest.Shared).ToArray();
@@ -259,7 +260,7 @@ public class BindingControllerAdapterTests
         [new BindingRequest.Manual("project key", "connection id")],
         [new BindingRequest.Shared(new SharedBindingConfigModel { ProjectKey = "project key", Uri = new("http://anyhost") })],
         [new BindingRequest.Shared(new SharedBindingConfigModel { ProjectKey = "project key", Organization = "organization id", Region = "US" })],
-        [new BindingRequest.Assisted("connection id", "project key", true)],
-        [new BindingRequest.Assisted("connection id", "project key", false)],
+        [new BindingRequest.Assisted(new AssistBindingParams("connection id", "project key", null, true))],
+        [new BindingRequest.Assisted(new AssistBindingParams("connection id", "project key", null, false))],
     ];
 }

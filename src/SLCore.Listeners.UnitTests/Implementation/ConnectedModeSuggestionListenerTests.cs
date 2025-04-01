@@ -224,10 +224,7 @@ public class ConnectedModeSuggestionListenerTests
 
     private void SetUpAutoBinding(AssistBindingParams assistBindingParams, bool result) =>
         connectedModeUIManager
-            .ShowManageBindingDialogAsync(Arg.Is<BindingRequest.Assisted>(x =>
-                x.ServerConnectionId == assistBindingParams.connectionId
-                && x.ServerProjectKey == assistBindingParams.projectKey
-                && x.IsFromSharedBinding == assistBindingParams.isFromSharedConfiguration))
+            .ShowManageBindingDialogAsync(Arg.Is<BindingRequest.Assisted>(x => x.Dto == assistBindingParams))
             .Returns(result);
 
     [TestMethod]

@@ -361,11 +361,11 @@
   <data name="BindingType_Shared" xml:space="preserve">
     <value>Shared</value>
   </data>
-  <data name="BindingType_SuggestedShared" xml:space="preserve">
-    <value>Suggested Shared</value>
+  <data name="BindingType_AssistedShared" xml:space="preserve">
+    <value>Assisted from Shared</value>
   </data>
-  <data name="BindingType_Suggested" xml:space="preserve">
-    <value>Suggested</value>
+  <data name="BindingType_Assisted" xml:space="preserve">
+    <value>Assisted</value>
   </data>
   <data name="MuteIssue_ErrorIssueAlreadyResolved" xml:space="preserve">
     <value>This issue is already resolved on the server. It will be removed from the Error List after the next SonarQube for Visual Studio analysis.</value>

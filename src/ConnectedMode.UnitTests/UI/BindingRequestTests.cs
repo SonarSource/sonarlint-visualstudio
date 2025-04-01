@@ -21,6 +21,7 @@
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.SLCore.Listener.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI;
 
@@ -56,22 +57,24 @@ public class BindingRequestTests
     [DataTestMethod]
     public void Assisted_AllPropertiesReturnExpectedValues(string connectionId, string projectKey, bool isShared, string expectedTypeName)
     {
-        var testSubject = new BindingRequest.Assisted(connectionId, projectKey, isShared);
+        var dto = new AssistBindingParams(connectionId, projectKey, default, isShared);
 
-        testSubject.ServerConnectionId.Should().Be(connectionId);
-        testSubject.ServerProjectKey.Should().Be(projectKey);
+        var testSubject = new BindingRequest.Assisted(dto);
+
+        testSubject.ConnectionId.Should().Be(connectionId);
+        testSubject.ProjectKey.Should().Be(projectKey);
         testSubject.TypeName.Should().Be(expectedTypeName);
-        testSubject.IsFromSharedBinding.Should().Be(isShared);
+        testSubject.Dto.Should().Be(dto);
     }
 
     public static object[][] AssistedBindingSubtypes =>
     [
-        ["some connection", "some project", true, Resources.BindingType_SuggestedShared],
-        [null, "some project 2", true, Resources.BindingType_SuggestedShared],
-        ["some connection2", null, true, Resources.BindingType_SuggestedShared],
-        ["some connection 3", "some project 3", false, Resources.BindingType_Suggested],
-        [null, "some project 4", false, Resources.BindingType_Suggested],
-        ["some connection 4", null, false, Resources.BindingType_Suggested],
+        ["some connection", "some project", true, Resources.BindingType_AssistedShared],
+        [null, "some project 2", true, Resources.BindingType_AssistedShared],
+        ["some connection2", null, true, Resources.BindingType_AssistedShared],
+        ["some connection 3", "some project 3", false, Resources.BindingType_Assisted],
+        [null, "some project 4", false, Resources.BindingType_Assisted],
+        ["some connection 4", null, false, Resources.BindingType_Assisted],
     ];
 
     public static object[][] SharedBindings =>

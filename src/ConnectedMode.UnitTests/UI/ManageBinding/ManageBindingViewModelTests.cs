@@ -962,7 +962,7 @@ public class ManageBindingViewModelTests
     [DataTestMethod]
     public async Task PerformBindingInternalAsync_Assisted_Succeeds(bool isFromShared)
     {
-        var bindingRequest = new Assisted("any", "any", isFromShared);
+        var bindingRequest = new Assisted(new("any", "any", default, isFromShared));
 
         await VerifySuccessfulBinding(bindingRequest);
 

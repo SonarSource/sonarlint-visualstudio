@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.ConnectedMode.Shared;
+using SonarLint.VisualStudio.SLCore.Listener.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
@@ -51,22 +52,17 @@ public abstract record BindingRequest
     public record Shared(SharedBindingConfigModel Model) : AutomaticBindingRequest
     {
         internal override string TypeName => ConnectedMode.Resources.BindingType_Shared;
-        internal override string ProjectKey => Model.ProjectKey;
-        internal override string ConnectionId => Model.CreateConnectionInfo().GetServerIdFromConnectionInfo();
-        public SharedBindingConfigModel Model { get; init; } = Model ?? throw new ArgumentNullException(nameof(Model));
+        internal override string ProjectKey => Model?.ProjectKey;
+        internal override string ConnectionId => Model?.CreateConnectionInfo().GetServerIdFromConnectionInfo();
     }
 
     /// <summary>
     /// Indicates binding parameters received from SLCore during assistBinding operation
     /// </summary>
-    public record Assisted(
-        string ServerConnectionId,
-        string ServerProjectKey,
-        bool IsFromSharedBinding) : AutomaticBindingRequest
+    public record Assisted(AssistBindingParams Dto) : AutomaticBindingRequest
     {
-
-        internal override string TypeName => IsFromSharedBinding ? ConnectedMode.Resources.BindingType_SuggestedShared : ConnectedMode.Resources.BindingType_Suggested;
-        internal override string ProjectKey { get; } = ServerProjectKey;
-        internal override string ConnectionId { get; } = ServerConnectionId;
+        internal override string TypeName => Dto?.isFromSharedConfiguration is true ? ConnectedMode.Resources.BindingType_AssistedShared : ConnectedMode.Resources.BindingType_Assisted;
+        internal override string ProjectKey { get; } = Dto?.projectKey;
+        internal override string ConnectionId { get; } = Dto?.connectionId;
     }
 }
