@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarProperties");
 
             act = () => testSubject.Generate(EmptyRules, EmptyProperties, null, ValidLanguage);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverExclusions");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileExclusions");
 
             act = () => testSubject.Generate(EmptyRules, EmptyProperties, new ServerExclusions(), null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("language");
