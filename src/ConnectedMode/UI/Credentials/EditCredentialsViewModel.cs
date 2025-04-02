@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
-using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 
@@ -37,7 +35,10 @@ internal class EditCredentialsViewModel(
         var validationParams = new TaskToPerformParams<ResponseStatus>(
             UpdateConnectionCredentialsAsync,
             UiResources.UpdatingConnectionCredentialsProgressText,
-            UiResources.UpdatingConnectionCredentialsFailedText);
+            UiResources.UpdatingConnectionCredentialsFailedText,
+            // todo by https://sonarsource.atlassian.net/browse/SLVS-1998: the success message is shown in the edit credentials dialog, which is closed,
+            // so it is not visible to the user. It has to be shown in the Manage Connections dialog instead
+            string.Format(UiResources.UpdatingConnectionCredentialsSucceededText, ConnectionInfo.Id));
         var response = await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
 
         if (!response.Success)

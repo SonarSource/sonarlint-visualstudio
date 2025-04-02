@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
@@ -34,25 +33,25 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageConnections;
 [TestClass]
 public class ManageConnectionsViewModelTest
 {
-    private ManageConnectionsViewModel testSubject;
-    private List<Connection> twoConnections;
-    private IProgressReporterViewModel progressReporterViewModel;
-    private IConnectedModeServices connectedModeServices;
-    private IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter;
-    private IThreadHandling threadHandling;
-    private ILogger logger;
-    private ISolutionInfoProvider solutionInfoProvider;
-    private IConnectedModeBindingServices connectedModeBindingServices;
-    private ISolutionBindingRepository solutionBindingRepository;
     private const string LocalBindingKey1 = "solution name 1";
     private const string LocalBindingKey2 = "solution name 2";
+    private IConnectedModeBindingServices connectedModeBindingServices;
+    private IConnectedModeServices connectedModeServices;
+    private ILogger logger;
+    private IProgressReporterViewModel progressReporterViewModel;
+    private IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter;
+    private ISolutionBindingRepository solutionBindingRepository;
+    private ISolutionInfoProvider solutionInfoProvider;
+    private ManageConnectionsViewModel testSubject;
+    private IThreadHandling threadHandling;
+    private List<Connection> twoConnections;
 
     [TestInitialize]
     public void TestInitialize()
     {
         twoConnections =
         [
-            new Connection(new ConnectionInfo(new Uri("http://localhost:9000").ToString(), ConnectionServerType.SonarQube), true),
+            new Connection(new ConnectionInfo(new Uri("http://localhost:9000").ToString(), ConnectionServerType.SonarQube)),
             new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud), false)
         ];
         progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
@@ -90,7 +89,8 @@ public class ManageConnectionsViewModelTest
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.RemovingConnectionText &&
-                    x.WarningText == UiResources.RemovingConnectionFailedText));
+                    x.WarningText == UiResources.RemovingConnectionFailedText &&
+                    x.SuccessText == string.Format(UiResources.RemovingConnectionSucceededText, twoConnections[0].Info.Id)));
     }
 
     [TestMethod]
@@ -326,7 +326,8 @@ public class ManageConnectionsViewModelTest
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.CreatingConnectionProgressText &&
-                    x.WarningText == UiResources.CreatingConnectionFailedText));
+                    x.WarningText == UiResources.CreatingConnectionFailedText &&
+                    x.SuccessText == string.Format(UiResources.CreatingConnectionSucceededText, connectionToAdd.Info.Id)));
     }
 
     [TestMethod]
@@ -442,7 +443,7 @@ public class ManageConnectionsViewModelTest
         var response = testSubject.GetConnectionReferences(CreateConnectionViewModel(sonarQube));
 
         response.Success.Should().BeTrue();
-        response.ResponseData.Should().BeEquivalentTo(["binding1", "binding2"]);
+        response.ResponseData.Should().BeEquivalentTo("binding1", "binding2");
     }
 
     [TestMethod]
@@ -458,7 +459,7 @@ public class ManageConnectionsViewModelTest
         var response = testSubject.GetConnectionReferences(CreateConnectionViewModel(sonarCloud));
 
         response.Success.Should().BeTrue();
-        response.ResponseData.Should().BeEquivalentTo(["binding1", "binding2"]);
+        response.ResponseData.Should().BeEquivalentTo("binding1", "binding2");
     }
 
     [TestMethod]

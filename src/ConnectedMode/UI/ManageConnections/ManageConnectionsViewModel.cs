@@ -49,7 +49,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             var validationParams = new TaskToPerformParams<ResponseStatus>(
                 async () => await SafeExecuteActionAsync(() => RemoveConnectionViewModel(bindingKeysReferencedByConnection, connectionViewModel)),
                 UiResources.RemovingConnectionText,
-                UiResources.RemovingConnectionFailedText);
+                UiResources.RemovingConnectionFailedText,
+                string.Format(UiResources.RemovingConnectionSucceededText, connectionViewModel.Connection.Info.Id));
             await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
         }
 
@@ -95,7 +96,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             var validationParams = new TaskToPerformParams<ResponseStatus>(
                 async () => await SafeExecuteActionAsync(() => CreateNewConnection(connection, credentialsModel)),
                 UiResources.CreatingConnectionProgressText,
-                UiResources.CreatingConnectionFailedText);
+                UiResources.CreatingConnectionFailedText,
+                string.Format(UiResources.CreatingConnectionSucceededText, connection.Info.Id));
             await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
         }
 

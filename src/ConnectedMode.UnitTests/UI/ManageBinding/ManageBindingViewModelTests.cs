@@ -20,9 +20,7 @@
 
 using System.ComponentModel;
 using System.Security;
-using System.Windows;
 using NSubstitute.ExceptionExtensions;
-using NSubstitute.ReceivedExtensions;
 using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
@@ -32,9 +30,9 @@ using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.SLCore.Listener.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 using static SonarLint.VisualStudio.ConnectedMode.UI.BindingRequest;
-using IConnectionCredentials = SonarLint.VisualStudio.Core.Binding.IConnectionCredentials;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageBinding;
 
@@ -68,6 +66,14 @@ public class ManageBindingViewModelTests
     [
         [CloudServerRegion.Eu],
         [CloudServerRegion.Us]
+    ];
+
+    public static object[][] FailedBindingResults =>
+    [
+        [BindingResult.Failed],
+        [BindingResult.ConnectionNotFound],
+        [BindingResult.CredentialsNotFound],
+        [BindingResult.ProjectKeyNotFound]
     ];
 
     [TestInitialize]
@@ -285,6 +291,7 @@ public class ManageBindingViewModelTests
                     x.TaskToPerform == testSubject.UnbindAsync &&
                     x.ProgressStatus == UiResources.UnbindingInProgressText &&
                     x.WarningText == UiResources.UnbindingFailedText &&
+                    x.SuccessText == UiResources.UnbindingSucceededText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated));
     }
 
@@ -670,8 +677,7 @@ public class ManageBindingViewModelTests
                     x.TaskToPerform == testSubject.ReloadConnectionDataAsync
                     && x.ProgressStatus == UiResources.LoadingConnectionsText
                     && x.WarningText == UiResources.LoadingConnectionsFailedText
-                    && x.AfterProgressUpdated == testSubject.OnProgressUpdated),
-                true);
+                    && x.AfterProgressUpdated == testSubject.OnProgressUpdated));
     }
 
     [TestMethod]
@@ -903,6 +909,7 @@ public class ManageBindingViewModelTests
                 Arg.Is<TaskToPerformParams<ResponseStatusWithData<BindingResult>>>(x =>
                     x.ProgressStatus == UiResources.BindingInProgressText
                     && x.WarningText == UiResources.BindingFailedText
+                    && x.SuccessText == UiResources.BindingSucceededText
                     && x.AfterProgressUpdated == testSubject.OnProgressUpdated));
     }
 
@@ -966,7 +973,7 @@ public class ManageBindingViewModelTests
     [DataTestMethod]
     public async Task PerformBindingAsync_Assisted_Succeeds(bool isFromShared)
     {
-        var bindingRequest = new Assisted(new("any", "any", default, isFromShared));
+        var bindingRequest = new Assisted(new AssistBindingParams("any", "any", default, isFromShared));
 
         await TestSuccessfulBinding(bindingRequest);
 
@@ -1077,18 +1084,9 @@ public class ManageBindingViewModelTests
                 Arg.Is<TaskToPerformParams<ResponseStatusWithData<string>>>(x =>
                     x.ProgressStatus == UiResources.ExportingBindingConfigurationProgressText &&
                     x.WarningText == UiResources.ExportBindingConfigurationWarningText &&
-                    x.AfterProgressUpdated == testSubject.OnProgressUpdated),
-                true);
-        messageBox.Received().Show(string.Format(UiResources.ExportBindingConfigurationMessageBoxTextSuccess, filePath),
-            UiResources.ExportBindingConfigurationMessageBoxCaptionSuccess, MessageBoxButton.OK, MessageBoxImage.Information);
-        await progressReporterViewModel.Received(1)
-            .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
-                    x.TaskToPerform == testSubject.CheckForSharedBindingAsync &&
-                    x.ProgressStatus == UiResources.CheckingForSharedBindingText &&
-                    x.WarningText == UiResources.CheckingForSharedBindingFailedText &&
-                    x.AfterProgressUpdated == testSubject.OnProgressUpdated),
-                false);
+                    x.AfterProgressUpdated == testSubject.OnProgressUpdated));
+        progressReporterViewModel.SuccessMessage.Should().Be(string.Format(UiResources.ExportBindingConfigurationMessageBoxTextSuccess, filePath));
+        connectedModeBindingServices.SharedBindingConfigProvider.Received(1).GetSharedBinding();
     }
 
     [DynamicData(nameof(SonarCloudRegions))]
@@ -1226,14 +1224,6 @@ public class ManageBindingViewModelTests
         SetupBoundProject(new ServerConnection.SonarCloud("my org"), ServerProject);
         await testSubject.DisplayBindStatusAsync();
     }
-
-    public static object[][] FailedBindingResults =>
-    [
-        [BindingResult.Failed],
-        [BindingResult.ConnectionNotFound],
-        [BindingResult.CredentialsNotFound],
-        [BindingResult.ProjectKeyNotFound],
-    ];
 
     private void VerifyBindingSucceeded(
         ResponseStatusWithData<BindingResult> actualResponse,
