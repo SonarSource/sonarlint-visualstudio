@@ -288,7 +288,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             Action act = () => testSubject.SafeLoad("settings.file");
 
             // Assert
-            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("critical custom error message");
+            act.Should().ThrowExactly<StackOverflowException>().WithMessage("critical custom error message");
             logger.AssertPartialOutputStringDoesNotExist("critical custom error message");
         }
 
@@ -323,7 +323,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             Action act = () => testSubject.SafeSave("settings.file", new AnalysisSettings());
 
             // Assert
-            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("critical custom error message");
+            act.Should().ThrowExactly<StackOverflowException>().WithMessage("critical custom error message");
             logger.AssertPartialOutputStringDoesNotExist("critical custom error message");
         }
 
