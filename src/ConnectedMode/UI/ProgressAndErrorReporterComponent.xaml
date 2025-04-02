@@ -13,7 +13,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible"/>
+            <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Hidden" TrueValue="Visible"/>
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleFalseToHiddenConverter" FalseValue="Hidden" TrueValue="Visible"/>
             <wpf:BoolToVisibilityConverter x:Key="FalseToVisibleConverter" FalseValue="Visible" TrueValue="Hidden"/>
         </ResourceDictionary>
