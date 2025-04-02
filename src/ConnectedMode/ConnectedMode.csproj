@@ -70,6 +70,7 @@
     <Page Include="UI\Resources\WarningImage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+
     <Page Include="UI\ProjectSelection\ManualProjectSelectionDialog.xaml" />
     <Page Include="UI\Resources\CheckImage.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -84,6 +85,9 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\WarningMessage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\SuccessMessage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\ServerSelection\ServerSelectionDialog.xaml" />

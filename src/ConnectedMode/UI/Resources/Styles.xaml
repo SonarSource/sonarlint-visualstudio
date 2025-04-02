@@ -161,6 +161,7 @@
 
     <SolidColorBrush x:Key="DisabledText" Color="DarkGray"/>
     <SolidColorBrush x:Key="InvalidText" Color="Red"/>
+    <SolidColorBrush x:Key="SuccessText" Color="Green"/>
 
     <Style x:Key="DialogButtonsPanel" TargetType="{x:Type StackPanel}">
         <Setter Property="HorizontalAlignment" Value="Right" />
