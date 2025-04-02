@@ -31,7 +31,7 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.Core.UnitTests
 {
     [TestClass]
-    public class RuleSettingsSerializerTests
+    public class AnalysisSettingsSerializerTests
     {
         public TestContext TestContext { get; set; }
 
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 }";
             File.WriteAllText(filePath1, validSettingsData);
 
-            var testSubject = new RulesSettingsSerializer(new FileSystem(), testLogger);
+            var testSubject = new AnalysisSettingsSerializer(new FileSystem(), testLogger);
 
             // 1. Load from disc
             var loadedSettings = testSubject.SafeLoad(filePath1);
@@ -134,7 +134,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 }";
             File.WriteAllText(filePath1, validSettingsData);
 
-            var testSubject = new RulesSettingsSerializer(new FileSystem(), testLogger);
+            var testSubject = new AnalysisSettingsSerializer(new FileSystem(), testLogger);
 
             // 1. Load from disc
             var loadedSettings = testSubject.SafeLoad(filePath1);
@@ -185,7 +185,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             var dir = CreateTestSpecificDirectory();
             var filePath = Path.Combine(dir, "settings.txt");
 
-            var settings = new RulesSettings
+            var settings = new AnalysisSettings
             {
                 Rules = new Dictionary<string, RuleConfig>
                 {
@@ -205,7 +205,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
                 }
             };
 
-            var testSubject = new RulesSettingsSerializer(new FileSystem(), testLogger);
+            var testSubject = new AnalysisSettingsSerializer(new FileSystem(), testLogger);
 
             // Act: save and reload
             testSubject.SafeSave(filePath, settings);
@@ -244,7 +244,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 
             var logger = new TestLogger(logToConsole: true);
 
-            var testSubject = new RulesSettingsSerializer(fileSystemMock.Object, logger);
+            var testSubject = new AnalysisSettingsSerializer(fileSystemMock.Object, logger);
 
             // Act
             var result = testSubject.SafeLoad("settings.file");
@@ -263,7 +263,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             fileSystemMock.Setup(x => x.File.ReadAllText("settings.file")).Throws(new System.InvalidOperationException("custom error message"));
 
             var logger = new TestLogger(logToConsole: true);
-            var testSubject = new RulesSettingsSerializer(fileSystemMock.Object, logger);
+            var testSubject = new AnalysisSettingsSerializer(fileSystemMock.Object, logger);
 
             // Act
             var result = testSubject.SafeLoad("settings.file");
@@ -282,13 +282,13 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             fileSystemMock.Setup(x => x.File.ReadAllText("settings.file")).Throws(new System.StackOverflowException("critical custom error message"));
 
             var logger = new TestLogger(logToConsole: true);
-            var testSubject = new RulesSettingsSerializer(fileSystemMock.Object, logger);
+            var testSubject = new AnalysisSettingsSerializer(fileSystemMock.Object, logger);
 
             // Act
             Action act = () => testSubject.SafeLoad("settings.file");
 
             // Assert
-            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("critical custom error message");
+            act.Should().ThrowExactly<StackOverflowException>().WithMessage("critical custom error message");
             logger.AssertPartialOutputStringDoesNotExist("critical custom error message");
         }
 
@@ -300,10 +300,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             fileSystemMock.Setup(x => x.File.WriteAllText("settings.file", It.IsAny<string>())).Throws(new System.InvalidOperationException("custom error message"));
 
             var logger = new TestLogger(logToConsole: true);
-            var testSubject = new RulesSettingsSerializer(fileSystemMock.Object, logger);
+            var testSubject = new AnalysisSettingsSerializer(fileSystemMock.Object, logger);
 
             // Act - should not throw
-            testSubject.SafeSave("settings.file", new RulesSettings());
+            testSubject.SafeSave("settings.file", new AnalysisSettings());
 
             // Assert
             logger.AssertPartialOutputStringExists("settings.file", "custom error message");
@@ -317,13 +317,13 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             fileSystemMock.Setup(x => x.File.WriteAllText("settings.file", It.IsAny<string>())).Throws(new System.StackOverflowException("critical custom error message"));
 
             var logger = new TestLogger(logToConsole: true);
-            var testSubject = new RulesSettingsSerializer(fileSystemMock.Object, logger);
+            var testSubject = new AnalysisSettingsSerializer(fileSystemMock.Object, logger);
 
             // Act
-            Action act = () => testSubject.SafeSave("settings.file", new RulesSettings());
+            Action act = () => testSubject.SafeSave("settings.file", new AnalysisSettings());
 
             // Assert
-            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("critical custom error message");
+            act.Should().ThrowExactly<StackOverflowException>().WithMessage("critical custom error message");
             logger.AssertPartialOutputStringDoesNotExist("critical custom error message");
         }
 

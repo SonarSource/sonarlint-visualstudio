@@ -34,16 +34,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         {
             Action act = () => new UserSettings(null);
 
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("rulesSettings");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisSettings");
         }
 
 
         [TestMethod]
         public void Ctor_NonNullSettings_PropertyReturnsExpectedSettings()
         {
-            var settings = new RulesSettings();
+            var settings = new AnalysisSettings();
 
-            new UserSettings(settings).RulesSettings.Should().BeSameAs(settings);
+            new UserSettings(settings).AnalysisSettings.Should().BeSameAs(settings);
         }
     }
 }

@@ -56,7 +56,7 @@ internal sealed class SlCoreRuleSettings : ISLCoreRuleSettingsUpdater, ISLCoreRu
 
     public Dictionary<string, StandaloneRuleConfigDto> GetSLCoreRuleSettings()
     {
-        return userSettingsProvider.UserSettings.RulesSettings.Rules.ToDictionary(kvp => kvp.Key, kvp => MapStandaloneRuleConfigDto(kvp.Value));
+        return userSettingsProvider.UserSettings.AnalysisSettings.Rules.ToDictionary(kvp => kvp.Key, kvp => MapStandaloneRuleConfigDto(kvp.Value));
     }
 
     public void UpdateStandaloneRulesConfiguration()
