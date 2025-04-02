@@ -35,10 +35,7 @@ internal class EditCredentialsViewModel(
         var validationParams = new TaskToPerformParams<ResponseStatus>(
             UpdateConnectionCredentialsAsync,
             UiResources.UpdatingConnectionCredentialsProgressText,
-            UiResources.UpdatingConnectionCredentialsFailedText,
-            // todo by https://sonarsource.atlassian.net/browse/SLVS-1998: the success message is shown in the edit credentials dialog, which is closed,
-            // so it is not visible to the user. It has to be shown in the Manage Connections dialog instead
-            string.Format(UiResources.UpdatingConnectionCredentialsSucceededText, ConnectionInfo.Id));
+            UiResources.UpdatingConnectionCredentialsFailedText);
         var response = await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
 
         if (!response.Success)

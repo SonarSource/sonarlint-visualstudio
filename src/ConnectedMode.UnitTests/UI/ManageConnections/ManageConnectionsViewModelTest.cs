@@ -37,6 +37,7 @@ public class ManageConnectionsViewModelTest
     private const string LocalBindingKey2 = "solution name 2";
     private IConnectedModeBindingServices connectedModeBindingServices;
     private IConnectedModeServices connectedModeServices;
+    private IConnectedModeUIManager connectedModeUIManager;
     private ILogger logger;
     private IProgressReporterViewModel progressReporterViewModel;
     private IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter;
@@ -57,8 +58,9 @@ public class ManageConnectionsViewModelTest
         progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
         connectedModeServices = Substitute.For<IConnectedModeServices>();
         connectedModeBindingServices = Substitute.For<IConnectedModeBindingServices>();
+        connectedModeUIManager = Substitute.For<IConnectedModeUIManager>();
 
-        testSubject = new ManageConnectionsViewModel(connectedModeServices, connectedModeBindingServices, progressReporterViewModel);
+        testSubject = new ManageConnectionsViewModel(connectedModeUIManager, connectedModeServices, connectedModeBindingServices, progressReporterViewModel);
 
         MockServices();
     }
@@ -474,6 +476,48 @@ public class ManageConnectionsViewModelTest
         response.Success.Should().BeFalse();
         response.ResponseData.Should().BeEmpty();
         logger.Received(1).WriteLine(exception.ToString());
+    }
+
+    [TestMethod]
+    public async Task EditConnectionWithProgressAsync_ReportsProgress()
+    {
+        var connectionViewModel = CreateConnectionViewModel(twoConnections[0]);
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus>>()).Returns(new ResponseStatus(true));
+
+        await testSubject.EditConnectionWithProgressAsync(connectionViewModel);
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
+                    x.ProgressStatus == UiResources.UpdatingConnectionCredentialsProgressText &&
+                    x.WarningText == UiResources.UpdatingConnectionCredentialsFailedText &&
+                    x.SuccessText == string.Format(UiResources.UpdatingConnectionCredentialsSucceededText, connectionViewModel.Connection.Info.Id)));
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task EditCredentialsAsync_ReturnsResponseFromEditCredentialsDialog(bool credentialsEdited)
+    {
+        var connectionViewModel = CreateConnectionViewModel(twoConnections[0]);
+        connectedModeUIManager.ShowEditCredentialsDialogAsync(connectionViewModel.Connection).Returns(credentialsEdited);
+
+        var responseStatus = await testSubject.EditCredentialsAsync(connectionViewModel);
+
+        responseStatus.Success.Should().Be(credentialsEdited);
+        await connectedModeUIManager.Received(1).ShowEditCredentialsDialogAsync(connectionViewModel.Connection);
+    }
+
+    [TestMethod]
+    public async Task EditCredentialsAsync_RefreshesConnectionViewModelProperty()
+    {
+        var connectionViewModel = CreateConnectionViewModel(twoConnections[0]);
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        connectionViewModel.PropertyChanged += eventHandler;
+
+        await testSubject.EditCredentialsAsync(connectionViewModel);
+
+        eventHandler.Received().Invoke(connectionViewModel, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(connectionViewModel.HasInvalidToken)));
     }
 
     private void HasExpectedConnections(IEnumerable<Connection> expectedConnections)
