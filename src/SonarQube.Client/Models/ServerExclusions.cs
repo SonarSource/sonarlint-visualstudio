@@ -23,10 +23,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core.CSharpVB;
 
 namespace SonarQube.Client.Models
 {
-    public sealed class ServerExclusions : IEquatable<ServerExclusions>
+    public sealed class ServerExclusions : IEquatable<ServerExclusions>, IFileExclusions
     {
         private static readonly string[] EmptyValues = Array.Empty<string>();
 
@@ -92,7 +93,7 @@ namespace SonarQube.Client.Models
             return ToString().GetHashCode();
         }
 
-        public IDictionary<string, string> ToDictionary()
+        public Dictionary<string, string> ToDictionary()
         {
             var exclusions = new Dictionary<string, string>
             {

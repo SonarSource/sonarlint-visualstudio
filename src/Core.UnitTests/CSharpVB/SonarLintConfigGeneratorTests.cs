@@ -19,6 +19,8 @@
  */
 
 using SonarLint.VisualStudio.Core.CSharpVB;
+using SonarLint.VisualStudio.Integration.CSharpVB;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
@@ -36,6 +38,15 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         public void TestInitialize() => testSubject = new SonarLintConfigGenerator(LanguageProvider.Instance);
 
         [TestMethod]
+        public void MefCtor_CheckIsExported() =>
+            MefTestHelpers.CheckTypeCanBeImported<SonarLintConfigGenerator, ISonarLintConfigGenerator>(
+                MefTestHelpers.CreateExport<ILanguageProvider>());
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton() =>
+            MefTestHelpers.CheckIsSingletonMefComponent<SonarLintConfigGenerator>();
+
+        [TestMethod]
         public void Generate_NullArguments_Throws()
         {
             Action act = () => testSubject.Generate(null, EmptyProperties, new ServerExclusions(), ValidLanguage);
@@ -45,7 +56,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarProperties");
 
             act = () => testSubject.Generate(EmptyRules, EmptyProperties, null, ValidLanguage);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverExclusions");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileExclusions");
 
             act = () => testSubject.Generate(EmptyRules, EmptyProperties, new ServerExclusions(), null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("language");
