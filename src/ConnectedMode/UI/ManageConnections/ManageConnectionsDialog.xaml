@@ -8,7 +8,7 @@
         Title="{x:Static res:UiResources.ManageConnectionsDialogTitle}"
         WindowStartupLocation="CenterOwner"
         Initialized="ManageConnectionsWindow_OnInitialized"
-        x:Name="This">
+        x:Name="This" x:ClassModifier="internal">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

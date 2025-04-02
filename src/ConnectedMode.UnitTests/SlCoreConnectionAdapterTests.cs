@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
@@ -75,7 +76,7 @@ public class SlCoreConnectionAdapterTests
 
         await slCoreConnectionAdapter.ValidateConnectionAsync(sonarQubeConnectionInfo, new TokenCredentialsModel("myToken".CreateSecureString()));
 
-        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponse>>>());
+        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatus>>>());
     }
 
     [TestMethod]
@@ -146,7 +147,7 @@ public class SlCoreConnectionAdapterTests
 
         await slCoreConnectionAdapter.GetOrganizationsAsync(new TokenCredentialsModel("token".CreateSecureString()), CloudServerRegion.Eu);
 
-        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<List<OrganizationDisplay>>>>>());
+        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatusWithData<List<OrganizationDisplay>>>>>());
     }
 
     [TestMethod]
@@ -238,7 +239,7 @@ public class SlCoreConnectionAdapterTests
 
         await slCoreConnectionAdapter.GetAllProjectsAsync(sonarQubeConnection);
 
-        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<List<ServerProject>>>>>());
+        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatusWithData<List<ServerProject>>>>>());
     }
 
     [TestMethod]
@@ -323,7 +324,7 @@ public class SlCoreConnectionAdapterTests
 
         await slCoreConnectionAdapter.GetServerProjectByKeyAsync(sonarCloudConnection, "server-project-key");
 
-        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<ServerProject>>>>());
+        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatusWithData<ServerProject>>>>());
     }
 
     [TestMethod]
@@ -398,7 +399,7 @@ public class SlCoreConnectionAdapterTests
 
         await slCoreConnectionAdapter.FuzzySearchProjectsAsync(sonarCloudConnection, "proj1");
 
-        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<List<ServerProject>>>>>());
+        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatusWithData<List<ServerProject>>>>>());
     }
 
     [TestMethod]
@@ -464,7 +465,7 @@ public class SlCoreConnectionAdapterTests
 
         await slCoreConnectionAdapter.GenerateTokenAsync(sonarCloudConnectionInfo, CancellationToken.None);
 
-        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<string>>>>());
+        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatusWithData<string>>>>());
     }
 
     [TestMethod]

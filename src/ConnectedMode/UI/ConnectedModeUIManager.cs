@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
 public interface IConnectedModeUIManager
 {
-    Task<bool> ShowManageBindingDialogAsync(AutomaticBindingRequest automaticBinding = null);
+    Task<bool> ShowManageBindingDialogAsync(BindingRequest.AutomaticBindingRequest automaticBinding = null);
 
     Task<bool?> ShowTrustConnectionDialogAsync(ServerConnection serverConnection, string token);
 
@@ -44,7 +44,7 @@ public interface IConnectedModeUIManager
 internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices, IConnectedModeUIServices connectedModeUiServices)
     : IConnectedModeUIManager
 {
-    public async Task<bool> ShowManageBindingDialogAsync(AutomaticBindingRequest automaticBinding = null)
+    public async Task<bool> ShowManageBindingDialogAsync(BindingRequest.AutomaticBindingRequest automaticBinding = null)
     {
         var result = false;
         await connectedModeServices.ThreadHandling.RunOnUIThreadAsync(() => result = ShowDialogManageBinding(automaticBinding));
@@ -76,7 +76,7 @@ internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedMod
     }
 
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
-    private bool ShowDialogManageBinding(AutomaticBindingRequest automaticBinding)
+    private bool ShowDialogManageBinding(BindingRequest.AutomaticBindingRequest automaticBinding)
     {
         var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices, connectedModeUiServices, this, automaticBinding);
         manageBindingDialog.ShowDialog(Application.Current.MainWindow);
@@ -86,7 +86,7 @@ internal sealed class ConnectedModeUIManager(IConnectedModeServices connectedMod
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     private bool? GetEditCredentialsDialogResult(Connection connection)
     {
-        var editCredentialsDialog = new EditCredentialsDialog(connectedModeServices, connectedModeUiServices, connectedModeBindingServices, connection);
+        var editCredentialsDialog = new EditCredentialsDialog(this, connectedModeServices, connectedModeUiServices, connectedModeBindingServices, connection);
         return editCredentialsDialog.ShowDialog(Application.Current.MainWindow);
     }
 }

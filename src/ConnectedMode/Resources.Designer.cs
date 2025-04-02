@@ -69,56 +69,20 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Configuration not available.
-        /// </summary>
-        internal static string AutomaticBinding_ConfigurationNotAvailable {
-            get {
-                return ResourceManager.GetString("AutomaticBinding_ConfigurationNotAvailable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Connection to server could not be found.
         /// </summary>
-        internal static string AutomaticBinding_ConnectionNotFound {
+        internal static string Binding_ConnectionNotFound {
             get {
-                return ResourceManager.GetString("AutomaticBinding_ConnectionNotFound", resourceCulture);
+                return ResourceManager.GetString("Binding_ConnectionNotFound", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The credentials for the connection {0} could not be found.
         /// </summary>
-        internal static string AutomaticBinding_CredentiasNotFound {
+        internal static string Binding_CredentiasNotFound {
             get {
-                return ResourceManager.GetString("AutomaticBinding_CredentiasNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The project key could not be found.
-        /// </summary>
-        internal static string AutomaticBinding_ProjectKeyNotFound {
-            get {
-                return ResourceManager.GetString("AutomaticBinding_ProjectKeyNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Shared.
-        /// </summary>
-        internal static string AutomaticBindingType_Shared {
-            get {
-                return ResourceManager.GetString("AutomaticBindingType_Shared", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Suggested.
-        /// </summary>
-        internal static string AutomaticBindingType_Suggested {
-            get {
-                return ResourceManager.GetString("AutomaticBindingType_Suggested", resourceCulture);
+                return ResourceManager.GetString("Binding_CredentiasNotFound", resourceCulture);
             }
         }
         
@@ -128,6 +92,51 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         internal static string Binding_Fails {
             get {
                 return ResourceManager.GetString("Binding_Fails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The project key could not be found.
+        /// </summary>
+        internal static string Binding_ProjectKeyNotFound {
+            get {
+                return ResourceManager.GetString("Binding_ProjectKeyNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assisted.
+        /// </summary>
+        internal static string BindingType_Assisted {
+            get {
+                return ResourceManager.GetString("BindingType_Assisted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assisted from Shared.
+        /// </summary>
+        internal static string BindingType_AssistedShared {
+            get {
+                return ResourceManager.GetString("BindingType_AssistedShared", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Manual.
+        /// </summary>
+        internal static string BindingType_Manual {
+            get {
+                return ResourceManager.GetString("BindingType_Manual", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shared.
+        /// </summary>
+        internal static string BindingType_Shared {
+            get {
+                return ResourceManager.GetString("BindingType_Shared", resourceCulture);
             }
         }
         
@@ -231,11 +240,11 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Automatic Binding.
+        ///   Looks up a localized string similar to Binding.
         /// </summary>
-        internal static string ConnectedModeAutomaticBindingLogContext {
+        internal static string ConnectedModeBindingLogContext {
             get {
-                return ResourceManager.GetString("ConnectedModeAutomaticBindingLogContext", resourceCulture);
+                return ResourceManager.GetString("ConnectedModeBindingLogContext", resourceCulture);
             }
         }
         
@@ -438,15 +447,6 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [ConnectedMode/ImportsBeforeFileGenerator] Loading embedded resource file.
-        /// </summary>
-        internal static string ImportBeforeFileGenerator_LoadingResourceFile {
-            get {
-                return ResourceManager.GetString("ImportBeforeFileGenerator_LoadingResourceFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to [ConnectedMode/ImportsBeforeFileGenerator] Writing file to imports before directory.
         /// </summary>
         internal static string ImportBeforeFileGenerator_WritingTargetFileToDisk {
@@ -591,6 +591,15 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Shared Binding configuration not available.
+        /// </summary>
+        internal static string SharedBinding_ConfigurationNotAvailable {
+            get {
+                return ResourceManager.GetString("SharedBinding_ConfigurationNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Git root not found, can&apos;t calculate location for .sonarlint shared folder.
         /// </summary>
         internal static string SharedBindingConfigProvider_GitRootNotFound {
@@ -690,42 +699,6 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [ServerIssueStore] Updating issue: {0}. No matching issue in store. Event will be ignored..
-        /// </summary>
-        internal static string Store_UpdateIssue_NoMatch {
-            get {
-                return ResourceManager.GetString("Store_UpdateIssue_NoMatch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [ServerIssueStore] Raising change event....
-        /// </summary>
-        internal static string Store_UpdateIssue_RaisingEvent {
-            get {
-                return ResourceManager.GetString("Store_UpdateIssue_RaisingEvent", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [ServerIssueStore] Updating issue: {0}. Match found, update not required.
-        /// </summary>
-        internal static string Store_UpdateIssue_UpdateNotRequired {
-            get {
-                return ResourceManager.GetString("Store_UpdateIssue_UpdateNotRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [ServerIssueStore] Updating issue: {0}. Match found, update required. New IsResolved value: {1}.
-        /// </summary>
-        internal static string Store_UpdateIssue_UpdateRequired {
-            get {
-                return ResourceManager.GetString("Store_UpdateIssue_UpdateRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Finished fetching suppressions. All issues suppressed: {0}.
         /// </summary>
         internal static string Suppression_Fetch_Issues_Finished {
@@ -794,24 +767,6 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         internal static string Suppressions_FetchOperationCancelled {
             get {
                 return ResourceManager.GetString("Suppressions_FetchOperationCancelled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Suppressions] Update operation failed: {0}.
-        /// </summary>
-        internal static string Suppressions_UpdateError_Short {
-            get {
-                return ResourceManager.GetString("Suppressions_UpdateError_Short", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Suppressions] Update operation cancelled.
-        /// </summary>
-        internal static string Suppressions_UpdateOperationCancelled {
-            get {
-                return ResourceManager.GetString("Suppressions_UpdateOperationCancelled", resourceCulture);
             }
         }
         

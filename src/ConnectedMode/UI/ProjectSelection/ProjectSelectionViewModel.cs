@@ -72,27 +72,27 @@ public class ProjectSelectionViewModel(
 
     public async Task InitializeProjectWithProgressAsync()
     {
-        var initializeProjectsParams = new TaskToPerformParams<AdapterResponseWithData<List<ServerProject>>>(
+        var initializeProjectsParams = new TaskToPerformParams<ResponseStatusWithData<List<ServerProject>>>(
             AdapterGetAllProjectsAsync,
             UiResources.LoadingProjectsProgressText,
             UiResources.LoadingProjectsFailedText) { AfterSuccess = InitProjects };
         await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(initializeProjectsParams);
     }
 
-    internal async Task<AdapterResponseWithData<List<ServerProject>>> AdapterGetAllProjectsAsync()
+    internal async Task<ResponseStatusWithData<List<ServerProject>>> AdapterGetAllProjectsAsync()
     {
         var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(ConnectionInfo, out var serverConnection);
         if (!succeeded)
         {
             connectedModeServices.Logger.WriteLine(UiResources.LoadingProjectsFailedTextForNotFoundServerConnection);
-            return new AdapterResponseWithData<List<ServerProject>>(false, null);
+            return new ResponseStatusWithData<List<ServerProject>>(false, null);
         }
 
         ServerConnection = serverConnection;
         return await connectedModeServices.SlCoreConnectionAdapter.GetAllProjectsAsync(serverConnection);
     }
 
-    internal void InitProjects(AdapterResponseWithData<List<ServerProject>> response)
+    internal void InitProjects(ResponseStatusWithData<List<ServerProject>> response)
     {
         FillProjects(response.ResponseData);
         InitialServerProjects = response.ResponseData;
@@ -100,7 +100,7 @@ public class ProjectSelectionViewModel(
 
     internal async Task AddManualProjectWithProgressAsync(string projectKey)
     {
-        var addManualProject = new TaskToPerformParams<AdapterResponseWithData<ServerProject>>(
+        var addManualProject = new TaskToPerformParams<ResponseStatusWithData<ServerProject>>(
             () => FindServerProjectByKeyAsync(projectKey),
             UiResources.FetchingProjectInfoProgressText,
             UiResources.FetchingProjectInfoFailedText)
@@ -139,16 +139,16 @@ public class ProjectSelectionViewModel(
 
     private async Task SearchForProjectWithProgressAsync()
     {
-        var initializeProjectsParams = new TaskToPerformParams<AdapterResponseWithData<List<ServerProject>>>(
+        var initializeProjectsParams = new TaskToPerformParams<ResponseStatusWithData<List<ServerProject>>>(
             FuzzySearchProjectsAsync,
             UiResources.SearchingProjectInProgressText,
             UiResources.SearchingProjectFailedText) { AfterSuccess = response => FillProjects(response.ResponseData) };
         await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(initializeProjectsParams);
     }
 
-    private async Task<AdapterResponseWithData<List<ServerProject>>> FuzzySearchProjectsAsync() =>
+    private async Task<ResponseStatusWithData<List<ServerProject>>> FuzzySearchProjectsAsync() =>
         await connectedModeServices.SlCoreConnectionAdapter.FuzzySearchProjectsAsync(ServerConnection, ProjectSearchTerm);
 
-    private async Task<AdapterResponseWithData<ServerProject>> FindServerProjectByKeyAsync(string projectKey) =>
+    private async Task<ResponseStatusWithData<ServerProject>> FindServerProjectByKeyAsync(string projectKey) =>
         await connectedModeServices.SlCoreConnectionAdapter.GetServerProjectByKeyAsync(ServerConnection, projectKey);
 }

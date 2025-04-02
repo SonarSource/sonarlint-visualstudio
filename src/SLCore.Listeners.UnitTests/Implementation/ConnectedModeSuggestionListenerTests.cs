@@ -176,7 +176,7 @@ public class ConnectedModeSuggestionListenerTests
         Received.InOrder(() =>
         {
             ideWindowService.BringToFront();
-            connectedModeUIManager.ShowManageBindingDialogAsync(Arg.Any<AutomaticBindingRequest.Assisted>());
+            connectedModeUIManager.ShowManageBindingDialogAsync(Arg.Any<BindingRequest.Assisted>());
         });
     }
 
@@ -224,10 +224,7 @@ public class ConnectedModeSuggestionListenerTests
 
     private void SetUpAutoBinding(AssistBindingParams assistBindingParams, bool result) =>
         connectedModeUIManager
-            .ShowManageBindingDialogAsync(Arg.Is<AutomaticBindingRequest.Assisted>(x =>
-                x.ServerConnectionId == assistBindingParams.connectionId
-                && x.ServerProjectKey == assistBindingParams.projectKey
-                && x.IsFromSharedBinding == assistBindingParams.isFromSharedConfiguration))
+            .ShowManageBindingDialogAsync(Arg.Is<BindingRequest.Assisted>(x => x.Dto == assistBindingParams))
             .Returns(result);
 
     [TestMethod]

@@ -29,16 +29,18 @@ using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 {
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
-    public partial class ManageConnectionsDialog : Window
+    internal partial class ManageConnectionsDialog : Window
     {
+        private readonly IConnectedModeUIManager connectedModeUiManager;
         private readonly IConnectedModeServices connectedModeServices;
         private readonly IConnectedModeBindingServices connectedModeBindingServices;
 
         public IConnectedModeUIServices ConnectedModeUiServices { get; }
         public ManageConnectionsViewModel ViewModel { get; }
 
-        public ManageConnectionsDialog(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices, IConnectedModeUIServices connectedModeUiServices)
+        internal ManageConnectionsDialog(IConnectedModeUIManager connectedModeUiManager, IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices, IConnectedModeUIServices connectedModeUiServices)
         {
+            this.connectedModeUiManager = connectedModeUiManager;
             this.connectedModeServices = connectedModeServices;
             this.connectedModeBindingServices = connectedModeBindingServices;
             ConnectedModeUiServices = connectedModeUiServices;
@@ -55,7 +57,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
                 return;
             }
 
-            var editConnectionTokenDialog = new EditCredentialsDialog(connectedModeServices, ConnectedModeUiServices, connectedModeBindingServices, connectionViewModel.Connection);
+            var editConnectionTokenDialog = new EditCredentialsDialog(connectedModeUiManager, connectedModeServices, ConnectedModeUiServices, connectedModeBindingServices, connectionViewModel.Connection);
             editConnectionTokenDialog.ShowDialog(this);
             connectionViewModel.RefreshInvalidToken();
         }

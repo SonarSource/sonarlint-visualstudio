@@ -61,16 +61,16 @@ public class OrganizationSelectionViewModel(
 
     public async Task LoadOrganizationsAsync()
     {
-        var organizationLoadingParams = new TaskToPerformParams<AdapterResponseWithData<List<OrganizationDisplay>>>(
+        var organizationLoadingParams = new TaskToPerformParams<ResponseStatusWithData<List<OrganizationDisplay>>>(
             AdapterLoadOrganizationsAsync,
             UiResources.LoadingOrganizationsProgressText,
             UiResources.LoadingOrganizationsFailedText) { AfterSuccess = UpdateOrganizations };
         await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(organizationLoadingParams);
     }
 
-    internal async Task<AdapterResponseWithData<List<OrganizationDisplay>>> AdapterLoadOrganizationsAsync() => await connectionAdapter.GetOrganizationsAsync(credentialsModel, CloudServerRegion);
+    internal async Task<ResponseStatusWithData<List<OrganizationDisplay>>> AdapterLoadOrganizationsAsync() => await connectionAdapter.GetOrganizationsAsync(credentialsModel, CloudServerRegion);
 
-    internal void UpdateOrganizations(AdapterResponseWithData<List<OrganizationDisplay>> responseWithData)
+    internal void UpdateOrganizations(ResponseStatusWithData<List<OrganizationDisplay>> responseWithData)
     {
         Organizations.Clear();
         responseWithData.ResponseData.ForEach(AddOrganization);
@@ -80,7 +80,7 @@ public class OrganizationSelectionViewModel(
     internal async Task<bool> ValidateConnectionForOrganizationAsync(string organizationKey, CloudServerRegion cloudServerRegion, string warningText)
     {
         var connectionInfoToValidate = new ConnectionInfo(organizationKey, ConnectionServerType.SonarCloud, cloudServerRegion);
-        var validationParams = new TaskToPerformParams<AdapterResponse>(
+        var validationParams = new TaskToPerformParams<ResponseStatus>(
             async () => await connectionAdapter.ValidateConnectionAsync(connectionInfoToValidate, credentialsModel),
             UiResources.ValidatingConnectionProgressText,
             warningText);

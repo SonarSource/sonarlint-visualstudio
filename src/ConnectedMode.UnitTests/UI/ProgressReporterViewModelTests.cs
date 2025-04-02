@@ -109,7 +109,7 @@ public class ProgressReporterViewModelTests
     public async Task ExecuteTaskWithProgressAsync_ReturnsReceivedResponse(bool success)
     {
         var parameters = GetTaskWithResponse(success);
-        var taskResponse = new AdapterResponseWithData<IResponseStatus>(true, null);
+        var taskResponse = new ResponseStatusWithData<IResponseStatus>(true, null);
         parameters.TaskToPerform().Returns(taskResponse);
 
         var response = await testSubject.ExecuteTaskWithProgressAsync(parameters);
@@ -166,6 +166,28 @@ public class ProgressReporterViewModelTests
             parameters.AfterProgressUpdated();
         });
         testSubject.Warning.Should().Be(warningText);
+        testSubject.ProgressStatus.Should().BeNull();
+    }
+
+    [TestMethod]
+    public async Task ExecuteTaskWithProgressAsync_TaskWithFailureResponseAndCustomWarning_WorkflowIsCorrect()
+    {
+        var warningText = "warning";
+        var taskWarningText = "warning 2";
+        var parameters = GetTaskWithResponse(false, warningText, taskWarningText);
+        parameters.WarningText.Returns(warningText);
+
+        await testSubject.ExecuteTaskWithProgressAsync(parameters);
+
+        Received.InOrder(() =>
+        {
+            _ = parameters.ProgressStatus;
+            parameters.AfterProgressUpdated();
+            parameters.TaskToPerform();
+            parameters.AfterFailure(Arg.Any<IResponseStatus>());
+            parameters.AfterProgressUpdated();
+        });
+        testSubject.Warning.Should().Be(taskWarningText);
         testSubject.ProgressStatus.Should().BeNull();
     }
 
@@ -238,13 +260,14 @@ public class ProgressReporterViewModelTests
         testSubject.ProgressStatus.Should().BeNull();
     }
 
-    private static ITaskToPerformParams<IResponseStatus> GetTaskWithResponse(bool success, string warningText = null)
+    private static ITaskToPerformParams<IResponseStatus> GetTaskWithResponse(bool success, string warningText = null, string responseWarningText = null)
     {
         var parameters = Substitute.For<ITaskToPerformParams<IResponseStatus>>();
         var taskResponse = Substitute.For<IResponseStatus>();
         parameters.TaskToPerform().Returns(taskResponse);
         parameters.WarningText.Returns(warningText);
         taskResponse.Success.Returns(success);
+        taskResponse.WarningText.Returns(responseWarningText);
 
         return parameters;
     }
@@ -253,6 +276,7 @@ public class ProgressReporterViewModelTests
     {
         parameters ??= Substitute.For<ITaskToPerformParams<IResponseStatus>>();
         parameters.TaskToPerform.Returns(x => throw new Exception("test"));
+        parameters.FailureResponse.WarningText.Returns(null as string);
 
         return await testSubject.ExecuteTaskWithProgressAsync(parameters);
     }

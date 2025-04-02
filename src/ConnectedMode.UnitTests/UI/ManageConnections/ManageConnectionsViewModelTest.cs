@@ -42,7 +42,6 @@ public class ManageConnectionsViewModelTest
     private IThreadHandling threadHandling;
     private ILogger logger;
     private ISolutionInfoProvider solutionInfoProvider;
-    private IBindingController bindingController;
     private IConnectedModeBindingServices connectedModeBindingServices;
     private ISolutionBindingRepository solutionBindingRepository;
     private const string LocalBindingKey1 = "solution name 1";
@@ -89,7 +88,7 @@ public class ManageConnectionsViewModelTest
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.RemovingConnectionText &&
                     x.WarningText == UiResources.RemovingConnectionFailedText));
     }
@@ -209,7 +208,7 @@ public class ManageConnectionsViewModelTest
         Received.InOrder(() =>
         {
             solutionBindingRepository.DeleteBinding(LocalBindingKey1);
-            bindingController.Unbind(LocalBindingKey2);
+            connectedModeBindingServices.BindingControllerAdapter.Unbind(LocalBindingKey2);
             serverConnectionsRepositoryAdapter.TryRemoveConnection(testSubject.ConnectionViewModels[0].Connection.Info);
         });
         solutionBindingRepository.DidNotReceive().DeleteBinding(LocalBindingKey2);
@@ -226,7 +225,7 @@ public class ManageConnectionsViewModelTest
         testSubject.RemoveConnectionViewModel([LocalBindingKey1, LocalBindingKey2], testSubject.ConnectionViewModels[0]);
 
         solutionBindingRepository.Received(1).DeleteBinding(LocalBindingKey1);
-        bindingController.Received(1).Unbind(LocalBindingKey2);
+        connectedModeBindingServices.BindingControllerAdapter.Received(1).Unbind(LocalBindingKey2);
         serverConnectionsRepositoryAdapter.DidNotReceive().TryRemoveConnection(testSubject.ConnectionViewModels[0].Connection.Info);
     }
 
@@ -299,7 +298,7 @@ public class ManageConnectionsViewModelTest
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.LoadingConnectionsText &&
                     x.WarningText == UiResources.LoadingConnectionsFailedText));
     }
@@ -325,7 +324,7 @@ public class ManageConnectionsViewModelTest
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.CreatingConnectionProgressText &&
                     x.WarningText == UiResources.CreatingConnectionFailedText));
     }
@@ -360,13 +359,13 @@ public class ManageConnectionsViewModelTest
     [TestMethod]
     public async Task GetConnectionReferencesWithProgressAsync_CalculatesReferencesAndReportsProgress()
     {
-        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponseWithData<List<string>>>>()).Returns(new AdapterResponseWithData<List<string>>(true, []));
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatusWithData<List<string>>>>()).Returns(new ResponseStatusWithData<List<string>>(true, []));
 
         await testSubject.GetConnectionReferencesWithProgressAsync(CreateConnectionViewModel(twoConnections[0]));
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponseWithData<List<string>>>>(x =>
+                Arg.Is<TaskToPerformParams<ResponseStatusWithData<List<string>>>>(x =>
                     x.ProgressStatus == UiResources.CalculatingConnectionReferencesText &&
                     x.WarningText == UiResources.CalculatingConnectionReferencesFailedText));
     }
@@ -374,11 +373,11 @@ public class ManageConnectionsViewModelTest
     [TestMethod]
     public async Task GetConnectionReferencesOnBackgroundThreadAsync_RunsOnBackgroundThread()
     {
-        threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<List<string>>>>>()).Returns(new AdapterResponseWithData<List<string>>(true, []));
+        threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatusWithData<List<string>>>>>()).Returns(new ResponseStatusWithData<List<string>>(true, []));
 
         await testSubject.GetConnectionReferencesOnBackgroundThreadAsync(CreateConnectionViewModel(twoConnections[0]));
 
-        await threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<List<string>>>>>());
+        await threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatusWithData<List<string>>>>>());
     }
 
     [TestMethod]
@@ -387,7 +386,7 @@ public class ManageConnectionsViewModelTest
     public async Task GetConnectionReferencesOnBackgroundThreadAsync_ReturnsCalculatedReferences(bool expectedResponse)
     {
         var bindingKey = "localBindingKey";
-        threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<List<string>>>>>()).Returns(new AdapterResponseWithData<List<string>>(expectedResponse, [bindingKey]));
+        threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatusWithData<List<string>>>>>()).Returns(new ResponseStatusWithData<List<string>>(expectedResponse, [bindingKey]));
 
         var responses = await testSubject.GetConnectionReferencesOnBackgroundThreadAsync(CreateConnectionViewModel(twoConnections[0]));
 
@@ -515,9 +514,6 @@ public class ManageConnectionsViewModelTest
 
         solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
         connectedModeBindingServices.SolutionInfoProvider.Returns(solutionInfoProvider);
-
-        bindingController = Substitute.For<IBindingController>();
-        connectedModeBindingServices.BindingController.Returns(bindingController);
     }
 
     private void MockTryGetConnections(List<Connection> connections) =>
@@ -535,7 +531,7 @@ public class ManageConnectionsViewModelTest
 
     private void MockDeleteBinding(string localBindingKey, bool success) => connectedModeBindingServices.SolutionBindingRepository.DeleteBinding(localBindingKey).Returns(success);
 
-    private void MockUnbind(string localBindingKey, bool success) => connectedModeBindingServices.BindingController.Unbind(localBindingKey).Returns(success);
+    private void MockUnbind(string localBindingKey, bool success) => connectedModeBindingServices.BindingControllerAdapter.Unbind(localBindingKey).Returns(success);
 
     private void InitializeCurrentSolution(string solutionName) => connectedModeBindingServices.SolutionInfoProvider.GetSolutionName().Returns(solutionName);
 

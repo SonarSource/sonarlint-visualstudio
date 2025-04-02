@@ -29,21 +29,23 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
 internal partial class ManageBindingDialog : Window
 {
-    private readonly AutomaticBindingRequest automaticBinding;
     private readonly IConnectedModeServices connectedModeServices;
     private readonly IConnectedModeBindingServices connectedModeBindingServices;
+    private readonly IConnectedModeUIManager connectedModeUiManager;
+    private readonly BindingRequest.AutomaticBindingRequest automaticBindingRequest;
 
     public ManageBindingDialog(
         IConnectedModeServices connectedModeServices,
         IConnectedModeBindingServices connectedModeBindingServices,
         IConnectedModeUIServices connectedModeUiServices,
         IConnectedModeUIManager connectedModeUiManager,
-        AutomaticBindingRequest automaticBinding = null)
+        BindingRequest.AutomaticBindingRequest automaticBindingRequest)
     {
         this.connectedModeServices = connectedModeServices;
         this.connectedModeBindingServices = connectedModeBindingServices;
+        this.connectedModeUiManager = connectedModeUiManager;
+        this.automaticBindingRequest = automaticBindingRequest;
         ConnectedModeUiServices = connectedModeUiServices;
-        this.automaticBinding = automaticBinding;
         ViewModel = new ManageBindingViewModel(connectedModeServices,
             connectedModeBindingServices,
             connectedModeUiServices,
@@ -57,7 +59,7 @@ internal partial class ManageBindingDialog : Window
 
     private async void ManageConnections_OnClick(object sender, RoutedEventArgs e)
     {
-        new ManageConnectionsDialog(connectedModeServices, connectedModeBindingServices, ConnectedModeUiServices).ShowDialog(this);
+        new ManageConnectionsDialog(connectedModeUiManager, connectedModeServices, connectedModeBindingServices, ConnectedModeUiServices).ShowDialog(this);
         await ViewModel.InitializeDataAsync();
     }
 
@@ -75,15 +77,15 @@ internal partial class ManageBindingDialog : Window
     private async void ManageBindingDialog_OnInitialized(object sender, EventArgs e)
     {
         await ViewModel.InitializeDataAsync();
-        if (automaticBinding is not null)
+        if (automaticBindingRequest is not null)
         {
-            await ViewModel.PerformAutomaticBindingWithProgressAsync(automaticBinding);
+            await ViewModel.PerformBindingWithProgressAsync(automaticBindingRequest);
         }
     }
 
     private async void Unbind_OnClick(object sender, RoutedEventArgs e) => await ViewModel.UnbindWithProgressAsync();
 
-    private async void UseSharedBinding_OnClick(object sender, RoutedEventArgs e) => await ViewModel.PerformAutomaticBindingWithProgressAsync(new AutomaticBindingRequest.Shared());
+    private async void UseSharedBinding_OnClick(object sender, RoutedEventArgs e) => await ViewModel.PerformSharedBindingWithProgressAsync();
 
     private async void ExportBindingConfigurationButton_OnClick(object sender, RoutedEventArgs e)
     {

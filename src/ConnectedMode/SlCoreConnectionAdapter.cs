@@ -39,44 +39,29 @@ namespace SonarLint.VisualStudio.ConnectedMode;
 
 public interface ISlCoreConnectionAdapter
 {
-    Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, ICredentialsModel credentialsModel);
+    Task<ResponseStatus> ValidateConnectionAsync(ConnectionInfo connectionInfo, ICredentialsModel credentialsModel);
 
-    Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel, CloudServerRegion cloudServerRegion);
+    Task<ResponseStatusWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel, CloudServerRegion cloudServerRegion);
 
 
-    Task<AdapterResponseWithData<ServerProject>> GetServerProjectByKeyAsync(ServerConnection serverConnection, string serverProjectKey);
+    Task<ResponseStatusWithData<ServerProject>> GetServerProjectByKeyAsync(ServerConnection serverConnection, string serverProjectKey);
 
-    Task<AdapterResponseWithData<List<ServerProject>>> GetAllProjectsAsync(ServerConnection serverConnection);
+    Task<ResponseStatusWithData<List<ServerProject>>> GetAllProjectsAsync(ServerConnection serverConnection);
 
-    Task<AdapterResponseWithData<List<ServerProject>>> FuzzySearchProjectsAsync(ServerConnection serverConnection, string searchTerm);
+    Task<ResponseStatusWithData<List<ServerProject>>> FuzzySearchProjectsAsync(ServerConnection serverConnection, string searchTerm);
 
-    Task<AdapterResponseWithData<string>> GenerateTokenAsync(ConnectionInfo connectionInfo, CancellationToken cancellationToken);
-}
-
-public class AdapterResponseWithData<T>(bool success, T responseData) : IResponseStatus
-{
-    public AdapterResponseWithData() : this(false, default) { }
-
-    public bool Success { get; init; } = success;
-    public T ResponseData { get; } = responseData;
-}
-
-public class AdapterResponse(bool success) : IResponseStatus
-{
-    public AdapterResponse() : this(false) { }
-
-    public bool Success { get; } = success;
+    Task<ResponseStatusWithData<string>> GenerateTokenAsync(ConnectionInfo connectionInfo, CancellationToken cancellationToken);
 }
 
 [Export(typeof(ISlCoreConnectionAdapter))]
 [method: ImportingConstructor]
 public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, IThreadHandling threadHandling, ILogger logger) : ISlCoreConnectionAdapter
 {
-    private static readonly AdapterResponseWithData<List<OrganizationDisplay>> FailedResponseWithData = new(false, []);
-    private static readonly AdapterResponse FailedResponse = new(false);
+    private static readonly ResponseStatusWithData<List<OrganizationDisplay>> FailedResponseWithData = new(false, []);
+    private static readonly ResponseStatus FailedResponse = new(false);
     private readonly ILogger logger = logger.ForVerboseContext(nameof(SlCoreConnectionAdapter));
 
-    public async Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, ICredentialsModel credentialsModel)
+    public async Task<ResponseStatus> ValidateConnectionAsync(ConnectionInfo connectionInfo, ICredentialsModel credentialsModel)
     {
         var credentials = credentialsModel.ToICredentials();
 
@@ -84,7 +69,7 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
         return await ValidateConnectionAsync(validateConnectionParams);
     }
 
-    public Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel, CloudServerRegion cloudServerRegion) =>
+    public Task<ResponseStatusWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel, CloudServerRegion cloudServerRegion) =>
         threadHandling.RunOnBackgroundThread(async () =>
         {
             if (!TryGetConnectionConfigurationSlCoreService(out var connectionConfigurationSlCoreService))
@@ -98,7 +83,7 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
                 var response = await connectionConfigurationSlCoreService.ListUserOrganizationsAsync(new ListUserOrganizationsParams(credentials, cloudServerRegion.ToSlCoreRegion()));
                 var organizationDisplays = response.userOrganizations.Select(o => new OrganizationDisplay(o.key, o.name)).ToList();
 
-                return new AdapterResponseWithData<List<OrganizationDisplay>>(true, organizationDisplays);
+                return new ResponseStatusWithData<List<OrganizationDisplay>>(true, organizationDisplays);
             }
             catch (Exception ex)
             {
@@ -107,9 +92,9 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
             }
         });
 
-    public Task<AdapterResponseWithData<ServerProject>> GetServerProjectByKeyAsync(ServerConnection serverConnection, string serverProjectKey)
+    public Task<ResponseStatusWithData<ServerProject>> GetServerProjectByKeyAsync(ServerConnection serverConnection, string serverProjectKey)
     {
-        var failedResponse = new AdapterResponseWithData<ServerProject>(false, null);
+        var failedResponse = new ResponseStatusWithData<ServerProject>(false, null);
 
         return threadHandling.RunOnBackgroundThread(async () =>
         {
@@ -129,7 +114,7 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
                     return failedResponse;
                 }
 
-                return new AdapterResponseWithData<ServerProject>(true, new ServerProject(serverProjectKey, response.projectNamesByKey[serverProjectKey]));
+                return new ResponseStatusWithData<ServerProject>(true, new ServerProject(serverProjectKey, response.projectNamesByKey[serverProjectKey]));
             }
             catch (Exception ex)
             {
@@ -139,15 +124,15 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
         });
     }
 
-    public async Task<AdapterResponseWithData<List<ServerProject>>> GetAllProjectsAsync(ServerConnection serverConnection)
+    public async Task<ResponseStatusWithData<List<ServerProject>>> GetAllProjectsAsync(ServerConnection serverConnection)
     {
         var validateConnectionParams = new GetAllProjectsParams(GetTransientConnectionDto(serverConnection));
         return await GetAllProjectsAsync(validateConnectionParams);
     }
 
-    public async Task<AdapterResponseWithData<List<ServerProject>>> FuzzySearchProjectsAsync(ServerConnection serverConnection, string searchTerm)
+    public async Task<ResponseStatusWithData<List<ServerProject>>> FuzzySearchProjectsAsync(ServerConnection serverConnection, string searchTerm)
     {
-        var failedResponse = new AdapterResponseWithData<List<ServerProject>>(false, []);
+        var failedResponse = new ResponseStatusWithData<List<ServerProject>>(false, []);
         return await threadHandling.RunOnBackgroundThread(async () =>
         {
             if (!TryGetConnectionConfigurationSlCoreService(out var connectionConfigurationSlCoreService))
@@ -160,7 +145,7 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
                 var fuzzySearchParams = new FuzzySearchProjectsParams(serverConnection.Id, searchTerm);
                 var slCoreResponse = await connectionConfigurationSlCoreService.FuzzySearchProjectsAsync(fuzzySearchParams);
                 var serverProjects = slCoreResponse.topResults.Select(proj => new ServerProject(proj.key, proj.name)).ToList();
-                return new AdapterResponseWithData<List<ServerProject>>(true, serverProjects);
+                return new ResponseStatusWithData<List<ServerProject>>(true, serverProjects);
             }
             catch (Exception ex)
             {
@@ -170,9 +155,9 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
         });
     }
 
-    public async Task<AdapterResponseWithData<string>> GenerateTokenAsync(ConnectionInfo connectionInfo, CancellationToken cancellationToken)
+    public async Task<ResponseStatusWithData<string>> GenerateTokenAsync(ConnectionInfo connectionInfo, CancellationToken cancellationToken)
     {
-        var failedResponse = new AdapterResponseWithData<string>(false, null);
+        var failedResponse = new ResponseStatusWithData<string>(false, null);
         return await threadHandling.RunOnBackgroundThread(async () =>
         {
             if (!TryGetConnectionConfigurationSlCoreService(out var connectionConfigurationSlCoreService))
@@ -184,7 +169,7 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
             try
             {
                 var slCoreResponse = await connectionConfigurationSlCoreService.HelpGenerateUserTokenAsync(new HelpGenerateUserTokenParams(serverUri), cancellationToken);
-                return new AdapterResponseWithData<string>(true, slCoreResponse.token);
+                return new ResponseStatusWithData<string>(true, slCoreResponse.token);
             }
             catch (Exception ex)
             {
@@ -194,7 +179,7 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
         });
     }
 
-    private async Task<AdapterResponse> ValidateConnectionAsync(ValidateConnectionParams validateConnectionParams) =>
+    private async Task<ResponseStatus> ValidateConnectionAsync(ValidateConnectionParams validateConnectionParams) =>
         await threadHandling.RunOnBackgroundThread(async () =>
         {
             if (!TryGetConnectionConfigurationSlCoreService(out var connectionConfigurationSlCoreService))
@@ -205,7 +190,7 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
             try
             {
                 var slCoreResponse = await connectionConfigurationSlCoreService.ValidateConnectionAsync(validateConnectionParams);
-                return new AdapterResponse(slCoreResponse.success);
+                return new ResponseStatus(slCoreResponse.success);
             }
             catch (Exception ex)
             {
@@ -214,9 +199,9 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
             }
         });
 
-    private async Task<AdapterResponseWithData<List<ServerProject>>> GetAllProjectsAsync(GetAllProjectsParams getAllProjectsParams)
+    private async Task<ResponseStatusWithData<List<ServerProject>>> GetAllProjectsAsync(GetAllProjectsParams getAllProjectsParams)
     {
-        var failedResponse = new AdapterResponseWithData<List<ServerProject>>(false, []);
+        var failedResponse = new ResponseStatusWithData<List<ServerProject>>(false, []);
         return await threadHandling.RunOnBackgroundThread(async () =>
         {
             if (!TryGetConnectionConfigurationSlCoreService(out var connectionConfigurationSlCoreService))
@@ -228,7 +213,7 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
             {
                 var slCoreResponse = await connectionConfigurationSlCoreService.GetAllProjectsAsync(getAllProjectsParams);
                 var serverProjects = slCoreResponse.sonarProjects.Select(proj => new ServerProject(proj.key, proj.name)).ToList();
-                return new AdapterResponseWithData<List<ServerProject>>(true, serverProjects);
+                return new ResponseStatusWithData<List<ServerProject>>(true, serverProjects);
             }
             catch (Exception ex)
             {

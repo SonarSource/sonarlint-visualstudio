@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
 
             if (sharedBindingConfig?.GetServerType() is { } serverType && isStandalone)
             {
-                suggestSharedBindingGoldBar.Show(serverType, ShowManageBindingDialog);
+                suggestSharedBindingGoldBar.Show(serverType, ShowManageBindingDialog(sharedBindingConfig));
             }
         }
 
@@ -81,8 +81,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
             activeSolutionBoundTracker.SolutionBindingChanged -= OnActiveSolutionBindingChanged;
         }
 
-        private void ShowManageBindingDialog() =>
-            connectedModeUiManager.ShowManageBindingDialogAsync(new AutomaticBindingRequest.Shared()).Forget();
+        private Action ShowManageBindingDialog(SharedBindingConfigModel sharedBindingConfig) => () => connectedModeUiManager.ShowManageBindingDialogAsync(new BindingRequest.Shared(sharedBindingConfig)).Forget();
 
         private void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
         {
