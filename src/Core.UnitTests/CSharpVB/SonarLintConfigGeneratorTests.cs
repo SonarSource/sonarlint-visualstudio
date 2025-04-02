@@ -19,6 +19,8 @@
  */
 
 using SonarLint.VisualStudio.Core.CSharpVB;
+using SonarLint.VisualStudio.Integration.CSharpVB;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
@@ -34,6 +36,15 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
 
         [TestInitialize]
         public void TestInitialize() => testSubject = new SonarLintConfigGenerator(LanguageProvider.Instance);
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported() =>
+            MefTestHelpers.CheckTypeCanBeImported<SonarLintConfigGenerator, ISonarLintConfigGenerator>(
+                MefTestHelpers.CreateExport<ILanguageProvider>());
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton() =>
+            MefTestHelpers.CheckIsSingletonMefComponent<SonarLintConfigGenerator>();
 
         [TestMethod]
         public void Generate_NullArguments_Throws()

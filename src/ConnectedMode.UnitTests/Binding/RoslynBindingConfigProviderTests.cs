@@ -62,6 +62,18 @@ public class RoslynBindingConfigProviderTests
     }
 
     [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<RoslynBindingConfigProvider, IBindingConfigProvider>(
+            MefTestHelpers.CreateExport<ISonarQubeService>(),
+            MefTestHelpers.CreateExport<ISonarLintConfigGenerator>(),
+            MefTestHelpers.CreateExport<ILogger>(),
+            MefTestHelpers.CreateExport<ILanguageProvider>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() =>
+        MefTestHelpers.CheckIsSingletonMefComponent<RoslynBindingConfigProvider>();
+
+    [TestMethod]
     public void GetRules_UnsupportedLanguage_Throws()
     {
         var builder = new TestEnvironmentBuilder(validQualityProfile, Language.Cpp);
