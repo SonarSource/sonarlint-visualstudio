@@ -40,7 +40,7 @@
                         </DataTrigger.ExitActions>
                     </DataTrigger>
                     <DataTrigger Binding="{Binding ElementName=SuccessMessageWindow, Path=Text}" Value="{x:Null}">
-                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Setter Property="Visibility" Value="Hidden"/>
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
