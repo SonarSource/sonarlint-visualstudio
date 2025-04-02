@@ -48,7 +48,6 @@ internal partial class ManageBindingDialog : Window
         ConnectedModeUiServices = connectedModeUiServices;
         ViewModel = new ManageBindingViewModel(connectedModeServices,
             connectedModeBindingServices,
-            connectedModeUiServices,
             connectedModeUiManager,
             new ProgressReporterViewModel(connectedModeServices.Logger));
         InitializeComponent();
@@ -87,10 +86,7 @@ internal partial class ManageBindingDialog : Window
 
     private async void UseSharedBinding_OnClick(object sender, RoutedEventArgs e) => await ViewModel.PerformSharedBindingWithProgressAsync();
 
-    private async void ExportBindingConfigurationButton_OnClick(object sender, RoutedEventArgs e)
-    {
-        await ViewModel.ExportBindingConfigurationWithProgressAsync();
-    }
+    private async void ExportBindingConfigurationButton_OnClick(object sender, RoutedEventArgs e) => await ViewModel.ExportBindingConfigurationWithProgressAsync();
 
     private void ViewWebsite(object sender, RequestNavigateEventArgs e) => ConnectedModeUiServices.BrowserService.Navigate(e.Uri.AbsoluteUri);
 }

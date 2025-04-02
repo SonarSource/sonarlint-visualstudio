@@ -30,7 +30,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 internal sealed class ManageBindingViewModel(
     IConnectedModeServices connectedModeServices,
     IConnectedModeBindingServices connectedModeBindingServices,
-    IConnectedModeUIServices connectedModeUiServices,
     IConnectedModeUIManager connectedModeUiManager,
     IProgressReporterViewModel progressReporterViewModel)
     : ViewModelBase, IDisposable
