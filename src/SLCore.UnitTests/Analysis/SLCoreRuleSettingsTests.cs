@@ -31,7 +31,7 @@ public class SLCoreRuleSettingsTests
 {
     private const string RuleId = "dummyRule";
     private const string RuleId2 = "dummyRule2";
-    private readonly RulesSettings rulesSettings = new();
+    private readonly AnalysisSettings analysisSettings = new();
     private SlCoreRuleSettings slCoreRuleSettings;
     private IUserSettingsProvider userSettingsProvider;
     private ILogger logger;
@@ -161,13 +161,13 @@ public class SLCoreRuleSettingsTests
 
     private void AddRule(string ruleId, RuleLevel ruleLevel = RuleLevel.On, Dictionary<string, string> ruleParameters = null)
     {
-        rulesSettings.Rules.Add(ruleId, new RuleConfig { Level = ruleLevel, Parameters = ruleParameters});
+        analysisSettings.Rules.Add(ruleId, new RuleConfig { Level = ruleLevel, Parameters = ruleParameters});
         MockUserSettings();
     }
 
     private void MockUserSettings()
     {
-        userSettingsProvider.UserSettings.Returns(new UserSettings(rulesSettings));
+        userSettingsProvider.UserSettings.Returns(new UserSettings(analysisSettings));
     }
 
     private IRulesSLCoreService MockGetRulesSlCoreService()

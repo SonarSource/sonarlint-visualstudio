@@ -164,7 +164,7 @@ public class UserSettingsProviderTests
         var testSubject = CreateUserSettingsProvider(logger, new FileSystem(), singleFileMonitorFactory, settingsFile);
 
         // Sanity check of test setup
-        testSubject.UserSettings.RulesSettings.Rules.Count.Should().Be(0);
+        testSubject.UserSettings.AnalysisSettings.Rules.Count.Should().Be(0);
         File.Exists(settingsFile).Should().BeFalse();
 
         // Act - Disable a rule
@@ -184,7 +184,7 @@ public class UserSettingsProviderTests
         var dir = CreateTestSpecificDirectory();
         var settingsFile = Path.Combine(dir, "settings.txt");
 
-        var initialSettings = new RulesSettings
+        var initialSettings = new AnalysisSettings
         {
             Rules = new Dictionary<string, RuleConfig>
             {
@@ -200,7 +200,7 @@ public class UserSettingsProviderTests
         var testSubject = CreateUserSettingsProvider(logger, new FileSystem(), singleFileMonitorFactory, settingsFile);
 
         // Sanity check of test setup
-        testSubject.UserSettings.RulesSettings.Rules.Count.Should().Be(3);
+        testSubject.UserSettings.AnalysisSettings.Rules.Count.Should().Be(3);
 
         // Act - Disable a rule
         testSubject.DisableRule("cpp:S111");
@@ -221,9 +221,9 @@ public class UserSettingsProviderTests
         var dir = CreateTestSpecificDirectory();
         var settingsFile = Path.Combine(dir, "settings.txt");
         var testSubject = CreateUserSettingsProvider(testLogger, new FileSystem(), singleFileMonitorFactory, settingsFile);
-        testSubject.UserSettings.RulesSettings.Rules.Count.Should().Be(0);
+        testSubject.UserSettings.AnalysisSettings.Rules.Count.Should().Be(0);
 
-        var newSettings = new RulesSettings
+        var newSettings = new AnalysisSettings
         {
             Rules = new Dictionary<string, RuleConfig>
             {
@@ -233,7 +233,7 @@ public class UserSettingsProviderTests
         SaveSettings(settingsFile, newSettings);
         testSubject.SafeLoadUserSettings();
 
-        testSubject.UserSettings.RulesSettings.Rules.Count.Should().Be(1);
+        testSubject.UserSettings.AnalysisSettings.Rules.Count.Should().Be(1);
     }
 
     [TestMethod]
@@ -289,7 +289,7 @@ public class UserSettingsProviderTests
         int eventCount = 0;
         var settingsChangedEventReceived = new ManualResetEvent(initialState: false);
 
-        settingsProvider.UserSettings.RulesSettings.Rules.Count.Should().Be(0); // sanity check of setup
+        settingsProvider.UserSettings.AnalysisSettings.Rules.Count.Should().Be(0); // sanity check of setup
 
         settingsProvider.SettingsChanged += (s, args) =>
         {
@@ -310,8 +310,8 @@ public class UserSettingsProviderTests
         eventCount.Should().Be(1);
 
         // Check the data was actually reloaded from the file
-        settingsProvider.UserSettings.RulesSettings.Rules.Count.Should().Be(1);
-        settingsProvider.UserSettings.RulesSettings.Rules["typescript:S2685"].Level.Should().Be(RuleLevel.On);
+        settingsProvider.UserSettings.AnalysisSettings.Rules.Count.Should().Be(1);
+        settingsProvider.UserSettings.AnalysisSettings.Rules["typescript:S2685"].Level.Should().Be(RuleLevel.On);
     }
 
     [TestMethod]
@@ -335,20 +335,20 @@ public class UserSettingsProviderTests
     private static void CheckSettingsAreEmpty(UserSettings settings)
     {
         settings.Should().NotBeNull();
-        settings.RulesSettings.Should().NotBeNull();
-        settings.RulesSettings.Rules.Should().NotBeNull();
-        settings.RulesSettings.Rules.Count.Should().Be(0);
+        settings.AnalysisSettings.Should().NotBeNull();
+        settings.AnalysisSettings.Rules.Should().NotBeNull();
+        settings.AnalysisSettings.Rules.Count.Should().Be(0);
     }
 
-    private static void SaveSettings(string filePath, RulesSettings userSettings)
+    private static void SaveSettings(string filePath, AnalysisSettings userSettings)
     {
-        var serializer = new RulesSettingsSerializer(new FileSystem(), new TestLogger());
+        var serializer = new AnalysisSettingsSerializer(new FileSystem(), new TestLogger());
         serializer.SafeSave(filePath, userSettings);
     }
 
-    private RulesSettings LoadSettings(string filePath)
+    private AnalysisSettings LoadSettings(string filePath)
     {
-        var serializer = new RulesSettingsSerializer(new FileSystem(), new TestLogger());
+        var serializer = new AnalysisSettingsSerializer(new FileSystem(), new TestLogger());
         return serializer.SafeLoad(filePath);
     }
 

@@ -32,7 +32,7 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
 {
     private readonly IFileSystem fileSystem;
     private readonly ILogger logger;
-    private readonly RulesSettingsSerializer serializer;
+    private readonly AnalysisSettingsSerializer serializer;
     private UserSettings userSettings;
     private readonly ISingleFileMonitor settingsFileMonitor;
 
@@ -49,7 +49,7 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         var fileMonitorFactory = singleFileMonitorFactory ?? throw new ArgumentNullException(nameof(singleFileMonitorFactory));
-        this.serializer = new RulesSettingsSerializer(fileSystem, logger);
+        this.serializer = new AnalysisSettingsSerializer(fileSystem, logger);
 
         SettingsFilePath = settingsFilePath;
         settingsFileMonitor = fileMonitorFactory.Create(SettingsFilePath);
@@ -66,7 +66,7 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
         if (settings == null)
         {
             logger.WriteLine(Strings.Settings_UsingDefaultSettings);
-            settings = new RulesSettings();
+            settings = new AnalysisSettings();
         }
         userSettings = new UserSettings(settings);
         return userSettings;
@@ -78,16 +78,16 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
     {
         Debug.Assert(!string.IsNullOrEmpty(ruleId), "DisableRule: ruleId should not be null/empty");
 
-        if (UserSettings.RulesSettings.Rules.TryGetValue(ruleId, out var ruleConfig))
+        if (UserSettings.AnalysisSettings.Rules.TryGetValue(ruleId, out var ruleConfig))
         {
             ruleConfig.Level = RuleLevel.Off;
         }
         else
         {
-            UserSettings.RulesSettings.Rules[ruleId] = new RuleConfig { Level = RuleLevel.Off };
+            UserSettings.AnalysisSettings.Rules[ruleId] = new RuleConfig { Level = RuleLevel.Off };
         }
 
-        serializer.SafeSave(SettingsFilePath, UserSettings.RulesSettings);
+        serializer.SafeSave(SettingsFilePath, UserSettings.AnalysisSettings);
     }
 
     public string SettingsFilePath { get; }
@@ -96,7 +96,7 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
     {
         if (!fileSystem.File.Exists(SettingsFilePath))
         {
-            serializer.SafeSave(SettingsFilePath, UserSettings.RulesSettings);
+            serializer.SafeSave(SettingsFilePath, UserSettings.AnalysisSettings);
         }
     }
 

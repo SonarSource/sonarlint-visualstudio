@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -53,10 +54,14 @@ namespace SonarLint.VisualStudio.Core.UserRuleSettings
      */
 
     // Json-serializable data class
-    public class RulesSettings
+    public class AnalysisSettings
     {
         [JsonProperty("sonarlint.rules", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
         public Dictionary<string, RuleConfig> Rules { get; set; } = new Dictionary<string, RuleConfig>(StringComparer.OrdinalIgnoreCase);
+
+        [JsonIgnore] // todo https://sonarsource.atlassian.net/browse/SLVS-1997
+        [ExcludeFromCodeCoverage]
+        public string[] FileExclusions { get; init; } = [];
     }
 
     public class RuleConfig
