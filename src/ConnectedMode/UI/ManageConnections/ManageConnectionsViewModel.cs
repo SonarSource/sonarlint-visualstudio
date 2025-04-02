@@ -40,7 +40,7 @@ internal class ManageConnectionsViewModel(
     internal async Task LoadConnectionsWithProgressAsync()
     {
         var validationParams = new TaskToPerformParams<ResponseStatus>(
-            async () => await SafeExecuteActionAsync(InitializeConnectionViewModels),
+            InitializeConnectionViewModelsAsync,
             UiResources.LoadingConnectionsText,
             UiResources.LoadingConnectionsFailedText);
         await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
@@ -49,7 +49,7 @@ internal class ManageConnectionsViewModel(
     internal async Task RemoveConnectionWithProgressAsync(List<string> bindingKeysReferencedByConnection, ConnectionViewModel connectionViewModel)
     {
         var validationParams = new TaskToPerformParams<ResponseStatus>(
-            async () => await SafeExecuteActionAsync(() => RemoveConnectionViewModel(bindingKeysReferencedByConnection, connectionViewModel)),
+            async () => await RemoveConnectionViewModelAsync(bindingKeysReferencedByConnection, connectionViewModel),
             UiResources.RemovingConnectionText,
             UiResources.RemovingConnectionFailedText,
             string.Format(UiResources.RemovingConnectionSucceededText, connectionViewModel.Connection.Info.Id));
@@ -104,51 +104,35 @@ internal class ManageConnectionsViewModel(
     internal async Task CreateConnectionsWithProgressAsync(Connection connection, ICredentialsModel credentialsModel)
     {
         var validationParams = new TaskToPerformParams<ResponseStatus>(
-            async () => await SafeExecuteActionAsync(() => CreateNewConnection(connection, credentialsModel)),
+            async () => await CreateNewConnectionAsync(connection, credentialsModel),
             UiResources.CreatingConnectionProgressText,
             UiResources.CreatingConnectionFailedText,
             string.Format(UiResources.CreatingConnectionSucceededText, connection.Info.Id));
         await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
     }
 
-    internal async Task<ResponseStatus> SafeExecuteActionAsync(Func<bool> funcToExecute)
-    {
-        var succeeded = false;
-        try
-        {
-            await connectedModeServices.ThreadHandling.RunOnUIThreadAsync(() => succeeded = funcToExecute());
-        }
-        catch (Exception ex)
-        {
-            connectedModeServices.Logger.WriteLine(ex.Message);
-            succeeded = false;
-        }
-
-        return new ResponseStatus(succeeded);
-    }
-
-    internal bool InitializeConnectionViewModels()
+    internal async Task<ResponseStatus> InitializeConnectionViewModelsAsync()
     {
         ConnectionViewModels.Clear();
         var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryGetAllConnections(out var connections);
         connections?.ForEach(AddConnectionViewModel);
-        return succeeded;
+        return await Task.FromResult(new ResponseStatus(succeeded));
     }
 
     /// <summary>
-    ///     Deleting a connection involves removing the connection from the repository and deleting the bindings that reference that connection.
-    ///     This is not an atomic operation: if deleting a binding failed, then the connection will not be removed.
-    ///     Which means that some bindings could have been deleted in the process. This is acceptable as there is no user data loss and rebinding is an easy process.
+    /// Deleting a connection involves removing the connection from the repository and deleting the bindings that reference that connection.
+    /// This is not an atomic operation: if deleting a binding failed, then the connection will not be removed.
+    /// Which means that some bindings could have been deleted in the process. This is acceptable as there is no user data loss and rebinding is an easy process.
     /// </summary>
     /// <param name="referencedBindingKeys">The list of localBindingKeys that reference the connection to be removed </param>
     /// <param name="connectionViewModel">The <see cref="ConnectionViewModel" /> of the connection to be removed</param>
     /// <returns>Returns true if all the bindings and the connection have been deleted successfully</returns>
-    internal bool RemoveConnectionViewModel(List<string> referencedBindingKeys, ConnectionViewModel connectionViewModel)
+    internal async Task<ResponseStatus> RemoveConnectionViewModelAsync(List<string> referencedBindingKeys, ConnectionViewModel connectionViewModel)
     {
         var bindingsRemoved = DeleteBindings(referencedBindingKeys);
         if (!bindingsRemoved)
         {
-            return false;
+            return await Task.FromResult(new ResponseStatus(false));
         }
         var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryRemoveConnection(connectionViewModel.Connection.Info);
         if (succeeded)
@@ -156,7 +140,7 @@ internal class ManageConnectionsViewModel(
             ConnectionViewModels.Remove(connectionViewModel);
             RaisePropertyChanged(nameof(NoConnectionExists));
         }
-        return succeeded;
+        return await Task.FromResult(new ResponseStatus(succeeded));
     }
 
     internal async Task<ResponseStatus> EditCredentialsAsync(ConnectionViewModel connectionViewModel)
@@ -184,14 +168,14 @@ internal class ManageConnectionsViewModel(
         return true;
     }
 
-    internal bool CreateNewConnection(Connection connection, ICredentialsModel credentialsModel)
+    internal async Task<ResponseStatus> CreateNewConnectionAsync(Connection connection, ICredentialsModel credentialsModel)
     {
         var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryAddConnection(connection, credentialsModel);
         if (succeeded)
         {
             AddConnectionViewModel(connection);
         }
-        return succeeded;
+        return await Task.FromResult(new ResponseStatus(succeeded));
     }
 
     internal void AddConnectionViewModel(Connection connection)
