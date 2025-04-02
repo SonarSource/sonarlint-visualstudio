@@ -23,30 +23,30 @@ using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.Core.UserRuleSettings
 {
-    public interface IRulesSettingsSerializer
+    public interface IAnalysisSettingsSerializer
     {
-        RulesSettings SafeLoad(string filePath);
-        void SafeSave(string filePath, RulesSettings data);
+        AnalysisSettings SafeLoad(string filePath);
+        void SafeSave(string filePath, AnalysisSettings data);
     }
 
     /// <summary>
     /// Loads and saves rules settings to disc.
     /// Logs user-friendly messages and suppresses non-critical exceptions.
     /// </summary>
-    public class RulesSettingsSerializer : IRulesSettingsSerializer
+    public class AnalysisSettingsSerializer : IAnalysisSettingsSerializer
     {
         private readonly IFileSystem fileSystem;
         private readonly ILogger logger;
 
-        public RulesSettingsSerializer(IFileSystem fileSystem, ILogger logger)
+        public AnalysisSettingsSerializer(IFileSystem fileSystem, ILogger logger)
         {
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public RulesSettings SafeLoad(string filePath)
+        public AnalysisSettings SafeLoad(string filePath)
         {
-            RulesSettings settings = null;
+            AnalysisSettings settings = null;
             if (!fileSystem.File.Exists(filePath))
             {
                 logger?.WriteLine(CoreStrings.Settings_NoSettingsFile, filePath);
@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Core.UserRuleSettings
                 {
                     logger?.WriteLine(CoreStrings.Settings_LoadedSettingsFile, filePath);
                     var data = fileSystem.File.ReadAllText(filePath);
-                    settings = JsonConvert.DeserializeObject<RulesSettings>(data);
+                    settings = JsonConvert.DeserializeObject<AnalysisSettings>(data);
                 }
                 catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Core.UserRuleSettings
             return settings;
         }
 
-        public void SafeSave(string filePath, RulesSettings data)
+        public void SafeSave(string filePath, AnalysisSettings data)
         {
             try
             {

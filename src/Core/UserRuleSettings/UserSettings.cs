@@ -22,11 +22,11 @@ namespace SonarLint.VisualStudio.Core.UserRuleSettings
 {
     public class UserSettings
     {
-        public UserSettings(RulesSettings rulesSettings)
+        public UserSettings(AnalysisSettings analysisSettings)
         {
-            this.RulesSettings = rulesSettings ?? throw new ArgumentNullException(nameof(rulesSettings));
+            this.AnalysisSettings = analysisSettings ?? throw new ArgumentNullException(nameof(analysisSettings));
         }
 
-        public RulesSettings RulesSettings { get; }
+        public AnalysisSettings AnalysisSettings { get; }
     }
 }
