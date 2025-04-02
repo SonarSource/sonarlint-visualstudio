@@ -20,10 +20,11 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using SonarLint.VisualStudio.Core.CSharpVB;
 
 namespace SonarQube.Client.Models
 {
-    public class SonarQubeRule
+    public class SonarQubeRule : IRuleParameters
     {
         /// <summary>
         /// Singleton to prevent creating unnecessary objects

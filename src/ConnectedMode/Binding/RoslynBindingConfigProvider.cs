@@ -46,8 +46,8 @@ internal class RoslynBindingConfigProvider : IBindingConfigProvider
     private readonly ISonarLintConfigGenerator sonarLintConfigGenerator;
 
     [ImportingConstructor]
-    public RoslynBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger, ILanguageProvider languageProvider)
-        : this(sonarQubeService, logger, new GlobalConfigGenerator(), new SonarLintConfigGenerator(languageProvider), languageProvider)
+    public RoslynBindingConfigProvider(ISonarQubeService sonarQubeService, ISonarLintConfigGenerator sonarLintConfigGenerator, ILogger logger, ILanguageProvider languageProvider)
+        : this(sonarQubeService, logger, new GlobalConfigGenerator(), sonarLintConfigGenerator, languageProvider)
     {
     }
 

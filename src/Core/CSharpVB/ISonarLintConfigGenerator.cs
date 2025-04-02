@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using SonarQube.Client.Models;
-
 namespace SonarLint.VisualStudio.Core.CSharpVB
 {
     public interface ISonarLintConfigGenerator
@@ -28,9 +25,25 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
         /// <summary>
         /// Generates the data for a SonarLint.xml file for the specified language
         /// </summary>
-        SonarLintConfiguration Generate(IEnumerable<SonarQubeRule> rules,
+        SonarLintConfiguration Generate(IEnumerable<IRuleParameters> rules,
             IDictionary<string, string> sonarProperties,
-            ServerExclusions serverExclusions,
+            IFileExclusions fileExclusions,
             Language language);
+    }
+
+    public interface IRuleParameters
+    {
+        string Key { get; }
+        string RepositoryKey { get; }
+        IReadOnlyDictionary<string, string> Parameters { get; }
+    }
+
+    public interface IFileExclusions
+    {
+        string[] Exclusions { get; set; }
+        string[] GlobalExclusions { get; set; }
+        string[] Inclusions { get; set; }
+
+        Dictionary<string, string> ToDictionary();
     }
 }
