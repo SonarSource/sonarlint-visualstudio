@@ -103,6 +103,12 @@ internal class ManageConnectionsViewModel(
 
     internal async Task CreateConnectionsWithProgressAsync(Connection connection, ICredentialsModel credentialsModel)
     {
+        if (connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(connection.Info, out var serverConnection) && serverConnection != null)
+        {
+            ProgressReporterViewModel.Warning = UiResources.ConnectionAlreadyExistsText;
+            return;
+        }
+
         var validationParams = new TaskToPerformParams<ResponseStatus>(
             () => CreateNewConnectionAsync(connection, credentialsModel),
             UiResources.CreatingConnectionProgressText,
