@@ -33,52 +33,53 @@
 
         <Button Grid.Column="0" Grid.Row="0" Content="Edit Settings"
                 Height="24"
-                Margin="5" Padding="5,2.5" 
-                Command="{Binding Path=OpenSettingsFileCommand}"/>
+                Margin="5" Padding="5,2.5"
+                Command="{Binding Path=OpenSettingsFileCommand}" />
         <TextBlock Grid.Column="1" Grid.Row="0"
                    VerticalAlignment="Center"
                    Margin="5"
-                   Text="{x:Static res:Strings.OpenSettingsFileText}"
-                   />
+                   Text="{x:Static res:Strings.OpenSettingsFileText}" />
         <StackPanel Grid.Column="1" Grid.Row="1">
             <TextBlock
-                   VerticalAlignment="Center"
-                   Margin="5,0,0,5" Text="{x:Static res:Strings.SettingsFileWillBeCreatedText}" />
+                VerticalAlignment="Center"
+                Margin="5,0,0,5" Text="{x:Static res:Strings.SettingsFileWillBeCreatedText}" />
             <TextBlock
-                   VerticalAlignment="Center"
-                   Margin="5,8,0,5">
-                <Run Text="{x:Static res:Strings.SettingsFileIgnoredText}"/>
-                <Run Text="See the"/> <Hyperlink Command="{Binding Path=ShowWikiCommand}">wiki</Hyperlink> <Run Text="for more information."/>
+                VerticalAlignment="Center"
+                Margin="5,8,0,5">
+                <Run Text="{x:Static res:Strings.SettingsFileIgnoredText}" />
+                <Run Text="See the" /> <Hyperlink Command="{Binding Path=ShowWikiCommand}">wiki</Hyperlink>
+                <Run Text="for more information." />
             </TextBlock>
         </StackPanel>
 
-        <StackPanel x:Name="VerbosityPanel" Grid.Row="2" Grid.ColumnSpan="2">
-
+        <StackPanel Grid.Column="0" x:Name="VerbosityPanel" Grid.Row="2" Grid.ColumnSpan="2">
             <TextBlock Text="Logging level:"
                        Margin="5" />
 
             <ComboBox SelectedIndex="2" HorizontalContentAlignment="Stretch" Margin="5" Padding="5,2.5"
-                      ItemsSource="{Binding Path=DaemonLogLevels}" SelectedItem="{Binding Path=SelectedDaemonLogLevel}"/>
+                      ItemsSource="{Binding Path=DaemonLogLevels}" SelectedItem="{Binding Path=SelectedDaemonLogLevel}" />
         </StackPanel>
 
-        <GroupBox Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="5" Padding="0,5" Header="{x:Static res:Strings.JreLocationLabel}">
+        <GroupBox Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Margin="5" Padding="0,5"
+                  Header="{x:Static res:Strings.JreLocationLabel}">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0" Text="{x:Static res:Strings.JreLocationDescriptionText}" />
-                <TextBox Grid.Row="1" Margin="0,5" Text="{Binding Path=JreLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBox Grid.Row="1" Margin="0,5"
+                         Text="{Binding Path=JreLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 <TextBlock Grid.Row="2" Text="{x:Static res:Strings.RestartIdeToApplyOptionLabel}" />
             </Grid>
         </GroupBox>
 
         <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="5" Orientation="Vertical">
-            <TextBlock Text="{x:Static res:Strings.CloudSettings}" Margin="0,0,0,5"/>
+            <TextBlock Text="{x:Static res:Strings.CloudSettings}" Margin="0,0,0,5" />
             <CheckBox Content="{x:Static res:Strings.ShowRegionCheckbox}" IsChecked="{Binding Path=ShowCloudRegion}"
-                      VerticalContentAlignment="Center"/>
+                      VerticalContentAlignment="Center" />
         </StackPanel>
 
     </Grid>
