@@ -325,6 +325,8 @@ internal sealed class ManageBindingViewModel(
         return new ResponseStatus(succeeded);
     }
 
+    internal void ShowInvalidTokenWarningIfNeeded() => ProgressReporter.Warning = GetInvalidTokenForSelectedConnectionWarning();
+
     private void UpdateBoundProjectProperties(ServerConnection serverConnection, ServerProject selectedServerProject)
     {
         SelectedConnectionInfo = serverConnection == null ? null : ConnectionInfo.From(serverConnection);
@@ -338,4 +340,9 @@ internal sealed class ManageBindingViewModel(
         var isFolderWorkspace = await connectedModeBindingServices.SolutionInfoProvider.IsFolderWorkspaceAsync();
         return new SolutionInfoModel(solutionName, isFolderWorkspace ? SolutionType.Folder : SolutionType.Solution);
     }
+
+    private string GetInvalidTokenForSelectedConnectionWarning() => CurrentConnectionHasInvalidToken() ? InvalidTokenForSelectedConnectionWarningText : null;
+
+    private bool CurrentConnectionHasInvalidToken() =>
+        SelectedConnectionInfo != null && connectedModeServices.ServerConnectionsRepositoryAdapter.HasInvalidToken(new Connection(SelectedConnectionInfo));
 }

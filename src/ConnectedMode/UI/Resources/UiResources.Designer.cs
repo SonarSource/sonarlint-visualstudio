@@ -557,6 +557,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The credentials for the selected connection has expired..
+        /// </summary>
+        public static string InvalidTokenForSelectedConnectionWarningText {
+            get {
+                return ResourceManager.GetString("InvalidTokenForSelectedConnectionWarningText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The token for this connection is invalid. Edit the authentication details by clicking on the edit button..
         /// </summary>
         public static string InvalidTokenToolTip {

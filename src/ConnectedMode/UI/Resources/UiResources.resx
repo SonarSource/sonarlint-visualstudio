@@ -514,4 +514,7 @@ Please commit this file to share it with other contributors. See documentation f
   <data name="UpdatingConnectionCredentialsSucceededText" xml:space="preserve">
     <value>The credentials for the connection '{0}' were successfully updated.</value>
   </data>
+  <data name="InvalidTokenForSelectedConnectionWarningText" xml:space="preserve">
+    <value>The credentials for the selected connection has expired.</value>
+  </data>
 </root>
