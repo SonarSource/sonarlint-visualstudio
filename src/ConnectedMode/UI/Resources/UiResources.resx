@@ -497,21 +497,21 @@ Please commit this file to share it with other contributors. See documentation f
     <value>Project was not found.</value>
   </data>
   <data name="BindingSucceededText" xml:space="preserve">
-    <value>Binding the current project was performed successfully.</value>
+    <value>The current project was successfully bound.</value>
   </data>
   <data name="CreatingConnectionSucceededText" xml:space="preserve">
     <value>The connection '{0}' was successfully created.</value>
   </data>
   <data name="GeneratingTokenSucceededText" xml:space="preserve">
-    <value>A token has been generated for the connection '{0}'.</value>
+    <value>A token was successfully generated for the connection '{0}'.</value>
   </data>
   <data name="RemovingConnectionSucceededText" xml:space="preserve">
-    <value>Connection '{0}' was successfully removed. </value>
+    <value>The connection '{0}' was successfully removed.</value>
   </data>
   <data name="UnbindingSucceededText" xml:space="preserve">
     <value>The current project was successfully unbound.</value>
   </data>
   <data name="UpdatingConnectionCredentialsSucceededText" xml:space="preserve">
-    <value>The credentials were updated successfully for the connection '{0}'.</value>
+    <value>The credentials for the connection '{0}' were successfully updated.</value>
   </data>
 </root>
