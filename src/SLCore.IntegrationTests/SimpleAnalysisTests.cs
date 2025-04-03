@@ -111,6 +111,7 @@ public class SimpleAnalysisTests
            For the compiler we use the MSVC which is set as an environment variable. Make sure the environment variable is set to point to the compiler path
            (the absolute path to cl.exe). */
         var compilerPath = NormalizePath(Environment.GetEnvironmentVariable("MSVC"));
+        File.Exists(compilerPath).Should().BeTrue(compilerPath);
         var cFamilyIssuesFileAbsolutePath = NormalizePath(FileAnalysisTestsRunner.CFamilyIssues.GetFullPath());
         var analysisDirectory = NormalizePath(Path.GetDirectoryName(cFamilyIssuesFileAbsolutePath));
         var jsonContent = $$"""
