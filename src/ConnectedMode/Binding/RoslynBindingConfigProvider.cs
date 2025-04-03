@@ -35,35 +35,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding;
 /// </summary>
 [Export(typeof(IBindingConfigProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class RoslynBindingConfigProvider : IBindingConfigProvider
+[method: ImportingConstructor]
+internal class RoslynBindingConfigProvider(
+    ISonarQubeService sonarQubeService,
+    ILogger logger,
+    IGlobalConfigGenerator globalConfigGenerator,
+    ISonarLintConfigGenerator sonarLintConfigGenerator,
+    ILanguageProvider languageProvider)
+    : IBindingConfigProvider
 {
-    private readonly ILanguageProvider languageProvider;
     private const string TaintAnalysisRepoPrefix = "roslyn.sonaranalyzer.security.";
-
-    private readonly ISonarQubeService sonarQubeService;
-    private readonly ILogger logger;
-    private readonly IGlobalConfigGenerator globalConfigGenerator;
-    private readonly ISonarLintConfigGenerator sonarLintConfigGenerator;
-
-    [ImportingConstructor]
-    public RoslynBindingConfigProvider(ISonarQubeService sonarQubeService, ISonarLintConfigGenerator sonarLintConfigGenerator, ILogger logger, ILanguageProvider languageProvider)
-        : this(sonarQubeService, logger, new GlobalConfigGenerator(), sonarLintConfigGenerator, languageProvider)
-    {
-    }
-
-    internal /* for testing */ RoslynBindingConfigProvider(
-        ISonarQubeService sonarQubeService,
-        ILogger logger,
-        IGlobalConfigGenerator globalConfigGenerator,
-        ISonarLintConfigGenerator sonarLintConfigGenerator,
-        ILanguageProvider languageProvider)
-    {
-        this.sonarQubeService = sonarQubeService;
-        this.logger = logger;
-        this.globalConfigGenerator = globalConfigGenerator;
-        this.sonarLintConfigGenerator = sonarLintConfigGenerator;
-        this.languageProvider = languageProvider;
-    }
+    private readonly IEnvironmentSettings environmentSettings = new EnvironmentSettings();
 
     public bool IsLanguageSupported(Language language) => languageProvider.RoslynLanguages.Contains(language);
 
@@ -131,7 +113,7 @@ internal class RoslynBindingConfigProvider : IBindingConfigProvider
         IEnumerable<SonarQubeRule> activeRules,
         IEnumerable<SonarQubeRule> inactiveRules)
     {
-        var globalConfig = globalConfigGenerator.Generate(activeRules.Union(inactiveRules));
+        var globalConfig = globalConfigGenerator.Generate(activeRules.Union(inactiveRules).Select(x => new SonarQubeRoslynRuleStatus(x, environmentSettings)));
 
         var globalConfigFilePath = GetSolutionGlobalConfigFilePath(language, bindingConfiguration);
 

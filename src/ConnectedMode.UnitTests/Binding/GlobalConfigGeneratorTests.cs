@@ -19,10 +19,8 @@
  */
 
 using System.Text;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CSharpVB;
-using SonarQube.Client.Models;
+using SonarLint.VisualStudio.Integration.CSharpVB;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding;
 
@@ -30,14 +28,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding;
 public class GlobalConfigGeneratorTests
 {
     private GlobalConfigGenerator testSubject;
-    private IEnvironmentSettings environmentSettings;
 
     [TestInitialize]
-    public void TestInitialize()
-    {
-        environmentSettings = Substitute.For<IEnvironmentSettings>();
-        testSubject = new GlobalConfigGenerator(environmentSettings);
-    }
+    public void TestInitialize() => testSubject = new GlobalConfigGenerator();
 
     [TestMethod]
     public void Generate_RulesAreNull_ThrowsNullException()
@@ -49,9 +42,9 @@ public class GlobalConfigGeneratorTests
     [TestMethod]
     public void Generate_MultipleRules_RulesAreSorted()
     {
-        List<SonarQubeRule> rules =
+        List<IRoslynRuleStatus> rules =
         [
-            CreateRule("3", ""), CreateRule("5", ""), CreateRule("2", ""), CreateRule("8", "")
+            CreateRule("3"), CreateRule("5"), CreateRule("2"), CreateRule("8")
         ];
 
         var result = testSubject.Generate(rules);
@@ -70,9 +63,7 @@ public class GlobalConfigGeneratorTests
     [TestMethod]
     public void Generate_GlobalConfigSettingsAreCorrect()
     {
-        var rules = new List<SonarQubeRule>() { };
-
-        var result = testSubject.Generate(rules);
+        var result = testSubject.Generate([]);
 
         var sb = new StringBuilder();
         sb.AppendLine("is_global=true");
@@ -89,124 +80,31 @@ public class GlobalConfigGeneratorTests
     [DataRow(RuleAction.Hidden, "silent")]
     public void GetActionText_Valid(RuleAction action, string expected)
     {
-        GlobalConfigGenerator.GetActionText(action).Should().Be(expected);
+        var sb = new StringBuilder();
+        sb.AppendLine("is_global=true");
+        sb.AppendLine("global_level=1999999999");
+        sb.AppendLine(GetRuleString("rulekey", expected));
+
+        var result = testSubject.Generate([CreateRule("rulekey", action)]);
+
+        result.Should().Be(sb.ToString());
     }
 
     [TestMethod]
     public void GetActionText_Invalid()
     {
-        Action act = () => GlobalConfigGenerator.GetActionText((RuleAction)(-1));
-        act.Should().Throw<NotSupportedException>();
+        Action act = () => testSubject.Generate([CreateRule("rulekey", (RuleAction)(-1))]);;
+        act.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [TestMethod]
-    [DataRow(SonarQubeIssueSeverity.Info, RuleAction.Info)]
-    [DataRow(SonarQubeIssueSeverity.Minor, RuleAction.Info)]
-    [DataRow(SonarQubeIssueSeverity.Major, RuleAction.Warning)]
-    [DataRow(SonarQubeIssueSeverity.Critical, RuleAction.Warning)]
-    public void GetVSSeverity_NotBlocker_CorrectlyMapped(SonarQubeIssueSeverity sqSeverity, RuleAction expectedVsSeverity)
+    private static IRoslynRuleStatus CreateRule(string key, RuleAction action = RuleAction.Info)
     {
-        testSubject.GetVsSeverity(sqSeverity).Should().Be(expectedVsSeverity);
+        var roslynRuleStatus = Substitute.For<IRoslynRuleStatus>();
+        roslynRuleStatus.Key.Returns(key);
+        roslynRuleStatus.GetSeverity().Returns(action);
+        return roslynRuleStatus;
     }
 
-    [TestMethod]
-    [DataRow(true, RuleAction.Error)]
-    [DataRow(false, RuleAction.Warning)]
-    public void GetVSSeverity_Blocker_CorrectlyMapped(bool shouldTreatBlockerAsError, RuleAction expectedVsSeverity)
-    {
-        environmentSettings.TreatBlockerSeverityAsError().Returns(shouldTreatBlockerAsError);
-
-        testSubject.GetVsSeverity(SonarQubeIssueSeverity.Blocker).Should().Be(expectedVsSeverity);
-    }
-
-    [TestMethod]
-    [DataRow(SonarQubeIssueSeverity.Unknown)]
-    [DataRow((SonarQubeIssueSeverity)(-1))]
-    public void GetVSSeverity_Invalid_Throws(SonarQubeIssueSeverity sqSeverity)
-    {
-        Action act = () => testSubject.GetVsSeverity(sqSeverity);
-        act.Should().Throw<NotSupportedException>();
-    }
-
-    [DataTestMethod]
-    [DataRow(SonarQubeSoftwareQualitySeverity.Info, RuleAction.Info)]
-    [DataRow(SonarQubeSoftwareQualitySeverity.Low, RuleAction.Info)]
-    [DataRow(SonarQubeSoftwareQualitySeverity.Medium, RuleAction.Warning)]
-    public void GetVSSeverity_FromSoftwareQualitySeverity_NotBlocker_CorrectlyMapped(SonarQubeSoftwareQualitySeverity sqSeverity, RuleAction expectedVsSeverity)
-    {
-        testSubject.GetVsSeverity([sqSeverity]).Should().Be(expectedVsSeverity);
-    }
-
-    [TestMethod]
-    [DataRow(SonarQubeSoftwareQualitySeverity.High, true, RuleAction.Error)]
-    [DataRow(SonarQubeSoftwareQualitySeverity.High, false, RuleAction.Warning)]
-    [DataRow(SonarQubeSoftwareQualitySeverity.Blocker, true, RuleAction.Error)]
-    [DataRow(SonarQubeSoftwareQualitySeverity.Blocker, false, RuleAction.Warning)]
-    public void GetVSSeverity_FromSoftwareQualitySeverity_Blocker_CorrectlyMapped(SonarQubeSoftwareQualitySeverity sqSeverity, bool shouldTreatBlockerAsError, RuleAction expectedVsSeverity)
-    {
-        environmentSettings.TreatBlockerSeverityAsError().Returns(shouldTreatBlockerAsError);
-
-        testSubject.GetVsSeverity([sqSeverity]).Should().Be(expectedVsSeverity);
-    }
-
-    [TestMethod]
-    public void GetVSSeverity_FromSoftwareQualitySeverity_Invalid_Throws()
-    {
-        Action act = () => testSubject.GetVsSeverity([(SonarQubeSoftwareQualitySeverity)(-1)]);
-        act.Should().Throw<NotSupportedException>();
-    }
-
-    [TestMethod]
-    public void GetVSSeverity_FromSoftwareQualitySeverity_Multiple_TakesHighest()
-    {
-        testSubject.GetVsSeverity([SonarQubeSoftwareQualitySeverity.Blocker, SonarQubeSoftwareQualitySeverity.Low]).Should().Be(RuleAction.Warning);
-        testSubject.GetVsSeverity([SonarQubeSoftwareQualitySeverity.Low, SonarQubeSoftwareQualitySeverity.Blocker]).Should().Be(RuleAction.Warning);
-        testSubject.GetVsSeverity([SonarQubeSoftwareQualitySeverity.Blocker, SonarQubeSoftwareQualitySeverity.Blocker]).Should().Be(RuleAction.Warning);
-        testSubject.GetVsSeverity([SonarQubeSoftwareQualitySeverity.Low, SonarQubeSoftwareQualitySeverity.Info]).Should().Be(RuleAction.Info);
-        testSubject.GetVsSeverity([SonarQubeSoftwareQualitySeverity.Low, SonarQubeSoftwareQualitySeverity.Info, SonarQubeSoftwareQualitySeverity.High]).Should().Be(RuleAction.Warning);
-    }
-
-    [TestMethod]
-    public void GetVSSeverity_FromSoftwareQualitySeverity_Null_ReturnsNull()
-    {
-        testSubject.GetVsSeverity((ICollection<SonarQubeSoftwareQualitySeverity>)null).Should().BeNull();
-    }
-
-    [TestMethod]
-    public void GetVSSeverity_FromSoftwareQualitySeverity_Empty_ReturnsNull()
-    {
-        testSubject.GetVsSeverity([]).Should().BeNull();
-    }
-
-    [TestMethod]
-    public void GetVsSeverity_FromRule_MQRPresent_PrefersMQR()
-    {
-        var ruleWithMqr = CreateRule(new() { { SonarQubeSoftwareQuality.Maintainability, SonarQubeSoftwareQualitySeverity.Low } }, SonarQubeIssueSeverity.Blocker);
-
-        testSubject.GetVsSeverity(ruleWithMqr).Should().Be(RuleAction.Info);
-    }
-
-    [TestMethod]
-    public void GetVsSeverity_FromRule_MQRNotPresent_UsesStandard()
-    {
-        var ruleWithMqr = CreateRule(null, SonarQubeIssueSeverity.Blocker);
-
-        testSubject.GetVsSeverity(ruleWithMqr).Should().Be(RuleAction.Warning);
-    }
-
-    private static SonarQubeRule CreateRule(Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity> mqrSeverity, SonarQubeIssueSeverity severity) =>
-        new(default,
-            default,
-            default,
-            severity,
-            default,
-            mqrSeverity,
-            default,
-            default);
-
-    private static SonarQubeRule CreateRule(string ruleKey, string repoKey, bool isActive = true) =>
-        new SonarQubeRule(ruleKey, repoKey, isActive, SonarQubeIssueSeverity.Info, null, null, new Dictionary<string, string>(), SonarQubeIssueType.Unknown);
-
-    private string GetRuleString(string expectedKey, string expectedSeverity) =>
+    private static string GetRuleString(string expectedKey, string expectedSeverity) =>
         $"dotnet_diagnostic.{expectedKey}.severity = {expectedSeverity}";
 }
