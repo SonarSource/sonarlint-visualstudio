@@ -320,11 +320,14 @@ public class ManageConnectionsViewModelTest
             info[1] = new SonarCloud(connectionToAdd.Info.Id);
             return true;
         });
+        Task<ResponseStatus> taskResponse = null;
+        await progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Do<TaskToPerformParams<ResponseStatus>>(x => taskResponse = x.TaskToPerform()));
 
         await testSubject.CreateConnectionsWithProgressAsync(connectionToAdd, Substitute.For<ICredentialsModel>());
 
-        progressReporterViewModel.Warning.Should().Be(UiResources.ConnectionAlreadyExistsText);
-        await progressReporterViewModel.DidNotReceive().ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus>>());
+        var actualResponseStatus = await taskResponse;
+        actualResponseStatus.Success.Should().BeFalse();
+        actualResponseStatus.WarningText.Should().Be(UiResources.ConnectionAlreadyExistsText);
     }
 
     [TestMethod]
