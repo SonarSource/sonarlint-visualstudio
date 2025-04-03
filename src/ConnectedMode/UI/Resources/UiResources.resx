@@ -515,6 +515,6 @@ Please commit this file to share it with other contributors. See documentation f
     <value>The credentials for the connection '{0}' were successfully updated.</value>
   </data>
   <data name="InvalidTokenForSelectedConnectionWarningText" xml:space="preserve">
-    <value>The credentials for the selected connection has expired.</value>
+    <value>The token for the selected connection is invalid.</value>
   </data>
 </root>

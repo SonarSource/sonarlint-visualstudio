@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Binding the current project was performed successfully..
+        ///   Looks up a localized string similar to The current project was successfully bound..
         /// </summary>
         public static string BindingSucceededText {
             get {
@@ -539,7 +539,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A token has been generated for the connection &apos;{0}&apos;..
+        ///   Looks up a localized string similar to A token was successfully generated for the connection &apos;{0}&apos;..
         /// </summary>
         public static string GeneratingTokenSucceededText {
             get {
@@ -557,7 +557,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The credentials for the selected connection has expired..
+        ///   Looks up a localized string similar to The token for the selected connection is invalid..
         /// </summary>
         public static string InvalidTokenForSelectedConnectionWarningText {
             get {
@@ -872,7 +872,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Connection &apos;{0}&apos; was successfully removed. .
+        ///   Looks up a localized string similar to The connection &apos;{0}&apos; was successfully removed..
         /// </summary>
         public static string RemovingConnectionSucceededText {
             get {
@@ -1205,7 +1205,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The credentials were updated successfully for the connection &apos;{0}&apos;..
+        ///   Looks up a localized string similar to The credentials for the connection &apos;{0}&apos; were successfully updated..
         /// </summary>
         public static string UpdatingConnectionCredentialsSucceededText {
             get {
