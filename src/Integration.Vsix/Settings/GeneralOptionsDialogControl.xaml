@@ -31,14 +31,14 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <Button Grid.Column="0" Grid.Row="0" Content="Edit rules settings"
+        <Button Grid.Column="0" Grid.Row="0" Content="Edit Settings"
                 Height="24"
                 Margin="5" Padding="5,2.5" 
                 Command="{Binding Path=OpenSettingsFileCommand}"/>
         <TextBlock Grid.Column="1" Grid.Row="0"
                    VerticalAlignment="Center"
                    Margin="5"
-                   ><Run Text="Open the per-user settings file"/><Run Text=" in which C/C++/JavaScript/TypeScript rules can be activated/deactivated."/></TextBlock>
+                   ><Run Text="Open the per-user settings file"/><Run Text=" in which rules can be activated/deactivated and files can be excluded from analysis."/></TextBlock>
         <StackPanel Grid.Column="1" Grid.Row="1">
             <TextBlock
                    VerticalAlignment="Center"
@@ -46,7 +46,7 @@
             <TextBlock
                    VerticalAlignment="Center"
                    Margin="5,8,0,5">
-                Note: per-user settings are ignored for C/C++ for solutions using connected mode.
+                Note: per-user settings are ignored for solutions using connected mode.
                 See the <Hyperlink Command="{Binding Path=ShowWikiCommand}">wiki</Hyperlink>
                 for more information.
             </TextBlock>
