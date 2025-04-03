@@ -895,6 +895,18 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
+    public async Task DisplayBindStatusAsync_WhenProjectIsBoundButProjectNotFound_AndCurrentConnectionHasInvalidToken_ReturnsInvalidTokenWarning()
+    {
+        var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
+        SetupBoundProjectThatDoesNotExistOnServer(sonarCloudConnection, "a-server-project");
+        MockHasInvalidToken(sonarCloudConnection.ToConnection().Info, hasInvalidToken: true);
+
+        var response = await testSubject.DisplayBindStatusAsync();
+
+        response.WarningText.Should().Be(UiResources.InvalidTokenForSelectedConnectionWarningText);
+    }
+
+    [TestMethod]
     public async Task DisplayBindStatusAsync_WhenProjectWasBoundAndBecomesUnbound_UpdatesCurrentProjectAndBindingInfoToNull()
     {
         await InitializeBoundProject();
