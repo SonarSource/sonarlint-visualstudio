@@ -187,6 +187,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Edit Settings.
+        /// </summary>
+        public static string EditSettingsButtonText {
+            get {
+                return ResourceManager.GetString("EditSettingsButtonText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error occurred initializing the daemon package: {0}.
         /// </summary>
         public static string ERROR_InitializingDaemon {
@@ -387,11 +396,38 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Open the per-user settings file in which rules can be activated/deactivated and files can be excluded from analysis..
+        /// </summary>
+        public static string OpenSettingsFileText {
+            get {
+                return ResourceManager.GetString("OpenSettingsFileText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Note: The IDE must be restarted for this setting to be applied..
         /// </summary>
         public static string RestartIdeToApplyOptionLabel {
             get {
                 return ResourceManager.GetString("RestartIdeToApplyOptionLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Note: per-user settings are ignored for solutions using connected mode..
+        /// </summary>
+        public static string SettingsFileIgnoredText {
+            get {
+                return ResourceManager.GetString("SettingsFileIgnoredText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The file will be created if it does not exist..
+        /// </summary>
+        public static string SettingsFileWillBeCreatedText {
+            get {
+                return ResourceManager.GetString("SettingsFileWillBeCreatedText", resourceCulture);
             }
         }
         
