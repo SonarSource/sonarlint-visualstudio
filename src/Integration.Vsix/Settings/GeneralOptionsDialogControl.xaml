@@ -52,11 +52,10 @@
             </TextBlock>
         </StackPanel>
 
-        <StackPanel Grid.Column="0" x:Name="VerbosityPanel" Grid.Row="2" Grid.ColumnSpan="2">
-            <TextBlock Text="Logging level:"
-                       Margin="5" />
+        <StackPanel Grid.Column="0" x:Name="VerbosityPanel" Grid.Row="2" Grid.ColumnSpan="2" Margin="5">
+            <TextBlock Text="Logging level:" />
 
-            <ComboBox SelectedIndex="2" HorizontalContentAlignment="Stretch" Margin="5" Padding="5,2.5"
+            <ComboBox SelectedIndex="2" HorizontalContentAlignment="Stretch" Margin="0,5,0,0" Padding="5,2.5"
                       ItemsSource="{Binding Path=DaemonLogLevels}" SelectedItem="{Binding Path=SelectedDaemonLogLevel}" />
         </StackPanel>
 
