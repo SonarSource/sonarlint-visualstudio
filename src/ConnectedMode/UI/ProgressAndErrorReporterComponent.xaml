@@ -13,13 +13,15 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible"/>
+            <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Hidden" TrueValue="Visible"/>
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleFalseToHiddenConverter" FalseValue="Hidden" TrueValue="Visible"/>
+            <wpf:BoolToVisibilityConverter x:Key="FalseToVisibleConverter" FalseValue="Visible" TrueValue="Hidden"/>
         </ResourceDictionary>
     </UserControl.Resources>
 
     <Grid DataContext="{Binding ElementName=ProgressAndErrorHandlerUc, Path=ProgressReporterViewModel}">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -29,9 +31,11 @@
             <TextBlock Text="{Binding Path=ProgressStatus}" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Italic"/>
         </Grid>
 
-        <ui:WarningMessage Grid.Row="1" WarningText="{Binding Path=Warning}" Margin="0,15"
-                           Visibility="{Binding Path=HasWarning, Converter={StaticResource TrueToVisibleConverter}}">
-        </ui:WarningMessage>
+        <ui:WarningMessage Grid.Row="1" WarningText="{Binding Path=Warning}" Margin="0,0,5,0"
+                           Visibility="{Binding Path=HasWarning, Converter={StaticResource TrueToVisibleConverter}}" />
+
+        <ui:SuccessMessage Grid.Row="2" Text="{Binding Path=SuccessMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,5,0"
+                           Visibility="{Binding Path=HasWarning, Converter={StaticResource FalseToVisibleConverter}}"/>
     </Grid>
 
 </UserControl>

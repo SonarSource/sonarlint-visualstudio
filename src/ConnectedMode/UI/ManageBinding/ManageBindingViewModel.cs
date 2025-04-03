@@ -19,19 +19,17 @@
  */
 
 using System.Collections.ObjectModel;
-using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
-using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
+using static SonarLint.VisualStudio.ConnectedMode.UI.Resources.UiResources;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 
 internal sealed class ManageBindingViewModel(
     IConnectedModeServices connectedModeServices,
     IConnectedModeBindingServices connectedModeBindingServices,
-    IConnectedModeUIServices connectedModeUiServices,
     IConnectedModeUIManager connectedModeUiManager,
     IProgressReporterViewModel progressReporterViewModel)
     : ViewModelBase, IDisposable
@@ -146,18 +144,18 @@ internal sealed class ManageBindingViewModel(
     public bool IsUseSharedBindingButtonEnabled => !ProgressReporter.IsOperationInProgress;
     public bool IsUseSharedBindingButtonVisible => SharedBindingConfigModel != null && IsOpenSolutionStandalone;
     public bool IsExportButtonEnabled => !ProgressReporter.IsOperationInProgress && IsOpenSolutionBound;
-    public string ConnectionSelectionCaptionText => Connections.Any() ? UiResources.SelectConnectionToBindDescription : UiResources.NoConnectionExistsLabel;
+    public string ConnectionSelectionCaptionText => Connections.Any() ? SelectConnectionToBindDescription : NoConnectionExistsLabel;
 
     public void Dispose() => cancellationTokenSource?.Dispose();
 
     public async Task InitializeDataAsync()
     {
-        var loadData = new TaskToPerformParams<ResponseStatus>(ReloadConnectionDataAsync, UiResources.LoadingConnectionsText,
-            UiResources.LoadingConnectionsFailedText) { AfterProgressUpdated = OnProgressUpdated };
+        var loadData = new TaskToPerformParams<ResponseStatus>(ReloadConnectionDataAsync, LoadingConnectionsText,
+            LoadingConnectionsFailedText) { AfterProgressUpdated = OnProgressUpdated };
         var loadDataResult = await ProgressReporter.ExecuteTaskWithProgressAsync(loadData);
 
-        var displayBindStatus = new TaskToPerformParams<ResponseStatusWithData<BindingResult>>(DisplayBindStatusAsync, UiResources.FetchingBindingStatusText,
-            UiResources.FetchingBindingStatusFailedText) { AfterProgressUpdated = OnProgressUpdated };
+        var displayBindStatus = new TaskToPerformParams<ResponseStatusWithData<BindingResult>>(DisplayBindStatusAsync, FetchingBindingStatusText,
+            FetchingBindingStatusFailedText) { AfterProgressUpdated = OnProgressUpdated };
         var displayBindStatusResult = await ProgressReporter.ExecuteTaskWithProgressAsync(displayBindStatus, clearPreviousState: false);
 
         BindingSucceeded = loadDataResult.Success && displayBindStatusResult.Success;
@@ -166,8 +164,8 @@ internal sealed class ManageBindingViewModel(
 
     private async Task UpdateSharedBindingStateAsync()
     {
-        var detectSharedBinding = new TaskToPerformParams<ResponseStatus>(CheckForSharedBindingAsync, UiResources.CheckingForSharedBindingText,
-            UiResources.CheckingForSharedBindingFailedText) { AfterProgressUpdated = OnProgressUpdated };
+        var detectSharedBinding = new TaskToPerformParams<ResponseStatus>(CheckForSharedBindingAsync, CheckingForSharedBindingText,
+            CheckingForSharedBindingFailedText) { AfterProgressUpdated = OnProgressUpdated };
         await ProgressReporter.ExecuteTaskWithProgressAsync(detectSharedBinding, clearPreviousState: false);
     }
 
@@ -177,8 +175,8 @@ internal sealed class ManageBindingViewModel(
 
     public async Task PerformBindingWithProgressAsync(BindingRequest binding)
     {
-        var bind = new TaskToPerformParams<ResponseStatusWithData<BindingResult>>(() => PerformBindingAsync(binding), UiResources.BindingInProgressText,
-            UiResources.BindingFailedText) { AfterProgressUpdated = OnProgressUpdated };
+        var bind = new TaskToPerformParams<ResponseStatusWithData<BindingResult>>(() => PerformBindingAsync(binding), BindingInProgressText,
+            BindingFailedText, BindingSucceededText) { AfterProgressUpdated = OnProgressUpdated };
         await ProgressReporter.ExecuteTaskWithProgressAsync(bind);
     }
 
@@ -215,21 +213,20 @@ internal sealed class ManageBindingViewModel(
 
     public async Task UnbindWithProgressAsync()
     {
-        var unbind = new TaskToPerformParams<ResponseStatus>(UnbindAsync, UiResources.UnbindingInProgressText, UiResources.UnbindingFailedText) { AfterProgressUpdated = OnProgressUpdated };
+        var unbind = new TaskToPerformParams<ResponseStatus>(UnbindAsync, UnbindingInProgressText, UnbindingFailedText, UnbindingSucceededText) { AfterProgressUpdated = OnProgressUpdated };
         await ProgressReporter.ExecuteTaskWithProgressAsync(unbind);
     }
 
     public async Task ExportBindingConfigurationWithProgressAsync()
     {
-        var export = new TaskToPerformParams<ResponseStatusWithData<string>>(ExportBindingConfigurationAsync, UiResources.ExportingBindingConfigurationProgressText,
-            UiResources.ExportBindingConfigurationWarningText) { AfterProgressUpdated = OnProgressUpdated };
+        var export = new TaskToPerformParams<ResponseStatusWithData<string>>(ExportBindingConfigurationAsync, ExportingBindingConfigurationProgressText,
+            ExportBindingConfigurationWarningText) { AfterProgressUpdated = OnProgressUpdated };
 
         var result = await ProgressReporter.ExecuteTaskWithProgressAsync(export);
         if (result.Success)
         {
-            connectedModeUiServices.MessageBox.Show(string.Format(UiResources.ExportBindingConfigurationMessageBoxTextSuccess, result.ResponseData),
-                UiResources.ExportBindingConfigurationMessageBoxCaptionSuccess, MessageBoxButton.OK, MessageBoxImage.Information);
-            await UpdateSharedBindingStateAsync();
+            ProgressReporter.SuccessMessage = string.Format(ExportBindingConfigurationMessageBoxTextSuccess, result.ResponseData);
+            await CheckForSharedBindingAsync();
         }
     }
 

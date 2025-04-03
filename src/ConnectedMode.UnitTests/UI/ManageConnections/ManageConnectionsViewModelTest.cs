@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
@@ -34,32 +33,34 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageConnections;
 [TestClass]
 public class ManageConnectionsViewModelTest
 {
-    private ManageConnectionsViewModel testSubject;
-    private List<Connection> twoConnections;
-    private IProgressReporterViewModel progressReporterViewModel;
-    private IConnectedModeServices connectedModeServices;
-    private IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter;
-    private IThreadHandling threadHandling;
-    private ILogger logger;
-    private ISolutionInfoProvider solutionInfoProvider;
-    private IConnectedModeBindingServices connectedModeBindingServices;
-    private ISolutionBindingRepository solutionBindingRepository;
     private const string LocalBindingKey1 = "solution name 1";
     private const string LocalBindingKey2 = "solution name 2";
+    private IConnectedModeBindingServices connectedModeBindingServices;
+    private IConnectedModeServices connectedModeServices;
+    private IConnectedModeUIManager connectedModeUIManager;
+    private ILogger logger;
+    private IProgressReporterViewModel progressReporterViewModel;
+    private IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter;
+    private ISolutionBindingRepository solutionBindingRepository;
+    private ISolutionInfoProvider solutionInfoProvider;
+    private ManageConnectionsViewModel testSubject;
+    private IThreadHandling threadHandling;
+    private List<Connection> twoConnections;
 
     [TestInitialize]
     public void TestInitialize()
     {
         twoConnections =
         [
-            new Connection(new ConnectionInfo(new Uri("http://localhost:9000").ToString(), ConnectionServerType.SonarQube), true),
+            new Connection(new ConnectionInfo(new Uri("http://localhost:9000").ToString(), ConnectionServerType.SonarQube)),
             new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud), false)
         ];
         progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
         connectedModeServices = Substitute.For<IConnectedModeServices>();
         connectedModeBindingServices = Substitute.For<IConnectedModeBindingServices>();
+        connectedModeUIManager = Substitute.For<IConnectedModeUIManager>();
 
-        testSubject = new ManageConnectionsViewModel(connectedModeServices, connectedModeBindingServices, progressReporterViewModel);
+        testSubject = new ManageConnectionsViewModel(connectedModeUIManager, connectedModeServices, connectedModeBindingServices, progressReporterViewModel);
 
         MockServices();
     }
@@ -72,11 +73,11 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public void InitializeConnectionViewModels_InitializesConnectionsCorrectly()
+    public async Task InitializeConnectionViewModelsAsync_InitializesConnectionsCorrectly()
     {
         MockTryGetConnections(twoConnections);
 
-        testSubject.InitializeConnectionViewModels();
+        await testSubject.InitializeConnectionViewModelsAsync();
 
         HasExpectedConnections(twoConnections);
     }
@@ -90,84 +91,85 @@ public class ManageConnectionsViewModelTest
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.RemovingConnectionText &&
-                    x.WarningText == UiResources.RemovingConnectionFailedText));
+                    x.WarningText == UiResources.RemovingConnectionFailedText &&
+                    x.SuccessText == string.Format(UiResources.RemovingConnectionSucceededText, twoConnections[0].Info.Id)));
     }
 
     [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
-    public void RemoveConnectionViewModel_ReturnsStatusFromSlCore(bool expectedStatus)
+    public async Task RemoveConnectionViewModelAsync_ReturnsStatusFromSlCore(bool expectedStatus)
     {
-        InitializeTwoConnections();
+        await InitializeTwoConnections();
         var connectionToRemove = testSubject.ConnectionViewModels[0];
         serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info).Returns(expectedStatus);
 
-        var succeeded = testSubject.RemoveConnectionViewModel([], connectionToRemove);
+        var succeeded = await testSubject.RemoveConnectionViewModelAsync([], connectionToRemove);
 
-        succeeded.Should().Be(expectedStatus);
+        succeeded.Success.Should().Be(expectedStatus);
         serverConnectionsRepositoryAdapter.Received(1).TryRemoveConnection(connectionToRemove.Connection.Info);
     }
 
     [TestMethod]
-    public void RemoveConnection_ConnectionWasRemoved_RemovesProvidedConnectionViewModel()
+    public async Task RemoveConnectionViewModelAsync_ConnectionWasRemoved_RemovesProvidedConnectionViewModel()
     {
-        InitializeTwoConnections();
+        await InitializeTwoConnections();
         var connectionToRemove = testSubject.ConnectionViewModels[0];
         serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info).Returns(true);
 
-        testSubject.RemoveConnectionViewModel([], connectionToRemove);
+        await testSubject.RemoveConnectionViewModelAsync([], connectionToRemove);
 
         testSubject.ConnectionViewModels.Count.Should().Be(twoConnections.Count - 1);
         testSubject.ConnectionViewModels.Should().NotContain(connectionToRemove);
     }
 
     [TestMethod]
-    public void RemoveConnectionViewModel_ConnectionWasNotRemoved_DoesNotRemoveProvidedConnectionViewModel()
+    public async Task RemoveConnectionViewModelAsync_ConnectionWasNotRemoved_DoesNotRemoveProvidedConnectionViewModel()
     {
-        InitializeTwoConnections();
+        await InitializeTwoConnections();
         var connectionToRemove = testSubject.ConnectionViewModels[0];
         serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info).Returns(false);
 
-        testSubject.RemoveConnectionViewModel([], connectionToRemove);
+        await testSubject.RemoveConnectionViewModelAsync([], connectionToRemove);
 
         testSubject.ConnectionViewModels.Count.Should().Be(twoConnections.Count);
         testSubject.ConnectionViewModels.Should().Contain(connectionToRemove);
     }
 
     [TestMethod]
-    public void RemoveConnection_ConnectionWasRemoved_RaisesEvents()
+    public async Task RemoveConnectionViewModelAsync_ConnectionWasRemoved_RaisesEvents()
     {
-        InitializeTwoConnections();
+        await InitializeTwoConnections();
         serverConnectionsRepositoryAdapter.TryRemoveConnection(Arg.Any<ConnectionInfo>()).Returns(true);
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 
-        testSubject.RemoveConnectionViewModel([], testSubject.ConnectionViewModels[0]);
+        await testSubject.RemoveConnectionViewModelAsync([], testSubject.ConnectionViewModels[0]);
 
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoConnectionExists)));
     }
 
     [TestMethod]
-    public void RemoveConnectionViewModel_ConnectionWasNotRemoved_DoesNotRaiseEvents()
+    public async Task RemoveConnectionViewModelAsync_ConnectionWasNotRemoved_DoesNotRaiseEvents()
     {
-        InitializeTwoConnections();
+        await InitializeTwoConnections();
         serverConnectionsRepositoryAdapter.TryRemoveConnection(Arg.Any<ConnectionInfo>()).Returns(false);
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 
-        testSubject.RemoveConnectionViewModel([], testSubject.ConnectionViewModels[0]);
+        await testSubject.RemoveConnectionViewModelAsync([], testSubject.ConnectionViewModels[0]);
 
         eventHandler.DidNotReceive().Invoke(testSubject, Arg.Any<PropertyChangedEventArgs>());
     }
 
     [TestMethod]
-    public void RemoveConnectionViewModel_TwoBindingsExistForConnection_RemovesBindingsAndThenConnection()
+    public async Task RemoveConnectionViewModelAsync_TwoBindingsExistForConnection_RemovesBindingsAndThenConnection()
     {
-        InitializeTwoConnections();
+        await InitializeTwoConnections();
         MockDeleteBinding(LocalBindingKey1, true);
         MockDeleteBinding(LocalBindingKey2, true);
 
-        testSubject.RemoveConnectionViewModel([LocalBindingKey1, LocalBindingKey2], testSubject.ConnectionViewModels[0]);
+        await testSubject.RemoveConnectionViewModelAsync([LocalBindingKey1, LocalBindingKey2], testSubject.ConnectionViewModels[0]);
 
         Received.InOrder(() =>
         {
@@ -178,13 +180,13 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public void RemoveConnectionViewModel_TwoBindingsExistForConnection_DeletingOneBindingFails_DoesNotRemoveConnection()
+    public async Task RemoveConnectionViewModelAsync_TwoBindingsExistForConnection_DeletingOneBindingFails_DoesNotRemoveConnection()
     {
-        InitializeTwoConnections();
+        await InitializeTwoConnections();
         MockDeleteBinding(LocalBindingKey1, true);
         MockDeleteBinding(LocalBindingKey2, false);
 
-        testSubject.RemoveConnectionViewModel([LocalBindingKey1, LocalBindingKey2], testSubject.ConnectionViewModels[0]);
+        await testSubject.RemoveConnectionViewModelAsync([LocalBindingKey1, LocalBindingKey2], testSubject.ConnectionViewModels[0]);
 
         Received.InOrder(() =>
         {
@@ -196,14 +198,14 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public void RemoveConnectionViewModel_TwoBindingsExistForConnection_OneBindingIsForCurrentSolution_CallsUnbind()
+    public async Task RemoveConnectionViewModelAsync_TwoBindingsExistForConnection_OneBindingIsForCurrentSolution_CallsUnbind()
     {
-        InitializeTwoConnections();
+        await InitializeTwoConnections();
         InitializeCurrentSolution(LocalBindingKey2);
         MockDeleteBinding(LocalBindingKey1, true);
         MockUnbind(LocalBindingKey2, true);
 
-        testSubject.RemoveConnectionViewModel([LocalBindingKey1, LocalBindingKey2], testSubject.ConnectionViewModels[0]);
+        await testSubject.RemoveConnectionViewModelAsync([LocalBindingKey1, LocalBindingKey2], testSubject.ConnectionViewModels[0]);
 
         Received.InOrder(() =>
         {
@@ -215,40 +217,18 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public void RemoveConnectionViewModel_TwoBindingsExistForConnection_OneBindingIsForCurrentSolution_UnbindFails_DoesNotRemoveConnection()
+    public async Task RemoveConnectionViewModelAsync_TwoBindingsExistForConnection_OneBindingIsForCurrentSolution_UnbindFails_DoesNotRemoveConnection()
     {
-        InitializeTwoConnections();
+        await InitializeTwoConnections();
         InitializeCurrentSolution(LocalBindingKey2);
         MockDeleteBinding(LocalBindingKey1, true);
         MockUnbind(LocalBindingKey2, false);
 
-        testSubject.RemoveConnectionViewModel([LocalBindingKey1, LocalBindingKey2], testSubject.ConnectionViewModels[0]);
+        await testSubject.RemoveConnectionViewModelAsync([LocalBindingKey1, LocalBindingKey2], testSubject.ConnectionViewModels[0]);
 
         solutionBindingRepository.Received(1).DeleteBinding(LocalBindingKey1);
         connectedModeBindingServices.BindingControllerAdapter.Received(1).Unbind(LocalBindingKey2);
         serverConnectionsRepositoryAdapter.DidNotReceive().TryRemoveConnection(testSubject.ConnectionViewModels[0].Connection.Info);
-    }
-
-    [TestMethod]
-    public async Task SafeExecuteActionAsync_LoadsConnectionsOnUIThread()
-    {
-        await testSubject.SafeExecuteActionAsync(() => true);
-
-        await threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
-    }
-
-    [TestMethod]
-    public async Task SafeExecuteActionAsync_LoadingConnectionsThrows_ReturnsFalse()
-    {
-        var exceptionMsg = "Failed to load connections";
-        var mockedThreadHandling = Substitute.For<IThreadHandling>();
-        connectedModeServices.ThreadHandling.Returns(mockedThreadHandling);
-        mockedThreadHandling.When(x => x.RunOnUIThreadAsync(Arg.Any<Action>())).Do(callInfo => throw new Exception(exceptionMsg));
-
-        var adapterResponse = await testSubject.SafeExecuteActionAsync(() => true);
-
-        adapterResponse.Success.Should().BeFalse();
-        logger.Received(1).WriteLine(exceptionMsg);
     }
 
     [TestMethod]
@@ -274,19 +254,19 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public void NoConnectionExists_NoConnections_ReturnsTrue()
+    public async Task NoConnectionExists_NoConnections_ReturnsTrue()
     {
         MockTryGetConnections([]);
 
-        testSubject.InitializeConnectionViewModels();
+        await testSubject.InitializeConnectionViewModelsAsync();
 
         testSubject.NoConnectionExists.Should().BeTrue();
     }
 
     [TestMethod]
-    public void NoConnectionExists_HasConnections_ReturnsFalse()
+    public async Task NoConnectionExists_HasConnections_ReturnsFalse()
     {
-        InitializeTwoConnections();
+        await InitializeTwoConnections();
 
         testSubject.NoConnectionExists.Should().BeFalse();
     }
@@ -299,6 +279,7 @@ public class ManageConnectionsViewModelTest
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
+                    x.TaskToPerform == testSubject.InitializeConnectionViewModelsAsync &&
                     x.ProgressStatus == UiResources.LoadingConnectionsText &&
                     x.WarningText == UiResources.LoadingConnectionsFailedText));
     }
@@ -306,13 +287,13 @@ public class ManageConnectionsViewModelTest
     [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
-    public void InitializeConnectionViewModels_ReturnsResponseFromAdapter(bool expectedStatus)
+    public async Task InitializeConnectionViewModels_ReturnsResponseFromAdapter(bool expectedStatus)
     {
         serverConnectionsRepositoryAdapter.TryGetAllConnections(out _).Returns(expectedStatus);
 
-        var adapterResponse = testSubject.InitializeConnectionViewModels();
+        var adapterResponse = await testSubject.InitializeConnectionViewModelsAsync();
 
-        adapterResponse.Should().Be(expectedStatus);
+        adapterResponse.Success.Should().Be(expectedStatus);
     }
 
     [TestMethod]
@@ -326,32 +307,33 @@ public class ManageConnectionsViewModelTest
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.CreatingConnectionProgressText &&
-                    x.WarningText == UiResources.CreatingConnectionFailedText));
+                    x.WarningText == UiResources.CreatingConnectionFailedText &&
+                    x.SuccessText == string.Format(UiResources.CreatingConnectionSucceededText, connectionToAdd.Info.Id)));
     }
 
     [TestMethod]
-    public void CreateNewConnection_ConnectionWasAddedToRepository_AddsProvidedConnection()
+    public async Task CreateNewConnectionAsync_ConnectionWasAddedToRepository_AddsProvidedConnection()
     {
         var connectionToAdd = new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false);
         serverConnectionsRepositoryAdapter.TryAddConnection(connectionToAdd, Arg.Any<ICredentialsModel>()).Returns(true);
 
-        var succeeded = testSubject.CreateNewConnection(connectionToAdd, Substitute.For<ICredentialsModel>());
+        var response = await testSubject.CreateNewConnectionAsync(connectionToAdd, Substitute.For<ICredentialsModel>());
 
-        succeeded.Should().BeTrue();
+        response.Success.Should().BeTrue();
         testSubject.ConnectionViewModels.Count.Should().Be(1);
         testSubject.ConnectionViewModels[0].Connection.Should().Be(connectionToAdd);
         serverConnectionsRepositoryAdapter.Received(1).TryAddConnection(connectionToAdd, Arg.Any<ICredentialsModel>());
     }
 
     [TestMethod]
-    public void CreateNewConnection_ConnectionWasNotAddedToRepository_DoesNotAddConnection()
+    public async Task CreateNewConnectionAsync_ConnectionWasNotAddedToRepository_DoesNotAddConnection()
     {
         var connectionToAdd = new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false);
         serverConnectionsRepositoryAdapter.TryAddConnection(connectionToAdd, Arg.Any<ICredentialsModel>()).Returns(false);
 
-        var succeeded = testSubject.CreateNewConnection(connectionToAdd, Substitute.For<ICredentialsModel>());
+        var response = await testSubject.CreateNewConnectionAsync(connectionToAdd, Substitute.For<ICredentialsModel>());
 
-        succeeded.Should().BeFalse();
+        response.Success.Should().BeFalse();
         testSubject.ConnectionViewModels.Should().BeEmpty();
         serverConnectionsRepositoryAdapter.Received(1).TryAddConnection(connectionToAdd, Arg.Any<ICredentialsModel>());
     }
@@ -442,7 +424,7 @@ public class ManageConnectionsViewModelTest
         var response = testSubject.GetConnectionReferences(CreateConnectionViewModel(sonarQube));
 
         response.Success.Should().BeTrue();
-        response.ResponseData.Should().BeEquivalentTo(["binding1", "binding2"]);
+        response.ResponseData.Should().BeEquivalentTo("binding1", "binding2");
     }
 
     [TestMethod]
@@ -458,7 +440,7 @@ public class ManageConnectionsViewModelTest
         var response = testSubject.GetConnectionReferences(CreateConnectionViewModel(sonarCloud));
 
         response.Success.Should().BeTrue();
-        response.ResponseData.Should().BeEquivalentTo(["binding1", "binding2"]);
+        response.ResponseData.Should().BeEquivalentTo("binding1", "binding2");
     }
 
     [TestMethod]
@@ -475,6 +457,48 @@ public class ManageConnectionsViewModelTest
         logger.Received(1).WriteLine(exception.ToString());
     }
 
+    [TestMethod]
+    public async Task EditConnectionWithProgressAsync_ReportsProgress()
+    {
+        var connectionViewModel = CreateConnectionViewModel(twoConnections[0]);
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus>>()).Returns(new ResponseStatus(true));
+
+        await testSubject.EditConnectionWithProgressAsync(connectionViewModel);
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
+                    x.ProgressStatus == UiResources.UpdatingConnectionCredentialsProgressText &&
+                    x.WarningText == UiResources.UpdatingConnectionCredentialsFailedText &&
+                    x.SuccessText == string.Format(UiResources.UpdatingConnectionCredentialsSucceededText, connectionViewModel.Connection.Info.Id)));
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task EditCredentialsAsync_ReturnsResponseFromEditCredentialsDialog(bool credentialsEdited)
+    {
+        var connectionViewModel = CreateConnectionViewModel(twoConnections[0]);
+        connectedModeUIManager.ShowEditCredentialsDialogAsync(connectionViewModel.Connection).Returns(credentialsEdited);
+
+        var responseStatus = await testSubject.EditCredentialsAsync(connectionViewModel);
+
+        responseStatus.Success.Should().Be(credentialsEdited);
+        await connectedModeUIManager.Received(1).ShowEditCredentialsDialogAsync(connectionViewModel.Connection);
+    }
+
+    [TestMethod]
+    public async Task EditCredentialsAsync_RefreshesConnectionViewModelProperty()
+    {
+        var connectionViewModel = CreateConnectionViewModel(twoConnections[0]);
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        connectionViewModel.PropertyChanged += eventHandler;
+
+        await testSubject.EditCredentialsAsync(connectionViewModel);
+
+        eventHandler.Received().Invoke(connectionViewModel, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(connectionViewModel.HasInvalidToken)));
+    }
+
     private void HasExpectedConnections(IEnumerable<Connection> expectedConnections)
     {
         testSubject.ConnectionViewModels.Should().NotBeNull();
@@ -488,14 +512,14 @@ public class ManageConnectionsViewModelTest
         }
     }
 
-    private void InitializeTwoConnections()
+    private async Task InitializeTwoConnections()
     {
         serverConnectionsRepositoryAdapter.TryGetAllConnections(out _).Returns(callInfo =>
         {
             callInfo[0] = twoConnections;
             return true;
         });
-        testSubject.InitializeConnectionViewModels();
+        await testSubject.InitializeConnectionViewModelsAsync();
     }
 
     private void MockServices()

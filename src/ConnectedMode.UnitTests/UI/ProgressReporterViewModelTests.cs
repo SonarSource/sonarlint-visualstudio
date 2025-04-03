@@ -120,7 +120,8 @@ public class ProgressReporterViewModelTests
     [TestMethod]
     public async Task ExecuteTaskWithProgressAsync_TaskWithSuccessResponse_WorkflowIsCorrect()
     {
-        var parameters = GetTaskWithResponse(true);
+        var successText = "task executed successfully";
+        var parameters = GetTaskWithResponse(true, successText: successText);
 
         await testSubject.ExecuteTaskWithProgressAsync(parameters);
 
@@ -129,10 +130,12 @@ public class ProgressReporterViewModelTests
             _ = parameters.ProgressStatus;
             parameters.AfterProgressUpdated();
             parameters.TaskToPerform();
+            _ = parameters.SuccessText;
             parameters.AfterSuccess(Arg.Any<IResponseStatus>());
             parameters.AfterProgressUpdated();
         });
         testSubject.ProgressStatus.Should().BeNull();
+        testSubject.SuccessMessage.Should().Be(successText);
         _ = parameters.DidNotReceive().WarningText;
     }
 
@@ -145,6 +148,18 @@ public class ProgressReporterViewModelTests
         await testSubject.ExecuteTaskWithProgressAsync(parameters);
 
         testSubject.Warning.Should().BeNull();
+    }
+
+    [TestMethod]
+    public async Task ExecuteTaskWithProgressAsync_TaskWithSuccessResponse_ClearsPreviousSuccessMessage()
+    {
+        var successText = "task executed successfully";
+        var parameters = GetTaskWithResponse(true, successText: successText);
+        testSubject.SuccessMessage = "previous success message";
+
+        await testSubject.ExecuteTaskWithProgressAsync(parameters);
+
+        testSubject.SuccessMessage.Should().Be(successText);
     }
 
     [TestMethod]
@@ -167,6 +182,7 @@ public class ProgressReporterViewModelTests
         });
         testSubject.Warning.Should().Be(warningText);
         testSubject.ProgressStatus.Should().BeNull();
+        testSubject.SuccessMessage.Should().BeNull();
     }
 
     [TestMethod]
@@ -189,6 +205,18 @@ public class ProgressReporterViewModelTests
         });
         testSubject.Warning.Should().Be(taskWarningText);
         testSubject.ProgressStatus.Should().BeNull();
+        testSubject.SuccessMessage.Should().BeNull();
+    }
+
+    [TestMethod]
+    public async Task ExecuteTaskWithProgressAsync_TaskWithFailureResponse_ClearsPreviousSuccessMessage()
+    {
+        var parameters = GetTaskWithResponse(false);
+        testSubject.SuccessMessage = "success";
+
+        await testSubject.ExecuteTaskWithProgressAsync(parameters);
+
+        testSubject.SuccessMessage.Should().BeNull();
     }
 
     [TestMethod]
@@ -205,6 +233,7 @@ public class ProgressReporterViewModelTests
         parameters.Received(1).AfterFailure(Arg.Any<IResponseStatus>());
         testSubject.Warning.Should().Be(warningText);
         testSubject.ProgressStatus.Should().BeNull();
+        testSubject.SuccessMessage.Should().BeNull();
     }
 
     [TestMethod]
@@ -260,12 +289,29 @@ public class ProgressReporterViewModelTests
         testSubject.ProgressStatus.Should().BeNull();
     }
 
-    private static ITaskToPerformParams<IResponseStatus> GetTaskWithResponse(bool success, string warningText = null, string responseWarningText = null)
+    [TestMethod]
+    public void SuccessMessage_Set_RaisesEvents()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+
+        testSubject.SuccessMessage = "task succeeded";
+
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.SuccessMessage)));
+    }
+
+    private static ITaskToPerformParams<IResponseStatus> GetTaskWithResponse(
+        bool success,
+        string warningText = null,
+        string responseWarningText = null,
+        string successText = null)
     {
         var parameters = Substitute.For<ITaskToPerformParams<IResponseStatus>>();
         var taskResponse = Substitute.For<IResponseStatus>();
         parameters.TaskToPerform().Returns(taskResponse);
         parameters.WarningText.Returns(warningText);
+        parameters.SuccessText.Returns(successText);
         taskResponse.Success.Returns(success);
         taskResponse.WarningText.Returns(responseWarningText);
 

@@ -26,102 +26,95 @@ using SonarLint.VisualStudio.ConnectedMode.UI.DeleteConnection;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
+namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
+
+[ExcludeFromCodeCoverage] // UI, not really unit-testable
+internal partial class ManageConnectionsDialog : Window
 {
-    [ExcludeFromCodeCoverage] // UI, not really unit-testable
-    internal partial class ManageConnectionsDialog : Window
+    private readonly IConnectedModeServices connectedModeServices;
+
+    public IConnectedModeUIServices ConnectedModeUiServices { get; }
+    public ManageConnectionsViewModel ViewModel { get; }
+
+    internal ManageConnectionsDialog(
+        IConnectedModeUIManager connectedModeUiManager,
+        IConnectedModeServices connectedModeServices,
+        IConnectedModeBindingServices connectedModeBindingServices,
+        IConnectedModeUIServices connectedModeUiServices)
     {
-        private readonly IConnectedModeUIManager connectedModeUiManager;
-        private readonly IConnectedModeServices connectedModeServices;
-        private readonly IConnectedModeBindingServices connectedModeBindingServices;
+        this.connectedModeServices = connectedModeServices;
+        ConnectedModeUiServices = connectedModeUiServices;
+        ViewModel = new ManageConnectionsViewModel(connectedModeUiManager,
+            connectedModeServices,
+            connectedModeBindingServices,
+            new ProgressReporterViewModel(connectedModeServices.Logger));
+        InitializeComponent();
+    }
 
-        public IConnectedModeUIServices ConnectedModeUiServices { get; }
-        public ManageConnectionsViewModel ViewModel { get; }
-
-        internal ManageConnectionsDialog(IConnectedModeUIManager connectedModeUiManager, IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices, IConnectedModeUIServices connectedModeUiServices)
+    private async void EditConnection_Clicked(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { DataContext: ConnectionViewModel connectionViewModel })
         {
-            this.connectedModeUiManager = connectedModeUiManager;
-            this.connectedModeServices = connectedModeServices;
-            this.connectedModeBindingServices = connectedModeBindingServices;
-            ConnectedModeUiServices = connectedModeUiServices;
-            ViewModel = new ManageConnectionsViewModel(connectedModeServices,
-                connectedModeBindingServices,
-                new ProgressReporterViewModel(connectedModeServices.Logger));
-            InitializeComponent();
+            await ViewModel.EditConnectionWithProgressAsync(connectionViewModel);
+        }
+    }
+
+    private async void NewConnection_Clicked(object sender, RoutedEventArgs e)
+    {
+        if (GetTransientConnection() is not { } transientConnection)
+        {
+            return;
         }
 
-        private void EditConnection_Clicked(object sender, RoutedEventArgs e)
+        var credentialsDialog = GetCredentialsDialog(transientConnection);
+        if (!CredentialsDialogSucceeded(credentialsDialog) || FinalizeConnection(transientConnection, credentialsDialog) is not { } completeConnection)
         {
-            if (sender is not Button { DataContext: ConnectionViewModel connectionViewModel })
-            {
-                return;
-            }
-
-            var editConnectionTokenDialog = new EditCredentialsDialog(connectedModeUiManager, connectedModeServices, ConnectedModeUiServices, connectedModeBindingServices, connectionViewModel.Connection);
-            editConnectionTokenDialog.ShowDialog(this);
-            connectionViewModel.RefreshInvalidToken();
+            return;
         }
 
-        private async void NewConnection_Clicked(object sender, RoutedEventArgs e)
+        await ViewModel.CreateConnectionsWithProgressAsync(new Connection(completeConnection), credentialsDialog.ViewModel.GetCredentialsModel());
+    }
+
+    private ConnectionInfo GetTransientConnection()
+    {
+        var serverSelectionDialog = new ServerSelectionDialog(ConnectedModeUiServices, connectedModeServices.TelemetryManager);
+        return serverSelectionDialog.ShowDialog(this) != true ? null : serverSelectionDialog.ViewModel.CreateTransientConnectionInfo();
+    }
+
+    private CredentialsDialog GetCredentialsDialog(ConnectionInfo newConnectionInfo)
+    {
+        var isAnyDialogFollowing = newConnectionInfo.ServerType == ConnectionServerType.SonarCloud;
+        return new CredentialsDialog(connectedModeServices, ConnectedModeUiServices, newConnectionInfo, isAnyDialogFollowing);
+    }
+
+    private bool CredentialsDialogSucceeded(CredentialsDialog credentialsDialog) => credentialsDialog.ShowDialog(this) == true;
+
+    private ConnectionInfo FinalizeConnection(ConnectionInfo newConnectionInfo, CredentialsDialog credentialsDialog)
+    {
+        if (newConnectionInfo.ServerType == ConnectionServerType.SonarQube)
         {
-            if (GetTransientConnection() is not { } transientConnection)
-            {
-                return;
-            }
-
-            var credentialsDialog = GetCredentialsDialog(transientConnection);
-            if (!CredentialsDialogSucceeded(credentialsDialog) || FinalizeConnection(transientConnection, credentialsDialog) is not { } completeConnection)
-            {
-                return;
-            }
-
-            await ViewModel.CreateConnectionsWithProgressAsync(new Connection(completeConnection), credentialsDialog.ViewModel.GetCredentialsModel());
+            return newConnectionInfo;
         }
 
-        private ConnectionInfo GetTransientConnection()
+        var organizationSelectionDialog = new OrganizationSelectionDialog(connectedModeServices, newConnectionInfo.CloudServerRegion, credentialsDialog.ViewModel.GetCredentialsModel());
+
+        return organizationSelectionDialog.ShowDialog(this) == true ? organizationSelectionDialog.ViewModel.FinalConnectionInfo : null;
+    }
+
+    private async void ManageConnectionsWindow_OnInitialized(object sender, EventArgs e) => await ViewModel.LoadConnectionsWithProgressAsync();
+
+    private async void RemoveConnectionButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { DataContext: ConnectionViewModel connectionViewModel })
         {
-            var serverSelectionDialog = new ServerSelectionDialog(ConnectedModeUiServices, connectedModeServices.TelemetryManager);
-            return serverSelectionDialog.ShowDialog(this) != true ? null : serverSelectionDialog.ViewModel.CreateTransientConnectionInfo();
+            return;
         }
 
-        private CredentialsDialog GetCredentialsDialog(ConnectionInfo newConnectionInfo)
+        var connectionReferences = await ViewModel.GetConnectionReferencesWithProgressAsync(connectionViewModel);
+        var deleteConnectionDialog = new DeleteConnectionDialog(ConnectedModeUiServices, connectionReferences, connectionViewModel.Connection.Info);
+        if (deleteConnectionDialog.ShowDialog(this) == true)
         {
-            var isAnyDialogFollowing = newConnectionInfo.ServerType == ConnectionServerType.SonarCloud;
-            return new CredentialsDialog(connectedModeServices, ConnectedModeUiServices, newConnectionInfo, withNextButton: isAnyDialogFollowing);
-        }
-
-        private bool CredentialsDialogSucceeded(CredentialsDialog credentialsDialog) => credentialsDialog.ShowDialog(this) == true;
-
-        private ConnectionInfo FinalizeConnection(ConnectionInfo newConnectionInfo, CredentialsDialog credentialsDialog)
-        {
-            if (newConnectionInfo.ServerType == ConnectionServerType.SonarQube)
-            {
-                return newConnectionInfo;
-            }
-
-            var organizationSelectionDialog = new OrganizationSelectionDialog(connectedModeServices, newConnectionInfo.CloudServerRegion, credentialsDialog.ViewModel.GetCredentialsModel());
-
-            return organizationSelectionDialog.ShowDialog(this) == true ? organizationSelectionDialog.ViewModel.FinalConnectionInfo : null;
-        }
-
-        private async void ManageConnectionsWindow_OnInitialized(object sender, EventArgs e)
-        {
-            await ViewModel.LoadConnectionsWithProgressAsync();
-        }
-
-        private async void RemoveConnectionButton_OnClick(object sender, RoutedEventArgs e)
-        {
-            if (sender is not Button { DataContext: ConnectionViewModel connectionViewModel })
-            {
-                return;
-            }
-
-            var connectionReferences = await ViewModel.GetConnectionReferencesWithProgressAsync(connectionViewModel);
-            var deleteConnectionDialog = new DeleteConnectionDialog(ConnectedModeUiServices, connectionReferences, connectionViewModel.Connection.Info);
-            if (deleteConnectionDialog.ShowDialog(this) == true)
-            {
-                await ViewModel.RemoveConnectionWithProgressAsync(connectionReferences, connectionViewModel);
-            }
+            await ViewModel.RemoveConnectionWithProgressAsync(connectionReferences, connectionViewModel);
         }
     }
 }

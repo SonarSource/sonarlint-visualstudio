@@ -27,6 +27,7 @@ public interface IProgressReporterViewModel
 {
     string ProgressStatus { get; set; }
     string Warning { get; set; }
+    string SuccessMessage { get; set; }
     bool IsOperationInProgress { get; }
     bool HasWarning { get; }
 
@@ -41,6 +42,7 @@ public interface ITaskToPerformParams<T> where T : IResponseStatus
     public Func<Task<T>> TaskToPerform { get; }
     public string ProgressStatus { get; }
     public string WarningText { get; }
+    public string SuccessText { get; }
     public T FailureResponse { get; }
 }
 
@@ -48,6 +50,7 @@ public class ProgressReporterViewModel(ILogger logger) : ViewModelBase, IProgres
 {
     private string progressStatus;
     private string warning;
+    private string successMessage;
 
     public string ProgressStatus
     {
@@ -71,6 +74,16 @@ public class ProgressReporterViewModel(ILogger logger) : ViewModelBase, IProgres
         }
     }
 
+    public string SuccessMessage
+    {
+        get => successMessage;
+        set
+        {
+            successMessage = value;
+            RaisePropertyChanged();
+        }
+    }
+
     public bool IsOperationInProgress => !string.IsNullOrEmpty(ProgressStatus);
     public bool HasWarning => !string.IsNullOrEmpty(Warning);
 
@@ -78,15 +91,13 @@ public class ProgressReporterViewModel(ILogger logger) : ViewModelBase, IProgres
     {
         try
         {
-            if (clearPreviousState)
-            {
-                Warning = null;
-            }
+            ClearState(clearPreviousState);
             UpdateProgress(parameters.ProgressStatus, parameters);
             var response = await parameters.TaskToPerform();
 
             if (response.Success)
             {
+                SuccessMessage = parameters.SuccessText;
                 parameters.AfterSuccess?.Invoke(response);
             }
             else
@@ -106,6 +117,15 @@ public class ProgressReporterViewModel(ILogger logger) : ViewModelBase, IProgres
         finally
         {
             UpdateProgress(null, parameters);
+        }
+    }
+
+    private void ClearState(bool clearWarning)
+    {
+        SuccessMessage = null;
+        if (clearWarning)
+        {
+            Warning = null;
         }
     }
 
@@ -134,7 +154,11 @@ public class ProgressReporterViewModel(ILogger logger) : ViewModelBase, IProgres
     }
 }
 
-public class TaskToPerformParams<T>(Func<Task<T>> taskToPerform, string progressStatus, string warningText) : ITaskToPerformParams<T>
+public class TaskToPerformParams<T>(
+    Func<Task<T>> taskToPerform,
+    string progressStatus,
+    string warningText,
+    string successText = null) : ITaskToPerformParams<T>
     where T : IResponseStatus, new()
 {
     public Action AfterProgressUpdated { get; init; }
@@ -143,5 +167,6 @@ public class TaskToPerformParams<T>(Func<Task<T>> taskToPerform, string progress
     public Func<Task<T>> TaskToPerform { get; } = taskToPerform;
     public string ProgressStatus { get; } = progressStatus;
     public string WarningText { get; } = warningText;
+    public string SuccessText { get; } = successText;
     public T FailureResponse { get; } = new();
 }
