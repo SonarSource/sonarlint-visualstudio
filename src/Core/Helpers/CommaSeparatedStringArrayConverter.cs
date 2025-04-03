@@ -2,18 +2,27 @@
 
 namespace SonarLint.VisualStudio.Core.Helpers;
 
-public class CommaSeparatedStringArrayConverter : JsonConverter<string[]>
+public class CommaSeparatedStringArrayConverter : JsonConverter
 {
-    public override void WriteJson(JsonWriter writer, string[] value, JsonSerializer serializer) => writer.WriteValue(string.Join(",", value));
+    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+    {
+        if (value is not string[] strings)
+        {
+            return;
+        }
 
-    public override string[] ReadJson(
+        writer.WriteValue(string.Join(",", strings));
+    }
+
+    public override object ReadJson(
         JsonReader reader,
         Type objectType,
-        string[] existingValue,
-        bool hasExistingValue,
+        object existingValue,
         JsonSerializer serializer)
     {
         var value = reader.Value?.ToString();
-        return value?.Split([','], StringSplitOptions.RemoveEmptyEntries) ?? [];
+        return value?.Split([','], StringSplitOptions.RemoveEmptyEntries);
     }
+
+    public override bool CanConvert(Type objectType) => objectType == typeof(string[]);
 }

@@ -24,6 +24,22 @@ public class AnalysisSettingsTests
     }
 
     [TestMethod]
+    public void AnalysisSettings_FileExclusions_SerializesAndIgnoresIfNotPresent()
+    {
+        var settings = new AnalysisSettings();
+        const string expectedJson =
+            """
+            {
+              "sonarlint.rules": {}
+            }
+            """;
+
+        var json = JsonConvert.SerializeObject(settings, Formatting.Indented);
+
+        json.Should().Be(expectedJson);
+    }
+
+    [TestMethod]
     public void AnalysisSettings_FileExclusions_DeserializesCorrectly()
     {
         const string json = """
@@ -36,5 +52,19 @@ public class AnalysisSettingsTests
         var settings = JsonConvert.DeserializeObject<AnalysisSettings>(json);
 
         settings.FileExclusions.Should().BeEquivalentTo("file1.cpp", "**/obj/*", "file2.cpp");
+    }
+
+    [TestMethod]
+    public void AnalysisSettings_FileExclusions_DeserializesAndIgnoresIfNotPresent()
+    {
+        const string json = """
+                            {
+                              "sonarlint.rules": {}
+                            }
+                            """;
+
+        var settings = JsonConvert.DeserializeObject<AnalysisSettings>(json);
+
+        settings.FileExclusions.Should().BeNull();
     }
 }

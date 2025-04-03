@@ -59,7 +59,7 @@ public class AnalysisSettings
 
     [JsonProperty("sonarlint.analysisExcludesStandalone", NullValueHandling = NullValueHandling.Ignore)]
     [JsonConverter(typeof(CommaSeparatedStringArrayConverter))]
-    public string[] FileExclusions { get; init; } = [];
+    public string[] FileExclusions { get; init; }
 }
 
 public class RuleConfig
