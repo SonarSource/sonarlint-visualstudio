@@ -120,7 +120,7 @@ public class ProgressReporterViewModel(ILogger logger) : ViewModelBase, IProgres
         }
     }
 
-    private void ClearState(bool clearPreviousState)
+    private void ClearState(bool clearWarning)
     {
         SuccessMessage = null;
         if (clearPreviousState)
