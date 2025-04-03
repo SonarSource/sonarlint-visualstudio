@@ -67,6 +67,7 @@ public class RoslynBindingConfigProviderTests
             MefTestHelpers.CreateExport<ISonarQubeService>(),
             MefTestHelpers.CreateExport<ISonarLintConfigGenerator>(),
             MefTestHelpers.CreateExport<IGlobalConfigGenerator>(),
+            MefTestHelpers.CreateExport<IRoslynConfigurationFilePathProvider>(),
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<ILanguageProvider>());
 
@@ -139,7 +140,8 @@ public class RoslynBindingConfigProviderTests
         };
         var testSubject = builder.CreateTestSubject();
 
-        var expectedGlobalConfigFilePath = builder.BindingConfiguration.BuildPathUnderConfigDirectory(Language.VBNET.SettingsFileNameAndExtension);
+        var expectedGlobalConfigFilePath = "path to additional file";
+        builder.RoslynConfigurationFilePathProvider.GetSolutionGlobalConfigFilePath(Language.VBNET, builder.BindingConfiguration.BindingConfigDirectory).Returns(expectedGlobalConfigFilePath);
 
         var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
 
@@ -170,8 +172,8 @@ public class RoslynBindingConfigProviderTests
             SonarLintConfigurationResponse = expectedConfiguration
         };
         var testSubject = builder.CreateTestSubject();
-
-        var expectedAdditionalFilePath = builder.BindingConfiguration.BuildPathUnderConfigDirectory() + "VB\\SonarLint.xml";
+        var expectedAdditionalFilePath = "path to additional file";
+        builder.RoslynConfigurationFilePathProvider.GetSolutionAdditionalFilePath(Language.VBNET, builder.BindingConfiguration.BindingConfigDirectory).Returns(expectedAdditionalFilePath);
 
         var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
         (response as ICSharpVBBindingConfig).AdditionalFile.Path.Should().Be(expectedAdditionalFilePath);
@@ -273,6 +275,7 @@ public class RoslynBindingConfigProviderTests
 
         public BindingConfiguration BindingConfiguration { get; private set; }
         public SonarLintConfiguration SonarLintConfigurationResponse { get; set; }
+        public IRoslynConfigurationFilePathProvider RoslynConfigurationFilePathProvider { get; private set; }
         public IList<SonarQubeRule> ActiveRulesResponse { get; set; }
         public IList<SonarQubeRule> InactiveRulesResponse { get; set; }
         public IList<SonarQubeProperty> PropertiesResponse { get; set; }
@@ -327,12 +330,18 @@ public class RoslynBindingConfigProviderTests
                 .Setup(x => x.Generate(It.IsAny<IEnumerable<SonarQubeRule>>(), sonarProperties, serverExclusionsResponse, language))
                 .Returns(SonarLintConfigurationResponse);
 
+            RoslynConfigurationFilePathProvider = Substitute.For<IRoslynConfigurationFilePathProvider>();
+            RoslynConfigurationFilePathProvider.GetSolutionGlobalConfigFilePath(default, default).ReturnsForAnyArgs("some path");
+            RoslynConfigurationFilePathProvider.GetSolutionAdditionalFilePath(default, default).ReturnsForAnyArgs("some path");
+
             return new RoslynBindingConfigProvider(sonarQubeServiceMock.Object, Logger,
                 // inject the generator mocks
                 globalConfigGenMock.Object,
                 sonarLintConfigGeneratorMock.Object,
+                RoslynConfigurationFilePathProvider,
                 LanguageProvider.Instance);
         }
+
 
         public void AssertGlobalConfigGeneratorNotCalled() => globalConfigGenMock.Verify(x => x.Generate(It.IsAny<IEnumerable<SonarQubeRoslynRuleStatus>>()), Times.Never);
     }

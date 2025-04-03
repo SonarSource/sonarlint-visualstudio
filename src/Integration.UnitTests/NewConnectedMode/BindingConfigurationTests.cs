@@ -268,18 +268,4 @@ public class BindingConfigurationTests
     }
 
     #endregion
-
-    [TestMethod]
-    [DataRow("c:\\MY Directory", "file.SUFFIX", "c:\\MY Directory\\file.suffix")]
-    [DataRow("c:\\", "NAME.txt", "c:\\name.txt")]
-    [DataRow("c:\\", "N|a<m>e.txt", "c:\\n_a_m_e.txt")]
-    public void BuildPathUnderConfigDirectory_GeneratesCorrectFilePath(string rootDirectory, string fileNameSuffixAndExtension, string expectedPath)
-    {
-        var project = new BoundServerProject("solutionAAA", "projectAAA", new ServerConnection.SonarCloud("Org"));
-        var testSubject = BindingConfiguration.CreateBoundConfiguration(project, SonarLintMode.LegacyConnected, rootDirectory);
-
-        var result = testSubject.BuildPathUnderConfigDirectory(fileNameSuffixAndExtension);
-
-        result.Should().Be(expectedPath);
-    }
 }
