@@ -49,7 +49,7 @@ internal class ManageConnectionsViewModel(
     internal async Task RemoveConnectionWithProgressAsync(List<string> bindingKeysReferencedByConnection, ConnectionViewModel connectionViewModel)
     {
         var validationParams = new TaskToPerformParams<ResponseStatus>(
-            async () => await RemoveConnectionViewModelAsync(bindingKeysReferencedByConnection, connectionViewModel),
+            () => RemoveConnectionViewModelAsync(bindingKeysReferencedByConnection, connectionViewModel),
             UiResources.RemovingConnectionText,
             UiResources.RemovingConnectionFailedText,
             string.Format(UiResources.RemovingConnectionSucceededText, connectionViewModel.Connection.Info.Id));
@@ -104,19 +104,19 @@ internal class ManageConnectionsViewModel(
     internal async Task CreateConnectionsWithProgressAsync(Connection connection, ICredentialsModel credentialsModel)
     {
         var validationParams = new TaskToPerformParams<ResponseStatus>(
-            async () => await CreateNewConnectionAsync(connection, credentialsModel),
+            () => CreateNewConnectionAsync(connection, credentialsModel),
             UiResources.CreatingConnectionProgressText,
             UiResources.CreatingConnectionFailedText,
             string.Format(UiResources.CreatingConnectionSucceededText, connection.Info.Id));
         await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
     }
 
-    internal async Task<ResponseStatus> InitializeConnectionViewModelsAsync()
+    internal Task<ResponseStatus> InitializeConnectionViewModelsAsync()
     {
         ConnectionViewModels.Clear();
         var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryGetAllConnections(out var connections);
         connections?.ForEach(AddConnectionViewModel);
-        return await Task.FromResult(new ResponseStatus(succeeded));
+        return Task.FromResult(new ResponseStatus(succeeded));
     }
 
     /// <summary>
@@ -127,12 +127,12 @@ internal class ManageConnectionsViewModel(
     /// <param name="referencedBindingKeys">The list of localBindingKeys that reference the connection to be removed </param>
     /// <param name="connectionViewModel">The <see cref="ConnectionViewModel" /> of the connection to be removed</param>
     /// <returns>Returns true if all the bindings and the connection have been deleted successfully</returns>
-    internal async Task<ResponseStatus> RemoveConnectionViewModelAsync(List<string> referencedBindingKeys, ConnectionViewModel connectionViewModel)
+    internal Task<ResponseStatus> RemoveConnectionViewModelAsync(List<string> referencedBindingKeys, ConnectionViewModel connectionViewModel)
     {
         var bindingsRemoved = DeleteBindings(referencedBindingKeys);
         if (!bindingsRemoved)
         {
-            return await Task.FromResult(new ResponseStatus(false));
+            return Task.FromResult(new ResponseStatus(false));
         }
         var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryRemoveConnection(connectionViewModel.Connection.Info);
         if (succeeded)
@@ -140,7 +140,7 @@ internal class ManageConnectionsViewModel(
             ConnectionViewModels.Remove(connectionViewModel);
             RaisePropertyChanged(nameof(NoConnectionExists));
         }
-        return await Task.FromResult(new ResponseStatus(succeeded));
+        return Task.FromResult(new ResponseStatus(succeeded));
     }
 
     internal async Task<ResponseStatus> EditCredentialsAsync(ConnectionViewModel connectionViewModel)
@@ -168,14 +168,14 @@ internal class ManageConnectionsViewModel(
         return true;
     }
 
-    internal async Task<ResponseStatus> CreateNewConnectionAsync(Connection connection, ICredentialsModel credentialsModel)
+    internal Task<ResponseStatus> CreateNewConnectionAsync(Connection connection, ICredentialsModel credentialsModel)
     {
         var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryAddConnection(connection, credentialsModel);
         if (succeeded)
         {
             AddConnectionViewModel(connection);
         }
-        return await Task.FromResult(new ResponseStatus(succeeded));
+        return Task.FromResult(new ResponseStatus(succeeded));
     }
 
     internal void AddConnectionViewModel(Connection connection)
