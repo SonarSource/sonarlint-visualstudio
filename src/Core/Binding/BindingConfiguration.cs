@@ -88,11 +88,4 @@ public sealed class BindingConfiguration : IEquatable<BindingConfiguration>
     }
 
     #endregion
-
-    public string BuildPathUnderConfigDirectory(string fileSuffix = "")
-    {
-        var escapedFileName = Helpers.PathHelper.EscapeFileName(fileSuffix).ToLowerInvariant(); // Must be lower case - see https://github.com/SonarSource/sonarlint-visualstudio/issues/1068;
-
-        return Path.Combine(BindingConfigDirectory, escapedFileName);
-    }
 }
