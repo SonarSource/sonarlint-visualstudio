@@ -13,7 +13,7 @@ public class AnalysisSettingsTests
         {
             Rules =
             {
-                { "typescript:S2685", new RuleConfig { Level = RuleLevel.On, Parameters = new Dictionary<string, string> { { "key1", "value1" } }, } }
+                { "typescript:S2685", new RuleConfig { Level = RuleLevel.On, Parameters = new Dictionary<string, string> { { "key1", "value1" } } } }
             },
             FileExclusions = ["file1.cpp", "**/obj/*", "file2.cpp"]
         };
@@ -59,7 +59,7 @@ public class AnalysisSettingsTests
         settings.Rules.Should().BeEquivalentTo(
             new Dictionary<string, RuleConfig>
             {
-                { "typescript:S2685", new RuleConfig { Level = RuleLevel.On, Parameters = new Dictionary<string, string> { { "key1", "value1" } }, } }
+                { "typescript:S2685", new RuleConfig { Level = RuleLevel.On, Parameters = new Dictionary<string, string> { { "key1", "value1" } } } }
             });
         settings.FileExclusions.Should().BeEquivalentTo("file1.cpp", "**/obj/*", "file2.cpp");
     }
@@ -118,6 +118,21 @@ public class AnalysisSettingsTests
         const string json = """
                             {
                               "sonarlint.rules": {}
+                            }
+                            """;
+
+        var settings = JsonConvert.DeserializeObject<AnalysisSettings>(json);
+
+        settings.FileExclusions.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void AnalysisSettings_DeserializesAndIgnoresIfNotString()
+    {
+        const string json = """
+                            {
+                              "sonarlint.rules": {},
+                              "sonarlint.analysisExcludesStandalone": 12
                             }
                             """;
 

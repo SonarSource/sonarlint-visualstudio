@@ -20,7 +20,7 @@ public class CommaSeparatedStringArrayConverter : JsonConverter
         object existingValue,
         JsonSerializer serializer)
     {
-        var value = reader.Value?.ToString();
+        var value = reader.Value as string;
         return value?.Split([','], StringSplitOptions.RemoveEmptyEntries);
     }
 
