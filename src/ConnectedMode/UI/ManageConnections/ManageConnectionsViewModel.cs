@@ -170,6 +170,11 @@ internal class ManageConnectionsViewModel(
 
     internal Task<ResponseStatus> CreateNewConnectionAsync(Connection connection, ICredentialsModel credentialsModel)
     {
+        if (connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(connection.Info, out var serverConnection) && serverConnection != null)
+        {
+            return Task.FromResult(new ResponseStatus(false, UiResources.ConnectionAlreadyExistsText));
+        }
+
         var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryAddConnection(connection, credentialsModel);
         if (succeeded)
         {

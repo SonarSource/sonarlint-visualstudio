@@ -214,6 +214,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to create new connection, the connection already exists.
+        /// </summary>
+        public static string ConnectionAlreadyExistsText {
+            get {
+                return ResourceManager.GetString("ConnectionAlreadyExistsText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Explore SonarQube Cloud with our .
         /// </summary>
         public static string ConnectionDiscoveringText {

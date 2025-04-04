@@ -31,7 +31,7 @@ public class ManualOrganizationSelectionViewModel : ViewModelBase
         get => organizationKey;
         set
         {
-            organizationKey = value;
+            organizationKey = value?.Replace(" ", string.Empty);
             RaisePropertyChanged();
             RaisePropertyChanged(nameof(IsValidOrganizationKey));
         }
