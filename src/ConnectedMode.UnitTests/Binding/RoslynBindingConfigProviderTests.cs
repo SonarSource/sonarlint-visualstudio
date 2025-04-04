@@ -66,6 +66,7 @@ public class RoslynBindingConfigProviderTests
         MefTestHelpers.CheckTypeCanBeImported<RoslynBindingConfigProvider, IBindingConfigProvider>(
             MefTestHelpers.CreateExport<ISonarQubeService>(),
             MefTestHelpers.CreateExport<ISonarLintConfigGenerator>(),
+            MefTestHelpers.CreateExport<IGlobalConfigGenerator>(),
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<ILanguageProvider>());
 
@@ -212,9 +213,7 @@ public class RoslynBindingConfigProviderTests
         var capturedRules = builder.CapturedRulesPassedToGlobalConfigGenerator.ToList();
         capturedRules.Should().HaveCount(2);
         capturedRules[0].Key.Should().Be("activeRuleKey");
-        capturedRules[0].RepositoryKey.Should().Be("repoKey1");
         capturedRules[1].Key.Should().Be("inactiveRuleKey");
-        capturedRules[1].RepositoryKey.Should().Be("repoKey2");
 
         builder.Logger.AssertOutputStrings(0); // not expecting anything in the case of success
     }
@@ -279,7 +278,7 @@ public class RoslynBindingConfigProviderTests
         public IList<SonarQubeProperty> PropertiesResponse { get; set; }
         public string GlobalConfigGeneratorResponse { get; set; }
         public TestLogger Logger { get; private set; }
-        public IEnumerable<SonarQubeRule> CapturedRulesPassedToGlobalConfigGenerator { get; private set; }
+        public IEnumerable<IRoslynRuleStatus> CapturedRulesPassedToGlobalConfigGenerator { get; private set; }
 
         public RoslynBindingConfigProvider CreateTestSubject()
         {
@@ -311,9 +310,9 @@ public class RoslynBindingConfigProviderTests
                 .ReturnsAsync(serverExclusionsResponse);
 
             globalConfigGenMock = new Mock<IGlobalConfigGenerator>();
-            globalConfigGenMock.Setup(x => x.Generate(It.IsAny<IEnumerable<SonarQubeRule>>()))
+            globalConfigGenMock.Setup(x => x.Generate(It.IsAny<IEnumerable<IRoslynRuleStatus>>()))
                 .Returns(GlobalConfigGeneratorResponse)
-                .Callback((IEnumerable<SonarQubeRule> rules) =>
+                .Callback((IEnumerable<IRoslynRuleStatus> rules) =>
                 {
                     CapturedRulesPassedToGlobalConfigGenerator = rules;
                 });
@@ -335,6 +334,6 @@ public class RoslynBindingConfigProviderTests
                 LanguageProvider.Instance);
         }
 
-        public void AssertGlobalConfigGeneratorNotCalled() => globalConfigGenMock.Verify(x => x.Generate(It.IsAny<IEnumerable<SonarQubeRule>>()), Times.Never);
+        public void AssertGlobalConfigGeneratorNotCalled() => globalConfigGenMock.Verify(x => x.Generate(It.IsAny<IEnumerable<SonarQubeRoslynRuleStatus>>()), Times.Never);
     }
 }
