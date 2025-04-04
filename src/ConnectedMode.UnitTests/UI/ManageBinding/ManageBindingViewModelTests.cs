@@ -227,7 +227,7 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public void SelectedConnection_NewConnectionIsSet_ClearsSelectedProject()
+    public void SelectedConnectionInfo_NewConnectionIsSet_ClearsSelectedProject()
     {
         testSubject.SelectedConnectionInfo = SonarQubeConnectionInfo;
         testSubject.SelectedProject = ServerProject;
@@ -238,7 +238,7 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public void SelectedConnection_SameConnectionIsSet_DoesNotClearSelectedProject()
+    public void SelectedConnectionInfo_SameConnectionIsSet_DoesNotClearSelectedProject()
     {
         testSubject.SelectedConnectionInfo = SonarQubeConnectionInfo;
         testSubject.SelectedProject = ServerProject;
@@ -249,7 +249,33 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public void SelectedConnection_Set_RaisesEvents()
+    public void ShowInvalidTokenWarningIfNeeded_ConnectionTokenInvalid_ShowsWarning()
+    {
+        MockHasInvalidToken(SonarQubeConnectionInfo, hasInvalidToken: true);
+        testSubject.SelectedConnectionInfo = SonarQubeConnectionInfo;
+
+        testSubject.ShowInvalidTokenWarningIfNeeded();
+
+        testSubject.ProgressReporter.Warning.Should().Be(UiResources.InvalidTokenForSelectedConnectionWarningText);
+    }
+
+    [TestMethod]
+    public void ShowInvalidTokenWarningIfNeeded_ConnectionTokenValid_ResetsWarningFromPreviousConnectionWithInvalidToken()
+    {
+        MockHasInvalidToken(SonarQubeConnectionInfo, hasInvalidToken: true);
+        MockHasInvalidToken(SonarCloudConnectionInfo, hasInvalidToken: false);
+
+        testSubject.SelectedConnectionInfo = SonarQubeConnectionInfo;
+        testSubject.ShowInvalidTokenWarningIfNeeded();
+        testSubject.ProgressReporter.Warning.Should().Be(UiResources.InvalidTokenForSelectedConnectionWarningText);
+
+        testSubject.SelectedConnectionInfo = SonarCloudConnectionInfo;
+        testSubject.ShowInvalidTokenWarningIfNeeded();
+        testSubject.ProgressReporter.Warning.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void SelectedConnectionInfo_Set_RaisesEvents()
     {
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
@@ -869,6 +895,18 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
+    public async Task DisplayBindStatusAsync_WhenProjectIsBoundButProjectNotFound_AndCurrentConnectionHasInvalidToken_ReturnsInvalidTokenWarning()
+    {
+        var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
+        SetupBoundProjectThatDoesNotExistOnServer(sonarCloudConnection, "a-server-project");
+        MockHasInvalidToken(sonarCloudConnection.ToConnection().Info, hasInvalidToken: true);
+
+        var response = await testSubject.DisplayBindStatusAsync();
+
+        response.WarningText.Should().Be(UiResources.InvalidTokenForSelectedConnectionWarningText);
+    }
+
+    [TestMethod]
     public async Task DisplayBindStatusAsync_WhenProjectWasBoundAndBecomesUnbound_UpdatesCurrentProjectAndBindingInfoToNull()
     {
         await InitializeBoundProject();
@@ -1173,6 +1211,7 @@ public class ManageBindingViewModelTests
         SetupBoundProject(selectedServerConnection, selectedServerProject);
         testSubject.SelectedConnectionInfo = ConnectionInfo.From(selectedServerConnection);
         testSubject.SelectedProject = selectedServerProject;
+        progressReporterViewModel.ClearReceivedCalls();
     }
 
     private void SetupBoundProject(ServerConnection serverConnection, ServerProject expectedServerProject)
@@ -1264,4 +1303,7 @@ public class ManageBindingViewModelTests
         progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus>>(), Arg.Any<bool>())
             .Returns(Task.FromResult(new ResponseStatus(task2Response)));
     }
+
+    private void MockHasInvalidToken(ConnectionInfo connectionInfo, bool hasInvalidToken) =>
+        connectedModeServices.ServerConnectionsRepositoryAdapter.HasInvalidToken(Arg.Is<Connection>(conn => conn.Info == connectionInfo)).Returns(hasInvalidToken);
 }

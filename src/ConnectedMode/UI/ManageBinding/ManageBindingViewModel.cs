@@ -303,9 +303,12 @@ internal sealed class ManageBindingViewModel(
         // even if the response is not successful, we still want to update the UI with the bound project, because the binding does exist
         var selectedServerProject = response.ResponseData ?? new ServerProject(boundServerProject.ServerProjectKey, boundServerProject.ServerProjectKey);
         UpdateBoundProjectProperties(serverConnection, selectedServerProject);
-        var projectRetrieved = response.ResponseData != null;
 
-        return new ResponseStatusWithData<BindingResult>(projectRetrieved, projectRetrieved ? BindingResult.Success : BindingResult.Failed);
+        var projectRetrieved = response.ResponseData != null;
+        // we want to override the warning with a more specific one, if we know that the token is invalid for the current connection
+        var warningToOverride = GetInvalidTokenForSelectedConnectionWarningOrNull();
+
+        return new ResponseStatusWithData<BindingResult>(projectRetrieved, projectRetrieved ? BindingResult.Success : BindingResult.Failed, warningText: warningToOverride);
     }
 
     internal async Task<ResponseStatus> UnbindAsync()
@@ -325,6 +328,8 @@ internal sealed class ManageBindingViewModel(
         return new ResponseStatus(succeeded);
     }
 
+    internal void ShowInvalidTokenWarningIfNeeded() => ProgressReporter.Warning = GetInvalidTokenForSelectedConnectionWarningOrNull();
+
     private void UpdateBoundProjectProperties(ServerConnection serverConnection, ServerProject selectedServerProject)
     {
         SelectedConnectionInfo = serverConnection == null ? null : ConnectionInfo.From(serverConnection);
@@ -338,4 +343,9 @@ internal sealed class ManageBindingViewModel(
         var isFolderWorkspace = await connectedModeBindingServices.SolutionInfoProvider.IsFolderWorkspaceAsync();
         return new SolutionInfoModel(solutionName, isFolderWorkspace ? SolutionType.Folder : SolutionType.Solution);
     }
+
+    private string GetInvalidTokenForSelectedConnectionWarningOrNull() => CurrentConnectionHasInvalidToken() ? InvalidTokenForSelectedConnectionWarningText : null;
+
+    private bool CurrentConnectionHasInvalidToken() =>
+        SelectedConnectionInfo != null && connectedModeServices.ServerConnectionsRepositoryAdapter.HasInvalidToken(new Connection(SelectedConnectionInfo));
 }

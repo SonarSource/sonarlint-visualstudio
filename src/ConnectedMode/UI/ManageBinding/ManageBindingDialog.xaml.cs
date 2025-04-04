@@ -20,6 +20,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Navigation;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
@@ -89,4 +90,12 @@ internal partial class ManageBindingDialog : Window
     private async void ExportBindingConfigurationButton_OnClick(object sender, RoutedEventArgs e) => await ViewModel.ExportBindingConfigurationWithProgressAsync();
 
     private void ViewWebsite(object sender, RequestNavigateEventArgs e) => ConnectedModeUiServices.BrowserService.Navigate(e.Uri.AbsoluteUri);
+
+    /// <summary>
+    /// It is important to use the <see cref="ItemsControl.SourceUpdated"/> event and not the <see cref="ItemsControl.SelectionChanged"/> event, because we only want to detect the changes
+    /// that are triggered by user in the UI and not the ones triggered by the binding (i.e. during initialization of the view model).
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void ConnectionsComboBox_OnSourceUpdated(object sender, DataTransferEventArgs e) => ViewModel.ShowInvalidTokenWarningIfNeeded();
 }
