@@ -4,6 +4,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:res="clr-namespace:SonarLint.VisualStudio.Integration.Vsix.Resources"
+             xmlns:links="clr-namespace:SonarLint.VisualStudio.Core;assembly=SonarLint.VisualStudio.Core"
+             x:ClassModifier="internal"
              d:DesignHeight="350"
              d:DesignWidth="450"
              mc:Ignorable="d" Name="GeneralOptionsUserControl">
@@ -37,8 +39,11 @@
                 Command="{Binding Path=OpenSettingsFileCommand}" />
         <TextBlock Grid.Column="1" Grid.Row="0"
                    VerticalAlignment="Center"
-                   Margin="5"
-                   Text="{x:Static res:Strings.OpenSettingsFileText}" />
+                   Margin="5">
+            <Run Text="{x:Static res:Strings.OpenPerUserText}" />
+            <Hyperlink NavigateUri="{x:Static links:DocumentationLinks.SettingsJsonFileUri}" RequestNavigate="ViewInBrowser">settings file</Hyperlink>
+            <Run Text="{x:Static res:Strings.SettingsFileDescriptionText}" />
+        </TextBlock>
         <StackPanel Grid.Column="1" Grid.Row="1">
             <TextBlock
                 VerticalAlignment="Center"
@@ -47,7 +52,7 @@
                 VerticalAlignment="Center"
                 Margin="5,8,0,5">
                 <Run Text="{x:Static res:Strings.SettingsFileIgnoredText}" />
-                <Run Text="See the" /> <Hyperlink Command="{Binding Path=ShowWikiCommand}">wiki</Hyperlink>
+                <Run Text="See the" /> <Hyperlink NavigateUri="{x:Static links:DocumentationLinks.DisablingARuleUri}" RequestNavigate="ViewInBrowser">documentation</Hyperlink>
                 <Run Text="for more information." />
             </TextBlock>
         </StackPanel>

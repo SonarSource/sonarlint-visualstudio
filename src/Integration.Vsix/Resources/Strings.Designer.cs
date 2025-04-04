@@ -396,11 +396,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Open the per-user settings file in which rules can be activated/deactivated and files can be excluded from analysis..
+        ///   Looks up a localized string similar to Open the per-user.
         /// </summary>
-        public static string OpenSettingsFileText {
+        public static string OpenPerUserText {
             get {
-                return ResourceManager.GetString("OpenSettingsFileText", resourceCulture);
+                return ResourceManager.GetString("OpenPerUserText", resourceCulture);
             }
         }
         
@@ -410,6 +410,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         public static string RestartIdeToApplyOptionLabel {
             get {
                 return ResourceManager.GetString("RestartIdeToApplyOptionLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to in which rules can be activated/deactivated and files can be excluded from analysis..
+        /// </summary>
+        public static string SettingsFileDescriptionText {
+            get {
+                return ResourceManager.GetString("SettingsFileDescriptionText", resourceCulture);
             }
         }
         

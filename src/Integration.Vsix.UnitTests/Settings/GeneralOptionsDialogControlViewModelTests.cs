@@ -163,12 +163,12 @@ public class GeneralOptionsDialogControlViewModelTests
     }
 
     [TestMethod]
-    public void ClickHyperlink_ShowWikiCommandIsCalled()
+    public void ViewInBrowser_NavigatesToTheCorrectUrl()
     {
-        testSubject.ShowWikiCommand.Should().NotBeNull();
+        var urlToNavigate = "http://localhost";
 
-        testSubject.ShowWikiCommand.Execute(null);
+        testSubject.ViewInBrowser(urlToNavigate);
 
-        browserService.Received(1).Navigate(DocumentationLinks.DisablingARule);
+        browserService.Received(1).Navigate(urlToNavigate);
     }
 }
