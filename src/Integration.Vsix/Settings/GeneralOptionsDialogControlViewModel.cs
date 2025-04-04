@@ -21,7 +21,6 @@
 using System.Windows.Input;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.WPF;
-using SonarLint.VisualStudio.Integration.WPF;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings;
 
@@ -31,10 +30,10 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
     private DaemonLogLevel selectedDaemonLogLevel;
     private bool isActivateMoreEnabled;
     private readonly ISonarLintSettings slSettings;
+    private readonly IBrowserService browserService;
     private bool showCloudRegion;
 
     public ICommand OpenSettingsFileCommand { get; }
-    public ICommand ShowWikiCommand { get; }
     public IEnumerable<DaemonLogLevel> DaemonLogLevels { get; } = Enum.GetValues(typeof(DaemonLogLevel)).Cast<DaemonLogLevel>();
 
     public string JreLocation
@@ -83,7 +82,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         ICommand openSettingsFileCommand)
     {
         OpenSettingsFileCommand = openSettingsFileCommand ?? throw new ArgumentNullException(nameof(openSettingsFileCommand));
-        ShowWikiCommand = CreateShowWikiCommand(browserService);
+        this.browserService = browserService ?? throw new ArgumentNullException(nameof(browserService));
 
         this.slSettings = slSettings;
         SelectedDaemonLogLevel = slSettings.DaemonLogLevel;
@@ -100,12 +99,5 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         slSettings.ShowCloudRegion = ShowCloudRegion;
     }
 
-    private static RelayCommand CreateShowWikiCommand(IBrowserService browserService)
-    {
-        if (browserService == null)
-        {
-            throw new ArgumentNullException(nameof(browserService));
-        }
-        return new RelayCommand(() => browserService.Navigate(DocumentationLinks.DisablingARule));
-    }
+    internal void ViewInBrowser(string url) => browserService.Navigate(url);
 }

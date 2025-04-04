@@ -321,4 +321,19 @@ E.g. C:\Program Files\Java\jdk-17</value>
   <data name="EsLintBridgeLocator_PathNotFound" xml:space="preserve">
     <value>ESlint bridge bundle not found at: {0}</value>
   </data>
+  <data name="EditSettingsButtonText" xml:space="preserve">
+    <value>Edit Settings</value>
+  </data>
+  <data name="OpenPerUserText" xml:space="preserve">
+    <value>Open the per-user</value>
+  </data>
+  <data name="SettingsFileDescriptionText" xml:space="preserve">
+    <value>in which rules can be activated/deactivated and files can be excluded from analysis.</value>
+  </data>
+  <data name="SettingsFileIgnoredText" xml:space="preserve">
+    <value>Note: per-user settings are ignored for solutions using connected mode.</value>
+  </data>
+  <data name="SettingsFileWillBeCreatedText" xml:space="preserve">
+    <value>The file will be created if it does not exist.</value>
+  </data>
 </root>
