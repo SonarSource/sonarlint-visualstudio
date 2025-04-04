@@ -20,6 +20,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Controls;
+using System.Windows.Navigation;
 using SonarLint.VisualStudio.Integration.Vsix.Settings;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -28,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// Interaction logic for GeneralOptionsDialogControl.xaml
     /// </summary>
     [ExcludeFromCodeCoverage]
-    public partial class GeneralOptionsDialogControl : UserControl
+    internal partial class GeneralOptionsDialogControl : UserControl
     {
         public GeneralOptionsDialogControlViewModel ViewModel { get; }
 
@@ -37,5 +38,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             ViewModel = viewModel;
             InitializeComponent();
         }
+
+        internal void ViewInBrowser(object sender, RequestNavigateEventArgs args) => ViewModel.ViewInBrowser(args.Uri.AbsoluteUri);
     }
 }
