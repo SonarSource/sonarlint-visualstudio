@@ -53,7 +53,7 @@ public abstract class ServerConnection
         {
         }
 
-        public string OrganizationKey { get; } = organizationKey?.Replace(" ", "");
+        public string OrganizationKey { get; } = organizationKey?.Replace(" ", string.Empty);
         public CloudServerRegion Region { get; } = region;
 
         public override Uri ServerUri => Region.Url;
@@ -74,6 +74,6 @@ public abstract class ServerConnection
     {
         public override Uri ServerUri { get; } = serverUri == null
             ? null
-            : new Uri(serverUri.ToString().Replace(" ", ""));
+            : new Uri(serverUri.ToString().Replace(" ", string.Empty));
     }
 }
