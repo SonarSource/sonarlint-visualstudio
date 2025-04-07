@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             }
         }
 
-        public string ServerType => serverType.ToString();
+        public string ServerType => serverType?.ToProductName();
 
         public TaintIssuesControlViewModel(
             ITaintStore store,
