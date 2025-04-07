@@ -18,16 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.ConnectedMode.Install;
+using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration.CSharpVB.Install;
 using SonarLint.VisualStudio.TestInfrastructure;
-
 using Task = System.Threading.Tasks.Task;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Install
+namespace SonarLint.VisualStudio.Integration.UnitTests.CSharpVB.Install
 {
     [TestClass]
     public class ImportBeforeInstallTriggerTests
@@ -42,8 +40,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Install
         }
 
         [TestMethod]
-        public void MefCtor_CheckIsSingleton()
-            => MefTestHelpers.CheckIsSingletonMefComponent<ImportBeforeInstallTrigger>();
+        public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ImportBeforeInstallTrigger>();
 
         [TestMethod]
         public void Ctor_SubscribesToEvents()
@@ -180,7 +177,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Install
             return new BindingConfiguration(new BoundServerProject("test", "test", new ServerConnection.SonarQube(new Uri("http://localhost"))), mode, "");
         }
 
-        private ImportBeforeInstallTrigger CreateTestSubject(IActiveSolutionBoundTracker activeSolutionBoundTracker, IImportBeforeFileGenerator importBeforeFileGenerator = null, IThreadHandling threadHandling = null)
+        private ImportBeforeInstallTrigger CreateTestSubject(
+            IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            IImportBeforeFileGenerator importBeforeFileGenerator = null,
+            IThreadHandling threadHandling = null)
         {
             importBeforeFileGenerator ??= Mock.Of<IImportBeforeFileGenerator>();
             threadHandling ??= new NoOpThreadHandler();

@@ -18,14 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Install
+namespace SonarLint.VisualStudio.Integration.CSharpVB.Install
 {
     [Export(typeof(ImportBeforeInstallTrigger))]
     [PartCreationPolicy(CreationPolicy.Shared)]
@@ -48,10 +46,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Install
             this.activeSolutionBoundTracker.PreSolutionBindingUpdated += OnPreSolutionBindingUpdated;
         }
 
-        private void OnPreSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
-        {
-            TriggerUpdateAsync().Forget();
-        }
+        private void OnPreSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e) => TriggerUpdateAsync().Forget();
 
         private void OnPreSolutionBindingUpdated(object sender, EventArgs e) => TriggerUpdateAsync().Forget();
 

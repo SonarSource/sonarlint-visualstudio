@@ -18,15 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO;
 using System.IO.Abstractions;
 using System.Xml;
-using SonarLint.VisualStudio.ConnectedMode.Install;
+using Moq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.CSharpVB.Install;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Install;
+namespace SonarLint.VisualStudio.Integration.UnitTests.CSharpVB.Install;
 
 [TestClass]
 public class ImportsBeforeFileGeneratorTests
@@ -34,9 +34,9 @@ public class ImportsBeforeFileGeneratorTests
     [TestMethod]
     public void FileDoesNotExist_CreatesFileWithWritesCorrectContent()
     {
-        string pathToDirectory = GetPathToImportBefore();
-        string pathToFile = Path.Combine(pathToDirectory, "SonarLint.targets");
-        string fileContent = GetTargetFileContent();
+        var pathToDirectory = GetPathToImportBefore();
+        var pathToFile = Path.Combine(pathToDirectory, "SonarLint.targets");
+        var fileContent = GetTargetFileContent();
 
         var fileSystem = new Mock<IFileSystem>();
         fileSystem.Setup(x => x.Directory.Exists(pathToDirectory)).Returns(true);
@@ -51,8 +51,8 @@ public class ImportsBeforeFileGeneratorTests
     [TestMethod]
     public void FileExists_DifferentText_CreatesFile()
     {
-        string pathToDirectory = GetPathToImportBefore();
-        string pathToFile = Path.Combine(pathToDirectory, "SonarLint.targets");
+        var pathToDirectory = GetPathToImportBefore();
+        var pathToFile = Path.Combine(pathToDirectory, "SonarLint.targets");
 
         var fileSystem = new Mock<IFileSystem>();
         fileSystem.Setup(x => x.Directory.Exists(pathToDirectory)).Returns(true);
@@ -68,14 +68,14 @@ public class ImportsBeforeFileGeneratorTests
     [TestMethod]
     public void FileExists_SameText_DoesNotCreateFile()
     {
-        string pathToDirectory = GetPathToImportBefore();
-        string pathToFile = Path.Combine(pathToDirectory, "SonarLint.targets");
+        var pathToDirectory = GetPathToImportBefore();
+        var pathToFile = Path.Combine(pathToDirectory, "SonarLint.targets");
 
         var fileSystem = new Mock<IFileSystem>();
         fileSystem.Setup(x => x.Directory.Exists(pathToDirectory)).Returns(true);
         fileSystem.Setup(x => x.File.Exists(pathToFile)).Returns(true);
 
-        string fileContent = GetTargetFileContent();
+        var fileContent = GetTargetFileContent();
         fileSystem.Setup(x => x.File.ReadAllText(pathToFile)).Returns(fileContent);
 
         var testSubject = CreateTestSubject(fileSystem: fileSystem.Object);
@@ -87,8 +87,8 @@ public class ImportsBeforeFileGeneratorTests
     [TestMethod]
     public void DirectoryDoesNotExist_CreatesDirectory()
     {
-        string pathToDirectory = GetPathToImportBefore();
-        string pathToFile = Path.Combine(pathToDirectory, "SonarLint.targets");
+        var pathToDirectory = GetPathToImportBefore();
+        var pathToFile = Path.Combine(pathToDirectory, "SonarLint.targets");
 
         var fileSystem = new Mock<IFileSystem>();
         fileSystem.Setup(x => x.Directory.Exists(pathToDirectory)).Returns(false);
@@ -147,7 +147,7 @@ public class ImportsBeforeFileGeneratorTests
 
     private static string GetTargetFileContent()
     {
-        var resourcePath = "SonarLint.VisualStudio.ConnectedMode.Install.SonarLintTargets.xml";
+        var resourcePath = "SonarLint.VisualStudio.Integration.CSharpVB.Install.SonarLintTargets.xml";
         using var stream = new StreamReader(typeof(ImportBeforeFileGenerator).Assembly.GetManifestResourceStream(resourcePath));
 
         return stream.ReadToEnd();
