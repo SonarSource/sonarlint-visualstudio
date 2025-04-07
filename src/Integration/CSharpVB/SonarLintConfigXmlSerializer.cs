@@ -36,21 +36,21 @@ internal interface ISonarLintConfigurationXmlSerializer
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class SonarLintConfigurationXmlSerializer : ISonarLintConfigurationXmlSerializer
 {
-    public string Serialize(SonarLintConfiguration model)
+    public string Serialize(SonarLintConfiguration configuration)
     {
-        if (model == null)
+        if (configuration == null)
         {
-            throw new ArgumentNullException(nameof(model));
+            throw new ArgumentNullException(nameof(configuration));
         }
 
         using var stream = new MemoryStream();
         using var writer = new StreamWriter(stream);
-        Write(model, writer);
+        Write(configuration, writer);
         var data = stream.ToArray();
         return Encoding.UTF8.GetString(data);
     }
 
-    private static void Write(SonarLintConfiguration model, TextWriter writer)
+    private static void Write(SonarLintConfiguration configuration, TextWriter writer)
     {
         var serializer = new XmlSerializer(typeof(SonarLintConfiguration));
 
@@ -65,7 +65,7 @@ internal class SonarLintConfigurationXmlSerializer : ISonarLintConfigurationXmlS
         };
 
         using var xmlWriter = XmlWriter.Create(writer, settings);
-        serializer.Serialize(xmlWriter, model);
+        serializer.Serialize(xmlWriter, configuration);
         xmlWriter.Flush();
     }
 }
