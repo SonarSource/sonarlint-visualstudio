@@ -20,13 +20,9 @@
 
 namespace SonarLint.VisualStudio.Core.CSharpVB;
 
-public interface IGlobalConfigGenerator
-{
-    string Generate(IEnumerable<IRoslynRuleStatus> rules);
-}
-
-public interface IRoslynRuleStatus
+public interface IRuleParameters
 {
     string Key { get; }
-    RuleAction GetSeverity();
+    string RepositoryKey { get; }
+    IReadOnlyDictionary<string, string> Parameters { get; }
 }

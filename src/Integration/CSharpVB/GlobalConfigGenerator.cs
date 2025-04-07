@@ -24,6 +24,11 @@ using SonarLint.VisualStudio.Core.CSharpVB;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB;
 
+public interface IGlobalConfigGenerator
+{
+    string Generate(IEnumerable<IRoslynRuleStatus> rules);
+}
+
 [Export(typeof(IGlobalConfigGenerator))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class GlobalConfigGenerator : IGlobalConfigGenerator

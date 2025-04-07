@@ -83,20 +83,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
                 // (1) Save the top-level binding.config file that contains the QP timestamp
                 var bindingConfiguration = configurationPersister.Persist(boundProject);
 
-                // Create the binding configuration for the language
-                var bindingConfig = await bindingConfigProvider.GetConfigurationAsync(qualityProfileInfo, language, bindingConfiguration, cancellationToken);
-                if (bindingConfig == null)
-                {
-                    // NOTE: this should never happen, binding config should be present for every supported language
-                    throw new InvalidOperationException(
-                        string.Format(QualityProfilesStrings.FailedToCreateBindingConfigForLanguage, language.Name));
-                }
-
                 // (2) Save the language-specific rules config.
                 // Note: we've already saved the updated timestamp for the current language in the binding.config file at step (1) above
                 // If there is an error between (1) and (2) then the timestamp in the binding.config will show this language
                 // is up to date when it is not.
-                bindingConfig.Save();
+                await bindingConfigProvider.SaveConfigurationAsync(qualityProfileInfo, language, bindingConfiguration, cancellationToken);
                 isChanged = true;
 
                 LogWithBindingPrefix(string.Format(BindingStrings.SubTextPaddingFormat,

@@ -27,6 +27,17 @@ using SonarLint.VisualStudio.Core.CSharpVB;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB;
 
+public interface ISonarLintConfigGenerator
+{
+    /// <summary>
+    /// Generates the data for a SonarLint.xml file for the specified language
+    /// </summary>
+    SonarLintConfiguration Generate(IEnumerable<IRuleParameters> rules,
+        IDictionary<string, string> sonarProperties,
+        IFileExclusions fileExclusions,
+        Language language);
+}
+
 [Export(typeof(ISonarLintConfigGenerator))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
@@ -95,7 +106,7 @@ public class SonarLintConfigGenerator(ILanguageProvider languageProvider) : ISon
             .OrderBy(slr => slr.Key)
             .ToList();
 
-    private static bool HasParameters(IRuleParameters sqRule) => sqRule.Parameters.Count > 0;
+    private static bool HasParameters(IRuleParameters sqRule) => sqRule.Parameters is {Count: > 0};
 
     private static SonarLintRule ToSonarLintRule(IRuleParameters sqRule)
     {

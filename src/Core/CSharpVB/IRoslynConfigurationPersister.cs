@@ -18,32 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.CSharpVB
+namespace SonarLint.VisualStudio.Core.CSharpVB;
+
+public interface IRoslynConfigGenerator
 {
-    public interface ISonarLintConfigGenerator
-    {
-        /// <summary>
-        /// Generates the data for a SonarLint.xml file for the specified language
-        /// </summary>
-        SonarLintConfiguration Generate(IEnumerable<IRuleParameters> rules,
-            IDictionary<string, string> sonarProperties,
-            IFileExclusions fileExclusions,
-            Language language);
-    }
-
-    public interface IRuleParameters
-    {
-        string Key { get; }
-        string RepositoryKey { get; }
-        IReadOnlyDictionary<string, string> Parameters { get; }
-    }
-
-    public interface IFileExclusions
-    {
-        string[] Exclusions { get; set; }
-        string[] GlobalExclusions { get; set; }
-        string[] Inclusions { get; set; }
-
-        Dictionary<string, string> ToDictionary();
-    }
+    void GenerateAndSaveConfiguration(
+        Language language,
+        string baseDirectory,
+        IDictionary<string, string> properties,
+        IFileExclusions fileExclusions,
+        IReadOnlyCollection<IRoslynRuleStatus> ruleStatuses,
+        IReadOnlyCollection<IRuleParameters> ruleParameters);
 }

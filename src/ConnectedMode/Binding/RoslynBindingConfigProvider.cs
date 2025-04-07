@@ -19,14 +19,13 @@
  */
 
 using System.ComponentModel.Composition;
-using System.IO;
 using SonarLint.VisualStudio.ConnectedMode.Helpers;
+using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarQube.Client;
 using SonarQube.Client.Models;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding;
 
@@ -39,8 +38,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding;
 internal class RoslynBindingConfigProvider(
     ISonarQubeService sonarQubeService,
     ILogger logger,
-    IGlobalConfigGenerator globalConfigGenerator,
-    ISonarLintConfigGenerator sonarLintConfigGenerator,
+    IRoslynConfigGenerator roslynConfigGenerator,
     ILanguageProvider languageProvider)
     : IBindingConfigProvider
 {
@@ -49,7 +47,7 @@ internal class RoslynBindingConfigProvider(
 
     public bool IsLanguageSupported(Language language) => languageProvider.RoslynLanguages.Contains(language);
 
-    public Task<IBindingConfig> GetConfigurationAsync(
+    public Task SaveConfigurationAsync(
         SonarQubeQualityProfile qualityProfile,
         Language language,
         BindingConfiguration bindingConfiguration,
@@ -63,7 +61,7 @@ internal class RoslynBindingConfigProvider(
         return DoGetConfigurationAsync(qualityProfile, language, bindingConfiguration, cancellationToken);
     }
 
-    private async Task<IBindingConfig> DoGetConfigurationAsync(
+    private async Task DoGetConfigurationAsync(
         SonarQubeQualityProfile qualityProfile,
         Language language,
         BindingConfiguration bindingConfiguration,
@@ -74,14 +72,16 @@ internal class RoslynBindingConfigProvider(
             $"Server language should not be null for supported language: {language.Id}");
 
         // First, fetch the active rules
-        var activeRules = await FetchSupportedRulesAsync(true, qualityProfile.Key, cancellationToken);
+        var activeRules = (await FetchSupportedRulesAsync(true, qualityProfile.Key, cancellationToken)).ToList();
 
         // Give up if the quality profile is empty - no point in fetching anything else
         if (!activeRules.Any())
         {
             logger.WriteLine(string.Format(BindingStrings.SubTextPaddingFormat,
                 string.Format(BindingStrings.NoSonarAnalyzerActiveRulesForQualityProfile, qualityProfile.Name, language.Name)));
-            return null;
+            // NOTE: this should never happen, binding config should be present for every supported language
+            throw new InvalidOperationException(
+                string.Format(QualityProfilesStrings.FailedToCreateBindingConfigForLanguage, language.Name));
         }
 
         // Now fetch the data required for the NuGet configuration
@@ -91,10 +91,13 @@ internal class RoslynBindingConfigProvider(
         var inactiveRules = await FetchSupportedRulesAsync(false, qualityProfile.Key, cancellationToken);
         var exclusions = await FetchInclusionsExclusionsAsync(bindingConfiguration.Project.ServerProjectKey, cancellationToken);
 
-        var globalConfig = GetGlobalConfig(language, bindingConfiguration, activeRules, inactiveRules);
-        var additionalFile = GetAdditionalFile(language, bindingConfiguration, activeRules, sonarProperties, exclusions);
-
-        return new CSharpVBBindingConfig(globalConfig, additionalFile);
+        roslynConfigGenerator.GenerateAndSaveConfiguration(
+            language,
+            bindingConfiguration.BindingConfigDirectory,
+            sonarProperties,
+            exclusions,
+            activeRules.Union(inactiveRules).Select(x => new SonarQubeRoslynRuleStatus(x, environmentSettings)).ToList(),
+            activeRules);
     }
 
     private async Task<ServerExclusions> FetchInclusionsExclusionsAsync(
@@ -105,34 +108,6 @@ internal class RoslynBindingConfigProvider(
             () => sonarQubeService.GetServerExclusions(projectKey, cancellationToken), logger);
 
         return exclusions;
-    }
-
-    private FilePathAndContent<string> GetGlobalConfig(
-        Language language,
-        BindingConfiguration bindingConfiguration,
-        IEnumerable<SonarQubeRule> activeRules,
-        IEnumerable<SonarQubeRule> inactiveRules)
-    {
-        var globalConfig = globalConfigGenerator.Generate(activeRules.Union(inactiveRules).Select(x => new SonarQubeRoslynRuleStatus(x, environmentSettings)));
-
-        var globalConfigFilePath = GetSolutionGlobalConfigFilePath(language, bindingConfiguration);
-
-        return new FilePathAndContent<string>(globalConfigFilePath, globalConfig);
-    }
-
-    private FilePathAndContent<SonarLintConfiguration> GetAdditionalFile(
-        Language language,
-        BindingConfiguration bindingConfiguration,
-        IEnumerable<SonarQubeRule> activeRules,
-        IDictionary<string, string> sonarProperties,
-        ServerExclusions serverExclusions)
-    {
-        var additionalFilePath = GetSolutionAdditionalFilePath(language, bindingConfiguration);
-        var additionalFileContent = sonarLintConfigGenerator.Generate(activeRules, sonarProperties, serverExclusions, language);
-
-        var additionalFile = new FilePathAndContent<SonarLintConfiguration>(additionalFilePath, additionalFileContent);
-
-        return additionalFile;
     }
 
     private async Task<IEnumerable<SonarQubeRule>> FetchSupportedRulesAsync(bool active, string qpKey, CancellationToken cancellationToken)
@@ -165,16 +140,4 @@ internal class RoslynBindingConfigProvider(
         issueType == SonarQubeIssueType.CodeSmell ||
         issueType == SonarQubeIssueType.Bug ||
         issueType == SonarQubeIssueType.Vulnerability;
-
-    internal static string GetSolutionGlobalConfigFilePath(Language language, BindingConfiguration bindingConfiguration)
-    {
-        return bindingConfiguration.BuildPathUnderConfigDirectory(language.SettingsFileNameAndExtension);
-    }
-
-    internal static string GetSolutionAdditionalFilePath(Language language, BindingConfiguration bindingConfiguration)
-    {
-        var additionalFilePathDirectory = bindingConfiguration.BuildPathUnderConfigDirectory();
-
-        return Path.Combine(additionalFilePathDirectory, language.Id, "SonarLint.xml");
-    }
 }

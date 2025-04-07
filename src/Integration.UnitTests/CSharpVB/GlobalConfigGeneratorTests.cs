@@ -22,7 +22,7 @@ using System.Text;
 using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Integration.CSharpVB;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding;
+namespace SonarLint.VisualStudio.Integration.UnitTests.CSharpVB;
 
 [TestClass]
 public class GlobalConfigGeneratorTests
