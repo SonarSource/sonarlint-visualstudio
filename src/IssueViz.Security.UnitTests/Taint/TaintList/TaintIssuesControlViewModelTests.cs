@@ -45,6 +45,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
     [TestClass]
     public class TaintIssuesControlViewModelTests
     {
+        private const string SonarCloudProductName = "SonarQube Cloud";
+        private const string SonarQubeProductName = "SonarQube Server";
+
         [TestMethod]
         public void Ctor_RegisterToStoreCollectionChanges()
         {
@@ -208,9 +211,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         }
 
         [TestMethod]
-        [DataRow(ServerType.SonarCloud, nameof(ServerType.SonarCloud))]
-        [DataRow(ServerType.SonarQube, nameof(ServerType.SonarQube))]
-        [DataRow(null, "")]
+        [DataRow(ServerType.SonarCloud, SonarCloudProductName)]
+        [DataRow(ServerType.SonarQube, SonarQubeProductName)]
+        [DataRow(null, null)]
         public void Ctor_ExpectedServerTypeSet(ServerType? serverType, string expectedValue)
         {
             var sonarQubeServiceMock = new Mock<ISonarQubeService>();
@@ -218,7 +221,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             var testSubject = CreateTestSubject(sonarQubeService: sonarQubeServiceMock.Object);
 
-            testSubject.ServerType.Should().Be(expectedValue);
+            testSubject.ServerTypeDisplayName.Should().Be(expectedValue);
         }
 
         [TestMethod]
@@ -690,11 +693,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         }
 
         [TestMethod]
-        [DataRow(null, ServerType.SonarCloud, nameof(ServerType.SonarCloud), true)]
-        [DataRow(null, null, "", false)]
-        [DataRow(ServerType.SonarCloud, null, "", true)]
-        [DataRow(ServerType.SonarCloud, ServerType.SonarCloud, nameof(ServerType.SonarCloud), false)]
-        [DataRow(ServerType.SonarCloud, ServerType.SonarQube, nameof(ServerType.SonarQube), true)]
+        [DataRow(null, ServerType.SonarCloud, SonarCloudProductName, true)]
+        [DataRow(null, null, null, false)]
+        [DataRow(ServerType.SonarCloud, null, null, true)]
+        [DataRow(ServerType.SonarCloud, ServerType.SonarCloud, SonarCloudProductName, false)]
+        [DataRow(ServerType.SonarCloud, ServerType.SonarQube, SonarQubeProductName, true)]
         public void ActiveDocChanged_ExpectedServerTypeSetOnlyWhenItIsChanged(
             ServerType? originalServerType,
             ServerType? newServerType,
@@ -709,7 +712,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             var eventCount = 0;
             testSubject.PropertyChanged += (sender, args) =>
             {
-                if (args is { PropertyName: nameof(testSubject.ServerType) })
+                if (args is { PropertyName: nameof(testSubject.ServerTypeDisplayName) })
                 {
                     eventCount++;
                 }
@@ -718,7 +721,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             RaiseActiveDocumentChangedEvent(activeDocumentTrackerMock);
 
-            testSubject.ServerType.Should().Be(expectedValue);
+            testSubject.ServerTypeDisplayName.Should().Be(expectedValue);
             eventCount.Should().Be(expectedRaiseEvent ? 1 : 0);
         }
 

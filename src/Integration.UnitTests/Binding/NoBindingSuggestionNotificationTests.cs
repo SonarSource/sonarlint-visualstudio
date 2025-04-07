@@ -20,7 +20,6 @@
 
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.ConnectedMode.UI;
-using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Notifications;
@@ -73,7 +72,7 @@ public class NoBindingSuggestionNotificationTests
     [TestMethod]
     public void Show_SonarCloud_ShowsMessageAndActions()
     {
-        var expectedMessage = string.Format(BindingStrings.NoBindingSuggestionNotification_Message, UiResources.SonarQubeCloud, ProjectKey);
+        var expectedMessage = string.Format(BindingStrings.NoBindingSuggestionNotification_Message, CoreStrings.SonarQubeCloudProductName, ProjectKey);
 
         testSubject.Show(ProjectKey, isSonarCloud: true);
 
@@ -87,7 +86,7 @@ public class NoBindingSuggestionNotificationTests
     [TestMethod]
     public void Show_SonarQube_ShowsMessageAndActions()
     {
-        var expectedMessage = string.Format(BindingStrings.NoBindingSuggestionNotification_Message, UiResources.SonarQubeServer, ProjectKey);
+        var expectedMessage = string.Format(BindingStrings.NoBindingSuggestionNotification_Message, CoreStrings.SonarQubeServerProductName, ProjectKey);
 
         testSubject.Show(ProjectKey, isSonarCloud: false);
 

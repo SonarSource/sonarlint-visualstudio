@@ -159,4 +159,10 @@
   <data name="FocusLineFailed" xml:space="preserve">
     <value>Focus to line {0} failed due to {1}.</value>
   </data>
+  <data name="HideIssueVisualizationCommandText" xml:space="preserve">
+    <value>SonarQube for Visual Studio: Hide Issue Visualization ({0})</value>
+  </data>
+  <data name="ShowIssueVisualizationCommandText" xml:space="preserve">
+    <value>SonarQube for Visual Studio: Show Issue Visualization ({0})</value>
+  </data>
 </root>

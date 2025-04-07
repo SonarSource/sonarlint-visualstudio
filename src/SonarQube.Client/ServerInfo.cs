@@ -18,28 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using SonarLint.VisualStudio.Core;
 
-namespace SonarQube.Client
+namespace SonarQube.Client;
+
+/// <summary>
+/// Describes the currently connected server
+/// </summary>
+public class ServerInfo(Version version, ServerType serverType)
 {
-    /// <summary>
-    /// Describes the currently connected server
-    /// </summary>
-    public class ServerInfo
-    {
-        public ServerInfo(Version version, ServerType serverType)
-        {
-            Version = version;
-            ServerType = serverType;
-        }
+    public Version Version { get; } = version;
 
-        public Version Version { get; }
+    public ServerType ServerType { get; } = serverType;
+}
 
-        public ServerType ServerType { get; }
-    }
+public enum ServerType
+{
+    SonarQube, SonarCloud
+}
 
-    public enum ServerType
-    {
-        SonarQube, SonarCloud
-    }
+public static class ServerTypeExtensions
+{
+    public static string ToProductName(this ServerType serverType) => serverType == ServerType.SonarCloud ? CoreStrings.SonarQubeCloudProductName : CoreStrings.SonarQubeServerProductName;
 }

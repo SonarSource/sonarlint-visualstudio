@@ -91,7 +91,7 @@
                 <TextBlock Grid.Row="1" Style="{StaticResource AutomaticTokenTextBlockStyle}">
                     <Run Text="{x:Static res:UiResources.TrustConnectionTokenInfoText}" />
                     <Underline>
-                        <Run Text="{x:Static res:UiResources.SonarQubeServer}" />
+                        <Run Text="{x:Static links:CoreStrings.SonarQubeServerProductName}" />
                     </Underline>
                 </TextBlock>
             </Grid>
@@ -157,7 +157,7 @@
                 <TextBlock Grid.Row="1" Style="{StaticResource AutomaticTokenTextBlockStyle}">
                     <Run Text="{x:Static res:UiResources.TrustConnectionTokenInfoText}" />
                     <Underline>
-                        <Run Text="{x:Static res:UiResources.SonarQubeCloud}" />
+                        <Run Text="{x:Static links:CoreStrings.SonarQubeCloudProductName}" />
                     </Underline>
                 </TextBlock>
             </Grid>

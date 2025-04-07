@@ -21,13 +21,13 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.Design;
-using System.Runtime.CompilerServices;
 using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
@@ -61,14 +61,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         string WindowCaption { get; }
 
-        string ServerType { get; }
+        string ServerTypeDisplayName { get; }
     }
 
     /// <summary>
     /// View model that surfaces the data in the TaintStore
     /// </summary>
     /// <remarks>Monitors the taint store for changes and updates the view model accordingly.</remarks>
-    internal sealed class TaintIssuesControlViewModel : ITaintIssuesControlViewModel
+    internal sealed class TaintIssuesControlViewModel : ViewModelBase, ITaintIssuesControlViewModel
     {
         private readonly IActiveDocumentTracker activeDocumentTracker;
         private readonly IShowInBrowserService showInBrowserService;
@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         private string activeDocumentFilePath;
         private string windowCaption;
         private ITaintIssueViewModel selectedIssue;
-        private ServerType? serverType = null;
+        private string serverTypeDisplayName;
 
         private readonly ObservableCollection<ITaintIssueViewModel> unfilteredIssues;
 
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
                 if (windowCaption != value)
                 {
                     windowCaption = value;
-                    NotifyPropertyChanged();
+                    RaisePropertyChanged();
                 }
             }
         }
@@ -127,7 +127,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             }
         }
 
-        public string ServerType => serverType.ToString();
+        public string ServerTypeDisplayName
+        {
+            get => serverTypeDisplayName;
+            set
+            {
+                if (serverTypeDisplayName != value)
+                {
+                    serverTypeDisplayName = value;
+                    RaisePropertyChanged();
+                }
+            }
+        }
 
         public TaintIssuesControlViewModel(
             ITaintStore store,
@@ -202,11 +213,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         private void UpdateServerType()
         {
             var newServerType = sonarQubeService.GetServerInfo()?.ServerType;
-            if (!newServerType.Equals(serverType))
-            {
-                serverType = newServerType;
-                NotifyPropertyChanged(nameof(ServerType));
-            }
+            ServerTypeDisplayName = newServerType?.ToProductName();
         }
 
         private void ApplyViewFilter(Predicate<object> filter) => IssuesView.Filter = filter;
@@ -289,7 +296,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
                 unfilteredIssues.Add(taintIssueViewModel);
             }
 
-            NotifyPropertyChanged(nameof(HasServerIssues));
+            RaisePropertyChanged(nameof(HasServerIssues));
         }
 
         private void UpdateCaptionAndListFilter()
@@ -327,7 +334,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         private void SelectionService_SelectionChanged(object sender, EventArgs e)
         {
             selectedIssue = unfilteredIssues.FirstOrDefault(x => x.TaintIssueViz == selectionService.SelectedIssue);
-            NotifyPropertyChanged(nameof(SelectedIssue));
+            RaisePropertyChanged(nameof(SelectedIssue));
         }
 
         public void Dispose()
@@ -335,13 +342,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             selectionService.SelectedIssueChanged -= SelectionService_SelectionChanged;
             store.IssuesChanged -= Store_IssuesChanged;
             activeDocumentTracker.ActiveDocumentChanged -= ActiveDocumentTracker_OnDocumentFocused;
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
