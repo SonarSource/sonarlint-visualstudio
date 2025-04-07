@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Helpers;
+
 namespace SonarLint.VisualStudio.Core.Binding;
 
 public abstract class ServerConnection
@@ -53,7 +55,7 @@ public abstract class ServerConnection
         {
         }
 
-        public string OrganizationKey { get; } = organizationKey?.Replace(" ", string.Empty);
+        public string OrganizationKey { get; } = organizationKey.WithoutSpaces();
         public CloudServerRegion Region { get; } = region;
 
         public override Uri ServerUri => Region.Url;
@@ -74,6 +76,6 @@ public abstract class ServerConnection
     {
         public override Uri ServerUri { get; } = serverUri == null
             ? null
-            : new Uri(serverUri.ToString().Replace(" ", string.Empty));
+            : new Uri(serverUri.ToString().WithoutSpaces());
     }
 }

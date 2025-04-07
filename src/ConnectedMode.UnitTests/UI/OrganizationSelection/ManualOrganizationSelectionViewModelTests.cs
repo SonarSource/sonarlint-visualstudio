@@ -51,15 +51,11 @@ public class ManualOrganizationSelectionViewModelTests
     }
 
     [TestMethod]
-    [DataRow(" key", "key")]
-    [DataRow("key ", "key")]
-    [DataRow("k ey", "key")]
-    [DataRow(" k ey ", "key")]
-    public void OrganizationKey_Set_PreventsSpaces(string rawInput, string expectedResult)
+    public void OrganizationKey_Set_PreventsSpaces()
     {
-        testSubject.OrganizationKey = rawInput;
+        testSubject.OrganizationKey = " k e y ";
 
-        testSubject.OrganizationKey.Should().Be(expectedResult);
+        testSubject.OrganizationKey.Should().Be("key");
     }
 
     [DataTestMethod]
