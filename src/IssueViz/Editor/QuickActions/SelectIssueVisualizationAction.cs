@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
@@ -39,7 +38,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
             Issue = issueVisualization;
         }
 
-        public override string DisplayText => $"SonarLint: Show Issue Visualization ({Issue.RuleId})";
+        public override string DisplayText => string.Format(Resources.ShowIssueVisualizationCommandText, Issue.RuleId);
 
         public override void Invoke(CancellationToken cancellationToken)
         {

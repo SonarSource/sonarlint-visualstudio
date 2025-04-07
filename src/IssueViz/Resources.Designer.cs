@@ -194,5 +194,14 @@ namespace SonarLint.VisualStudio.IssueVisualization {
                 return ResourceManager.GetString("IssueVisualizationToolWindowCaption", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube for Visual Studio: Show Issue Visualization ({0}).
+        /// </summary>
+        public static string ShowIssueVisualizationCommandText {
+            get {
+                return ResourceManager.GetString("ShowIssueVisualizationCommandText", resourceCulture);
+            }
+        }
     }
 }
