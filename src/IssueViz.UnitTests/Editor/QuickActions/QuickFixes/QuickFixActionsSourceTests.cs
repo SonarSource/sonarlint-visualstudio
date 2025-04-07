@@ -25,10 +25,10 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.TestInfrastructure;
 using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickActions.QuickFixes;
@@ -188,7 +188,7 @@ public class QuickFixActionsSourceTests
     [TestMethod]
     public async Task HasSuggestedActionsAsync_NoIssuesWithApplicableQuickFixes_False()
     {
-        var issues = new[] { CreateIssueViz(CreateQuickFixViz(canBeApplied:false)) };
+        var issues = new[] { CreateIssueViz(CreateQuickFixViz(canBeApplied: false)) };
 
         var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
@@ -202,7 +202,7 @@ public class QuickFixActionsSourceTests
     [TestMethod]
     public async Task HasSuggestedActionsAsync_HasIssuesWithApplicableQuickFixes_True()
     {
-        var issues = new[] { CreateIssueViz(CreateQuickFixViz(canBeApplied:true)) };
+        var issues = new[] { CreateIssueViz(CreateQuickFixViz(canBeApplied: true)) };
 
         var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
@@ -268,10 +268,7 @@ public class QuickFixActionsSourceTests
     [TestMethod]
     public void GetSuggestedActions_NoIssuesWithApplicableQuickFixes_NoActions()
     {
-        var issues = new[]
-        {
-            CreateIssueViz(CreateQuickFixViz(canBeApplied: false))
-        };
+        var issues = new[] { CreateIssueViz(CreateQuickFixViz(canBeApplied: false)) };
 
         var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
@@ -293,9 +290,7 @@ public class QuickFixActionsSourceTests
             CreateIssueViz(
                 CreateQuickFixViz(canBeApplied: true, message: "fix3"),
                 CreateQuickFixViz(canBeApplied: false, message: "fix4")),
-            CreateIssueViz(),
-            CreateIssueViz(CreateQuickFixViz(canBeApplied: false, message: "fix5")),
-            CreateIssueViz(CreateQuickFixViz(canBeApplied: true, message: "fix6"))
+            CreateIssueViz(), CreateIssueViz(CreateQuickFixViz(canBeApplied: false, message: "fix5")), CreateIssueViz(CreateQuickFixViz(canBeApplied: true, message: "fix6"))
         };
 
         var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
@@ -307,7 +302,8 @@ public class QuickFixActionsSourceTests
 
         var quickFixSuggestedActions = hasSuggestedActionsSet.Single().Actions.OfType<QuickFixSuggestedAction>().ToList();
         quickFixSuggestedActions.Count.Should().Be(3);
-        quickFixSuggestedActions.Select(x => x.DisplayText).Should().BeEquivalentTo(QuickFixSuggestedAction.sonarLintPrefix + "fix2", QuickFixSuggestedAction.sonarLintPrefix + "fix3", QuickFixSuggestedAction.sonarLintPrefix + "fix6");
+        quickFixSuggestedActions.Select(x => x.DisplayText).Should().BeEquivalentTo(QuickFixSuggestedAction.productNamePrefix + "fix2", QuickFixSuggestedAction.productNamePrefix + "fix3",
+            QuickFixSuggestedAction.productNamePrefix + "fix6");
     }
 
     [TestMethod]
@@ -341,7 +337,8 @@ public class QuickFixActionsSourceTests
         logger.AssertPartialOutputStringDoesNotExist("this is a test");
     }
 
-    private QuickFixActionsSource CreateTestSubject(ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator = null,
+    private QuickFixActionsSource CreateTestSubject(
+        ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator = null,
         ILightBulbBroker lightBulbBroker = null,
         ILogger logger = null,
         IThreadHandling threadHandling = null)
