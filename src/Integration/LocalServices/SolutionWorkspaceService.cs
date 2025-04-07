@@ -36,6 +36,8 @@ public class SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider
 {
     public bool IsSolutionWorkSpace() => !solutionInfoProvider.IsFolderWorkspace();
 
+    public string GetSolutionPath() => solutionInfoProvider.GetFullSolutionFilePath();
+
     [ExcludeFromCodeCoverage]
     public IReadOnlyCollection<string> ListFiles() =>
         IsSolutionWorkSpace()

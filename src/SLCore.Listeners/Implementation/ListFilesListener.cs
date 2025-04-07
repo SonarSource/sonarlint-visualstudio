@@ -84,7 +84,7 @@ public class ListFilesListener(
         }
 
         var solutionFiles = solutionWorkspaceService.ListFiles();
-        return (solutionFiles, GetSolutionModeRoot(solutionFiles.FirstOrDefault()));
+        return (solutionFiles, GetSolutionModeRoot());
     }
 
     private List<ClientFileDto> GetClientFilesDtos(
@@ -98,7 +98,7 @@ public class ListFilesListener(
 
     private string GetFolderModeRoot() => NormalizeRoot(folderWorkspaceService.FindRootDirectory());
 
-    private static string GetSolutionModeRoot(string filePath) => NormalizeRoot(Path.GetPathRoot(filePath));
+    private string GetSolutionModeRoot() => NormalizeRoot(Path.GetDirectoryName(solutionWorkspaceService.GetSolutionPath()));
 
     private static string NormalizeRoot(string root)
     {

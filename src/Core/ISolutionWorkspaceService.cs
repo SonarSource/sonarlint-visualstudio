@@ -29,6 +29,8 @@ namespace SonarLint.VisualStudio.Core
         /// </summary>
         bool IsSolutionWorkSpace();
 
+        string GetSolutionPath();
+
         /// <summary>
         /// List Files in a solution
         /// </summary>
