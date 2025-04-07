@@ -22,7 +22,6 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.ConnectedMode.UI;
-using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Notifications;
@@ -59,7 +58,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public void Show(string projectKey, bool isSonarCloud)
         {
-            var connectAction = new NotificationAction(BindingStrings.NoBindingSuggestionNotification_ConfigureBindingAction, _ => connectedModeUiManager.ShowManageBindingDialogAsync().Forget(), true);
+            var connectAction = new NotificationAction(BindingStrings.NoBindingSuggestionNotification_ConfigureBindingAction, _ => connectedModeUiManager.ShowManageBindingDialogAsync().Forget(),
+                true);
             var learnMoreAction = new NotificationAction(BindingStrings.NoBindingSuggestionNotification_LearnMoreAction, _ => browserService.Navigate(DocumentationLinks.OpenInIdeBindingSetup), false);
 
             var notification = new Notification(
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private static string FormatNotificationMessage(string projectKey, bool isSonarCloud)
         {
-            var serverName = isSonarCloud ? UiResources.SonarQubeCloud : UiResources.SonarQubeServer;
+            var serverName = isSonarCloud ? CoreStrings.SonarQubeCloudProductName : CoreStrings.SonarQubeServerProductName;
             return string.Format(BindingStrings.NoBindingSuggestionNotification_Message, serverName, projectKey);
         }
     }

@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
             cachedSelectedIssueRuleId = selectionService.SelectedIssue.RuleId;
         }
 
-        public override string DisplayText => $"SonarQube for Visual Studio: Hide Issue Visualization ({cachedSelectedIssueRuleId})";
+        public override string DisplayText => string.Format(Resources.HideIssueVisualizationCommandText, cachedSelectedIssueRuleId);
 
         public override void Invoke(CancellationToken cancellationToken)
         {

@@ -1007,29 +1007,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube Cloud.
-        /// </summary>
-        public static string SonarQubeCloud {
-            get {
-                return ResourceManager.GetString("SonarQubeCloud", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to An open-source, self-managed tool that easily integrates into the developers&apos; CI/CD pipeline and DevOps platform to systematically help developers and organizations deliver Clean Code..
         /// </summary>
         public static string SonarQubeDescription {
             get {
                 return ResourceManager.GetString("SonarQubeDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SonarQube Server.
-        /// </summary>
-        public static string SonarQubeServer {
-            get {
-                return ResourceManager.GetString("SonarQubeServer", resourceCulture);
             }
         }
         

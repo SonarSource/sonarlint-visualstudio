@@ -444,12 +444,6 @@
   <data name="DoNotTrustOrganizationButton" xml:space="preserve">
     <value>I Don't Trust This Organization</value>
   </data>
-  <data name="SonarQubeCloud" xml:space="preserve">
-    <value>SonarQube Cloud</value>
-  </data>
-  <data name="SonarQubeServer" xml:space="preserve">
-    <value>SonarQube Server</value>
-  </data>
   <data name="TrustCloudConnectionDescriptionText" xml:space="preserve">
     <value>Connecting to SonarQube Cloud will enable issues to be opened directly in your IDE and enable other</value>
   </data>

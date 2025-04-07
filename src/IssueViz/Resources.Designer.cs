@@ -178,6 +178,15 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarQube for Visual Studio: Hide Issue Visualization ({0}).
+        /// </summary>
+        public static string HideIssueVisualizationCommandText {
+            get {
+                return ResourceManager.GetString("HideIssueVisualizationCommandText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Sonar Issue Visualization.
         /// </summary>
         public static string IssueVisualizationToolWindowCaption {

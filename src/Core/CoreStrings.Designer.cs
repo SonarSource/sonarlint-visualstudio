@@ -207,6 +207,15 @@ namespace SonarLint.VisualStudio.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarQube Cloud.
+        /// </summary>
+        public static string SonarQubeCloudProductName {
+            get {
+                return ResourceManager.GetString("SonarQubeCloudProductName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarQube (Server, Cloud) request failed: {0} {1}.
         /// </summary>
         public static string SonarQubeRequestFailed {
@@ -221,6 +230,15 @@ namespace SonarLint.VisualStudio.Core {
         public static string SonarQubeRequestTimeoutOrCancelled {
             get {
                 return ResourceManager.GetString("SonarQubeRequestTimeoutOrCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube Server.
+        /// </summary>
+        public static string SonarQubeServerProductName {
+            get {
+                return ResourceManager.GetString("SonarQubeServerProductName", resourceCulture);
             }
         }
         

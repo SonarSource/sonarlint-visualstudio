@@ -196,4 +196,10 @@
   <data name="FindingType_Hotspot" xml:space="preserve">
     <value>hotspot</value>
   </data>
+  <data name="SonarQubeCloudProductName" xml:space="preserve">
+    <value>SonarQube Cloud</value>
+  </data>
+  <data name="SonarQubeServerProductName" xml:space="preserve">
+    <value>SonarQube Server</value>
+  </data>
 </root>
