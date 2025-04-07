@@ -221,7 +221,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             var testSubject = CreateTestSubject(sonarQubeService: sonarQubeServiceMock.Object);
 
-            testSubject.ServerType.Should().Be(expectedValue);
+            testSubject.ServerTypeDisplayName.Should().Be(expectedValue);
         }
 
         [TestMethod]
@@ -712,7 +712,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             var eventCount = 0;
             testSubject.PropertyChanged += (sender, args) =>
             {
-                if (args is { PropertyName: nameof(testSubject.ServerType) })
+                if (args is { PropertyName: nameof(testSubject.ServerTypeDisplayName) })
                 {
                     eventCount++;
                 }
@@ -721,7 +721,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             RaiseActiveDocumentChangedEvent(activeDocumentTrackerMock);
 
-            testSubject.ServerType.Should().Be(expectedValue);
+            testSubject.ServerTypeDisplayName.Should().Be(expectedValue);
             eventCount.Should().Be(expectedRaiseEvent ? 1 : 0);
         }
 
