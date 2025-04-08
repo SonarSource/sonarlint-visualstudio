@@ -18,20 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
-using SonarQube.Client.Models;
+namespace SonarLint.VisualStudio.Core.CSharpVB;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Binding;
-
-/// <summary>
-/// Contract to provide the binding-related configuration for one or more languages
-/// </summary>
-public interface IBindingConfigProvider
+public interface IFileExclusions
 {
-    /// <summary>
-    /// Returns a configuration file for the specified language
-    /// </summary>
-    Task SaveConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language,
-        BindingConfiguration bindingConfiguration, CancellationToken cancellationToken);
+    Dictionary<string, string> ToDictionary();
 }
