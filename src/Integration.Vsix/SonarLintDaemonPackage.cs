@@ -22,6 +22,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
@@ -109,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 solutionRoslynAnalyzerManager = await this.GetMefServiceAsync<ISolutionRoslynAnalyzerManager>();
                 importBeforeFileGenerator = await this.GetMefServiceAsync<IImportBeforeFileGenerator>();
-                importBeforeFileGenerator.WriteTargetsFileToDiskIfNotExists();
+                importBeforeFileGenerator.WriteTargetsFileToDiskIfNotExistsAsync().Forget();
 
                 LegacyInstallationCleanup.CleanupDaemonFiles(logger);
 

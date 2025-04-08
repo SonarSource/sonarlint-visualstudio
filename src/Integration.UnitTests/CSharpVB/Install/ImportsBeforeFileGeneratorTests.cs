@@ -24,6 +24,7 @@ using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.CSharpVB.Install;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CSharpVB.Install;
 
@@ -35,13 +36,34 @@ public class ImportsBeforeFileGeneratorTests
     private IFileSystemService fileSystem;
     private ILogger logger;
     private ImportBeforeFileGenerator testSubject;
+    private IThreadHandling threadHandling;
 
     [TestInitialize]
     public void TestInitialize()
     {
         logger = Substitute.For<ILogger>();
         fileSystem = Substitute.For<IFileSystemService>();
-        testSubject = new ImportBeforeFileGenerator(logger, fileSystem);
+        threadHandling = Substitute.For<IThreadHandling>();
+
+        testSubject = new ImportBeforeFileGenerator(logger, fileSystem, threadHandling);
+    }
+
+    [TestMethod]
+    public void MefCtor_CheckExports() =>
+        MefTestHelpers.CheckTypeCanBeImported<ImportBeforeFileGenerator, IImportBeforeFileGenerator>(
+            MefTestHelpers.CreateExport<ILogger>(),
+            MefTestHelpers.CreateExport<IFileSystemService>(),
+            MefTestHelpers.CreateExport<IThreadHandling>());
+
+    [TestMethod]
+    public void Mef_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ImportBeforeFileGenerator>();
+
+    [TestMethod]
+    public async Task WriteTargetsFileToDiskIfNotExistsAsync_RunsOnBackgroundThread()
+    {
+        await testSubject.WriteTargetsFileToDiskIfNotExistsAsync();
+
+        threadHandling.ReceivedCalls().Should().ContainSingle(x => x.GetMethodInfo().Name == nameof(IThreadHandling.RunOnBackgroundThread));
     }
 
     [TestMethod]

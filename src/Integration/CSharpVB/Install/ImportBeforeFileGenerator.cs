@@ -31,20 +31,22 @@ namespace SonarLint.VisualStudio.Integration.CSharpVB.Install;
 /// </summary>
 public interface IImportBeforeFileGenerator
 {
-    void WriteTargetsFileToDiskIfNotExists();
+    Task WriteTargetsFileToDiskIfNotExistsAsync();
 }
 
 [Export(typeof(IImportBeforeFileGenerator))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class ImportBeforeFileGenerator(ILogger logger, IFileSystemService fileSystem) : IImportBeforeFileGenerator
+internal class ImportBeforeFileGenerator(ILogger logger, IFileSystemService fileSystem, IThreadHandling threadHandling) : IImportBeforeFileGenerator
 {
     private const string TargetsFileName = "SonarLint.targets";
     private const string ResourcePath = "SonarLint.VisualStudio.Integration.CSharpVB.Install.SonarLintTargets.xml";
 
     private static readonly object Locker = new();
 
-    public void WriteTargetsFileToDiskIfNotExists()
+    public Task WriteTargetsFileToDiskIfNotExistsAsync() => threadHandling.RunOnBackgroundThread(WriteTargetsFileToDiskIfNotExists);
+
+    internal void WriteTargetsFileToDiskIfNotExists()
     {
         lock (Locker)
         {
