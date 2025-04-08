@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core;
@@ -42,7 +39,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
             var testSubject = CreateTestSubject(quickFixViz.Object);
 
-            testSubject.DisplayText.Should().Be(QuickFixSuggestedAction.sonarLintPrefix + "some fix");
+            testSubject.DisplayText.Should().Be(Resources.ProductNameCommandPrefix + "some fix");
         }
 
         [TestMethod]
@@ -64,7 +61,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
             testSubject.Invoke(CancellationToken.None);
 
-            telemetryManager.Verify(x=> x.QuickFixApplied("some rule"), Times.Once);
+            telemetryManager.Verify(x => x.QuickFixApplied("some rule"), Times.Once);
             telemetryManager.VerifyNoOtherCalls();
         }
 
@@ -236,7 +233,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             return snapShot;
         }
 
-        private static QuickFixSuggestedAction CreateTestSubject(IQuickFixVisualization quickFixViz,
+        private static QuickFixSuggestedAction CreateTestSubject(
+            IQuickFixVisualization quickFixViz,
             ITextBuffer textBuffer = null,
             ISpanTranslator spanTranslator = null,
             IAnalysisIssueVisualization issueViz = null,
@@ -272,10 +270,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         private static Mock<IQuickFixVisualization> CreateQuickFixViz(ITextSnapshot snapShot, params IQuickFixEditVisualization[] editVisualizations) =>
             CreateQuickFixViz(snapShot, true, editVisualizations);
 
-        private static Mock<IQuickFixVisualization> CreateNonApplicableQuickFixViz(ITextSnapshot snapShot) =>
-            CreateQuickFixViz(snapShot, false);
+        private static Mock<IQuickFixVisualization> CreateNonApplicableQuickFixViz(ITextSnapshot snapShot) => CreateQuickFixViz(snapShot, false);
 
-        private static Mock<IQuickFixVisualization> CreateQuickFixViz(ITextSnapshot snapShot,
+        private static Mock<IQuickFixVisualization> CreateQuickFixViz(
+            ITextSnapshot snapShot,
             bool canBeApplied = true,
             params IQuickFixEditVisualization[] editVisualizations)
         {

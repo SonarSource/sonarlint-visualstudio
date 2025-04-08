@@ -25,10 +25,10 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.TestInfrastructure;
 using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickActions.QuickFixes;
@@ -37,8 +37,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 public class QuickFixActionsSourceTests
 {
     private SnapshotSpan mockSpan;
-    private ITextView textView;
     private ITextBuffer textBuffer;
+    private ITextView textView;
 
     [TestInitialize]
     public void TestInitialize()
@@ -109,7 +109,7 @@ public class QuickFixActionsSourceTests
 
         lightBulbBroker.VerifyNoOtherCalls();
 
-        Func<Task> act = async () => await testSubject.HandleTagsChangedAsync();
+        var act = async () => await testSubject.HandleTagsChangedAsync();
         act.Should().NotThrow();
 
         lightBulbBroker.Verify(x => x.DismissSession(textView), Times.Once);
@@ -127,7 +127,7 @@ public class QuickFixActionsSourceTests
 
         lightBulbBroker.VerifyNoOtherCalls();
 
-        Func<Task> act = async () => await testSubject.HandleTagsChangedAsync();
+        var act = async () => await testSubject.HandleTagsChangedAsync();
         act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("this is a test");
 
         lightBulbBroker.Verify(x => x.DismissSession(textView), Times.Once);
@@ -140,7 +140,7 @@ public class QuickFixActionsSourceTests
 
         CreateTestSubject(issueLocationsTagAggregator.Object);
 
-        Action act = () => issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
+        var act = () => issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
         act.Should().NotThrow();
     }
 
@@ -188,7 +188,7 @@ public class QuickFixActionsSourceTests
     [TestMethod]
     public async Task HasSuggestedActionsAsync_NoIssuesWithApplicableQuickFixes_False()
     {
-        var issues = new[] { CreateIssueViz(CreateQuickFixViz(canBeApplied:false)) };
+        var issues = new[] { CreateIssueViz(CreateQuickFixViz(canBeApplied: false)) };
 
         var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
@@ -202,7 +202,7 @@ public class QuickFixActionsSourceTests
     [TestMethod]
     public async Task HasSuggestedActionsAsync_HasIssuesWithApplicableQuickFixes_True()
     {
-        var issues = new[] { CreateIssueViz(CreateQuickFixViz(canBeApplied:true)) };
+        var issues = new[] { CreateIssueViz(CreateQuickFixViz(canBeApplied: true)) };
 
         var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
@@ -239,7 +239,7 @@ public class QuickFixActionsSourceTests
 
         var testSubject = CreateTestSubject(tagAggregator.Object, logger: logger);
 
-        Func<Task<bool>> func = async () => await testSubject.HasSuggestedActionsAsync(null, mockSpan, CancellationToken.None);
+        var func = async () => await testSubject.HasSuggestedActionsAsync(null, mockSpan, CancellationToken.None);
 
         func.Should().ThrowExactly<StackOverflowException>().And
             .Message.Should().Be("this is a test");
@@ -268,10 +268,7 @@ public class QuickFixActionsSourceTests
     [TestMethod]
     public void GetSuggestedActions_NoIssuesWithApplicableQuickFixes_NoActions()
     {
-        var issues = new[]
-        {
-            CreateIssueViz(CreateQuickFixViz(canBeApplied: false))
-        };
+        var issues = new[] { CreateIssueViz(CreateQuickFixViz(canBeApplied: false)) };
 
         var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
@@ -307,7 +304,8 @@ public class QuickFixActionsSourceTests
 
         var quickFixSuggestedActions = hasSuggestedActionsSet.Single().Actions.OfType<QuickFixSuggestedAction>().ToList();
         quickFixSuggestedActions.Count.Should().Be(3);
-        quickFixSuggestedActions.Select(x => x.DisplayText).Should().BeEquivalentTo(QuickFixSuggestedAction.sonarLintPrefix + "fix2", QuickFixSuggestedAction.sonarLintPrefix + "fix3", QuickFixSuggestedAction.sonarLintPrefix + "fix6");
+        quickFixSuggestedActions.Select(x => x.DisplayText).Should().BeEquivalentTo(Resources.ProductNameCommandPrefix + "fix2", Resources.ProductNameCommandPrefix + "fix3",
+            Resources.ProductNameCommandPrefix + "fix6");
     }
 
     [TestMethod]
@@ -341,7 +339,8 @@ public class QuickFixActionsSourceTests
         logger.AssertPartialOutputStringDoesNotExist("this is a test");
     }
 
-    private QuickFixActionsSource CreateTestSubject(ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator = null,
+    private QuickFixActionsSource CreateTestSubject(
+        ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator = null,
         ILightBulbBroker lightBulbBroker = null,
         ILogger logger = null,
         IThreadHandling threadHandling = null)

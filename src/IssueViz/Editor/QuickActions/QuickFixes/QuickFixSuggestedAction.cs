@@ -18,18 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading;
 using Microsoft.VisualStudio.Text;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes
 {
     internal class QuickFixSuggestedAction : BaseSuggestedAction
     {
-        internal const string sonarLintPrefix = "SonarQube for Visual Studio: ";
         private readonly IQuickFixVisualization quickFixVisualization;
         private readonly ITextBuffer textBuffer;
         private readonly ISpanTranslator spanTranslator;
@@ -37,15 +35,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
         private readonly IQuickFixesTelemetryManager quickFixesTelemetryManager;
         private readonly ILogger logger;
 
-        public QuickFixSuggestedAction(IQuickFixVisualization quickFixVisualization,
+        public QuickFixSuggestedAction(
+            IQuickFixVisualization quickFixVisualization,
             ITextBuffer textBuffer,
             IAnalysisIssueVisualization issueViz,
             IQuickFixesTelemetryManager quickFixesTelemetryManager,
             ILogger logger)
-            : this(quickFixVisualization, textBuffer, issueViz, quickFixesTelemetryManager, logger, new SpanTranslator()){
-
+            : this(quickFixVisualization, textBuffer, issueViz, quickFixesTelemetryManager, logger, new SpanTranslator())
+        {
         }
-        internal QuickFixSuggestedAction(IQuickFixVisualization quickFixVisualization,
+
+        internal QuickFixSuggestedAction(
+            IQuickFixVisualization quickFixVisualization,
             ITextBuffer textBuffer,
             IAnalysisIssueVisualization issueViz,
             IQuickFixesTelemetryManager quickFixesTelemetryManager,
@@ -60,7 +61,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
             this.spanTranslator = spanTranslator;
         }
 
-        public override string DisplayText => sonarLintPrefix + quickFixVisualization.Fix.Message;
+        public override string DisplayText => Resources.ProductNameCommandPrefix + quickFixVisualization.Fix.Message;
 
         public override void Invoke(CancellationToken cancellationToken)
         {
