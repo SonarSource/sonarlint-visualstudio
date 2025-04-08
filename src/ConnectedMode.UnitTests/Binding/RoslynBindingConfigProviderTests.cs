@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CSharpVB;
@@ -32,7 +33,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding;
 [TestClass]
 public class RoslynBindingConfigProviderTests
 {
-    private IList<SonarQubeRule> emptyRules;
     private IList<SonarQubeRule> validRules;
     private IList<SonarQubeProperty> anyProperties;
     private SonarQubeQualityProfile validQualityProfile;
@@ -52,8 +52,6 @@ public class RoslynBindingConfigProviderTests
     [TestInitialize]
     public void TestInitialize()
     {
-        emptyRules = Array.Empty<SonarQubeRule>();
-
         validRules = new List<SonarQubeRule> { new SonarQubeRule("key", "repoKey", true, SonarQubeIssueSeverity.Blocker, null, null, null, SonarQubeIssueType.Bug) };
 
         anyProperties = Array.Empty<SonarQubeProperty>();
@@ -65,8 +63,7 @@ public class RoslynBindingConfigProviderTests
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<RoslynBindingConfigProvider, IBindingConfigProvider>(
             MefTestHelpers.CreateExport<ISonarQubeService>(),
-            MefTestHelpers.CreateExport<ISonarLintConfigGenerator>(),
-            MefTestHelpers.CreateExport<IGlobalConfigGenerator>(),
+            MefTestHelpers.CreateExport<IRoslynConfigGenerator>(),
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<ILanguageProvider>());
 
@@ -81,7 +78,7 @@ public class RoslynBindingConfigProviderTests
         var testSubject = builder.CreateTestSubject();
 
         // Act
-        Action act = () => testSubject.GetConfigurationAsync(validQualityProfile, Language.Cpp, BindingConfiguration.Standalone, CancellationToken.None).Wait();
+        Action act = () => testSubject.SaveConfigurationAsync(validQualityProfile, Language.Cpp, BindingConfiguration.Standalone, CancellationToken.None).Wait();
 
         // Assert
         act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("language");
@@ -106,7 +103,7 @@ public class RoslynBindingConfigProviderTests
     }
 
     [TestMethod]
-    public async Task GetConfig_NoSupportedActiveRules_ReturnsNull()
+    public async Task GetConfig_NoSupportedActiveRules_Throws()
     {
         // Arrange
         var builder = new TestEnvironmentBuilder(validQualityProfile, Language.VBNET)
@@ -116,66 +113,16 @@ public class RoslynBindingConfigProviderTests
         var testSubject = builder.CreateTestSubject();
 
         // Act
-        var result = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None)
-            .ConfigureAwait(false);
+        var act = () => testSubject.SaveConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
 
         // Assert
-        result.Should().BeNull();
+        await act.Should().ThrowExactlyAsync<InvalidOperationException>().WithMessage(string.Format(QualityProfilesStrings.FailedToCreateBindingConfigForLanguage, Language.VBNET.Name));
 
         builder.Logger.AssertOutputStrings(1);
         var expectedOutput = string.Format(BindingStrings.SubTextPaddingFormat,
             string.Format(BindingStrings.NoSonarAnalyzerActiveRulesForQualityProfile, validQualityProfile.Name, Language.VBNET.Name));
         builder.Logger.AssertOutputStrings(expectedOutput);
-
-        builder.AssertGlobalConfigGeneratorNotCalled();
-    }
-
-    [TestMethod]
-    public async Task GetConfig_ReturnsCorrectGlobalConfig()
-    {
-        var builder = new TestEnvironmentBuilder(validQualityProfile, Language.VBNET)
-        {
-            ActiveRulesResponse = validRules, InactiveRulesResponse = emptyRules, PropertiesResponse = anyProperties, GlobalConfigGeneratorResponse = "globalConfig"
-        };
-        var testSubject = builder.CreateTestSubject();
-
-        var expectedGlobalConfigFilePath = builder.BindingConfiguration.BuildPathUnderConfigDirectory(Language.VBNET.SettingsFileNameAndExtension);
-
-        var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
-
-        response.Should().BeAssignableTo<ICSharpVBBindingConfig>();
-
-        var actualGlobalConfig = ((ICSharpVBBindingConfig)response).GlobalConfig;
-        actualGlobalConfig.Path.Should().Be(expectedGlobalConfigFilePath);
-        actualGlobalConfig.Content.Should().Be("globalConfig");
-    }
-
-    [TestMethod]
-    public async Task GetConfig_ReturnsCorrectAdditionalFile()
-    {
-        var expectedConfiguration = new SonarLintConfiguration
-        {
-            Rules = new List<SonarLintRule>
-            {
-                new SonarLintRule { Key = "test", Parameters = new List<SonarLintKeyValuePair> { new SonarLintKeyValuePair { Key = "ruleid", Value = "value" } } }
-            }
-        };
-
-        var builder = new TestEnvironmentBuilder(validQualityProfile, Language.VBNET)
-        {
-            ActiveRulesResponse = validRules,
-            InactiveRulesResponse = emptyRules,
-            PropertiesResponse = anyProperties,
-            GlobalConfigGeneratorResponse = "globalConfig",
-            SonarLintConfigurationResponse = expectedConfiguration
-        };
-        var testSubject = builder.CreateTestSubject();
-
-        var expectedAdditionalFilePath = builder.BindingConfiguration.BuildPathUnderConfigDirectory() + "VB\\SonarLint.xml";
-
-        var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
-        (response as ICSharpVBBindingConfig).AdditionalFile.Path.Should().Be(expectedAdditionalFilePath);
-        (response as ICSharpVBBindingConfig).AdditionalFile.Content.Should().Be(expectedConfiguration);
+        builder.RoslynConfigGenerator.DidNotReceiveWithAnyArgs().GenerateAndSaveConfiguration(Arg.Any<Language>(), Arg.Any<string>(), Arg.Any<IDictionary<string, string>>(), Arg.Any<IFileExclusions>(), Arg.Any<IReadOnlyCollection<IRoslynRuleStatus>>(), Arg.Any<IReadOnlyCollection<IRuleParameters>>());
     }
 
     [TestMethod]
@@ -186,35 +133,32 @@ public class RoslynBindingConfigProviderTests
 
         var properties = new SonarQubeProperty[] { new("propertyAAA", "111"), new("propertyBBB", "222") };
 
-        var activeRules = new[] { CreateRule("activeRuleKey", "repoKey1", true), ActiveTaintAnalysisRule, ActiveRuleWithUnsupportedSeverity };
-
-        var inactiveRules = new[] { CreateRule("inactiveRuleKey", "repoKey2", false), InactiveTaintAnalysisRule, InactiveRuleWithUnsupportedSeverity };
+        var activeSupportedRule = CreateRule("activeRuleKey", "repoKey1", true);
+        var activeRules = new[] { activeSupportedRule, ActiveTaintAnalysisRule, ActiveRuleWithUnsupportedSeverity };
+        var inactiveSupportedRule = CreateRule("inactiveRuleKey", "repoKey2", false);
+        var inactiveRules = new[] { inactiveSupportedRule, InactiveTaintAnalysisRule, InactiveRuleWithUnsupportedSeverity };
 
         var builder = new TestEnvironmentBuilder(validQualityProfile, Language.CSharp, expectedServerUrl)
         {
-            ActiveRulesResponse = activeRules, InactiveRulesResponse = inactiveRules, PropertiesResponse = properties, GlobalConfigGeneratorResponse = "globalConfig"
+            ActiveRulesResponse = activeRules, InactiveRulesResponse = inactiveRules, PropertiesResponse = properties
         };
 
         var testSubject = builder.CreateTestSubject();
 
         // Act
-        var result = await testSubject.GetConfigurationAsync(validQualityProfile, Language.CSharp, builder.BindingConfiguration, CancellationToken.None)
-            .ConfigureAwait(false);
+        await testSubject.SaveConfigurationAsync(validQualityProfile, Language.CSharp, builder.BindingConfiguration, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull();
-        result.Should().BeOfType<CSharpVBBindingConfig>();
-        var dotNetResult = (CSharpVBBindingConfig)result;
-        dotNetResult.GlobalConfig.Should().NotBeNull();
-
-        // Check both active and inactive rules were passed to the GlobalConfig generator.
-        // The unsupported rules should have been removed.
-        builder.CapturedRulesPassedToGlobalConfigGenerator.Should().NotBeNull();
-        var capturedRules = builder.CapturedRulesPassedToGlobalConfigGenerator.ToList();
-        capturedRules.Should().HaveCount(2);
-        capturedRules[0].Key.Should().Be("activeRuleKey");
-        capturedRules[1].Key.Should().Be("inactiveRuleKey");
-
+        builder.RoslynConfigGenerator
+            .Received()
+            .GenerateAndSaveConfiguration(
+                Language.CSharp,
+                builder.BindingConfiguration.BindingConfigDirectory,
+                Arg.Is<IDictionary<string, string>>(x => x.SequenceEqual(builder.SonarProperties)),
+                builder.ServerExclusionsResponse,
+                Arg.Is((IReadOnlyCollection<SonarQubeRoslynRuleStatus> x) =>
+                    x.Select(y => y.Key).SequenceEqual(new []{activeSupportedRule.Key, inactiveSupportedRule.Key})),
+                Arg.Is<IReadOnlyCollection<IRuleParameters>>(x => x.SequenceEqual(new []{activeSupportedRule})));
         builder.Logger.AssertOutputStrings(0); // not expecting anything in the case of success
     }
 
@@ -250,9 +194,7 @@ public class RoslynBindingConfigProviderTests
 
     private class TestEnvironmentBuilder
     {
-        private readonly Mock<ISonarLintConfigGenerator> sonarLintConfigGeneratorMock = new Mock<ISonarLintConfigGenerator>();
         private Mock<ISonarQubeService> sonarQubeServiceMock;
-        private Mock<IGlobalConfigGenerator> globalConfigGenMock;
 
         private readonly SonarQubeQualityProfile profile;
         private readonly Language language;
@@ -267,18 +209,18 @@ public class RoslynBindingConfigProviderTests
             this.serverUrl = serverUrl;
 
             Logger = new TestLogger();
-            SonarLintConfigurationResponse = new SonarLintConfiguration();
             PropertiesResponse = new List<SonarQubeProperty>();
         }
 
         public BindingConfiguration BindingConfiguration { get; private set; }
-        public SonarLintConfiguration SonarLintConfigurationResponse { get; set; }
+        public IRoslynConfigGenerator RoslynConfigGenerator { get; private set; }
         public IList<SonarQubeRule> ActiveRulesResponse { get; set; }
         public IList<SonarQubeRule> InactiveRulesResponse { get; set; }
         public IList<SonarQubeProperty> PropertiesResponse { get; set; }
-        public string GlobalConfigGeneratorResponse { get; set; }
+
+        public ServerExclusions ServerExclusionsResponse { get; set; }
+        public Dictionary<string, string> SonarProperties { get; set; }
         public TestLogger Logger { get; private set; }
-        public IEnumerable<IRoslynRuleStatus> CapturedRulesPassedToGlobalConfigGenerator { get; private set; }
 
         public RoslynBindingConfigProvider CreateTestSubject()
         {
@@ -300,40 +242,27 @@ public class RoslynBindingConfigProviderTests
                 .Setup(x => x.GetAllPropertiesAsync(ExpectedProjectKey, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(PropertiesResponse);
 
-            var serverExclusionsResponse = new ServerExclusions(
+            ServerExclusionsResponse = new ServerExclusions(
                 exclusions: ["path1"],
                 globalExclusions: ["path2"],
                 inclusions: ["path3"]);
 
             sonarQubeServiceMock
                 .Setup(x => x.GetServerExclusions(ExpectedProjectKey, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(serverExclusionsResponse);
-
-            globalConfigGenMock = new Mock<IGlobalConfigGenerator>();
-            globalConfigGenMock.Setup(x => x.Generate(It.IsAny<IEnumerable<IRoslynRuleStatus>>()))
-                .Returns(GlobalConfigGeneratorResponse)
-                .Callback((IEnumerable<IRoslynRuleStatus> rules) =>
-                {
-                    CapturedRulesPassedToGlobalConfigGenerator = rules;
-                });
+                .ReturnsAsync(ServerExclusionsResponse);
 
             BindingConfiguration = new BindingConfiguration(
                 new BoundServerProject("solution", ExpectedProjectKey, new ServerConnection.SonarQube(new Uri(serverUrl))),
                 SonarLintMode.Connected,
                 "c:\\test\\");
 
-            var sonarProperties = PropertiesResponse.ToDictionary(x => x.Key, y => y.Value);
-            sonarLintConfigGeneratorMock
-                .Setup(x => x.Generate(It.IsAny<IEnumerable<SonarQubeRule>>(), sonarProperties, serverExclusionsResponse, language))
-                .Returns(SonarLintConfigurationResponse);
+            SonarProperties = PropertiesResponse.ToDictionary(x => x.Key, y => y.Value);
+
+            RoslynConfigGenerator = Substitute.For<IRoslynConfigGenerator>();
 
             return new RoslynBindingConfigProvider(sonarQubeServiceMock.Object, Logger,
-                // inject the generator mocks
-                globalConfigGenMock.Object,
-                sonarLintConfigGeneratorMock.Object,
+                RoslynConfigGenerator,
                 LanguageProvider.Instance);
         }
-
-        public void AssertGlobalConfigGeneratorNotCalled() => globalConfigGenMock.Verify(x => x.Generate(It.IsAny<IEnumerable<SonarQubeRoslynRuleStatus>>()), Times.Never);
     }
 }

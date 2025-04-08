@@ -79,12 +79,8 @@ public class RoslynQualityProfileDownloaderTests
             languagesToBind);
 
         var bindingConfigProviderMock = new Mock<IBindingConfigProvider>();
-        bindingConfigProviderMock.Setup(x =>
-                x.GetConfigurationAsync(It.IsAny<SonarQubeQualityProfile>(),
-                    It.IsAny<Language>(),
-                    It.IsAny<BindingConfiguration>(),
-                    It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Mock.Of<IBindingConfig>());
+        SetupConfigSave(bindingConfigProviderMock, Language.CSharp);
+        SetupConfigSave(bindingConfigProviderMock, Language.VBNET);
 
         var testSubject = CreateTestSubject(
             languageProvider: CreateLanguageProvider(languagesToBind).Object,
@@ -160,10 +156,10 @@ public class RoslynQualityProfileDownloaderTests
             boundProject,
             Language.CSharp, Language.VBNET, Language.Cpp);
 
-        var configProvider = new Mock<IBindingConfigProvider>();
-        var csharpConfig = SetupConfigProvider(configProvider, Language.CSharp);
-        var vbnetConfig = SetupConfigProvider(configProvider, Language.VBNET);
-        var cppConfig = SetupConfigProvider(configProvider, Language.Cpp);
+        var configProvider = new Mock<IBindingConfigProvider>(MockBehavior.Strict);
+        SetupConfigSave(configProvider, Language.CSharp);
+        SetupConfigSave(configProvider, Language.VBNET);
+        SetupConfigSave(configProvider, Language.Cpp);
 
         var configPersister = new DummyConfigPersister();
 
@@ -180,9 +176,9 @@ public class RoslynQualityProfileDownloaderTests
         // Assert
         result.Should().BeTrue();
 
-        CheckRuleConfigSaved(csharpConfig);
-        CheckRuleConfigSaved(vbnetConfig);
-        CheckRuleConfigNotSaved(cppConfig);
+        CheckRuleConfigSaved(configProvider, Language.CSharp);
+        CheckRuleConfigSaved(configProvider, Language.VBNET);
+        CheckRuleConfigNotSaved(configProvider, Language.Cpp);
 
         boundProject.Profiles.Count.Should().Be(2);
         boundProject.Profiles[Language.VBNET].ProfileKey.Should().NotBeNull();
@@ -211,11 +207,11 @@ public class RoslynQualityProfileDownloaderTests
             Language.CSharp,
             Language.VBNET);
 
-        var configProvider = new Mock<IBindingConfigProvider>();
-        var cppConfig = SetupConfigProvider(configProvider, Language.Cpp);
-        var csharpConfig = SetupConfigProvider(configProvider, Language.CSharp);
-        var secretsConfig = SetupConfigProvider(configProvider, Language.Secrets);
-        var vbnetConfig = SetupConfigProvider(configProvider, Language.VBNET);
+        var configProvider = new Mock<IBindingConfigProvider>(MockBehavior.Strict);
+        SetupConfigSave(configProvider, Language.Cpp);
+        SetupConfigSave(configProvider, Language.CSharp);
+        SetupConfigSave(configProvider, Language.Secrets);
+        SetupConfigSave(configProvider, Language.VBNET);
 
         var configPersister = new DummyConfigPersister();
 
@@ -232,44 +228,16 @@ public class RoslynQualityProfileDownloaderTests
         // Assert
         result.Should().BeTrue();
 
-        CheckRuleConfigSaved(csharpConfig);
-        CheckRuleConfigSaved(vbnetConfig);
-        CheckRuleConfigNotSaved(cppConfig);
-        CheckRuleConfigNotSaved(secretsConfig);
+        CheckRuleConfigSaved(configProvider, Language.CSharp);
+        CheckRuleConfigSaved(configProvider, Language.VBNET);
+        CheckRuleConfigNotSaved(configProvider, Language.Cpp);
+        CheckRuleConfigNotSaved(configProvider, Language.Secrets);
 
         boundProject.Profiles.Count.Should().Be(4);
         boundProject.Profiles[Language.VBNET].ProfileKey.Should().NotBeNull();
         boundProject.Profiles[Language.CSharp].ProfileKey.Should().NotBeNull();
         boundProject.Profiles[Language.Cpp].ProfileKey.Should().BeNull();
         boundProject.Profiles[Language.Secrets].ProfileKey.Should().BeNull();
-    }
-
-    [TestMethod]
-    public async Task UpdateAsync_WhenBindingConfigIsNull_Throws()
-    {
-        // Arrange
-        var boundProject = CreateBoundProject();
-        var logger = new TestLogger(logToConsole: true);
-
-        var language = Language.VBNET;
-        SetupLanguagesToUpdate(out var outOfDateQualityProfileFinderMock,
-            boundProject,
-            (language, CreateQualityProfile()));
-
-        var bindingConfigProvider = new Mock<IBindingConfigProvider>();
-        var testSubject = CreateTestSubject(
-            bindingConfigProvider: bindingConfigProvider.Object,
-            languageProvider: CreateLanguageProvider([language]).Object,
-            outOfDateQualityProfileFinder: outOfDateQualityProfileFinderMock.Object,
-            logger: logger);
-
-        // Act
-        var act = () => testSubject.UpdateAsync(boundProject, null, CancellationToken.None);
-
-        // Assert
-        var expectedMessage = string.Format(QualityProfilesStrings.FailedToCreateBindingConfigForLanguage, language.Name);
-        (await act.Should().ThrowAsync<InvalidOperationException>()).Which.Message.Should().Be(expectedMessage);
-        bindingConfigProvider.Invocations.Should().HaveCount(1);
     }
 
     [TestMethod]
@@ -288,12 +256,11 @@ public class RoslynQualityProfileDownloaderTests
             boundProject,
             (language, qp));
 
-        var bindingConfig = new Mock<IBindingConfig>().Object;
         var configProviderMock = new Mock<IBindingConfigProvider>();
-        configProviderMock.Setup(x => x.GetConfigurationAsync(qp,
+        configProviderMock.Setup(x => x.SaveConfigurationAsync(qp,
                 language,
                 It.IsAny<BindingConfiguration>(), CancellationToken.None))
-            .ReturnsAsync(bindingConfig);
+            .Returns(Task.CompletedTask);
 
         var testSubject = CreateTestSubject(
             outOfDateQualityProfileFinderMock.Object,
@@ -351,19 +318,16 @@ public class RoslynQualityProfileDownloaderTests
             .ReturnsAsync(qps);
     }
 
-    private static Mock<IBindingConfig> SetupConfigProvider(
+    private static void SetupConfigSave(
         Mock<IBindingConfigProvider> bindingConfigProvider,
         Language language)
     {
-        var bindingConfig = new Mock<IBindingConfig>();
-
-        bindingConfigProvider.Setup(x => x.GetConfigurationAsync(
+        bindingConfigProvider.Setup(x => x.SaveConfigurationAsync(
                 It.IsAny<SonarQubeQualityProfile>(),
                 language,
                 It.IsAny<BindingConfiguration>(),
                 CancellationToken.None))
-            .ReturnsAsync(bindingConfig.Object);
-        return bindingConfig;
+            .Returns(Task.CompletedTask);
     }
 
     private static BoundServerProject CreateBoundProject(
@@ -374,9 +338,25 @@ public class RoslynQualityProfileDownloaderTests
             projectKey,
             new ServerConnection.SonarQube(uri ?? new Uri("http://localhost/")));
 
-    private static void CheckRuleConfigSaved(Mock<IBindingConfig> bindingConfig) => bindingConfig.Verify(x => x.Save(), Times.Once);
+    private static void CheckRuleConfigSaved(Mock<IBindingConfigProvider> bindingConfig, Language language) =>
+        bindingConfig.Verify(
+            x =>
+                x.SaveConfigurationAsync(
+                    It.IsAny<SonarQubeQualityProfile>(),
+                    language,
+                    It.IsAny<BindingConfiguration>(),
+                    It.IsAny<CancellationToken>()),
+            Times.Once);
 
-    private static void CheckRuleConfigNotSaved(Mock<IBindingConfig> bindingConfig) => bindingConfig.Verify(x => x.Save(), Times.Never);
+    private static void CheckRuleConfigNotSaved(Mock<IBindingConfigProvider> bindingConfig, Language language) =>
+        bindingConfig.Verify(
+            x =>
+                x.SaveConfigurationAsync(
+                    It.IsAny<SonarQubeQualityProfile>(),
+                    language,
+                    It.IsAny<BindingConfiguration>(),
+                    It.IsAny<CancellationToken>()),
+            Times.Never);
 
     private class DummyConfigPersister : IConfigurationPersister
     {
