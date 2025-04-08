@@ -20,99 +20,83 @@
 
 using System.ComponentModel.Composition;
 using System.IO;
-using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
-namespace SonarLint.VisualStudio.Integration.CSharpVB.Install
+namespace SonarLint.VisualStudio.Integration.CSharpVB.Install;
+
+/// <summary>
+/// Creates a .targets file in the ImportBefore directory with the contents
+/// of the SonarLintTargets.xml file.
+/// </summary>
+public interface IImportBeforeFileGenerator
 {
-    /// <summary>
-    /// Creates a .targets file in the ImportBefore directory with the contents
-    /// of the SonarLintTargets.xml file.
-    /// </summary>
-    public interface IImportBeforeFileGenerator
+    void WriteTargetsFileToDiskIfNotExists();
+}
+
+[Export(typeof(IImportBeforeFileGenerator))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+internal class ImportBeforeFileGenerator(ILogger logger, IFileSystemService fileSystem) : IImportBeforeFileGenerator
+{
+    private const string TargetsFileName = "SonarLint.targets";
+    private const string ResourcePath = "SonarLint.VisualStudio.Integration.CSharpVB.Install.SonarLintTargets.xml";
+
+    private static readonly object Locker = new();
+
+    public void WriteTargetsFileToDiskIfNotExists()
     {
-        void WriteTargetsFileToDiskIfNotExists();
+        lock (Locker)
+        {
+            var fileContent = GetTargetFileContent();
+            var pathToImportBefore = GetPathToImportBefore();
+            var fullPath = Path.Combine(pathToImportBefore, TargetsFileName);
+
+            logger.LogVerbose(ConnectedMode.Resources.ImportBeforeFileGenerator_CheckingIfFileExists, fullPath);
+
+            try
+            {
+                if (!fileSystem.Directory.Exists(pathToImportBefore))
+                {
+                    logger.LogVerbose(ConnectedMode.Resources.ImportBeforeFileGenerator_CreatingDirectory, pathToImportBefore);
+                    fileSystem.Directory.CreateDirectory(pathToImportBefore);
+                }
+
+                if (fileSystem.File.Exists(fullPath) && fileSystem.File.ReadAllText(fullPath) == fileContent)
+                {
+                    logger.LogVerbose(ConnectedMode.Resources.ImportBeforeFileGenerator_FileAlreadyExists);
+                    return;
+                }
+
+                logger.LogVerbose(ConnectedMode.Resources.ImportBeforeFileGenerator_WritingTargetFileToDisk);
+                fileSystem.File.WriteAllText(fullPath, fileContent);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(ConnectedMode.Resources.ImportBeforeFileGenerator_FailedToWriteFile, ex.Message);
+                logger.LogVerbose(ConnectedMode.Resources.ImportBeforeFileGenerator_FailedToWriteFile_Verbose, ex.ToString());
+            }
+        }
     }
 
-    [Export(typeof(IImportBeforeFileGenerator))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ImportBeforeFileGenerator : IImportBeforeFileGenerator
+    private string GetTargetFileContent()
     {
-        private readonly IFileSystem fileSystem;
-        private readonly ILogger logger;
-
-        private const string targetsFileName = "SonarLint.targets";
-        private const string resourcePath = "SonarLint.VisualStudio.Integration.CSharpVB.Install.SonarLintTargets.xml";
-
-        private static readonly object locker = new object();
-
-        [ImportingConstructor]
-        public ImportBeforeFileGenerator(ILogger logger) : this(logger, new FileSystem()) { }
-
-        public /* for testing */ ImportBeforeFileGenerator(ILogger logger, IFileSystem fileSystem)
+        using var stream = GetType().Assembly.GetManifestResourceStream(ResourcePath);
+        if (stream == null)
         {
-            this.logger = logger;
-            this.fileSystem = fileSystem;
-        }
-
-        public void WriteTargetsFileToDiskIfNotExists()
-        {
-            lock (locker)
-            {
-                var fileContent = GetTargetFileContent();
-                var pathToImportBefore = GetPathToImportBefore();
-                var fullPath = Path.Combine(pathToImportBefore, targetsFileName);
-
-                logger.LogVerbose(ConnectedMode.Resources.ImportBeforeFileGenerator_CheckingIfFileExists, fullPath);
-
-                try
-                {
-                    if (!fileSystem.Directory.Exists(pathToImportBefore))
-                    {
-                        logger.LogVerbose(ConnectedMode.Resources.ImportBeforeFileGenerator_CreatingDirectory, pathToImportBefore);
-                        fileSystem.Directory.CreateDirectory(pathToImportBefore);
-                    }
-
-                    if (fileSystem.File.Exists(fullPath) && fileSystem.File.ReadAllText(fullPath) == fileContent)
-                    {
-                        logger.LogVerbose(ConnectedMode.Resources.ImportBeforeFileGenerator_FileAlreadyExists);
-                        return;
-                    }
-
-                    logger.LogVerbose(ConnectedMode.Resources.ImportBeforeFileGenerator_WritingTargetFileToDisk);
-                    fileSystem.File.WriteAllText(fullPath, fileContent);
-                }
-                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-                {
-                    logger.WriteLine(ConnectedMode.Resources.ImportBeforeFileGenerator_FailedToWriteFile, ex.Message);
-                    logger.LogVerbose(ConnectedMode.Resources.ImportBeforeFileGenerator_FailedToWriteFile_Verbose, ex.ToString());
-                }
-            }
-        }
-
-        private string GetTargetFileContent()
-        {
-            using (var stream = GetType().Assembly.GetManifestResourceStream(resourcePath))
-            {
-                if (stream != null)
-                {
-                    using (var reader = new StreamReader(stream))
-                    {
-                        var data = reader.ReadToEnd();
-                        return data;
-                    }
-                }
-            }
-
             return "";
         }
 
-        private string GetPathToImportBefore()
-        {
-            var localAppData = Environment.GetEnvironmentVariable("LOCALAPPDATA");
-            var pathToImportBefore = Path.Combine(localAppData, "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore");
+        using var reader = new StreamReader(stream);
+        var data = reader.ReadToEnd();
+        return data;
+    }
 
-            return pathToImportBefore;
-        }
+    private static string GetPathToImportBefore()
+    {
+        var localAppData = Environment.GetEnvironmentVariable("LOCALAPPDATA");
+        var pathToImportBefore = Path.Combine(localAppData, "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore");
+
+        return pathToImportBefore;
     }
 }

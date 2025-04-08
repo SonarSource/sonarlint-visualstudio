@@ -19,108 +19,91 @@
  */
 
 using System.IO;
-using System.IO.Abstractions;
 using System.Xml;
-using Moq;
+using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.CSharpVB.Install;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CSharpVB.Install;
 
 [TestClass]
 public class ImportsBeforeFileGeneratorTests
 {
+    private static readonly string PathToDirectory = GetPathToImportBefore();
+    private static readonly string PathToFile = Path.Combine(PathToDirectory, "SonarLint.targets");
+    private IFileSystemService fileSystem;
+    private ILogger logger;
+    private ImportBeforeFileGenerator testSubject;
+
+    [TestInitialize]
+    public void TestInitialize()
+    {
+        logger = Substitute.For<ILogger>();
+        fileSystem = Substitute.For<IFileSystemService>();
+        testSubject = new ImportBeforeFileGenerator(logger, fileSystem);
+    }
+
     [TestMethod]
     public void FileDoesNotExist_CreatesFileWithWritesCorrectContent()
     {
-        var pathToDirectory = GetPathToImportBefore();
-        var pathToFile = Path.Combine(pathToDirectory, "SonarLint.targets");
         var fileContent = GetTargetFileContent();
+        MockDirectoryExists(PathToDirectory, exists: true);
+        MockReadAllText(PathToFile, fileContent, exists: false);
 
-        var fileSystem = new Mock<IFileSystem>();
-        fileSystem.Setup(x => x.Directory.Exists(pathToDirectory)).Returns(true);
-        fileSystem.Setup(x => x.File.Exists(pathToFile)).Returns(false);
-
-        var testSubject = CreateTestSubject(fileSystem: fileSystem.Object);
         testSubject.WriteTargetsFileToDiskIfNotExists();
 
-        fileSystem.Verify(x => x.File.WriteAllText(pathToFile, fileContent), Times.Once);
+        fileSystem.File.Received(1).WriteAllText(PathToFile, fileContent);
     }
 
     [TestMethod]
     public void FileExists_DifferentText_CreatesFile()
     {
-        var pathToDirectory = GetPathToImportBefore();
-        var pathToFile = Path.Combine(pathToDirectory, "SonarLint.targets");
+        MockDirectoryExists(PathToDirectory, exists: true);
+        MockReadAllText(PathToFile, "wrong text");
 
-        var fileSystem = new Mock<IFileSystem>();
-        fileSystem.Setup(x => x.Directory.Exists(pathToDirectory)).Returns(true);
-        fileSystem.Setup(x => x.File.Exists(pathToFile)).Returns(true);
-        fileSystem.Setup(x => x.File.ReadAllText(pathToFile)).Returns("wrong text");
-
-        var testSubject = CreateTestSubject(fileSystem: fileSystem.Object);
         testSubject.WriteTargetsFileToDiskIfNotExists();
 
-        fileSystem.Verify(x => x.File.WriteAllText(pathToFile, It.IsAny<string>()), Times.Once);
+        fileSystem.File.Received(1).WriteAllText(PathToFile, Arg.Any<string>());
     }
 
     [TestMethod]
     public void FileExists_SameText_DoesNotCreateFile()
     {
-        var pathToDirectory = GetPathToImportBefore();
-        var pathToFile = Path.Combine(pathToDirectory, "SonarLint.targets");
+        MockDirectoryExists(PathToDirectory, exists: true);
+        MockReadAllText(PathToFile, GetTargetFileContent());
 
-        var fileSystem = new Mock<IFileSystem>();
-        fileSystem.Setup(x => x.Directory.Exists(pathToDirectory)).Returns(true);
-        fileSystem.Setup(x => x.File.Exists(pathToFile)).Returns(true);
-
-        var fileContent = GetTargetFileContent();
-        fileSystem.Setup(x => x.File.ReadAllText(pathToFile)).Returns(fileContent);
-
-        var testSubject = CreateTestSubject(fileSystem: fileSystem.Object);
         testSubject.WriteTargetsFileToDiskIfNotExists();
 
-        fileSystem.Verify(x => x.File.WriteAllText(pathToFile, It.IsAny<string>()), Times.Never);
+        fileSystem.File.DidNotReceive().WriteAllText(PathToFile, Arg.Any<string>());
     }
 
     [TestMethod]
     public void DirectoryDoesNotExist_CreatesDirectory()
     {
-        var pathToDirectory = GetPathToImportBefore();
-        var pathToFile = Path.Combine(pathToDirectory, "SonarLint.targets");
+        MockDirectoryExists(PathToDirectory, exists: false);
+        MockFileExists(PathToFile, exists: false);
 
-        var fileSystem = new Mock<IFileSystem>();
-        fileSystem.Setup(x => x.Directory.Exists(pathToDirectory)).Returns(false);
-        fileSystem.Setup(x => x.File.Exists(pathToFile)).Returns(false);
-
-        var testSubject = CreateTestSubject(fileSystem: fileSystem.Object);
         testSubject.WriteTargetsFileToDiskIfNotExists();
 
-        fileSystem.Verify(x => x.Directory.CreateDirectory(pathToDirectory), Times.Once);
+        fileSystem.Directory.Received(1).CreateDirectory(PathToDirectory);
     }
 
     [TestMethod]
     public void ThrowsNonCriticalException_Catches()
     {
-        var fileSystem = new Mock<IFileSystem>();
-        fileSystem.Setup(x => x.Directory.Exists(It.IsAny<string>())).Throws(new NotImplementedException("this is a test"));
+        fileSystem.Directory.Exists(Arg.Any<string>()).Throws(new NotImplementedException("this is a test"));
 
-        var logger = new TestLogger();
-
-        var testSubject = CreateTestSubject(logger: logger, fileSystem: fileSystem.Object);
         testSubject.WriteTargetsFileToDiskIfNotExists();
 
-        logger.AssertPartialOutputStringExists("[ConnectedMode] Failed to write file to disk: this is a test");
+        logger.Received(1).WriteLine(Arg.Is<string>(x => x.Contains("[ConnectedMode] Failed to write file to disk:")), "this is a test");
     }
 
     [TestMethod]
     public void ThrowsCriticalException_ThrowsException()
     {
-        var fileSystem = new Mock<IFileSystem>();
-        fileSystem.Setup(x => x.Directory.Exists(It.IsAny<string>())).Throws(new StackOverflowException());
+        fileSystem.Directory.Exists(Arg.Any<string>()).Throws(new StackOverflowException());
 
-        var testSubject = CreateTestSubject(fileSystem: fileSystem.Object);
         var act = () => testSubject.WriteTargetsFileToDiskIfNotExists();
 
         act.Should().Throw<StackOverflowException>();
@@ -137,7 +120,7 @@ public class ImportsBeforeFileGeneratorTests
         act.Should().NotThrow<XmlException>();
     }
 
-    private string GetPathToImportBefore()
+    private static string GetPathToImportBefore()
     {
         var localAppData = Environment.GetEnvironmentVariable("LOCALAPPDATA");
         var pathToImportsBefore = Path.Combine(localAppData, "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore");
@@ -153,11 +136,13 @@ public class ImportsBeforeFileGeneratorTests
         return stream.ReadToEnd();
     }
 
-    private ImportBeforeFileGenerator CreateTestSubject(ILogger logger = null, IFileSystem fileSystem = null)
-    {
-        logger ??= Mock.Of<ILogger>();
-        fileSystem ??= Mock.Of<IFileSystem>();
+    private void MockDirectoryExists(string path, bool exists) => fileSystem.Directory.Exists(path).Returns(exists);
 
-        return new ImportBeforeFileGenerator(logger, fileSystem);
+    private void MockFileExists(string path, bool exists) => fileSystem.File.Exists(path).Returns(exists);
+
+    private void MockReadAllText(string path, string content, bool exists = true)
+    {
+        MockFileExists(path, exists);
+        fileSystem.File.ReadAllText(path).Returns(content);
     }
 }
