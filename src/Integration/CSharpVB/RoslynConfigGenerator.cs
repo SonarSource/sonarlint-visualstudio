@@ -36,6 +36,11 @@ internal class RoslynConfigGenerator(
     ISonarLintConfigurationXmlSerializer  sonarLintConfigurationXmlSerializer)
     : IRoslynConfigGenerator
 {
+    /// <summary>
+    /// internal sonar-dotnet format used to provide rule parameters and file exclusions to the analyzer
+    /// </summary>
+    private const string SonarlintConfigFileName = "SonarLint.xml";
+
     public void GenerateAndSaveConfiguration(
         Language language,
         string baseDirectory,
@@ -47,7 +52,7 @@ internal class RoslynConfigGenerator(
         var roslynGlobalConfig = globalConfigGenerator.Generate(ruleStatuses);
         Save(roslynGlobalConfig, Path.Combine(baseDirectory, language.SettingsFileNameAndExtension));
         var sonarLintConfiguration = sonarLintConfigGenerator.Generate(ruleParameters, properties, fileExclusions, language);
-        Save(sonarLintConfigurationXmlSerializer.Serialize(sonarLintConfiguration), Path.Combine(baseDirectory, language.Id, "SonarLint.xml"));
+        Save(sonarLintConfigurationXmlSerializer.Serialize(sonarLintConfiguration), Path.Combine(baseDirectory, language.Id, SonarlintConfigFileName));
     }
 
     private void Save(string config, string filePath)

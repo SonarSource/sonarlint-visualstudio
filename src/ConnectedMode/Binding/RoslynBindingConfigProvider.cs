@@ -58,10 +58,10 @@ internal class RoslynBindingConfigProvider(
             throw new ArgumentOutOfRangeException(nameof(language));
         }
 
-        return DoGetConfigurationAsync(qualityProfile, language, bindingConfiguration, cancellationToken);
+        return SaveConfigurationInternalAsync(qualityProfile, language, bindingConfiguration, cancellationToken);
     }
 
-    private async Task DoGetConfigurationAsync(
+    private async Task SaveConfigurationInternalAsync(
         SonarQubeQualityProfile qualityProfile,
         Language language,
         BindingConfiguration bindingConfiguration,
