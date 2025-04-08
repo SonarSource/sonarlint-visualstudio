@@ -155,6 +155,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
         }
 
         [TestMethod]
+        public void SonarQubeUrl_Set_PreventsSpaces()
+        {
+            testSubject.SonarQubeUrl = " http: //localhost:9000 ";
+
+            testSubject.SonarQubeUrl.Should().Be("http://localhost:9000");
+        }
+
+        [TestMethod]
         [DataRow(null)]
         [DataRow("")]
         [DataRow("  ")]

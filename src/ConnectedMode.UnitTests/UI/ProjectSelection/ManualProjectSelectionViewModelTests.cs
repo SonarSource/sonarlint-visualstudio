@@ -50,13 +50,21 @@ public class ManualProjectSelectionViewModelTests
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsValidProjectKey)));
     }
 
+    [TestMethod]
+    public void ProjectKey_Set_PreventsSpaces()
+    {
+        testSubject.ProjectKey = " k e y ";
+
+        testSubject.ProjectKey.Should().Be("key");
+    }
+
     [DataTestMethod]
     [DataRow(null, false)]
     [DataRow("", false)]
     [DataRow("       ", false)]
     [DataRow("my key", true)]
     [DataRow("key", true)]
-    public void IsValidOrganizationKey_Validates(string key, bool expectedResult)
+    public void IsValidProjectKey_Validates(string key, bool expectedResult)
     {
         testSubject.ProjectKey = key;
 

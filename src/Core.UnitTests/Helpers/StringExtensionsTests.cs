@@ -19,24 +19,20 @@
  */
 
 using SonarLint.VisualStudio.Core.Helpers;
-using SonarLint.VisualStudio.Core.WPF;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
+namespace SonarLint.VisualStudio.Core.UnitTests.Helpers;
 
-public class ManualProjectSelectionViewModel : ViewModelBase
+[TestClass]
+public class StringExtensionsTests
 {
-    private string projectKey;
-
-    public string ProjectKey
+    [TestMethod]
+    public void WithoutSpaces_RemovesAllSpaces()
     {
-        get => projectKey;
-        set
-        {
-            projectKey = value.WithoutSpaces();
-            RaisePropertyChanged();
-            RaisePropertyChanged(nameof(IsValidProjectKey));
-        }
-    }
+        const string stringWithSpaces = " string with spaces ";
+        const string expected = "stringwithspaces";
 
-    public bool IsValidProjectKey => !string.IsNullOrWhiteSpace(projectKey);
+        var actual = stringWithSpaces.WithoutSpaces();
+
+        actual.Should().Be(expected);
+    }
 }

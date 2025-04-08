@@ -339,6 +339,9 @@
   <data name="CheckingForSharedBindingText" xml:space="preserve">
     <value>Checking for shared configuration...</value>
   </data>
+  <data name="ConnectionAlreadyExistsText" xml:space="preserve">
+    <value>Failed to create new connection, the connection already exists</value>
+  </data>
   <data name="CreatingConnectionFailedText" xml:space="preserve">
     <value>Creating a connection failed</value>
   </data>

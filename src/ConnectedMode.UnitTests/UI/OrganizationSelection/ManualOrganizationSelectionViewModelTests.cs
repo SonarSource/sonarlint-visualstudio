@@ -29,10 +29,7 @@ public class ManualOrganizationSelectionViewModelTests
     private ManualOrganizationSelectionViewModel testSubject;
 
     [TestInitialize]
-    public void TestInitialize()
-    {
-        testSubject = new();
-    }
+    public void TestInitialize() => testSubject = new();
 
     [TestMethod]
     public void OrganizationKey_NotSet_DefaultsToNull()
@@ -51,6 +48,14 @@ public class ManualOrganizationSelectionViewModelTests
 
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.OrganizationKey)));
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsValidOrganizationKey)));
+    }
+
+    [TestMethod]
+    public void OrganizationKey_Set_PreventsSpaces()
+    {
+        testSubject.OrganizationKey = " k e y ";
+
+        testSubject.OrganizationKey.Should().Be("key");
     }
 
     [DataTestMethod]

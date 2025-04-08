@@ -32,9 +32,25 @@ public class ServerConnectionTests
     private const string Org = "myOrg";
 
     [TestMethod]
+    public void Ctor_SonarCloud_OrganizationKey_RemovesWhitespaces()
+    {
+        var connection = new ServerConnection.SonarCloud(" k e y ");
+
+        connection.OrganizationKey.Should().Be("key");
+    }
+
+    [TestMethod]
+    public void Ctor_SonarQube_ServerUri_RemovesWhitespaces()
+    {
+        var connection = new ServerConnection.SonarQube(new Uri(" http://localhost:9000 "));
+
+        connection.ServerUri.Should().Be("http://localhost:9000/");
+    }
+
+    [TestMethod]
     public void Ctor_SonarCloud_NullOrganization_Throws()
     {
-        Action act = () => new ServerConnection.SonarCloud(null);
+        Action act = () => _ = new ServerConnection.SonarCloud(null);
 
         act.Should().Throw<ArgumentNullException>();
     }
@@ -85,7 +101,7 @@ public class ServerConnectionTests
     [TestMethod]
     public void Ctor_SonarQube_NullUri_Throws()
     {
-        Action act = () => new ServerConnection.SonarQube(null);
+        Action act = () => _ = new ServerConnection.SonarQube(null);
 
         act.Should().Throw<ArgumentNullException>();
     }
@@ -114,7 +130,7 @@ public class ServerConnectionTests
         var sonarQube = new ServerConnection.SonarQube(Localhost, serverConnectionSettings, credentials);
 
         sonarQube.Id.Should().Be(Localhost.ToString());
-        sonarQube.ServerUri.Should().BeSameAs(Localhost);
+        sonarQube.ServerUri.Should().Be(Localhost);
         sonarQube.Settings.Should().BeSameAs(serverConnectionSettings);
         sonarQube.Credentials.Should().BeSameAs(credentials);
         sonarQube.CredentialsUri.ToString().Should().BeSameAs(sonarQube.Id);
@@ -147,7 +163,7 @@ public class ServerConnectionTests
     [TestMethod]
     public void FromBoundSonarQubeProject_InvalidConnection_ReturnsNull()
     {
-        var connection = new BoundSonarQubeProject() { ProjectKey = "project" }.FromBoundSonarQubeProject();
+        var connection = new BoundSonarQubeProject { ProjectKey = "project" }.FromBoundSonarQubeProject();
 
         connection.Should().BeNull();
     }

@@ -18,25 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Helpers;
-using SonarLint.VisualStudio.Core.WPF;
+namespace SonarLint.VisualStudio.Core.Helpers;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
-
-public class ManualProjectSelectionViewModel : ViewModelBase
+public static class StringExtensions
 {
-    private string projectKey;
-
-    public string ProjectKey
-    {
-        get => projectKey;
-        set
-        {
-            projectKey = value.WithoutSpaces();
-            RaisePropertyChanged();
-            RaisePropertyChanged(nameof(IsValidProjectKey));
-        }
-    }
-
-    public bool IsValidProjectKey => !string.IsNullOrWhiteSpace(projectKey);
+    public static string WithoutSpaces(this string stringValue) => stringValue?.Replace(" ", string.Empty);
 }

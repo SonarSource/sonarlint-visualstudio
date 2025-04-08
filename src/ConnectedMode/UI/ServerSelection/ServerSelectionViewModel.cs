@@ -20,6 +20,7 @@
 
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
+using SonarLint.VisualStudio.Core.Helpers;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
 {
@@ -60,7 +61,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
             get => sonarQubeUrl;
             set
             {
-                sonarQubeUrl = value;
+                sonarQubeUrl = value.WithoutSpaces();
                 RaisePropertyChanged();
                 RaisePropertyChanged(nameof(IsNextButtonEnabled));
                 RaisePropertyChanged(nameof(ShouldSonarQubeUrlBeFilled));

@@ -312,6 +312,25 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
+    public async Task CreateConnectionsWithProgressAsync_FailsWithMessageForDuplicateConnection()
+    {
+        var connectionToAdd = CreateSonarCloudConnection();
+        connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(connectionToAdd.Info, out _).Returns(info =>
+        {
+            info[1] = new SonarCloud(connectionToAdd.Info.Id);
+            return true;
+        });
+        Task<ResponseStatus> taskResponse = null;
+        await progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Do<TaskToPerformParams<ResponseStatus>>(x => taskResponse = x.TaskToPerform()));
+
+        await testSubject.CreateConnectionsWithProgressAsync(connectionToAdd, Substitute.For<ICredentialsModel>());
+
+        var actualResponseStatus = await taskResponse;
+        actualResponseStatus.Success.Should().BeFalse();
+        actualResponseStatus.WarningText.Should().Be(UiResources.ConnectionAlreadyExistsText);
+    }
+
+    [TestMethod]
     public async Task CreateNewConnectionAsync_ConnectionWasAddedToRepository_AddsProvidedConnection()
     {
         var connectionToAdd = new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false);

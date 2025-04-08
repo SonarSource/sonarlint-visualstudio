@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Helpers;
+
 namespace SonarLint.VisualStudio.Core.Binding;
 
 public abstract class ServerConnection
@@ -38,7 +40,12 @@ public abstract class ServerConnection
         Credentials = credentials;
     }
 
-    public sealed class SonarCloud : ServerConnection
+    public sealed class SonarCloud(
+        string organizationKey,
+        CloudServerRegion region,
+        ServerConnectionSettings settings = null,
+        IConnectionCredentials credentials = null)
+        : ServerConnection(OrganizationKeyToId(region, organizationKey), settings, credentials)
     {
         public SonarCloud(
             string organizationKey,
@@ -48,19 +55,8 @@ public abstract class ServerConnection
         {
         }
 
-        public SonarCloud(
-            string organizationKey,
-            CloudServerRegion region,
-            ServerConnectionSettings settings = null,
-            IConnectionCredentials credentials = null)
-            : base(OrganizationKeyToId(region, organizationKey), settings, credentials)
-        {
-            OrganizationKey = organizationKey;
-            Region = region;
-        }
-
-        public string OrganizationKey { get; }
-        public CloudServerRegion Region { get; }
+        public string OrganizationKey { get; } = organizationKey.WithoutSpaces();
+        public CloudServerRegion Region { get; } = region;
 
         public override Uri ServerUri => Region.Url;
 
@@ -78,6 +74,8 @@ public abstract class ServerConnection
     public sealed class SonarQube(Uri serverUri, ServerConnectionSettings settings = null, IConnectionCredentials credentials = null)
         : ServerConnection(serverUri?.ToString(), settings, credentials)
     {
-        public override Uri ServerUri { get; } = serverUri;
+        public override Uri ServerUri { get; } = serverUri == null
+            ? null
+            : new Uri(serverUri.ToString().WithoutSpaces());
     }
 }
