@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
+using SonarLint.VisualStudio.Integration.CSharpVB.Install;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
@@ -65,6 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private ILogger logger;
         private IVCXCompilationDatabaseStorage vcxCompilationDatabaseStorage;
         private ISolutionRoslynAnalyzerManager solutionRoslynAnalyzerManager;
+        private IImportBeforeFileGenerator importBeforeFileGenerator;
         private IProjectDocumentsEventsListener projectDocumentsEventsListener;
         private ISLCoreHandler slCoreHandler;
 
@@ -106,6 +108,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 projectDocumentsEventsListener.Initialize();
 
                 solutionRoslynAnalyzerManager = await this.GetMefServiceAsync<ISolutionRoslynAnalyzerManager>();
+                importBeforeFileGenerator = await this.GetMefServiceAsync<IImportBeforeFileGenerator>();
+                importBeforeFileGenerator.WriteTargetsFileToDiskIfNotExists();
 
                 LegacyInstallationCleanup.CleanupDaemonFiles(logger);
 
@@ -139,6 +143,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 solutionRoslynAnalyzerManager = null;
                 slCoreHandler?.Dispose();
                 slCoreHandler = null;
+                importBeforeFileGenerator = null;
             }
         }
 

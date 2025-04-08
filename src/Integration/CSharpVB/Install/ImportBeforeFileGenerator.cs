@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.CSharpVB.Install
     /// Creates a .targets file in the ImportBefore directory with the contents
     /// of the SonarLintTargets.xml file.
     /// </summary>
-    internal interface IImportBeforeFileGenerator
+    public interface IImportBeforeFileGenerator
     {
         void WriteTargetsFileToDiskIfNotExists();
     }
