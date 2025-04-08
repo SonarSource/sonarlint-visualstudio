@@ -11,10 +11,7 @@ public class AnalysisSettingsTests
     {
         var settings = new AnalysisSettings
         {
-            Rules =
-            {
-                { "typescript:S2685", new RuleConfig { Level = RuleLevel.On, Parameters = new Dictionary<string, string> { { "key1", "value1" } } } }
-            },
+            Rules = { { "typescript:S2685", new RuleConfig { Level = RuleLevel.On, Parameters = new Dictionary<string, string> { { "key1", "value1" } } } } },
             FileExclusions = ["file1.cpp", "**/obj/*", "file2.cpp"]
         };
         const string expectedJson =
@@ -57,10 +54,7 @@ public class AnalysisSettingsTests
         var settings = JsonConvert.DeserializeObject<AnalysisSettings>(json);
 
         settings.Rules.Should().BeEquivalentTo(
-            new Dictionary<string, RuleConfig>
-            {
-                { "typescript:S2685", new RuleConfig { Level = RuleLevel.On, Parameters = new Dictionary<string, string> { { "key1", "value1" } } } }
-            });
+            new Dictionary<string, RuleConfig> { { "typescript:S2685", new RuleConfig { Level = RuleLevel.On, Parameters = new Dictionary<string, string> { { "key1", "value1" } } } } });
         settings.FileExclusions.Should().BeEquivalentTo("file1.cpp", "**/obj/*", "file2.cpp");
     }
 
@@ -73,6 +67,23 @@ public class AnalysisSettingsTests
             {
               "sonarlint.rules": {},
               "sonarlint.analysisExcludesStandalone": "file1.cpp,**/obj/*,file2.cpp"
+            }
+            """;
+
+        var json = JsonConvert.SerializeObject(settings, Formatting.Indented);
+
+        json.Should().Be(expectedJson);
+    }
+
+    [TestMethod]
+    public void AnalysisSettings_FileExclusionsWithSpaces_SerializesCorrectlyAndTrims()
+    {
+        var settings = new AnalysisSettings { FileExclusions = ["file1.cpp ", " **/My Folder/*", "file2.cpp "] };
+        const string expectedJson =
+            """
+            {
+              "sonarlint.rules": {},
+              "sonarlint.analysisExcludesStandalone": "file1.cpp,**/My Folder/*,file2.cpp"
             }
             """;
 
@@ -110,6 +121,21 @@ public class AnalysisSettingsTests
         var settings = JsonConvert.DeserializeObject<AnalysisSettings>(json);
 
         settings.FileExclusions.Should().BeEquivalentTo("file1.cpp", "**/obj/*", "file2.cpp");
+    }
+
+    [TestMethod]
+    public void AnalysisSettings_FileExclusionsWithSpaces_DeserializesCorrectly()
+    {
+        const string json = """
+                            {
+                              "sonarlint.rules": {},
+                              "sonarlint.analysisExcludesStandalone": " file1.cpp, **/My Folder/*, file2.cpp "
+                            }
+                            """;
+
+        var settings = JsonConvert.DeserializeObject<AnalysisSettings>(json);
+
+        settings.FileExclusions.Should().BeEquivalentTo("file1.cpp", "**/My Folder/*", "file2.cpp");
     }
 
     [TestMethod]
