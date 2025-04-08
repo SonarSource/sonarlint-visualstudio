@@ -186,4 +186,25 @@
   <data name="MuteWindow_WontFixTitle" xml:space="preserve">
     <value>Won't Fix</value>
   </data>
+  <data name="ImportBeforeFileGenerator_CheckingIfFileExists" xml:space="preserve">
+    <value>Checking if file exists before importing targets. File: {0}</value>
+  </data>
+  <data name="ImportBeforeFileGenerator_CreatingDirectory" xml:space="preserve">
+    <value>Creating directory {0}</value>
+  </data>
+  <data name="ImportBeforeFileGenerator_FailedToWriteFile" xml:space="preserve">
+    <value>Failed to write file to disk: {0}</value>
+  </data>
+  <data name="ImportBeforeFileGenerator_FailedToWriteFile_Verbose" xml:space="preserve">
+    <value>Failed to write file to disk with exception: {0}</value>
+  </data>
+  <data name="ImportBeforeFileGenerator_FileAlreadyExists" xml:space="preserve">
+    <value>Skipped file writing as identical file was found.</value>
+  </data>
+  <data name="ImportBeforeFileGenerator_WritingTargetFileToDisk" xml:space="preserve">
+    <value>Writing file to imports before directory</value>
+  </data>
+  <data name="ImportsBeforeFileGeneratorLogContext" xml:space="preserve">
+    <value>ImportsBeforeFileGenerator</value>
+  </data>
 </root>

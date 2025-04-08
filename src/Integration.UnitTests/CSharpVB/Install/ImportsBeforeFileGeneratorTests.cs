@@ -24,6 +24,7 @@ using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.CSharpVB.Install;
+using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CSharpVB.Install;
@@ -44,6 +45,7 @@ public class ImportsBeforeFileGeneratorTests
         logger = Substitute.For<ILogger>();
         fileSystem = Substitute.For<IFileSystemService>();
         threadHandling = Substitute.For<IThreadHandling>();
+        logger.ForContext(Arg.Any<string[]>()).Returns(logger);
 
         testSubject = new ImportBeforeFileGenerator(logger, fileSystem, threadHandling);
     }
@@ -57,6 +59,9 @@ public class ImportsBeforeFileGeneratorTests
 
     [TestMethod]
     public void Mef_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ImportBeforeFileGenerator>();
+
+    [TestMethod]
+    public void Logger_LogContextIsSet() => logger.Received(1).ForContext(Strings.ImportsBeforeFileGeneratorLogContext);
 
     [TestMethod]
     public async Task WriteTargetsFileToDiskIfNotExistsAsync_RunsOnBackgroundThread()
@@ -118,7 +123,7 @@ public class ImportsBeforeFileGeneratorTests
 
         testSubject.WriteTargetsFileToDiskIfNotExists();
 
-        logger.Received(1).WriteLine(Arg.Is<string>(x => x.Contains("[ConnectedMode] Failed to write file to disk:")), "this is a test");
+        logger.Received(1).WriteLine(Arg.Is<string>(x => x.Contains(Strings.ImportBeforeFileGenerator_FailedToWriteFile)), "this is a test");
     }
 
     [TestMethod]

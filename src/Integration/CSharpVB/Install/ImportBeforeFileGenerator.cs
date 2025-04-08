@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 using System.IO;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB.Install;
 
@@ -39,6 +40,7 @@ public interface IImportBeforeFileGenerator
 [method: ImportingConstructor]
 internal class ImportBeforeFileGenerator(ILogger logger, IFileSystemService fileSystem, IThreadHandling threadHandling) : IImportBeforeFileGenerator
 {
+    private readonly ILogger logger = logger.ForContext(Strings.ImportsBeforeFileGeneratorLogContext);
     private const string TargetsFileName = "SonarLint.targets";
     private const string ResourcePath = "SonarLint.VisualStudio.Integration.CSharpVB.Install.SonarLintTargets.xml";
 
@@ -54,29 +56,29 @@ internal class ImportBeforeFileGenerator(ILogger logger, IFileSystemService file
             var pathToImportBefore = GetPathToImportBefore();
             var fullPath = Path.Combine(pathToImportBefore, TargetsFileName);
 
-            logger.LogVerbose(ConnectedMode.Resources.ImportBeforeFileGenerator_CheckingIfFileExists, fullPath);
+            logger.LogVerbose(Strings.ImportBeforeFileGenerator_CheckingIfFileExists, fullPath);
 
             try
             {
                 if (!fileSystem.Directory.Exists(pathToImportBefore))
                 {
-                    logger.LogVerbose(ConnectedMode.Resources.ImportBeforeFileGenerator_CreatingDirectory, pathToImportBefore);
+                    logger.LogVerbose(Strings.ImportBeforeFileGenerator_CreatingDirectory, pathToImportBefore);
                     fileSystem.Directory.CreateDirectory(pathToImportBefore);
                 }
 
                 if (fileSystem.File.Exists(fullPath) && fileSystem.File.ReadAllText(fullPath) == fileContent)
                 {
-                    logger.LogVerbose(ConnectedMode.Resources.ImportBeforeFileGenerator_FileAlreadyExists);
+                    logger.LogVerbose(Strings.ImportBeforeFileGenerator_FileAlreadyExists);
                     return;
                 }
 
-                logger.LogVerbose(ConnectedMode.Resources.ImportBeforeFileGenerator_WritingTargetFileToDisk);
+                logger.LogVerbose(Strings.ImportBeforeFileGenerator_WritingTargetFileToDisk);
                 fileSystem.File.WriteAllText(fullPath, fileContent);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(ConnectedMode.Resources.ImportBeforeFileGenerator_FailedToWriteFile, ex.Message);
-                logger.LogVerbose(ConnectedMode.Resources.ImportBeforeFileGenerator_FailedToWriteFile_Verbose, ex.ToString());
+                logger.WriteLine(Strings.ImportBeforeFileGenerator_FailedToWriteFile, ex.Message);
+                logger.LogVerbose(Strings.ImportBeforeFileGenerator_FailedToWriteFile_Verbose, ex.ToString());
             }
         }
     }
