@@ -37,8 +37,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 public class QuickFixActionsSourceTests
 {
     private SnapshotSpan mockSpan;
-    private ITextView textView;
     private ITextBuffer textBuffer;
+    private ITextView textView;
 
     [TestInitialize]
     public void TestInitialize()
@@ -109,7 +109,7 @@ public class QuickFixActionsSourceTests
 
         lightBulbBroker.VerifyNoOtherCalls();
 
-        Func<Task> act = async () => await testSubject.HandleTagsChangedAsync();
+        var act = async () => await testSubject.HandleTagsChangedAsync();
         act.Should().NotThrow();
 
         lightBulbBroker.Verify(x => x.DismissSession(textView), Times.Once);
@@ -127,7 +127,7 @@ public class QuickFixActionsSourceTests
 
         lightBulbBroker.VerifyNoOtherCalls();
 
-        Func<Task> act = async () => await testSubject.HandleTagsChangedAsync();
+        var act = async () => await testSubject.HandleTagsChangedAsync();
         act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("this is a test");
 
         lightBulbBroker.Verify(x => x.DismissSession(textView), Times.Once);
@@ -140,7 +140,7 @@ public class QuickFixActionsSourceTests
 
         CreateTestSubject(issueLocationsTagAggregator.Object);
 
-        Action act = () => issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
+        var act = () => issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
         act.Should().NotThrow();
     }
 
@@ -239,7 +239,7 @@ public class QuickFixActionsSourceTests
 
         var testSubject = CreateTestSubject(tagAggregator.Object, logger: logger);
 
-        Func<Task<bool>> func = async () => await testSubject.HasSuggestedActionsAsync(null, mockSpan, CancellationToken.None);
+        var func = async () => await testSubject.HasSuggestedActionsAsync(null, mockSpan, CancellationToken.None);
 
         func.Should().ThrowExactly<StackOverflowException>().And
             .Message.Should().Be("this is a test");
@@ -290,7 +290,9 @@ public class QuickFixActionsSourceTests
             CreateIssueViz(
                 CreateQuickFixViz(canBeApplied: true, message: "fix3"),
                 CreateQuickFixViz(canBeApplied: false, message: "fix4")),
-            CreateIssueViz(), CreateIssueViz(CreateQuickFixViz(canBeApplied: false, message: "fix5")), CreateIssueViz(CreateQuickFixViz(canBeApplied: true, message: "fix6"))
+            CreateIssueViz(),
+            CreateIssueViz(CreateQuickFixViz(canBeApplied: false, message: "fix5")),
+            CreateIssueViz(CreateQuickFixViz(canBeApplied: true, message: "fix6"))
         };
 
         var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
