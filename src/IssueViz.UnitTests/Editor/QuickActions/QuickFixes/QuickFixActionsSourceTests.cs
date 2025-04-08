@@ -302,8 +302,8 @@ public class QuickFixActionsSourceTests
 
         var quickFixSuggestedActions = hasSuggestedActionsSet.Single().Actions.OfType<QuickFixSuggestedAction>().ToList();
         quickFixSuggestedActions.Count.Should().Be(3);
-        quickFixSuggestedActions.Select(x => x.DisplayText).Should().BeEquivalentTo(QuickFixSuggestedAction.productNamePrefix + "fix2", QuickFixSuggestedAction.productNamePrefix + "fix3",
-            QuickFixSuggestedAction.productNamePrefix + "fix6");
+        quickFixSuggestedActions.Select(x => x.DisplayText).Should().BeEquivalentTo(Resources.ProductNameCommandPrefix + "fix2", Resources.ProductNameCommandPrefix + "fix3",
+            Resources.ProductNameCommandPrefix + "fix6");
     }
 
     [TestMethod]

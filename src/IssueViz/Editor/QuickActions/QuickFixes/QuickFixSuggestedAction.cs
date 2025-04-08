@@ -28,7 +28,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
 {
     internal class QuickFixSuggestedAction : BaseSuggestedAction
     {
-        internal const string productNamePrefix = "SonarQube: ";
         private readonly IQuickFixVisualization quickFixVisualization;
         private readonly ITextBuffer textBuffer;
         private readonly ISpanTranslator spanTranslator;
@@ -62,7 +61,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
             this.spanTranslator = spanTranslator;
         }
 
-        public override string DisplayText => productNamePrefix + quickFixVisualization.Fix.Message;
+        public override string DisplayText => Resources.ProductNameCommandPrefix + quickFixVisualization.Fix.Message;
 
         public override void Invoke(CancellationToken cancellationToken)
         {

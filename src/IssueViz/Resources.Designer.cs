@@ -196,6 +196,15 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarQube: .
+        /// </summary>
+        public static string ProductNameCommandPrefix {
+            get {
+                return ResourceManager.GetString("ProductNameCommandPrefix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarQube: Show Issue Visualization ({0}).
         /// </summary>
         public static string ShowIssueVisualizationCommandText {

@@ -165,4 +165,7 @@
   <data name="ShowIssueVisualizationCommandText" xml:space="preserve">
     <value>SonarQube: Show Issue Visualization ({0})</value>
   </data>
+  <data name="ProductNameCommandPrefix" xml:space="preserve">
+    <value>SonarQube: </value>
+  </data>
 </root>
