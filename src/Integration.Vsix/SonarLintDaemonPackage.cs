@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 solutionRoslynAnalyzerManager = await this.GetMefServiceAsync<ISolutionRoslynAnalyzerManager>();
                 var importBeforeFileGenerator = await this.GetMefServiceAsync<IImportBeforeFileGenerator>();
-                importBeforeFileGenerator.WriteTargetsFileToDiskIfNotExistsAsync().Forget();
+                importBeforeFileGenerator.UpdateOrCreateTargetsFileAsync().Forget();
 
                 LegacyInstallationCleanup.CleanupDaemonFiles(logger);
 

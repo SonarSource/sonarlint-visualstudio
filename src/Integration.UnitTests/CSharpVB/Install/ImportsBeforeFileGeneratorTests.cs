@@ -64,9 +64,9 @@ public class ImportsBeforeFileGeneratorTests
     public void Logger_LogContextIsSet() => logger.Received(1).ForContext(Strings.ImportsBeforeFileGeneratorLogContext);
 
     [TestMethod]
-    public async Task WriteTargetsFileToDiskIfNotExistsAsync_RunsOnBackgroundThread()
+    public async Task UpdateOrCreateTargetsFileAsync_RunsOnBackgroundThread()
     {
-        await testSubject.WriteTargetsFileToDiskIfNotExistsAsync();
+        await testSubject.UpdateOrCreateTargetsFileAsync();
 
         threadHandling.ReceivedCalls().Should().ContainSingle(x => x.GetMethodInfo().Name == nameof(IThreadHandling.RunOnBackgroundThread));
     }
@@ -78,7 +78,7 @@ public class ImportsBeforeFileGeneratorTests
         MockDirectoryExists(PathToDirectory, exists: true);
         MockReadAllText(PathToFile, fileContent, exists: false);
 
-        testSubject.WriteTargetsFileToDiskIfNotExists();
+        testSubject.UpdateOrCreateTargetsFile();
 
         fileSystem.File.Received(1).WriteAllText(PathToFile, fileContent);
     }
@@ -89,7 +89,7 @@ public class ImportsBeforeFileGeneratorTests
         MockDirectoryExists(PathToDirectory, exists: true);
         MockReadAllText(PathToFile, "wrong text");
 
-        testSubject.WriteTargetsFileToDiskIfNotExists();
+        testSubject.UpdateOrCreateTargetsFile();
 
         fileSystem.File.Received(1).WriteAllText(PathToFile, Arg.Any<string>());
     }
@@ -100,7 +100,7 @@ public class ImportsBeforeFileGeneratorTests
         MockDirectoryExists(PathToDirectory, exists: true);
         MockReadAllText(PathToFile, GetTargetFileContent());
 
-        testSubject.WriteTargetsFileToDiskIfNotExists();
+        testSubject.UpdateOrCreateTargetsFile();
 
         fileSystem.File.DidNotReceive().WriteAllText(PathToFile, Arg.Any<string>());
     }
@@ -111,7 +111,7 @@ public class ImportsBeforeFileGeneratorTests
         MockDirectoryExists(PathToDirectory, exists: false);
         MockFileExists(PathToFile, exists: false);
 
-        testSubject.WriteTargetsFileToDiskIfNotExists();
+        testSubject.UpdateOrCreateTargetsFile();
 
         fileSystem.Directory.Received(1).CreateDirectory(PathToDirectory);
     }
@@ -121,7 +121,7 @@ public class ImportsBeforeFileGeneratorTests
     {
         fileSystem.Directory.Exists(Arg.Any<string>()).Throws(new NotImplementedException("this is a test"));
 
-        testSubject.WriteTargetsFileToDiskIfNotExists();
+        testSubject.UpdateOrCreateTargetsFile();
 
         logger.Received(1).WriteLine(Arg.Is<string>(x => x.Contains(Strings.ImportBeforeFileGenerator_FailedToWriteFile)), "this is a test");
     }
@@ -131,7 +131,7 @@ public class ImportsBeforeFileGeneratorTests
     {
         fileSystem.Directory.Exists(Arg.Any<string>()).Throws(new StackOverflowException());
 
-        var act = () => testSubject.WriteTargetsFileToDiskIfNotExists();
+        var act = () => testSubject.UpdateOrCreateTargetsFile();
 
         act.Should().Throw<StackOverflowException>();
     }

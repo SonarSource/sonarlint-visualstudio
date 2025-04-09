@@ -27,12 +27,11 @@ using SonarLint.VisualStudio.Integration.Resources;
 namespace SonarLint.VisualStudio.Integration.CSharpVB.Install;
 
 /// <summary>
-/// Creates a .targets file in the ImportBefore directory with the contents
-/// of the SonarLintTargets.xml file.
+/// Creates a .targets file in the ImportBefore directory with the contents of the SonarLintTargets.xml file and updates it when the content becomes outdated.
 /// </summary>
 public interface IImportBeforeFileGenerator
 {
-    Task WriteTargetsFileToDiskIfNotExistsAsync();
+    Task UpdateOrCreateTargetsFileAsync();
 }
 
 [Export(typeof(IImportBeforeFileGenerator))]
@@ -46,9 +45,9 @@ internal class ImportBeforeFileGenerator(ILogger logger, IFileSystemService file
 
     private static readonly object Locker = new();
 
-    public Task WriteTargetsFileToDiskIfNotExistsAsync() => threadHandling.RunOnBackgroundThread(WriteTargetsFileToDiskIfNotExists);
+    public Task UpdateOrCreateTargetsFileAsync() => threadHandling.RunOnBackgroundThread(UpdateOrCreateTargetsFile);
 
-    internal void WriteTargetsFileToDiskIfNotExists()
+    internal void UpdateOrCreateTargetsFile()
     {
         lock (Locker)
         {
