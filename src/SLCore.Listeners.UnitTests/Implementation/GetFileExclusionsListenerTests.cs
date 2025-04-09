@@ -87,13 +87,24 @@ public class GetFileExclusionsListenerTests
     [TestMethod]
     public async Task GetFileExclusionsAsync_CorrectConfigScope_FileExclusionsDefined_ReturnsFileExclusionsFromSettings()
     {
-        HashSet<string> fileExclusions = ["org/sonar/*", "**/*.css"];
+        string[] fileExclusions = ["org/sonar/*", "**/*.css"];
         MockCurrentConfigScope(GetFileExclusionsParams.configurationScopeId);
         MockUserSettingsFileExclusions(fileExclusions);
 
         var response = await testSubject.GetFileExclusionsAsync(GetFileExclusionsParams);
 
         response.fileExclusionPatterns.Should().BeEquivalentTo(fileExclusions);
+    }
+
+    [TestMethod]
+    public async Task GetFileExclusionsAsync_CorrectConfigScope_SamePatternDefinedMultipleTimes_DoesNotReturnDuplicates()
+    {
+        MockCurrentConfigScope(GetFileExclusionsParams.configurationScopeId);
+        MockUserSettingsFileExclusions("**/*.css", "org/sonar/*", "**/*.css", "**/*.css", "org/sonar/*");
+
+        var response = await testSubject.GetFileExclusionsAsync(GetFileExclusionsParams);
+
+        response.fileExclusionPatterns.Should().BeEquivalentTo("**/*.css", "org/sonar/*");
     }
 
     [TestMethod]
@@ -104,11 +115,11 @@ public class GetFileExclusionsListenerTests
 
         var response = await testSubject.GetFileExclusionsAsync(GetFileExclusionsParams);
 
-        response.fileExclusionPatterns.Should().BeEquivalentTo([]);
+        response.fileExclusionPatterns.Should().BeEquivalentTo();
     }
 
-    private void MockUserSettingsFileExclusions(HashSet<string> fileExclusions) =>
-        userSettingsProvider.UserSettings.Returns(new UserSettings(new AnalysisSettings { FileExclusions = fileExclusions?.ToArray() }));
+    private void MockUserSettingsFileExclusions(params string[] fileExclusions) =>
+        userSettingsProvider.UserSettings.Returns(new UserSettings(new AnalysisSettings { FileExclusions = fileExclusions }));
 
     private void MockCurrentConfigScope(string id) => activeConfigScopeTracker.Current.Returns(id != null ? new ConfigurationScope(id) : null);
 }
