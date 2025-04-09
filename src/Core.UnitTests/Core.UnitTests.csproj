@@ -23,6 +23,7 @@
     <Compile Include="..\TestInfrastructure\TestParallelization.cs">
       <Link>TestParallelization.cs</Link>
     </Compile>
+    <EmbeddedResource Include="SystemAbstractions\TestData.txt" />
   </ItemGroup>
 
 </Project>
