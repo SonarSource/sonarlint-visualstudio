@@ -11,7 +11,8 @@ public class CommaSeparatedStringArrayConverter : JsonConverter
             return;
         }
 
-        writer.WriteValue(string.Join(",", strings));
+        var commaSeparatedList = string.Join(",", TrimValues(strings));
+        writer.WriteValue(commaSeparatedList);
     }
 
     public override object ReadJson(
@@ -20,9 +21,12 @@ public class CommaSeparatedStringArrayConverter : JsonConverter
         object existingValue,
         JsonSerializer serializer)
     {
-        var value = reader.Value as string;
-        return value?.Split([','], StringSplitOptions.RemoveEmptyEntries);
+        var commaSeparatedList = reader.Value as string;
+        var values = commaSeparatedList?.Split([','], StringSplitOptions.RemoveEmptyEntries);
+        return TrimValues(values);
     }
 
     public override bool CanConvert(Type objectType) => objectType == typeof(string[]);
+
+    private static string[] TrimValues(string[] values) => values?.Select(value => value.Trim()).ToArray();
 }
