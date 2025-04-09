@@ -243,4 +243,7 @@
   <data name="ConnectedModeSuggestion_LogContext" xml:space="preserve">
     <value>Suggestion</value>
   </data>
+  <data name="FileExclusionsLogContext" xml:space="preserve">
+    <value>FileExclusions</value>
+  </data>
 </root>
