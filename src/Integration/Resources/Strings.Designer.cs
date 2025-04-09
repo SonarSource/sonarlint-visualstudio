@@ -115,6 +115,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Skipped file writing as the content of the resource {0} can not be read..
+        /// </summary>
+        public static string ImportBeforeFileGenerator_ContentOfTargetsFileCanNotBeRead {
+            get {
+                return ResourceManager.GetString("ImportBeforeFileGenerator_ContentOfTargetsFileCanNotBeRead", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Creating directory {0}.
         /// </summary>
         public static string ImportBeforeFileGenerator_CreatingDirectory {

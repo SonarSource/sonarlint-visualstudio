@@ -19,6 +19,7 @@
  */
 
 using System.IO;
+using System.Reflection;
 using System.Xml;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
@@ -34,10 +35,12 @@ public class ImportsBeforeFileGeneratorTests
 {
     private static readonly string PathToDirectory = GetPathToImportBefore();
     private static readonly string PathToFile = Path.Combine(PathToDirectory, "SonarLint.targets");
+    private const string ResourceContent = "some content";
     private IFileSystemService fileSystem;
     private ILogger logger;
     private ImportBeforeFileGenerator testSubject;
     private IThreadHandling threadHandling;
+    private IEmbeddedResourceReader embeddedResourceReader;
 
     [TestInitialize]
     public void TestInitialize()
@@ -45,9 +48,10 @@ public class ImportsBeforeFileGeneratorTests
         logger = Substitute.For<ILogger>();
         fileSystem = Substitute.For<IFileSystemService>();
         threadHandling = Substitute.For<IThreadHandling>();
+        embeddedResourceReader = Substitute.For<IEmbeddedResourceReader>();
         logger.ForContext(Arg.Any<string[]>()).Returns(logger);
 
-        testSubject = new ImportBeforeFileGenerator(logger, fileSystem, threadHandling);
+        testSubject = new ImportBeforeFileGenerator(logger, fileSystem, threadHandling, embeddedResourceReader);
     }
 
     [TestMethod]
@@ -55,7 +59,8 @@ public class ImportsBeforeFileGeneratorTests
         MefTestHelpers.CheckTypeCanBeImported<ImportBeforeFileGenerator, IImportBeforeFileGenerator>(
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IFileSystemService>(),
-            MefTestHelpers.CreateExport<IThreadHandling>());
+            MefTestHelpers.CreateExport<IThreadHandling>(),
+            MefTestHelpers.CreateExport<IEmbeddedResourceReader>());
 
     [TestMethod]
     public void Mef_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ImportBeforeFileGenerator>();
@@ -74,31 +79,33 @@ public class ImportsBeforeFileGeneratorTests
     [TestMethod]
     public void FileDoesNotExist_CreatesFileWithWritesCorrectContent()
     {
-        var fileContent = GetTargetFileContent();
+        MockEmbeddedResourceReader(ResourceContent);
         MockDirectoryExists(PathToDirectory, exists: true);
-        MockReadAllText(PathToFile, fileContent, exists: false);
+        MockReadAllText(PathToFile, ResourceContent, exists: false);
 
         testSubject.UpdateOrCreateTargetsFile();
 
-        fileSystem.File.Received(1).WriteAllText(PathToFile, fileContent);
+        fileSystem.File.Received(1).WriteAllText(PathToFile, ResourceContent);
     }
 
     [TestMethod]
     public void FileExists_DifferentText_CreatesFile()
     {
+        MockEmbeddedResourceReader(ResourceContent);
         MockDirectoryExists(PathToDirectory, exists: true);
         MockReadAllText(PathToFile, "wrong text");
 
         testSubject.UpdateOrCreateTargetsFile();
 
-        fileSystem.File.Received(1).WriteAllText(PathToFile, Arg.Any<string>());
+        fileSystem.File.Received(1).WriteAllText(PathToFile, ResourceContent);
     }
 
     [TestMethod]
     public void FileExists_SameText_DoesNotCreateFile()
     {
+        MockEmbeddedResourceReader(ResourceContent);
         MockDirectoryExists(PathToDirectory, exists: true);
-        MockReadAllText(PathToFile, GetTargetFileContent());
+        MockReadAllText(PathToFile, ResourceContent);
 
         testSubject.UpdateOrCreateTargetsFile();
 
@@ -106,8 +113,22 @@ public class ImportsBeforeFileGeneratorTests
     }
 
     [TestMethod]
+    public void FileExists_EmbeddedResourceCanNotBeRead_DoesNotUpdateFileAndLogs()
+    {
+        MockEmbeddedResourceReader(content: null);
+        MockDirectoryExists(PathToDirectory, exists: true);
+        MockReadAllText(PathToFile, ResourceContent);
+
+        testSubject.UpdateOrCreateTargetsFile();
+
+        fileSystem.File.DidNotReceive().WriteAllText(PathToFile, Arg.Any<string>());
+        logger.Received(1).LogVerbose(Strings.ImportBeforeFileGenerator_ContentOfTargetsFileCanNotBeRead, "SonarLint.targets");
+    }
+
+    [TestMethod]
     public void DirectoryDoesNotExist_CreatesDirectory()
     {
+        MockEmbeddedResourceReader(ResourceContent);
         MockDirectoryExists(PathToDirectory, exists: false);
         MockFileExists(PathToFile, exists: false);
 
@@ -172,4 +193,6 @@ public class ImportsBeforeFileGeneratorTests
         MockFileExists(path, exists);
         fileSystem.File.ReadAllText(path).Returns(content);
     }
+
+    private void MockEmbeddedResourceReader(string content) => embeddedResourceReader.Read(Arg.Any<Assembly>(), Arg.Any<string>()).Returns(content);
 }

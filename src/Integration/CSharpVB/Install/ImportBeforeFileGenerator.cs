@@ -37,7 +37,11 @@ public interface IImportBeforeFileGenerator
 [Export(typeof(IImportBeforeFileGenerator))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class ImportBeforeFileGenerator(ILogger logger, IFileSystemService fileSystem, IThreadHandling threadHandling) : IImportBeforeFileGenerator
+internal class ImportBeforeFileGenerator(
+    ILogger logger,
+    IFileSystemService fileSystem,
+    IThreadHandling threadHandling,
+    IEmbeddedResourceReader embeddedResourceReader) : IImportBeforeFileGenerator
 {
     private readonly ILogger logger = logger.ForContext(Strings.ImportsBeforeFileGeneratorLogContext);
     private const string TargetsFileName = "SonarLint.targets";
@@ -51,7 +55,7 @@ internal class ImportBeforeFileGenerator(ILogger logger, IFileSystemService file
     {
         lock (Locker)
         {
-            var fileContent = GetTargetFileContent();
+            var fileContent = embeddedResourceReader.Read(GetType().Assembly, ResourcePath);
             var pathToImportBefore = GetPathToImportBefore();
             var fullPath = Path.Combine(pathToImportBefore, TargetsFileName);
 
@@ -59,6 +63,12 @@ internal class ImportBeforeFileGenerator(ILogger logger, IFileSystemService file
 
             try
             {
+                if (fileContent == null)
+                {
+                    logger.LogVerbose(Strings.ImportBeforeFileGenerator_ContentOfTargetsFileCanNotBeRead, TargetsFileName);
+                    return;
+                }
+
                 if (!fileSystem.Directory.Exists(pathToImportBefore))
                 {
                     logger.LogVerbose(Strings.ImportBeforeFileGenerator_CreatingDirectory, pathToImportBefore);
@@ -80,19 +90,6 @@ internal class ImportBeforeFileGenerator(ILogger logger, IFileSystemService file
                 logger.LogVerbose(Strings.ImportBeforeFileGenerator_FailedToWriteFile_Verbose, ex.ToString());
             }
         }
-    }
-
-    private string GetTargetFileContent()
-    {
-        using var stream = GetType().Assembly.GetManifestResourceStream(ResourcePath);
-        if (stream == null)
-        {
-            return "";
-        }
-
-        using var reader = new StreamReader(stream);
-        var data = reader.ReadToEnd();
-        return data;
     }
 
     private static string GetPathToImportBefore()

@@ -201,6 +201,9 @@
   <data name="ImportBeforeFileGenerator_FileAlreadyExists" xml:space="preserve">
     <value>Skipped file writing as identical file was found.</value>
   </data>
+  <data name="ImportBeforeFileGenerator_ContentOfTargetsFileCanNotBeRead" xml:space="preserve">
+    <value>Skipped file writing as the content of the resource {0} can not be read.</value>
+  </data>
   <data name="ImportBeforeFileGenerator_WritingTargetFileToDisk" xml:space="preserve">
     <value>Writing file to imports before directory</value>
   </data>
