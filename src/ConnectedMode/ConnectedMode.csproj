@@ -35,7 +35,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Install\SonarLintTargets.xml" />
     <None Remove="Migration\Wizard\MigrationWizardWindow.xaml" />
     <None Remove="UI\Credentials\CredentialsWnd.xaml" />
     <None Remove="UI\ManageBinding\ManageBindingDialog.xaml" />
@@ -51,7 +50,6 @@
     <Resource Include="UI\Resources\sonarqube_for_ide_logo_16px.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
-    <EmbeddedResource Include="Install\SonarLintTargets.xml" />
   </ItemGroup>
 
   <ItemGroup>
