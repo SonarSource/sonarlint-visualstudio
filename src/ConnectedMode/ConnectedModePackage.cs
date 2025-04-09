@@ -24,7 +24,6 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
-using SonarLint.VisualStudio.ConnectedMode.Install;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile;
@@ -46,7 +45,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
         private IQualityProfileServerEventsListener qualityProfileServerEventsListener;
         private BoundSolutionUpdateHandler boundSolutionUpdateHandler;
         private TimedUpdateHandler timedUpdateHandler;
-        private ImportBeforeInstallTrigger importBeforeInstallTrigger;
         private IHotspotDocumentClosedHandler hotspotDocumentClosedHandler;
         private IHotspotSolutionClosedHandler hotspotSolutionClosedHandler;
         private ILocalHotspotStoreMonitor hotspotStoreMonitor;
@@ -90,8 +88,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
         {
             sseSessionManager = componentModel.GetService<SSESessionManager>();
             sseSessionManager.CreateSessionIfInConnectedMode();
-            importBeforeInstallTrigger = componentModel.GetService<ImportBeforeInstallTrigger>();
-            importBeforeInstallTrigger.TriggerUpdateAsync().Forget();
             var updater = componentModel.GetService<IRoslynSuppressionUpdater>();
             updater.UpdateAllServerSuppressionsAsync().Forget();
             var hotspotsUpdater = componentModel.GetService<IServerHotspotStoreUpdater>();
@@ -106,7 +102,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 issueServerEventsListener?.Dispose();
                 boundSolutionUpdateHandler?.Dispose();
                 timedUpdateHandler?.Dispose();
-                importBeforeInstallTrigger?.Dispose();
             }
 
             base.Dispose(disposing);

@@ -22,9 +22,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
+using SonarLint.VisualStudio.Integration.CSharpVB.Install;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
@@ -106,6 +108,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 projectDocumentsEventsListener.Initialize();
 
                 solutionRoslynAnalyzerManager = await this.GetMefServiceAsync<ISolutionRoslynAnalyzerManager>();
+                var importBeforeFileGenerator = await this.GetMefServiceAsync<IImportBeforeFileGenerator>();
+                importBeforeFileGenerator.UpdateOrCreateTargetsFileAsync().Forget();
 
                 LegacyInstallationCleanup.CleanupDaemonFiles(logger);
 
