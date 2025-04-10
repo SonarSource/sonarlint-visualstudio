@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.Integration.MefServices;
 using SonarQube.Client;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
@@ -50,6 +51,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IVsMonitorSelection vsMonitorSelection;
         private readonly IBoundSolutionGitMonitor gitEventsMonitor;
         private readonly IConfigScopeUpdater configScopeUpdater;
+        private readonly ISolutionStateTrackerUpdater solutionStateTrackerUpdater;
         private readonly ILogger logger;
         private readonly uint boundSolutionContextCookie;
         private bool disposed;
@@ -65,6 +67,7 @@ namespace SonarLint.VisualStudio.Integration
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IActiveSolutionTracker activeSolutionTracker,
             IConfigScopeUpdater configScopeUpdater,
+            ISolutionStateTrackerUpdater solutionStateTrackerUpdater,
             ILogger logger,
             IBoundSolutionGitMonitor gitEventsMonitor,
             IConfigurationProvider configurationProvider,
@@ -82,11 +85,13 @@ namespace SonarLint.VisualStudio.Integration
             this.configurationProvider = configurationProvider;
             this.sonarQubeService = sonarQubeService;
             this.configScopeUpdater = configScopeUpdater;
+            this.solutionStateTrackerUpdater = solutionStateTrackerUpdater;
 
             // The solution changed inside the IDE
             solutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
 
             CurrentConfiguration = GetBindingConfiguration();
+            solutionStateTrackerUpdater.Update(solutionTracker.CurrentSolutionName, CurrentConfiguration);
 
             SetBoundSolutionUIContext();
 
@@ -167,8 +172,6 @@ namespace SonarLint.VisualStudio.Integration
 
         private void RaiseAnalyzersChangedIfBindingChanged(BindingConfiguration newBindingConfiguration)
         {
-            configScopeUpdater.UpdateConfigScopeForCurrentSolution(newBindingConfiguration.Project);
-
             if (!CurrentConfiguration.Equals(newBindingConfiguration))
             {
                 CurrentConfiguration = newBindingConfiguration;
@@ -178,6 +181,8 @@ namespace SonarLint.VisualStudio.Integration
                 SolutionBindingChanged?.Invoke(this, args);
             }
 
+            solutionStateTrackerUpdater.Update(solutionTracker.CurrentSolutionName, newBindingConfiguration);
+            configScopeUpdater.UpdateConfigScopeForCurrentSolution(newBindingConfiguration.Project); // todo remove in https://sonarsource.atlassian.net/browse/SLVS-2024
             SetBoundSolutionUIContext();
         }
 

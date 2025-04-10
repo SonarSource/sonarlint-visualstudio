@@ -48,6 +48,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             this.solutionInfoProvider = solutionInfoProvider;
             this.solution = serviceProvider.GetService<SVsSolution, IVsSolution>();
+            CurrentSolutionName = solutionInfoProvider.GetSolutionName();
             Debug.Assert(this.solution != null, "Cannot find IVsSolution");
             ErrorHandler.ThrowOnFailure(this.solution.AdviseSolutionEvents(this, out this.cookie));
         }

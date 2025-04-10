@@ -41,6 +41,18 @@ public class ActiveSolutionTrackerTests
         solutionInfoProvider.GetSolutionName().Returns((string)null);
     }
 
+    [DataTestMethod]
+    [DataRow(null)]
+    [DataRow("solution")]
+    public void Ctor_InitializesCurrentSolution(string solutionName)
+    {
+        solutionInfoProvider.GetSolutionName().Returns(solutionName);
+
+        var testSubject = CreateTestSubject();
+
+        testSubject.CurrentSolutionName.Should().Be(solutionName);
+    }
+
     [TestMethod]
     public void ActiveSolutionTracker_Dispose()
     {
