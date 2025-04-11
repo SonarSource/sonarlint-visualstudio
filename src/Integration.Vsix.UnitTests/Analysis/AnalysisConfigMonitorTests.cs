@@ -22,6 +22,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
+using SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.SLCore.Analysis;
 using static SonarLint.VisualStudio.TestInfrastructure.NoOpThreadHandler;
@@ -31,13 +32,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis;
 [TestClass]
 public class AnalysisConfigMonitorTests
 {
-    private IAnalysisRequester analysisRequesterMock;
-    private IUserSettingsProvider userSettingsUpdaterMock;
     private IActiveSolutionBoundTracker activeSolutionBoundTracker;
-    private IThreadHandling threadHandling;
-    private ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater;
+    private IAnalysisRequester analysisRequesterMock;
     private TestLogger logger;
+    private IStandaloneRoslynSettingsUpdater roslynSettingsUpdater;
+    private ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater;
     private AnalysisConfigMonitor testSubject;
+    private IThreadHandling threadHandling;
+    private IUserSettingsProvider userSettingsUpdaterMock;
 
     [TestInitialize]
     public void TestInitialize()
@@ -47,17 +49,20 @@ public class AnalysisConfigMonitorTests
         activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
         threadHandling = Substitute.For<IThreadHandling>();
         slCoreRuleSettingsUpdater = Substitute.For<ISLCoreRuleSettingsUpdater>();
+        roslynSettingsUpdater = Substitute.For<IStandaloneRoslynSettingsUpdater>();
 
         threadHandling.SwitchToBackgroundThread().Returns(new NoOpAwaitable());
 
         logger = new TestLogger();
 
-        testSubject = new AnalysisConfigMonitor(analysisRequesterMock,
+        testSubject = new AnalysisConfigMonitor(
+            analysisRequesterMock,
             userSettingsUpdaterMock,
+            slCoreRuleSettingsUpdater,
+            roslynSettingsUpdater,
             activeSolutionBoundTracker,
             logger,
-            threadHandling,
-            slCoreRuleSettingsUpdater);
+            threadHandling);
     }
 
     [TestMethod]
@@ -68,7 +73,8 @@ public class AnalysisConfigMonitorTests
             MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
-            MefTestHelpers.CreateExport<ISLCoreRuleSettingsUpdater>());
+            MefTestHelpers.CreateExport<ISLCoreRuleSettingsUpdater>(),
+            MefTestHelpers.CreateExport<IStandaloneRoslynSettingsUpdater>());
 
     [TestMethod]
     public void WhenUserSettingsChange_AnalysisIsRequested()
@@ -84,12 +90,13 @@ public class AnalysisConfigMonitorTests
     [TestMethod]
     public void WhenUserSettingsChange_UpdatesSlCoreSettingsBeforeTriggeringAnalysis()
     {
-        SimulateUserSettingsChanged();
+        var userSettings = SimulateUserSettingsChanged();
 
         Received.InOrder(() =>
         {
+            roslynSettingsUpdater.Update(userSettings);
             slCoreRuleSettingsUpdater.UpdateStandaloneRulesConfiguration();
-            analysisRequesterMock.RequestAnalysis(null, Array.Empty<string>());
+            analysisRequesterMock.RequestAnalysis(null);
         });
     }
 
@@ -116,18 +123,19 @@ public class AnalysisConfigMonitorTests
         AssertAnalysisIsNotRequested();
     }
 
-    private void SimulateUserSettingsChanged()
-        => userSettingsUpdaterMock.SettingsChanged += Raise.EventWith(null, EventArgs.Empty);
+    private UserSettings SimulateUserSettingsChanged()
+    {
+        var userSettings = new UserSettings(new AnalysisSettings());
+        userSettingsUpdaterMock.UserSettings.Returns(userSettings);
+        userSettingsUpdaterMock.SettingsChanged += Raise.EventWith(null, EventArgs.Empty);
+        return userSettings;
+    }
 
-    private void SimulateBindingChanged(BindingConfiguration config = null)
-        => activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(null, new ActiveSolutionBindingEventArgs(config));
+    private void SimulateBindingChanged(BindingConfiguration config = null) => activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(null, new ActiveSolutionBindingEventArgs(config));
 
-    private void AssertAnalysisIsRequested()
-        => analysisRequesterMock.Received(1).RequestAnalysis(null, Array.Empty<string>());
+    private void AssertAnalysisIsRequested() => analysisRequesterMock.Received(1).RequestAnalysis(null);
 
-    private void AssertAnalysisIsNotRequested()
-        => analysisRequesterMock.ReceivedCalls().Count().Should().Be(0);
+    private void AssertAnalysisIsNotRequested() => analysisRequesterMock.ReceivedCalls().Count().Should().Be(0);
 
-    private void AssertSwitchedToBackgroundThread()
-        => threadHandling.Received(1).SwitchToBackgroundThread();
+    private void AssertSwitchedToBackgroundThread() => threadHandling.Received(1).SwitchToBackgroundThread();
 }

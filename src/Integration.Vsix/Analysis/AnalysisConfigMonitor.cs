@@ -25,6 +25,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
 using SonarLint.VisualStudio.SLCore.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis;
@@ -43,15 +44,17 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
     private readonly ILogger logger;
     private readonly IThreadHandling threadHandling;
     private readonly ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater;
+    private readonly IStandaloneRoslynSettingsUpdater roslynSettingsUpdater;
 
     [ImportingConstructor]
     public AnalysisConfigMonitor(
         IAnalysisRequester analysisRequester,
         IUserSettingsProvider userSettingsUpdater,
+        ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater,
+        IStandaloneRoslynSettingsUpdater roslynSettingsUpdater,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         ILogger logger,
-        IThreadHandling threadHandling,
-        ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater)
+        IThreadHandling threadHandling)
     {
         this.analysisRequester = analysisRequester;
         this.userSettingsUpdater = userSettingsUpdater;
@@ -59,6 +62,7 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
         this.logger = logger;
         this.threadHandling = threadHandling;
         this.slCoreRuleSettingsUpdater = slCoreRuleSettingsUpdater;
+        this.roslynSettingsUpdater = roslynSettingsUpdater;
 
         userSettingsUpdater.SettingsChanged += OnUserSettingsChanged;
         activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
@@ -76,6 +80,7 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
     {
         // There is a corner-case where we want to raise the event even in Connected Mode - see https://github.com/SonarSource/sonarlint-visualstudio/issues/3701
         logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
+        roslynSettingsUpdater.Update(userSettingsUpdater.UserSettings);
         slCoreRuleSettingsUpdater.UpdateStandaloneRulesConfiguration();
         OnSettingsChangedAsync().Forget();
     }
