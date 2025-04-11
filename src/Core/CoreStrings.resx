@@ -196,4 +196,7 @@
   <data name="FindingType_Hotspot" xml:space="preserve">
     <value>hotspot</value>
   </data>
+  <data name="CommaSeparatedStringArrayConverter_UnexpectedType" xml:space="preserve">
+    <value>Unexpected type {0} (expected {1}) for {2}</value>
+  </data>
 </root>

@@ -57,9 +57,9 @@ public class AnalysisSettings
     [JsonProperty("sonarlint.rules", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
     public Dictionary<string, RuleConfig> Rules { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
-    [JsonProperty("sonarlint.analysisExcludesStandalone", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonProperty("sonarlint.analysisExcludesStandalone")]
     [JsonConverter(typeof(CommaSeparatedStringArrayConverter))]
-    public string[] FileExclusions { get; init; }
+    public string[] FileExclusions { get; init; } = [];
 }
 
 public class RuleConfig
