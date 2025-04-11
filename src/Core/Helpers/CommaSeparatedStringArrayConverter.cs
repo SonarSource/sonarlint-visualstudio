@@ -21,8 +21,22 @@ public class CommaSeparatedStringArrayConverter : JsonConverter
         object existingValue,
         JsonSerializer serializer)
     {
-        var commaSeparatedList = reader.Value as string;
-        var values = commaSeparatedList?.Split([','], StringSplitOptions.RemoveEmptyEntries);
+        if (reader.Value is null)
+        {
+            return existingValue; // return the default if not a valid value
+        }
+
+        if (reader.Value is not string commaSeparatedList)
+        {
+            throw new JsonException(
+                string.Format(
+                    CoreStrings.CommaSeparatedStringArrayConverter_UnexpectedType,
+                    reader.Value.GetType(),
+                    typeof(string),
+                    reader.Path));
+        }
+
+        var values = commaSeparatedList.Split([','], StringSplitOptions.RemoveEmptyEntries);
         return TrimValues(values);
     }
 
