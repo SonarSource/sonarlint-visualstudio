@@ -63,6 +63,9 @@ public class AnalysisConfigMonitorTests
             activeSolutionBoundTracker,
             logger,
             threadHandling);
+        userSettingsUpdaterMock.ClearReceivedCalls();
+        activeSolutionBoundTracker.ClearReceivedCalls();
+        roslynSettingsUpdater.ClearReceivedCalls();
     }
 
     [TestMethod]
@@ -75,6 +78,27 @@ public class AnalysisConfigMonitorTests
             MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<ISLCoreRuleSettingsUpdater>(),
             MefTestHelpers.CreateExport<IStandaloneRoslynSettingsUpdater>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() =>
+        MefTestHelpers.CheckIsSingletonMefComponent<AnalysisConfigMonitor>();
+
+    [TestMethod]
+    public void Ctor_UpdatesRoslynSettings()
+    {
+        var userSettings = new UserSettings(new AnalysisSettings());
+        userSettingsUpdaterMock.UserSettings.Returns(userSettings);
+
+        _ = new AnalysisConfigMonitor(analysisRequesterMock, userSettingsUpdaterMock, slCoreRuleSettingsUpdater, roslynSettingsUpdater, activeSolutionBoundTracker, logger, threadHandling);
+
+        Received.InOrder(() =>
+        {
+            _ = userSettingsUpdaterMock.UserSettings;
+            roslynSettingsUpdater.Update(userSettings);
+            userSettingsUpdaterMock.SettingsChanged += Arg.Any<EventHandler>();
+            activeSolutionBoundTracker.SolutionBindingChanged += Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
+        });
+    }
 
     [TestMethod]
     public void WhenUserSettingsChange_AnalysisIsRequested()
