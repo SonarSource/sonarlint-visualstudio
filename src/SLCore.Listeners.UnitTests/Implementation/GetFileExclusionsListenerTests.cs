@@ -87,13 +87,13 @@ public class GetFileExclusionsListenerTests
     [TestMethod]
     public async Task GetFileExclusionsAsync_CorrectConfigScope_FileExclusionsDefined_ReturnsFileExclusionsFromSettings()
     {
-        string[] fileExclusions = ["org/sonar/*", "**/*.css"];
+        string[] fileExclusions = ["org/sonar/*", "**\\*.css"];
         MockCurrentConfigScope(GetFileExclusionsParams.configurationScopeId);
         MockUserSettingsFileExclusions(fileExclusions);
 
         var response = await testSubject.GetFileExclusionsAsync(GetFileExclusionsParams);
 
-        response.fileExclusionPatterns.Should().BeEquivalentTo(fileExclusions);
+        response.fileExclusionPatterns.Should().BeEquivalentTo("**/org/sonar/*", "**/*.css");
     }
 
     [TestMethod]
@@ -104,22 +104,22 @@ public class GetFileExclusionsListenerTests
 
         var response = await testSubject.GetFileExclusionsAsync(GetFileExclusionsParams);
 
-        response.fileExclusionPatterns.Should().BeEquivalentTo("**/*.css", "org/sonar/*");
+        response.fileExclusionPatterns.Should().BeEquivalentTo("**/*.css", "**/org/sonar/*");
     }
 
     [TestMethod]
     public async Task GetFileExclusionsAsync_CorrectConfigScope_NoFileExclusionsDefined_ReturnsEmpty()
     {
         MockCurrentConfigScope(GetFileExclusionsParams.configurationScopeId);
-        MockUserSettingsFileExclusions(fileExclusions: null);
+        MockUserSettingsFileExclusions(fileExclusions: []);
 
         var response = await testSubject.GetFileExclusionsAsync(GetFileExclusionsParams);
 
-        response.fileExclusionPatterns.Should().BeEquivalentTo();
+        response.fileExclusionPatterns.Should().BeEmpty();
     }
 
     private void MockUserSettingsFileExclusions(params string[] fileExclusions) =>
-        userSettingsProvider.UserSettings.Returns(new UserSettings(new AnalysisSettings { FileExclusions = fileExclusions }));
+        userSettingsProvider.UserSettings.Returns(new UserSettings(new AnalysisSettings { UserDefinedFileExclusions = fileExclusions }));
 
     private void MockCurrentConfigScope(string id) => activeConfigScopeTracker.Current.Returns(id != null ? new ConfigurationScope(id) : null);
 }

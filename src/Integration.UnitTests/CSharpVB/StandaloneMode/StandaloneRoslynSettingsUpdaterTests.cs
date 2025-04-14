@@ -58,7 +58,7 @@ public class StandaloneRoslynSettingsUpdaterTests
         languageProvider.RoslynLanguages.Returns(fakeRoslynLanguages);
         environmentVariableProvider.GetFolderPath(Environment.SpecialFolder.ApplicationData).Returns("APPDATA");
 
-        testSubject.Update(new UserSettings(new AnalysisSettings { FileExclusions = [], Rules = [] }));
+        testSubject.Update(new UserSettings(new AnalysisSettings { UserDefinedFileExclusions = [], Rules = [] }));
 
         Received.InOrder(() =>
         {
@@ -81,7 +81,7 @@ public class StandaloneRoslynSettingsUpdaterTests
         IReadOnlyList<Language> fakeRoslynLanguages = [Language.VBNET, Language.TSql, Language.C];
         languageProvider.RoslynLanguages.Returns(fakeRoslynLanguages);
 
-        testSubject.Update(new UserSettings(new AnalysisSettings { FileExclusions = ["one", "two"], Rules = [] }));
+        testSubject.Update(new UserSettings(new AnalysisSettings { UserDefinedFileExclusions = ["one", "two"], Rules = [] }));
 
         Received.InOrder(() =>
         {
@@ -91,7 +91,7 @@ public class StandaloneRoslynSettingsUpdaterTests
                     language,
                     Arg.Any<string>(),
                     Arg.Is<IDictionary<string, string>>(x => x.Count == 0),
-                    Arg.Is<StandaloneRoslynFileExclusions>(x => x.ToDictionary()["sonar.exclusions"] == "one,two"),
+                    Arg.Is<StandaloneRoslynFileExclusions>(x => x.ToDictionary()["sonar.exclusions"] == "**/one,**/two"),
                     Arg.Is<IReadOnlyCollection<IRoslynRuleStatus>>(x => x.Count == 0),
                     Arg.Is<IReadOnlyCollection<IRuleParameters>>(x => x.Count == 0));
             }
@@ -111,7 +111,7 @@ public class StandaloneRoslynSettingsUpdaterTests
             { "vbnet:S4", new RuleConfig { Level = RuleLevel.Off, Parameters = new() { { "4", "44" } } } },
         };
 
-        testSubject.Update(new UserSettings(new AnalysisSettings { FileExclusions = [], Rules = rules }));
+        testSubject.Update(new UserSettings(new AnalysisSettings { UserDefinedFileExclusions = [], Rules = rules }));
 
         roslynConfigGenerator
             .Received()
@@ -153,7 +153,7 @@ public class StandaloneRoslynSettingsUpdaterTests
             { "cpp:S4", new RuleConfig() },
         };
 
-        testSubject.Update(new UserSettings(new AnalysisSettings { FileExclusions = [], Rules = rules }));
+        testSubject.Update(new UserSettings(new AnalysisSettings { UserDefinedFileExclusions = [], Rules = rules }));
 
         Received.InOrder(() =>
         {

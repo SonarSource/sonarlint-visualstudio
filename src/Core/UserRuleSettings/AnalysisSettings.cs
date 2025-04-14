@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using SonarLint.VisualStudio.Core.Helpers;
@@ -54,12 +55,42 @@ namespace SonarLint.VisualStudio.Core.UserRuleSettings;
  */
 public class AnalysisSettings
 {
+    private const string AnyDirectoryWildcard = "**";
+    private static readonly string AnyRootPrefix = AnyDirectoryWildcard + Path.AltDirectorySeparatorChar;
+
+    private readonly string[] userDefinedFileExclusions = [];
     [JsonProperty("sonarlint.rules", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
     public Dictionary<string, RuleConfig> Rules { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
     [JsonProperty("sonarlint.analysisExcludesStandalone")]
     [JsonConverter(typeof(CommaSeparatedStringArrayConverter))]
-    public string[] FileExclusions { get; init; } = [];
+    public string[] UserDefinedFileExclusions
+    {
+        get => userDefinedFileExclusions;
+        init
+        {
+            userDefinedFileExclusions = value;
+            NormalizedFileExclusions = value.Select(NormalizePath).ToArray();
+        }
+    }
+
+    [JsonIgnore]
+    public string[] NormalizedFileExclusions { get; private init; } = [];
+
+    private static string NormalizePath(string path)
+    {
+        // rooted paths without drive letter are unmodified, but SLCore doesn't match them well
+        var isRooted = Path.IsPathRooted(path);
+
+        path = path.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+        if (!isRooted && !path.StartsWith(AnyRootPrefix))
+        {
+            path = AnyRootPrefix + path;
+        }
+
+        return path;
+    }
 }
 
 public class RuleConfig
