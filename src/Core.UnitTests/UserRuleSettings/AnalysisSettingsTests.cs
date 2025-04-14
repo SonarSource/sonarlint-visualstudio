@@ -12,7 +12,7 @@ public class AnalysisSettingsTests
         var settings = new AnalysisSettings
         {
             Rules = { { "typescript:S2685", new RuleConfig { Level = RuleLevel.On, Parameters = new Dictionary<string, string> { { "key1", "value1" } } } } },
-            FileExclusions = ["file1.cpp", "**/obj/*", "file2.cpp"]
+            UserDefinedFileExclusions = ["file1.cpp", "**/obj/*", "file2.cpp"]
         };
         const string expectedJson =
             """
@@ -55,13 +55,14 @@ public class AnalysisSettingsTests
 
         settings.Rules.Should().BeEquivalentTo(
             new Dictionary<string, RuleConfig> { { "typescript:S2685", new RuleConfig { Level = RuleLevel.On, Parameters = new Dictionary<string, string> { { "key1", "value1" } } } } });
-        settings.FileExclusions.Should().BeEquivalentTo("file1.cpp", "**/obj/*", "file2.cpp");
+        settings.UserDefinedFileExclusions.Should().BeEquivalentTo("file1.cpp", "**/obj/*", "file2.cpp");
+        settings.NormalizedFileExclusions.Should().BeEquivalentTo("**/file1.cpp", "**/obj/*", "**/file2.cpp");
     }
 
     [TestMethod]
     public void AnalysisSettings_FileExclusions_SerializesCorrectly()
     {
-        var settings = new AnalysisSettings { FileExclusions = ["file1.cpp", "**/obj/*", "file2.cpp"] };
+        var settings = new AnalysisSettings { UserDefinedFileExclusions = ["file1.cpp", "**/obj/*", "file2.cpp"] };
         const string expectedJson =
             """
             {
@@ -78,7 +79,7 @@ public class AnalysisSettingsTests
     [TestMethod]
     public void AnalysisSettings_FileExclusionsWithSpaces_SerializesCorrectlyAndTrims()
     {
-        var settings = new AnalysisSettings { FileExclusions = ["file1.cpp ", " **/My Folder/*", "file2.cpp "] };
+        var settings = new AnalysisSettings { UserDefinedFileExclusions = ["file1.cpp ", " **/My Folder/*", "file2.cpp "] };
         const string expectedJson =
             """
             {
@@ -110,18 +111,19 @@ public class AnalysisSettingsTests
     }
 
     [TestMethod]
-    public void AnalysisSettings_FileExclusions_DeserializesCorrectly()
+    public void AnalysisSettings_FileExclusionsWithBackslashes_DeserializesCorrectly()
     {
         const string json = """
                             {
                               "sonarlint.rules": {},
-                              "sonarlint.analysisExcludesStandalone": "file1.cpp,**/obj/*,,file2.cpp"
+                              "sonarlint.analysisExcludesStandalone": "a\\file1.cpp,**\\obj\\*,,file2.cpp"
                             }
                             """;
 
         var settings = JsonConvert.DeserializeObject<AnalysisSettings>(json);
 
-        settings.FileExclusions.Should().BeEquivalentTo("file1.cpp", "**/obj/*", "file2.cpp");
+        settings.UserDefinedFileExclusions.Should().BeEquivalentTo("a\\file1.cpp", "**\\obj\\*", "file2.cpp");
+        settings.NormalizedFileExclusions.Should().BeEquivalentTo("**/a/file1.cpp", "**/obj/*", "**/file2.cpp");
     }
 
     [TestMethod]
@@ -136,7 +138,8 @@ public class AnalysisSettingsTests
 
         var settings = JsonConvert.DeserializeObject<AnalysisSettings>(json);
 
-        settings.FileExclusions.Should().BeEquivalentTo("file1.cpp", "**/My Folder/*", "file2.cpp");
+        settings.UserDefinedFileExclusions.Should().BeEquivalentTo("file1.cpp", "**/My Folder/*", "file2.cpp");
+        settings.NormalizedFileExclusions.Should().BeEquivalentTo("**/file1.cpp", "**/My Folder/*", "**/file2.cpp");
     }
 
 
@@ -152,7 +155,8 @@ public class AnalysisSettingsTests
 
         var settings = JsonConvert.DeserializeObject<AnalysisSettings>(json);
 
-        settings.FileExclusions.Should().NotBeNull().And.BeEmpty();
+        settings.UserDefinedFileExclusions.Should().BeEmpty();
+        settings.NormalizedFileExclusions.Should().BeEmpty();
     }
 
     [TestMethod]
@@ -173,5 +177,28 @@ public class AnalysisSettingsTests
                 "System.Int64",
                 "System.String",
                 "['sonarlint.analysisExcludesStandalone']"));
+    }
+
+    [DataTestMethod]
+    [DataRow(@"*", @"**/*")]
+    [DataRow(@"?", @"**/?")]
+    [DataRow(@"path", @"**/path")]
+    [DataRow(@"p?th", @"**/p?th")]
+    [DataRow(@"p*th", @"**/p*th")]
+    [DataRow(@"*path", @"**/*path")]
+    [DataRow(@"**path", @"**/**path")]
+    [DataRow(@"**\path", @"**/path")]
+    [DataRow(@"**/path", @"**/path")]
+    [DataRow(@"file/path", @"**/file/path")]
+    [DataRow(@"file\path", @"**/file/path")]
+    [DataRow(@"C:\file\path", @"C:/file/path")] // rooted path
+    [DataRow(@"file/*/p?th.*", @"**/file/*/p?th.*")]
+    [DataRow(@"file\*\p?th.*", @"**/file/*/p?th.*")]
+    public void TransformsPathCorrectly(string original, string expected)
+    {
+        var testSubject =  new AnalysisSettings{UserDefinedFileExclusions = [original]};
+
+        testSubject.UserDefinedFileExclusions.Should().BeEquivalentTo(original);
+        testSubject.NormalizedFileExclusions.Should().BeEquivalentTo(expected);
     }
 }

@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CSharpVB.StandaloneMode;
@@ -25,13 +26,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CSharpVB.StandaloneMode;
 [TestClass]
 public class StandaloneRoslynFileExclusionsTests
 {
-
     [TestMethod]
     public void ToDictionary_ReturnsExpectedExclusionProperty()
     {
-        var expectedProperties = new Dictionary<string, string> { { "sonar.exclusions", "one,t w o,three" } };
+        var expectedProperties = new Dictionary<string, string> { { "sonar.exclusions", "**/one,**/two,**/three" } };
 
-        var testSubject = new StandaloneRoslynFileExclusions(["one", "t w o", "three"]);
+        var testSubject = new StandaloneRoslynFileExclusions(new AnalysisSettings { UserDefinedFileExclusions = ["one", "two", "three"] });
 
         testSubject.ToDictionary().Should().BeEquivalentTo(expectedProperties);
     }

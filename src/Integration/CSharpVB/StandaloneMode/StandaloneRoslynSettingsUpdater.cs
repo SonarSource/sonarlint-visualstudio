@@ -74,7 +74,7 @@ internal class StandaloneRoslynSettingsUpdater(
 
     private static StandaloneRoslynFileExclusions ConvertExclusions(UserSettings settings)
     {
-        var exclusions = new StandaloneRoslynFileExclusions(settings.AnalysisSettings.FileExclusions);
+        var exclusions = new StandaloneRoslynFileExclusions(settings.AnalysisSettings);
         return exclusions;
     }
 

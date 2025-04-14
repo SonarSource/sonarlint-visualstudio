@@ -19,10 +19,12 @@
  */
 
 using SonarLint.VisualStudio.Core.CSharpVB;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
 
-internal class StandaloneRoslynFileExclusions(string[] exclusions) : IFileExclusions
+internal class StandaloneRoslynFileExclusions(AnalysisSettings exclusions) : IFileExclusions
 {
+    private readonly string[] exclusions = exclusions.NormalizedFileExclusions;
     public Dictionary<string, string> ToDictionary() => new() { { "sonar.exclusions", string.Join(",", exclusions) } };
 }
