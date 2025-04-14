@@ -93,13 +93,14 @@ public class AnalysisSettingsTests
     }
 
     [TestMethod]
-    public void AnalysisSettings_FileExclusions_SerializesAndIgnoresIfNotPresent()
+    public void AnalysisSettings_FileExclusions_Serializes()
     {
         var settings = new AnalysisSettings();
         const string expectedJson =
             """
             {
-              "sonarlint.rules": {}
+              "sonarlint.rules": {},
+              "sonarlint.analysisExcludesStandalone": ""
             }
             """;
 
@@ -138,18 +139,20 @@ public class AnalysisSettingsTests
         settings.FileExclusions.Should().BeEquivalentTo("file1.cpp", "**/My Folder/*", "file2.cpp");
     }
 
+
     [TestMethod]
-    public void AnalysisSettings_FileExclusions_DeserializesAndIgnoresIfNotPresent()
+    public void AnalysisSettings_NullExclusions_DeserializesWithDefaultValue()
     {
         const string json = """
                             {
-                              "sonarlint.rules": {}
+                              "sonarlint.rules": {},
+                              "sonarlint.analysisExcludesStandalone": null
                             }
                             """;
 
         var settings = JsonConvert.DeserializeObject<AnalysisSettings>(json);
 
-        settings.FileExclusions.Should().BeNull();
+        settings.FileExclusions.Should().NotBeNull().And.BeEmpty();
     }
 
     [TestMethod]
@@ -162,8 +165,13 @@ public class AnalysisSettingsTests
                             }
                             """;
 
-        var settings = JsonConvert.DeserializeObject<AnalysisSettings>(json);
+        var act = () => JsonConvert.DeserializeObject<AnalysisSettings>(json);
 
-        settings.FileExclusions.Should().BeNull();
+        act.Should().ThrowExactly<JsonException>().WithMessage(
+            string.Format(
+                CoreStrings.CommaSeparatedStringArrayConverter_UnexpectedType,
+                "System.Int64",
+                "System.String",
+                "['sonarlint.analysisExcludesStandalone']"));
     }
 }
