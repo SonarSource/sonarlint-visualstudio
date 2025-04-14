@@ -64,6 +64,8 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
         this.slCoreRuleSettingsUpdater = slCoreRuleSettingsUpdater;
         this.roslynSettingsUpdater = roslynSettingsUpdater;
 
+        // todo https://sonarsource.atlassian.net/browse/SLVS-2025 fix this MEF importing constructor is not free-threaded
+        roslynSettingsUpdater.Update(userSettingsUpdater.UserSettings);
         userSettingsUpdater.SettingsChanged += OnUserSettingsChanged;
         activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
     }
