@@ -122,7 +122,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         }
     }
 
-    public async Task VerifyAnalysisNotRun(
+    public async Task VerifyAnalysisSkipped(
         ITestingFile testingFile,
         string configScope,
         bool sendContent = false,

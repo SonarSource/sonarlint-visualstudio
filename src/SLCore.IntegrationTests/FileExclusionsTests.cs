@@ -20,6 +20,7 @@
 
 using System.IO;
 using System.Reflection;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 
 namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
@@ -43,10 +44,10 @@ public class FileExclusionsTests
     public async Task CurrentFileExcluded_CurrentFileNotAnalyzed(ITestingFile testingFile)
     {
         var configScope = GetConfigurationScopeName(testingFile);
-        string[] fileExclusions = [someOtherFileExclusion, ("**\\" + testingFile.RelativePath).Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)];
-        sharedFileAnalysisTestsRunner.SetFileExclusions(configScope, fileExclusions);
+        var analysisSettings = new AnalysisSettings { UserDefinedFileExclusions = [someOtherFileExclusion, testingFile.RelativePath] };
+        sharedFileAnalysisTestsRunner.SetFileExclusions(configScope, analysisSettings.NormalizedFileExclusions);
 
-        await sharedFileAnalysisTestsRunner.VerifyAnalysisNotRun(testingFile, configScope, extraProperties: (testingFile as ITestingFileWithProperties)?.GetAnalysisProperties());
+        await sharedFileAnalysisTestsRunner.VerifyAnalysisSkipped(testingFile, configScope, extraProperties: (testingFile as ITestingFileWithProperties)?.GetAnalysisProperties());
     }
 
     [DataTestMethod]
@@ -54,8 +55,8 @@ public class FileExclusionsTests
     public async Task OtherFileExcluded_RunsAnalysisOnCurrentFile(ITestingFile testingFile)
     {
         var configScope = GetConfigurationScopeName(testingFile);
-        string[] fileExclusions = [someOtherFileExclusion];
-        sharedFileAnalysisTestsRunner.SetFileExclusions(configScope, fileExclusions);
+        var analysisSettings = new AnalysisSettings { UserDefinedFileExclusions = [someOtherFileExclusion] };
+        sharedFileAnalysisTestsRunner.SetFileExclusions(configScope, analysisSettings.NormalizedFileExclusions);
 
         var fileAnalysisResults = await sharedFileAnalysisTestsRunner.RunFileAnalysis(testingFile, configScope, extraProperties: (testingFile as ITestingFileWithProperties)?.GetAnalysisProperties());
 
@@ -74,7 +75,7 @@ public class FileExclusionsTests
                 .Where(p => testingFileType.IsAssignableFrom(p) && !p.IsInterface)
                 .Select(Activator.CreateInstance)
                 .Where(instance => instance is ITestingFile { ExpectedIssues.Count: > 0 })
-                .Select(instance => (object[]) [instance]).ToArray();;
+                .Select(instance => (object[]) [instance]).ToArray();
 
             return testingFiles;
         }
