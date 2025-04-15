@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
+using SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
@@ -44,6 +45,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     // NB: The version is automatically updated by the ChangeVersion.proj
     [InstalledProductRegistration("#110", "#112", "8.17.0.0", IconResourceID = 400)]
     [ProvideOptionPage(typeof(GeneralOptionsDialogPage), "SonarQube for Visual Studio", GeneralOptionsDialogPage.PageName, 901, 902, false, 903)]
+    [ProvideOptionPage(typeof(FileExclusionsDialogPage), "SonarQube for Visual Studio", FileExclusionsDialogPage.PageName, 901, 905, true)]
     [ProvideOptionPage(typeof(OtherOptionsDialogPage), "SonarQube for Visual Studio", OtherOptionsDialogPage.PageName, 901, 904, true)]
     [ProvideUIContextRule(CommonGuids.PackageActivation, "SonarLintIntegrationPackageActivation",
         "(HasCSProj | HasVBProj)",
