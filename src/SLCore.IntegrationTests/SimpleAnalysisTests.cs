@@ -64,11 +64,11 @@ public class SimpleAnalysisTests
 
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromDisk_CFamilyAnalysisProducesExpectedIssues()
-        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.CFamilyIssues, false, GenerateTestCompilationDatabase());
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.CFamilyIssues, false);
 
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromRpc_CFamilyAnalysisProducesExpectedIssues()
-        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.CFamilyIssues, true, GenerateTestCompilationDatabase());
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.CFamilyIssues, true);
 
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromDisk_CssAnalysisProducesExpectedIssues()
@@ -94,49 +94,17 @@ public class SimpleAnalysisTests
     public Task DefaultRuleConfig_ContentFromRpc_HtmlAnalysisProducesExpectedIssues()
         => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.HtmlIssues, true);
 
-    private async Task DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(ITestingFile testingFile, bool sendContent, Dictionary<string, string> extraProperties = null)
+    private async Task DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(ITestingFile testingFile, bool sendContent)
     {
-        var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunFileAnalysis(testingFile, TestContext.TestName, sendContent: sendContent, extraProperties: extraProperties);
+        var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunFileAnalysis(
+            testingFile,
+            TestContext.TestName,
+            sendContent: sendContent,
+            extraProperties: (testingFile as ITestingFileWithProperties)?.GetAnalysisProperties());
 
         issuesByFileUri.Should().HaveCount(1);
         var receivedIssues = issuesByFileUri[new FileUri(testingFile.GetFullPath())];
         var receivedTestIssues = receivedIssues.Select(x => new TestIssue(x.ruleKey, x.textRange, x.severityMode.Right?.cleanCodeAttribute, x.flows.Count));
         receivedTestIssues.Should().BeEquivalentTo(testingFile.ExpectedIssues);
-    }
-
-    private static Dictionary<string, string> GenerateTestCompilationDatabase()
-    {
-        /* The CFamily analysis apart from the source code file requires also the compilation database file.
-           The compilation database file must contain the absolute path to the source code file the compilation database json file and the compiler path.
-           For the compiler we use the MSVC which is set as an environment variable. Make sure the environment variable is set to point to the compiler path
-           (the absolute path to cl.exe). */
-        var compilerPath = NormalizePath(Environment.GetEnvironmentVariable("MSVC"));
-        File.Exists(compilerPath).Should().BeTrue(compilerPath);
-        var cFamilyIssuesFileAbsolutePath = NormalizePath(FileAnalysisTestsRunner.CFamilyIssues.GetFullPath());
-        var analysisDirectory = NormalizePath(Path.GetDirectoryName(cFamilyIssuesFileAbsolutePath));
-        var jsonContent = $$"""
-                            [
-                            {
-                              "directory": "{{analysisDirectory}}",
-                              "command": "\"{{compilerPath}}\" /nologo /TP /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -std:c++20 -ZI /FoCFamilyIssues.cpp.obj /FS -c {{cFamilyIssuesFileAbsolutePath}}",
-                              "file": "{{cFamilyIssuesFileAbsolutePath}}"
-                            }
-                            ]
-                            """;
-        var tempCompilationDatabase = Path.ChangeExtension(Path.GetTempFileName(), ".json");
-        File.WriteAllText(tempCompilationDatabase, jsonContent);
-
-        var compilationDatabase = new Dictionary<string, string>
-        {
-            { "sonar.cfamily.compile-commands", tempCompilationDatabase }
-        };
-        return compilationDatabase;
-    }
-
-    private static string NormalizePath(string path)
-    {
-        var singleDirectorySeparator = Path.DirectorySeparatorChar.ToString();
-        var doubleDirectorySeparator = singleDirectorySeparator + singleDirectorySeparator;
-        return path?.Replace(singleDirectorySeparator, doubleDirectorySeparator);
     }
 }
