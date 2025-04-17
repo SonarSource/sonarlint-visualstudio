@@ -18,10 +18,46 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.ObjectModel;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 
-internal class FileExclusionsViewModel : ViewModelBase
+internal class FileExclusionsViewModel(IBrowserService browserService) : ViewModelBase
 {
+    private ExclusionViewModel selectedExclusion;
+
+    public bool CanExecuteDelete => SelectedExclusion != null;
+    public ObservableCollection<ExclusionViewModel> Exclusions { get; } = [];
+
+    public ExclusionViewModel SelectedExclusion
+    {
+        get => selectedExclusion;
+        set
+        {
+            selectedExclusion = value;
+            RaisePropertyChanged();
+            RaisePropertyChanged(nameof(CanExecuteDelete));
+        }
+    }
+
+    internal void ViewInBrowser(string uri) => browserService.Navigate(uri);
+
+    internal void AddExclusion()
+    {
+        var newExclusion = new ExclusionViewModel(string.Empty);
+        Exclusions.Add(newExclusion);
+        SelectedExclusion = newExclusion;
+    }
+
+    internal void RemoveExclusion()
+    {
+        if (SelectedExclusion == null)
+        {
+            return;
+        }
+        Exclusions.Remove(SelectedExclusion);
+        SelectedExclusion = null;
+    }
 }

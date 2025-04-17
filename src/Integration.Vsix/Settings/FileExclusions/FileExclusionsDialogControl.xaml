@@ -3,13 +3,93 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:res="clr-namespace:SonarLint.VisualStudio.Integration.Vsix.Resources"
+             xmlns:links="clr-namespace:SonarLint.VisualStudio.Core;assembly=SonarLint.VisualStudio.Core"
              d:DesignHeight="350"
              d:DesignWidth="450"
              mc:Ignorable="d" Name="FileExclusionsUserControl" 
              x:ClassModifier="internal">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <Style TargetType="Button">
+                <Setter Property="Margin" Value="5,0,0,5" />
+                <Setter Property="Padding" Value="5,3"/>
+                <Setter Property="Width" Value="75"/>
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
 
     <Grid DataContext="{Binding ElementName=FileExclusionsUserControl, Path=ViewModel}">
-      
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
+        <Grid Grid.Row="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="{x:Static res:Strings.FileExclusionsPage_Description}" />
+
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" MinWidth="120"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+                    <Run Text="{x:Static res:Strings.FileExclusionsPage_Examples}"/>
+                    <Hyperlink NavigateUri="{x:Static links:DocumentationLinks.FileExclusionsPatternUri}" RequestNavigate="ViewInBrowser">wildcard patterns:</Hyperlink>
+                    <Run Text="{x:Static res:Strings.FileExclusionsPage_PatternExamples}" />
+                </TextBlock>
+            </Grid>
+        </Grid>
+
+        <Grid Grid.Row="1" Margin="0,10,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:Strings.FileExclusions_ListTitle}" Margin="0,0,0,3"/>
+
+            <ListBox Grid.Row="1" Grid.Column="0" ItemsSource="{Binding Path=Exclusions}" 
+                     SelectedItem="{Binding Path=SelectedExclusion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                     SelectionMode="Single" DisplayMemberPath="Pattern" />
+
+            <Grid Grid.Row="1" Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Button Grid.Row="0" Content="{x:Static res:Strings.FileExclusions_AddButton}" Click="Add_OnClick" />
+                <Button Grid.Row="1" Content="{x:Static res:Strings.FileExclusions_DeleteButton}" Click="Delete_OnClick" IsEnabled="{Binding Path=CanExecuteDelete}"/>
+            </Grid>
+
+            <Grid Grid.Row="2" Grid.Column="0" Margin="0,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="{x:Static res:Strings.FileExclusions_Pattern}" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <TextBox Grid.Column="1" Text="{Binding Path=SelectedExclusion.Pattern, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
+                         Height="25" VerticalContentAlignment="Center"/>
+            </Grid>
+        </Grid>
+        
     </Grid>
 </UserControl>

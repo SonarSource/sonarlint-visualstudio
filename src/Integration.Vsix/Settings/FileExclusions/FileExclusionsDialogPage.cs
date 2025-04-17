@@ -21,6 +21,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 
@@ -28,5 +29,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 internal class FileExclusionsDialogPage : UIElementDialogPage
 {
     public const string PageName = "File Exclusions";
-    protected override UIElement Child { get; } = new FileExclusionsDialogControl(new FileExclusionsViewModel());
+    private FileExclusionsDialogControl dialogControl;
+    private FileExclusionsViewModel viewModel;
+
+    protected override UIElement Child => dialogControl ??= new FileExclusionsDialogControl(ViewModel);
+
+    private FileExclusionsViewModel ViewModel
+    {
+        get
+        {
+            if (viewModel == null)
+            {
+                var browserService = Site.GetMefService<IBrowserService>();
+                viewModel = new FileExclusionsViewModel(browserService);
+            }
+            return viewModel;
+        }
+    }
 }

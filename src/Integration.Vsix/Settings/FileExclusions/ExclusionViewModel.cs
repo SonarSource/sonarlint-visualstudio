@@ -18,30 +18,31 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Navigation;
+using System.ComponentModel;
+using SonarLint.VisualStudio.Core.WPF;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 
-/// <summary>
-///     Interaction logic for FileExclusionsDialogControl.xaml
-/// </summary>
-[ExcludeFromCodeCoverage]
-internal partial class FileExclusionsDialogControl : UserControl
+internal class ExclusionViewModel : ViewModelBase, IDataErrorInfo
 {
-    public FileExclusionsViewModel ViewModel { get; }
+    private string pattern;
 
-    internal FileExclusionsDialogControl(FileExclusionsViewModel viewModel)
+    public string Pattern
     {
-        ViewModel = viewModel;
-        InitializeComponent();
+        get => pattern;
+        set
+        {
+            pattern = value;
+            RaisePropertyChanged();
+        }
     }
 
-    private void ViewInBrowser(object sender, RequestNavigateEventArgs args) => ViewModel.ViewInBrowser(args.Uri.AbsoluteUri);
+    internal ExclusionViewModel(string pattern) => Pattern = pattern;
 
-    private void Add_OnClick(object sender, RoutedEventArgs e) => ViewModel.AddExclusion();
+    public string this[string columnName] => columnName == nameof(Pattern) ? GetNameValidationError() : null;
 
-    private void Delete_OnClick(object sender, RoutedEventArgs e) => ViewModel.RemoveExclusion();
+    public string Error => this[nameof(Pattern)];
+
+    private string GetNameValidationError() => string.IsNullOrWhiteSpace(Pattern) ? Strings.FileExclusions_PatternErrorMessage : null;
 }

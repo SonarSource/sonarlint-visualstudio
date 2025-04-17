@@ -336,4 +336,28 @@ E.g. C:\Program Files\Java\jdk-17</value>
   <data name="SettingsFileWillBeCreatedText" xml:space="preserve">
     <value>The file will be created if it does not exist.</value>
   </data>
+  <data name="FileExclusionsPage_Description" xml:space="preserve">
+    <value>Configure patterns to locally exclude files from your analysis.</value>
+  </data>
+  <data name="FileExclusionsPage_Examples" xml:space="preserve">
+    <value>Examples of</value>
+  </data>
+  <data name="FileExclusionsPage_PatternExamples" xml:space="preserve">
+    <value>**/*.js, src/main/test/**</value>
+  </data>
+  <data name="FileExclusions_AddButton" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="FileExclusions_DeleteButton" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="FileExclusions_ListTitle" xml:space="preserve">
+    <value>File exclusions:</value>
+  </data>
+  <data name="FileExclusions_Pattern" xml:space="preserve">
+    <value>Pattern:</value>
+  </data>
+  <data name="FileExclusions_PatternErrorMessage" xml:space="preserve">
+    <value>Pattern can not be empty.</value>
+  </data>
 </root>
