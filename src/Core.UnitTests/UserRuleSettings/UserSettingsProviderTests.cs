@@ -20,7 +20,6 @@
 
 using System.IO;
 using System.IO.Abstractions;
-using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core.FileMonitor;
 using SonarLint.VisualStudio.Core.Resources;
@@ -90,7 +89,7 @@ public class UserSettingsProviderTests
         act = () => CreateUserSettingsProvider(testLogger, null, singleFileMonitorFactory);
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
 
-        act = () => CreateUserSettingsProvider(testLogger, fileSystem, singleFileMonitorFactoryMock:null);
+        act = () => CreateUserSettingsProvider(testLogger, fileSystem, singleFileMonitorFactoryMock: null);
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("singleFileMonitorFactory");
     }
 
@@ -188,9 +187,7 @@ public class UserSettingsProviderTests
         {
             Rules = new Dictionary<string, RuleConfig>
             {
-                { "javascript:S111", new RuleConfig { Level = RuleLevel.On } },
-                { "cpp:S111", new RuleConfig { Level = RuleLevel.On } },
-                { "xxx:S222", new RuleConfig { Level = RuleLevel.On } }
+                { "javascript:S111", new RuleConfig { Level = RuleLevel.On } }, { "cpp:S111", new RuleConfig { Level = RuleLevel.On } }, { "xxx:S222", new RuleConfig { Level = RuleLevel.On } }
             }
         };
 
@@ -223,13 +220,7 @@ public class UserSettingsProviderTests
         var testSubject = CreateUserSettingsProvider(testLogger, new FileSystem(), singleFileMonitorFactory, settingsFile);
         testSubject.UserSettings.AnalysisSettings.Rules.Count.Should().Be(0);
 
-        var newSettings = new AnalysisSettings
-        {
-            Rules = new Dictionary<string, RuleConfig>
-            {
-                { "javascript:S111", new RuleConfig { Level = RuleLevel.On } },
-            }
-        };
+        var newSettings = new AnalysisSettings { Rules = new Dictionary<string, RuleConfig> { { "javascript:S111", new RuleConfig { Level = RuleLevel.On } }, } };
         SaveSettings(settingsFile, newSettings);
         testSubject.SafeLoadUserSettings();
 
@@ -325,7 +316,40 @@ public class UserSettingsProviderTests
         singleFileMonitorFactory.Received(1).Create(testSettingsPath);
     }
 
-    private UserSettingsProvider CreateUserSettingsProvider(ILogger logger, IFileSystem fileSystemMock, ISingleFileMonitorFactory singleFileMonitorFactoryMock, string settingsPath = null)
+    [TestMethod]
+    public void RealFile_UpdateFileExclusions_FileDoesNotExist_FileCreated()
+    {
+        var settingsFilePath = CreateRealSettingsFile();
+        var testSubject = CreateUserSettingsProvider(testLogger, new FileSystem(), singleFileMonitorFactory, settingsFilePath);
+        VerifySettingsFileHasExpectedExclusions(testSubject.UserSettings.AnalysisSettings, settingsFilePath, expectedExclusions: 0, fileExists: false);
+
+        testSubject.UpdateFileExclusions(["**/*.cs"]);
+
+        var reloadedSettings = LoadSettings(settingsFilePath);
+        VerifySettingsFileHasExpectedExclusions(reloadedSettings, settingsFilePath, expectedExclusions: 1, fileExists: true);
+        reloadedSettings.NormalizedFileExclusions[0].Should().Be("**/*.cs");
+    }
+
+    [TestMethod]
+    public void RealFile_UpdateFileExclusions_FileExists_OverridesPreviousFile()
+    {
+        var settingsFilePath = CreateRealSettingsFile();
+        SaveSettings(settingsFilePath, new AnalysisSettings { UserDefinedFileExclusions = ["**/*.cs"] });
+        var testSubject = CreateUserSettingsProvider(testLogger, new FileSystem(), singleFileMonitorFactory, settingsFilePath);
+        VerifySettingsFileHasExpectedExclusions(testSubject.UserSettings.AnalysisSettings, settingsFilePath, expectedExclusions: 1, fileExists: true);
+
+        testSubject.UpdateFileExclusions(["**/*.js"]);
+
+        var reloadedSettings = LoadSettings(settingsFilePath);
+        VerifySettingsFileHasExpectedExclusions(testSubject.UserSettings.AnalysisSettings, settingsFilePath, expectedExclusions: 1, fileExists: true);
+        reloadedSettings.NormalizedFileExclusions[0].Should().Be("**/*.js");
+    }
+
+    private UserSettingsProvider CreateUserSettingsProvider(
+        ILogger logger,
+        IFileSystem fileSystemMock,
+        ISingleFileMonitorFactory singleFileMonitorFactoryMock,
+        string settingsPath = null)
     {
         settingsPath ??= SettingsFilePath;
 
@@ -365,5 +389,22 @@ public class UserSettingsProviderTests
         mockFile.File.Exists(filePath).Returns(true);
         mockFile.File.ReadAllText(filePath).Returns(contents);
         return mockFile;
+    }
+
+    private string CreateRealSettingsFile()
+    {
+        var dir = CreateTestSpecificDirectory();
+        var settingsFile = Path.Combine(dir, "settings.txt");
+        return settingsFile;
+    }
+
+    private static void VerifySettingsFileHasExpectedExclusions(
+        AnalysisSettings analysisSettings,
+        string settingsFile,
+        int expectedExclusions,
+        bool fileExists)
+    {
+        analysisSettings.NormalizedFileExclusions.Length.Should().Be(expectedExclusions);
+        File.Exists(settingsFile).Should().Be(fileExists);
     }
 }
