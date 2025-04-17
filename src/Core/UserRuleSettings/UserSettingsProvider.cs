@@ -44,12 +44,16 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
     [ImportingConstructor]
     public UserSettingsProvider(ILogger logger, ISingleFileMonitorFactory singleFileMonitorFactory) : this(logger, singleFileMonitorFactory, new FileSystem(), UserSettingsFilePath) { }
 
-    internal /* for testing */ UserSettingsProvider(ILogger logger, ISingleFileMonitorFactory singleFileMonitorFactory, IFileSystem fileSystem, string settingsFilePath)
+    internal /* for testing */ UserSettingsProvider(
+        ILogger logger,
+        ISingleFileMonitorFactory singleFileMonitorFactory,
+        IFileSystem fileSystem,
+        string settingsFilePath)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         var fileMonitorFactory = singleFileMonitorFactory ?? throw new ArgumentNullException(nameof(singleFileMonitorFactory));
-        this.serializer = new AnalysisSettingsSerializer(fileSystem, logger);
+        serializer = new AnalysisSettingsSerializer(fileSystem, logger);
 
         SettingsFilePath = settingsFilePath;
         settingsFileMonitor = fileMonitorFactory.Create(SettingsFilePath);
@@ -87,6 +91,13 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
             UserSettings.AnalysisSettings.Rules[ruleId] = new RuleConfig { Level = RuleLevel.Off };
         }
 
+        serializer.SafeSave(SettingsFilePath, UserSettings.AnalysisSettings);
+    }
+
+    public void UpdateFileExclusions(IEnumerable<string> exclusions)
+    {
+        UserSettings.AnalysisSettings.UserDefinedFileExclusions.Clear();
+        UserSettings.AnalysisSettings.UserDefinedFileExclusions.AddRange(exclusions);
         serializer.SafeSave(SettingsFilePath, UserSettings.AnalysisSettings);
     }
 

@@ -58,13 +58,13 @@ public class AnalysisSettings
     private const string AnyDirectoryWildcard = "**";
     private static readonly string AnyRootPrefix = AnyDirectoryWildcard + Path.AltDirectorySeparatorChar;
 
-    private readonly string[] userDefinedFileExclusions = [];
+    private readonly List<string> userDefinedFileExclusions = [];
     [JsonProperty("sonarlint.rules", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
     public Dictionary<string, RuleConfig> Rules { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
     [JsonProperty("sonarlint.analysisExcludesStandalone")]
     [JsonConverter(typeof(CommaSeparatedStringArrayConverter))]
-    public string[] UserDefinedFileExclusions
+    public List<string> UserDefinedFileExclusions
     {
         get => userDefinedFileExclusions;
         init
