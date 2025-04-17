@@ -259,7 +259,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Configure patterns to locally exclude files from your analysis..
+        ///   Looks up a localized string similar to Configure patterns to locally exclude files from your analysis when NOT in connected mode..
         /// </summary>
         public static string FileExclusionsPage_Description {
             get {
@@ -277,7 +277,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to **/*.js, src/main/test/**.
+        ///   Looks up a localized string similar to Org/Sonar/**, Class?.cs, **/*Interface.cs etc..
         /// </summary>
         public static string FileExclusionsPage_PatternExamples {
             get {

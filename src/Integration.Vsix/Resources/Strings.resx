@@ -337,13 +337,13 @@ E.g. C:\Program Files\Java\jdk-17</value>
     <value>The file will be created if it does not exist.</value>
   </data>
   <data name="FileExclusionsPage_Description" xml:space="preserve">
-    <value>Configure patterns to locally exclude files from your analysis.</value>
+    <value>Configure patterns to locally exclude files from your analysis when NOT in connected mode.</value>
   </data>
   <data name="FileExclusionsPage_Examples" xml:space="preserve">
     <value>Examples of</value>
   </data>
   <data name="FileExclusionsPage_PatternExamples" xml:space="preserve">
-    <value>**/*.js, src/main/test/**</value>
+    <value>Org/Sonar/**, Class?.cs, **/*Interface.cs etc.</value>
   </data>
   <data name="FileExclusions_AddButton" xml:space="preserve">
     <value>Add</value>
