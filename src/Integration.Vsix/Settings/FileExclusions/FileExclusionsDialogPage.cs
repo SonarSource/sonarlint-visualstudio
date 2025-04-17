@@ -55,4 +55,13 @@ internal class FileExclusionsDialogPage : UIElementDialogPage
         ViewModel.InitializeExclusions();
         base.OnActivate(e);
     }
+
+    protected override void OnApply(PageApplyEventArgs e)
+    {
+        if (e.ApplyBehavior == ApplyKind.Apply)
+        {
+            ViewModel.SaveExclusions();
+        }
+        base.OnApply(e);
+    }
 }

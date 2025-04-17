@@ -167,5 +167,30 @@ public class FileExclusionsViewModelTests
         testSubject.Exclusions.Should().BeSameAs(initialInstance);
     }
 
-    private void MockUserSettingsProvider(params string[] exclusions) => userSettingsProvider.UserSettings.Returns(new UserSettings(new AnalysisSettings { UserDefinedFileExclusions = exclusions }));
+    [TestMethod]
+    public void SaveExclusions_SavesExclusions()
+    {
+        testSubject.Exclusions.Add(new ExclusionViewModel(Pattern1));
+        testSubject.Exclusions.Add(new ExclusionViewModel(Pattern2));
+
+        testSubject.SaveExclusions();
+
+        userSettingsProvider.Received(1).UpdateFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
+    }
+
+    [TestMethod]
+    public void SaveExclusions_InvalidPatterns_RemovesInvalidPatternsBeforeSave()
+    {
+        testSubject.Exclusions.Add(new ExclusionViewModel(Pattern1));
+        testSubject.Exclusions.Add(new ExclusionViewModel(string.Empty));
+        testSubject.Exclusions.Add(new ExclusionViewModel(Pattern2));
+        testSubject.Exclusions.Add(new ExclusionViewModel(null));
+
+        testSubject.SaveExclusions();
+
+        userSettingsProvider.Received(1).UpdateFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
+    }
+
+    private void MockUserSettingsProvider(params string[] exclusions) =>
+        userSettingsProvider.UserSettings.Returns(new UserSettings(new AnalysisSettings { UserDefinedFileExclusions = exclusions.ToList() }));
 }

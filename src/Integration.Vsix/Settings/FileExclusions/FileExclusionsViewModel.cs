@@ -78,4 +78,10 @@ internal class FileExclusionsViewModel : ViewModelBase
         exclusionViewModels.ToList().ForEach(vm => Exclusions.Add(vm));
         SelectedExclusion = Exclusions.FirstOrDefault();
     }
+
+    internal void SaveExclusions()
+    {
+        var exclusionsToSave = Exclusions.Where(vm => vm.Error == null).Select(vm => vm.Pattern);
+        userSettingsProvider.UpdateFileExclusions(exclusionsToSave);
+    }
 }
