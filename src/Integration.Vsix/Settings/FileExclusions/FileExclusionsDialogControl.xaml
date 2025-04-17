@@ -16,6 +16,13 @@
                 <Setter Property="Padding" Value="5,3"/>
                 <Setter Property="Width" Value="75"/>
             </Style>
+            <Style x:Key="ValidationTextBoxStyle" TargetType="TextBox">
+                <Style.Triggers>
+                    <Trigger Property="Validation.HasError" Value="True">
+                        <Setter Property="ToolTip" Value="{Binding (Validation.Errors)[0].ErrorContent, RelativeSource={RelativeSource Self}}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -87,7 +94,7 @@
 
                 <TextBlock Grid.Column="0" Text="{x:Static res:Strings.FileExclusions_Pattern}" Margin="0,0,5,0" VerticalAlignment="Center"/>
                 <TextBox Grid.Column="1" Text="{Binding Path=SelectedExclusion.Pattern, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
-                         Height="25" VerticalContentAlignment="Center"/>
+                         Height="25" VerticalContentAlignment="Center" Style="{StaticResource ValidationTextBoxStyle}"/>
             </Grid>
         </Grid>
         
