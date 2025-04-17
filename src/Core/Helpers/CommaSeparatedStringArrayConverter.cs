@@ -26,7 +26,7 @@ public class CommaSeparatedStringArrayConverter : JsonConverter
 {
     public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
     {
-        if (value is not string[] strings)
+        if (value is not IEnumerable<string> strings)
         {
             return;
         }
@@ -62,5 +62,5 @@ public class CommaSeparatedStringArrayConverter : JsonConverter
 
     public override bool CanConvert(Type objectType) => objectType == typeof(string[]);
 
-    private static string[] TrimValues(string[] values) => values?.Select(value => value.Trim()).ToArray();
+    private static IEnumerable<string> TrimValues(IEnumerable<string> values) => values?.Select(value => value.Trim()).ToList();
 }

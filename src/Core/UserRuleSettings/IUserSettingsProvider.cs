@@ -33,9 +33,14 @@ public interface IUserSettingsProvider
     string SettingsFilePath { get; }
 
     /// <summary>
-    /// Updates the user settings to disabled the specified rule
+    /// Updates the user settings to disable the specified rule
     /// </summary>
     void DisableRule(string ruleId);
+
+    /// <summary>
+    /// Updates the user settings to include the provided file exclusions. The value will override existing exclusions.
+    /// </summary>
+    void UpdateFileExclusions(IEnumerable<string> exclusions);
 
     /// <summary>
     /// Ensure the settings file exists, creating a new file if necessary
