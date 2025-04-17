@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
@@ -47,5 +48,11 @@ internal class FileExclusionsDialogPage : UIElementDialogPage
             }
             return viewModel;
         }
+    }
+
+    protected override void OnActivate(CancelEventArgs e)
+    {
+        ViewModel.InitializeExclusions();
+        base.OnActivate(e);
     }
 }

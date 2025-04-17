@@ -71,7 +71,7 @@ internal class FileExclusionsViewModel : ViewModelBase
         SelectedExclusion = null;
     }
 
-    private void InitializeExclusions()
+    internal void InitializeExclusions()
     {
         Exclusions.Clear();
         var exclusionViewModels = userSettingsProvider.UserSettings.AnalysisSettings.NormalizedFileExclusions.Select(ex => new ExclusionViewModel(ex));

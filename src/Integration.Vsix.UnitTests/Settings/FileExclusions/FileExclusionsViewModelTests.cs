@@ -139,5 +139,33 @@ public class FileExclusionsViewModelTests
         browserService.Received().Navigate(uri);
     }
 
+    [TestMethod]
+    public void InitializeExclusions_InitializesExclusionsAndSelectedExclusionProperty()
+    {
+        MockUserSettingsProvider(Pattern1, Pattern2);
+
+        testSubject.InitializeExclusions();
+
+        testSubject.Exclusions.Should().HaveCount(2);
+        testSubject.Exclusions[0].Pattern.Should().Contain(Pattern1);
+        testSubject.Exclusions[1].Pattern.Should().Contain(Pattern2);
+        testSubject.SelectedExclusion.Should().Be(testSubject.Exclusions[0]);
+    }
+
+    [TestMethod]
+    public void InitializeExclusions_InvokedMultipleTimes_DoesNotOverrideExclusionsCollection()
+    {
+        var initialInstance = testSubject.Exclusions;
+        userSettingsProvider.UserSettings.Returns(
+            new UserSettings(new AnalysisSettings { UserDefinedFileExclusions = [Pattern1] }),
+            new UserSettings(new AnalysisSettings { UserDefinedFileExclusions = [Pattern2] })
+        );
+
+        testSubject.InitializeExclusions();
+        testSubject.InitializeExclusions();
+
+        testSubject.Exclusions.Should().BeSameAs(initialInstance);
+    }
+
     private void MockUserSettingsProvider(params string[] exclusions) => userSettingsProvider.UserSettings.Returns(new UserSettings(new AnalysisSettings { UserDefinedFileExclusions = exclusions }));
 }
