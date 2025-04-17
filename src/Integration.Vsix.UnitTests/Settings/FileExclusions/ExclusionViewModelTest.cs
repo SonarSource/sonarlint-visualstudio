@@ -51,6 +51,7 @@ public class ExclusionViewModelTest
         var error = testSubject[nameof(testSubject.Pattern)];
 
         error.Should().Be(Strings.FileExclusions_PatternErrorMessage);
+        testSubject.Error.Should().Be(error);
     }
 
     [TestMethod]
@@ -61,5 +62,6 @@ public class ExclusionViewModelTest
         var error = testSubject[nameof(testSubject.Pattern)];
 
         error.Should().BeNull();
+        testSubject.Error.Should().BeNull();
     }
 }
