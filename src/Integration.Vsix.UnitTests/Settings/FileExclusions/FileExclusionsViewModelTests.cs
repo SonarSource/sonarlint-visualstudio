@@ -20,6 +20,7 @@
 
 using System.ComponentModel;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Settings.FileExclusions;
@@ -27,15 +28,43 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings.FileExclusions;
 [TestClass]
 public class FileExclusionsViewModelTests
 {
-    private static readonly ExclusionViewModel CsExclusionViewModel = new("**/*.cs");
+    private const string Pattern1 = "**/*.css";
+    private const string Pattern2 = "MyFolder/MyFile.cs";
+    private static readonly ExclusionViewModel CssExclusionViewModel = new(Pattern1);
     private IBrowserService browserService;
     private FileExclusionsViewModel testSubject;
+    private IUserSettingsProvider userSettingsProvider;
 
     [TestInitialize]
     public void Initialize()
     {
         browserService = Substitute.For<IBrowserService>();
-        testSubject = new FileExclusionsViewModel(browserService);
+        userSettingsProvider = Substitute.For<IUserSettingsProvider>();
+        MockUserSettingsProvider();
+
+        testSubject = new FileExclusionsViewModel(browserService, userSettingsProvider);
+    }
+
+    [TestMethod]
+    public void Ctor_ExclusionsExistInUserSettingsFile_InitializesExclusions()
+    {
+        MockUserSettingsProvider(Pattern1, Pattern2);
+
+        testSubject = new FileExclusionsViewModel(browserService, userSettingsProvider);
+
+        testSubject.Exclusions.Should().HaveCount(2);
+        testSubject.Exclusions[0].Pattern.Should().Contain(Pattern1);
+        testSubject.Exclusions[1].Pattern.Should().Contain(Pattern2);
+    }
+
+    [TestMethod]
+    public void Ctor_ExclusionsExistInUserSettingsFile_InitializesSelectedExclusion()
+    {
+        MockUserSettingsProvider(Pattern1, Pattern2);
+
+        testSubject = new FileExclusionsViewModel(browserService, userSettingsProvider);
+
+        testSubject.SelectedExclusion.Should().Be(testSubject.Exclusions[0]);
     }
 
     [TestMethod]
@@ -44,7 +73,7 @@ public class FileExclusionsViewModelTests
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 
-        testSubject.SelectedExclusion = CsExclusionViewModel;
+        testSubject.SelectedExclusion = CssExclusionViewModel;
 
         eventHandler.Received(1).Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.SelectedExclusion)));
         eventHandler.Received(1).Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.CanExecuteDelete)));
@@ -53,7 +82,7 @@ public class FileExclusionsViewModelTests
     [TestMethod]
     public void CanExecuteDelete_SelectedExclusionNotNull_ReturnsTrue()
     {
-        testSubject.SelectedExclusion = CsExclusionViewModel;
+        testSubject.SelectedExclusion = CssExclusionViewModel;
 
         testSubject.CanExecuteDelete.Should().BeTrue();
     }
@@ -79,8 +108,8 @@ public class FileExclusionsViewModelTests
     [TestMethod]
     public void RemoveExclusion_ExclusionNotNull_RemovesExclusion()
     {
-        testSubject.Exclusions.Add(CsExclusionViewModel);
-        testSubject.SelectedExclusion = CsExclusionViewModel;
+        testSubject.Exclusions.Add(CssExclusionViewModel);
+        testSubject.SelectedExclusion = CssExclusionViewModel;
 
         testSubject.RemoveExclusion();
 
@@ -91,7 +120,7 @@ public class FileExclusionsViewModelTests
     [TestMethod]
     public void RemoveExclusion_SelectedExclusionNull_DoesNotRemoveExclusion()
     {
-        testSubject.Exclusions.Add(CsExclusionViewModel);
+        testSubject.Exclusions.Add(CssExclusionViewModel);
         testSubject.SelectedExclusion = null;
 
         testSubject.RemoveExclusion();
@@ -109,4 +138,6 @@ public class FileExclusionsViewModelTests
 
         browserService.Received().Navigate(uri);
     }
+
+    private void MockUserSettingsProvider(params string[] exclusions) => userSettingsProvider.UserSettings.Returns(new UserSettings(new AnalysisSettings { UserDefinedFileExclusions = exclusions }));
 }
