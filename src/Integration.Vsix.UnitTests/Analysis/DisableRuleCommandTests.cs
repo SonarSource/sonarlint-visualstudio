@@ -296,7 +296,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         }
 
         [TestMethod]
-        public void SupportedRepos_StandaloneNonRoslynLanguagesAreSupported()
+        public void SupportedRepos_LanguagesInStandaloneModeAreSupported()
         {
             var languageProvider = new Mock<ILanguageProvider>();
             languageProvider.Setup(m => m.LanguagesInStandaloneMode).Returns([Language.CSharp, Language.Cpp,]); // does not have to be the real list
@@ -305,8 +305,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var testSubject = CreateDisableRuleMenuCommand(languageProvider.Object);
 
             languageProvider.Verify(x => x.LanguagesInStandaloneMode, Times.Once);
-            languageProvider.Verify(x => x.RoslynLanguages, Times.Once);
-            testSubject.SupportedRepos.Should().BeEquivalentTo([Language.Cpp.RepoInfo.Key]);
+            testSubject.SupportedRepos.Should().BeEquivalentTo([Language.CSharp.RepoInfo.Key, Language.Cpp.RepoInfo.Key]);
         }
 
         private static MenuCommand CreateDisableRuleMenuCommand(

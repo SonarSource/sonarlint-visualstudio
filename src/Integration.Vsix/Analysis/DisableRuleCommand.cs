@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.errorListHelper = errorListHelper ?? throw new ArgumentNullException(nameof(errorListHelper));
 
-            SupportedRepos = languageProvider.LanguagesInStandaloneMode.Except(languageProvider.RoslynLanguages).Select(x => x.RepoInfo.Key).ToList();
+            SupportedRepos = languageProvider.LanguagesInStandaloneMode.Select(x => x.RepoInfo.Key).ToList();
             var menuCommandID = new CommandID(CommandSet, CommandId);
             menuItem = new OleMenuCommand(Execute, null, QueryStatus, menuCommandID);
             menuCommandService.AddCommand(menuItem);
