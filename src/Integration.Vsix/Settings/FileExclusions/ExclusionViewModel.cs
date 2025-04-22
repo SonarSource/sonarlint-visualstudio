@@ -26,6 +26,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 
 internal class ExclusionViewModel : ViewModelBase, IDataErrorInfo
 {
+    private const char InvalidCharacter = ',';
     private string pattern;
 
     public string Pattern
@@ -44,5 +45,12 @@ internal class ExclusionViewModel : ViewModelBase, IDataErrorInfo
 
     public string Error => this[nameof(Pattern)];
 
-    private string GetNameValidationError() => string.IsNullOrWhiteSpace(Pattern) ? Strings.FileExclusions_PatternErrorMessage : null;
+    private string GetNameValidationError()
+    {
+        if (string.IsNullOrWhiteSpace(Pattern))
+        {
+            return Strings.FileExclusions_EmptyErrorMessage;
+        }
+        return Pattern.Contains(InvalidCharacter) ? Strings.FileExclusions_CommaErrorMessage : null;
+    }
 }

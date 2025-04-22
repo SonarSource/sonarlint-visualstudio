@@ -223,11 +223,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pattern can not contain comma..
+        /// </summary>
+        public static string FileExclusions_CommaErrorMessage {
+            get {
+                return ResourceManager.GetString("FileExclusions_CommaErrorMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Delete.
         /// </summary>
         public static string FileExclusions_DeleteButton {
             get {
                 return ResourceManager.GetString("FileExclusions_DeleteButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pattern can not be empty..
+        /// </summary>
+        public static string FileExclusions_EmptyErrorMessage {
+            get {
+                return ResourceManager.GetString("FileExclusions_EmptyErrorMessage", resourceCulture);
             }
         }
         
@@ -246,15 +264,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         public static string FileExclusions_Pattern {
             get {
                 return ResourceManager.GetString("FileExclusions_Pattern", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Pattern can not be empty..
-        /// </summary>
-        public static string FileExclusions_PatternErrorMessage {
-            get {
-                return ResourceManager.GetString("FileExclusions_PatternErrorMessage", resourceCulture);
             }
         }
         

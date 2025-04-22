@@ -50,12 +50,26 @@ public class ExclusionViewModelTest
 
         var error = testSubject[nameof(testSubject.Pattern)];
 
-        error.Should().Be(Strings.FileExclusions_PatternErrorMessage);
+        error.Should().Be(Strings.FileExclusions_EmptyErrorMessage);
         testSubject.Error.Should().Be(error);
     }
 
     [TestMethod]
-    public void Pattern_NonEmptyStrings_HasNoError()
+    [DataRow("my,file")]
+    [DataRow(",myFile")]
+    [DataRow("myFile,")]
+    public void Pattern_ContainsComma_ReturnsErrorMessage(string exclusion)
+    {
+        var testSubject = new ExclusionViewModel(exclusion);
+
+        var error = testSubject[nameof(testSubject.Pattern)];
+
+        error.Should().Be(Strings.FileExclusions_CommaErrorMessage);
+        testSubject.Error.Should().Be(error);
+    }
+
+    [TestMethod]
+    public void Pattern_Valid_HasNoError()
     {
         var testSubject = new ExclusionViewModel("**/*.cs");
 

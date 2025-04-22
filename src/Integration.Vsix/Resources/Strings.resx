@@ -357,7 +357,10 @@ E.g. C:\Program Files\Java\jdk-17</value>
   <data name="FileExclusions_Pattern" xml:space="preserve">
     <value>Pattern:</value>
   </data>
-  <data name="FileExclusions_PatternErrorMessage" xml:space="preserve">
+  <data name="FileExclusions_EmptyErrorMessage" xml:space="preserve">
     <value>Pattern can not be empty.</value>
+  </data>
+  <data name="FileExclusions_CommaErrorMessage" xml:space="preserve">
+    <value>Pattern can not contain comma.</value>
   </data>
 </root>
