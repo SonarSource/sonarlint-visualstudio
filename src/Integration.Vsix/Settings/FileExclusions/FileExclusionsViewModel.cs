@@ -35,7 +35,6 @@ internal class FileExclusionsViewModel : ViewModelBase
     {
         this.browserService = browserService;
         this.userSettingsProvider = userSettingsProvider;
-        InitializeExclusions();
     }
 
     public bool CanExecuteDelete => SelectedExclusion != null;
