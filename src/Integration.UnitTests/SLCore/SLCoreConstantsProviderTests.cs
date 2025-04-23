@@ -68,21 +68,21 @@ public class SLCoreConstantsProviderTests
     }
 
     [TestMethod]
-    public void FeatureFlags_ShouldBeExpected()
+    public void BackendCapabilities_ShouldBeExpected()
     {
-        var expectedFeatureFlags = new FeatureFlagsDto(taintVulnerabilitiesEnabled: true,
-            shouldSynchronizeProjects: true,
-            shouldManageLocalServer: true,
-            enableSecurityHotspots: true,
-            shouldManageServerSentEvents: true,
-            enableDataflowBugDetection: false,
-            shouldManageFullSynchronization: true,
-            enableTelemetry: true,
-            canOpenFixSuggestion: true,
-            enableMonitoring: true);
-        var actual = testSubject.FeatureFlags;
+        HashSet<BackendCapability> expectedBackendCapabilities =
+        [
+            BackendCapability.PROJECT_SYNCHRONIZATION,
+            BackendCapability.EMBEDDED_SERVER,
+            BackendCapability.SECURITY_HOTSPOTS,
+            BackendCapability.SERVER_SENT_EVENTS,
+            BackendCapability.FULL_SYNCHRONIZATION,
+            BackendCapability.TELEMETRY,
+            BackendCapability.MONITORING,
+        ];
+        var actual = testSubject.BackendCapabilities;
 
-        actual.Should().BeEquivalentTo(expectedFeatureFlags);
+        actual.Should().BeEquivalentTo(expectedBackendCapabilities);
     }
 
     [TestMethod]

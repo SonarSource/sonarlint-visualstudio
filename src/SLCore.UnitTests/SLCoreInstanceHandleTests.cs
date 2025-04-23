@@ -46,7 +46,7 @@ public class SLCoreInstanceHandleTests
     private const string UserHome = "userHomeSl";
 
     private static readonly ClientConstantInfoDto ClientConstantInfo = new(default, default);
-    private static readonly FeatureFlagsDto FeatureFlags = new(default, default, default, default, default, default, default, default, default, default);
+    private static readonly HashSet<BackendCapability> BackendCapabilities = [BackendCapability.PROJECT_SYNCHRONIZATION];
     private static readonly TelemetryClientConstantAttributesDto TelemetryConstants = new(default, default, default, default, default);
 
     private static readonly SonarQubeConnectionConfigurationDto SonarQubeConnection1 = new("sq1", true, "http://localhost/");
@@ -139,7 +139,7 @@ public class SLCoreInstanceHandleTests
             slCoreRpcFactory.StartNewRpcInstance();
             lifecycleManagement.Initialize(Arg.Is<InitializeParams>(parameters =>
                 parameters.clientConstantInfo == ClientConstantInfo
-                && parameters.featureFlags == FeatureFlags
+                && parameters.backendCapabilities == BackendCapabilities
                 && parameters.storageRoot == StorageRoot
                 && parameters.workDir == WorkDir
                 && parameters.embeddedPluginPaths == JarList
@@ -280,7 +280,7 @@ public class SLCoreInstanceHandleTests
         SetUpSLCoreRpcFactory(slCoreRpcFactory, out rpc);
         SetUpSLCoreServiceProvider(serviceProvider, out lifecycleManagement);
         constantsProvider.ClientConstants.Returns(ClientConstantInfo);
-        constantsProvider.FeatureFlags.Returns(FeatureFlags);
+        constantsProvider.BackendCapabilities.Returns(BackendCapabilities);
         constantsProvider.TelemetryConstants.Returns(TelemetryConstants);
 
         foldersProvider.GetWorkFolders().Returns(new SLCoreFolders(StorageRoot, WorkDir, UserHome));

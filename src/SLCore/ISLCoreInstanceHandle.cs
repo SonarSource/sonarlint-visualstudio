@@ -109,7 +109,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         lifecycleManagementSlCoreService.Initialize(new InitializeParams(
             constantsProvider.ClientConstants,
             new HttpConfigurationDto(new SslConfigurationDto()),
-            constantsProvider.FeatureFlags,
+            constantsProvider.BackendCapabilities,
             storageRoot,
             workDir,
             embeddedPluginPaths: slCoreEmbeddedPluginJarProvider.ListJarFiles(),
