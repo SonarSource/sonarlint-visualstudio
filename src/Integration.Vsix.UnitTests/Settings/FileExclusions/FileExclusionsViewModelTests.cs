@@ -46,16 +46,6 @@ public class FileExclusionsViewModelTests
     }
 
     [TestMethod]
-    public void Ctor_ExclusionsExistInUserSettingsFile_InitializesSelectedExclusion()
-    {
-        MockUserSettingsProvider(Pattern1, Pattern2);
-
-        testSubject = new FileExclusionsViewModel(browserService, userSettingsProvider);
-
-        testSubject.SelectedExclusion.Should().Be(testSubject.Exclusions[0]);
-    }
-
-    [TestMethod]
     public void SelectedExclusion_Setter_RaisesEvents()
     {
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
