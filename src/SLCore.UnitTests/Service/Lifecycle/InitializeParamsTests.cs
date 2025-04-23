@@ -36,7 +36,15 @@ public class InitializeParamsTests
         var testSubject = new InitializeParams(
             new ClientConstantInfoDto("TESTname", "TESTagent"),
             new HttpConfigurationDto(new SslConfigurationDto()),
-            new FeatureFlagsDto(false, true, false, true, false, true, false, false, false, false),
+            [
+                BackendCapability.PROJECT_SYNCHRONIZATION,
+                BackendCapability.EMBEDDED_SERVER,
+                BackendCapability.SECURITY_HOTSPOTS,
+                BackendCapability.SERVER_SENT_EVENTS,
+                BackendCapability.FULL_SYNCHRONIZATION,
+                BackendCapability.TELEMETRY,
+                BackendCapability.MONITORING,
+            ],
             "storageRoot",
             "workDir",
             ["myplugin1", "myplugin2"],
@@ -70,18 +78,15 @@ public class InitializeParamsTests
                                         "httpConfiguration": {
                                           "sslConfiguration": {}
                                         },
-                                        "featureFlags": {
-                                          "taintVulnerabilitiesEnabled": false,
-                                          "shouldSynchronizeProjects": true,
-                                          "shouldManageLocalServer": false,
-                                          "enableSecurityHotspots": true,
-                                          "shouldManageServerSentEvents": false,
-                                          "enableDataflowBugDetection": true,
-                                          "shouldManageFullSynchronization": false,
-                                          "enableTelemetry": false,
-                                          "canOpenFixSuggestion": false,
-                                          "enableMonitoring": false
-                                        },
+                                        "backendCapabilities": [
+                                          "PROJECT_SYNCHRONIZATION",
+                                          "EMBEDDED_SERVER",
+                                          "SECURITY_HOTSPOTS",
+                                          "SERVER_SENT_EVENTS",
+                                          "FULL_SYNCHRONIZATION",
+                                          "TELEMETRY",
+                                          "MONITORING"
+                                        ],
                                         "storageRoot": "storageRoot",
                                         "workDir": "workDir",
                                         "embeddedPluginPaths": [

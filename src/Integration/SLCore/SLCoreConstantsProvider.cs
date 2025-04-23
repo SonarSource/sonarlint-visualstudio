@@ -33,18 +33,16 @@ namespace SonarLint.VisualStudio.Integration.SLCore;
 public class SLCoreConstantsProvider(IUserAgentProvider userAgentProvider, IVsInfoProvider vsInfoProvider) : ISLCoreConstantsProvider
 {
     public ClientConstantInfoDto ClientConstants => new(vsInfoProvider.Name, userAgentProvider.UserAgent);
-
-    public FeatureFlagsDto FeatureFlags =>
-        new(taintVulnerabilitiesEnabled: true,
-            shouldSynchronizeProjects: true,
-            shouldManageLocalServer: true,
-            enableSecurityHotspots: true,
-            shouldManageServerSentEvents: true,
-            enableDataflowBugDetection: false,
-            shouldManageFullSynchronization: true,
-            enableTelemetry: true,
-            canOpenFixSuggestion: true,
-            enableMonitoring: true);
+    public HashSet<BackendCapability> BackendCapabilities =>
+    [
+        BackendCapability.PROJECT_SYNCHRONIZATION,
+        BackendCapability.EMBEDDED_SERVER,
+        BackendCapability.SECURITY_HOTSPOTS,
+        BackendCapability.SERVER_SENT_EVENTS,
+        BackendCapability.FULL_SYNCHRONIZATION,
+        BackendCapability.TELEMETRY,
+        BackendCapability.MONITORING
+    ];
 
     public TelemetryClientConstantAttributesDto TelemetryConstants =>
         new("visualstudio", "SonarLint Visual Studio", VersionHelper.SonarLintVersion, VisualStudioHelpers.VisualStudioVersion,

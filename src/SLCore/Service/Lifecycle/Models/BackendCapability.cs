@@ -18,17 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
+namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
+
+[JsonConverter(typeof(StringEnumConverter))]
+public enum BackendCapability
 {
-    public record FeatureFlagsDto(
-        bool taintVulnerabilitiesEnabled,
-        bool shouldSynchronizeProjects,
-        bool shouldManageLocalServer,
-        bool enableSecurityHotspots,
-        bool shouldManageServerSentEvents,
-        bool enableDataflowBugDetection,
-        bool shouldManageFullSynchronization,
-        bool enableTelemetry,
-        bool canOpenFixSuggestion,
-        bool enableMonitoring);
+    SMART_NOTIFICATIONS,
+    PROJECT_SYNCHRONIZATION,
+    EMBEDDED_SERVER,
+    SECURITY_HOTSPOTS,
+    SERVER_SENT_EVENTS,
+    DATAFLOW_BUG_DETECTION,
+    FULL_SYNCHRONIZATION,
+    TELEMETRY,
+    MONITORING
 }

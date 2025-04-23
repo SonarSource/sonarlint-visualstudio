@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle
     public record InitializeParams(
         ClientConstantInfoDto clientConstantInfo,
         HttpConfigurationDto httpConfiguration,
-        FeatureFlagsDto featureFlags,
+        HashSet<BackendCapability> backendCapabilities,
         string storageRoot,
         string workDir,
         List<string> embeddedPluginPaths,
