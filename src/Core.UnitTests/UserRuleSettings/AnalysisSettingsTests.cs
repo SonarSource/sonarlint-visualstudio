@@ -9,11 +9,9 @@ public class AnalysisSettingsTests
     [TestMethod]
     public void AnalysisSettings_SerializesCorrectly()
     {
-        var settings = new AnalysisSettings
-        {
-            Rules = { { "typescript:S2685", new RuleConfig { Level = RuleLevel.On, Parameters = new Dictionary<string, string> { { "key1", "value1" } } } } },
-            UserDefinedFileExclusions = ["file1.cpp", "**/obj/*", "file2.cpp"]
-        };
+        var settings = new AnalysisSettings(
+            new Dictionary<string, RuleConfig> { { "typescript:S2685", new RuleConfig { Level = RuleLevel.On, Parameters = new Dictionary<string, string> { { "key1", "value1" } } } } },
+            ["file1.cpp", "**/obj/*", "file2.cpp"]);
         const string expectedJson =
             """
             {
@@ -62,7 +60,7 @@ public class AnalysisSettingsTests
     [TestMethod]
     public void AnalysisSettings_FileExclusions_SerializesCorrectly()
     {
-        var settings = new AnalysisSettings { UserDefinedFileExclusions = ["file1.cpp", "**/obj/*", "file2.cpp"] };
+        var settings = new AnalysisSettings([], ["file1.cpp", "**/obj/*", "file2.cpp"]);
         const string expectedJson =
             """
             {
@@ -79,7 +77,7 @@ public class AnalysisSettingsTests
     [TestMethod]
     public void AnalysisSettings_FileExclusionsWithSpaces_SerializesCorrectlyAndTrims()
     {
-        var settings = new AnalysisSettings { UserDefinedFileExclusions = ["file1.cpp ", " **/My Folder/*", "file2.cpp "] };
+        var settings = new AnalysisSettings([], ["file1.cpp ", " **/My Folder/*", "file2.cpp "]);
         const string expectedJson =
             """
             {
@@ -142,7 +140,6 @@ public class AnalysisSettingsTests
         settings.NormalizedFileExclusions.Should().BeEquivalentTo("**/file1.cpp", "**/My Folder/*", "**/file2.cpp");
     }
 
-
     [TestMethod]
     public void AnalysisSettings_NullExclusions_DeserializesWithDefaultValue()
     {
@@ -196,7 +193,7 @@ public class AnalysisSettingsTests
     [DataRow(@"file\*\p?th.*", @"**/file/*/p?th.*")]
     public void TransformsPathCorrectly(string original, string expected)
     {
-        var testSubject =  new AnalysisSettings{UserDefinedFileExclusions = [original]};
+        var testSubject = new AnalysisSettings([], [original]);
 
         testSubject.UserDefinedFileExclusions.Should().BeEquivalentTo(original);
         testSubject.NormalizedFileExclusions.Should().BeEquivalentTo(expected);

@@ -30,16 +30,16 @@ namespace SonarLint.VisualStudio.Core.UserRuleSettings;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
 {
-    private readonly IFileSystem fileSystem;
-    private readonly ILogger logger;
-    private readonly AnalysisSettingsSerializer serializer;
-    private UserSettings userSettings;
-    private readonly ISingleFileMonitor settingsFileMonitor;
-
+    private static readonly object Lock = new();
     // Note: the data is stored in the roaming profile so it will be sync across machines
     // for domain-joined users.
     private static readonly string UserSettingsFilePath = Path.GetFullPath(
         Path.Combine(EnvironmentVariableProvider.Instance.GetSLVSAppDataRootPath(), "settings.json"));
+    private readonly IFileSystem fileSystem;
+    private readonly ILogger logger;
+    private readonly AnalysisSettingsSerializer serializer;
+    private readonly ISingleFileMonitor settingsFileMonitor;
+    private UserSettings userSettings;
 
     [ImportingConstructor]
     public UserSettingsProvider(ILogger logger, ISingleFileMonitorFactory singleFileMonitorFactory) : this(logger, singleFileMonitorFactory, new FileSystem(), UserSettingsFilePath) { }
@@ -60,20 +60,30 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
         settingsFileMonitor.FileChanged += OnFileChanged;
     }
 
+    public void Dispose()
+    {
+        settingsFileMonitor.FileChanged -= OnFileChanged;
+        settingsFileMonitor.Dispose();
+    }
+
+    private void OnFileChanged(object sender, EventArgs e)
+    {
+        SafeClearUserSettingsCache();
+        SettingsChanged?.Invoke(this, EventArgs.Empty);
+    }
+
     #region IUserSettingsProvider implementation
 
-    public UserSettings UserSettings => userSettings ??= SafeLoadUserSettings();
-
-    public UserSettings SafeLoadUserSettings()
+    public UserSettings UserSettings
     {
-        var settings = serializer.SafeLoad(SettingsFilePath);
-        if (settings == null)
+        get
         {
-            logger.WriteLine(Strings.Settings_UsingDefaultSettings);
-            settings = new AnalysisSettings();
+            lock (Lock)
+            {
+                userSettings ??= SafeLoadUserSettings();
+                return userSettings;
+            }
         }
-        userSettings = new UserSettings(settings);
-        return userSettings;
     }
 
     public event EventHandler SettingsChanged;
@@ -82,23 +92,17 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
     {
         Debug.Assert(!string.IsNullOrEmpty(ruleId), "DisableRule: ruleId should not be null/empty");
 
-        if (UserSettings.AnalysisSettings.Rules.TryGetValue(ruleId, out var ruleConfig))
-        {
-            ruleConfig.Level = RuleLevel.Off;
-        }
-        else
-        {
-            UserSettings.AnalysisSettings.Rules[ruleId] = new RuleConfig { Level = RuleLevel.Off };
-        }
-
-        serializer.SafeSave(SettingsFilePath, UserSettings.AnalysisSettings);
+        var newRules = UserSettings.AnalysisSettings.Rules.SetItem(ruleId, new RuleConfig { Level = RuleLevel.Off });
+        var newUserSettings = new UserSettings(new AnalysisSettings(newRules, UserSettings.AnalysisSettings.UserDefinedFileExclusions));
+        serializer.SafeSave(SettingsFilePath, newUserSettings.AnalysisSettings);
+        SafeClearUserSettingsCache();
     }
 
     public void UpdateFileExclusions(IEnumerable<string> exclusions)
     {
-        UserSettings.AnalysisSettings.UserDefinedFileExclusions.Clear();
-        UserSettings.AnalysisSettings.UserDefinedFileExclusions.AddRange(exclusions);
-        serializer.SafeSave(SettingsFilePath, UserSettings.AnalysisSettings);
+        var newUserSettings = new UserSettings(new AnalysisSettings(UserSettings.AnalysisSettings.Rules, exclusions));
+        serializer.SafeSave(SettingsFilePath, newUserSettings.AnalysisSettings);
+        SafeClearUserSettingsCache();
     }
 
     public string SettingsFilePath { get; }
@@ -111,17 +115,24 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
         }
     }
 
+    private void SafeClearUserSettingsCache()
+    {
+        lock (Lock)
+        {
+            userSettings = null;
+        }
+    }
+
+    private UserSettings SafeLoadUserSettings()
+    {
+        var settings = serializer.SafeLoad(SettingsFilePath);
+        if (settings == null)
+        {
+            logger.WriteLine(Strings.Settings_UsingDefaultSettings);
+            settings = new AnalysisSettings();
+        }
+        return new UserSettings(settings);
+    }
+
     #endregion
-
-    private void OnFileChanged(object sender, EventArgs e)
-    {
-        SafeLoadUserSettings();
-        SettingsChanged?.Invoke(this, EventArgs.Empty);
-    }
-
-    public void Dispose()
-    {
-        settingsFileMonitor.FileChanged -= OnFileChanged;
-        settingsFileMonitor.Dispose();
-    }
 }

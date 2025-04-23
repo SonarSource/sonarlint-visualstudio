@@ -31,7 +31,7 @@ public class SLCoreRuleSettingsTests
 {
     private const string RuleId = "dummyRule";
     private const string RuleId2 = "dummyRule2";
-    private readonly AnalysisSettings analysisSettings = new();
+    private AnalysisSettings analysisSettings = new();
     private SlCoreRuleSettings slCoreRuleSettings;
     private IUserSettingsProvider userSettingsProvider;
     private ILogger logger;
@@ -83,8 +83,8 @@ public class SLCoreRuleSettingsTests
 
         slCoreSettings.Should().NotBeNull();
         slCoreSettings.Keys.Count.Should().Be(2);
-        slCoreSettings.Keys.First().Should().Be(RuleId);
-        slCoreSettings.Keys.Last().Should().Be(RuleId2);
+        slCoreSettings[RuleId].Should().NotBeNull();
+        slCoreSettings[RuleId2].Should().NotBeNull();
     }
 
     [TestMethod]
@@ -103,7 +103,7 @@ public class SLCoreRuleSettingsTests
     [TestMethod]
     public void GetSLCoreRuleSettings_RuleSettingHaveOneRuleWithParametersSetToNull_ShouldInitializeSqlCoreParametersToEmpty()
     {
-        AddRule(RuleId, ruleParameters:null);
+        AddRule(RuleId, ruleParameters: null);
 
         var slCoreSettings = slCoreRuleSettings.GetSLCoreRuleSettings();
 
@@ -133,7 +133,8 @@ public class SLCoreRuleSettingsTests
 
         slCoreRuleSettings.UpdateStandaloneRulesConfiguration();
 
-        rulesSlCoreService.Received(1).UpdateStandaloneRulesConfiguration(Arg.Is<UpdateStandaloneRulesConfigurationParams>(param => param.ruleConfigByKey.SequenceEqual(slCoreRuleSettings.GetSLCoreRuleSettings()) ));
+        rulesSlCoreService.Received(1)
+            .UpdateStandaloneRulesConfiguration(Arg.Is<UpdateStandaloneRulesConfigurationParams>(param => param.ruleConfigByKey.SequenceEqual(slCoreRuleSettings.GetSLCoreRuleSettings())));
     }
 
     [TestMethod]
@@ -161,7 +162,9 @@ public class SLCoreRuleSettingsTests
 
     private void AddRule(string ruleId, RuleLevel ruleLevel = RuleLevel.On, Dictionary<string, string> ruleParameters = null)
     {
-        analysisSettings.Rules.Add(ruleId, new RuleConfig { Level = ruleLevel, Parameters = ruleParameters});
+        var newRules = analysisSettings.Rules.Add(ruleId, new RuleConfig { Level = ruleLevel, Parameters = ruleParameters });
+        analysisSettings = new AnalysisSettings(newRules, []);
+
         MockUserSettings();
     }
 
@@ -178,7 +181,6 @@ public class SLCoreRuleSettingsTests
             callInfo[0] = rulesSlCoreService;
             return true;
         });
-
 
         return rulesSlCoreService;
     }

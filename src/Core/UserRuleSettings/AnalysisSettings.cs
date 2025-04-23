@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -57,14 +58,15 @@ public class AnalysisSettings
 {
     private const string AnyDirectoryWildcard = "**";
     private static readonly string AnyRootPrefix = AnyDirectoryWildcard + Path.AltDirectorySeparatorChar;
+    private readonly ImmutableList<string> userDefinedFileExclusions = ImmutableList<string>.Empty;
 
-    private readonly List<string> userDefinedFileExclusions = [];
-    [JsonProperty("sonarlint.rules", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
-    public Dictionary<string, RuleConfig> Rules { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+    [JsonProperty("sonarlint.rules")]
+    [JsonConverter(typeof(ImmutableDictionaryIgnoreCaseConverter<string, RuleConfig>))]
+    public ImmutableDictionary<string, RuleConfig> Rules { get; init; }
 
     [JsonProperty("sonarlint.analysisExcludesStandalone")]
     [JsonConverter(typeof(CommaSeparatedStringArrayConverter))]
-    public List<string> UserDefinedFileExclusions
+    public ImmutableList<string> UserDefinedFileExclusions
     {
         get => userDefinedFileExclusions;
         init
@@ -76,6 +78,20 @@ public class AnalysisSettings
 
     [JsonIgnore]
     public string[] NormalizedFileExclusions { get; private init; } = [];
+
+    public AnalysisSettings(Dictionary<string, RuleConfig> rules, IEnumerable<string> fileExclusions)
+    {
+        Rules = rules.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
+        UserDefinedFileExclusions = fileExclusions.ToImmutableList();
+    }
+
+    public AnalysisSettings(ImmutableDictionary<string, RuleConfig> rules, IEnumerable<string> fileExclusions) : this(rules.ToDictionary(kvp => kvp.Key, kvp => kvp.Value), fileExclusions) { }
+
+    public AnalysisSettings()
+    {
+        Rules = ImmutableDictionary.Create<string, RuleConfig>(StringComparer.OrdinalIgnoreCase);
+        UserDefinedFileExclusions = ImmutableList<string>.Empty;
+    }
 
     private static string NormalizePath(string path)
     {

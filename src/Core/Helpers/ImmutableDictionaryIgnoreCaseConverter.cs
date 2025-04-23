@@ -18,21 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.UserRuleSettings;
-using SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
+using System.Collections.Immutable;
+using Newtonsoft.Json;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.CSharpVB.StandaloneMode;
+namespace SonarLint.VisualStudio.Core.Helpers;
 
-[TestClass]
-public class StandaloneRoslynFileExclusionsTests
+public class ImmutableDictionaryIgnoreCaseConverter<TKey, TValue> : JsonConverter
 {
-    [TestMethod]
-    public void ToDictionary_ReturnsExpectedExclusionProperty()
+    public override bool CanConvert(Type objectType) => objectType == typeof(ImmutableDictionary<TKey, TValue>);
+
+    public override object ReadJson(
+        JsonReader reader,
+        Type objectType,
+        object existingValue,
+        JsonSerializer serializer)
     {
-        var expectedProperties = new Dictionary<string, string> { { "sonar.exclusions", "**/one,**/two,**/three" } };
+        var dictionary = serializer?.Deserialize<Dictionary<TKey, TValue>>(reader);
+        return dictionary?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase as IEqualityComparer<TKey>);
+    }
 
-        var testSubject = new StandaloneRoslynFileExclusions(new AnalysisSettings([], ["one", "two", "three"]));
-
-        testSubject.ToDictionary().Should().BeEquivalentTo(expectedProperties);
+    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+    {
+        var dictionary = (ImmutableDictionary<TKey, TValue>)value;
+        serializer?.Serialize(writer, dictionary);
     }
 }

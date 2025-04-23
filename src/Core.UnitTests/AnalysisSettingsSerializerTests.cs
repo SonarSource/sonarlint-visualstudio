@@ -110,7 +110,7 @@ public class AnalysisSettingsSerializerTests
             """
             {
                 'UnknownData' : 'will be dropped on save',
-
+            
                 'sonarlint.rules': {
                     'typescript:S2685': {
                         'Level': 'On',
@@ -128,7 +128,7 @@ public class AnalysisSettingsSerializerTests
                         'severity': 'Blocker'
                     }
                 },
-
+            
                 'More UnknownData' : 'will also be dropped on save',
             }
             """;
@@ -186,14 +186,15 @@ public class AnalysisSettingsSerializerTests
         var filePath = Path.Combine(dir, "settings.txt");
 
         var settings = new AnalysisSettings
-        {
-            Rules = new Dictionary<string, RuleConfig>
+        (
+            new Dictionary<string, RuleConfig>
             {
                 { "repo1:key1", new RuleConfig { Level = RuleLevel.Off } },
                 { "repo1:key2", new RuleConfig { Level = RuleLevel.On } },
                 { "repox:keyy", new RuleConfig { Level = RuleLevel.On, Parameters = new Dictionary<string, string> { { "key1", "value1" }, { "key2", "value2" } } } }
-            }
-        };
+            },
+            []
+        );
 
         var testSubject = new AnalysisSettingsSerializer(new FileSystem(), testLogger);
 
