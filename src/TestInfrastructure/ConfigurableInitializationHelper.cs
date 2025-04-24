@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.Core.Initialization;
 namespace SonarLint.VisualStudio.TestInfrastructure;
 
 [ExcludeFromCodeCoverage]
-public class NoWaitInitializationHelper(IThreadHandling threadHandling, bool callDependencies = false) : IInitializationHelper
+public class ConfigurableInitializationHelper(IThreadHandling threadHandling, bool callDependencies = false) : IInitializationHelper
 {
     public virtual async Task InitializeAsync(
         string owner,
