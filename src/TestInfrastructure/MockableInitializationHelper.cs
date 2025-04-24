@@ -21,25 +21,28 @@
 using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Initialization;
+using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
+using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.TestInfrastructure;
 
 [ExcludeFromCodeCoverage]
-public class ConfigurableInitializationHelper(IThreadHandling threadHandling, bool callDependencies = false) : IInitializationHelper
+public class MockableInitializationHelper : IInitializationHelper
 {
-    public virtual async Task InitializeAsync(
+    private readonly IThreadHandling threadHandling;
+    private readonly InitializationHelper implementation;
+
+    public MockableInitializationHelper(IThreadHandling threadHandling, ILogger logger)
+    {
+        implementation = new InitializationHelper(new AsyncLockFactory(), threadHandling,logger);
+    }
+
+    /// <summary>
+    /// Virtual wrapper for InitializationHelper.InitializeAsync made for using TestSpies https://nsubstitute.github.io/help/partial-subs/
+    /// </summary>
+    public virtual Task InitializeAsync(
         string owner,
         IReadOnlyCollection<IRequireInitialization> dependencies,
-        Func<IThreadHandling, Task> initialization)
-    {
-        if (callDependencies)
-        {
-            foreach (var dependency in dependencies)
-            {
-                await dependency.InitializeAsync();
-            }
-        }
-
-        await initialization(threadHandling);
-    }
+        Func<IThreadHandling, Task> initialization) =>
+        implementation.InitializeAsync(owner, dependencies, initialization);
 }
