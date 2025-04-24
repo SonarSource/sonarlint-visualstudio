@@ -27,11 +27,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings.FileExclusions;
 [TestClass]
 public class ExclusionViewModelTest
 {
+    private ExclusionViewModel testSubject;
+
+    [TestInitialize]
+    public void TestInitialize() => testSubject = new ExclusionViewModel(string.Empty);
+
     [TestMethod]
     public void Pattern_Setter_RaisesEvents()
     {
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
-        var testSubject = new ExclusionViewModel(string.Empty);
         testSubject.PropertyChanged += eventHandler;
 
         testSubject.Pattern = "**/*.cs";
@@ -40,42 +44,48 @@ public class ExclusionViewModelTest
     }
 
     [TestMethod]
+    public void Error_Setter_RaisesEvents()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+
+        testSubject.Pattern = ",";
+
+        eventHandler.Received(1).Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.Error)));
+        eventHandler.Received(1).Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.HasError)));
+    }
+
+    [TestMethod]
     [DataRow("")]
     [DataRow("   ")]
     [DataRow(null)]
     [DataRow("\t")]
-    public void Pattern_EmptyString_ReturnsErrorMessage(string exclusion)
+    public void Pattern_EmptyString_HasError(string exclusion)
     {
-        var testSubject = new ExclusionViewModel(exclusion);
+        testSubject.Pattern = exclusion;
 
-        var error = testSubject[nameof(testSubject.Pattern)];
-
-        error.Should().Be(Strings.FileExclusions_EmptyErrorMessage);
-        testSubject.Error.Should().Be(error);
+        testSubject.Error.Should().Be(Strings.FileExclusions_EmptyErrorMessage);
+        testSubject.HasError.Should().BeTrue();
     }
 
     [TestMethod]
     [DataRow("my,file")]
     [DataRow(",myFile")]
     [DataRow("myFile,")]
-    public void Pattern_ContainsComma_ReturnsErrorMessage(string exclusion)
+    public void Pattern_ContainsComma_HasError(string exclusion)
     {
-        var testSubject = new ExclusionViewModel(exclusion);
+        testSubject.Pattern = exclusion;
 
-        var error = testSubject[nameof(testSubject.Pattern)];
-
-        error.Should().Be(Strings.FileExclusions_CommaErrorMessage);
-        testSubject.Error.Should().Be(error);
+        testSubject.Error.Should().Be(Strings.FileExclusions_CommaErrorMessage);
+        testSubject.HasError.Should().BeTrue();
     }
 
     [TestMethod]
     public void Pattern_Valid_HasNoError()
     {
-        var testSubject = new ExclusionViewModel("**/*.cs");
+        testSubject.Pattern = "**/*.cs";
 
-        var error = testSubject[nameof(testSubject.Pattern)];
-
-        error.Should().BeNull();
         testSubject.Error.Should().BeNull();
+        testSubject.HasError.Should().BeFalse();
     }
 }

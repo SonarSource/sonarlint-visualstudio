@@ -354,13 +354,31 @@ E.g. C:\Program Files\Java\jdk-17</value>
   <data name="FileExclusions_ListTitle" xml:space="preserve">
     <value>File exclusions:</value>
   </data>
-  <data name="FileExclusions_Pattern" xml:space="preserve">
-    <value>Pattern:</value>
-  </data>
   <data name="FileExclusions_EmptyErrorMessage" xml:space="preserve">
     <value>Pattern can not be empty.</value>
   </data>
   <data name="FileExclusions_CommaErrorMessage" xml:space="preserve">
     <value>Pattern can not contain comma.</value>
+  </data>
+  <data name="AddExclusionDialog_CancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="AddExclusionDialog_Description" xml:space="preserve">
+    <value>Enter new exclusion pattern</value>
+  </data>
+  <data name="AddExclusionDialog_OkButton" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="AddExclusionDialog_Title" xml:space="preserve">
+    <value>Add File Exclusion</value>
+  </data>
+  <data name="EditExclusionDialog_Description" xml:space="preserve">
+    <value>Modify exclusion pattern</value>
+  </data>
+  <data name="EditExclusionDialog_Title" xml:space="preserve">
+    <value>Edit File Exclusion</value>
+  </data>
+  <data name="FileExclusions_EditButton" xml:space="preserve">
+    <value>Edit</value>
   </data>
 </root>

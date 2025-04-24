@@ -41,7 +41,23 @@ internal partial class FileExclusionsDialogControl : UserControl
 
     private void ViewInBrowser(object sender, RequestNavigateEventArgs args) => ViewModel.ViewInBrowser(args.Uri.AbsoluteUri);
 
-    private void Add_OnClick(object sender, RoutedEventArgs e) => ViewModel.AddExclusion();
+    private void Add_OnClick(object sender, RoutedEventArgs e)
+    {
+        var addExclusionWindow = new AddExclusionDialog { Owner = Application.Current.MainWindow };
+        if (addExclusionWindow.ShowDialog() == true)
+        {
+            ViewModel.AddExclusion(addExclusionWindow.ViewModel.Pattern);
+        }
+    }
+
+    private void Edit_OnClick(object sender, RoutedEventArgs e)
+    {
+        var addExclusionWindow = new EditExclusionDialog(ViewModel.SelectedExclusion.Pattern) { Owner = Application.Current.MainWindow };
+        if (addExclusionWindow.ShowDialog() == true)
+        {
+            ViewModel.SelectedExclusion.Pattern = addExclusionWindow.ViewModel.Pattern;
+        }
+    }
 
     private void Delete_OnClick(object sender, RoutedEventArgs e) => ViewModel.RemoveExclusion();
 }

@@ -18,49 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.WPF;
+using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 
-internal class ExclusionViewModel : ViewModelBase
+[ExcludeFromCodeCoverage]
+internal class EditExclusionDialog : AddExclusionDialog
 {
-    private const char InvalidCharacter = ',';
-    private string error;
-    private string pattern;
-
-    public string Pattern
+    public EditExclusionDialog(string pattern)
+        : base(pattern)
     {
-        get => pattern;
-        set
-        {
-            pattern = value;
-            Error = GetNameValidationError();
-            RaisePropertyChanged();
-        }
-    }
-
-    public string Error
-    {
-        get => error;
-        private set
-        {
-            error = value;
-            RaisePropertyChanged();
-            RaisePropertyChanged(nameof(HasError));
-        }
-    }
-
-    public bool HasError => !string.IsNullOrEmpty(Error);
-
-    internal ExclusionViewModel(string pattern) => Pattern = pattern;
-
-    private string GetNameValidationError()
-    {
-        if (string.IsNullOrWhiteSpace(Pattern))
-        {
-            return Strings.FileExclusions_EmptyErrorMessage;
-        }
-        return Pattern.Contains(InvalidCharacter) ? Strings.FileExclusions_CommaErrorMessage : null;
+        Title = Strings.EditExclusionDialog_Title;
+        DescriptionTextBlock.Text = Strings.EditExclusionDialog_Description;
     }
 }
