@@ -53,9 +53,9 @@ internal class FileExclusionsViewModel : ViewModelBase
 
     internal void ViewInBrowser(string uri) => browserService.Navigate(uri);
 
-    internal void AddExclusion()
+    internal void AddExclusion(string pattern)
     {
-        var newExclusion = new ExclusionViewModel(string.Empty);
+        var newExclusion = new ExclusionViewModel(pattern);
         Exclusions.Add(newExclusion);
         SelectedExclusion = newExclusion;
     }

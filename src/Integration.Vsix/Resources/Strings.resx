@@ -354,9 +354,6 @@ E.g. C:\Program Files\Java\jdk-17</value>
   <data name="FileExclusions_ListTitle" xml:space="preserve">
     <value>File exclusions:</value>
   </data>
-  <data name="FileExclusions_Pattern" xml:space="preserve">
-    <value>Pattern:</value>
-  </data>
   <data name="FileExclusions_EmptyErrorMessage" xml:space="preserve">
     <value>Pattern can not be empty.</value>
   </data>

@@ -295,15 +295,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pattern:.
-        /// </summary>
-        public static string FileExclusions_Pattern {
-            get {
-                return ResourceManager.GetString("FileExclusions_Pattern", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Configure patterns to locally exclude files from your analysis when NOT in connected mode..
         /// </summary>
         public static string FileExclusionsPage_Description {

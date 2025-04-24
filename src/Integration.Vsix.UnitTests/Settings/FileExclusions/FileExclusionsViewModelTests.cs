@@ -76,11 +76,13 @@ public class FileExclusionsViewModelTests
     [TestMethod]
     public void AddExclusion_AddsNewExclusion()
     {
-        testSubject.AddExclusion();
+        var patternToAdd = "**/*.js";
+
+        testSubject.AddExclusion(patternToAdd);
 
         testSubject.Exclusions.Should().HaveCount(1);
         testSubject.SelectedExclusion.Should().NotBeNull();
-        testSubject.SelectedExclusion.Pattern.Should().Be(string.Empty);
+        testSubject.SelectedExclusion.Pattern.Should().Be(patternToAdd);
     }
 
     [TestMethod]
