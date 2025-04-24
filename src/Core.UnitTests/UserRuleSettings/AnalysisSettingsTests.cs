@@ -10,7 +10,7 @@ public class AnalysisSettingsTests
     public void AnalysisSettings_SerializesCorrectly()
     {
         var settings = new AnalysisSettings(
-            new Dictionary<string, RuleConfig> { { "typescript:S2685", new RuleConfig { Level = RuleLevel.On, Parameters = new Dictionary<string, string> { { "key1", "value1" } } } } },
+            new Dictionary<string, RuleConfig> { { "typescript:S2685", new RuleConfig(RuleLevel.On, new Dictionary<string, string> { { "key1", "value1" } }) } },
             ["file1.cpp", "**/obj/*", "file2.cpp"]);
         const string expectedJson =
             """
@@ -52,7 +52,7 @@ public class AnalysisSettingsTests
         var settings = JsonConvert.DeserializeObject<AnalysisSettings>(json);
 
         settings.Rules.Should().BeEquivalentTo(
-            new Dictionary<string, RuleConfig> { { "typescript:S2685", new RuleConfig { Level = RuleLevel.On, Parameters = new Dictionary<string, string> { { "key1", "value1" } } } } });
+            new Dictionary<string, RuleConfig> { { "typescript:S2685", new RuleConfig(RuleLevel.On, new Dictionary<string, string> { { "key1", "value1" } }) } });
         settings.UserDefinedFileExclusions.Should().BeEquivalentTo("file1.cpp", "**/obj/*", "file2.cpp");
         settings.NormalizedFileExclusions.Should().BeEquivalentTo("**/file1.cpp", "**/obj/*", "**/file2.cpp");
     }

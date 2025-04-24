@@ -105,10 +105,10 @@ public class StandaloneRoslynSettingsUpdaterTests
         languageProvider.RoslynLanguages.Returns(fakeRoslynLanguages);
         var rules = new Dictionary<string, RuleConfig>()
         {
-            { "vbnet:S1", new RuleConfig { Level = RuleLevel.On, Parameters = new() { { "1", "11" } } } },
-            { "vbnet:S2", new RuleConfig { Level = RuleLevel.Off, Parameters = [] } },
-            { "vbnet:S3", new RuleConfig { Level = RuleLevel.On, Parameters = [] } },
-            { "vbnet:S4", new RuleConfig { Level = RuleLevel.Off, Parameters = new() { { "4", "44" } } } },
+            { "vbnet:S1", new RuleConfig(RuleLevel.On, new Dictionary<string, string> { { "1", "11" } }) },
+            { "vbnet:S2", new RuleConfig(RuleLevel.Off, []) },
+            { "vbnet:S3", new RuleConfig(RuleLevel.On, []) },
+            { "vbnet:S4", new RuleConfig(RuleLevel.Off, new Dictionary<string, string> { { "4", "44" } }) },
         };
 
         testSubject.Update(new UserSettings(new AnalysisSettings(rules, [])));

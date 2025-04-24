@@ -189,9 +189,9 @@ public class AnalysisSettingsSerializerTests
         (
             new Dictionary<string, RuleConfig>
             {
-                { "repo1:key1", new RuleConfig { Level = RuleLevel.Off } },
-                { "repo1:key2", new RuleConfig { Level = RuleLevel.On } },
-                { "repox:keyy", new RuleConfig { Level = RuleLevel.On, Parameters = new Dictionary<string, string> { { "key1", "value1" }, { "key2", "value2" } } } }
+                { "repo1:key1", new RuleConfig(RuleLevel.Off) },
+                { "repo1:key2", new RuleConfig(RuleLevel.On) },
+                { "repox:keyy", new RuleConfig(RuleLevel.On, new Dictionary<string, string> { { "key1", "value1" }, { "key2", "value2" } }) }
             },
             []
         );

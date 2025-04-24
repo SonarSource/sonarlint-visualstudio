@@ -162,7 +162,7 @@ public class SLCoreRuleSettingsTests
 
     private void AddRule(string ruleId, RuleLevel ruleLevel = RuleLevel.On, Dictionary<string, string> ruleParameters = null)
     {
-        var newRules = analysisSettings.Rules.Add(ruleId, new RuleConfig { Level = ruleLevel, Parameters = ruleParameters });
+        var newRules = analysisSettings.Rules.Add(ruleId, new RuleConfig(ruleLevel, ruleParameters));
         analysisSettings = new AnalysisSettings(newRules, []);
 
         MockUserSettings();

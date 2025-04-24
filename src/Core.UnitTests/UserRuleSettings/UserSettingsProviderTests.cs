@@ -185,10 +185,7 @@ public class UserSettingsProviderTests
 
         var initialSettings = new AnalysisSettings
         (
-            new Dictionary<string, RuleConfig>
-            {
-                { "javascript:S111", new RuleConfig { Level = RuleLevel.On } }, { "cpp:S111", new RuleConfig { Level = RuleLevel.On } }, { "xxx:S222", new RuleConfig { Level = RuleLevel.On } }
-            },
+            new Dictionary<string, RuleConfig> { { "javascript:S111", new RuleConfig(RuleLevel.On) }, { "cpp:S111", new RuleConfig(RuleLevel.On) }, { "xxx:S222", new RuleConfig(RuleLevel.On) } },
             []
         );
 

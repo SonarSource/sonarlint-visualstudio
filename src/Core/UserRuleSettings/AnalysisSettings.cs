@@ -109,11 +109,15 @@ public class AnalysisSettings
     }
 }
 
-public class RuleConfig
+public class RuleConfig(RuleLevel level, Dictionary<string, string> parameters)
 {
+    public RuleConfig(RuleLevel level) : this(level, null) { }
+
+    public RuleConfig() : this(RuleLevel.Off) { }
+
     [JsonProperty("level")]
     [JsonConverter(typeof(StringEnumConverter))]
-    public RuleLevel Level { get; set; }
+    public RuleLevel Level { get; init; } = level;
 
     // Note: property will be null if "parameters" is missing from the file.
     // This is what we want: most rules won't have parameters and we want to avoid
@@ -121,7 +125,8 @@ public class RuleConfig
     // The only downside is that the dictionary that is created will use the default
     // comparer, which is case-sensitive.
     [JsonProperty("parameters", NullValueHandling = NullValueHandling.Ignore)]
-    public Dictionary<string, string> Parameters { get; set; }
+    [JsonConverter(typeof(ImmutableDictionaryIgnoreCaseConverter<string, string>))]
+    public ImmutableDictionary<string, string> Parameters { get; init; } = parameters?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
 }
 
 public enum RuleLevel
