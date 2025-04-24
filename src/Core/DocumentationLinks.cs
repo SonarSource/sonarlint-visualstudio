@@ -36,6 +36,7 @@ namespace SonarLint.VisualStudio.Core
         public const string TaintVulnerabilities = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/using/taint-vulnerabilities/";
         public const string DisablingARule = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/using/rules/#disabling-a-rule";
         public const string SettingsJsonFile = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/using/rules/#settingsjson-file-format-and-location";
+        public const string FileExclusionsPatternJsonFile = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/using/file-exclusions/#using-wildcards";
         public const string UseSharedBinding = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/team-features/connected-mode-setup/#bind-using-shared-configuration";
         public const string SetupSharedBinding = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/team-features/connected-mode-setup/#save-the-connection-binding";
         public const string CleanCode = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/concepts/clean-code/introduction";
@@ -48,6 +49,7 @@ namespace SonarLint.VisualStudio.Core
         public static readonly Uri ConnectedModeUri = new(ConnectedMode);
         public static readonly Uri ConnectedModeBenefitsUri = new(ConnectedModeBenefits);
         public static readonly Uri SettingsJsonFileUri = new(SettingsJsonFile);
+        public static readonly Uri FileExclusionsPatternUri = new(FileExclusionsPatternJsonFile);
         public static readonly Uri DisablingARuleUri = new(DisablingARule);
     }
 }
