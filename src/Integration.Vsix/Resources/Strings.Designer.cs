@@ -214,6 +214,87 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add.
+        /// </summary>
+        public static string FileExclusions_AddButton {
+            get {
+                return ResourceManager.GetString("FileExclusions_AddButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pattern can not contain comma..
+        /// </summary>
+        public static string FileExclusions_CommaErrorMessage {
+            get {
+                return ResourceManager.GetString("FileExclusions_CommaErrorMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete.
+        /// </summary>
+        public static string FileExclusions_DeleteButton {
+            get {
+                return ResourceManager.GetString("FileExclusions_DeleteButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pattern can not be empty..
+        /// </summary>
+        public static string FileExclusions_EmptyErrorMessage {
+            get {
+                return ResourceManager.GetString("FileExclusions_EmptyErrorMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File exclusions:.
+        /// </summary>
+        public static string FileExclusions_ListTitle {
+            get {
+                return ResourceManager.GetString("FileExclusions_ListTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pattern:.
+        /// </summary>
+        public static string FileExclusions_Pattern {
+            get {
+                return ResourceManager.GetString("FileExclusions_Pattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configure patterns to locally exclude files from your analysis when NOT in connected mode..
+        /// </summary>
+        public static string FileExclusionsPage_Description {
+            get {
+                return ResourceManager.GetString("FileExclusionsPage_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Examples of.
+        /// </summary>
+        public static string FileExclusionsPage_Examples {
+            get {
+                return ResourceManager.GetString("FileExclusionsPage_Examples", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Org/Sonar/**, Class?.cs, **/*Interface.cs etc..
+        /// </summary>
+        public static string FileExclusionsPage_PatternExamples {
+            get {
+                return ResourceManager.GetString("FileExclusionsPage_PatternExamples", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to IDE is minimized. Restoring....
         /// </summary>
         public static string IDEWindowServer_IDEIsMinimized {

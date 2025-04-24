@@ -196,6 +196,9 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Page Include="Commands\HelpMenu\AboutDialog.xaml" />
+    <Page Include="Settings\FileExclusions\FileExclusionsDialogControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Settings\GeneralOptionsDialogControl.xaml" />
     <Page Include="Settings\OtherOptionsDialogControl.xaml" />
     <VSCTCompile Include="SonarLint.vsct">
