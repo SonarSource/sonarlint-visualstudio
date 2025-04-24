@@ -68,7 +68,7 @@ public class InitializationHelper(
             logger.LogVerbose(loggerContext, "Starting initialization");
             await Task.WhenAll(dependencies.Select(x => x.InitializeAsync()));
             await initialization(threadHandling);
-            Debug.Assert(initialThread == threadHandling.CheckAccess());
+            Debug.Assert(initialThread == threadHandling.CheckAccess(), "Thread switching should not happen");
 
             state = InitializationState.Success();
             logger.LogVerbose(loggerContext, "Initialization complete");
