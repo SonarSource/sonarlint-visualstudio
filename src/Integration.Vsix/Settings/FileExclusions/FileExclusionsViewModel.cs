@@ -20,13 +20,22 @@
 
 using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 
-internal class FileExclusionsViewModel(IBrowserService browserService) : ViewModelBase
+internal class FileExclusionsViewModel : ViewModelBase
 {
     private ExclusionViewModel selectedExclusion;
+    private readonly IBrowserService browserService;
+    private readonly IUserSettingsProvider userSettingsProvider;
+
+    public FileExclusionsViewModel(IBrowserService browserService, IUserSettingsProvider userSettingsProvider)
+    {
+        this.browserService = browserService;
+        this.userSettingsProvider = userSettingsProvider;
+    }
 
     public bool CanExecuteDelete => SelectedExclusion != null;
     public ObservableCollection<ExclusionViewModel> Exclusions { get; } = [];
@@ -59,5 +68,19 @@ internal class FileExclusionsViewModel(IBrowserService browserService) : ViewMod
         }
         Exclusions.Remove(SelectedExclusion);
         SelectedExclusion = null;
+    }
+
+    internal void InitializeExclusions()
+    {
+        Exclusions.Clear();
+        var exclusionViewModels = userSettingsProvider.UserSettings.AnalysisSettings.UserDefinedFileExclusions.Select(ex => new ExclusionViewModel(ex));
+        exclusionViewModels.ToList().ForEach(vm => Exclusions.Add(vm));
+        SelectedExclusion = Exclusions.FirstOrDefault();
+    }
+
+    internal void SaveExclusions()
+    {
+        var exclusionsToSave = Exclusions.Where(vm => vm.Error == null).Select(vm => vm.Pattern);
+        userSettingsProvider.UpdateFileExclusions(exclusionsToSave);
     }
 }
