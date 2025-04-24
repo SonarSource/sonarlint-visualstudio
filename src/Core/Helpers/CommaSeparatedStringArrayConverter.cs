@@ -61,7 +61,7 @@ public class CommaSeparatedStringArrayConverter : JsonConverter
         return TrimValues(values);
     }
 
-    public override bool CanConvert(Type objectType) => objectType == typeof(ImmutableList<string>);
+    public override bool CanConvert(Type objectType) => objectType == typeof(ImmutableArray<string>);
 
-    private static ImmutableList<string> TrimValues(IEnumerable<string> values) => values?.Select(value => value.Trim()).ToImmutableList();
+    private static ImmutableArray<string> TrimValues(IEnumerable<string> values) => values?.Select(value => value.Trim()).ToImmutableArray() ?? ImmutableArray<string>.Empty;
 }

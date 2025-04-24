@@ -58,7 +58,7 @@ public class AnalysisSettings
 {
     private const string AnyDirectoryWildcard = "**";
     private static readonly string AnyRootPrefix = AnyDirectoryWildcard + Path.AltDirectorySeparatorChar;
-    private readonly ImmutableList<string> userDefinedFileExclusions = ImmutableList<string>.Empty;
+    private readonly ImmutableArray<string> userDefinedFileExclusions = ImmutableArray<string>.Empty;
 
     [JsonProperty("sonarlint.rules")]
     [JsonConverter(typeof(ImmutableDictionaryIgnoreCaseConverter<string, RuleConfig>))]
@@ -66,7 +66,7 @@ public class AnalysisSettings
 
     [JsonProperty("sonarlint.analysisExcludesStandalone")]
     [JsonConverter(typeof(CommaSeparatedStringArrayConverter))]
-    public ImmutableList<string> UserDefinedFileExclusions
+    public ImmutableArray<string> UserDefinedFileExclusions
     {
         get => userDefinedFileExclusions;
         init
@@ -82,7 +82,7 @@ public class AnalysisSettings
     public AnalysisSettings(Dictionary<string, RuleConfig> rules, IEnumerable<string> fileExclusions)
     {
         Rules = rules.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
-        UserDefinedFileExclusions = fileExclusions.ToImmutableList();
+        UserDefinedFileExclusions = fileExclusions.ToImmutableArray();
     }
 
     public AnalysisSettings(ImmutableDictionary<string, RuleConfig> rules, IEnumerable<string> fileExclusions) : this(rules.ToDictionary(kvp => kvp.Key, kvp => kvp.Value), fileExclusions) { }
@@ -90,7 +90,7 @@ public class AnalysisSettings
     public AnalysisSettings()
     {
         Rules = ImmutableDictionary.Create<string, RuleConfig>(StringComparer.OrdinalIgnoreCase);
-        UserDefinedFileExclusions = ImmutableList<string>.Empty;
+        UserDefinedFileExclusions = ImmutableArray<string>.Empty;
     }
 
     private static string NormalizePath(string path)
