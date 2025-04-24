@@ -18,10 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 
@@ -41,9 +43,25 @@ internal class FileExclusionsDialogPage : UIElementDialogPage
             if (viewModel == null)
             {
                 var browserService = Site.GetMefService<IBrowserService>();
-                viewModel = new FileExclusionsViewModel(browserService);
+                var userSettingsProvider = Site.GetMefService<IUserSettingsProvider>();
+                viewModel = new FileExclusionsViewModel(browserService, userSettingsProvider);
             }
             return viewModel;
         }
+    }
+
+    protected override void OnActivate(CancelEventArgs e)
+    {
+        ViewModel.InitializeExclusions();
+        base.OnActivate(e);
+    }
+
+    protected override void OnApply(PageApplyEventArgs e)
+    {
+        if (e.ApplyBehavior == ApplyKind.Apply)
+        {
+            ViewModel.SaveExclusions();
+        }
+        base.OnApply(e);
     }
 }
