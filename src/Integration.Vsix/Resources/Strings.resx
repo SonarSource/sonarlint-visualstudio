@@ -372,4 +372,13 @@ E.g. C:\Program Files\Java\jdk-17</value>
   <data name="AddExclusionDialog_Title" xml:space="preserve">
     <value>Add File Exclusion</value>
   </data>
+  <data name="EditExclusionDialog_Description" xml:space="preserve">
+    <value>Modify exclusion pattern</value>
+  </data>
+  <data name="EditExclusionDialog_Title" xml:space="preserve">
+    <value>Edit File Exclusion</value>
+  </data>
+  <data name="FileExclusions_EditButton" xml:space="preserve">
+    <value>Edit</value>
+  </data>
 </root>

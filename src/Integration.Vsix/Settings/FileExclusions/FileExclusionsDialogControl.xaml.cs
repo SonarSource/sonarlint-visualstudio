@@ -50,5 +50,14 @@ internal partial class FileExclusionsDialogControl : UserControl
         }
     }
 
+    private void Edit_OnClick(object sender, RoutedEventArgs e)
+    {
+        var addExclusionWindow = new EditExclusionDialog(ViewModel.SelectedExclusion.Pattern) { Owner = Application.Current.MainWindow };
+        if (addExclusionWindow.ShowDialog() == true)
+        {
+            ViewModel.SelectedExclusion.Pattern = addExclusionWindow.ViewModel.Pattern;
+        }
+    }
+
     private void Delete_OnClick(object sender, RoutedEventArgs e) => ViewModel.RemoveExclusion();
 }

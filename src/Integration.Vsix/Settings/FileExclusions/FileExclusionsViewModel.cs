@@ -37,7 +37,7 @@ internal class FileExclusionsViewModel : ViewModelBase
         this.userSettingsProvider = userSettingsProvider;
     }
 
-    public bool CanExecuteDelete => SelectedExclusion != null;
+    public bool IsAnyExclusionSelected => SelectedExclusion != null;
     public ObservableCollection<ExclusionViewModel> Exclusions { get; } = [];
 
     public ExclusionViewModel SelectedExclusion
@@ -47,7 +47,7 @@ internal class FileExclusionsViewModel : ViewModelBase
         {
             selectedExclusion = value;
             RaisePropertyChanged();
-            RaisePropertyChanged(nameof(CanExecuteDelete));
+            RaisePropertyChanged(nameof(IsAnyExclusionSelected));
         }
     }
 

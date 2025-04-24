@@ -39,7 +39,7 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Text="{x:Static res:Strings.AddExclusionDialog_Description}" />
+            <TextBlock Grid.Row="0" x:Name="DescriptionTextBlock" Text="{x:Static res:Strings.AddExclusionDialog_Description}" />
             <TextBox Grid.Row="1" Margin="0,5"
                      Text="{Binding Path=Pattern, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      VerticalContentAlignment="Center" />

@@ -72,10 +72,12 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <Button Grid.Row="0" Content="{x:Static res:Strings.FileExclusions_AddButton}" Click="Add_OnClick" />
-                <Button Grid.Row="1" Content="{x:Static res:Strings.FileExclusions_DeleteButton}" Click="Delete_OnClick" IsEnabled="{Binding Path=CanExecuteDelete}"/>
+                <Button Grid.Row="1" Content="{x:Static res:Strings.FileExclusions_EditButton}" Click="Edit_OnClick" IsEnabled="{Binding Path=IsAnyExclusionSelected}"/>
+                <Button Grid.Row="2" Content="{x:Static res:Strings.FileExclusions_DeleteButton}" Click="Delete_OnClick" IsEnabled="{Binding Path=IsAnyExclusionSelected}"/>
             </Grid>
         </Grid>
         

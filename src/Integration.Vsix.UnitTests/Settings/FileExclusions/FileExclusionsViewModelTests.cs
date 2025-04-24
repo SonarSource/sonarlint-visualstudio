@@ -54,23 +54,23 @@ public class FileExclusionsViewModelTests
         testSubject.SelectedExclusion = CssExclusionViewModel;
 
         eventHandler.Received(1).Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.SelectedExclusion)));
-        eventHandler.Received(1).Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.CanExecuteDelete)));
+        eventHandler.Received(1).Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsAnyExclusionSelected)));
     }
 
     [TestMethod]
-    public void CanExecuteDelete_SelectedExclusionNotNull_ReturnsTrue()
+    public void IsAnyExclusionSelected_SelectedExclusionNotNull_ReturnsTrue()
     {
         testSubject.SelectedExclusion = CssExclusionViewModel;
 
-        testSubject.CanExecuteDelete.Should().BeTrue();
+        testSubject.IsAnyExclusionSelected.Should().BeTrue();
     }
 
     [TestMethod]
-    public void CanExecuteDelete_SelectedExclusionNull_ReturnsFalse()
+    public void IsAnyExclusionSelected_SelectedExclusionNull_ReturnsFalse()
     {
         testSubject.SelectedExclusion = null;
 
-        testSubject.CanExecuteDelete.Should().BeFalse();
+        testSubject.IsAnyExclusionSelected.Should().BeFalse();
     }
 
     [TestMethod]

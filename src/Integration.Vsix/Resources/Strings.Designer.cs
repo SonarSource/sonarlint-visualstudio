@@ -223,6 +223,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Modify exclusion pattern.
+        /// </summary>
+        public static string EditExclusionDialog_Description {
+            get {
+                return ResourceManager.GetString("EditExclusionDialog_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit File Exclusion.
+        /// </summary>
+        public static string EditExclusionDialog_Title {
+            get {
+                return ResourceManager.GetString("EditExclusionDialog_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit Settings.
         /// </summary>
         public static string EditSettingsButtonText {
@@ -273,6 +291,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         public static string FileExclusions_DeleteButton {
             get {
                 return ResourceManager.GetString("FileExclusions_DeleteButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit.
+        /// </summary>
+        public static string FileExclusions_EditButton {
+            get {
+                return ResourceManager.GetString("FileExclusions_EditButton", resourceCulture);
             }
         }
         
