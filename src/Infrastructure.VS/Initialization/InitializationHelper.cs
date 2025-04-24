@@ -64,10 +64,11 @@ public class InitializationHelper(
         var loggerContext = new MessageLevelContext { VerboseContext = [owner] };
         try
         {
+            var initialThread = threadHandling.CheckAccess();
             logger.LogVerbose(loggerContext, "Starting initialization");
             await Task.WhenAll(dependencies.Select(x => x.InitializeAsync()));
             await initialization(threadHandling);
-            Debug.Assert(!threadHandling.CheckAccess());
+            Debug.Assert(initialThread == threadHandling.CheckAccess());
 
             state = InitializationState.Success();
             logger.LogVerbose(loggerContext, "Initialization complete");
