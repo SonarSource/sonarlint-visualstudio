@@ -61,6 +61,42 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
+        public static string AddExclusionDialog_CancelButton {
+            get {
+                return ResourceManager.GetString("AddExclusionDialog_CancelButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter new exclusion pattern.
+        /// </summary>
+        public static string AddExclusionDialog_Description {
+            get {
+                return ResourceManager.GetString("AddExclusionDialog_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OK.
+        /// </summary>
+        public static string AddExclusionDialog_OkButton {
+            get {
+                return ResourceManager.GetString("AddExclusionDialog_OkButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add File Exclusion.
+        /// </summary>
+        public static string AddExclusionDialog_Title {
+            get {
+                return ResourceManager.GetString("AddExclusionDialog_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Analysis] Error triggering analysis: {0}.
         /// </summary>
         public static string Analysis_ErrorTriggeringAnalysis {

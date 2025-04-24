@@ -18,15 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 
-internal class ExclusionViewModel : ViewModelBase, IDataErrorInfo
+internal class ExclusionViewModel : ViewModelBase
 {
     private const char InvalidCharacter = ',';
+    private string error;
     private string pattern;
 
     public string Pattern
@@ -35,15 +35,25 @@ internal class ExclusionViewModel : ViewModelBase, IDataErrorInfo
         set
         {
             pattern = value;
+            Error = GetNameValidationError();
             RaisePropertyChanged();
         }
     }
 
+    public string Error
+    {
+        get => error;
+        private set
+        {
+            error = value;
+            RaisePropertyChanged();
+            RaisePropertyChanged(nameof(HasError));
+        }
+    }
+
+    public bool HasError => !string.IsNullOrEmpty(Error);
+
     internal ExclusionViewModel(string pattern) => Pattern = pattern;
-
-    public string this[string columnName] => columnName == nameof(Pattern) ? GetNameValidationError() : null;
-
-    public string Error => this[nameof(Pattern)];
 
     private string GetNameValidationError()
     {
