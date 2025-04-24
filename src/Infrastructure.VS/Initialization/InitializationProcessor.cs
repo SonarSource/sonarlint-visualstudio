@@ -26,31 +26,39 @@ using SonarLint.VisualStudio.Core.Synchronization;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Initialization;
 
-[Export(typeof(IInitializationHelper))]
+[Export(typeof(IInitializationProcessor))]
 [PartCreationPolicy(CreationPolicy.NonShared)]
 [method: ImportingConstructor]
-public class InitializationHelper(
+public class InitializationProcessor(
     IAsyncLockFactory asyncLockFactory,
     IThreadHandling threadHandling,
-    ILogger logger) : IInitializationHelper
+    ILogger logger) : IInitializationProcessor
 {
-    private readonly IAsyncLock asyncLock = asyncLockFactory.Create();
+    private readonly IAsyncLock initalizationProcessLock = asyncLockFactory.Create();
+    private readonly InitializationStateManager state = new();
 
-    private InitializationState state;
+    /// <summary>
+    /// Returns true if initialization was completed or failed, false if it's not been finished
+    /// Does not await for initialization to finish
+    /// </summary>
+    public bool IsFinalized => state.InitializationState.IsInitialized;
 
+    /// <summary>
+    /// Initializes once using given dependencies and owner's initializer
+    /// </summary>
     public Task InitializeAsync(
         string owner,
         IReadOnlyCollection<IRequireInitialization> dependencies,
         Func<IThreadHandling, Task> initialization) =>
-        !IsInitialized()
+        !CheckInitialized()
             ? threadHandling.RunOnBackgroundThread(() => InitializeInternalAsync(owner, dependencies, initialization))
             : Task.CompletedTask;
 
     private async Task InitializeInternalAsync(string owner, IReadOnlyCollection<IRequireInitialization> dependencies, Func<IThreadHandling, Task> initialization)
     {
-        using (await asyncLock.AcquireAsync())
+        using (await initalizationProcessLock.AcquireAsync())
         {
-            if (IsInitialized())
+            if (CheckInitialized())
             {
                 return;
             }
@@ -65,31 +73,55 @@ public class InitializationHelper(
         try
         {
             var initialThread = threadHandling.CheckAccess();
-            logger.LogVerbose(loggerContext, "Starting initialization");
+            logger.LogVerbose(loggerContext, Resources.InitializationProcessor_Start);
             await Task.WhenAll(dependencies.Select(x => x.InitializeAsync()));
             await initialization(threadHandling);
             Debug.Assert(initialThread == threadHandling.CheckAccess(), "Thread switching should not happen");
 
-            state = InitializationState.Success();
-            logger.LogVerbose(loggerContext, "Initialization complete");
+            state.InitializationState = InitializationState.Success();
+            logger.LogVerbose(loggerContext, Resources.InitializationProcessor_Finish);
         }
         catch (Exception e)
         {
             logger.WriteLine(loggerContext, e.ToString());
-            state = InitializationState.Failure(ExceptionDispatchInfo.Capture(e));
+            state.InitializationState = InitializationState.Failure(ExceptionDispatchInfo.Capture(e));
             throw;
         }
     }
 
-    private bool IsInitialized()
+    private bool CheckInitialized()
     {
-        var initializationState = state;
+        var initializationState = state.InitializationState;
         if (initializationState.IsInitialized)
         {
             initializationState.ThrowIfFailedInitialization();
             return true;
         }
         return false;
+    }
+
+    private sealed class InitializationStateManager
+    {
+        private readonly object updateLock = new();
+        private InitializationState initializationState;
+
+        public InitializationState InitializationState
+        {
+            get
+            {
+                lock (updateLock)
+                {
+                    return initializationState;
+                }
+            }
+            set
+            {
+                lock (updateLock)
+                {
+                    initializationState = value;
+                }
+            }
+        }
     }
 
     private readonly struct InitializationState

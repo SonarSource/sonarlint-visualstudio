@@ -27,12 +27,14 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 namespace SonarLint.VisualStudio.TestInfrastructure;
 
 [ExcludeFromCodeCoverage]
-public class MockableInitializationHelper(IThreadHandling threadHandling, ILogger logger) : IInitializationHelper
+public class MockableInitializationProcessor(IThreadHandling threadHandling, ILogger logger) : IInitializationProcessor
 {
-    private readonly InitializationHelper implementation = new(new AsyncLockFactory(), threadHandling,logger);
+    private readonly InitializationProcessor implementation = new(new AsyncLockFactory(), threadHandling,logger);
+
+    public virtual bool IsFinalized => implementation.IsFinalized;
 
     /// <summary>
-    /// Virtual wrapper for InitializationHelper.InitializeAsync made for using TestSpies https://nsubstitute.github.io/help/partial-subs/
+    /// Virtual wrapper for <see cref="InitializationProcessor.InitializeAsync"/> made for using TestSpies https://nsubstitute.github.io/help/partial-subs/
     /// </summary>
     public virtual Task InitializeAsync(
         string owner,

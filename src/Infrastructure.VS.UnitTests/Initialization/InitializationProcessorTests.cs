@@ -28,12 +28,12 @@ using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests.Initialization;
 
 [TestClass]
-public class InitializationHelperTests
+public class InitializationProcessorTests
 {
     private IAsyncLockFactory asyncLockFactory;
     private IThreadHandling threadHandling;
     private TestLogger testLogger;
-    private InitializationHelper testSubject;
+    private InitializationProcessor testSubject;
 
     [TestInitialize]
     public void TestInitialize()
@@ -42,7 +42,36 @@ public class InitializationHelperTests
         threadHandling = Substitute.For<IThreadHandling>();
         threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>()).Returns(info => info.Arg<Func<Task<int>>>().Invoke());
         testLogger = new TestLogger();
-        testSubject = new InitializationHelper(asyncLockFactory, threadHandling, testLogger);
+        testSubject = new InitializationProcessor(asyncLockFactory, threadHandling, testLogger);
+    }
+
+    [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<InitializationProcessor, IInitializationProcessor>(
+            MefTestHelpers.CreateExport<IAsyncLockFactory>(),
+            MefTestHelpers.CreateExport<IThreadHandling>(),
+            MefTestHelpers.CreateExport<ILogger>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsNonShared() => MefTestHelpers.CheckIsNonSharedMefComponent<InitializationProcessor>();
+
+    [TestMethod]
+    public void IsFinalized_NotStarted_ReturnsFalse() =>
+        testSubject.IsFinalized.Should().BeFalse();
+
+    [TestMethod]
+    public async Task IsFinalized_StartedButNotFinished_ReturnsFalse()
+    {
+        var barrier = new TaskCompletionSource<byte>();
+        var initialization = Substitute.For<Func<IThreadHandling, Task>>();
+        initialization.Invoke(threadHandling).Returns(barrier.Task);
+
+        var initializationProcessTask = testSubject.InitializeAsync(default, [], initialization);
+        testSubject.IsFinalized.Should().BeFalse();
+
+        barrier.SetResult(1);
+        await initializationProcessTask;
+        testSubject.IsFinalized.Should().BeTrue();
     }
 
     [TestMethod]
@@ -52,6 +81,7 @@ public class InitializationHelperTests
 
         await testSubject.InitializeAsync(default, [], initialization);
 
+        testSubject.IsFinalized.Should().BeTrue();
         Received.InOrder(() =>
         {
             var asyncLock = asyncLockFactory.Create();
@@ -73,6 +103,7 @@ public class InitializationHelperTests
         await testSubject.InitializeAsync(default, [dependency1, dependency2], initialization);
         await testSubject.InitializeAsync(default, [dependency1, dependency2], initialization);
 
+        testSubject.IsFinalized.Should().BeTrue();
         Received.InOrder(() =>
         {
             var asyncLock = asyncLockFactory.Create();
@@ -99,6 +130,7 @@ public class InitializationHelperTests
                 .AsParallel()
                 .Select(_ => testSubject.InitializeAsync(default, [dependency1, dependency2], initialization)));
 
+        testSubject.IsFinalized.Should().BeTrue();
         asyncLockFactory.Create().Received(Quantity.Within(2, 20)).AcquireAsync();
         initialization.ReceivedWithAnyArgs(1).Invoke(default);
         dependency1.Received(1).InitializeAsync();
@@ -117,6 +149,7 @@ public class InitializationHelperTests
         act.Should().ThrowAsync<InvalidOperationException>();
         act.Should().ThrowAsync<InvalidOperationException>();
 
+        testSubject.IsFinalized.Should().BeTrue();
         dependency.Received(1).InitializeAsync();
         initialization.DidNotReceiveWithAnyArgs().Invoke(default);
         testLogger.OutputStrings.Last().Should().ContainAll("Owner 1", "My Failed Dependency");
@@ -133,6 +166,7 @@ public class InitializationHelperTests
         act.Should().ThrowAsync<InvalidOperationException>();
         act.Should().ThrowAsync<InvalidOperationException>();
 
+        testSubject.IsFinalized.Should().BeTrue();
         initialization.ReceivedWithAnyArgs(1).Invoke(default);
         testLogger.OutputStrings.Last().Should().ContainAll("Owner 1", "My Failed Operation");
     }

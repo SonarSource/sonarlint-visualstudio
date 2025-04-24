@@ -20,8 +20,10 @@
 
 namespace SonarLint.VisualStudio.Core.Initialization;
 
-public interface IInitializationHelper
+public interface IInitializationProcessor
 {
+    bool IsFinalized { get; }
+
     Task InitializeAsync(
         string owner,
         IReadOnlyCollection<IRequireInitialization> dependencies,
