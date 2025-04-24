@@ -22,7 +22,9 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Initialization;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration
@@ -31,10 +33,12 @@ namespace SonarLint.VisualStudio.Integration
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class ActiveSolutionTracker : IActiveSolutionTracker, IVsSolutionEvents, IDisposable, IVsSolutionEvents7
     {
+        private readonly IServiceProvider serviceProvider;
         private readonly ISolutionInfoProvider solutionInfoProvider;
+        private readonly IInitializationProcessor initializationProcessor;
         private bool isDisposed;
-        private readonly IVsSolution solution;
-        private readonly uint cookie;
+        private IVsSolution solution;
+        private uint cookie;
 
         public string CurrentSolutionName { get; private set; }
 
@@ -44,15 +48,40 @@ namespace SonarLint.VisualStudio.Integration
         public event EventHandler<ActiveSolutionChangedEventArgs> ActiveSolutionChanged;
 
         [ImportingConstructor]
-        public ActiveSolutionTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ISolutionInfoProvider solutionInfoProvider)
+        public ActiveSolutionTracker(
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            ISolutionInfoProvider solutionInfoProvider,
+            IInitializationProcessor initializationProcessor)
         {
+            this.serviceProvider = serviceProvider;
             this.solutionInfoProvider = solutionInfoProvider;
-            this.solution = serviceProvider.GetService<SVsSolution, IVsSolution>();
-            Debug.Assert(this.solution != null, "Cannot find IVsSolution");
-            ErrorHandler.ThrowOnFailure(this.solution.AdviseSolutionEvents(this, out this.cookie));
+            this.initializationProcessor = initializationProcessor;
+
+            InitializeAsync().Forget();
         }
 
+        public Task InitializeAsync() =>
+            initializationProcessor.InitializeAsync(
+                nameof(ActiveSolutionTracker),
+                [],
+                async threadHandling =>
+                {
+                    if (isDisposed)
+                    {
+                        throw new ObjectDisposedException(nameof(ActiveSolutionTracker));
+                    }
+
+                    await threadHandling.RunOnUIThreadAsync(() =>
+                    {
+                        CurrentSolutionName = solutionInfoProvider.GetSolutionName();
+                        solution = serviceProvider.GetService<SVsSolution, IVsSolution>();
+                        Debug.Assert(solution != null, "Cannot find IVsSolution");
+                        ErrorHandler.ThrowOnFailure(solution.AdviseSolutionEvents(this, out cookie));
+                    });
+                });
+
         #region IVsSolutionEvents
+
         int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
         {
             return VSConstants.S_OK;
@@ -104,6 +133,7 @@ namespace SonarLint.VisualStudio.Integration
             RaiseSolutionChangedEvent(false);
             return VSConstants.S_OK;
         }
+
         #endregion
 
         #region IVsSolutionEvents7
@@ -143,7 +173,7 @@ namespace SonarLint.VisualStudio.Integration
             {
                 if (disposing)
                 {
-                    this.solution.UnadviseSolutionEvents(this.cookie);
+                    this.solution?.UnadviseSolutionEvents(this.cookie);
                 }
 
                 this.isDisposed = true;

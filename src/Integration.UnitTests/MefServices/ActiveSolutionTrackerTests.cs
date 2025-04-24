@@ -19,7 +19,9 @@
  */
 
 using Microsoft.VisualStudio.Shell.Interop;
+using NSubstitute.Extensions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.MefServices;
@@ -30,87 +32,165 @@ public class ActiveSolutionTrackerTests
     private ConfigurableServiceProvider serviceProvider;
     private SolutionMock solutionMock;
     private ISolutionInfoProvider solutionInfoProvider;
+    private IInitializationProcessor initializationProcessor;
+    private TestLogger testLogger;
+    private NoOpThreadHandler threadHandling;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        this.serviceProvider = new ConfigurableServiceProvider();
-        this.solutionMock = new SolutionMock();
-        this.serviceProvider.RegisterService(typeof(SVsSolution), this.solutionMock);
+        serviceProvider = new ConfigurableServiceProvider();
+        solutionMock = new SolutionMock();
+        serviceProvider.RegisterService(typeof(SVsSolution), this.solutionMock);
         solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
         solutionInfoProvider.GetSolutionName().Returns((string)null);
+        testLogger = new TestLogger();
+        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+        initializationProcessor = Substitute.ForPartsOf<MockableInitializationProcessor>(threadHandling, testLogger);
+    }
+
+    [DataTestMethod]
+    [DataRow(null)]
+    [DataRow("A Solution")]
+    public void ActiveSolutionTracker_InitializesCorrectly(string name)
+    {
+        solutionInfoProvider.GetSolutionName().Returns(name);
+        var vsSolution = Substitute.For<IVsSolution>();
+        serviceProvider = new ConfigurableServiceProvider();
+        serviceProvider.RegisterService(typeof(SVsSolution), vsSolution);
+
+        var testSubject = CreateAndInitializeTestSubject();
+
+        testSubject.CurrentSolutionName.Should().Be(name);
+        Received.InOrder(() =>
+        {
+            // this one is invoked by the ctor
+            initializationProcessor.InitializeAsync(
+                nameof(ActiveSolutionTracker),
+                Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.Count == 0),
+                Arg.Any<Func<IThreadHandling, Task>>());
+            threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
+            solutionInfoProvider.GetSolutionName();
+            vsSolution.AdviseSolutionEvents(testSubject, out _);
+            // this one is invoked by CreateAndInitializeTestSubject
+            initializationProcessor.InitializeAsync(
+                nameof(ActiveSolutionTracker),
+                Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.Count == 0),
+                Arg.Any<Func<IThreadHandling, Task>>());
+        });
+    }
+
+    [TestMethod]
+    public void ActiveSolutionTracker_DelaysServiceCallsUntilInitialization()
+    {
+        var testSubject = CreateUninitializedTestSubject(out var barrier);
+        var eventHandler = Substitute.For<EventHandler<ActiveSolutionChangedEventArgs>>();
+        testSubject.ActiveSolutionChanged += eventHandler;
+
+        solutionMock.SimulateSolutionOpen();
+        solutionMock.SimulateSolutionClose();
+        eventHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
+        solutionInfoProvider.ReceivedCalls().Should().BeEmpty();
+
+        barrier.SetResult(1);
+        solutionInfoProvider.Received(1).GetSolutionName();
+
+        solutionMock.SimulateSolutionOpen();
+        eventHandler.ReceivedWithAnyArgs(1).Invoke(default, default);
+        solutionInfoProvider.Received(2).GetSolutionName();
+    }
+
+    [TestMethod]
+    public void ActiveSolutionTracker_DisposeBeforeInitilized_DisposeAndInitializeDoNothing()
+    {
+        var testSubject = CreateUninitializedTestSubject(out var barrier);
+        solutionInfoProvider.ClearReceivedCalls();
+        var eventHandler = Substitute.For<EventHandler<ActiveSolutionChangedEventArgs>>();
+        testSubject.ActiveSolutionChanged += eventHandler;
+        testSubject.Dispose();
+
+        solutionMock.SimulateSolutionClose();
+        solutionMock.SimulateSolutionOpen();
+
+        eventHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
+        solutionInfoProvider.DidNotReceiveWithAnyArgs().GetSolutionName();
+
+        barrier.SetResult(1);
+        var initialize = () => testSubject.InitializeAsync();
+        initialize.Should().Throw<ObjectDisposedException>();
     }
 
     [TestMethod]
     public void ActiveSolutionTracker_Dispose()
     {
-        // Arrange
-        int counter = 0;
-        var testSubject = CreateTestSubject();
-        testSubject.ActiveSolutionChanged += (o, e) => counter++;
+        var testSubject = CreateAndInitializeTestSubject();
+        solutionInfoProvider.ClearReceivedCalls();
+        var eventHandler = Substitute.For<EventHandler<ActiveSolutionChangedEventArgs>>();
+        testSubject.ActiveSolutionChanged += eventHandler;
         testSubject.Dispose();
 
-        // Act
-        this.solutionMock.SimulateSolutionClose();
-        this.solutionMock.SimulateSolutionOpen();
+        solutionMock.SimulateSolutionClose();
+        solutionMock.SimulateSolutionOpen();
 
-        // Assert
-        counter.Should().Be(0, nameof(testSubject.ActiveSolutionChanged) + " was not expected to be raised since disposed");
-        solutionInfoProvider.ReceivedCalls().Should().BeEmpty();
+        eventHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
+        solutionInfoProvider.DidNotReceiveWithAnyArgs().GetSolutionName();
     }
 
     [TestMethod]
     public void ActiveSolutionTracker_RaiseEventOnSolutionOpen()
     {
-        // Arrange
-        int counter = 0;
-        ActiveSolutionChangedEventArgs args = null;
-        var testSubject = CreateTestSubject();
-        testSubject.ActiveSolutionChanged += (o, e) => { counter++; args = e; };
+        var testSubject = CreateAndInitializeTestSubject();
+        var eventHandler = Substitute.For<EventHandler<ActiveSolutionChangedEventArgs>>();
+        testSubject.ActiveSolutionChanged += eventHandler;
         solutionInfoProvider.GetSolutionName().Returns("name123");
 
-        // Act
-        this.solutionMock.SimulateSolutionOpen();
+        solutionMock.SimulateSolutionOpen();
 
-        // Assert
-        counter.Should().Be(1, nameof(testSubject.ActiveSolutionChanged) + " was expected to be raised");
-        args.Should().BeEquivalentTo(new ActiveSolutionChangedEventArgs(true, "name123"));
+        eventHandler.Received(1).Invoke(testSubject, Arg.Is<ActiveSolutionChangedEventArgs>(x => x.SolutionName == "name123"));
     }
 
     [TestMethod]
     public void ActiveSolutionTracker_RaiseEventOnSolutionClose()
     {
-        // Arrange
-        int counter = 0;
-        ActiveSolutionChangedEventArgs args = null;
-        var testSubject = CreateTestSubject();
-        testSubject.ActiveSolutionChanged += (o, e) => { counter++; args = e; };
+        var testSubject = CreateAndInitializeTestSubject();
+        var eventHandler = Substitute.For<EventHandler<ActiveSolutionChangedEventArgs>>();
+        testSubject.ActiveSolutionChanged += eventHandler;
 
-        // Act
-        this.solutionMock.SimulateSolutionClose();
+        solutionMock.SimulateSolutionClose();
 
-        // Assert
-        counter.Should().Be(1, nameof(testSubject.ActiveSolutionChanged) + " was expected to be raised");
-        args.Should().BeEquivalentTo(new ActiveSolutionChangedEventArgs(false, null));
+        eventHandler.Received(1).Invoke(testSubject, Arg.Is<ActiveSolutionChangedEventArgs>(x => x.SolutionName == null));
     }
 
     [TestMethod]
     public void ActiveSolutionTracker_RaiseEventOnFolderOpen()
     {
-        // Arrange
-        int counter = 0;
-        ActiveSolutionChangedEventArgs args = null;
-        var testSubject = CreateTestSubject();
-        testSubject.ActiveSolutionChanged += (o, e) => { counter++; args = e; };
+        var testSubject = CreateAndInitializeTestSubject();
+        var eventHandler = Substitute.For<EventHandler<ActiveSolutionChangedEventArgs>>();
+        testSubject.ActiveSolutionChanged += eventHandler;
         solutionInfoProvider.GetSolutionName().Returns("name123");
 
-        // Act
         solutionMock.SimulateFolderOpen();
 
-        // Assert
-        counter.Should().Be(1, nameof(testSubject.ActiveSolutionChanged) + " was expected to be raised");
-        args.Should().BeEquivalentTo(new ActiveSolutionChangedEventArgs(true, "name123"));
+        eventHandler.Received(1).Invoke(testSubject, Arg.Is<ActiveSolutionChangedEventArgs>(x => x.SolutionName == "name123"));
     }
 
-    private ActiveSolutionTracker CreateTestSubject() => new(serviceProvider, solutionInfoProvider);
+    private ActiveSolutionTracker CreateUninitializedTestSubject(out TaskCompletionSource<byte> barrier)
+    {
+        var tcs = barrier = new TaskCompletionSource<byte>();
+        initializationProcessor.Configure()
+            .InitializeAsync(default, default, default)
+            .ReturnsForAnyArgs(async info =>
+            {
+                await tcs.Task;
+                await info.Arg<Func<IThreadHandling, Task>>()(threadHandling);
+            });
+        return new ActiveSolutionTracker(serviceProvider, solutionInfoProvider, initializationProcessor);
+    }
+
+    private ActiveSolutionTracker CreateAndInitializeTestSubject()
+    {
+        var testSubject = new ActiveSolutionTracker(serviceProvider, solutionInfoProvider, initializationProcessor);
+        testSubject.InitializeAsync().GetAwaiter().GetResult();
+        return testSubject;
+    }
 }
