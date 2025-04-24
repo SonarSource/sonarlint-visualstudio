@@ -27,15 +27,9 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 namespace SonarLint.VisualStudio.TestInfrastructure;
 
 [ExcludeFromCodeCoverage]
-public class MockableInitializationHelper : IInitializationHelper
+public class MockableInitializationHelper(IThreadHandling threadHandling, ILogger logger) : IInitializationHelper
 {
-    private readonly IThreadHandling threadHandling;
-    private readonly InitializationHelper implementation;
-
-    public MockableInitializationHelper(IThreadHandling threadHandling, ILogger logger)
-    {
-        implementation = new InitializationHelper(new AsyncLockFactory(), threadHandling,logger);
-    }
+    private readonly InitializationHelper implementation = new(new AsyncLockFactory(), threadHandling,logger);
 
     /// <summary>
     /// Virtual wrapper for InitializationHelper.InitializeAsync made for using TestSpies https://nsubstitute.github.io/help/partial-subs/
