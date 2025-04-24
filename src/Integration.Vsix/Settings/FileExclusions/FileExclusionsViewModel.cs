@@ -37,7 +37,7 @@ internal class FileExclusionsViewModel : ViewModelBase
         this.userSettingsProvider = userSettingsProvider;
     }
 
-    public bool CanExecuteDelete => SelectedExclusion != null;
+    public bool IsAnyExclusionSelected => SelectedExclusion != null;
     public ObservableCollection<ExclusionViewModel> Exclusions { get; } = [];
 
     public ExclusionViewModel SelectedExclusion
@@ -47,15 +47,15 @@ internal class FileExclusionsViewModel : ViewModelBase
         {
             selectedExclusion = value;
             RaisePropertyChanged();
-            RaisePropertyChanged(nameof(CanExecuteDelete));
+            RaisePropertyChanged(nameof(IsAnyExclusionSelected));
         }
     }
 
     internal void ViewInBrowser(string uri) => browserService.Navigate(uri);
 
-    internal void AddExclusion()
+    internal void AddExclusion(string pattern)
     {
-        var newExclusion = new ExclusionViewModel(string.Empty);
+        var newExclusion = new ExclusionViewModel(pattern);
         Exclusions.Add(newExclusion);
         SelectedExclusion = newExclusion;
     }

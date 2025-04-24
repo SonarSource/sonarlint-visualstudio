@@ -61,6 +61,42 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
+        public static string AddExclusionDialog_CancelButton {
+            get {
+                return ResourceManager.GetString("AddExclusionDialog_CancelButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter new exclusion pattern.
+        /// </summary>
+        public static string AddExclusionDialog_Description {
+            get {
+                return ResourceManager.GetString("AddExclusionDialog_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OK.
+        /// </summary>
+        public static string AddExclusionDialog_OkButton {
+            get {
+                return ResourceManager.GetString("AddExclusionDialog_OkButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add File Exclusion.
+        /// </summary>
+        public static string AddExclusionDialog_Title {
+            get {
+                return ResourceManager.GetString("AddExclusionDialog_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Analysis] Error triggering analysis: {0}.
         /// </summary>
         public static string Analysis_ErrorTriggeringAnalysis {
@@ -187,6 +223,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Modify exclusion pattern.
+        /// </summary>
+        public static string EditExclusionDialog_Description {
+            get {
+                return ResourceManager.GetString("EditExclusionDialog_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit File Exclusion.
+        /// </summary>
+        public static string EditExclusionDialog_Title {
+            get {
+                return ResourceManager.GetString("EditExclusionDialog_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit Settings.
         /// </summary>
         public static string EditSettingsButtonText {
@@ -241,6 +295,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Edit.
+        /// </summary>
+        public static string FileExclusions_EditButton {
+            get {
+                return ResourceManager.GetString("FileExclusions_EditButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pattern can not be empty..
         /// </summary>
         public static string FileExclusions_EmptyErrorMessage {
@@ -255,15 +318,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         public static string FileExclusions_ListTitle {
             get {
                 return ResourceManager.GetString("FileExclusions_ListTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Pattern:.
-        /// </summary>
-        public static string FileExclusions_Pattern {
-            get {
-                return ResourceManager.GetString("FileExclusions_Pattern", resourceCulture);
             }
         }
         
