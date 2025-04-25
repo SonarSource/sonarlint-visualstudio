@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using SonarLint.VisualStudio.Core.Initialization;
 
 namespace SonarLint.VisualStudio.Core
 {
@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Core
         public string SolutionName { get; }
     }
 
-    public interface IActiveSolutionTracker
+    public interface IActiveSolutionTracker : IRequireInitialization
     {
         string CurrentSolutionName { get; }
         /// <summary>

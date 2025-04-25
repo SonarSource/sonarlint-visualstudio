@@ -33,5 +33,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             CurrentSolutionName = solutionName;
             this.ActiveSolutionChanged?.Invoke(this, new ActiveSolutionChangedEventArgs(isSolutionOpen, solutionName));
         }
+
+        public Task InitializeAsync() => Task.CompletedTask;
     }
 }
