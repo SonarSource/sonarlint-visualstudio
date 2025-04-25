@@ -184,12 +184,10 @@ public class UserSettingsProviderTests
         var settingsFile = Path.Combine(dir, "settings.txt");
 
         var initialSettings = new AnalysisSettings
-        {
-            Rules = new Dictionary<string, RuleConfig>
-            {
-                { "javascript:S111", new RuleConfig { Level = RuleLevel.On } }, { "cpp:S111", new RuleConfig { Level = RuleLevel.On } }, { "xxx:S222", new RuleConfig { Level = RuleLevel.On } }
-            }
-        };
+        (
+            new Dictionary<string, RuleConfig> { { "javascript:S111", new RuleConfig(RuleLevel.On) }, { "cpp:S111", new RuleConfig(RuleLevel.On) }, { "xxx:S222", new RuleConfig(RuleLevel.On) } },
+            []
+        );
 
         SaveSettings(settingsFile, initialSettings);
 
@@ -213,21 +211,6 @@ public class UserSettingsProviderTests
     }
 
     [TestMethod]
-    public void SafeLoadUserSettings_UpdatesUserSettings()
-    {
-        var dir = CreateTestSpecificDirectory();
-        var settingsFile = Path.Combine(dir, "settings.txt");
-        var testSubject = CreateUserSettingsProvider(testLogger, new FileSystem(), singleFileMonitorFactory, settingsFile);
-        testSubject.UserSettings.AnalysisSettings.Rules.Count.Should().Be(0);
-
-        var newSettings = new AnalysisSettings { Rules = new Dictionary<string, RuleConfig> { { "javascript:S111", new RuleConfig { Level = RuleLevel.On } }, } };
-        SaveSettings(settingsFile, newSettings);
-        testSubject.SafeLoadUserSettings();
-
-        testSubject.UserSettings.AnalysisSettings.Rules.Count.Should().Be(1);
-    }
-
-    [TestMethod]
     public void FileChanges_EventsRaised()
     {
         int settingsChangedEventCount = 0;
@@ -243,9 +226,12 @@ public class UserSettingsProviderTests
     }
 
     [TestMethod]
-    public void FileChanges_UserSettingsAreLoaded()
+    public void FileChanges_UserSettingsCacheIsCleared()
     {
         singleFileMonitor.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
+        fileSystem.DidNotReceive().File.Exists(SettingsFilePath);
+
+        _ = userSettingsProvider.UserSettings; // force the settings to be loaded
 
         fileSystem.Received(1).File.Exists(SettingsFilePath);
     }
@@ -334,7 +320,7 @@ public class UserSettingsProviderTests
     public void RealFile_UpdateFileExclusions_FileExists_OverridesPreviousFile()
     {
         var settingsFilePath = CreateRealSettingsFile();
-        SaveSettings(settingsFilePath, new AnalysisSettings { UserDefinedFileExclusions = ["**/*.cs"] });
+        SaveSettings(settingsFilePath, new AnalysisSettings([], ["**/*.cs"]));
         var testSubject = CreateUserSettingsProvider(testLogger, new FileSystem(), singleFileMonitorFactory, settingsFilePath);
         VerifySettingsFileHasExpectedExclusions(testSubject.UserSettings.AnalysisSettings, settingsFilePath, expectedExclusions: 1, fileExists: true);
 

@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
@@ -78,6 +79,8 @@ internal sealed class SlCoreRuleSettings : ISLCoreRuleSettingsUpdater, ISLCoreRu
     }
 
     private static StandaloneRuleConfigDto MapStandaloneRuleConfigDto(RuleConfig ruleConfig) => new(MapIsActive(ruleConfig.Level), MapParameters(ruleConfig.Parameters));
+
     private static bool MapIsActive(RuleLevel ruleLevel) => ruleLevel == RuleLevel.On;
-    private static Dictionary<string, string> MapParameters(Dictionary<string, string> ruleParameters) => ruleParameters ?? [];
+
+    private static Dictionary<string, string> MapParameters(ImmutableDictionary<string, string> ruleParameters) => ruleParameters?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? [];
 }
