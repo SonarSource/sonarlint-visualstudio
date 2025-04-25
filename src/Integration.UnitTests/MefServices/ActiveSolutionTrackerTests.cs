@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using NSubstitute.Extensions;
 using SonarLint.VisualStudio.Core;
@@ -48,6 +49,17 @@ public class ActiveSolutionTrackerTests
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         initializationProcessor = Substitute.ForPartsOf<MockableInitializationProcessor>(threadHandling, testLogger);
     }
+
+    [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<ActiveSolutionTracker, IActiveSolutionTracker>(
+            MefTestHelpers.CreateExport<SVsServiceProvider>(),
+            MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
+            MefTestHelpers.CreateExport<IInitializationProcessor>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() =>
+        MefTestHelpers.CheckIsSingletonMefComponent<ActiveSolutionTracker>();
 
     [DataTestMethod]
     [DataRow(null)]
