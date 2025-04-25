@@ -138,4 +138,10 @@
     {1}
     {2}</value>
   </data>
+  <data name="InitializationProcessor_Start" xml:space="preserve">
+    <value>Starting initialization</value>
+  </data>
+  <data name="InitializationProcessor_Finish" xml:space="preserve">
+    <value>Initialization complete</value>
+  </data>
 </root>

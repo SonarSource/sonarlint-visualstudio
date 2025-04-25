@@ -78,6 +78,24 @@ namespace SonarLint.VisualStudio.Infrastructure.VS {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Initialization complete.
+        /// </summary>
+        internal static string InitializationProcessor_Finish {
+            get {
+                return ResourceManager.GetString("InitializationProcessor_Finish", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Starting initialization.
+        /// </summary>
+        internal static string InitializationProcessor_Start {
+            get {
+                return ResourceManager.GetString("InitializationProcessor_Start", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No open solution or folder.
         /// </summary>
         internal static string NoOpenSolutionOrFolder {
