@@ -22,8 +22,15 @@ namespace SonarLint.VisualStudio.Core.Initialization;
 
 public interface IInitializationProcessor
 {
+    /// <summary>
+    /// Returns true if initialization was completed or failed, false if it's not been finished
+    /// Does not await for initialization to finish
+    /// </summary>
     bool IsFinalized { get; }
 
+    /// <summary>
+    /// Initializes once using given dependencies and owner's initializer
+    /// </summary>
     Task InitializeAsync(
         string owner,
         IReadOnlyCollection<IRequireInitialization> dependencies,

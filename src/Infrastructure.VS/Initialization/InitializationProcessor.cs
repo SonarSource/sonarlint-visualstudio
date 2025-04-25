@@ -34,18 +34,11 @@ public class InitializationProcessor(
     IThreadHandling threadHandling,
     ILogger logger) : IInitializationProcessor
 {
-    private readonly IAsyncLock initalizationProcessLock = asyncLockFactory.Create();
+    private readonly IAsyncLock initializationProcessLock = asyncLockFactory.Create();
     private readonly InitializationStateManager state = new();
 
-    /// <summary>
-    /// Returns true if initialization was completed or failed, false if it's not been finished
-    /// Does not await for initialization to finish
-    /// </summary>
     public bool IsFinalized => state.InitializationState.IsInitialized;
 
-    /// <summary>
-    /// Initializes once using given dependencies and owner's initializer
-    /// </summary>
     public Task InitializeAsync(
         string owner,
         IReadOnlyCollection<IRequireInitialization> dependencies,
@@ -56,7 +49,7 @@ public class InitializationProcessor(
 
     private async Task InitializeInternalAsync(string owner, IReadOnlyCollection<IRequireInitialization> dependencies, Func<IThreadHandling, Task> initialization)
     {
-        using (await initalizationProcessLock.AcquireAsync())
+        using (await initializationProcessLock.AcquireAsync())
         {
             if (CheckInitialized())
             {
@@ -92,12 +85,8 @@ public class InitializationProcessor(
     private bool CheckInitialized()
     {
         var initializationState = state.InitializationState;
-        if (initializationState.IsInitialized)
-        {
-            initializationState.ThrowIfFailedInitialization();
-            return true;
-        }
-        return false;
+        initializationState.ThrowIfFailedInitialization();
+        return initializationState.IsInitialized;
     }
 
     private sealed class InitializationStateManager
