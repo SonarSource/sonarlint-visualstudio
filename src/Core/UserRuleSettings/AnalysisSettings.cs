@@ -95,14 +95,8 @@ public class AnalysisSettings
 
     private static string NormalizePath(string path)
     {
-        var invalidChars = Path.GetInvalidPathChars();
-        if (path.IndexOfAny(invalidChars) >= 0)
-        {
-            return path;
-        }
-
         // rooted paths without drive letter are unmodified, but SLCore doesn't match them well
-        var isRooted = Path.IsPathRooted(path);
+        var isRooted = HasInvalidPathChars(path) || Path.IsPathRooted(path);
 
         path = path.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
@@ -112,6 +106,12 @@ public class AnalysisSettings
         }
 
         return path;
+    }
+
+    private static bool HasInvalidPathChars(string path)
+    {
+        var invalidChars = Path.GetInvalidPathChars();
+        return path.IndexOfAny(invalidChars) >= 0;
     }
 }
 

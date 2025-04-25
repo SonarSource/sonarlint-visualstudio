@@ -227,7 +227,7 @@ public class AnalysisSettingsTests
         var testSubject = new AnalysisSettings([], [invalidPath]);
 
         testSubject.UserDefinedFileExclusions.Should().BeEquivalentTo(invalidPath);
-        testSubject.NormalizedFileExclusions.Should().BeEquivalentTo(invalidPath);
+        testSubject.NormalizedFileExclusions.Should().BeEquivalentTo(invalidPath?.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
     }
 
     public static object[][] GetInvalidPaths =>
