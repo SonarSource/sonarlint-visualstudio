@@ -118,8 +118,7 @@ public class GetFileExclusionsListenerTests
         response.fileExclusionPatterns.Should().BeEmpty();
     }
 
-    private void MockUserSettingsFileExclusions(params string[] fileExclusions) =>
-        userSettingsProvider.UserSettings.Returns(new UserSettings(new AnalysisSettings { UserDefinedFileExclusions = fileExclusions.ToList() }));
+    private void MockUserSettingsFileExclusions(params string[] fileExclusions) => userSettingsProvider.UserSettings.Returns(new UserSettings(new AnalysisSettings([], fileExclusions.ToList())));
 
     private void MockCurrentConfigScope(string id) => activeConfigScopeTracker.Current.Returns(id != null ? new ConfigurationScope(id) : null);
 }

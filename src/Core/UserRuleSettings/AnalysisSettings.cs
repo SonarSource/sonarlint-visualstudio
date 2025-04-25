@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -57,14 +58,15 @@ public class AnalysisSettings
 {
     private const string AnyDirectoryWildcard = "**";
     private static readonly string AnyRootPrefix = AnyDirectoryWildcard + Path.AltDirectorySeparatorChar;
+    private readonly ImmutableArray<string> userDefinedFileExclusions = ImmutableArray<string>.Empty;
 
-    private readonly List<string> userDefinedFileExclusions = [];
-    [JsonProperty("sonarlint.rules", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
-    public Dictionary<string, RuleConfig> Rules { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+    [JsonProperty("sonarlint.rules")]
+    [JsonConverter(typeof(ImmutableDictionaryIgnoreCaseConverter<string, RuleConfig>))]
+    public ImmutableDictionary<string, RuleConfig> Rules { get; init; }
 
     [JsonProperty("sonarlint.analysisExcludesStandalone")]
     [JsonConverter(typeof(CommaSeparatedStringArrayConverter))]
-    public List<string> UserDefinedFileExclusions
+    public ImmutableArray<string> UserDefinedFileExclusions
     {
         get => userDefinedFileExclusions;
         init
@@ -76,6 +78,20 @@ public class AnalysisSettings
 
     [JsonIgnore]
     public string[] NormalizedFileExclusions { get; private init; } = [];
+
+    public AnalysisSettings(Dictionary<string, RuleConfig> rules, IEnumerable<string> fileExclusions)
+    {
+        Rules = rules.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
+        UserDefinedFileExclusions = fileExclusions.ToImmutableArray();
+    }
+
+    public AnalysisSettings(ImmutableDictionary<string, RuleConfig> rules, IEnumerable<string> fileExclusions) : this(rules.ToDictionary(kvp => kvp.Key, kvp => kvp.Value), fileExclusions) { }
+
+    public AnalysisSettings()
+    {
+        Rules = ImmutableDictionary.Create<string, RuleConfig>(StringComparer.OrdinalIgnoreCase);
+        UserDefinedFileExclusions = ImmutableArray<string>.Empty;
+    }
 
     private static string NormalizePath(string path)
     {
@@ -93,11 +109,14 @@ public class AnalysisSettings
     }
 }
 
-public class RuleConfig
+[method: JsonConstructor]
+public class RuleConfig(RuleLevel level, Dictionary<string, string> parameters)
 {
+    public RuleConfig(RuleLevel level) : this(level, null) { }
+
     [JsonProperty("level")]
     [JsonConverter(typeof(StringEnumConverter))]
-    public RuleLevel Level { get; set; }
+    public RuleLevel Level { get; init; } = level;
 
     // Note: property will be null if "parameters" is missing from the file.
     // This is what we want: most rules won't have parameters and we want to avoid
@@ -105,7 +124,8 @@ public class RuleConfig
     // The only downside is that the dictionary that is created will use the default
     // comparer, which is case-sensitive.
     [JsonProperty("parameters", NullValueHandling = NullValueHandling.Ignore)]
-    public Dictionary<string, string> Parameters { get; set; }
+    [JsonConverter(typeof(ImmutableDictionaryIgnoreCaseConverter<string, string>))]
+    public ImmutableDictionary<string, string> Parameters { get; init; } = parameters?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
 }
 
 public enum RuleLevel

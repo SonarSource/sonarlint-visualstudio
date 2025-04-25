@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.Core.Helpers;
@@ -60,7 +61,7 @@ public class CommaSeparatedStringArrayConverter : JsonConverter
         return TrimValues(values);
     }
 
-    public override bool CanConvert(Type objectType) => objectType == typeof(string[]);
+    public override bool CanConvert(Type objectType) => objectType == typeof(ImmutableArray<string>);
 
-    private static IEnumerable<string> TrimValues(IEnumerable<string> values) => values?.Select(value => value.Trim()).ToList();
+    private static ImmutableArray<string> TrimValues(IEnumerable<string> values) => values?.Select(value => value.Trim()).ToImmutableArray() ?? ImmutableArray<string>.Empty;
 }

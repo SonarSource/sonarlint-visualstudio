@@ -58,7 +58,7 @@ public class StandaloneRoslynSettingsUpdaterTests
         languageProvider.RoslynLanguages.Returns(fakeRoslynLanguages);
         environmentVariableProvider.GetFolderPath(Environment.SpecialFolder.ApplicationData).Returns("APPDATA");
 
-        testSubject.Update(new UserSettings(new AnalysisSettings { UserDefinedFileExclusions = [], Rules = [] }));
+        testSubject.Update(new UserSettings(new AnalysisSettings()));
 
         Received.InOrder(() =>
         {
@@ -81,7 +81,7 @@ public class StandaloneRoslynSettingsUpdaterTests
         IReadOnlyList<Language> fakeRoslynLanguages = [Language.VBNET, Language.TSql, Language.C];
         languageProvider.RoslynLanguages.Returns(fakeRoslynLanguages);
 
-        testSubject.Update(new UserSettings(new AnalysisSettings { UserDefinedFileExclusions = ["one", "two"], Rules = [] }));
+        testSubject.Update(new UserSettings(new AnalysisSettings([], ["one", "two"])));
 
         Received.InOrder(() =>
         {
@@ -105,13 +105,13 @@ public class StandaloneRoslynSettingsUpdaterTests
         languageProvider.RoslynLanguages.Returns(fakeRoslynLanguages);
         var rules = new Dictionary<string, RuleConfig>()
         {
-            { "vbnet:S1", new RuleConfig { Level = RuleLevel.On, Parameters = new() { { "1", "11" } } } },
-            { "vbnet:S2", new RuleConfig { Level = RuleLevel.Off, Parameters = [] } },
-            { "vbnet:S3", new RuleConfig { Level = RuleLevel.On, Parameters = [] } },
-            { "vbnet:S4", new RuleConfig { Level = RuleLevel.Off, Parameters = new() { { "4", "44" } } } },
+            { "vbnet:S1", new RuleConfig(RuleLevel.On, new Dictionary<string, string> { { "1", "11" } }) },
+            { "vbnet:S2", new RuleConfig(RuleLevel.Off, []) },
+            { "vbnet:S3", new RuleConfig(RuleLevel.On, []) },
+            { "vbnet:S4", new RuleConfig(RuleLevel.Off, new Dictionary<string, string> { { "4", "44" } }) },
         };
 
-        testSubject.Update(new UserSettings(new AnalysisSettings { UserDefinedFileExclusions = [], Rules = rules }));
+        testSubject.Update(new UserSettings(new AnalysisSettings(rules, [])));
 
         roslynConfigGenerator
             .Received()
@@ -147,13 +147,10 @@ public class StandaloneRoslynSettingsUpdaterTests
         languageProvider.RoslynLanguages.Returns(fakeRoslynLanguages);
         var rules = new Dictionary<string, RuleConfig>()
         {
-            { "vbnet:S1", new RuleConfig() },
-            { "vbnet:S2", new RuleConfig() },
-            { "csharpsquid:S3", new RuleConfig() },
-            { "cpp:S4", new RuleConfig() },
+            { "vbnet:S1", new RuleConfig(default) }, { "vbnet:S2", new RuleConfig(default) }, { "csharpsquid:S3", new RuleConfig(default) }, { "cpp:S4", new RuleConfig(default) },
         };
 
-        testSubject.Update(new UserSettings(new AnalysisSettings { UserDefinedFileExclusions = [], Rules = rules }));
+        testSubject.Update(new UserSettings(new AnalysisSettings(rules, [])));
 
         Received.InOrder(() =>
         {

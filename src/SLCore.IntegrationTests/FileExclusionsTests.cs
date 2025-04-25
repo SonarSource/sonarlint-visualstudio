@@ -33,8 +33,7 @@ public class FileExclusionsTests
     public TestContext TestContext { get; set; }
 
     [ClassInitialize]
-    public static async Task ClassInitialize(TestContext context) =>
-        sharedFileAnalysisTestsRunner = await FileAnalysisTestsRunner.CreateInstance(nameof(FileExclusionsTests));
+    public static async Task ClassInitialize(TestContext context) => sharedFileAnalysisTestsRunner = await FileAnalysisTestsRunner.CreateInstance(nameof(FileExclusionsTests));
 
     [ClassCleanup]
     public static void ClassCleanup() => sharedFileAnalysisTestsRunner.Dispose();
@@ -44,7 +43,7 @@ public class FileExclusionsTests
     public async Task CurrentFileExcluded_CurrentFileNotAnalyzed(ITestingFile testingFile)
     {
         var configScope = GetConfigurationScopeName(testingFile);
-        var analysisSettings = new AnalysisSettings { UserDefinedFileExclusions = [someOtherFileExclusion, testingFile.RelativePath] };
+        var analysisSettings = new AnalysisSettings([], [someOtherFileExclusion, testingFile.RelativePath]);
         sharedFileAnalysisTestsRunner.SetFileExclusions(configScope, analysisSettings.NormalizedFileExclusions);
 
         await sharedFileAnalysisTestsRunner.VerifyAnalysisSkipped(testingFile, configScope, extraProperties: (testingFile as ITestingFileWithProperties)?.GetAnalysisProperties());
@@ -55,7 +54,7 @@ public class FileExclusionsTests
     public async Task OtherFileExcluded_RunsAnalysisOnCurrentFile(ITestingFile testingFile)
     {
         var configScope = GetConfigurationScopeName(testingFile);
-        var analysisSettings = new AnalysisSettings { UserDefinedFileExclusions = [someOtherFileExclusion] };
+        var analysisSettings = new AnalysisSettings([], [someOtherFileExclusion]);
         sharedFileAnalysisTestsRunner.SetFileExclusions(configScope, analysisSettings.NormalizedFileExclusions);
 
         var fileAnalysisResults = await sharedFileAnalysisTestsRunner.RunFileAnalysis(testingFile, configScope, extraProperties: (testingFile as ITestingFileWithProperties)?.GetAnalysisProperties());

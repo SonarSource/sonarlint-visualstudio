@@ -137,8 +137,8 @@ public class FileExclusionsViewModelTests
     {
         var initialInstance = testSubject.Exclusions;
         userSettingsProvider.UserSettings.Returns(
-            new UserSettings(new AnalysisSettings { UserDefinedFileExclusions = [Pattern1] }),
-            new UserSettings(new AnalysisSettings { UserDefinedFileExclusions = [Pattern2] })
+            new UserSettings(new AnalysisSettings([], [Pattern1])),
+            new UserSettings(new AnalysisSettings([], [Pattern2]))
         );
 
         testSubject.InitializeExclusions();
@@ -171,6 +171,5 @@ public class FileExclusionsViewModelTests
         userSettingsProvider.Received(1).UpdateFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
     }
 
-    private void MockUserSettingsProvider(params string[] exclusions) =>
-        userSettingsProvider.UserSettings.Returns(new UserSettings(new AnalysisSettings { UserDefinedFileExclusions = exclusions.ToList() }));
+    private void MockUserSettingsProvider(params string[] exclusions) => userSettingsProvider.UserSettings.Returns(new UserSettings(new AnalysisSettings([], exclusions)));
 }
