@@ -18,12 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Linq.Expressions;
 using System.Net.Http;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
@@ -39,16 +37,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class ActiveSolutionBoundTrackerTests
     {
         private readonly BoundServerProject boundSonarQubeProject = new("solution", "key", new ServerConnection.SonarQube(new Uri("http://localhost:9000")));
-        private readonly Expression<Func<ISonarQubeService, Task>> connectMethod = x => x.ConnectAsync(It.IsAny<ConnectionInformation>(), It.IsAny<CancellationToken>());
-        private readonly Expression<Action<ISonarQubeService>> disconnectMethod = x => x.Disconnect();
-
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableConfigurationProvider configProvider;
         private ConfigurableActiveSolutionTracker activeSolutionTracker;
-        private SolutionMock solutionMock;
-        private Mock<IVsMonitorSelection> vsMonitorMock;
+        private IReadOnlyCollection<IRequireInitialization> initializationDependencies;
+        private IVsMonitorSelection vsMonitorMock;
         private TestLogger testLogger;
-        private Mock<ISonarQubeService> sonarQubeServiceMock;
+        private ISonarQubeService sonarQubeServiceMock;
 
         private IBoundSolutionGitMonitor gitEventsMonitor;
         private IConfigScopeUpdater configScopeUpdater;
@@ -61,20 +56,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestInitialize]
         public void TestInitialize()
         {
-            configProvider = new ConfigurableConfigurationProvider();
-            activeSolutionTracker = new ConfigurableActiveSolutionTracker();
-            solutionMock = new SolutionMock();
+            configProvider = Substitute.ForPartsOf<ConfigurableConfigurationProvider>();
+            activeSolutionTracker = Substitute.ForPartsOf<ConfigurableActiveSolutionTracker>();
+            initializationDependencies = [activeSolutionTracker];
             testLogger = new TestLogger();
-            vsMonitorMock = new Mock<IVsMonitorSelection>();
-            vsMonitorMock
-                .Setup(x => x.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionUiContextCookie))
-                .Returns(VSConstants.S_OK);
+            vsMonitorMock = Substitute.For<IVsMonitorSelection>();
+            vsMonitorMock.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out Arg.Any<uint>())
+                .Returns(info =>
+                {
+                    info[1] = boundSolutionUiContextCookie;
+                    return VSConstants.S_OK;
+                });
 
             serviceProvider = new ConfigurableServiceProvider(false);
-            serviceProvider.RegisterService(typeof(SVsSolution), solutionMock);
-            serviceProvider.RegisterService(typeof(SVsShellMonitorSelection), vsMonitorMock.Object, replaceExisting: true);
+            serviceProvider.RegisterService(typeof(SVsShellMonitorSelection), vsMonitorMock, replaceExisting: true);
 
-            sonarQubeServiceMock = new Mock<ISonarQubeService>();
+            sonarQubeServiceMock = Substitute.For<ISonarQubeService>();
 
             gitEventsMonitor = Substitute.For<IBoundSolutionGitMonitor>();
             configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
@@ -105,6 +102,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             using var testSubject = CreateAndInitializeTestSubject();
 
             testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone, "Unbound solution should report false activation");
+
+            Received.InOrder(() =>
+            {
+                initializationProcessor.InitializeAsync(nameof(ActiveSolutionBoundTracker), Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.SequenceEqual(initializationDependencies)),
+                    Arg.Any<Func<IThreadHandling, Task>>());
+                threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
+                vsMonitorMock.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out Arg.Any<uint>());
+                _ = sonarQubeServiceMock.IsConnected;
+                gitEventsMonitor.Refresh();
+                activeSolutionTracker.ActiveSolutionChanged += Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
+                gitEventsMonitor.HeadChanged += Arg.Any<EventHandler>();
+                initializationProcessor.InitializeAsync(nameof(ActiveSolutionBoundTracker), Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.SequenceEqual(initializationDependencies)),
+                    Arg.Any<Func<IThreadHandling, Task>>());
+            });
         }
 
         [TestMethod]
@@ -116,22 +127,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             using var testSubject = CreateAndInitializeTestSubject();
 
             testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Connected, "Bound solution should report true activation");
+            Received.InOrder(() =>
+            {
+                initializationProcessor.InitializeAsync(nameof(ActiveSolutionBoundTracker), Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.SequenceEqual(initializationDependencies)),
+                    Arg.Any<Func<IThreadHandling, Task>>());
+                threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
+                vsMonitorMock.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out Arg.Any<uint>());
+                _ = sonarQubeServiceMock.IsConnected;
+                sonarQubeServiceMock.ConnectAsync(Arg.Any<ConnectionInformation>(), Arg.Any<CancellationToken>());
+                gitEventsMonitor.Refresh();
+                activeSolutionTracker.ActiveSolutionChanged += Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
+                gitEventsMonitor.HeadChanged += Arg.Any<EventHandler>();
+                initializationProcessor.InitializeAsync(nameof(ActiveSolutionBoundTracker), Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.SequenceEqual(initializationDependencies)),
+                    Arg.Any<Func<IThreadHandling, Task>>());
+            });
         }
 
         [TestMethod]
         public void ActiveSolutionBoundTracker_WhenConnectionCannotBeEstablished_ReportAsStandalone()
         {
-            sonarQubeServiceMock = new Mock<ISonarQubeService>();
             // We want to directly jump to Connect
-            sonarQubeServiceMock.SetupGet(x => x.IsConnected).Returns(false);
+            sonarQubeServiceMock.IsConnected.Returns(false);
             ConfigureSolutionBinding(boundSonarQubeProject);
 
             // ConnectAsync should throw
-            sonarQubeServiceMock
-                .SetupSequence(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(), It.IsAny<CancellationToken>()))
-                .Throws<Exception>()
-                .Throws<TaskCanceledException>()
-                .Throws(new HttpRequestException("http request", new Exception("something happened")));
+            sonarQubeServiceMock.ConnectAsync(Arg.Any<ConnectionInformation>(), Arg.Any<CancellationToken>())
+                .Returns(
+                    _ => throw new Exception(),
+                    _ => throw new TaskCanceledException(),
+                    _ => throw new HttpRequestException("http request", new Exception("something happened")));
 
             // Arrange
             using var activeSolutionBoundTracker = CreateAndInitializeTestSubject();
@@ -151,17 +175,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ActiveSolutionBoundTracker_When_ConnectAsync_Throws_Write_To_Output()
         {
-            sonarQubeServiceMock = new Mock<ISonarQubeService>();
             // We want to directly jump to Connect
-            sonarQubeServiceMock.SetupGet(x => x.IsConnected).Returns(false);
+            sonarQubeServiceMock.IsConnected.Returns(false);
             ConfigureSolutionBinding(boundSonarQubeProject);
 
             // ConnectAsync should throw
-            sonarQubeServiceMock
-                .SetupSequence(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(), It.IsAny<CancellationToken>()))
-                .Throws<Exception>()
-                .Throws<TaskCanceledException>()
-                .Throws(new HttpRequestException("http request", new Exception("something happened")));
+            sonarQubeServiceMock.ConnectAsync(Arg.Any<ConnectionInformation>(), Arg.Any<CancellationToken>())
+                .Returns(
+                    _ => throw new Exception(),
+                    _ => throw new TaskCanceledException(),
+                    _ => throw new HttpRequestException("http request", new Exception("something happened")));
 
             // Arrange
             using var activeSolutionBoundTracker = CreateAndInitializeTestSubject();
@@ -241,8 +264,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyAndResetBoundSolutionUiContextMock(isActive: false);
 
             // initializer connects to the server
-            VerifyServiceDisconnect(Times.Never());
-            VerifyServiceConnect(Times.Once());
+            VerifyServiceDisconnect(0);
+            VerifyServiceConnect(1);
 
             // Case 2: Set bound project
             ConfigureSolutionBinding(boundSonarQubeProject);
@@ -260,8 +283,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyAndResetBoundSolutionUiContextMock(isActive: true);
 
             // Notifications from the Team Explorer should not trigger connect/disconnect
-            VerifyServiceDisconnect(Times.Never());
-            VerifyServiceConnect(Times.Once());
+            VerifyServiceDisconnect(0);
+            VerifyServiceConnect(1);
 
             // Case 3: Bound solution unloaded -> disconnect
             ConfigureSolutionBinding(null);
@@ -279,8 +302,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyAndResetBoundSolutionUiContextMock(isActive: false);
 
             // Disconnect on any solution change if was connected
-            VerifyServiceDisconnect(Times.Once());
-            VerifyServiceConnect(Times.Once());
+            VerifyServiceDisconnect(1);
+            VerifyServiceConnect(1);
 
             // Case 4: Load a bound solution
             ConfigureSolutionBinding(boundSonarQubeProject);
@@ -298,8 +321,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyAndResetBoundSolutionUiContextMock(isActive: true);
 
             // Loading a bound solution should call connect
-            VerifyServiceDisconnect(Times.Once());
-            VerifyServiceConnect(Times.Exactly(2));
+            VerifyServiceDisconnect(1);
+            VerifyServiceConnect(2);
 
             // Case 5: Close a bound solution
             ConfigureSolutionBinding(null);
@@ -316,8 +339,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyAndResetBoundSolutionUiContextMock(isActive: false);
 
             // SonarQubeService.Disconnect should be called since the WPF DisconnectCommand is not available
-            VerifyServiceDisconnect(Times.Exactly(2));
-            VerifyServiceConnect(Times.Exactly(2));
+            VerifyServiceDisconnect(2);
+            VerifyServiceConnect(2);
 
             // Case 6: Dispose and change
             // Act
@@ -330,8 +353,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             eventCounter.SolutionBindingChangedCount.Should().Be(5, "Once disposed should stop raising the event");
             configScopeUpdater.ReceivedWithAnyArgs(5).UpdateConfigScopeForCurrentSolution(default);
             // SonarQubeService.Disconnect should be called since the WPF DisconnectCommand is not available
-            VerifyServiceDisconnect(Times.Exactly(2));
-            VerifyServiceConnect(Times.Exactly(2));
+            VerifyServiceDisconnect(2);
+            VerifyServiceConnect(2);
         }
 
         [TestMethod]
@@ -347,8 +370,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true, "solution");
 
                 // Assert
-                VerifyServiceConnect(Times.Never());
-                VerifyServiceDisconnect(Times.Never());
+                VerifyServiceConnect(0);
+                VerifyServiceDisconnect(0);
                 isMockServiceConnected.Should().Be(false);
             }
         }
@@ -366,8 +389,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true, "solution");
 
                 // Assert
-                VerifyServiceConnect(Times.Exactly(2));
-                VerifyServiceDisconnect(Times.Once());
+                VerifyServiceConnect(2);
+                VerifyServiceDisconnect(1);
                 isMockServiceConnected.Should().Be(true);
             }
         }
@@ -385,8 +408,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true, "solution");
 
                 // Assert
-                VerifyServiceConnect(Times.Never());
-                VerifyServiceDisconnect(Times.Once());
+                VerifyServiceConnect(0);
+                VerifyServiceDisconnect(1);
                 isMockServiceConnected.Should().Be(false);
             }
         }
@@ -409,8 +432,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true, "solution");
 
                 // Assert
-                VerifyServiceConnect(Times.Exactly(2));
-                VerifyServiceDisconnect(Times.Exactly(2));
+                VerifyServiceConnect(2);
+                VerifyServiceDisconnect(2);
                 isMockServiceConnected.Should().Be(true);
             }
         }
@@ -428,8 +451,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false, null);
 
                 // Assert
-                VerifyServiceConnect(Times.Never());
-                VerifyServiceDisconnect(Times.Once());
+                VerifyServiceConnect(0);
+                VerifyServiceDisconnect(1);
             }
         }
 
@@ -526,12 +549,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ActiveSolutionBoundTracker CreateUninitializedTestSubject(out TaskCompletionSource<byte> barrier)
         {
             barrier = MockableInitializationProcessor.ConfigureWithWait(initializationProcessor, threadHandling);
-            return new ActiveSolutionBoundTracker(serviceProvider, activeSolutionTracker, configScopeUpdater, testLogger, gitEventsMonitor, configProvider, sonarQubeServiceMock.Object, initializationProcessor);
+            return new ActiveSolutionBoundTracker(serviceProvider, activeSolutionTracker, configScopeUpdater, testLogger, gitEventsMonitor, configProvider, sonarQubeServiceMock, initializationProcessor);
         }
 
         private ActiveSolutionBoundTracker CreateAndInitializeTestSubject()
         {
-            var testSubject = new ActiveSolutionBoundTracker(serviceProvider, activeSolutionTracker, configScopeUpdater, testLogger, gitEventsMonitor, configProvider, sonarQubeServiceMock.Object, initializationProcessor);
+            var testSubject = new ActiveSolutionBoundTracker(serviceProvider, activeSolutionTracker, configScopeUpdater, testLogger, gitEventsMonitor, configProvider, sonarQubeServiceMock, initializationProcessor);
             testSubject.InitializeAsync().GetAwaiter().GetResult();
             return testSubject;
         }
@@ -540,14 +563,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             isMockServiceConnected = isConnected;
 
-            sonarQubeServiceMock.SetupGet(x => x.IsConnected).Returns(() => isMockServiceConnected);
-            sonarQubeServiceMock.Setup(disconnectMethod)
-                .Callback(() => isMockServiceConnected = false)
-                .Verifiable();
-            sonarQubeServiceMock.Setup(connectMethod)
-                .Callback(() => isMockServiceConnected = true )
-                .Returns(Task.Delay(0))
-                .Verifiable();
+            sonarQubeServiceMock.IsConnected.Returns(_ => isMockServiceConnected);
+            sonarQubeServiceMock.When(x => x.Disconnect()).Do(_ => isMockServiceConnected = false);
+            sonarQubeServiceMock.ConnectAsync(default, default).ReturnsForAnyArgs(_ =>
+            {
+                isMockServiceConnected = true;
+                return Task.CompletedTask;
+            });
         }
 
         private void ConfigureSolutionBinding(BoundServerProject boundProject)
@@ -557,22 +579,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             configProvider.FolderPathToReturn = "c:\\test";
         }
 
-        private void VerifyServiceConnect(Times expected)
+        private void VerifyServiceConnect(int expected)
         {
-            sonarQubeServiceMock.Verify(connectMethod, expected);
+            sonarQubeServiceMock.ReceivedWithAnyArgs(expected).ConnectAsync(default, default);
         }
 
-        private void VerifyServiceDisconnect(Times expected)
+        private void VerifyServiceDisconnect(int expected)
         {
-            sonarQubeServiceMock.Verify(disconnectMethod, expected);
+            sonarQubeServiceMock.ReceivedWithAnyArgs(expected).Disconnect();
         }
 
         private void VerifyAndResetBoundSolutionUiContextMock(bool isActive)
         {
             var isActiveInt = isActive ? 1 : 0;
-            vsMonitorMock.Verify(x => x.SetCmdUIContext(boundSolutionUiContextCookie, isActiveInt), Times.Once);
-            vsMonitorMock.Verify(x => x.SetCmdUIContext(It.IsAny<uint>(), It.IsAny<int>()), Times.Once);
-            vsMonitorMock.Invocations.Clear();
+            vsMonitorMock.Received(1).SetCmdUIContext(boundSolutionUiContextCookie, isActiveInt);
+            vsMonitorMock.ReceivedWithAnyArgs(1).SetCmdUIContext(default, default);
+            vsMonitorMock.ClearReceivedCalls();
         }
 
         private class EventCounter

@@ -113,7 +113,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public void HandleBindingChange()
         {
-            if (disposed)
+            if (disposed || !initializationProcessor.IsFinalized)
             {
                 return;
             }
