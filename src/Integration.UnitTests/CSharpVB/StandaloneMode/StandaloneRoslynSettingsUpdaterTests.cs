@@ -147,7 +147,7 @@ public class StandaloneRoslynSettingsUpdaterTests
         languageProvider.RoslynLanguages.Returns(fakeRoslynLanguages);
         var rules = new Dictionary<string, RuleConfig>()
         {
-            { "vbnet:S1", new RuleConfig() }, { "vbnet:S2", new RuleConfig() }, { "csharpsquid:S3", new RuleConfig() }, { "cpp:S4", new RuleConfig() },
+            { "vbnet:S1", new RuleConfig(default) }, { "vbnet:S2", new RuleConfig(default) }, { "csharpsquid:S3", new RuleConfig(default) }, { "cpp:S4", new RuleConfig(default) },
         };
 
         testSubject.Update(new UserSettings(new AnalysisSettings(rules, [])));

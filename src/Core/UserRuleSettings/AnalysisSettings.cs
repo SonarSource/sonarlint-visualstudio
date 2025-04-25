@@ -109,11 +109,10 @@ public class AnalysisSettings
     }
 }
 
+[method: JsonConstructor]
 public class RuleConfig(RuleLevel level, Dictionary<string, string> parameters)
 {
     public RuleConfig(RuleLevel level) : this(level, null) { }
-
-    public RuleConfig() : this(RuleLevel.Off) { }
 
     [JsonProperty("level")]
     [JsonConverter(typeof(StringEnumConverter))]
