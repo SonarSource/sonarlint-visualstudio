@@ -1353,6 +1353,7 @@
           "NuGet.Core": "[2.12.0, )",
           "NuGet.VisualStudio": "[3.3.0, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
+          "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
           "SonarLint.VisualStudio.Integration": "[1.0.0, )",
           "SonarQube.Client": "[1.0.0, )",
           "StrongNamer": "[0.0.8, )",
