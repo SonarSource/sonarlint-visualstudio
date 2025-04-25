@@ -110,15 +110,6 @@ public class SonarQubeRoslynRuleStatusTests
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    public static object[][] MultipleMqrSeveritiesAndHighestConvertedVsSeverity =>
-    [
-        [new []{SonarQubeSoftwareQualitySeverity.Blocker, SonarQubeSoftwareQualitySeverity.Low}, RuleAction.Warning],
-        [new []{SonarQubeSoftwareQualitySeverity.Low, SonarQubeSoftwareQualitySeverity.Blocker}, RuleAction.Warning],
-        [new []{SonarQubeSoftwareQualitySeverity.Blocker, SonarQubeSoftwareQualitySeverity.Blocker}, RuleAction.Warning],
-        [new []{SonarQubeSoftwareQualitySeverity.Low, SonarQubeSoftwareQualitySeverity.Info}, RuleAction.Info],
-        [new []{SonarQubeSoftwareQualitySeverity.Low, SonarQubeSoftwareQualitySeverity.Info, SonarQubeSoftwareQualitySeverity.High}, RuleAction.Warning],
-    ];
-
     [DynamicData(nameof(MultipleMqrSeveritiesAndHighestConvertedVsSeverity))]
     [DataTestMethod]
     public void GetVSSeverity_FromSoftwareQualitySeverity_Multiple_TakesHighest(SonarQubeSoftwareQualitySeverity[] severities, RuleAction expectedAction)
@@ -126,7 +117,6 @@ public class SonarQubeRoslynRuleStatusTests
         var testSubject = new SonarQubeRoslynRuleStatus(CreateMqrRule(severities), environmentSettings);
 
         testSubject.GetSeverity().Should().Be(expectedAction);
-
     }
 
     [DataRow(SonarQubeIssueSeverity.Info, RuleAction.Info)]
@@ -136,12 +126,51 @@ public class SonarQubeRoslynRuleStatusTests
     [DataTestMethod]
     public void GetVSSeverity_EmptyMqrSeverities_UsesStandardSeverity(SonarQubeIssueSeverity sqSeverity, RuleAction expectedVsSeverity)
     {
-        var testSubject = new SonarQubeRoslynRuleStatus(CreateRule(new (), sqSeverity), environmentSettings);
+        var testSubject = new SonarQubeRoslynRuleStatus(CreateRule(new(), sqSeverity), environmentSettings);
 
         testSubject.GetSeverity().Should().Be(expectedVsSeverity);
     }
 
-    private static SonarQubeRule CreateMqrRule(params SonarQubeSoftwareQualitySeverity[] mqrSeverities)
+    [DynamicData(nameof(AllMqrSeverities))]
+    [DataTestMethod]
+    public void GetVSSeverity_HasSoftwareQualitySeverity_Inactive_ReturnsNone(SonarQubeSoftwareQualitySeverity severities)
+    {
+        var testSubject = new SonarQubeRoslynRuleStatus(CreateMqrRule(isActive: false, severities), environmentSettings);
+
+        testSubject.GetSeverity().Should().Be(RuleAction.None);
+    }
+
+    [DynamicData(nameof(AllSeverities))]
+    [DataTestMethod]
+    public void GetVSSeverity_HasSeverity_Inactive_ReturnsNone(SonarQubeIssueSeverity severity)
+    {
+        var testSubject = new SonarQubeRoslynRuleStatus(CreateStandardRule(severity, isActive: false), environmentSettings);
+
+        testSubject.GetSeverity().Should().Be(RuleAction.None);
+    }
+
+    public static object[][] MultipleMqrSeveritiesAndHighestConvertedVsSeverity =>
+    [
+        [new[] { SonarQubeSoftwareQualitySeverity.Blocker, SonarQubeSoftwareQualitySeverity.Low }, RuleAction.Warning],
+        [new[] { SonarQubeSoftwareQualitySeverity.Low, SonarQubeSoftwareQualitySeverity.Blocker }, RuleAction.Warning],
+        [new[] { SonarQubeSoftwareQualitySeverity.Blocker, SonarQubeSoftwareQualitySeverity.Blocker }, RuleAction.Warning],
+        [new[] { SonarQubeSoftwareQualitySeverity.Low, SonarQubeSoftwareQualitySeverity.Info }, RuleAction.Info],
+        [new[] { SonarQubeSoftwareQualitySeverity.Low, SonarQubeSoftwareQualitySeverity.Info, SonarQubeSoftwareQualitySeverity.High }, RuleAction.Warning],
+    ];
+
+    public static object[][] AllMqrSeverities =>
+        Enum.GetValues(typeof(SonarQubeSoftwareQualitySeverity)).Cast<object>()
+            .Select(severity => new[] { severity })
+            .ToArray();
+
+    public static object[][] AllSeverities =>
+        Enum.GetValues(typeof(SonarQubeIssueSeverity)).Cast<object>()
+            .Select(severity => new[] { severity })
+            .ToArray();
+
+    private static SonarQubeRule CreateMqrRule(params SonarQubeSoftwareQualitySeverity[] mqrSeverities) => CreateMqrRule(isActive: true, mqrSeverities);
+
+    private static SonarQubeRule CreateMqrRule(bool isActive, params SonarQubeSoftwareQualitySeverity[] mqrSeverities)
     {
         mqrSeverities.Should().NotBeEmpty();
         var sonarQubeSoftwareQualitySeverities =
@@ -149,21 +178,18 @@ public class SonarQubeRoslynRuleStatusTests
                 .Cast<SonarQubeSoftwareQuality>()
                 .Zip(mqrSeverities, (x, y) => (x, y))
                 .ToDictionary(k => k.x, v => v.y);
-        return CreateRule(sonarQubeSoftwareQualitySeverities, SonarQubeIssueSeverity.Blocker);
+        return CreateRule(sonarQubeSoftwareQualitySeverities, SonarQubeIssueSeverity.Blocker, isActive: isActive);
     }
 
-    private static SonarQubeRule CreateStandardRule(SonarQubeIssueSeverity severity) => CreateRule(null, severity);
+    private static SonarQubeRule CreateStandardRule(SonarQubeIssueSeverity severity, bool isActive = true) => CreateRule(null, severity, isActive);
 
-    private static SonarQubeRule CreateRule(Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity> mqrSeverity, SonarQubeIssueSeverity severity) =>
+    private static SonarQubeRule CreateRule(Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity> mqrSeverity, SonarQubeIssueSeverity severity, bool isActive = true) =>
         new(default,
             default,
-            default,
+            isActive,
             severity,
             default,
             mqrSeverity,
             default,
             default);
-
-    private static SonarQubeRule CreateRule(string ruleKey, string repoKey, bool isActive = true) =>
-        new SonarQubeRule(ruleKey, repoKey, isActive, SonarQubeIssueSeverity.Info, null, null, new Dictionary<string, string>(), SonarQubeIssueType.Unknown);
 }

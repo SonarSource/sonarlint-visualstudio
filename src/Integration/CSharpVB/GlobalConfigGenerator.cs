@@ -34,7 +34,7 @@ public interface IGlobalConfigGenerator
 public class GlobalConfigGenerator : IGlobalConfigGenerator
 {
     [ImportingConstructor]
-    public GlobalConfigGenerator() {}
+    public GlobalConfigGenerator() { }
 
     public string Generate(IEnumerable<IRoslynRuleStatus> rules)
     {

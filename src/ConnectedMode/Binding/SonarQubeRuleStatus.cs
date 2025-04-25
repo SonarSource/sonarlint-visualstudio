@@ -28,8 +28,14 @@ public class SonarQubeRoslynRuleStatus(SonarQubeRule sonarQubeRule, IEnvironment
 {
     public string Key => sonarQubeRule.Key;
 
-    public RuleAction GetSeverity() =>
-        GetVsSeverity(sonarQubeRule.SoftwareQualitySeverities?.Values) ?? GetVsSeverity(sonarQubeRule.Severity);
+    public RuleAction GetSeverity()
+    {
+        if (!sonarQubeRule.IsActive)
+        {
+            return RuleAction.None;
+        }
+        return GetVsSeverity(sonarQubeRule.SoftwareQualitySeverities?.Values) ?? GetVsSeverity(sonarQubeRule.Severity);
+    }
 
     private RuleAction? GetVsSeverity(ICollection<SonarQubeSoftwareQualitySeverity> severities) =>
         severities is not { Count: > 0 }
