@@ -33,7 +33,7 @@ public class ActiveSolutionTrackerTests
     private ConfigurableServiceProvider serviceProvider;
     private SolutionMock solutionMock;
     private ISolutionInfoProvider solutionInfoProvider;
-    private IInitializationProcessor initializationProcessor;
+    private MockableInitializationProcessor initializationProcessor;
     private TestLogger testLogger;
     private NoOpThreadHandler threadHandling;
 
@@ -186,14 +186,7 @@ public class ActiveSolutionTrackerTests
 
     private ActiveSolutionTracker CreateUninitializedTestSubject(out TaskCompletionSource<byte> barrier)
     {
-        var tcs = barrier = new TaskCompletionSource<byte>();
-        initializationProcessor.Configure()
-            .InitializeAsync(default, default, default)
-            .ReturnsForAnyArgs(async info =>
-            {
-                await tcs.Task;
-                await info.Arg<Func<IThreadHandling, Task>>()(threadHandling);
-            });
+        barrier = MockableInitializationProcessor.ConfigureWithWait(initializationProcessor, threadHandling);
         return new ActiveSolutionTracker(serviceProvider, solutionInfoProvider, initializationProcessor);
     }
 

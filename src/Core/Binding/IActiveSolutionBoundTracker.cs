@@ -19,6 +19,7 @@
  */
 
 using System;
+using SonarLint.VisualStudio.Core.Initialization;
 
 namespace SonarLint.VisualStudio.Core.Binding
 {
@@ -30,7 +31,7 @@ namespace SonarLint.VisualStudio.Core.Binding
     /// <summary>
     /// Allows checking if the current Visual Studio solution is bound to a SonarQube project or not
     /// </summary>
-    public interface IActiveSolutionBoundTracker
+    public interface IActiveSolutionBoundTracker : IRequireInitialization
     {
         /// <summary>
         /// Get the current binding configuration.

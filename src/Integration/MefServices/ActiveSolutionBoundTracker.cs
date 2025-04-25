@@ -21,11 +21,13 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.Core.Initialization;
 using SonarQube.Client;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
@@ -42,16 +44,18 @@ namespace SonarLint.VisualStudio.Integration
     [Export(typeof(IActiveSolutionBoundTracker))]
     [Export(typeof(IActiveSolutionChangedHandler))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class ActiveSolutionBoundTracker : IActiveSolutionBoundTracker, IActiveSolutionChangedHandler, IDisposable, IPartImportsSatisfiedNotification
+    internal sealed class ActiveSolutionBoundTracker : IActiveSolutionBoundTracker, IActiveSolutionChangedHandler, IDisposable
     {
+        private readonly IServiceProvider serviceProvider;
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly IConfigurationProvider configurationProvider;
         private readonly ISonarQubeService sonarQubeService;
-        private readonly IVsMonitorSelection vsMonitorSelection;
+        private readonly IInitializationProcessor initializationProcessor;
         private readonly IBoundSolutionGitMonitor gitEventsMonitor;
         private readonly IConfigScopeUpdater configScopeUpdater;
         private readonly ILogger logger;
-        private readonly uint boundSolutionContextCookie;
+        private IVsMonitorSelection vsMonitorSelection;
+        private uint boundSolutionContextCookie;
         private bool disposed;
 
         public event EventHandler<ActiveSolutionBindingEventArgs> PreSolutionBindingChanged;
@@ -68,30 +72,44 @@ namespace SonarLint.VisualStudio.Integration
             ILogger logger,
             IBoundSolutionGitMonitor gitEventsMonitor,
             IConfigurationProvider configurationProvider,
-            ISonarQubeService sonarQubeService)
+            ISonarQubeService sonarQubeService,
+            IInitializationProcessor initializationProcessor)
         {
+            this.serviceProvider = serviceProvider;
             solutionTracker = activeSolutionTracker;
             this.gitEventsMonitor = gitEventsMonitor;
             this.logger = logger;
-
-            // TODO - MEF-ctor should be free-threaded -> we might be on a background thread ->
-            // calling serviceProvider.GetService is dangerous.
-            vsMonitorSelection = serviceProvider.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
-            vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
-
             this.configurationProvider = configurationProvider;
             this.sonarQubeService = sonarQubeService;
+            this.initializationProcessor = initializationProcessor;
             this.configScopeUpdater = configScopeUpdater;
 
-            // The solution changed inside the IDE
-            solutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
-
-            CurrentConfiguration = GetBindingConfiguration();
-
-            SetBoundSolutionUIContext();
-
-            this.gitEventsMonitor.HeadChanged += GitEventsMonitor_HeadChanged;
+            CurrentConfiguration = BindingConfiguration.Standalone;
+            InitializeAsync().Forget();
         }
+
+        public Task InitializeAsync() =>
+            initializationProcessor.InitializeAsync(
+                nameof(ActiveSolutionBoundTracker),
+                [solutionTracker],
+                async threadHandling =>
+                {
+                    await threadHandling.RunOnUIThreadAsync(() =>
+                    {
+                        vsMonitorSelection = serviceProvider.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
+                        vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
+                    });
+
+                    await HandleActiveSolutionChangeAsync();
+
+                    if (disposed)
+                    {
+                        // not subscribing to events if already disposed
+                        return;
+                    }
+                    solutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
+                    gitEventsMonitor.HeadChanged += GitEventsMonitor_HeadChanged;
+                });
 
         public void HandleBindingChange()
         {
@@ -100,19 +118,12 @@ namespace SonarLint.VisualStudio.Integration
                 return;
             }
 
-            RaiseAnalyzersChangedIfBindingChanged(GetBindingConfiguration());
-        }
-
-        private BindingConfiguration GetBindingConfiguration()
-        {
-            return configurationProvider.GetConfiguration();
+            RaiseAnalyzersChangedIfBindingChanged(configurationProvider.GetConfiguration());
         }
 
         private void GitEventsMonitor_HeadChanged(object sender, EventArgs e)
         {
-            var boundProject = configurationProvider.GetConfiguration().Project;
-
-            if (boundProject != null)
+            if (CurrentConfiguration.Mode.IsInAConnectedMode())
             {
                 PreSolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
                 SolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
@@ -124,18 +135,23 @@ namespace SonarLint.VisualStudio.Integration
             // An exception here will crash VS
             try
             {
-                var newBindingConfiguration = GetBindingConfiguration();
-
-                var connectionUpdatedSuccessfully = await UpdateConnectionAsync(newBindingConfiguration);
-
-                gitEventsMonitor.Refresh();
-
-                RaiseAnalyzersChangedIfBindingChanged(connectionUpdatedSuccessfully ? newBindingConfiguration : BindingConfiguration.Standalone);
+                await HandleActiveSolutionChangeAsync();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine($"Error handling solution change: {ex.Message}");
             }
+        }
+
+        private async Task HandleActiveSolutionChangeAsync()
+        {
+            var newBindingConfiguration = configurationProvider.GetConfiguration();
+
+            var connectionUpdatedSuccessfully = await UpdateConnectionAsync(newBindingConfiguration);
+
+            gitEventsMonitor.Refresh();
+
+            RaiseAnalyzersChangedIfBindingChanged(connectionUpdatedSuccessfully ? newBindingConfiguration : BindingConfiguration.Standalone);
         }
 
         private async Task<bool> UpdateConnectionAsync(BindingConfiguration bindingConfiguration)
@@ -167,53 +183,45 @@ namespace SonarLint.VisualStudio.Integration
 
         private void RaiseAnalyzersChangedIfBindingChanged(BindingConfiguration newBindingConfiguration)
         {
-            configScopeUpdater.UpdateConfigScopeForCurrentSolution(newBindingConfiguration.Project);
+            if (initializationProcessor.IsFinalized) // todo remove in https://sonarsource.atlassian.net/browse/SLVS-2024
+            {
+                configScopeUpdater.UpdateConfigScopeForCurrentSolution(newBindingConfiguration.Project);
+            }
 
             if (!CurrentConfiguration.Equals(newBindingConfiguration))
             {
                 CurrentConfiguration = newBindingConfiguration;
+                SetBoundSolutionUIContext();
 
-                var args = new ActiveSolutionBindingEventArgs(newBindingConfiguration);
-                PreSolutionBindingChanged?.Invoke(this, args);
-                SolutionBindingChanged?.Invoke(this, args);
+                if (initializationProcessor.IsFinalized)
+                {
+                    // we don't want to raise events during initialization, as that is already handled by initialization dependencies
+                    var args = new ActiveSolutionBindingEventArgs(newBindingConfiguration);
+                    PreSolutionBindingChanged?.Invoke(this, args);
+                    SolutionBindingChanged?.Invoke(this, args);
+                }
             }
-
-            SetBoundSolutionUIContext();
         }
 
         private void SetBoundSolutionUIContext()
         {
-            var isContextActive = !CurrentConfiguration.Equals(BindingConfiguration.Standalone);
+            var isContextActive = CurrentConfiguration.Mode.IsInAConnectedMode();
             vsMonitorSelection.SetCmdUIContext(boundSolutionContextCookie, isContextActive ? 1 : 0);
-        }
-
-        #region IPartImportsSatisfiedNotification
-
-        public async void OnImportsSatisfied()
-        {
-            await UpdateConnectionAsync(GetBindingConfiguration());
-        }
-
-        #endregion
-
-        #region IDisposable
-
-        private void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                disposed = true;
-                solutionTracker.ActiveSolutionChanged -= OnActiveSolutionChanged;
-                gitEventsMonitor.HeadChanged -= GitEventsMonitor_HeadChanged;
-            }
         }
 
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
-        }
+            if (disposed)
+            {
+                return;
+            }
 
-        #endregion
+            if (initializationProcessor.IsFinalized)
+            {
+                solutionTracker.ActiveSolutionChanged -= OnActiveSolutionChanged;
+                gitEventsMonitor.HeadChanged -= GitEventsMonitor_HeadChanged;
+            }
+            disposed = true;
+        }
     }
 }

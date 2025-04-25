@@ -19,6 +19,7 @@
  */
 
 using System.Diagnostics.CodeAnalysis;
+using NSubstitute.Extensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
@@ -41,4 +42,17 @@ public class MockableInitializationProcessor(IThreadHandling threadHandling, ILo
         IReadOnlyCollection<IRequireInitialization> dependencies,
         Func<IThreadHandling, Task> initialization) =>
         implementation.InitializeAsync(owner, dependencies, initialization);
+
+    public static TaskCompletionSource<byte> ConfigureWithWait(MockableInitializationProcessor substitute, IThreadHandling threadHandling)
+    {
+        var tcs = new TaskCompletionSource<byte>();
+        substitute.Configure()
+            .InitializeAsync(Arg.Any<string>(), Arg.Any<IReadOnlyCollection<IRequireInitialization>>(), Arg.Any<Func<IThreadHandling, Task>>())
+            .ReturnsForAnyArgs(async info =>
+            {
+                await tcs.Task;
+                await info.Arg<Func<IThreadHandling, Task>>()(threadHandling);
+            });
+        return tcs;
+    }
 }
