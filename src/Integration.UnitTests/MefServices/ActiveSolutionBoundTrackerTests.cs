@@ -144,6 +144,69 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void DisposeBeforeInitialized_DisposeAndInitializeDoNothingWithEvents()
+        {
+            var testSubject = CreateUninitializedTestSubject(out var barrier);
+            testSubject.Dispose();
+            barrier.SetResult(1);
+            testSubject.InitializeAsync().GetAwaiter().GetResult();
+
+            activeSolutionTracker.DidNotReceive().ActiveSolutionChanged += Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
+            activeSolutionTracker.DidNotReceive().ActiveSolutionChanged -= Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
+            gitEventsMonitor.DidNotReceive().HeadChanged += Arg.Any<EventHandler>();
+            gitEventsMonitor.DidNotReceive().HeadChanged -= Arg.Any<EventHandler>();
+        }
+
+        [TestMethod]
+        public void Dispose_UnsubscribesFromEvents()
+        {
+            var testSubject = CreateAndInitializeTestSubject();
+            testSubject.Dispose();
+
+            activeSolutionTracker.Received().ActiveSolutionChanged -= Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
+            gitEventsMonitor.Received().HeadChanged -= Arg.Any<EventHandler>();
+        }
+
+        [TestMethod]
+        public void ActiveSolutionBoundTracker_EventsAreNotTriggeredBeforeInitializationIsComplete()
+        {
+            ConfigureService(false);
+            ConfigureSolutionBinding(boundSonarQubeProject);
+            using var testSubject = CreateUninitializedTestSubject(out var barrier);
+            var bindingChangedHandler = Substitute.For<EventHandler<ActiveSolutionBindingEventArgs>>();
+            var bindingUpdatedEventHandler = Substitute.For<EventHandler>();
+            testSubject.SolutionBindingChanged += bindingChangedHandler;
+            testSubject.SolutionBindingUpdated += bindingUpdatedEventHandler;
+
+            testSubject.HandleBindingChange();
+            activeSolutionTracker.SimulateActiveSolutionChanged(false, null);
+            activeSolutionTracker.SimulateActiveSolutionChanged(true, "name");
+            gitEventsMonitor.HeadChanged += Raise.Event();
+
+            // state is unmodified and events are not raised until initialized
+            bindingChangedHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
+            bindingUpdatedEventHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
+            configScopeUpdater.DidNotReceiveWithAnyArgs().UpdateConfigScopeForCurrentSolution(boundSonarQubeProject);
+            configProvider.DidNotReceiveWithAnyArgs().GetConfiguration();
+            testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone);
+
+            barrier.SetResult(1);
+            testSubject.InitializeAsync().GetAwaiter().GetResult();
+
+            // works as normal after initialization
+            ConfigureSolutionBinding(null);
+            activeSolutionTracker.SimulateActiveSolutionChanged(true, "sln");
+            bindingChangedHandler.ReceivedWithAnyArgs().Invoke(default, default);
+            configScopeUpdater.ReceivedWithAnyArgs().UpdateConfigScopeForCurrentSolution(boundSonarQubeProject);
+            // switch to connected mode to test binding updated event
+            ConfigureSolutionBinding(boundSonarQubeProject);
+            testSubject.HandleBindingChange();
+            gitEventsMonitor.HeadChanged += Raise.Event();
+            bindingUpdatedEventHandler.ReceivedWithAnyArgs().Invoke(default, default);
+            testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Connected);
+        }
+
+        [TestMethod]
         public void ActiveSolutionBoundTracker_WhenConnectionCannotBeEstablished_ReportAsStandalone()
         {
             // We want to directly jump to Connect

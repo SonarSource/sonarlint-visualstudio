@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure;
 [ExcludeFromCodeCoverage]
 public class MockableInitializationProcessor(IThreadHandling threadHandling, ILogger logger) : IInitializationProcessor
 {
-    private readonly InitializationProcessor implementation = new(new AsyncLockFactory(), threadHandling,logger);
+    internal readonly InitializationProcessor implementation = new(new AsyncLockFactory(), threadHandling, logger);
 
     public virtual bool IsFinalized => implementation.IsFinalized;
 
@@ -48,11 +48,15 @@ public class MockableInitializationProcessor(IThreadHandling threadHandling, ILo
         var tcs = new TaskCompletionSource<byte>();
         substitute.Configure()
             .InitializeAsync(Arg.Any<string>(), Arg.Any<IReadOnlyCollection<IRequireInitialization>>(), Arg.Any<Func<IThreadHandling, Task>>())
-            .ReturnsForAnyArgs(async info =>
-            {
-                await tcs.Task;
-                await info.Arg<Func<IThreadHandling, Task>>()(threadHandling);
-            });
+            .ReturnsForAnyArgs(info =>
+                substitute.implementation.InitializeAsync(
+                    info[0] as string,
+                    info[1] as IReadOnlyCollection<IRequireInitialization>,
+                    async _ =>
+                    {
+                        await tcs.Task;
+                        await info.Arg<Func<IThreadHandling, Task>>()(threadHandling);
+                    }));
         return tcs;
     }
 }
