@@ -15,16 +15,20 @@
         x:Name="This">
     <Window.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
-            </ResourceDictionary.MergedDictionaries>
+            <Style TargetType="Button">
+                <Setter Property="MinHeight" Value="25" />
+                <Setter Property="MinWidth" Value="75" />
+                <Setter Property="Margin" Value="10,0,0,0" />
+                <Setter Property="Padding" Value="5,2"/>
+            </Style>
+            <Style TargetType="TextBox">
+                <Setter Property="Height" Value="30" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+            </Style>
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Hidden" TrueValue="Visible"/>
             <wpf:BoolNegatingConverter x:Key="BoolNegatingConverter"/>
         </ResourceDictionary>
     </Window.Resources>
-    <Window.Style>
-        <Style TargetType="Window" BasedOn="{StaticResource {x:Type Window}}" />
-    </Window.Style>
 
     <Grid DataContext="{Binding ElementName=This, Path=ViewModel}" Margin="15">
         <Grid.RowDefinitions>
