@@ -66,13 +66,12 @@ namespace SonarLint.VisualStudio.Integration
                 [],
                 async threadHandling =>
                 {
-                    if (isDisposed)
-                    {
-                        throw new ObjectDisposedException(nameof(ActiveSolutionTracker));
-                    }
-
                     await threadHandling.RunOnUIThreadAsync(() =>
                     {
+                        if (isDisposed)
+                        {
+                            return;
+                        }
                         CurrentSolutionName = solutionInfoProvider.GetSolutionName();
                         solution = serviceProvider.GetService<SVsSolution, IVsSolution>();
                         Debug.Assert(solution != null, "Cannot find IVsSolution");
@@ -171,7 +170,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             if (!this.isDisposed)
             {
-                if (disposing)
+                if (disposing && initializationProcessor.IsFinalized)
                 {
                     this.solution?.UnadviseSolutionEvents(this.cookie);
                 }

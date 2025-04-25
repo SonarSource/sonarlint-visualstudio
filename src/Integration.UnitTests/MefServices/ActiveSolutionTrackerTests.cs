@@ -113,23 +113,21 @@ public class ActiveSolutionTrackerTests
     }
 
     [TestMethod]
-    public void ActiveSolutionTracker_DisposeBeforeInitilized_DisposeAndInitializeDoNothing()
+    public void ActiveSolutionTracker_DisposeBeforeInitialized_DisposeAndInitializeDoNothing()
     {
         var testSubject = CreateUninitializedTestSubject(out var barrier);
         solutionInfoProvider.ClearReceivedCalls();
         var eventHandler = Substitute.For<EventHandler<ActiveSolutionChangedEventArgs>>();
         testSubject.ActiveSolutionChanged += eventHandler;
         testSubject.Dispose();
+        barrier.SetResult(1);
 
         solutionMock.SimulateSolutionClose();
         solutionMock.SimulateSolutionOpen();
 
         eventHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
         solutionInfoProvider.DidNotReceiveWithAnyArgs().GetSolutionName();
-
-        barrier.SetResult(1);
-        var initialize = () => testSubject.InitializeAsync();
-        initialize.Should().Throw<ObjectDisposedException>();
+        solutionMock.AssertNoHierarchyEventSinks();
     }
 
     [TestMethod]
