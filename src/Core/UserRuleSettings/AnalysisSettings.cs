@@ -95,17 +95,27 @@ public class AnalysisSettings
 
     private static string NormalizePath(string path)
     {
+        path = path.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        // if path is invalid, the Path.IsPathRooted check will throw an exception
+        if (HasInvalidPathChars(path))
+        {
+            return path;
+        }
+
         // rooted paths without drive letter are unmodified, but SLCore doesn't match them well
         var isRooted = Path.IsPathRooted(path);
-
-        path = path.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-
         if (!isRooted && !path.StartsWith(AnyRootPrefix))
         {
             path = AnyRootPrefix + path;
         }
 
         return path;
+    }
+
+    private static bool HasInvalidPathChars(string path)
+    {
+        var invalidChars = Path.GetInvalidPathChars();
+        return path.IndexOfAny(invalidChars) >= 0;
     }
 }
 
