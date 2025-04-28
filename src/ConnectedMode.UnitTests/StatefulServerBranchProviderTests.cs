@@ -155,7 +155,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             RaisePreSolutionBindingUpdated(standaloneModeBinding);
 
-            slCoreServiceProvider.ReceivedCalls().Should().HaveCount(1); // no other calls
+            activeConfigScopeTracker.ReceivedCalls().Should().HaveCount(1); // no other calls
             slCoreServiceProvider.ReceivedCalls().Should().HaveCount(1); // no other calls
         }
 
