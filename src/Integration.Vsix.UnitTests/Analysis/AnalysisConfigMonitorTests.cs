@@ -21,11 +21,11 @@
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.SLCore.Analysis;
-using static SonarLint.VisualStudio.TestInfrastructure.NoOpThreadHandler;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis;
 
@@ -37,9 +37,10 @@ public class AnalysisConfigMonitorTests
     private TestLogger logger;
     private IStandaloneRoslynSettingsUpdater roslynSettingsUpdater;
     private ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater;
-    private AnalysisConfigMonitor testSubject;
     private IThreadHandling threadHandling;
     private IUserSettingsProvider userSettingsUpdaterMock;
+    private IInitializationProcessorFactory initializationProcessorFactory;
+    private MockableInitializationProcessor createdInitializationProcessor;
 
     [TestInitialize]
     public void TestInitialize()
@@ -47,25 +48,10 @@ public class AnalysisConfigMonitorTests
         analysisRequesterMock = Substitute.For<IAnalysisRequester>();
         userSettingsUpdaterMock = Substitute.For<IUserSettingsProvider>();
         activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
-        threadHandling = Substitute.For<IThreadHandling>();
+        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         slCoreRuleSettingsUpdater = Substitute.For<ISLCoreRuleSettingsUpdater>();
         roslynSettingsUpdater = Substitute.For<IStandaloneRoslynSettingsUpdater>();
-
-        threadHandling.SwitchToBackgroundThread().Returns(new NoOpAwaitable());
-
         logger = new TestLogger();
-
-        testSubject = new AnalysisConfigMonitor(
-            analysisRequesterMock,
-            userSettingsUpdaterMock,
-            slCoreRuleSettingsUpdater,
-            roslynSettingsUpdater,
-            activeSolutionBoundTracker,
-            logger,
-            threadHandling);
-        userSettingsUpdaterMock.ClearReceivedCalls();
-        activeSolutionBoundTracker.ClearReceivedCalls();
-        roslynSettingsUpdater.ClearReceivedCalls();
     }
 
     [TestMethod]
@@ -77,7 +63,8 @@ public class AnalysisConfigMonitorTests
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<ISLCoreRuleSettingsUpdater>(),
-            MefTestHelpers.CreateExport<IStandaloneRoslynSettingsUpdater>());
+            MefTestHelpers.CreateExport<IStandaloneRoslynSettingsUpdater>(),
+            MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() =>
@@ -86,23 +73,31 @@ public class AnalysisConfigMonitorTests
     [TestMethod]
     public void Ctor_UpdatesRoslynSettings()
     {
+        var dependencies = new[] { activeSolutionBoundTracker };
         var userSettings = new UserSettings(new AnalysisSettings());
         userSettingsUpdaterMock.UserSettings.Returns(userSettings);
 
-        _ = new AnalysisConfigMonitor(analysisRequesterMock, userSettingsUpdaterMock, slCoreRuleSettingsUpdater, roslynSettingsUpdater, activeSolutionBoundTracker, logger, threadHandling);
+        _ = CreateAndInitializeTestSubject();
 
         Received.InOrder(() =>
         {
+            initializationProcessorFactory.Create<AnalysisConfigMonitor>(
+                Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.SequenceEqual(dependencies)),
+                Arg.Any<Func<IThreadHandling, Task>>());
+            createdInitializationProcessor.InitializeAsync();
             _ = userSettingsUpdaterMock.UserSettings;
             roslynSettingsUpdater.Update(userSettings);
             userSettingsUpdaterMock.SettingsChanged += Arg.Any<EventHandler>();
             activeSolutionBoundTracker.SolutionBindingChanged += Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
+            createdInitializationProcessor.InitializeAsync(); // called as part of the CreateAndInitializeTestSubject method
         });
     }
 
     [TestMethod]
     public void WhenUserSettingsChange_AnalysisIsRequested()
     {
+        _ = CreateAndInitializeTestSubject();
+
         SimulateUserSettingsChanged();
 
         // Should re-analyse
@@ -114,6 +109,8 @@ public class AnalysisConfigMonitorTests
     [TestMethod]
     public void WhenUserSettingsChange_UpdatesSlCoreSettingsBeforeTriggeringAnalysis()
     {
+        _ = CreateAndInitializeTestSubject();
+
         var userSettings = SimulateUserSettingsChanged();
 
         Received.InOrder(() =>
@@ -127,6 +124,8 @@ public class AnalysisConfigMonitorTests
     [TestMethod]
     public void WhenBindingChanges_AnalysisIsRequested()
     {
+        _ = CreateAndInitializeTestSubject();
+
         SimulateBindingChanged();
 
         // Should re-analyse
@@ -138,6 +137,8 @@ public class AnalysisConfigMonitorTests
     [TestMethod]
     public void WhenDisposed_EventsAreIgnored()
     {
+        var testSubject = CreateAndInitializeTestSubject();
+
         // Act
         testSubject.Dispose();
 
@@ -162,4 +163,39 @@ public class AnalysisConfigMonitorTests
     private void AssertAnalysisIsNotRequested() => analysisRequesterMock.ReceivedCalls().Count().Should().Be(0);
 
     private void AssertSwitchedToBackgroundThread() => threadHandling.Received(1).SwitchToBackgroundThread();
+
+    private AnalysisConfigMonitor CreateUninitializedTestSubject(out TaskCompletionSource<byte> barrier)
+    {
+        var tcs = barrier = new TaskCompletionSource<byte>();
+        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<AnalysisConfigMonitor>(threadHandling, logger, processor =>
+        {
+            MockableInitializationProcessor.ConfigureWithWait(processor, tcs);
+            createdInitializationProcessor = processor;
+        });
+        return new AnalysisConfigMonitor(
+            analysisRequesterMock,
+            userSettingsUpdaterMock,
+            slCoreRuleSettingsUpdater,
+            roslynSettingsUpdater,
+            activeSolutionBoundTracker,
+            logger,
+            threadHandling,
+            initializationProcessorFactory);
+    }
+
+    private AnalysisConfigMonitor CreateAndInitializeTestSubject()
+    {
+        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<AnalysisConfigMonitor>(threadHandling, logger, processor => createdInitializationProcessor = processor);
+        var testSubject = new AnalysisConfigMonitor(
+            analysisRequesterMock,
+            userSettingsUpdaterMock,
+            slCoreRuleSettingsUpdater,
+            roslynSettingsUpdater,
+            activeSolutionBoundTracker,
+            logger,
+            threadHandling,
+            initializationProcessorFactory);
+        testSubject.InitializeAsync().GetAwaiter().GetResult();
+        return testSubject;
+    }
 }

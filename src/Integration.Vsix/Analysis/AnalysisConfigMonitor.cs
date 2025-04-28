@@ -23,8 +23,10 @@ using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
 using SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
 using SonarLint.VisualStudio.SLCore.Analysis;
 
@@ -45,6 +47,7 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
     private readonly IThreadHandling threadHandling;
     private readonly ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater;
     private readonly IStandaloneRoslynSettingsUpdater roslynSettingsUpdater;
+    private readonly IInitializationProcessor initializationProcessor;
 
     [ImportingConstructor]
     public AnalysisConfigMonitor(
@@ -54,7 +57,8 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
         IStandaloneRoslynSettingsUpdater roslynSettingsUpdater,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         ILogger logger,
-        IThreadHandling threadHandling)
+        IThreadHandling threadHandling,
+        IInitializationProcessorFactory initializationProcessorFactory)
     {
         this.analysisRequester = analysisRequester;
         this.userSettingsUpdater = userSettingsUpdater;
@@ -64,11 +68,20 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
         this.slCoreRuleSettingsUpdater = slCoreRuleSettingsUpdater;
         this.roslynSettingsUpdater = roslynSettingsUpdater;
 
-        // todo https://sonarsource.atlassian.net/browse/SLVS-2025 fix this MEF importing constructor is not free-threaded
-        roslynSettingsUpdater.Update(userSettingsUpdater.UserSettings);
-        userSettingsUpdater.SettingsChanged += OnUserSettingsChanged;
-        activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
+        initializationProcessor = initializationProcessorFactory.Create<AnalysisConfigMonitor>(
+            [activeSolutionBoundTracker],
+            _ =>
+            {
+                roslynSettingsUpdater.Update(userSettingsUpdater.UserSettings);
+                userSettingsUpdater.SettingsChanged += OnUserSettingsChanged;
+                activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
+                return Task.CompletedTask;
+            });
+
+        InitializeAsync().Forget();
     }
+
+    public Task InitializeAsync() => initializationProcessor.InitializeAsync();
 
     #region Incoming notifications
 
@@ -98,26 +111,20 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
     }
 
     #region IDisposable Support
+
     private bool disposedValue = false; // To detect redundant calls
 
-    private void Dispose(bool disposing)
+    public void Dispose()
     {
         if (!disposedValue)
         {
-            if (disposing)
+            if (initializationProcessor.IsFinalized)
             {
                 userSettingsUpdater.SettingsChanged -= OnUserSettingsChanged;
                 activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
             }
             disposedValue = true;
         }
-    }
-
-    // This code added to correctly implement the disposable pattern.
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        Dispose(true);
     }
     #endregion
 }
