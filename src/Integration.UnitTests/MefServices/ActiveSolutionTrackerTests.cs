@@ -33,7 +33,8 @@ public class ActiveSolutionTrackerTests
     private ConfigurableServiceProvider serviceProvider;
     private SolutionMock solutionMock;
     private ISolutionInfoProvider solutionInfoProvider;
-    private MockableInitializationProcessor initializationProcessor;
+    private IInitializationProcessorFactory initializationProcessorFactory;
+    private MockableInitializationProcessor createdInitializationProcessor;
     private TestLogger testLogger;
     private NoOpThreadHandler threadHandling;
 
@@ -47,7 +48,6 @@ public class ActiveSolutionTrackerTests
         solutionInfoProvider.GetSolutionName().Returns((string)null);
         testLogger = new TestLogger();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
-        initializationProcessor = Substitute.ForPartsOf<MockableInitializationProcessor>(threadHandling, testLogger);
     }
 
     [TestMethod]
@@ -55,7 +55,7 @@ public class ActiveSolutionTrackerTests
         MefTestHelpers.CheckTypeCanBeImported<ActiveSolutionTracker, IActiveSolutionTracker>(
             MefTestHelpers.CreateExport<SVsServiceProvider>(),
             MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
-            MefTestHelpers.CreateExport<IInitializationProcessor>());
+            MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() =>
@@ -76,19 +76,14 @@ public class ActiveSolutionTrackerTests
         testSubject.CurrentSolutionName.Should().Be(name);
         Received.InOrder(() =>
         {
+            initializationProcessorFactory.Create<ActiveSolutionTracker>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.Count == 0), Arg.Any<Func<IThreadHandling, Task>>());
             // this one is invoked by the ctor
-            initializationProcessor.InitializeAsync(
-                nameof(ActiveSolutionTracker),
-                Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.Count == 0),
-                Arg.Any<Func<IThreadHandling, Task>>());
+            createdInitializationProcessor.InitializeAsync();
             threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
             solutionInfoProvider.GetSolutionName();
             vsSolution.AdviseSolutionEvents(testSubject, out _);
             // this one is invoked by CreateAndInitializeTestSubject
-            initializationProcessor.InitializeAsync(
-                nameof(ActiveSolutionTracker),
-                Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.Count == 0),
-                Arg.Any<Func<IThreadHandling, Task>>());
+            createdInitializationProcessor.InitializeAsync();
         });
     }
 
@@ -186,13 +181,19 @@ public class ActiveSolutionTrackerTests
 
     private ActiveSolutionTracker CreateUninitializedTestSubject(out TaskCompletionSource<byte> barrier)
     {
-        barrier = MockableInitializationProcessor.ConfigureWithWait(initializationProcessor, threadHandling);
-        return new ActiveSolutionTracker(serviceProvider, solutionInfoProvider, initializationProcessor);
+        var tcs = barrier = new();
+        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<ActiveSolutionTracker>(threadHandling, new TestLogger(), processor =>
+        {
+            createdInitializationProcessor = processor;
+            MockableInitializationProcessor.ConfigureWithWait(processor, tcs);
+        });
+        return new ActiveSolutionTracker(serviceProvider, solutionInfoProvider, initializationProcessorFactory);
     }
 
     private ActiveSolutionTracker CreateAndInitializeTestSubject()
     {
-        var testSubject = new ActiveSolutionTracker(serviceProvider, solutionInfoProvider, initializationProcessor);
+        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<ActiveSolutionTracker>(threadHandling, new TestLogger(), processor => createdInitializationProcessor = processor);
+        var testSubject = new ActiveSolutionTracker(serviceProvider, solutionInfoProvider, initializationProcessorFactory);
         testSubject.InitializeAsync().GetAwaiter().GetResult();
         return testSubject;
     }

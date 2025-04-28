@@ -18,23 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Initialization;
+using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Initialization;
+using SonarLint.VisualStudio.Core.Synchronization;
 
-public interface IInitializationProcessorFactory
+namespace SonarLint.VisualStudio.Infrastructure.VS.Initialization;
+
+[Export(typeof(IInitializationProcessorFactory))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+public class InitializationProcessorFactory(
+    IAsyncLockFactory asyncLockFactory,
+    IThreadHandling threadHandling,
+    ILogger logger) : IInitializationProcessorFactory
 {
-    IInitializationProcessor Create<T>(IReadOnlyCollection<IRequireInitialization> dependencies, Func<IThreadHandling, Task> initialization);
-}
-
-public interface IInitializationProcessor
-{
-    /// <summary>
-    /// Returns true if initialization was completed or failed, false if it's not been finished.
-    /// Does not await for initialization to finish.
-    /// </summary>
-    bool IsFinalized { get; }
-
-    /// <summary>
-    /// Initializes once using given dependencies and owner's initializer
-    /// </summary>
-    Task InitializeAsync();
+    public IInitializationProcessor Create<T>(IReadOnlyCollection<IRequireInitialization> dependencies, Func<IThreadHandling, Task> initialization) =>
+        new InitializationProcessor(typeof(T).Name, dependencies, initialization, asyncLockFactory, threadHandling, logger);
 }

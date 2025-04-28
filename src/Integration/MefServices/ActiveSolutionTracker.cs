@@ -51,34 +51,30 @@ namespace SonarLint.VisualStudio.Integration
         public ActiveSolutionTracker(
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             ISolutionInfoProvider solutionInfoProvider,
-            IInitializationProcessor initializationProcessor)
+            IInitializationProcessorFactory initializationProcessorFactory)
         {
             this.serviceProvider = serviceProvider;
             this.solutionInfoProvider = solutionInfoProvider;
-            this.initializationProcessor = initializationProcessor;
+            initializationProcessor = initializationProcessorFactory.Create<ActiveSolutionTracker>([], InitializeInternalAsync);
 
             InitializeAsync().Forget();
         }
 
-        public Task InitializeAsync() =>
-            initializationProcessor.InitializeAsync(
-                nameof(ActiveSolutionTracker),
-                [],
-                async threadHandling =>
+        public Task InitializeAsync() => initializationProcessor.InitializeAsync();
+
+        private Task InitializeInternalAsync(IThreadHandling threadHandling) =>
+            threadHandling.RunOnUIThreadAsync(() =>
+            {
+                if (isDisposed)
                 {
-                    await threadHandling.RunOnUIThreadAsync(() =>
-                    {
-                        if (isDisposed)
-                        {
-                            // not subscribing to events if already disposed
-                            return;
-                        }
-                        CurrentSolutionName = solutionInfoProvider.GetSolutionName();
-                        solution = serviceProvider.GetService<SVsSolution, IVsSolution>();
-                        Debug.Assert(solution != null, "Cannot find IVsSolution");
-                        ErrorHandler.ThrowOnFailure(solution.AdviseSolutionEvents(this, out cookie));
-                    });
-                });
+                    // not subscribing to events if already disposed
+                    return;
+                }
+                CurrentSolutionName = solutionInfoProvider.GetSolutionName();
+                solution = serviceProvider.GetService<SVsSolution, IVsSolution>();
+                Debug.Assert(solution != null, "Cannot find IVsSolution");
+                ErrorHandler.ThrowOnFailure(solution.AdviseSolutionEvents(this, out cookie));
+            });
 
         #region IVsSolutionEvents
 

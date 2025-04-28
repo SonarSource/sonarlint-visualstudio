@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
 using System.Runtime.ExceptionServices;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Initialization;
@@ -26,10 +25,10 @@ using SonarLint.VisualStudio.Core.Synchronization;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Initialization;
 
-[Export(typeof(IInitializationProcessor))]
-[PartCreationPolicy(CreationPolicy.NonShared)]
-[method: ImportingConstructor]
 public class InitializationProcessor(
+    string owner,
+    IReadOnlyCollection<IRequireInitialization> dependencies,
+    Func<IThreadHandling, Task> initialization,
     IAsyncLockFactory asyncLockFactory,
     IThreadHandling threadHandling,
     ILogger logger) : IInitializationProcessor
@@ -39,15 +38,12 @@ public class InitializationProcessor(
 
     public bool IsFinalized => state.InitializationState.IsInitialized;
 
-    public Task InitializeAsync(
-        string owner,
-        IReadOnlyCollection<IRequireInitialization> dependencies,
-        Func<IThreadHandling, Task> initialization) =>
+    public Task InitializeAsync() =>
         !CheckInitialized()
-            ? threadHandling.RunOnBackgroundThread(() => InitializeInternalAsync(owner, dependencies, initialization))
+            ? threadHandling.RunOnBackgroundThread(() => InitializeInternalAsync())
             : Task.CompletedTask;
 
-    private async Task InitializeInternalAsync(string owner, IReadOnlyCollection<IRequireInitialization> dependencies, Func<IThreadHandling, Task> initialization)
+    private async Task InitializeInternalAsync()
     {
         using (await initializationProcessLock.AcquireAsync())
         {
@@ -56,11 +52,11 @@ public class InitializationProcessor(
                 return;
             }
 
-            await DoInitializationAsync(owner, dependencies, initialization);
+            await DoInitializationAsync();
         }
     }
 
-    private async Task DoInitializationAsync(string owner, IReadOnlyCollection<IRequireInitialization> dependencies, Func<IThreadHandling, Task> initialization)
+    private async Task DoInitializationAsync()
     {
         var loggerContext = new MessageLevelContext { VerboseContext = [owner] };
         try
