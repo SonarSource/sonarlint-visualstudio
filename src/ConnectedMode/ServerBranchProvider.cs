@@ -19,10 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using System.IO;
 using LibGit2Sharp;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -47,7 +44,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
         private readonly CreateRepositoryObject createRepo;
 
         [ImportingConstructor]
-        public ServerBranchProvider(IConfigurationProvider configurationProvider,
+        public ServerBranchProvider(
+            IConfigurationProvider configurationProvider,
             IGitWorkspaceService gitWorkspaceService,
             ISonarQubeService sonarQubeService,
             IBranchMatcher branchMatcher,
@@ -56,7 +54,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
         {
         }
 
-        internal /* for testing */ ServerBranchProvider(IConfigurationProvider configurationProvider,
+        internal /* for testing */ ServerBranchProvider(
+            IConfigurationProvider configurationProvider,
             IGitWorkspaceService gitWorkspaceService,
             ISonarQubeService sonarQubeService,
             IBranchMatcher branchMatcher,
@@ -73,6 +72,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
         public async Task<string> GetServerBranchNameAsync(CancellationToken token)
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             var config = configurationProvider.GetConfiguration();
 
             if (config.Mode == SonarLintMode.Standalone)
@@ -91,6 +92,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 matchingBranchName = remoteBranches.First(rb => rb.IsMain).Name;
             }
 
+            stopwatch.Stop();
+            File.AppendAllText(@"C:\Users\gabriela.trutan\Desktop\perf.txt", "ms: " + stopwatch.ElapsedMilliseconds + Environment.NewLine);
             Debug.Assert(matchingBranchName != null);
 
             logger.WriteLine(Resources.BranchProvider_MatchingServerBranchName, matchingBranchName);
