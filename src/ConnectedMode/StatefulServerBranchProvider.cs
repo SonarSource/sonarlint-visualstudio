@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Branch;
@@ -30,7 +31,7 @@ using SonarLint.VisualStudio.SLCore.Service.Branch;
 namespace SonarLint.VisualStudio.ConnectedMode
 {
     [Export(typeof(IStatefulServerBranchProvider))]
-    // note: this class does not seem to be safe from concurrent updates
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class StatefulServerBranchProvider : IStatefulServerBranchProvider, IDisposable
     {
         private readonly IServerBranchProvider serverBranchProvider;
@@ -41,6 +42,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
         private readonly IThreadHandling threadHandling;
         private bool disposedValue;
         private string selectedBranch;
+        private readonly IAsyncLock asyncLock;
 
         [ImportingConstructor]
         public StatefulServerBranchProvider(
@@ -49,7 +51,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
             IActiveConfigScopeTracker activeConfigScopeTracker,
             ISLCoreServiceProvider serviceProvider,
             ILogger logger,
-            IThreadHandling threadHandling)
+            IThreadHandling threadHandling,
+            IAsyncLockFactory asyncLockFactory)
         {
             this.serverBranchProvider = serverBranchProvider;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
@@ -57,6 +60,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             this.serviceProvider = serviceProvider;
             this.logger = logger;
             this.threadHandling = threadHandling;
+            asyncLock = asyncLockFactory.Create();
 
             activeSolutionBoundTracker.PreSolutionBindingUpdated += OnPreSolutionBindingUpdated;
             activeSolutionBoundTracker.PreSolutionBindingChanged += OnPreSolutionBindingChanged;
@@ -65,17 +69,25 @@ namespace SonarLint.VisualStudio.ConnectedMode
         private void OnPreSolutionBindingUpdated(object sender, EventArgs e)
         {
             logger.LogVerbose(Resources.StatefulBranchProvider_BindingUpdated);
-            selectedBranch = null;
+            SafeClearSelectedBranchCache();
 
             NotifySlCoreBranchChange();
+        }
+
+        private void SafeClearSelectedBranchCache()
+        {
+            using (asyncLock.Acquire())
+            {
+                selectedBranch = null;
+            }
         }
 
         private void OnPreSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
         {
             logger.LogVerbose(Resources.StatefulBranchProvider_BindingChanged);
-            selectedBranch = null;
+            SafeClearSelectedBranchCache();
 
-            if(e.Configuration.Mode.IsInAConnectedMode())
+            if (e.Configuration.Mode.IsInAConnectedMode())
             {
                 NotifySlCoreBranchChange();
             }
@@ -98,32 +110,29 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
         public async Task<string> GetServerBranchNameAsync(CancellationToken token)
         {
-            if (selectedBranch == null)
+            using (await asyncLock.AcquireAsync())
             {
-                logger.LogVerbose(Resources.StatefulBranchProvider_CacheMiss);
+                if (selectedBranch == null)
+                {
+                    logger.LogVerbose(Resources.StatefulBranchProvider_CacheMiss);
 
-                // Note: we're using null to indicate that a refresh is required.
-                // However, the serverBranchProvider will return null in some cases e.g. standalone mode, not a git repo.
-                // In these cases we expect the serverBranchProvider to return quickly so the impact of making unnecessary
-                // calls is not significant.
-                selectedBranch = await DoGetServerBranchNameAsync(token);
-            }
-            else
-            {
-                logger.LogVerbose(Resources.StatefulBranchProvider_CacheHit);
+                    // Note: we're using null to indicate that a refresh is required.
+                    // However, the serverBranchProvider will return null in some cases e.g. standalone mode, not a git repo.
+                    // In these cases we expect the serverBranchProvider to return quickly so the impact of making unnecessary
+                    // calls is not significant.
+                    selectedBranch = await DoGetServerBranchNameAsync(token);
+                }
+                else
+                {
+                    logger.LogVerbose(Resources.StatefulBranchProvider_CacheHit);
+                }
             }
 
             logger.WriteLine(Resources.StatefulBranchProvider_ReturnValue, selectedBranch ?? Resources.NullBranchName);
             return selectedBranch;
         }
 
-        private Task<string> DoGetServerBranchNameAsync(CancellationToken token)
-        {
-            return threadHandling.RunOnBackgroundThread(() =>
-            {
-                return serverBranchProvider.GetServerBranchNameAsync(token);
-            });
-        }
+        private Task<string> DoGetServerBranchNameAsync(CancellationToken token) => threadHandling.RunOnBackgroundThread(() => serverBranchProvider.GetServerBranchNameAsync(token));
 
         #region IDisposable
 
