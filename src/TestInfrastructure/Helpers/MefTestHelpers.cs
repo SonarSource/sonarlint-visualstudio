@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
         [DebuggerStepThrough]
         public static Export CreateExport<T>() where T: class
         {
-            return CreateExport<T>(Mock.Of<T>());
+            return CreateExport<T>(Substitute.For<T>());
         }
 
         [DebuggerStepThrough]
