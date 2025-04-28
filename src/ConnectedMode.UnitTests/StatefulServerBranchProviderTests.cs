@@ -102,7 +102,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var serverBranch = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
 
-            mockedThreadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<string>>>());
+            await mockedThreadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<string>>>());
             mockedThreadHandling.ReceivedCalls().Should().HaveCount(1);
             serverBranch.Should().Be("Branch");
             serverBranchProvider.VerifyGetServerBranchNameCalled(1);
