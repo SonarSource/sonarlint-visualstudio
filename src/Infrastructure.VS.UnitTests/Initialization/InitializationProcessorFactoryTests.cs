@@ -53,8 +53,10 @@ public class InitializationProcessorFactoryTests
     public void MefCtor_CheckIsSingleton() =>
         MefTestHelpers.CheckIsSingletonMefComponent<InitializationProcessorFactory>();
 
+     /// <summary>
+     /// For more tests see <see cref="InitializationProcessorTests"/>
+     /// </summary>
     [TestMethod]
     public void Create_ReturnsNonNull() =>
-        // for more tests see InitializationProcessorTests
         testSubject.Create<InitializationProcessorFactoryTests>([], _ => Task.CompletedTask).Should().NotBeNull();
 }

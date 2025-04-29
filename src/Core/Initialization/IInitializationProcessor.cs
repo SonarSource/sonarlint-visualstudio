@@ -34,7 +34,7 @@ public interface IInitializationProcessor
     bool IsFinalized { get; }
 
     /// <summary>
-    /// Initializes once using given dependencies and owner's initializer
+    /// Initializes once on a background thread using given dependencies and owner's initializer
     /// </summary>
     Task InitializeAsync();
 }

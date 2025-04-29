@@ -40,7 +40,7 @@ public class InitializationProcessor(
 
     public Task InitializeAsync() =>
         !CheckInitialized()
-            ? threadHandling.RunOnBackgroundThread(() => InitializeInternalAsync())
+            ? threadHandling.RunOnBackgroundThread(InitializeInternalAsync)
             : Task.CompletedTask;
 
     private async Task InitializeInternalAsync()
