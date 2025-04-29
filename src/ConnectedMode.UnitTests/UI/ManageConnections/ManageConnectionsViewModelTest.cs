@@ -449,7 +449,7 @@ public class ManageConnectionsViewModelTest
     [TestMethod]
     public void GetConnectionReferences_TwoBindingsReferencesSonarCloudConnection_ReturnsTwoBindings()
     {
-        var sonarCloud = twoConnections.First(conn => conn.Info.ServerType == ConnectionServerType.SonarQube);
+        var sonarCloud = twoConnections.First(conn => conn.Info.ServerType == ConnectionServerType.SonarCloud);
         var serverConnectionToBeRemoved = CreateSonarCloudServerConnection(sonarCloud);
         solutionBindingRepository.List().Returns([
             new BoundServerProject("binding1", "myProject", serverConnectionToBeRemoved),
@@ -460,6 +460,21 @@ public class ManageConnectionsViewModelTest
 
         response.Success.Should().BeTrue();
         response.ResponseData.Should().BeEquivalentTo("binding1", "binding2");
+    }
+
+    [TestMethod]
+    public void GetConnectionReferences_TwoSonarCloudConnectionWithSameOrganizationExistForDifferentRegions_OneBindingReferencesEuRegion_ReturnsNoBindingsForUsRegion()
+    {
+        var euRegion = new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud, CloudServerRegion.Eu));
+        var usRegion = new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud, CloudServerRegion.Us));
+        solutionBindingRepository.List().Returns([
+            new BoundServerProject("binding1", "myProject", CreateSonarCloudServerConnection(euRegion)),
+        ]);
+
+        var response = testSubject.GetConnectionReferences(CreateConnectionViewModel(usRegion));
+
+        response.Success.Should().BeTrue();
+        response.ResponseData.Should().BeEmpty();
     }
 
     [TestMethod]

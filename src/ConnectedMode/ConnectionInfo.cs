@@ -97,4 +97,13 @@ public static class ConnectionInfoExtensions
 
         return partialServerConnection;
     }
+
+    public static bool IsSameAs(this ConnectionInfo connectionInfo, ServerConnection serverConnection)
+    {
+        var connectionInfoToCompare = ConnectionInfo.From(serverConnection);
+
+        return connectionInfoToCompare.Id == connectionInfo.Id &&
+               connectionInfoToCompare.CloudServerRegion == connectionInfo.CloudServerRegion &&
+               connectionInfoToCompare.ServerType == connectionInfo.ServerType;
+    }
 }

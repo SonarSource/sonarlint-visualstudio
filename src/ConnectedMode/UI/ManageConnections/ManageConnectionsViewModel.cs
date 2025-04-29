@@ -90,7 +90,7 @@ internal class ManageConnectionsViewModel(
         {
             var bindings = ConnectedModeBindingServices.SolutionBindingRepository.List();
             var references = bindings
-                .Where(x => ConnectionInfo.From(x.ServerConnection).Id == connectionViewModel.Connection.Info.Id)
+                .Where(x => connectionViewModel.Connection.Info.IsSameAs(x.ServerConnection))
                 .Select(x => x.LocalBindingKey).ToList();
             return new ResponseStatusWithData<List<string>>(true, references);
         }
