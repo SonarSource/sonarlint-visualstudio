@@ -31,12 +31,12 @@ namespace SonarLint.VisualStudio.TestInfrastructure
     /// No thread switches take place.</remarks>
     public class NoOpThreadHandler : IThreadHandling
     {
-        public bool CheckAccess() => true;
+        public virtual bool CheckAccess() => true;
 
-        public T Run<T>(Func<Task<T>> asyncMethod) => asyncMethod().Result;
-        public Task RunAsync(Func<Task> asyncMethod) => asyncMethod();
+        public virtual T Run<T>(Func<Task<T>> asyncMethod) => asyncMethod().Result;
+        public virtual Task RunAsync(Func<Task> asyncMethod) => asyncMethod();
 
-        public Task RunAsync<T>(Func<Task<T>> asyncMethod) => asyncMethod();
+        public virtual Task RunAsync<T>(Func<Task<T>> asyncMethod) => asyncMethod();
 
         public virtual Task RunOnUIThreadAsync(Action op)
         {
@@ -46,15 +46,15 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         public virtual void RunOnUIThread(Action op) => op();
 
-        public Task<T> RunOnBackgroundThread<T>(Func<Task<T>> asyncMethod) => asyncMethod();
+        public virtual Task<T> RunOnBackgroundThread<T>(Func<Task<T>> asyncMethod) => asyncMethod();
 
-        public IAwaitableWrapper SwitchToBackgroundThread() => new NoOpAwaitable();
+        public virtual IAwaitableWrapper SwitchToBackgroundThread() => new NoOpAwaitable();
 
-        public Task SwitchToMainThreadAsync() => Task.CompletedTask;
+        public virtual Task SwitchToMainThreadAsync() => Task.CompletedTask;
 
-        public void ThrowIfNotOnUIThread() { /* no-op */ }
+        public virtual void ThrowIfNotOnUIThread() { /* no-op */ }
 
-        public void ThrowIfOnUIThread() { /* no-op */ }
+        public virtual void ThrowIfOnUIThread() { /* no-op */ }
 
         #region No-op awaiter/awaitable
 

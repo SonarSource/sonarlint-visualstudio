@@ -118,7 +118,8 @@ namespace SonarLint.VisualStudio.Integration
                 return;
             }
 
-            RaiseAnalyzersChangedIfBindingChanged(configurationProvider.GetConfiguration());
+            var newBindingConfiguration = configurationProvider.GetConfiguration();
+            RaiseAnalyzersChangedIfBindingChanged(newBindingConfiguration);
         }
 
         private void GitEventsMonitor_HeadChanged(object sender, EventArgs e)

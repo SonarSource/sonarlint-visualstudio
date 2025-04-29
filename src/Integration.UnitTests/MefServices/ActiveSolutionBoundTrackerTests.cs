@@ -168,24 +168,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ActiveSolutionBoundTracker_EventsAreNotTriggeredBeforeInitializationIsComplete()
+        public void ActiveSolutionBoundTracker_SolutionChanged_EventsAreNotTriggeredBeforeInitializationIsComplete()
         {
             ConfigureService(false);
-            ConfigureSolutionBinding(boundSonarQubeProject);
             using var testSubject = CreateUninitializedTestSubject(out var barrier);
             var bindingChangedHandler = Substitute.For<EventHandler<ActiveSolutionBindingEventArgs>>();
-            var bindingUpdatedEventHandler = Substitute.For<EventHandler>();
             testSubject.SolutionBindingChanged += bindingChangedHandler;
-            testSubject.SolutionBindingUpdated += bindingUpdatedEventHandler;
 
-            testSubject.HandleBindingChange();
+            ConfigureSolutionBinding(boundSonarQubeProject);
             activeSolutionTracker.SimulateActiveSolutionChanged(false, null);
             activeSolutionTracker.SimulateActiveSolutionChanged(true, "name");
-            gitEventsMonitor.HeadChanged += Raise.Event();
 
             // state is unmodified and events are not raised until initialized
             bindingChangedHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
-            bindingUpdatedEventHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
             configScopeUpdater.DidNotReceiveWithAnyArgs().UpdateConfigScopeForCurrentSolution(boundSonarQubeProject);
             configProvider.DidNotReceiveWithAnyArgs().GetConfiguration();
             testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone);
@@ -194,16 +189,72 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.InitializeAsync().GetAwaiter().GetResult();
 
             // works as normal after initialization
+            testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Connected);
             ConfigureSolutionBinding(null);
             activeSolutionTracker.SimulateActiveSolutionChanged(true, "sln");
+            testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone);
+
             bindingChangedHandler.ReceivedWithAnyArgs().Invoke(default, default);
-            configScopeUpdater.ReceivedWithAnyArgs().UpdateConfigScopeForCurrentSolution(boundSonarQubeProject);
-            // switch to connected mode to test binding updated event
+            configScopeUpdater.ReceivedWithAnyArgs().UpdateConfigScopeForCurrentSolution(default);
+        }
+
+        [TestMethod]
+        public void ActiveSolutionBoundTracker_HandleBinding_EventsAreNotTriggeredBeforeInitializationIsComplete()
+        {
+            ConfigureService(false);
+            ConfigureSolutionBinding(boundSonarQubeProject);
+            using var testSubject = CreateUninitializedTestSubject(out var barrier);
+            var bindingChangedHandler = Substitute.For<EventHandler<ActiveSolutionBindingEventArgs>>();
+            testSubject.SolutionBindingChanged += bindingChangedHandler;
+
             ConfigureSolutionBinding(boundSonarQubeProject);
             testSubject.HandleBindingChange();
             gitEventsMonitor.HeadChanged += Raise.Event();
-            bindingUpdatedEventHandler.ReceivedWithAnyArgs().Invoke(default, default);
+
+            // state is unmodified and events are not raised until initialized
+            bindingChangedHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
+            configScopeUpdater.DidNotReceiveWithAnyArgs().UpdateConfigScopeForCurrentSolution(boundSonarQubeProject);
+            configProvider.DidNotReceiveWithAnyArgs().GetConfiguration();
+            testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone);
+
+            barrier.SetResult(1);
+            testSubject.InitializeAsync().GetAwaiter().GetResult();
+
+            // works as normal after initialization
             testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Connected);
+            ConfigureSolutionBinding(null);
+            testSubject.HandleBindingChange();
+            bindingChangedHandler.ReceivedWithAnyArgs().Invoke(default, default);
+            configScopeUpdater.ReceivedWithAnyArgs().UpdateConfigScopeForCurrentSolution(default);
+            testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone);
+        }
+
+        [TestMethod]
+        public void ActiveSolutionBoundTracker_GitHeadChanged_EventsAreNotTriggeredBeforeInitializationIsComplete()
+        {
+            ConfigureService(false);
+            ConfigureSolutionBinding(boundSonarQubeProject);
+            using var testSubject = CreateUninitializedTestSubject(out var barrier);
+            var bindingUpdatedEventHandler = Substitute.For<EventHandler>();
+            testSubject.SolutionBindingUpdated += bindingUpdatedEventHandler;
+
+            testSubject.HandleBindingChange();
+            activeSolutionTracker.SimulateActiveSolutionChanged(false, null);
+            activeSolutionTracker.SimulateActiveSolutionChanged(true, "name");
+            gitEventsMonitor.HeadChanged += Raise.Event();
+
+            // state is unmodified and events are not raised until initialized
+            bindingUpdatedEventHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
+            configProvider.DidNotReceiveWithAnyArgs().GetConfiguration();
+            testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone);
+
+            barrier.SetResult(1);
+            testSubject.InitializeAsync().GetAwaiter().GetResult();
+
+            // switch to connected mode to test binding updated event
+            testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Connected);
+            gitEventsMonitor.HeadChanged += Raise.Event();
+            bindingUpdatedEventHandler.ReceivedWithAnyArgs().Invoke(default, default);
         }
 
         [TestMethod]
@@ -345,7 +396,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             configScopeUpdater.ReceivedWithAnyArgs(2).UpdateConfigScopeForCurrentSolution(default);
             VerifyAndResetBoundSolutionUiContextMock(isActive: true);
 
-            // Notifications from the Team Explorer should not trigger connect/disconnect
+            // Binding controller manages connections in case of new bindings
             VerifyServiceDisconnect(0);
             VerifyServiceConnect(1);
 
