@@ -18,12 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings;
 
 internal static class OpenDocumentService
 {
+    [ExcludeFromCodeCoverage]
     internal static void OpenDocumentInVs(IServiceProvider serviceProvider, string filePath)
     {
         // TryOpenDocument calls several other VS services. From a testing point of view, it's simpler to

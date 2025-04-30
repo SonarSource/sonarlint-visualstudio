@@ -42,8 +42,8 @@ internal sealed partial class SolutionSettingsDialog : Window
 
     private void ApplyAndClose()
     {
+        // TODO by https://sonarsource.atlassian.net/browse/SLVS-2100: save to settings.json file
         Close();
-        DialogResult = true;
     }
 
     private void OpenFile(object sender, RequestNavigateEventArgs e)
