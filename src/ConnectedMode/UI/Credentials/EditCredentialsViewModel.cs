@@ -44,7 +44,7 @@ internal class EditCredentialsViewModel(
         }
 
         var boundServerProject = connectedModeServices.ConfigurationProvider.GetConfiguration()?.Project;
-        if (boundServerProject != null && ConnectionInfo.From(boundServerProject.ServerConnection).Id == connection.Info.Id)
+        if (boundServerProject != null && connection.Info.IsSameAs(boundServerProject.ServerConnection))
         {
             var refreshBinding = new TaskToPerformParams<ResponseStatus>(
                 async () => await RebindAsync(boundServerProject.ServerProjectKey, boundServerProject.ServerConnection.Id),

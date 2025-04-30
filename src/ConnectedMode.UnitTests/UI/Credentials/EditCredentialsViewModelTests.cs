@@ -18,11 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
-using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -32,8 +30,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials;
 [TestClass]
 public class EditCredentialsViewModelTests
 {
-    private static readonly ConnectionInfo SonarQubeConnectionInfo = new("http://localhost:9000/", ConnectionServerType.SonarCloud, CloudServerRegion.Us);
+    private static readonly ConnectionInfo SonarQubeConnectionInfo = new("http://localhost:9000/", ConnectionServerType.SonarQube);
+    private static readonly ConnectionInfo SonarCloudEuConnectionInfo = new("myOrg", ConnectionServerType.SonarCloud, CloudServerRegion.Eu);
     private readonly Connection sonarQubeConnection = new(SonarQubeConnectionInfo, false);
+    private readonly Connection sonarCloudConnection = new(SonarCloudEuConnectionInfo, false);
     private IConnectedModeUIManager uiManager;
     private IConnectedModeBindingServices connectedModeBindingServices;
     private IConnectedModeServices connectedModeServices;
@@ -49,7 +49,7 @@ public class EditCredentialsViewModelTests
         MockServices();
         progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
 
-        testSubject = new EditCredentialsViewModel(sonarQubeConnection, uiManager, connectedModeServices, connectedModeBindingServices, progressReporterViewModel);
+        testSubject = CreateTestSubject(sonarQubeConnection);
     }
 
     [TestMethod]
@@ -68,14 +68,44 @@ public class EditCredentialsViewModelTests
     }
 
     [TestMethod]
-    public async Task UpdateConnectionCredentialsWithProgressAsync_WhenCurrentSolutionIsBoundToUpdatedConnection_RebindsAndReportsProgress()
+    public async Task UpdateConnectionCredentialsWithProgressAsync_WhenCurrentSolutionIsBoundToUpdatedSonarQubeConnection_RebindsAndReportsProgress()
     {
         progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus>>()).Returns(Task.FromResult(new ResponseStatus(true)));
-        MockConfigurationProvider();
+        MockConfigurationProvider(CreateSonarQubeServerConnection());
 
-        await testSubject.UpdateConnectionCredentialsWithProgressAsync();
+        await CreateTestSubject(sonarQubeConnection).UpdateConnectionCredentialsWithProgressAsync();
 
         await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
+                    x.ProgressStatus == UiResources.RebindingProgressText &&
+                    x.WarningText == UiResources.RebindingFailedText));
+    }
+
+    [TestMethod]
+    public async Task UpdateConnectionCredentialsWithProgressAsync_WhenCurrentSolutionIsBoundToUpdatedSonarCloudConnection_RebindsAndReportsProgress()
+    {
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus>>()).Returns(Task.FromResult(new ResponseStatus(true)));
+        MockConfigurationProvider(CreateSonarCloudServerConnection(sonarCloudConnection.Info.Id, sonarCloudConnection.Info.CloudServerRegion));
+
+        await CreateTestSubject(sonarCloudConnection).UpdateConnectionCredentialsWithProgressAsync();
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
+                    x.ProgressStatus == UiResources.RebindingProgressText &&
+                    x.WarningText == UiResources.RebindingFailedText));
+    }
+
+    [TestMethod]
+    public async Task UpdateConnectionCredentialsWithProgressAsync_WhenCurrentSolutionIsBoundToDifferentSonarCloudConnection_RebindsAndReportsProgress()
+    {
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus>>()).Returns(Task.FromResult(new ResponseStatus(true)));
+        MockConfigurationProvider(CreateSonarCloudServerConnection(sonarCloudConnection.Info.Id, CloudServerRegion.Us));
+
+        await CreateTestSubject(sonarCloudConnection).UpdateConnectionCredentialsWithProgressAsync();
+
+        await progressReporterViewModel.DidNotReceive()
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.RebindingProgressText &&
@@ -157,13 +187,16 @@ public class EditCredentialsViewModelTests
         connectedModeBindingServices.SolutionInfoProvider.Returns(solutionInfoProvider);
     }
 
-    private void MockConfigurationProvider()
+    private void MockConfigurationProvider(ServerConnection serverConnectionToUpdate)
     {
-        var serverConnectionToUpdate = CreateSonarCloudServerConnection();
         var configurationProvider = Substitute.For<IConfigurationProvider>();
         configurationProvider.GetConfiguration().Returns(new BindingConfiguration(new BoundServerProject("local", "server", serverConnectionToUpdate), SonarLintMode.Connected, "binding-dir"));
         connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
     }
 
-    private ServerConnection.SonarQube CreateSonarCloudServerConnection() => new(new Uri(sonarQubeConnection.Info.Id));
+    private ServerConnection.SonarQube CreateSonarQubeServerConnection() => new(new Uri(sonarQubeConnection.Info.Id));
+
+    private ServerConnection.SonarCloud CreateSonarCloudServerConnection(string organization, CloudServerRegion region) => new(organization, region);
+
+    private EditCredentialsViewModel CreateTestSubject(Connection connection) => new(connection, uiManager, connectedModeServices, connectedModeBindingServices, progressReporterViewModel);
 }
