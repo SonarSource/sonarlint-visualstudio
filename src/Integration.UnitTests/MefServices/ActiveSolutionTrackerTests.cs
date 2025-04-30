@@ -194,7 +194,7 @@ public class ActiveSolutionTrackerTests
     {
         initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<ActiveSolutionTracker>(threadHandling, new TestLogger(), processor => createdInitializationProcessor = processor);
         var testSubject = new ActiveSolutionTracker(serviceProvider, solutionInfoProvider, initializationProcessorFactory);
-        testSubject.InitializeAsync().GetAwaiter().GetResult();
+        testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
         return testSubject;
     }
 }
