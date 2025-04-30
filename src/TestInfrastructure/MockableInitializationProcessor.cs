@@ -28,35 +28,50 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 namespace SonarLint.VisualStudio.TestInfrastructure;
 
 [ExcludeFromCodeCoverage]
-public class MockableInitializationProcessor(IThreadHandling threadHandling, ILogger logger) : IInitializationProcessor
+public class MockableInitializationProcessor(
+    IThreadHandling threadHandling,
+    ILogger logger,
+    string owner,
+    IReadOnlyCollection<IRequireInitialization> dependencies,
+    Func<IThreadHandling, Task> initialization) : IInitializationProcessor
 {
-    internal readonly InitializationProcessor implementation = new(new AsyncLockFactory(), threadHandling, logger);
+    private readonly InitializationProcessor implementation = new(owner, dependencies, initialization, new AsyncLockFactory(), threadHandling, logger);
 
     public virtual bool IsFinalized => implementation.IsFinalized;
 
     /// <summary>
     /// Virtual wrapper for <see cref="InitializationProcessor.InitializeAsync"/> made for using TestSpies https://nsubstitute.github.io/help/partial-subs/
     /// </summary>
-    public virtual Task InitializeAsync(
-        string owner,
-        IReadOnlyCollection<IRequireInitialization> dependencies,
-        Func<IThreadHandling, Task> initialization) =>
-        implementation.InitializeAsync(owner, dependencies, initialization);
+    public virtual Task InitializeAsync() =>
+        implementation.InitializeAsync();
 
-    public static TaskCompletionSource<byte> ConfigureWithWait(MockableInitializationProcessor substitute, IThreadHandling threadHandling)
+    public static IInitializationProcessorFactory CreateFactory<T>(IThreadHandling threadHandling, ILogger logger, Action<MockableInitializationProcessor> configure)
     {
-        var tcs = new TaskCompletionSource<byte>();
-        substitute.Configure()
-            .InitializeAsync(Arg.Any<string>(), Arg.Any<IReadOnlyCollection<IRequireInitialization>>(), Arg.Any<Func<IThreadHandling, Task>>())
-            .ReturnsForAnyArgs(info =>
-                substitute.implementation.InitializeAsync(
-                    info[0] as string,
-                    info[1] as IReadOnlyCollection<IRequireInitialization>,
-                    async _ =>
-                    {
-                        await tcs.Task;
-                        await info.Arg<Func<IThreadHandling, Task>>()(threadHandling);
-                    }));
-        return tcs;
+        var initializationProcessorFactory = Substitute.For<IInitializationProcessorFactory>();
+        initializationProcessorFactory
+            .Create<T>(
+                Arg.Any<IReadOnlyCollection<IRequireInitialization>>(),
+                Arg.Any<Func<IThreadHandling, Task>>())
+            .Returns(info =>
+            {
+                var processor = Substitute.ForPartsOf<MockableInitializationProcessor>(
+                    threadHandling,
+                    logger,
+                    typeof(T).Name,
+                    (IReadOnlyCollection<IRequireInitialization>)info[0],
+                    (Func<IThreadHandling, Task>)info[1]);
+                configure(processor);
+                return processor;
+            });
+        return initializationProcessorFactory;
     }
+
+    public static void ConfigureWithWait(MockableInitializationProcessor substitute, TaskCompletionSource<byte> barrier) =>
+        substitute.Configure()
+            .InitializeAsync()
+            .ReturnsForAnyArgs(async _ =>
+            {
+                await barrier.Task;
+                await substitute.implementation.InitializeAsync();
+            });
 }
