@@ -73,6 +73,14 @@
           <ButtonText>Options...</ButtonText>
         </Strings>
       </Button>
+      <Button guid="SonarLintCmdSet" id="SolutionSettingsCommand" priority="0x9999">
+        <Parent guid="SonarLintCmdSet" id="SonarLintConnectedModeGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Settings" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Solution Settings</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
     
   </Commands>
@@ -88,6 +96,7 @@
       <IDSymbol name="HelpMenu" value="0x1023"/>
       <IDSymbol name="ConnectedModeMenu" value="0x1024"/>
       <IDSymbol name="OptionsCommand" value="0x1025"/>
+      <IDSymbol name="SolutionSettingsCommand" value="0x1028"/>
       <IDSymbol name="SonarLintHelpGroup" value="0x1026"/>
       <IDSymbol name="SonarLintConnectedModeGroup" value="0x1027"/>
     </GuidSymbol>
