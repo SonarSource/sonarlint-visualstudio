@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
     /// </summary>
     public class ConfigurableConfigurationProvider : IConfigurationProvider
     {
-        public BindingConfiguration GetConfiguration()
+        public virtual BindingConfiguration GetConfiguration()
         {
             GetConfigurationAction?.Invoke();
 
