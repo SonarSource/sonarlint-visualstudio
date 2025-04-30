@@ -219,5 +219,61 @@ public class ConnectionInfoTests
         serverConnection.Should().BeEquivalentTo(new ServerConnection.SonarCloud("myOrg", region));
     }
 
+    [TestMethod]
+    [DynamicData(nameof(GetCloudServerRegions), DynamicDataSourceType.Method)]
+    public void IsSameAs_SonarCloud_SameOrganizationSameRegion_ReturnsTrue(CloudServerRegion region)
+    {
+        var connectionInfo = new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud, region);
+        var sonarCloud = new ServerConnection.SonarCloud(connectionInfo.Id, region);
+
+        connectionInfo.IsSameAs(sonarCloud).Should().BeTrue();
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(GetCloudServerRegions), DynamicDataSourceType.Method)]
+    public void IsSameAs_SonarCloud_SameOrganizationDifferentRegion_ReturnsFalse(CloudServerRegion region)
+    {
+        var connectionInfo = new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud, region);
+        var oppositeRegion = region == CloudServerRegion.Eu ? CloudServerRegion.Us : CloudServerRegion.Eu;
+        var sonarCloud = new ServerConnection.SonarCloud(connectionInfo.Id, oppositeRegion);
+
+        connectionInfo.IsSameAs(sonarCloud).Should().BeFalse();
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(GetCloudServerRegions), DynamicDataSourceType.Method)]
+    public void IsSameAs_SonarCloud_DifferentOrganizationSameRegion_ReturnsFalse(CloudServerRegion region)
+    {
+        var connectionInfo = new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud, region);
+        var sonarCloud = new ServerConnection.SonarCloud("some other org", region);
+
+        connectionInfo.IsSameAs(sonarCloud).Should().BeFalse();
+    }
+
+    [TestMethod]
+    [DataRow("http://localhost:9000/", ConnectionServerType.SonarCloud)]
+    [DataRow("https://localhost/", ConnectionServerType.SonarCloud)]
+    [DataRow("http://localhost:9000/", ConnectionServerType.SonarQube)]
+    [DataRow("https://localhost/", ConnectionServerType.SonarQube)]
+    public void IsSameAs_SonarQube_ReturnsTrueForSameUriAndServerType(string uri, ConnectionServerType serverType)
+    {
+        var httpLocalhost = "http://localhost:9000/";
+        var sonarQube = new ServerConnection.SonarQube(new Uri(httpLocalhost));
+
+        new ConnectionInfo(uri, serverType).IsSameAs(sonarQube).Should().Be(httpLocalhost == uri && serverType == ConnectionServerType.SonarQube);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(GetDifferentServersWithSameId), DynamicDataSourceType.Method)]
+    public void IsSameAs_DifferentServers_ReturnsFalse(ServerConnection serverConnection, ConnectionInfo connectionInfo) => connectionInfo.IsSameAs(serverConnection).Should().BeFalse();
+
     public static IEnumerable<object[]> GetCloudServerRegions() => [[CloudServerRegion.Eu], [CloudServerRegion.Us],];
+
+    public static IEnumerable<object[]> GetDifferentServersWithSameId() =>
+    [
+        [new ServerConnection.SonarCloud("http://localhost", CloudServerRegion.Eu), new ConnectionInfo("http://localhost", ConnectionServerType.SonarQube, CloudServerRegion.Eu)],
+        [new ServerConnection.SonarCloud("http://localhost", CloudServerRegion.Us), new ConnectionInfo("http://localhost", ConnectionServerType.SonarQube, CloudServerRegion.Us)],
+        [new ServerConnection.SonarQube(new Uri("http://localhost")), new ConnectionInfo("http://localhost", ConnectionServerType.SonarCloud, CloudServerRegion.Eu)],
+        [new ServerConnection.SonarQube(new Uri("http://localhost")), new ConnectionInfo("http://localhost", ConnectionServerType.SonarCloud, CloudServerRegion.Us)]
+    ];
 }
