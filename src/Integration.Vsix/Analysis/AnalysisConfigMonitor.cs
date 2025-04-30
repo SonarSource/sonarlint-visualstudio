@@ -73,6 +73,10 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
             _ =>
             {
                 roslynSettingsUpdater.Update(userSettingsUpdater.UserSettings);
+                if (disposedValue)
+                {
+                    return Task.CompletedTask;
+                }
                 userSettingsUpdater.SettingsChanged += OnUserSettingsChanged;
                 activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
                 return Task.CompletedTask;

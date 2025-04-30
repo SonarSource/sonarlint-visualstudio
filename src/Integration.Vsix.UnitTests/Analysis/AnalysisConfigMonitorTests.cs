@@ -107,6 +107,17 @@ public class AnalysisConfigMonitorTests
     }
 
     [TestMethod]
+    public void WhenUninitialized_DoesNotReactToSettingsChangedEvents()
+    {
+        _ = CreateUninitializedTestSubject(out _);
+
+        SimulateUserSettingsChanged();
+
+        analysisRequesterMock.DidNotReceiveWithAnyArgs().RequestAnalysis();
+        _ = userSettingsUpdaterMock.DidNotReceiveWithAnyArgs().UserSettings;
+    }
+
+    [TestMethod]
     public void WhenUserSettingsChange_UpdatesSlCoreSettingsBeforeTriggeringAnalysis()
     {
         _ = CreateAndInitializeTestSubject();
@@ -135,6 +146,17 @@ public class AnalysisConfigMonitorTests
     }
 
     [TestMethod]
+    public void WhenUninitialized_DoesNotReactToBindingChangedEvents()
+    {
+        _ = CreateUninitializedTestSubject(out _);
+
+        SimulateBindingChanged();
+
+        analysisRequesterMock.DidNotReceiveWithAnyArgs().RequestAnalysis();
+        _ = userSettingsUpdaterMock.DidNotReceiveWithAnyArgs().UserSettings;
+    }
+
+    [TestMethod]
     public void WhenDisposed_EventsAreIgnored()
     {
         var testSubject = CreateAndInitializeTestSubject();
@@ -146,6 +168,18 @@ public class AnalysisConfigMonitorTests
         SimulateUserSettingsChanged();
         SimulateBindingChanged();
         AssertAnalysisIsNotRequested();
+    }
+
+    [TestMethod]
+    public void WhenDisposed_InitializationDoesNothing()
+    {
+        var testSubject = CreateUninitializedTestSubject(out var barrier);
+        testSubject.Dispose();
+
+        barrier.SetResult(1);
+
+        userSettingsUpdaterMock.DidNotReceiveWithAnyArgs().SettingsChanged += Arg.Any<EventHandler>();
+        activeSolutionBoundTracker.DidNotReceiveWithAnyArgs().SolutionBindingChanged += Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
     }
 
     private UserSettings SimulateUserSettingsChanged()
