@@ -1,0 +1,21 @@
+﻿<Window x:Class="SonarLint.VisualStudio.Integration.Vsix.Settings.SolutionSettings.SolutionSettingsDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:res="clr-namespace:SonarLint.VisualStudio.Integration.Vsix.Resources"
+    Title="{x:Static res:Strings.SolutionSettingsDialog_Title}"
+    ResizeMode="NoResize"
+    SizeToContent="Height"
+    WindowStartupLocation="CenterOwner"
+    x:ClassModifier="internal">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Window.Style>
+        <Style TargetType="Window" BasedOn="{StaticResource ConnectedModeWindow}"></Style>
+    </Window.Style>
+
+</Window>

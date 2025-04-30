@@ -61,6 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // Commands
             RegisterCommand(CommonGuids.SonarLintMenuCommandSet, OptionsCommand.Id, new OptionsCommand(showOptionsPage));
+            RegisterCommand(CommonGuids.SonarLintMenuCommandSet, SolutionSettingsCommand.Id, new SolutionSettingsCommand());
 
             // Help menu buttons
             RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowLogsCommand.Id, new ShowLogsCommand(outputWindowService));

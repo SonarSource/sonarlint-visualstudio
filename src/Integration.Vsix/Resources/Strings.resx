@@ -381,4 +381,7 @@ E.g. C:\Program Files\Java\jdk-17</value>
   <data name="FileExclusions_EditButton" xml:space="preserve">
     <value>Edit</value>
   </data>
+  <data name="SolutionSettingsDialog_Title" xml:space="preserve">
+    <value>Solution Settings</value>
+  </data>
 </root>

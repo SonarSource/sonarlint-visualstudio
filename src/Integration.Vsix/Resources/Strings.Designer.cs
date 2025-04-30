@@ -630,6 +630,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Solution Settings.
+        /// </summary>
+        public static string SolutionSettingsDialog_Title {
+            get {
+                return ResourceManager.GetString("SolutionSettingsDialog_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Telemetry: error occurred: {0}.
         /// </summary>
         public static string Telemetry_ERROR {
