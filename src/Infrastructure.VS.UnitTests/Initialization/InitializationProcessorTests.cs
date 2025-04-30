@@ -33,7 +33,8 @@ public class InitializationProcessorTests
     private IAsyncLockFactory asyncLockFactory;
     private IThreadHandling threadHandling;
     private TestLogger testLogger;
-    private InitializationProcessor testSubject;
+    private InitializationProcessorFactory testSubjectFactory;
+    private Func<IThreadHandling, Task> initialization;
 
     [TestInitialize]
     public void TestInitialize()
@@ -42,31 +43,22 @@ public class InitializationProcessorTests
         threadHandling = Substitute.For<IThreadHandling>();
         threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>()).Returns(info => info.Arg<Func<Task<int>>>().Invoke());
         testLogger = new TestLogger();
-        testSubject = new InitializationProcessor(asyncLockFactory, threadHandling, testLogger);
+        initialization = Substitute.For<Func<IThreadHandling, Task>>();
+        testSubjectFactory = new InitializationProcessorFactory(asyncLockFactory, threadHandling, testLogger);
     }
 
     [TestMethod]
-    public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<InitializationProcessor, IInitializationProcessor>(
-            MefTestHelpers.CreateExport<IAsyncLockFactory>(),
-            MefTestHelpers.CreateExport<IThreadHandling>(),
-            MefTestHelpers.CreateExport<ILogger>());
-
-    [TestMethod]
-    public void MefCtor_CheckIsNonShared() => MefTestHelpers.CheckIsNonSharedMefComponent<InitializationProcessor>();
-
-    [TestMethod]
     public void IsFinalized_NotStarted_ReturnsFalse() =>
-        testSubject.IsFinalized.Should().BeFalse();
+        testSubjectFactory.Create<InitializationProcessorTests>([], _ => Task.CompletedTask).IsFinalized.Should().BeFalse();
 
     [TestMethod]
     public async Task IsFinalized_StartedButNotFinished_ReturnsFalse()
     {
         var barrier = new TaskCompletionSource<byte>();
-        var initialization = Substitute.For<Func<IThreadHandling, Task>>();
         initialization.Invoke(threadHandling).Returns(barrier.Task);
+        var testSubject = testSubjectFactory.Create<InitializationProcessorTests>([], initialization);
 
-        var initializationProcessTask = testSubject.InitializeAsync(default, [], initialization);
+        var initializationProcessTask = testSubject.InitializeAsync();
         testSubject.IsFinalized.Should().BeFalse();
 
         barrier.SetResult(1);
@@ -77,9 +69,9 @@ public class InitializationProcessorTests
     [TestMethod]
     public async Task InitializeAsync_NoDependencies_Completes()
     {
-        var initialization = Substitute.For<Func<IThreadHandling, Task>>();
+        var testSubject = testSubjectFactory.Create<InitializationProcessorTests>([], initialization);
 
-        await testSubject.InitializeAsync(default, [], initialization);
+        await testSubject.InitializeAsync();
 
         testSubject.IsFinalized.Should().BeTrue();
         Received.InOrder(() =>
@@ -97,11 +89,11 @@ public class InitializationProcessorTests
     {
         var dependency1 = Substitute.For<IRequireInitialization>();
         var dependency2 = Substitute.For<IRequireInitialization>();
-        var initialization = Substitute.For<Func<IThreadHandling, Task>>();
+        var testSubject = testSubjectFactory.Create<InitializationProcessorTests>([dependency1, dependency2], initialization);
 
-        await testSubject.InitializeAsync(default, [dependency1, dependency2], initialization);
-        await testSubject.InitializeAsync(default, [dependency1, dependency2], initialization);
-        await testSubject.InitializeAsync(default, [dependency1, dependency2], initialization);
+        await testSubject.InitializeAsync();
+        await testSubject.InitializeAsync();
+        await testSubject.InitializeAsync();
 
         testSubject.IsFinalized.Should().BeTrue();
         Received.InOrder(() =>
@@ -123,12 +115,12 @@ public class InitializationProcessorTests
         var dependency2 = Substitute.For<IRequireInitialization>();
         var lockImplementation = new AsyncLock();
         asyncLockFactory.Create().AcquireAsync().Returns(_ => lockImplementation.AcquireAsync());
-        var initialization = Substitute.For<Func<IThreadHandling, Task>>();
+        var testSubject = testSubjectFactory.Create<InitializationProcessorTests>([dependency1, dependency2], initialization);
 
         await Task.WhenAll(
             Enumerable.Range(1, 20)
                 .AsParallel()
-                .Select(_ => testSubject.InitializeAsync(default, [dependency1, dependency2], initialization)));
+                .Select(_ => testSubject.InitializeAsync()));
 
         testSubject.IsFinalized.Should().BeTrue();
         asyncLockFactory.Create().Received(Quantity.Within(2, 20)).AcquireAsync();
@@ -142,9 +134,9 @@ public class InitializationProcessorTests
     {
         var dependency = Substitute.For<IRequireInitialization>();
         dependency.InitializeAsync().ThrowsAsync(new InvalidOperationException("My Failed Dependency"));
-        var initialization = Substitute.For<Func<IThreadHandling, Task>>();
+        var testSubject = testSubjectFactory.Create<InitializationProcessorTests>([dependency], initialization);
 
-        var act = () => testSubject.InitializeAsync("Owner 1", [dependency], initialization);
+        var act = () => testSubject.InitializeAsync();
         act.Should().ThrowAsync<InvalidOperationException>();
         act.Should().ThrowAsync<InvalidOperationException>();
         act.Should().ThrowAsync<InvalidOperationException>();
@@ -152,22 +144,22 @@ public class InitializationProcessorTests
         testSubject.IsFinalized.Should().BeTrue();
         dependency.Received(1).InitializeAsync();
         initialization.DidNotReceiveWithAnyArgs().Invoke(default);
-        testLogger.OutputStrings.Last().Should().ContainAll("Owner 1", "My Failed Dependency");
+        testLogger.OutputStrings.Last().Should().ContainAll(nameof(InitializationProcessorTests), "My Failed Dependency");
     }
 
     [TestMethod]
     public void InitializeAsync_InitializationThrows_ThrowsAndExecutesOnlyOnce()
     {
-        var initialization = Substitute.For<Func<IThreadHandling, Task>>();
         initialization.Invoke(threadHandling).ThrowsAsync(new InvalidOperationException("My Failed Operation"));
+        var testSubject = testSubjectFactory.Create<InitializationProcessorTests>([], initialization);
 
-        var act = () => testSubject.InitializeAsync("Owner 1", [], initialization);
+        var act = () => testSubject.InitializeAsync();
         act.Should().ThrowAsync<InvalidOperationException>();
         act.Should().ThrowAsync<InvalidOperationException>();
         act.Should().ThrowAsync<InvalidOperationException>();
 
         testSubject.IsFinalized.Should().BeTrue();
         initialization.ReceivedWithAnyArgs(1).Invoke(default);
-        testLogger.OutputStrings.Last().Should().ContainAll("Owner 1", "My Failed Operation");
+        testLogger.OutputStrings.Last().Should().ContainAll(nameof(InitializationProcessorTests), "My Failed Operation");
     }
 }

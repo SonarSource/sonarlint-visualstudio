@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<BoundSolutionGitMonitor, IBoundSolutionGitMonitor>(
-                MefTestHelpers.CreateExport<IGitWorkspaceService>(),
+                MefTestHelpers.CreateExport<IGitWorkspaceService>(Mock.Of<IGitWorkspaceService>()),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 

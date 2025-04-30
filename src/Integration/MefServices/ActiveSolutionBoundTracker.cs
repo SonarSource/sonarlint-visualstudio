@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration
             IBoundSolutionGitMonitor gitEventsMonitor,
             IConfigurationProvider configurationProvider,
             ISonarQubeService sonarQubeService,
-            IInitializationProcessor initializationProcessor)
+            IInitializationProcessorFactory initializationProcessorFactory)
         {
             this.serviceProvider = serviceProvider;
             solutionTracker = activeSolutionTracker;
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration
             this.logger = logger;
             this.configurationProvider = configurationProvider;
             this.sonarQubeService = sonarQubeService;
-            this.initializationProcessor = initializationProcessor;
+            initializationProcessor = initializationProcessorFactory.Create<ActiveSolutionBoundTracker>([solutionTracker], InitializeInternalAsync);
             this.configScopeUpdater = configScopeUpdater;
 
             CurrentConfiguration = BindingConfiguration.Standalone;
@@ -89,27 +89,26 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         public Task InitializeAsync() =>
-            initializationProcessor.InitializeAsync(
-                nameof(ActiveSolutionBoundTracker),
-                [solutionTracker],
-                async threadHandling =>
-                {
-                    await threadHandling.RunOnUIThreadAsync(() =>
-                    {
-                        vsMonitorSelection = serviceProvider.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
-                        vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
-                    });
+            initializationProcessor.InitializeAsync();
 
-                    await HandleActiveSolutionChangeAsync();
+        private async Task InitializeInternalAsync(IThreadHandling threadHandling)
+        {
+            await threadHandling.RunOnUIThreadAsync(() =>
+            {
+                vsMonitorSelection = serviceProvider.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
+                vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
+            });
 
-                    if (disposed)
-                    {
-                        // not subscribing to events if already disposed
-                        return;
-                    }
-                    solutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
-                    gitEventsMonitor.HeadChanged += GitEventsMonitor_HeadChanged;
-                });
+            await HandleActiveSolutionChangeAsync();
+
+            if (disposed)
+            {
+                // not subscribing to events if already disposed
+                return;
+            }
+            solutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
+            gitEventsMonitor.HeadChanged += GitEventsMonitor_HeadChanged;
+        }
 
         public void HandleBindingChange()
         {
