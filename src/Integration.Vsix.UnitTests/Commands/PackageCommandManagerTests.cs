@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Design;
+using Microsoft.VisualStudio.ComponentModelHost;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -50,16 +51,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Select(x => new CommandID(cmdSet, x))
                 .ToList();
 
+            var serviceProvider = GetMockedServiceProvider();
+
             // Act
-            testSubject.Initialize(
-                Mock.Of<IProjectPropertyManager>(),
-                Mock.Of<IOutputWindowService>(),
-                Mock.Of<IShowInBrowserService>(),
-                Mock.Of<PackageCommandManager.ShowOptionsPage>(),
-                Mock.Of<IActiveSolutionBoundTracker>(),
-                Mock.Of<IConnectedModeServices>(),
-                Mock.Of<IConnectedModeUIServices>(),
-                Mock.Of<IConnectedModeUIManager>());
+            testSubject.Initialize(Substitute.For<PackageCommandManager.ShowOptionsPage>(), serviceProvider);
 
             // Assert
             menuService.Commands.Should().HaveCountGreaterOrEqualTo(allCommands.Count, "Unexpected number of commands");
@@ -115,6 +110,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             menuService = new ConfigurableMenuCommandService();
             return new PackageCommandManager(menuService);
+        }
+
+        private IServiceProvider GetMockedServiceProvider()
+        {
+            var serviceProvider = Substitute.For<IServiceProvider>();
+            var componentModel = Substitute.For<IComponentModel>();
+            serviceProvider.GetService(typeof(SComponentModel)).Returns(componentModel);
+            componentModel.GetExtensions<IConnectedModeUIManager>().Returns([Substitute.For<IConnectedModeUIManager>()]);
+            componentModel.GetExtensions<IConnectedModeUIServices>().Returns([Substitute.For<IConnectedModeUIServices>()]);
+            componentModel.GetExtensions<IActiveSolutionBoundTracker>().Returns([Substitute.For<IActiveSolutionBoundTracker>()]);
+            componentModel.GetExtensions<IShowInBrowserService>().Returns([Substitute.For<IShowInBrowserService>()]);
+            componentModel.GetExtensions<IOutputWindowService>().Returns([Substitute.For<IOutputWindowService>()]);
+            componentModel.GetExtensions<IProjectPropertyManager>().Returns([Substitute.For<IProjectPropertyManager>()]);
+            return serviceProvider;
         }
     }
 }

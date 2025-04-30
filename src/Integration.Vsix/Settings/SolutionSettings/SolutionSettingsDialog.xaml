@@ -15,7 +15,33 @@
         </ResourceDictionary>
     </Window.Resources>
     <Window.Style>
-        <Style TargetType="Window" BasedOn="{StaticResource ConnectedModeWindow}"></Style>
+        <Style TargetType="Window" BasedOn="{StaticResource ConnectedModeWindow}"/>
     </Window.Style>
 
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TabControl Grid.Row="0">
+            <TabItem Header="{x:Static res:Strings.SolutionSettingsDialog_TabAnalysisProperties}">
+            </TabItem>
+        </TabControl>
+
+        <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,2,0,0">
+            <Run Text="{x:Static res:Strings.SolutionSettingsDialog_Description}"/>
+            <Hyperlink NavigateUri="dummyUri" RequestNavigate="OpenFile">settings.json</Hyperlink>
+        </TextBlock>
+
+        <Grid Grid.Row="2" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="{x:Static res:Strings.SolutionSettingsDialog_ApplyButton}" IsDefault="True" Click="ApplyButton_OnClick"/>
+            <Button Grid.Column="1" Content="{x:Static res:Strings.SolutionSettingsDialog_CloseButton}" IsCancel="True" Click="CloseButton_OnClick"/>
+        </Grid>
+    </Grid>
 </Window>

@@ -18,25 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows;
-using SonarLint.VisualStudio.Integration.Vsix.Settings.SolutionSettings;
+using Microsoft.VisualStudio.Shell;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Commands;
+namespace SonarLint.VisualStudio.Integration.Vsix.Settings;
 
-[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-internal class SolutionSettingsCommand : VsCommandBase
+internal static class OpenDocumentService
 {
-    private readonly IServiceProvider serviceProvider;
-    internal const int Id = 0x1028;
-
-    internal SolutionSettingsCommand(IServiceProvider serviceProvider)
+    internal static void OpenDocumentInVs(IServiceProvider serviceProvider, string filePath)
     {
-        this.serviceProvider = serviceProvider;
-    }
-
-    protected override void InvokeInternal()
-    {
-        var solutionSettingsWindow = new SolutionSettingsDialog(serviceProvider) { Owner = Application.Current.MainWindow };
-        solutionSettingsWindow.Show();
+        // TryOpenDocument calls several other VS services. From a testing point of view, it's simpler to
+        // create a subclass and override this method.
+        var viewType = Guid.Empty;
+        VsShellUtilities.TryOpenDocument(serviceProvider, filePath, viewType, out _, out _, out _);
     }
 }

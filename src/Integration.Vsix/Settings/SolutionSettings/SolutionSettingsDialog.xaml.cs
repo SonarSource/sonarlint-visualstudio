@@ -20,11 +20,37 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using System.Windows.Navigation;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.SolutionSettings;
 
 [ExcludeFromCodeCoverage]
 internal sealed partial class SolutionSettingsDialog : Window
 {
-    internal SolutionSettingsDialog() => InitializeComponent();
+    private readonly IServiceProvider serviceProvider;
+    private readonly IUserSettingsProvider userSettingsProvider;
+
+    internal SolutionSettingsDialog(IServiceProvider serviceProvider)
+    {
+        this.serviceProvider = serviceProvider;
+        userSettingsProvider = serviceProvider.GetMefService<IUserSettingsProvider>();
+        InitializeComponent();
+    }
+
+    private void ApplyButton_OnClick(object sender, RoutedEventArgs e) => ApplyAndClose();
+
+    private void ApplyAndClose()
+    {
+        Close();
+        DialogResult = true;
+    }
+
+    private void OpenFile(object sender, RequestNavigateEventArgs e)
+    {
+        OpenDocumentService.OpenDocumentInVs(serviceProvider, userSettingsProvider.SettingsFilePath);
+        ApplyAndClose();
+    }
+
+    private void CloseButton_OnClick(object sender, RoutedEventArgs e) => Close();
 }

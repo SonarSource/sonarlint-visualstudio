@@ -22,13 +22,10 @@ using System.ComponentModel.Design;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
-using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
@@ -88,16 +85,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 IServiceProvider serviceProvider = this;
 
                 commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
-
-                commandManager.Initialize(
-                    serviceProvider.GetMefService<IProjectPropertyManager>(),
-                    serviceProvider.GetMefService<IOutputWindowService>(),
-                    serviceProvider.GetMefService<IShowInBrowserService>(),
-                    ShowOptionPage,
-                    serviceProvider.GetMefService<IActiveSolutionBoundTracker>(),
-                    serviceProvider.GetMefService<IConnectedModeServices>(),
-                    serviceProvider.GetMefService<IConnectedModeUIServices>(),
-                    serviceProvider.GetMefService<IConnectedModeUIManager>());
+                commandManager.Initialize(ShowOptionPage, serviceProvider);
 
                 // make sure roslynSettingsFileSynchronizer is initialized
                 roslynSettingsFileSynchronizer = await this.GetMefServiceAsync<IRoslynSettingsFileSynchronizer>();
