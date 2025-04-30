@@ -113,7 +113,7 @@ public class AnalysisConfigMonitorTests
 
         SimulateUserSettingsChanged();
 
-        analysisRequesterMock.DidNotReceiveWithAnyArgs().RequestAnalysis();
+        analysisRequesterMock.DidNotReceiveWithAnyArgs().RequestAnalysis(default, default(string[]));
         _ = userSettingsUpdaterMock.DidNotReceiveWithAnyArgs().UserSettings;
     }
 
@@ -152,7 +152,7 @@ public class AnalysisConfigMonitorTests
 
         SimulateBindingChanged();
 
-        analysisRequesterMock.DidNotReceiveWithAnyArgs().RequestAnalysis();
+        analysisRequesterMock.DidNotReceiveWithAnyArgs().RequestAnalysis(default, default(string[]));
         _ = userSettingsUpdaterMock.DidNotReceiveWithAnyArgs().UserSettings;
     }
 
