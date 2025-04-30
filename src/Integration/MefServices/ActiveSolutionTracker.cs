@@ -70,6 +70,7 @@ namespace SonarLint.VisualStudio.Integration
                     {
                         if (isDisposed)
                         {
+                            // not subscribing to events if already disposed
                             return;
                         }
                         CurrentSolutionName = solutionInfoProvider.GetSolutionName();

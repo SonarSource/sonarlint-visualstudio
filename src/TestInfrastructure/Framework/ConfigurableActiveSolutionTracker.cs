@@ -23,10 +23,10 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
 {
-    internal class ConfigurableActiveSolutionTracker : IActiveSolutionTracker
+    public class ConfigurableActiveSolutionTracker : IActiveSolutionTracker
     {
-        public string CurrentSolutionName { get; set; }
-        public event EventHandler<ActiveSolutionChangedEventArgs> ActiveSolutionChanged;
+        public virtual string CurrentSolutionName { get; set; }
+        public virtual event EventHandler<ActiveSolutionChangedEventArgs> ActiveSolutionChanged;
 
         public void SimulateActiveSolutionChanged(bool isSolutionOpen, string solutionName)
         {
@@ -34,6 +34,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             this.ActiveSolutionChanged?.Invoke(this, new ActiveSolutionChangedEventArgs(isSolutionOpen, solutionName));
         }
 
-        public Task InitializeAsync() => Task.CompletedTask;
+        public virtual Task InitializeAsync() => Task.CompletedTask;
     }
 }
