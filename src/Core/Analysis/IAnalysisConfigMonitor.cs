@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Initialization;
+
 namespace SonarLint.VisualStudio.Core.Analysis
 {
-    public interface IAnalysisConfigMonitor;
+    public interface IAnalysisConfigMonitor : IRequireInitialization;
 }
