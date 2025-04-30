@@ -184,7 +184,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private void RaiseAnalyzersChangedIfBindingChanged(BindingConfiguration newBindingConfiguration)
         {
-            if (initializationProcessor.IsFinalized) // todo remove in https://sonarsource.atlassian.net/browse/SLVS-2024
+            if (initializationProcessor.IsFinalized) // todo https://sonarsource.atlassian.net/browse/SLVS-2095 raise events during initialization
             {
                 configScopeUpdater.UpdateConfigScopeForCurrentSolution(newBindingConfiguration.Project);
             }
@@ -196,7 +196,8 @@ namespace SonarLint.VisualStudio.Integration
 
                 if (initializationProcessor.IsFinalized)
                 {
-                    // we don't want to raise events during initialization, as that is already handled by initialization dependencies
+                    // not raising events during initialization to keep the same behavior as with the original ctor initialization
+                    // todo https://sonarsource.atlassian.net/browse/SLVS-2095 raise events during initialization
                     var args = new ActiveSolutionBindingEventArgs(newBindingConfiguration);
                     PreSolutionBindingChanged?.Invoke(this, args);
                     SolutionBindingChanged?.Invoke(this, args);
