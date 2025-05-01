@@ -18,13 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.CSharpVB;
-using SonarLint.VisualStudio.Core.UserRuleSettings;
+using System.Collections.Immutable;
+using Newtonsoft.Json;
 
-namespace SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
+namespace SonarLint.VisualStudio.Core.UserRuleSettings;
 
-internal class StandaloneRoslynFileExclusions(AnalysisSettings exclusions) : IFileExclusions
+public class SolutionAnalysisSettings
 {
-    private readonly string[] exclusions = exclusions.NormalizedFileExclusions.ToArray();
-    public Dictionary<string, string> ToDictionary() => new() { { "sonar.exclusions", string.Join(",", exclusions) } };
+    [JsonIgnore] // todo https://sonarsource.atlassian.net/browse/SLVS-2059
+    public ImmutableDictionary<string, string> AnalysisProperties { get; init; } = ImmutableDictionary<string, string>.Empty;
+
 }

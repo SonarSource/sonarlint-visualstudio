@@ -44,7 +44,7 @@ public class FileExclusionsTests
     {
         var configScope = GetConfigurationScopeName(testingFile);
         var analysisSettings = new AnalysisSettings([], [someOtherFileExclusion, testingFile.RelativePath]);
-        sharedFileAnalysisTestsRunner.SetFileExclusions(configScope, analysisSettings.NormalizedFileExclusions);
+        sharedFileAnalysisTestsRunner.SetFileExclusions(configScope, analysisSettings.NormalizedFileExclusions.ToArray());
 
         await sharedFileAnalysisTestsRunner.VerifyAnalysisSkipped(testingFile, configScope, extraProperties: (testingFile as ITestingFileWithProperties)?.GetAnalysisProperties());
     }
@@ -55,7 +55,7 @@ public class FileExclusionsTests
     {
         var configScope = GetConfigurationScopeName(testingFile);
         var analysisSettings = new AnalysisSettings([], [someOtherFileExclusion]);
-        sharedFileAnalysisTestsRunner.SetFileExclusions(configScope, analysisSettings.NormalizedFileExclusions);
+        sharedFileAnalysisTestsRunner.SetFileExclusions(configScope, analysisSettings.NormalizedFileExclusions.ToArray());
 
         var fileAnalysisResults = await sharedFileAnalysisTestsRunner.RunFileAnalysis(testingFile, configScope, extraProperties: (testingFile as ITestingFileWithProperties)?.GetAnalysisProperties());
 
