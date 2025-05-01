@@ -64,7 +64,7 @@ public class AnalysisSettingsSerializerTests
         var testSubject = new AnalysisSettingsSerializer(new FileSystem(), testLogger);
 
         // 1. Load from disc
-        var loadedSettings = testSubject.SafeLoad(filePath1);
+        var loadedSettings = testSubject.SafeLoad<GlobalAnalysisSettings>(filePath1);
         loadedSettings.Should().NotBeNull();
         loadedSettings.Rules.Should().NotBeNull();
         loadedSettings.Rules.Count.Should().Be(3);
@@ -110,7 +110,7 @@ public class AnalysisSettingsSerializerTests
             """
             {
                 'UnknownData' : 'will be dropped on save',
-            
+
                 'sonarlint.rules': {
                     'typescript:S2685': {
                         'Level': 'On',
@@ -128,7 +128,7 @@ public class AnalysisSettingsSerializerTests
                         'severity': 'Blocker'
                     }
                 },
-            
+
                 'More UnknownData' : 'will also be dropped on save',
             }
             """;
@@ -137,7 +137,7 @@ public class AnalysisSettingsSerializerTests
         var testSubject = new AnalysisSettingsSerializer(new FileSystem(), testLogger);
 
         // 1. Load from disc
-        var loadedSettings = testSubject.SafeLoad(filePath1);
+        var loadedSettings = testSubject.SafeLoad<GlobalAnalysisSettings>(filePath1);
         loadedSettings.Should().NotBeNull();
         loadedSettings.Rules.Should().NotBeNull();
         loadedSettings.Rules.Count.Should().Be(2);
@@ -156,7 +156,7 @@ public class AnalysisSettingsSerializerTests
         // 2. Save and reload
         testSubject.SafeSave(filePath2, loadedSettings);
         File.Exists(filePath2).Should().BeTrue();
-        var reloadedSettings = testSubject.SafeLoad(filePath2);
+        var reloadedSettings = testSubject.SafeLoad<GlobalAnalysisSettings>(filePath2);
 
         TestContext.AddResultFile(filePath2);
 
@@ -185,7 +185,7 @@ public class AnalysisSettingsSerializerTests
         var dir = CreateTestSpecificDirectory();
         var filePath = Path.Combine(dir, "settings.txt");
 
-        var settings = new AnalysisSettings
+        var settings = new GlobalAnalysisSettings
         (
             new Dictionary<string, RuleConfig>
             {
@@ -202,7 +202,7 @@ public class AnalysisSettingsSerializerTests
         testSubject.SafeSave(filePath, settings);
         File.Exists(filePath).Should().BeTrue();
 
-        var reloadedSettings = testSubject.SafeLoad(filePath);
+        var reloadedSettings = testSubject.SafeLoad<GlobalAnalysisSettings>(filePath);
 
         TestContext.AddResultFile(filePath);
 
@@ -236,7 +236,7 @@ public class AnalysisSettingsSerializerTests
         var testSubject = new AnalysisSettingsSerializer(fileSystem, logger);
 
         // Act
-        var result = testSubject.SafeLoad("settings.file");
+        var result = testSubject.SafeLoad<GlobalAnalysisSettings>("settings.file");
 
         // Assert
         result.Should().BeNull();
@@ -255,7 +255,7 @@ public class AnalysisSettingsSerializerTests
         var testSubject = new AnalysisSettingsSerializer(fileSystem, logger);
 
         // Act
-        var result = testSubject.SafeLoad("settings.file");
+        var result = testSubject.SafeLoad<GlobalAnalysisSettings>("settings.file");
 
         // Assert
         result.Should().BeNull();
@@ -274,7 +274,7 @@ public class AnalysisSettingsSerializerTests
         var testSubject = new AnalysisSettingsSerializer(fileSystem, logger);
 
         // Act
-        Action act = () => testSubject.SafeLoad("settings.file");
+        Action act = () => testSubject.SafeLoad<GlobalAnalysisSettings>("settings.file");
 
         // Assert
         act.Should().ThrowExactly<StackOverflowException>().WithMessage("critical custom error message");
@@ -293,7 +293,7 @@ public class AnalysisSettingsSerializerTests
         var testSubject = new AnalysisSettingsSerializer(fileSystem, logger);
 
         // Act - should not throw
-        testSubject.SafeSave("settings.file", new AnalysisSettings());
+        testSubject.SafeSave("settings.file", new GlobalAnalysisSettings());
 
         // Assert
         logger.AssertPartialOutputStringExists("settings.file", "custom error message");
@@ -311,7 +311,7 @@ public class AnalysisSettingsSerializerTests
         var testSubject = new AnalysisSettingsSerializer(fileSystem, logger);
 
         // Act
-        var act = () => testSubject.SafeSave("settings.file", new AnalysisSettings());
+        var act = () => testSubject.SafeSave("settings.file", new GlobalAnalysisSettings());
 
         // Assert
         act.Should().ThrowExactly<StackOverflowException>().WithMessage("critical custom error message");

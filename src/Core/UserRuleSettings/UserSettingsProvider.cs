@@ -125,13 +125,15 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
 
     private UserSettings SafeLoadUserSettings()
     {
-        var settings = serializer.SafeLoad(SettingsFilePath);
-        if (settings == null)
+        var settings = serializer.SafeLoad<AnalysisSettings>(SettingsFilePath);
+
+        if (settings != null)
         {
-            logger.WriteLine(Strings.Settings_UsingDefaultSettings);
-            settings = new AnalysisSettings();
+            return new UserSettings(settings);
         }
-        return new UserSettings(settings);
+
+        logger.WriteLine(Strings.Settings_UsingDefaultSettings);
+        return new UserSettings(new AnalysisSettings());
     }
 
     #endregion

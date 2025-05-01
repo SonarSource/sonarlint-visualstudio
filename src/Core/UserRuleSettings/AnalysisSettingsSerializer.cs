@@ -25,8 +25,8 @@ namespace SonarLint.VisualStudio.Core.UserRuleSettings;
 
 public interface IAnalysisSettingsSerializer
 {
-    AnalysisSettings SafeLoad(string filePath);
-    void SafeSave(string filePath, AnalysisSettings data);
+    T SafeLoad<T>(string filePath) where T : class;
+    void SafeSave<T>(string filePath, T data);
 }
 
 /// <summary>
@@ -38,7 +38,7 @@ public class AnalysisSettingsSerializer(IFileSystem fileSystem, ILogger logger) 
     private readonly IFileSystem fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
     private readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-    public AnalysisSettings SafeLoad(string filePath)
+    public T SafeLoad<T>(string filePath) where T : class
     {
         if (!fileSystem.File.Exists(filePath))
         {
@@ -50,7 +50,7 @@ public class AnalysisSettingsSerializer(IFileSystem fileSystem, ILogger logger) 
         {
             logger?.WriteLine(CoreStrings.Settings_LoadedSettingsFile, filePath);
             var data = fileSystem.File.ReadAllText(filePath);
-            return JsonConvert.DeserializeObject<AnalysisSettings>(data);
+            return JsonConvert.DeserializeObject<T>(data);
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
@@ -59,7 +59,7 @@ public class AnalysisSettingsSerializer(IFileSystem fileSystem, ILogger logger) 
         }
     }
 
-    public void SafeSave(string filePath, AnalysisSettings data)
+    public void SafeSave<T>(string filePath, T data)
     {
         try
         {

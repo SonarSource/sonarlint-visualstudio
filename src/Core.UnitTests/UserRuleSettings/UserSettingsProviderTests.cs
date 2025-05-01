@@ -56,18 +56,13 @@ public class UserSettingsProviderTests
     }
 
     [TestMethod]
-    public void MefCtor_CheckIsExported()
-    {
+    public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<UserSettingsProvider, IUserSettingsProvider>(
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<ISingleFileMonitorFactory>(singleFileMonitorFactory));
-    }
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton()
-    {
-        MefTestHelpers.CheckIsSingletonMefComponent<UserSettingsProvider>();
-    }
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<UserSettingsProvider>();
 
     [TestMethod]
     public void Ctor_NoSettingsFile_EmptySettingsReturned()
@@ -215,7 +210,7 @@ public class UserSettingsProviderTests
     {
         int settingsChangedEventCount = 0;
 
-        userSettingsProvider.SettingsChanged += (s, args) => settingsChangedEventCount++;
+        userSettingsProvider.SettingsChanged += (_, _) => settingsChangedEventCount++;
 
         singleFileMonitor.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
         settingsChangedEventCount.Should().Be(1);
@@ -254,21 +249,23 @@ public class UserSettingsProviderTests
         // so we can check that the provider is correctly reloading and using the file data,
         // and not re-using the in-memory version.
         const string originalData = "{}";
-        const string modifiedData = @"{
-    'sonarlint.rules': {
-        'typescript:S2685': {
-            'level': 'on'
-        }
-    }
-}";
+        const string modifiedData = """
+                                    {
+                                        'sonarlint.rules': {
+                                            'typescript:S2685': {
+                                                'level': 'on'
+                                            }
+                                        }
+                                    }
+                                    """;
         var fileSystemMock = CreateMockFile(SettingsFilePath, originalData);
         var settingsProvider = new UserSettingsProvider(Substitute.For<ILogger>(), singleFileMonitorFactory, fileSystemMock, SettingsFilePath);
-        int eventCount = 0;
+        var eventCount = 0;
         var settingsChangedEventReceived = new ManualResetEvent(initialState: false);
 
         settingsProvider.UserSettings.AnalysisSettings.Rules.Count.Should().Be(0); // sanity check of setup
 
-        settingsProvider.SettingsChanged += (s, args) =>
+        settingsProvider.SettingsChanged += (_, _) =>
         {
             eventCount++;
             settingsChangedEventReceived.Set();
@@ -331,7 +328,7 @@ public class UserSettingsProviderTests
         reloadedSettings.NormalizedFileExclusions[0].Should().Be("**/*.js");
     }
 
-    private UserSettingsProvider CreateUserSettingsProvider(
+    private static UserSettingsProvider CreateUserSettingsProvider(
         ILogger logger,
         IFileSystem fileSystemMock,
         ISingleFileMonitorFactory singleFileMonitorFactoryMock,
@@ -356,10 +353,10 @@ public class UserSettingsProviderTests
         serializer.SafeSave(filePath, userSettings);
     }
 
-    private AnalysisSettings LoadSettings(string filePath)
+    private static AnalysisSettings LoadSettings(string filePath)
     {
         var serializer = new AnalysisSettingsSerializer(new FileSystem(), new TestLogger());
-        return serializer.SafeLoad(filePath);
+        return serializer.SafeLoad<AnalysisSettings>(filePath);
     }
 
     private string CreateTestSpecificDirectory()
