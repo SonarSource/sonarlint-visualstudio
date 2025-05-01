@@ -48,15 +48,15 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
         ILogger logger,
         ISingleFileMonitorFactory singleFileMonitorFactory,
         IFileSystem fileSystem,
-        string settingsFilePath)
+        string globalAnalysisSettingsFilePath)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         var fileMonitorFactory = singleFileMonitorFactory ?? throw new ArgumentNullException(nameof(singleFileMonitorFactory));
         serializer = new AnalysisSettingsSerializer(fileSystem, logger);
 
-        SettingsFilePath = settingsFilePath;
-        settingsFileMonitor = fileMonitorFactory.Create(SettingsFilePath);
+        GlobalAnalysisSettingsFilePath = globalAnalysisSettingsFilePath;
+        settingsFileMonitor = fileMonitorFactory.Create(GlobalAnalysisSettingsFilePath);
         settingsFileMonitor.FileChanged += OnFileChanged;
     }
 
@@ -94,24 +94,24 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
 
         var newRules = UserSettings.AnalysisSettings.Rules.SetItem(ruleId, new RuleConfig(RuleLevel.Off));
         var newUserSettings = new UserSettings(new AnalysisSettings(newRules, UserSettings.AnalysisSettings.UserDefinedFileExclusions));
-        serializer.SafeSave(SettingsFilePath, newUserSettings.AnalysisSettings);
+        serializer.SafeSave(GlobalAnalysisSettingsFilePath, newUserSettings.AnalysisSettings);
         SafeClearUserSettingsCache();
     }
 
     public void UpdateFileExclusions(IEnumerable<string> exclusions)
     {
         var newUserSettings = new UserSettings(new AnalysisSettings(UserSettings.AnalysisSettings.Rules, exclusions));
-        serializer.SafeSave(SettingsFilePath, newUserSettings.AnalysisSettings);
+        serializer.SafeSave(GlobalAnalysisSettingsFilePath, newUserSettings.AnalysisSettings);
         SafeClearUserSettingsCache();
     }
 
-    public string SettingsFilePath { get; }
+    public string GlobalAnalysisSettingsFilePath { get; }
 
     public void EnsureFileExists()
     {
-        if (!fileSystem.File.Exists(SettingsFilePath))
+        if (!fileSystem.File.Exists(GlobalAnalysisSettingsFilePath))
         {
-            serializer.SafeSave(SettingsFilePath, UserSettings.AnalysisSettings);
+            serializer.SafeSave(GlobalAnalysisSettingsFilePath, UserSettings.AnalysisSettings);
         }
     }
 
@@ -125,7 +125,7 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
 
     private UserSettings SafeLoadUserSettings()
     {
-        var settings = serializer.SafeLoad<AnalysisSettings>(SettingsFilePath);
+        var settings = serializer.SafeLoad<AnalysisSettings>(GlobalAnalysisSettingsFilePath);
 
         if (settings != null)
         {

@@ -30,7 +30,7 @@ public interface IUserSettingsProvider
     /// <summary>
     /// Full path to the file containing the user settings
     /// </summary>
-    string SettingsFilePath { get; }
+    string GlobalAnalysisSettingsFilePath { get; }
 
     /// <summary>
     /// Updates the user settings to disable the specified rule

@@ -295,7 +295,7 @@ public class UserSettingsProviderTests
 
         var testSubject = CreateUserSettingsProvider(testLogger, fileSystem, singleFileMonitorFactory, testSettingsPath);
 
-        testSubject.SettingsFilePath.Should().Be(testSettingsPath);
+        testSubject.GlobalAnalysisSettingsFilePath.Should().Be(testSettingsPath);
         singleFileMonitorFactory.Received(1).Create(testSettingsPath);
     }
 
