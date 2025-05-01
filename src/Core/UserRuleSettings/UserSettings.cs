@@ -20,13 +20,13 @@
 
 namespace SonarLint.VisualStudio.Core.UserRuleSettings
 {
-    public class UserSettings
+    public class UserSettings(AnalysisSettings analysisSettings)
     {
-        public UserSettings(AnalysisSettings analysisSettings)
-        {
-            this.AnalysisSettings = analysisSettings ?? throw new ArgumentNullException(nameof(analysisSettings));
-        }
+        public AnalysisSettings AnalysisSettings { get; } = analysisSettings ?? throw new ArgumentNullException(nameof(analysisSettings));
 
-        public AnalysisSettings AnalysisSettings { get; }
+        /// <summary>
+        /// Base directory for generated configurations
+        /// </summary>
+        public string BaseDirectory { get; init; } // todo https://sonarsource.atlassian.net/browse/SLVS-2059
     }
 }
