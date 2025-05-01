@@ -167,7 +167,7 @@ public class UserSettingsProviderTests
         // Check the data on disc
         File.Exists(settingsFile).Should().BeTrue();
 
-        var reloadedSettings = LoadSettings(settingsFile);
+        var reloadedSettings = LoadAnalysisSettings(settingsFile);
         reloadedSettings.Rules.Count.Should().Be(1);
         reloadedSettings.Rules["cpp:S123"].Level.Should().Be(RuleLevel.Off);
     }
@@ -184,7 +184,7 @@ public class UserSettingsProviderTests
             []
         );
 
-        SaveSettings(settingsFile, initialSettings);
+        SaveAnalysisSettings(settingsFile, initialSettings);
 
         var logger = new TestLogger(logToConsole: true);
         var testSubject = CreateUserSettingsProvider(logger, new FileSystem(), singleFileMonitorFactory, settingsFile);
@@ -198,7 +198,7 @@ public class UserSettingsProviderTests
         // Check the data on disc
         File.Exists(settingsFile).Should().BeTrue();
 
-        var reloadedSettings = LoadSettings(settingsFile);
+        var reloadedSettings = LoadAnalysisSettings(settingsFile);
         reloadedSettings.Rules.Count.Should().Be(3);
         reloadedSettings.Rules["javascript:S111"].Level.Should().Be(RuleLevel.On);
         reloadedSettings.Rules["cpp:S111"].Level.Should().Be(RuleLevel.Off);
@@ -308,7 +308,7 @@ public class UserSettingsProviderTests
 
         testSubject.UpdateFileExclusions(["**/*.cs"]);
 
-        var reloadedSettings = LoadSettings(settingsFilePath);
+        var reloadedSettings = LoadAnalysisSettings(settingsFilePath);
         VerifySettingsFileHasExpectedExclusions(reloadedSettings, settingsFilePath, expectedExclusions: 1, fileExists: true);
         reloadedSettings.NormalizedFileExclusions[0].Should().Be("**/*.cs");
     }
@@ -317,13 +317,13 @@ public class UserSettingsProviderTests
     public void RealFile_UpdateFileExclusions_FileExists_OverridesPreviousFile()
     {
         var settingsFilePath = CreateRealSettingsFile();
-        SaveSettings(settingsFilePath, new AnalysisSettings([], ["**/*.cs"]));
+        SaveAnalysisSettings(settingsFilePath, new AnalysisSettings([], ["**/*.cs"]));
         var testSubject = CreateUserSettingsProvider(testLogger, new FileSystem(), singleFileMonitorFactory, settingsFilePath);
         VerifySettingsFileHasExpectedExclusions(testSubject.UserSettings.AnalysisSettings, settingsFilePath, expectedExclusions: 1, fileExists: true);
 
         testSubject.UpdateFileExclusions(["**/*.js"]);
 
-        var reloadedSettings = LoadSettings(settingsFilePath);
+        var reloadedSettings = LoadAnalysisSettings(settingsFilePath);
         VerifySettingsFileHasExpectedExclusions(testSubject.UserSettings.AnalysisSettings, settingsFilePath, expectedExclusions: 1, fileExists: true);
         reloadedSettings.NormalizedFileExclusions[0].Should().Be("**/*.js");
     }
@@ -347,16 +347,18 @@ public class UserSettingsProviderTests
         settings.AnalysisSettings.Rules.Count.Should().Be(0);
     }
 
-    private static void SaveSettings(string filePath, AnalysisSettings userSettings)
+    private static void SaveAnalysisSettings(string filePath, AnalysisSettings userSettings)
     {
         var serializer = new AnalysisSettingsSerializer(new FileSystem(), new TestLogger());
-        serializer.SafeSave(filePath, userSettings);
+        var globalAnalysisSettings = new GlobalAnalysisSettings(userSettings.Rules, userSettings.UserDefinedFileExclusions);
+        serializer.SafeSave(filePath, globalAnalysisSettings);
     }
 
-    private static AnalysisSettings LoadSettings(string filePath)
+    private static AnalysisSettings LoadAnalysisSettings(string filePath)
     {
         var serializer = new AnalysisSettingsSerializer(new FileSystem(), new TestLogger());
-        return serializer.SafeLoad<AnalysisSettings>(filePath);
+        var globalAnalysisSettings = serializer.SafeLoad<GlobalAnalysisSettings>(filePath);
+        return new AnalysisSettings(rules: globalAnalysisSettings.Rules, fileExclusions: globalAnalysisSettings.UserDefinedFileExclusions);
     }
 
     private string CreateTestSpecificDirectory()
