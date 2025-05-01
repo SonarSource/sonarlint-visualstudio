@@ -26,6 +26,6 @@ public record AnalyzeFilesAndTrackParams(
     string configurationScopeId,
     Guid analysisId,
     List<FileUri> filesToAnalyze,
-    Dictionary<string, string> extraProperties,
+    IReadOnlyDictionary<string, string> extraProperties,
     bool shouldFetchServerIssues,
     long startTime);

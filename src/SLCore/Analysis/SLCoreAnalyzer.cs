@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.CFamily.Analysis;
@@ -26,6 +27,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Analysis;
@@ -34,34 +36,21 @@ namespace SonarLint.VisualStudio.SLCore.Analysis;
 
 [Export(typeof(IAnalyzer))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class SLCoreAnalyzer : IAnalyzer
+[method: ImportingConstructor]
+public class SLCoreAnalyzer(
+    ISLCoreServiceProvider serviceProvider,
+    IActiveConfigScopeTracker activeConfigScopeTracker,
+    IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
+    ICurrentTimeProvider currentTimeProvider,
+    IAggregatingCompilationDatabaseProvider compilationDatabaseLocator,
+    IUserSettingsProvider userSettingsProvider,
+    ILogger logger)
+    : IAnalyzer
 {
     private const string CFamilyCompileCommandsProperty = "sonar.cfamily.compile-commands";
     private const string CFamilyReproducerProperty = "sonar.cfamily.reproducer";
 
-    private readonly ISLCoreServiceProvider serviceProvider;
-    private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
-    private readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
-    private readonly ICurrentTimeProvider currentTimeProvider;
-    private readonly IAggregatingCompilationDatabaseProvider compilationDatabaseLocator;
-    private readonly ILogger logger;
-
-    [ImportingConstructor]
-    public SLCoreAnalyzer(
-        ISLCoreServiceProvider serviceProvider,
-        IActiveConfigScopeTracker activeConfigScopeTracker,
-        IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
-        ICurrentTimeProvider currentTimeProvider,
-        IAggregatingCompilationDatabaseProvider compilationDatabaseLocator,
-        ILogger logger)
-    {
-        this.serviceProvider = serviceProvider;
-        this.activeConfigScopeTracker = activeConfigScopeTracker;
-        this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
-        this.currentTimeProvider = currentTimeProvider;
-        this.compilationDatabaseLocator = compilationDatabaseLocator;
-        this.logger = logger;
-    }
+    private readonly ILogger cfamilyConfigurationLog = logger.ForContext(SLCoreStrings.SLCoreAnalysisConfigurationLogContext).ForVerboseContext(nameof(EnrichPropertiesForCFamily));
 
     public void ExecuteAnalysis(
         string path,
@@ -101,17 +90,17 @@ public class SLCoreAnalyzer : IAnalyzer
     {
         try
         {
-            Dictionary<string, string> properties = [];
-            using var temporaryResourcesHandle = EnrichPropertiesForCFamily(properties, path, detectedLanguages, analyzerOptions);
+            var analysisProperties = userSettingsProvider.UserSettings.AnalysisSettings.AnalysisProperties;
+            using var temporaryResourcesHandle = EnrichPropertiesForCFamily(ref analysisProperties, path, detectedLanguages, analyzerOptions);
 
-            Stopwatch stopwatch = Stopwatch.StartNew();
+            var stopwatch = Stopwatch.StartNew();
 
             var (failedAnalysisFiles, _) = await analysisService.AnalyzeFilesAndTrackAsync(
                 new AnalyzeFilesAndTrackParams(
                     configScopeId,
                     analysisId,
                     [new FileUri(path)],
-                    properties,
+                    analysisProperties,
                     analyzerOptions?.IsOnOpen ?? false,
                     currentTimeProvider.Now.ToUnixTimeMilliseconds()),
                 cancellationToken);
@@ -136,7 +125,7 @@ public class SLCoreAnalyzer : IAnalyzer
     }
 
     private IDisposable EnrichPropertiesForCFamily(
-        Dictionary<string, string> properties,
+        ref ImmutableDictionary<string, string> properties,
         string path,
         IEnumerable<AnalysisLanguage> detectedLanguages,
         IAnalyzerOptions analyzerOptions)
@@ -148,19 +137,25 @@ public class SLCoreAnalyzer : IAnalyzer
 
         if (analyzerOptions is ICFamilyAnalyzerOptions {CreateReproducer: true})
         {
-            properties[CFamilyReproducerProperty] = path;
+            properties = properties.SetItem(CFamilyReproducerProperty, path);
+        }
+
+        if (properties.TryGetValue(CFamilyCompileCommandsProperty, out var userDefinedCompileCommands))
+        {
+            cfamilyConfigurationLog.LogVerbose(SLCoreStrings.UserDefinedCompilationDatabase, userDefinedCompileCommands);
+            return null;
         }
 
         var compilationDatabaseHandle = compilationDatabaseLocator.GetOrNull(path);
         if (compilationDatabaseHandle == null)
         {
-            logger.WriteLine(SLCoreStrings.CompilationDatabaseNotFound, path);
+            cfamilyConfigurationLog.WriteLine(SLCoreStrings.CompilationDatabaseNotFound, path);
             // Pass empty compilation database path in order to get a more helpful message and not break the analyzer
-            properties[CFamilyCompileCommandsProperty] = "";
+            properties = properties.SetItem(CFamilyCompileCommandsProperty, "");
         }
         else
         {
-            properties[CFamilyCompileCommandsProperty] = compilationDatabaseHandle.FilePath;
+            properties = properties.SetItem(CFamilyCompileCommandsProperty, compilationDatabaseHandle.FilePath);
         }
         return compilationDatabaseHandle;
     }
