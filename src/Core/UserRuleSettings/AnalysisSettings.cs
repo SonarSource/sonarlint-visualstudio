@@ -64,6 +64,9 @@ public class AnalysisSettings
     [JsonConverter(typeof(ImmutableDictionaryIgnoreCaseConverter<string, RuleConfig>))]
     public ImmutableDictionary<string, RuleConfig> Rules { get; init; }
 
+    [JsonIgnore] // todo https://sonarsource.atlassian.net/browse/SLVS-2059
+    public ImmutableDictionary<string, string> AnalysisProperties { get; init; } = ImmutableDictionary<string, string>.Empty;
+
     [JsonProperty("sonarlint.analysisExcludesStandalone")]
     [JsonConverter(typeof(CommaSeparatedStringArrayConverter))]
     public ImmutableArray<string> UserDefinedFileExclusions
