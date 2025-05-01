@@ -146,7 +146,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = CreateUninitializedTestSubject(out var barrier);
             testSubject.Dispose();
             barrier.SetResult(1);
-            testSubject.InitializeAsync().GetAwaiter().GetResult();
+            testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
 
             activeSolutionTracker.DidNotReceive().ActiveSolutionChanged += Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
             activeSolutionTracker.DidNotReceive().ActiveSolutionChanged -= Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
@@ -183,7 +183,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone);
 
             barrier.SetResult(1);
-            testSubject.InitializeAsync().GetAwaiter().GetResult();
+            testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
 
             // works as normal after initialization
             testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Connected);
@@ -215,7 +215,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone);
 
             barrier.SetResult(1);
-            testSubject.InitializeAsync().GetAwaiter().GetResult();
+            testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
 
             // works as normal after initialization
             testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Connected);
@@ -246,7 +246,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone);
 
             barrier.SetResult(1);
-            testSubject.InitializeAsync().GetAwaiter().GetResult();
+            testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
 
             // switch to connected mode to test binding updated event
             testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Connected);
@@ -672,7 +672,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<ActiveSolutionBoundTracker>(threadHandling, new TestLogger(), processor => createdInitializationProcessor = processor);
             var testSubject = new ActiveSolutionBoundTracker(serviceProvider, activeSolutionTracker, configScopeUpdater, testLogger, gitEventsMonitor, configProvider, sonarQubeServiceMock, initializationProcessorFactory);
-            testSubject.InitializeAsync().GetAwaiter().GetResult();
+            testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
             return testSubject;
         }
 

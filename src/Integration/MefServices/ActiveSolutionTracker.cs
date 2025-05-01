@@ -35,7 +35,6 @@ namespace SonarLint.VisualStudio.Integration
     {
         private readonly IServiceProvider serviceProvider;
         private readonly ISolutionInfoProvider solutionInfoProvider;
-        private readonly IInitializationProcessor initializationProcessor;
         private bool isDisposed;
         private IVsSolution solution;
         private uint cookie;
@@ -55,12 +54,12 @@ namespace SonarLint.VisualStudio.Integration
         {
             this.serviceProvider = serviceProvider;
             this.solutionInfoProvider = solutionInfoProvider;
-            initializationProcessor = initializationProcessorFactory.Create<ActiveSolutionTracker>([], InitializeInternalAsync);
+            InitializationProcessor = initializationProcessorFactory.Create<ActiveSolutionTracker>([], InitializeInternalAsync);
 
-            InitializeAsync().Forget();
+            InitializationProcessor.InitializeAsync().Forget();
         }
 
-        public Task InitializeAsync() => initializationProcessor.InitializeAsync();
+        public IInitializationProcessor InitializationProcessor { get; }
 
         private Task InitializeInternalAsync(IThreadHandling threadHandling) =>
             threadHandling.RunOnUIThreadAsync(() =>
@@ -167,7 +166,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             if (!this.isDisposed)
             {
-                if (disposing && initializationProcessor.IsFinalized)
+                if (disposing && InitializationProcessor.IsFinalized)
                 {
                     this.solution?.UnadviseSolutionEvents(this.cookie);
                 }
@@ -199,5 +198,6 @@ namespace SonarLint.VisualStudio.Integration
 
             ActiveSolutionChanged?.Invoke(this, new ActiveSolutionChangedEventArgs(isSolutionOpen, CurrentSolutionName));
         }
+
     }
 }

@@ -229,7 +229,7 @@ public class AnalysisConfigMonitorTests
             logger,
             threadHandling,
             initializationProcessorFactory);
-        testSubject.InitializeAsync().GetAwaiter().GetResult();
+        testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
         return testSubject;
     }
 }

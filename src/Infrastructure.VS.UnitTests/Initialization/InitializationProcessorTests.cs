@@ -101,8 +101,8 @@ public class InitializationProcessorTests
             var asyncLock = asyncLockFactory.Create();
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
             var acquireAsync = asyncLock.AcquireAsync().GetAwaiter().GetResult();
-            dependency1.InitializeAsync();
-            dependency2.InitializeAsync();
+            dependency1.InitializationProcessor.InitializeAsync();
+            dependency2.InitializationProcessor.InitializeAsync();
             initialization.Invoke(threadHandling);
             acquireAsync.Dispose();
         });
@@ -125,15 +125,15 @@ public class InitializationProcessorTests
         testSubject.IsFinalized.Should().BeTrue();
         asyncLockFactory.Create().Received(Quantity.Within(2, 20)).AcquireAsync();
         initialization.ReceivedWithAnyArgs(1).Invoke(default);
-        dependency1.Received(1).InitializeAsync();
-        dependency2.Received(1).InitializeAsync();
+        dependency1.InitializationProcessor.Received(1).InitializeAsync();
+        dependency2.InitializationProcessor.Received(1).InitializeAsync();
     }
 
     [TestMethod]
     public void InitializeAsync_DependencyThrows_ThrowsAndExecutesOnlyOnce()
     {
         var dependency = Substitute.For<IRequireInitialization>();
-        dependency.InitializeAsync().ThrowsAsync(new InvalidOperationException("My Failed Dependency"));
+        dependency.InitializationProcessor.InitializeAsync().ThrowsAsync(new InvalidOperationException("My Failed Dependency"));
         var testSubject = testSubjectFactory.Create<InitializationProcessorTests>([dependency], initialization);
 
         var act = () => testSubject.InitializeAsync();
@@ -142,7 +142,7 @@ public class InitializationProcessorTests
         act.Should().ThrowAsync<InvalidOperationException>();
 
         testSubject.IsFinalized.Should().BeTrue();
-        dependency.Received(1).InitializeAsync();
+        dependency.InitializationProcessor.Received(1).InitializeAsync();
         initialization.DidNotReceiveWithAnyArgs().Invoke(default);
         testLogger.OutputStrings.Last().Should().ContainAll(nameof(InitializationProcessorTests), "My Failed Dependency");
     }

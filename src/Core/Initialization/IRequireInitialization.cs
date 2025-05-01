@@ -22,5 +22,5 @@ namespace SonarLint.VisualStudio.Core.Initialization;
 
 public interface IRequireInitialization
 {
-    Task InitializeAsync();
+    IInitializationProcessor InitializationProcessor { get; }
 }

@@ -47,7 +47,6 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
     private readonly IThreadHandling threadHandling;
     private readonly ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater;
     private readonly IStandaloneRoslynSettingsUpdater roslynSettingsUpdater;
-    private readonly IInitializationProcessor initializationProcessor;
 
     [ImportingConstructor]
     public AnalysisConfigMonitor(
@@ -68,7 +67,7 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
         this.slCoreRuleSettingsUpdater = slCoreRuleSettingsUpdater;
         this.roslynSettingsUpdater = roslynSettingsUpdater;
 
-        initializationProcessor = initializationProcessorFactory.Create<AnalysisConfigMonitor>(
+        InitializationProcessor = initializationProcessorFactory.Create<AnalysisConfigMonitor>(
             [activeSolutionBoundTracker],
             _ =>
             {
@@ -82,10 +81,10 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
                 return Task.CompletedTask;
             });
 
-        InitializeAsync().Forget();
+        InitializationProcessor.InitializeAsync().Forget();
     }
 
-    public Task InitializeAsync() => initializationProcessor.InitializeAsync();
+    public IInitializationProcessor InitializationProcessor { get; }
 
     #region Incoming notifications
 
@@ -122,7 +121,7 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
     {
         if (!disposedValue)
         {
-            if (initializationProcessor.IsFinalized)
+            if (InitializationProcessor.IsFinalized)
             {
                 userSettingsUpdater.SettingsChanged -= OnUserSettingsChanged;
                 activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
