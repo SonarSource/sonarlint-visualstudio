@@ -50,7 +50,6 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly IConfigurationProvider configurationProvider;
         private readonly ISonarQubeService sonarQubeService;
-        private readonly IInitializationProcessor initializationProcessor;
         private readonly IBoundSolutionGitMonitor gitEventsMonitor;
         private readonly IConfigScopeUpdater configScopeUpdater;
         private readonly ILogger logger;
@@ -81,15 +80,16 @@ namespace SonarLint.VisualStudio.Integration
             this.logger = logger;
             this.configurationProvider = configurationProvider;
             this.sonarQubeService = sonarQubeService;
-            initializationProcessor = initializationProcessorFactory.Create<ActiveSolutionBoundTracker>([solutionTracker], InitializeInternalAsync);
             this.configScopeUpdater = configScopeUpdater;
+            InitializationProcessor = initializationProcessorFactory.Create<ActiveSolutionBoundTracker>(
+                [solutionTracker],
+                InitializeInternalAsync);
 
             CurrentConfiguration = BindingConfiguration.Standalone;
-            InitializeAsync().Forget();
+            InitializationProcessor.InitializeAsync().Forget();
         }
 
-        public Task InitializeAsync() =>
-            initializationProcessor.InitializeAsync();
+        public IInitializationProcessor InitializationProcessor { get; }
 
         private async Task InitializeInternalAsync(IThreadHandling threadHandling)
         {
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public void HandleBindingChange()
         {
-            if (disposed || !initializationProcessor.IsFinalized)
+            if (disposed || !InitializationProcessor.IsFinalized)
             {
                 return;
             }
@@ -183,7 +183,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private void RaiseAnalyzersChangedIfBindingChanged(BindingConfiguration newBindingConfiguration)
         {
-            if (initializationProcessor.IsFinalized) // todo https://sonarsource.atlassian.net/browse/SLVS-2095 raise events during initialization
+            if (InitializationProcessor.IsFinalized) // todo https://sonarsource.atlassian.net/browse/SLVS-2095 raise events during initialization
             {
                 configScopeUpdater.UpdateConfigScopeForCurrentSolution(newBindingConfiguration.Project);
             }
@@ -193,7 +193,7 @@ namespace SonarLint.VisualStudio.Integration
                 CurrentConfiguration = newBindingConfiguration;
                 SetBoundSolutionUIContext();
 
-                if (initializationProcessor.IsFinalized)
+                if (InitializationProcessor.IsFinalized)
                 {
                     // not raising events during initialization to keep the same behavior as with the original ctor initialization
                     // todo https://sonarsource.atlassian.net/browse/SLVS-2095 raise events during initialization
@@ -217,7 +217,7 @@ namespace SonarLint.VisualStudio.Integration
                 return;
             }
 
-            if (initializationProcessor.IsFinalized)
+            if (InitializationProcessor.IsFinalized)
             {
                 solutionTracker.ActiveSolutionChanged -= OnActiveSolutionChanged;
                 gitEventsMonitor.HeadChanged -= GitEventsMonitor_HeadChanged;

@@ -20,6 +20,7 @@
 
 using System;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Initialization;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
 {
@@ -34,6 +35,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             this.ActiveSolutionChanged?.Invoke(this, new ActiveSolutionChangedEventArgs(isSolutionOpen, solutionName));
         }
 
-        public virtual Task InitializeAsync() => Task.CompletedTask;
+        public virtual IInitializationProcessor InitializationProcessor => Substitute.For<IInitializationProcessor>();
     }
 }

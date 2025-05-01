@@ -63,7 +63,7 @@ public class InitializationProcessor(
         {
             var initialThread = threadHandling.CheckAccess();
             logger.LogVerbose(loggerContext, Resources.InitializationProcessor_Start);
-            await Task.WhenAll(dependencies.Select(x => x.InitializeAsync()));
+            await Task.WhenAll(dependencies.Select(x => x.InitializationProcessor.InitializeAsync()));
             await initialization(threadHandling);
             Debug.Assert(initialThread == threadHandling.CheckAccess(), "Thread switching should not happen");
 
