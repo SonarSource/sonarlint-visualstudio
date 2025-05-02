@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             try
             {
-                userSettingsProvider.EnsureFileExists();
+                userSettingsProvider.EnsureGlobalAnalysisSettingsFileExists();
                 OpenDocumentInVs(userSettingsProvider.GlobalAnalysisSettingsFilePath);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))

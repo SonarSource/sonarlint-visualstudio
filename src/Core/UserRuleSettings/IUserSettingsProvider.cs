@@ -45,7 +45,7 @@ public interface IUserSettingsProvider
     /// <summary>
     /// Ensure the settings file exists, creating a new file if necessary
     /// </summary>
-    void EnsureFileExists();
+    void EnsureGlobalAnalysisSettingsFileExists();
 
     event EventHandler SettingsChanged;
 }

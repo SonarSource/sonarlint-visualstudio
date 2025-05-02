@@ -107,7 +107,7 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
 
     public string GlobalAnalysisSettingsFilePath { get; }
 
-    public void EnsureFileExists()
+    public void EnsureGlobalAnalysisSettingsFileExists()
     {
         if (!fileSystem.File.Exists(GlobalAnalysisSettingsFilePath))
         {

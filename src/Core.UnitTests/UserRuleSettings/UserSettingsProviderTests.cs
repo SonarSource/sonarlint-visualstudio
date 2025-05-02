@@ -126,7 +126,7 @@ public class UserSettingsProviderTests
         fileSystem.File.Exists(SettingsFilePath).Returns(false);
 
         // Act
-        userSettingsProvider.EnsureFileExists();
+        userSettingsProvider.EnsureGlobalAnalysisSettingsFileExists();
 
         // Assert
         fileSystem.File.Received(2).Exists(SettingsFilePath);
@@ -141,7 +141,7 @@ public class UserSettingsProviderTests
         fileSystem.ClearReceivedCalls();
 
         // Act
-        userSettingsProvider.EnsureFileExists();
+        userSettingsProvider.EnsureGlobalAnalysisSettingsFileExists();
 
         // Assert
         fileSystem.File.Received(1).Exists(SettingsFilePath);

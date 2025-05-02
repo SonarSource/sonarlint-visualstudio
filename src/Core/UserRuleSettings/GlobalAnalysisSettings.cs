@@ -53,17 +53,23 @@ namespace SonarLint.VisualStudio.Core.UserRuleSettings;
      ...
  }
  */
-public class GlobalAnalysisSettings(ImmutableDictionary<string, RuleConfig> rules, IEnumerable<string> fileExclusions)
+public class GlobalAnalysisSettings
 {
     [JsonProperty("sonarlint.rules")]
     [JsonConverter(typeof(ImmutableDictionaryIgnoreCaseConverter<string, RuleConfig>))]
-    public ImmutableDictionary<string, RuleConfig> Rules { get; init; } = rules;
+    public ImmutableDictionary<string, RuleConfig> Rules { get; init; }
 
     [JsonProperty("sonarlint.analysisExcludesStandalone")]
     [JsonConverter(typeof(CommaSeparatedStringArrayConverter))]
-    public ImmutableArray<string> UserDefinedFileExclusions { get; init; } = fileExclusions.ToImmutableArray();
+    public ImmutableArray<string> UserDefinedFileExclusions { get; init; }
 
     public GlobalAnalysisSettings() : this(ImmutableDictionary<string, RuleConfig>.Empty, ImmutableArray<string>.Empty) { }
 
     public GlobalAnalysisSettings(Dictionary<string, RuleConfig> rules, IEnumerable<string> fileExclusions) : this(rules.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase), fileExclusions) { }
+
+    public GlobalAnalysisSettings(ImmutableDictionary<string, RuleConfig> rules, IEnumerable<string> fileExclusions)
+    {
+        Rules = rules;
+        UserDefinedFileExclusions = fileExclusions.ToImmutableArray();
+    }
 }

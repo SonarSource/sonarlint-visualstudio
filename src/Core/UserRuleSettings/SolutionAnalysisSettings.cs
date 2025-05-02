@@ -20,12 +20,22 @@
 
 using System.Collections.Immutable;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core.Helpers;
 
 namespace SonarLint.VisualStudio.Core.UserRuleSettings;
 
 public class SolutionAnalysisSettings
 {
-    [JsonIgnore] // todo https://sonarsource.atlassian.net/browse/SLVS-2059
-    public ImmutableDictionary<string, string> AnalysisProperties { get; init; } = ImmutableDictionary<string, string>.Empty;
+    [JsonProperty("sonarlint.analyzerProperties")]
+    [JsonConverter(typeof(ImmutableDictionaryIgnoreCaseConverter<string, string>))]
+    public ImmutableDictionary<string, string> AnalysisProperties { get; init; }
 
+    public SolutionAnalysisSettings() : this(ImmutableDictionary<string, string>.Empty) { }
+
+    public SolutionAnalysisSettings(Dictionary<string, string> analysisProperties) : this(analysisProperties.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase)) { }
+
+    public SolutionAnalysisSettings(ImmutableDictionary<string, string> analysisProperties)
+    {
+        AnalysisProperties = analysisProperties;
+    }
 }

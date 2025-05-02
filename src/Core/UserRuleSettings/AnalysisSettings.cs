@@ -49,16 +49,16 @@ public class AnalysisSettings
 
     public ImmutableArray<string> NormalizedFileExclusions { get; private init; }
 
+    public AnalysisSettings(Dictionary<string, RuleConfig> rules, IEnumerable<string> fileExclusions, Dictionary<string, string> analysisProperties = null) : this(
+        rules.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase), fileExclusions, analysisProperties?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase))
+    {
+    }
+
     public AnalysisSettings(ImmutableDictionary<string, RuleConfig> rules = null, IEnumerable<string> fileExclusions = null, ImmutableDictionary<string, string> analysisProperties = null)
     {
         Rules = rules ?? ImmutableDictionary<string, RuleConfig>.Empty;
         UserDefinedFileExclusions = fileExclusions?.ToImmutableArray() ?? ImmutableArray<string>.Empty;
         AnalysisProperties = analysisProperties ?? ImmutableDictionary<string, string>.Empty;
-    }
-
-    public AnalysisSettings(Dictionary<string, RuleConfig> rules, IEnumerable<string> fileExclusions, Dictionary<string, string> analysisProperties = null) : this(
-        rules.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase), fileExclusions, analysisProperties?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase))
-    {
     }
 
     private static string NormalizePath(string path)
