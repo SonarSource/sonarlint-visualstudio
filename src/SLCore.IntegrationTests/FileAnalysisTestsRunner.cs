@@ -96,11 +96,9 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         rulesCoreService.UpdateStandaloneRulesConfiguration(new UpdateStandaloneRulesConfigurationParams(ruleConfig));
     }
 
-    public void SetFileExclusions(string configScopeId, params string[] fileExclusions)
-    {
+    public void SetFileExclusions(string configScopeId, IEnumerable<string> fileExclusions) =>
         getFileExclusionsListener.GetFileExclusionsAsync(Arg.Is<GetFileExclusionsParams>(x => x.configurationScopeId == configScopeId))
             .Returns(new GetFileExclusionsResponse(fileExclusions.ToHashSet()));
-    }
 
     public async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysis(
         ITestingFile testingFile,

@@ -25,6 +25,6 @@ namespace SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
 
 internal class StandaloneRoslynFileExclusions(AnalysisSettings exclusions) : IFileExclusions
 {
-    private readonly string[] exclusions = exclusions.NormalizedFileExclusions;
+    private readonly string[] exclusions = exclusions.NormalizedFileExclusions.ToArray();
     public Dictionary<string, string> ToDictionary() => new() { { "sonar.exclusions", string.Join(",", exclusions) } };
 }

@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         private static IUserSettingsProvider CreateDummyUserSettingsProvider(string filePath)
         {
             var userSettingsProviderMock = new Mock<IUserSettingsProvider>();
-            userSettingsProviderMock.Setup(x => x.SettingsFilePath).Returns(filePath);
+            userSettingsProviderMock.Setup(x => x.GlobalAnalysisSettingsFilePath).Returns(filePath);
             return userSettingsProviderMock.Object;
         }
 
