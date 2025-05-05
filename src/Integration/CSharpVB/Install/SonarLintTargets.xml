@@ -11,7 +11,9 @@
 
     <PropertyGroup Condition="$(BuildingInsideVisualStudio) == 'true'">
         <_SLVSConnectedModeFolder>$(APPDATA)\SonarLint for Visual Studio\Bindings\$(SolutionName)</_SLVSConnectedModeFolder>
+        <_SLVSStandaloneModeFolder>$(APPDATA)\SonarLint for Visual Studio\SolutionSettings\$(SolutionName)</_SLVSStandaloneModeFolder>
         <_SLVSRootFolder>$(APPDATA)\SonarLint for Visual Studio\.global</_SLVSRootFolder>
+        <_SLVSRootFolder Condition=" Exists($(_SLVSStandaloneModeFolder))">$(_SLVSStandaloneModeFolder)</_SLVSRootFolder>
         <_SLVSRootFolder Condition=" Exists($(_SLVSConnectedModeFolder))">$(_SLVSConnectedModeFolder)</_SLVSRootFolder>
 
         <!-- C#/VB.NET settings need to be in different folders -->
