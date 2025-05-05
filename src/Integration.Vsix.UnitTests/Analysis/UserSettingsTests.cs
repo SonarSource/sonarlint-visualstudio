@@ -45,5 +45,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             new UserSettings(settings).AnalysisSettings.Should().BeSameAs(settings);
         }
+
+        [TestMethod]
+        public void BaseDirectory_DefaultValue_ExpectedLocation()
+        {
+            var testSubject = new UserSettings(new AnalysisSettings());
+
+            testSubject.BaseDirectory.Should().EndWith(@"\AppData\Roaming\SonarLint for Visual Studio\.global");
+        }
     }
 }
