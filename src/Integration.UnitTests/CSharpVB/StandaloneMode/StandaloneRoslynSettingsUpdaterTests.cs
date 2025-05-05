@@ -18,10 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CSharpVB.StandaloneMode;
 
@@ -31,7 +33,6 @@ public class StandaloneRoslynSettingsUpdaterTests
     private IRoslynConfigGenerator roslynConfigGenerator;
     private StandaloneRoslynSettingsUpdater testSubject;
     private ILanguageProvider languageProvider;
-    private IEnvironmentVariableProvider environmentVariableProvider;
     private IThreadHandling threadHandling;
 
     [TestInitialize]
@@ -39,7 +40,6 @@ public class StandaloneRoslynSettingsUpdaterTests
     {
         roslynConfigGenerator = Substitute.For<IRoslynConfigGenerator>();
         languageProvider = Substitute.For<ILanguageProvider>();
-        environmentVariableProvider = Substitute.For<IEnvironmentVariableProvider>();
         threadHandling = Substitute.For<IThreadHandling>();
         threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>())
             .Returns(info => info.Arg<Func<Task<int>>>()());
@@ -47,18 +47,28 @@ public class StandaloneRoslynSettingsUpdaterTests
         testSubject = new StandaloneRoslynSettingsUpdater(
             roslynConfigGenerator,
             languageProvider,
-            environmentVariableProvider,
             threadHandling);
     }
+
+    [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<StandaloneRoslynSettingsUpdater, IStandaloneRoslynSettingsUpdater>(
+            MefTestHelpers.CreateExport<IRoslynConfigGenerator>(),
+            MefTestHelpers.CreateExport<ILanguageProvider>(),
+            MefTestHelpers.CreateExport<IThreadHandling>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() =>
+        MefTestHelpers.CheckIsSingletonMefComponent<StandaloneRoslynSettingsUpdater>();
 
     [TestMethod]
     public void Update_CallsGeneratorWithCorrectLanguageAndDirectory()
     {
         IReadOnlyList<Language> fakeRoslynLanguages = [Language.VBNET, Language.TSql, Language.C];
         languageProvider.RoslynLanguages.Returns(fakeRoslynLanguages);
-        environmentVariableProvider.GetFolderPath(Environment.SpecialFolder.ApplicationData).Returns("APPDATA");
+        var userSettings = new UserSettings(new AnalysisSettings()){BaseDirectory = @"APPDATA\SonarLint for Visual Studio\.global"};
 
-        testSubject.Update(new UserSettings(new AnalysisSettings()));
+        testSubject.Update(userSettings);
 
         Received.InOrder(() =>
         {
@@ -68,6 +78,34 @@ public class StandaloneRoslynSettingsUpdaterTests
                     language,
                     @"APPDATA\SonarLint for Visual Studio\.global",
                     Arg.Is<IDictionary<string, string>>(x => x.Count == 0),
+                    Arg.Any<IFileExclusions>(),
+                    Arg.Is<IReadOnlyCollection<IRoslynRuleStatus>>(x => x.Count == 0),
+                    Arg.Is<IReadOnlyCollection<IRuleParameters>>(x => x.Count == 0));
+            }
+        });
+    }
+
+    [TestMethod]
+    public void Update_CallsGeneratorWithCorrectProperties()
+    {
+        IReadOnlyList<Language> fakeRoslynLanguages = [Language.VBNET, Language.TSql, Language.C];
+        languageProvider.RoslynLanguages.Returns(fakeRoslynLanguages);
+        var properties = ImmutableDictionary.Create<string, string>().SetItem("key", "value");
+        var userSettings = new UserSettings(new AnalysisSettings()
+        {
+            AnalysisProperties = properties
+        });
+
+        testSubject.Update(userSettings);
+
+        Received.InOrder(() =>
+        {
+            foreach (var language in fakeRoslynLanguages)
+            {
+                roslynConfigGenerator.GenerateAndSaveConfiguration(
+                    language,
+                    Arg.Any<string>(),
+                    properties,
                     Arg.Any<IFileExclusions>(),
                     Arg.Is<IReadOnlyCollection<IRoslynRuleStatus>>(x => x.Count == 0),
                     Arg.Is<IReadOnlyCollection<IRuleParameters>>(x => x.Count == 0));
