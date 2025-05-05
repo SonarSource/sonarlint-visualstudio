@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.Core;
@@ -25,6 +26,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -47,6 +49,9 @@ public class SLCoreAnalyzerTests
     private IAnalysisStatusNotifier notifier;
     private ILogger logger;
     private SLCoreAnalyzer testSubject;
+    private IUserSettingsProvider userSettingsProvider;
+
+    private readonly ImmutableDictionary<string, string> customAnalysisProperties = ImmutableDictionary.Create<string, string>().Add("prop1", "val1").Add("prop2", "val2");
 
     [TestInitialize]
     public void TestInitialize()
@@ -61,13 +66,19 @@ public class SLCoreAnalyzerTests
         SetUpDefaultNotifier();
         currentTimeProvider = Substitute.For<ICurrentTimeProvider>();
         compilationDatabaseLocator = Substitute.For<IAggregatingCompilationDatabaseProvider>();
+        userSettingsProvider = Substitute.For<IUserSettingsProvider>();
+        SetUpAnalysisProperties(ImmutableDictionary<string, string>.Empty);
         logger = new TestLogger();
         testSubject = new SLCoreAnalyzer(slCoreServiceProvider,
             activeConfigScopeTracker,
             analysisStatusNotifierFactory,
             currentTimeProvider,
             compilationDatabaseLocator,
+            userSettingsProvider,
             logger);
+
+
+        analysisService.AnalyzeFilesAndTrackAsync(default, default).ReturnsForAnyArgs(new AnalyzeFilesResponse(new HashSet<FileUri>(), []));
 
         void SetUpDefaultNotifier() => analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), FilePath, analysisId).Returns(notifier);
     }
@@ -80,6 +91,7 @@ public class SLCoreAnalyzerTests
             MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(),
             MefTestHelpers.CreateExport<ICurrentTimeProvider>(),
             MefTestHelpers.CreateExport<IAggregatingCompilationDatabaseProvider>(),
+            MefTestHelpers.CreateExport<IUserSettingsProvider>(),
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
@@ -137,6 +149,7 @@ public class SLCoreAnalyzerTests
         var expectedTimeStamp = DateTimeOffset.Now;
         SetUpCurrentTimeProvider(expectedTimeStamp);
         SetUpInitializedConfigScope();
+        SetUpAnalysisProperties(customAnalysisProperties);
 
         testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default);
 
@@ -144,10 +157,12 @@ public class SLCoreAnalyzerTests
                 a.analysisId == analysisId
                 && a.configurationScopeId == ConfigScopeId
                 && a.filesToAnalyze.Single() == new FileUri(FilePath)
-                && a.extraProperties.Count == 0
+                && a.extraProperties == customAnalysisProperties
                 && a.startTime == expectedTimeStamp.ToUnixTimeMilliseconds()),
             Arg.Any<CancellationToken>());
+        AssertAnalysisNotFailed();
     }
+
 
     [DataTestMethod]
     [DataRow(null, false)]
@@ -158,91 +173,116 @@ public class SLCoreAnalyzerTests
         IAnalyzerOptions options = value.HasValue ? new AnalyzerOptions { IsOnOpen = value.Value } : null;
         SetUpInitializedConfigScope();
 
-        testSubject.ExecuteAnalysis(FilePath, default, default, options, default);
+        testSubject.ExecuteAnalysis(FilePath, analysisId, default, options, default);
 
         analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a =>
                 a.shouldFetchServerIssues == expected),
             Arg.Any<CancellationToken>());
+        AssertAnalysisNotFailed();
     }
 
     [TestMethod]
     public void ExecuteAnalysis_ForCFamily_PassesCompilationDatabaseAsExtraProperties()
     {
-        const string filePath = @"C:\file\path\myclass.cpp";
         const string compilationDatabasePath = @"C:\file\path\compilation_database.json";
         var compilationDatabaseHandle = CreateCompilationDatabaseHandle(compilationDatabasePath);
-        SetUpCompilationDatabaseLocator(filePath, compilationDatabaseHandle);
+        SetUpCompilationDatabaseLocator(FilePath, compilationDatabaseHandle);
         SetUpInitializedConfigScope();
+        SetUpAnalysisProperties(customAnalysisProperties);
 
-        testSubject.ExecuteAnalysis(filePath, analysisId, [AnalysisLanguage.CFamily], default, default);
+        testSubject.ExecuteAnalysis(FilePath, analysisId, [AnalysisLanguage.CFamily], default, default);
 
         analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a =>
                 a.extraProperties != null
+                && customAnalysisProperties.All(x =>
+                    a.extraProperties.ContainsKey(x.Key) && a.extraProperties[x.Key] == x.Value)
                 && a.extraProperties["sonar.cfamily.compile-commands"] == compilationDatabasePath),
             Arg.Any<CancellationToken>());
         compilationDatabaseHandle.Received().Dispose();
+        AssertAnalysisNotFailed();
+    }
+
+    [TestMethod]
+    public void ExecuteAnalysis_ForCFamily_CustomCompilationDatabasePathSetViaProperties_PrefersCustomPathOverLocated()
+    {
+        const string compilationDatabasePath = "custom comp db path";
+        var compilationDatabaseHandle = CreateCompilationDatabaseHandle("some other comp db path");
+        SetUpCompilationDatabaseLocator(FilePath, compilationDatabaseHandle);
+        SetUpInitializedConfigScope();
+        SetUpAnalysisProperties(customAnalysisProperties.SetItem("sonar.cfamily.compile-commands", compilationDatabasePath));
+
+        testSubject.ExecuteAnalysis(FilePath, analysisId, [AnalysisLanguage.CFamily], default, default);
+
+        analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a =>
+                a.extraProperties != null
+                && customAnalysisProperties.All(x => a.extraProperties.ContainsKey(x.Key) && a.extraProperties[x.Key] == x.Value)
+                && a.extraProperties["sonar.cfamily.compile-commands"] == compilationDatabasePath),
+            Arg.Any<CancellationToken>());
+        compilationDatabaseLocator.DidNotReceiveWithAnyArgs().GetOrNull(default);
+        AssertAnalysisNotFailed();
     }
 
     [TestMethod]
     public void ExecuteAnalysis_CFamilyReproducerEnabled_SetsExtraProperty()
     {
-        const string filePath = @"C:\file\path\myclass.cpp";
-        SetUpCompilationDatabaseLocator(filePath, CreateCompilationDatabaseHandle("somepath"));
+        SetUpCompilationDatabaseLocator(FilePath, CreateCompilationDatabaseHandle("somepath"));
         SetUpInitializedConfigScope();
         var cFamilyAnalyzerOptions = CreateCFamilyAnalyzerOptions(true);
+        SetUpAnalysisProperties(ImmutableDictionary.Create<string, string>().Add("sonar.cfamily.reproducer", "some other path set by the user which is ignored when using reproducer command"));
 
-        testSubject.ExecuteAnalysis(filePath, analysisId, [AnalysisLanguage.CFamily], cFamilyAnalyzerOptions, default);
+        testSubject.ExecuteAnalysis(FilePath, analysisId, [AnalysisLanguage.CFamily], cFamilyAnalyzerOptions, default);
 
         analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a =>
                 a.extraProperties != null
-                && a.extraProperties["sonar.cfamily.reproducer"] == filePath),
+                && a.extraProperties["sonar.cfamily.reproducer"] == FilePath),
             Arg.Any<CancellationToken>());
+        AssertAnalysisNotFailed();
     }
 
     [TestMethod]
     public void ExecuteAnalysis_CFamilyReproducerDisabled_DoesNotSetExtraProperty()
     {
-        const string filePath = @"C:\file\path\myclass.cpp";
-        SetUpCompilationDatabaseLocator(filePath, CreateCompilationDatabaseHandle("somepath"));
+        SetUpCompilationDatabaseLocator(FilePath, CreateCompilationDatabaseHandle("somepath"));
         SetUpInitializedConfigScope();
         var cFamilyAnalyzerOptions = CreateCFamilyAnalyzerOptions(false);
 
-        testSubject.ExecuteAnalysis(filePath, analysisId, [AnalysisLanguage.CFamily], cFamilyAnalyzerOptions, default);
+        testSubject.ExecuteAnalysis(FilePath, analysisId, [AnalysisLanguage.CFamily], cFamilyAnalyzerOptions, default);
 
         analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a =>
                 a.extraProperties == null || !a.extraProperties.ContainsKey("sonar.cfamily.reproducer")),
             Arg.Any<CancellationToken>());
+        AssertAnalysisNotFailed();
     }
 
     [TestMethod]
     public void ExecuteAnalysis_ForCFamily_AnalysisThrows_CompilationDatabaaseDisposed()
     {
-        const string filePath = @"C:\file\path\myclass.cpp";
         const string compilationDatabasePath = @"C:\file\path\compilation_database.json";
         var compilationDatabaseHandle = CreateCompilationDatabaseHandle(compilationDatabasePath);
-        SetUpCompilationDatabaseLocator(filePath, compilationDatabaseHandle);
+        SetUpCompilationDatabaseLocator(FilePath, compilationDatabaseHandle);
         SetUpInitializedConfigScope();
-        analysisService.AnalyzeFilesAndTrackAsync(default, default).ThrowsAsyncForAnyArgs<Exception>();
+        analysisService.AnalyzeFilesAndTrackAsync(default, default).ThrowsAsyncForAnyArgs<InvalidOperationException>();
 
-        testSubject.ExecuteAnalysis(filePath, analysisId, [AnalysisLanguage.CFamily], default, default);
+        testSubject.ExecuteAnalysis(FilePath, analysisId, [AnalysisLanguage.CFamily], default, default);
 
         compilationDatabaseHandle.Received().Dispose();
+        notifier.Received().AnalysisFailed(Arg.Any<InvalidOperationException>());
     }
 
     [TestMethod]
     public void ExecuteAnalysis_ForCFamily_WithoutCompilationDatabase_PassesEmptyStringAsExtraProperty()
     {
-        const string filePath = @"C:\file\path\myclass.cpp";
-        SetUpCompilationDatabaseLocator(filePath, null);
+        SetUpCompilationDatabaseLocator(FilePath, null);
         SetUpInitializedConfigScope();
 
-        testSubject.ExecuteAnalysis(filePath, analysisId, [AnalysisLanguage.CFamily], default, default);
+        testSubject.ExecuteAnalysis(FilePath, analysisId, [AnalysisLanguage.CFamily], default, default);
 
         analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a =>
                 a.extraProperties != null
                 && a.extraProperties.ContainsKey("sonar.cfamily.compile-commands")
                 && a.extraProperties["sonar.cfamily.compile-commands"] == ""),
             Arg.Any<CancellationToken>());
+        AssertAnalysisNotFailed();
     }
 
     [TestMethod]
@@ -255,20 +295,17 @@ public class SLCoreAnalyzerTests
 
         analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Any<AnalyzeFilesAndTrackParams>(),
             cancellationTokenSource.Token);
+        AssertAnalysisNotFailed();
     }
 
     [TestMethod]
     public void ExecuteAnalysis_AnalysisServiceSucceeds_ExitsByFinishingAnalysis()
     {
         SetUpInitializedConfigScope();
-        analysisService.AnalyzeFilesAndTrackAsync(default, default).ReturnsForAnyArgs(new AnalyzeFilesResponse(new HashSet<FileUri>(), []));
 
         testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default);
 
-        notifier.DidNotReceiveWithAnyArgs().AnalysisNotReady(default);
-        notifier.DidNotReceiveWithAnyArgs().AnalysisFailed(default(Exception));
-        notifier.DidNotReceiveWithAnyArgs().AnalysisFailed(default(string));
-        notifier.Received().AnalysisFinished(Arg.Is<TimeSpan>(x => x > TimeSpan.Zero));
+        AssertAnalysisNotFailed();
     }
 
     [TestMethod]
@@ -306,6 +343,14 @@ public class SLCoreAnalyzerTests
         notifier.Received().AnalysisFailed(exception);
     }
 
+    private void AssertAnalysisNotFailed()
+    {
+        notifier.DidNotReceiveWithAnyArgs().AnalysisCancelled();
+        notifier.DidNotReceiveWithAnyArgs().AnalysisFailed(default(Exception));
+        notifier.DidNotReceiveWithAnyArgs().AnalysisFailed(default(string));
+        notifier.ReceivedWithAnyArgs().AnalysisFinished(default);
+    }
+
     private void SetUpServiceProvider(bool result = true) =>
         slCoreServiceProvider.TryGetTransientService(out Arg.Any<IAnalysisSLCoreService>())
             .Returns(info =>
@@ -314,11 +359,9 @@ public class SLCoreAnalyzerTests
                 return result;
             });
 
-    private void SetUpInitializedConfigScope() =>
-        activeConfigScopeTracker.Current.Returns(new ConfigurationScope(ConfigScopeId, IsReadyForAnalysis: true));
+    private void SetUpInitializedConfigScope() => activeConfigScopeTracker.Current.Returns(new ConfigurationScope(ConfigScopeId, IsReadyForAnalysis: true));
 
-    private void SetUpCurrentTimeProvider(DateTimeOffset nowTime) =>
-        currentTimeProvider.Now.Returns(nowTime);
+    private void SetUpCurrentTimeProvider(DateTimeOffset nowTime) => currentTimeProvider.Now.Returns(nowTime);
 
     private static ICompilationDatabaseHandle CreateCompilationDatabaseHandle(string compilationDatabasePath)
     {
@@ -327,9 +370,9 @@ public class SLCoreAnalyzerTests
         return handle;
     }
 
-    private void SetUpCompilationDatabaseLocator(string filePath, ICompilationDatabaseHandle handle) =>
-        compilationDatabaseLocator.GetOrNull(filePath).Returns(handle);
+    private void SetUpAnalysisProperties(ImmutableDictionary<string, string> props = null) => userSettingsProvider.UserSettings.Returns(new UserSettings(new AnalysisSettings { AnalysisProperties = props ?? ImmutableDictionary<string, string>.Empty }));
 
+    private void SetUpCompilationDatabaseLocator(string filePath, ICompilationDatabaseHandle handle) => compilationDatabaseLocator.GetOrNull(filePath).Returns(handle);
 
     private static ICFamilyAnalyzerOptions CreateCFamilyAnalyzerOptions(bool createReproducer)
     {
