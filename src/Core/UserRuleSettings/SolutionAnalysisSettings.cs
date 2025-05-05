@@ -18,34 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core.Helpers;
+
 namespace SonarLint.VisualStudio.Core.UserRuleSettings;
 
-public interface IUserSettingsProvider
+public class SolutionAnalysisSettings
 {
-    /// <summary>
-    /// The settings for the current user
-    /// </summary>
-    UserSettings UserSettings { get; }
+    [JsonProperty("sonarlint.analyzerProperties")]
+    [JsonConverter(typeof(ImmutableDictionaryIgnoreCaseConverter<string, string>))]
+    public ImmutableDictionary<string, string> AnalysisProperties { get; init; }
 
-    /// <summary>
-    /// Full path to the file containing the user settings
-    /// </summary>
-    string GlobalAnalysisSettingsFilePath { get; }
+    public SolutionAnalysisSettings() : this(ImmutableDictionary<string, string>.Empty) { }
 
-    /// <summary>
-    /// Updates the user settings to disable the specified rule
-    /// </summary>
-    void DisableRule(string ruleId);
+    public SolutionAnalysisSettings(Dictionary<string, string> analysisProperties) : this(analysisProperties.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase)) { }
 
-    /// <summary>
-    /// Updates the user settings to include the provided file exclusions. The value will override existing exclusions.
-    /// </summary>
-    void UpdateFileExclusions(IEnumerable<string> exclusions);
-
-    /// <summary>
-    /// Ensure the settings file exists, creating a new file if necessary
-    /// </summary>
-    void EnsureGlobalAnalysisSettingsFileExists();
-
-    event EventHandler SettingsChanged;
+    public SolutionAnalysisSettings(ImmutableDictionary<string, string> analysisProperties)
+    {
+        AnalysisProperties = analysisProperties;
+    }
 }

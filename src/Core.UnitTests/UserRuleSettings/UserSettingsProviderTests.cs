@@ -56,18 +56,13 @@ public class UserSettingsProviderTests
     }
 
     [TestMethod]
-    public void MefCtor_CheckIsExported()
-    {
+    public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<UserSettingsProvider, IUserSettingsProvider>(
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<ISingleFileMonitorFactory>(singleFileMonitorFactory));
-    }
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton()
-    {
-        MefTestHelpers.CheckIsSingletonMefComponent<UserSettingsProvider>();
-    }
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<UserSettingsProvider>();
 
     [TestMethod]
     public void Ctor_NoSettingsFile_EmptySettingsReturned()
@@ -131,7 +126,7 @@ public class UserSettingsProviderTests
         fileSystem.File.Exists(SettingsFilePath).Returns(false);
 
         // Act
-        userSettingsProvider.EnsureFileExists();
+        userSettingsProvider.EnsureGlobalAnalysisSettingsFileExists();
 
         // Assert
         fileSystem.File.Received(2).Exists(SettingsFilePath);
@@ -146,7 +141,7 @@ public class UserSettingsProviderTests
         fileSystem.ClearReceivedCalls();
 
         // Act
-        userSettingsProvider.EnsureFileExists();
+        userSettingsProvider.EnsureGlobalAnalysisSettingsFileExists();
 
         // Assert
         fileSystem.File.Received(1).Exists(SettingsFilePath);
@@ -172,7 +167,7 @@ public class UserSettingsProviderTests
         // Check the data on disc
         File.Exists(settingsFile).Should().BeTrue();
 
-        var reloadedSettings = LoadSettings(settingsFile);
+        var reloadedSettings = LoadAnalysisSettings(settingsFile);
         reloadedSettings.Rules.Count.Should().Be(1);
         reloadedSettings.Rules["cpp:S123"].Level.Should().Be(RuleLevel.Off);
     }
@@ -189,7 +184,7 @@ public class UserSettingsProviderTests
             []
         );
 
-        SaveSettings(settingsFile, initialSettings);
+        SaveAnalysisSettings(settingsFile, initialSettings);
 
         var logger = new TestLogger(logToConsole: true);
         var testSubject = CreateUserSettingsProvider(logger, new FileSystem(), singleFileMonitorFactory, settingsFile);
@@ -203,7 +198,7 @@ public class UserSettingsProviderTests
         // Check the data on disc
         File.Exists(settingsFile).Should().BeTrue();
 
-        var reloadedSettings = LoadSettings(settingsFile);
+        var reloadedSettings = LoadAnalysisSettings(settingsFile);
         reloadedSettings.Rules.Count.Should().Be(3);
         reloadedSettings.Rules["javascript:S111"].Level.Should().Be(RuleLevel.On);
         reloadedSettings.Rules["cpp:S111"].Level.Should().Be(RuleLevel.Off);
@@ -215,7 +210,7 @@ public class UserSettingsProviderTests
     {
         int settingsChangedEventCount = 0;
 
-        userSettingsProvider.SettingsChanged += (s, args) => settingsChangedEventCount++;
+        userSettingsProvider.SettingsChanged += (_, _) => settingsChangedEventCount++;
 
         singleFileMonitor.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
         settingsChangedEventCount.Should().Be(1);
@@ -254,21 +249,23 @@ public class UserSettingsProviderTests
         // so we can check that the provider is correctly reloading and using the file data,
         // and not re-using the in-memory version.
         const string originalData = "{}";
-        const string modifiedData = @"{
-    'sonarlint.rules': {
-        'typescript:S2685': {
-            'level': 'on'
-        }
-    }
-}";
+        const string modifiedData = """
+                                    {
+                                        'sonarlint.rules': {
+                                            'typescript:S2685': {
+                                                'level': 'on'
+                                            }
+                                        }
+                                    }
+                                    """;
         var fileSystemMock = CreateMockFile(SettingsFilePath, originalData);
         var settingsProvider = new UserSettingsProvider(Substitute.For<ILogger>(), singleFileMonitorFactory, fileSystemMock, SettingsFilePath);
-        int eventCount = 0;
+        var eventCount = 0;
         var settingsChangedEventReceived = new ManualResetEvent(initialState: false);
 
         settingsProvider.UserSettings.AnalysisSettings.Rules.Count.Should().Be(0); // sanity check of setup
 
-        settingsProvider.SettingsChanged += (s, args) =>
+        settingsProvider.SettingsChanged += (_, _) =>
         {
             eventCount++;
             settingsChangedEventReceived.Set();
@@ -298,7 +295,7 @@ public class UserSettingsProviderTests
 
         var testSubject = CreateUserSettingsProvider(testLogger, fileSystem, singleFileMonitorFactory, testSettingsPath);
 
-        testSubject.SettingsFilePath.Should().Be(testSettingsPath);
+        testSubject.GlobalAnalysisSettingsFilePath.Should().Be(testSettingsPath);
         singleFileMonitorFactory.Received(1).Create(testSettingsPath);
     }
 
@@ -311,7 +308,7 @@ public class UserSettingsProviderTests
 
         testSubject.UpdateFileExclusions(["**/*.cs"]);
 
-        var reloadedSettings = LoadSettings(settingsFilePath);
+        var reloadedSettings = LoadAnalysisSettings(settingsFilePath);
         VerifySettingsFileHasExpectedExclusions(reloadedSettings, settingsFilePath, expectedExclusions: 1, fileExists: true);
         reloadedSettings.NormalizedFileExclusions[0].Should().Be("**/*.cs");
     }
@@ -320,18 +317,18 @@ public class UserSettingsProviderTests
     public void RealFile_UpdateFileExclusions_FileExists_OverridesPreviousFile()
     {
         var settingsFilePath = CreateRealSettingsFile();
-        SaveSettings(settingsFilePath, new AnalysisSettings([], ["**/*.cs"]));
+        SaveAnalysisSettings(settingsFilePath, new AnalysisSettings([], ["**/*.cs"]));
         var testSubject = CreateUserSettingsProvider(testLogger, new FileSystem(), singleFileMonitorFactory, settingsFilePath);
         VerifySettingsFileHasExpectedExclusions(testSubject.UserSettings.AnalysisSettings, settingsFilePath, expectedExclusions: 1, fileExists: true);
 
         testSubject.UpdateFileExclusions(["**/*.js"]);
 
-        var reloadedSettings = LoadSettings(settingsFilePath);
+        var reloadedSettings = LoadAnalysisSettings(settingsFilePath);
         VerifySettingsFileHasExpectedExclusions(testSubject.UserSettings.AnalysisSettings, settingsFilePath, expectedExclusions: 1, fileExists: true);
         reloadedSettings.NormalizedFileExclusions[0].Should().Be("**/*.js");
     }
 
-    private UserSettingsProvider CreateUserSettingsProvider(
+    private static UserSettingsProvider CreateUserSettingsProvider(
         ILogger logger,
         IFileSystem fileSystemMock,
         ISingleFileMonitorFactory singleFileMonitorFactoryMock,
@@ -350,16 +347,18 @@ public class UserSettingsProviderTests
         settings.AnalysisSettings.Rules.Count.Should().Be(0);
     }
 
-    private static void SaveSettings(string filePath, AnalysisSettings userSettings)
+    private static void SaveAnalysisSettings(string filePath, AnalysisSettings userSettings)
     {
         var serializer = new AnalysisSettingsSerializer(new FileSystem(), new TestLogger());
-        serializer.SafeSave(filePath, userSettings);
+        var globalAnalysisSettings = new GlobalAnalysisSettings(userSettings.Rules, userSettings.UserDefinedFileExclusions);
+        serializer.SafeSave(filePath, globalAnalysisSettings);
     }
 
-    private AnalysisSettings LoadSettings(string filePath)
+    private static AnalysisSettings LoadAnalysisSettings(string filePath)
     {
         var serializer = new AnalysisSettingsSerializer(new FileSystem(), new TestLogger());
-        return serializer.SafeLoad(filePath);
+        var globalAnalysisSettings = serializer.SafeLoad<GlobalAnalysisSettings>(filePath);
+        return new AnalysisSettings(rules: globalAnalysisSettings.Rules, fileExclusions: globalAnalysisSettings.UserDefinedFileExclusions);
     }
 
     private string CreateTestSpecificDirectory()
