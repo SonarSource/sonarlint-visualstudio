@@ -48,15 +48,15 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
         ILogger logger,
         ISingleFileMonitorFactory singleFileMonitorFactory,
         IFileSystem fileSystem,
-        string settingsFilePath)
+        string globalAnalysisSettingsFilePath)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         var fileMonitorFactory = singleFileMonitorFactory ?? throw new ArgumentNullException(nameof(singleFileMonitorFactory));
         serializer = new AnalysisSettingsSerializer(fileSystem, logger);
 
-        SettingsFilePath = settingsFilePath;
-        settingsFileMonitor = fileMonitorFactory.Create(SettingsFilePath);
+        GlobalAnalysisSettingsFilePath = globalAnalysisSettingsFilePath;
+        settingsFileMonitor = fileMonitorFactory.Create(GlobalAnalysisSettingsFilePath);
         settingsFileMonitor.FileChanged += OnFileChanged;
     }
 
@@ -93,25 +93,25 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
         Debug.Assert(!string.IsNullOrEmpty(ruleId), "DisableRule: ruleId should not be null/empty");
 
         var newRules = UserSettings.AnalysisSettings.Rules.SetItem(ruleId, new RuleConfig(RuleLevel.Off));
-        var newUserSettings = new UserSettings(new AnalysisSettings(newRules, UserSettings.AnalysisSettings.UserDefinedFileExclusions));
-        serializer.SafeSave(SettingsFilePath, newUserSettings.AnalysisSettings);
+        var globalSettings = new GlobalAnalysisSettings(newRules, UserSettings.AnalysisSettings.UserDefinedFileExclusions);
+        serializer.SafeSave(GlobalAnalysisSettingsFilePath, globalSettings);
         SafeClearUserSettingsCache();
     }
 
     public void UpdateFileExclusions(IEnumerable<string> exclusions)
     {
-        var newUserSettings = new UserSettings(new AnalysisSettings(UserSettings.AnalysisSettings.Rules, exclusions));
-        serializer.SafeSave(SettingsFilePath, newUserSettings.AnalysisSettings);
+        var globalSettings = new GlobalAnalysisSettings(UserSettings.AnalysisSettings.Rules, exclusions);
+        serializer.SafeSave(GlobalAnalysisSettingsFilePath,globalSettings);
         SafeClearUserSettingsCache();
     }
 
-    public string SettingsFilePath { get; }
+    public string GlobalAnalysisSettingsFilePath { get; }
 
-    public void EnsureFileExists()
+    public void EnsureGlobalAnalysisSettingsFileExists()
     {
-        if (!fileSystem.File.Exists(SettingsFilePath))
+        if (!fileSystem.File.Exists(GlobalAnalysisSettingsFilePath))
         {
-            serializer.SafeSave(SettingsFilePath, UserSettings.AnalysisSettings);
+            serializer.SafeSave(GlobalAnalysisSettingsFilePath, UserSettings.AnalysisSettings);
         }
     }
 
@@ -125,13 +125,15 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
 
     private UserSettings SafeLoadUserSettings()
     {
-        var settings = serializer.SafeLoad(SettingsFilePath);
-        if (settings == null)
+        var globalSettings = serializer.SafeLoad<GlobalAnalysisSettings>(GlobalAnalysisSettingsFilePath);
+
+        if (globalSettings != null)
         {
-            logger.WriteLine(Strings.Settings_UsingDefaultSettings);
-            settings = new AnalysisSettings();
+            return new UserSettings(new AnalysisSettings(rules: globalSettings.Rules, fileExclusions: globalSettings.UserDefinedFileExclusions));
         }
-        return new UserSettings(settings);
+
+        logger.WriteLine(Strings.Settings_UsingDefaultSettings);
+        return new UserSettings(new AnalysisSettings());
     }
 
     #endregion

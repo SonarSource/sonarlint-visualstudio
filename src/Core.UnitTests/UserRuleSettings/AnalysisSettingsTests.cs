@@ -19,7 +19,6 @@
  */
 
 using System.IO;
-using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 
 namespace SonarLint.VisualStudio.Core.UnitTests.UserRuleSettings;
@@ -28,173 +27,30 @@ namespace SonarLint.VisualStudio.Core.UnitTests.UserRuleSettings;
 public class AnalysisSettingsTests
 {
     [TestMethod]
-    public void AnalysisSettings_SerializesCorrectly()
+    public void AnalysisSettings_FileExclusions_WithNull_ReturnsEmptyArray()
     {
-        var settings = new AnalysisSettings(
-            new Dictionary<string, RuleConfig> { { "typescript:S2685", new RuleConfig(RuleLevel.On, new Dictionary<string, string> { { "key1", "value1" } }) } },
-            ["file1.cpp", "**/obj/*", "file2.cpp"]);
-        const string expectedJson =
-            """
-            {
-              "sonarlint.rules": {
-                "typescript:S2685": {
-                  "level": "On",
-                  "parameters": {
-                    "key1": "value1"
-                  }
-                }
-              },
-              "sonarlint.analysisExcludesStandalone": "file1.cpp,**/obj/*,file2.cpp"
-            }
-            """;
+        var analysisSettings = new AnalysisSettings();
 
-        var json = JsonConvert.SerializeObject(settings, Formatting.Indented);
-
-        json.Should().Be(expectedJson);
+        analysisSettings.UserDefinedFileExclusions.Should().BeEmpty();
+        analysisSettings.NormalizedFileExclusions.Should().BeEmpty();
     }
 
     [TestMethod]
-    public void AnalysisSettings_DeserializesCorrectly()
+    public void AnalysisSettings_FileExclusions_DiscardsEmptyOrNullPaths()
     {
-        const string json = """
-                            {
-                              "sonarlint.rules": {
-                                "typescript:S2685": {
-                                  "level": "On",
-                                  "parameters": {
-                                    "key1": "value1"
-                                  }
-                                }
-                              },
-                              "sonarlint.analysisExcludesStandalone": "file1.cpp,**/obj/*,file2.cpp"
-                            }
-                            """;
+        var analysisSettings = new AnalysisSettings(fileExclusions: ["", " ", null]);
 
-        var settings = JsonConvert.DeserializeObject<AnalysisSettings>(json);
-
-        settings.Rules.Should().BeEquivalentTo(
-            new Dictionary<string, RuleConfig> { { "typescript:S2685", new RuleConfig(RuleLevel.On, new Dictionary<string, string> { { "key1", "value1" } }) } });
-        settings.UserDefinedFileExclusions.Should().BeEquivalentTo("file1.cpp", "**/obj/*", "file2.cpp");
-        settings.NormalizedFileExclusions.Should().BeEquivalentTo("**/file1.cpp", "**/obj/*", "**/file2.cpp");
+        analysisSettings.UserDefinedFileExclusions.Should().BeEmpty();
+        analysisSettings.NormalizedFileExclusions.Should().BeEmpty();
     }
 
     [TestMethod]
-    public void AnalysisSettings_FileExclusions_SerializesCorrectly()
+    public void AnalysisSettings_FileExclusions_WithBackslashes_NormalizesToForwardSlashes()
     {
-        var settings = new AnalysisSettings([], ["file1.cpp", "**/obj/*", "file2.cpp"]);
-        const string expectedJson =
-            """
-            {
-              "sonarlint.rules": {},
-              "sonarlint.analysisExcludesStandalone": "file1.cpp,**/obj/*,file2.cpp"
-            }
-            """;
+        var analysisSettings = new AnalysisSettings(fileExclusions: ["**\\obj\\*", "a\\file1.cpp", "file2.cpp"]);
 
-        var json = JsonConvert.SerializeObject(settings, Formatting.Indented);
-
-        json.Should().Be(expectedJson);
-    }
-
-    [TestMethod]
-    public void AnalysisSettings_FileExclusionsWithSpaces_SerializesCorrectlyAndTrims()
-    {
-        var settings = new AnalysisSettings([], ["file1.cpp ", " **/My Folder/*", "file2.cpp "]);
-        const string expectedJson =
-            """
-            {
-              "sonarlint.rules": {},
-              "sonarlint.analysisExcludesStandalone": "file1.cpp,**/My Folder/*,file2.cpp"
-            }
-            """;
-
-        var json = JsonConvert.SerializeObject(settings, Formatting.Indented);
-
-        json.Should().Be(expectedJson);
-    }
-
-    [TestMethod]
-    public void AnalysisSettings_FileExclusions_Serializes()
-    {
-        var settings = new AnalysisSettings();
-        const string expectedJson =
-            """
-            {
-              "sonarlint.rules": {},
-              "sonarlint.analysisExcludesStandalone": ""
-            }
-            """;
-
-        var json = JsonConvert.SerializeObject(settings, Formatting.Indented);
-
-        json.Should().Be(expectedJson);
-    }
-
-    [TestMethod]
-    public void AnalysisSettings_FileExclusionsWithBackslashes_DeserializesCorrectly()
-    {
-        const string json = """
-                            {
-                              "sonarlint.rules": {},
-                              "sonarlint.analysisExcludesStandalone": "a\\file1.cpp,**\\obj\\*,,file2.cpp"
-                            }
-                            """;
-
-        var settings = JsonConvert.DeserializeObject<AnalysisSettings>(json);
-
-        settings.UserDefinedFileExclusions.Should().BeEquivalentTo("a\\file1.cpp", "**\\obj\\*", "file2.cpp");
-        settings.NormalizedFileExclusions.Should().BeEquivalentTo("**/a/file1.cpp", "**/obj/*", "**/file2.cpp");
-    }
-
-    [TestMethod]
-    public void AnalysisSettings_FileExclusionsWithSpaces_DeserializesCorrectly()
-    {
-        const string json = """
-                            {
-                              "sonarlint.rules": {},
-                              "sonarlint.analysisExcludesStandalone": " file1.cpp, **/My Folder/*, file2.cpp "
-                            }
-                            """;
-
-        var settings = JsonConvert.DeserializeObject<AnalysisSettings>(json);
-
-        settings.UserDefinedFileExclusions.Should().BeEquivalentTo("file1.cpp", "**/My Folder/*", "file2.cpp");
-        settings.NormalizedFileExclusions.Should().BeEquivalentTo("**/file1.cpp", "**/My Folder/*", "**/file2.cpp");
-    }
-
-    [TestMethod]
-    public void AnalysisSettings_NullExclusions_DeserializesWithDefaultValue()
-    {
-        const string json = """
-                            {
-                              "sonarlint.rules": {},
-                              "sonarlint.analysisExcludesStandalone": null
-                            }
-                            """;
-
-        var settings = JsonConvert.DeserializeObject<AnalysisSettings>(json);
-
-        settings.UserDefinedFileExclusions.Should().BeEmpty();
-        settings.NormalizedFileExclusions.Should().BeEmpty();
-    }
-
-    [TestMethod]
-    public void AnalysisSettings_DeserializesAndIgnoresIfNotString()
-    {
-        const string json = """
-                            {
-                              "sonarlint.rules": {},
-                              "sonarlint.analysisExcludesStandalone": 12
-                            }
-                            """;
-
-        var act = () => JsonConvert.DeserializeObject<AnalysisSettings>(json);
-
-        act.Should().ThrowExactly<JsonException>().WithMessage(
-            string.Format(
-                CoreStrings.CommaSeparatedStringArrayConverter_UnexpectedType,
-                "System.Int64",
-                "System.String",
-                "['sonarlint.analysisExcludesStandalone']"));
+        analysisSettings.UserDefinedFileExclusions.Should().BeEquivalentTo("**\\obj\\*", "a\\file1.cpp", "file2.cpp");
+        analysisSettings.NormalizedFileExclusions.Should().BeEquivalentTo("**/a/file1.cpp", "**/obj/*", "**/file2.cpp");
     }
 
     [DataTestMethod]
@@ -212,9 +68,9 @@ public class AnalysisSettingsTests
     [DataRow(@"C:\file\path", @"C:/file/path")] // rooted path
     [DataRow(@"file/*/p?th.*", @"**/file/*/p?th.*")]
     [DataRow(@"file\*\p?th.*", @"**/file/*/p?th.*")]
-    public void NormalizedFileExclusions_TransformsPathCorrectly(string original, string expected)
+    public void AnalysisSettings_FileExclusions_TransformsPathCorrectly(string original, string expected)
     {
-        var testSubject = new AnalysisSettings([], [original]);
+        var testSubject = new AnalysisSettings(fileExclusions: [original]);
 
         testSubject.UserDefinedFileExclusions.Should().BeEquivalentTo(original);
         testSubject.NormalizedFileExclusions.Should().BeEquivalentTo(expected);
@@ -222,9 +78,9 @@ public class AnalysisSettingsTests
 
     [DataTestMethod]
     [DynamicData(nameof(GetInvalidPaths))]
-    public void NormalizedFileExclusions_ContainsInvalidPathCharacters_DoesNotCrashAndDoesNotNormalize(string invalidPath)
+    public void AnalysisSettings_FileExclusions_ContainsInvalidPathCharacters_DoesNotCrashAndDoesNotNormalize(string invalidPath)
     {
-        var testSubject = new AnalysisSettings([], [invalidPath]);
+        var testSubject = new AnalysisSettings(fileExclusions: [invalidPath]);
 
         testSubject.UserDefinedFileExclusions.Should().BeEquivalentTo(invalidPath);
         testSubject.NormalizedFileExclusions.Should().BeEquivalentTo(invalidPath?.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
@@ -233,5 +89,5 @@ public class AnalysisSettingsTests
     public static object[][] GetInvalidPaths =>
         Path.GetInvalidPathChars().Cast<object>()
             .Select(invalidChar => new[] { $"C:\\file{invalidChar}.cs" })
-            .ToArray();
+            .ToArray<object[]>();
 }
