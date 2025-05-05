@@ -90,8 +90,7 @@ public class SLCoreAnalyzer(
     {
         try
         {
-            var analysisProperties = userSettingsProvider.UserSettings.AnalysisSettings.AnalysisProperties;
-            using var temporaryResourcesHandle = EnrichPropertiesForCFamily(ref analysisProperties, path, detectedLanguages, analyzerOptions);
+            using var temporaryResourcesHandle = EnrichPropertiesForCFamily(out var analysisProperties, path, detectedLanguages, analyzerOptions);
 
             var stopwatch = Stopwatch.StartNew();
 
@@ -125,11 +124,13 @@ public class SLCoreAnalyzer(
     }
 
     private IDisposable EnrichPropertiesForCFamily(
-        ref ImmutableDictionary<string, string> properties,
+        out ImmutableDictionary<string, string> properties,
         string path,
         IEnumerable<AnalysisLanguage> detectedLanguages,
         IAnalyzerOptions analyzerOptions)
     {
+        properties = userSettingsProvider.UserSettings.AnalysisSettings.AnalysisProperties;
+
         if (!IsCFamily(detectedLanguages))
         {
             return null;
