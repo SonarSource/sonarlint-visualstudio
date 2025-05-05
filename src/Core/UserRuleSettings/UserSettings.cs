@@ -18,15 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.IO;
+
 namespace SonarLint.VisualStudio.Core.UserRuleSettings
 {
     public class UserSettings(AnalysisSettings analysisSettings)
     {
+        private const string StandaloneGlobalSettingsFolder = ".global";
         public AnalysisSettings AnalysisSettings { get; } = analysisSettings ?? throw new ArgumentNullException(nameof(analysisSettings));
 
         /// <summary>
         /// Base directory for generated configurations
         /// </summary>
-        public string BaseDirectory { get; init; } // todo https://sonarsource.atlassian.net/browse/SLVS-2059
+        public string BaseDirectory { get; init; }
+            = Path.GetFullPath(Path.Combine(EnvironmentVariableProvider.Instance.GetSLVSAppDataRootPath(), StandaloneGlobalSettingsFolder)); // todo https://sonarsource.atlassian.net/browse/SLVS-2059
     }
 }

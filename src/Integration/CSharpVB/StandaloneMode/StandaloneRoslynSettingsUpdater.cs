@@ -38,11 +38,9 @@ public interface IStandaloneRoslynSettingsUpdater
 internal class StandaloneRoslynSettingsUpdater(
     IRoslynConfigGenerator generator,
     ILanguageProvider languageProvider,
-    IEnvironmentVariableProvider environmentVariables,
     IThreadHandling threadHandling)
     : IStandaloneRoslynSettingsUpdater
 {
-    private const string StandaloneGlobalSettingsFolder = ".global";
     private readonly object lockObject = new();
 
     public void Update(UserSettings settings) =>
@@ -57,14 +55,12 @@ internal class StandaloneRoslynSettingsUpdater(
             var exclusions = ConvertExclusions(settings);
             var (ruleStatusesByLanguage, ruleParametersByLanguage) = ConvertRules(settings);
 
-            var baseDirectory = Path.Combine(environmentVariables.GetSLVSAppDataRootPath(), StandaloneGlobalSettingsFolder);
-
             foreach (var language in languageProvider.RoslynLanguages)
             {
                 generator.GenerateAndSaveConfiguration(
                     language,
-                    baseDirectory,
-                    new Dictionary<string, string>(),
+                    settings.BaseDirectory,
+                    settings.AnalysisSettings.AnalysisProperties,
                     exclusions,
                     ruleStatusesByLanguage[language],
                     ruleParametersByLanguage[language]);
