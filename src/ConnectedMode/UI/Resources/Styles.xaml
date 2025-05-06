@@ -239,6 +239,21 @@
     </Style>
 
     <Style TargetType="{x:Type DataGridCell}">
+        <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.WindowKey}}" />
+        <Setter Property="Padding" Value="3" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type DataGridCell}">
+                    <Border Background="{TemplateBinding Background}" 
+                            BorderBrush="{TemplateBinding BorderBrush}" 
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                        <ContentPresenter Margin="{TemplateBinding Padding}" 
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
         <Style.Triggers>
             <Trigger Property="DataGridCell.IsSelected" Value="True">
                 <Setter Property="Background" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonDefaultBrushKey}}" />
@@ -248,4 +263,15 @@
         </Style.Triggers>
     </Style>
 
+    <Style TargetType="{x:Type DataGrid}">
+        <Setter Property="BorderBrush" Value="{StaticResource Border}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}" />
+        <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.WindowKey}}" />
+        <Setter Property="RowHeaderWidth" Value="0" />
+    </Style>
+
+    <Style TargetType="{x:Type DataGridColumnHeader}">
+        <Setter Property="Padding" Value="5" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.ClassDesignerCommentTextKey}}" />
+    </Style>
 </ResourceDictionary>
