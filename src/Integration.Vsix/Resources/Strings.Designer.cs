@@ -63,6 +63,51 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
+        public static string AddAnalysisPropertyDialog_CancelButton {
+            get {
+                return ResourceManager.GetString("AddAnalysisPropertyDialog_CancelButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configure a new analysis property.
+        /// </summary>
+        public static string AddAnalysisPropertyDialog_Description {
+            get {
+                return ResourceManager.GetString("AddAnalysisPropertyDialog_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All fields must be filled..
+        /// </summary>
+        public static string AddAnalysisPropertyDialog_EmptyErrorMessage {
+            get {
+                return ResourceManager.GetString("AddAnalysisPropertyDialog_EmptyErrorMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OK.
+        /// </summary>
+        public static string AddAnalysisPropertyDialog_OkButton {
+            get {
+                return ResourceManager.GetString("AddAnalysisPropertyDialog_OkButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add Analysis Property.
+        /// </summary>
+        public static string AddAnalysisPropertyDialog_Title {
+            get {
+                return ResourceManager.GetString("AddAnalysisPropertyDialog_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
         public static string AddExclusionDialog_CancelButton {
             get {
                 return ResourceManager.GetString("AddExclusionDialog_CancelButton", resourceCulture);
@@ -111,6 +156,42 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         public static string Analysis_NotSupported {
             get {
                 return ResourceManager.GetString("Analysis_NotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Property Name.
+        /// </summary>
+        public static string AnalysisSettingPropertyName {
+            get {
+                return ResourceManager.GetString("AnalysisSettingPropertyName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analysis parameters.
+        /// </summary>
+        public static string AnalysisSettingsControl_DataGridTitle {
+            get {
+                return ResourceManager.GetString("AnalysisSettingsControl_DataGridTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Additional properties that could be passed to the code analyzers..
+        /// </summary>
+        public static string AnalysisSettingsControl_Description {
+            get {
+                return ResourceManager.GetString("AnalysisSettingsControl_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value.
+        /// </summary>
+        public static string AnalysisSettingValue {
+            get {
+                return ResourceManager.GetString("AnalysisSettingValue", resourceCulture);
             }
         }
         

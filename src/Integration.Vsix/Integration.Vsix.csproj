@@ -204,6 +204,12 @@
     </Page>
     <Page Include="Settings\GeneralOptionsDialogControl.xaml" />
     <Page Include="Settings\OtherOptionsDialogControl.xaml" />
+    <Page Include="Settings\SolutionSettings\AddAnalysisPropertyDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Settings\SolutionSettings\AnalysisPropertiesControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Settings\SolutionSettings\SolutionSettingsDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
