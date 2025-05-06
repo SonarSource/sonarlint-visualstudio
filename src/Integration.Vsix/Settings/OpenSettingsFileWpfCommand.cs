@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         protected virtual /* for testing */ void OpenDocumentInVs(string filePath)
         {
-            OpenDocumentService.OpenDocumentInVs(serviceProvider, filePath);
+            DocumentOpener.OpenDocumentInVs(serviceProvider, filePath);
             new NativeInterop().CloseRootWindow(win32Window);
         }
 

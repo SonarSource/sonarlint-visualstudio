@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings;
 
-internal static class OpenDocumentService
+internal static class DocumentOpener
 {
     [ExcludeFromCodeCoverage]
     internal static void OpenDocumentInVs(IServiceProvider serviceProvider, string filePath)
