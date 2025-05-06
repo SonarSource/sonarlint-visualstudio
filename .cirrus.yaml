@@ -20,7 +20,7 @@ calculate_version_script_definition: &CALCULATE_VERSION_SCRIPT_DEFINITION |
     echo "PROJECT_VERSION=${sonarProjectVersion}.${CI_BUILD_NUMBER}" >> $CIRRUS_ENV
 
 only_sonarsource_qa: &ONLY_SONARSOURCE_QA
-  $CIRRUS_USER_COLLABORATOR == "true" && $CIRRUS_TAG == "" && ($CIRRUS_PR != "" || $CIRRUS_BRANCH == "master" || $CIRRUS_BRANCH == "ci/images-it/master" || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH =~ "dogfood-on-.*")
+  $CIRRUS_USER_COLLABORATOR == "true" && $CIRRUS_TAG == "" && ($CIRRUS_PR != "" || $CIRRUS_BRANCH == "master" || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH =~ "dogfood-on-.*")
 
 build_task:
   ec2_instance: *INSTANCE_DEFINITION
@@ -117,7 +117,7 @@ build_task:
 dogfood_task:
   depends_on:
     - build
-  only_if: $CIRRUS_USER_COLLABORATOR == "true" && $CIRRUS_TAG == "" && ($CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH =~ "dogfood-on-.*")
+  only_if: $CIRRUS_USER_COLLABORATOR == "true" && $CIRRUS_TAG == "" && ($CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH =~ "dogfood-on-.*") && $CIRRUS_BRANCH != "dogfood-on-ci/images-it/master"
   ec2_instance: *INSTANCE_DEFINITION
   env:
     AWS_ACCESS_KEY_ID: VAULT[development/aws/sts/downloads access_key]
@@ -136,7 +136,7 @@ dogfood_task:
 
 mend_scan_task:
   ec2_instance: *INSTANCE_DEFINITION
-  only_if: $CIRRUS_USER_COLLABORATOR == "true" && $CIRRUS_TAG == "" && ($CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH == "ci/images-it/master" || $CIRRUS_BRANCH =~ "mend-.*")
+  only_if: $CIRRUS_USER_COLLABORATOR == "true" && $CIRRUS_TAG == "" && ($CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH =~ "mend-.*")
   depends_on:
     - build
   env:
