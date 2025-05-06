@@ -19,6 +19,8 @@
  */
 
 using System.Windows;
+using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix.Settings.SolutionSettings;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Commands;
@@ -38,5 +40,11 @@ internal class SolutionSettingsCommand : VsCommandBase
     {
         var solutionSettingsWindow = new SolutionSettingsDialog(serviceProvider) { Owner = Application.Current.MainWindow };
         solutionSettingsWindow.Show();
+    }
+
+    protected override void QueryStatusInternal(OleMenuCommand command)
+    {
+        var solutionInfoProvider = serviceProvider.GetMefService<ISolutionInfoProvider>();
+        command.Enabled = solutionInfoProvider?.GetSolutionName() != null;
     }
 }

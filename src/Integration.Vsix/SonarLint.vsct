@@ -76,6 +76,8 @@
       <Button guid="SonarLintCmdSet" id="SolutionSettingsCommand" priority="0x9999">
         <Parent guid="SonarLintCmdSet" id="SonarLintConnectedModeGroup"/>
         <Icon guid="ImageCatalogGuid" id="Settings" />
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Solution Settings</ButtonText>
