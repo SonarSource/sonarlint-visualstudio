@@ -126,7 +126,7 @@
     <comment>Package description in the Help/About</comment>
   </data>
   <data name="901" xml:space="preserve">
-    <value>SonarQube for Visual Studio</value>
+    <value>SonarQube</value>
     <comment>Options group name</comment>
   </data>
   <data name="902" xml:space="preserve">
@@ -134,7 +134,7 @@
     <comment>General options page name</comment>
   </data>
   <data name="903" xml:space="preserve">
-    <value>analysis rule rules SonarQube for Visual Studio</value>
+    <value>analysis rule rules SonarQube SonarLint</value>
     <comment>Keywords for General options page (used when searching Options)</comment>
   </data>
   <data name="904" xml:space="preserve">
