@@ -71,9 +71,9 @@ internal class AnalysisPropertyViewModel : ViewModelBase
     }
 
     private void UpdateValidationError() =>
-        Error = HasEmptyValidationError(Name) || HasEmptyValidationError(Value)
+        Error = CheckIsEmpty(Name) || CheckIsEmpty(Value)
             ? Strings.AddAnalysisPropertyDialog_EmptyErrorMessage
             : null;
 
-    private static bool HasEmptyValidationError(string propertyValue) => string.IsNullOrWhiteSpace(propertyValue);
+    private static bool CheckIsEmpty(string propertyValue) => string.IsNullOrWhiteSpace(propertyValue);
 }
