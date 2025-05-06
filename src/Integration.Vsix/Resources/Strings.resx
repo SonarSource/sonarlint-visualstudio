@@ -394,6 +394,6 @@ E.g. C:\Program Files\Java\jdk-17</value>
     <value>Solution Settings</value>
   </data>
   <data name="SolutionSettingsDialog_Description" xml:space="preserve">
-    <value>The configured settings will be saved locally in the</value>
+    <value>The settings configured for the {0} "{1}" will be saved locally in the</value>
   </data>
 </root>

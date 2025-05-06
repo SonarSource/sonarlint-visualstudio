@@ -21,6 +21,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Navigation;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.SolutionSettings;
@@ -31,20 +32,21 @@ internal sealed partial class SolutionSettingsDialog : Window
     private readonly IServiceProvider serviceProvider;
     private readonly IUserSettingsProvider userSettingsProvider;
 
+    public SolutionSettingsViewModel ViewModel { get; }
+
     internal SolutionSettingsDialog(IServiceProvider serviceProvider)
     {
         this.serviceProvider = serviceProvider;
         userSettingsProvider = serviceProvider.GetMefService<IUserSettingsProvider>();
+        ViewModel = new SolutionSettingsViewModel(serviceProvider.GetMefService<ISolutionInfoProvider>());
         InitializeComponent();
     }
 
     private void ApplyButton_OnClick(object sender, RoutedEventArgs e) => ApplyAndClose();
 
-    private void ApplyAndClose()
-    {
+    private void ApplyAndClose() =>
         // TODO by https://sonarsource.atlassian.net/browse/SLVS-2100: save to settings.json file
         Close();
-    }
 
     private void OpenFile(object sender, RequestNavigateEventArgs e)
     {

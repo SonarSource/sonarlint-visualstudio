@@ -648,7 +648,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The configured settings will be saved locally in the.
+        ///   Looks up a localized string similar to The settings configured for the {0} &quot;{1}&quot; will be saved locally in the.
         /// </summary>
         public static string SolutionSettingsDialog_Description {
             get {
