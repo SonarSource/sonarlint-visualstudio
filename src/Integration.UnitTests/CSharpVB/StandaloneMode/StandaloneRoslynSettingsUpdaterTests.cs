@@ -91,10 +91,7 @@ public class StandaloneRoslynSettingsUpdaterTests
         IReadOnlyList<Language> fakeRoslynLanguages = [Language.VBNET, Language.TSql, Language.C];
         languageProvider.RoslynLanguages.Returns(fakeRoslynLanguages);
         var properties = ImmutableDictionary.Create<string, string>().SetItem("key", "value");
-        var userSettings = new UserSettings(new AnalysisSettings()
-        {
-            AnalysisProperties = properties
-        });
+        var userSettings = new UserSettings(new AnalysisSettings(analysisProperties: properties));
 
         testSubject.Update(userSettings);
 
