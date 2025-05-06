@@ -22,10 +22,8 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
 using SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
 using SonarLint.VisualStudio.SLCore.Analysis;
@@ -42,7 +40,6 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
 {
     private readonly IAnalysisRequester analysisRequester;
     private readonly IUserSettingsProvider userSettingsUpdater;
-    private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly ILogger logger;
     private readonly IThreadHandling threadHandling;
     private readonly ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater;
@@ -54,45 +51,31 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
         IUserSettingsProvider userSettingsUpdater,
         ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater,
         IStandaloneRoslynSettingsUpdater roslynSettingsUpdater,
-        IActiveSolutionBoundTracker activeSolutionBoundTracker,
         ILogger logger,
         IThreadHandling threadHandling,
         IInitializationProcessorFactory initializationProcessorFactory)
     {
         this.analysisRequester = analysisRequester;
         this.userSettingsUpdater = userSettingsUpdater;
-        this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.logger = logger;
         this.threadHandling = threadHandling;
         this.slCoreRuleSettingsUpdater = slCoreRuleSettingsUpdater;
         this.roslynSettingsUpdater = roslynSettingsUpdater;
 
-        InitializationProcessor = initializationProcessorFactory.Create<AnalysisConfigMonitor>(
-            [activeSolutionBoundTracker],
-            _ =>
+        InitializationProcessor = initializationProcessorFactory.CreateAndStart<AnalysisConfigMonitor>(
+            [userSettingsUpdater],
+            () =>
             {
                 roslynSettingsUpdater.Update(userSettingsUpdater.UserSettings);
                 if (disposedValue)
                 {
-                    return Task.CompletedTask;
+                    return;
                 }
                 userSettingsUpdater.SettingsChanged += OnUserSettingsChanged;
-                activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
-                return Task.CompletedTask;
             });
-
-        InitializationProcessor.InitializeAsync().Forget();
     }
 
     public IInitializationProcessor InitializationProcessor { get; }
-
-    #region Incoming notifications
-
-    private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
-    {
-        logger.WriteLine(AnalysisStrings.ConfigMonitor_BindingChanged);
-        threadHandling.RunOnBackgroundThread(RequestAnalysis).Forget();
-    }
 
     private void OnUserSettingsChanged(object sender, EventArgs e)
     {
@@ -106,13 +89,9 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
         ).Forget();
     }
 
-    #endregion Incoming notifications
-
     private void RequestAnalysis() =>
         // NB assumes exception handling is done by the AnalysisRequester
         analysisRequester.RequestAnalysis();
-
-    #region IDisposable Support
 
     private bool disposedValue = false; // To detect redundant calls
 
@@ -123,10 +102,8 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
             if (InitializationProcessor.IsFinalized)
             {
                 userSettingsUpdater.SettingsChanged -= OnUserSettingsChanged;
-                activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
             }
             disposedValue = true;
         }
     }
-    #endregion
 }
