@@ -48,6 +48,7 @@ internal sealed partial class SolutionSettingsDialog : Window
 
     private void OpenFile(object sender, RequestNavigateEventArgs e)
     {
+        // TODO by https://sonarsource.atlassian.net/browse/SLVS-2109: open the solution level settings.json
         OpenDocumentService.OpenDocumentInVs(serviceProvider, userSettingsProvider.SettingsFilePath);
         ApplyAndClose();
     }
