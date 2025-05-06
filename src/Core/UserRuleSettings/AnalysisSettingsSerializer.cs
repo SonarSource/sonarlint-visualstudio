@@ -18,58 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO.Abstractions;
-using Newtonsoft.Json;
-
 namespace SonarLint.VisualStudio.Core.UserRuleSettings;
 
 public interface IAnalysisSettingsSerializer
 {
     T SafeLoad<T>(string filePath) where T : class;
     void SafeSave<T>(string filePath, T data);
-}
-
-/// <summary>
-/// Loads and saves rules settings to disc.
-/// Logs user-friendly messages and suppresses non-critical exceptions.
-/// </summary>
-public class AnalysisSettingsSerializer(IFileSystem fileSystem, ILogger logger) : IAnalysisSettingsSerializer
-{
-    private readonly IFileSystem fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
-    private readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-    public T SafeLoad<T>(string filePath) where T : class
-    {
-        if (!fileSystem.File.Exists(filePath))
-        {
-            logger?.WriteLine(CoreStrings.Settings_NoSettingsFile, filePath);
-            return null;
-        }
-
-        try
-        {
-            logger?.WriteLine(CoreStrings.Settings_LoadedSettingsFile, filePath);
-            var data = fileSystem.File.ReadAllText(filePath);
-            return JsonConvert.DeserializeObject<T>(data);
-        }
-        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-        {
-            logger?.WriteLine(CoreStrings.Settings_ErrorLoadingSettingsFile, filePath, ex.Message);
-            return null;
-        }
-    }
-
-    public void SafeSave<T>(string filePath, T data)
-    {
-        try
-        {
-            var dataAsText = JsonConvert.SerializeObject(data, Formatting.Indented);
-            fileSystem.File.WriteAllText(filePath, dataAsText);
-            logger?.WriteLine(CoreStrings.Settings_SavedSettingsFile, filePath);
-        }
-        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-        {
-            logger?.WriteLine(CoreStrings.Settings_ErrorSavingSettingsFile, filePath, ex.Message);
-        }
-    }
 }

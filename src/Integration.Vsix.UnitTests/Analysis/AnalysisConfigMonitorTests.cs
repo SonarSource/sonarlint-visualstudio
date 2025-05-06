@@ -74,7 +74,7 @@ public class AnalysisConfigMonitorTests
     public void Ctor_UpdatesRoslynSettings()
     {
         var dependencies = new[] { activeSolutionBoundTracker };
-        var userSettings = new UserSettings(new AnalysisSettings());
+        var userSettings = new UserSettings(new AnalysisSettings(), "any");
         userSettingsUpdaterMock.UserSettings.Returns(userSettings);
 
         _ = CreateAndInitializeTestSubject();
@@ -184,7 +184,7 @@ public class AnalysisConfigMonitorTests
 
     private UserSettings SimulateUserSettingsChanged()
     {
-        var userSettings = new UserSettings(new AnalysisSettings());
+        var userSettings = new UserSettings(new AnalysisSettings(), "any");
         userSettingsUpdaterMock.UserSettings.Returns(userSettings);
         userSettingsUpdaterMock.SettingsChanged += Raise.EventWith(null, EventArgs.Empty);
         return userSettings;
