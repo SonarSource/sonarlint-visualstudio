@@ -41,16 +41,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.menuService = menuService ?? throw new ArgumentNullException(nameof(menuService));
         }
 
-        public void Initialize(
-            IProjectPropertyManager projectPropertyManager,
-            IOutputWindowService outputWindowService,
-            IShowInBrowserService showInBrowserService,
-            ShowOptionsPage showOptionsPage,
-            IActiveSolutionBoundTracker activeSolutionBoundTracker,
-            IConnectedModeServices connectedModeServices,
-            IConnectedModeUIServices connectedModeUiServices,
-            IConnectedModeUIManager connectedModeManager)
+        public async Task InitializeAsync(IAsyncServiceProvider asyncServiceProvider, ShowOptionsPage showOptionsPage)
         {
+            var connectedModeManager = await asyncServiceProvider.GetMefServiceAsync<IConnectedModeUIManager>();
+            var connectedModeUiServices = await asyncServiceProvider.GetMefServiceAsync<IConnectedModeUIServices>();
+            var activeSolutionBoundTracker = await asyncServiceProvider.GetMefServiceAsync<IActiveSolutionBoundTracker>();
+            var showInBrowserService = await asyncServiceProvider.GetMefServiceAsync<IShowInBrowserService>();
+            var outputWindowService = await asyncServiceProvider.GetMefServiceAsync<IOutputWindowService>();
+            var projectPropertyManager = await asyncServiceProvider.GetMefServiceAsync<IProjectPropertyManager>();
+
             RegisterCommand((int)PackageCommandId.ProjectExcludePropertyToggle, new ProjectExcludePropertyToggleCommand(projectPropertyManager));
             RegisterCommand((int)PackageCommandId.ProjectTestPropertyAuto, new ProjectTestPropertySetCommand(projectPropertyManager, null));
             RegisterCommand((int)PackageCommandId.ProjectTestPropertyTrue, new ProjectTestPropertySetCommand(projectPropertyManager, true));
@@ -61,6 +60,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // Commands
             RegisterCommand(CommonGuids.SonarLintMenuCommandSet, OptionsCommand.Id, new OptionsCommand(showOptionsPage));
+            RegisterCommand(CommonGuids.SonarLintMenuCommandSet, SolutionSettingsCommand.Id, new SolutionSettingsCommand(asyncServiceProvider as IServiceProvider));
 
             // Help menu buttons
             RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowLogsCommand.Id, new ShowLogsCommand(outputWindowService));

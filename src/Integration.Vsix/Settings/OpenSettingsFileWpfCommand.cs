@@ -20,10 +20,10 @@
 
 using System.Windows.Forms;
 using System.Windows.Input;
-using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
+using SonarLint.VisualStudio.Integration.Vsix.Settings;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -34,7 +34,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ILogger logger;
         private readonly IWin32Window win32Window;
 
-        public OpenSettingsFileWpfCommand(IServiceProvider serviceProvider, IUserSettingsProvider userSettingsProvider, IWin32Window win32Window, ILogger logger)
+        public OpenSettingsFileWpfCommand(
+            IServiceProvider serviceProvider,
+            IUserSettingsProvider userSettingsProvider,
+            IWin32Window win32Window,
+            ILogger logger)
         {
             this.serviceProvider = serviceProvider;
             this.userSettingsProvider = userSettingsProvider;
@@ -63,11 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         protected virtual /* for testing */ void OpenDocumentInVs(string filePath)
         {
-            // TryOpenDocument calls several other VS services. From a testing point of view, it's simpler to
-            // create a subclass and override this method.
-            var viewType = Guid.Empty;
-            VsShellUtilities.TryOpenDocument(serviceProvider, filePath, viewType, out var _, out var _, out var _);
-
+            DocumentOpener.OpenDocumentInVs(serviceProvider, filePath);
             new NativeInterop().CloseRootWindow(win32Window);
         }
 
