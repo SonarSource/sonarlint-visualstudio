@@ -370,7 +370,7 @@ public class SLCoreAnalyzerTests
         return handle;
     }
 
-    private void SetUpAnalysisProperties(ImmutableDictionary<string, string> props = null) => userSettingsProvider.UserSettings.Returns(new UserSettings(new AnalysisSettings { AnalysisProperties = props ?? ImmutableDictionary<string, string>.Empty }));
+    private void SetUpAnalysisProperties(ImmutableDictionary<string, string> props = null) => userSettingsProvider.UserSettings.Returns(new UserSettings(new AnalysisSettings(analysisProperties:props ?? ImmutableDictionary<string, string>.Empty)));
 
     private void SetUpCompilationDatabaseLocator(string filePath, ICompilationDatabaseHandle handle) => compilationDatabaseLocator.GetOrNull(filePath).Returns(handle);
 
