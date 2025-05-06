@@ -396,4 +396,31 @@ E.g. C:\Program Files\Java\jdk-17</value>
   <data name="SolutionSettingsDialog_Description" xml:space="preserve">
     <value>The settings configured for the {0} "{1}" will be saved locally in the</value>
   </data>
+  <data name="AnalysisSettingPropertyName" xml:space="preserve">
+    <value>Property Name</value>
+  </data>
+  <data name="AnalysisSettingValue" xml:space="preserve">
+    <value>Value</value>
+  </data>
+  <data name="AnalysisSettingsControl_DataGridTitle" xml:space="preserve">
+    <value>Analysis parameters</value>
+  </data>
+  <data name="AnalysisSettingsControl_Description" xml:space="preserve">
+    <value>Additional properties that could be passed to the code analyzers.</value>
+  </data>
+  <data name="AddAnalysisPropertyDialog_CancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="AddAnalysisPropertyDialog_Description" xml:space="preserve">
+    <value>Configure a new analysis property</value>
+  </data>
+  <data name="AddAnalysisPropertyDialog_OkButton" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="AddAnalysisPropertyDialog_Title" xml:space="preserve">
+    <value>Add Analysis Property</value>
+  </data>
+  <data name="AddAnalysisPropertyDialog_EmptyErrorMessage" xml:space="preserve">
+    <value>All fields must be filled.</value>
+  </data>
 </root>

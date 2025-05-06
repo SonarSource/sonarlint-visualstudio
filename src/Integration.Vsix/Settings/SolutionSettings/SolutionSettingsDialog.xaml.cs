@@ -40,6 +40,7 @@ internal sealed partial class SolutionSettingsDialog : Window
         userSettingsProvider = serviceProvider.GetMefService<IUserSettingsProvider>();
         ViewModel = new SolutionSettingsViewModel(serviceProvider.GetMefService<ISolutionInfoProvider>());
         InitializeComponent();
+        AddTabs();
     }
 
     private void ApplyButton_OnClick(object sender, RoutedEventArgs e) => ApplyAndClose();
@@ -56,4 +57,9 @@ internal sealed partial class SolutionSettingsDialog : Window
     }
 
     private void CloseButton_OnClick(object sender, RoutedEventArgs e) => Close();
+
+    /// <summary>
+    /// The constructor of the user controls for the tabs are not parameterless, so they cannot be created in XAML directly.
+    /// </summary>
+    private void AddTabs() => AnalysisPropertiesTab.Content = new AnalysisPropertiesControl(new AnalysisPropertiesViewModel());
 }
