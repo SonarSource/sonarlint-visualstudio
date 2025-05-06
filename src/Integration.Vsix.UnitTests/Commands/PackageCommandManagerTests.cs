@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -40,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void PackageCommandManager_Initialize()
+        public async Task PackageCommandManager_InitializeAsync()
         {
             // Arrange
             var testSubject = CreateTestSubject(out var menuService);
@@ -54,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var serviceProvider = GetMockedServiceProvider();
 
             // Act
-            testSubject.Initialize(Substitute.For<PackageCommandManager.ShowOptionsPage>(), serviceProvider);
+            await testSubject.InitializeAsync(serviceProvider, Substitute.For<PackageCommandManager.ShowOptionsPage>());
 
             // Assert
             menuService.Commands.Should().HaveCountGreaterOrEqualTo(allCommands.Count, "Unexpected number of commands");
@@ -112,11 +113,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return new PackageCommandManager(menuService);
         }
 
-        private IServiceProvider GetMockedServiceProvider()
+        private IAsyncServiceProvider GetMockedServiceProvider()
         {
-            var serviceProvider = Substitute.For<IServiceProvider>();
+            var serviceProvider = Substitute.For<IAsyncServiceProvider>();
             var componentModel = Substitute.For<IComponentModel>();
-            serviceProvider.GetService(typeof(SComponentModel)).Returns(componentModel);
+            serviceProvider.GetServiceAsync(typeof(SComponentModel)).Returns(componentModel);
             componentModel.GetExtensions<IConnectedModeUIManager>().Returns([Substitute.For<IConnectedModeUIManager>()]);
             componentModel.GetExtensions<IConnectedModeUIServices>().Returns([Substitute.For<IConnectedModeUIServices>()]);
             componentModel.GetExtensions<IActiveSolutionBoundTracker>().Returns([Substitute.For<IActiveSolutionBoundTracker>()]);

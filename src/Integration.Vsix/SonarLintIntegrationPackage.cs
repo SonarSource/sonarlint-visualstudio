@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 IServiceProvider serviceProvider = this;
 
                 commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
-                commandManager.Initialize(ShowOptionPage, serviceProvider);
+                await commandManager.InitializeAsync(this, ShowOptionPage);
 
                 // make sure roslynSettingsFileSynchronizer is initialized
                 roslynSettingsFileSynchronizer = await this.GetMefServiceAsync<IRoslynSettingsFileSynchronizer>();
