@@ -551,6 +551,32 @@ public class UserSettingsProviderTests
     }
 
     [TestMethod]
+    public void DisableRule_EnabledRule_UpdatesGlobalSettingsWithoutRaisingEvent()
+    {
+        serializer.SafeLoad<GlobalAnalysisSettings>(GlobalSettingsFilePath).Returns(new GlobalAnalysisSettings(rules: ImmutableDictionary.Create<string, RuleConfig>().Add("somerule", new RuleConfig(RuleLevel.On)), ImmutableArray<string>.Empty));
+        var testSubject = CreateAndInitializeTestSubject();
+        var settingsChanged = SubscribeToSettingsChanged(testSubject);
+
+        testSubject.DisableRule("somerule");
+
+        settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
+        serializer.Received().SafeSave(GlobalSettingsFilePath, Arg.Is<GlobalAnalysisSettings>(x => x.Rules.ContainsKey("somerule") && x.Rules["somerule"].Level == RuleLevel.Off));
+    }
+
+    [TestMethod]
+    public void DisableRule_OtherRuleNotDisabled_UpdatesGlobalSettingsWithoutRaisingEvent()
+    {
+        serializer.SafeLoad<GlobalAnalysisSettings>(GlobalSettingsFilePath).Returns(new GlobalAnalysisSettings(rules: ImmutableDictionary.Create<string, RuleConfig>().Add("someotherrule", new RuleConfig(RuleLevel.On)), ImmutableArray<string>.Empty));
+        var testSubject = CreateAndInitializeTestSubject();
+        var settingsChanged = SubscribeToSettingsChanged(testSubject);
+
+        testSubject.DisableRule("somerule");
+
+        settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
+        serializer.Received().SafeSave(GlobalSettingsFilePath, Arg.Is<GlobalAnalysisSettings>(x => x.Rules.ContainsKey("somerule") && x.Rules["somerule"].Level == RuleLevel.Off && x.Rules.ContainsKey("someotherrule") && x.Rules["someotherrule"].Level == RuleLevel.On));
+    }
+
+    [TestMethod]
     public void UpdateFileExclusions_UpdatesGlobalSettingsWithoutRaisingEvent()
     {
         var testSubject = CreateAndInitializeTestSubject();
@@ -562,138 +588,6 @@ public class UserSettingsProviderTests
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
         serializer.Received().SafeSave(GlobalSettingsFilePath, Arg.Is<GlobalAnalysisSettings>(x => x.UserDefinedFileExclusions.SequenceEqual(exclusions, default)));
     }
-
-    // [TestMethod]
-    // public void RealFile_DisableRule_FileDoesNotExist_FileCreated()
-    // {
-    //     var dir = CreateTestSpecificDirectory();
-    //     var settingsFile = Path.Combine(dir, "settings.txt");
-    //
-    //     var logger = new TestLogger(logToConsole: true);
-    //     var testSubject = CreateAndInitializeTestSubject();
-    //     var testSubject = CreateUserSettingsProvider(logger, new FileSystem(), singleFileMonitorFactory, settingsFile);
-    //
-    //     // Sanity check of test setup
-    //     testSubject.UserSettings.AnalysisSettings.Rules.Count.Should().Be(0);
-    //     File.Exists(settingsFile).Should().BeFalse();
-    //
-    //
-    //     testSubject.DisableRule("cpp:S123");
-    //
-    //     // Check the data on disc
-    //     File.Exists(settingsFile).Should().BeTrue();
-    //
-    //     var reloadedSettings = LoadAnalysisSettings(settingsFile);
-    //     reloadedSettings.Rules.Count.Should().Be(1);
-    //     reloadedSettings.Rules["cpp:S123"].Level.Should().Be(RuleLevel.Off);
-    // }
-    //
-    // [TestMethod]
-    // public void RealFile_DisablePreviouslyEnabledRule()
-    // {
-    //     var dir = CreateTestSpecificDirectory();
-    //     var settingsFile = Path.Combine(dir, "settings.txt");
-    //
-    //     var initialSettings = new AnalysisSettings
-    //     (
-    //         new Dictionary<string, RuleConfig> { { "javascript:S111", new RuleConfig(RuleLevel.On) }, { "cpp:S111", new RuleConfig(RuleLevel.On) }, { "xxx:S222", new RuleConfig(RuleLevel.On) } },
-    //         []
-    //     );
-    //
-    //     SaveAnalysisSettings(settingsFile, initialSettings);
-    //
-    //     var logger = new TestLogger(logToConsole: true);
-    //     var testSubject = CreateUserSettingsProvider(logger, new FileSystem(), singleFileMonitorFactory, settingsFile);
-    //
-    //     // Sanity check of test setup
-    //     testSubject.UserSettings.AnalysisSettings.Rules.Count.Should().Be(3);
-    //
-    //     testSubject.DisableRule("cpp:S111");
-    //
-    //     // Check the data on disc
-    //     File.Exists(settingsFile).Should().BeTrue();
-    //
-    //     var reloadedSettings = LoadAnalysisSettings(settingsFile);
-    //     reloadedSettings.Rules.Count.Should().Be(3);
-    //     reloadedSettings.Rules["javascript:S111"].Level.Should().Be(RuleLevel.On);
-    //     reloadedSettings.Rules["cpp:S111"].Level.Should().Be(RuleLevel.Off);
-    //     reloadedSettings.Rules["xxx:S222"].Level.Should().Be(RuleLevel.On);
-    // }
-
-    // [TestMethod]
-    // public void RealFile_UpdateFileExclusions_FileDoesNotExist_FileCreated()
-    // {
-    //     var settingsFilePath = CreateRealSettingsFile();
-    //     var testSubject = CreateUserSettingsProvider(testLogger, new FileSystem(), singleFileMonitorFactory, settingsFilePath);
-    //     VerifySettingsFileHasExpectedExclusions(testSubject.UserSettings.AnalysisSettings, settingsFilePath, expectedExclusions: 0, fileExists: false);
-    //
-    //     testSubject.UpdateFileExclusions(["**/*.cs"]);
-    //
-    //     var reloadedSettings = LoadAnalysisSettings(settingsFilePath);
-    //     VerifySettingsFileHasExpectedExclusions(reloadedSettings, settingsFilePath, expectedExclusions: 1, fileExists: true);
-    //     reloadedSettings.NormalizedFileExclusions[0].Should().Be("**/*.cs");
-    // }
-    //
-    // [TestMethod]
-    // public void RealFile_UpdateFileExclusions_FileExists_OverridesPreviousFile()
-    // {
-    //     var settingsFilePath = CreateRealSettingsFile();
-    //     SaveAnalysisSettings(settingsFilePath, new AnalysisSettings([], ["**/*.cs"]));
-    //     var testSubject = CreateUserSettingsProvider(testLogger, new FileSystem(), singleFileMonitorFactory, settingsFilePath);
-    //     VerifySettingsFileHasExpectedExclusions(testSubject.UserSettings.AnalysisSettings, settingsFilePath, expectedExclusions: 1, fileExists: true);
-    //
-    //     testSubject.UpdateFileExclusions(["**/*.js"]);
-    //
-    //     var reloadedSettings = LoadAnalysisSettings(settingsFilePath);
-    //     VerifySettingsFileHasExpectedExclusions(testSubject.UserSettings.AnalysisSettings, settingsFilePath, expectedExclusions: 1, fileExists: true);
-    //     reloadedSettings.NormalizedFileExclusions[0].Should().Be("**/*.js");
-    // }
-
-    // private static void SaveAnalysisSettings(string filePath, AnalysisSettings userSettings)
-    // {
-    //     var serializer = new AnalysisSettingsSerializer(new FileSystem(), new TestLogger());
-    //     var globalAnalysisSettings = new GlobalAnalysisSettings(userSettings.Rules, userSettings.UserDefinedFileExclusions);
-    //     serializer.SafeSave(filePath, globalAnalysisSettings);
-    // }
-    //
-    // private static AnalysisSettings LoadAnalysisSettings(string filePath)
-    // {
-    //     var serializer = new AnalysisSettingsSerializer(new FileSystem(), new TestLogger());
-    //     var globalAnalysisSettings = serializer.SafeLoad<GlobalAnalysisSettings>(filePath);
-    //     return new AnalysisSettings(rules: globalAnalysisSettings.Rules, fileExclusions: globalAnalysisSettings.UserDefinedFileExclusions);
-    // }
-
-    // private string CreateTestSpecificDirectory()
-    // {
-    //     var dir = Path.Combine(TestContext.DeploymentDirectory, TestContext.TestName);
-    //     Directory.CreateDirectory(dir);
-    //     return dir;
-    // }
-
-    // private static IFileSystem CreateMockFile(string filePath, string contents)
-    // {
-    //     var mockFile = Substitute.For<IFileSystem>();
-    //     mockFile.File.Exists(filePath).Returns(true);
-    //     mockFile.File.ReadAllText(filePath).Returns(contents);
-    //     return mockFile;
-    // }
-
-    // private string CreateRealSettingsFile()
-    // {
-    //     var dir = CreateTestSpecificDirectory();
-    //     var settingsFile = Path.Combine(dir, "settings.txt");
-    //     return settingsFile;
-    // }
-
-    // private static void VerifySettingsFileHasExpectedExclusions(
-    //     AnalysisSettings analysisSettings,
-    //     string settingsFile,
-    //     int expectedExclusions,
-    //     bool fileExists)
-    // {
-    //     analysisSettings.NormalizedFileExclusions.Length.Should().Be(expectedExclusions);
-    //     File.Exists(settingsFile).Should().Be(fileExists);
-    // }
 
     private static UserSettings GetInitialSettings(UserSettingsProvider testSubject)
     {
