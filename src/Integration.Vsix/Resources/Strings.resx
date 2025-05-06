@@ -381,4 +381,19 @@ E.g. C:\Program Files\Java\jdk-17</value>
   <data name="FileExclusions_EditButton" xml:space="preserve">
     <value>Edit</value>
   </data>
+  <data name="SolutionSettingsDialog_ApplyButton" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="SolutionSettingsDialog_CloseButton" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="SolutionSettingsDialog_TabAnalysisProperties" xml:space="preserve">
+    <value>Analysis Properties</value>
+  </data>
+  <data name="SolutionSettingsDialog_Title" xml:space="preserve">
+    <value>Solution Settings</value>
+  </data>
+  <data name="SolutionSettingsDialog_Description" xml:space="preserve">
+    <value>The settings configured for the {0} "{1}" will be saved locally in the</value>
+  </data>
 </root>

@@ -630,6 +630,51 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Apply.
+        /// </summary>
+        public static string SolutionSettingsDialog_ApplyButton {
+            get {
+                return ResourceManager.GetString("SolutionSettingsDialog_ApplyButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Close.
+        /// </summary>
+        public static string SolutionSettingsDialog_CloseButton {
+            get {
+                return ResourceManager.GetString("SolutionSettingsDialog_CloseButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The settings configured for the {0} &quot;{1}&quot; will be saved locally in the.
+        /// </summary>
+        public static string SolutionSettingsDialog_Description {
+            get {
+                return ResourceManager.GetString("SolutionSettingsDialog_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analysis Properties.
+        /// </summary>
+        public static string SolutionSettingsDialog_TabAnalysisProperties {
+            get {
+                return ResourceManager.GetString("SolutionSettingsDialog_TabAnalysisProperties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Solution Settings.
+        /// </summary>
+        public static string SolutionSettingsDialog_Title {
+            get {
+                return ResourceManager.GetString("SolutionSettingsDialog_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Telemetry: error occurred: {0}.
         /// </summary>
         public static string Telemetry_ERROR {

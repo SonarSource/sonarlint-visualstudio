@@ -204,6 +204,9 @@
     </Page>
     <Page Include="Settings\GeneralOptionsDialogControl.xaml" />
     <Page Include="Settings\OtherOptionsDialogControl.xaml" />
+    <Page Include="Settings\SolutionSettings\SolutionSettingsDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <VSCTCompile Include="SonarLint.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
