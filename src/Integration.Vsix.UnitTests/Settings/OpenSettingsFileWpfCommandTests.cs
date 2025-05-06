@@ -18,107 +18,107 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Windows.Forms;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Integration.Vsix;
-using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
+namespace SonarLint.VisualStudio.Integration.UnitTests.Settings;
+
+[TestClass]
+public class OpenSettingsFileWpfCommandTests
 {
-    [TestClass]
-    public class OpenSettingsFileWpfCommandTests
+    [TestMethod]
+    public void QueryStatus_AlwaysEnabled()
     {
-        [TestMethod]
-        public void QueryStatus_AlwaysEnabled()
-        {
-            // Arrange
-            var userSettingsProvider = CreateDummyUserSettingsProvider("d:\\a\\file.txt");
-            var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), userSettingsProvider, null, new TestLogger());
+        // Arrange
+        var userSettingsProvider = CreateDummyUserSettingsProvider("d:\\a\\file.txt");
+        var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), userSettingsProvider, null, new TestLogger());
 
-            // Act & Assert
-            testSubject.CanExecute(null).Should().BeTrue();
+        // Act & Assert
+        testSubject.CanExecute(null).Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void Execute_EnsureFileExists()
+    {
+        // Arrange
+        var userSettingsProvider = CreateDummyUserSettingsProvider("d:\\a\\file.txt");
+        var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), userSettingsProvider, null, new TestLogger());
+
+        // Act
+        testSubject.Execute(null);
+
+        // Assert
+        testSubject.CallCount.Should().Be(1);
+        testSubject.LastSuppliedFilePath.Should().Be("d:\\a\\file.txt");
+    }
+
+    [TestMethod]
+    public void Execute_NonCriticalError_IsSuppressed()
+    {
+        // Arrange
+        var userSettingsProvider = CreateDummyUserSettingsProvider("d:\\a\\file.txt");
+        var testLogger = new TestLogger();
+        var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), userSettingsProvider, null, testLogger)
+        {
+            OpenDocOp = () => throw new InvalidOperationException("dummy execute exception")
+        };
+
+        // Act - should not throw
+        testSubject.Execute(null);
+
+        // Assert
+        testLogger.AssertPartialOutputStringExists("dummy execute exception");
+    }
+
+    [TestMethod]
+    public void Execute_CriticalError_IsNotSuppressed()
+    {
+        // Arrange
+        var userSettingsProvider = CreateDummyUserSettingsProvider("any");
+        var testLogger = new TestLogger();
+        var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), userSettingsProvider, null, testLogger)
+        {
+            OpenDocOp = () => throw new StackOverflowException("dummy execute exception")
+        };
+
+        // Act
+        var act = () => testSubject.Execute(null);
+
+        // Assert
+        act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("dummy execute exception");
+        testLogger.AssertPartialOutputStringDoesNotExist("dummy execute exception");
+    }
+
+    private static IUserSettingsProvider CreateDummyUserSettingsProvider(string filePath)
+    {
+        var userSettingsProviderMock = new Mock<IUserSettingsProvider>();
+        userSettingsProviderMock.Setup(x => x.GlobalAnalysisSettingsFilePath).Returns(filePath);
+        return userSettingsProviderMock.Object;
+    }
+
+    private class TestableOpenSettingsFileWpfCommand : OpenSettingsFileWpfCommand
+    {
+        public int CallCount { get; private set; }
+        public string LastSuppliedFilePath { get; set; }
+
+        public Action OpenDocOp { get; set; }
+
+        public TestableOpenSettingsFileWpfCommand(
+            IServiceProvider serviceProvider,
+            IUserSettingsProvider userSettingsProvider,
+            IWin32Window win32Window,
+            ILogger logger)
+            : base(serviceProvider, userSettingsProvider, win32Window, logger)
+        {
         }
 
-        [TestMethod]
-        public void Execute_EnsureFileExists()
+        protected override void OpenDocumentInVs(string filePath)
         {
-            // Arrange
-            var userSettingsProvider = CreateDummyUserSettingsProvider("d:\\a\\file.txt");
-            var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), userSettingsProvider, null, new TestLogger());
-
-            // Act
-            testSubject.Execute(null);
-
-            // Assert
-            testSubject.CallCount.Should().Be(1);
-            testSubject.LastSuppliedFilePath.Should().Be("d:\\a\\file.txt");
-        }
-
-        [TestMethod]
-        public void Execute_NonCriticalError_IsSuppressed()
-        {
-            // Arrange
-            var userSettingsProvider = CreateDummyUserSettingsProvider("d:\\a\\file.txt");
-            var testLogger = new TestLogger();
-            var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), userSettingsProvider, null, testLogger)
-            {
-                OpenDocOp = () => throw new InvalidOperationException("dummy execute exception")
-            };
-
-            // Act - should not throw
-            testSubject.Execute(null);
-
-            // Assert
-            testLogger.AssertPartialOutputStringExists("dummy execute exception");
-        }
-
-        [TestMethod]
-        public void Execute_CriticalError_IsNotSuppressed()
-        {
-            // Arrange
-            var userSettingsProvider = CreateDummyUserSettingsProvider("any");
-            var testLogger = new TestLogger();
-            var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), userSettingsProvider, null, testLogger)
-            {
-                OpenDocOp = () => throw new StackOverflowException("dummy execute exception")
-            };
-
-            // Act
-            Action act = () => testSubject.Execute(null);
-
-            // Assert
-            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("dummy execute exception");
-            testLogger.AssertPartialOutputStringDoesNotExist("dummy execute exception");
-        }
-
-        private static IUserSettingsProvider CreateDummyUserSettingsProvider(string filePath)
-        {
-            var userSettingsProviderMock = new Mock<IUserSettingsProvider>();
-            userSettingsProviderMock.Setup(x => x.GlobalAnalysisSettingsFilePath).Returns(filePath);
-            return userSettingsProviderMock.Object;
-        }
-
-        private class TestableOpenSettingsFileWpfCommand : OpenSettingsFileWpfCommand
-        {
-            public TestableOpenSettingsFileWpfCommand(IServiceProvider serviceProvider, IUserSettingsProvider userSettingsProvider, IWin32Window win32Window, ILogger logger)
-                : base(serviceProvider, userSettingsProvider, win32Window, logger) {}
-
-            public int CallCount { get; private set; }
-            public string LastSuppliedFilePath { get; set; }
-
-            public Action OpenDocOp { get; set; }
-
-            protected override void OpenDocumentInVs(string filePath)
-            {
-                CallCount++;
-                LastSuppliedFilePath = filePath;
-                OpenDocOp.Invoke();
-            }
+            CallCount++;
+            LastSuppliedFilePath = filePath;
+            OpenDocOp.Invoke();
         }
     }
 }
