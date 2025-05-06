@@ -7,6 +7,7 @@
     ResizeMode="NoResize"
     SizeToContent="Height"
     WindowStartupLocation="CenterOwner"
+    DataContext="{Binding RelativeSource={RelativeSource Mode=Self}, Path=ViewModel}"
     x:ClassModifier="internal">
     <Window.Resources>
         <ResourceDictionary>
