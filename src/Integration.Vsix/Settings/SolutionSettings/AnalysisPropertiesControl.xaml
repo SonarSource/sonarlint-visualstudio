@@ -4,8 +4,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:res="clr-namespace:SonarLint.VisualStudio.Integration.Vsix.Resources"
-             d:DesignHeight="350"
-             d:DesignWidth="450"
              mc:Ignorable="d"
              x:ClassModifier="internal"
              x:Name="AnalysisProperties">
@@ -20,6 +18,7 @@
                 <Setter Property="Padding" Value="5,3" />
                 <Setter Property="Width" Value="75" />
             </Style>
+            <Style x:Key="WrappingTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}" />
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -43,13 +42,13 @@
             <DataGrid Grid.Row="0" Grid.Column="0" ItemsSource="{Binding Path=AnalysisProperties}"
                       SelectedItem="{Binding Path=SelectedProperty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                       SelectionMode="Single" AutoGenerateColumns="False" CanUserAddRows="False"
-                      CanUserDeleteRows="False">
+                      CanUserDeleteRows="False" Height="400" HorizontalScrollBarVisibility="Disabled">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="{x:Static res:Strings.AnalysisSettingPropertyName}" IsReadOnly="True"
-                                        Width="*"
+                                        Width="*" ElementStyle="{StaticResource WrappingTextBlock}"
                                         Binding="{Binding Name}" />
                     <DataGridTextColumn Header="{x:Static res:Strings.AnalysisSettingValue}" IsReadOnly="True"
-                                        Width="*"
+                                        Width="*" ElementStyle="{StaticResource WrappingTextBlock}"
                                         Binding="{Binding Value}" />
                 </DataGrid.Columns>
             </DataGrid>
