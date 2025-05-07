@@ -19,6 +19,8 @@
  */
 
 using System.ComponentModel;
+using NuGet;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Integration.Vsix.Settings.SolutionSettings;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Settings.SolutionSettings;
@@ -27,10 +29,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings.SolutionSettings
 public class AnalysisPropertiesViewModelTests
 {
     private static readonly AnalysisPropertyViewModel PropertyViewModel = new("prop1", "value1");
+    private IUserSettingsProvider userSettingsProvider;
     private AnalysisPropertiesViewModel testSubject;
 
     [TestInitialize]
-    public void Initialize() => testSubject = new AnalysisPropertiesViewModel();
+    public void Initialize()
+    {
+        userSettingsProvider = Substitute.For<IUserSettingsProvider>();
+        testSubject = new AnalysisPropertiesViewModel(userSettingsProvider);
+    }
 
     [TestMethod]
     public void SelectedProperty_Setter_RaisesEvents()
@@ -58,6 +65,28 @@ public class AnalysisPropertiesViewModelTests
         testSubject.SelectedProperty = null;
 
         testSubject.IsAnyPropertySelected.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void UpdateAnalysisProperties_NoProperties_UpdatesSolutionAnalysisProperties()
+    {
+        testSubject.UpdateAnalysisProperties();
+
+        userSettingsProvider.Received(1).UpdateAnalysisProperties(Arg.Is<Dictionary<string, string>>(x => x.IsEmpty()));
+    }
+
+    [TestMethod]
+    public void UpdateAnalysisProperties_ValidProperties_UpdatesSolutionAnalysisProperties()
+    {
+        testSubject.AnalysisProperties.Add(new AnalysisPropertyViewModel("prop1", "value1"));
+        testSubject.AnalysisProperties.Add(new AnalysisPropertyViewModel("prop2", "value2"));
+
+        testSubject.UpdateAnalysisProperties();
+
+        userSettingsProvider.Received(1).UpdateAnalysisProperties(Arg.Is<Dictionary<string, string>>(x =>
+            x.Count == 2
+            && x["prop1"] == "value1"
+            && x["prop2"] == "value2"));
     }
 
     [TestMethod]
