@@ -50,8 +50,8 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
     private UserSettings userSettings;
     private string appDataRoot;
     private bool disposed;
-    private (string settings, string generated) globalFilePaths;
-    private (string settings, string generated)? solutionFilePaths;
+    private (string settingsFile, string generatedConfigsBaseDirectory) globalFilePaths;
+    private (string settingsFile, string generatedConfigsBaseDirectory)? solutionFilePaths;
 
     [ImportingConstructor]
     public UserSettingsProvider(
@@ -155,8 +155,8 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
 
     public event EventHandler SettingsChanged;
     public IInitializationProcessor InitializationProcessor { get; }
-    public string GlobalAnalysisSettingsFilePath => globalFilePaths.settings;
-    public string SolutionAnalysisSettingsFilePath => solutionFilePaths?.settings;
+    public string GlobalAnalysisSettingsFilePath => globalFilePaths.settingsFile;
+    public string SolutionAnalysisSettingsFilePath => solutionFilePaths?.settingsFile;
 
     public void DisableRule(string ruleId)
     {
@@ -217,13 +217,15 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
         if (globalSettings == null && solutionSettings == null)
         {
             logger.WriteLine(Strings.Settings_UsingDefaultSettings);
-            return new UserSettings(new AnalysisSettings(), globalFilePaths.generated);
+            return new UserSettings(new AnalysisSettings(), globalFilePaths.generatedConfigsBaseDirectory);
         }
 
         var rules = globalSettings?.Rules;
         var exclusions = globalSettings?.UserDefinedFileExclusions;
         var properties = solutionSettings?.AnalysisProperties;
-        var generatedConfigsBase = solutionSettings != null ? solutionFilePaths!.Value.generated : globalFilePaths.generated;
+        var generatedConfigsBase = solutionSettings != null
+            ? solutionFilePaths!.Value.generatedConfigsBaseDirectory
+            : globalFilePaths.generatedConfigsBaseDirectory;
 
         return new UserSettings(new AnalysisSettings(rules, exclusions, properties), generatedConfigsBase);
     }
