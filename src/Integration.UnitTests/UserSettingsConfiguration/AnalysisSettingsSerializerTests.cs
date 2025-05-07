@@ -19,17 +19,25 @@
  */
 
 using System.IO;
-using System.IO.Abstractions;
 using NSubstitute.ExceptionExtensions;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
+using SonarLint.VisualStudio.Integration.UserSettingsConfiguration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Core.UnitTests;
+namespace SonarLint.VisualStudio.Integration.UnitTests.UserSettingsConfiguration;
 
 [TestClass]
 public class AnalysisSettingsSerializerTests
 {
     public TestContext TestContext { get; set; }
+
+    [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<AnalysisSettingsSerializer, IAnalysisSettingsSerializer>(
+            MefTestHelpers.CreateExport<IFileSystemService>(),
+            MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
     public void RealFile_Load_CheckRulesAndParametersDictionarySerialization()
@@ -61,7 +69,7 @@ public class AnalysisSettingsSerializerTests
             """;
         File.WriteAllText(filePath1, validSettingsData);
 
-        var testSubject = new AnalysisSettingsSerializer(new FileSystem(), testLogger);
+        var testSubject = new AnalysisSettingsSerializer(new FileSystemService(), testLogger);
 
         // 1. Load from disc
         var loadedSettings = testSubject.SafeLoad<GlobalAnalysisSettings>(filePath1);
@@ -134,7 +142,7 @@ public class AnalysisSettingsSerializerTests
             """;
         File.WriteAllText(filePath1, validSettingsData);
 
-        var testSubject = new AnalysisSettingsSerializer(new FileSystem(), testLogger);
+        var testSubject = new AnalysisSettingsSerializer(new FileSystemService(), testLogger);
 
         // 1. Load from disc
         var loadedSettings = testSubject.SafeLoad<GlobalAnalysisSettings>(filePath1);
@@ -196,7 +204,7 @@ public class AnalysisSettingsSerializerTests
             []
         );
 
-        var testSubject = new AnalysisSettingsSerializer(new FileSystem(), testLogger);
+        var testSubject = new AnalysisSettingsSerializer(new FileSystemService(), testLogger);
 
         // Act: save and reload
         testSubject.SafeSave(filePath, settings);
@@ -230,7 +238,7 @@ public class AnalysisSettingsSerializerTests
     public void Load_MissingFile_NullReturned()
     {
         // Arrange
-        var fileSystem = Substitute.For<IFileSystem>();
+        var fileSystem = Substitute.For<IFileSystemService>();
         fileSystem.File.Exists("settings.file").Returns(false);
         var logger = new TestLogger();
         var testSubject = new AnalysisSettingsSerializer(fileSystem, logger);
@@ -247,7 +255,7 @@ public class AnalysisSettingsSerializerTests
     public void Load_NonCriticalError_IsSquashed_AndNullReturned()
     {
         // Arrange
-        var fileSystem = Substitute.For<IFileSystem>();
+        var fileSystem = Substitute.For<IFileSystemService>();
         fileSystem.File.Exists("settings.file").Returns(true);
         fileSystem.File.ReadAllText("settings.file").Throws(new InvalidOperationException("custom error message"));
 
@@ -266,7 +274,7 @@ public class AnalysisSettingsSerializerTests
     public void Load_CriticalError_IsNotSquashed()
     {
         // Arrange
-        var fileSystem = Substitute.For<IFileSystem>();
+        var fileSystem = Substitute.For<IFileSystemService>();
         fileSystem.File.Exists("settings.file").Returns(true);
         fileSystem.File.ReadAllText("settings.file").Throws(new StackOverflowException("critical custom error message"));
 
@@ -285,7 +293,7 @@ public class AnalysisSettingsSerializerTests
     public void Save_NonCriticalError_IsSquashed()
     {
         // Arrange
-        var fileSystem = Substitute.For<IFileSystem>();
+        var fileSystem = Substitute.For<IFileSystemService>();
         fileSystem.File.When(x => x.WriteAllText("settings.file", Arg.Any<string>()))
             .Throw(new InvalidOperationException("custom error message"));
 
@@ -303,7 +311,7 @@ public class AnalysisSettingsSerializerTests
     public void Save_CriticalError_IsNotSquashed()
     {
         // Arrange
-        var fileSystem = Substitute.For<IFileSystem>();
+        var fileSystem = Substitute.For<IFileSystemService>();
         fileSystem.File.When(x => x.WriteAllText("settings.file", Arg.Any<string>()))
             .Throw(new StackOverflowException("critical custom error message"));
 

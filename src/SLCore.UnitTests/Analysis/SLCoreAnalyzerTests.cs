@@ -77,7 +77,6 @@ public class SLCoreAnalyzerTests
             userSettingsProvider,
             logger);
 
-
         analysisService.AnalyzeFilesAndTrackAsync(default, default).ReturnsForAnyArgs(new AnalyzeFilesResponse(new HashSet<FileUri>(), []));
 
         void SetUpDefaultNotifier() => analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), FilePath, analysisId).Returns(notifier);
@@ -162,7 +161,6 @@ public class SLCoreAnalyzerTests
             Arg.Any<CancellationToken>());
         AssertAnalysisNotFailed();
     }
-
 
     [DataTestMethod]
     [DataRow(null, false)]
@@ -370,7 +368,8 @@ public class SLCoreAnalyzerTests
         return handle;
     }
 
-    private void SetUpAnalysisProperties(ImmutableDictionary<string, string> props = null) => userSettingsProvider.UserSettings.Returns(new UserSettings(new AnalysisSettings(analysisProperties:props ?? ImmutableDictionary<string, string>.Empty)));
+    private void SetUpAnalysisProperties(ImmutableDictionary<string, string> props = null) =>
+        userSettingsProvider.UserSettings.Returns(new UserSettings(new AnalysisSettings(analysisProperties: props ?? ImmutableDictionary<string, string>.Empty), "any"));
 
     private void SetUpCompilationDatabaseLocator(string filePath, ICompilationDatabaseHandle handle) => compilationDatabaseLocator.GetOrNull(filePath).Returns(handle);
 

@@ -65,11 +65,11 @@ public class GlobalAnalysisSettings
 
     public GlobalAnalysisSettings() : this(ImmutableDictionary<string, RuleConfig>.Empty, ImmutableArray<string>.Empty) { }
 
-    public GlobalAnalysisSettings(Dictionary<string, RuleConfig> rules, IEnumerable<string> fileExclusions) : this(rules.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase), fileExclusions) { }
+    public GlobalAnalysisSettings(Dictionary<string, RuleConfig> rules, IEnumerable<string> fileExclusions) : this(rules.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase), fileExclusions.ToImmutableArray()) { }
 
-    public GlobalAnalysisSettings(ImmutableDictionary<string, RuleConfig> rules, IEnumerable<string> fileExclusions)
+    public GlobalAnalysisSettings(ImmutableDictionary<string, RuleConfig> rules, ImmutableArray<string> fileExclusions)
     {
         Rules = rules;
-        UserDefinedFileExclusions = fileExclusions.ToImmutableArray();
+        UserDefinedFileExclusions = fileExclusions;
     }
 }
