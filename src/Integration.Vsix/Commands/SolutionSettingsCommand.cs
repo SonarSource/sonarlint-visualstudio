@@ -39,7 +39,7 @@ internal class SolutionSettingsCommand : VsCommandBase
     protected override void InvokeInternal()
     {
         var solutionSettingsWindow = new SolutionSettingsDialog(serviceProvider) { Owner = Application.Current.MainWindow };
-        solutionSettingsWindow.Show();
+        solutionSettingsWindow.ShowDialog();
     }
 
     protected override void QueryStatusInternal(OleMenuCommand command)
