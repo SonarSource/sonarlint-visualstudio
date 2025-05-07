@@ -20,6 +20,7 @@
 
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix.Settings.SolutionSettings;
 
@@ -38,8 +39,8 @@ internal class SolutionSettingsCommand : VsCommandBase
 
     protected override void InvokeInternal()
     {
-        var solutionSettingsWindow = new SolutionSettingsDialog(serviceProvider) { Owner = Application.Current.MainWindow };
-        solutionSettingsWindow.ShowDialog();
+        var solutionSettingsWindow = new SolutionSettingsDialog(serviceProvider);
+        solutionSettingsWindow.ShowDialog(Application.Current.MainWindow);
     }
 
     protected override void QueryStatusInternal(OleMenuCommand command)
