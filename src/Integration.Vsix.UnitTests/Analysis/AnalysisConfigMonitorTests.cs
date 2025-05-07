@@ -32,13 +32,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis;
 [TestClass]
 public class AnalysisConfigMonitorTests
 {
-    private IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private IAnalysisRequester analysisRequesterMock;
     private TestLogger logger;
     private IStandaloneRoslynSettingsUpdater roslynSettingsUpdater;
     private ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater;
     private IThreadHandling threadHandling;
-    private IUserSettingsProvider userSettingsUpdaterMock;
+    private IUserSettingsProvider userSettingsProviderMock;
     private IInitializationProcessorFactory initializationProcessorFactory;
     private MockableInitializationProcessor createdInitializationProcessor;
 
@@ -46,8 +45,7 @@ public class AnalysisConfigMonitorTests
     public void TestInitialize()
     {
         analysisRequesterMock = Substitute.For<IAnalysisRequester>();
-        userSettingsUpdaterMock = Substitute.For<IUserSettingsProvider>();
-        activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
+        userSettingsProviderMock = Substitute.For<IUserSettingsProvider>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         slCoreRuleSettingsUpdater = Substitute.For<ISLCoreRuleSettingsUpdater>();
         roslynSettingsUpdater = Substitute.For<IStandaloneRoslynSettingsUpdater>();
@@ -59,7 +57,6 @@ public class AnalysisConfigMonitorTests
         MefTestHelpers.CheckTypeCanBeImported<AnalysisConfigMonitor, IAnalysisConfigMonitor>(
             MefTestHelpers.CreateExport<IAnalysisRequester>(),
             MefTestHelpers.CreateExport<IUserSettingsProvider>(),
-            MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<ISLCoreRuleSettingsUpdater>(),
@@ -73,9 +70,9 @@ public class AnalysisConfigMonitorTests
     [TestMethod]
     public void Ctor_UpdatesRoslynSettings()
     {
-        var dependencies = new[] { activeSolutionBoundTracker };
+        var dependencies = new[] { userSettingsProviderMock };
         var userSettings = new UserSettings(new AnalysisSettings(), "any");
-        userSettingsUpdaterMock.UserSettings.Returns(userSettings);
+        userSettingsProviderMock.UserSettings.Returns(userSettings);
 
         _ = CreateAndInitializeTestSubject();
 
@@ -85,10 +82,9 @@ public class AnalysisConfigMonitorTests
                 Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.SequenceEqual(dependencies)),
                 Arg.Any<Func<IThreadHandling, Task>>());
             createdInitializationProcessor.InitializeAsync();
-            _ = userSettingsUpdaterMock.UserSettings;
+            _ = userSettingsProviderMock.UserSettings;
             roslynSettingsUpdater.Update(userSettings);
-            userSettingsUpdaterMock.SettingsChanged += Arg.Any<EventHandler>();
-            activeSolutionBoundTracker.SolutionBindingChanged += Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
+            userSettingsProviderMock.SettingsChanged += Arg.Any<EventHandler>();
             createdInitializationProcessor.InitializeAsync(); // called as part of the CreateAndInitializeTestSubject method
         });
     }
@@ -115,7 +111,7 @@ public class AnalysisConfigMonitorTests
         SimulateUserSettingsChanged();
 
         analysisRequesterMock.DidNotReceiveWithAnyArgs().RequestAnalysis(default, default(string[]));
-        _ = userSettingsUpdaterMock.DidNotReceiveWithAnyArgs().UserSettings;
+        _ = userSettingsProviderMock.DidNotReceiveWithAnyArgs().UserSettings;
     }
 
     [TestMethod]
@@ -134,31 +130,6 @@ public class AnalysisConfigMonitorTests
     }
 
     [TestMethod]
-    public void WhenBindingChanges_AnalysisIsRequested()
-    {
-        _ = CreateAndInitializeTestSubject();
-        threadHandling.ClearReceivedCalls();
-
-        SimulateBindingChanged();
-
-        // Should re-analyse
-        AssertAnalysisIsRequested();
-        AssertSwitchedToBackgroundThread();
-        logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_BindingChanged);
-    }
-
-    [TestMethod]
-    public void WhenUninitialized_DoesNotReactToBindingChangedEvents()
-    {
-        _ = CreateUninitializedTestSubject(out _);
-
-        SimulateBindingChanged();
-
-        analysisRequesterMock.DidNotReceiveWithAnyArgs().RequestAnalysis(default, default(string[]));
-        _ = userSettingsUpdaterMock.DidNotReceiveWithAnyArgs().UserSettings;
-    }
-
-    [TestMethod]
     public void WhenDisposed_EventsAreIgnored()
     {
         var testSubject = CreateAndInitializeTestSubject();
@@ -168,7 +139,6 @@ public class AnalysisConfigMonitorTests
 
         // Raise events and check they are ignored
         SimulateUserSettingsChanged();
-        SimulateBindingChanged();
         AssertAnalysisIsNotRequested();
     }
 
@@ -180,19 +150,17 @@ public class AnalysisConfigMonitorTests
 
         barrier.SetResult(1);
 
-        userSettingsUpdaterMock.DidNotReceiveWithAnyArgs().SettingsChanged += Arg.Any<EventHandler>();
-        activeSolutionBoundTracker.DidNotReceiveWithAnyArgs().SolutionBindingChanged += Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
+        userSettingsProviderMock.DidNotReceiveWithAnyArgs().SettingsChanged += Arg.Any<EventHandler>();
     }
 
     private UserSettings SimulateUserSettingsChanged()
     {
         var userSettings = new UserSettings(new AnalysisSettings(), "any");
-        userSettingsUpdaterMock.UserSettings.Returns(userSettings);
-        userSettingsUpdaterMock.SettingsChanged += Raise.EventWith(null, EventArgs.Empty);
+        userSettingsProviderMock.UserSettings.Returns(userSettings);
+        userSettingsProviderMock.SettingsChanged += Raise.EventWith(null, EventArgs.Empty);
         return userSettings;
     }
 
-    private void SimulateBindingChanged(BindingConfiguration config = null) => activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(null, new ActiveSolutionBindingEventArgs(config));
 
     private void AssertAnalysisIsRequested() => analysisRequesterMock.Received(1).RequestAnalysis(null);
 
@@ -210,10 +178,9 @@ public class AnalysisConfigMonitorTests
         });
         return new AnalysisConfigMonitor(
             analysisRequesterMock,
-            userSettingsUpdaterMock,
+            userSettingsProviderMock,
             slCoreRuleSettingsUpdater,
             roslynSettingsUpdater,
-            activeSolutionBoundTracker,
             logger,
             threadHandling,
             initializationProcessorFactory);
@@ -224,10 +191,9 @@ public class AnalysisConfigMonitorTests
         initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<AnalysisConfigMonitor>(threadHandling, logger, processor => createdInitializationProcessor = processor);
         var testSubject = new AnalysisConfigMonitor(
             analysisRequesterMock,
-            userSettingsUpdaterMock,
+            userSettingsProviderMock,
             slCoreRuleSettingsUpdater,
             roslynSettingsUpdater,
-            activeSolutionBoundTracker,
             logger,
             threadHandling,
             initializationProcessorFactory);

@@ -22,10 +22,8 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
 using SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
 using SonarLint.VisualStudio.SLCore.Analysis;
@@ -41,8 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis;
 internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposable
 {
     private readonly IAnalysisRequester analysisRequester;
-    private readonly IUserSettingsProvider userSettingsUpdater;
-    private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+    private readonly IUserSettingsProvider userSettingsProvider;
     private readonly ILogger logger;
     private readonly IThreadHandling threadHandling;
     private readonly ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater;
@@ -51,68 +48,50 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
     [ImportingConstructor]
     public AnalysisConfigMonitor(
         IAnalysisRequester analysisRequester,
-        IUserSettingsProvider userSettingsUpdater,
+        IUserSettingsProvider userSettingsProvider,
         ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater,
         IStandaloneRoslynSettingsUpdater roslynSettingsUpdater,
-        IActiveSolutionBoundTracker activeSolutionBoundTracker,
         ILogger logger,
         IThreadHandling threadHandling,
         IInitializationProcessorFactory initializationProcessorFactory)
     {
         this.analysisRequester = analysisRequester;
-        this.userSettingsUpdater = userSettingsUpdater;
-        this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+        this.userSettingsProvider = userSettingsProvider;
         this.logger = logger;
         this.threadHandling = threadHandling;
         this.slCoreRuleSettingsUpdater = slCoreRuleSettingsUpdater;
         this.roslynSettingsUpdater = roslynSettingsUpdater;
 
-        InitializationProcessor = initializationProcessorFactory.Create<AnalysisConfigMonitor>(
-            [activeSolutionBoundTracker],
-            _ =>
+        InitializationProcessor = initializationProcessorFactory.CreateAndStart<AnalysisConfigMonitor>(
+            [userSettingsProvider],
+            () =>
             {
-                roslynSettingsUpdater.Update(userSettingsUpdater.UserSettings);
+                roslynSettingsUpdater.Update(userSettingsProvider.UserSettings);
                 if (disposedValue)
                 {
-                    return Task.CompletedTask;
+                    return;
                 }
-                userSettingsUpdater.SettingsChanged += OnUserSettingsChanged;
-                activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
-                return Task.CompletedTask;
+                userSettingsProvider.SettingsChanged += OnUserSettingsChanged;
             });
-
-        InitializationProcessor.InitializeAsync().Forget();
     }
 
     public IInitializationProcessor InitializationProcessor { get; }
-
-    #region Incoming notifications
-
-    private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
-    {
-        logger.WriteLine(AnalysisStrings.ConfigMonitor_BindingChanged);
-        threadHandling.RunOnBackgroundThread(RequestAnalysis).Forget();
-    }
 
     private void OnUserSettingsChanged(object sender, EventArgs e)
     {
         logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
         threadHandling.RunOnBackgroundThread(() =>
             {
-                roslynSettingsUpdater.Update(userSettingsUpdater.UserSettings);
+                roslynSettingsUpdater.Update(userSettingsProvider.UserSettings);
                 slCoreRuleSettingsUpdater.UpdateStandaloneRulesConfiguration();
                 RequestAnalysis();
             }
         ).Forget();
     }
 
-    #endregion Incoming notifications
-
     private void RequestAnalysis() =>
         // NB assumes exception handling is done by the AnalysisRequester
         analysisRequester.RequestAnalysis();
-
-    #region IDisposable Support
 
     private bool disposedValue = false; // To detect redundant calls
 
@@ -122,11 +101,9 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
         {
             if (InitializationProcessor.IsFinalized)
             {
-                userSettingsUpdater.SettingsChanged -= OnUserSettingsChanged;
-                activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
+                userSettingsProvider.SettingsChanged -= OnUserSettingsChanged;
             }
             disposedValue = true;
         }
     }
-    #endregion
 }
