@@ -390,6 +390,9 @@ E.g. C:\Program Files\Java\jdk-17</value>
   <data name="SolutionSettingsDialog_TabAnalysisProperties" xml:space="preserve">
     <value>Analysis Properties</value>
   </data>
+  <data name="SolutionSettingsDialog_TabFileExclusions" xml:space="preserve">
+    <value>File Exclusions</value>
+  </data>
   <data name="SolutionSettingsDialog_Title" xml:space="preserve">
     <value>Solution Settings</value>
   </data>
