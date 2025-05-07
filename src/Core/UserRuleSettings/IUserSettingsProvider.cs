@@ -18,9 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Initialization;
+
 namespace SonarLint.VisualStudio.Core.UserRuleSettings;
 
-public interface IUserSettingsProvider
+public interface IUserSettingsProvider : IRequireInitialization
 {
     /// <summary>
     /// The settings for the current user
@@ -31,6 +33,11 @@ public interface IUserSettingsProvider
     /// Full path to the file containing the user settings
     /// </summary>
     string GlobalAnalysisSettingsFilePath { get; }
+
+    /// <summary>
+    /// Full path to the file containing the user settings
+    /// </summary>
+    string SolutionAnalysisSettingsFilePath { get; }
 
     /// <summary>
     /// Updates the user settings to disable the specified rule
@@ -46,6 +53,11 @@ public interface IUserSettingsProvider
     /// Ensure the settings file exists, creating a new file if necessary
     /// </summary>
     void EnsureGlobalAnalysisSettingsFileExists();
+
+    /// <summary>
+    /// Ensure the settings file exists, creating a new file if necessary
+    /// </summary>
+    void EnsureSolutionAnalysisSettingsFileExists();
 
     event EventHandler SettingsChanged;
 }

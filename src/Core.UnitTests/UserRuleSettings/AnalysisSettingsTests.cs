@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using System.IO;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 
@@ -38,7 +39,7 @@ public class AnalysisSettingsTests
     [TestMethod]
     public void AnalysisSettings_FileExclusions_DiscardsEmptyOrNullPaths()
     {
-        var analysisSettings = new AnalysisSettings(fileExclusions: ["", " ", null]);
+        var analysisSettings = new AnalysisSettings(fileExclusions: ImmutableArray.Create("", " ", null));
 
         analysisSettings.UserDefinedFileExclusions.Should().BeEmpty();
         analysisSettings.NormalizedFileExclusions.Should().BeEmpty();
@@ -47,7 +48,7 @@ public class AnalysisSettingsTests
     [TestMethod]
     public void AnalysisSettings_FileExclusions_WithBackslashes_NormalizesToForwardSlashes()
     {
-        var analysisSettings = new AnalysisSettings(fileExclusions: ["**\\obj\\*", "a\\file1.cpp", "file2.cpp"]);
+        var analysisSettings = new AnalysisSettings(fileExclusions: ImmutableArray.Create("**\\obj\\*", "a\\file1.cpp", "file2.cpp"));
 
         analysisSettings.UserDefinedFileExclusions.Should().BeEquivalentTo("**\\obj\\*", "a\\file1.cpp", "file2.cpp");
         analysisSettings.NormalizedFileExclusions.Should().BeEquivalentTo("**/a/file1.cpp", "**/obj/*", "**/file2.cpp");
@@ -70,7 +71,7 @@ public class AnalysisSettingsTests
     [DataRow(@"file\*\p?th.*", @"**/file/*/p?th.*")]
     public void AnalysisSettings_FileExclusions_TransformsPathCorrectly(string original, string expected)
     {
-        var testSubject = new AnalysisSettings(fileExclusions: [original]);
+        var testSubject = new AnalysisSettings(fileExclusions: ImmutableArray.Create(original));
 
         testSubject.UserDefinedFileExclusions.Should().BeEquivalentTo(original);
         testSubject.NormalizedFileExclusions.Should().BeEquivalentTo(expected);
@@ -80,7 +81,7 @@ public class AnalysisSettingsTests
     [DynamicData(nameof(GetInvalidPaths))]
     public void AnalysisSettings_FileExclusions_ContainsInvalidPathCharacters_DoesNotCrashAndDoesNotNormalize(string invalidPath)
     {
-        var testSubject = new AnalysisSettings(fileExclusions: [invalidPath]);
+        var testSubject = new AnalysisSettings(fileExclusions: ImmutableArray.Create(invalidPath));
 
         testSubject.UserDefinedFileExclusions.Should().BeEquivalentTo(invalidPath);
         testSubject.NormalizedFileExclusions.Should().BeEquivalentTo(invalidPath?.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));

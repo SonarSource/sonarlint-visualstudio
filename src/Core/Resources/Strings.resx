@@ -135,7 +135,4 @@
   <data name="FileMonitor_FileChanged" xml:space="preserve">
     <value>File changed: {0}. Change type: {1}</value>
   </data>
-  <data name="Settings_UsingDefaultSettings" xml:space="preserve">
-    <value>Default settings will be used</value>
-  </data>
 </root>

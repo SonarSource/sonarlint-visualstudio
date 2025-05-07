@@ -91,27 +91,26 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
     private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
     {
         logger.WriteLine(AnalysisStrings.ConfigMonitor_BindingChanged);
-        OnSettingsChangedAsync().Forget();
+        threadHandling.RunOnBackgroundThread(RequestAnalysis).Forget();
     }
 
     private void OnUserSettingsChanged(object sender, EventArgs e)
     {
-        // There is a corner-case where we want to raise the event even in Connected Mode - see https://github.com/SonarSource/sonarlint-visualstudio/issues/3701
         logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
-        roslynSettingsUpdater.Update(userSettingsUpdater.UserSettings);
-        slCoreRuleSettingsUpdater.UpdateStandaloneRulesConfiguration();
-        OnSettingsChangedAsync().Forget();
+        threadHandling.RunOnBackgroundThread(() =>
+            {
+                roslynSettingsUpdater.Update(userSettingsUpdater.UserSettings);
+                slCoreRuleSettingsUpdater.UpdateStandaloneRulesConfiguration();
+                RequestAnalysis();
+            }
+        ).Forget();
     }
 
     #endregion Incoming notifications
 
-    private async Task OnSettingsChangedAsync()
-    {
-        await threadHandling.SwitchToBackgroundThread();
-
+    private void RequestAnalysis() =>
         // NB assumes exception handling is done by the AnalysisRequester
         analysisRequester.RequestAnalysis();
-    }
 
     #region IDisposable Support
 

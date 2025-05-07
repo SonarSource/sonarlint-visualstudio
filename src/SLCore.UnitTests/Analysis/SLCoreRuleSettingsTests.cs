@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.SLCore.Analysis;
@@ -163,14 +164,14 @@ public class SLCoreRuleSettingsTests
     private void AddRule(string ruleId, RuleLevel ruleLevel = RuleLevel.On, Dictionary<string, string> ruleParameters = null)
     {
         var newRules = analysisSettings.Rules.Add(ruleId, new RuleConfig(ruleLevel, ruleParameters));
-        analysisSettings = new AnalysisSettings(newRules, []);
+        analysisSettings = new AnalysisSettings(newRules, ImmutableArray<string>.Empty);
 
         MockUserSettings();
     }
 
     private void MockUserSettings()
     {
-        userSettingsProvider.UserSettings.Returns(new UserSettings(analysisSettings));
+        userSettingsProvider.UserSettings.Returns(new UserSettings(analysisSettings, "any"));
     }
 
     private IRulesSLCoreService MockGetRulesSlCoreService()

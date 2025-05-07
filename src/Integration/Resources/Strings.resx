@@ -210,4 +210,7 @@
   <data name="ImportsBeforeFileGeneratorLogContext" xml:space="preserve">
     <value>ImportsBeforeFileGenerator</value>
   </data>
+  <data name="Settings_UsingDefaultSettings" xml:space="preserve">
+    <value>Default settings will be used</value>
+  </data>
 </root>

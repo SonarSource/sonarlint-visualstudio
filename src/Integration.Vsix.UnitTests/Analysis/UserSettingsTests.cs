@@ -18,40 +18,33 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
+namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests;
+
+[TestClass]
+public class UserSettingsTests
 {
-    [TestClass]
-    public class UserSettingsTests
+    [TestMethod]
+    public void Ctor_NullArg_Throws()
     {
-        [TestMethod]
-        public void Ctor_NullArg_Throws()
-        {
-            Action act = () => new UserSettings(null);
+        Action analysisSettingsNull = () => new UserSettings(null, "any");
+        Action baseDirectoryNullAction = () => new UserSettings(new AnalysisSettings(), null);
 
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisSettings");
-        }
+        analysisSettingsNull.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisSettings");
+        baseDirectoryNullAction.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("baseDirectory");
+    }
 
 
-        [TestMethod]
-        public void Ctor_NonNullSettings_PropertyReturnsExpectedSettings()
-        {
-            var settings = new AnalysisSettings();
+    [TestMethod]
+    public void Ctor_NonNullSettings_PropertyReturnsExpectedSettings()
+    {
+        var settings = new AnalysisSettings();
+        var baseDirectory = "base dir";
 
-            new UserSettings(settings).AnalysisSettings.Should().BeSameAs(settings);
-        }
+        var testSubject = new UserSettings(settings, baseDirectory);
 
-        [TestMethod]
-        public void BaseDirectory_DefaultValue_ExpectedLocation()
-        {
-            var testSubject = new UserSettings(new AnalysisSettings());
-
-            testSubject.BaseDirectory.Should().EndWith(@"\AppData\Roaming\SonarLint for Visual Studio\.global");
-        }
+        testSubject.AnalysisSettings.Should().BeSameAs(settings);
+        testSubject.BaseDirectory.Should().Be(baseDirectory);
     }
 }
