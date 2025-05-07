@@ -92,7 +92,7 @@ public class UserSettingsProviderTests
     }
 
     [TestMethod]
-    public void EnsureSolutionAnalysisSettingsFileExists_NoSolutionOpen_CreatedIfMissing()
+    public void EnsureSolutionAnalysisSettingsFileExists_NoSolutionOpen_DoesNotCreate()
     {
         activeSolutionTracker.CurrentSolutionName.Returns(null as string);
         var testSubject = CreateAndInitializeTestSubject();
@@ -189,10 +189,10 @@ public class UserSettingsProviderTests
             initializationProcessor.InitializeAsync();
             environmentVariableProvider.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             singleFileMonitorFactory.Create(GlobalSettingsFilePath);
+            globalSettingsFileMonitor.FileChanged += Arg.Any<EventHandler>();
             _ = activeSolutionTracker.CurrentSolutionName;
             singleFileMonitorFactory.Create(Solution1SettingsFilePath);
             solutionSettingsFileMonitor.FileChanged += Arg.Any<EventHandler>();
-            globalSettingsFileMonitor.FileChanged += Arg.Any<EventHandler>();
             activeSolutionTracker.ActiveSolutionChanged += Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
             initializationProcessor.InitializeAsync();
         });
@@ -314,7 +314,7 @@ public class UserSettingsProviderTests
     }
 
     [TestMethod]
-    public void SolutionClosed_DisposesWatcher_RaisesEvent()
+    public void SolutionClosed_DisposesWatcher_DoesNotRaiseEvent()
     {
         activeSolutionTracker.CurrentSolutionName.Returns(SolutionName1);
         var solution1Monitor = CreateSingleFileMonitor(Solution1SettingsFilePath);
@@ -323,13 +323,13 @@ public class UserSettingsProviderTests
 
         activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(false, null));
 
-        settingsChanged.ReceivedWithAnyArgs().Invoke(default, default);
+        settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
         solution1Monitor.Received().FileChanged -= Arg.Any<EventHandler>();
         solution1Monitor.Received().Dispose();
     }
 
     [TestMethod]
-    public void SolutionClosed_DoesNotDisposeGlobalWatcher_RaisesEvent()
+    public void SolutionClosed_DoesNotDisposeGlobalWatcher_DoesNotRaiseEvent()
     {
         activeSolutionTracker.CurrentSolutionName.Returns(SolutionName1);
         var globalMonitor = CreateSingleFileMonitor(GlobalSettingsFilePath);
@@ -338,7 +338,7 @@ public class UserSettingsProviderTests
 
         activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(false, null));
 
-        settingsChanged.ReceivedWithAnyArgs().Invoke(default, default);
+        settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
         globalMonitor.DidNotReceiveWithAnyArgs().FileChanged -= Arg.Any<EventHandler>();
         globalMonitor.DidNotReceiveWithAnyArgs().Dispose();
     }

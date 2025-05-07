@@ -97,6 +97,7 @@ public class AnalysisConfigMonitorTests
     public void WhenUserSettingsChange_AnalysisIsRequested()
     {
         _ = CreateAndInitializeTestSubject();
+        threadHandling.ClearReceivedCalls();
 
         SimulateUserSettingsChanged();
 
@@ -136,6 +137,7 @@ public class AnalysisConfigMonitorTests
     public void WhenBindingChanges_AnalysisIsRequested()
     {
         _ = CreateAndInitializeTestSubject();
+        threadHandling.ClearReceivedCalls();
 
         SimulateBindingChanged();
 
@@ -196,7 +198,7 @@ public class AnalysisConfigMonitorTests
 
     private void AssertAnalysisIsNotRequested() => analysisRequesterMock.ReceivedCalls().Count().Should().Be(0);
 
-    private void AssertSwitchedToBackgroundThread() => threadHandling.Received(1).SwitchToBackgroundThread();
+    private void AssertSwitchedToBackgroundThread() => threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
 
     private AnalysisConfigMonitor CreateUninitializedTestSubject(out TaskCompletionSource<byte> barrier)
     {

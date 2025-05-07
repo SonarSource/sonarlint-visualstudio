@@ -50,8 +50,8 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
     private UserSettings userSettings;
     private string appDataRoot;
     private bool disposed;
-    private string generatedGlobalSettingsFolder;
-    private string generatedSolutionSettingsFolder;
+    private (string settings, string generated) globalFilePaths;
+    private (string settings, string generated)? solutionFilePaths;
 
     [ImportingConstructor]
     public UserSettingsProvider(
@@ -80,24 +80,29 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
                 // Note: the data is stored in the roaming profile so it will be sync across machines
                 // for domain-joined users.
                 appDataRoot = environmentVariableProvider.GetSLVSAppDataRootPath();
-                GlobalAnalysisSettingsFilePath = Path.GetFullPath(Path.Combine(appDataRoot, SettingsFileName));
-                generatedGlobalSettingsFolder = Path.Combine(appDataRoot, GeneratedGlobalSettingsFolderName);
-                globalSettingsFileMonitor = fileMonitorFactory.Create(GlobalAnalysisSettingsFilePath);
-
+                CreateGlobalSettingsMonitorAndSubscribe();
                 if (activeSolutionTracker.CurrentSolutionName is { } solutionName)
                 {
                     CreateSolutionSettingsMonitorAndSubscribe(solutionName);
                 }
-                globalSettingsFileMonitor.FileChanged += OnFileChanged;
                 activeSolutionTracker.ActiveSolutionChanged += ActiveSolutionTrackerOnActiveSolutionChanged;
             });
+    }
+
+    private void CreateGlobalSettingsMonitorAndSubscribe()
+    {
+        var globalAnalysisSettingsFilePath = Path.GetFullPath(Path.Combine(appDataRoot, SettingsFileName));
+        var generatedGlobalSettingsFolder = Path.Combine(appDataRoot, GeneratedGlobalSettingsFolderName);
+        globalFilePaths = (globalAnalysisSettingsFilePath, generatedGlobalSettingsFolder);
+        globalSettingsFileMonitor = fileMonitorFactory.Create(GlobalAnalysisSettingsFilePath);
+        globalSettingsFileMonitor.FileChanged += OnFileChanged;
     }
 
     private void CreateSolutionSettingsMonitorAndSubscribe(string solutionName)
     {
         var solutionSettingsParentFolder = Path.Combine(appDataRoot, SolutionSettingsFolderName, solutionName);
-        SolutionAnalysisSettingsFilePath = Path.GetFullPath(Path.Combine(solutionSettingsParentFolder, SettingsFileName));
-        generatedSolutionSettingsFolder = solutionSettingsParentFolder;
+        var solutionSettingsFilePath = Path.GetFullPath(Path.Combine(solutionSettingsParentFolder, SettingsFileName));
+        solutionFilePaths = (solutionSettingsFilePath, solutionSettingsParentFolder);
         solutionSettingsFileMonitor = fileMonitorFactory.Create(SolutionAnalysisSettingsFilePath);
         solutionSettingsFileMonitor.FileChanged += OnFileChanged;
     }
@@ -106,9 +111,9 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
     {
         DisposeSolutionSettingsMonitor();
 
-        if (!e.IsSolutionOpen)
+        if (!e.IsSolutionOpen || e.SolutionName == null)
         {
-            ResetConfiguration();
+            SafeClearUserSettingsCache();
             return;
         }
 
@@ -123,8 +128,7 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
             return;
         }
 
-        SolutionAnalysisSettingsFilePath = null;
-        generatedSolutionSettingsFolder = null;
+        solutionFilePaths = null;
         solutionSettingsFileMonitor.FileChanged -= OnFileChanged;
         solutionSettingsFileMonitor.Dispose();
     }
@@ -151,8 +155,8 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
 
     public event EventHandler SettingsChanged;
     public IInitializationProcessor InitializationProcessor { get; }
-    public string GlobalAnalysisSettingsFilePath { get; private set; }
-    public string SolutionAnalysisSettingsFilePath { get; private set; }
+    public string GlobalAnalysisSettingsFilePath => globalFilePaths.settings;
+    public string SolutionAnalysisSettingsFilePath => solutionFilePaths?.settings;
 
     public void DisableRule(string ruleId)
     {
@@ -205,7 +209,7 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
         var globalSettings = serializer.SafeLoad<GlobalAnalysisSettings>(GlobalAnalysisSettingsFilePath);
 
         SolutionAnalysisSettings solutionSettings = null;
-        if (SolutionAnalysisSettingsFilePath != null)
+        if (solutionFilePaths != null)
         {
             solutionSettings = serializer.SafeLoad<SolutionAnalysisSettings>(SolutionAnalysisSettingsFilePath);
         }
@@ -213,13 +217,13 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
         if (globalSettings == null && solutionSettings == null)
         {
             logger.WriteLine(Strings.Settings_UsingDefaultSettings);
-            return new UserSettings(new AnalysisSettings(), generatedGlobalSettingsFolder);
+            return new UserSettings(new AnalysisSettings(), globalFilePaths.generated);
         }
 
         var rules = globalSettings?.Rules;
         var exclusions = globalSettings?.UserDefinedFileExclusions;
         var properties = solutionSettings?.AnalysisProperties;
-        var generatedConfigsBase = solutionSettings != null ? generatedSolutionSettingsFolder : generatedGlobalSettingsFolder;
+        var generatedConfigsBase = solutionSettings != null ? solutionFilePaths!.Value.generated : globalFilePaths.generated;
 
         return new UserSettings(new AnalysisSettings(rules, exclusions, properties), generatedConfigsBase);
     }
