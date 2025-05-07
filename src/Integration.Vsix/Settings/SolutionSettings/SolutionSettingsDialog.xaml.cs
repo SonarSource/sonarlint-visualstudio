@@ -45,6 +45,8 @@ internal sealed partial class SolutionSettingsDialog : Window
         AddTabs();
     }
 
+    public void InitializeData() => analysisPropertiesControl.ViewModel.InitializeAnalysisProperties();
+
     private void ApplyButton_OnClick(object sender, RoutedEventArgs e) => ApplyAndClose();
 
     private void ApplyAndClose()

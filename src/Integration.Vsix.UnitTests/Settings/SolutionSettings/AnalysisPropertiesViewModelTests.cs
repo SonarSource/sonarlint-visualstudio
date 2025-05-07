@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using System.ComponentModel;
 using NuGet;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
@@ -37,6 +38,74 @@ public class AnalysisPropertiesViewModelTests
     {
         userSettingsProvider = Substitute.For<IUserSettingsProvider>();
         testSubject = new AnalysisPropertiesViewModel(userSettingsProvider);
+    }
+
+    [TestMethod]
+    public void InitializeAnalysisProperties_EmptyProperties_DoesNotAddAnyProperties()
+    {
+        var userSettings = new UserSettings(new AnalysisSettings(), "aBaseDir");
+        userSettingsProvider.UserSettings.Returns(userSettings);
+
+        testSubject.InitializeAnalysisProperties();
+
+        testSubject.AnalysisProperties.Should().BeEmpty();
+        userSettingsProvider.Received(1).EnsureSolutionAnalysisSettingsFileExists();
+    }
+
+    [TestMethod]
+    public void InitializeAnalysisProperties_WithProperties_AddsAllProperties()
+    {
+        var properties = new Dictionary<string, string>
+        {
+            { "prop1", "value1" },
+            { "prop2", "value2" }
+        };
+        var userSettings = new UserSettings(new AnalysisSettings(analysisProperties: properties.ToImmutableDictionary()), "aBaseDir");
+        userSettingsProvider.UserSettings.Returns(userSettings);
+
+        testSubject.InitializeAnalysisProperties();
+
+        testSubject.AnalysisProperties.Should().HaveCount(2);
+        testSubject.AnalysisProperties.Should().Contain(x => x.Name == "prop1" && x.Value == "value1");
+        testSubject.AnalysisProperties.Should().Contain(x => x.Name == "prop2" && x.Value == "value2");
+        userSettingsProvider.Received(1).EnsureSolutionAnalysisSettingsFileExists();
+    }
+
+    [TestMethod]
+    public void InitializeAnalysisProperties_WithProperties_SetsSelectedProperty()
+    {
+        var properties = new Dictionary<string, string>
+        {
+            { "prop1", "value1" }
+        };
+        var userSettings = new UserSettings(new AnalysisSettings(analysisProperties: properties.ToImmutableDictionary()), "aBaseDir");
+        userSettingsProvider.UserSettings.Returns(userSettings);
+
+        testSubject.InitializeAnalysisProperties();
+
+        testSubject.SelectedProperty.Should().NotBeNull();
+        testSubject.SelectedProperty.Name.Should().Be("prop1");
+        testSubject.SelectedProperty.Value.Should().Be("value1");
+    }
+
+    [TestMethod]
+    public void InitializeAnalysisProperties_WithProperties_ClearsExistingProperties()
+    {
+        // Arrange
+        testSubject.AnalysisProperties.Add(new AnalysisPropertyViewModel("existing", "value"));
+        var properties = new Dictionary<string, string>
+        {
+            { "prop1", "value1" }
+        };
+        var userSettings = new UserSettings(new AnalysisSettings(analysisProperties: properties.ToImmutableDictionary()), "aBaseDir");
+        userSettingsProvider.UserSettings.Returns(userSettings);
+
+        // Act
+        testSubject.InitializeAnalysisProperties();
+
+        // Assert
+        testSubject.AnalysisProperties.Should().HaveCount(1);
+        testSubject.AnalysisProperties.Should().Contain(x => x.Name == "prop1" && x.Value == "value1");
     }
 
     [TestMethod]

@@ -42,6 +42,16 @@ internal class AnalysisPropertiesViewModel(IUserSettingsProvider userSettingsPro
         }
     }
 
+    public void InitializeAnalysisProperties()
+    {
+        SelectedProperty = null;
+        AnalysisProperties.Clear();
+        userSettingsProvider.EnsureSolutionAnalysisSettingsFileExists();
+        userSettingsProvider.UserSettings.AnalysisSettings.AnalysisProperties
+            .ToList()
+            .ForEach(x => AddProperty(x.Key, x.Value));
+    }
+
     public void UpdateAnalysisProperties()
     {
         var analysisProperties = AnalysisProperties.ToDictionary(property => property.Name, property => property.Value);
