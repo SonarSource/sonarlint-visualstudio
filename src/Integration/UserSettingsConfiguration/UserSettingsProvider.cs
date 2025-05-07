@@ -163,7 +163,7 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
         Debug.Assert(!string.IsNullOrEmpty(ruleId), "DisableRule: ruleId should not be null/empty");
 
         var newRules = UserSettings.AnalysisSettings.Rules.SetItem(ruleId, new RuleConfig(RuleLevel.Off));
-        var globalSettings = new GlobalAnalysisSettings(newRules, UserSettings.AnalysisSettings.UserDefinedFileExclusions);
+        var globalSettings = new GlobalAnalysisSettings(newRules, UserSettings.AnalysisSettings.GlobalFileExclusions);
         serializer.SafeSave(GlobalAnalysisSettingsFilePath, globalSettings);
         SafeClearUserSettingsCache();
     }
