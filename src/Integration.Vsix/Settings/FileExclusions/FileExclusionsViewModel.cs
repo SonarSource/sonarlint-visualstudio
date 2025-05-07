@@ -81,6 +81,6 @@ internal class FileExclusionsViewModel : ViewModelBase
     internal void SaveExclusions()
     {
         var exclusionsToSave = Exclusions.Where(vm => vm.Error == null).Select(vm => vm.Pattern);
-        userSettingsProvider.UpdateFileExclusions(exclusionsToSave);
+        userSettingsProvider.UpdateGlobalFileExclusions(exclusionsToSave);
     }
 }

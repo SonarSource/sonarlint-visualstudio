@@ -415,6 +415,7 @@ public class UserSettingsProviderTests
         userSettings.Should()
             .BeEquivalentTo(new UserSettings(new AnalysisSettings(ImmutableDictionary<string, RuleConfig>.Empty,
                     ImmutableArray<string>.Empty,
+                    ImmutableArray<string>.Empty,
                     ImmutableDictionary<string, string>.Empty),
                 GlobalGeneratedSettingsFolderPath));
     }
@@ -430,7 +431,8 @@ public class UserSettingsProviderTests
 
         var userSettings = testSubject.UserSettings;
 
-        userSettings.Should().BeEquivalentTo(new UserSettings(new AnalysisSettings(rules, fileExclusions, ImmutableDictionary<string, string>.Empty), GlobalGeneratedSettingsFolderPath));
+        userSettings.Should().BeEquivalentTo(new UserSettings(new AnalysisSettings(rules, fileExclusions, ImmutableArray<string>.Empty, ImmutableDictionary<string, string>.Empty),
+            GlobalGeneratedSettingsFolderPath));
     }
 
     [TestMethod]
@@ -445,23 +447,25 @@ public class UserSettingsProviderTests
 
         var userSettings = testSubject.UserSettings;
 
-        userSettings.Should().BeEquivalentTo(new UserSettings(new AnalysisSettings(rules, fileExclusions, ImmutableDictionary<string, string>.Empty), GlobalGeneratedSettingsFolderPath));
+        userSettings.Should().BeEquivalentTo(new UserSettings(new AnalysisSettings(rules, fileExclusions, ImmutableArray<string>.Empty, ImmutableDictionary<string, string>.Empty),
+            GlobalGeneratedSettingsFolderPath));
     }
 
     [TestMethod]
     public void UserSettings_Solution_ReturnsSolutionSettings()
     {
         var rules = ImmutableDictionary.Create<string, RuleConfig>().Add("rules", default);
-        var fileExclusions = ImmutableArray.Create("exclusions");
-        serializer.SafeLoad<GlobalAnalysisSettings>(GlobalSettingsFilePath).Returns(new GlobalAnalysisSettings(rules, fileExclusions));
+        var globalFileExclusions = ImmutableArray.Create("exclusions");
+        serializer.SafeLoad<GlobalAnalysisSettings>(GlobalSettingsFilePath).Returns(new GlobalAnalysisSettings(rules, globalFileExclusions));
         var properties = ImmutableDictionary.Create<string, string>().Add("properties", default);
-        serializer.SafeLoad<SolutionAnalysisSettings>(Solution1SettingsFilePath).Returns(new SolutionAnalysisSettings(properties));
+        var solutionFileExclusions = ImmutableArray.Create("solution/exclusions");
+        serializer.SafeLoad<SolutionAnalysisSettings>(Solution1SettingsFilePath).Returns(new SolutionAnalysisSettings(properties, solutionFileExclusions));
         activeSolutionTracker.CurrentSolutionName.Returns(SolutionName1);
         var testSubject = CreateAndInitializeTestSubject();
 
         var userSettings = testSubject.UserSettings;
 
-        userSettings.Should().BeEquivalentTo(new UserSettings(new AnalysisSettings(rules, fileExclusions, properties), Solution1GeneratedSettingsFolderPath));
+        userSettings.Should().BeEquivalentTo(new UserSettings(new AnalysisSettings(rules, globalFileExclusions, solutionFileExclusions, properties), Solution1GeneratedSettingsFolderPath));
     }
 
     [TestMethod]
@@ -469,13 +473,14 @@ public class UserSettingsProviderTests
     {
         serializer.SafeLoad<GlobalAnalysisSettings>(GlobalSettingsFilePath).ReturnsNull();
         var properties = ImmutableDictionary.Create<string, string>().Add("properties", default);
-        serializer.SafeLoad<SolutionAnalysisSettings>(Solution1SettingsFilePath).Returns(new SolutionAnalysisSettings(properties));
+        var solutionFileExclusions = ImmutableArray.Create("solution/exclusions");
+        serializer.SafeLoad<SolutionAnalysisSettings>(Solution1SettingsFilePath).Returns(new SolutionAnalysisSettings(properties, solutionFileExclusions));
         activeSolutionTracker.CurrentSolutionName.Returns(SolutionName1);
         var testSubject = CreateAndInitializeTestSubject();
 
         var userSettings = testSubject.UserSettings;
 
-        userSettings.Should().BeEquivalentTo(new UserSettings(new AnalysisSettings(ImmutableDictionary<string, RuleConfig>.Empty, ImmutableArray<string>.Empty, properties),
+        userSettings.Should().BeEquivalentTo(new UserSettings(new AnalysisSettings(ImmutableDictionary<string, RuleConfig>.Empty, ImmutableArray<string>.Empty, solutionFileExclusions, properties),
             Solution1GeneratedSettingsFolderPath));
     }
 
@@ -554,7 +559,8 @@ public class UserSettingsProviderTests
     [TestMethod]
     public void DisableRule_EnabledRule_UpdatesGlobalSettingsWithoutRaisingEvent()
     {
-        serializer.SafeLoad<GlobalAnalysisSettings>(GlobalSettingsFilePath).Returns(new GlobalAnalysisSettings(rules: ImmutableDictionary.Create<string, RuleConfig>().Add("somerule", new RuleConfig(RuleLevel.On)), ImmutableArray<string>.Empty));
+        serializer.SafeLoad<GlobalAnalysisSettings>(GlobalSettingsFilePath)
+            .Returns(new GlobalAnalysisSettings(rules: ImmutableDictionary.Create<string, RuleConfig>().Add("somerule", new RuleConfig(RuleLevel.On)), ImmutableArray<string>.Empty));
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
@@ -567,32 +573,52 @@ public class UserSettingsProviderTests
     [TestMethod]
     public void DisableRule_OtherRuleNotDisabled_UpdatesGlobalSettingsWithoutRaisingEvent()
     {
-        serializer.SafeLoad<GlobalAnalysisSettings>(GlobalSettingsFilePath).Returns(new GlobalAnalysisSettings(rules: ImmutableDictionary.Create<string, RuleConfig>().Add("someotherrule", new RuleConfig(RuleLevel.On)), ImmutableArray<string>.Empty));
+        serializer.SafeLoad<GlobalAnalysisSettings>(GlobalSettingsFilePath)
+            .Returns(new GlobalAnalysisSettings(rules: ImmutableDictionary.Create<string, RuleConfig>().Add("someotherrule", new RuleConfig(RuleLevel.On)), ImmutableArray<string>.Empty));
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
         testSubject.DisableRule("somerule");
 
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
-        serializer.Received().SafeSave(GlobalSettingsFilePath, Arg.Is<GlobalAnalysisSettings>(x => x.Rules.ContainsKey("somerule") && x.Rules["somerule"].Level == RuleLevel.Off && x.Rules.ContainsKey("someotherrule") && x.Rules["someotherrule"].Level == RuleLevel.On));
+        serializer.Received().SafeSave(GlobalSettingsFilePath,
+            Arg.Is<GlobalAnalysisSettings>(x =>
+                x.Rules.ContainsKey("somerule") && x.Rules["somerule"].Level == RuleLevel.Off && x.Rules.ContainsKey("someotherrule") && x.Rules["someotherrule"].Level == RuleLevel.On));
     }
 
     [TestMethod]
-    public void UpdateFileExclusions_UpdatesGlobalSettingsWithoutRaisingEvent()
+    public void UpdateGlobalFileExclusions_UpdatesGlobalSettingsWithoutRaisingEvent()
     {
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
         string[] exclusions = ["1", "two", "3"];
 
-        testSubject.UpdateFileExclusions(exclusions);
+        testSubject.UpdateGlobalFileExclusions(exclusions);
 
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
         serializer.Received().SafeSave(GlobalSettingsFilePath, Arg.Is<GlobalAnalysisSettings>(x => x.UserDefinedFileExclusions.SequenceEqual(exclusions, default)));
     }
 
     [TestMethod]
+    public void UpdateSolutionFileExclusions_UpdatesSolutionSettingsWithoutRaisingEvent()
+    {
+        activeSolutionTracker.CurrentSolutionName.Returns(SolutionName1);
+        var testSubject = CreateAndInitializeTestSubject();
+        var settingsChanged = SubscribeToSettingsChanged(testSubject);
+        string[] exclusions = ["1", "two", "3"];
+
+        testSubject.UpdateSolutionFileExclusions(exclusions);
+
+        settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
+        serializer.Received().SafeSave(Solution1SettingsFilePath, Arg.Is<SolutionAnalysisSettings>(x => x.UserDefinedFileExclusions.SequenceEqual(exclusions, default)));
+    }
+
+    [TestMethod]
     public void UpdateAnalysisProperties_UpdatesSolutionSettingsWithoutRaisingEvent()
     {
+        var exclusions = ImmutableArray.Create("file1");
+        serializer.SafeLoad<SolutionAnalysisSettings>(Solution1SettingsFilePath)
+            .Returns(new SolutionAnalysisSettings(ImmutableDictionary<string, string>.Empty, exclusions));
         activeSolutionTracker.CurrentSolutionName.Returns(SolutionName1);
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
@@ -603,7 +629,9 @@ public class UserSettingsProviderTests
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
         serializer.Received().SafeSave(Solution1SettingsFilePath, Arg.Is<SolutionAnalysisSettings>(x =>
             x.AnalysisProperties.Count == 1
-            && x.AnalysisProperties["prop"] == "value"));
+            && x.AnalysisProperties["prop"] == "value"
+            && x.UserDefinedFileExclusions.Length == 1
+            && x.UserDefinedFileExclusions[0] == "file1"));
     }
 
     private static UserSettings GetInitialSettings(UserSettingsProvider testSubject)
