@@ -32,10 +32,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 [ExcludeFromCodeCoverage]
 internal partial class FileExclusionsDialogControl : UserControl
 {
+    private readonly bool themeResponsive;
     public FileExclusionsViewModel ViewModel { get; }
 
-    internal FileExclusionsDialogControl(FileExclusionsViewModel viewModel)
+    internal FileExclusionsDialogControl(FileExclusionsViewModel viewModel, bool themeResponsive)
     {
+        this.themeResponsive = themeResponsive;
         ViewModel = viewModel;
         InitializeComponent();
     }
@@ -44,7 +46,7 @@ internal partial class FileExclusionsDialogControl : UserControl
 
     private void Add_OnClick(object sender, RoutedEventArgs e)
     {
-        var addExclusionWindow = new AddExclusionDialog();
+        var addExclusionWindow = new AddExclusionDialog(themeResponsive);
         if (addExclusionWindow.ShowDialog(Application.Current.MainWindow) == true)
         {
             ViewModel.AddExclusion(addExclusionWindow.ViewModel.Pattern);
@@ -53,7 +55,7 @@ internal partial class FileExclusionsDialogControl : UserControl
 
     private void Edit_OnClick(object sender, RoutedEventArgs e)
     {
-        var addExclusionWindow = new EditExclusionDialog(ViewModel.SelectedExclusion.Pattern);
+        var addExclusionWindow = new EditExclusionDialog(ViewModel.SelectedExclusion.Pattern, themeResponsive);
         if (addExclusionWindow.ShowDialog(Application.Current.MainWindow) == true)
         {
             ViewModel.SelectedExclusion.Pattern = addExclusionWindow.ViewModel.Pattern;
