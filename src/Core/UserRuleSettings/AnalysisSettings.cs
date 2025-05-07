@@ -50,14 +50,14 @@ public class AnalysisSettings
     public ImmutableArray<string> NormalizedFileExclusions { get; private init; }
 
     public AnalysisSettings(Dictionary<string, RuleConfig> rules, IEnumerable<string> fileExclusions, Dictionary<string, string> analysisProperties = null) : this(
-        rules.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase), fileExclusions, analysisProperties?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase))
+        rules.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase), fileExclusions?.ToImmutableArray(), analysisProperties?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase))
     {
     }
 
-    public AnalysisSettings(ImmutableDictionary<string, RuleConfig> rules = null, IEnumerable<string> fileExclusions = null, ImmutableDictionary<string, string> analysisProperties = null)
+    public AnalysisSettings(ImmutableDictionary<string, RuleConfig> rules = null, ImmutableArray<string>? fileExclusions = null, ImmutableDictionary<string, string> analysisProperties = null)
     {
         Rules = rules ?? ImmutableDictionary<string, RuleConfig>.Empty;
-        UserDefinedFileExclusions = fileExclusions?.ToImmutableArray() ?? ImmutableArray<string>.Empty;
+        UserDefinedFileExclusions = fileExclusions ?? ImmutableArray<string>.Empty;
         AnalysisProperties = analysisProperties ?? ImmutableDictionary<string, string>.Empty;
     }
 

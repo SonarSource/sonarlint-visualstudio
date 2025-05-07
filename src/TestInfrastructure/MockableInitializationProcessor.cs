@@ -45,7 +45,7 @@ public class MockableInitializationProcessor(
     public virtual Task InitializeAsync() =>
         implementation.InitializeAsync();
 
-    public static IInitializationProcessorFactory CreateFactory<T>(IThreadHandling threadHandling, ILogger logger, Action<MockableInitializationProcessor> configure)
+    public static IInitializationProcessorFactory CreateFactory<T>(IThreadHandling threadHandling, ILogger logger, Action<MockableInitializationProcessor> configure = null)
     {
         var initializationProcessorFactory = Substitute.For<IInitializationProcessorFactory>();
         initializationProcessorFactory
@@ -60,7 +60,7 @@ public class MockableInitializationProcessor(
                     typeof(T).Name,
                     (IReadOnlyCollection<IRequireInitialization>)info[0],
                     (Func<IThreadHandling, Task>)info[1]);
-                configure(processor);
+                configure?.Invoke(processor);
                 return processor;
             });
         return initializationProcessorFactory;

@@ -312,7 +312,16 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube.
+        ///   Looks up a localized string similar to Default settings will be used.
+        /// </summary>
+        public static string Settings_UsingDefaultSettings {
+            get {
+                return ResourceManager.GetString("Settings_UsingDefaultSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube for Visual Studio.
         /// </summary>
         public static string SonarLintOutputPaneTitle {
             get {
