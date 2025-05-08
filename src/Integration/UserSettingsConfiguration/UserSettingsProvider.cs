@@ -175,6 +175,13 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
         SafeClearUserSettingsCache();
     }
 
+    public void UpdateAnalysisProperties(Dictionary<string, string> analysisProperties)
+    {
+        var solutionSettings = new SolutionAnalysisSettings(analysisProperties);
+        serializer.SafeSave(SolutionAnalysisSettingsFilePath, solutionSettings);
+        SafeClearUserSettingsCache();
+    }
+
     public void EnsureGlobalAnalysisSettingsFileExists()
     {
         if (!fileSystem.File.Exists(GlobalAnalysisSettingsFilePath))

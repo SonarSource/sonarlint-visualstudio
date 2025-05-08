@@ -50,6 +50,11 @@ public interface IUserSettingsProvider : IRequireInitialization
     void UpdateFileExclusions(IEnumerable<string> exclusions);
 
     /// <summary>
+    /// Updates the solution level analysis settings to include the provided analysis properties. The value will override existing analysis settings.
+    /// </summary>
+    void UpdateAnalysisProperties(Dictionary<string, string> analysisProperties);
+
+    /// <summary>
     /// Ensure the settings file exists, creating a new file if necessary
     /// </summary>
     void EnsureGlobalAnalysisSettingsFileExists();

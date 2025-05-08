@@ -31,6 +31,7 @@ internal sealed partial class SolutionSettingsDialog : Window
 {
     private readonly IServiceProvider serviceProvider;
     private readonly IUserSettingsProvider userSettingsProvider;
+    private readonly AnalysisPropertiesControl analysisPropertiesControl;
 
     public SolutionSettingsViewModel ViewModel { get; }
 
@@ -38,16 +39,21 @@ internal sealed partial class SolutionSettingsDialog : Window
     {
         this.serviceProvider = serviceProvider;
         userSettingsProvider = serviceProvider.GetMefService<IUserSettingsProvider>();
+        analysisPropertiesControl = new AnalysisPropertiesControl(new AnalysisPropertiesViewModel(userSettingsProvider));
         ViewModel = new SolutionSettingsViewModel(serviceProvider.GetMefService<ISolutionInfoProvider>());
         InitializeComponent();
         AddTabs();
     }
 
+    public void InitializeData() => analysisPropertiesControl.ViewModel.InitializeAnalysisProperties();
+
     private void ApplyButton_OnClick(object sender, RoutedEventArgs e) => ApplyAndClose();
 
-    private void ApplyAndClose() =>
-        // TODO by https://sonarsource.atlassian.net/browse/SLVS-2100: save to settings.json file
+    private void ApplyAndClose()
+    {
+        analysisPropertiesControl.ViewModel.UpdateAnalysisProperties();
         Close();
+    }
 
     private void OpenFile(object sender, RequestNavigateEventArgs e)
     {
@@ -61,5 +67,5 @@ internal sealed partial class SolutionSettingsDialog : Window
     /// <summary>
     /// The constructor of the user controls for the tabs are not parameterless, so they cannot be created in XAML directly.
     /// </summary>
-    private void AddTabs() => AnalysisPropertiesTab.Content = new AnalysisPropertiesControl(new AnalysisPropertiesViewModel());
+    private void AddTabs() => AnalysisPropertiesTab.Content = analysisPropertiesControl;
 }

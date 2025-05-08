@@ -40,6 +40,7 @@ internal class SolutionSettingsCommand : VsCommandBase
     protected override void InvokeInternal()
     {
         var solutionSettingsWindow = new SolutionSettingsDialog(serviceProvider);
+        solutionSettingsWindow.InitializeData();
         solutionSettingsWindow.ShowDialog(Application.Current.MainWindow);
     }
 
