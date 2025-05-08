@@ -73,6 +73,6 @@ internal sealed partial class SolutionSettingsDialog : Window
     private void AddTabs()
     {
         AnalysisPropertiesTab.Content = analysisPropertiesControl;
-        FileExclusionsTab.Content = new FileExclusionsDialogControl(new FileExclusionsViewModel(browserService, userSettingsProvider), themeResponsive: true);
+        FileExclusionsTab.Content = new FileExclusionsDialogControl(new FileExclusionsViewModel(browserService, userSettingsProvider, FileExclusionScope.Solution), themeResponsive: true);
     }
 }
