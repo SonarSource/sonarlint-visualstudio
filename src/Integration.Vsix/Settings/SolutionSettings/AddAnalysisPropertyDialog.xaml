@@ -6,10 +6,6 @@
         xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
         xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
         Title="{x:Static res:Strings.AddAnalysisPropertyDialog_Title}"
-        MinWidth="500"
-        MaxWidth="500"
-        MinHeight="250"
-        MaxHeight="250"
         ResizeMode="NoResize"
         SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
@@ -37,7 +33,7 @@
         </ResourceDictionary>
     </Window.Resources>
     <Window.Style>
-        <Style TargetType="Window" BasedOn="{StaticResource ConnectedModeWindow}" />
+        <Style TargetType="Window" BasedOn="{StaticResource SmallPopupWindowStyle}" />
     </Window.Style>
 
     <Grid DataContext="{Binding ElementName=This, Path=ViewModel}" Margin="15">

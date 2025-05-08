@@ -17,7 +17,7 @@
                 <ResourceDictionary
                     Source="pack://application:,,,/SonarLint.VisualStudio.IssueVisualization.Security;component/SharedUI/SharedResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <Style TargetType="Button">
+            <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
                 <Setter Property="Margin" Value="5,0,0,5" />
                 <Setter Property="Padding" Value="5,3" />
                 <Setter Property="Width" Value="75" />
@@ -39,6 +39,7 @@
             </Style>
             <Style TargetType="DataGridRow" BasedOn="{StaticResource BaseDataGridRow}">
                 <Setter Property="Margin" Value="0" />
+                <Setter Property="Background" Value="Transparent" />
             </Style>
             <Style TargetType="DataGridCell">
                 <Setter Property="Margin" Value="0" />

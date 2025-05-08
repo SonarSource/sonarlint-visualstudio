@@ -5,21 +5,76 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:res="clr-namespace:SonarLint.VisualStudio.Integration.Vsix.Resources"
              xmlns:links="clr-namespace:SonarLint.VisualStudio.Core;assembly=SonarLint.VisualStudio.Core"
+             xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              d:DesignHeight="350"
              d:DesignWidth="450"
              mc:Ignorable="d" Name="FileExclusionsUserControl"
              x:ClassModifier="internal">
     <UserControl.Resources>
         <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary
+                    Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Override the global styles defined in Styles.xaml for the case of not responsive to theme changes -->
             <Style TargetType="Button">
                 <Setter Property="Margin" Value="5,0,0,5" />
                 <Setter Property="Padding" Value="5,3" />
                 <Setter Property="Width" Value="75" />
             </Style>
+            <Style TargetType="ListBox"/>
+            <Style TargetType="ListBoxItem"/>
+
+            <!-- The themed styles are used in the xaml.cs at runtime -->
+            <Style x:Key="ThemedButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+                <Setter Property="Margin" Value="5,0,0,5" />
+                <Setter Property="Padding" Value="5,3" />
+                <Setter Property="Width" Value="75" />
+            </Style>
+            <Style x:Key="ThemedListBoxStyle" TargetType="ListBox">
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarTextActiveKey}}"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsTheming:HeaderColors.SeparatorLineBrushKey}}" />
+                <Setter Property="Height" Value="350" />
+            </Style>
+            <Style x:Key="ThemedListBoxItemStyle" TargetType="ListBoxItem">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                            <Border x:Name="BackgroundBorder" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                    Background="{TemplateBinding Background}" Padding="5 3" >
+                                <ContentPresenter />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Foreground"
+                                            Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveTextBrushKey}}" />
+                                    <Setter Property="Background"
+                                            Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveBrushKey}}" />
+                                </Trigger>
+                                <MultiTrigger>
+                                    <MultiTrigger.Conditions>
+                                        <Condition Property="IsSelected" Value="True" />
+                                        <Condition Property="Selector.IsSelectionActive" Value="False" />
+                                    </MultiTrigger.Conditions>
+                                    <MultiTrigger.Setters>
+                                        <Setter Property="Foreground"
+                                                Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveTextBrushKey}}" />
+                                        <Setter Property="Background"
+                                                Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveBrushKey}}" />
+                                    </MultiTrigger.Setters>
+                                </MultiTrigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid DataContext="{Binding ElementName=FileExclusionsUserControl, Path=ViewModel}">
+    <Grid DataContext="{Binding ElementName=FileExclusionsUserControl, Path=ViewModel}" Margin="5">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -68,7 +123,7 @@
             <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:Strings.FileExclusions_ListTitle}"
                        Margin="0,0,0,3" />
 
-            <ListBox Grid.Row="1" Grid.Column="0" ItemsSource="{Binding Path=Exclusions}"
+            <ListBox x:Name="ExclusionsListBox" Grid.Row="1" Grid.Column="0" ItemsSource="{Binding Path=Exclusions}"
                      SelectedItem="{Binding Path=SelectedExclusion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      SelectionMode="Single" DisplayMemberPath="Pattern" />
 
@@ -86,6 +141,5 @@
                         Click="Delete_OnClick" IsEnabled="{Binding Path=IsAnyExclusionSelected}" />
             </Grid>
         </Grid>
-
     </Grid>
 </UserControl>

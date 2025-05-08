@@ -27,24 +27,31 @@ using SonarLint.VisualStudio.ConnectedMode.UI;
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 
 /// <summary>
-///     Interaction logic for FileExclusionsDialogControl.xaml
+/// Interaction logic for FileExclusionsDialogControl.xaml
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal partial class FileExclusionsDialogControl : UserControl
 {
+    private const string ListBoxResourceKey = "ThemedListBoxStyle";
+    private const string ListBoxItemResourceKey = "ThemedListBoxItemStyle";
+    private const string ButtonResourceKey = "ThemedButtonStyle";
+    private readonly bool themeResponsive;
+
     public FileExclusionsViewModel ViewModel { get; }
 
-    internal FileExclusionsDialogControl(FileExclusionsViewModel viewModel)
+    internal FileExclusionsDialogControl(FileExclusionsViewModel viewModel, bool themeResponsive)
     {
+        this.themeResponsive = themeResponsive;
         ViewModel = viewModel;
         InitializeComponent();
+        UpdateThemeResponsiveStyles();
     }
 
     private void ViewInBrowser(object sender, RequestNavigateEventArgs args) => ViewModel.ViewInBrowser(args.Uri.AbsoluteUri);
 
     private void Add_OnClick(object sender, RoutedEventArgs e)
     {
-        var addExclusionWindow = new AddExclusionDialog();
+        var addExclusionWindow = new AddExclusionDialog(themeResponsive);
         if (addExclusionWindow.ShowDialog(Application.Current.MainWindow) == true)
         {
             ViewModel.AddExclusion(addExclusionWindow.ViewModel.Pattern);
@@ -53,7 +60,7 @@ internal partial class FileExclusionsDialogControl : UserControl
 
     private void Edit_OnClick(object sender, RoutedEventArgs e)
     {
-        var addExclusionWindow = new EditExclusionDialog(ViewModel.SelectedExclusion.Pattern);
+        var addExclusionWindow = new EditExclusionDialog(ViewModel.SelectedExclusion.Pattern, themeResponsive);
         if (addExclusionWindow.ShowDialog(Application.Current.MainWindow) == true)
         {
             ViewModel.SelectedExclusion.Pattern = addExclusionWindow.ViewModel.Pattern;
@@ -61,4 +68,24 @@ internal partial class FileExclusionsDialogControl : UserControl
     }
 
     private void Delete_OnClick(object sender, RoutedEventArgs e) => ViewModel.RemoveExclusion();
+
+    private void UpdateThemeResponsiveStyles()
+    {
+        if (!themeResponsive)
+        {
+            return;
+        }
+        if (FindResource(ListBoxResourceKey) is Style listBoxStyle)
+        {
+            ExclusionsListBox.Style = listBoxStyle;
+        }
+        if (FindResource(ListBoxItemResourceKey) is Style listBoxItemStyle)
+        {
+            ExclusionsListBox.ItemContainerStyle = listBoxItemStyle;
+        }
+        if (FindResource(ButtonResourceKey) is Style buttonStyle)
+        {
+            Resources[typeof(Button)] = buttonStyle;
+        }
+    }
 }
