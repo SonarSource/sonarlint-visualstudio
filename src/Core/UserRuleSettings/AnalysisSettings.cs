@@ -57,7 +57,8 @@ public class AnalysisSettings
     {
         get => normalizedFileExclusions;
         private init =>
-            normalizedFileExclusions = value.Select(NormalizePath)
+            normalizedFileExclusions = value
+                .Select(NormalizePath)
                 .ToImmutableArray();
     }
 
