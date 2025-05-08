@@ -22,6 +22,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 
@@ -43,8 +44,8 @@ internal partial class FileExclusionsDialogControl : UserControl
 
     private void Add_OnClick(object sender, RoutedEventArgs e)
     {
-        var addExclusionWindow = new AddExclusionDialog { Owner = Application.Current.MainWindow };
-        if (addExclusionWindow.ShowDialog() == true)
+        var addExclusionWindow = new AddExclusionDialog();
+        if (addExclusionWindow.ShowDialog(Application.Current.MainWindow) == true)
         {
             ViewModel.AddExclusion(addExclusionWindow.ViewModel.Pattern);
         }
@@ -52,8 +53,8 @@ internal partial class FileExclusionsDialogControl : UserControl
 
     private void Edit_OnClick(object sender, RoutedEventArgs e)
     {
-        var addExclusionWindow = new EditExclusionDialog(ViewModel.SelectedExclusion.Pattern) { Owner = Application.Current.MainWindow };
-        if (addExclusionWindow.ShowDialog() == true)
+        var addExclusionWindow = new EditExclusionDialog(ViewModel.SelectedExclusion.Pattern);
+        if (addExclusionWindow.ShowDialog(Application.Current.MainWindow) == true)
         {
             ViewModel.SelectedExclusion.Pattern = addExclusionWindow.ViewModel.Pattern;
         }
