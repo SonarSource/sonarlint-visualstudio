@@ -44,6 +44,32 @@ internal class FileExclusionsViewModel(IBrowserService browserService, IUserSett
         }
     }
 
+    public void InitializeExclusions()
+    {
+        Exclusions.Clear();
+
+        var exclusionViewModels = scope == FileExclusionScope.Global
+            ? userSettingsProvider.UserSettings.AnalysisSettings.GlobalFileExclusions.Select(ex => new ExclusionViewModel(ex))
+            : userSettingsProvider.UserSettings.AnalysisSettings.SolutionFileExclusions.Select(ex => new ExclusionViewModel(ex));
+        exclusionViewModels.ToList().ForEach(vm => Exclusions.Add(vm));
+
+        SelectedExclusion = Exclusions.FirstOrDefault();
+    }
+
+    public void SaveExclusions()
+    {
+        var exclusionsToSave = Exclusions.Where(vm => vm.Error == null).Select(vm => vm.Pattern);
+
+        if (scope == FileExclusionScope.Global)
+        {
+            userSettingsProvider.UpdateGlobalFileExclusions(exclusionsToSave);
+        }
+        else
+        {
+            userSettingsProvider.UpdateSolutionFileExclusions(exclusionsToSave);
+        }
+    }
+
     internal void ViewInBrowser(string uri) => browserService.Navigate(uri);
 
     internal void AddExclusion(string pattern)
@@ -61,32 +87,6 @@ internal class FileExclusionsViewModel(IBrowserService browserService, IUserSett
         }
         Exclusions.Remove(SelectedExclusion);
         SelectedExclusion = null;
-    }
-
-    internal void InitializeExclusions()
-    {
-        Exclusions.Clear();
-
-        var exclusionViewModels = scope == FileExclusionScope.Global
-            ? userSettingsProvider.UserSettings.AnalysisSettings.GlobalFileExclusions.Select(ex => new ExclusionViewModel(ex))
-            : userSettingsProvider.UserSettings.AnalysisSettings.SolutionFileExclusions.Select(ex => new ExclusionViewModel(ex));
-        exclusionViewModels.ToList().ForEach(vm => Exclusions.Add(vm));
-
-        SelectedExclusion = Exclusions.FirstOrDefault();
-    }
-
-    internal void SaveExclusions()
-    {
-        var exclusionsToSave = Exclusions.Where(vm => vm.Error == null).Select(vm => vm.Pattern);
-
-        if (scope == FileExclusionScope.Global)
-        {
-            userSettingsProvider.UpdateGlobalFileExclusions(exclusionsToSave);
-        }
-        else
-        {
-            userSettingsProvider.UpdateSolutionFileExclusions(exclusionsToSave);
-        }
     }
 }
 
