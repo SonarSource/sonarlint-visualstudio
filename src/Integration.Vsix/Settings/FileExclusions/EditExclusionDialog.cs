@@ -26,8 +26,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 [ExcludeFromCodeCoverage]
 internal class EditExclusionDialog : AddExclusionDialog
 {
-    public EditExclusionDialog(string pattern)
-        : base(pattern)
+    public EditExclusionDialog(string pattern, bool detectTheme)
+        : base(detectTheme, pattern)
     {
         Title = Strings.EditExclusionDialog_Title;
         DescriptionTextBlock.Text = Strings.EditExclusionDialog_Description;

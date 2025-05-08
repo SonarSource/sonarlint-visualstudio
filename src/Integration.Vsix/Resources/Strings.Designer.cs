@@ -747,6 +747,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to File Exclusions.
+        /// </summary>
+        public static string SolutionSettingsDialog_TabFileExclusions {
+            get {
+                return ResourceManager.GetString("SolutionSettingsDialog_TabFileExclusions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Solution Settings.
         /// </summary>
         public static string SolutionSettingsDialog_Title {

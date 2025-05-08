@@ -15,6 +15,10 @@
         x:Name="This">
     <Window.Resources>
         <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary
+                    Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
             <Style TargetType="Button">
                 <Setter Property="MinHeight" Value="25" />
                 <Setter Property="MinWidth" Value="75" />
@@ -32,11 +36,11 @@
 
     <Grid DataContext="{Binding ElementName=This, Path=ViewModel}" Margin="15">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0">
+        <Grid Grid.Row="0" VerticalAlignment="Center">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
