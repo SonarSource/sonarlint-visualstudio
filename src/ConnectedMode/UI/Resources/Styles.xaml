@@ -30,7 +30,7 @@
         <Setter Property="MaxHeight" Value="250" />
     </Style>
 
-    <Style TargetType="Button">
+    <Style x:Key="DefaultButtonStyle" TargetType="Button">
         <Setter Property="MinHeight" Value="25" />
         <Setter Property="MinWidth" Value="75" />
         <Setter Property="Margin" Value="10,0,0,0" />
@@ -88,6 +88,8 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}"></Style>
 
     <Style x:Key="IconButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="Transparent"/>

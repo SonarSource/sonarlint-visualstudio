@@ -34,6 +34,7 @@ internal partial class FileExclusionsDialogControl : UserControl
 {
     private const string ListBoxResourceKey = "ThemedListBoxStyle";
     private const string ListBoxItemResourceKey = "ThemedListBoxItemStyle";
+    private const string ButtonResourceKey = "ThemedButtonStyle";
     private readonly bool themeResponsive;
 
     public FileExclusionsViewModel ViewModel { get; }
@@ -43,7 +44,7 @@ internal partial class FileExclusionsDialogControl : UserControl
         this.themeResponsive = themeResponsive;
         ViewModel = viewModel;
         InitializeComponent();
-        UpdateStyle();
+        UpdateThemeResponsiveStyles();
     }
 
     private void ViewInBrowser(object sender, RequestNavigateEventArgs args) => ViewModel.ViewInBrowser(args.Uri.AbsoluteUri);
@@ -68,18 +69,23 @@ internal partial class FileExclusionsDialogControl : UserControl
 
     private void Delete_OnClick(object sender, RoutedEventArgs e) => ViewModel.RemoveExclusion();
 
-    private void UpdateStyle()
+    private void UpdateThemeResponsiveStyles()
     {
-        if (themeResponsive)
+        if (!themeResponsive)
         {
-            if (FindResource(ListBoxResourceKey) is Style listBoxStyle)
-            {
-                ExclusionsListBox.Style = listBoxStyle;
-            }
-            if (FindResource(ListBoxItemResourceKey) is Style listBoxItemStyle)
-            {
-                ExclusionsListBox.ItemContainerStyle = listBoxItemStyle;
-            }
+            return;
+        }
+        if (FindResource(ListBoxResourceKey) is Style listBoxStyle)
+        {
+            ExclusionsListBox.Style = listBoxStyle;
+        }
+        if (FindResource(ListBoxItemResourceKey) is Style listBoxItemStyle)
+        {
+            ExclusionsListBox.ItemContainerStyle = listBoxItemStyle;
+        }
+        if (FindResource(ButtonResourceKey) is Style buttonStyle)
+        {
+            Resources[typeof(Button)] = buttonStyle;
         }
     }
 }
