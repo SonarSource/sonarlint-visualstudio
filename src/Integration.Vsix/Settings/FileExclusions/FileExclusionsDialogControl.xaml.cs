@@ -27,12 +27,15 @@ using SonarLint.VisualStudio.ConnectedMode.UI;
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 
 /// <summary>
-///     Interaction logic for FileExclusionsDialogControl.xaml
+/// Interaction logic for FileExclusionsDialogControl.xaml
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal partial class FileExclusionsDialogControl : UserControl
 {
+    private const string ListBoxResourceKey = "ThemedListBoxStyle";
+    private const string ListBoxItemResourceKey = "ThemedListBoxItemStyle";
     private readonly bool themeResponsive;
+
     public FileExclusionsViewModel ViewModel { get; }
 
     internal FileExclusionsDialogControl(FileExclusionsViewModel viewModel, bool themeResponsive)
@@ -40,6 +43,7 @@ internal partial class FileExclusionsDialogControl : UserControl
         this.themeResponsive = themeResponsive;
         ViewModel = viewModel;
         InitializeComponent();
+        UpdateStyle();
     }
 
     private void ViewInBrowser(object sender, RequestNavigateEventArgs args) => ViewModel.ViewInBrowser(args.Uri.AbsoluteUri);
@@ -63,4 +67,19 @@ internal partial class FileExclusionsDialogControl : UserControl
     }
 
     private void Delete_OnClick(object sender, RoutedEventArgs e) => ViewModel.RemoveExclusion();
+
+    private void UpdateStyle()
+    {
+        if (themeResponsive)
+        {
+            if (FindResource(ListBoxResourceKey) is Style listBoxStyle)
+            {
+                ExclusionsListBox.Style = listBoxStyle;
+            }
+            if (FindResource(ListBoxItemResourceKey) is Style listBoxItemStyle)
+            {
+                ExclusionsListBox.ItemContainerStyle = listBoxItemStyle;
+            }
+        }
+    }
 }

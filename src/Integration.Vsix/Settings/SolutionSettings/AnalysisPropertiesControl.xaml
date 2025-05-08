@@ -39,6 +39,7 @@
             </Style>
             <Style TargetType="DataGridRow" BasedOn="{StaticResource BaseDataGridRow}">
                 <Setter Property="Margin" Value="0" />
+                <Setter Property="Background" Value="Transparent" />
             </Style>
             <Style TargetType="DataGridCell">
                 <Setter Property="Margin" Value="0" />
