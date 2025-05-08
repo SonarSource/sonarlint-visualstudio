@@ -21,6 +21,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Controls;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.SolutionSettings;
 
@@ -40,8 +41,8 @@ internal partial class AnalysisPropertiesControl : UserControl
 
     private void Add_OnClick(object sender, RoutedEventArgs e)
     {
-        var addPropertyWindow = new AddAnalysisPropertyDialog { Owner = GetParentWindow() };
-        if (addPropertyWindow.ShowDialog() == true)
+        var addPropertyWindow = new AddAnalysisPropertyDialog();
+        if (addPropertyWindow.ShowDialog(GetParentWindow()) == true)
         {
             ViewModel.AddProperty(addPropertyWindow.ViewModel.Name, addPropertyWindow.ViewModel.Value);
         }

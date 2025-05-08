@@ -237,15 +237,4 @@
             </Setter.Value>
         </Setter>
     </Style>
-
-    <Style TargetType="{x:Type DataGridCell}">
-        <Style.Triggers>
-            <Trigger Property="DataGridCell.IsSelected" Value="True">
-                <Setter Property="Background" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonDefaultBrushKey}}" />
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonDefaultTextBrushKey}}" />
-                <Setter Property="BorderBrush" Value="Transparent" />
-            </Trigger>
-        </Style.Triggers>
-    </Style>
-
 </ResourceDictionary>
