@@ -30,6 +30,7 @@
 
         <TabControl Grid.Row="0" Background="{DynamicResource {x:Static vsShell:VsBrushes.WindowKey}}">
             <TabItem x:Name="AnalysisPropertiesTab" Header="{x:Static res:Strings.SolutionSettingsDialog_TabAnalysisProperties}"/>
+            <TabItem x:Name="FileExclusionsTab" Header="{x:Static res:Strings.SolutionSettingsDialog_TabFileExclusions}" />
         </TabControl>
 
         <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,2,0,0">

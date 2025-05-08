@@ -23,7 +23,14 @@
         <Setter Property="MinHeight" Value="600" />
     </Style>
 
-    <Style TargetType="Button">
+    <Style x:Key="SmallPopupWindowStyle" TargetType="Window" BasedOn="{StaticResource ConnectedModeWindow}">
+        <Setter Property="MinWidth" Value="500" />
+        <Setter Property="MaxWidth" Value="500" />
+        <Setter Property="MinHeight" Value="250" />
+        <Setter Property="MaxHeight" Value="250" />
+    </Style>
+
+    <Style x:Key="DefaultButtonStyle" TargetType="Button">
         <Setter Property="MinHeight" Value="25" />
         <Setter Property="MinWidth" Value="75" />
         <Setter Property="Margin" Value="10,0,0,0" />
@@ -81,6 +88,8 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}"></Style>
 
     <Style x:Key="IconButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="Transparent"/>

@@ -34,7 +34,7 @@ internal class FileExclusionsDialogPage : UIElementDialogPage
     private FileExclusionsDialogControl dialogControl;
     private FileExclusionsViewModel viewModel;
 
-    protected override UIElement Child => dialogControl ??= new FileExclusionsDialogControl(ViewModel);
+    protected override UIElement Child => dialogControl ??= new FileExclusionsDialogControl(ViewModel, themeResponsive: false);
 
     private FileExclusionsViewModel ViewModel
     {

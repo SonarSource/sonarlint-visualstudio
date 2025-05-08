@@ -26,12 +26,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 [ExcludeFromCodeCoverage]
 internal partial class AddExclusionDialog : Window
 {
+    private const string WindowStyleResourceKey = "SmallPopupWindowStyle";
     public ExclusionViewModel ViewModel { get; }
 
-    internal AddExclusionDialog(string pattern = null)
+    internal AddExclusionDialog(bool detectTheme, string pattern = null)
     {
         ViewModel = new ExclusionViewModel(pattern);
         InitializeComponent();
+        UpdateStyle(detectTheme);
+    }
+
+    private void UpdateStyle(bool detectTheme)
+    {
+        if (detectTheme && FindResource(WindowStyleResourceKey) is Style windowStyle)
+        {
+            Style = windowStyle;
+        }
     }
 
     private void OkButton_OnClick(object sender, RoutedEventArgs e)

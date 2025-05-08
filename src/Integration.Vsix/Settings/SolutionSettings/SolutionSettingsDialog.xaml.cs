@@ -23,6 +23,7 @@ using System.Windows;
 using System.Windows.Navigation;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
+using SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.SolutionSettings;
 
@@ -32,6 +33,7 @@ internal sealed partial class SolutionSettingsDialog : Window
     private readonly IServiceProvider serviceProvider;
     private readonly IUserSettingsProvider userSettingsProvider;
     private readonly AnalysisPropertiesControl analysisPropertiesControl;
+    private readonly IBrowserService browserService;
 
     public SolutionSettingsViewModel ViewModel { get; }
 
@@ -39,6 +41,7 @@ internal sealed partial class SolutionSettingsDialog : Window
     {
         this.serviceProvider = serviceProvider;
         userSettingsProvider = serviceProvider.GetMefService<IUserSettingsProvider>();
+        browserService = serviceProvider.GetMefService<IBrowserService>();
         analysisPropertiesControl = new AnalysisPropertiesControl(new AnalysisPropertiesViewModel(userSettingsProvider));
         ViewModel = new SolutionSettingsViewModel(serviceProvider.GetMefService<ISolutionInfoProvider>());
         InitializeComponent();
@@ -67,5 +70,9 @@ internal sealed partial class SolutionSettingsDialog : Window
     /// <summary>
     /// The constructor of the user controls for the tabs are not parameterless, so they cannot be created in XAML directly.
     /// </summary>
-    private void AddTabs() => AnalysisPropertiesTab.Content = analysisPropertiesControl;
+    private void AddTabs()
+    {
+        AnalysisPropertiesTab.Content = analysisPropertiesControl;
+        FileExclusionsTab.Content = new FileExclusionsDialogControl(new FileExclusionsViewModel(browserService, userSettingsProvider), themeResponsive: true);
+    }
 }
