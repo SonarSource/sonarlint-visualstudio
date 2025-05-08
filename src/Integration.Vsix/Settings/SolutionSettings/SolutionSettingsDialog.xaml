@@ -28,7 +28,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TabControl Grid.Row="0" Background="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}">
+        <TabControl Grid.Row="0" Background="{DynamicResource {x:Static vsShell:VsBrushes.WindowKey}}">
             <TabItem x:Name="AnalysisPropertiesTab" Header="{x:Static res:Strings.SolutionSettingsDialog_TabAnalysisProperties}"/>
         </TabControl>
 

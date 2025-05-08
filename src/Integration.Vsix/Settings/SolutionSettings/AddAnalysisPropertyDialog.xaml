@@ -4,6 +4,7 @@
         xmlns:res="clr-namespace:SonarLint.VisualStudio.Integration.Vsix.Resources"
         xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI;assembly=SonarLint.VisualStudio.ConnectedMode"
         xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
+        xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
         Title="{x:Static res:Strings.AddAnalysisPropertyDialog_Title}"
         MinWidth="500"
         MaxWidth="500"
@@ -25,6 +26,8 @@
                 <Setter Property="Margin" Value="5, 2" />
                 <Setter Property="Height" Value="30" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonTextBrushKey}}"  />
             </Style>
             <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
                 <Setter Property="VerticalAlignment" Value="Center" />

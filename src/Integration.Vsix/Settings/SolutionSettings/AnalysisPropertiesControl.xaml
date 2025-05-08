@@ -4,8 +4,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:res="clr-namespace:SonarLint.VisualStudio.Integration.Vsix.Resources"
-             d:DesignHeight="350"
-             d:DesignWidth="450"
+             xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              mc:Ignorable="d"
              x:ClassModifier="internal"
              x:Name="AnalysisProperties">
@@ -14,12 +14,71 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary
                     Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
+                <ResourceDictionary
+                    Source="pack://application:,,,/SonarLint.VisualStudio.IssueVisualization.Security;component/SharedUI/SharedResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <Style TargetType="Button">
                 <Setter Property="Margin" Value="5,0,0,5" />
                 <Setter Property="Padding" Value="5,3" />
                 <Setter Property="Width" Value="75" />
             </Style>
+            <Style TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
+                <Setter Property="RowHeaderWidth" Value="0" />
+                <Setter Property="AutoGenerateColumns" Value="False" />
+                <Setter Property="GridLinesVisibility" Value="All" />
+                <Setter Property="HorizontalGridLinesBrush"
+                        Value="{DynamicResource {x:Static vsTheming:HeaderColors.SeparatorLineBrushKey}}" />
+                <Setter Property="VerticalGridLinesBrush"
+                        Value="{DynamicResource {x:Static vsTheming:HeaderColors.SeparatorLineBrushKey}}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush"
+                        Value="{DynamicResource {x:Static vsTheming:HeaderColors.SeparatorLineBrushKey}}" />
+                <Setter Property="Height" Value="400" />
+                <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+            </Style>
+            <Style TargetType="DataGridRow" BasedOn="{StaticResource BaseDataGridRow}">
+                <Setter Property="Margin" Value="0" />
+            </Style>
+            <Style TargetType="DataGridCell">
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="Foreground"
+                        Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarTextActiveKey}}" />
+                <Setter Property="Background"
+                        Value="{DynamicResource {x:Static vsTheming:TreeViewColors.BackgroundBrushKey}}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type DataGridCell}">
+                            <Border Background="{TemplateBinding Background}">
+                                <ContentPresenter Margin="6,2"
+                                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Foreground"
+                                Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveTextBrushKey}}" />
+                        <Setter Property="Background"
+                                Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveBrushKey}}" />
+                    </Trigger>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions>
+                            <Condition Property="IsSelected" Value="True" />
+                            <Condition Property="Selector.IsSelectionActive" Value="False" />
+                        </MultiTrigger.Conditions>
+                        <MultiTrigger.Setters>
+                            <Setter Property="Foreground"
+                                    Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveTextBrushKey}}" />
+                            <Setter Property="Background"
+                                    Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveBrushKey}}" />
+                        </MultiTrigger.Setters>
+                    </MultiTrigger>
+                </Style.Triggers>
+            </Style>
+
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -41,15 +100,13 @@
             </Grid.ColumnDefinitions>
 
             <DataGrid Grid.Row="0" Grid.Column="0" ItemsSource="{Binding Path=AnalysisProperties}"
-                      SelectedItem="{Binding Path=SelectedProperty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                      SelectionMode="Single" AutoGenerateColumns="False" CanUserAddRows="False"
-                      CanUserDeleteRows="False">
+                      SelectedItem="{Binding Path=SelectedProperty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="{x:Static res:Strings.AnalysisSettingPropertyName}" IsReadOnly="True"
-                                        Width="*"
+                                        Width="*" ElementStyle="{StaticResource CellTextBlockStyle}"
                                         Binding="{Binding Name}" />
                     <DataGridTextColumn Header="{x:Static res:Strings.AnalysisSettingValue}" IsReadOnly="True"
-                                        Width="*"
+                                        Width="*" ElementStyle="{StaticResource CellTextBlockStyle}"
                                         Binding="{Binding Value}" />
                 </DataGrid.Columns>
             </DataGrid>

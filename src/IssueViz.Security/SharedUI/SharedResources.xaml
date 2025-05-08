@@ -62,7 +62,7 @@
                                 BorderThickness="0,0,0,1" 
                                 Background="{DynamicResource {x:Static vsTheming:HeaderColors.DefaultBrushKey}}">
                         <Border x:Name="BackgroundBorder" 
-                                    BorderThickness="1,0,0,1"
+                                    BorderThickness="0,0,1,1"
                                     Background="{DynamicResource {x:Static vsTheming:HeaderColors.DefaultBrushKey}}"
                                     BorderBrush="{DynamicResource {x:Static vsTheming:HeaderColors.SeparatorLineBrushKey}}">
                             <Grid>
