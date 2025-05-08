@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Immutable;
+using FluentAssertions.Common;
 using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.FileMonitor;
@@ -587,6 +588,22 @@ public class UserSettingsProviderTests
 
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
         serializer.Received().SafeSave(GlobalSettingsFilePath, Arg.Is<GlobalAnalysisSettings>(x => x.UserDefinedFileExclusions.SequenceEqual(exclusions, default)));
+    }
+
+    [TestMethod]
+    public void UpdateAnalysisProperties_UpdatesSolutionSettingsWithoutRaisingEvent()
+    {
+        activeSolutionTracker.CurrentSolutionName.Returns(SolutionName1);
+        var testSubject = CreateAndInitializeTestSubject();
+        var settingsChanged = SubscribeToSettingsChanged(testSubject);
+        var analysisProperties = new Dictionary<string, string> { ["prop"] = "value" };
+
+        testSubject.UpdateAnalysisProperties(analysisProperties);
+
+        settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
+        serializer.Received().SafeSave(Solution1SettingsFilePath, Arg.Is<SolutionAnalysisSettings>(x =>
+            x.AnalysisProperties.Count == 1
+            && x.AnalysisProperties["prop"] == "value"));
     }
 
     private static UserSettings GetInitialSettings(UserSettingsProvider testSubject)

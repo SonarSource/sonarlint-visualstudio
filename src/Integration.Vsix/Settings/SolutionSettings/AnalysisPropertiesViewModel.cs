@@ -19,11 +19,12 @@
  */
 
 using System.Collections.ObjectModel;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.SolutionSettings;
 
-internal class AnalysisPropertiesViewModel : ViewModelBase
+internal class AnalysisPropertiesViewModel(IUserSettingsProvider userSettingsProvider) : ViewModelBase
 {
     private AnalysisPropertyViewModel selectedProperty;
 
@@ -39,6 +40,22 @@ internal class AnalysisPropertiesViewModel : ViewModelBase
             RaisePropertyChanged();
             RaisePropertyChanged(nameof(IsAnyPropertySelected));
         }
+    }
+
+    public void InitializeAnalysisProperties()
+    {
+        SelectedProperty = null;
+        AnalysisProperties.Clear();
+        userSettingsProvider.EnsureSolutionAnalysisSettingsFileExists();
+        userSettingsProvider.UserSettings.AnalysisSettings.AnalysisProperties
+            .ToList()
+            .ForEach(x => AddProperty(x.Key, x.Value));
+    }
+
+    public void UpdateAnalysisProperties()
+    {
+        var analysisProperties = AnalysisProperties.ToDictionary(property => property.Name, property => property.Value);
+        userSettingsProvider.UpdateAnalysisProperties(analysisProperties);
     }
 
     internal void AddProperty(string property, string value)
