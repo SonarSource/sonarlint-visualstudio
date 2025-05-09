@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 
-internal class FileExclusionsViewModel(IBrowserService browserService, IUserSettingsProvider userSettingsProvider, FileExclusionScope scope = FileExclusionScope.Global)
+internal class FileExclusionsViewModel(IBrowserService browserService, IFileExclusionsProvider fileExclusionsProvider)
     : ViewModelBase
 {
     private ExclusionViewModel selectedExclusion;
@@ -48,9 +48,7 @@ internal class FileExclusionsViewModel(IBrowserService browserService, IUserSett
     {
         Exclusions.Clear();
 
-        var exclusionViewModels = scope == FileExclusionScope.Global
-            ? userSettingsProvider.UserSettings.AnalysisSettings.GlobalFileExclusions.Select(ex => new ExclusionViewModel(ex))
-            : userSettingsProvider.UserSettings.AnalysisSettings.SolutionFileExclusions.Select(ex => new ExclusionViewModel(ex));
+        var exclusionViewModels = fileExclusionsProvider.FileExclusions.Select(ex => new ExclusionViewModel(ex));
         exclusionViewModels.ToList().ForEach(vm => Exclusions.Add(vm));
 
         SelectedExclusion = Exclusions.FirstOrDefault();
@@ -59,16 +57,7 @@ internal class FileExclusionsViewModel(IBrowserService browserService, IUserSett
     public void SaveExclusions()
     {
         var exclusionsToSave = Exclusions.Where(vm => vm.Error == null).Select(vm => vm.Pattern);
-
-        // TODO by https://sonarsource.atlassian.net/browse/SLVS-2114: introduce common interface
-        //if (scope == FileExclusionScope.Global)
-        //{
-        //    userSettingsProvider.UpdateGlobalFileExclusions(exclusionsToSave);
-        //}
-        //else
-        //{
-        //    userSettingsProvider.UpdateSolutionFileExclusions(exclusionsToSave);
-        //}
+        fileExclusionsProvider.UpdateFileExclusions(exclusionsToSave);
     }
 
     internal void ViewInBrowser(string uri) => browserService.Navigate(uri);
@@ -89,10 +78,4 @@ internal class FileExclusionsViewModel(IBrowserService browserService, IUserSett
         Exclusions.Remove(SelectedExclusion);
         SelectedExclusion = null;
     }
-}
-
-public enum FileExclusionScope
-{
-    Global,
-    Solution
 }

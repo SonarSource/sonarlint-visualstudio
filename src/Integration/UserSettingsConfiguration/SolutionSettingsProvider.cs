@@ -35,7 +35,7 @@ internal class SolutionSettingsProvider(
     IInitializationProcessorFactory processorFactory)
     : ISolutionSettingsProvider
 {
-    public void UpdateSolutionFileExclusions(IEnumerable<string> exclusions)
+    public void UpdateFileExclusions(IEnumerable<string> exclusions)
     {
         var userSettings = userSettingsProvider.UserSettings;
         var solutionSettings = new SolutionAnalysisSettings(userSettings.AnalysisSettings.AnalysisProperties, exclusions.ToImmutableArray());
@@ -54,4 +54,6 @@ internal class SolutionSettingsProvider(
         () =>
         {
         });
+
+    public ImmutableArray<string> FileExclusions => userSettingsProvider.UserSettings.AnalysisSettings.SolutionFileExclusions;
 }

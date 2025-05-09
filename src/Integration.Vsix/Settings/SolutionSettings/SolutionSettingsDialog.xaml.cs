@@ -45,7 +45,7 @@ internal sealed partial class SolutionSettingsDialog : Window
         solutionSettingsStorage = serviceProvider.GetMefService<ISolutionSettingsStorage>();
         var browserService = serviceProvider.GetMefService<IBrowserService>();
         analysisPropertiesControl = new AnalysisPropertiesControl(new AnalysisPropertiesViewModel(userSettingsProvider, solutionSettingsProvider));
-        fileExclusionsDialogControl = new FileExclusionsDialogControl(new FileExclusionsViewModel(browserService, userSettingsProvider, FileExclusionScope.Solution), themeResponsive: true);
+        fileExclusionsDialogControl = new FileExclusionsDialogControl(new FileExclusionsViewModel(browserService, solutionSettingsProvider), themeResponsive: true);
         ViewModel = new SolutionSettingsViewModel(serviceProvider.GetMefService<ISolutionInfoProvider>());
         InitializeComponent();
         AddTabs();

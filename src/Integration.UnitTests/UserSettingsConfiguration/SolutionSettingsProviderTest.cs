@@ -56,13 +56,13 @@ public class SolutionSettingsProviderTest
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SolutionSettingsProvider>();
 
     [TestMethod]
-    public void UpdateSolutionFileExclusions_UpdatesSolutionSettings()
+    public void UpdateFileExclusions_UpdatesSolutionSettings()
     {
         SetupSolutionSettings(new SolutionAnalysisSettings());
         var testSubject = CreateAndInitializeTestSubject();
         string[] exclusions = ["1", "two", "3"];
 
-        testSubject.UpdateSolutionFileExclusions(exclusions);
+        testSubject.UpdateFileExclusions(exclusions);
 
         solutionSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<SolutionAnalysisSettings>(x => x.UserDefinedFileExclusions.SequenceEqual(exclusions, default)));
     }

@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using SonarLint.VisualStudio.Core.Initialization;
 
 namespace SonarLint.VisualStudio.Core.UserRuleSettings;
@@ -32,28 +33,28 @@ public interface IUserSettingsProvider : IRequireInitialization
     event EventHandler SettingsChanged;
 }
 
-public interface IGlobalSettingsProvider : IRequireInitialization
+public interface IFileExclusionsProvider
+{
+    /// <summary>
+    /// Updates the user settings to include the provided global/solution file exclusions. The value will override existing exclusions.
+    /// </summary>
+    void UpdateFileExclusions(IEnumerable<string> exclusions);
+
+    ImmutableArray<string> FileExclusions { get; }
+}
+
+public interface IGlobalSettingsProvider : IRequireInitialization, IFileExclusionsProvider
 {
     /// <summary>
     /// Updates the user settings to disable the specified rule
     /// </summary>
     void DisableRule(string ruleId);
-
-    /// <summary>
-    /// Updates the user settings to include the provided global file exclusions. The value will override existing exclusions.
-    /// </summary>
-    void UpdateGlobalFileExclusions(IEnumerable<string> exclusions);
 }
 
-public interface ISolutionSettingsProvider : IRequireInitialization
+public interface ISolutionSettingsProvider : IRequireInitialization, IFileExclusionsProvider
 {
     /// <summary>
     /// Updates the solution level analysis settings to include the provided analysis properties. The value will override existing analysis settings.
     /// </summary>
     void UpdateAnalysisProperties(Dictionary<string, string> analysisProperties);
-
-    /// <summary>
-    /// Updates the user settings to include the provided solution file exclusions. The value will override existing exclusions.
-    /// </summary>
-    void UpdateSolutionFileExclusions(IEnumerable<string> exclusions);
 }

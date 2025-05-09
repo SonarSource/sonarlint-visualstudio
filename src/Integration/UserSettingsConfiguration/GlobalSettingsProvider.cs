@@ -45,7 +45,7 @@ internal class GlobalSettingsProvider(
         globalSettingsStorage.SaveSettingsFile(globalSettings);
     }
 
-    public void UpdateGlobalFileExclusions(IEnumerable<string> exclusions)
+    public void UpdateFileExclusions(IEnumerable<string> exclusions)
     {
         var userSettings = userSettingsProvider.UserSettings;
         var globalSettings = new GlobalAnalysisSettings(userSettings.AnalysisSettings.Rules, exclusions.ToImmutableArray());
@@ -54,4 +54,6 @@ internal class GlobalSettingsProvider(
 
     public IInitializationProcessor InitializationProcessor { get; } = processorFactory.CreateAndStart<GlobalSettingsProvider>(
         [globalSettingsStorage, userSettingsProvider], () => { });
+
+    public ImmutableArray<string> FileExclusions => userSettingsProvider.UserSettings.AnalysisSettings.GlobalFileExclusions;
 }

@@ -91,13 +91,13 @@ public class GlobalSettingsProviderTest
     }
 
     [TestMethod]
-    public void UpdateGlobalFileExclusions_UpdatesGlobalSettingsWithoutRaisingEvent()
+    public void UpdateFileExclusions_UpdatesGlobalSettingsWithoutRaisingEvent()
     {
         SetupUserSettings(new GlobalAnalysisSettings());
         var testSubject = CreateAndInitializeTestSubject();
         string[] exclusions = ["1", "two", "3"];
 
-        testSubject.UpdateGlobalFileExclusions(exclusions);
+        testSubject.UpdateFileExclusions(exclusions);
 
         globalSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<GlobalAnalysisSettings>(x => x.UserDefinedFileExclusions.SequenceEqual(exclusions, default)));
     }
