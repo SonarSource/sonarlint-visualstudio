@@ -60,8 +60,8 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
                     return;
                 }
 
-                globalSettingsStorage.SettingsFileChanged += OnSettingsFileFileChanged;
-                solutionSettingsStorage.SettingsFileChanged += OnSettingsFileFileChanged;
+                globalSettingsStorage.SettingsFileChanged += OnSettingsFileChanged;
+                solutionSettingsStorage.SettingsFileChanged += OnSettingsFileChanged;
                 activeSolutionTracker.ActiveSolutionChanged += ActiveSolutionTrackerOnActiveSolutionChanged;
             });
     }
@@ -87,9 +87,9 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
         {
             if (InitializationProcessor.IsFinalized)
             {
-                solutionSettingsStorage.SettingsFileChanged -= OnSettingsFileFileChanged;
+                solutionSettingsStorage.SettingsFileChanged -= OnSettingsFileChanged;
                 solutionSettingsStorage.Dispose();
-                globalSettingsStorage.SettingsFileChanged -= OnSettingsFileFileChanged;
+                globalSettingsStorage.SettingsFileChanged -= OnSettingsFileChanged;
                 globalSettingsStorage.Dispose();
                 activeSolutionTracker.ActiveSolutionChanged -= ActiveSolutionTrackerOnActiveSolutionChanged;
             }
@@ -97,7 +97,7 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
         }
     }
 
-    private void OnSettingsFileFileChanged(object sender, EventArgs e) => ResetConfiguration();
+    private void OnSettingsFileChanged(object sender, EventArgs e) => ResetConfiguration();
 
     private void ActiveSolutionTrackerOnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
     {
