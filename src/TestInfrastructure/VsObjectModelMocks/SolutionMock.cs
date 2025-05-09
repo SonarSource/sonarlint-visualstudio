@@ -560,6 +560,15 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             this.projects.Values.ToList().ForEach(p => this.SimulateProjectOpen(p));
         }
 
+        public void SimulateSolutionMerge()
+        {
+            sinks.ForEach(s =>
+            {
+                (s as IVsSolutionEvents2)?.OnAfterMergeSolution(this);
+            });
+            projects.Values.ToList().ForEach(p => this.SimulateProjectOpen(p));
+        }
+
         public void SimulateProjectOpen(ProjectMock project)
         {
             this.sinks.ForEach(s => s.OnAfterOpenProject(project, 0));
