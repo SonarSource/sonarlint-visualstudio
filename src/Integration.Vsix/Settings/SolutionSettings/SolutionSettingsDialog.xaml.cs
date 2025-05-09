@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Settings.SolutionSettings;
 internal sealed partial class SolutionSettingsDialog : Window
 {
     private readonly IServiceProvider serviceProvider;
-    private readonly IUserSettingsProvider userSettingsProvider;
+    private readonly ISolutionSettingsStorage solutionSettingsStorage;
     private readonly AnalysisPropertiesControl analysisPropertiesControl;
     private readonly FileExclusionsDialogControl fileExclusionsDialogControl;
 
@@ -40,7 +40,8 @@ internal sealed partial class SolutionSettingsDialog : Window
     internal SolutionSettingsDialog(IServiceProvider serviceProvider)
     {
         this.serviceProvider = serviceProvider;
-        userSettingsProvider = serviceProvider.GetMefService<IUserSettingsProvider>();
+        var userSettingsProvider = serviceProvider.GetMefService<IUserSettingsProvider>();
+        solutionSettingsStorage = serviceProvider.GetMefService<ISolutionSettingsStorage>();
         var browserService = serviceProvider.GetMefService<IBrowserService>();
         analysisPropertiesControl = new AnalysisPropertiesControl(new AnalysisPropertiesViewModel(userSettingsProvider));
         fileExclusionsDialogControl = new FileExclusionsDialogControl(new FileExclusionsViewModel(browserService, userSettingsProvider, FileExclusionScope.Solution), themeResponsive: true);
@@ -66,8 +67,8 @@ internal sealed partial class SolutionSettingsDialog : Window
 
     private void OpenFile(object sender, RequestNavigateEventArgs e)
     {
-        userSettingsProvider.EnsureSolutionAnalysisSettingsFileExists();
-        DocumentOpener.OpenDocumentInVs(serviceProvider, userSettingsProvider.SolutionAnalysisSettingsFilePath);
+        solutionSettingsStorage.EnsureSettingsFileExists();
+        DocumentOpener.OpenDocumentInVs(serviceProvider, solutionSettingsStorage.SettingsFilePath);
         ApplyAndClose();
     }
 
