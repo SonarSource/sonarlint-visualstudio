@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Initialization;
@@ -81,37 +80,6 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
 
     public event EventHandler SettingsChanged;
     public IInitializationProcessor InitializationProcessor { get; }
-
-    public void UpdateSolutionFileExclusions(IEnumerable<string> exclusions)
-    {
-        var solutionSettings = new SolutionAnalysisSettings(UserSettings.AnalysisSettings.AnalysisProperties, exclusions.ToImmutableArray());
-        solutionSettingsStorage.SaveSettingsFile(solutionSettings);
-        SafeClearUserSettingsCache();
-    }
-
-    public void UpdateAnalysisProperties(Dictionary<string, string> analysisProperties)
-    {
-        var solutionSettings = new SolutionAnalysisSettings(analysisProperties, UserSettings.AnalysisSettings.SolutionFileExclusions);
-        solutionSettingsStorage.SaveSettingsFile(solutionSettings);
-        SafeClearUserSettingsCache();
-    }
-
-    public void DisableRule(string ruleId)
-    {
-        Debug.Assert(!string.IsNullOrEmpty(ruleId), "DisableRule: ruleId should not be null/empty");
-
-        var newRules = UserSettings.AnalysisSettings.Rules.SetItem(ruleId, new RuleConfig(RuleLevel.Off));
-        var globalSettings = new GlobalAnalysisSettings(newRules, UserSettings.AnalysisSettings.GlobalFileExclusions);
-        globalSettingsStorage.SaveSettingsFile(globalSettings);
-        SafeClearUserSettingsCache();
-    }
-
-    public void UpdateGlobalFileExclusions(IEnumerable<string> exclusions)
-    {
-        var globalSettings = new GlobalAnalysisSettings(UserSettings.AnalysisSettings.Rules, exclusions.ToImmutableArray());
-        globalSettingsStorage.SaveSettingsFile(globalSettings);
-        SafeClearUserSettingsCache();
-    }
 
     public void Dispose()
     {

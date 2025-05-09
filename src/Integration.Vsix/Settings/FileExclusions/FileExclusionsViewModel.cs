@@ -60,14 +60,15 @@ internal class FileExclusionsViewModel(IBrowserService browserService, IUserSett
     {
         var exclusionsToSave = Exclusions.Where(vm => vm.Error == null).Select(vm => vm.Pattern);
 
-        if (scope == FileExclusionScope.Global)
-        {
-            userSettingsProvider.UpdateGlobalFileExclusions(exclusionsToSave);
-        }
-        else
-        {
-            userSettingsProvider.UpdateSolutionFileExclusions(exclusionsToSave);
-        }
+        // TODO by https://sonarsource.atlassian.net/browse/SLVS-2114: introduce common interface
+        //if (scope == FileExclusionScope.Global)
+        //{
+        //    userSettingsProvider.UpdateGlobalFileExclusions(exclusionsToSave);
+        //}
+        //else
+        //{
+        //    userSettingsProvider.UpdateSolutionFileExclusions(exclusionsToSave);
+        //}
     }
 
     internal void ViewInBrowser(string uri) => browserService.Navigate(uri);

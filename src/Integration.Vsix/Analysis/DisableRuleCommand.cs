@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         public const int CommandId = 0x0200;
 
         private readonly OleMenuCommand menuItem;
-        private readonly IUserSettingsProvider userSettingsProvider;
+        private readonly IGlobalSettingsProvider globalSettingsProvider;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ILogger logger;
         private readonly IErrorListHelper errorListHelper;
@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
-            var settingsProvider = await package.GetMefServiceAsync<IUserSettingsProvider>();
+            var settingsProvider = await package.GetMefServiceAsync<IGlobalSettingsProvider>();
             var tracker = await package.GetMefServiceAsync<IActiveSolutionBoundTracker>();
             var errListHelper = await package.GetMefServiceAsync<IErrorListHelper>();
             var languageProvider = await package.GetMefServiceAsync<ILanguageProvider>();
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         /// <param name="menuCommandService">Command service to add command to, not null.</param>
         internal DisableRuleCommand(
             IMenuCommandService menuCommandService,
-            IUserSettingsProvider userSettingsProvider,
+            IGlobalSettingsProvider globalSettingsProvider,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ILogger logger,
             IErrorListHelper errorListHelper,
@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 throw new ArgumentNullException(nameof(languageProvider));
             }
 
-            this.userSettingsProvider = userSettingsProvider ?? throw new ArgumentNullException(nameof(userSettingsProvider));
+            this.globalSettingsProvider = globalSettingsProvider ?? throw new ArgumentNullException(nameof(globalSettingsProvider));
             this.activeSolutionBoundTracker = activeSolutionBoundTracker ?? throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.errorListHelper = errorListHelper ?? throw new ArgumentNullException(nameof(errorListHelper));
@@ -148,7 +148,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             {
                 if (errorListHelper.TryGetRuleIdFromSelectedRow(out ruleId))
                 {
-                    userSettingsProvider.DisableRule(ruleId.ErrorListErrorCode);
+                    globalSettingsProvider.DisableRule(ruleId.ErrorListErrorCode);
                     logger.WriteLine(AnalysisStrings.DisableRule_DisabledRule, ruleId.ErrorListErrorCode);
                 }
                 Debug.Assert(ruleId != null, "Not expecting Execute to be called if the SonarLint error code cannot be determined");

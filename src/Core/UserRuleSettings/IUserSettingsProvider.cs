@@ -30,7 +30,10 @@ public interface IUserSettingsProvider : IRequireInitialization
     UserSettings UserSettings { get; }
 
     event EventHandler SettingsChanged;
+}
 
+public interface IGlobalSettingsProvider : IRequireInitialization
+{
     /// <summary>
     /// Updates the user settings to disable the specified rule
     /// </summary>
@@ -40,7 +43,10 @@ public interface IUserSettingsProvider : IRequireInitialization
     /// Updates the user settings to include the provided global file exclusions. The value will override existing exclusions.
     /// </summary>
     void UpdateGlobalFileExclusions(IEnumerable<string> exclusions);
+}
 
+public interface ISolutionSettingsProvider : IRequireInitialization
+{
     /// <summary>
     /// Updates the solution level analysis settings to include the provided analysis properties. The value will override existing analysis settings.
     /// </summary>
