@@ -30,18 +30,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     internal class OpenSettingsFileWpfCommand : ICommand
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly IUserSettingsProvider userSettingsProvider;
+        private readonly IGlobalSettingsStorage globalSettingsStorage;
         private readonly ILogger logger;
         private readonly IWin32Window win32Window;
 
         public OpenSettingsFileWpfCommand(
             IServiceProvider serviceProvider,
-            IUserSettingsProvider userSettingsProvider,
+            IGlobalSettingsStorage globalSettingsStorage,
             IWin32Window win32Window,
             ILogger logger)
         {
             this.serviceProvider = serviceProvider;
-            this.userSettingsProvider = userSettingsProvider;
+            this.globalSettingsStorage = globalSettingsStorage;
             this.logger = logger;
             this.win32Window = win32Window;
         }
@@ -56,12 +56,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             try
             {
-                userSettingsProvider.EnsureGlobalAnalysisSettingsFileExists();
-                OpenDocumentInVs(userSettingsProvider.GlobalAnalysisSettingsFilePath);
+                globalSettingsStorage.EnsureSettingsFileExists();
+                OpenDocumentInVs(globalSettingsStorage.SettingsFilePath);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Strings.ToolsOptions_ErrorOpeningSettingsFile, userSettingsProvider.GlobalAnalysisSettingsFilePath, ex.Message);
+                logger.WriteLine(Strings.ToolsOptions_ErrorOpeningSettingsFile, globalSettingsStorage.SettingsFilePath, ex.Message);
             }
         }
 

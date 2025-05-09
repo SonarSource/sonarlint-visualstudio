@@ -29,15 +29,7 @@ public interface IUserSettingsProvider : IRequireInitialization
     /// </summary>
     UserSettings UserSettings { get; }
 
-    /// <summary>
-    /// Full path to the file containing the user settings
-    /// </summary>
-    string GlobalAnalysisSettingsFilePath { get; }
-
-    /// <summary>
-    /// Full path to the file containing the user settings
-    /// </summary>
-    string SolutionAnalysisSettingsFilePath { get; }
+    event EventHandler SettingsChanged;
 
     /// <summary>
     /// Updates the user settings to disable the specified rule
@@ -50,24 +42,12 @@ public interface IUserSettingsProvider : IRequireInitialization
     void UpdateGlobalFileExclusions(IEnumerable<string> exclusions);
 
     /// <summary>
-    /// Updates the user settings to include the provided solution file exclusions. The value will override existing exclusions.
-    /// </summary>
-    void UpdateSolutionFileExclusions(IEnumerable<string> exclusions);
-
-    /// <summary>
     /// Updates the solution level analysis settings to include the provided analysis properties. The value will override existing analysis settings.
     /// </summary>
     void UpdateAnalysisProperties(Dictionary<string, string> analysisProperties);
 
     /// <summary>
-    /// Ensure the settings file exists, creating a new file if necessary
+    /// Updates the user settings to include the provided solution file exclusions. The value will override existing exclusions.
     /// </summary>
-    void EnsureGlobalAnalysisSettingsFileExists();
-
-    /// <summary>
-    /// Ensure the settings file exists, creating a new file if necessary
-    /// </summary>
-    void EnsureSolutionAnalysisSettingsFileExists();
-
-    event EventHandler SettingsChanged;
+    void UpdateSolutionFileExclusions(IEnumerable<string> exclusions);
 }
