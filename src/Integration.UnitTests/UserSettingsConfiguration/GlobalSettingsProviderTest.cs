@@ -28,7 +28,7 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.Integration.UnitTests.UserSettingsConfiguration;
 
 [TestClass]
-public class GlobalSettingsProviderTest
+public class GlobalUserSettingsUpdaterTest
 {
     private IInitializationProcessorFactory processorFactory;
     private TestLogger testLogger;
@@ -47,13 +47,13 @@ public class GlobalSettingsProviderTest
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<GlobalSettingsProvider, IGlobalSettingsProvider>(
+        MefTestHelpers.CheckTypeCanBeImported<GlobalUserSettingsUpdater, IGlobalUserSettingsUpdater>(
             MefTestHelpers.CreateExport<IGlobalSettingsStorage>(),
             MefTestHelpers.CreateExport<IUserSettingsProvider>(),
             MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<GlobalSettingsProvider>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<GlobalUserSettingsUpdater>();
 
     [TestMethod]
     public void Initialization_SubscribesToEvents()
@@ -65,7 +65,7 @@ public class GlobalSettingsProviderTest
 
         Received.InOrder(() =>
         {
-            processorFactory.Create<GlobalSettingsProvider>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(collection => collection.SequenceEqual(dependencies)),
+            processorFactory.Create<GlobalUserSettingsUpdater>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(collection => collection.SequenceEqual(dependencies)),
                 Arg.Any<Func<IThreadHandling, Task>>());
             initializationProcessor.InitializeAsync();
             initializationProcessor.InitializeAsync();
@@ -129,10 +129,10 @@ public class GlobalSettingsProviderTest
         testSubject.FileExclusions.Should().BeEquivalentTo(userSettingsProvider.UserSettings.AnalysisSettings.GlobalFileExclusions);
     }
 
-    private GlobalSettingsProvider CreateAndInitializeTestSubject()
+    private GlobalUserSettingsUpdater CreateAndInitializeTestSubject()
     {
-        processorFactory = MockableInitializationProcessor.CreateFactory<GlobalSettingsProvider>(threadHandling, testLogger);
-        var testSubject = new GlobalSettingsProvider(globalSettingsStorage, userSettingsProvider, processorFactory);
+        processorFactory = MockableInitializationProcessor.CreateFactory<GlobalUserSettingsUpdater>(threadHandling, testLogger);
+        var testSubject = new GlobalUserSettingsUpdater(globalSettingsStorage, userSettingsProvider, processorFactory);
         testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
         return testSubject;
     }

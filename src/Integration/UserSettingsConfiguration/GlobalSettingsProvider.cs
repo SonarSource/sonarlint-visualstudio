@@ -26,14 +26,14 @@ using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
 
 namespace SonarLint.VisualStudio.Integration.UserSettingsConfiguration;
 
-[Export(typeof(IGlobalSettingsProvider))]
+[Export(typeof(IGlobalUserSettingsUpdater))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class GlobalSettingsProvider(
+internal class GlobalUserSettingsUpdater(
     IGlobalSettingsStorage globalSettingsStorage,
     IUserSettingsProvider userSettingsProvider,
     IInitializationProcessorFactory processorFactory)
-    : IGlobalSettingsProvider
+    : IGlobalUserSettingsUpdater
 {
     public void DisableRule(string ruleId)
     {
@@ -52,7 +52,7 @@ internal class GlobalSettingsProvider(
         globalSettingsStorage.SaveSettingsFile(globalSettings);
     }
 
-    public IInitializationProcessor InitializationProcessor { get; } = processorFactory.CreateAndStart<GlobalSettingsProvider>(
+    public IInitializationProcessor InitializationProcessor { get; } = processorFactory.CreateAndStart<GlobalUserSettingsUpdater>(
         [globalSettingsStorage, userSettingsProvider], () => { });
 
     public ImmutableArray<string> FileExclusions => userSettingsProvider.UserSettings.AnalysisSettings.GlobalFileExclusions;

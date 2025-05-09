@@ -43,8 +43,8 @@ internal class FileExclusionsDialogPage : UIElementDialogPage
             if (viewModel == null)
             {
                 var browserService = Site.GetMefService<IBrowserService>();
-                var globalSettingsProvider = Site.GetMefService<IGlobalSettingsProvider>();
-                viewModel = new FileExclusionsViewModel(browserService, globalSettingsProvider);
+                var globalUserSettingsUpdater = Site.GetMefService<IGlobalUserSettingsUpdater>();
+                viewModel = new FileExclusionsViewModel(browserService, globalUserSettingsUpdater);
             }
             return viewModel;
         }
