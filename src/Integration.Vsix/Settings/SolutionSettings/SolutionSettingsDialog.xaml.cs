@@ -33,7 +33,7 @@ internal sealed partial class SolutionSettingsDialog : Window
     private readonly IServiceProvider serviceProvider;
     private readonly IUserSettingsProvider userSettingsProvider;
     private readonly AnalysisPropertiesControl analysisPropertiesControl;
-    private readonly IBrowserService browserService;
+    private readonly FileExclusionsDialogControl fileExclusionsDialogControl;
 
     public SolutionSettingsViewModel ViewModel { get; }
 
@@ -41,20 +41,26 @@ internal sealed partial class SolutionSettingsDialog : Window
     {
         this.serviceProvider = serviceProvider;
         userSettingsProvider = serviceProvider.GetMefService<IUserSettingsProvider>();
-        browserService = serviceProvider.GetMefService<IBrowserService>();
+        var browserService = serviceProvider.GetMefService<IBrowserService>();
         analysisPropertiesControl = new AnalysisPropertiesControl(new AnalysisPropertiesViewModel(userSettingsProvider));
+        fileExclusionsDialogControl = new FileExclusionsDialogControl(new FileExclusionsViewModel(browserService, userSettingsProvider, FileExclusionScope.Solution), themeResponsive: true);
         ViewModel = new SolutionSettingsViewModel(serviceProvider.GetMefService<ISolutionInfoProvider>());
         InitializeComponent();
         AddTabs();
     }
 
-    public void InitializeData() => analysisPropertiesControl.ViewModel.InitializeAnalysisProperties();
+    public void InitializeData()
+    {
+        analysisPropertiesControl.ViewModel.InitializeAnalysisProperties();
+        fileExclusionsDialogControl.ViewModel.InitializeExclusions();
+    }
 
     private void ApplyButton_OnClick(object sender, RoutedEventArgs e) => ApplyAndClose();
 
     private void ApplyAndClose()
     {
         analysisPropertiesControl.ViewModel.UpdateAnalysisProperties();
+        fileExclusionsDialogControl.ViewModel.SaveExclusions();
         Close();
     }
 
@@ -73,6 +79,6 @@ internal sealed partial class SolutionSettingsDialog : Window
     private void AddTabs()
     {
         AnalysisPropertiesTab.Content = analysisPropertiesControl;
-        FileExclusionsTab.Content = new FileExclusionsDialogControl(new FileExclusionsViewModel(browserService, userSettingsProvider), themeResponsive: true);
+        FileExclusionsTab.Content = fileExclusionsDialogControl;
     }
 }
