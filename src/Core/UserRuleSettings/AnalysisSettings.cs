@@ -27,37 +27,61 @@ public class AnalysisSettings
 {
     private const string AnyDirectoryWildcard = "**";
     private static readonly string AnyRootPrefix = AnyDirectoryWildcard + Path.AltDirectorySeparatorChar;
-    private readonly ImmutableArray<string> userDefinedFileExclusions = ImmutableArray<string>.Empty;
+    private readonly ImmutableArray<string> globalFileExclusions = ImmutableArray<string>.Empty;
+    private readonly ImmutableArray<string> solutionFileExclusions = ImmutableArray<string>.Empty;
+    private readonly ImmutableArray<string> normalizedFileExclusions = ImmutableArray<string>.Empty;
 
     public ImmutableDictionary<string, RuleConfig> Rules { get; }
 
     public ImmutableDictionary<string, string> AnalysisProperties { get; }
 
-    public ImmutableArray<string> UserDefinedFileExclusions
+    public ImmutableArray<string> GlobalFileExclusions
     {
-        get => userDefinedFileExclusions;
-        private init
-        {
-            userDefinedFileExclusions = value
+        get => globalFileExclusions;
+        private init =>
+            globalFileExclusions = value
                 .Where(path => !string.IsNullOrWhiteSpace(path))
                 .ToImmutableArray();
-            NormalizedFileExclusions = userDefinedFileExclusions
+    }
+
+    public ImmutableArray<string> SolutionFileExclusions
+    {
+        get => solutionFileExclusions;
+        private init =>
+            solutionFileExclusions = value
+                .Where(path => !string.IsNullOrWhiteSpace(path))
+                .ToImmutableArray();
+    }
+
+    public ImmutableArray<string> NormalizedFileExclusions
+    {
+        get => normalizedFileExclusions;
+        private init =>
+            normalizedFileExclusions = value
                 .Select(NormalizePath)
                 .ToImmutableArray();
-        }
     }
 
-    public ImmutableArray<string> NormalizedFileExclusions { get; private init; }
-
-    public AnalysisSettings(Dictionary<string, RuleConfig> rules, IEnumerable<string> fileExclusions, Dictionary<string, string> analysisProperties = null) : this(
-        rules.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase), fileExclusions?.ToImmutableArray(), analysisProperties?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase))
+    public AnalysisSettings(
+        Dictionary<string, RuleConfig> rules,
+        IEnumerable<string> globalFileExclusions,
+        IEnumerable<string> solutionFileExclusions = null,
+        Dictionary<string, string> analysisProperties = null) : this(
+        rules.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase), globalFileExclusions?.ToImmutableArray(), solutionFileExclusions?.ToImmutableArray(),
+        analysisProperties?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase))
     {
     }
 
-    public AnalysisSettings(ImmutableDictionary<string, RuleConfig> rules = null, ImmutableArray<string>? fileExclusions = null, ImmutableDictionary<string, string> analysisProperties = null)
+    public AnalysisSettings(
+        ImmutableDictionary<string, RuleConfig> rules = null,
+        ImmutableArray<string>? globalFileExclusions = null,
+        ImmutableArray<string>? solutionFileExclusions = null,
+        ImmutableDictionary<string, string> analysisProperties = null)
     {
         Rules = rules ?? ImmutableDictionary<string, RuleConfig>.Empty;
-        UserDefinedFileExclusions = fileExclusions ?? ImmutableArray<string>.Empty;
+        GlobalFileExclusions = globalFileExclusions ?? ImmutableArray<string>.Empty;
+        SolutionFileExclusions = solutionFileExclusions ?? ImmutableArray<string>.Empty;
+        NormalizedFileExclusions = SolutionFileExclusions.IsEmpty ? GlobalFileExclusions : SolutionFileExclusions;
         AnalysisProperties = analysisProperties ?? ImmutableDictionary<string, string>.Empty;
     }
 

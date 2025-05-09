@@ -45,9 +45,14 @@ public interface IUserSettingsProvider : IRequireInitialization
     void DisableRule(string ruleId);
 
     /// <summary>
-    /// Updates the user settings to include the provided file exclusions. The value will override existing exclusions.
+    /// Updates the user settings to include the provided global file exclusions. The value will override existing exclusions.
     /// </summary>
-    void UpdateFileExclusions(IEnumerable<string> exclusions);
+    void UpdateGlobalFileExclusions(IEnumerable<string> exclusions);
+
+    /// <summary>
+    /// Updates the user settings to include the provided solution file exclusions. The value will override existing exclusions.
+    /// </summary>
+    void UpdateSolutionFileExclusions(IEnumerable<string> exclusions);
 
     /// <summary>
     /// Updates the solution level analysis settings to include the provided analysis properties. The value will override existing analysis settings.

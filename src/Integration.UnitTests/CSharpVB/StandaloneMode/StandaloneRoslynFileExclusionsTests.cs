@@ -27,11 +27,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CSharpVB.StandaloneMode;
 public class StandaloneRoslynFileExclusionsTests
 {
     [TestMethod]
-    public void ToDictionary_ReturnsExpectedExclusionProperty()
+    public void ToDictionary_WithGlobalFileExclusions_ReturnsExpectedExclusionProperty()
     {
         var expectedProperties = new Dictionary<string, string> { { "sonar.exclusions", "**/one,**/two,**/three" } };
 
-        var testSubject = new StandaloneRoslynFileExclusions(new AnalysisSettings([], ["one", "two", "three"]));
+        var testSubject = new StandaloneRoslynFileExclusions(new AnalysisSettings([], ["one", "two", "three"], []));
+
+        testSubject.ToDictionary().Should().BeEquivalentTo(expectedProperties);
+    }
+
+    [TestMethod]
+    public void ToDictionary_WithSolutionFileExclusions_ReturnsExpectedExclusionProperty()
+    {
+        var expectedProperties = new Dictionary<string, string> { { "sonar.exclusions", "**/one,**/two,**/three" } };
+
+        var testSubject = new StandaloneRoslynFileExclusions(new AnalysisSettings([], [], ["one", "two", "three"]));
+
+        testSubject.ToDictionary().Should().BeEquivalentTo(expectedProperties);
+    }
+
+    [TestMethod]
+    public void ToDictionary_WithGlobalAndSolutionFileExclusions_ReturnsExpectedExclusionProperty()
+    {
+        var expectedProperties = new Dictionary<string, string> { { "sonar.exclusions", "**/two,**/three" } };
+
+        var testSubject = new StandaloneRoslynFileExclusions(new AnalysisSettings([], ["one"], ["two", "three"]));
 
         testSubject.ToDictionary().Should().BeEquivalentTo(expectedProperties);
     }
