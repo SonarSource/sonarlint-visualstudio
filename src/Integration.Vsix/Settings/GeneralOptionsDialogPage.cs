@@ -79,9 +79,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private ICommand GetOpenSettingsFileWpfCommand()
         {
-            var userSettingsProvider = Site.GetMefService<IUserSettingsProvider>();
+            var globalSettingsStorage = Site.GetMefService<IGlobalSettingsStorage>();
             var logger = Site.GetMefService<ILogger>();
-            return new OpenSettingsFileWpfCommand(Site, userSettingsProvider, this, logger);
+            return new OpenSettingsFileWpfCommand(Site, globalSettingsStorage, this, logger);
         }
     }
 }
