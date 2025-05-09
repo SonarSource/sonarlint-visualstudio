@@ -28,13 +28,26 @@ namespace SonarLint.VisualStudio.Integration.UserSettingsConfiguration;
 
 [Export(typeof(IGlobalUserSettingsUpdater))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-internal class GlobalUserSettingsUpdater(
-    IGlobalSettingsStorage globalSettingsStorage,
-    IUserSettingsProvider userSettingsProvider,
-    IInitializationProcessorFactory processorFactory)
-    : IGlobalUserSettingsUpdater
+internal class GlobalUserSettingsUpdater : IGlobalUserSettingsUpdater
 {
+    private readonly IGlobalSettingsStorage globalSettingsStorage;
+    private readonly IUserSettingsProvider userSettingsProvider;
+
+    [ImportingConstructor]
+    public GlobalUserSettingsUpdater(
+        IGlobalSettingsStorage globalSettingsStorage,
+        IUserSettingsProvider userSettingsProvider,
+        IInitializationProcessorFactory processorFactory)
+    {
+        this.globalSettingsStorage = globalSettingsStorage;
+        this.userSettingsProvider = userSettingsProvider;
+        InitializationProcessor = processorFactory.CreateAndStart<GlobalUserSettingsUpdater>(
+            [globalSettingsStorage, userSettingsProvider], () => { });
+    }
+
+    public IInitializationProcessor InitializationProcessor { get; }
+    public ImmutableArray<string> FileExclusions => userSettingsProvider.UserSettings.AnalysisSettings.GlobalFileExclusions;
+
     public void DisableRule(string ruleId)
     {
         Debug.Assert(!string.IsNullOrEmpty(ruleId), "DisableRule: ruleId should not be null/empty");
@@ -51,9 +64,4 @@ internal class GlobalUserSettingsUpdater(
         var globalSettings = new GlobalAnalysisSettings(userSettings.AnalysisSettings.Rules, exclusions.ToImmutableArray());
         globalSettingsStorage.SaveSettingsFile(globalSettings);
     }
-
-    public IInitializationProcessor InitializationProcessor { get; } = processorFactory.CreateAndStart<GlobalUserSettingsUpdater>(
-        [globalSettingsStorage, userSettingsProvider], () => { });
-
-    public ImmutableArray<string> FileExclusions => userSettingsProvider.UserSettings.AnalysisSettings.GlobalFileExclusions;
 }

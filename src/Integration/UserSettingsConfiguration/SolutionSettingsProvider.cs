@@ -28,32 +28,40 @@ namespace SonarLint.VisualStudio.Integration.UserSettingsConfiguration;
 
 [Export(typeof(ISolutionUserSettingsUpdater))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-internal class SolutionUserSettingsUpdater(
-    ISolutionSettingsStorage solutionSettingsStorage,
-    IUserSettingsProvider userSettingsProvider,
-    IInitializationProcessorFactory processorFactory)
-    : ISolutionUserSettingsUpdater
+internal class SolutionUserSettingsUpdater : ISolutionUserSettingsUpdater
 {
+    private readonly ISolutionSettingsStorage solutionSettingsStorage1;
+    private readonly IUserSettingsProvider userSettingsProvider1;
+
+    [method: ImportingConstructor]
+    public SolutionUserSettingsUpdater(
+        ISolutionSettingsStorage solutionSettingsStorage,
+        IUserSettingsProvider userSettingsProvider,
+        IInitializationProcessorFactory processorFactory)
+    {
+        solutionSettingsStorage1 = solutionSettingsStorage;
+        userSettingsProvider1 = userSettingsProvider;
+        InitializationProcessor = processorFactory.CreateAndStart<SolutionUserSettingsUpdater>(
+            [solutionSettingsStorage, userSettingsProvider],
+            () =>
+            {
+            });
+    }
+
+    public IInitializationProcessor InitializationProcessor { get; }
+    public ImmutableArray<string> FileExclusions => userSettingsProvider1.UserSettings.AnalysisSettings.SolutionFileExclusions;
+
     public void UpdateFileExclusions(IEnumerable<string> exclusions)
     {
-        var userSettings = userSettingsProvider.UserSettings;
+        var userSettings = userSettingsProvider1.UserSettings;
         var solutionSettings = new SolutionAnalysisSettings(userSettings.AnalysisSettings.AnalysisProperties, exclusions.ToImmutableArray());
-        solutionSettingsStorage.SaveSettingsFile(solutionSettings);
+        solutionSettingsStorage1.SaveSettingsFile(solutionSettings);
     }
 
     public void UpdateAnalysisProperties(Dictionary<string, string> analysisProperties)
     {
-        var userSettings = userSettingsProvider.UserSettings;
+        var userSettings = userSettingsProvider1.UserSettings;
         var solutionSettings = new SolutionAnalysisSettings(analysisProperties, userSettings.AnalysisSettings.SolutionFileExclusions);
-        solutionSettingsStorage.SaveSettingsFile(solutionSettings);
+        solutionSettingsStorage1.SaveSettingsFile(solutionSettings);
     }
-
-    public IInitializationProcessor InitializationProcessor { get; } = processorFactory.CreateAndStart<SolutionUserSettingsUpdater>(
-        [solutionSettingsStorage, userSettingsProvider],
-        () =>
-        {
-        });
-
-    public ImmutableArray<string> FileExclusions => userSettingsProvider.UserSettings.AnalysisSettings.SolutionFileExclusions;
 }
