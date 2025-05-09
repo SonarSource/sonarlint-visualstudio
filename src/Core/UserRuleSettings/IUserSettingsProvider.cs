@@ -22,7 +22,7 @@ using SonarLint.VisualStudio.Core.Initialization;
 
 namespace SonarLint.VisualStudio.Core.UserRuleSettings;
 
-public interface IUserSettingsProvider : IRequireInitialization
+public interface IUserSettingsProvider : IRequireInitialization, IGlobalUserSettingsUpdater, ISolutionUserSettingsUpdater
 {
     /// <summary>
     /// The settings for the current user
@@ -30,24 +30,30 @@ public interface IUserSettingsProvider : IRequireInitialization
     UserSettings UserSettings { get; }
 
     event EventHandler SettingsChanged;
+}
 
+public interface IGlobalUserSettingsUpdater
+{
     /// <summary>
     /// Updates the user settings to disable the specified rule
     /// </summary>
     void DisableRule(string ruleId);
 
     /// <summary>
-    /// Updates the user settings to include the provided global file exclusions. The value will override existing exclusions.
+    /// Updates the user settings to include the provided global/solution file exclusions. The value will override existing exclusions.
     /// </summary>
     void UpdateGlobalFileExclusions(IEnumerable<string> exclusions);
+}
 
+public interface ISolutionUserSettingsUpdater
+{
     /// <summary>
     /// Updates the solution level analysis settings to include the provided analysis properties. The value will override existing analysis settings.
     /// </summary>
     void UpdateAnalysisProperties(Dictionary<string, string> analysisProperties);
 
     /// <summary>
-    /// Updates the user settings to include the provided solution file exclusions. The value will override existing exclusions.
+    /// Updates the user settings to include the provided global/solution file exclusions. The value will override existing exclusions.
     /// </summary>
     void UpdateSolutionFileExclusions(IEnumerable<string> exclusions);
 }

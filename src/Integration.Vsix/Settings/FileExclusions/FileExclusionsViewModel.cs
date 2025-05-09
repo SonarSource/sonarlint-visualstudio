@@ -25,7 +25,12 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 
-internal class FileExclusionsViewModel(IBrowserService browserService, IUserSettingsProvider userSettingsProvider, FileExclusionScope scope = FileExclusionScope.Global)
+internal class FileExclusionsViewModel(
+    IBrowserService browserService,
+    IUserSettingsProvider userSettingsProvider,
+    IGlobalUserSettingsUpdater globalUserSettingsUpdater,
+    ISolutionUserSettingsUpdater solutionUserSettingsUpdater,
+    FileExclusionScope scope = FileExclusionScope.Global)
     : ViewModelBase
 {
     private ExclusionViewModel selectedExclusion;
@@ -62,11 +67,11 @@ internal class FileExclusionsViewModel(IBrowserService browserService, IUserSett
 
         if (scope == FileExclusionScope.Global)
         {
-            userSettingsProvider.UpdateGlobalFileExclusions(exclusionsToSave);
+            globalUserSettingsUpdater.UpdateGlobalFileExclusions(exclusionsToSave);
         }
         else
         {
-            userSettingsProvider.UpdateSolutionFileExclusions(exclusionsToSave);
+            solutionUserSettingsUpdater.UpdateSolutionFileExclusions(exclusionsToSave);
         }
     }
 

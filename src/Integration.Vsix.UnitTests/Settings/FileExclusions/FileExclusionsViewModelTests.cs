@@ -34,15 +34,19 @@ public class FileExclusionsViewModelTests
     private IBrowserService browserService;
     private FileExclusionsViewModel globalFileExclusionsViewModel;
     private IUserSettingsProvider userSettingsProvider;
+    private IGlobalUserSettingsUpdater globalSettingsUpdater;
+    private ISolutionUserSettingsUpdater solutionSettingsUpdater;
 
     [TestInitialize]
     public void Initialize()
     {
         browserService = Substitute.For<IBrowserService>();
         userSettingsProvider = Substitute.For<IUserSettingsProvider>();
+        globalSettingsUpdater = Substitute.For<IGlobalUserSettingsUpdater>();
+        solutionSettingsUpdater = Substitute.For<ISolutionUserSettingsUpdater>();
         MockUserSettingsProvider();
 
-        globalFileExclusionsViewModel = new FileExclusionsViewModel(browserService, userSettingsProvider);
+        globalFileExclusionsViewModel = new FileExclusionsViewModel(browserService, userSettingsProvider, globalSettingsUpdater, solutionSettingsUpdater, FileExclusionScope.Global);
     }
 
     [TestMethod]
@@ -136,7 +140,7 @@ public class FileExclusionsViewModelTests
     public void InitializeExclusions_WithSolutionFileExclusions_InitializesExclusionsAndSelectedExclusionProperty()
     {
         MockUserSettingsProvider(solutionFileExclusions: [Pattern1, Pattern2]);
-        var solutionFileExclusionsViewModel = new FileExclusionsViewModel(browserService, userSettingsProvider, FileExclusionScope.Solution);
+        var solutionFileExclusionsViewModel = new FileExclusionsViewModel(browserService, userSettingsProvider, globalSettingsUpdater, solutionSettingsUpdater, FileExclusionScope.Solution);
 
         solutionFileExclusionsViewModel.InitializeExclusions();
 
@@ -169,19 +173,19 @@ public class FileExclusionsViewModelTests
 
         globalFileExclusionsViewModel.SaveExclusions();
 
-        userSettingsProvider.Received(1).UpdateGlobalFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
+        globalSettingsUpdater.Received(1).UpdateGlobalFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
     }
 
     [TestMethod]
     public void SaveExclusions_WithSolutionFileExclusions_SavesExclusions()
     {
-        var solutionFileExclusionsViewModel = new FileExclusionsViewModel(browserService, userSettingsProvider, FileExclusionScope.Solution);
+        var solutionFileExclusionsViewModel = new FileExclusionsViewModel(browserService, userSettingsProvider, globalSettingsUpdater, solutionSettingsUpdater, FileExclusionScope.Solution);
         solutionFileExclusionsViewModel.Exclusions.Add(new ExclusionViewModel(Pattern1));
         solutionFileExclusionsViewModel.Exclusions.Add(new ExclusionViewModel(Pattern2));
 
         solutionFileExclusionsViewModel.SaveExclusions();
 
-        userSettingsProvider.Received(1).UpdateSolutionFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
+        solutionSettingsUpdater.Received(1).UpdateSolutionFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
     }
 
     [TestMethod]
@@ -194,13 +198,13 @@ public class FileExclusionsViewModelTests
 
         globalFileExclusionsViewModel.SaveExclusions();
 
-        userSettingsProvider.Received(1).UpdateGlobalFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
+        globalSettingsUpdater.Received(1).UpdateGlobalFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
     }
 
     [TestMethod]
     public void SaveExclusions_WithSolutionFileExclusions_InvalidPatterns_RemovesInvalidPatternsBeforeSave()
     {
-        var solutionFileExclusionsViewModel = new FileExclusionsViewModel(browserService, userSettingsProvider, FileExclusionScope.Solution);
+        var solutionFileExclusionsViewModel = new FileExclusionsViewModel(browserService, userSettingsProvider, globalSettingsUpdater, solutionSettingsUpdater, FileExclusionScope.Solution);
         solutionFileExclusionsViewModel.Exclusions.Add(new ExclusionViewModel(Pattern1));
         solutionFileExclusionsViewModel.Exclusions.Add(new ExclusionViewModel(string.Empty));
         solutionFileExclusionsViewModel.Exclusions.Add(new ExclusionViewModel(Pattern2));
@@ -208,7 +212,7 @@ public class FileExclusionsViewModelTests
 
         solutionFileExclusionsViewModel.SaveExclusions();
 
-        userSettingsProvider.Received(1).UpdateSolutionFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
+        solutionSettingsUpdater.Received(1).UpdateSolutionFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
     }
 
     private void MockUserSettingsProvider(string[] globalFileExclusions = null, string[] solutionFileExclusions = null) =>
