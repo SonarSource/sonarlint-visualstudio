@@ -155,7 +155,7 @@ public class FileExclusionsViewModelTests
 
         testSubject.SaveExclusions();
 
-        userSettingsProvider.Received(1).UpdateFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
+        userSettingsProvider.Received(1).UpdateGlobalFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
     }
 
     [TestMethod]
@@ -168,7 +168,7 @@ public class FileExclusionsViewModelTests
 
         testSubject.SaveExclusions();
 
-        userSettingsProvider.Received(1).UpdateFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
+        userSettingsProvider.Received(1).UpdateGlobalFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
     }
 
     private void MockUserSettingsProvider(params string[] exclusions) => userSettingsProvider.UserSettings.Returns(new UserSettings(new AnalysisSettings([], exclusions), "any"));

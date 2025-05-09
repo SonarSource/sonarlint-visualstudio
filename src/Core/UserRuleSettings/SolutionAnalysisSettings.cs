@@ -30,12 +30,20 @@ public class SolutionAnalysisSettings
     [JsonConverter(typeof(ImmutableDictionaryIgnoreCaseConverter<string, string>))]
     public ImmutableDictionary<string, string> AnalysisProperties { get; init; }
 
-    public SolutionAnalysisSettings() : this(ImmutableDictionary<string, string>.Empty) { }
+    [JsonProperty("sonarlint.analysisExcludesStandalone")]
+    [JsonConverter(typeof(CommaSeparatedStringArrayConverter))]
+    public ImmutableArray<string> UserDefinedFileExclusions { get; init; }
 
-    public SolutionAnalysisSettings(Dictionary<string, string> analysisProperties) : this(analysisProperties.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase)) { }
+    public SolutionAnalysisSettings() : this(ImmutableDictionary<string, string>.Empty, ImmutableArray<string>.Empty) { }
 
-    public SolutionAnalysisSettings(ImmutableDictionary<string, string> analysisProperties)
+    public SolutionAnalysisSettings(Dictionary<string, string> analysisProperties, IEnumerable<string> fileExclusions) : this(
+        analysisProperties.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase), fileExclusions.ToImmutableArray())
+    {
+    }
+
+    public SolutionAnalysisSettings(ImmutableDictionary<string, string> analysisProperties, ImmutableArray<string> fileExclusions)
     {
         AnalysisProperties = analysisProperties;
+        UserDefinedFileExclusions = fileExclusions;
     }
 }

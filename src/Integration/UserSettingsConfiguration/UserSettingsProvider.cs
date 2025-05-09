@@ -163,21 +163,28 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
         Debug.Assert(!string.IsNullOrEmpty(ruleId), "DisableRule: ruleId should not be null/empty");
 
         var newRules = UserSettings.AnalysisSettings.Rules.SetItem(ruleId, new RuleConfig(RuleLevel.Off));
-        var globalSettings = new GlobalAnalysisSettings(newRules, UserSettings.AnalysisSettings.UserDefinedFileExclusions);
+        var globalSettings = new GlobalAnalysisSettings(newRules, UserSettings.AnalysisSettings.GlobalFileExclusions);
         serializer.SafeSave(GlobalAnalysisSettingsFilePath, globalSettings);
         SafeClearUserSettingsCache();
     }
 
-    public void UpdateFileExclusions(IEnumerable<string> exclusions)
+    public void UpdateGlobalFileExclusions(IEnumerable<string> exclusions)
     {
         var globalSettings = new GlobalAnalysisSettings(UserSettings.AnalysisSettings.Rules, exclusions.ToImmutableArray());
         serializer.SafeSave(GlobalAnalysisSettingsFilePath, globalSettings);
         SafeClearUserSettingsCache();
     }
 
+    public void UpdateSolutionFileExclusions(IEnumerable<string> exclusions)
+    {
+        var solutionSettings = new SolutionAnalysisSettings(UserSettings.AnalysisSettings.AnalysisProperties, exclusions.ToImmutableArray());
+        serializer.SafeSave(SolutionAnalysisSettingsFilePath, solutionSettings);
+        SafeClearUserSettingsCache();
+    }
+
     public void UpdateAnalysisProperties(Dictionary<string, string> analysisProperties)
     {
-        var solutionSettings = new SolutionAnalysisSettings(analysisProperties);
+        var solutionSettings = new SolutionAnalysisSettings(analysisProperties, UserSettings.AnalysisSettings.SolutionFileExclusions);
         serializer.SafeSave(SolutionAnalysisSettingsFilePath, solutionSettings);
         SafeClearUserSettingsCache();
     }
@@ -228,13 +235,14 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
         }
 
         var rules = globalSettings?.Rules;
-        var exclusions = globalSettings?.UserDefinedFileExclusions;
+        var globalExclusions = globalSettings?.UserDefinedFileExclusions;
         var properties = solutionSettings?.AnalysisProperties;
+        var solutionExclusions = solutionSettings?.UserDefinedFileExclusions;
         var generatedConfigsBase = solutionSettings != null
             ? solutionFilePaths!.Value.generatedConfigsBaseDirectory
             : globalFilePaths.generatedConfigsBaseDirectory;
 
-        return new UserSettings(new AnalysisSettings(rules, exclusions, properties), generatedConfigsBase);
+        return new UserSettings(new AnalysisSettings(rules, globalExclusions, solutionExclusions, properties), generatedConfigsBase);
     }
 
     public void Dispose()
