@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration
                     return;
                 }
                 CurrentSolutionName = solutionInfoProvider.GetSolutionName();
-                logger.WriteLine(Strings.ActiveSolutionTracker_InitializedSolution, CurrentSolutionName ?? Strings.ActiveSolutionTracker_NoSolution);
+                logger.WriteLine(Strings.ActiveSolutionTracker_InitializedSolution, CurrentSolutionName ?? Strings.ActiveSolutionTracker_NoSolutionPlaceholder);
                 solution = serviceProvider.GetService<SVsSolution, IVsSolution>();
                 Debug.Assert(solution != null, "Cannot find IVsSolution");
                 ErrorHandler.ThrowOnFailure(solution.AdviseSolutionEvents(this, out cookie));
@@ -208,7 +208,7 @@ namespace SonarLint.VisualStudio.Integration
                 var solutionName = solutionInfoProvider.GetSolutionName();
                 if (solutionName == null)
                 {
-                    logger.WriteLine(context, Strings.ActiveSolutionTracker_DummySolution);
+                    logger.WriteLine(context, Strings.ActiveSolutionTracker_DummySolutionIgnored);
                     // dummy solutions don't:
                     // 1) have solution name -> we can't use them, might as well be no-solution state
                     // 2) are not closed when another solution is opened -> IVsSolutionEvents2.OnAfterMergeSolution handles that case
@@ -219,7 +219,7 @@ namespace SonarLint.VisualStudio.Integration
             }
             else
             {
-                logger.WriteLine(context, Strings.ActiveSolutionTracker_SolutionClosed, CurrentSolutionName ?? Strings.ActiveSolutionTracker_NoSolution);
+                logger.WriteLine(context, Strings.ActiveSolutionTracker_SolutionClosed, CurrentSolutionName ?? Strings.ActiveSolutionTracker_DummySolutionPlaceholder);
                 CurrentSolutionName = null;
             }
 

@@ -222,7 +222,7 @@
   <data name="ActiveSolutionTracker_InitializedSolution" xml:space="preserve">
     <value>Initialized with solution {0}</value>
   </data>
-  <data name="ActiveSolutionTracker_NoSolution" xml:space="preserve">
+  <data name="ActiveSolutionTracker_NoSolutionPlaceholder" xml:space="preserve">
     <value>None</value>
   </data>
   <data name="ActiveSolutionTracker_DummySolutionPlaceholder" xml:space="preserve">
@@ -231,7 +231,7 @@
   <data name="ActiveSolutionTracker_SolutionClosed" xml:space="preserve">
     <value>Solution {0} closed</value>
   </data>
-  <data name="ActiveSolutionTracker_DummySolution" xml:space="preserve">
+  <data name="ActiveSolutionTracker_DummySolutionIgnored" xml:space="preserve">
     <value>Dummy solution encountered, ignoring...</value>
   </data>
 </root>

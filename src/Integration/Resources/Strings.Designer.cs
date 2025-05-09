@@ -62,9 +62,9 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Dummy solution encountered, ignoring....
         /// </summary>
-        public static string ActiveSolutionTracker_DummySolution {
+        public static string ActiveSolutionTracker_DummySolutionIgnored {
             get {
-                return ResourceManager.GetString("ActiveSolutionTracker_DummySolution", resourceCulture);
+                return ResourceManager.GetString("ActiveSolutionTracker_DummySolutionIgnored", resourceCulture);
             }
         }
         
@@ -98,9 +98,9 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         /// <summary>
         ///   Looks up a localized string similar to None.
         /// </summary>
-        public static string ActiveSolutionTracker_NoSolution {
+        public static string ActiveSolutionTracker_NoSolutionPlaceholder {
             get {
-                return ResourceManager.GetString("ActiveSolutionTracker_NoSolution", resourceCulture);
+                return ResourceManager.GetString("ActiveSolutionTracker_NoSolutionPlaceholder", resourceCulture);
             }
         }
         

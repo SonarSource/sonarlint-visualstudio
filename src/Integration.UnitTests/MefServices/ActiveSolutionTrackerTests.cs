@@ -94,7 +94,7 @@ public class ActiveSolutionTrackerTests
             // this one is invoked by CreateAndInitializeTestSubject
             testSubject.InitializationProcessor.InitializeAsync();
         });
-        testLogger.AssertPartialOutputStringExists(string.Format(Strings.ActiveSolutionTracker_InitializedSolution, name ?? Strings.ActiveSolutionTracker_NoSolution));
+        testLogger.AssertPartialOutputStringExists(string.Format(Strings.ActiveSolutionTracker_InitializedSolution, name ?? Strings.ActiveSolutionTracker_NoSolutionPlaceholder));
     }
 
     [TestMethod]
@@ -178,7 +178,7 @@ public class ActiveSolutionTrackerTests
 
         eventHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
         testSubject.CurrentSolutionName.Should().BeNull();
-        testLogger.AssertPartialOutputStringExists(Strings.ActiveSolutionTracker_DummySolution);
+        testLogger.AssertPartialOutputStringExists(Strings.ActiveSolutionTracker_DummySolutionIgnored);
     }
 
     [TestMethod]
