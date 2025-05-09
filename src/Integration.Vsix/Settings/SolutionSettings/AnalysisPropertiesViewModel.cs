@@ -60,9 +60,17 @@ internal class AnalysisPropertiesViewModel(IUserSettingsProvider userSettingsPro
 
     internal void AddProperty(string property, string value)
     {
-        var newSetting = new AnalysisPropertyViewModel(property, value);
-        AnalysisProperties.Add(newSetting);
-        SelectedProperty = newSetting;
+        if (AnalysisProperties.FirstOrDefault(vm => vm.Name == property) is { } existingProperty)
+        {
+            existingProperty.Value = value;
+            SelectedProperty = existingProperty;
+        }
+        else
+        {
+            var newSetting = new AnalysisPropertyViewModel(property, value);
+            AnalysisProperties.Add(newSetting);
+            SelectedProperty = newSetting;
+        }
     }
 
     internal void RemoveSelectedProperty()
