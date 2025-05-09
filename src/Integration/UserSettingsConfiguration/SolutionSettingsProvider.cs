@@ -49,7 +49,7 @@ internal class SolutionSettingsProvider(
         solutionSettingsStorage.SaveSettingsFile(solutionSettings);
     }
 
-    public IInitializationProcessor InitializationProcessor { get; } = processorFactory.CreateAndStart<UserSettingsProvider>(
+    public IInitializationProcessor InitializationProcessor { get; } = processorFactory.CreateAndStart<SolutionSettingsProvider>(
         [solutionSettingsStorage, userSettingsProvider],
         () =>
         {

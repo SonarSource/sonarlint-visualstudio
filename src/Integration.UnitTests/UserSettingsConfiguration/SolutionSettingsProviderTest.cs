@@ -56,6 +56,23 @@ public class SolutionSettingsProviderTest
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SolutionSettingsProvider>();
 
     [TestMethod]
+    public void Initialization_SubscribesToEvents()
+    {
+        var dependencies = new IRequireInitialization[] { solutionSettingsStorage, userSettingsProvider };
+
+        var testSubject = CreateAndInitializeTestSubject();
+        var initializationProcessor = testSubject.InitializationProcessor;
+
+        Received.InOrder(() =>
+        {
+            processorFactory.Create<SolutionSettingsProvider>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(collection => collection.SequenceEqual(dependencies)),
+                Arg.Any<Func<IThreadHandling, Task>>());
+            initializationProcessor.InitializeAsync();
+            initializationProcessor.InitializeAsync();
+        });
+    }
+
+    [TestMethod]
     public void UpdateFileExclusions_UpdatesSolutionSettings()
     {
         SetupUserSettings(new SolutionAnalysisSettings());

@@ -56,6 +56,23 @@ public class GlobalSettingsProviderTest
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<GlobalSettingsProvider>();
 
     [TestMethod]
+    public void Initialization_SubscribesToEvents()
+    {
+        var dependencies = new IRequireInitialization[] { globalSettingsStorage, userSettingsProvider };
+
+        var testSubject = CreateAndInitializeTestSubject();
+        var initializationProcessor = testSubject.InitializationProcessor;
+
+        Received.InOrder(() =>
+        {
+            processorFactory.Create<GlobalSettingsProvider>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(collection => collection.SequenceEqual(dependencies)),
+                Arg.Any<Func<IThreadHandling, Task>>());
+            initializationProcessor.InitializeAsync();
+            initializationProcessor.InitializeAsync();
+        });
+    }
+
+    [TestMethod]
     public void DisableRule_UpdatesGlobalSettingsWithoutRaisingEvent()
     {
         SetupUserSettings(new GlobalAnalysisSettings());
