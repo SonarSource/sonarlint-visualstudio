@@ -25,17 +25,10 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 
-internal class FileExclusionsViewModel : ViewModelBase
+internal class FileExclusionsViewModel(IBrowserService browserService, IUserSettingsProvider userSettingsProvider, FileExclusionScope scope = FileExclusionScope.Global)
+    : ViewModelBase
 {
     private ExclusionViewModel selectedExclusion;
-    private readonly IBrowserService browserService;
-    private readonly IUserSettingsProvider userSettingsProvider;
-
-    public FileExclusionsViewModel(IBrowserService browserService, IUserSettingsProvider userSettingsProvider)
-    {
-        this.browserService = browserService;
-        this.userSettingsProvider = userSettingsProvider;
-    }
 
     public bool IsAnyExclusionSelected => SelectedExclusion != null;
     public ObservableCollection<ExclusionViewModel> Exclusions { get; } = [];
@@ -48,6 +41,32 @@ internal class FileExclusionsViewModel : ViewModelBase
             selectedExclusion = value;
             RaisePropertyChanged();
             RaisePropertyChanged(nameof(IsAnyExclusionSelected));
+        }
+    }
+
+    public void InitializeExclusions()
+    {
+        Exclusions.Clear();
+
+        var exclusionViewModels = scope == FileExclusionScope.Global
+            ? userSettingsProvider.UserSettings.AnalysisSettings.GlobalFileExclusions.Select(ex => new ExclusionViewModel(ex))
+            : userSettingsProvider.UserSettings.AnalysisSettings.SolutionFileExclusions.Select(ex => new ExclusionViewModel(ex));
+        exclusionViewModels.ToList().ForEach(vm => Exclusions.Add(vm));
+
+        SelectedExclusion = Exclusions.FirstOrDefault();
+    }
+
+    public void SaveExclusions()
+    {
+        var exclusionsToSave = Exclusions.Where(vm => vm.Error == null).Select(vm => vm.Pattern);
+
+        if (scope == FileExclusionScope.Global)
+        {
+            userSettingsProvider.UpdateGlobalFileExclusions(exclusionsToSave);
+        }
+        else
+        {
+            userSettingsProvider.UpdateSolutionFileExclusions(exclusionsToSave);
         }
     }
 
@@ -69,18 +88,10 @@ internal class FileExclusionsViewModel : ViewModelBase
         Exclusions.Remove(SelectedExclusion);
         SelectedExclusion = null;
     }
+}
 
-    internal void InitializeExclusions()
-    {
-        Exclusions.Clear();
-        var exclusionViewModels = userSettingsProvider.UserSettings.AnalysisSettings.GlobalFileExclusions.Select(ex => new ExclusionViewModel(ex));
-        exclusionViewModels.ToList().ForEach(vm => Exclusions.Add(vm));
-        SelectedExclusion = Exclusions.FirstOrDefault();
-    }
-
-    internal void SaveExclusions()
-    {
-        var exclusionsToSave = Exclusions.Where(vm => vm.Error == null).Select(vm => vm.Pattern);
-        userSettingsProvider.UpdateGlobalFileExclusions(exclusionsToSave);
-    }
+public enum FileExclusionScope
+{
+    Global,
+    Solution
 }
