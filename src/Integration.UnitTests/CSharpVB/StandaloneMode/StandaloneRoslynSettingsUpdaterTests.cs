@@ -116,7 +116,7 @@ public class StandaloneRoslynSettingsUpdaterTests
         IReadOnlyList<Language> fakeRoslynLanguages = [Language.VBNET, Language.TSql, Language.C];
         languageProvider.RoslynLanguages.Returns(fakeRoslynLanguages);
 
-        testSubject.Update(new UserSettings(new AnalysisSettings([], ["one", "two"]), "any"));
+        testSubject.Update(new UserSettings(new AnalysisSettings([], ["one", "two"], []), "any"));
 
         Received.InOrder(() =>
         {
@@ -146,7 +146,7 @@ public class StandaloneRoslynSettingsUpdaterTests
             { "vbnet:S4", new RuleConfig(RuleLevel.Off, new Dictionary<string, string> { { "4", "44" } }) },
         };
 
-        testSubject.Update(new UserSettings(new AnalysisSettings(rules, []), "any"));
+        testSubject.Update(new UserSettings(new AnalysisSettings(rules, [], []), "any"));
 
         roslynConfigGenerator
             .Received()
@@ -185,7 +185,7 @@ public class StandaloneRoslynSettingsUpdaterTests
             { "vbnet:S1", new RuleConfig(default) }, { "vbnet:S2", new RuleConfig(default) }, { "csharpsquid:S3", new RuleConfig(default) }, { "cpp:S4", new RuleConfig(default) },
         };
 
-        testSubject.Update(new UserSettings(new AnalysisSettings(rules, []), "any"));
+        testSubject.Update(new UserSettings(new AnalysisSettings(rules, [], []), "any"));
 
         Received.InOrder(() =>
         {

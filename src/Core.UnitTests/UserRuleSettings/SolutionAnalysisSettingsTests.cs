@@ -30,14 +30,16 @@ public class SolutionAnalysisSettingsTests
     public void SolutionAnalysisSettings_SerializesCorrectly()
     {
         var settings = new SolutionAnalysisSettings(
-            new Dictionary<string, string> { { "key1", "value1" }, { "key2", "value2" } });
+            new Dictionary<string, string> { { "key1", "value1" }, { "key2", "value2" } },
+            ["file1.cpp", "**/obj/*", "file2.cpp"]);
         const string expectedJson =
             """
             {
               "sonarlint.analyzerProperties": {
                 "key2": "value2",
                 "key1": "value1"
-              }
+              },
+              "sonarlint.analysisExcludesStandalone": "file1.cpp,**/obj/*,file2.cpp"
             }
             """;
 
@@ -54,7 +56,8 @@ public class SolutionAnalysisSettingsTests
                               "sonarlint.analyzerProperties": {
                                 "key1": "value1",
                                 "key2": "value2"
-                              }
+                              },
+                              "sonarlint.analysisExcludesStandalone": "file1.cpp,**/obj/*,file2.cpp"
                             }
                             """;
 
@@ -62,5 +65,122 @@ public class SolutionAnalysisSettingsTests
 
         settings.AnalysisProperties.Should().BeEquivalentTo(
             new Dictionary<string, string> { { "key1", "value1" }, { "key2", "value2" } });
+        settings.UserDefinedFileExclusions.Should().BeEquivalentTo(["file1.cpp", "**/obj/*", "file2.cpp"]);
+    }
+
+    [TestMethod]
+    public void SolutionAnalysisSettings_FileExclusions_SerializesCorrectly()
+    {
+        var settings = new SolutionAnalysisSettings([], ["file1.cpp", "**/obj/*", "file2.cpp"]);
+        const string expectedJson =
+            """
+            {
+              "sonarlint.analyzerProperties": {},
+              "sonarlint.analysisExcludesStandalone": "file1.cpp,**/obj/*,file2.cpp"
+            }
+            """;
+
+        var json = JsonConvert.SerializeObject(settings, Formatting.Indented);
+
+        json.Should().Be(expectedJson);
+    }
+
+    [TestMethod]
+    public void SolutionAnalysisSettings_FileExclusionsWithSpaces_SerializesCorrectlyAndTrims()
+    {
+        var settings = new SolutionAnalysisSettings([], ["file1.cpp ", " **/My Folder/*", "file2.cpp "]);
+        const string expectedJson =
+            """
+            {
+              "sonarlint.analyzerProperties": {},
+              "sonarlint.analysisExcludesStandalone": "file1.cpp,**/My Folder/*,file2.cpp"
+            }
+            """;
+
+        var json = JsonConvert.SerializeObject(settings, Formatting.Indented);
+
+        json.Should().Be(expectedJson);
+    }
+
+    [TestMethod]
+    public void SolutionAnalysisSettings_FileExclusions_Serializes()
+    {
+        var settings = new SolutionAnalysisSettings();
+        const string expectedJson =
+            """
+            {
+              "sonarlint.analyzerProperties": {},
+              "sonarlint.analysisExcludesStandalone": ""
+            }
+            """;
+
+        var json = JsonConvert.SerializeObject(settings, Formatting.Indented);
+
+        json.Should().Be(expectedJson);
+    }
+
+    [TestMethod]
+    public void SolutionAnalysisSettings_FileExclusionsWithBackslashes_DeserializesCorrectly()
+    {
+        const string json = """
+                            {
+                              "sonarlint.analyzerProperties": {},
+                              "sonarlint.analysisExcludesStandalone": "a\\file1.cpp,**\\obj\\*,,file2.cpp"
+                            }
+                            """;
+
+        var settings = JsonConvert.DeserializeObject<SolutionAnalysisSettings>(json);
+
+        settings.UserDefinedFileExclusions.Should().BeEquivalentTo("a\\file1.cpp", "**\\obj\\*", "file2.cpp");
+    }
+
+    [TestMethod]
+    public void SolutionAnalysisSettings_FileExclusionsWithSpaces_DeserializesCorrectly()
+    {
+        const string json = """
+                            {
+                              "sonarlint.analyzerProperties": {},
+                              "sonarlint.analysisExcludesStandalone": " file1.cpp, **/My Folder/*, file2.cpp "
+                            }
+                            """;
+
+        var settings = JsonConvert.DeserializeObject<SolutionAnalysisSettings>(json);
+
+        settings.UserDefinedFileExclusions.Should().BeEquivalentTo("file1.cpp", "**/My Folder/*", "file2.cpp");
+    }
+
+    [TestMethod]
+    public void SolutionAnalysisSettings_NullExclusions_DeserializesWithDefaultValue()
+    {
+        const string json = """
+                            {
+                              "sonarlint.analyzerProperties": {},
+                              "sonarlint.analysisExcludesStandalone": null
+                            }
+                            """;
+
+        var settings = JsonConvert.DeserializeObject<SolutionAnalysisSettings>(json);
+
+        settings.UserDefinedFileExclusions.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void SolutionAnalysisSettings_DeserializesAndIgnoresIfNotString()
+    {
+        const string json = """
+                            {
+                              "sonarlint.analyzerProperties": {},
+                              "sonarlint.analysisExcludesStandalone": 12
+                            }
+                            """;
+
+        var act = () => JsonConvert.DeserializeObject<SolutionAnalysisSettings>(json);
+
+        act.Should().ThrowExactly<JsonException>().WithMessage(
+            string.Format(
+                CoreStrings.CommaSeparatedStringArrayConverter_UnexpectedType,
+                "System.Int64",
+                "System.String",
+                "['sonarlint.analysisExcludesStandalone']"));
     }
 }
