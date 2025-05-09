@@ -20,9 +20,10 @@
 
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using NSubstitute.Extensions;
+using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Initialization;
+using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.MefServices;
@@ -34,7 +35,6 @@ public class ActiveSolutionTrackerTests
     private SolutionMock solutionMock;
     private ISolutionInfoProvider solutionInfoProvider;
     private IInitializationProcessorFactory initializationProcessorFactory;
-    private MockableInitializationProcessor createdInitializationProcessor;
     private TestLogger testLogger;
     private NoOpThreadHandler threadHandling;
 
@@ -46,7 +46,7 @@ public class ActiveSolutionTrackerTests
         serviceProvider.RegisterService(typeof(SVsSolution), this.solutionMock);
         solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
         solutionInfoProvider.GetSolutionName().Returns((string)null);
-        testLogger = new TestLogger();
+        testLogger = Substitute.ForPartsOf<TestLogger>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
     }
 
@@ -55,11 +55,20 @@ public class ActiveSolutionTrackerTests
         MefTestHelpers.CheckTypeCanBeImported<ActiveSolutionTracker, IActiveSolutionTracker>(
             MefTestHelpers.CreateExport<SVsServiceProvider>(),
             MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
-            MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
+            MefTestHelpers.CreateExport<IInitializationProcessorFactory>(),
+            MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() =>
         MefTestHelpers.CheckIsSingletonMefComponent<ActiveSolutionTracker>();
+
+    [TestMethod]
+    public void Ctor_SetsUpLogContext()
+    {
+        _ = CreateAndInitializeTestSubject();
+
+        testLogger.Received().ForContext(Strings.ActiveSolutionTracker_LogContext);
+    }
 
     [DataTestMethod]
     [DataRow(null)]
@@ -78,13 +87,14 @@ public class ActiveSolutionTrackerTests
         {
             initializationProcessorFactory.Create<ActiveSolutionTracker>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.Count == 0), Arg.Any<Func<IThreadHandling, Task>>());
             // this one is invoked by the ctor
-            createdInitializationProcessor.InitializeAsync();
+            testSubject.InitializationProcessor.InitializeAsync();
             threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
             solutionInfoProvider.GetSolutionName();
             vsSolution.AdviseSolutionEvents(testSubject, out _);
             // this one is invoked by CreateAndInitializeTestSubject
-            createdInitializationProcessor.InitializeAsync();
+            testSubject.InitializationProcessor.InitializeAsync();
         });
+        testLogger.AssertPartialOutputStringExists(string.Format(Strings.ActiveSolutionTracker_InitializedSolution, name ?? Strings.ActiveSolutionTracker_NoSolution));
     }
 
     [TestMethod]
@@ -102,6 +112,7 @@ public class ActiveSolutionTrackerTests
         barrier.SetResult(1);
         solutionInfoProvider.Received(1).GetSolutionName();
 
+        solutionInfoProvider.GetSolutionName().Returns("some solution");
         solutionMock.SimulateSolutionOpen();
         eventHandler.ReceivedWithAnyArgs(1).Invoke(default, default);
         solutionInfoProvider.Received(2).GetSolutionName();
@@ -152,6 +163,56 @@ public class ActiveSolutionTrackerTests
         solutionMock.SimulateSolutionOpen();
 
         eventHandler.Received(1).Invoke(testSubject, Arg.Is<ActiveSolutionChangedEventArgs>(x => x.SolutionName == "name123"));
+        testLogger.AssertPartialOutputStringExists(string.Format(Strings.ActiveSolutionTracker_SolutionOpen, "name123"));
+    }
+
+    [TestMethod]
+    public void ActiveSolutionTracker_DummySolution_DoesNotRaiseEventOnSolutionOpen()
+    {
+        var testSubject = CreateAndInitializeTestSubject();
+        var eventHandler = Substitute.For<EventHandler<ActiveSolutionChangedEventArgs>>();
+        testSubject.ActiveSolutionChanged += eventHandler;
+        solutionInfoProvider.GetSolutionName().ReturnsNull();
+
+        solutionMock.SimulateSolutionOpen();
+
+        eventHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
+        testSubject.CurrentSolutionName.Should().BeNull();
+        testLogger.AssertPartialOutputStringExists(Strings.ActiveSolutionTracker_DummySolution);
+    }
+
+    [TestMethod]
+    public void ActiveSolutionTracker_DummySolutionMerged_RaiseEventOnSolutionOpen()
+    {
+        var testSubject = CreateAndInitializeTestSubject();
+        var eventHandler = Substitute.For<EventHandler<ActiveSolutionChangedEventArgs>>();
+        testSubject.ActiveSolutionChanged += eventHandler;
+        solutionInfoProvider.GetSolutionName().ReturnsNull();
+
+        solutionMock.SimulateSolutionOpen();
+        eventHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
+        solutionInfoProvider.GetSolutionName().Returns("name123");
+        solutionMock.SimulateSolutionMerge();
+
+        eventHandler.Received(1).Invoke(testSubject, Arg.Is<ActiveSolutionChangedEventArgs>(x => x.SolutionName == "name123"));
+        testLogger.AssertPartialOutputStringExists(string.Format(Strings.ActiveSolutionTracker_SolutionOpen, "name123"));
+    }
+
+    [TestMethod]
+    public void ActiveSolutionTracker_NonDummySolutionMerged_DoesNotRaiseEventOnSolutionOpen()
+    {
+        var testSubject = CreateAndInitializeTestSubject();
+        var eventHandler = Substitute.For<EventHandler<ActiveSolutionChangedEventArgs>>();
+        testSubject.ActiveSolutionChanged += eventHandler;
+        solutionInfoProvider.GetSolutionName().Returns("name123");
+
+        solutionMock.SimulateSolutionOpen();
+        eventHandler.Received(1).Invoke(testSubject, Arg.Is<ActiveSolutionChangedEventArgs>(x => x.SolutionName == "name123"));
+        solutionMock.SimulateSolutionMerge();
+
+        eventHandler.Received(1).Invoke(testSubject, Arg.Is<ActiveSolutionChangedEventArgs>(x => x.SolutionName == "name123"));
+        testLogger.AssertPartialOutputStringExists(string.Format(Strings.ActiveSolutionTracker_SolutionOpen, "name123"));
+        testLogger.OutputStrings.Should().HaveCount(1);
     }
 
     [TestMethod]
@@ -160,10 +221,13 @@ public class ActiveSolutionTrackerTests
         var testSubject = CreateAndInitializeTestSubject();
         var eventHandler = Substitute.For<EventHandler<ActiveSolutionChangedEventArgs>>();
         testSubject.ActiveSolutionChanged += eventHandler;
+        solutionInfoProvider.GetSolutionName().Returns("name123");
 
+        solutionMock.SimulateSolutionOpen();
         solutionMock.SimulateSolutionClose();
 
         eventHandler.Received(1).Invoke(testSubject, Arg.Is<ActiveSolutionChangedEventArgs>(x => x.SolutionName == null));
+        testLogger.AssertPartialOutputStringExists(string.Format(Strings.ActiveSolutionTracker_SolutionClosed, "name123"));
     }
 
     [TestMethod]
@@ -182,18 +246,14 @@ public class ActiveSolutionTrackerTests
     private ActiveSolutionTracker CreateUninitializedTestSubject(out TaskCompletionSource<byte> barrier)
     {
         var tcs = barrier = new();
-        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<ActiveSolutionTracker>(threadHandling, new TestLogger(), processor =>
-        {
-            createdInitializationProcessor = processor;
-            MockableInitializationProcessor.ConfigureWithWait(processor, tcs);
-        });
-        return new ActiveSolutionTracker(serviceProvider, solutionInfoProvider, initializationProcessorFactory);
+        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<ActiveSolutionTracker>(threadHandling, testLogger, processor => MockableInitializationProcessor.ConfigureWithWait(processor, tcs));
+        return new ActiveSolutionTracker(serviceProvider, solutionInfoProvider, initializationProcessorFactory, testLogger);
     }
 
     private ActiveSolutionTracker CreateAndInitializeTestSubject()
     {
-        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<ActiveSolutionTracker>(threadHandling, new TestLogger(), processor => createdInitializationProcessor = processor);
-        var testSubject = new ActiveSolutionTracker(serviceProvider, solutionInfoProvider, initializationProcessorFactory);
+        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<ActiveSolutionTracker>(threadHandling, testLogger);
+        var testSubject = new ActiveSolutionTracker(serviceProvider, solutionInfoProvider, initializationProcessorFactory, testLogger);
         testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
         return testSubject;
     }

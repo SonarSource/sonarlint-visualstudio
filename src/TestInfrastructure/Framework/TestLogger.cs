@@ -35,6 +35,10 @@ namespace SonarLint.VisualStudio.TestInfrastructure
         private readonly bool logVerbose;
         private readonly ILogger logger;
 
+        public TestLogger() : this(false, false, true)
+        {
+        }
+
         public TestLogger(bool logToConsole = false, bool logThreadId = false, bool logVerbose = true)
         {
             // When executing tests in VS, the console output will automatically be captured by
@@ -99,17 +103,17 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         #region ILogger methods
 
-        public void WriteLine(string messageFormat, params object[] args) => logger.WriteLine(messageFormat, args);
+        public virtual void WriteLine(string messageFormat, params object[] args) => logger.WriteLine(messageFormat, args);
 
-        public void WriteLine(MessageLevelContext context, string messageFormat, params object[] args) => logger.WriteLine(context, messageFormat, args);
+        public virtual void WriteLine(MessageLevelContext context, string messageFormat, params object[] args) => logger.WriteLine(context, messageFormat, args);
 
-        public void LogVerbose(string message, params object[] args) => logger.LogVerbose(message, args);
+        public virtual void LogVerbose(string message, params object[] args) => logger.LogVerbose(message, args);
 
-        public void LogVerbose(MessageLevelContext context, string messageFormat, params object[] args) => logger.WriteLine(context, messageFormat, args);
+        public virtual void LogVerbose(MessageLevelContext context, string messageFormat, params object[] args) => logger.WriteLine(context, messageFormat, args);
 
-        public ILogger ForContext(params string[] context) => logger.ForContext(context);
+        public virtual ILogger ForContext(params string[] context) => logger.ForContext(context);
 
-        public ILogger ForVerboseContext(params string[] context) => logger.ForVerboseContext();
+        public virtual ILogger ForVerboseContext(params string[] context) => logger.ForVerboseContext();
 
         #endregion
 
