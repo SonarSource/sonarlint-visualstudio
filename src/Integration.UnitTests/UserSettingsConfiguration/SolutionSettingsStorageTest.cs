@@ -183,6 +183,19 @@ public class SolutionSettingsStorageTest
     }
 
     [TestMethod]
+    public void EnsureSettingsFileExists_DoesNotRaisesEventsWhenCreates()
+    {
+        activeSolutionTracker.CurrentSolutionName.Returns(SolutionName1);
+        fileSystem.File.Exists(Solution1SettingsFilePath).Returns(false);
+        var testSubject = CreateAndInitializeTestSubject();
+        var settingsChanged = SubscribeToSettingsChanged(testSubject);
+
+        testSubject.EnsureSettingsFileExists();
+
+        settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
+    }
+
+    [TestMethod]
     public void EnsureSettingsFileExists_NotCreatedIfExists()
     {
         activeSolutionTracker.CurrentSolutionName.Returns(SolutionName1);
@@ -251,15 +264,17 @@ public class SolutionSettingsStorageTest
     }
 
     [TestMethod]
-    public void SaveSettingsFile_SavesSettings()
+    public void SaveSettingsFile_SavesSettingsAndRaisesEvent()
     {
         activeSolutionTracker.CurrentSolutionName.Returns(SolutionName1);
         var testSubject = CreateAndInitializeTestSubject();
         var analysisSettings = new SolutionAnalysisSettings();
+        var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
         testSubject.SaveSettingsFile(analysisSettings);
 
         serializer.Received(1).SafeSave(Solution1SettingsFilePath, analysisSettings);
+        settingsChanged.Received(1).Invoke(testSubject, Arg.Any<EventArgs>());
     }
 
     [TestMethod]

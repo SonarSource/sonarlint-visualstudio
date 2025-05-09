@@ -45,8 +45,6 @@ internal sealed class GlobalSettingsStorage : IGlobalSettingsStorage
     private (string settingsFile, string generatedConfigsBaseDirectory) globalFilePaths;
     private ISingleFileMonitor globalSettingsFileMonitor;
 
-    public string GlobalAnalysisSettingsFilePath => globalFilePaths.settingsFile;
-
     [ImportingConstructor]
     public GlobalSettingsStorage(
         ISingleFileMonitorFactory singleFileMonitorFactory,
@@ -79,13 +77,17 @@ internal sealed class GlobalSettingsStorage : IGlobalSettingsStorage
 
     public void EnsureSettingsFileExists()
     {
-        if (!fileSystem.File.Exists(GlobalAnalysisSettingsFilePath))
+        if (!fileSystem.File.Exists(SettingsFilePath))
         {
-            serializer.SafeSave(GlobalAnalysisSettingsFilePath, new GlobalAnalysisSettings());
+            serializer.SafeSave(SettingsFilePath, new GlobalAnalysisSettings());
         }
     }
 
-    public void SaveSettingsFile(GlobalAnalysisSettings settings) => serializer.SafeSave(SettingsFilePath, settings);
+    public void SaveSettingsFile(GlobalAnalysisSettings settings)
+    {
+        serializer.SafeSave(SettingsFilePath, settings);
+        InvokeSettingsFileChanged();
+    }
 
     public GlobalAnalysisSettings LoadSettingsFile() => serializer.SafeLoad<GlobalAnalysisSettings>(SettingsFilePath);
 
@@ -102,7 +104,9 @@ internal sealed class GlobalSettingsStorage : IGlobalSettingsStorage
         }
     }
 
-    private void OnFileChanged(object sender, EventArgs e) => SettingsFileChanged?.Invoke(this, EventArgs.Empty);
+    private void OnFileChanged(object sender, EventArgs e) => InvokeSettingsFileChanged();
+
+    private void InvokeSettingsFileChanged() => SettingsFileChanged?.Invoke(this, EventArgs.Empty);
 
     private void CreateGlobalSettingsMonitorAndSubscribe()
     {
@@ -111,7 +115,7 @@ internal sealed class GlobalSettingsStorage : IGlobalSettingsStorage
         var globalAnalysisSettingsFilePath = Path.GetFullPath(Path.Combine(appDataRoot, SettingsFileName));
         var generatedGlobalSettingsFolder = Path.Combine(appDataRoot, GeneratedGlobalSettingsFolderName);
         globalFilePaths = (globalAnalysisSettingsFilePath, generatedGlobalSettingsFolder);
-        globalSettingsFileMonitor = fileMonitorFactory.Create(GlobalAnalysisSettingsFilePath);
+        globalSettingsFileMonitor = fileMonitorFactory.Create(SettingsFilePath);
         globalSettingsFileMonitor.FileChanged += OnFileChanged;
     }
 }

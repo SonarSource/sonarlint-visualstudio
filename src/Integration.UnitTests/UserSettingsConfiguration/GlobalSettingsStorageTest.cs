@@ -128,6 +128,18 @@ public class GlobalSettingsStorageTest
     }
 
     [TestMethod]
+    public void EnsureSettingsFileExists_DoesNotRaisesEventsWhenCreates()
+    {
+        fileSystem.File.Exists(GlobalSettingsFilePath).Returns(false);
+        var testSubject = CreateAndInitializeTestSubject();
+        var settingsChanged = SubscribeToSettingsChanged(testSubject);
+
+        testSubject.EnsureSettingsFileExists();
+
+        settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
+    }
+
+    [TestMethod]
     public void EnsureSettingsFileExists_NotCreatedIfExists()
     {
         fileSystem.File.Exists(GlobalSettingsFilePath).Returns(true);
@@ -141,14 +153,16 @@ public class GlobalSettingsStorageTest
     }
 
     [TestMethod]
-    public void SaveSettingsFile_SavesSettings()
+    public void SaveSettingsFile_SavesSettingsAndRaisesEvents()
     {
         var testSubject = CreateAndInitializeTestSubject();
         var analysisSettings = new GlobalAnalysisSettings();
+        var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
         testSubject.SaveSettingsFile(analysisSettings);
 
         serializer.Received(1).SafeSave(GlobalSettingsFilePath, analysisSettings);
+        settingsChanged.Received(1).Invoke(testSubject, Arg.Any<EventArgs>());
     }
 
     [TestMethod]

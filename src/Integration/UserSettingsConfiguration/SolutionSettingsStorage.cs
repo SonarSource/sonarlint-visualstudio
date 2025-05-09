@@ -93,7 +93,11 @@ internal sealed class SolutionSettingsStorage : ISolutionSettingsStorage
         }
     }
 
-    public void SaveSettingsFile(SolutionAnalysisSettings settings) => serializer.SafeSave(SettingsFilePath, settings);
+    public void SaveSettingsFile(SolutionAnalysisSettings settings)
+    {
+        serializer.SafeSave(SettingsFilePath, settings);
+        InvokeSettingsFileChanged();
+    }
 
     public SolutionAnalysisSettings LoadSettingsFile() => serializer.SafeLoad<SolutionAnalysisSettings>(SettingsFilePath);
 
@@ -138,7 +142,9 @@ internal sealed class SolutionSettingsStorage : ISolutionSettingsStorage
 
     private void OnFileChanged(object sender, EventArgs e) => RaiseSettingsFileChanged();
 
-    private void RaiseSettingsFileChanged() => SettingsFileChanged?.Invoke(this, EventArgs.Empty);
+    private void RaiseSettingsFileChanged() => InvokeSettingsFileChanged();
+
+    private void InvokeSettingsFileChanged() => SettingsFileChanged?.Invoke(this, EventArgs.Empty);
 
     private void DisposeSettingsMonitor()
     {
