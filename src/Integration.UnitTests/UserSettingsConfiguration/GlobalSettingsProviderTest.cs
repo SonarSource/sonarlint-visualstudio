@@ -102,6 +102,16 @@ public class GlobalSettingsProviderTest
         globalSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<GlobalAnalysisSettings>(x => x.UserDefinedFileExclusions.SequenceEqual(exclusions, default)));
     }
 
+    [TestMethod]
+    public void FileExclusions_ReturnsGlobalFileExclusions()
+    {
+        var settings = new GlobalAnalysisSettings(rules: ImmutableDictionary<string, RuleConfig>.Empty, fileExclusions: ImmutableArray.Create<string>("*.ts,*.js"));
+        SetupUserSettings(settings);
+        var testSubject = CreateAndInitializeTestSubject();
+
+        testSubject.FileExclusions.Should().BeEquivalentTo(userSettingsProvider.UserSettings.AnalysisSettings.GlobalFileExclusions);
+    }
+
     private GlobalSettingsProvider CreateAndInitializeTestSubject()
     {
         processorFactory = MockableInitializationProcessor.CreateFactory<GlobalSettingsProvider>(threadHandling, testLogger);

@@ -58,7 +58,7 @@ public class SolutionSettingsProviderTest
     [TestMethod]
     public void UpdateFileExclusions_UpdatesSolutionSettings()
     {
-        SetupSolutionSettings(new SolutionAnalysisSettings());
+        SetupUserSettings(new SolutionAnalysisSettings());
         var testSubject = CreateAndInitializeTestSubject();
         string[] exclusions = ["1", "two", "3"];
 
@@ -71,7 +71,7 @@ public class SolutionSettingsProviderTest
     public void UpdateAnalysisProperties_UpdatesSolutionSettings()
     {
         var exclusions = ImmutableArray.Create("file1");
-        SetupSolutionSettings(new SolutionAnalysisSettings(ImmutableDictionary<string, string>.Empty, exclusions));
+        SetupUserSettings(new SolutionAnalysisSettings(ImmutableDictionary<string, string>.Empty, exclusions));
         var testSubject = CreateAndInitializeTestSubject();
 
         testSubject.UpdateAnalysisProperties(new Dictionary<string, string> { ["prop"] = "value" });
@@ -83,6 +83,16 @@ public class SolutionSettingsProviderTest
             && x.UserDefinedFileExclusions[0] == "file1"));
     }
 
+    [TestMethod]
+    public void FileExclusions_ReturnsSolutionFileExclusions()
+    {
+        var settings = new SolutionAnalysisSettings(analysisProperties: ImmutableDictionary<string, string>.Empty, fileExclusions: ImmutableArray.Create<string>("*.ts,*.js"));
+        SetupUserSettings(settings);
+        var testSubject = CreateAndInitializeTestSubject();
+
+        testSubject.FileExclusions.Should().BeEquivalentTo(userSettingsProvider.UserSettings.AnalysisSettings.SolutionFileExclusions);
+    }
+
     private SolutionSettingsProvider CreateAndInitializeTestSubject()
     {
         processorFactory = MockableInitializationProcessor.CreateFactory<SolutionSettingsProvider>(threadHandling, testLogger);
@@ -91,7 +101,7 @@ public class SolutionSettingsProviderTest
         return testSubject;
     }
 
-    private void SetupSolutionSettings(SolutionAnalysisSettings solutionAnalysisSettings)
+    private void SetupUserSettings(SolutionAnalysisSettings solutionAnalysisSettings)
     {
         var analysisSettings = new AnalysisSettings(solutionFileExclusions: solutionAnalysisSettings.UserDefinedFileExclusions,
             analysisProperties: solutionAnalysisSettings.AnalysisProperties);
