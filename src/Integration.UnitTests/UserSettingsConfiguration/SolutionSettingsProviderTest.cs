@@ -28,7 +28,7 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.Integration.UnitTests.UserSettingsConfiguration;
 
 [TestClass]
-public class SolutionSettingsProviderTest
+public class SolutionUserSettingsUpdaterTest
 {
     private IInitializationProcessorFactory processorFactory;
     private TestLogger testLogger;
@@ -47,13 +47,13 @@ public class SolutionSettingsProviderTest
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<SolutionSettingsProvider, ISolutionSettingsProvider>(
+        MefTestHelpers.CheckTypeCanBeImported<SolutionUserSettingsUpdater, ISolutionUserSettingsUpdater>(
             MefTestHelpers.CreateExport<ISolutionSettingsStorage>(),
             MefTestHelpers.CreateExport<IUserSettingsProvider>(),
             MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SolutionSettingsProvider>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SolutionUserSettingsUpdater>();
 
     [TestMethod]
     public void Initialization_SubscribesToEvents()
@@ -65,7 +65,7 @@ public class SolutionSettingsProviderTest
 
         Received.InOrder(() =>
         {
-            processorFactory.Create<SolutionSettingsProvider>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(collection => collection.SequenceEqual(dependencies)),
+            processorFactory.Create<SolutionUserSettingsUpdater>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(collection => collection.SequenceEqual(dependencies)),
                 Arg.Any<Func<IThreadHandling, Task>>());
             initializationProcessor.InitializeAsync();
             initializationProcessor.InitializeAsync();
@@ -110,10 +110,10 @@ public class SolutionSettingsProviderTest
         testSubject.FileExclusions.Should().BeEquivalentTo(userSettingsProvider.UserSettings.AnalysisSettings.SolutionFileExclusions);
     }
 
-    private SolutionSettingsProvider CreateAndInitializeTestSubject()
+    private SolutionUserSettingsUpdater CreateAndInitializeTestSubject()
     {
-        processorFactory = MockableInitializationProcessor.CreateFactory<SolutionSettingsProvider>(threadHandling, testLogger);
-        var testSubject = new SolutionSettingsProvider(solutionSettingsStorage, userSettingsProvider, processorFactory);
+        processorFactory = MockableInitializationProcessor.CreateFactory<SolutionUserSettingsUpdater>(threadHandling, testLogger);
+        var testSubject = new SolutionUserSettingsUpdater(solutionSettingsStorage, userSettingsProvider, processorFactory);
         testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
         return testSubject;
     }

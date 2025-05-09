@@ -32,14 +32,14 @@ public class AnalysisPropertiesViewModelTests
     private static readonly AnalysisPropertyViewModel PropertyViewModel = new("prop1", "value1");
     private IUserSettingsProvider userSettingsProvider;
     private AnalysisPropertiesViewModel testSubject;
-    private ISolutionSettingsProvider solutionSettingsProvider;
+    private ISolutionUserSettingsUpdater solutionUserSettingsUpdater;
 
     [TestInitialize]
     public void Initialize()
     {
         userSettingsProvider = Substitute.For<IUserSettingsProvider>();
-        solutionSettingsProvider = Substitute.For<ISolutionSettingsProvider>();
-        testSubject = new AnalysisPropertiesViewModel(userSettingsProvider, solutionSettingsProvider);
+        solutionUserSettingsUpdater = Substitute.For<ISolutionUserSettingsUpdater>();
+        testSubject = new AnalysisPropertiesViewModel(userSettingsProvider, solutionUserSettingsUpdater);
     }
 
     [TestMethod]
@@ -131,7 +131,7 @@ public class AnalysisPropertiesViewModelTests
     {
         testSubject.UpdateAnalysisProperties();
 
-        solutionSettingsProvider.Received(1).UpdateAnalysisProperties(Arg.Is<Dictionary<string, string>>(x => x.IsEmpty()));
+        solutionUserSettingsUpdater.Received(1).UpdateAnalysisProperties(Arg.Is<Dictionary<string, string>>(x => x.IsEmpty()));
     }
 
     [TestMethod]
@@ -142,7 +142,7 @@ public class AnalysisPropertiesViewModelTests
 
         testSubject.UpdateAnalysisProperties();
 
-        solutionSettingsProvider.Received(1).UpdateAnalysisProperties(Arg.Is<Dictionary<string, string>>(x =>
+        solutionUserSettingsUpdater.Received(1).UpdateAnalysisProperties(Arg.Is<Dictionary<string, string>>(x =>
             x.Count == 2
             && x["prop1"] == "value1"
             && x["prop2"] == "value2"));

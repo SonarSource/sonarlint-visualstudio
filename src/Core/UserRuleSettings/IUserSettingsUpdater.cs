@@ -41,7 +41,7 @@ public interface IGlobalUserSettingsUpdater : IRequireInitialization, IFileExclu
     void DisableRule(string ruleId);
 }
 
-public interface ISolutionSettingsProvider : IRequireInitialization, IFileExclusionsProvider
+public interface ISolutionUserSettingsUpdater : IRequireInitialization, IFileExclusionsProvider
 {
     /// <summary>
     /// Updates the solution level analysis settings to include the provided analysis properties. The value will override existing analysis settings.

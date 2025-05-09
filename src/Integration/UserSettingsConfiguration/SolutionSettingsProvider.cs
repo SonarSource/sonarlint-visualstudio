@@ -26,14 +26,14 @@ using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
 
 namespace SonarLint.VisualStudio.Integration.UserSettingsConfiguration;
 
-[Export(typeof(ISolutionSettingsProvider))]
+[Export(typeof(ISolutionUserSettingsUpdater))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class SolutionSettingsProvider(
+internal class SolutionUserSettingsUpdater(
     ISolutionSettingsStorage solutionSettingsStorage,
     IUserSettingsProvider userSettingsProvider,
     IInitializationProcessorFactory processorFactory)
-    : ISolutionSettingsProvider
+    : ISolutionUserSettingsUpdater
 {
     public void UpdateFileExclusions(IEnumerable<string> exclusions)
     {
@@ -49,7 +49,7 @@ internal class SolutionSettingsProvider(
         solutionSettingsStorage.SaveSettingsFile(solutionSettings);
     }
 
-    public IInitializationProcessor InitializationProcessor { get; } = processorFactory.CreateAndStart<SolutionSettingsProvider>(
+    public IInitializationProcessor InitializationProcessor { get; } = processorFactory.CreateAndStart<SolutionUserSettingsUpdater>(
         [solutionSettingsStorage, userSettingsProvider],
         () =>
         {
