@@ -129,7 +129,7 @@ public class AnalysisPropertiesViewModelTests
     [TestMethod]
     public void UpdateAnalysisProperties_NoProperties_UpdatesSolutionAnalysisProperties()
     {
-        testSubject.UpdateAnalysisProperties();
+        testSubject.UpdateAnalysisPropertiesAsync();
 
         solutionUserSettingsUpdater.Received(1).UpdateAnalysisProperties(Arg.Is<Dictionary<string, string>>(x => x.IsEmpty()));
     }
@@ -140,7 +140,7 @@ public class AnalysisPropertiesViewModelTests
         testSubject.AnalysisProperties.Add(new AnalysisPropertyViewModel("prop1", "value1"));
         testSubject.AnalysisProperties.Add(new AnalysisPropertyViewModel("prop2", "value2"));
 
-        testSubject.UpdateAnalysisProperties();
+        testSubject.UpdateAnalysisPropertiesAsync();
 
         solutionUserSettingsUpdater.Received(1).UpdateAnalysisProperties(Arg.Is<Dictionary<string, string>>(x =>
             x.Count == 2

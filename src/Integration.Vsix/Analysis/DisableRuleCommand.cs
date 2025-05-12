@@ -21,6 +21,7 @@
 using System.ComponentModel.Design;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
@@ -148,7 +149,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             {
                 if (errorListHelper.TryGetRuleIdFromSelectedRow(out ruleId))
                 {
-                    globalUserSettingsUpdater.DisableRule(ruleId.ErrorListErrorCode);
+                    globalUserSettingsUpdater.DisableRule(ruleId.ErrorListErrorCode).Forget();
                     logger.WriteLine(AnalysisStrings.DisableRule_DisabledRule, ruleId.ErrorListErrorCode);
                 }
                 Debug.Assert(ruleId != null, "Not expecting Execute to be called if the SonarLint error code cannot be determined");

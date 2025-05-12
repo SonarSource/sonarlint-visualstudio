@@ -51,10 +51,10 @@ internal class AnalysisPropertiesViewModel(IUserSettingsProvider userSettingsPro
             .ForEach(x => AddProperty(x.Key, x.Value));
     }
 
-    public void UpdateAnalysisProperties()
+    public async Task UpdateAnalysisPropertiesAsync()
     {
         var analysisProperties = AnalysisProperties.ToDictionary(property => property.Name, property => property.Value);
-        solutionUserSettingsUpdater.UpdateAnalysisProperties(analysisProperties);
+        await solutionUserSettingsUpdater.UpdateAnalysisProperties(analysisProperties);
     }
 
     internal void AddProperty(string property, string value)

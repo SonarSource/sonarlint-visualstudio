@@ -154,7 +154,7 @@ public class FileExclusionsViewModelTests
         testSubject.Exclusions.Add(new ExclusionViewModel(Pattern1));
         testSubject.Exclusions.Add(new ExclusionViewModel(Pattern2));
 
-        testSubject.SaveExclusions();
+        testSubject.SaveExclusionsAsync();
 
         fileExclusionProvider.Received(1).UpdateFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
     }
@@ -167,7 +167,7 @@ public class FileExclusionsViewModelTests
         testSubject.Exclusions.Add(new ExclusionViewModel(Pattern2));
         testSubject.Exclusions.Add(new ExclusionViewModel(null));
 
-        testSubject.SaveExclusions();
+        testSubject.SaveExclusionsAsync();
 
         fileExclusionProvider.Received(1).UpdateFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
     }

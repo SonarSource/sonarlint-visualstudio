@@ -54,10 +54,10 @@ internal class FileExclusionsViewModel(IBrowserService browserService, IFileExcl
         SelectedExclusion = Exclusions.FirstOrDefault();
     }
 
-    public void SaveExclusions()
+    public async Task SaveExclusionsAsync()
     {
         var exclusionsToSave = Exclusions.Where(vm => vm.Error == null).Select(vm => vm.Pattern);
-        fileExclusionsProvider.UpdateFileExclusions(exclusionsToSave);
+        await fileExclusionsProvider.UpdateFileExclusions(exclusionsToSave);
     }
 
     internal void ViewInBrowser(string uri) => browserService.Navigate(uri);

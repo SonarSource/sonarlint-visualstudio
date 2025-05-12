@@ -60,7 +60,7 @@ internal class FileExclusionsDialogPage : UIElementDialogPage
     {
         if (e.ApplyBehavior == ApplyKind.Apply)
         {
-            ViewModel.SaveExclusions();
+            ViewModel.SaveExclusionsAsync();
         }
         base.OnApply(e);
     }

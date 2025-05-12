@@ -57,20 +57,20 @@ internal sealed partial class SolutionSettingsDialog : Window
         fileExclusionsDialogControl.ViewModel.InitializeExclusions();
     }
 
-    private void ApplyButton_OnClick(object sender, RoutedEventArgs e) => ApplyAndClose();
+    private async void ApplyButton_OnClick(object sender, RoutedEventArgs e) => await ApplyAndCloseAsync();
 
-    private void ApplyAndClose()
+    private async Task ApplyAndCloseAsync()
     {
-        analysisPropertiesControl.ViewModel.UpdateAnalysisProperties();
-        fileExclusionsDialogControl.ViewModel.SaveExclusions();
+        await analysisPropertiesControl.ViewModel.UpdateAnalysisPropertiesAsync();
+        await fileExclusionsDialogControl.ViewModel.SaveExclusionsAsync();
         Close();
     }
 
-    private void OpenFile(object sender, RequestNavigateEventArgs e)
+    private async void OpenFile(object sender, RequestNavigateEventArgs e)
     {
         solutionSettingsStorage.EnsureSettingsFileExists();
         DocumentOpener.OpenDocumentInVs(serviceProvider, solutionSettingsStorage.SettingsFilePath);
-        ApplyAndClose();
+        await ApplyAndCloseAsync();
     }
 
     private void CloseButton_OnClick(object sender, RoutedEventArgs e) => Close();
