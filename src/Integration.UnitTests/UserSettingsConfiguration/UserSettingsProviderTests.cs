@@ -63,6 +63,24 @@ public class UserSettingsProviderTests
             MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
 
     [TestMethod]
+    public void MefCtor_ISolutionUserSettingsUpdater_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<UserSettingsProvider, ISolutionUserSettingsUpdater>(
+            MefTestHelpers.CreateExport<ILogger>(),
+            MefTestHelpers.CreateExport<IGlobalSettingsStorage>(),
+            MefTestHelpers.CreateExport<ISolutionSettingsStorage>(),
+            MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
+            MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
+
+    [TestMethod]
+    public void MefCtor_IGlobalUserSettingsUpdater_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<UserSettingsProvider, IGlobalUserSettingsUpdater>(
+            MefTestHelpers.CreateExport<ILogger>(),
+            MefTestHelpers.CreateExport<IGlobalSettingsStorage>(),
+            MefTestHelpers.CreateExport<ISolutionSettingsStorage>(),
+            MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
+            MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
+
+    [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<UserSettingsProvider>();
 
     [TestMethod]
@@ -347,6 +365,32 @@ public class UserSettingsProviderTests
             && x.AnalysisProperties["prop"] == "value"
             && x.UserDefinedFileExclusions.Length == 1
             && x.UserDefinedFileExclusions[0] == "file1"));
+    }
+
+    [TestMethod]
+    public void GlobalSettings_ReturnsUserSettingsExclusions()
+    {
+        var testSubject = CreateAndInitializeTestSubject();
+        SetupGlobalSettings(new GlobalAnalysisSettings(rules: ImmutableDictionary.Create<string, RuleConfig>().Add("rule", new RuleConfig(RuleLevel.On)), ImmutableArray.Create("*.css")));
+        SetupSolutionSettings(new SolutionAnalysisSettings(ImmutableDictionary.Create<string, string>().Add("props", "value"), ImmutableArray.Create("*.cs")));
+
+        var settings = testSubject.UserSettings;
+
+        testSubject.GlobalFileExclusions.Should().BeEquivalentTo(settings.AnalysisSettings.GlobalFileExclusions);
+        testSubject.Rules.Should().BeEquivalentTo(settings.AnalysisSettings.Rules);
+    }
+
+    [TestMethod]
+    public void SolutionSettings_ReturnsUserSettingsExclusions()
+    {
+        var testSubject = CreateAndInitializeTestSubject();
+        SetupGlobalSettings(new GlobalAnalysisSettings(rules: ImmutableDictionary.Create<string, RuleConfig>().Add("rule", new RuleConfig(RuleLevel.On)), ImmutableArray.Create("*.css")));
+        SetupSolutionSettings(new SolutionAnalysisSettings(ImmutableDictionary.Create<string, string>().Add("props", "value"), ImmutableArray.Create("*.cs")));
+
+        var settings = testSubject.UserSettings;
+
+        testSubject.SolutionFileExclusions.Should().BeEquivalentTo(settings.AnalysisSettings.SolutionFileExclusions);
+        testSubject.AnalysisProperties.Should().BeEquivalentTo(settings.AnalysisSettings.AnalysisProperties);
     }
 
     private static UserSettings GetInitialSettings(UserSettingsProvider testSubject)

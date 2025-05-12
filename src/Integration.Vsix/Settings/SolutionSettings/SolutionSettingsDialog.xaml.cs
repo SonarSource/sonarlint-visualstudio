@@ -40,14 +40,13 @@ internal sealed partial class SolutionSettingsDialog : Window
     internal SolutionSettingsDialog(IServiceProvider serviceProvider)
     {
         this.serviceProvider = serviceProvider;
-        var userSettingsProvider = serviceProvider.GetMefService<IUserSettingsProvider>();
         var solutionUserSettingsUpdater = serviceProvider.GetMefService<ISolutionUserSettingsUpdater>();
         var globalUserSettingsUpdater = serviceProvider.GetMefService<IGlobalUserSettingsUpdater>();
         solutionSettingsStorage = serviceProvider.GetMefService<ISolutionSettingsStorage>();
         var browserService = serviceProvider.GetMefService<IBrowserService>();
-        analysisPropertiesControl = new AnalysisPropertiesControl(new AnalysisPropertiesViewModel(userSettingsProvider, solutionUserSettingsUpdater));
+        analysisPropertiesControl = new AnalysisPropertiesControl(new AnalysisPropertiesViewModel(solutionUserSettingsUpdater));
         fileExclusionsDialogControl
-            = new FileExclusionsDialogControl(new FileExclusionsViewModel(browserService, userSettingsProvider, globalUserSettingsUpdater, solutionUserSettingsUpdater, FileExclusionScope.Solution),
+            = new FileExclusionsDialogControl(new FileExclusionsViewModel(browserService, globalUserSettingsUpdater, solutionUserSettingsUpdater, FileExclusionScope.Solution),
                 themeResponsive: true);
         ViewModel = new SolutionSettingsViewModel(serviceProvider.GetMefService<ISolutionInfoProvider>());
         InitializeComponent();

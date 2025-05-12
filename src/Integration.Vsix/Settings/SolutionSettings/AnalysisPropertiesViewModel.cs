@@ -24,7 +24,7 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.SolutionSettings;
 
-internal class AnalysisPropertiesViewModel(IUserSettingsProvider userSettingsProvider, ISolutionUserSettingsUpdater solutionUserSettingsUpdater) : ViewModelBase
+internal class AnalysisPropertiesViewModel(ISolutionUserSettingsUpdater solutionUserSettingsUpdater) : ViewModelBase
 {
     private AnalysisPropertyViewModel selectedProperty;
 
@@ -46,7 +46,7 @@ internal class AnalysisPropertiesViewModel(IUserSettingsProvider userSettingsPro
     {
         SelectedProperty = null;
         AnalysisProperties.Clear();
-        userSettingsProvider.UserSettings.AnalysisSettings.AnalysisProperties
+        solutionUserSettingsUpdater.AnalysisProperties
             .ToList()
             .ForEach(x => AddProperty(x.Key, x.Value));
     }

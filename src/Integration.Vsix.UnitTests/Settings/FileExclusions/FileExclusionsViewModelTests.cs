@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using System.ComponentModel;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
@@ -33,7 +34,6 @@ public class FileExclusionsViewModelTests
     private static readonly ExclusionViewModel CssExclusionViewModel = new(Pattern1);
     private IBrowserService browserService;
     private FileExclusionsViewModel globalFileExclusionsViewModel;
-    private IUserSettingsProvider userSettingsProvider;
     private IGlobalUserSettingsUpdater globalSettingsUpdater;
     private ISolutionUserSettingsUpdater solutionSettingsUpdater;
 
@@ -41,12 +41,11 @@ public class FileExclusionsViewModelTests
     public void Initialize()
     {
         browserService = Substitute.For<IBrowserService>();
-        userSettingsProvider = Substitute.For<IUserSettingsProvider>();
         globalSettingsUpdater = Substitute.For<IGlobalUserSettingsUpdater>();
         solutionSettingsUpdater = Substitute.For<ISolutionUserSettingsUpdater>();
-        MockUserSettingsProvider();
+        MockGlobalExclusions([]);
 
-        globalFileExclusionsViewModel = new FileExclusionsViewModel(browserService, userSettingsProvider, globalSettingsUpdater, solutionSettingsUpdater, FileExclusionScope.Global);
+        globalFileExclusionsViewModel = new FileExclusionsViewModel(browserService, globalSettingsUpdater, solutionSettingsUpdater, FileExclusionScope.Global);
     }
 
     [TestMethod]
@@ -126,7 +125,7 @@ public class FileExclusionsViewModelTests
     [TestMethod]
     public void InitializeExclusions_WithGlobalFileExclusions_InitializesExclusionsAndSelectedExclusionProperty()
     {
-        MockUserSettingsProvider(globalFileExclusions: [Pattern1, Pattern2]);
+        MockGlobalExclusions([Pattern1, Pattern2]);
 
         globalFileExclusionsViewModel.InitializeExclusions();
 
@@ -139,8 +138,8 @@ public class FileExclusionsViewModelTests
     [TestMethod]
     public void InitializeExclusions_WithSolutionFileExclusions_InitializesExclusionsAndSelectedExclusionProperty()
     {
-        MockUserSettingsProvider(solutionFileExclusions: [Pattern1, Pattern2]);
-        var solutionFileExclusionsViewModel = new FileExclusionsViewModel(browserService, userSettingsProvider, globalSettingsUpdater, solutionSettingsUpdater, FileExclusionScope.Solution);
+        MockSolutionExclusions([Pattern1, Pattern2]);
+        var solutionFileExclusionsViewModel = new FileExclusionsViewModel(browserService, globalSettingsUpdater, solutionSettingsUpdater, FileExclusionScope.Solution);
 
         solutionFileExclusionsViewModel.InitializeExclusions();
 
@@ -154,9 +153,9 @@ public class FileExclusionsViewModelTests
     public void InitializeExclusions_InvokedMultipleTimes_DoesNotOverrideExclusionsCollection()
     {
         var initialInstance = globalFileExclusionsViewModel.Exclusions;
-        userSettingsProvider.UserSettings.Returns(
-            new UserSettings(new AnalysisSettings([], [Pattern1]), "any"),
-            new UserSettings(new AnalysisSettings([], [Pattern2]), "any")
+        globalSettingsUpdater.GlobalFileExclusions.Returns(
+            ImmutableArray.Create(Pattern1),
+            ImmutableArray.Create(Pattern2)
         );
 
         globalFileExclusionsViewModel.InitializeExclusions();
@@ -179,7 +178,7 @@ public class FileExclusionsViewModelTests
     [TestMethod]
     public void SaveExclusions_WithSolutionFileExclusions_SavesExclusions()
     {
-        var solutionFileExclusionsViewModel = new FileExclusionsViewModel(browserService, userSettingsProvider, globalSettingsUpdater, solutionSettingsUpdater, FileExclusionScope.Solution);
+        var solutionFileExclusionsViewModel = new FileExclusionsViewModel(browserService, globalSettingsUpdater, solutionSettingsUpdater, FileExclusionScope.Solution);
         solutionFileExclusionsViewModel.Exclusions.Add(new ExclusionViewModel(Pattern1));
         solutionFileExclusionsViewModel.Exclusions.Add(new ExclusionViewModel(Pattern2));
 
@@ -204,7 +203,7 @@ public class FileExclusionsViewModelTests
     [TestMethod]
     public void SaveExclusions_WithSolutionFileExclusions_InvalidPatterns_RemovesInvalidPatternsBeforeSave()
     {
-        var solutionFileExclusionsViewModel = new FileExclusionsViewModel(browserService, userSettingsProvider, globalSettingsUpdater, solutionSettingsUpdater, FileExclusionScope.Solution);
+        var solutionFileExclusionsViewModel = new FileExclusionsViewModel(browserService, globalSettingsUpdater, solutionSettingsUpdater, FileExclusionScope.Solution);
         solutionFileExclusionsViewModel.Exclusions.Add(new ExclusionViewModel(Pattern1));
         solutionFileExclusionsViewModel.Exclusions.Add(new ExclusionViewModel(string.Empty));
         solutionFileExclusionsViewModel.Exclusions.Add(new ExclusionViewModel(Pattern2));
@@ -215,6 +214,7 @@ public class FileExclusionsViewModelTests
         solutionSettingsUpdater.Received(1).UpdateSolutionFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
     }
 
-    private void MockUserSettingsProvider(string[] globalFileExclusions = null, string[] solutionFileExclusions = null) =>
-        userSettingsProvider.UserSettings.Returns(new UserSettings(new AnalysisSettings([], globalFileExclusions ?? [], solutionFileExclusions ?? []), "any"));
+    private void MockGlobalExclusions(string[] globalFileExclusions) => globalSettingsUpdater.GlobalFileExclusions.Returns(globalFileExclusions.ToImmutableArray());
+
+    private void MockSolutionExclusions(string[] solutionFileExclusions) => solutionSettingsUpdater.SolutionFileExclusions.Returns(solutionFileExclusions.ToImmutableArray());
 }

@@ -30,23 +30,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings.SolutionSettings
 public class AnalysisPropertiesViewModelTests
 {
     private static readonly AnalysisPropertyViewModel PropertyViewModel = new("prop1", "value1");
-    private IUserSettingsProvider userSettingsProvider;
     private AnalysisPropertiesViewModel testSubject;
     private ISolutionUserSettingsUpdater solutionUserSettingsUpdater;
 
     [TestInitialize]
     public void Initialize()
     {
-        userSettingsProvider = Substitute.For<IUserSettingsProvider>();
         solutionUserSettingsUpdater = Substitute.For<ISolutionUserSettingsUpdater>();
-        testSubject = new AnalysisPropertiesViewModel(userSettingsProvider, solutionUserSettingsUpdater);
+        testSubject = new AnalysisPropertiesViewModel(solutionUserSettingsUpdater);
     }
 
     [TestMethod]
     public void InitializeAnalysisProperties_EmptyProperties_DoesNotAddAnyProperties()
     {
-        var userSettings = new UserSettings(new AnalysisSettings(), "aBaseDir");
-        userSettingsProvider.UserSettings.Returns(userSettings);
+        MockAnalysisProperties([]);
 
         testSubject.InitializeAnalysisProperties();
 
@@ -57,8 +54,7 @@ public class AnalysisPropertiesViewModelTests
     public void InitializeAnalysisProperties_WithProperties_AddsAllProperties()
     {
         var properties = new Dictionary<string, string> { { "prop1", "value1" }, { "prop2", "value2" } };
-        var userSettings = new UserSettings(new AnalysisSettings(analysisProperties: properties.ToImmutableDictionary()), "aBaseDir");
-        userSettingsProvider.UserSettings.Returns(userSettings);
+        MockAnalysisProperties(properties);
 
         testSubject.InitializeAnalysisProperties();
 
@@ -71,8 +67,7 @@ public class AnalysisPropertiesViewModelTests
     public void InitializeAnalysisProperties_WithProperties_SetsSelectedProperty()
     {
         var properties = new Dictionary<string, string> { { "prop1", "value1" } };
-        var userSettings = new UserSettings(new AnalysisSettings(analysisProperties: properties.ToImmutableDictionary()), "aBaseDir");
-        userSettingsProvider.UserSettings.Returns(userSettings);
+        MockAnalysisProperties(properties);
 
         testSubject.InitializeAnalysisProperties();
 
@@ -87,8 +82,7 @@ public class AnalysisPropertiesViewModelTests
         // Arrange
         testSubject.AnalysisProperties.Add(new AnalysisPropertyViewModel("existing", "value"));
         var properties = new Dictionary<string, string> { { "prop1", "value1" } };
-        var userSettings = new UserSettings(new AnalysisSettings(analysisProperties: properties.ToImmutableDictionary()), "aBaseDir");
-        userSettingsProvider.UserSettings.Returns(userSettings);
+        MockAnalysisProperties(properties);
 
         // Act
         testSubject.InitializeAnalysisProperties();
@@ -200,4 +194,6 @@ public class AnalysisPropertiesViewModelTests
         testSubject.AnalysisProperties.Should().HaveCount(1);
         testSubject.SelectedProperty.Should().BeNull();
     }
+
+    private void MockAnalysisProperties(Dictionary<string, string> analysisProperties) => solutionUserSettingsUpdater.AnalysisProperties.Returns(analysisProperties.ToImmutableDictionary());
 }
