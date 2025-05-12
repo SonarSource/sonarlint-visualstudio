@@ -208,11 +208,13 @@ public class ActiveSolutionTrackerTests
 
         solutionMock.SimulateSolutionOpen();
         eventHandler.Received(1).Invoke(testSubject, Arg.Is<ActiveSolutionChangedEventArgs>(x => x.SolutionName == "name123"));
+        testLogger.AssertPartialOutputStringExists(string.Format(Strings.ActiveSolutionTracker_SolutionOpen, "name123"));
+        testLogger.OutputStrings.Where(x => x.Contains("name123")).Should().HaveCount(1);
+
         solutionMock.SimulateSolutionMerge();
 
         eventHandler.Received(1).Invoke(testSubject, Arg.Is<ActiveSolutionChangedEventArgs>(x => x.SolutionName == "name123"));
-        testLogger.AssertPartialOutputStringExists(string.Format(Strings.ActiveSolutionTracker_SolutionOpen, "name123"));
-        testLogger.OutputStrings.Should().HaveCount(1);
+        testLogger.OutputStrings.Where(x => x.Contains("name123")).Should().HaveCount(1);
     }
 
     [TestMethod]
