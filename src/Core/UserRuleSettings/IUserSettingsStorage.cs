@@ -22,7 +22,7 @@ using SonarLint.VisualStudio.Core.Initialization;
 
 namespace SonarLint.VisualStudio.Core.UserRuleSettings;
 
-public interface IUserSettingsStorage : IRequireInitialization, IDisposable
+public interface IUserSettingsStorage<T> : IRequireInitialization, IDisposable
 {
     string SettingsFilePath { get; }
     string ConfigurationBaseDirectory { get; }
@@ -30,18 +30,16 @@ public interface IUserSettingsStorage : IRequireInitialization, IDisposable
     void EnsureSettingsFileExists();
 
     event EventHandler SettingsFileChanged;
+
+    void SaveSettingsFile(T settings);
+
+    T LoadSettingsFile();
 }
 
-public interface IGlobalSettingsStorage : IUserSettingsStorage
+public interface IGlobalSettingsStorage : IUserSettingsStorage<GlobalAnalysisSettings>
 {
-    void SaveSettingsFile(GlobalAnalysisSettings settings);
-
-    GlobalAnalysisSettings LoadSettingsFile();
 }
 
-public interface ISolutionSettingsStorage : IUserSettingsStorage
+public interface ISolutionSettingsStorage : IUserSettingsStorage<SolutionAnalysisSettings>
 {
-    void SaveSettingsFile(SolutionAnalysisSettings settings);
-
-    SolutionAnalysisSettings LoadSettingsFile();
 }
