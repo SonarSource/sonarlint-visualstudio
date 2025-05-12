@@ -55,11 +55,7 @@ public class AnalysisPropertiesViewModelTests
     [TestMethod]
     public void InitializeAnalysisProperties_WithProperties_AddsAllProperties()
     {
-        var properties = new Dictionary<string, string>
-        {
-            { "prop1", "value1" },
-            { "prop2", "value2" }
-        };
+        var properties = new Dictionary<string, string> { { "prop1", "value1" }, { "prop2", "value2" } };
         var userSettings = new UserSettings(new AnalysisSettings(analysisProperties: properties.ToImmutableDictionary()), "aBaseDir");
         userSettingsProvider.UserSettings.Returns(userSettings);
 
@@ -74,10 +70,7 @@ public class AnalysisPropertiesViewModelTests
     [TestMethod]
     public void InitializeAnalysisProperties_WithProperties_SetsSelectedProperty()
     {
-        var properties = new Dictionary<string, string>
-        {
-            { "prop1", "value1" }
-        };
+        var properties = new Dictionary<string, string> { { "prop1", "value1" } };
         var userSettings = new UserSettings(new AnalysisSettings(analysisProperties: properties.ToImmutableDictionary()), "aBaseDir");
         userSettingsProvider.UserSettings.Returns(userSettings);
 
@@ -93,10 +86,7 @@ public class AnalysisPropertiesViewModelTests
     {
         // Arrange
         testSubject.AnalysisProperties.Add(new AnalysisPropertyViewModel("existing", "value"));
-        var properties = new Dictionary<string, string>
-        {
-            { "prop1", "value1" }
-        };
+        var properties = new Dictionary<string, string> { { "prop1", "value1" } };
         var userSettings = new UserSettings(new AnalysisSettings(analysisProperties: properties.ToImmutableDictionary()), "aBaseDir");
         userSettingsProvider.UserSettings.Returns(userSettings);
 
@@ -159,7 +149,7 @@ public class AnalysisPropertiesViewModelTests
     }
 
     [TestMethod]
-    public void AddExclusion_AddsNewExclusion()
+    public void AddProperty_AddsNewProperty()
     {
         var name = "prop";
         var value = "value";
@@ -170,6 +160,21 @@ public class AnalysisPropertiesViewModelTests
         testSubject.SelectedProperty.Should().NotBeNull();
         testSubject.SelectedProperty.Name.Should().Be(name);
         testSubject.SelectedProperty.Value.Should().Be(value);
+    }
+
+    [TestMethod]
+    public void AddProperty_DuplicateProperty_OverwritesExistingProperty()
+    {
+        testSubject.AddProperty("prop", "value");
+        testSubject.AnalysisProperties.Should().HaveCount(1);
+        var selectedProperty = testSubject.SelectedProperty;
+        testSubject.SelectedProperty.Name.Should().Be("prop");
+        testSubject.SelectedProperty.Value.Should().Be("value");
+
+        testSubject.AddProperty("prop", "value2");
+        testSubject.AnalysisProperties.Should().HaveCount(1);
+        testSubject.SelectedProperty.Should().BeSameAs(selectedProperty);
+        testSubject.SelectedProperty.Value.Should().Be("value2");
     }
 
     [TestMethod]
