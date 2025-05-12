@@ -50,7 +50,8 @@ public class GlobalUserSettingsUpdaterTest
         MefTestHelpers.CheckTypeCanBeImported<GlobalUserSettingsUpdater, IGlobalUserSettingsUpdater>(
             MefTestHelpers.CreateExport<IGlobalSettingsStorage>(),
             MefTestHelpers.CreateExport<IUserSettingsProvider>(),
-            MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
+            MefTestHelpers.CreateExport<IInitializationProcessorFactory>(),
+            MefTestHelpers.CreateExport<IThreadHandling>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<GlobalUserSettingsUpdater>();
@@ -73,34 +74,34 @@ public class GlobalUserSettingsUpdaterTest
     }
 
     [TestMethod]
-    public void DisableRule_UpdatesGlobalSettingsWithoutRaisingEvent()
+    public async Task DisableRule_UpdatesGlobalSettingsWithoutRaisingEvent()
     {
         SetupUserSettings(new GlobalAnalysisSettings());
         var testSubject = CreateAndInitializeTestSubject();
 
-        testSubject.DisableRule("somerule");
+        await testSubject.DisableRule("somerule");
 
         globalSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<GlobalAnalysisSettings>(x => x.Rules.ContainsKey("somerule") && x.Rules["somerule"].Level == RuleLevel.Off));
     }
 
     [TestMethod]
-    public void DisableRule_EnabledRule_UpdatesGlobalSettingsWithoutRaisingEvent()
+    public async Task DisableRule_EnabledRule_UpdatesGlobalSettingsWithoutRaisingEvent()
     {
         SetupUserSettings(new GlobalAnalysisSettings(rules: ImmutableDictionary.Create<string, RuleConfig>().Add("somerule", new RuleConfig(RuleLevel.On)), ImmutableArray<string>.Empty));
         var testSubject = CreateAndInitializeTestSubject();
 
-        testSubject.DisableRule("somerule");
+        await testSubject.DisableRule("somerule");
 
         globalSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<GlobalAnalysisSettings>(x => x.Rules.ContainsKey("somerule") && x.Rules["somerule"].Level == RuleLevel.Off));
     }
 
     [TestMethod]
-    public void DisableRule_OtherRuleNotDisabled_UpdatesGlobalSettingsWithoutRaisingEvent()
+    public async Task DisableRule_OtherRuleNotDisabled_UpdatesGlobalSettingsWithoutRaisingEvent()
     {
         SetupUserSettings(new GlobalAnalysisSettings(rules: ImmutableDictionary.Create<string, RuleConfig>().Add("someotherrule", new RuleConfig(RuleLevel.On)), ImmutableArray<string>.Empty));
         var testSubject = CreateAndInitializeTestSubject();
 
-        testSubject.DisableRule("somerule");
+        await testSubject.DisableRule("somerule");
 
         globalSettingsStorage.Received(1).SaveSettingsFile(
             Arg.Is<GlobalAnalysisSettings>(x =>
@@ -108,13 +109,13 @@ public class GlobalUserSettingsUpdaterTest
     }
 
     [TestMethod]
-    public void UpdateFileExclusions_UpdatesGlobalSettingsWithoutRaisingEvent()
+    public async Task UpdateFileExclusions_UpdatesGlobalSettingsWithoutRaisingEvent()
     {
         SetupUserSettings(new GlobalAnalysisSettings());
         var testSubject = CreateAndInitializeTestSubject();
         string[] exclusions = ["1", "two", "3"];
 
-        testSubject.UpdateFileExclusions(exclusions);
+        await testSubject.UpdateFileExclusions(exclusions);
 
         globalSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<GlobalAnalysisSettings>(x => x.UserDefinedFileExclusions.SequenceEqual(exclusions, default)));
     }
@@ -132,7 +133,7 @@ public class GlobalUserSettingsUpdaterTest
     private GlobalUserSettingsUpdater CreateAndInitializeTestSubject()
     {
         processorFactory = MockableInitializationProcessor.CreateFactory<GlobalUserSettingsUpdater>(threadHandling, testLogger);
-        var testSubject = new GlobalUserSettingsUpdater(globalSettingsStorage, userSettingsProvider, processorFactory);
+        var testSubject = new GlobalUserSettingsUpdater(globalSettingsStorage, userSettingsProvider, processorFactory, threadHandling);
         testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
         return testSubject;
     }

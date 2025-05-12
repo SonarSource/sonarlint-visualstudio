@@ -20,9 +20,9 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
-using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
 
 namespace SonarLint.VisualStudio.Integration.UserSettingsConfiguration;
 
@@ -32,34 +32,36 @@ internal class SolutionUserSettingsUpdater : ISolutionUserSettingsUpdater
 {
     private readonly ISolutionSettingsStorage solutionSettingsStorage1;
     private readonly IUserSettingsProvider userSettingsProvider1;
+    private readonly Task initializationTask;
 
     [method: ImportingConstructor]
     public SolutionUserSettingsUpdater(
         ISolutionSettingsStorage solutionSettingsStorage,
         IUserSettingsProvider userSettingsProvider,
-        IInitializationProcessorFactory processorFactory)
+        IInitializationProcessorFactory processorFactory,
+        IThreadHandling threadHandling)
     {
         solutionSettingsStorage1 = solutionSettingsStorage;
         userSettingsProvider1 = userSettingsProvider;
-        InitializationProcessor = processorFactory.CreateAndStart<SolutionUserSettingsUpdater>(
-            [solutionSettingsStorage, userSettingsProvider],
-            () =>
-            {
-            });
+        InitializationProcessor = processorFactory.Create<SolutionUserSettingsUpdater>(
+            [solutionSettingsStorage, userSettingsProvider], _ => Task.CompletedTask);
+        initializationTask = threadHandling.RunAsync(() => InitializationProcessor.InitializeAsync());
     }
 
     public IInitializationProcessor InitializationProcessor { get; }
     public ImmutableArray<string> FileExclusions => userSettingsProvider1.UserSettings.AnalysisSettings.SolutionFileExclusions;
 
-    public void UpdateFileExclusions(IEnumerable<string> exclusions)
+    public async Task UpdateFileExclusions(IEnumerable<string> exclusions)
     {
+        await initializationTask;
         var userSettings = userSettingsProvider1.UserSettings;
         var solutionSettings = new SolutionAnalysisSettings(userSettings.AnalysisSettings.AnalysisProperties, exclusions.ToImmutableArray());
         solutionSettingsStorage1.SaveSettingsFile(solutionSettings);
     }
 
-    public void UpdateAnalysisProperties(Dictionary<string, string> analysisProperties)
+    public async Task UpdateAnalysisProperties(Dictionary<string, string> analysisProperties)
     {
+        await initializationTask;
         var userSettings = userSettingsProvider1.UserSettings;
         var solutionSettings = new SolutionAnalysisSettings(analysisProperties, userSettings.AnalysisSettings.SolutionFileExclusions);
         solutionSettingsStorage1.SaveSettingsFile(solutionSettings);

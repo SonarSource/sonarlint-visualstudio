@@ -28,7 +28,7 @@ public interface IFileExclusionsProvider
     /// <summary>
     /// Updates the user settings to include the provided global/solution file exclusions. The value will override existing exclusions.
     /// </summary>
-    void UpdateFileExclusions(IEnumerable<string> exclusions);
+    Task UpdateFileExclusions(IEnumerable<string> exclusions);
 
     ImmutableArray<string> FileExclusions { get; }
 }
@@ -38,7 +38,7 @@ public interface IGlobalUserSettingsUpdater : IRequireInitialization, IFileExclu
     /// <summary>
     /// Updates the user settings to disable the specified rule
     /// </summary>
-    void DisableRule(string ruleId);
+    Task DisableRule(string ruleId);
 }
 
 public interface ISolutionUserSettingsUpdater : IRequireInitialization, IFileExclusionsProvider
@@ -46,5 +46,5 @@ public interface ISolutionUserSettingsUpdater : IRequireInitialization, IFileExc
     /// <summary>
     /// Updates the solution level analysis settings to include the provided analysis properties. The value will override existing analysis settings.
     /// </summary>
-    void UpdateAnalysisProperties(Dictionary<string, string> analysisProperties);
+    Task UpdateAnalysisProperties(Dictionary<string, string> analysisProperties);
 }

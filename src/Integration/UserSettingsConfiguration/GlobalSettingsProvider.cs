@@ -20,9 +20,9 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
-using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
 
 namespace SonarLint.VisualStudio.Integration.UserSettingsConfiguration;
 
@@ -32,34 +32,38 @@ internal class GlobalUserSettingsUpdater : IGlobalUserSettingsUpdater
 {
     private readonly IGlobalSettingsStorage globalSettingsStorage;
     private readonly IUserSettingsProvider userSettingsProvider;
+    private readonly Task initializationTask;
 
     [ImportingConstructor]
     public GlobalUserSettingsUpdater(
         IGlobalSettingsStorage globalSettingsStorage,
         IUserSettingsProvider userSettingsProvider,
-        IInitializationProcessorFactory processorFactory)
+        IInitializationProcessorFactory processorFactory,
+        IThreadHandling threadHandling)
     {
         this.globalSettingsStorage = globalSettingsStorage;
         this.userSettingsProvider = userSettingsProvider;
-        InitializationProcessor = processorFactory.CreateAndStart<GlobalUserSettingsUpdater>(
-            [globalSettingsStorage, userSettingsProvider], () => { });
+        InitializationProcessor = processorFactory.Create<GlobalUserSettingsUpdater>([globalSettingsStorage, userSettingsProvider], _ => Task.CompletedTask);
+        initializationTask = threadHandling.RunAsync(() => InitializationProcessor.InitializeAsync());
     }
 
     public IInitializationProcessor InitializationProcessor { get; }
     public ImmutableArray<string> FileExclusions => userSettingsProvider.UserSettings.AnalysisSettings.GlobalFileExclusions;
 
-    public void DisableRule(string ruleId)
+    public async Task DisableRule(string ruleId)
     {
         Debug.Assert(!string.IsNullOrEmpty(ruleId), "DisableRule: ruleId should not be null/empty");
 
+        await initializationTask;
         var userSettings = userSettingsProvider.UserSettings;
         var newRules = userSettings.AnalysisSettings.Rules.SetItem(ruleId, new RuleConfig(RuleLevel.Off));
         var globalSettings = new GlobalAnalysisSettings(newRules, userSettings.AnalysisSettings.GlobalFileExclusions);
         globalSettingsStorage.SaveSettingsFile(globalSettings);
     }
 
-    public void UpdateFileExclusions(IEnumerable<string> exclusions)
+    public async Task UpdateFileExclusions(IEnumerable<string> exclusions)
     {
+        await initializationTask;
         var userSettings = userSettingsProvider.UserSettings;
         var globalSettings = new GlobalAnalysisSettings(userSettings.AnalysisSettings.Rules, exclusions.ToImmutableArray());
         globalSettingsStorage.SaveSettingsFile(globalSettings);

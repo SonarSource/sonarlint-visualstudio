@@ -50,7 +50,8 @@ public class SolutionUserSettingsUpdaterTest
         MefTestHelpers.CheckTypeCanBeImported<SolutionUserSettingsUpdater, ISolutionUserSettingsUpdater>(
             MefTestHelpers.CreateExport<ISolutionSettingsStorage>(),
             MefTestHelpers.CreateExport<IUserSettingsProvider>(),
-            MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
+            MefTestHelpers.CreateExport<IInitializationProcessorFactory>(),
+            MefTestHelpers.CreateExport<IThreadHandling>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SolutionUserSettingsUpdater>();
@@ -73,25 +74,25 @@ public class SolutionUserSettingsUpdaterTest
     }
 
     [TestMethod]
-    public void UpdateFileExclusions_UpdatesSolutionSettings()
+    public async Task UpdateFileExclusions_UpdatesSolutionSettings()
     {
         SetupUserSettings(new SolutionAnalysisSettings());
         var testSubject = CreateAndInitializeTestSubject();
         string[] exclusions = ["1", "two", "3"];
 
-        testSubject.UpdateFileExclusions(exclusions);
+        await testSubject.UpdateFileExclusions(exclusions);
 
         solutionSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<SolutionAnalysisSettings>(x => x.UserDefinedFileExclusions.SequenceEqual(exclusions, default)));
     }
 
     [TestMethod]
-    public void UpdateAnalysisProperties_UpdatesSolutionSettings()
+    public async Task UpdateAnalysisProperties_UpdatesSolutionSettings()
     {
         var exclusions = ImmutableArray.Create("file1");
         SetupUserSettings(new SolutionAnalysisSettings(ImmutableDictionary<string, string>.Empty, exclusions));
         var testSubject = CreateAndInitializeTestSubject();
 
-        testSubject.UpdateAnalysisProperties(new Dictionary<string, string> { ["prop"] = "value" });
+        await testSubject.UpdateAnalysisProperties(new Dictionary<string, string> { ["prop"] = "value" });
 
         solutionSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<SolutionAnalysisSettings>(x =>
             x.AnalysisProperties.Count == 1
@@ -113,7 +114,7 @@ public class SolutionUserSettingsUpdaterTest
     private SolutionUserSettingsUpdater CreateAndInitializeTestSubject()
     {
         processorFactory = MockableInitializationProcessor.CreateFactory<SolutionUserSettingsUpdater>(threadHandling, testLogger);
-        var testSubject = new SolutionUserSettingsUpdater(solutionSettingsStorage, userSettingsProvider, processorFactory);
+        var testSubject = new SolutionUserSettingsUpdater(solutionSettingsStorage, userSettingsProvider, processorFactory, threadHandling);
         testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
         return testSubject;
     }
