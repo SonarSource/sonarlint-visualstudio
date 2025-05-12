@@ -60,6 +60,69 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Dummy solution encountered, ignoring....
+        /// </summary>
+        public static string ActiveSolutionTracker_DummySolutionIgnored {
+            get {
+                return ResourceManager.GetString("ActiveSolutionTracker_DummySolutionIgnored", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dummy.
+        /// </summary>
+        public static string ActiveSolutionTracker_DummySolutionPlaceholder {
+            get {
+                return ResourceManager.GetString("ActiveSolutionTracker_DummySolutionPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initialized with solution {0}.
+        /// </summary>
+        public static string ActiveSolutionTracker_InitializedSolution {
+            get {
+                return ResourceManager.GetString("ActiveSolutionTracker_InitializedSolution", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Solution Tracking.
+        /// </summary>
+        public static string ActiveSolutionTracker_LogContext {
+            get {
+                return ResourceManager.GetString("ActiveSolutionTracker_LogContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to None.
+        /// </summary>
+        public static string ActiveSolutionTracker_NoSolutionPlaceholder {
+            get {
+                return ResourceManager.GetString("ActiveSolutionTracker_NoSolutionPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Solution {0} closed.
+        /// </summary>
+        public static string ActiveSolutionTracker_SolutionClosed {
+            get {
+                return ResourceManager.GetString("ActiveSolutionTracker_SolutionClosed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Solution {0} opened.
+        /// </summary>
+        public static string ActiveSolutionTracker_SolutionOpen {
+            get {
+                return ResourceManager.GetString("ActiveSolutionTracker_SolutionOpen", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         public static string CancelButtonText {
