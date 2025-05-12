@@ -53,8 +53,6 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
         this.solutionSettingsStorage = solutionSettingsStorage;
         this.activeSolutionTracker = activeSolutionTracker;
         InitializationProcessor = processorFactory.CreateAndStart<UserSettingsProvider>(
-            // the order of the dependencies is important as the initialization of the settings storage should be done before the activeSolutionTracker
-            // to prevent trying to load the settings file on solution changes before the storage is actually initialized
             [globalSettingsStorage, solutionSettingsStorage, activeSolutionTracker],
             () =>
             {
@@ -65,6 +63,9 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
 
                 globalSettingsStorage.SettingsFileChanged += OnSettingsFileFileChanged;
                 solutionSettingsStorage.SettingsFileChanged += OnSettingsFileFileChanged;
+                // The subscription to the ActiveSolutionTracker events should happen after the ISolutionSettingsStorage is initialized,
+                // as the storage depends on ActiveSolutionChanged to calculate the path to the settings file
+                // This prevents a situation in which we might try to load the settings file on solution changes before the storage is actually initialized
                 activeSolutionTracker.ActiveSolutionChanged += ActiveSolutionTrackerOnActiveSolutionChanged;
             });
     }
