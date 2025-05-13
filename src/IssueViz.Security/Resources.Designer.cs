@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube Local Security Hotspots.
+        ///   Looks up a localized string similar to SonarQube Security Hotspots.
         /// </summary>
         internal static string HotspotsToolWindowCaption {
             get {
