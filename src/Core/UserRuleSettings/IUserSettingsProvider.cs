@@ -44,7 +44,7 @@ public interface IGlobalRawSettingsService
     /// </summary>
     void UpdateFileExclusions(IEnumerable<string> exclusions);
 
-    public GlobalAnalysisSettings GlobalAnalysisSettings { get; }
+    public GlobalRawAnalysisSettings GlobalRawAnalysisSettings { get; }
 }
 
 public interface ISolutionRawSettingsService
@@ -59,5 +59,5 @@ public interface ISolutionRawSettingsService
     /// </summary>
     void UpdateFileExclusions(IEnumerable<string> exclusions);
 
-    public SolutionAnalysisSettings SolutionAnalysisSettings { get; }
+    public SolutionRawAnalysisSettings SolutionRawAnalysisSettings { get; }
 }

@@ -19,7 +19,6 @@
  */
 
 using System.Collections.Immutable;
-using System.IO;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Helpers;
 
@@ -53,7 +52,7 @@ namespace SonarLint.VisualStudio.Core.UserRuleSettings;
      ...
  }
  */
-public class GlobalAnalysisSettings
+public class GlobalRawAnalysisSettings
 {
     [JsonProperty("sonarlint.rules")]
     [JsonConverter(typeof(ImmutableDictionaryIgnoreCaseConverter<string, RuleConfig>))]
@@ -63,11 +62,14 @@ public class GlobalAnalysisSettings
     [JsonConverter(typeof(CommaSeparatedStringArrayConverter))]
     public ImmutableArray<string> UserDefinedFileExclusions { get; init; }
 
-    public GlobalAnalysisSettings() : this(ImmutableDictionary<string, RuleConfig>.Empty, ImmutableArray<string>.Empty) { }
+    public GlobalRawAnalysisSettings() : this(ImmutableDictionary<string, RuleConfig>.Empty, ImmutableArray<string>.Empty) { }
 
-    public GlobalAnalysisSettings(Dictionary<string, RuleConfig> rules, IEnumerable<string> fileExclusions) : this(rules.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase), fileExclusions.ToImmutableArray()) { }
+    public GlobalRawAnalysisSettings(Dictionary<string, RuleConfig> rules, IEnumerable<string> fileExclusions) : this(rules.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase),
+        fileExclusions.ToImmutableArray())
+    {
+    }
 
-    public GlobalAnalysisSettings(ImmutableDictionary<string, RuleConfig> rules, ImmutableArray<string> fileExclusions)
+    public GlobalRawAnalysisSettings(ImmutableDictionary<string, RuleConfig> rules, ImmutableArray<string> fileExclusions)
     {
         Rules = rules;
         UserDefinedFileExclusions = fileExclusions;

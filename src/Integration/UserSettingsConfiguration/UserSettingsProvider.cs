@@ -39,7 +39,7 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSe
     private readonly ILogger logger;
     private readonly IGlobalSettingsStorage globalSettingsStorage;
     private readonly ISolutionSettingsStorage solutionSettingsStorage;
-    private (UserSettings userSettings, GlobalAnalysisSettings globalAnalysisSettings, SolutionAnalysisSettings solutionAnalysisSettings)? cache;
+    private (UserSettings userSettings, GlobalRawAnalysisSettings globalSettings, SolutionRawAnalysisSettings solutionSettings)? cache;
     private bool disposed;
 
     [ImportingConstructor]
@@ -87,14 +87,14 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSe
     public event EventHandler SettingsChanged;
     public IInitializationProcessor InitializationProcessor { get; }
 
-    public GlobalAnalysisSettings GlobalAnalysisSettings
+    public GlobalRawAnalysisSettings GlobalRawAnalysisSettings
     {
         get
         {
             lock (Lock)
             {
                 cache ??= SafeLoadUserSettings();
-                return cache.Value.globalAnalysisSettings;
+                return cache.Value.globalSettings;
             }
         }
     }
@@ -103,41 +103,41 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSe
     {
         Debug.Assert(!string.IsNullOrEmpty(ruleId), "DisableRule: ruleId should not be null/empty");
 
-        var newRules = GlobalAnalysisSettings.Rules.SetItem(ruleId, new RuleConfig(RuleLevel.Off));
-        var globalSettings = new GlobalAnalysisSettings(newRules, GlobalAnalysisSettings.UserDefinedFileExclusions);
+        var newRules = GlobalRawAnalysisSettings.Rules.SetItem(ruleId, new RuleConfig(RuleLevel.Off));
+        var globalSettings = new GlobalRawAnalysisSettings(newRules, GlobalRawAnalysisSettings.UserDefinedFileExclusions);
         globalSettingsStorage.SaveSettingsFile(globalSettings);
         SafeClearCache();
     }
 
     void IGlobalRawSettingsService.UpdateFileExclusions(IEnumerable<string> exclusions)
     {
-        var globalSettings = new GlobalAnalysisSettings(GlobalAnalysisSettings.Rules, exclusions.ToImmutableArray());
+        var globalSettings = new GlobalRawAnalysisSettings(GlobalRawAnalysisSettings.Rules, exclusions.ToImmutableArray());
         globalSettingsStorage.SaveSettingsFile(globalSettings);
         SafeClearCache();
     }
 
-    public SolutionAnalysisSettings SolutionAnalysisSettings
+    public SolutionRawAnalysisSettings SolutionRawAnalysisSettings
     {
         get
         {
             lock (Lock)
             {
                 cache ??= SafeLoadUserSettings();
-                return cache.Value.solutionAnalysisSettings;
+                return cache.Value.solutionSettings;
             }
         }
     }
 
     void ISolutionRawSettingsService.UpdateAnalysisProperties(Dictionary<string, string> analysisProperties)
     {
-        var solutionSettings = new SolutionAnalysisSettings(analysisProperties, SolutionAnalysisSettings.UserDefinedFileExclusions);
+        var solutionSettings = new SolutionRawAnalysisSettings(analysisProperties, SolutionRawAnalysisSettings.UserDefinedFileExclusions);
         solutionSettingsStorage.SaveSettingsFile(solutionSettings);
         SafeClearCache();
     }
 
     void ISolutionRawSettingsService.UpdateFileExclusions(IEnumerable<string> exclusions)
     {
-        var solutionSettings = new SolutionAnalysisSettings(SolutionAnalysisSettings.AnalysisProperties, exclusions.ToImmutableArray());
+        var solutionSettings = new SolutionRawAnalysisSettings(SolutionRawAnalysisSettings.AnalysisProperties, exclusions.ToImmutableArray());
         solutionSettingsStorage.SaveSettingsFile(solutionSettings);
         SafeClearCache();
     }
@@ -185,28 +185,28 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSe
         }
     }
 
-    private (UserSettings userSettings, GlobalAnalysisSettings globalAnalysisSettings, SolutionAnalysisSettings solutionAnalysisSettings) SafeLoadUserSettings()
+    private (UserSettings userSettings, GlobalRawAnalysisSettings globalAnalysisSettings, SolutionRawAnalysisSettings solutionAnalysisSettings) SafeLoadUserSettings()
     {
         var globalAnalysisSettings = globalSettingsStorage.LoadSettingsFile();
 
-        SolutionAnalysisSettings solutionAnalysisSettings = null;
+        SolutionRawAnalysisSettings solutionRawAnalysisSettings = null;
         if (solutionSettingsStorage.SettingsFilePath != null)
         {
-            solutionAnalysisSettings = solutionSettingsStorage.LoadSettingsFile();
+            solutionRawAnalysisSettings = solutionSettingsStorage.LoadSettingsFile();
         }
 
-        if (globalAnalysisSettings == null && solutionAnalysisSettings == null)
+        if (globalAnalysisSettings == null && solutionRawAnalysisSettings == null)
         {
             logger.WriteLine(Strings.Settings_UsingDefaultSettings);
-            return (new UserSettings(new AnalysisSettings(), globalSettingsStorage.ConfigurationBaseDirectory), globalAnalysisSettings, solutionAnalysisSettings);
+            return (new UserSettings(new AnalysisSettings(), globalSettingsStorage.ConfigurationBaseDirectory), globalAnalysisSettings, solutionRawAnalysisSettings);
         }
 
         var rules = globalAnalysisSettings?.Rules;
         var globalExclusions = globalAnalysisSettings?.UserDefinedFileExclusions;
-        var properties = solutionAnalysisSettings?.AnalysisProperties;
-        var solutionExclusions = solutionAnalysisSettings?.UserDefinedFileExclusions;
-        var generatedConfigsBase = solutionAnalysisSettings != null ? solutionSettingsStorage.ConfigurationBaseDirectory : globalSettingsStorage.ConfigurationBaseDirectory;
+        var properties = solutionRawAnalysisSettings?.AnalysisProperties;
+        var solutionExclusions = solutionRawAnalysisSettings?.UserDefinedFileExclusions;
+        var generatedConfigsBase = solutionRawAnalysisSettings != null ? solutionSettingsStorage.ConfigurationBaseDirectory : globalSettingsStorage.ConfigurationBaseDirectory;
 
-        return (new UserSettings(new AnalysisSettings(rules, globalExclusions, solutionExclusions, properties), generatedConfigsBase), globalAnalysisSettings, solutionAnalysisSettings);
+        return (new UserSettings(new AnalysisSettings(rules, globalExclusions, solutionExclusions, properties), generatedConfigsBase), globalAnalysisSettings, solutionRawAnalysisSettings);
     }
 }

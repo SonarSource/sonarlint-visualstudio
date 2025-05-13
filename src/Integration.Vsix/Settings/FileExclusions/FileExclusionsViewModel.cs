@@ -53,8 +53,8 @@ internal class FileExclusionsViewModel(
         Exclusions.Clear();
 
         var exclusionViewModels = scope == FileExclusionScope.Global
-            ? globalUserSettingsUpdater.GlobalAnalysisSettings.UserDefinedFileExclusions.Select(ex => new ExclusionViewModel(ex))
-            : solutionUserSettingsUpdater.SolutionAnalysisSettings.UserDefinedFileExclusions.Select(ex => new ExclusionViewModel(ex));
+            ? globalUserSettingsUpdater.GlobalRawAnalysisSettings.UserDefinedFileExclusions.Select(ex => new ExclusionViewModel(ex))
+            : solutionUserSettingsUpdater.SolutionRawAnalysisSettings.UserDefinedFileExclusions.Select(ex => new ExclusionViewModel(ex));
         exclusionViewModels.ToList().ForEach(vm => Exclusions.Add(vm));
 
         SelectedExclusion = Exclusions.FirstOrDefault();

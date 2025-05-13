@@ -165,8 +165,8 @@ public class SolutionSettingsStorageTest
         testSubject.EnsureSettingsFileExists();
 
         fileSystem.File.DidNotReceiveWithAnyArgs().Exists(default);
-        serializer.DidNotReceiveWithAnyArgs().SafeSave(default, default(GlobalAnalysisSettings));
-        serializer.DidNotReceiveWithAnyArgs().SafeSave(default, default(SolutionAnalysisSettings));
+        serializer.DidNotReceiveWithAnyArgs().SafeSave(default, default(GlobalRawAnalysisSettings));
+        serializer.DidNotReceiveWithAnyArgs().SafeSave(default, default(SolutionRawAnalysisSettings));
     }
 
     [TestMethod]
@@ -179,7 +179,7 @@ public class SolutionSettingsStorageTest
         testSubject.EnsureSettingsFileExists();
 
         fileSystem.File.Received().Exists(Solution1SettingsFilePath);
-        serializer.Received().SafeSave(Solution1SettingsFilePath, Arg.Any<SolutionAnalysisSettings>());
+        serializer.Received().SafeSave(Solution1SettingsFilePath, Arg.Any<SolutionRawAnalysisSettings>());
     }
 
     [TestMethod]
@@ -193,7 +193,7 @@ public class SolutionSettingsStorageTest
         testSubject.EnsureSettingsFileExists();
 
         fileSystem.File.Received().Exists(Solution1SettingsFilePath);
-        serializer.DidNotReceiveWithAnyArgs().SafeSave(default, default(SolutionAnalysisSettings));
+        serializer.DidNotReceiveWithAnyArgs().SafeSave(default, default(SolutionRawAnalysisSettings));
     }
 
     [TestMethod]
@@ -255,7 +255,7 @@ public class SolutionSettingsStorageTest
     {
         activeSolutionTracker.CurrentSolutionName.Returns(SolutionName1);
         var testSubject = CreateAndInitializeTestSubject();
-        var analysisSettings = new SolutionAnalysisSettings();
+        var analysisSettings = new SolutionRawAnalysisSettings();
 
         testSubject.SaveSettingsFile(analysisSettings);
 
@@ -267,12 +267,12 @@ public class SolutionSettingsStorageTest
     {
         activeSolutionTracker.CurrentSolutionName.Returns(SolutionName1);
         var testSubject = CreateAndInitializeTestSubject();
-        var expectedSettings = new SolutionAnalysisSettings();
-        serializer.SafeLoad<SolutionAnalysisSettings>(Solution1SettingsFilePath).Returns(expectedSettings);
+        var expectedSettings = new SolutionRawAnalysisSettings();
+        serializer.SafeLoad<SolutionRawAnalysisSettings>(Solution1SettingsFilePath).Returns(expectedSettings);
 
         var result = testSubject.LoadSettingsFile();
 
-        serializer.Received(1).SafeLoad<SolutionAnalysisSettings>(Solution1SettingsFilePath);
+        serializer.Received(1).SafeLoad<SolutionRawAnalysisSettings>(Solution1SettingsFilePath);
         result.Should().BeSameAs(expectedSettings);
     }
 

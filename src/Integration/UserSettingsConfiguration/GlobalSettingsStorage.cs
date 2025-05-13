@@ -81,13 +81,13 @@ internal sealed class GlobalSettingsStorage : IGlobalSettingsStorage
     {
         if (!fileSystem.File.Exists(GlobalAnalysisSettingsFilePath))
         {
-            serializer.SafeSave(GlobalAnalysisSettingsFilePath, new GlobalAnalysisSettings());
+            serializer.SafeSave(GlobalAnalysisSettingsFilePath, new GlobalRawAnalysisSettings());
         }
     }
 
-    public void SaveSettingsFile(GlobalAnalysisSettings settings) => serializer.SafeSave(SettingsFilePath, settings);
+    public void SaveSettingsFile(GlobalRawAnalysisSettings settings) => serializer.SafeSave(SettingsFilePath, settings);
 
-    public GlobalAnalysisSettings LoadSettingsFile() => serializer.SafeLoad<GlobalAnalysisSettings>(SettingsFilePath);
+    public GlobalRawAnalysisSettings LoadSettingsFile() => serializer.SafeLoad<GlobalRawAnalysisSettings>(SettingsFilePath);
 
     public void Dispose()
     {

@@ -195,5 +195,5 @@ public class AnalysisPropertiesViewModelTests
     }
 
     private void MockAnalysisProperties(Dictionary<string, string> analysisProperties) =>
-        solutionUserSettingsUpdater.SolutionAnalysisSettings.Returns(new SolutionAnalysisSettings(analysisProperties, []));
+        solutionUserSettingsUpdater.SolutionRawAnalysisSettings.Returns(new SolutionRawAnalysisSettings(analysisProperties, []));
 }

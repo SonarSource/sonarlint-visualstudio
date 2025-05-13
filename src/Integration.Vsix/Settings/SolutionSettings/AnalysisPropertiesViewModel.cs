@@ -46,7 +46,7 @@ internal class AnalysisPropertiesViewModel(ISolutionRawSettingsService solutionU
     {
         SelectedProperty = null;
         AnalysisProperties.Clear();
-        solutionUserSettingsUpdater.SolutionAnalysisSettings.AnalysisProperties
+        solutionUserSettingsUpdater.SolutionRawAnalysisSettings.AnalysisProperties
             .ToList()
             .ForEach(x => AddProperty(x.Key, x.Value));
     }
