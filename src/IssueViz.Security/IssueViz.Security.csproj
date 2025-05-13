@@ -57,10 +57,6 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
-    <Page Include="OpenInIdeHotspots_List\HotspotsList\OpenInIDEHotspotsControl.xaml">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      <Generator>XamlIntelliSenseFileGenerator</Generator>
-    </Page>
     <Page Include="SharedUI\SharedResources.xaml">
       <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
