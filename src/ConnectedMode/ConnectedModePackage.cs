@@ -90,8 +90,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
             sseSessionManager.CreateSessionIfInConnectedMode();
             var updater = componentModel.GetService<IRoslynSuppressionUpdater>();
             updater.UpdateAllServerSuppressionsAsync().Forget();
-            var hotspotsUpdater = componentModel.GetService<IServerHotspotStoreUpdater>();
-            hotspotsUpdater.UpdateAllServerHotspotsAsync().Forget();
         }
 
         protected override void Dispose(bool disposing)
