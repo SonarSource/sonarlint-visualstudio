@@ -46,8 +46,6 @@ public class DefaultConfiguration_Configure_Tests
             "Registered SonarQube.Client.Api.V7_20.GetIssuesRequestWrapper`1[SonarQube.Client.Api.V7_20.GetIssuesWithComponentSonarQubeRequest] for 7.2",
             "Registered SonarQube.Client.Api.V7_20.GetExclusionsRequest for 7.2",
             "Registered SonarQube.Client.Api.V9_4.GetSonarLintEventStream for 9.4",
-            "Registered SonarQube.Client.Api.V9_7.SearchHotspotRequest for 9.7",
-            "Registered SonarQube.Client.Api.V10_2.SearchHotspotRequest for 10.2",
             "Registered SonarQube.Client.Api.V10_2.GetRulesWithCCTRequest for 10.2",
             "Registered SonarQube.Client.Api.V9_9.SearchFilesByNameRequest for 9.9",
         };
@@ -76,9 +74,7 @@ public class DefaultConfiguration_Configure_Tests
             "Registered SonarQube.Client.Api.V6_60.GetProjectBranchesRequest",
             "Registered SonarQube.Client.Api.V7_20.GetIssuesRequestWrapper`1[SonarQube.Client.Api.V7_20.GetIssuesWithComponentSonarCloudRequest]",
             "Registered SonarQube.Client.Api.V7_20.GetExclusionsRequest",
-            "Registered SonarQube.Client.Api.V9_7.SearchHotspotRequest",
             "Registered SonarQube.Client.Api.V9_9.SearchFilesByNameRequest"
-
         };
 
         DefaultConfiguration.ConfigureSonarCloud(new UnversionedRequestFactory(logger));

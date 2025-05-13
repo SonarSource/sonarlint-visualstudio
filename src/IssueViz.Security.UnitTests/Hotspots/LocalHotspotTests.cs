@@ -18,11 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots;
 
@@ -32,23 +28,7 @@ public class LocalHotspotTests
     [TestMethod]
     public void Ctor_VisualizationIsNull_Throws()
     {
-        Action test = () => new LocalHotspot(null,
-            default,
-            new SonarQubeHotspot(string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                DateTimeOffset.Now,
-                DateTimeOffset.Now,
-                null,
-                null,
-                null));
+        Action test = () => new LocalHotspot(null, default);
 
         test.Should().Throw<ArgumentNullException>().WithMessage("*visualization*");
     }

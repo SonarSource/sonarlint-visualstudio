@@ -162,8 +162,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
             }
         }
 
-        private IEnumerable<LocalHotspot> GetOpenHotspots() =>
-            fileToHotspotsMapping.SelectMany(kvp => kvp.Value).Where(hs => hs.ServerHotspot == null || hs.ServerHotspot.Status == "TO_REVIEW" || hs.ServerHotspot.Resolution == "ACKNOWLEDGED");
+        // TODO by https://sonarsource.atlassian.net/browse/SLVS-2123: make sure only open hotspots are returned
+        private IEnumerable<LocalHotspot> GetOpenHotspots() => fileToHotspotsMapping.SelectMany(kvp => kvp.Value).Where(hs => !hs.Visualization.IsResolved);
 
         private void NotifyIssuesChanged(IssuesChangedEventArgs args)
         {
