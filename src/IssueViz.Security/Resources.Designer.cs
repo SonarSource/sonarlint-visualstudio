@@ -88,15 +88,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube Server Security Hotspots.
-        /// </summary>
-        internal static string OpenInIDEHotspotsToolWindowCaption {
-            get {
-                return ResourceManager.GetString("OpenInIDEHotspotsToolWindowCaption", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Initializing security package....
         /// </summary>
         internal static string StartedPackageInitialization {

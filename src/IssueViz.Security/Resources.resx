@@ -126,9 +126,6 @@
   <data name="HotspotsToolWindowCaption" xml:space="preserve">
     <value>SonarQube Local Security Hotspots</value>
   </data>
-  <data name="OpenInIDEHotspotsToolWindowCaption" xml:space="preserve">
-    <value>SonarQube Server Security Hotspots</value>
-  </data>
   <data name="StartedPackageInitialization" xml:space="preserve">
     <value>Initializing security package...</value>
   </data>
