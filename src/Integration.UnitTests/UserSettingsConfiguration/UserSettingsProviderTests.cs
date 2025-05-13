@@ -63,6 +63,24 @@ public class UserSettingsProviderTests
             MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
 
     [TestMethod]
+    public void MefCtor_ISolutionUserSettingsUpdater_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<UserSettingsProvider, ISolutionRawSettingsService>(
+            MefTestHelpers.CreateExport<ILogger>(),
+            MefTestHelpers.CreateExport<IGlobalSettingsStorage>(),
+            MefTestHelpers.CreateExport<ISolutionSettingsStorage>(),
+            MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
+            MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
+
+    [TestMethod]
+    public void MefCtor_IGlobalUserSettingsUpdater_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<UserSettingsProvider, IGlobalRawSettingsService>(
+            MefTestHelpers.CreateExport<ILogger>(),
+            MefTestHelpers.CreateExport<IGlobalSettingsStorage>(),
+            MefTestHelpers.CreateExport<ISolutionSettingsStorage>(),
+            MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
+            MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
+
+    [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<UserSettingsProvider>();
 
     [TestMethod]
@@ -138,12 +156,10 @@ public class UserSettingsProviderTests
     {
         activeSolutionTracker.CurrentSolutionName.ReturnsNull();
         var testSubject = CreateAndInitializeTestSubject();
-        var initialSettings = GetInitialSettings(testSubject);
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
-        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(true, SolutionName1));
+        VerifyCacheInvalidated(testSubject, () => activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(true, SolutionName1)));
 
-        testSubject.UserSettings.Should().NotBeSameAs(initialSettings);
         settingsChanged.Received(1).Invoke(testSubject, EventArgs.Empty);
     }
 
@@ -151,12 +167,10 @@ public class UserSettingsProviderTests
     public void SolutionClosed_InvalidatesCacheAndDoesNotRaiseEvent()
     {
         var testSubject = CreateAndInitializeTestSubject();
-        var initialSettings = GetInitialSettings(testSubject);
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
-        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(false, null));
+        VerifyCacheInvalidated(testSubject, () => activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(false, null)));
 
-        testSubject.UserSettings.Should().NotBeSameAs(initialSettings);
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
     }
 
@@ -182,7 +196,7 @@ public class UserSettingsProviderTests
     {
         var rules = ImmutableDictionary.Create<string, RuleConfig>().Add("rules", default);
         var fileExclusions = ImmutableArray.Create("exclusions");
-        SetupGlobalSettings(new GlobalAnalysisSettings(rules, fileExclusions));
+        SetupGlobalSettings(new GlobalRawAnalysisSettings(rules, fileExclusions));
         SetupNoSolutionSettings();
         var testSubject = CreateAndInitializeTestSubject();
 
@@ -197,8 +211,8 @@ public class UserSettingsProviderTests
     {
         var rules = ImmutableDictionary.Create<string, RuleConfig>().Add("rules", default);
         var fileExclusions = ImmutableArray.Create("exclusions");
-        SetupGlobalSettings(new GlobalAnalysisSettings(rules, fileExclusions));
-        SetupSolutionSettings(solutionAnalysisSettings: null);
+        SetupGlobalSettings(new GlobalRawAnalysisSettings(rules, fileExclusions));
+        SetupSolutionSettings(solutionRawAnalysisSettings: null);
         var testSubject = CreateAndInitializeTestSubject();
 
         var userSettings = testSubject.UserSettings;
@@ -212,10 +226,10 @@ public class UserSettingsProviderTests
     {
         var rules = ImmutableDictionary.Create<string, RuleConfig>().Add("rules", default);
         var globalFileExclusions = ImmutableArray.Create("exclusions");
-        SetupGlobalSettings(new GlobalAnalysisSettings(rules, globalFileExclusions));
+        SetupGlobalSettings(new GlobalRawAnalysisSettings(rules, globalFileExclusions));
         var properties = ImmutableDictionary.Create<string, string>().Add("properties", default);
         var solutionFileExclusions = ImmutableArray.Create("solution/exclusions");
-        SetupSolutionSettings(new SolutionAnalysisSettings(properties, solutionFileExclusions));
+        SetupSolutionSettings(new SolutionRawAnalysisSettings(properties, solutionFileExclusions));
         var testSubject = CreateAndInitializeTestSubject();
 
         var userSettings = testSubject.UserSettings;
@@ -229,7 +243,7 @@ public class UserSettingsProviderTests
         SetupNoGlobalSettings();
         var properties = ImmutableDictionary.Create<string, string>().Add("properties", default);
         var solutionFileExclusions = ImmutableArray.Create("solution/exclusions");
-        SetupSolutionSettings(new SolutionAnalysisSettings(properties, solutionFileExclusions));
+        SetupSolutionSettings(new SolutionRawAnalysisSettings(properties, solutionFileExclusions));
         var testSubject = CreateAndInitializeTestSubject();
 
         var userSettings = testSubject.UserSettings;
@@ -242,12 +256,11 @@ public class UserSettingsProviderTests
     public void GlobalSettingsChanged_InvalidatesCacheAndRaisesEvent()
     {
         var testSubject = CreateAndInitializeTestSubject();
-        var initialSettings = GetInitialSettings(testSubject);
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
-        globalSettingsStorage.SettingsFileChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(false, null));
+        VerifyCacheInvalidated(testSubject, () =>
+            globalSettingsStorage.SettingsFileChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(false, null)));
 
-        testSubject.UserSettings.Should().NotBeSameAs(initialSettings);
         settingsChanged.Received(1).Invoke(testSubject, EventArgs.Empty);
     }
 
@@ -255,104 +268,216 @@ public class UserSettingsProviderTests
     public void SolutionSettingsChanged_InvalidatesCacheAndRaisesEvent()
     {
         var testSubject = CreateAndInitializeTestSubject();
-        var initialSettings = GetInitialSettings(testSubject);
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
-        solutionSettingsStorage.SettingsFileChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(false, null));
+        VerifyCacheInvalidated(testSubject, () =>
+            solutionSettingsStorage.SettingsFileChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(false, null)));
 
-        testSubject.UserSettings.Should().NotBeSameAs(initialSettings);
         settingsChanged.Received(1).Invoke(testSubject, EventArgs.Empty);
     }
 
     [TestMethod]
     public void DisableRule_UpdatesGlobalSettingsWithoutRaisingEvent()
     {
+        SetupGlobalSettings(new GlobalRawAnalysisSettings());
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
-        testSubject.DisableRule("somerule");
+        ((IGlobalRawSettingsService)testSubject).DisableRule("somerule");
 
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
-        globalSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<GlobalAnalysisSettings>(x => x.Rules.ContainsKey("somerule") && x.Rules["somerule"].Level == RuleLevel.Off));
+        globalSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<GlobalRawAnalysisSettings>(x => x.Rules.ContainsKey("somerule") && x.Rules["somerule"].Level == RuleLevel.Off));
     }
 
     [TestMethod]
     public void DisableRule_EnabledRule_UpdatesGlobalSettingsWithoutRaisingEvent()
     {
-        SetupGlobalSettings(new GlobalAnalysisSettings(rules: ImmutableDictionary.Create<string, RuleConfig>().Add("somerule", new RuleConfig(RuleLevel.On)), ImmutableArray<string>.Empty));
+        SetupGlobalSettings(new GlobalRawAnalysisSettings(rules: ImmutableDictionary.Create<string, RuleConfig>().Add("somerule", new RuleConfig(RuleLevel.On)), ImmutableArray<string>.Empty));
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
-        testSubject.DisableRule("somerule");
+        ((IGlobalRawSettingsService)testSubject).DisableRule("somerule");
 
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
-        globalSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<GlobalAnalysisSettings>(x => x.Rules.ContainsKey("somerule") && x.Rules["somerule"].Level == RuleLevel.Off));
+        globalSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<GlobalRawAnalysisSettings>(x => x.Rules.ContainsKey("somerule") && x.Rules["somerule"].Level == RuleLevel.Off));
     }
 
     [TestMethod]
     public void DisableRule_OtherRuleNotDisabled_UpdatesGlobalSettingsWithoutRaisingEvent()
     {
-        SetupGlobalSettings(new GlobalAnalysisSettings(rules: ImmutableDictionary.Create<string, RuleConfig>().Add("someotherrule", new RuleConfig(RuleLevel.On)), ImmutableArray<string>.Empty));
+        SetupGlobalSettings(new GlobalRawAnalysisSettings(rules: ImmutableDictionary.Create<string, RuleConfig>().Add("someotherrule", new RuleConfig(RuleLevel.On)), ImmutableArray<string>.Empty));
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
-        testSubject.DisableRule("somerule");
+        ((IGlobalRawSettingsService)testSubject).DisableRule("somerule");
 
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
         globalSettingsStorage.Received(1).SaveSettingsFile(
-            Arg.Is<GlobalAnalysisSettings>(x =>
+            Arg.Is<GlobalRawAnalysisSettings>(x =>
                 x.Rules.ContainsKey("somerule") && x.Rules["somerule"].Level == RuleLevel.Off && x.Rules.ContainsKey("someotherrule") && x.Rules["someotherrule"].Level == RuleLevel.On));
+    }
+
+    [TestMethod]
+    public void DisableRule_InvalidatesCache()
+    {
+        var testSubject = CreateAndInitializeTestSubject();
+
+        VerifyCacheInvalidated(testSubject, () =>
+            ((IGlobalRawSettingsService)testSubject).DisableRule("somerule"));
+
+        globalSettingsStorage.Received(1).SaveSettingsFile(
+            Arg.Is<GlobalRawAnalysisSettings>(x =>
+                x.Rules.ContainsKey("somerule") && x.Rules["somerule"].Level == RuleLevel.Off));
     }
 
     [TestMethod]
     public void UpdateGlobalFileExclusions_UpdatesGlobalSettingsWithoutRaisingEvent()
     {
+        SetupGlobalSettings(new GlobalRawAnalysisSettings());
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
         string[] exclusions = ["1", "two", "3"];
 
-        testSubject.UpdateGlobalFileExclusions(exclusions);
+        ((IGlobalRawSettingsService)testSubject).UpdateFileExclusions(exclusions);
 
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
-        globalSettingsStorage.SaveSettingsFile(Arg.Is<GlobalAnalysisSettings>(x => x.UserDefinedFileExclusions.SequenceEqual(exclusions, default)));
+        globalSettingsStorage.SaveSettingsFile(Arg.Is<GlobalRawAnalysisSettings>(x => x.UserDefinedFileExclusions.SequenceEqual(exclusions, default)));
+    }
+
+    [TestMethod]
+    public void UpdateGlobalFileExclusions_InvalidatesCache()
+    {
+        SetupGlobalSettings(new GlobalRawAnalysisSettings());
+        var testSubject = CreateAndInitializeTestSubject();
+        string[] exclusions = ["1", "two", "3"];
+
+        VerifyCacheInvalidated(testSubject, () =>
+            ((IGlobalRawSettingsService)testSubject).UpdateFileExclusions(exclusions));
+
+        globalSettingsStorage.SaveSettingsFile(Arg.Is<GlobalRawAnalysisSettings>(x => x.UserDefinedFileExclusions.SequenceEqual(exclusions, default)));
     }
 
     [TestMethod]
     public void UpdateSolutionFileExclusions_UpdatesSolutionSettingsWithoutRaisingEvent()
     {
+        SetupSolutionSettings(new SolutionRawAnalysisSettings());
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
         string[] exclusions = ["1", "two", "3"];
 
-        testSubject.UpdateSolutionFileExclusions(exclusions);
+        ((ISolutionRawSettingsService)testSubject).UpdateFileExclusions(exclusions);
 
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
-        solutionSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<SolutionAnalysisSettings>(x => x.UserDefinedFileExclusions.SequenceEqual(exclusions, default)));
+        solutionSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<SolutionRawAnalysisSettings>(x => x.UserDefinedFileExclusions.SequenceEqual(exclusions, default)));
+    }
+
+    [TestMethod]
+    public void UpdateSolutionFileExclusions_InvalidatesCache()
+    {
+        SetupSolutionSettings(new SolutionRawAnalysisSettings());
+        var testSubject = CreateAndInitializeTestSubject();
+        string[] exclusions = ["1", "two", "3"];
+
+        VerifyCacheInvalidated(testSubject, () =>
+            ((ISolutionRawSettingsService)testSubject).UpdateFileExclusions(exclusions));
+
+        solutionSettingsStorage.SaveSettingsFile(Arg.Is<SolutionRawAnalysisSettings>(x => x.UserDefinedFileExclusions.SequenceEqual(exclusions, default)));
     }
 
     [TestMethod]
     public void UpdateAnalysisProperties_UpdatesSolutionSettingsWithoutRaisingEvent()
     {
         var exclusions = ImmutableArray.Create("file1");
-        SetupSolutionSettings(new SolutionAnalysisSettings(ImmutableDictionary<string, string>.Empty, exclusions));
+        SetupSolutionSettings(new SolutionRawAnalysisSettings(ImmutableDictionary<string, string>.Empty, exclusions));
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
         var analysisProperties = new Dictionary<string, string> { ["prop"] = "value" };
 
-        testSubject.UpdateAnalysisProperties(analysisProperties);
+        ((ISolutionRawSettingsService)testSubject).UpdateAnalysisProperties(analysisProperties);
 
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
-        solutionSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<SolutionAnalysisSettings>(x =>
+        solutionSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<SolutionRawAnalysisSettings>(x =>
             x.AnalysisProperties.Count == 1
             && x.AnalysisProperties["prop"] == "value"
             && x.UserDefinedFileExclusions.Length == 1
             && x.UserDefinedFileExclusions[0] == "file1"));
     }
 
+    [TestMethod]
+    public void UpdateAnalysisProperties_InvalidatesCache()
+    {
+        SetupSolutionSettings(new SolutionRawAnalysisSettings(ImmutableDictionary<string, string>.Empty, ImmutableArray<string>.Empty));
+        var testSubject = CreateAndInitializeTestSubject();
+        var analysisProperties = new Dictionary<string, string> { ["prop"] = "value" };
+
+        VerifyCacheInvalidated(testSubject, () =>
+            ((ISolutionRawSettingsService)testSubject).UpdateAnalysisProperties(analysisProperties));
+
+        solutionSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<SolutionRawAnalysisSettings>(x =>
+            x.AnalysisProperties.Count == 1 && x.AnalysisProperties["prop"] == "value"));
+    }
+
+    [TestMethod]
+    public void GlobalSettings_LoadsCorrectExclusions()
+    {
+        var globalAnalysisSettings = new GlobalRawAnalysisSettings(rules: ImmutableDictionary.Create<string, RuleConfig>().Add("rule", new RuleConfig(RuleLevel.On)), ImmutableArray.Create("*.css"));
+        SetupGlobalSettings(globalAnalysisSettings);
+        SetupSolutionSettings(new SolutionRawAnalysisSettings(ImmutableDictionary.Create<string, string>().Add("props", "value"), ImmutableArray<string>.Empty));
+
+        var testSubject = CreateAndInitializeTestSubject();
+
+        testSubject.UserSettings.AnalysisSettings.NormalizedFileExclusions.Should().BeEquivalentTo("**/*.css");
+        testSubject.GlobalRawAnalysisSettings.UserDefinedFileExclusions.Should().BeEquivalentTo(globalAnalysisSettings.UserDefinedFileExclusions);
+        testSubject.GlobalRawAnalysisSettings.Rules.Should().BeEquivalentTo(globalAnalysisSettings.Rules);
+    }
+
+    [TestMethod]
+    public void SolutionSettings_LoadsCorrectExclusions()
+    {
+        SetupGlobalSettings(new GlobalRawAnalysisSettings(rules: ImmutableDictionary.Create<string, RuleConfig>().Add("rule", new RuleConfig(RuleLevel.On)), ImmutableArray.Create("*.css")));
+        var solutionAnalysisSettings = new SolutionRawAnalysisSettings(ImmutableDictionary.Create<string, string>().Add("props", "value"), ImmutableArray.Create("*.cs"));
+        SetupSolutionSettings(solutionAnalysisSettings);
+
+        var testSubject = CreateAndInitializeTestSubject();
+
+        testSubject.UserSettings.AnalysisSettings.NormalizedFileExclusions.Should().BeEquivalentTo("**/*.cs");
+        testSubject.SolutionRawAnalysisSettings.UserDefinedFileExclusions.Should().BeEquivalentTo(solutionAnalysisSettings.UserDefinedFileExclusions);
+        testSubject.SolutionRawAnalysisSettings.AnalysisProperties.Should().BeEquivalentTo(solutionAnalysisSettings.AnalysisProperties);
+    }
+
+    private void VerifyCacheInvalidated(UserSettingsProvider testSubject, Action actionToPerform)
+    {
+        globalSettingsStorage.LoadSettingsFile().Returns(new GlobalRawAnalysisSettings(), new GlobalRawAnalysisSettings());
+        solutionSettingsStorage.LoadSettingsFile().Returns(new SolutionRawAnalysisSettings(), new SolutionRawAnalysisSettings());
+        var initialUserSettings = GetInitialSettings(testSubject);
+        var initialGlobalSettings = GetInitialGlobalSettings(testSubject);
+        var initialSolutionSettings = GetInitialSolutionSettings(testSubject);
+
+        actionToPerform();
+
+        testSubject.UserSettings.Should().NotBeSameAs(initialUserSettings);
+        testSubject.GlobalRawAnalysisSettings.Should().NotBeSameAs(initialGlobalSettings);
+        testSubject.SolutionRawAnalysisSettings.Should().NotBeSameAs(initialSolutionSettings);
+    }
+
     private static UserSettings GetInitialSettings(UserSettingsProvider testSubject)
     {
         var initialSettings = testSubject.UserSettings;
         testSubject.UserSettings.Should().BeSameAs(initialSettings); // cache is persistent
+        return initialSettings;
+    }
+
+    private static GlobalRawAnalysisSettings GetInitialGlobalSettings(UserSettingsProvider testSubject)
+    {
+        var initialSettings = testSubject.GlobalRawAnalysisSettings;
+        testSubject.GlobalRawAnalysisSettings.Should().BeSameAs(initialSettings); // cache is persistent
+        return initialSettings;
+    }
+
+    private static SolutionRawAnalysisSettings GetInitialSolutionSettings(UserSettingsProvider testSubject)
+    {
+        var initialSettings = testSubject.SolutionRawAnalysisSettings;
+        testSubject.SolutionRawAnalysisSettings.Should().BeSameAs(initialSettings); // cache is persistent
         return initialSettings;
     }
 
@@ -391,18 +516,18 @@ public class UserSettingsProviderTests
         solutionSettingsStorage.ConfigurationBaseDirectory.Returns((string)null);
     }
 
-    private void SetupSolutionSettings(SolutionAnalysisSettings solutionAnalysisSettings)
+    private void SetupSolutionSettings(SolutionRawAnalysisSettings solutionRawAnalysisSettings)
     {
-        solutionSettingsStorage.LoadSettingsFile().Returns(solutionAnalysisSettings);
+        solutionSettingsStorage.LoadSettingsFile().Returns(solutionRawAnalysisSettings);
         solutionSettingsStorage.SettingsFilePath.Returns(SolutionSettingsFilePath);
         solutionSettingsStorage.ConfigurationBaseDirectory.Returns(SolutionGeneratedSettingsFolderPath);
     }
 
     private void SetupNoGlobalSettings() => SetupGlobalSettings(null);
 
-    private void SetupGlobalSettings(GlobalAnalysisSettings globalAnalysisSettings)
+    private void SetupGlobalSettings(GlobalRawAnalysisSettings globalRawAnalysisSettings)
     {
-        globalSettingsStorage.LoadSettingsFile().Returns(globalAnalysisSettings);
+        globalSettingsStorage.LoadSettingsFile().Returns(globalRawAnalysisSettings);
         globalSettingsStorage.SettingsFilePath.Returns(GlobalSettingsFilePath);
         globalSettingsStorage.ConfigurationBaseDirectory.Returns(GlobalGeneratedSettingsFolderPath);
     }

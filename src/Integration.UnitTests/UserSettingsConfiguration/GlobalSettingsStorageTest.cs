@@ -124,7 +124,7 @@ public class GlobalSettingsStorageTest
         testSubject.EnsureSettingsFileExists();
 
         fileSystem.File.Received().Exists(GlobalSettingsFilePath);
-        serializer.Received().SafeSave(GlobalSettingsFilePath, Arg.Any<GlobalAnalysisSettings>());
+        serializer.Received().SafeSave(GlobalSettingsFilePath, Arg.Any<GlobalRawAnalysisSettings>());
     }
 
     [TestMethod]
@@ -137,14 +137,14 @@ public class GlobalSettingsStorageTest
         testSubject.EnsureSettingsFileExists();
 
         fileSystem.File.Received().Exists(GlobalSettingsFilePath);
-        serializer.DidNotReceiveWithAnyArgs().SafeSave(default, default(GlobalAnalysisSettings));
+        serializer.DidNotReceiveWithAnyArgs().SafeSave(default, default(GlobalRawAnalysisSettings));
     }
 
     [TestMethod]
     public void SaveSettingsFile_SavesSettings()
     {
         var testSubject = CreateAndInitializeTestSubject();
-        var analysisSettings = new GlobalAnalysisSettings();
+        var analysisSettings = new GlobalRawAnalysisSettings();
 
         testSubject.SaveSettingsFile(analysisSettings);
 
@@ -155,12 +155,12 @@ public class GlobalSettingsStorageTest
     public void LoadSettingsFile_SavesSettings()
     {
         var testSubject = CreateAndInitializeTestSubject();
-        var expectedSettings = new GlobalAnalysisSettings();
-        serializer.SafeLoad<GlobalAnalysisSettings>(GlobalSettingsFilePath).Returns(expectedSettings);
+        var expectedSettings = new GlobalRawAnalysisSettings();
+        serializer.SafeLoad<GlobalRawAnalysisSettings>(GlobalSettingsFilePath).Returns(expectedSettings);
 
         var result = testSubject.LoadSettingsFile();
 
-        serializer.Received(1).SafeLoad<GlobalAnalysisSettings>(GlobalSettingsFilePath);
+        serializer.Received(1).SafeLoad<GlobalRawAnalysisSettings>(GlobalSettingsFilePath);
         result.Should().BeSameAs(expectedSettings);
     }
 

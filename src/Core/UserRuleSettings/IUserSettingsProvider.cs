@@ -30,7 +30,10 @@ public interface IUserSettingsProvider : IRequireInitialization
     UserSettings UserSettings { get; }
 
     event EventHandler SettingsChanged;
+}
 
+public interface IGlobalRawSettingsService
+{
     /// <summary>
     /// Updates the user settings to disable the specified rule
     /// </summary>
@@ -39,8 +42,13 @@ public interface IUserSettingsProvider : IRequireInitialization
     /// <summary>
     /// Updates the user settings to include the provided global file exclusions. The value will override existing exclusions.
     /// </summary>
-    void UpdateGlobalFileExclusions(IEnumerable<string> exclusions);
+    void UpdateFileExclusions(IEnumerable<string> exclusions);
 
+    public GlobalRawAnalysisSettings GlobalRawAnalysisSettings { get; }
+}
+
+public interface ISolutionRawSettingsService
+{
     /// <summary>
     /// Updates the solution level analysis settings to include the provided analysis properties. The value will override existing analysis settings.
     /// </summary>
@@ -49,5 +57,7 @@ public interface IUserSettingsProvider : IRequireInitialization
     /// <summary>
     /// Updates the user settings to include the provided solution file exclusions. The value will override existing exclusions.
     /// </summary>
-    void UpdateSolutionFileExclusions(IEnumerable<string> exclusions);
+    void UpdateFileExclusions(IEnumerable<string> exclusions);
+
+    public SolutionRawAnalysisSettings SolutionRawAnalysisSettings { get; }
 }

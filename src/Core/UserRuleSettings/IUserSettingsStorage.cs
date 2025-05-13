@@ -36,10 +36,10 @@ public interface IUserSettingsStorage<T> : IRequireInitialization, IDisposable
     T LoadSettingsFile();
 }
 
-public interface IGlobalSettingsStorage : IUserSettingsStorage<GlobalAnalysisSettings>
+public interface IGlobalSettingsStorage : IUserSettingsStorage<GlobalRawAnalysisSettings>
 {
 }
 
-public interface ISolutionSettingsStorage : IUserSettingsStorage<SolutionAnalysisSettings>
+public interface ISolutionSettingsStorage : IUserSettingsStorage<SolutionRawAnalysisSettings>
 {
 }

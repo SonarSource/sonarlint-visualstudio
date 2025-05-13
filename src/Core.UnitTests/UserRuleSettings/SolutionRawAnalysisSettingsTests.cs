@@ -24,24 +24,20 @@ using SonarLint.VisualStudio.Core.UserRuleSettings;
 namespace SonarLint.VisualStudio.Core.UnitTests.UserRuleSettings;
 
 [TestClass]
-public class GlobalAnalysisSettingsTests
+public class SolutionRawAnalysisSettingsTests
 {
     [TestMethod]
-    public void GlobalAnalysisSettings_SerializesCorrectly()
+    public void SolutionAnalysisSettings_SerializesCorrectly()
     {
-        var settings = new GlobalAnalysisSettings(
-            new Dictionary<string, RuleConfig> { { "typescript:S2685", new RuleConfig(RuleLevel.On, new Dictionary<string, string> { { "key1", "value1" } }) } },
+        var settings = new SolutionRawAnalysisSettings(
+            new Dictionary<string, string> { { "key1", "value1" }, { "key2", "value2" } },
             ["file1.cpp", "**/obj/*", "file2.cpp"]);
         const string expectedJson =
             """
             {
-              "sonarlint.rules": {
-                "typescript:S2685": {
-                  "level": "On",
-                  "parameters": {
-                    "key1": "value1"
-                  }
-                }
+              "sonarlint.analyzerProperties": {
+                "key2": "value2",
+                "key1": "value1"
               },
               "sonarlint.analysisExcludesStandalone": "file1.cpp,**/obj/*,file2.cpp"
             }
@@ -53,37 +49,33 @@ public class GlobalAnalysisSettingsTests
     }
 
     [TestMethod]
-    public void GlobalAnalysisSettings_DeserializesCorrectly()
+    public void SolutionAnalysisSettings_DeserializesCorrectly()
     {
         const string json = """
                             {
-                              "sonarlint.rules": {
-                                "typescript:S2685": {
-                                  "level": "On",
-                                  "parameters": {
-                                    "key1": "value1"
-                                  }
-                                }
+                              "sonarlint.analyzerProperties": {
+                                "key1": "value1",
+                                "key2": "value2"
                               },
                               "sonarlint.analysisExcludesStandalone": "file1.cpp,**/obj/*,file2.cpp"
                             }
                             """;
 
-        var settings = JsonConvert.DeserializeObject<GlobalAnalysisSettings>(json);
+        var settings = JsonConvert.DeserializeObject<SolutionRawAnalysisSettings>(json);
 
-        settings.Rules.Should().BeEquivalentTo(
-            new Dictionary<string, RuleConfig> { { "typescript:S2685", new RuleConfig(RuleLevel.On, new Dictionary<string, string> { { "key1", "value1" } }) } });
-        settings.UserDefinedFileExclusions.Should().BeEquivalentTo("file1.cpp", "**/obj/*", "file2.cpp");
+        settings.AnalysisProperties.Should().BeEquivalentTo(
+            new Dictionary<string, string> { { "key1", "value1" }, { "key2", "value2" } });
+        settings.UserDefinedFileExclusions.Should().BeEquivalentTo(["file1.cpp", "**/obj/*", "file2.cpp"]);
     }
 
     [TestMethod]
-    public void GlobalAnalysisSettings_FileExclusions_SerializesCorrectly()
+    public void SolutionAnalysisSettings_FileExclusions_SerializesCorrectly()
     {
-        var settings = new GlobalAnalysisSettings([], ["file1.cpp", "**/obj/*", "file2.cpp"]);
+        var settings = new SolutionRawAnalysisSettings([], ["file1.cpp", "**/obj/*", "file2.cpp"]);
         const string expectedJson =
             """
             {
-              "sonarlint.rules": {},
+              "sonarlint.analyzerProperties": {},
               "sonarlint.analysisExcludesStandalone": "file1.cpp,**/obj/*,file2.cpp"
             }
             """;
@@ -94,13 +86,13 @@ public class GlobalAnalysisSettingsTests
     }
 
     [TestMethod]
-    public void GlobalAnalysisSettings_FileExclusionsWithSpaces_SerializesCorrectlyAndTrims()
+    public void SolutionAnalysisSettings_FileExclusionsWithSpaces_SerializesCorrectlyAndTrims()
     {
-        var settings = new GlobalAnalysisSettings([], ["file1.cpp ", " **/My Folder/*", "file2.cpp "]);
+        var settings = new SolutionRawAnalysisSettings([], ["file1.cpp ", " **/My Folder/*", "file2.cpp "]);
         const string expectedJson =
             """
             {
-              "sonarlint.rules": {},
+              "sonarlint.analyzerProperties": {},
               "sonarlint.analysisExcludesStandalone": "file1.cpp,**/My Folder/*,file2.cpp"
             }
             """;
@@ -111,13 +103,13 @@ public class GlobalAnalysisSettingsTests
     }
 
     [TestMethod]
-    public void GlobalAnalysisSettings_FileExclusions_Serializes()
+    public void SolutionAnalysisSettings_FileExclusions_Serializes()
     {
-        var settings = new GlobalAnalysisSettings();
+        var settings = new SolutionRawAnalysisSettings();
         const string expectedJson =
             """
             {
-              "sonarlint.rules": {},
+              "sonarlint.analyzerProperties": {},
               "sonarlint.analysisExcludesStandalone": ""
             }
             """;
@@ -128,61 +120,61 @@ public class GlobalAnalysisSettingsTests
     }
 
     [TestMethod]
-    public void GlobalAnalysisSettings_FileExclusionsWithBackslashes_DeserializesCorrectly()
+    public void SolutionAnalysisSettings_FileExclusionsWithBackslashes_DeserializesCorrectly()
     {
         const string json = """
                             {
-                              "sonarlint.rules": {},
+                              "sonarlint.analyzerProperties": {},
                               "sonarlint.analysisExcludesStandalone": "a\\file1.cpp,**\\obj\\*,,file2.cpp"
                             }
                             """;
 
-        var settings = JsonConvert.DeserializeObject<GlobalAnalysisSettings>(json);
+        var settings = JsonConvert.DeserializeObject<SolutionRawAnalysisSettings>(json);
 
         settings.UserDefinedFileExclusions.Should().BeEquivalentTo("a\\file1.cpp", "**\\obj\\*", "file2.cpp");
     }
 
     [TestMethod]
-    public void GlobalAnalysisSettings_FileExclusionsWithSpaces_DeserializesCorrectly()
+    public void SolutionAnalysisSettings_FileExclusionsWithSpaces_DeserializesCorrectly()
     {
         const string json = """
                             {
-                              "sonarlint.rules": {},
+                              "sonarlint.analyzerProperties": {},
                               "sonarlint.analysisExcludesStandalone": " file1.cpp, **/My Folder/*, file2.cpp "
                             }
                             """;
 
-        var settings = JsonConvert.DeserializeObject<GlobalAnalysisSettings>(json);
+        var settings = JsonConvert.DeserializeObject<SolutionRawAnalysisSettings>(json);
 
         settings.UserDefinedFileExclusions.Should().BeEquivalentTo("file1.cpp", "**/My Folder/*", "file2.cpp");
     }
 
     [TestMethod]
-    public void GlobalAnalysisSettings_NullExclusions_DeserializesWithDefaultValue()
+    public void SolutionAnalysisSettings_NullExclusions_DeserializesWithDefaultValue()
     {
         const string json = """
                             {
-                              "sonarlint.rules": {},
+                              "sonarlint.analyzerProperties": {},
                               "sonarlint.analysisExcludesStandalone": null
                             }
                             """;
 
-        var settings = JsonConvert.DeserializeObject<GlobalAnalysisSettings>(json);
+        var settings = JsonConvert.DeserializeObject<SolutionRawAnalysisSettings>(json);
 
         settings.UserDefinedFileExclusions.Should().BeEmpty();
     }
 
     [TestMethod]
-    public void GlobalAnalysisSettings_DeserializesAndIgnoresIfNotString()
+    public void SolutionAnalysisSettings_DeserializesAndIgnoresIfNotString()
     {
         const string json = """
                             {
-                              "sonarlint.rules": {},
+                              "sonarlint.analyzerProperties": {},
                               "sonarlint.analysisExcludesStandalone": 12
                             }
                             """;
 
-        var act = () => JsonConvert.DeserializeObject<GlobalAnalysisSettings>(json);
+        var act = () => JsonConvert.DeserializeObject<SolutionRawAnalysisSettings>(json);
 
         act.Should().ThrowExactly<JsonException>().WithMessage(
             string.Format(

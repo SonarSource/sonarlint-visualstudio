@@ -29,15 +29,17 @@ using SonarLint.VisualStudio.Integration.Resources;
 namespace SonarLint.VisualStudio.Integration.UserSettingsConfiguration;
 
 [Export(typeof(IUserSettingsProvider))]
+[Export(typeof(IGlobalRawSettingsService))]
+[Export(typeof(ISolutionRawSettingsService))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
+internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSettingsService, ISolutionRawSettingsService, IDisposable
 {
     private static readonly object Lock = new();
     private readonly IActiveSolutionTracker activeSolutionTracker;
     private readonly ILogger logger;
     private readonly IGlobalSettingsStorage globalSettingsStorage;
     private readonly ISolutionSettingsStorage solutionSettingsStorage;
-    private UserSettings userSettings;
+    private (UserSettings userSettings, GlobalRawAnalysisSettings globalSettings, SolutionRawAnalysisSettings solutionSettings)? cache;
     private bool disposed;
 
     [ImportingConstructor]
@@ -61,8 +63,8 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
                     return;
                 }
 
-                globalSettingsStorage.SettingsFileChanged += OnSettingsFileFileChanged;
-                solutionSettingsStorage.SettingsFileChanged += OnSettingsFileFileChanged;
+                globalSettingsStorage.SettingsFileChanged += OnSettingsFileChanged;
+                solutionSettingsStorage.SettingsFileChanged += OnSettingsFileChanged;
                 // The subscription to the ActiveSolutionTracker events should happen after the ISolutionSettingsStorage is initialized,
                 // as the storage depends on ActiveSolutionChanged to calculate the path to the settings file
                 // This prevents a situation in which we might try to load the settings file on solution changes before the storage is actually initialized
@@ -76,8 +78,8 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
         {
             lock (Lock)
             {
-                userSettings ??= SafeLoadUserSettings();
-                return userSettings;
+                cache ??= SafeLoadUserSettings();
+                return cache.Value.userSettings;
             }
         }
     }
@@ -85,35 +87,59 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
     public event EventHandler SettingsChanged;
     public IInitializationProcessor InitializationProcessor { get; }
 
-    public void UpdateSolutionFileExclusions(IEnumerable<string> exclusions)
+    public GlobalRawAnalysisSettings GlobalRawAnalysisSettings
     {
-        var solutionSettings = new SolutionAnalysisSettings(UserSettings.AnalysisSettings.AnalysisProperties, exclusions.ToImmutableArray());
-        solutionSettingsStorage.SaveSettingsFile(solutionSettings);
-        SafeClearUserSettingsCache();
+        get
+        {
+            lock (Lock)
+            {
+                cache ??= SafeLoadUserSettings();
+                return cache.Value.globalSettings;
+            }
+        }
     }
 
-    public void UpdateAnalysisProperties(Dictionary<string, string> analysisProperties)
-    {
-        var solutionSettings = new SolutionAnalysisSettings(analysisProperties, UserSettings.AnalysisSettings.SolutionFileExclusions);
-        solutionSettingsStorage.SaveSettingsFile(solutionSettings);
-        SafeClearUserSettingsCache();
-    }
-
-    public void DisableRule(string ruleId)
+    void IGlobalRawSettingsService.DisableRule(string ruleId)
     {
         Debug.Assert(!string.IsNullOrEmpty(ruleId), "DisableRule: ruleId should not be null/empty");
 
-        var newRules = UserSettings.AnalysisSettings.Rules.SetItem(ruleId, new RuleConfig(RuleLevel.Off));
-        var globalSettings = new GlobalAnalysisSettings(newRules, UserSettings.AnalysisSettings.GlobalFileExclusions);
+        var newRules = GlobalRawAnalysisSettings.Rules.SetItem(ruleId, new RuleConfig(RuleLevel.Off));
+        var globalSettings = new GlobalRawAnalysisSettings(newRules, GlobalRawAnalysisSettings.UserDefinedFileExclusions);
         globalSettingsStorage.SaveSettingsFile(globalSettings);
-        SafeClearUserSettingsCache();
+        SafeClearCache();
     }
 
-    public void UpdateGlobalFileExclusions(IEnumerable<string> exclusions)
+    void IGlobalRawSettingsService.UpdateFileExclusions(IEnumerable<string> exclusions)
     {
-        var globalSettings = new GlobalAnalysisSettings(UserSettings.AnalysisSettings.Rules, exclusions.ToImmutableArray());
+        var globalSettings = new GlobalRawAnalysisSettings(GlobalRawAnalysisSettings.Rules, exclusions.ToImmutableArray());
         globalSettingsStorage.SaveSettingsFile(globalSettings);
-        SafeClearUserSettingsCache();
+        SafeClearCache();
+    }
+
+    public SolutionRawAnalysisSettings SolutionRawAnalysisSettings
+    {
+        get
+        {
+            lock (Lock)
+            {
+                cache ??= SafeLoadUserSettings();
+                return cache.Value.solutionSettings;
+            }
+        }
+    }
+
+    void ISolutionRawSettingsService.UpdateAnalysisProperties(Dictionary<string, string> analysisProperties)
+    {
+        var solutionSettings = new SolutionRawAnalysisSettings(analysisProperties, SolutionRawAnalysisSettings.UserDefinedFileExclusions);
+        solutionSettingsStorage.SaveSettingsFile(solutionSettings);
+        SafeClearCache();
+    }
+
+    void ISolutionRawSettingsService.UpdateFileExclusions(IEnumerable<string> exclusions)
+    {
+        var solutionSettings = new SolutionRawAnalysisSettings(SolutionRawAnalysisSettings.AnalysisProperties, exclusions.ToImmutableArray());
+        solutionSettingsStorage.SaveSettingsFile(solutionSettings);
+        SafeClearCache();
     }
 
     public void Dispose()
@@ -122,9 +148,9 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
         {
             if (InitializationProcessor.IsFinalized)
             {
-                solutionSettingsStorage.SettingsFileChanged -= OnSettingsFileFileChanged;
+                solutionSettingsStorage.SettingsFileChanged -= OnSettingsFileChanged;
                 solutionSettingsStorage.Dispose();
-                globalSettingsStorage.SettingsFileChanged -= OnSettingsFileFileChanged;
+                globalSettingsStorage.SettingsFileChanged -= OnSettingsFileChanged;
                 globalSettingsStorage.Dispose();
                 activeSolutionTracker.ActiveSolutionChanged -= ActiveSolutionTrackerOnActiveSolutionChanged;
             }
@@ -132,13 +158,13 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
         }
     }
 
-    private void OnSettingsFileFileChanged(object sender, EventArgs e) => ResetConfiguration();
+    private void OnSettingsFileChanged(object sender, EventArgs e) => ResetConfiguration();
 
     private void ActiveSolutionTrackerOnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
     {
         if (!e.IsSolutionOpen || e.SolutionName == null)
         {
-            SafeClearUserSettingsCache();
+            SafeClearCache();
             return;
         }
 
@@ -147,40 +173,40 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
 
     private void ResetConfiguration()
     {
-        SafeClearUserSettingsCache();
+        SafeClearCache();
         SettingsChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    private void SafeClearUserSettingsCache()
+    private void SafeClearCache()
     {
         lock (Lock)
         {
-            userSettings = null;
+            cache = null;
         }
     }
 
-    private UserSettings SafeLoadUserSettings()
+    private (UserSettings userSettings, GlobalRawAnalysisSettings globalAnalysisSettings, SolutionRawAnalysisSettings solutionAnalysisSettings) SafeLoadUserSettings()
     {
-        var globalSettings = globalSettingsStorage.LoadSettingsFile();
+        var globalAnalysisSettings = globalSettingsStorage.LoadSettingsFile();
 
-        SolutionAnalysisSettings solutionSettings = null;
+        SolutionRawAnalysisSettings solutionRawAnalysisSettings = null;
         if (solutionSettingsStorage.SettingsFilePath != null)
         {
-            solutionSettings = solutionSettingsStorage.LoadSettingsFile();
+            solutionRawAnalysisSettings = solutionSettingsStorage.LoadSettingsFile();
         }
 
-        if (globalSettings == null && solutionSettings == null)
+        if (globalAnalysisSettings == null && solutionRawAnalysisSettings == null)
         {
             logger.WriteLine(Strings.Settings_UsingDefaultSettings);
-            return new UserSettings(new AnalysisSettings(), globalSettingsStorage.ConfigurationBaseDirectory);
+            return (new UserSettings(new AnalysisSettings(), globalSettingsStorage.ConfigurationBaseDirectory), globalAnalysisSettings, solutionRawAnalysisSettings);
         }
 
-        var rules = globalSettings?.Rules;
-        var globalExclusions = globalSettings?.UserDefinedFileExclusions;
-        var properties = solutionSettings?.AnalysisProperties;
-        var solutionExclusions = solutionSettings?.UserDefinedFileExclusions;
-        var generatedConfigsBase = solutionSettings != null ? solutionSettingsStorage.ConfigurationBaseDirectory : globalSettingsStorage.ConfigurationBaseDirectory;
+        var rules = globalAnalysisSettings?.Rules;
+        var globalExclusions = globalAnalysisSettings?.UserDefinedFileExclusions;
+        var properties = solutionRawAnalysisSettings?.AnalysisProperties;
+        var solutionExclusions = solutionRawAnalysisSettings?.UserDefinedFileExclusions;
+        var generatedConfigsBase = solutionRawAnalysisSettings != null ? solutionSettingsStorage.ConfigurationBaseDirectory : globalSettingsStorage.ConfigurationBaseDirectory;
 
-        return new UserSettings(new AnalysisSettings(rules, globalExclusions, solutionExclusions, properties), generatedConfigsBase);
+        return (new UserSettings(new AnalysisSettings(rules, globalExclusions, solutionExclusions, properties), generatedConfigsBase), globalAnalysisSettings, solutionRawAnalysisSettings);
     }
 }

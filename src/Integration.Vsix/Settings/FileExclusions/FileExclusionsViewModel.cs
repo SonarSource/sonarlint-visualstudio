@@ -25,7 +25,11 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 
-internal class FileExclusionsViewModel(IBrowserService browserService, IUserSettingsProvider userSettingsProvider, FileExclusionScope scope = FileExclusionScope.Global)
+internal class FileExclusionsViewModel(
+    IBrowserService browserService,
+    IGlobalRawSettingsService globalUserSettingsUpdater,
+    ISolutionRawSettingsService solutionUserSettingsUpdater,
+    FileExclusionScope scope = FileExclusionScope.Global)
     : ViewModelBase
 {
     private ExclusionViewModel selectedExclusion;
@@ -49,8 +53,8 @@ internal class FileExclusionsViewModel(IBrowserService browserService, IUserSett
         Exclusions.Clear();
 
         var exclusionViewModels = scope == FileExclusionScope.Global
-            ? userSettingsProvider.UserSettings.AnalysisSettings.GlobalFileExclusions.Select(ex => new ExclusionViewModel(ex))
-            : userSettingsProvider.UserSettings.AnalysisSettings.SolutionFileExclusions.Select(ex => new ExclusionViewModel(ex));
+            ? globalUserSettingsUpdater.GlobalRawAnalysisSettings.UserDefinedFileExclusions.Select(ex => new ExclusionViewModel(ex))
+            : solutionUserSettingsUpdater.SolutionRawAnalysisSettings.UserDefinedFileExclusions.Select(ex => new ExclusionViewModel(ex));
         exclusionViewModels.ToList().ForEach(vm => Exclusions.Add(vm));
 
         SelectedExclusion = Exclusions.FirstOrDefault();
@@ -62,11 +66,11 @@ internal class FileExclusionsViewModel(IBrowserService browserService, IUserSett
 
         if (scope == FileExclusionScope.Global)
         {
-            userSettingsProvider.UpdateGlobalFileExclusions(exclusionsToSave);
+            globalUserSettingsUpdater.UpdateFileExclusions(exclusionsToSave);
         }
         else
         {
-            userSettingsProvider.UpdateSolutionFileExclusions(exclusionsToSave);
+            solutionUserSettingsUpdater.UpdateFileExclusions(exclusionsToSave);
         }
     }
 

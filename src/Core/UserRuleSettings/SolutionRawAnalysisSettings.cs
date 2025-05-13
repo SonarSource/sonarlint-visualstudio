@@ -24,7 +24,7 @@ using SonarLint.VisualStudio.Core.Helpers;
 
 namespace SonarLint.VisualStudio.Core.UserRuleSettings;
 
-public class SolutionAnalysisSettings
+public class SolutionRawAnalysisSettings
 {
     [JsonProperty("sonarlint.analyzerProperties")]
     [JsonConverter(typeof(ImmutableDictionaryIgnoreCaseConverter<string, string>))]
@@ -34,14 +34,14 @@ public class SolutionAnalysisSettings
     [JsonConverter(typeof(CommaSeparatedStringArrayConverter))]
     public ImmutableArray<string> UserDefinedFileExclusions { get; init; }
 
-    public SolutionAnalysisSettings() : this(ImmutableDictionary<string, string>.Empty, ImmutableArray<string>.Empty) { }
+    public SolutionRawAnalysisSettings() : this(ImmutableDictionary<string, string>.Empty, ImmutableArray<string>.Empty) { }
 
-    public SolutionAnalysisSettings(Dictionary<string, string> analysisProperties, IEnumerable<string> fileExclusions) : this(
+    public SolutionRawAnalysisSettings(Dictionary<string, string> analysisProperties, IEnumerable<string> fileExclusions) : this(
         analysisProperties.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase), fileExclusions.ToImmutableArray())
     {
     }
 
-    public SolutionAnalysisSettings(ImmutableDictionary<string, string> analysisProperties, ImmutableArray<string> fileExclusions)
+    public SolutionRawAnalysisSettings(ImmutableDictionary<string, string> analysisProperties, ImmutableArray<string> fileExclusions)
     {
         AnalysisProperties = analysisProperties;
         UserDefinedFileExclusions = fileExclusions;

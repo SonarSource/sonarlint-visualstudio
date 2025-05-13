@@ -89,13 +89,13 @@ internal sealed class SolutionSettingsStorage : ISolutionSettingsStorage
 
         if (!fileSystem.File.Exists(SettingsFilePath))
         {
-            serializer.SafeSave(SettingsFilePath, new SolutionAnalysisSettings());
+            serializer.SafeSave(SettingsFilePath, new SolutionRawAnalysisSettings());
         }
     }
 
-    public void SaveSettingsFile(SolutionAnalysisSettings settings) => serializer.SafeSave(SettingsFilePath, settings);
+    public void SaveSettingsFile(SolutionRawAnalysisSettings settings) => serializer.SafeSave(SettingsFilePath, settings);
 
-    public SolutionAnalysisSettings LoadSettingsFile() => serializer.SafeLoad<SolutionAnalysisSettings>(SettingsFilePath);
+    public SolutionRawAnalysisSettings LoadSettingsFile() => serializer.SafeLoad<SolutionRawAnalysisSettings>(SettingsFilePath);
 
     public void Dispose()
     {
