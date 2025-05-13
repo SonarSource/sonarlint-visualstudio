@@ -153,9 +153,9 @@ public class FileExclusionsViewModelTests
     public void InitializeExclusions_InvokedMultipleTimes_DoesNotOverrideExclusionsCollection()
     {
         var initialInstance = globalFileExclusionsViewModel.Exclusions;
-        globalSettingsUpdater.GlobalFileExclusions.Returns(
-            ImmutableArray.Create(Pattern1),
-            ImmutableArray.Create(Pattern2)
+        globalSettingsUpdater.GlobalAnalysisSettings.Returns(new GlobalAnalysisSettings(
+                ImmutableDictionary<string, RuleConfig>.Empty, ImmutableArray.Create(Pattern1)),
+            new GlobalAnalysisSettings(ImmutableDictionary<string, RuleConfig>.Empty, ImmutableArray.Create(Pattern2))
         );
 
         globalFileExclusionsViewModel.InitializeExclusions();
@@ -214,7 +214,8 @@ public class FileExclusionsViewModelTests
         solutionSettingsUpdater.Received(1).UpdateSolutionFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
     }
 
-    private void MockGlobalExclusions(string[] globalFileExclusions) => globalSettingsUpdater.GlobalFileExclusions.Returns(globalFileExclusions.ToImmutableArray());
+    private void MockGlobalExclusions(string[] globalFileExclusions) => globalSettingsUpdater.GlobalAnalysisSettings.Returns(new GlobalAnalysisSettings([], globalFileExclusions.ToImmutableArray()));
 
-    private void MockSolutionExclusions(string[] solutionFileExclusions) => solutionSettingsUpdater.SolutionFileExclusions.Returns(solutionFileExclusions.ToImmutableArray());
+    private void MockSolutionExclusions(string[] solutionFileExclusions) =>
+        solutionSettingsUpdater.SolutionAnalysisSettings.Returns(new SolutionAnalysisSettings([], solutionFileExclusions.ToImmutableArray()));
 }

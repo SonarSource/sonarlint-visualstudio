@@ -285,6 +285,7 @@ public class UserSettingsProviderTests
     [TestMethod]
     public void DisableRule_UpdatesGlobalSettingsWithoutRaisingEvent()
     {
+        SetupGlobalSettings(new GlobalAnalysisSettings());
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
@@ -325,6 +326,7 @@ public class UserSettingsProviderTests
     [TestMethod]
     public void UpdateGlobalFileExclusions_UpdatesGlobalSettingsWithoutRaisingEvent()
     {
+        SetupGlobalSettings(new GlobalAnalysisSettings());
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
         string[] exclusions = ["1", "two", "3"];
@@ -338,6 +340,7 @@ public class UserSettingsProviderTests
     [TestMethod]
     public void UpdateSolutionFileExclusions_UpdatesSolutionSettingsWithoutRaisingEvent()
     {
+        SetupSolutionSettings(new SolutionAnalysisSettings());
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
         string[] exclusions = ["1", "two", "3"];
@@ -368,29 +371,31 @@ public class UserSettingsProviderTests
     }
 
     [TestMethod]
-    public void GlobalSettings_ReturnsUserSettingsExclusions()
+    public void GlobalSettings_LoadsCorrectExclusions()
     {
+        var globalAnalysisSettings = new GlobalAnalysisSettings(rules: ImmutableDictionary.Create<string, RuleConfig>().Add("rule", new RuleConfig(RuleLevel.On)), ImmutableArray.Create("*.css"));
+        SetupGlobalSettings(globalAnalysisSettings);
+        SetupSolutionSettings(new SolutionAnalysisSettings(ImmutableDictionary.Create<string, string>().Add("props", "value"), ImmutableArray<string>.Empty));
+
         var testSubject = CreateAndInitializeTestSubject();
-        SetupGlobalSettings(new GlobalAnalysisSettings(rules: ImmutableDictionary.Create<string, RuleConfig>().Add("rule", new RuleConfig(RuleLevel.On)), ImmutableArray.Create("*.css")));
-        SetupSolutionSettings(new SolutionAnalysisSettings(ImmutableDictionary.Create<string, string>().Add("props", "value"), ImmutableArray.Create("*.cs")));
 
-        var settings = testSubject.UserSettings;
-
-        testSubject.GlobalFileExclusions.Should().BeEquivalentTo(settings.AnalysisSettings.GlobalFileExclusions);
-        testSubject.Rules.Should().BeEquivalentTo(settings.AnalysisSettings.Rules);
+        testSubject.UserSettings.AnalysisSettings.NormalizedFileExclusions.Should().BeEquivalentTo("**/*.css");
+        testSubject.GlobalAnalysisSettings.UserDefinedFileExclusions.Should().BeEquivalentTo(globalAnalysisSettings.UserDefinedFileExclusions);
+        testSubject.GlobalAnalysisSettings.Rules.Should().BeEquivalentTo(globalAnalysisSettings.Rules);
     }
 
     [TestMethod]
-    public void SolutionSettings_ReturnsUserSettingsExclusions()
+    public void SolutionSettings_LoadsCorrectExclusions()
     {
-        var testSubject = CreateAndInitializeTestSubject();
         SetupGlobalSettings(new GlobalAnalysisSettings(rules: ImmutableDictionary.Create<string, RuleConfig>().Add("rule", new RuleConfig(RuleLevel.On)), ImmutableArray.Create("*.css")));
-        SetupSolutionSettings(new SolutionAnalysisSettings(ImmutableDictionary.Create<string, string>().Add("props", "value"), ImmutableArray.Create("*.cs")));
+        var solutionAnalysisSettings = new SolutionAnalysisSettings(ImmutableDictionary.Create<string, string>().Add("props", "value"), ImmutableArray.Create("*.cs"));
+        SetupSolutionSettings(solutionAnalysisSettings);
 
-        var settings = testSubject.UserSettings;
+        var testSubject = CreateAndInitializeTestSubject();
 
-        testSubject.SolutionFileExclusions.Should().BeEquivalentTo(settings.AnalysisSettings.SolutionFileExclusions);
-        testSubject.AnalysisProperties.Should().BeEquivalentTo(settings.AnalysisSettings.AnalysisProperties);
+        testSubject.UserSettings.AnalysisSettings.NormalizedFileExclusions.Should().BeEquivalentTo("**/*.cs");
+        testSubject.SolutionAnalysisSettings.UserDefinedFileExclusions.Should().BeEquivalentTo(solutionAnalysisSettings.UserDefinedFileExclusions);
+        testSubject.SolutionAnalysisSettings.AnalysisProperties.Should().BeEquivalentTo(solutionAnalysisSettings.AnalysisProperties);
     }
 
     private static UserSettings GetInitialSettings(UserSettingsProvider testSubject)

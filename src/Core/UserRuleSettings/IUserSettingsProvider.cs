@@ -18,12 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
 using SonarLint.VisualStudio.Core.Initialization;
 
 namespace SonarLint.VisualStudio.Core.UserRuleSettings;
 
-public interface IUserSettingsProvider : IRequireInitialization, IGlobalUserSettingsUpdater, ISolutionUserSettingsUpdater
+public interface IUserSettingsProvider : IRequireInitialization
 {
     /// <summary>
     /// The settings for the current user
@@ -45,9 +44,7 @@ public interface IGlobalUserSettingsUpdater
     /// </summary>
     void UpdateGlobalFileExclusions(IEnumerable<string> exclusions);
 
-    public ImmutableDictionary<string, RuleConfig> Rules { get; }
-
-    public ImmutableArray<string> GlobalFileExclusions { get; }
+    public GlobalAnalysisSettings GlobalAnalysisSettings { get; }
 }
 
 public interface ISolutionUserSettingsUpdater
@@ -62,7 +59,5 @@ public interface ISolutionUserSettingsUpdater
     /// </summary>
     void UpdateSolutionFileExclusions(IEnumerable<string> exclusions);
 
-    public ImmutableDictionary<string, string> AnalysisProperties { get; }
-
-    public ImmutableArray<string> SolutionFileExclusions { get; }
+    public SolutionAnalysisSettings SolutionAnalysisSettings { get; }
 }

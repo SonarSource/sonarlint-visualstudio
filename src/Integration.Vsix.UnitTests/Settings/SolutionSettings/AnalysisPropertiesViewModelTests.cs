@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
 using System.ComponentModel;
 using NuGet;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
@@ -195,5 +194,6 @@ public class AnalysisPropertiesViewModelTests
         testSubject.SelectedProperty.Should().BeNull();
     }
 
-    private void MockAnalysisProperties(Dictionary<string, string> analysisProperties) => solutionUserSettingsUpdater.AnalysisProperties.Returns(analysisProperties.ToImmutableDictionary());
+    private void MockAnalysisProperties(Dictionary<string, string> analysisProperties) =>
+        solutionUserSettingsUpdater.SolutionAnalysisSettings.Returns(new SolutionAnalysisSettings(analysisProperties, []));
 }

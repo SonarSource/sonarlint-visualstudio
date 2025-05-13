@@ -30,9 +30,9 @@ public class AnalysisSettingsTests
     [TestMethod]
     public void AnalysisSettings_GlobalFileExclusions_WithNull_ReturnsEmptyArray()
     {
-        var analysisSettings = new AnalysisSettings();
+        var analysisSettings = new AnalysisSettings(globalFileExclusions: null);
 
-        analysisSettings.GlobalFileExclusions.Should().BeEmpty();
+        analysisSettings.NormalizedFileExclusions.Should().BeEmpty();
     }
 
     [TestMethod]
@@ -40,15 +40,15 @@ public class AnalysisSettingsTests
     {
         var analysisSettings = new AnalysisSettings(globalFileExclusions: ImmutableArray.Create("", " ", null));
 
-        analysisSettings.GlobalFileExclusions.Should().BeEmpty();
+        analysisSettings.NormalizedFileExclusions.Should().BeEmpty();
     }
 
     [TestMethod]
     public void AnalysisSettings_SolutionFileExclusions_WithNull_ReturnsEmptyArray()
     {
-        var analysisSettings = new AnalysisSettings();
+        var analysisSettings = new AnalysisSettings(solutionFileExclusions: null);
 
-        analysisSettings.SolutionFileExclusions.Should().BeEmpty();
+        analysisSettings.NormalizedFileExclusions.Should().BeEmpty();
     }
 
     [TestMethod]
@@ -56,7 +56,7 @@ public class AnalysisSettingsTests
     {
         var analysisSettings = new AnalysisSettings(solutionFileExclusions: ImmutableArray.Create("", " ", null));
 
-        analysisSettings.SolutionFileExclusions.Should().BeEmpty();
+        analysisSettings.NormalizedFileExclusions.Should().BeEmpty();
     }
 
     [TestMethod]
@@ -87,13 +87,9 @@ public class AnalysisSettingsTests
     public void AnalysisSettings_NormalizedFileExclusions_WithBackslashes_NormalizesToForwardSlashes()
     {
         var globalAnalysisSettings = new AnalysisSettings(globalFileExclusions: ImmutableArray.Create("**\\obj\\*", "a\\file1.cpp", "file2.cpp"));
-        globalAnalysisSettings.GlobalFileExclusions.Should().BeEquivalentTo("**\\obj\\*", "a\\file1.cpp", "file2.cpp");
-        globalAnalysisSettings.SolutionFileExclusions.Should().BeEmpty();
         globalAnalysisSettings.NormalizedFileExclusions.Should().BeEquivalentTo("**/a/file1.cpp", "**/obj/*", "**/file2.cpp");
 
         var solutionAnalysisSettings = new AnalysisSettings(solutionFileExclusions: ImmutableArray.Create("**\\obj\\*", "a\\file1.cpp", "file2.cpp"));
-        solutionAnalysisSettings.GlobalFileExclusions.Should().BeEmpty();
-        solutionAnalysisSettings.SolutionFileExclusions.Should().BeEquivalentTo("**\\obj\\*", "a\\file1.cpp", "file2.cpp");
         solutionAnalysisSettings.NormalizedFileExclusions.Should().BeEquivalentTo("**/a/file1.cpp", "**/obj/*", "**/file2.cpp");
     }
 
@@ -115,13 +111,9 @@ public class AnalysisSettingsTests
     public void AnalysisSettings_NormalizedFileExclusions_TransformsPathCorrectly(string original, string expected)
     {
         var globalAnalysisSettings = new AnalysisSettings(globalFileExclusions: ImmutableArray.Create(original));
-        globalAnalysisSettings.GlobalFileExclusions.Should().BeEquivalentTo(original);
-        globalAnalysisSettings.SolutionFileExclusions.Should().BeEmpty();
         globalAnalysisSettings.NormalizedFileExclusions.Should().BeEquivalentTo(expected);
 
         var solutionAnalysisSettings = new AnalysisSettings(solutionFileExclusions: ImmutableArray.Create(original));
-        solutionAnalysisSettings.GlobalFileExclusions.Should().BeEmpty();
-        solutionAnalysisSettings.SolutionFileExclusions.Should().BeEquivalentTo(original);
         solutionAnalysisSettings.NormalizedFileExclusions.Should().BeEquivalentTo(expected);
     }
 
@@ -130,13 +122,9 @@ public class AnalysisSettingsTests
     public void AnalysisSettings_NormalizedFileExclusions_ContainsInvalidPathCharacters_DoesNotCrashAndDoesNotNormalize(string invalidPath)
     {
         var globalAnalysisSettings = new AnalysisSettings(globalFileExclusions: ImmutableArray.Create(invalidPath));
-        globalAnalysisSettings.GlobalFileExclusions.Should().BeEquivalentTo(invalidPath);
-        globalAnalysisSettings.SolutionFileExclusions.Should().BeEmpty();
         globalAnalysisSettings.NormalizedFileExclusions.Should().BeEquivalentTo(invalidPath?.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
 
         var solutionAnalysisSettings = new AnalysisSettings(solutionFileExclusions: ImmutableArray.Create(invalidPath));
-        solutionAnalysisSettings.GlobalFileExclusions.Should().BeEmpty();
-        solutionAnalysisSettings.SolutionFileExclusions.Should().BeEquivalentTo(invalidPath);
         solutionAnalysisSettings.NormalizedFileExclusions.Should().BeEquivalentTo(invalidPath?.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
     }
 

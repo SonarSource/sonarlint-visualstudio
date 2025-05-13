@@ -27,31 +27,11 @@ public class AnalysisSettings
 {
     private const string AnyDirectoryWildcard = "**";
     private static readonly string AnyRootPrefix = AnyDirectoryWildcard + Path.AltDirectorySeparatorChar;
-    private readonly ImmutableArray<string> globalFileExclusions = ImmutableArray<string>.Empty;
-    private readonly ImmutableArray<string> solutionFileExclusions = ImmutableArray<string>.Empty;
     private readonly ImmutableArray<string> normalizedFileExclusions = ImmutableArray<string>.Empty;
 
     public ImmutableDictionary<string, RuleConfig> Rules { get; }
 
     public ImmutableDictionary<string, string> AnalysisProperties { get; }
-
-    public ImmutableArray<string> GlobalFileExclusions
-    {
-        get => globalFileExclusions;
-        private init =>
-            globalFileExclusions = value
-                .Where(path => !string.IsNullOrWhiteSpace(path))
-                .ToImmutableArray();
-    }
-
-    public ImmutableArray<string> SolutionFileExclusions
-    {
-        get => solutionFileExclusions;
-        private init =>
-            solutionFileExclusions = value
-                .Where(path => !string.IsNullOrWhiteSpace(path))
-                .ToImmutableArray();
-    }
 
     public ImmutableArray<string> NormalizedFileExclusions
     {
@@ -79,9 +59,9 @@ public class AnalysisSettings
         ImmutableDictionary<string, string> analysisProperties = null)
     {
         Rules = rules ?? ImmutableDictionary<string, RuleConfig>.Empty;
-        GlobalFileExclusions = globalFileExclusions ?? ImmutableArray<string>.Empty;
-        SolutionFileExclusions = solutionFileExclusions ?? ImmutableArray<string>.Empty;
-        NormalizedFileExclusions = SolutionFileExclusions.IsEmpty ? GlobalFileExclusions : SolutionFileExclusions;
+        var globalExclusions = globalFileExclusions ?? ImmutableArray<string>.Empty;
+        var solutionExclusions = solutionFileExclusions ?? ImmutableArray<string>.Empty;
+        NormalizedFileExclusions = solutionExclusions.IsEmpty ? DiscardNullOrEmpty(globalExclusions) : DiscardNullOrEmpty(solutionExclusions);
         AnalysisProperties = analysisProperties ?? ImmutableDictionary<string, string>.Empty;
     }
 
@@ -109,4 +89,6 @@ public class AnalysisSettings
         var invalidChars = Path.GetInvalidPathChars();
         return path.IndexOfAny(invalidChars) >= 0;
     }
+
+    private static ImmutableArray<string> DiscardNullOrEmpty(ImmutableArray<string> array) => array.Where(x => !string.IsNullOrWhiteSpace(x)).ToImmutableArray();
 }
