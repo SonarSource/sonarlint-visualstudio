@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
@@ -83,7 +79,6 @@ public class OpenInIdeHandlerImplementationTests
         const string configurationScope = "scope";
         const string failureReason = "incorrect config scope";
         var dtoConverter = Substitute.For<IOpenInIdeIssueToAnalysisIssueConverter<IOpenInIdeIssue>>();
-        var visualizationProcessor = Substitute.For<IOpenInIdeVisualizationProcessor>();
         var testSubject = CreateTestSubject(out _, out _, out var configScopeValidator, out var converter,
             out var notification, out var toolWindowService, out _, out _, out var issueSelectionService);
         configScopeValidator.TryGetConfigurationScopeRoot(configurationScope, out Arg.Any<string>(), out Arg.Any<string>())
@@ -93,13 +88,12 @@ public class OpenInIdeHandlerImplementationTests
                 return false;
             });
 
-        testSubject.ShowIssue(issue, configurationScope, dtoConverter, toolWindowId, visualizationProcessor);
+        testSubject.ShowIssue(issue, configurationScope, dtoConverter, toolWindowId);
 
         configScopeValidator.Received().TryGetConfigurationScopeRoot(configurationScope, out _, out _);
         converter.DidNotReceiveWithAnyArgs().TryConvert<IOpenInIdeIssue>(default, default, default, out _);
         notification.Received().InvalidRequest(failureReason, toolWindowId);
         toolWindowService.DidNotReceiveWithAnyArgs().Show(default);
-        visualizationProcessor.DidNotReceiveWithAnyArgs().HandleConvertedIssue(default);
         issueSelectionService.DidNotReceiveWithAnyArgs().SelectedIssue = default;
     }
 
@@ -111,44 +105,18 @@ public class OpenInIdeHandlerImplementationTests
         const string configurationScope = "scope";
         const string configurationScopeRoot = "root/of/scope";
         var dtoConverter = Substitute.For<IOpenInIdeIssueToAnalysisIssueConverter<IOpenInIdeIssue>>();
-        var visualizationProcessor = Substitute.For<IOpenInIdeVisualizationProcessor>();
         var testSubject = CreateTestSubject(out _, out _, out var configScopeValidator, out var converter,
             out var notification, out var toolWindowService, out _, out _, out var issueSelectionService);
         SetUpValidConfigScope(configScopeValidator, configurationScope, configurationScopeRoot);
         converter.TryConvert(issue, configurationScopeRoot, dtoConverter, out Arg.Any<IAnalysisIssueVisualization>())
             .Returns(false);
 
-        testSubject.ShowIssue(issue, configurationScope, dtoConverter, toolWindowId, visualizationProcessor);
+        testSubject.ShowIssue(issue, configurationScope, dtoConverter, toolWindowId);
 
         converter.Received().TryConvert(issue, configurationScopeRoot, dtoConverter, out Arg.Any<IAnalysisIssueVisualization>());
         notification.Received().InvalidRequest(OpenInIdeResources.ValidationReason_UnableToConvertIssue, toolWindowId);
         toolWindowService.DidNotReceiveWithAnyArgs().Show(default);
-        visualizationProcessor.DidNotReceiveWithAnyArgs().HandleConvertedIssue(default);
         issueSelectionService.DidNotReceiveWithAnyArgs().SelectedIssue = default;
-    }
-
-    [TestMethod]
-    public void ShowIssue_ProcessorVisualizationIsUsed()
-    {
-        var issue = CreateDummyIssue();
-        const string configurationScope = "scope";
-        const string configurationScopeRoot = "root/of/scope";
-        const string issueFilePath = "file/path";
-        var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
-        var processedAnalysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
-        analysisIssueVisualization.CurrentFilePath.Returns(issueFilePath);
-        var dtoConverter = Substitute.For<IOpenInIdeIssueToAnalysisIssueConverter<IOpenInIdeIssue>>();
-        var testSubject = CreateTestSubject(out _, out _, out var configScopeValidator, out var converter, out _, out _,
-            out _, out var navigator, out var issueSelectionService);
-        var visualizationProcessor = SetUpProcessor(analysisIssueVisualization, processedAnalysisIssueVisualization);
-        SetUpValidConfigScope(configScopeValidator, configurationScope, configurationScopeRoot);
-        SetUpIssueConversion(converter, issue, configurationScopeRoot, dtoConverter, analysisIssueVisualization);
-
-        testSubject.ShowIssue(issue, configurationScope, dtoConverter, Guid.NewGuid(), visualizationProcessor);
-
-        navigator.Received().TryNavigatePartial(processedAnalysisIssueVisualization);
-        visualizationProcessor.Received().HandleConvertedIssue(analysisIssueVisualization);
-        issueSelectionService.Received().SelectedIssue = processedAnalysisIssueVisualization;
     }
 
     [TestMethod]
@@ -187,17 +155,15 @@ public class OpenInIdeHandlerImplementationTests
         var dtoConverter = Substitute.For<IOpenInIdeIssueToAnalysisIssueConverter<IOpenInIdeIssue>>();
         var testSubject = CreateTestSubject(out var logger, out _, out var configScopeValidator, out var converter,
             out var notification, out _, out _, out var navigator, out var issueSelectionService);
-        var visualizationProcessor = SetUpProcessor(analysisIssueVisualization);
         SetUpValidConfigScope(configScopeValidator, configurationScope, configurationScopeRoot);
         SetUpIssueConversion(converter, issue, configurationScopeRoot, dtoConverter, analysisIssueVisualization);
         navigator.TryNavigatePartial(analysisIssueVisualization).Returns(NavigationResult.Failed);
 
-        testSubject.ShowIssue(issue, configurationScope, dtoConverter, toolWindowId, visualizationProcessor);
+        testSubject.ShowIssue(issue, configurationScope, dtoConverter, toolWindowId);
 
         navigator.Received().TryNavigatePartial(analysisIssueVisualization);
         notification.Received().UnableToOpenFile(issueFilePath, toolWindowId);
         logger.AssertPartialOutputStringExists("[Open in IDE] Could not find the location at");
-        visualizationProcessor.Received().HandleConvertedIssue(analysisIssueVisualization);
         issueSelectionService.Received().SelectedIssue = analysisIssueVisualization;
     }
 
@@ -214,18 +180,16 @@ public class OpenInIdeHandlerImplementationTests
         var dtoConverter = Substitute.For<IOpenInIdeIssueToAnalysisIssueConverter<IOpenInIdeIssue>>();
         var testSubject = CreateTestSubject(out var logger, out _, out var configScopeValidator, out var converter,
             out var notification, out var toolWindowService, out _, out var navigator, out var issueSelectionService);
-        var visualizationProcessor = SetUpProcessor(analysisIssueVisualization);
         SetUpValidConfigScope(configScopeValidator, configurationScope, configurationScopeRoot);
         SetUpIssueConversion(converter, issue, configurationScopeRoot, dtoConverter, analysisIssueVisualization);
         navigator.TryNavigatePartial(analysisIssueVisualization).Returns(NavigationResult.OpenedFile);
 
-        testSubject.ShowIssue(issue, configurationScope, dtoConverter, toolWindowId, visualizationProcessor);
+        testSubject.ShowIssue(issue, configurationScope, dtoConverter, toolWindowId);
 
         navigator.Received().TryNavigatePartial(analysisIssueVisualization);
         notification.Received().UnableToLocateIssue(issueFilePath, toolWindowId);
         logger.AssertPartialOutputStringExists("[Open in IDE] Could not find the location at");
         toolWindowService.Received().Show(toolWindowId);
-        visualizationProcessor.Received().HandleConvertedIssue(analysisIssueVisualization);
         issueSelectionService.Received().SelectedIssue = analysisIssueVisualization;
     }
 
@@ -241,13 +205,12 @@ public class OpenInIdeHandlerImplementationTests
         var dtoConverter = Substitute.For<IOpenInIdeIssueToAnalysisIssueConverter<IOpenInIdeIssue>>();
         var testSubject = CreateTestSubject(out _, out _, out var configScopeValidator, out var converter,
             out var notification, out var toolWindowService, out _, out var navigator, out var issueSelectionService);
-        var visualizationProcessor = SetUpProcessor(analysisIssueVisualization);
         SetUpValidConfigScope(configScopeValidator, configurationScope, configurationScopeRoot);
         SetUpIssueConversion(converter, issue, configurationScopeRoot, dtoConverter, analysisIssueVisualization);
         SetUpNavigableIssue(navigator, analysisIssueVisualization);
         SetUpIssueRuleInfo(analysisIssueVisualization, ruleKey);
 
-        testSubject.ShowIssue(issue, configurationScope, dtoConverter, toolWindowId, visualizationProcessor);
+        testSubject.ShowIssue(issue, configurationScope, dtoConverter, toolWindowId);
 
         navigator.Received().TryNavigatePartial(analysisIssueVisualization);
         notification.Received().Clear();
@@ -255,19 +218,11 @@ public class OpenInIdeHandlerImplementationTests
         notification.DidNotReceiveWithAnyArgs().UnableToOpenFile(default, default);
         notification.DidNotReceiveWithAnyArgs().UnableToLocateIssue(default, default);
         toolWindowService.Received().Show(toolWindowId);
-        visualizationProcessor.Received().HandleConvertedIssue(analysisIssueVisualization);
         issueSelectionService.Received().SelectedIssue = analysisIssueVisualization;
     }
 
-    private static IOpenInIdeVisualizationProcessor SetUpProcessor(IAnalysisIssueVisualization analysisIssueVisualization,
-        IAnalysisIssueVisualization processedAnalysisIssueVisualization = null)
-    {
-        var visualizationProcessor = Substitute.For<IOpenInIdeVisualizationProcessor>();
-        visualizationProcessor.HandleConvertedIssue(analysisIssueVisualization).Returns(processedAnalysisIssueVisualization ?? analysisIssueVisualization);
-        return visualizationProcessor;
-    }
-
-    private static void SetUpNavigableIssue(ILocationNavigator navigator,
+    private static void SetUpNavigableIssue(
+        ILocationNavigator navigator,
         IAnalysisIssueVisualization analysisIssueVisualization)
     {
         navigator.TryNavigatePartial(analysisIssueVisualization).Returns(NavigationResult.OpenedLocation);
@@ -280,8 +235,12 @@ public class OpenInIdeHandlerImplementationTests
         analysisIssueVisualization.Issue.Returns(analysisIssueBase);
     }
 
-    private static void SetUpIssueConversion(IOpenInIdeConverterImplementation converter, IOpenInIdeIssue issue,
-        string configurationScopeRoot, IOpenInIdeIssueToAnalysisIssueConverter<IOpenInIdeIssue> dtoConverter, IAnalysisIssueVisualization analysisIssueVisualization)
+    private static void SetUpIssueConversion(
+        IOpenInIdeConverterImplementation converter,
+        IOpenInIdeIssue issue,
+        string configurationScopeRoot,
+        IOpenInIdeIssueToAnalysisIssueConverter<IOpenInIdeIssue> dtoConverter,
+        IAnalysisIssueVisualization analysisIssueVisualization)
     {
         converter.TryConvert(issue, configurationScopeRoot, dtoConverter, out Arg.Any<IAnalysisIssueVisualization>())
             .Returns(x =>
@@ -291,8 +250,10 @@ public class OpenInIdeHandlerImplementationTests
             });
     }
 
-    private static void SetUpValidConfigScope(IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
-        string configurationScope, string configurationScopeRoot)
+    private static void SetUpValidConfigScope(
+        IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
+        string configurationScope,
+        string configurationScopeRoot)
     {
         openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(configurationScope, out Arg.Any<string>(), out Arg.Any<string>()).Returns(
             x =>
@@ -314,7 +275,8 @@ public class OpenInIdeHandlerImplementationTests
             configurationScope, issue.Key, issue.Type));
     }
 
-    private OpenInIdeHandlerImplementation CreateTestSubject(out TestLogger logger,
+    private OpenInIdeHandlerImplementation CreateTestSubject(
+        out TestLogger logger,
         out IThreadHandling thereHandling,
         out IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
         out IOpenInIdeConverterImplementation openInIdeConverterImplementation,

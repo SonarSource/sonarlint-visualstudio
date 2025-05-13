@@ -19,9 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots_List;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 
@@ -29,27 +27,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots;
 
 [Export(typeof(IOpenHotspotInIdeHandler))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class OpenHotspotInIdeHandler : IOpenHotspotInIdeHandler, IOpenInIdeVisualizationProcessor
+internal class OpenHotspotInIdeHandler : IOpenHotspotInIdeHandler
 {
-    private readonly IOpenInIdeHandlerImplementation openInIdeHandlerImplementation;
     private readonly IHotspotDetailsDtoToHotspotConverter converter;
-    private readonly IOpenInIDEHotspotsStore hotspotsStore;
+    private readonly IOpenInIdeHandlerImplementation openInIdeHandlerImplementation;
 
     [ImportingConstructor]
-    public OpenHotspotInIdeHandler(IOpenInIdeHandlerImplementation openInIdeHandlerImplementation, IHotspotDetailsDtoToHotspotConverter converter, IOpenInIDEHotspotsStore hotspotsStore)
+    public OpenHotspotInIdeHandler(IOpenInIdeHandlerImplementation openInIdeHandlerImplementation, IHotspotDetailsDtoToHotspotConverter converter)
     {
         this.openInIdeHandlerImplementation = openInIdeHandlerImplementation;
         this.converter = converter;
-        this.hotspotsStore = hotspotsStore;
     }
 
-    public void Show(HotspotDetailsDto hotspotDetailsDto, string configurationScope)
-    {
-        openInIdeHandlerImplementation.ShowIssue(hotspotDetailsDto, configurationScope, converter, IssueListIds.HotspotsId, this);
-    }
-
-    public IAnalysisIssueVisualization HandleConvertedIssue(IAnalysisIssueVisualization visualization)
-    {
-        return hotspotsStore.GetOrAdd(visualization);
-    }
+    public void Show(HotspotDetailsDto hotspotDetailsDto, string configurationScope) =>
+        openInIdeHandlerImplementation.ShowIssue(hotspotDetailsDto, configurationScope, converter, IssueListIds.HotspotsId);
 }
