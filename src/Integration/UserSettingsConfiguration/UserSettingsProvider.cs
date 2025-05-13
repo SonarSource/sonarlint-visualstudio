@@ -112,13 +112,13 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSe
     void IGlobalRawSettingsService.DisableRule(string ruleId)
     {
         globalSettingsUpdater.DisableRule(GlobalAnalysisSettings, ruleId);
-        SafeClearUserSettingsCache();
+        SafeClearCache();
     }
 
     void IGlobalRawSettingsService.UpdateFileExclusions(IEnumerable<string> exclusions)
     {
         globalSettingsUpdater.UpdateFileExclusions(GlobalAnalysisSettings, exclusions);
-        SafeClearUserSettingsCache();
+        SafeClearCache();
     }
 
     public SolutionAnalysisSettings SolutionAnalysisSettings
@@ -139,13 +139,13 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSe
     void ISolutionRawSettingsService.UpdateAnalysisProperties(Dictionary<string, string> analysisProperties)
     {
         solutionSettingsUpdater.UpdateAnalysisProperties(SolutionAnalysisSettings, analysisProperties);
-        SafeClearUserSettingsCache();
+        SafeClearCache();
     }
 
     void ISolutionRawSettingsService.UpdateFileExclusions(IEnumerable<string> exclusions)
     {
         solutionSettingsUpdater.UpdateFileExclusions(SolutionAnalysisSettings, exclusions);
-        SafeClearUserSettingsCache();
+        SafeClearCache();
     }
 
     public void Dispose()
@@ -172,7 +172,7 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSe
     {
         if (!e.IsSolutionOpen || e.SolutionName == null)
         {
-            SafeClearUserSettingsCache();
+            SafeClearCache();
             return;
         }
 
@@ -181,15 +181,17 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSe
 
     private void ResetConfiguration()
     {
-        SafeClearUserSettingsCache();
+        SafeClearCache();
         SettingsChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    private void SafeClearUserSettingsCache()
+    private void SafeClearCache()
     {
         lock (Lock)
         {
             userSettings = null;
+            solutionAnalysisSettings = null;
+            globalAnalysisSettings = null;
         }
     }
 
