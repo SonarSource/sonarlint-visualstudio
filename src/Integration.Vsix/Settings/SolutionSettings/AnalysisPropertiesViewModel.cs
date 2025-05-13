@@ -46,7 +46,6 @@ internal class AnalysisPropertiesViewModel(IUserSettingsProvider userSettingsPro
     {
         SelectedProperty = null;
         AnalysisProperties.Clear();
-        userSettingsProvider.EnsureSolutionAnalysisSettingsFileExists();
         userSettingsProvider.UserSettings.AnalysisSettings.AnalysisProperties
             .ToList()
             .ForEach(x => AddProperty(x.Key, x.Value));

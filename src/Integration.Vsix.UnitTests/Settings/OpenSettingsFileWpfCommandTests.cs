@@ -32,8 +32,8 @@ public class OpenSettingsFileWpfCommandTests
     public void QueryStatus_AlwaysEnabled()
     {
         // Arrange
-        var userSettingsProvider = CreateDummyUserSettingsProvider("d:\\a\\file.txt");
-        var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), userSettingsProvider, null, new TestLogger());
+        var globalSettingsStorage = CreateDummyGlobalSettingsStorage("d:\\a\\file.txt");
+        var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), globalSettingsStorage, null, new TestLogger());
 
         // Act & Assert
         testSubject.CanExecute(null).Should().BeTrue();
@@ -43,8 +43,8 @@ public class OpenSettingsFileWpfCommandTests
     public void Execute_EnsureFileExists()
     {
         // Arrange
-        var userSettingsProvider = CreateDummyUserSettingsProvider("d:\\a\\file.txt");
-        var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), userSettingsProvider, null, new TestLogger());
+        var globalSettingsStorage = CreateDummyGlobalSettingsStorage("d:\\a\\file.txt");
+        var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), globalSettingsStorage, null, new TestLogger());
 
         // Act
         testSubject.Execute(null);
@@ -58,9 +58,9 @@ public class OpenSettingsFileWpfCommandTests
     public void Execute_NonCriticalError_IsSuppressed()
     {
         // Arrange
-        var userSettingsProvider = CreateDummyUserSettingsProvider("d:\\a\\file.txt");
+        var globalSettingsStorage = CreateDummyGlobalSettingsStorage("d:\\a\\file.txt");
         var testLogger = new TestLogger();
-        var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), userSettingsProvider, null, testLogger)
+        var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), globalSettingsStorage, null, testLogger)
         {
             OpenDocOp = () => throw new InvalidOperationException("dummy execute exception")
         };
@@ -76,9 +76,9 @@ public class OpenSettingsFileWpfCommandTests
     public void Execute_CriticalError_IsNotSuppressed()
     {
         // Arrange
-        var userSettingsProvider = CreateDummyUserSettingsProvider("any");
+        var globalSettingsStorage = CreateDummyGlobalSettingsStorage("any");
         var testLogger = new TestLogger();
-        var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), userSettingsProvider, null, testLogger)
+        var testSubject = new TestableOpenSettingsFileWpfCommand(new ConfigurableServiceProvider(), globalSettingsStorage, null, testLogger)
         {
             OpenDocOp = () => throw new StackOverflowException("dummy execute exception")
         };
@@ -91,11 +91,11 @@ public class OpenSettingsFileWpfCommandTests
         testLogger.AssertPartialOutputStringDoesNotExist("dummy execute exception");
     }
 
-    private static IUserSettingsProvider CreateDummyUserSettingsProvider(string filePath)
+    private static IGlobalSettingsStorage CreateDummyGlobalSettingsStorage(string filePath)
     {
-        var userSettingsProviderMock = new Mock<IUserSettingsProvider>();
-        userSettingsProviderMock.Setup(x => x.GlobalAnalysisSettingsFilePath).Returns(filePath);
-        return userSettingsProviderMock.Object;
+        var globalSettingsStorageMock = new Mock<IGlobalSettingsStorage>();
+        globalSettingsStorageMock.Setup(x => x.SettingsFilePath).Returns(filePath);
+        return globalSettingsStorageMock.Object;
     }
 
     private class TestableOpenSettingsFileWpfCommand : OpenSettingsFileWpfCommand
@@ -107,10 +107,10 @@ public class OpenSettingsFileWpfCommandTests
 
         public TestableOpenSettingsFileWpfCommand(
             IServiceProvider serviceProvider,
-            IUserSettingsProvider userSettingsProvider,
+            IGlobalSettingsStorage globalSettingsStorage,
             IWin32Window win32Window,
             ILogger logger)
-            : base(serviceProvider, userSettingsProvider, win32Window, logger)
+            : base(serviceProvider, globalSettingsStorage, win32Window, logger)
         {
         }
 
