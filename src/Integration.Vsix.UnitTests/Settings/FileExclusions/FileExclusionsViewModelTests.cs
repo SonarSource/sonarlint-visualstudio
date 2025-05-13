@@ -34,15 +34,15 @@ public class FileExclusionsViewModelTests
     private static readonly ExclusionViewModel CssExclusionViewModel = new(Pattern1);
     private IBrowserService browserService;
     private FileExclusionsViewModel globalFileExclusionsViewModel;
-    private IGlobalUserSettingsUpdater globalSettingsUpdater;
-    private ISolutionUserSettingsUpdater solutionSettingsUpdater;
+    private IGlobalRawSettingsService globalSettingsUpdater;
+    private ISolutionRawSettingsService solutionSettingsUpdater;
 
     [TestInitialize]
     public void Initialize()
     {
         browserService = Substitute.For<IBrowserService>();
-        globalSettingsUpdater = Substitute.For<IGlobalUserSettingsUpdater>();
-        solutionSettingsUpdater = Substitute.For<ISolutionUserSettingsUpdater>();
+        globalSettingsUpdater = Substitute.For<IGlobalRawSettingsService>();
+        solutionSettingsUpdater = Substitute.For<ISolutionRawSettingsService>();
         MockGlobalExclusions([]);
 
         globalFileExclusionsViewModel = new FileExclusionsViewModel(browserService, globalSettingsUpdater, solutionSettingsUpdater, FileExclusionScope.Global);
@@ -172,7 +172,7 @@ public class FileExclusionsViewModelTests
 
         globalFileExclusionsViewModel.SaveExclusions();
 
-        globalSettingsUpdater.Received(1).UpdateGlobalFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
+        globalSettingsUpdater.Received(1).UpdateFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
     }
 
     [TestMethod]
@@ -184,7 +184,7 @@ public class FileExclusionsViewModelTests
 
         solutionFileExclusionsViewModel.SaveExclusions();
 
-        solutionSettingsUpdater.Received(1).UpdateSolutionFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
+        solutionSettingsUpdater.Received(1).UpdateFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
     }
 
     [TestMethod]
@@ -197,7 +197,7 @@ public class FileExclusionsViewModelTests
 
         globalFileExclusionsViewModel.SaveExclusions();
 
-        globalSettingsUpdater.Received(1).UpdateGlobalFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
+        globalSettingsUpdater.Received(1).UpdateFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
     }
 
     [TestMethod]
@@ -211,7 +211,7 @@ public class FileExclusionsViewModelTests
 
         solutionFileExclusionsViewModel.SaveExclusions();
 
-        solutionSettingsUpdater.Received(1).UpdateSolutionFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
+        solutionSettingsUpdater.Received(1).UpdateFileExclusions(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new List<string> { Pattern1, Pattern2 })));
     }
 
     private void MockGlobalExclusions(string[] globalFileExclusions) => globalSettingsUpdater.GlobalAnalysisSettings.Returns(new GlobalAnalysisSettings([], globalFileExclusions.ToImmutableArray()));

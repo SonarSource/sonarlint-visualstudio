@@ -64,7 +64,7 @@ public class UserSettingsProviderTests
 
     [TestMethod]
     public void MefCtor_ISolutionUserSettingsUpdater_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<UserSettingsProvider, ISolutionUserSettingsUpdater>(
+        MefTestHelpers.CheckTypeCanBeImported<UserSettingsProvider, ISolutionRawSettingsService>(
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IGlobalSettingsStorage>(),
             MefTestHelpers.CreateExport<ISolutionSettingsStorage>(),
@@ -73,7 +73,7 @@ public class UserSettingsProviderTests
 
     [TestMethod]
     public void MefCtor_IGlobalUserSettingsUpdater_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<UserSettingsProvider, IGlobalUserSettingsUpdater>(
+        MefTestHelpers.CheckTypeCanBeImported<UserSettingsProvider, IGlobalRawSettingsService>(
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IGlobalSettingsStorage>(),
             MefTestHelpers.CreateExport<ISolutionSettingsStorage>(),
@@ -289,7 +289,7 @@ public class UserSettingsProviderTests
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
-        testSubject.DisableRule("somerule");
+        ((IGlobalRawSettingsService)testSubject).DisableRule("somerule");
 
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
         globalSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<GlobalAnalysisSettings>(x => x.Rules.ContainsKey("somerule") && x.Rules["somerule"].Level == RuleLevel.Off));
@@ -302,7 +302,7 @@ public class UserSettingsProviderTests
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
-        testSubject.DisableRule("somerule");
+        ((IGlobalRawSettingsService)testSubject).DisableRule("somerule");
 
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
         globalSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<GlobalAnalysisSettings>(x => x.Rules.ContainsKey("somerule") && x.Rules["somerule"].Level == RuleLevel.Off));
@@ -315,7 +315,7 @@ public class UserSettingsProviderTests
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
-        testSubject.DisableRule("somerule");
+        ((IGlobalRawSettingsService)testSubject).DisableRule("somerule");
 
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
         globalSettingsStorage.Received(1).SaveSettingsFile(
@@ -331,7 +331,7 @@ public class UserSettingsProviderTests
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
         string[] exclusions = ["1", "two", "3"];
 
-        testSubject.UpdateGlobalFileExclusions(exclusions);
+        ((IGlobalRawSettingsService)testSubject).UpdateFileExclusions(exclusions);
 
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
         globalSettingsStorage.SaveSettingsFile(Arg.Is<GlobalAnalysisSettings>(x => x.UserDefinedFileExclusions.SequenceEqual(exclusions, default)));
@@ -345,7 +345,7 @@ public class UserSettingsProviderTests
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
         string[] exclusions = ["1", "two", "3"];
 
-        testSubject.UpdateSolutionFileExclusions(exclusions);
+        ((ISolutionRawSettingsService)testSubject).UpdateFileExclusions(exclusions);
 
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
         solutionSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<SolutionAnalysisSettings>(x => x.UserDefinedFileExclusions.SequenceEqual(exclusions, default)));
@@ -360,7 +360,7 @@ public class UserSettingsProviderTests
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
         var analysisProperties = new Dictionary<string, string> { ["prop"] = "value" };
 
-        testSubject.UpdateAnalysisProperties(analysisProperties);
+        ((ISolutionRawSettingsService)testSubject).UpdateAnalysisProperties(analysisProperties);
 
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
         solutionSettingsStorage.Received(1).SaveSettingsFile(Arg.Is<SolutionAnalysisSettings>(x =>

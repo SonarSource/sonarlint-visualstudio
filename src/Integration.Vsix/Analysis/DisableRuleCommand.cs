@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         public const int CommandId = 0x0200;
 
         private readonly OleMenuCommand menuItem;
-        private readonly IGlobalUserSettingsUpdater globalUserSettingsUpdater;
+        private readonly IGlobalRawSettingsService globalUserSettingsUpdater;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ILogger logger;
         private readonly IErrorListHelper errorListHelper;
@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
-            var settingsProvider = await package.GetMefServiceAsync<IGlobalUserSettingsUpdater>();
+            var settingsProvider = await package.GetMefServiceAsync<IGlobalRawSettingsService>();
             var tracker = await package.GetMefServiceAsync<IActiveSolutionBoundTracker>();
             var errListHelper = await package.GetMefServiceAsync<IErrorListHelper>();
             var languageProvider = await package.GetMefServiceAsync<ILanguageProvider>();
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         /// <param name="menuCommandService">Command service to add command to, not null.</param>
         internal DisableRuleCommand(
             IMenuCommandService menuCommandService,
-            IGlobalUserSettingsUpdater globalUserSettingsUpdater,
+            IGlobalRawSettingsService globalUserSettingsUpdater,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ILogger logger,
             IErrorListHelper errorListHelper,

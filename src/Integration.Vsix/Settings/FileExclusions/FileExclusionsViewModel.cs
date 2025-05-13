@@ -27,8 +27,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
 
 internal class FileExclusionsViewModel(
     IBrowserService browserService,
-    IGlobalUserSettingsUpdater globalUserSettingsUpdater,
-    ISolutionUserSettingsUpdater solutionUserSettingsUpdater,
+    IGlobalRawSettingsService globalUserSettingsUpdater,
+    ISolutionRawSettingsService solutionUserSettingsUpdater,
     FileExclusionScope scope = FileExclusionScope.Global)
     : ViewModelBase
 {
@@ -66,11 +66,11 @@ internal class FileExclusionsViewModel(
 
         if (scope == FileExclusionScope.Global)
         {
-            globalUserSettingsUpdater.UpdateGlobalFileExclusions(exclusionsToSave);
+            globalUserSettingsUpdater.UpdateFileExclusions(exclusionsToSave);
         }
         else
         {
-            solutionUserSettingsUpdater.UpdateSolutionFileExclusions(exclusionsToSave);
+            solutionUserSettingsUpdater.UpdateFileExclusions(exclusionsToSave);
         }
     }
 

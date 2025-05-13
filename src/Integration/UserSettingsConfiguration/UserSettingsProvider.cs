@@ -29,10 +29,10 @@ using SonarLint.VisualStudio.Integration.Resources;
 namespace SonarLint.VisualStudio.Integration.UserSettingsConfiguration;
 
 [Export(typeof(IUserSettingsProvider))]
-[Export(typeof(IGlobalUserSettingsUpdater))]
-[Export(typeof(ISolutionUserSettingsUpdater))]
+[Export(typeof(IGlobalRawSettingsService))]
+[Export(typeof(ISolutionRawSettingsService))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalUserSettingsUpdater, ISolutionUserSettingsUpdater, IDisposable
+internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSettingsService, ISolutionRawSettingsService, IDisposable
 {
     private static readonly object Lock = new();
     private readonly IActiveSolutionTracker activeSolutionTracker;
@@ -94,8 +94,6 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalUserS
     public event EventHandler SettingsChanged;
     public IInitializationProcessor InitializationProcessor { get; }
 
-    #region IGlobalUserSettingsUpdater
-
     public GlobalAnalysisSettings GlobalAnalysisSettings
     {
         get
@@ -111,39 +109,17 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalUserS
         }
     }
 
-    public void DisableRule(string ruleId)
+    void IGlobalRawSettingsService.DisableRule(string ruleId)
     {
         globalSettingsUpdater.DisableRule(GlobalAnalysisSettings, ruleId);
         SafeClearUserSettingsCache();
     }
 
-    public void UpdateGlobalFileExclusions(IEnumerable<string> exclusions)
+    void IGlobalRawSettingsService.UpdateFileExclusions(IEnumerable<string> exclusions)
     {
         globalSettingsUpdater.UpdateFileExclusions(GlobalAnalysisSettings, exclusions);
         SafeClearUserSettingsCache();
     }
-
-    private sealed class GlobalUserSettingsUpdater(IGlobalSettingsStorage globalSettingsStorage)
-    {
-        internal void DisableRule(GlobalAnalysisSettings globalAnalysisSettings, string ruleId)
-        {
-            Debug.Assert(!string.IsNullOrEmpty(ruleId), "DisableRule: ruleId should not be null/empty");
-
-            var newRules = globalAnalysisSettings.Rules.SetItem(ruleId, new RuleConfig(RuleLevel.Off));
-            var globalSettings = new GlobalAnalysisSettings(newRules, globalAnalysisSettings.UserDefinedFileExclusions);
-            globalSettingsStorage.SaveSettingsFile(globalSettings);
-        }
-
-        internal void UpdateFileExclusions(GlobalAnalysisSettings globalAnalysisSettings, IEnumerable<string> exclusions)
-        {
-            var globalSettings = new GlobalAnalysisSettings(globalAnalysisSettings.Rules, exclusions.ToImmutableArray());
-            globalSettingsStorage.SaveSettingsFile(globalSettings);
-        }
-    }
-
-    #endregion IGlobalUserSettingsUpdater
-
-    #region ISolutionUserSettingsUpdater
 
     public SolutionAnalysisSettings SolutionAnalysisSettings
     {
@@ -160,34 +136,17 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalUserS
         }
     }
 
-    public void UpdateAnalysisProperties(Dictionary<string, string> analysisProperties)
+    void ISolutionRawSettingsService.UpdateAnalysisProperties(Dictionary<string, string> analysisProperties)
     {
         solutionSettingsUpdater.UpdateAnalysisProperties(SolutionAnalysisSettings, analysisProperties);
         SafeClearUserSettingsCache();
     }
 
-    public void UpdateSolutionFileExclusions(IEnumerable<string> exclusions)
+    void ISolutionRawSettingsService.UpdateFileExclusions(IEnumerable<string> exclusions)
     {
         solutionSettingsUpdater.UpdateFileExclusions(SolutionAnalysisSettings, exclusions);
         SafeClearUserSettingsCache();
     }
-
-    private sealed class SolutionUserSettingsUpdater(ISolutionSettingsStorage solutionSettingsStorage)
-    {
-        internal void UpdateFileExclusions(SolutionAnalysisSettings solutionAnalysisSettings, IEnumerable<string> exclusions)
-        {
-            var solutionSettings = new SolutionAnalysisSettings(solutionAnalysisSettings.AnalysisProperties, exclusions.ToImmutableArray());
-            solutionSettingsStorage.SaveSettingsFile(solutionSettings);
-        }
-
-        internal void UpdateAnalysisProperties(SolutionAnalysisSettings solutionAnalysisSettings, Dictionary<string, string> analysisProperties)
-        {
-            var solutionSettings = new SolutionAnalysisSettings(analysisProperties, solutionAnalysisSettings.UserDefinedFileExclusions);
-            solutionSettingsStorage.SaveSettingsFile(solutionSettings);
-        }
-    }
-
-    #endregion ISolutionUserSettingsUpdater
 
     public void Dispose()
     {
@@ -256,5 +215,38 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalUserS
         var generatedConfigsBase = solutionAnalysisSettings != null ? solutionSettingsStorage.ConfigurationBaseDirectory : globalSettingsStorage.ConfigurationBaseDirectory;
 
         return new UserSettings(new AnalysisSettings(rules, globalExclusions, solutionExclusions, properties), generatedConfigsBase);
+    }
+
+    private sealed class SolutionUserSettingsUpdater(ISolutionSettingsStorage solutionSettingsStorage)
+    {
+        internal void UpdateFileExclusions(SolutionAnalysisSettings solutionAnalysisSettings, IEnumerable<string> exclusions)
+        {
+            var solutionSettings = new SolutionAnalysisSettings(solutionAnalysisSettings.AnalysisProperties, exclusions.ToImmutableArray());
+            solutionSettingsStorage.SaveSettingsFile(solutionSettings);
+        }
+
+        internal void UpdateAnalysisProperties(SolutionAnalysisSettings solutionAnalysisSettings, Dictionary<string, string> analysisProperties)
+        {
+            var solutionSettings = new SolutionAnalysisSettings(analysisProperties, solutionAnalysisSettings.UserDefinedFileExclusions);
+            solutionSettingsStorage.SaveSettingsFile(solutionSettings);
+        }
+    }
+
+    private sealed class GlobalUserSettingsUpdater(IGlobalSettingsStorage globalSettingsStorage)
+    {
+        internal void DisableRule(GlobalAnalysisSettings globalAnalysisSettings, string ruleId)
+        {
+            Debug.Assert(!string.IsNullOrEmpty(ruleId), "DisableRule: ruleId should not be null/empty");
+
+            var newRules = globalAnalysisSettings.Rules.SetItem(ruleId, new RuleConfig(RuleLevel.Off));
+            var globalSettings = new GlobalAnalysisSettings(newRules, globalAnalysisSettings.UserDefinedFileExclusions);
+            globalSettingsStorage.SaveSettingsFile(globalSettings);
+        }
+
+        internal void UpdateFileExclusions(GlobalAnalysisSettings globalAnalysisSettings, IEnumerable<string> exclusions)
+        {
+            var globalSettings = new GlobalAnalysisSettings(globalAnalysisSettings.Rules, exclusions.ToImmutableArray());
+            globalSettingsStorage.SaveSettingsFile(globalSettings);
+        }
     }
 }

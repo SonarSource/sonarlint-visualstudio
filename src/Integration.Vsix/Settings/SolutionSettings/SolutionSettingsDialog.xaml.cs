@@ -40,8 +40,8 @@ internal sealed partial class SolutionSettingsDialog : Window
     internal SolutionSettingsDialog(IServiceProvider serviceProvider)
     {
         this.serviceProvider = serviceProvider;
-        var solutionUserSettingsUpdater = serviceProvider.GetMefService<ISolutionUserSettingsUpdater>();
-        var globalUserSettingsUpdater = serviceProvider.GetMefService<IGlobalUserSettingsUpdater>();
+        var solutionUserSettingsUpdater = serviceProvider.GetMefService<ISolutionRawSettingsService>();
+        var globalUserSettingsUpdater = serviceProvider.GetMefService<IGlobalRawSettingsService>();
         solutionSettingsStorage = serviceProvider.GetMefService<ISolutionSettingsStorage>();
         var browserService = serviceProvider.GetMefService<IBrowserService>();
         analysisPropertiesControl = new AnalysisPropertiesControl(new AnalysisPropertiesViewModel(solutionUserSettingsUpdater));

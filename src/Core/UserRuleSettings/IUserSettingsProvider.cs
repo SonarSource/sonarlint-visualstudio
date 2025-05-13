@@ -32,7 +32,7 @@ public interface IUserSettingsProvider : IRequireInitialization
     event EventHandler SettingsChanged;
 }
 
-public interface IGlobalUserSettingsUpdater
+public interface IGlobalRawSettingsService
 {
     /// <summary>
     /// Updates the user settings to disable the specified rule
@@ -40,14 +40,14 @@ public interface IGlobalUserSettingsUpdater
     void DisableRule(string ruleId);
 
     /// <summary>
-    /// Updates the user settings to include the provided global/solution file exclusions. The value will override existing exclusions.
+    /// Updates the user settings to include the provided global file exclusions. The value will override existing exclusions.
     /// </summary>
-    void UpdateGlobalFileExclusions(IEnumerable<string> exclusions);
+    void UpdateFileExclusions(IEnumerable<string> exclusions);
 
     public GlobalAnalysisSettings GlobalAnalysisSettings { get; }
 }
 
-public interface ISolutionUserSettingsUpdater
+public interface ISolutionRawSettingsService
 {
     /// <summary>
     /// Updates the solution level analysis settings to include the provided analysis properties. The value will override existing analysis settings.
@@ -55,9 +55,9 @@ public interface ISolutionUserSettingsUpdater
     void UpdateAnalysisProperties(Dictionary<string, string> analysisProperties);
 
     /// <summary>
-    /// Updates the user settings to include the provided global/solution file exclusions. The value will override existing exclusions.
+    /// Updates the user settings to include the provided solution file exclusions. The value will override existing exclusions.
     /// </summary>
-    void UpdateSolutionFileExclusions(IEnumerable<string> exclusions);
+    void UpdateFileExclusions(IEnumerable<string> exclusions);
 
     public SolutionAnalysisSettings SolutionAnalysisSettings { get; }
 }

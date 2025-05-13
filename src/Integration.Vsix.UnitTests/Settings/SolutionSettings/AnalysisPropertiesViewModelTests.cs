@@ -30,12 +30,12 @@ public class AnalysisPropertiesViewModelTests
 {
     private static readonly AnalysisPropertyViewModel PropertyViewModel = new("prop1", "value1");
     private AnalysisPropertiesViewModel testSubject;
-    private ISolutionUserSettingsUpdater solutionUserSettingsUpdater;
+    private ISolutionRawSettingsService solutionUserSettingsUpdater;
 
     [TestInitialize]
     public void Initialize()
     {
-        solutionUserSettingsUpdater = Substitute.For<ISolutionUserSettingsUpdater>();
+        solutionUserSettingsUpdater = Substitute.For<ISolutionRawSettingsService>();
         testSubject = new AnalysisPropertiesViewModel(solutionUserSettingsUpdater);
     }
 
