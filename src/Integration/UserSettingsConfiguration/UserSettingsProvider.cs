@@ -39,9 +39,7 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSe
     private readonly ILogger logger;
     private readonly IGlobalSettingsStorage globalSettingsStorage;
     private readonly ISolutionSettingsStorage solutionSettingsStorage;
-    private UserSettings userSettings;
-    private GlobalAnalysisSettings globalAnalysisSettings;
-    private SolutionAnalysisSettings solutionAnalysisSettings;
+    private (UserSettings userSettings, GlobalAnalysisSettings globalAnalysisSettings, SolutionAnalysisSettings solutionAnalysisSettings)? cache;
     private bool disposed;
 
     [ImportingConstructor]
@@ -80,8 +78,8 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSe
         {
             lock (Lock)
             {
-                userSettings ??= SafeLoadUserSettings();
-                return userSettings;
+                cache ??= SafeLoadUserSettings();
+                return cache.Value.userSettings;
             }
         }
     }
@@ -95,11 +93,8 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSe
         {
             lock (Lock)
             {
-                if (globalAnalysisSettings == null)
-                {
-                    SafeLoadUserSettings();
-                }
-                return globalAnalysisSettings;
+                cache ??= SafeLoadUserSettings();
+                return cache.Value.globalAnalysisSettings;
             }
         }
     }
@@ -127,11 +122,8 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSe
         {
             lock (Lock)
             {
-                if (solutionAnalysisSettings == null)
-                {
-                    SafeLoadUserSettings();
-                }
-                return solutionAnalysisSettings;
+                cache ??= SafeLoadUserSettings();
+                return cache.Value.solutionAnalysisSettings;
             }
         }
     }
@@ -189,16 +181,15 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSe
     {
         lock (Lock)
         {
-            userSettings = null;
-            solutionAnalysisSettings = null;
-            globalAnalysisSettings = null;
+            cache = null;
         }
     }
 
-    private UserSettings SafeLoadUserSettings()
+    private (UserSettings userSettings, GlobalAnalysisSettings globalAnalysisSettings, SolutionAnalysisSettings solutionAnalysisSettings) SafeLoadUserSettings()
     {
-        globalAnalysisSettings = globalSettingsStorage.LoadSettingsFile();
+        var globalAnalysisSettings = globalSettingsStorage.LoadSettingsFile();
 
+        SolutionAnalysisSettings solutionAnalysisSettings = null;
         if (solutionSettingsStorage.SettingsFilePath != null)
         {
             solutionAnalysisSettings = solutionSettingsStorage.LoadSettingsFile();
@@ -207,7 +198,7 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSe
         if (globalAnalysisSettings == null && solutionAnalysisSettings == null)
         {
             logger.WriteLine(Strings.Settings_UsingDefaultSettings);
-            return new UserSettings(new AnalysisSettings(), globalSettingsStorage.ConfigurationBaseDirectory);
+            return (new UserSettings(new AnalysisSettings(), globalSettingsStorage.ConfigurationBaseDirectory), globalAnalysisSettings, solutionAnalysisSettings);
         }
 
         var rules = globalAnalysisSettings?.Rules;
@@ -216,6 +207,6 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSe
         var solutionExclusions = solutionAnalysisSettings?.UserDefinedFileExclusions;
         var generatedConfigsBase = solutionAnalysisSettings != null ? solutionSettingsStorage.ConfigurationBaseDirectory : globalSettingsStorage.ConfigurationBaseDirectory;
 
-        return new UserSettings(new AnalysisSettings(rules, globalExclusions, solutionExclusions, properties), generatedConfigsBase);
+        return (new UserSettings(new AnalysisSettings(rules, globalExclusions, solutionExclusions, properties), generatedConfigsBase), globalAnalysisSettings, solutionAnalysisSettings);
     }
 }
