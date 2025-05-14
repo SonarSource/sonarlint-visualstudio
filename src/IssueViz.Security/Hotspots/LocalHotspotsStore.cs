@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
             }
         }
 
-        private HotspotPriority GetPriority(IAnalysisIssueVisualization visualization)
+        private static HotspotPriority GetPriority(IAnalysisIssueVisualization visualization)
         {
             var mappedHotspotPriority = (visualization.Issue as IAnalysisHotspotIssue)?.HotspotPriority;
 
