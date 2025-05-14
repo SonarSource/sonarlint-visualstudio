@@ -31,23 +31,40 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger;
 [TestClass]
 public class VsProjectInfoProviderTest
 {
+    private IServiceProvider serviceProvider;
+    private TestLogger logger;
+    private NoOpThreadHandler threadHandling;
     private const string FilePath = "file/path";
     private const string ProjectName = "projeccct";
     private static readonly Guid ProjectGuid = Guid.NewGuid();
 
-    [TestMethod]
-    public void MefCtor_CheckIsExported()
+    [TestInitialize]
+    public void TestInitialize()
     {
+        serviceProvider = Substitute.For<IServiceProvider>();
+        logger = Substitute.ForPartsOf<TestLogger>();
+        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+    }
+
+    [TestMethod]
+    public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<VsProjectInfoProvider, IVsProjectInfoProvider>(
             MefTestHelpers.CreateExport<SVsServiceProvider>(),
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
-    }
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton()
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<VsProjectInfoProvider>();
+
+    [TestMethod]
+    public void Ctor_DoesNotCallGetService()
     {
-        MefTestHelpers.CheckIsSingletonMefComponent<VsProjectInfoProvider>();
+        var dte = SetUpCorrectDte(ProjectName);
+        var vsSolution = SetUpProjectGuid(ProjectName, ProjectGuid);
+
+        _ = CreateTestSubject(vsSolution, dte);
+
+        serviceProvider.DidNotReceiveWithAnyArgs().GetService(default);
     }
 
     [TestMethod]
@@ -55,13 +72,7 @@ public class VsProjectInfoProviderTest
     {
         var dte = SetUpCorrectDte(ProjectName);
         var vsSolution = SetUpProjectGuid(ProjectName, ProjectGuid);
-        var threadHandling = Substitute.For<IThreadHandling>();
-        threadHandling.RunOnUIThreadAsync(Arg.Any<Action>()).Returns(info =>
-        {
-            info.Arg<Action>()();
-            return Task.CompletedTask;
-        });
-        var testSubject = CreateTestSubject(vsSolution, dte, threadHandling: threadHandling);
+        var testSubject = CreateTestSubject(vsSolution, dte);
 
         await testSubject.GetDocumentProjectInfoAsync(FilePath);
 
@@ -78,13 +89,12 @@ public class VsProjectInfoProviderTest
     {
         var dte = SetUpDte(SetUpSolution(null));
         var vsSolution = Substitute.For<IVsSolution5>();
-        var testLogger = new TestLogger();
-        var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
+        var testSubject = CreateTestSubject(vsSolution, dte);
 
         var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
 
         result.Should().BeEquivalentTo(("{none}", Guid.Empty));
-        testLogger.AssertNoOutputMessages();
+        logger.AssertNoOutputMessages();
         vsSolution.DidNotReceiveWithAnyArgs().GetGuidOfProjectFile(default);
     }
 
@@ -93,13 +103,12 @@ public class VsProjectInfoProviderTest
     {
         var dte = SetUpDte(SetUpSolution(SetUpProjectItem(null)));
         var vsSolution = Substitute.For<IVsSolution5>();
-        var testLogger = new TestLogger();
-        var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
+        var testSubject = CreateTestSubject(vsSolution, dte);
 
         var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
 
         result.Should().BeEquivalentTo(("{none}", Guid.Empty));
-        testLogger.AssertNoOutputMessages();
+        logger.AssertNoOutputMessages();
         vsSolution.DidNotReceiveWithAnyArgs().GetGuidOfProjectFile(default);
     }
 
@@ -111,13 +120,12 @@ public class VsProjectInfoProviderTest
         project.FileName.Returns((string)null);
         var dte = SetUpDte(SetUpSolution(SetUpProjectItem(project)));
         var vsSolution = Substitute.For<IVsSolution5>();
-        var testLogger = new TestLogger();
-        var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
+        var testSubject = CreateTestSubject(vsSolution, dte);
 
         var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
 
         result.Should().BeEquivalentTo(("{none}", Guid.Empty));
-        testLogger.AssertNoOutputMessages();
+        logger.AssertNoOutputMessages();
         vsSolution.DidNotReceiveWithAnyArgs().GetGuidOfProjectFile(default);
     }
 
@@ -129,13 +137,12 @@ public class VsProjectInfoProviderTest
         project.FileName.Returns("someprojectfile.csproj");
         var dte = SetUpDte(SetUpSolution(SetUpProjectItem(project)));
         var vsSolution = SetUpProjectGuid("someprojectfile", ProjectGuid);
-        var testLogger = new TestLogger();
-        var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
+        var testSubject = CreateTestSubject(vsSolution, dte);
 
         var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
 
         result.Should().BeEquivalentTo(("{none}", ProjectGuid));
-        testLogger.AssertNoOutputMessages();
+        logger.AssertNoOutputMessages();
     }
 
     [TestMethod]
@@ -146,13 +153,12 @@ public class VsProjectInfoProviderTest
         project.FileName.Returns((string)null);
         var dte = SetUpDte(SetUpSolution(SetUpProjectItem(project)));
         var vsSolution = Substitute.For<IVsSolution5>();
-        var testLogger = new TestLogger();
-        var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
+        var testSubject = CreateTestSubject(vsSolution, dte);
 
         var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
 
         result.Should().BeEquivalentTo((ProjectName, Guid.Empty));
-        testLogger.AssertNoOutputMessages();
+        logger.AssertNoOutputMessages();
         vsSolution.DidNotReceiveWithAnyArgs().GetGuidOfProjectFile(default);
     }
 
@@ -161,13 +167,12 @@ public class VsProjectInfoProviderTest
     {
         var dte = SetUpCorrectDte(ProjectName);
         var vsSolution = SetUpProjectGuid(ProjectName, ProjectGuid);
-        var testLogger = new TestLogger();
-        var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
+        var testSubject = CreateTestSubject(vsSolution, dte);
 
         var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
 
         result.Should().BeEquivalentTo((ProjectName, ProjectGuid));
-        testLogger.AssertNoOutputMessages();
+        logger.AssertNoOutputMessages();
     }
 
     [TestMethod]
@@ -178,13 +183,12 @@ public class VsProjectInfoProviderTest
         vsSolution
             .GetGuidOfProjectFile(default)
             .ThrowsForAnyArgs(new InvalidOperationException());
-        var testLogger = new TestLogger();
-        var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
+        var testSubject = CreateTestSubject(vsSolution, dte);
 
-        var act = async() => await testSubject.GetDocumentProjectInfoAsync(FilePath);
+        var act = async () => await testSubject.GetDocumentProjectInfoAsync(FilePath);
 
         await act.Should().NotThrowAsync();
-        testLogger.AssertPartialOutputStringExists("Failed to calculate project guid of file");
+        logger.AssertPartialOutputStringExists("Failed to calculate project guid of file");
     }
 
     [TestMethod]
@@ -195,26 +199,24 @@ public class VsProjectInfoProviderTest
         vsSolution
             .GetGuidOfProjectFile(default)
             .ThrowsForAnyArgs(new DivideByZeroException());
-        var testLogger = new TestLogger();
-        var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
+        var testSubject = CreateTestSubject(vsSolution, dte);
 
-        var act = async() => await testSubject.GetDocumentProjectInfoAsync(FilePath);
+        var act = async () => await testSubject.GetDocumentProjectInfoAsync(FilePath);
 
         await act.Should().ThrowAsync<DivideByZeroException>();
     }
 
-    private static IVsProjectInfoProvider CreateTestSubject(IVsSolution5 vsSolution, DTE2 dte, ILogger logger = null, IThreadHandling threadHandling = null)
+    private IVsProjectInfoProvider CreateTestSubject(
+        IVsSolution5 vsSolution,
+        DTE2 dte)
     {
-        var serviceProvider = Substitute.For<IServiceProvider>();
         serviceProvider.GetService(typeof(SDTE)).Returns(dte);
         serviceProvider.GetService(typeof(SVsSolution)).Returns(vsSolution);
-        logger ??= new TestLogger();
-        threadHandling ??= new NoOpThreadHandler();
+
         return new VsProjectInfoProvider(serviceProvider, logger, threadHandling);
     }
 
-    private static DTE2 SetUpCorrectDte(string projectName) =>
-        SetUpDte(SetUpSolution(SetUpProjectItem(SetUpProject(projectName))));
+    private static DTE2 SetUpCorrectDte(string projectName) => SetUpDte(SetUpSolution(SetUpProjectItem(SetUpProject(projectName))));
 
     private static Project SetUpProject(string projectName)
     {
