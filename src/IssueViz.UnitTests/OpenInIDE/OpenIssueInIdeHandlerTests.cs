@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
 using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
@@ -56,10 +54,11 @@ public class OpenIssueInIdeHandlerTests
 
         testSubject.Show(issue, configScope);
 
-        handler.Received().ShowIssue(issue, configScope, converter, isTaint ? IssueListIds.TaintId : IssueListIds.ErrorListId, null);
+        handler.Received().ShowIssue(issue, configScope, converter, isTaint ? IssueListIds.TaintId : IssueListIds.ErrorListId);
     }
 
-    private OpenIssueInIdeHandler CreateTestSubject(out IOpenInIdeHandlerImplementation openInIdeHandlerImplementation,
+    private OpenIssueInIdeHandler CreateTestSubject(
+        out IOpenInIdeHandlerImplementation openInIdeHandlerImplementation,
         out IIssueDetailDtoToAnalysisIssueConverter issueOpenInIdeConverter)
     {
         openInIdeHandlerImplementation = Substitute.For<IOpenInIdeHandlerImplementation>();

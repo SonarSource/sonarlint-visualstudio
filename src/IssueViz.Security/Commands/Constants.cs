@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
 {
     internal static class Constants
@@ -28,6 +26,5 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
 
         public const int HotspotsToolWindowCommandId = 0x0100;
         public const int TaintToolWindowCommandId = 0x0101;
-        public const int OpenInIDEHotspotsToolWindowCommandId = 0x0102;
     }
 }
