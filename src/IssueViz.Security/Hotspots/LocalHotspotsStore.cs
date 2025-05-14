@@ -59,14 +59,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 
         private readonly object lockObject = new();
         private readonly IThreadHandling threadHandling;
-        private readonly IHotspotReviewPriorityProvider hotspotReviewPriorityProvider;
 
         private readonly Dictionary<string, List<LocalHotspot>> fileToHotspotsMapping = [];
 
         [ImportingConstructor]
-        public LocalHotspotsStore(IHotspotReviewPriorityProvider hotspotReviewPriorityProvider, IThreadHandling threadHandling)
+        public LocalHotspotsStore(IThreadHandling threadHandling)
         {
-            this.hotspotReviewPriorityProvider = hotspotReviewPriorityProvider;
             this.threadHandling = threadHandling;
         }
 
@@ -121,7 +119,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 
         private HotspotPriority GetPriority(IAnalysisIssueVisualization visualization)
         {
-            var mappedHotspotPriority = (visualization.Issue as IAnalysisHotspotIssue)?.HotspotPriority ?? hotspotReviewPriorityProvider.GetPriority(visualization.RuleId);
+            var mappedHotspotPriority = (visualization.Issue as IAnalysisHotspotIssue)?.HotspotPriority;
 
             return mappedHotspotPriority ?? DefaultPriority;
         }

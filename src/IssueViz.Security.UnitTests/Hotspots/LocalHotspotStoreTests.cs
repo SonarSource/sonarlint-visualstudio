@@ -30,7 +30,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots;
 [TestClass]
 public class LocalHotspotStoreTests
 {
-    private IHotspotReviewPriorityProvider hotspotReviewPriorityProvider;
     private IThreadHandling threadHandling;
     private LocalHotspotsStore testSubject;
     private TestEventListener eventListener;
@@ -38,28 +37,24 @@ public class LocalHotspotStoreTests
     [TestInitialize]
     public void TestInitialize()
     {
-        hotspotReviewPriorityProvider = Substitute.For<IHotspotReviewPriorityProvider>();
         threadHandling = Substitute.For<IThreadHandling>();
-        testSubject = new LocalHotspotsStore(hotspotReviewPriorityProvider, threadHandling);
+        testSubject = new LocalHotspotsStore(threadHandling);
         eventListener = new TestEventListener(testSubject);
     }
 
     [TestMethod]
     public void MefCtor_CheckExports_ILocalHotspotsStore() =>
         MefTestHelpers.CheckTypeCanBeImported<LocalHotspotsStore, ILocalHotspotsStore>(
-            MefTestHelpers.CreateExport<IHotspotReviewPriorityProvider>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
 
     [TestMethod]
     public void MefCtor_CheckExports_ILocalHotspotsStoreUpdater() =>
         MefTestHelpers.CheckTypeCanBeImported<LocalHotspotsStore, ILocalHotspotsStoreUpdater>(
-            MefTestHelpers.CreateExport<IHotspotReviewPriorityProvider>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
 
     [TestMethod]
     public void MefCtor_CheckExports_IIssuesStore() =>
         MefTestHelpers.CheckTypeCanBeImported<LocalHotspotsStore, IIssuesStore>(
-            MefTestHelpers.CreateExport<IHotspotReviewPriorityProvider>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
 
     [TestMethod]
@@ -127,40 +122,10 @@ public class LocalHotspotStoreTests
         var issueVis1 = Substitute.For<IAnalysisIssueVisualization>();
         const string rule1 = "rule1";
         issueVis1.RuleId.Returns(rule1);
-        hotspotReviewPriorityProvider.GetPriority(rule1).Returns((HotspotPriority?)null);
 
         testSubject.UpdateForFile("file1", [issueVis1]);
 
         VerifyContent(testSubject, new LocalHotspot(issueVis1, HotspotPriority.High));
-    }
-
-    [TestMethod]
-    public void UpdateForFile_UsesReviewPriority()
-    {
-        /*
-         * issue1 -> rule1 -> Low
-         * issue2 -> rule2 -> Medium
-         * issue3 -> rule1 -> Low
-         */
-
-        const string rule1 = "rule:s1";
-        const string rule2 = "rule:s2";
-        var issueVis1 = Substitute.For<IAnalysisIssueVisualization>();
-        issueVis1.RuleId.Returns(rule1);
-        var issueVis2 = Substitute.For<IAnalysisIssueVisualization>();
-        issueVis2.RuleId.Returns(rule2);
-        var issueVis3 = Substitute.For<IAnalysisIssueVisualization>();
-        issueVis3.RuleId.Returns(rule1);
-
-        hotspotReviewPriorityProvider.GetPriority(rule1).Returns(HotspotPriority.Low);
-        hotspotReviewPriorityProvider.GetPriority(rule2).Returns(HotspotPriority.Medium);
-
-        testSubject.UpdateForFile("file1", [issueVis1, issueVis2, issueVis3]);
-
-        VerifyContent(testSubject,
-            new LocalHotspot(issueVis1, HotspotPriority.Low),
-            new LocalHotspot(issueVis2, HotspotPriority.Medium),
-            new LocalHotspot(issueVis3, HotspotPriority.Low));
     }
 
     [TestMethod]
@@ -175,7 +140,6 @@ public class LocalHotspotStoreTests
         testSubject.UpdateForFile("file1", [issueVis1]);
 
         VerifyContent(testSubject, new LocalHotspot(issueVis1, priority));
-        hotspotReviewPriorityProvider.DidNotReceive().GetPriority(Arg.Any<string>());
     }
 
     [TestMethod]
