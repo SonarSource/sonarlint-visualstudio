@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore
@@ -35,7 +33,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore
         event EventHandler<IssuesChangedEventArgs> IssuesChanged;
     }
 
-    public class IssuesChangedEventArgs
+    public class IssuesChangedEventArgs : EventArgs
     {
         public IReadOnlyCollection<IAnalysisIssueVisualization> RemovedIssues { get; }
 
