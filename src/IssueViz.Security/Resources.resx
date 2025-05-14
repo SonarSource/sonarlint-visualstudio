@@ -142,7 +142,7 @@
     <value>Cannot navigate to location. The source code is different from the analyzed version.</value>
   </data>
   <data name="HotspotsControl_NavigationTooltip" xml:space="preserve">
-    <value>Use double-click or Enter navigate to the security hotspot.</value>
+    <value>Use double-click or Enter to navigate to the security hotspot.</value>
   </data>
   <data name="HotspotsControl_NotOnServerTooltip" xml:space="preserve">
     <value>Security Hotspot does not exist on the server.</value>

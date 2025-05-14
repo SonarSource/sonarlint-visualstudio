@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use double-click or Enter navigate to the security hotspot..
+        ///   Looks up a localized string similar to Use double-click or Enter to navigate to the security hotspot..
         /// </summary>
         public static string HotspotsControl_NavigationTooltip {
             get {
