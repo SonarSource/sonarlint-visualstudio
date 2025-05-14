@@ -7,7 +7,6 @@
              xmlns:core="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
              xmlns:commands="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;assembly=SonarLint.VisualStudio.IssueVisualization"
              xmlns:res="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security"
-             xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              DataContext="{Binding ViewModel, RelativeSource={RelativeSource Mode=Self}}">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -31,19 +30,6 @@
                         <Setter Property="ToolTip" Value="{x:Static res:Resources.HotspotsControl_NavigationErrorTooltip}"/>
                         <Setter Property="ToolTipService.IsEnabled" Value="true"/>
                     </DataTrigger>
-                    <Trigger Property="IsSelected" Value="True">
-                        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveTextBrushKey}}"/>
-                        <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveBrushKey}}"/>
-                    </Trigger>
-                </Style.Triggers>
-            </Style>
-
-            <Style BasedOn="{StaticResource BaseDataGridCell}" TargetType="DataGridCell">
-                <Style.Triggers>
-                    <Trigger Property="IsSelected" Value="True">
-                        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveTextBrushKey}}"/>
-                        <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveBrushKey}}"/>
-                    </Trigger>
                 </Style.Triggers>
             </Style>
 

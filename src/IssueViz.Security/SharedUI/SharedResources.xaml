@@ -115,7 +115,7 @@
         <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.BackgroundBrushKey}}"/>
         <Style.Triggers>
             <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveBrushKey}}"/>
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveBrushKey}}"/>
             </Trigger>
             <MultiTrigger>
                 <MultiTrigger.Conditions>
@@ -128,7 +128,7 @@
             </MultiTrigger>
         </Style.Triggers>
     </Style>
-    <Style TargetType="DataGridCell" x:Key="BaseDataGridCell">
+    <Style TargetType="DataGridCell">
         <Setter Property="MinHeight" Value="20"/>
         <Setter Property="Padding" Value="6,2,2,2"/>
         <Setter Property="Margin" Value="6,0,6,0"/>
@@ -137,8 +137,8 @@
         <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.BackgroundBrushKey}}"/>
         <Style.Triggers>
             <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveTextBrushKey}}"/>
-                <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveBrushKey}}"/>
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveTextBrushKey}}"/>
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveBrushKey}}"/>
             </Trigger>
             <MultiTrigger>
                 <MultiTrigger.Conditions>
@@ -152,7 +152,6 @@
             </MultiTrigger>
         </Style.Triggers>
     </Style>
-    <Style TargetType="DataGridCell" BasedOn="{StaticResource BaseDataGridCell}"/>
 
     <Style x:Key="CellTextBlockStyle" TargetType="TextBlock">
         <Setter Property="TextWrapping" Value="Wrap"/>
