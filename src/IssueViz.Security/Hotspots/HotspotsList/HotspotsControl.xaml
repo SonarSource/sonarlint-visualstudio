@@ -78,7 +78,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Grid>
-                                <Image Height="16" Width="16" ToolTipService.ShowOnDisabled="True" >
+                                <Image Height="16" Width="16" VerticalAlignment="Center">
                                     <Image.Style>
                                         <Style TargetType="Image">
                                             <Style.Triggers>
@@ -119,7 +119,7 @@
                 <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Hotspot.Issue.RuleKey" Header="{x:Static res:Resources.HotspotsControl_CodeColumnHeader}" Width="130" MinWidth="54">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock>
+                            <TextBlock Style="{StaticResource CellTextBlockStyle}">
                                 <Hyperlink Style="{StaticResource RuleKeyLinkStyle}" 
                                            Command="{Binding DataContext.NavigateToRuleDescriptionCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}">
                                     <Hyperlink.CommandParameter>
