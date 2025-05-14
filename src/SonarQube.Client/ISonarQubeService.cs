@@ -118,12 +118,6 @@ public interface ISonarQubeService
     Uri GetViewIssueUrl(string projectKey, string issueKey);
 
     /// <summary>
-    ///     Returns the URI to view the specified hotspot on the server
-    /// </summary>
-    /// <remarks>The method does not check whether the project or hotspot exists or not</remarks>
-    Uri GetViewHotspotUrl(string projectKey, string hotspotKey);
-
-    /// <summary>
     ///     Returns branch information for the specified project key
     /// </summary>
     Task<IList<SonarQubeProjectBranch>> GetProjectBranchesAsync(string projectKey, CancellationToken token);
@@ -137,6 +131,4 @@ public interface ISonarQubeService
     ///     Creates a new <see cref="ISSEStreamReader" /> for the given <see cref="projectKey" />
     /// </summary>
     Task<ISSEStreamReader> CreateSSEStreamReader(string projectKey, CancellationToken token);
-
-    Task<IList<SonarQubeHotspotSearch>> SearchHotspotsAsync(string projectKey, string branch, CancellationToken token);
 }

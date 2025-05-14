@@ -20,7 +20,6 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -36,7 +35,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
         private readonly ITimer refreshTimer;
         private readonly IRoslynSuppressionUpdater roslynSuppressionUpdater;
-        private readonly IServerHotspotStoreUpdater serverHotspotStoreUpdater;
         private readonly IQualityProfileUpdater qualityProfileUpdater;
         private readonly ILogger logger;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
@@ -46,24 +44,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         [ImportingConstructor]
         public TimedUpdateHandler(
             IRoslynSuppressionUpdater roslynSuppressionUpdater,
-            IServerHotspotStoreUpdater serverHotspotStoreUpdater,
             IQualityProfileUpdater qualityProfileUpdater,
             ILogger logger,
             IActiveSolutionBoundTracker activeSolutionBoundTracker)
-            : this(roslynSuppressionUpdater, serverHotspotStoreUpdater, qualityProfileUpdater, activeSolutionBoundTracker, logger, new TimerFactory())
+            : this(roslynSuppressionUpdater, qualityProfileUpdater, activeSolutionBoundTracker, logger, new TimerFactory())
         {
         }
 
         internal /* for testing */ TimedUpdateHandler(
             IRoslynSuppressionUpdater roslynSuppressionUpdater,
-            IServerHotspotStoreUpdater serverHotspotStoreUpdater,
             IQualityProfileUpdater qualityProfileUpdater,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ILogger logger,
             ITimerFactory timerFactory)
         {
             this.roslynSuppressionUpdater = roslynSuppressionUpdater;
-            this.serverHotspotStoreUpdater = serverHotspotStoreUpdater;
             this.qualityProfileUpdater = qualityProfileUpdater;
             this.logger = logger;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
@@ -99,7 +94,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         {
             logger.WriteLine(Resources.TimedUpdateTriggered);
             roslynSuppressionUpdater.UpdateAllServerSuppressionsAsync().Forget();
-            serverHotspotStoreUpdater.UpdateAllServerHotspotsAsync().Forget();
             qualityProfileUpdater.UpdateAsync().Forget();
         }
 

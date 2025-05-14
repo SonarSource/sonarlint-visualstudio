@@ -20,7 +20,6 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Binding;
@@ -33,7 +32,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
     {
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly IRoslynSuppressionUpdater roslynSuppressionUpdater;
-        private readonly IServerHotspotStoreUpdater serverHotspotStoreUpdater;
         private readonly IQualityProfileUpdater qualityProfileUpdater;
 
         private bool disposed;
@@ -42,12 +40,10 @@ namespace SonarLint.VisualStudio.ConnectedMode
         public BoundSolutionUpdateHandler(
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             IRoslynSuppressionUpdater roslynSuppressionUpdater,
-            IServerHotspotStoreUpdater serverHotspotStoreUpdater,
             IQualityProfileUpdater qualityProfileUpdater)
         {
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.roslynSuppressionUpdater = roslynSuppressionUpdater;
-            this.serverHotspotStoreUpdater = serverHotspotStoreUpdater;
             this.qualityProfileUpdater = qualityProfileUpdater;
 
             this.activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
@@ -61,7 +57,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
         private void TriggerUpdate()
         {
             roslynSuppressionUpdater.UpdateAllServerSuppressionsAsync().Forget();
-            serverHotspotStoreUpdater.UpdateAllServerHotspotsAsync().Forget();
             qualityProfileUpdater.UpdateAsync().Forget();
         }
 
