@@ -39,8 +39,6 @@ internal static class DefaultConfiguration
             .RegisterRequest<IGetIssuesRequest, V7_20.GetIssuesRequestWrapper<V7_20.GetIssuesWithComponentSonarQubeRequest>>("7.2")
             .RegisterRequest<IGetExclusionsRequest, V7_20.GetExclusionsRequest>("7.2")
             .RegisterRequest<IGetSonarLintEventStream, V9_4.GetSonarLintEventStream>("9.4")
-            .RegisterRequest<ISearchHotspotRequest, V9_7.SearchHotspotRequest>("9.7")
-            .RegisterRequest<ISearchHotspotRequest, V10_2.SearchHotspotRequest>("10.2")
             .RegisterRequest<IGetRulesRequest, V10_2.GetRulesWithCCTRequest>("10.2")
             .RegisterRequest<ISearchFilesByNameRequest, V9_9.SearchFilesByNameRequest>("9.9");
 
@@ -59,7 +57,6 @@ internal static class DefaultConfiguration
             .RegisterRequest<IGetProjectBranchesRequest, V6_60.GetProjectBranchesRequest>()
             .RegisterRequest<IGetIssuesRequest, V7_20.GetIssuesRequestWrapper<V7_20.GetIssuesWithComponentSonarCloudRequest>>()
             .RegisterRequest<IGetExclusionsRequest, V7_20.GetExclusionsRequest>()
-            .RegisterRequest<ISearchHotspotRequest, V9_7.SearchHotspotRequest>()
             .RegisterRequest<ISearchFilesByNameRequest, V9_9.SearchFilesByNameRequest>();
 
         return requestFactory;

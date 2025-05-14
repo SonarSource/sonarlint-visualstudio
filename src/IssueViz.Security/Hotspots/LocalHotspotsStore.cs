@@ -19,12 +19,10 @@
  */
 
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 {
@@ -60,24 +58,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
         private static readonly HotspotPriority DefaultPriority = HotspotPriority.High;
 
         private readonly object lockObject = new();
-        private readonly IHotspotMatcher hotspotMatcher;
         private readonly IThreadHandling threadHandling;
-        private readonly IServerHotspotStore serverHotspotStore;
-        private readonly IHotspotReviewPriorityProvider hotspotReviewPriorityProvider;
 
-        private Dictionary<string, List<LocalHotspot>> fileToHotspotsMapping = [];
-
-        private ISet<SonarQubeHotspot> unmatchedHotspots = CreateServerHotspotSet();
+        private readonly Dictionary<string, List<LocalHotspot>> fileToHotspotsMapping = [];
 
         [ImportingConstructor]
-        public LocalHotspotsStore(IServerHotspotStore serverHotspotStore, IHotspotReviewPriorityProvider hotspotReviewPriorityProvider, IHotspotMatcher hotspotMatcher, IThreadHandling threadHandling)
+        public LocalHotspotsStore(IThreadHandling threadHandling)
         {
-            this.serverHotspotStore = serverHotspotStore;
-            this.hotspotReviewPriorityProvider = hotspotReviewPriorityProvider;
-            this.hotspotMatcher = hotspotMatcher;
             this.threadHandling = threadHandling;
-            InitializeServerHotspots(this.serverHotspotStore.GetAll());
-            serverHotspotStore.Refreshed += (sender, args) => RematchAll();
         }
 
         public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
@@ -107,8 +95,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
                 List<IAnalysisIssueVisualization> oldIssueVisualizations;
                 if (fileToHotspotsMapping.TryGetValue(filePath, out var oldHotspots))
                 {
-                    // possible optimization point. it's unlikely we need to re-match every single hotspot
-                    UnmatchServerHotspots(oldHotspots);
                     oldIssueVisualizations = oldHotspots
                         .Select(x => x.Visualization)
                         .ToList();
@@ -125,10 +111,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 
                 var hotspotsList = hotspots.ToList();
 
-                fileToHotspotsMapping[filePath] = CreateLocalHotspots(hotspotsList);
+                fileToHotspotsMapping[filePath] = hotspotsList.Select(x => new LocalHotspot(x, GetPriority(x))).ToList();
 
                 NotifyIssuesChanged(new IssuesChangedEventArgs(oldIssueVisualizations, hotspotsList));
             }
+        }
+
+        private static HotspotPriority GetPriority(IAnalysisIssueVisualization visualization)
+        {
+            var mappedHotspotPriority = (visualization.Issue as IAnalysisHotspotIssue)?.HotspotPriority;
+
+            return mappedHotspotPriority ?? DefaultPriority;
         }
 
         public void RemoveForFile(string filePath)
@@ -143,7 +136,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
                 }
 
                 fileToHotspotsMapping.Remove(filePath);
-                UnmatchServerHotspots(localHotspots);
 
                 NotifyIssuesChanged(new IssuesChangedEventArgs(localHotspots.Select(x => x.Visualization).ToList(),
                     EmptyList));
@@ -168,104 +160,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
             }
         }
 
-        private List<LocalHotspot> CreateLocalHotspots(IEnumerable<IAnalysisIssueVisualization> hotspots)
-        {
-            return hotspots.Select(visualization => MatchAndConvert(visualization)).ToList();
-        }
-
-        private void RematchAll()
-        {
-            lock (lockObject)
-            {
-                InitializeServerHotspots(serverHotspotStore.GetAll());
-
-                fileToHotspotsMapping = fileToHotspotsMapping.ToDictionary(kvp => kvp.Key,
-                    kvp => CreateLocalHotspots(kvp.Value.Select(localHotspot => localHotspot.Visualization)));
-
-                var visualizations = GetAll();
-
-                if (!fileToHotspotsMapping.Any())
-                {
-                    return;
-                }
-
-                NotifyIssuesChanged(new IssuesChangedEventArgs(visualizations, visualizations));
-            }
-        }
-
-        private void InitializeServerHotspots(IList<SonarQubeHotspot> sonarQubeHotspots)
-        {
-            unmatchedHotspots = CreateServerHotspotSet(sonarQubeHotspots);
-        }
-
-        private void UnmatchServerHotspots(List<LocalHotspot> oldHotspots)
-        {
-            foreach (var localHotspot in oldHotspots.Where(x => x.ServerHotspot != null))
-            {
-                unmatchedHotspots.Add(localHotspot.ServerHotspot);
-            }
-        }
-
-        private LocalHotspot MatchAndConvert(IAnalysisIssueVisualization visualization)
-        {
-            foreach (var serverHotspot in unmatchedHotspots)
-            {
-                if (!hotspotMatcher.IsMatch(visualization, serverHotspot))
-                {
-                    continue;
-                }
-
-                unmatchedHotspots.Remove(serverHotspot);
-                return new LocalHotspot(visualization, GetPriority(visualization), serverHotspot);
-            }
-
-            return new LocalHotspot(visualization, GetPriority(visualization));
-        }
-
-        private HotspotPriority GetPriority(IAnalysisIssueVisualization visualization)
-        {
-            var mappedHotspotPriority = (visualization.Issue as IAnalysisHotspotIssue)?.HotspotPriority ?? hotspotReviewPriorityProvider.GetPriority(visualization.RuleId);
-
-            return mappedHotspotPriority ?? DefaultPriority;
-        }
-
-        private IEnumerable<LocalHotspot> GetOpenHotspots() =>
-            fileToHotspotsMapping.SelectMany(kvp => kvp.Value).Where(hs => hs.ServerHotspot == null || hs.ServerHotspot.Status == "TO_REVIEW" || hs.ServerHotspot.Resolution == "ACKNOWLEDGED");
+        private IEnumerable<LocalHotspot> GetOpenHotspots() => fileToHotspotsMapping.SelectMany(kvp => kvp.Value).Where(hs => !hs.Visualization.IsResolved);
 
         private void NotifyIssuesChanged(IssuesChangedEventArgs args)
         {
             IssuesChanged?.Invoke(this, args);
-        }
-
-        private static ISet<SonarQubeHotspot> CreateServerHotspotSet(IEnumerable<SonarQubeHotspot> serverHotspots = null)
-        {
-            return new SortedSet<SonarQubeHotspot>(serverHotspots ?? [], new ServerHotspotComparer());
-        }
-
-        /// <summary>
-        /// Comparer to return server hotspots in a deterministic order.
-        /// Ordered by: StartLine, StartLineOffset, HotspotKey
-        /// </summary>
-        internal /* for testing */ class ServerHotspotComparer : IComparer<SonarQubeHotspot>
-        {
-            private static readonly IssueTextRange EmptyTextRange = new(0, 0, 0, 0);
-            public int Compare(SonarQubeHotspot x, SonarQubeHotspot y)
-            {
-                Debug.Assert(x != null && y != null, "Not expecting either server hotspot to be null");
-
-                var textRange1 = x.TextRange ?? EmptyTextRange;
-                var textRange2 = y.TextRange ?? EmptyTextRange;
-
-                int result = textRange1.StartLine.CompareTo(textRange2.StartLine);
-                if (result != 0) { return result; }
-
-                result = textRange1.StartOffset.CompareTo(textRange2.StartOffset);
-                if (result != 0) { return result; }
-
-                var key1 = x.HotspotKey ?? string.Empty;
-                var key2 = y.HotspotKey ?? string.Empty;
-                return key1.CompareTo(key2);
-            }
         }
     }
 }
