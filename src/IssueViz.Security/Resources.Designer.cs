@@ -22,7 +22,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarLint.VisualStudio.IssueVisualization.Security.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         /// <summary>
         ///   Looks up a localized string similar to Error displaying tool window. Window id: {0}. Error: {1}.
         /// </summary>
-        internal static string ERR_ShowToolWindow_Exception {
+        public static string ERR_ShowToolWindow_Exception {
             get {
                 return ResourceManager.GetString("ERR_ShowToolWindow_Exception", resourceCulture);
             }
@@ -72,16 +72,124 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         /// <summary>
         ///   Looks up a localized string similar to Finished initializing security package..
         /// </summary>
-        internal static string FinishedPackageInitialization {
+        public static string FinishedPackageInitialization {
             get {
                 return ResourceManager.GetString("FinishedPackageInitialization", resourceCulture);
             }
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Code.
+        /// </summary>
+        public static string HotspotsControl_CodeColumnHeader {
+            get {
+                return ResourceManager.GetString("HotspotsControl_CodeColumnHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Col.
+        /// </summary>
+        public static string HotspotsControl_ColColumnHeader {
+            get {
+                return ResourceManager.GetString("HotspotsControl_ColColumnHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Description.
+        /// </summary>
+        public static string HotspotsControl_DescriptionColumnHeader {
+            get {
+                return ResourceManager.GetString("HotspotsControl_DescriptionColumnHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File.
+        /// </summary>
+        public static string HotspotsControl_FileColumnHeader {
+            get {
+                return ResourceManager.GetString("HotspotsControl_FileColumnHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Line.
+        /// </summary>
+        public static string HotspotsControl_LineColumnHeader {
+            get {
+                return ResourceManager.GetString("HotspotsControl_LineColumnHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot navigate to location. The source code is different from the analyzed version..
+        /// </summary>
+        public static string HotspotsControl_NavigationErrorTooltip {
+            get {
+                return ResourceManager.GetString("HotspotsControl_NavigationErrorTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use double-click or Enter navigate to the security hotspot..
+        /// </summary>
+        public static string HotspotsControl_NavigationTooltip {
+            get {
+                return ResourceManager.GetString("HotspotsControl_NavigationTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Security Hotspot does not exist on the server..
+        /// </summary>
+        public static string HotspotsControl_NotOnServerTooltip {
+            get {
+                return ResourceManager.GetString("HotspotsControl_NotOnServerTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Priority.
+        /// </summary>
+        public static string HotspotsControl_PriorityColumnHeader {
+            get {
+                return ResourceManager.GetString("HotspotsControl_PriorityColumnHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server status.
+        /// </summary>
+        public static string HotspotsControl_ServerStatusColumnHeader {
+            get {
+                return ResourceManager.GetString("HotspotsControl_ServerStatusColumnHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Security Hotspot exists on SonarQube Cloud..
+        /// </summary>
+        public static string HotspotsControl_SonarCloudTooltip {
+            get {
+                return ResourceManager.GetString("HotspotsControl_SonarCloudTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Security Hotspot exists on SonarQube Server..
+        /// </summary>
+        public static string HotspotsControl_SonarQubeTooltip {
+            get {
+                return ResourceManager.GetString("HotspotsControl_SonarQubeTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarQube Security Hotspots.
         /// </summary>
-        internal static string HotspotsToolWindowCaption {
+        public static string HotspotsToolWindowCaption {
             get {
                 return ResourceManager.GetString("HotspotsToolWindowCaption", resourceCulture);
             }
@@ -90,7 +198,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         /// <summary>
         ///   Looks up a localized string similar to Initializing security package....
         /// </summary>
-        internal static string StartedPackageInitialization {
+        public static string StartedPackageInitialization {
             get {
                 return ResourceManager.GetString("StartedPackageInitialization", resourceCulture);
             }
@@ -99,7 +207,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         /// <summary>
         ///   Looks up a localized string similar to SonarQube Taint Vulnerabilities.
         /// </summary>
-        internal static string TaintToolWindowCaption {
+        public static string TaintToolWindowCaption {
             get {
                 return ResourceManager.GetString("TaintToolWindowCaption", resourceCulture);
             }

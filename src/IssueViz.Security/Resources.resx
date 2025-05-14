@@ -123,6 +123,42 @@
   <data name="FinishedPackageInitialization" xml:space="preserve">
     <value>Finished initializing security package.</value>
   </data>
+  <data name="HotspotsControl_CodeColumnHeader" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="HotspotsControl_ColColumnHeader" xml:space="preserve">
+    <value>Col</value>
+  </data>
+  <data name="HotspotsControl_DescriptionColumnHeader" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="HotspotsControl_FileColumnHeader" xml:space="preserve">
+    <value>File</value>
+  </data>
+  <data name="HotspotsControl_LineColumnHeader" xml:space="preserve">
+    <value>Line</value>
+  </data>
+  <data name="HotspotsControl_NavigationErrorTooltip" xml:space="preserve">
+    <value>Cannot navigate to location. The source code is different from the analyzed version.</value>
+  </data>
+  <data name="HotspotsControl_NavigationTooltip" xml:space="preserve">
+    <value>Use double-click or Enter navigate to the security hotspot.</value>
+  </data>
+  <data name="HotspotsControl_NotOnServerTooltip" xml:space="preserve">
+    <value>Security Hotspot does not exist on the server.</value>
+  </data>
+  <data name="HotspotsControl_PriorityColumnHeader" xml:space="preserve">
+    <value>Priority</value>
+  </data>
+  <data name="HotspotsControl_ServerStatusColumnHeader" xml:space="preserve">
+    <value>Server status</value>
+  </data>
+  <data name="HotspotsControl_SonarCloudTooltip" xml:space="preserve">
+    <value>Security Hotspot exists on SonarQube Cloud.</value>
+  </data>
+  <data name="HotspotsControl_SonarQubeTooltip" xml:space="preserve">
+    <value>Security Hotspot exists on SonarQube Server.</value>
+  </data>
   <data name="HotspotsToolWindowCaption" xml:space="preserve">
     <value>SonarQube Security Hotspots</value>
   </data>
