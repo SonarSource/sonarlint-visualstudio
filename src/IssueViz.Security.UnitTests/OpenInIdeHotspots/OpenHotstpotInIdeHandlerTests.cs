@@ -18,13 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots_List;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -39,8 +34,7 @@ public class OpenIssueInIdeHandlerTests
     {
         MefTestHelpers.CheckTypeCanBeImported<OpenHotspotInIdeHandler, IOpenHotspotInIdeHandler>(
             MefTestHelpers.CreateExport<IOpenInIdeHandlerImplementation>(),
-            MefTestHelpers.CreateExport<IHotspotDetailsDtoToHotspotConverter>(),
-            MefTestHelpers.CreateExport<IOpenInIDEHotspotsStore>());
+            MefTestHelpers.CreateExport<IHotspotDetailsDtoToHotspotConverter>());
     }
 
     [TestMethod]
@@ -55,33 +49,19 @@ public class OpenIssueInIdeHandlerTests
         const string configScope = "configscope";
         var issue = new HotspotDetailsDto(default, default, default, default, default,
             default, default, default, default);
-        var testSubject = CreateTestSubject(out var handler, out var converter, out _);
+        var testSubject = CreateTestSubject(out var handler, out var converter);
 
         testSubject.Show(issue, configScope);
 
-        handler.Received().ShowIssue(issue, configScope, converter, IssueListIds.HotspotsId, testSubject);
+        handler.Received().ShowIssue(issue, configScope, converter, IssueListIds.HotspotsId);
     }
 
-    [TestMethod]
-    public void HandleConvertedIssue_AddsToHotspotStore()
-    {
-        var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
-        var storeAnalysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
-        var testSubject = CreateTestSubject(out _, out _, out var hotspotsStore);
-        hotspotsStore.GetOrAdd(analysisIssueVisualization).Returns(storeAnalysisIssueVisualization);
-
-        testSubject.HandleConvertedIssue(analysisIssueVisualization).Should().BeSameAs(storeAnalysisIssueVisualization);
-
-        hotspotsStore.Received().GetOrAdd(analysisIssueVisualization);
-    }
-
-    private OpenHotspotInIdeHandler CreateTestSubject(out IOpenInIdeHandlerImplementation openInIdeHandlerImplementation,
-        out IHotspotDetailsDtoToHotspotConverter hotspotOpenInIdeConverter,
-        out IOpenInIDEHotspotsStore openInIdeHotspotsStore)
+    private OpenHotspotInIdeHandler CreateTestSubject(
+        out IOpenInIdeHandlerImplementation openInIdeHandlerImplementation,
+        out IHotspotDetailsDtoToHotspotConverter hotspotOpenInIdeConverter)
     {
         openInIdeHandlerImplementation = Substitute.For<IOpenInIdeHandlerImplementation>();
         hotspotOpenInIdeConverter = Substitute.For<IHotspotDetailsDtoToHotspotConverter>();
-        openInIdeHotspotsStore = Substitute.For<IOpenInIDEHotspotsStore>();
-        return new OpenHotspotInIdeHandler(openInIdeHandlerImplementation, hotspotOpenInIdeConverter, openInIdeHotspotsStore);
+        return new OpenHotspotInIdeHandler(openInIdeHandlerImplementation, hotspotOpenInIdeConverter);
     }
 }

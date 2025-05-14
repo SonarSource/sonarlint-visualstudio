@@ -18,18 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Design;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Security.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots_List.HotspotsList;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList;
 using Task = System.Threading.Tasks.Task;
@@ -49,13 +46,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid("D7D54E08-45E1-49A6-AA53-AF1CFAA6EBDC")]
     [ProvideMenuResource("Menus.ctmenu", 1)]
-
     [ProvideToolWindow(typeof(HotspotsToolWindow), MultiInstances = false, Transient = false, // Note: Transient must false when using ProvideToolWindowVisibility
         Style = VsDockStyle.Tabbed, Window = VsWindowKindErrorList, Width = 700, Height = 250)]
     [ProvideToolWindowVisibility(typeof(HotspotsToolWindow), LocalHotspotIssuesExistUIContext.GuidString)]
-
-    [ProvideToolWindow(typeof(OpenInIDEHotspotsToolWindow), MultiInstances = false, Transient = true, Style = VsDockStyle.Tabbed, Window = VsWindowKindErrorList, Width = 700, Height = 250)]
-
     [ProvideToolWindow(typeof(TaintToolWindow), MultiInstances = false, Transient = false, // Note: Transient must false when using ProvideToolWindowVisibility
         Style = VsDockStyle.Tabbed, Window = VsWindowKindErrorList, Width = 700, Height = 250)]
     [ProvideToolWindowVisibility(typeof(TaintToolWindow), TaintIssuesExistUIContext.GuidString)]
@@ -82,10 +75,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
                 HotspotsToolWindow.ToolWindowId);
 
             await ShowToolWindowCommand.CreateAsync(this,
-                new CommandID(Constants.CommandSetGuid, Constants.OpenInIDEHotspotsToolWindowCommandId),
-                OpenInIDEHotspotsToolWindow.ToolWindowId);
-
-            await ShowToolWindowCommand.CreateAsync(this,
                 new CommandID(Constants.CommandSetGuid, Constants.TaintToolWindowCommandId),
                 TaintToolWindow.ToolWindowId);
 
@@ -97,11 +86,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
             if (toolWindowType == typeof(HotspotsToolWindow))
             {
                 return new HotspotsToolWindow(this);
-            }
-
-            if (toolWindowType == typeof(OpenInIDEHotspotsToolWindow))
-            {
-                return new OpenInIDEHotspotsToolWindow(this);
             }
 
             if (toolWindowType == typeof(TaintToolWindow))
