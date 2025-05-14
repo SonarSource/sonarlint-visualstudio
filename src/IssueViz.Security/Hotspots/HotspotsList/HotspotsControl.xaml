@@ -7,6 +7,7 @@
              xmlns:core="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
              xmlns:commands="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;assembly=SonarLint.VisualStudio.IssueVisualization"
              xmlns:res="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security"
+             xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              DataContext="{Binding ViewModel, RelativeSource={RelativeSource Mode=Self}}">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -37,8 +38,7 @@
                 </Style.Triggers>
             </Style>
 
-            <Style BasedOn="{StaticResource {x:Type DataGridCell}}"
-                   TargetType="DataGridCell">
+            <Style BasedOn="{StaticResource BaseDataGridCell}" TargetType="DataGridCell">
                 <Style.Triggers>
                     <Trigger Property="IsSelected" Value="True">
                         <Setter Property="Foreground" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveTextBrushKey}}"/>
