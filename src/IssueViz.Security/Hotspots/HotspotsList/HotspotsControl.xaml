@@ -30,6 +30,20 @@
                         <Setter Property="ToolTip" Value="{x:Static res:Resources.HotspotsControl_NavigationErrorTooltip}"/>
                         <Setter Property="ToolTipService.IsEnabled" Value="true"/>
                     </DataTrigger>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveTextBrushKey}}"/>
+                        <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveBrushKey}}"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style BasedOn="{StaticResource {x:Type DataGridCell}}"
+                   TargetType="DataGridCell">
+                <Style.Triggers>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveTextBrushKey}}"/>
+                        <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveBrushKey}}"/>
+                    </Trigger>
                 </Style.Triggers>
             </Style>
 
