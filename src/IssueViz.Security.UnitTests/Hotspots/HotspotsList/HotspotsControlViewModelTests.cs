@@ -23,19 +23,40 @@ using System.ComponentModel;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.TestInfrastructure;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.HotspotsList
 {
     [TestClass]
     public class HotspotsControlViewModelTests
     {
+        private HotspotsControlViewModel testSubject;
+        private ILocalHotspotsStore hotspotsStore;
+        private INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand;
+        private ILocationNavigator locationNavigator;
+        private IIssueSelectionService selectionService;
+        private IThreadHandling threadHandling;
+        private IActiveSolutionBoundTracker activeSolutionBoundTracker;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            hotspotsStore = Substitute.For<ILocalHotspotsStore>();
+            navigateToRuleDescriptionCommand = Substitute.For<INavigateToRuleDescriptionCommand>();
+            locationNavigator = Substitute.For<ILocationNavigator>();
+            selectionService = Substitute.For<IIssueSelectionService>();
+            threadHandling = Substitute.For<IThreadHandling>();
+            activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
+            testSubject = new HotspotsControlViewModel(hotspotsStore, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling, activeSolutionBoundTracker);
+        }
+
         [TestMethod]
         public void Ctor_RegisterToStoreCollectionChanges()
         {
@@ -52,7 +73,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             testSubject.Hotspots[0].Hotspot.Should().Be(issueViz1);
             testSubject.Hotspots[0].HotspotPriority.Should().Be(default(HotspotPriority));
 
-            store.Setup(x => x.GetAllLocalHotspots()).Returns(new[] { new LocalHotspot(issueViz1, HotspotPriority.Low), new LocalHotspot(issueViz2, HotspotPriority.Medium), new LocalHotspot(issueViz3, HotspotPriority.High) });
+            store.Setup(x => x.GetAllLocalHotspots()).Returns(new[]
+            {
+                new LocalHotspot(issueViz1, HotspotPriority.Low), new LocalHotspot(issueViz2, HotspotPriority.Medium), new LocalHotspot(issueViz3, HotspotPriority.High)
+            });
             store.Raise(x => x.IssuesChanged += null, null, new IssuesStore.IssuesChangedEventArgs(null, null));
 
             testSubject.Hotspots.Count.Should().Be(3);
@@ -81,7 +105,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             testSubject.Hotspots[0].Hotspot.Should().Be(issueViz1);
             testSubject.Hotspots[0].HotspotPriority.Should().Be(HotspotPriority.Medium);
 
-            store.Setup(x => x.GetAllLocalHotspots()).Returns(new[] { new LocalHotspot(issueViz1, HotspotPriority.Low), new LocalHotspot(issueViz2, HotspotPriority.Medium), new LocalHotspot(issueViz3, HotspotPriority.High) });
+            store.Setup(x => x.GetAllLocalHotspots()).Returns(new[]
+            {
+                new LocalHotspot(issueViz1, HotspotPriority.Low), new LocalHotspot(issueViz2, HotspotPriority.Medium), new LocalHotspot(issueViz3, HotspotPriority.High)
+            });
             await testSubject.UpdateHotspotsListAsync();
 
             testSubject.Hotspots.Count.Should().Be(3);
@@ -171,7 +198,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             var hotspotStore = new Mock<ILocalHotspotsStore>();
             var selectionService = new Mock<IIssueSelectionService>();
 
-            var testSubject = CreateTestSubject(storeHotspots, hotspotsStore:hotspotStore, selectionService: selectionService.Object);
+            var testSubject = CreateTestSubject(storeHotspots, hotspotsStore: hotspotStore, selectionService: selectionService.Object);
 
             RaiseStoreIssuesChangedEvent(hotspotStore, issueViz);
 
@@ -263,7 +290,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
 
             RaiseSelectionChangedEvent(selectionService, selectedIssue);
 
-            selectionService.VerifySet(x=> x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never);
+            selectionService.VerifySet(x => x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never);
         }
 
         [TestMethod]
@@ -346,7 +373,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
 
             testSubject.SelectedHotspot = newSelection;
 
-            selectionService.VerifySet(x=> x.SelectedIssue = newSelection?.Hotspot, Times.Once);
+            selectionService.VerifySet(x => x.SelectedIssue = newSelection?.Hotspot, Times.Once);
             selectionService.VerifyNoOtherCalls();
         }
 
@@ -376,6 +403,60 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
                 .BeSameAs(navigateToRuleDescriptionCommand);
         }
 
+        [TestMethod]
+        public void ConnectionInfo_Set_RaisesPropertyChanged()
+        {
+            var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler;
+            var cloudBindingConfiguration = CreateBindingConfiguration(new ServerConnection.SonarCloud("my org"), SonarLintMode.Connected);
+
+            activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(cloudBindingConfiguration));
+
+            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.IsCloud)));
+        }
+
+        [TestMethod]
+        [DataRow(SonarLintMode.Connected)]
+        [DataRow(SonarLintMode.LegacyConnected)]
+        public void SolutionBindingChanged_BindingToCloud_IsCloudIsTrue(SonarLintMode sonarLintMode)
+        {
+            var cloudBindingConfiguration = CreateBindingConfiguration(new ServerConnection.SonarCloud("my org"), sonarLintMode);
+
+            activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(cloudBindingConfiguration));
+
+            testSubject.IsCloud.Should().BeTrue();
+        }
+
+        [TestMethod]
+        [DataRow(SonarLintMode.Connected)]
+        [DataRow(SonarLintMode.LegacyConnected)]
+        public void SolutionBindingChanged_BindingToServer_IsCloudIsFalse(SonarLintMode sonarLintMode)
+        {
+            var cloudBindingConfiguration = CreateBindingConfiguration(new ServerConnection.SonarQube(new Uri("C:\\")), sonarLintMode);
+
+            activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(cloudBindingConfiguration));
+
+            testSubject.IsCloud.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void SolutionBindingChanged_Standalone_IsCloudIsFalse()
+        {
+            var cloudBindingConfiguration = new BindingConfiguration(null, SonarLintMode.Standalone, string.Empty);
+
+            activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(cloudBindingConfiguration));
+
+            testSubject.IsCloud.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void Dispose_UnsubscribesFromActiveSolutionBoundTrackerEvents()
+        {
+            testSubject.Dispose();
+
+            activeSolutionBoundTracker.ReceivedWithAnyArgs(1).SolutionBindingChanged -= Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
+        }
+
         private static HotspotsControlViewModel CreateTestSubject(
             ObservableCollection<IAnalysisIssueVisualization> originalCollection = null,
             ILocationNavigator locationNavigator = null,
@@ -393,7 +474,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             selectionService ??= Mock.Of<IIssueSelectionService>();
             navigateToRuleDescriptionCommand ??= Mock.Of<INavigateToRuleDescriptionCommand>();
 
-            return new HotspotsControlViewModel(hotspotsStore.Object, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling ?? new NoOpThreadHandler());
+            return new HotspotsControlViewModel(hotspotsStore.Object, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling ?? new NoOpThreadHandler(),
+                Mock.Of<IActiveSolutionBoundTracker>());
         }
 
         private static void RaiseStoreIssuesChangedEvent(Mock<ILocalHotspotsStore> store, params IAnalysisIssueVisualization[] issueVizs)
@@ -420,5 +502,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
                 .Setup(x => x.GetAllLocalHotspots())
                 .Returns(Array.Empty<LocalHotspot>());
         }
+
+        private static BindingConfiguration CreateBindingConfiguration(ServerConnection serverConnection, SonarLintMode mode) =>
+            new(new BoundServerProject("my solution", "my project", serverConnection), mode, string.Empty);
     }
 }

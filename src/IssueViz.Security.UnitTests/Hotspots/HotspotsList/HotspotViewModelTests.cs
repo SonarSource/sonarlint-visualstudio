@@ -19,9 +19,8 @@
  */
 
 using System.ComponentModel;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
@@ -184,7 +183,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             eventHandler.VerifyNoOtherCalls();
         }
 
-        private static HotspotViewModel CreateTestSubject(IAnalysisIssueVisualization issueViz,
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("serverKey")]
+        public void ExistsOnServer_ReturnsTrueIfServerKeyIsNotNull(string serverKey)
+        {
+            var issueViz = Substitute.For<IAnalysisIssueVisualization>();
+            var analysisBase = Substitute.For<IAnalysisIssueBase>();
+            issueViz.Issue.Returns(analysisBase);
+            issueViz.Issue.IssueServerKey.Returns(serverKey);
+
+            var testSubject = CreateTestSubject(issueViz);
+
+            testSubject.ExistsOnServer.Should().Be(serverKey != null);
+        }
+
+        private static HotspotViewModel CreateTestSubject(
+            IAnalysisIssueVisualization issueViz,
             ISecurityCategoryDisplayNameProvider securityCategoryDisplayNameProvider = null,
             IIssueVizDisplayPositionCalculator positionCalculator = null)
         {
