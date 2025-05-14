@@ -19,6 +19,7 @@
  */
 
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Moq;
@@ -52,6 +53,18 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
             logger = Substitute.ForPartsOf<TestLogger>();
         }
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported() =>
+            MefTestHelpers.CheckTypeCanBeImported<ActiveDocumentTracker, IActiveDocumentTracker>(
+                MefTestHelpers.CreateExport<SVsServiceProvider>(),
+                MefTestHelpers.CreateExport<ITextDocumentProvider>(),
+                MefTestHelpers.CreateExport<IInitializationProcessorFactory>(),
+                MefTestHelpers.CreateExport<IThreadHandling>());
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton() =>
+            MefTestHelpers.CheckIsSingletonMefComponent<ActiveDocumentTracker>();
 
         [TestMethod]
         public void Ctor_RegisterToSelectionEvents()
