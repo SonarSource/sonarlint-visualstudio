@@ -73,7 +73,7 @@ public class LocalHotspotStoreTests
     }
 
     [TestMethod]
-    public void UpdateForFile_AddsLocalHotspots()
+    public void UpdateForFile_AddsHotspots()
     {
         var issueVis1 = CreateUniqueIssueViz();
         var issueVis2 = CreateUniqueIssueViz();
@@ -179,6 +179,18 @@ public class LocalHotspotStoreTests
     }
 
     [TestMethod]
+    public void GetAll_ReturnsOnlyOpenHotspots()
+    {
+        var issueVis1 = CreateIssueVisualizationWithHotspot("rule:s1", HotspotPriority.Low, isResolved: true);
+        var issueVis2 = CreateIssueVisualizationWithHotspot("rule:s2", HotspotPriority.Medium, isResolved: false);
+        var issueVis3 = CreateIssueVisualizationWithHotspot("rule:s3", HotspotPriority.High, isResolved: true);
+
+        testSubject.UpdateForFile("file1", [issueVis1, issueVis2, issueVis3]);
+
+        VerifyContent(testSubject, new LocalHotspot(issueVis2, HotspotPriority.Medium));
+    }
+
+    [TestMethod]
     public void RemoveForFile_NoHotspots_NothingHappens()
     {
         testSubject.RemoveForFile("file1");
@@ -248,13 +260,17 @@ public class LocalHotspotStoreTests
         private void EventHandler(object sender, IssuesChangedEventArgs eventArgs) => Events.Add(eventArgs);
     }
 
-    private static IAnalysisIssueVisualization CreateIssueVisualizationWithHotspot(string rule, HotspotPriority priority)
+    private static IAnalysisIssueVisualization CreateIssueVisualizationWithHotspot(
+        string rule,
+        HotspotPriority priority,
+        bool isResolved = false)
     {
         var issueVis = Substitute.For<IAnalysisIssueVisualization>();
         var hotspotIssue = Substitute.For<IAnalysisHotspotIssue>();
         hotspotIssue.HotspotPriority.Returns(priority);
         issueVis.Issue.Returns(hotspotIssue);
         issueVis.RuleId.Returns(rule);
+        issueVis.IsResolved.Returns(isResolved);
 
         return issueVis;
     }
