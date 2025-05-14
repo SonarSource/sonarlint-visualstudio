@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -31,57 +30,61 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots;
 [TestClass]
 public class LocalHotspotStoreTests
 {
-    [TestMethod]
-    public void MefCtor_CheckExports_ILocalHotspotsStore()
+    private IHotspotReviewPriorityProvider hotspotReviewPriorityProvider;
+    private IThreadHandling threadHandling;
+    private LocalHotspotsStore testSubject;
+    private TestEventListener eventListener;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
+        hotspotReviewPriorityProvider = Substitute.For<IHotspotReviewPriorityProvider>();
+        threadHandling = Substitute.For<IThreadHandling>();
+        testSubject = new LocalHotspotsStore(hotspotReviewPriorityProvider, threadHandling);
+        eventListener = new TestEventListener(testSubject);
+    }
+
+    [TestMethod]
+    public void MefCtor_CheckExports_ILocalHotspotsStore() =>
         MefTestHelpers.CheckTypeCanBeImported<LocalHotspotsStore, ILocalHotspotsStore>(
             MefTestHelpers.CreateExport<IHotspotReviewPriorityProvider>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
-    }
 
     [TestMethod]
-    public void MefCtor_CheckExports_ILocalHotspotsStoreUpdater()
-    {
+    public void MefCtor_CheckExports_ILocalHotspotsStoreUpdater() =>
         MefTestHelpers.CheckTypeCanBeImported<LocalHotspotsStore, ILocalHotspotsStoreUpdater>(
             MefTestHelpers.CreateExport<IHotspotReviewPriorityProvider>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
-    }
 
     [TestMethod]
-    public void MefCtor_CheckExports_IIssuesStore()
-    {
+    public void MefCtor_CheckExports_IIssuesStore() =>
         MefTestHelpers.CheckTypeCanBeImported<LocalHotspotsStore, IIssuesStore>(
             MefTestHelpers.CreateExport<IHotspotReviewPriorityProvider>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
-    }
 
     [TestMethod]
     public void UpdateForFile_NoHotspots_NothingHappens()
     {
-        var testSubject = CreateTestSubject(out var eventListener);
+        testSubject.UpdateForFile("file1", []);
+        testSubject.UpdateForFile("file1", []);
 
-        testSubject.UpdateForFile("file1", Array.Empty<IAnalysisIssueVisualization>());
-        testSubject.UpdateForFile("file1", Array.Empty<IAnalysisIssueVisualization>());
-
-        VerifyContent(testSubject, Array.Empty<LocalHotspot>());
+        VerifyContent(testSubject);
         eventListener.Events.Should().BeEmpty();
     }
 
     [TestMethod]
     public void UpdateForFile_AddsLocalHotspots()
     {
-        var threadHandlingMock = new Mock<IThreadHandling>();
         var issueVis1 = CreateUniqueIssueViz();
         var issueVis2 = CreateUniqueIssueViz();
-        var testSubject = CreateTestSubject(out var eventListener, threadHandling: threadHandlingMock.Object);
         var hotspots = new[] { issueVis1, issueVis2 };
 
         testSubject.UpdateForFile("file1", hotspots);
 
-        threadHandlingMock.Verify(x => x.ThrowIfOnUIThread(), Times.Once);
+        threadHandling.Received(1).ThrowIfOnUIThread();
         VerifyContent(testSubject, hotspots.Select(x => new LocalHotspot(x, default)).ToArray());
         eventListener.Events.Should()
-            .BeEquivalentTo(new IssuesChangedEventArgs(Array.Empty<IAnalysisIssueVisualization>(), hotspots));
+            .BeEquivalentTo(new IssuesChangedEventArgs([], hotspots));
     }
 
     [TestMethod]
@@ -90,7 +93,6 @@ public class LocalHotspotStoreTests
         var issueVis1 = CreateUniqueIssueViz();
         var issueVis2 = CreateUniqueIssueViz();
         var issueVis3 = CreateUniqueIssueViz();
-        var testSubject = CreateTestSubject(out var eventListener);
         var oldHotspots = new[] { issueVis1 };
         testSubject.UpdateForFile("file1", oldHotspots);
         var newHotspots = new[] { issueVis2, issueVis3 };
@@ -107,8 +109,7 @@ public class LocalHotspotStoreTests
     {
         var issueVis1 = CreateUniqueIssueViz();
         var issueVis2 = CreateUniqueIssueViz();
-        var testSubject = CreateTestSubject(out var eventListener);
-        testSubject.UpdateForFile("file1", new[] { issueVis1 });
+        testSubject.UpdateForFile("file1", [issueVis1]);
         var newHotspots = new[] { issueVis2 };
 
         testSubject.UpdateForFile("file2", newHotspots);
@@ -117,23 +118,20 @@ public class LocalHotspotStoreTests
             new LocalHotspot(issueVis1, default),
             new LocalHotspot(issueVis2, default));
         eventListener.Events.Should().HaveCount(2).And.Subject.Last().Should()
-            .BeEquivalentTo(new IssuesChangedEventArgs(Array.Empty<IAnalysisIssueVisualization>(), newHotspots));
+            .BeEquivalentTo(new IssuesChangedEventArgs([], newHotspots));
     }
 
     [TestMethod]
     public void UpdateForFile_UsesDefaultReviewPriorityWhenUnmapped()
     {
-        var issueVis1 = new Mock<IAnalysisIssueVisualization>();
+        var issueVis1 = Substitute.For<IAnalysisIssueVisualization>();
         const string rule1 = "rule1";
-        issueVis1.SetupGet(x => x.RuleId).Returns(rule1);
-        var testSubject = CreateTestSubject(out _);
+        issueVis1.RuleId.Returns(rule1);
+        hotspotReviewPriorityProvider.GetPriority(rule1).Returns((HotspotPriority?)null);
 
-        var hotspotPriorityProviderMock = new Mock<IHotspotReviewPriorityProvider>();
-        hotspotPriorityProviderMock.Setup(x => x.GetPriority(rule1)).Returns((HotspotPriority?)null);
+        testSubject.UpdateForFile("file1", [issueVis1]);
 
-        testSubject.UpdateForFile("file1", new[] { issueVis1.Object });
-
-        VerifyContent(testSubject, new LocalHotspot(issueVis1.Object, HotspotPriority.High));
+        VerifyContent(testSubject, new LocalHotspot(issueVis1, HotspotPriority.High));
     }
 
     [TestMethod]
@@ -147,25 +145,22 @@ public class LocalHotspotStoreTests
 
         const string rule1 = "rule:s1";
         const string rule2 = "rule:s2";
-        var issueVis1 = new Mock<IAnalysisIssueVisualization>();
-        issueVis1.SetupGet(x => x.RuleId).Returns(rule1);
-        var issueVis2 = new Mock<IAnalysisIssueVisualization>();
-        issueVis2.SetupGet(x => x.RuleId).Returns(rule2);
-        var issueVis3 = new Mock<IAnalysisIssueVisualization>();
-        issueVis3.SetupGet(x => x.RuleId).Returns(rule1);
+        var issueVis1 = Substitute.For<IAnalysisIssueVisualization>();
+        issueVis1.RuleId.Returns(rule1);
+        var issueVis2 = Substitute.For<IAnalysisIssueVisualization>();
+        issueVis2.RuleId.Returns(rule2);
+        var issueVis3 = Substitute.For<IAnalysisIssueVisualization>();
+        issueVis3.RuleId.Returns(rule1);
 
-        var reviewPriorityProviderMock = new Mock<IHotspotReviewPriorityProvider>();
-        reviewPriorityProviderMock.Setup(x => x.GetPriority(rule1)).Returns(HotspotPriority.Low);
-        reviewPriorityProviderMock.Setup(x => x.GetPriority(rule2)).Returns(HotspotPriority.Medium);
+        hotspotReviewPriorityProvider.GetPriority(rule1).Returns(HotspotPriority.Low);
+        hotspotReviewPriorityProvider.GetPriority(rule2).Returns(HotspotPriority.Medium);
 
-        var testSubject = CreateTestSubject(out _, reviewPriorityProvider: reviewPriorityProviderMock.Object);
-
-        testSubject.UpdateForFile("file1", new[] { issueVis1.Object, issueVis2.Object, issueVis3.Object });
+        testSubject.UpdateForFile("file1", [issueVis1, issueVis2, issueVis3]);
 
         VerifyContent(testSubject,
-            new LocalHotspot(issueVis1.Object, HotspotPriority.Low),
-            new LocalHotspot(issueVis2.Object, HotspotPriority.Medium),
-            new LocalHotspot(issueVis3.Object, HotspotPriority.Low));
+            new LocalHotspot(issueVis1, HotspotPriority.Low),
+            new LocalHotspot(issueVis2, HotspotPriority.Medium),
+            new LocalHotspot(issueVis3, HotspotPriority.Low));
     }
 
     [TestMethod]
@@ -176,52 +171,16 @@ public class LocalHotspotStoreTests
     {
         const string rule1 = "rule:s1";
         var issueVis1 = CreateIssueVisualizationWithHotspot(rule1, priority);
-        var reviewPriorityProviderMock = new Mock<IHotspotReviewPriorityProvider>();
-        var testSubject = CreateTestSubject(out _, reviewPriorityProvider: reviewPriorityProviderMock.Object);
 
-        testSubject.UpdateForFile("file1", new[] { issueVis1 });
+        testSubject.UpdateForFile("file1", [issueVis1]);
 
         VerifyContent(testSubject, new LocalHotspot(issueVis1, priority));
-        reviewPriorityProviderMock.Verify(mock => mock.GetPriority(It.IsAny<string>()), Times.Never);
-    }
-
-    [TestMethod]
-    public void UpdateForFile_ForCFamily_ShouldAssignHotspotPriority()
-    {
-        /*
-         * issue1 + server1 -> rule1 -> Low - could be changed to test server override once implemented
-         * issue2 + server2 -> rule2 -> Medium
-         * issue3 -> rule1 -> Low
-         */
-
-        const string rule1 = "rule:s1";
-        const string rule2 = "rule:s2";
-        var issueVis1 = new Mock<IAnalysisIssueVisualization>();
-        issueVis1.SetupGet(x => x.RuleId).Returns(rule1);
-        var issueVis2 = new Mock<IAnalysisIssueVisualization>();
-        issueVis2.SetupGet(x => x.RuleId).Returns(rule2);
-        var issueVis3 = new Mock<IAnalysisIssueVisualization>();
-        issueVis3.SetupGet(x => x.RuleId).Returns(rule1);
-
-        var reviewPriorityProviderMock = new Mock<IHotspotReviewPriorityProvider>();
-        reviewPriorityProviderMock.Setup(x => x.GetPriority(rule1)).Returns(HotspotPriority.Low);
-        reviewPriorityProviderMock.Setup(x => x.GetPriority(rule2)).Returns(HotspotPriority.Medium);
-
-        var testSubject = CreateTestSubject(out _, reviewPriorityProviderMock.Object);
-
-        testSubject.UpdateForFile("file1", new[] { issueVis1.Object, issueVis2.Object, issueVis3.Object });
-
-        VerifyContent(testSubject,
-            new LocalHotspot(issueVis1.Object, HotspotPriority.Low),
-            new LocalHotspot(issueVis2.Object, HotspotPriority.Medium),
-            new LocalHotspot(issueVis3.Object, HotspotPriority.Low));
+        hotspotReviewPriorityProvider.DidNotReceive().GetPriority(Arg.Any<string>());
     }
 
     [TestMethod]
     public void RemoveForFile_NoHotspots_NothingHappens()
     {
-        var testSubject = CreateTestSubject(out var eventListener);
-
         testSubject.RemoveForFile("file1");
 
         eventListener.Events.Should().BeEmpty();
@@ -230,11 +189,10 @@ public class LocalHotspotStoreTests
     [TestMethod]
     public void RemoveForFile_RemovesForCorrectFile()
     {
-        var testSubject = CreateTestSubject(out var eventListener);
         var visToKeep = CreateUniqueIssueViz();
         var visToRemove = CreateUniqueIssueViz();
-        testSubject.UpdateForFile("file1", new[] { visToKeep });
-        testSubject.UpdateForFile("file2", new[] { visToRemove });
+        testSubject.UpdateForFile("file1", [visToKeep]);
+        testSubject.UpdateForFile("file2", [visToRemove]);
         eventListener.Events.Clear();
 
         testSubject.RemoveForFile("file2");
@@ -242,20 +200,16 @@ public class LocalHotspotStoreTests
         VerifyContent(testSubject, new LocalHotspot(visToKeep, default));
         eventListener.Events.Single()
             .Should()
-            .BeEquivalentTo(new IssuesChangedEventArgs(new[] { visToRemove },
-                Array.Empty<IAnalysisIssueVisualization>()));
+            .BeEquivalentTo(new IssuesChangedEventArgs([visToRemove],
+                []));
     }
 
     [TestMethod]
     public void Clear_ClearsMapping()
     {
-        var threadHandlingMock = new Mock<IThreadHandling>();
-
-        var testSubject = CreateTestSubject(out var eventListener, threadHandling: threadHandlingMock.Object);
-
-        testSubject.UpdateForFile("fileA", new[] { CreateUniqueIssueViz(), CreateUniqueIssueViz() });
-        testSubject.UpdateForFile("fileB", new[] { CreateUniqueIssueViz() });
-        threadHandlingMock.Invocations.Clear();
+        testSubject.UpdateForFile("fileA", [CreateUniqueIssueViz(), CreateUniqueIssueViz()]);
+        testSubject.UpdateForFile("fileB", [CreateUniqueIssueViz()]);
+        threadHandling.ClearReceivedCalls();
         eventListener.Events.Clear();
 
         testSubject.GetAll().Count.Should().Be(3);
@@ -264,10 +218,10 @@ public class LocalHotspotStoreTests
 
         testSubject.GetAll().Count.Should().Be(0);
         eventListener.Events.Single().RemovedIssues.Should().HaveCount(3);
-        threadHandlingMock.Verify(x => x.ThrowIfOnUIThread(), Times.Once);
+        threadHandling.Received(1).ThrowIfOnUIThread();
     }
 
-    private void VerifyContent(ILocalHotspotsStore store, params LocalHotspot[] expected)
+    private static void VerifyContent(ILocalHotspotsStore store, params LocalHotspot[] expected)
     {
         store.GetAllLocalHotspots().Should().BeEquivalentTo(expected);
         store.GetAll().Should().BeEquivalentTo(expected.Select(x => x.Visualization));
@@ -275,23 +229,9 @@ public class LocalHotspotStoreTests
 
     private static IAnalysisIssueVisualization CreateUniqueIssueViz()
     {
-        var issueViz = new Mock<IAnalysisIssueVisualization>();
-        issueViz.Setup(x => x.LineHash).Returns(Guid.NewGuid().ToString());
-        return issueViz.Object;
-    }
-
-    private ILocalHotspotsStore CreateTestSubject(
-        out TestEventListener eventListener,
-        IHotspotReviewPriorityProvider reviewPriorityProvider = null,
-        IThreadHandling threadHandling = null)
-    {
-        var localHotspotsStore = new LocalHotspotsStore(
-            reviewPriorityProvider ?? Mock.Of<IHotspotReviewPriorityProvider>(),
-            threadHandling ?? Mock.Of<IThreadHandling>());
-
-        eventListener = new TestEventListener(localHotspotsStore);
-
-        return localHotspotsStore;
+        var issueViz = Substitute.For<IAnalysisIssueVisualization>();
+        issueViz.LineHash.Returns(Guid.NewGuid().ToString());
+        return issueViz;
     }
 
     private class TestEventListener
@@ -301,22 +241,21 @@ public class LocalHotspotStoreTests
             localHotspotsStore.IssuesChanged += EventHandler;
         }
 
-        public List<IssuesChangedEventArgs> Events { get; } = new();
+        public List<IssuesChangedEventArgs> Events { get; } =
+        [
+        ];
 
-        private void EventHandler(object sender, IssuesChangedEventArgs eventArgs)
-        {
-            Events.Add(eventArgs);
-        }
+        private void EventHandler(object sender, IssuesChangedEventArgs eventArgs) => Events.Add(eventArgs);
     }
 
     private static IAnalysisIssueVisualization CreateIssueVisualizationWithHotspot(string rule, HotspotPriority priority)
     {
-        var issueVis = new Mock<IAnalysisIssueVisualization>();
-        var hotspotIssue = new Mock<IAnalysisHotspotIssue>();
-        hotspotIssue.SetupGet(x => x.HotspotPriority).Returns(priority);
-        issueVis.Setup(x => x.Issue).Returns(hotspotIssue.Object);
-        issueVis.Setup(x => x.RuleId).Returns(rule);
+        var issueVis = Substitute.For<IAnalysisIssueVisualization>();
+        var hotspotIssue = Substitute.For<IAnalysisHotspotIssue>();
+        hotspotIssue.HotspotPriority.Returns(priority);
+        issueVis.Issue.Returns(hotspotIssue);
+        issueVis.RuleId.Returns(rule);
 
-        return issueVis.Object;
+        return issueVis;
     }
 }
