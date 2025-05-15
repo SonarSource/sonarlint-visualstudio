@@ -24,10 +24,14 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Initialization;
+using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
+using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
 {
-    public interface IActiveDocumentTracker : IDisposable
+    public interface IActiveDocumentTracker : IRequireInitialization, IDisposable
     {
         /// <summary>
         /// Raises an event when the active text document changes
@@ -44,6 +48,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
     internal sealed class ActiveDocumentTracker : IActiveDocumentTracker, IVsSelectionEvents
     {
         private readonly ITextDocumentProvider textDocumentProvider;
+        private readonly IThreadHandling threadHandling;
         private IVsMonitorSelection monitorSelection;
         private uint cookie;
         private bool disposed;
@@ -51,16 +56,29 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
         public event EventHandler<ActiveDocumentChangedEventArgs> ActiveDocumentChanged;
 
         [ImportingConstructor]
-        public ActiveDocumentTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ITextDocumentProvider textDocumentProvider)
+        public ActiveDocumentTracker(
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            ITextDocumentProvider textDocumentProvider,
+            IInitializationProcessorFactory initializationProcessorFactory,
+            IThreadHandling threadHandling)
         {
             this.textDocumentProvider = textDocumentProvider;
+            this.threadHandling = threadHandling;
 
-            RunOnUIThread.Run(() =>
-            {
-                monitorSelection = serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
-                monitorSelection.AdviseSelectionEvents(this, out cookie);
-            });
+            InitializationProcessor = initializationProcessorFactory.CreateAndStart<ActiveDocumentTracker>(
+                [],
+                th => th.RunOnUIThreadAsync(() =>
+                {
+                    if (disposed)
+                    {
+                        return;
+                    }
+                    monitorSelection = serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
+                    monitorSelection!.AdviseSelectionEvents(this, out cookie);
+                }));
         }
+
+        public IInitializationProcessor InitializationProcessor { get; }
 
         /// <summary>
         /// This notification can fire multiple times with a different elementId value:
@@ -77,7 +95,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
         /// </summary>
         int IVsSelectionEvents.OnElementValueChanged(uint elementId, object oldValue, object newValue)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            threadHandling.ThrowIfNotOnUIThread();
 
             if (elementId == (uint)VSConstants.VSSELELEMID.SEID_DocumentFrame)
             {
@@ -118,10 +136,14 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
         {
             if (!disposed)
             {
-                monitorSelection.UnadviseSelectionEvents(cookie);
+                if (InitializationProcessor.IsFinalized)
+                {
+                    monitorSelection.UnadviseSelectionEvents(cookie);
+                }
                 ActiveDocumentChanged = null;
                 disposed = true;
             }
         }
+
     }
 }
