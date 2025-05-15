@@ -35,23 +35,15 @@ internal interface IVsProjectInfoProvider
 
 [Export(typeof(IVsProjectInfoProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class VsProjectInfoProvider : IVsProjectInfoProvider
+[method: ImportingConstructor]
+internal class VsProjectInfoProvider(
+    [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+    ILogger logger,
+    IThreadHandling threadHandling)
+    : IVsProjectInfoProvider
 {
-    private readonly DTE2 dte;
-    private readonly IVsSolution5 vsSolution;
-    private readonly ILogger logger;
-    private readonly IThreadHandling threadHandling;
-
-    [ImportingConstructor]
-    public VsProjectInfoProvider([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-        ILogger logger,
-        IThreadHandling threadHandling)
-    {
-        dte = serviceProvider.GetService<SDTE, DTE2>();
-        vsSolution = serviceProvider.GetService<SVsSolution, IVsSolution5>();
-        this.logger = logger;
-        this.threadHandling = threadHandling;
-    }
+    private readonly Lazy<DTE2> dte = new(serviceProvider.GetService<SDTE, DTE2>);
+    private readonly Lazy<IVsSolution5> vsSolution = new(serviceProvider.GetService<SVsSolution, IVsSolution5>);
 
     public async Task<(string projectName, Guid projectGuid)> GetDocumentProjectInfoAsync(string filePath)
     {
@@ -69,10 +61,7 @@ internal class VsProjectInfoProvider : IVsProjectInfoProvider
         return (projectName, projectGuid);
     }
 
-    private string GetProjectName(Project project)
-    {
-        return project?.Name ?? "{none}";
-    }
+    private static string GetProjectName(Project project) => project?.Name ?? "{none}";
 
     private Guid GetProjectGuid(Project project, string documentFilePath)
     {
@@ -82,7 +71,7 @@ internal class VsProjectInfoProvider : IVsProjectInfoProvider
         {
             if (project != null && !string.IsNullOrEmpty(project.FileName))
             {
-                return vsSolution.GetGuidOfProjectFile(project.FileName);
+                return vsSolution.Value.GetGuidOfProjectFile(project.FileName);
             }
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -99,7 +88,7 @@ internal class VsProjectInfoProvider : IVsProjectInfoProvider
         // Bug #676: https://github.com/SonarSource/sonarlint-visualstudio/issues/676
         // It's possible to have a ProjectItem that doesn't have a ContainingProject
         // e.g. files under the "External Dependencies" project folder in the Solution Explorer
-        var projectItem = dte.Solution.FindProjectItem(filePath);
+        var projectItem = dte.Value.Solution.FindProjectItem(filePath);
         return projectItem?.ContainingProject;
     }
 }
