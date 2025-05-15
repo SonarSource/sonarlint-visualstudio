@@ -61,7 +61,7 @@ internal class VsProjectInfoProvider(
         return (projectName, projectGuid);
     }
 
-    private string GetProjectName(Project project) => project?.Name ?? "{none}";
+    private static string GetProjectName(Project project) => project?.Name ?? "{none}";
 
     private Guid GetProjectGuid(Project project, string documentFilePath)
     {
