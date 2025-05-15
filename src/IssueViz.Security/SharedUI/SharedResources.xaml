@@ -115,7 +115,7 @@
         <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.BackgroundBrushKey}}"/>
         <Style.Triggers>
             <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveBrushKey}}"/>
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveBrushKey}}"/>
             </Trigger>
             <MultiTrigger>
                 <MultiTrigger.Conditions>
@@ -137,8 +137,8 @@
         <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.BackgroundBrushKey}}"/>
         <Style.Triggers>
             <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveTextBrushKey}}"/>
-                <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveBrushKey}}"/>
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveTextBrushKey}}"/>
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveBrushKey}}"/>
             </Trigger>
             <MultiTrigger>
                 <MultiTrigger.Conditions>
@@ -152,6 +152,7 @@
             </MultiTrigger>
         </Style.Triggers>
     </Style>
+
     <Style x:Key="CellTextBlockStyle" TargetType="TextBlock">
         <Setter Property="TextWrapping" Value="Wrap"/>
         <Setter Property="TextAlignment" Value="Left"/>

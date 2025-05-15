@@ -18,16 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
@@ -44,26 +42,50 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         ICommand NavigateCommand { get; }
 
         INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; }
+
+        bool IsCloud { get; }
     }
 
-    internal sealed class HotspotsControlViewModel : IHotspotsControlViewModel, INotifyPropertyChanged
+    internal sealed class HotspotsControlViewModel : ViewModelBase, IHotspotsControlViewModel
     {
         private readonly object Lock = new object();
         private readonly IIssueSelectionService selectionService;
         private readonly IThreadHandling threadHandling;
+        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ILocalHotspotsStore store;
         private IHotspotViewModel selectedHotspot;
+        private readonly ObservableCollection<IHotspotViewModel> hotspots = new ObservableCollection<IHotspotViewModel>();
+        private ICommand navigateCommand;
+        private readonly INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand;
+        private bool isCloud;
 
-        public ObservableCollection<IHotspotViewModel> Hotspots { get; } = new ObservableCollection<IHotspotViewModel>();
+        public ObservableCollection<IHotspotViewModel> Hotspots => hotspots;
 
-        public ICommand NavigateCommand { get; private set; }
-        public INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; }
+        public ICommand NavigateCommand
+        {
+            get => navigateCommand;
+            private set => navigateCommand = value;
+        }
 
-        public HotspotsControlViewModel(ILocalHotspotsStore hotspotsStore,
+        public INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand => navigateToRuleDescriptionCommand;
+
+        public bool IsCloud
+        {
+            get => isCloud;
+            private set
+            {
+                isCloud = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        public HotspotsControlViewModel(
+            ILocalHotspotsStore hotspotsStore,
             INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
             ILocationNavigator locationNavigator,
             IIssueSelectionService selectionService,
-            IThreadHandling threadHandling)
+            IThreadHandling threadHandling,
+            IActiveSolutionBoundTracker activeSolutionBoundTracker)
         {
             this.threadHandling = threadHandling;
             AllowMultiThreadedAccessToHotspotsList();
@@ -71,10 +93,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             this.selectionService = selectionService;
             selectionService.SelectedIssueChanged += SelectionService_SelectionChanged;
 
-            this.store = hotspotsStore;
+            store = hotspotsStore;
             store.IssuesChanged += Store_IssuesChanged;
 
-            NavigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+            activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
+
+            this.navigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
             SetCommands(locationNavigator);
         }
 
@@ -91,9 +116,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             }
         }
 
-        public async System.Threading.Tasks.Task UpdateHotspotsListAsync()
+        public async Task UpdateHotspotsListAsync()
         {
-            await threadHandling.RunOnBackgroundThread( () =>
+            await threadHandling.RunOnBackgroundThread(() =>
             {
                 Hotspots.Clear();
                 foreach (var localHotspot in store.GetAllLocalHotspots())
@@ -101,15 +126,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
                     Hotspots.Add(new HotspotViewModel(localHotspot.Visualization, localHotspot.Priority));
                 }
 
-                return System.Threading.Tasks.Task.FromResult(true);
+                return Task.FromResult(true);
             });
         }
 
         /// <summary>
         /// Allow the observable collection <see cref="Hotspots"/> to be modified from non-UI thread.
         /// </summary>
-        private void AllowMultiThreadedAccessToHotspotsList()
-            => threadHandling.RunOnUIThread(() => BindingOperations.EnableCollectionSynchronization(Hotspots, Lock));
+        private void AllowMultiThreadedAccessToHotspotsList() => threadHandling.RunOnUIThread(() => BindingOperations.EnableCollectionSynchronization(Hotspots, Lock));
 
         private void SetCommands(ILocationNavigator locationNavigator)
         {
@@ -128,20 +152,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         private void SelectionService_SelectionChanged(object sender, EventArgs e)
         {
             selectedHotspot = Hotspots.FirstOrDefault(x => x.Hotspot == selectionService.SelectedIssue);
-            NotifyPropertyChanged(nameof(SelectedHotspot));
+            RaisePropertyChanged(nameof(SelectedHotspot));
         }
 
         public void Dispose()
         {
             store.IssuesChanged -= Store_IssuesChanged;
             selectionService.SelectedIssueChanged -= SelectionService_SelectionChanged;
+            activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args) => IsCloud = args.Configuration?.Project?.ServerConnection is ServerConnection.SonarCloud;
     }
 }

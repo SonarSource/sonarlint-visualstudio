@@ -20,14 +20,14 @@
 
 using System.ComponentModel;
 using System.IO;
-using System.Runtime.CompilerServices;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels
 {
-    internal interface IHotspotViewModel : INotifyPropertyChanged, IDisposable
+    internal interface IHotspotViewModel : IDisposable
     {
         IAnalysisIssueVisualization Hotspot { get; }
 
@@ -40,9 +40,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         string CategoryDisplayName { get; }
 
         HotspotPriority HotspotPriority { get; }
+
+        public bool ExistsOnServer { get; }
     }
 
-    internal sealed class HotspotViewModel : IHotspotViewModel
+    internal sealed class HotspotViewModel : ViewModelBase, IHotspotViewModel
     {
         private readonly ISecurityCategoryDisplayNameProvider categoryDisplayNameProvider;
         private readonly IIssueVizDisplayPositionCalculator positionCalculator;
@@ -52,7 +54,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         {
         }
 
-        internal HotspotViewModel(IAnalysisIssueVisualization hotspot,
+        internal HotspotViewModel(
+            IAnalysisIssueVisualization hotspot,
             HotspotPriority hotspotPriority,
             ISecurityCategoryDisplayNameProvider categoryDisplayNameProvider,
             IIssueVizDisplayPositionCalculator positionCalculator)
@@ -67,35 +70,27 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         public IAnalysisIssueVisualization Hotspot { get; }
 
         public HotspotPriority HotspotPriority { get; }
+        public bool ExistsOnServer => Hotspot.Issue.IssueServerKey != null;
 
         public int Line => positionCalculator.GetLine(Hotspot);
 
         public int Column => positionCalculator.GetColumn(Hotspot);
 
-        public string DisplayPath =>
-            Path.GetFileName(Hotspot.CurrentFilePath ?? ((IHotspot)Hotspot.Issue).ServerFilePath);
+        public string DisplayPath => Path.GetFileName(Hotspot.CurrentFilePath ?? ((IHotspot)Hotspot.Issue).ServerFilePath);
 
-        public string CategoryDisplayName =>
-            categoryDisplayNameProvider.Get(((IHotspot) Hotspot.Issue).Rule.SecurityCategory);
+        public string CategoryDisplayName => categoryDisplayNameProvider.Get(((IHotspot)Hotspot.Issue).Rule.SecurityCategory);
 
         private void Hotspot_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(IAnalysisIssueVisualization.Span))
             {
-                NotifyPropertyChanged(nameof(Line));
-                NotifyPropertyChanged(nameof(Column));
+                RaisePropertyChanged(nameof(Line));
+                RaisePropertyChanged(nameof(Column));
             }
             else if (e.PropertyName == nameof(IAnalysisIssueVisualization.CurrentFilePath))
             {
-                NotifyPropertyChanged(nameof(DisplayPath));
+                RaisePropertyChanged(nameof(DisplayPath));
             }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public void Dispose()
