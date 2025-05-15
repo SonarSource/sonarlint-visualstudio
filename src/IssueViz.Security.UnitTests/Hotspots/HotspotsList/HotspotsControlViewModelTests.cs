@@ -20,15 +20,15 @@
 
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.TestInfrastructure;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
+using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.HotspotsList
@@ -36,24 +36,46 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
     [TestClass]
     public class HotspotsControlViewModelTests
     {
+        private HotspotsControlViewModel testSubject;
+        private ILocalHotspotsStore hotspotsStore;
+        private INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand;
+        private ILocationNavigator locationNavigator;
+        private IIssueSelectionService selectionService;
+        private IThreadHandling threadHandling;
+        private IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private ObservableCollection<IAnalysisIssueVisualization> originalCollection;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            hotspotsStore = Substitute.For<ILocalHotspotsStore>();
+            navigateToRuleDescriptionCommand = Substitute.For<INavigateToRuleDescriptionCommand>();
+            locationNavigator = Substitute.For<ILocationNavigator>();
+            selectionService = Substitute.For<IIssueSelectionService>();
+            threadHandling = Substitute.For<IThreadHandling>();
+            activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
+            testSubject = new HotspotsControlViewModel(hotspotsStore, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling, activeSolutionBoundTracker);
+
+            MockTestSubject();
+        }
+
         [TestMethod]
         public void Ctor_RegisterToStoreCollectionChanges()
         {
-            var store = new Mock<ILocalHotspotsStore>();
-            var testSubject = CreateTestSubject(hotspotsStore: store);
+            var issueViz1 = Substitute.For<IAnalysisIssueVisualization>();
+            var issueViz2 = Substitute.For<IAnalysisIssueVisualization>();
+            var issueViz3 = Substitute.For<IAnalysisIssueVisualization>();
 
-            var issueViz1 = Mock.Of<IAnalysisIssueVisualization>();
-            var issueViz2 = Mock.Of<IAnalysisIssueVisualization>();
-            var issueViz3 = Mock.Of<IAnalysisIssueVisualization>();
-
-            RaiseStoreIssuesChangedEvent(store, issueViz1);
+            RaiseStoreIssuesChangedEvent(issueViz1);
 
             testSubject.Hotspots.Count.Should().Be(1);
             testSubject.Hotspots[0].Hotspot.Should().Be(issueViz1);
             testSubject.Hotspots[0].HotspotPriority.Should().Be(default(HotspotPriority));
 
-            store.Setup(x => x.GetAllLocalHotspots()).Returns(new[] { new LocalHotspot(issueViz1, HotspotPriority.Low), new LocalHotspot(issueViz2, HotspotPriority.Medium), new LocalHotspot(issueViz3, HotspotPriority.High) });
-            store.Raise(x => x.IssuesChanged += null, null, new IssuesStore.IssuesChangedEventArgs(null, null));
+            hotspotsStore.GetAllLocalHotspots().Returns([
+                new LocalHotspot(issueViz1, HotspotPriority.Low), new LocalHotspot(issueViz2, HotspotPriority.Medium), new LocalHotspot(issueViz3, HotspotPriority.High)
+            ]);
+            RaiseIssuesChangedEvent();
 
             testSubject.Hotspots.Count.Should().Be(3);
             testSubject.Hotspots[0].Hotspot.Should().Be(issueViz1);
@@ -67,21 +89,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         [TestMethod]
         public async Task UpdateHotspotsListAsync_UpdatesWhenManuallyTriggered()
         {
-            var store = new Mock<ILocalHotspotsStore>();
-            var testSubject = CreateTestSubject(hotspotsStore: store);
+            var issueViz1 = Substitute.For<IAnalysisIssueVisualization>();
+            var issueViz2 = Substitute.For<IAnalysisIssueVisualization>();
+            var issueViz3 = Substitute.For<IAnalysisIssueVisualization>();
 
-            var issueViz1 = Mock.Of<IAnalysisIssueVisualization>();
-            var issueViz2 = Mock.Of<IAnalysisIssueVisualization>();
-            var issueViz3 = Mock.Of<IAnalysisIssueVisualization>();
-
-            store.Setup(x => x.GetAllLocalHotspots()).Returns(new[] { new LocalHotspot(issueViz1, HotspotPriority.Medium) });
+            hotspotsStore.GetAllLocalHotspots().Returns([new LocalHotspot(issueViz1, HotspotPriority.Medium)]);
             await testSubject.UpdateHotspotsListAsync();
 
             testSubject.Hotspots.Count.Should().Be(1);
             testSubject.Hotspots[0].Hotspot.Should().Be(issueViz1);
             testSubject.Hotspots[0].HotspotPriority.Should().Be(HotspotPriority.Medium);
 
-            store.Setup(x => x.GetAllLocalHotspots()).Returns(new[] { new LocalHotspot(issueViz1, HotspotPriority.Low), new LocalHotspot(issueViz2, HotspotPriority.Medium), new LocalHotspot(issueViz3, HotspotPriority.High) });
+            hotspotsStore.GetAllLocalHotspots().Returns([
+                new LocalHotspot(issueViz1, HotspotPriority.Low), new LocalHotspot(issueViz2, HotspotPriority.Medium), new LocalHotspot(issueViz3, HotspotPriority.High)
+            ]);
             await testSubject.UpdateHotspotsListAsync();
 
             testSubject.Hotspots.Count.Should().Be(3);
@@ -96,89 +117,58 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         [TestMethod]
         public async Task UpdateHotspotsListAsync_RunsOnBackgroundThread()
         {
-            var store = new Mock<ILocalHotspotsStore>();
-            var threadHandling = new Mock<IThreadHandling>();
-            SetupGetAllOnBackgroundThreadForUpdate(threadHandling, store);
-
-            var testSubject = CreateTestSubject(hotspotsStore: store, threadHandling: threadHandling.Object);
-
             await testSubject.UpdateHotspotsListAsync();
 
-            threadHandling.Verify(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<bool>>>()), Times.Once);
-            store.Verify(x => x.GetAllLocalHotspots(), Times.Once);
+            await threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<bool>>>());
+            hotspotsStore.Received(1).GetAllLocalHotspots();
         }
 
         [TestMethod]
         public void IssueChangedEventRaised_RunsOnBackgroundThread()
         {
-            var store = new Mock<ILocalHotspotsStore>();
-            var threadHandling = new Mock<IThreadHandling>();
-            SetupGetAllOnBackgroundThreadForUpdate(threadHandling, store);
+            RaiseStoreIssuesChangedEvent(Array.Empty<IAnalysisIssueVisualization>());
 
-            var testSubject = CreateTestSubject(hotspotsStore: store, threadHandling: threadHandling.Object);
-
-            RaiseStoreIssuesChangedEvent(store, Array.Empty<IAnalysisIssueVisualization>());
-
-            threadHandling.Verify(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<bool>>>()), Times.Once);
-            store.Verify(x => x.GetAllLocalHotspots(), Times.Once);
+            threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<bool>>>());
+            hotspotsStore.Received(1).GetAllLocalHotspots();
         }
 
         [TestMethod]
         public void Dispose_UnregisterFromHotspotsCollectionChanges()
         {
-            var storeHotspots = new ObservableCollection<IAnalysisIssueVisualization>();
-            var testSubject = CreateTestSubject(storeHotspots);
+            var issueViz = Substitute.For<IAnalysisIssueVisualization>();
 
             testSubject.Dispose();
 
-            var issueViz = Mock.Of<IAnalysisIssueVisualization>();
-            storeHotspots.Add(issueViz);
-
+            originalCollection.Add(issueViz);
             testSubject.Hotspots.Count.Should().Be(0);
         }
 
         [TestMethod]
         public void Ctor_RegisterToSelectionChangedEvent()
         {
-            var selectionService = new Mock<IIssueSelectionService>();
-            selectionService.SetupAdd(x => x.SelectedIssueChanged += null);
-
-            CreateTestSubject(selectionService: selectionService.Object);
-
-            selectionService.VerifyAdd(x => x.SelectedIssueChanged += It.IsAny<EventHandler>(), Times.Once());
-            selectionService.VerifyNoOtherCalls();
+            selectionService.Received(1).SelectedIssueChanged += Arg.Any<EventHandler>();
+            selectionService.ReceivedCalls().Should().HaveCount(1);
         }
 
         [TestMethod]
         public void Dispose_UnregisterFromSelectionChangedEvent()
         {
-            var selectionService = new Mock<IIssueSelectionService>();
-            var testSubject = CreateTestSubject(selectionService: selectionService.Object);
-
-            selectionService.Reset();
-            selectionService.SetupRemove(x => x.SelectedIssueChanged -= null);
-
             testSubject.Dispose();
 
-            selectionService.VerifyRemove(x => x.SelectedIssueChanged -= It.IsAny<EventHandler>(), Times.Once());
+            selectionService.Received(1).SelectedIssueChanged -= Arg.Any<EventHandler>();
         }
 
         [TestMethod]
-        public void SelectionChanged_SelectedHotspotExistsInList_HotspotSelected()
+        public async Task SelectionChanged_SelectedHotspotExistsInList_HotspotSelected()
         {
-            var issueViz = Mock.Of<IAnalysisIssueVisualization>();
-            var storeHotspots = new ObservableCollection<IAnalysisIssueVisualization> { issueViz };
-            var hotspotStore = new Mock<ILocalHotspotsStore>();
-            var selectionService = new Mock<IIssueSelectionService>();
+            var issueViz = Substitute.For<IAnalysisIssueVisualization>();
+            hotspotsStore.GetAllLocalHotspots().Returns([new LocalHotspot(issueViz, default)]);
+            await testSubject.UpdateHotspotsListAsync();
 
-            var testSubject = CreateTestSubject(storeHotspots, hotspotsStore:hotspotStore, selectionService: selectionService.Object);
-
-            RaiseStoreIssuesChangedEvent(hotspotStore, issueViz);
-
+            RaiseStoreIssuesChangedEvent(issueViz);
             testSubject.SelectedHotspot.Should().BeNull();
 
-            RaiseSelectionChangedEvent(selectionService, issueViz);
-
+            RaiseSelectionChangedEvent(issueViz);
             testSubject.SelectedHotspot.Should().NotBeNull();
             testSubject.SelectedHotspot.Hotspot.Should().Be(issueViz);
         }
@@ -188,17 +178,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         [DataRow(false)]
         public void SelectionChanged_SelectedHotspotIsNotInList_SelectionSetToNull(bool isSelectedNull)
         {
-            var selectionService = new Mock<IIssueSelectionService>();
-
-            var testSubject = CreateTestSubject(selectionService: selectionService.Object);
-
-            var oldSelection = new HotspotViewModel(Mock.Of<IAnalysisIssueVisualization>(), default);
+            var oldSelection = new HotspotViewModel(Substitute.For<IAnalysisIssueVisualization>(), default);
             testSubject.SelectedHotspot = oldSelection;
             testSubject.SelectedHotspot.Should().Be(oldSelection);
 
-            var selectedIssue = isSelectedNull ? null : Mock.Of<IAnalysisIssueVisualization>();
+            var selectedIssue = isSelectedNull ? null : Substitute.For<IAnalysisIssueVisualization>();
 
-            RaiseSelectionChangedEvent(selectionService, selectedIssue);
+            RaiseSelectionChangedEvent(selectedIssue);
 
             testSubject.SelectedHotspot.Should().BeNull();
         }
@@ -206,24 +192,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         [TestMethod]
         public void SelectionChanged_SelectedHotspotExistsInList_RaisesPropertyChanged()
         {
-            var issueViz = Mock.Of<IAnalysisIssueVisualization>();
-            var storeHotspots = new ObservableCollection<IAnalysisIssueVisualization> { issueViz };
-            var selectionService = new Mock<IIssueSelectionService>();
+            var issueViz = Substitute.For<IAnalysisIssueVisualization>();
+            var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler;
+            eventHandler.ReceivedCalls().Should().BeEmpty();
 
-            var testSubject = CreateTestSubject(storeHotspots, selectionService: selectionService.Object);
+            RaiseSelectionChangedEvent(issueViz);
 
-            var eventHandler = new Mock<PropertyChangedEventHandler>();
-            testSubject.PropertyChanged += eventHandler.Object;
-
-            eventHandler.VerifyNoOtherCalls();
-
-            RaiseSelectionChangedEvent(selectionService, issueViz);
-
-            eventHandler.Verify(x => x(testSubject,
-                It.Is((PropertyChangedEventArgs args) =>
-                    args.PropertyName == nameof(IHotspotsControlViewModel.SelectedHotspot))), Times.Once);
-
-            eventHandler.VerifyNoOtherCalls();
+            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(IHotspotsControlViewModel.SelectedHotspot)));
+            eventHandler.ReceivedCalls().Should().HaveCount(1);
         }
 
         [TestMethod]
@@ -231,99 +208,74 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         [DataRow(false)]
         public void SelectionChanged_SelectedHotspotIsNotInList_RaisesPropertyChanged(bool isSelectedNull)
         {
-            var selectionService = new Mock<IIssueSelectionService>();
+            var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler;
+            eventHandler.ReceivedCalls().Should().BeEmpty();
 
-            var testSubject = CreateTestSubject(selectionService: selectionService.Object);
+            var selectedIssue = isSelectedNull ? null : Substitute.For<IAnalysisIssueVisualization>();
 
-            var eventHandler = new Mock<PropertyChangedEventHandler>();
-            testSubject.PropertyChanged += eventHandler.Object;
+            RaiseSelectionChangedEvent(selectedIssue);
 
-            eventHandler.VerifyNoOtherCalls();
-
-            var selectedIssue = isSelectedNull ? null : Mock.Of<IAnalysisIssueVisualization>();
-
-            RaiseSelectionChangedEvent(selectionService, selectedIssue);
-
-            eventHandler.Verify(x => x(testSubject,
-                It.Is((PropertyChangedEventArgs args) =>
-                    args.PropertyName == nameof(IHotspotsControlViewModel.SelectedHotspot))), Times.Once);
-
-            eventHandler.VerifyNoOtherCalls();
+            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(IHotspotsControlViewModel.SelectedHotspot)));
+            eventHandler.ReceivedCalls().Should().HaveCount(1);
         }
 
         [TestMethod]
         [Microsoft.VisualStudio.TestTools.UnitTesting.Description("Verify that there is no callback, selection service -> property -> selection service")]
         public void SelectionChanged_HotspotSelected_SelectionServiceNotCalledAgain()
         {
-            var selectedIssue = Mock.Of<IAnalysisIssueVisualization>();
-            var storeHotspots = new ObservableCollection<IAnalysisIssueVisualization> { selectedIssue };
-            var selectionService = new Mock<IIssueSelectionService>();
+            var selectedIssue = Substitute.For<IAnalysisIssueVisualization>();
+            originalCollection.Add(selectedIssue);
 
-            CreateTestSubject(storeHotspots, selectionService: selectionService.Object);
+            RaiseSelectionChangedEvent(selectedIssue);
 
-            RaiseSelectionChangedEvent(selectionService, selectedIssue);
-
-            selectionService.VerifySet(x=> x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never);
+            selectionService.DidNotReceive().SelectedIssue = Arg.Any<IAnalysisIssueVisualization>();
         }
 
         [TestMethod]
         public void NavigateCommand_CanExecute_NullParameter_False()
         {
-            var locationNavigator = new Mock<ILocationNavigator>();
-
-            var testSubject = CreateTestSubject(locationNavigator: locationNavigator.Object);
             var result = testSubject.NavigateCommand.CanExecute(null);
-            result.Should().BeFalse();
 
-            locationNavigator.VerifyNoOtherCalls();
+            result.Should().BeFalse();
+            locationNavigator.ReceivedCalls().Should().BeEmpty();
         }
 
         [TestMethod]
         public void NavigateCommand_CanExecute_ParameterIsNotHotspotViewModel_False()
         {
-            var locationNavigator = new Mock<ILocationNavigator>();
-
-            var testSubject = CreateTestSubject(locationNavigator: locationNavigator.Object);
             var result = testSubject.NavigateCommand.CanExecute("something");
-            result.Should().BeFalse();
 
-            locationNavigator.VerifyNoOtherCalls();
+            result.Should().BeFalse();
+            locationNavigator.ReceivedCalls().Should().BeEmpty();
         }
 
         [TestMethod]
         public void NavigateCommand_CanExecute_ParameterIsHotspotViewModel_True()
         {
-            var locationNavigator = new Mock<ILocationNavigator>();
+            var result = testSubject.NavigateCommand.CanExecute(Substitute.For<IHotspotViewModel>());
 
-            var testSubject = CreateTestSubject(locationNavigator: locationNavigator.Object);
-            var result = testSubject.NavigateCommand.CanExecute(Mock.Of<IHotspotViewModel>());
             result.Should().BeTrue();
-
-            locationNavigator.VerifyNoOtherCalls();
+            locationNavigator.ReceivedCalls().Should().BeEmpty();
         }
 
         [TestMethod]
         public void NavigateCommand_Execute_LocationNavigated()
         {
-            var locationNavigator = new Mock<ILocationNavigator>();
+            var hotspot = Substitute.For<IAnalysisIssueVisualization>();
+            var viewModel = Substitute.For<IHotspotViewModel>();
+            viewModel.Hotspot.Returns(hotspot);
 
-            var hotspot = Mock.Of<IAnalysisIssueVisualization>();
-            var viewModel = new Mock<IHotspotViewModel>();
-            viewModel.Setup(x => x.Hotspot).Returns(hotspot);
+            testSubject.NavigateCommand.Execute(viewModel);
 
-            var testSubject = CreateTestSubject(locationNavigator: locationNavigator.Object);
-            testSubject.NavigateCommand.Execute(viewModel.Object);
-
-            locationNavigator.Verify(x => x.TryNavigatePartial(hotspot), Times.Once);
-            locationNavigator.VerifyNoOtherCalls();
+            locationNavigator.Received(1).TryNavigatePartial(hotspot);
+            locationNavigator.ReceivedCalls().Should().HaveCount(1);
         }
 
         [TestMethod]
         public void SetSelectedHotspot_HotspotSet()
         {
-            var testSubject = CreateTestSubject();
-
-            var selection = new HotspotViewModel(Mock.Of<IAnalysisIssueVisualization>(), default);
+            var selection = new HotspotViewModel(Substitute.For<IAnalysisIssueVisualization>(), default);
             testSubject.SelectedHotspot = selection;
 
             testSubject.SelectedHotspot.Should().Be(selection);
@@ -334,91 +286,116 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         [DataRow(false)]
         public void SetSelectedHotspot_SelectionChanged_SelectionServiceIsCalled(bool isSelectedNull)
         {
-            var selectionService = new Mock<IIssueSelectionService>();
-            var testSubject = CreateTestSubject(selectionService: selectionService.Object);
-
-            var oldSelection = isSelectedNull ? new HotspotViewModel(Mock.Of<IAnalysisIssueVisualization>(), default) : null;
-            var newSelection = isSelectedNull ? null : new HotspotViewModel(Mock.Of<IAnalysisIssueVisualization>(), default);
+            var oldSelection = isSelectedNull ? new HotspotViewModel(Substitute.For<IAnalysisIssueVisualization>(), default) : null;
+            var newSelection = isSelectedNull ? null : new HotspotViewModel(Substitute.For<IAnalysisIssueVisualization>(), default);
 
             testSubject.SelectedHotspot = oldSelection;
-
-            selectionService.Reset();
+            selectionService.ClearReceivedCalls();
 
             testSubject.SelectedHotspot = newSelection;
 
-            selectionService.VerifySet(x=> x.SelectedIssue = newSelection?.Hotspot, Times.Once);
-            selectionService.VerifyNoOtherCalls();
+            selectionService.Received(1).SelectedIssue = newSelection?.Hotspot;
+            selectionService.ReceivedCalls().Should().HaveCount(1);
         }
 
         [TestMethod]
         public void SetSelectedHotspot_ValueIsTheSame_SelectionServiceNotCalled()
         {
-            var selectionService = new Mock<IIssueSelectionService>();
-            var testSubject = CreateTestSubject(selectionService: selectionService.Object);
-
-            var selection = new HotspotViewModel(Mock.Of<IAnalysisIssueVisualization>(), default);
+            var selection = new HotspotViewModel(Substitute.For<IAnalysisIssueVisualization>(), default);
             testSubject.SelectedHotspot = selection;
-
-            selectionService.Reset();
+            selectionService.ClearReceivedCalls();
 
             testSubject.SelectedHotspot = selection;
 
-            selectionService.VerifyNoOtherCalls();
+            selectionService.ReceivedCalls().Should().BeEmpty();
         }
 
         [TestMethod]
-        public void NavigateToRuleDescriptionCommand_IsNotNull()
-        {
-            var navigateToRuleDescriptionCommand = Mock.Of<INavigateToRuleDescriptionCommand>();
-            var testSubject = CreateTestSubject(navigateToRuleDescriptionCommand: navigateToRuleDescriptionCommand);
+        public void NavigateToRuleDescriptionCommand_IsNotNull() => testSubject.NavigateToRuleDescriptionCommand.Should().BeSameAs(navigateToRuleDescriptionCommand);
 
-            testSubject.NavigateToRuleDescriptionCommand.Should()
-                .BeSameAs(navigateToRuleDescriptionCommand);
+        [TestMethod]
+        public void ConnectionInfo_Set_RaisesPropertyChanged()
+        {
+            var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler;
+            var cloudBindingConfiguration = CreateBindingConfiguration(new ServerConnection.SonarCloud("my org"), SonarLintMode.Connected);
+
+            activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(cloudBindingConfiguration));
+
+            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.IsCloud)));
         }
 
-        private static HotspotsControlViewModel CreateTestSubject(
-            ObservableCollection<IAnalysisIssueVisualization> originalCollection = null,
-            ILocationNavigator locationNavigator = null,
-            Mock<ILocalHotspotsStore> hotspotsStore = null,
-            IIssueSelectionService selectionService = null,
-            IThreadHandling threadHandling = null,
-            INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand = null)
+        [TestMethod]
+        [DataRow(SonarLintMode.Connected)]
+        [DataRow(SonarLintMode.LegacyConnected)]
+        public void SolutionBindingChanged_BindingToCloud_IsCloudIsTrue(SonarLintMode sonarLintMode)
         {
-            originalCollection ??= new ObservableCollection<IAnalysisIssueVisualization>();
+            var cloudBindingConfiguration = CreateBindingConfiguration(new ServerConnection.SonarCloud("my org"), sonarLintMode);
+
+            activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(cloudBindingConfiguration));
+
+            testSubject.IsCloud.Should().BeTrue();
+        }
+
+        [TestMethod]
+        [DataRow(SonarLintMode.Connected)]
+        [DataRow(SonarLintMode.LegacyConnected)]
+        public void SolutionBindingChanged_BindingToServer_IsCloudIsFalse(SonarLintMode sonarLintMode)
+        {
+            var cloudBindingConfiguration = CreateBindingConfiguration(new ServerConnection.SonarQube(new Uri("C:\\")), sonarLintMode);
+
+            activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(cloudBindingConfiguration));
+
+            testSubject.IsCloud.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void SolutionBindingChanged_Standalone_IsCloudIsFalse()
+        {
+            var cloudBindingConfiguration = new BindingConfiguration(null, SonarLintMode.Standalone, string.Empty);
+
+            activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(cloudBindingConfiguration));
+
+            testSubject.IsCloud.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void Dispose_UnsubscribesFromActiveSolutionBoundTrackerEvents()
+        {
+            testSubject.Dispose();
+
+            activeSolutionBoundTracker.ReceivedWithAnyArgs(1).SolutionBindingChanged -= Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
+        }
+
+        private void MockTestSubject()
+        {
+            originalCollection = [];
             var readOnlyWrapper = new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection);
+            hotspotsStore.GetAllLocalHotspots().Returns(readOnlyWrapper.Select(x => new LocalHotspot(x, default)).ToList());
 
-            hotspotsStore ??= new Mock<ILocalHotspotsStore>();
-            hotspotsStore.Setup(x => x.GetAllLocalHotspots()).Returns(readOnlyWrapper.Select(x => new LocalHotspot(x, default)).ToList());
-
-            selectionService ??= Mock.Of<IIssueSelectionService>();
-            navigateToRuleDescriptionCommand ??= Mock.Of<INavigateToRuleDescriptionCommand>();
-
-            return new HotspotsControlViewModel(hotspotsStore.Object, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling ?? new NoOpThreadHandler());
+            threadHandling.When(x => x.RunOnBackgroundThread(Arg.Any<Func<Task<bool>>>())).Do(x =>
+            {
+                var func = x.Arg<Func<Task<bool>>>();
+                func();
+            });
         }
 
-        private static void RaiseStoreIssuesChangedEvent(Mock<ILocalHotspotsStore> store, params IAnalysisIssueVisualization[] issueVizs)
+        private void RaiseStoreIssuesChangedEvent(params IAnalysisIssueVisualization[] issueVizs)
         {
-            store.Setup(x => x.GetAllLocalHotspots()).Returns(issueVizs.Select(x => new LocalHotspot(x, default)).ToList());
-            store.Raise(x => x.IssuesChanged += null, null, new IssuesStore.IssuesChangedEventArgs(null, null));
+            hotspotsStore.GetAllLocalHotspots().Returns(issueVizs.Select(x => new LocalHotspot(x, default)).ToList());
+            RaiseIssuesChangedEvent(issueVizs);
         }
 
-        private static void RaiseSelectionChangedEvent(Mock<IIssueSelectionService> selectionService, IAnalysisIssueVisualization selectedIssue)
+        private void RaiseIssuesChangedEvent(params IAnalysisIssueVisualization[] issueVizs) =>
+            hotspotsStore.IssuesChanged += Raise.Event<EventHandler<IssuesChangedEventArgs>>(new IssuesChangedEventArgs(null, issueVizs));
+
+        private void RaiseSelectionChangedEvent(IAnalysisIssueVisualization selectedIssue)
         {
-            selectionService.Setup(x => x.SelectedIssue).Returns(selectedIssue);
-            selectionService.Raise(x => x.SelectedIssueChanged += null, EventArgs.Empty);
+            selectionService.SelectedIssue.Returns(selectedIssue);
+            selectionService.SelectedIssueChanged += Raise.Event<EventHandler>(selectionService, EventArgs.Empty);
         }
 
-        private static void SetupGetAllOnBackgroundThreadForUpdate(Mock<IThreadHandling> threadHandling, Mock<ILocalHotspotsStore> store)
-        {
-            var callOrder = new MockSequence();
-            threadHandling
-                .InSequence(callOrder)
-                .Setup(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<bool>>>()))
-                .Callback((Func<Task<bool>> f) => f());
-            store
-                .InSequence(callOrder)
-                .Setup(x => x.GetAllLocalHotspots())
-                .Returns(Array.Empty<LocalHotspot>());
-        }
+        private static BindingConfiguration CreateBindingConfiguration(ServerConnection serverConnection, SonarLintMode mode) =>
+            new(new BoundServerProject("my solution", "my project", serverConnection), mode, string.Empty);
     }
 }
