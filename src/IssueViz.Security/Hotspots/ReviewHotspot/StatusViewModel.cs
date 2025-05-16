@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.WPF;
-using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
 

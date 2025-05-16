@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
-using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.ReviewHotspot;
 
@@ -9,12 +9,12 @@ public class ReviewHotspotsViewModelTest
 {
     private ReviewHotspotsViewModel testSubject;
     private HotspotStatus[] allowedStatuses;
-    private readonly HotspotStatus currentStatus = HotspotStatus.SAFE;
+    private readonly HotspotStatus currentStatus = HotspotStatus.Safe;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        allowedStatuses = [HotspotStatus.ACKNOWLEDGED, HotspotStatus.SAFE];
+        allowedStatuses = [HotspotStatus.Acknowledge, HotspotStatus.Safe];
 
         testSubject = new ReviewHotspotsViewModel(currentStatus, allowedStatuses);
     }
@@ -35,7 +35,7 @@ public class ReviewHotspotsViewModelTest
     [TestMethod]
     public void Ctor_CurrentStatusNotInListOfAllowedStatuses_SetsSelectionToNull()
     {
-        testSubject = new ReviewHotspotsViewModel(HotspotStatus.TO_REVIEW, allowedStatuses);
+        testSubject = new ReviewHotspotsViewModel(HotspotStatus.ToReview, allowedStatuses);
 
         testSubject.SelectedStatusViewModel.Should().BeNull();
     }
