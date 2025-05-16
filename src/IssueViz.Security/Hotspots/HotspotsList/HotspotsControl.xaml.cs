@@ -42,8 +42,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
 
         private void ReviewHotspotMenuItem_OnClick(object sender, RoutedEventArgs e)
         {
-            // TODO by https://sonarsource.atlassian.net/browse/SLVS-2140 and https://sonarsource.atlassian.net/browse/SLVS-2142: fill the current status and allowed statuses
-            var dialog = new ReviewHotspotWindow(HotspotStatus.Acknowledge, [HotspotStatus.TO_REVIEW, HotspotStatus.FIXED, HotspotStatus.ACKNOWLEDGED, HotspotStatus.SAFE]);
+            if (sender is not MenuItem { DataContext: IHotspotViewModel hotspotViewModel })
+            {
+                return;
+            }
+            // TODO by https://sonarsource.atlassian.net/browse/SLVS-2140: fill the allowed statuses
+            var dialog = new ReviewHotspotWindow(hotspotViewModel.HotspotStatus, [HotspotStatus.ToReview, HotspotStatus.Fixed, HotspotStatus.Acknowledge, HotspotStatus.Safe]);
             dialog.ShowDialog(Application.Current.MainWindow);
         }
     }
