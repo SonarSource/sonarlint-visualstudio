@@ -18,16 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Protocol;
 
-namespace SonarLint.VisualStudio.SLCore.Common.Models;
+namespace SonarLint.VisualStudio.SLCore.Service.Hotspot;
 
-[JsonConverter(typeof(StringEnumConverter))]
-public enum HotspotStatus
+[JsonRpcClass("hotspot")]
+public interface IHotspotSlCoreService : ISLCoreService
 {
-    TO_REVIEW,
-    ACKNOWLEDGED,
-    FIXED,
-    SAFE
+    Task<CheckStatusChangePermittedResponse> CheckStatusChangePermittedAsync(CheckStatusChangePermittedParams parameters);
+
+    Task ChangeStatusAsync(ChangeHotspotStatusParams parameters);
 }
