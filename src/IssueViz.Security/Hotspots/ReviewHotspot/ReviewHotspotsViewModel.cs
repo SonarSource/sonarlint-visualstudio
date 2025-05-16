@@ -19,8 +19,8 @@
  */
 
 using System.Collections.ObjectModel;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.WPF;
-using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
 
@@ -28,10 +28,10 @@ public class ReviewHotspotsViewModel : ViewModelBase
 {
     private readonly IReadOnlyList<StatusViewModel> allStatusViewModels =
     [
-        new(HotspotStatus.TO_REVIEW, Resources.ReviewHotspotWindow_ToReviewTitle, Resources.ReviewHotspotWindow_ToReviewContent),
-        new(HotspotStatus.ACKNOWLEDGED, Resources.ReviewHotspotWindow_AcknowledgeTitle, Resources.ReviewHotspotWindow_AcknowledgeContent),
-        new(HotspotStatus.FIXED, Resources.ReviewHotspotWindow_FixedTitle, Resources.ReviewHotspotWindow_FixedContent),
-        new(HotspotStatus.SAFE, Resources.ReviewHotspotWindow_SafeTitle, Resources.ReviewHotspotWindow_SafeContent)
+        new(HotspotStatus.ToReview, Resources.ReviewHotspotWindow_ToReviewTitle, Resources.ReviewHotspotWindow_ToReviewContent),
+        new(HotspotStatus.Acknowledge, Resources.ReviewHotspotWindow_AcknowledgeTitle, Resources.ReviewHotspotWindow_AcknowledgeContent),
+        new(HotspotStatus.Fixed, Resources.ReviewHotspotWindow_FixedTitle, Resources.ReviewHotspotWindow_FixedContent),
+        new(HotspotStatus.Safe, Resources.ReviewHotspotWindow_SafeTitle, Resources.ReviewHotspotWindow_SafeContent)
     ];
     private StatusViewModel selectedStatusViewModel;
 

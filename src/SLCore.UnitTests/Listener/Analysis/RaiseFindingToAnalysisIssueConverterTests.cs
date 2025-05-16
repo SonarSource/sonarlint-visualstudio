@@ -20,12 +20,14 @@
 
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using CleanCodeAttribute = SonarLint.VisualStudio.SLCore.Common.Models.CleanCodeAttribute;
 using SoftwareQuality = SonarLint.VisualStudio.SLCore.Common.Models.SoftwareQuality;
+using HotspotStatus = SonarLint.VisualStudio.SLCore.Common.Models.HotspotStatus;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Analysis;
 
@@ -431,6 +433,39 @@ public class RaiseFindingToAnalysisIssueConverterTests
         analysisIssues.Should().ContainSingle();
         IssueWithFlowsAndQuickFixesUseCase.VerifyIssue1ConvertedCorrectly(analysisIssues[0]);
         logger.Received(1).WriteLine(SLCoreStrings.RaiseFindingToAnalysisIssueConverter_CreateAnalysisIssueFailed, Arg.Is<object[]>(x => x[0].ToString() == "ruleKey2"));
+    }
+
+    [TestMethod]
+    [DataRow(HotspotStatus.TO_REVIEW)]
+    [DataRow(HotspotStatus.ACKNOWLEDGED)]
+    [DataRow(HotspotStatus.FIXED)]
+    [DataRow(HotspotStatus.SAFE)]
+    public void GetAnalysisIssues_Hotspot_AnalysisHotspotIssueHasHotspotStatus(HotspotStatus hotspotStatus)
+    {
+        var analysisIssues = testSubject.GetAnalysisIssues(fileUri, new List<RaisedHotspotDto>
+        {
+            new(Guid.Empty,
+                default,
+                default,
+                default,
+                default,
+                default,
+                default,
+                new TextRangeDto(1,
+                    2,
+                    3,
+                    4),
+                [],
+                default,
+                default,
+                null,
+                hotspotStatus,
+                new StandardModeDetails(default, default))
+        });
+
+        var hotspotIssue = analysisIssues.SingleOrDefault() as AnalysisHotspotIssue;
+        hotspotIssue.Should().NotBeNull();
+        hotspotIssue.HotspotStatus.Should().Be(hotspotStatus.ToHotspotStatus());
     }
 
     private static class UnflattenedFlowsUseCase

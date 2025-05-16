@@ -40,6 +40,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         string CategoryDisplayName { get; }
 
         HotspotPriority HotspotPriority { get; }
+        HotspotStatus HotspotStatus { get; }
 
         public bool ExistsOnServer { get; }
     }
@@ -49,14 +50,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         private readonly ISecurityCategoryDisplayNameProvider categoryDisplayNameProvider;
         private readonly IIssueVizDisplayPositionCalculator positionCalculator;
 
-        public HotspotViewModel(IAnalysisIssueVisualization hotspot, HotspotPriority hotspotPriority)
-            : this(hotspot, hotspotPriority, new SecurityCategoryDisplayNameProvider(), new IssueVizDisplayPositionCalculator())
+        public HotspotViewModel(IAnalysisIssueVisualization hotspot, HotspotPriority hotspotPriority, HotspotStatus hotspotStatus)
+            : this(hotspot, hotspotPriority, hotspotStatus, new SecurityCategoryDisplayNameProvider(), new IssueVizDisplayPositionCalculator())
         {
         }
 
         internal HotspotViewModel(
             IAnalysisIssueVisualization hotspot,
             HotspotPriority hotspotPriority,
+            HotspotStatus hotspotStatus,
             ISecurityCategoryDisplayNameProvider categoryDisplayNameProvider,
             IIssueVizDisplayPositionCalculator positionCalculator)
         {
@@ -64,12 +66,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             this.positionCalculator = positionCalculator;
             Hotspot = hotspot;
             HotspotPriority = hotspotPriority;
+            HotspotStatus = hotspotStatus;
             Hotspot.PropertyChanged += Hotspot_PropertyChanged;
         }
 
         public IAnalysisIssueVisualization Hotspot { get; }
 
         public HotspotPriority HotspotPriority { get; }
+        public HotspotStatus HotspotStatus { get; }
         public bool ExistsOnServer => Hotspot.Issue.IssueServerKey != null;
 
         public int Line => positionCalculator.GetLine(Hotspot);

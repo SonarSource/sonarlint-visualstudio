@@ -79,14 +79,17 @@ namespace SonarLint.VisualStudio.Core.Analysis
             Impact highestImpact,
             IAnalysisIssueLocation primaryLocation,
             IReadOnlyList<IAnalysisIssueFlow> flows,
+            HotspotStatus hotspotStatus,
             IReadOnlyList<IQuickFix> fixes = null,
             HotspotPriority? hotspotPriority = null) :
             base(id, ruleKey, issueServerKey, isResolved, severity, type, highestImpact, primaryLocation, flows, fixes)
         {
             HotspotPriority = hotspotPriority;
+            HotspotStatus = hotspotStatus;
         }
 
         public HotspotPriority? HotspotPriority { get; }
+        public HotspotStatus HotspotStatus { get; }
     }
 
     public class AnalysisIssueFlow : IAnalysisIssueFlow

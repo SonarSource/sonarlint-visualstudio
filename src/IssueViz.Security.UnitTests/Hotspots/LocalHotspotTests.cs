@@ -28,7 +28,7 @@ public class LocalHotspotTests
     [TestMethod]
     public void Ctor_VisualizationIsNull_Throws()
     {
-        Action test = () => new LocalHotspot(null, default);
+        Action test = () => new LocalHotspot(null, default, default);
 
         test.Should().Throw<ArgumentNullException>().WithMessage("*visualization*");
     }

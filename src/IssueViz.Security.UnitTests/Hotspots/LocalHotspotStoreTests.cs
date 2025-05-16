@@ -77,7 +77,7 @@ public class LocalHotspotStoreTests
         testSubject.UpdateForFile("file1", hotspots);
 
         threadHandling.Received(1).ThrowIfOnUIThread();
-        VerifyContent(testSubject, hotspots.Select(x => new LocalHotspot(x, default)).ToArray());
+        VerifyContent(testSubject, hotspots.Select(x => new LocalHotspot(x, default, default)).ToArray());
         eventListener.Events.Should()
             .BeEquivalentTo(new IssuesChangedEventArgs([], hotspots));
     }
@@ -94,7 +94,7 @@ public class LocalHotspotStoreTests
 
         testSubject.UpdateForFile("file1", newHotspots);
 
-        VerifyContent(testSubject, newHotspots.Select(x => new LocalHotspot(x, default)).ToArray());
+        VerifyContent(testSubject, newHotspots.Select(x => new LocalHotspot(x, default, default)).ToArray());
         eventListener.Events.Should().HaveCount(2).And.Subject.Last().Should()
             .BeEquivalentTo(new IssuesChangedEventArgs(oldHotspots, newHotspots));
     }
@@ -110,8 +110,8 @@ public class LocalHotspotStoreTests
         testSubject.UpdateForFile("file2", newHotspots);
 
         VerifyContent(testSubject,
-            new LocalHotspot(issueVis1, default),
-            new LocalHotspot(issueVis2, default));
+            new LocalHotspot(issueVis1, default, default),
+            new LocalHotspot(issueVis2, default, default));
         eventListener.Events.Should().HaveCount(2).And.Subject.Last().Should()
             .BeEquivalentTo(new IssuesChangedEventArgs([], newHotspots));
     }
@@ -119,13 +119,13 @@ public class LocalHotspotStoreTests
     [TestMethod]
     public void UpdateForFile_UsesDefaultReviewPriorityWhenUnmapped()
     {
-        var issueVis1 = Substitute.For<IAnalysisIssueVisualization>();
+        var issueVis1 = CreateUniqueIssueViz();
         const string rule1 = "rule1";
         issueVis1.RuleId.Returns(rule1);
 
         testSubject.UpdateForFile("file1", [issueVis1]);
 
-        VerifyContent(testSubject, new LocalHotspot(issueVis1, HotspotPriority.High));
+        VerifyContent(testSubject, new LocalHotspot(issueVis1, HotspotPriority.High, default));
     }
 
     [TestMethod]
@@ -139,7 +139,22 @@ public class LocalHotspotStoreTests
 
         testSubject.UpdateForFile("file1", [issueVis1]);
 
-        VerifyContent(testSubject, new LocalHotspot(issueVis1, priority));
+        VerifyContent(testSubject, new LocalHotspot(issueVis1, priority, default));
+    }
+
+    [TestMethod]
+    [DataRow(HotspotStatus.ToReview)]
+    [DataRow(HotspotStatus.Acknowledge)]
+    [DataRow(HotspotStatus.Fixed)]
+    [DataRow(HotspotStatus.Safe)]
+    public void UpdateForFile_ShouldAssignHotspotStatus(HotspotStatus status)
+    {
+        const string rule1 = "rule:s1";
+        var issueVis1 = CreateIssueVisualizationWithHotspot(rule1, default, status);
+
+        testSubject.UpdateForFile("file1", [issueVis1]);
+
+        VerifyContent(testSubject, new LocalHotspot(issueVis1, default, status));
     }
 
     [TestMethod]
@@ -151,7 +166,7 @@ public class LocalHotspotStoreTests
 
         testSubject.UpdateForFile("file1", [issueVis1, issueVis2, issueVis3]);
 
-        VerifyContent(testSubject, new LocalHotspot(issueVis2, HotspotPriority.Medium));
+        VerifyContent(testSubject, new LocalHotspot(issueVis2, HotspotPriority.Medium, default));
     }
 
     [TestMethod]
@@ -173,7 +188,7 @@ public class LocalHotspotStoreTests
 
         testSubject.RemoveForFile("file2");
 
-        VerifyContent(testSubject, new LocalHotspot(visToKeep, default));
+        VerifyContent(testSubject, new LocalHotspot(visToKeep, default, default));
         eventListener.Events.Single()
             .Should()
             .BeEquivalentTo(new IssuesChangedEventArgs([visToRemove],
@@ -207,6 +222,7 @@ public class LocalHotspotStoreTests
     {
         var issueViz = Substitute.For<IAnalysisIssueVisualization>();
         issueViz.LineHash.Returns(Guid.NewGuid().ToString());
+        issueViz.Issue.Returns(Substitute.For<IAnalysisHotspotIssue>());
         return issueViz;
     }
 
@@ -227,11 +243,13 @@ public class LocalHotspotStoreTests
     private static IAnalysisIssueVisualization CreateIssueVisualizationWithHotspot(
         string rule,
         HotspotPriority priority,
+        HotspotStatus status = default,
         bool isResolved = false)
     {
         var issueVis = Substitute.For<IAnalysisIssueVisualization>();
         var hotspotIssue = Substitute.For<IAnalysisHotspotIssue>();
         hotspotIssue.HotspotPriority.Returns(priority);
+        hotspotIssue.HotspotStatus.Returns(status);
         issueVis.Issue.Returns(hotspotIssue);
         issueVis.RuleId.Returns(rule);
         issueVis.IsResolved.Returns(isResolved);

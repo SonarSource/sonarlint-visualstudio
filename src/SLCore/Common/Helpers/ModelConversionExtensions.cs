@@ -22,6 +22,8 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SoftwareQuality = SonarLint.VisualStudio.Core.Analysis.SoftwareQuality;
 using CleanCodeAttribute = SonarLint.VisualStudio.Core.Analysis.CleanCodeAttribute;
+using CoreHotspotStatus = SonarLint.VisualStudio.Core.Analysis.HotspotStatus;
+using SlCoreHotspotStatus = SonarLint.VisualStudio.SLCore.Common.Models.HotspotStatus;
 
 namespace SonarLint.VisualStudio.SLCore.Common.Helpers;
 
@@ -100,4 +102,14 @@ public static class ModelConversionExtensions
         };
 
     public static Impact ToImpact(this ImpactDto impact) => new(impact.softwareQuality.ToSoftwareQuality(), impact.impactSeverity.ToSoftwareQualitySeverity());
+
+    public static CoreHotspotStatus ToHotspotStatus(this SlCoreHotspotStatus hotspotStatus) =>
+        hotspotStatus switch
+        {
+            SlCoreHotspotStatus.TO_REVIEW => CoreHotspotStatus.ToReview,
+            SlCoreHotspotStatus.ACKNOWLEDGED => CoreHotspotStatus.Acknowledge,
+            SlCoreHotspotStatus.FIXED => CoreHotspotStatus.Fixed,
+            SlCoreHotspotStatus.SAFE => CoreHotspotStatus.Safe,
+            _ => throw new ArgumentOutOfRangeException(nameof(hotspotStatus), hotspotStatus, SLCoreStrings.ModelExtensions_UnexpectedValue)
+        };
 }

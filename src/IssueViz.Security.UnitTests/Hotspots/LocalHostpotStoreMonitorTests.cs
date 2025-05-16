@@ -36,15 +36,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
     public class LocalHostpotStoreMonitorTests
     {
         [TestMethod]
-        public void MefCtor_CheckIsExported()
-            => MefTestHelpers.CheckTypeCanBeImported<LocalHotspotStoreMonitor, ILocalHotspotStoreMonitor>(
+        public void MefCtor_CheckIsExported() =>
+            MefTestHelpers.CheckTypeCanBeImported<LocalHotspotStoreMonitor, ILocalHotspotStoreMonitor>(
                 MefTestHelpers.CreateExport<SVsServiceProvider>(),
                 MefTestHelpers.CreateExport<ILocalHotspotsStore>(),
                 MefTestHelpers.CreateExport<IThreadHandling>());
 
         [TestMethod]
-        public void CheckIsSingletonMefComponent()
-            => MefTestHelpers.CheckIsSingletonMefComponent<LocalHotspotStoreMonitor>();
+        public void CheckIsSingletonMefComponent() => MefTestHelpers.CheckIsSingletonMefComponent<LocalHotspotStoreMonitor>();
 
         [TestMethod]
         public void Ctor_DoesNotListenToEvents()
@@ -83,7 +82,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
         {
             var monitorSelection = CreateMonitorSelection(222);
             var serviceProvider = CreateServiceProvider(monitorSelection.Object);
-            var store = CreateStore(new LocalHotspot(Mock.Of<IAnalysisIssueVisualization>(), HotspotPriority.Medium));
+            var store = CreateStore(new LocalHotspot(Mock.Of<IAnalysisIssueVisualization>(), HotspotPriority.Medium, HotspotStatus.Acknowledge));
 
             _ = await CreateInitializedTestSubject(serviceProvider.Object, store.Object);
             monitorSelection.Invocations.Clear();
@@ -97,7 +96,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
         {
             var monitorSelection = CreateMonitorSelection(333);
             var serviceProvider = CreateServiceProvider(monitorSelection.Object);
-            var store = CreateStore(/* no issues*/);
+            var store = CreateStore( /* no issues*/);
 
             _ = await CreateInitializedTestSubject(serviceProvider.Object, store.Object);
             monitorSelection.Invocations.Clear();
@@ -151,7 +150,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
                 () => callSequence.Add("SetCmdUIContext"));
             var serviceProvider = CreateServiceProvider(monitorSelection.Object);
 
-
             var threadHandling = new Mock<IThreadHandling>();
             threadHandling
                 .Setup(x => x.RunOnUIThreadAsync(It.IsAny<Action>()))
@@ -183,7 +181,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
             store.VerifyRemove(x => x.IssuesChanged -= It.IsAny<EventHandler<IssuesChangedEventArgs>>(), Times.Once);
         }
 
-        private static LocalHotspotStoreMonitor CreateTestSubject(IServiceProvider serviceProvider = null,
+        private static LocalHotspotStoreMonitor CreateTestSubject(
+            IServiceProvider serviceProvider = null,
             ILocalHotspotsStore localHotspotsStore = null,
             IThreadHandling threadHandling = null)
         {
@@ -192,17 +191,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
                 threadHandling ?? new NoOpThreadHandler());
         }
 
-        private async static Task<LocalHotspotStoreMonitor> CreateInitializedTestSubject(IServiceProvider serviceProvider = null,
+        private async static Task<LocalHotspotStoreMonitor> CreateInitializedTestSubject(
+            IServiceProvider serviceProvider = null,
             ILocalHotspotsStore localHotspotsStore = null,
             IThreadHandling threadHandling = null)
         {
             // The LocalHotspotStoreMonitor needs to be initialized before it tracks events
-            var testSubject = CreateTestSubject(serviceProvider, localHotspotsStore, threadHandling );
+            var testSubject = CreateTestSubject(serviceProvider, localHotspotsStore, threadHandling);
             await testSubject.InitializeAsync();
             return testSubject;
         }
 
-        private static Mock<IVsMonitorSelection> CreateMonitorSelection(uint cookieToReturn,
+        private static Mock<IVsMonitorSelection> CreateMonitorSelection(
+            uint cookieToReturn,
             Action getCmdUICallback = null,
             Action setCmdUICallback = null)
         {
@@ -220,14 +221,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
             return monitor;
         }
 
-        private static Mock<IServiceProvider> CreateServiceProvider(IVsMonitorSelection vsMonitor = null,
+        private static Mock<IServiceProvider> CreateServiceProvider(
+            IVsMonitorSelection vsMonitor = null,
             Action callback = null)
         {
             vsMonitor ??= Mock.Of<IVsMonitorSelection>();
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(x => x.GetService(typeof(SVsShellMonitorSelection)))
-                .Returns(vsMonitor).
-                Callback(() => callback?.Invoke());
+                .Returns(vsMonitor).Callback(() => callback?.Invoke());
             return serviceProvider;
         }
 
@@ -238,8 +239,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
             return store;
         }
 
-        private static void RaiseIssuesChanged(Mock<ILocalHotspotsStore> store)
-            => store.Raise(x => x.IssuesChanged += null, null, new IssuesChangedEventArgs(null, null));
+        private static void RaiseIssuesChanged(Mock<ILocalHotspotsStore> store) => store.Raise(x => x.IssuesChanged += null, null, new IssuesChangedEventArgs(null, null));
 
         private static void CheckUIContextCookieIsFetched(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie)
         {
@@ -247,11 +247,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
             monitorMock.Verify(x => x.GetCmdUIContextCookie(ref localGuid, out expectedCookie), Times.Once);
         }
 
-        private static void CheckUIContextIsCleared(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie) =>
-            CheckUIContextUpdated(monitorMock, expectedCookie, 0);
+        private static void CheckUIContextIsCleared(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie) => CheckUIContextUpdated(monitorMock, expectedCookie, 0);
 
-        private static void CheckUIContextIsSet(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie) =>
-            CheckUIContextUpdated(monitorMock, expectedCookie, 1);
+        private static void CheckUIContextIsSet(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie) => CheckUIContextUpdated(monitorMock, expectedCookie, 1);
 
         private static void CheckUIContextUpdated(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie, int expectedState) =>
             monitorMock.Verify(x => x.SetCmdUIContext(expectedCookie, expectedState), Times.Once);

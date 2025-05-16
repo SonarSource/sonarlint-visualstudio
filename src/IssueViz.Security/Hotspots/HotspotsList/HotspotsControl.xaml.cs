@@ -21,9 +21,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Controls;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
-using SonarLint.VisualStudio.SLCore.Common.Models;
 using static SonarLint.VisualStudio.ConnectedMode.UI.WindowExtensions;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList
@@ -42,8 +42,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
 
         private void ReviewHotspotMenuItem_OnClick(object sender, RoutedEventArgs e)
         {
-            // TODO by https://sonarsource.atlassian.net/browse/SLVS-2140 and https://sonarsource.atlassian.net/browse/SLVS-2142: fill the current status and allowed statuses
-            var dialog = new ReviewHotspotWindow(HotspotStatus.ACKNOWLEDGED, [HotspotStatus.TO_REVIEW, HotspotStatus.FIXED, HotspotStatus.ACKNOWLEDGED, HotspotStatus.SAFE]);
+            if (sender is not MenuItem { DataContext: IHotspotViewModel hotspotViewModel })
+            {
+                return;
+            }
+            // TODO by https://sonarsource.atlassian.net/browse/SLVS-2140: fill the allowed statuses
+            var dialog = new ReviewHotspotWindow(hotspotViewModel.HotspotStatus, [HotspotStatus.ToReview, HotspotStatus.Fixed, HotspotStatus.Acknowledge, HotspotStatus.Safe]);
             dialog.ShowDialog(Application.Current.MainWindow);
         }
     }

@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 
                 var hotspotsList = hotspots.ToList();
 
-                fileToHotspotsMapping[filePath] = hotspotsList.Select(x => new LocalHotspot(x, GetPriority(x))).ToList();
+                fileToHotspotsMapping[filePath] = hotspotsList.Select(x => new LocalHotspot(x, GetPriority(x), ((IAnalysisHotspotIssue)x.Issue).HotspotStatus)).ToList();
 
                 NotifyIssuesChanged(new IssuesChangedEventArgs(oldIssueVisualizations, hotspotsList));
             }
