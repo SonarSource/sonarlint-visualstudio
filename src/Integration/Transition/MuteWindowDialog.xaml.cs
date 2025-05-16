@@ -24,7 +24,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Navigation;
-using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Models;
@@ -32,11 +31,11 @@ using SonarQube.Client.Models;
 namespace SonarLint.VisualStudio.Integration.Transition;
 
 /// <summary>
-///     Interaction logic for UserControl1.xaml
+/// Interaction logic for MuteWindowDialog.xaml
 /// </summary>
 [ContentProperty(nameof(MuteWindowDialog))]
 [ExcludeFromCodeCoverage]
-public partial class MuteWindowDialog : DialogWindow
+public partial class MuteWindowDialog : Window
 {
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly IBrowserService browserService;
