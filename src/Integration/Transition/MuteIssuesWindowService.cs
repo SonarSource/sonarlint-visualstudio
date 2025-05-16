@@ -25,6 +25,7 @@ using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Models;
+using static SonarLint.VisualStudio.ConnectedMode.UI.WindowExtensions;
 
 namespace SonarLint.VisualStudio.Integration.Transition
 {
@@ -37,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.Transition
         public MuteIssuesWindowResponse Show(IEnumerable<SonarQubeIssueTransition> allowedTransitions)
         {
             var dialog = new MuteWindowDialog(activeSolutionBoundTracker, browserService, allowedTransitions) { Owner = Application.Current.MainWindow };
-            var dialogResult = dialog.ShowDialog();
+            var dialogResult = dialog.ShowDialog(Application.Current.MainWindow);
 
             return new MuteIssuesWindowResponse
             {
