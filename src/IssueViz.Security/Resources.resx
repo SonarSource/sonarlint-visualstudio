@@ -165,6 +165,39 @@
   <data name="HotspotsToolWindowCaption" xml:space="preserve">
     <value>SonarQube Security Hotspots</value>
   </data>
+  <data name="ReviewHotspotWindow_AcknowledgeContent" xml:space="preserve">
+    <value>The code has been reviewed and does pose a risk. A fix is required.</value>
+  </data>
+  <data name="ReviewHotspotWindow_AcknowledgeTitle" xml:space="preserve">
+    <value>Acknowledged</value>
+  </data>
+  <data name="ReviewHotspotWindow_CancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="ReviewHotspotWindow_FixedContent" xml:space="preserve">
+    <value>The code has been reviewed and modified to follow the recommended secure coding practices.</value>
+  </data>
+  <data name="ReviewHotspotWindow_FixedTitle" xml:space="preserve">
+    <value>Fixed</value>
+  </data>
+  <data name="ReviewHotspotWindow_SafeContent" xml:space="preserve">
+    <value>The code has been reviewed and does not pose a risk. It does not need to be modified.</value>
+  </data>
+  <data name="ReviewHotspotWindow_SafeTitle" xml:space="preserve">
+    <value>Safe</value>
+  </data>
+  <data name="ReviewHotspotWindow_SubmitButton" xml:space="preserve">
+    <value>Submit</value>
+  </data>
+  <data name="ReviewHotspotWindow_Title" xml:space="preserve">
+    <value>Change Security Hotspot Status on SonarQube (Server, Cloud)</value>
+  </data>
+  <data name="ReviewHotspotWindow_ToReviewContent" xml:space="preserve">
+    <value>This security hotspot needs to be reviewed to assess whether the code poses a risk.</value>
+  </data>
+  <data name="ReviewHotspotWindow_ToReviewTitle" xml:space="preserve">
+    <value>To Review</value>
+  </data>
   <data name="StartedPackageInitialization" xml:space="preserve">
     <value>Initializing security package...</value>
   </data>

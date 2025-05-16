@@ -18,30 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows;
-using System.Windows.Controls;
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
+using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.SLCore.Common.Models;
-using static SonarLint.VisualStudio.ConnectedMode.UI.WindowExtensions;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
+
+public class StatusViewModel(HotspotStatus hotspotStatus, string title, string description) : ViewModelBase
 {
-    internal sealed partial class HotspotsControl : UserControl
+    private bool isChecked;
+
+    public HotspotStatus HotspotStatus { get; } = hotspotStatus;
+    public string Title { get; } = title;
+    public string Description { get; } = description;
+
+    public bool IsChecked
     {
-        public IHotspotsControlViewModel ViewModel { get; }
-
-        public HotspotsControl(IHotspotsControlViewModel viewModel)
+        get => isChecked;
+        set
         {
-            ViewModel = viewModel;
-
-            InitializeComponent();
-        }
-
-        private void ReviewHotspotMenuItem_OnClick(object sender, RoutedEventArgs e)
-        {
-            var dialog = new ReviewHotspotWindow([HotspotStatus.TO_REVIEW, HotspotStatus.ACKNOWLEDGED, HotspotStatus.SAFE]);
-            dialog.ShowDialog(Application.Current.MainWindow);
+            isChecked = value;
+            RaisePropertyChanged();
         }
     }
 }

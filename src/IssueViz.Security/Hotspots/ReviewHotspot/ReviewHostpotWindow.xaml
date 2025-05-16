@@ -1,0 +1,70 @@
+﻿<Window
+    x:Class=" SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot.ReviewHotspotWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:security="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security"
+    mc:Ignorable="d"
+    WindowStartupLocation="CenterOwner"
+    x:Name="ReviewHotspotWindowName"
+    Title="{x:Static security:Resources.ReviewHotspotWindow_Title}">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary
+                    Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <Style x:Key="ChangeIssueStatusWithHandlerBorderStyle" TargetType="Border" BasedOn="{StaticResource ChangeIssueStatusBorderStyle}">
+                <EventSetter Event="MouseLeftButtonDown" Handler="Border_MouseDown" />
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Window.Style>
+        <Style TargetType="Window" BasedOn="{StaticResource ChangeIssueStatusWindowStyle}" />
+    </Window.Style>
+
+    <Grid Margin="10" DataContext="{Binding ElementName=ReviewHotspotWindowName, Path=ViewModel}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ListBox Grid.Row="0" ItemsSource="{Binding AllowedStatusViewModels}"
+                 SelectedItem="{Binding Path=SelectedStatusViewModel}"
+                 Style="{StaticResource ChangeIssueStatusListBoxStyle}"
+                 ItemContainerStyle="{StaticResource NoSelectionListBoxItemStyle}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Border Style="{StaticResource ChangeIssueStatusWithHandlerBorderStyle}" Margin="0,5">
+                        <Grid MaxWidth="{Binding ElementName=ReviewHotspotWindowName, Path=ActualWidth}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <RadioButton Grid.Row="0" GroupName="StatusGroup" Content="{Binding Path=Title}"
+                                         Style="{StaticResource ChangeIssueStatusRadioButtonStyle}"
+                                         IsChecked="{Binding IsChecked}" Checked="RadioButton_OnChecked" />
+                            <TextBlock Grid.Row="1" Text="{Binding Path=Description}" 
+                                       Style="{StaticResource ChangeIssueStatusLabelStyle}"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <Grid Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10, 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" IsDefault="True"
+                    Content="{x:Static security:Resources.ReviewHotspotWindow_SubmitButton}"
+                    IsEnabled="{Binding Path=IsSubmitButtonEnabled, Mode=OneWay}" Click="Submit_Click" />
+            <Button Grid.Column="1" IsCancel="True"
+                    Content="{x:Static security:Resources.ReviewHotspotWindow_CancelButton}" />
+        </Grid>
+    </Grid>
+</Window>
