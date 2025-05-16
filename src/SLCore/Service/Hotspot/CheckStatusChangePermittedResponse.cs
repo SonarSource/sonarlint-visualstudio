@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.SLCore.Common.Models;
+
 namespace SonarLint.VisualStudio.SLCore.Service.Hotspot;
 
 public record CheckStatusChangePermittedResponse(bool permitted, string notPermittedReason, List<HotspotStatus> allowedStatuses)

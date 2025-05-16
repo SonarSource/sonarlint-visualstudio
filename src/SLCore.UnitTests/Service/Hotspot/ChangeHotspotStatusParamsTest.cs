@@ -19,6 +19,7 @@
  */
 
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Service.Hotspot;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Hotspot;
