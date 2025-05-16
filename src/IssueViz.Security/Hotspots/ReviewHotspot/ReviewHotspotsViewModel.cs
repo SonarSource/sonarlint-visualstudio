@@ -29,7 +29,7 @@ public class ReviewHotspotsViewModel : ViewModelBase
     private readonly IReadOnlyList<StatusViewModel> allStatusViewModels =
     [
         new(HotspotStatus.ToReview, Resources.ReviewHotspotWindow_ToReviewTitle, Resources.ReviewHotspotWindow_ToReviewContent),
-        new(HotspotStatus.Acknowledge, Resources.ReviewHotspotWindow_AcknowledgeTitle, Resources.ReviewHotspotWindow_AcknowledgeContent),
+        new(HotspotStatus.Acknowledged, Resources.ReviewHotspotWindow_AcknowledgeTitle, Resources.ReviewHotspotWindow_AcknowledgeContent),
         new(HotspotStatus.Fixed, Resources.ReviewHotspotWindow_FixedTitle, Resources.ReviewHotspotWindow_FixedContent),
         new(HotspotStatus.Safe, Resources.ReviewHotspotWindow_SafeTitle, Resources.ReviewHotspotWindow_SafeContent)
     ];

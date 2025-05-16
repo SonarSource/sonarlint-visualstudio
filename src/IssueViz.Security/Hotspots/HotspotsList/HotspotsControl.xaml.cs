@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
                 return;
             }
             // TODO by https://sonarsource.atlassian.net/browse/SLVS-2140: fill the allowed statuses
-            var dialog = new ReviewHotspotWindow(hotspotViewModel.HotspotStatus, [HotspotStatus.ToReview, HotspotStatus.Fixed, HotspotStatus.Acknowledge, HotspotStatus.Safe]);
+            var dialog = new ReviewHotspotWindow(hotspotViewModel.HotspotStatus, [HotspotStatus.ToReview, HotspotStatus.Fixed, HotspotStatus.Acknowledged, HotspotStatus.Safe]);
             dialog.ShowDialog(Application.Current.MainWindow);
         }
     }

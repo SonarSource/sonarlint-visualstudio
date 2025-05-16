@@ -14,7 +14,7 @@ public class ReviewHotspotsViewModelTest
     [TestInitialize]
     public void TestInitialize()
     {
-        allowedStatuses = [HotspotStatus.Acknowledge, HotspotStatus.Safe];
+        allowedStatuses = [HotspotStatus.Acknowledged, HotspotStatus.Safe];
 
         testSubject = new ReviewHotspotsViewModel(currentStatus, allowedStatuses);
     }

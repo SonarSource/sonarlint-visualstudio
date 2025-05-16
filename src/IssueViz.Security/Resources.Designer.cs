@@ -205,6 +205,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An error occurred while reviewing hotspot: {0}..
+        /// </summary>
+        public static string ReviewHotspotService_AnErrorOccurred {
+            get {
+                return ResourceManager.GetString("ReviewHotspotService_AnErrorOccurred", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Issue muting was not permitted due to: {0}..
+        /// </summary>
+        public static string ReviewHotspotService_NotPermitted {
+            get {
+                return ResourceManager.GetString("ReviewHotspotService_NotPermitted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The code has been reviewed and does pose a risk. A fix is required..
         /// </summary>
         public static string ReviewHotspotWindow_AcknowledgeContent {

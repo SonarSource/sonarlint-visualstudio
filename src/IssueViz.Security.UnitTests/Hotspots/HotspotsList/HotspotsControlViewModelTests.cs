@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             hotspotsStore.GetAllLocalHotspots().Returns([
                 new LocalHotspot(issueViz1, HotspotPriority.Low, HotspotStatus.Safe),
                 new LocalHotspot(issueViz2, HotspotPriority.Medium, HotspotStatus.ToReview),
-                new LocalHotspot(issueViz3, HotspotPriority.High, HotspotStatus.Acknowledge)
+                new LocalHotspot(issueViz3, HotspotPriority.High, HotspotStatus.Acknowledged)
             ]);
             RaiseIssuesChangedEvent();
 
@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             testSubject.Hotspots[1].HotspotStatus.Should().Be(HotspotStatus.ToReview);
             testSubject.Hotspots[2].Hotspot.Should().Be(issueViz3);
             testSubject.Hotspots[2].HotspotPriority.Should().Be(HotspotPriority.High);
-            testSubject.Hotspots[2].HotspotStatus.Should().Be(HotspotStatus.Acknowledge);
+            testSubject.Hotspots[2].HotspotStatus.Should().Be(HotspotStatus.Acknowledged);
         }
 
         [TestMethod]
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
 
             hotspotsStore.GetAllLocalHotspots().Returns([
                 new LocalHotspot(issueViz1, HotspotPriority.Low, HotspotStatus.Fixed),
-                new LocalHotspot(issueViz2, HotspotPriority.Medium, HotspotStatus.Acknowledge),
+                new LocalHotspot(issueViz2, HotspotPriority.Medium, HotspotStatus.Acknowledged),
                 new LocalHotspot(issueViz3, HotspotPriority.High, HotspotStatus.ToReview)
             ]);
             await testSubject.UpdateHotspotsListAsync();
@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             testSubject.Hotspots[0].HotspotStatus.Should().Be(HotspotStatus.Fixed);
             testSubject.Hotspots[1].Hotspot.Should().Be(issueViz2);
             testSubject.Hotspots[1].HotspotPriority.Should().Be(HotspotPriority.Medium);
-            testSubject.Hotspots[1].HotspotStatus.Should().Be(HotspotStatus.Acknowledge);
+            testSubject.Hotspots[1].HotspotStatus.Should().Be(HotspotStatus.Acknowledged);
             testSubject.Hotspots[2].Hotspot.Should().Be(issueViz3);
             testSubject.Hotspots[2].HotspotPriority.Should().Be(HotspotPriority.High);
             testSubject.Hotspots[2].HotspotStatus.Should().Be(HotspotStatus.ToReview);

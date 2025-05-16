@@ -165,6 +165,12 @@
   <data name="HotspotsToolWindowCaption" xml:space="preserve">
     <value>SonarQube Security Hotspots</value>
   </data>
+  <data name="ReviewHotspotService_AnErrorOccurred" xml:space="preserve">
+    <value>An error occurred while reviewing hotspot: {0}.</value>
+  </data>
+  <data name="ReviewHotspotService_NotPermitted" xml:space="preserve">
+    <value>Issue muting was not permitted due to: {0}.</value>
+  </data>
   <data name="ReviewHotspotWindow_AcknowledgeContent" xml:space="preserve">
     <value>The code has been reviewed and does pose a risk. A fix is required.</value>
   </data>
