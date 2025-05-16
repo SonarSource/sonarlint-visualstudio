@@ -34,6 +34,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
     public interface IAnalysisHotspotIssue : IAnalysisIssue
     {
         HotspotPriority? HotspotPriority { get; }
+        HotspotStatus HotspotStatus { get; }
     }
 
     public interface IAnalysisIssueBase
