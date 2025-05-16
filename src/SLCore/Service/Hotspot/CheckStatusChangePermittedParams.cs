@@ -18,16 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+namespace SonarLint.VisualStudio.SLCore.Service.Hotspot;
 
-namespace SonarLint.VisualStudio.SLCore.Common.Models;
-
-[JsonConverter(typeof(StringEnumConverter))]
-public enum HotspotStatus
+public record CheckStatusChangePermittedParams(string connectionId, string hotspotKey)
 {
-    TO_REVIEW,
-    ACKNOWLEDGED,
-    FIXED,
-    SAFE
 }
