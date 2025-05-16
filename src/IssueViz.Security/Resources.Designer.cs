@@ -205,6 +205,105 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The code has been reviewed and does pose a risk. A fix is required..
+        /// </summary>
+        public static string ReviewHotspotWindow_AcknowledgeContent {
+            get {
+                return ResourceManager.GetString("ReviewHotspotWindow_AcknowledgeContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Acknowledged.
+        /// </summary>
+        public static string ReviewHotspotWindow_AcknowledgeTitle {
+            get {
+                return ResourceManager.GetString("ReviewHotspotWindow_AcknowledgeTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
+        public static string ReviewHotspotWindow_CancelButton {
+            get {
+                return ResourceManager.GetString("ReviewHotspotWindow_CancelButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The code has been reviewed and modified to follow the recommended secure coding practices..
+        /// </summary>
+        public static string ReviewHotspotWindow_FixedContent {
+            get {
+                return ResourceManager.GetString("ReviewHotspotWindow_FixedContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fixed.
+        /// </summary>
+        public static string ReviewHotspotWindow_FixedTitle {
+            get {
+                return ResourceManager.GetString("ReviewHotspotWindow_FixedTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The code has been reviewed and does not pose a risk. It does not need to be modified..
+        /// </summary>
+        public static string ReviewHotspotWindow_SafeContent {
+            get {
+                return ResourceManager.GetString("ReviewHotspotWindow_SafeContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Safe.
+        /// </summary>
+        public static string ReviewHotspotWindow_SafeTitle {
+            get {
+                return ResourceManager.GetString("ReviewHotspotWindow_SafeTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Submit.
+        /// </summary>
+        public static string ReviewHotspotWindow_SubmitButton {
+            get {
+                return ResourceManager.GetString("ReviewHotspotWindow_SubmitButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Change Security Hotspot Status on SonarQube (Server, Cloud).
+        /// </summary>
+        public static string ReviewHotspotWindow_Title {
+            get {
+                return ResourceManager.GetString("ReviewHotspotWindow_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This security hotspot needs to be reviewed to assess whether the code poses a risk..
+        /// </summary>
+        public static string ReviewHotspotWindow_ToReviewContent {
+            get {
+                return ResourceManager.GetString("ReviewHotspotWindow_ToReviewContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to To Review.
+        /// </summary>
+        public static string ReviewHotspotWindow_ToReviewTitle {
+            get {
+                return ResourceManager.GetString("ReviewHotspotWindow_ToReviewTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Initializing security package....
         /// </summary>
         public static string StartedPackageInitialization {

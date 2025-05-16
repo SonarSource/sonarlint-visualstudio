@@ -246,4 +246,44 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <Style x:Key="ChangeIssueStatusWindowStyle" TargetType="Window" BasedOn="{StaticResource {x:Type Window}}">
+        <Setter Property="MinHeight" Value="400" />
+        <Setter Property="MinWidth" Value="550" />
+        <Setter Property="ResizeMode" Value="NoResize" />
+        <Setter Property="SizeToContent" Value="WidthAndHeight" />
+    </Style>
+
+    <Style x:Key="ChangeIssueStatusRadioButtonStyle" TargetType="RadioButton">
+        <Setter Property="GroupName" Value="Transitions" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}" />
+        <Setter Property="FontSize" Value="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}" />
+    </Style>
+
+    <Style x:Key="ChangeIssueStatusBorderStyle" TargetType="Border">
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="MinHeight" Value="75" />
+        <Setter Property="Padding" Value="10" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="Width" Value="500" />
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style x:Key="ChangeIssueStatusLabelStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="FontSize" Value="{DynamicResource {x:Static vsShell:VsFonts.Environment111PercentFontSizeKey}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}" />
+        <Setter Property="Margin" Value="5" />
+    </Style>
+
+    <Style x:Key="ChangeIssueStatusListBoxStyle" TargetType="ListBox" >
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Hidden"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+    </Style>
 </ResourceDictionary>

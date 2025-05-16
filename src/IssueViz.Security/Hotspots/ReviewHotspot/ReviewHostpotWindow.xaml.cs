@@ -23,46 +23,27 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Markup;
-using System.Windows.Navigation;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
-using SonarQube.Client.Models;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 
-namespace SonarLint.VisualStudio.Integration.Transition;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
 
 /// <summary>
-/// Interaction logic for MuteWindowDialog.xaml
+/// Interaction logic for ReviewHotspotWindow.xaml
 /// </summary>
-[ContentProperty(nameof(MuteWindowDialog))]
+[ContentProperty(nameof(ReviewHotspotWindow))]
 [ExcludeFromCodeCoverage]
-public partial class MuteWindowDialog : Window
+public partial class ReviewHotspotWindow : Window
 {
-    private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-    private readonly IBrowserService browserService;
+    public ReviewHotspotsViewModel ViewModel { get; private set; }
 
-    public MuteViewModel ViewModel { get; set; } = new();
-
-    public MuteWindowDialog(IActiveSolutionBoundTracker activeSolutionBoundTracker, IBrowserService browserService, IEnumerable<SonarQubeIssueTransition> allowedTransitions)
+    public ReviewHotspotWindow(HotspotStatus currentStatus, IEnumerable<HotspotStatus> allowedStatuses)
     {
-        ViewModel.InitializeStatuses(allowedTransitions);
-        this.activeSolutionBoundTracker = activeSolutionBoundTracker;
-        this.browserService = browserService;
+        ViewModel = new ReviewHotspotsViewModel(currentStatus, allowedStatuses);
 
         InitializeComponent();
     }
 
-    private void Cancel_Click(object sender, RoutedEventArgs e) => DialogResult = false;
-
     private void Submit_Click(object sender, RoutedEventArgs e) => DialogResult = true;
-
-    private void FormattingHelpHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
-    {
-        var serverConnection = activeSolutionBoundTracker.CurrentConfiguration.Project.ServerConnection;
-        var serverUri = serverConnection.ServerUri.ToString();
-
-        browserService.Navigate(serverConnection is ServerConnection.SonarCloud ? $"{serverUri}markdown/help" : $"{serverUri}formatting/help");
-        e.Handled = true;
-    }
 
     private void Border_MouseDown(object sender, MouseButtonEventArgs e)
     {
