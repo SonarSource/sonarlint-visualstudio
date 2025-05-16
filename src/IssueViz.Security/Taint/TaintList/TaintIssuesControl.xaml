@@ -32,7 +32,7 @@
                           CommandParameter="{Binding}"
                           Command="{Binding DataContext.ShowVisualizationPaneCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}">
                     <MenuItem.Icon>
-                        <vsImaging:CrispImage Source="/SonarLint.VisualStudio.IssueVisualization.Security;component/Taint/TaintList/sonarqube_for_ide_logo_16px.png" />
+                        <vsImaging:CrispImage Source="/SonarLint.VisualStudio.IssueVisualization.Security;component/SharedUI/sonarqube_for_ide_logo_16px.png" />
                     </MenuItem.Icon>
                 </MenuItem>
             </ContextMenu>

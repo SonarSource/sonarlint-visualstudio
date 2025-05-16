@@ -150,6 +150,9 @@
   <data name="HotspotsControl_PriorityColumnHeader" xml:space="preserve">
     <value>Priority</value>
   </data>
+  <data name="HotspotsControl_ReviewHotspotTooltip" xml:space="preserve">
+    <value>Review Security Hotspot</value>
+  </data>
   <data name="HotspotsControl_ServerStatusColumnHeader" xml:space="preserve">
     <value>Server status</value>
   </data>

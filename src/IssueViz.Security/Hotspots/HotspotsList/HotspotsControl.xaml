@@ -7,6 +7,7 @@
              xmlns:core="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
              xmlns:commands="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;assembly=SonarLint.VisualStudio.IssueVisualization"
              xmlns:res="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security"
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              DataContext="{Binding ViewModel, RelativeSource={RelativeSource Mode=Self}}">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -18,10 +19,21 @@
             <hotspotsList:PriorityToBackgroundConverter x:Key="PriorityToBackgroundConverter" />
             <core:NullableSelectedItemConverter x:Key="NullableSelectedItemConverter"/>
             <commands:NavigateToRuleDescriptionCommandConverter x:Key="NavigateToRuleDescriptionCommandConverter" />
-            
+            <core:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
+
+            <ContextMenu x:Key="RowContextMenu" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}" 
+                         Visibility="{Binding Path=ExistsOnServer, Converter={StaticResource TrueToVisibleConverter}}">
+                <MenuItem Header="{x:Static res:Resources.HotspotsControl_ReviewHotspotTooltip}" Click="ReviewHotspotMenuItem_OnClick">
+                    <MenuItem.Icon>
+                        <imaging:CrispImage Source="/SonarLint.VisualStudio.IssueVisualization.Security;component/SharedUI/sonarqube_for_ide_logo_16px.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </ContextMenu>
+
             <!-- Extend the shared data grid row style to add the context menu and navigability data bindings -->
             <Style BasedOn="{StaticResource BaseDataGridRow}"
                    TargetType="DataGridRow">
+                <Setter Property="ContextMenu" Value="{StaticResource RowContextMenu}" />
                 <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.BackgroundBrushKey}}"/>
                 <Setter Property="ToolTipService.ToolTip" Value="{x:Static res:Resources.HotspotsControl_NavigationTooltip}"/>
                 <Style.Triggers>
