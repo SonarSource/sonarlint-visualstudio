@@ -129,6 +129,14 @@ namespace SonarLint.VisualStudio.Core.Analysis
         Low
     }
 
+    public enum HotspotStatus
+    {
+        ToReview,
+        Acknowledge,
+        Fixed,
+        Safe,
+    }
+
     public static class IAnalysisIssueExtensions
     {
         public static bool IsFileLevel(this IAnalysisIssueBase issue)
