@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             testSubject.Hotspots[0].HotspotPriority.Should().Be(default(HotspotPriority));
 
             hotspotsStore.GetAllLocalHotspots().Returns([
-                new LocalHotspot(issueViz1, HotspotPriority.Low), new LocalHotspot(issueViz2, HotspotPriority.Medium), new LocalHotspot(issueViz3, HotspotPriority.High)
+                new LocalHotspot(issueViz1, HotspotPriority.Low, default), new LocalHotspot(issueViz2, HotspotPriority.Medium, default), new LocalHotspot(issueViz3, HotspotPriority.High, default)
             ]);
             RaiseIssuesChangedEvent();
 
@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             var issueViz2 = Substitute.For<IAnalysisIssueVisualization>();
             var issueViz3 = Substitute.For<IAnalysisIssueVisualization>();
 
-            hotspotsStore.GetAllLocalHotspots().Returns([new LocalHotspot(issueViz1, HotspotPriority.Medium)]);
+            hotspotsStore.GetAllLocalHotspots().Returns([new LocalHotspot(issueViz1, HotspotPriority.Medium, default)]);
             await testSubject.UpdateHotspotsListAsync();
 
             testSubject.Hotspots.Count.Should().Be(1);
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             testSubject.Hotspots[0].HotspotPriority.Should().Be(HotspotPriority.Medium);
 
             hotspotsStore.GetAllLocalHotspots().Returns([
-                new LocalHotspot(issueViz1, HotspotPriority.Low), new LocalHotspot(issueViz2, HotspotPriority.Medium), new LocalHotspot(issueViz3, HotspotPriority.High)
+                new LocalHotspot(issueViz1, HotspotPriority.Low, default), new LocalHotspot(issueViz2, HotspotPriority.Medium, default), new LocalHotspot(issueViz3, HotspotPriority.High, default)
             ]);
             await testSubject.UpdateHotspotsListAsync();
 
@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         public async Task SelectionChanged_SelectedHotspotExistsInList_HotspotSelected()
         {
             var issueViz = Substitute.For<IAnalysisIssueVisualization>();
-            hotspotsStore.GetAllLocalHotspots().Returns([new LocalHotspot(issueViz, default)]);
+            hotspotsStore.GetAllLocalHotspots().Returns([new LocalHotspot(issueViz, default, default)]);
             await testSubject.UpdateHotspotsListAsync();
 
             RaiseStoreIssuesChangedEvent(issueViz);
@@ -371,7 +371,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         {
             originalCollection = [];
             var readOnlyWrapper = new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection);
-            hotspotsStore.GetAllLocalHotspots().Returns(readOnlyWrapper.Select(x => new LocalHotspot(x, default)).ToList());
+            hotspotsStore.GetAllLocalHotspots().Returns(readOnlyWrapper.Select(x => new LocalHotspot(x, default, default)).ToList());
 
             threadHandling.When(x => x.RunOnBackgroundThread(Arg.Any<Func<Task<bool>>>())).Do(x =>
             {
@@ -382,7 +382,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
 
         private void RaiseStoreIssuesChangedEvent(params IAnalysisIssueVisualization[] issueVizs)
         {
-            hotspotsStore.GetAllLocalHotspots().Returns(issueVizs.Select(x => new LocalHotspot(x, default)).ToList());
+            hotspotsStore.GetAllLocalHotspots().Returns(issueVizs.Select(x => new LocalHotspot(x, default, default)).ToList());
             RaiseIssuesChangedEvent(issueVizs);
         }
 
