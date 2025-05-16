@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Windows;
 using System.Windows.Controls;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
 
@@ -32,6 +33,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             ViewModel = viewModel;
 
             InitializeComponent();
+        }
+
+        private void ReviewHotspotMenuItem_OnClick(object sender, RoutedEventArgs e)
+        {
+            // TODO by https://sonarsource.atlassian.net/browse/SLVS-2122: show the review hotspot dialog
         }
     }
 }

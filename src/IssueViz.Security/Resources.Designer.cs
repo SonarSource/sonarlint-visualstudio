@@ -160,6 +160,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Review Security Hotspot.
+        /// </summary>
+        public static string HotspotsControl_ReviewHotspotTooltip {
+            get {
+                return ResourceManager.GetString("HotspotsControl_ReviewHotspotTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Server status.
         /// </summary>
         public static string HotspotsControl_ServerStatusColumnHeader {

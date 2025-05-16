@@ -28,7 +28,7 @@
   </PropertyGroup>
 
   <ItemGroup Label="Taint Xaml Sources">
-    <Resource Include="Taint\TaintList\sonarqube_for_ide_logo_16px.png" />
+    <Resource Include="SharedUI\sonarqube_for_ide_logo_16px.png" />
   </ItemGroup>
 
   <ItemGroup Label="Framework references">
