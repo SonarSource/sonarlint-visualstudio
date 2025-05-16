@@ -8,15 +8,36 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
 public class ReviewHotspotsViewModelTest
 {
     private ReviewHotspotsViewModel testSubject;
+    private HotspotStatus[] allowedStatuses;
+    private readonly HotspotStatus currentStatus = HotspotStatus.SAFE;
 
     [TestInitialize]
-    public void TestInitialize() => testSubject = new ReviewHotspotsViewModel();
+    public void TestInitialize()
+    {
+        allowedStatuses = [HotspotStatus.ACKNOWLEDGED, HotspotStatus.SAFE];
+
+        testSubject = new ReviewHotspotsViewModel(currentStatus, allowedStatuses);
+    }
 
     [TestMethod]
-    public void Cto_InitializesProperties()
+    public void Ctor_InitializesProperties()
     {
+        testSubject.AllowedStatusViewModels.Should().HaveCount(allowedStatuses.Length);
+        foreach (var allowedStatus in allowedStatuses)
+        {
+            testSubject.AllowedStatusViewModels.Should().ContainSingle(x => x.HotspotStatus == allowedStatus);
+        }
+
+        testSubject.SelectedStatusViewModel.HotspotStatus.Should().Be(currentStatus);
+        testSubject.SelectedStatusViewModel.IsChecked.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void Ctor_CurrentStatusNotInListOfAllowedStatuses_SetsSelectionToNull()
+    {
+        testSubject = new ReviewHotspotsViewModel(HotspotStatus.TO_REVIEW, allowedStatuses);
+
         testSubject.SelectedStatusViewModel.Should().BeNull();
-        testSubject.AllowedStatusViewModels.Should().BeEmpty();
     }
 
     [TestMethod]
@@ -46,50 +67,5 @@ public class ReviewHotspotsViewModelTest
 
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.SelectedStatusViewModel)));
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsSubmitButtonEnabled)));
-    }
-
-    [TestMethod]
-    public void InitializeStatuses_InitializesAllowedStatusViewModels()
-    {
-        var transitions = new[] { HotspotStatus.ACKNOWLEDGED, HotspotStatus.SAFE };
-
-        testSubject.InitializeStatuses(transitions);
-
-        testSubject.AllowedStatusViewModels.Should().HaveCount(2);
-        testSubject.AllowedStatusViewModels.Should().ContainSingle(x => x.HotspotStatus == HotspotStatus.ACKNOWLEDGED);
-        testSubject.AllowedStatusViewModels.Should().ContainSingle(x => x.HotspotStatus == HotspotStatus.SAFE);
-    }
-
-    [TestMethod]
-    public void InitializeStatuses_ClearsPreviousStatuses()
-    {
-        testSubject.InitializeStatuses([HotspotStatus.FIXED]);
-        testSubject.InitializeStatuses([HotspotStatus.TO_REVIEW]);
-
-        testSubject.AllowedStatusViewModels.Should().HaveCount(1);
-        testSubject.AllowedStatusViewModels.Should().ContainSingle(x => x.HotspotStatus == HotspotStatus.TO_REVIEW);
-    }
-
-    [TestMethod]
-    public void InitializeStatuses_ClearsSelectedStatusViewModel()
-    {
-        var transitions = new[] { HotspotStatus.SAFE, HotspotStatus.TO_REVIEW };
-        testSubject.SelectedStatusViewModel = new StatusViewModel(HotspotStatus.SAFE, "title", "description");
-
-        testSubject.InitializeStatuses(transitions);
-
-        testSubject.SelectedStatusViewModel.Should().BeNull();
-    }
-
-    [TestMethod]
-    public void InitializeStatusesInitializes_ClearsIsChecked()
-    {
-        var transitions = new[] { HotspotStatus.SAFE, HotspotStatus.TO_REVIEW };
-        testSubject.InitializeStatuses(transitions);
-
-        testSubject.AllowedStatusViewModels.ToList().ForEach(vm => vm.IsChecked = true);
-        testSubject.InitializeStatuses(transitions);
-
-        testSubject.AllowedStatusViewModels.All(x => !x.IsChecked).Should().BeTrue();
     }
 }

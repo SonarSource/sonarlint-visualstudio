@@ -34,11 +34,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHots
 [ExcludeFromCodeCoverage]
 public partial class ReviewHotspotWindow : Window
 {
-    public ReviewHotspotsViewModel ViewModel { get; set; } = new();
+    public ReviewHotspotsViewModel ViewModel { get; private set; }
 
-    public ReviewHotspotWindow(IEnumerable<HotspotStatus> allowedStatuses)
+    public ReviewHotspotWindow(HotspotStatus currentStatus, IEnumerable<HotspotStatus> allowedStatuses)
     {
-        ViewModel.InitializeStatuses(allowedStatuses);
+        ViewModel = new ReviewHotspotsViewModel(currentStatus, allowedStatuses);
 
         InitializeComponent();
     }

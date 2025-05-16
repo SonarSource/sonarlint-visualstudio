@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
 
         private void ReviewHotspotMenuItem_OnClick(object sender, RoutedEventArgs e)
         {
-            var dialog = new ReviewHotspotWindow([HotspotStatus.TO_REVIEW, HotspotStatus.ACKNOWLEDGED, HotspotStatus.SAFE]);
+            var dialog = new ReviewHotspotWindow(HotspotStatus.ACKNOWLEDGED, [HotspotStatus.TO_REVIEW, HotspotStatus.FIXED, HotspotStatus.ACKNOWLEDGED, HotspotStatus.SAFE]);
             dialog.ShowDialog(Application.Current.MainWindow);
         }
     }

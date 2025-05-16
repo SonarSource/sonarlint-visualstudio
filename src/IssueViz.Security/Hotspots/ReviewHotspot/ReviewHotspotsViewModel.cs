@@ -35,6 +35,12 @@ public class ReviewHotspotsViewModel : ViewModelBase
     ];
     private StatusViewModel selectedStatusViewModel;
 
+    public ReviewHotspotsViewModel(HotspotStatus currentStatus, IEnumerable<HotspotStatus> allowedStatuses)
+    {
+        InitializeStatuses(allowedStatuses);
+        InitializeCurrentStatus(currentStatus);
+    }
+
     public StatusViewModel SelectedStatusViewModel
     {
         get => selectedStatusViewModel;
@@ -50,12 +56,20 @@ public class ReviewHotspotsViewModel : ViewModelBase
 
     public ObservableCollection<StatusViewModel> AllowedStatusViewModels { get; set; } = [];
 
-    public void InitializeStatuses(IEnumerable<HotspotStatus> statuses)
+    private void InitializeStatuses(IEnumerable<HotspotStatus> allowedStatuses)
     {
-        allStatusViewModels.ToList().ForEach(vm => vm.IsChecked = false);
-        SelectedStatusViewModel = null;
-
         AllowedStatusViewModels.Clear();
-        allStatusViewModels.Where(x => statuses.Contains(x.HotspotStatus)).ToList().ForEach(vm => AllowedStatusViewModels.Add(vm));
+        allStatusViewModels.ToList().ForEach(vm => vm.IsChecked = false);
+        allStatusViewModels.Where(x => allowedStatuses.Contains(x.HotspotStatus)).ToList().ForEach(vm => AllowedStatusViewModels.Add(vm));
+    }
+
+    private void InitializeCurrentStatus(HotspotStatus currentStatus)
+    {
+        SelectedStatusViewModel = AllowedStatusViewModels.FirstOrDefault(x => x.HotspotStatus == currentStatus);
+        if (SelectedStatusViewModel == null)
+        {
+            return;
+        }
+        SelectedStatusViewModel.IsChecked = true;
     }
 }
