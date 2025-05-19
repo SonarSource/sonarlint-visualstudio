@@ -27,6 +27,8 @@ internal interface IReviewHotspotsService
     Task<bool> ReviewHotspotAsync(string hotspotKey, HotspotStatus newStatus);
 
     Task<IReviewHotspotPermissionArgs> CheckReviewHotspotPermittedAsync(string hotspotKey);
+
+    Task OpenHotspotAsync(string hotspotKey);
 }
 
 internal interface IReviewHotspotPermissionArgs

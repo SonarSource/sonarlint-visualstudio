@@ -211,6 +211,57 @@ public class ReviewHotspotsServiceTest
             && x.configurationScopeId == activeConfigScopeTracker.Current.Id));
     }
 
+    [TestMethod]
+    public async Task OpenHotspotAsync_RunsOnBackgroundThread()
+    {
+        await testSubject.OpenHotspotAsync(HotspotKey);
+
+        await threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<bool>>>());
+    }
+
+    [TestMethod]
+    public async Task OpenHotspotAsync_WhenServiceProviderNotInitialized_LogsAndReturnsFalse()
+    {
+        ServiceProviderNotInitialized();
+
+        await testSubject.OpenHotspotAsync(HotspotKey);
+
+        logger.AssertPartialOutputStringExists(SLCoreStrings.ServiceProviderNotInitialized);
+    }
+
+    [TestMethod]
+    public async Task OpenHotspotAsync_WhenReviewHotspotThrowsNoCriticalException_LogsAndReturnFalse()
+    {
+        hotspotSlCoreService.When(x => x.openHotspotInBrowser(Arg.Is<OpenHotspotInBrowserParams>(arg => arg.hotspotKey == HotspotKey)))
+            .Do(_ => throw new Exception("Some error"));
+
+        await testSubject.OpenHotspotAsync(HotspotKey);
+
+        logger.AssertPartialOutputStringExists(HotspotKey);
+        logger.AssertPartialOutputStrings(string.Format(Resources.ReviewHotspotService_AnErrorOccurred, "Some error"));
+    }
+
+    [TestMethod]
+    public void OpenHotspotAsync_WhenReviewHotspotThrowsCriticalException_Throws()
+    {
+        hotspotSlCoreService.When(x => x.openHotspotInBrowser(Arg.Is<OpenHotspotInBrowserParams>(arg => arg.hotspotKey == HotspotKey)))
+            .Do(_ => throw new StackOverflowException());
+
+        var act = () => testSubject.OpenHotspotAsync(HotspotKey);
+
+        act.Should().Throw<StackOverflowException>();
+    }
+
+    [TestMethod]
+    public async Task OpenHotspotAsync_ShouldCallSlCore()
+    {
+        await testSubject.OpenHotspotAsync(HotspotKey);
+
+        hotspotSlCoreService.Received().openHotspotInBrowser(Arg.Is<OpenHotspotInBrowserParams>(x =>
+            x.hotspotKey == HotspotKey
+            && x.configScopeId == activeConfigScopeTracker.Current.Id));
+    }
+
     private void ServiceProviderNotInitialized() => slCoreServiceProvider.TryGetTransientService(out Arg.Any<IHotspotSlCoreService>()).ReturnsForAnyArgs(false);
 
     private void MockCheckStatusChangePermitted(List<SlCoreHotspotStatus> allowedStatuses)
