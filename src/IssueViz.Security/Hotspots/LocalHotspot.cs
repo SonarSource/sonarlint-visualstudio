@@ -27,14 +27,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     {
         /// <param name="visualization">Locally analyzed hotspot visualization</param>
         /// <param name="priority">Hotspot review priority</param>
+        /// <param name="hotspotStatus">Hotspot review status</param>
         /// <exception cref="ArgumentNullException">Visualization can't be null</exception>
-        public LocalHotspot(IAnalysisIssueVisualization visualization, HotspotPriority priority)
+        public LocalHotspot(IAnalysisIssueVisualization visualization, HotspotPriority priority, HotspotStatus hotspotStatus)
         {
             Visualization = visualization ?? throw new ArgumentNullException(nameof(visualization));
             Priority = priority;
+            HotspotStatus = hotspotStatus;
         }
 
         public IAnalysisIssueVisualization Visualization { get; }
         public HotspotPriority Priority { get; }
+        public HotspotStatus HotspotStatus { get; }
     }
 }
