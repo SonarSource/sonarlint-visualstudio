@@ -66,6 +66,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
                         highestSoftwareQualitySeverity,
                         analysisIssueLocation,
                         analysisIssueFlows,
+                        raisedHotspotDto.status.ToHotspotStatus(),
                         readOnlyList,
                         raisedHotspotDto.vulnerabilityProbability.GetHotspotPriority());
                 }

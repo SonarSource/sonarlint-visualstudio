@@ -23,7 +23,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Markup;
-using SonarLint.VisualStudio.SLCore.Common.Models;
+using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
 
@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHots
 [ExcludeFromCodeCoverage]
 public partial class ReviewHotspotWindow : Window
 {
-    public ReviewHotspotsViewModel ViewModel { get; private set; }
+    public ReviewHotspotsViewModel ViewModel { get; }
 
     public ReviewHotspotWindow(HotspotStatus currentStatus, IEnumerable<HotspotStatus> allowedStatuses)
     {

@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             issueViz = Substitute.For<IAnalysisIssueVisualization>();
             securityCategoryDisplayNameProvider = Substitute.For<ISecurityCategoryDisplayNameProvider>();
             positionCalculator = Substitute.For<IIssueVizDisplayPositionCalculator>();
-            testSubject = new HotspotViewModel(issueViz, default, securityCategoryDisplayNameProvider, positionCalculator);
+            testSubject = new HotspotViewModel(issueViz, default, default, securityCategoryDisplayNameProvider, positionCalculator);
         }
 
         [TestMethod]

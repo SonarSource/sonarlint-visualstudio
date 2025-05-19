@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
-using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.ReviewHotspot;
 
@@ -8,15 +8,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
 public class StatusViewModelTest
 {
     [TestMethod]
-    [DataRow(HotspotStatus.TO_REVIEW, "to review", "description1")]
-    [DataRow(HotspotStatus.ACKNOWLEDGED, "acknowledges", "description\ndescription2")]
-    [DataRow(HotspotStatus.FIXED, "fixed", "description3")]
-    [DataRow(HotspotStatus.SAFE, "safe", "description\n\tdescription4")]
-    public void Ctor_InitializesProperties(HotspotStatus transition, string title, string description)
+    [DataRow(HotspotStatus.ToReview, "to review", "description1")]
+    [DataRow(HotspotStatus.Acknowledge, "acknowledges", "description\ndescription2")]
+    [DataRow(HotspotStatus.Fixed, "fixed", "description3")]
+    [DataRow(HotspotStatus.Safe, "safe", "description\n\tdescription4")]
+    public void Ctor_InitializesProperties(HotspotStatus status, string title, string description)
     {
-        var testSubject = new StatusViewModel(transition, title, description);
+        var testSubject = new StatusViewModel(status, title, description);
 
-        testSubject.HotspotStatus.Should().Be(transition);
+        testSubject.HotspotStatus.Should().Be(status);
         testSubject.Title.Should().Be(title);
         testSubject.Description.Should().Be(description);
         testSubject.IsChecked.Should().BeFalse();

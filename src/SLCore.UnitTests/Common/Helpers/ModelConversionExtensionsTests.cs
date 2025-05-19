@@ -21,9 +21,10 @@
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
-using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using SoftwareQuality = SonarLint.VisualStudio.Core.Analysis.SoftwareQuality;
 using CleanCodeAttribute = SonarLint.VisualStudio.Core.Analysis.CleanCodeAttribute;
+using CoreHotspotStatus = SonarLint.VisualStudio.Core.Analysis.HotspotStatus;
+using SlCoreHotspotStatus = SonarLint.VisualStudio.SLCore.Common.Models.HotspotStatus;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers;
 
@@ -227,6 +228,25 @@ public class ModelConversionExtensionsTests
         act.Should().Throw<ArgumentOutOfRangeException>().WithMessage("""
                                                                       Unexpected enum value
                                                                       Parameter name: cleanCodeAttribute
+                                                                      Actual value was 1000.
+                                                                      """);
+    }
+
+    [TestMethod]
+    [DataRow(SlCoreHotspotStatus.TO_REVIEW, CoreHotspotStatus.ToReview)]
+    [DataRow(SlCoreHotspotStatus.ACKNOWLEDGED, CoreHotspotStatus.Acknowledge)]
+    [DataRow(SlCoreHotspotStatus.FIXED, CoreHotspotStatus.Fixed)]
+    [DataRow(SlCoreHotspotStatus.SAFE, CoreHotspotStatus.Safe)]
+    public void ToHotspotStatus_ConvertsCorrectly(SlCoreHotspotStatus slCoreStatus, CoreHotspotStatus coreStatus) => slCoreStatus.ToHotspotStatus().Should().Be(coreStatus);
+
+    [TestMethod]
+    public void ToHotspotStatus_ConvertsCorrectly()
+    {
+        var act = () => ((SlCoreHotspotStatus)1000).ToHotspotStatus();
+
+        act.Should().Throw<ArgumentOutOfRangeException>().WithMessage("""
+                                                                      Unexpected enum value
+                                                                      Parameter name: hotspotStatus
                                                                       Actual value was 1000.
                                                                       """);
     }
