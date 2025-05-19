@@ -151,7 +151,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
                 case ReviewHotspotPermittedArgs reviewHotspotPermittedArgs:
                     return reviewHotspotPermittedArgs.AllowedStatuses;
                 case ReviewHotspotNotPermittedArgs reviewHotspotNotPermittedArgs:
-                    messageBox.Show(reviewHotspotNotPermittedArgs.Reason, Resources.ReviewHotspotWindow_FailureTitle, MessageBoxButton.OK, MessageBoxImage.Error);
+                    messageBox.Show(string.Format(Resources.ReviewHotspotWindow_CheckReviewPermittedFailureMessage, reviewHotspotNotPermittedArgs.Reason), Resources.ReviewHotspotWindow_FailureTitle,
+                        MessageBoxButton.OK, MessageBoxImage.Error);
                     break;
             }
             return null;

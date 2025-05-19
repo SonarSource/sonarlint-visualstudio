@@ -21,34 +21,35 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Controls;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
 using static SonarLint.VisualStudio.ConnectedMode.UI.WindowExtensions;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList;
+
+[ExcludeFromCodeCoverage] // UI, not really unit-testable
+internal sealed partial class HotspotsControl : UserControl
 {
-    [ExcludeFromCodeCoverage] // UI, not really unit-testable
-    internal sealed partial class HotspotsControl : UserControl
+    public IHotspotsControlViewModel ViewModel { get; }
+
+    public HotspotsControl(IHotspotsControlViewModel viewModel)
     {
-        public IHotspotsControlViewModel ViewModel { get; }
+        ViewModel = viewModel;
 
-        public HotspotsControl(IHotspotsControlViewModel viewModel)
+        InitializeComponent();
+    }
+
+    private async void ReviewHotspotMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { DataContext: IHotspotViewModel hotspotViewModel } ||
+            await ViewModel.GetAllowedStatusesAsync() is not { } allowedStatuses)
         {
-            ViewModel = viewModel;
-
-            InitializeComponent();
+            return;
         }
-
-        private void ReviewHotspotMenuItem_OnClick(object sender, RoutedEventArgs e)
+        var dialog = new ReviewHotspotWindow(hotspotViewModel.HotspotStatus, allowedStatuses);
+        if (dialog.ShowDialog(Application.Current.MainWindow) is true)
         {
-            if (sender is not MenuItem { DataContext: IHotspotViewModel hotspotViewModel })
-            {
-                return;
-            }
-            // TODO by https://sonarsource.atlassian.net/browse/SLVS-2140: fill the allowed statuses
-            var dialog = new ReviewHotspotWindow(hotspotViewModel.HotspotStatus, [HotspotStatus.ToReview, HotspotStatus.Fixed, HotspotStatus.Acknowledged, HotspotStatus.Safe]);
-            dialog.ShowDialog(Application.Current.MainWindow);
+            await ViewModel.ChangeHotspotStatusAsync(dialog.ViewModel.SelectedStatusViewModel.HotspotStatus);
         }
     }
 }
