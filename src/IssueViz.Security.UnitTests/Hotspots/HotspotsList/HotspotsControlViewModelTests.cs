@@ -20,6 +20,7 @@
 
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
@@ -28,6 +29,7 @@ using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewMo
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -43,6 +45,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         private IIssueSelectionService selectionService;
         private IThreadHandling threadHandling;
         private IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private IReviewHotspotsService reviewHotspotsService;
+        private IMessageBox messageBox;
         private ObservableCollection<IAnalysisIssueVisualization> originalCollection;
 
         [TestInitialize]
@@ -54,7 +58,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             selectionService = Substitute.For<IIssueSelectionService>();
             threadHandling = Substitute.For<IThreadHandling>();
             activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
-            testSubject = new HotspotsControlViewModel(hotspotsStore, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling, activeSolutionBoundTracker);
+            reviewHotspotsService = Substitute.For<IReviewHotspotsService>();
+            messageBox = Substitute.For<IMessageBox>();
+            testSubject = new HotspotsControlViewModel(hotspotsStore, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling, activeSolutionBoundTracker,
+                reviewHotspotsService, messageBox);
 
             MockTestSubject();
         }
@@ -372,6 +379,81 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         }
 
         [TestMethod]
+        public async Task GetAllowedStatusesAsync_ChangeStatusPermitted_ReturnsListOfAllowedStatuses()
+        {
+            var allowedStatuses = new List<HotspotStatus> { HotspotStatus.Fixed, HotspotStatus.ToReview };
+            await MockSelectedHotspot("ServerKey");
+            MockChangeStatusPermitted(testSubject.SelectedHotspot.Hotspot.Issue.IssueServerKey, allowedStatuses);
+
+            var result = await testSubject.GetAllowedStatusesAsync();
+
+            result.Should().BeEquivalentTo(allowedStatuses);
+            messageBox.DidNotReceive().Show(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<MessageBoxButton>(), Arg.Any<MessageBoxImage>());
+        }
+
+        [TestMethod]
+        public async Task GetAllowedStatusesAsync_ChangeStatusNotPermitted_ShowsMessageBoxAndReturnsNull()
+        {
+            var reason = "Not permitted";
+            await MockSelectedHotspot("ServerKey");
+            MockChangeStatusNotPermitted(testSubject.SelectedHotspot.Hotspot.Issue.IssueServerKey, reason);
+
+            var result = await testSubject.GetAllowedStatusesAsync();
+
+            result.Should().BeNull();
+            messageBox.Received(1).Show(Arg.Is<string>(x => x == string.Format(Resources.ReviewHotspotWindow_CheckReviewPermittedFailureMessage, reason)),
+                Arg.Is<string>(x => x == Resources.ReviewHotspotWindow_FailureTitle), MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        [TestMethod]
+        [DataRow(HotspotStatus.Fixed)]
+        [DataRow(HotspotStatus.Safe)]
+        public async Task ChangeHotspotStatusAsync_Succeeds_HotspotStatusFixed_RemovesViewModel(HotspotStatus newStatus)
+        {
+            var hotspotKey = "ServerKey";
+            await MockSelectedHotspot(hotspotKey);
+            MockReviewHotspot(hotspotKey, newStatus, true);
+
+            await testSubject.ChangeHotspotStatusAsync(newStatus);
+
+            testSubject.Hotspots.Should().NotContain(x => x.Hotspot.Issue.IssueServerKey == hotspotKey);
+            messageBox.DidNotReceive().Show(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<MessageBoxButton>(), Arg.Any<MessageBoxImage>());
+        }
+
+        [TestMethod]
+        [DataRow(HotspotStatus.ToReview)]
+        [DataRow(HotspotStatus.Acknowledged)]
+        public async Task ChangeHotspotStatusAsync_Succeeds_HotspotStatusNotFixed_DoesNotRemoveViewModel(HotspotStatus newStatus)
+        {
+            var hotspotKey = "ServerKey";
+            await MockSelectedHotspot(hotspotKey);
+            MockReviewHotspot(hotspotKey, newStatus, true);
+
+            await testSubject.ChangeHotspotStatusAsync(newStatus);
+
+            testSubject.Hotspots.Should().Contain(x => x.Hotspot.Issue.IssueServerKey == hotspotKey);
+            messageBox.DidNotReceive().Show(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<MessageBoxButton>(), Arg.Any<MessageBoxImage>());
+        }
+
+        [TestMethod]
+        [DataRow(HotspotStatus.Fixed)]
+        [DataRow(HotspotStatus.ToReview)]
+        [DataRow(HotspotStatus.Acknowledged)]
+        [DataRow(HotspotStatus.Safe)]
+        public async Task ChangeHotspotStatusAsync_Fails_ShowsMessageBox(HotspotStatus newStatus)
+        {
+            var hotspotKey = "ServerKey";
+            await MockSelectedHotspot(hotspotKey);
+            MockReviewHotspot(hotspotKey, newStatus, false);
+
+            await testSubject.ChangeHotspotStatusAsync(newStatus);
+
+            messageBox.Received(1).Show(Arg.Is<string>(x => x == Resources.ReviewHotspotWindow_ReviewFailureMessage), Arg.Is<string>(x => x == Resources.ReviewHotspotWindow_FailureTitle),
+                MessageBoxButton.OK, MessageBoxImage.Error);
+            testSubject.Hotspots.Should().Contain(x => x.Hotspot.Issue.IssueServerKey == hotspotKey);
+        }
+
+        [TestMethod]
         public void Dispose_UnsubscribesFromActiveSolutionBoundTrackerEvents()
         {
             testSubject.Dispose();
@@ -409,5 +491,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
 
         private static BindingConfiguration CreateBindingConfiguration(ServerConnection serverConnection, SonarLintMode mode) =>
             new(new BoundServerProject("my solution", "my project", serverConnection), mode, string.Empty);
+
+        private void MockChangeStatusPermitted(string hotspotKey, List<HotspotStatus> allowedStatuses) =>
+            reviewHotspotsService.CheckReviewHotspotPermittedAsync(hotspotKey).Returns(new ReviewHotspotPermittedArgs(allowedStatuses));
+
+        private void MockChangeStatusNotPermitted(string hotspotKey, string reason) =>
+            reviewHotspotsService.CheckReviewHotspotPermittedAsync(hotspotKey).Returns(new ReviewHotspotNotPermittedArgs(reason));
+
+        private void MockReviewHotspot(string hotspotKey, HotspotStatus newStatus, bool succeeded) => reviewHotspotsService.ReviewHotspotAsync(hotspotKey, newStatus).Returns(succeeded);
+
+        private async Task MockSelectedHotspot(string hotspotKey, HotspotStatus status = default)
+        {
+            var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
+            analysisIssueVisualization.Issue.IssueServerKey.Returns(hotspotKey);
+
+            hotspotsStore.GetAllLocalHotspots().Returns([new LocalHotspot(analysisIssueVisualization, default, status)]);
+            await testSubject.UpdateHotspotsListAsync();
+            testSubject.SelectedHotspot = testSubject.Hotspots.Single();
+        }
     }
 }

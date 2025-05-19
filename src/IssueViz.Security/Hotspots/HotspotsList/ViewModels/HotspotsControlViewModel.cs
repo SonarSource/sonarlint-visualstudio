@@ -19,15 +19,18 @@
  */
 
 using System.Collections.ObjectModel;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -44,6 +47,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; }
 
         bool IsCloud { get; }
+
+        Task<IEnumerable<HotspotStatus>> GetAllowedStatusesAsync();
+
+        Task ChangeHotspotStatusAsync(HotspotStatus newStatus);
     }
 
     internal sealed class HotspotsControlViewModel : ViewModelBase, IHotspotsControlViewModel
@@ -52,6 +59,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         private readonly IIssueSelectionService selectionService;
         private readonly IThreadHandling threadHandling;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private readonly IReviewHotspotsService reviewHotspotsService;
+        private readonly IMessageBox messageBox;
         private readonly ILocalHotspotsStore store;
         private IHotspotViewModel selectedHotspot;
         private readonly ObservableCollection<IHotspotViewModel> hotspots = new ObservableCollection<IHotspotViewModel>();
@@ -85,7 +94,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             ILocationNavigator locationNavigator,
             IIssueSelectionService selectionService,
             IThreadHandling threadHandling,
-            IActiveSolutionBoundTracker activeSolutionBoundTracker)
+            IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            IReviewHotspotsService reviewHotspotsService,
+            IMessageBox messageBox)
         {
             this.threadHandling = threadHandling;
             AllowMultiThreadedAccessToHotspotsList();
@@ -97,6 +108,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             store.IssuesChanged += Store_IssuesChanged;
 
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+            this.reviewHotspotsService = reviewHotspotsService;
+            this.messageBox = messageBox;
             activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
 
             this.navigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
@@ -128,6 +141,34 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
 
                 return Task.FromResult(true);
             });
+        }
+
+        public async Task<IEnumerable<HotspotStatus>> GetAllowedStatusesAsync()
+        {
+            var response = await reviewHotspotsService.CheckReviewHotspotPermittedAsync(SelectedHotspot.Hotspot.Issue.IssueServerKey);
+            switch (response)
+            {
+                case ReviewHotspotPermittedArgs reviewHotspotPermittedArgs:
+                    return reviewHotspotPermittedArgs.AllowedStatuses;
+                case ReviewHotspotNotPermittedArgs reviewHotspotNotPermittedArgs:
+                    messageBox.Show(reviewHotspotNotPermittedArgs.Reason, Resources.ReviewHotspotWindow_FailureTitle, MessageBoxButton.OK, MessageBoxImage.Error);
+                    break;
+            }
+            return null;
+        }
+
+        public async Task ChangeHotspotStatusAsync(HotspotStatus newStatus)
+        {
+            var wasChanged = await reviewHotspotsService.ReviewHotspotAsync(SelectedHotspot.Hotspot.Issue.IssueServerKey, newStatus);
+            if (!wasChanged)
+            {
+                messageBox.Show(Resources.ReviewHotspotWindow_ReviewFailureMessage, Resources.ReviewHotspotWindow_FailureTitle, MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            if (newStatus is HotspotStatus.Fixed or HotspotStatus.Safe)
+            {
+                Hotspots.Remove(SelectedHotspot);
+            }
         }
 
         /// <summary>
