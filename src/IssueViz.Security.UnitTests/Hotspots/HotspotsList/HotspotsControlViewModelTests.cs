@@ -454,6 +454,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         }
 
         [TestMethod]
+        public async Task ViewHotspotInBrowserAsync_CallsReviewHotspotsService()
+        {
+            var hotspotKey = "ServerKey";
+            await MockSelectedHotspot(hotspotKey);
+
+            await testSubject.ViewHotspotInBrowserAsync();
+
+            await reviewHotspotsService.Received(1).OpenHotspotAsync(hotspotKey);
+        }
+
+        [TestMethod]
         public void Dispose_UnsubscribesFromActiveSolutionBoundTrackerEvents()
         {
             testSubject.Dispose();

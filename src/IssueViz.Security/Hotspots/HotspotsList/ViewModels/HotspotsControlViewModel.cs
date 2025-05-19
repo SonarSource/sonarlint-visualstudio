@@ -51,6 +51,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         Task<IEnumerable<HotspotStatus>> GetAllowedStatusesAsync();
 
         Task ChangeHotspotStatusAsync(HotspotStatus newStatus);
+
+        Task ViewHotspotInBrowserAsync();
     }
 
     internal sealed class HotspotsControlViewModel : ViewModelBase, IHotspotsControlViewModel
@@ -171,6 +173,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
                 Hotspots.Remove(SelectedHotspot);
             }
         }
+
+        public Task ViewHotspotInBrowserAsync() => reviewHotspotsService.OpenHotspotAsync(SelectedHotspot.Hotspot.Issue.IssueServerKey);
 
         /// <summary>
         /// Allow the observable collection <see cref="Hotspots"/> to be modified from non-UI thread.
