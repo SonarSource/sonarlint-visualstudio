@@ -537,10 +537,21 @@ public class HotspotsControlViewModelTests
         testSubject.Hotspots.Should().Contain(x => x.Hotspot.Issue.IssueServerKey == hotspotKey);
     }
 
-    [TestMethod]
-    public void Dispose_UnsubscribesFromActiveSolutionBoundTrackerEvents()
-    {
-        testSubject.Dispose();
+        [TestMethod]
+        public async Task ViewHotspotInBrowserAsync_CallsReviewHotspotsService()
+        {
+            var hotspotKey = "ServerKey";
+            await MockSelectedHotspot(hotspotKey);
+
+            await testSubject.ViewHotspotInBrowserAsync();
+
+            await reviewHotspotsService.Received(1).OpenHotspotAsync(hotspotKey);
+        }
+
+        [TestMethod]
+        public void Dispose_UnsubscribesFromActiveSolutionBoundTrackerEvents()
+        {
+            testSubject.Dispose();
 
         activeSolutionBoundTracker.ReceivedWithAnyArgs(1).SolutionBindingChanged -= Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
     }

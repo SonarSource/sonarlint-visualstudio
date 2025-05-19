@@ -197,6 +197,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             RefreshFiltering();
         }
 
+        public Task ViewHotspotInBrowserAsync() => reviewHotspotsService.OpenHotspotAsync(SelectedHotspot.Hotspot.Issue.IssueServerKey);
+
         /// <summary>
         /// Allow the observable collection <see cref="Hotspots"/> to be modified from non-UI thread.
         /// </summary>
