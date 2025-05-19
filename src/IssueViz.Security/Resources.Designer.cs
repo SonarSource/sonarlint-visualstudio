@@ -196,6 +196,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to View in SonarQube Cloud.
+        /// </summary>
+        public static string HotspotsControl_ViewInSonarQubeCloud {
+            get {
+                return ResourceManager.GetString("HotspotsControl_ViewInSonarQubeCloud", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View in SonarQube Server.
+        /// </summary>
+        public static string HotspotsControl_ViewInSonarQubeServer {
+            get {
+                return ResourceManager.GetString("HotspotsControl_ViewInSonarQubeServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarQube Security Hotspots.
         /// </summary>
         public static string HotspotsToolWindowCaption {

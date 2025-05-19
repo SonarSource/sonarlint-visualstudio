@@ -8,6 +8,7 @@
              xmlns:commands="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;assembly=SonarLint.VisualStudio.IssueVisualization"
              xmlns:res="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security"
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:vsCatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              DataContext="{Binding ViewModel, RelativeSource={RelativeSource Mode=Self}}">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -26,6 +27,23 @@
                 <MenuItem Header="{x:Static res:Resources.HotspotsControl_ReviewHotspotTooltip}" Click="ReviewHotspotMenuItem_OnClick">
                     <MenuItem.Icon>
                         <imaging:CrispImage Source="/SonarLint.VisualStudio.IssueVisualization.Security;component/SharedUI/sonarqube_for_ide_logo_16px.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Click="ViewHotspotInBrowser_OnClick">
+                    <MenuItem.Style>
+                        <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=ViewModel.IsCloud}" Value="True">
+                                    <Setter Property="Header" Value="{x:Static res:Resources.HotspotsControl_ViewInSonarQubeCloud}"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=ViewModel.IsCloud}" Value="False">
+                                    <Setter Property="Header" Value="{x:Static res:Resources.HotspotsControl_ViewInSonarQubeServer}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </MenuItem.Style>
+                    <MenuItem.Icon>
+                        <imaging:CrispImage Moniker="{x:Static vsCatalog:KnownMonikers.BrowserLink}" />
                     </MenuItem.Icon>
                 </MenuItem>
             </ContextMenu>
