@@ -232,7 +232,7 @@ public class ReviewHotspotsServiceTest
     [TestMethod]
     public async Task OpenHotspotAsync_WhenReviewHotspotThrowsNoCriticalException_LogsAndReturnFalse()
     {
-        hotspotSlCoreService.When(x => x.openHotspotInBrowser(Arg.Is<OpenHotspotInBrowserParams>(arg => arg.hotspotKey == HotspotKey)))
+        hotspotSlCoreService.When(x => x.OpenHotspotInBrowser(Arg.Is<OpenHotspotInBrowserParams>(arg => arg.hotspotKey == HotspotKey)))
             .Do(_ => throw new Exception("Some error"));
 
         await testSubject.OpenHotspotAsync(HotspotKey);
@@ -244,7 +244,7 @@ public class ReviewHotspotsServiceTest
     [TestMethod]
     public void OpenHotspotAsync_WhenReviewHotspotThrowsCriticalException_Throws()
     {
-        hotspotSlCoreService.When(x => x.openHotspotInBrowser(Arg.Is<OpenHotspotInBrowserParams>(arg => arg.hotspotKey == HotspotKey)))
+        hotspotSlCoreService.When(x => x.OpenHotspotInBrowser(Arg.Is<OpenHotspotInBrowserParams>(arg => arg.hotspotKey == HotspotKey)))
             .Do(_ => throw new StackOverflowException());
 
         var act = () => testSubject.OpenHotspotAsync(HotspotKey);
@@ -257,7 +257,7 @@ public class ReviewHotspotsServiceTest
     {
         await testSubject.OpenHotspotAsync(HotspotKey);
 
-        hotspotSlCoreService.Received().openHotspotInBrowser(Arg.Is<OpenHotspotInBrowserParams>(x =>
+        hotspotSlCoreService.Received().OpenHotspotInBrowser(Arg.Is<OpenHotspotInBrowserParams>(x =>
             x.hotspotKey == HotspotKey
             && x.configScopeId == activeConfigScopeTracker.Current.Id));
     }

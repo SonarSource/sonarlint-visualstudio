@@ -107,7 +107,7 @@ internal class ReviewHotspotsService(
                 logger.WriteLine(SLCoreStrings.ServiceProviderNotInitialized);
                 return;
             }
-            hotspotSlCoreService.openHotspotInBrowser(new OpenHotspotInBrowserParams(activeConfigScopeTracker.Current?.Id, hotspotKey));
+            hotspotSlCoreService.OpenHotspotInBrowser(new OpenHotspotInBrowserParams(activeConfigScopeTracker.Current?.Id, hotspotKey));
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
