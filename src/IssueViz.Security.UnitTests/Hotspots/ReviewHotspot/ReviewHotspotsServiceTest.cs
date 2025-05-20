@@ -216,7 +216,7 @@ public class ReviewHotspotsServiceTest
     {
         await testSubject.OpenHotspotAsync(HotspotKey);
 
-        await threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<bool>>>());
+        await threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
     }
 
     [TestMethod]
