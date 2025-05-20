@@ -24,6 +24,8 @@ using System.Windows;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -47,6 +49,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         private IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private IReviewHotspotsService reviewHotspotsService;
         private IMessageBox messageBox;
+        private IActiveDocumentLocator activeDocumentLocator;
+        private IActiveDocumentTracker activeDocumentTracker;
         private ObservableCollection<IAnalysisIssueVisualization> originalCollection;
 
         [TestInitialize]
@@ -60,8 +64,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
             reviewHotspotsService = Substitute.For<IReviewHotspotsService>();
             messageBox = Substitute.For<IMessageBox>();
+            activeDocumentLocator = Substitute.For<IActiveDocumentLocator>();
+            activeDocumentTracker = Substitute.For<IActiveDocumentTracker>();
+
             testSubject = new HotspotsControlViewModel(hotspotsStore, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling, activeSolutionBoundTracker,
-                reviewHotspotsService, messageBox);
+                reviewHotspotsService, messageBox, activeDocumentLocator, activeDocumentTracker);
 
             MockTestSubject();
         }
@@ -108,6 +115,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
 
             testSubject.SelectedLocationFilter.Should().NotBeNull();
             testSubject.SelectedLocationFilter.LocationFilter.Should().Be(LocationFilter.CurrentDocument);
+        }
+
+        [TestMethod]
+        public void Ctor_InitializesActiveDocument()
+        {
+            activeDocumentLocator.Received(1).FindActiveDocument();
+            activeDocumentTracker.Received(1).ActiveDocumentChanged += Arg.Any<EventHandler<ActiveDocumentChangedEventArgs>>();
+        }
+
+        [TestMethod]
+        public void Ctor_RegisterToSelectionChangedEvent()
+        {
+            selectionService.Received(1).SelectedIssueChanged += Arg.Any<EventHandler>();
+            selectionService.ReceivedCalls().Should().HaveCount(1);
         }
 
         [TestMethod]
@@ -174,18 +195,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         }
 
         [TestMethod]
-        public void Ctor_RegisterToSelectionChangedEvent()
-        {
-            selectionService.Received(1).SelectedIssueChanged += Arg.Any<EventHandler>();
-            selectionService.ReceivedCalls().Should().HaveCount(1);
-        }
-
-        [TestMethod]
-        public void Dispose_UnregisterFromSelectionChangedEvent()
+        public void Dispose_UnregisterEvents()
         {
             testSubject.Dispose();
 
             selectionService.Received(1).SelectedIssueChanged -= Arg.Any<EventHandler>();
+            activeDocumentTracker.Received(1).ActiveDocumentChanged -= Arg.Any<EventHandler<ActiveDocumentChangedEventArgs>>();
         }
 
         [TestMethod]
