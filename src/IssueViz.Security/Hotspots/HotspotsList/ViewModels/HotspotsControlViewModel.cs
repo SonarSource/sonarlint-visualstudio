@@ -36,23 +36,6 @@ using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels
 {
-    internal interface IHotspotsControlViewModel : IDisposable
-    {
-        ObservableCollection<IHotspotViewModel> Hotspots { get; }
-
-        IHotspotViewModel SelectedHotspot { get; }
-
-        ICommand NavigateCommand { get; }
-
-        INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; }
-
-        bool IsCloud { get; }
-
-        Task<IEnumerable<HotspotStatus>> GetAllowedStatusesAsync();
-
-        Task ChangeHotspotStatusAsync(HotspotStatus newStatus);
-    }
-
     internal sealed class HotspotsControlViewModel : ViewModelBase, IHotspotsControlViewModel
     {
         private readonly object Lock = new object();
@@ -67,8 +50,38 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         private ICommand navigateCommand;
         private readonly INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand;
         private bool isCloud;
+        private LocationFilterViewModel selectedLocationFilter;
 
         public ObservableCollection<IHotspotViewModel> Hotspots => hotspots;
+
+        public IHotspotViewModel SelectedHotspot
+        {
+            get => selectedHotspot;
+            set
+            {
+                if (selectedHotspot != value)
+                {
+                    selectedHotspot = value;
+                    selectionService.SelectedIssue = selectedHotspot?.Hotspot;
+                }
+            }
+        }
+
+        public ObservableCollection<LocationFilterViewModel> LocationFilters { get; } =
+        [
+            new(LocationFilter.CurrentDocument, Resources.HotspotsControl_OpenDocumentsFilter),
+            new(LocationFilter.OpenDocuments, Resources.HotspotsControl_OpenDocumentsFilter),
+        ];
+
+        public LocationFilterViewModel SelectedLocationFilter
+        {
+            get => selectedLocationFilter;
+            set
+            {
+                selectedLocationFilter = value;
+                RaisePropertyChanged();
+            }
+        }
 
         public ICommand NavigateCommand
         {
@@ -114,19 +127,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
 
             this.navigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
             SetCommands(locationNavigator);
-        }
 
-        public IHotspotViewModel SelectedHotspot
-        {
-            get => selectedHotspot;
-            set
-            {
-                if (selectedHotspot != value)
-                {
-                    selectedHotspot = value;
-                    selectionService.SelectedIssue = selectedHotspot?.Hotspot;
-                }
-            }
+            SelectedLocationFilter = LocationFilters.Single(x => x.LocationFilter == LocationFilter.CurrentDocument);
         }
 
         public async Task UpdateHotspotsListAsync()

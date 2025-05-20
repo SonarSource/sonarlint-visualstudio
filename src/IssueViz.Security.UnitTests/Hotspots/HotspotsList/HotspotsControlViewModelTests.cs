@@ -100,6 +100,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         }
 
         [TestMethod]
+        public void Ctor_InitializesLocationFilters()
+        {
+            testSubject.LocationFilters.Should().HaveCount(2);
+            testSubject.LocationFilters[0].LocationFilter.Should().Be(LocationFilter.CurrentDocument);
+            testSubject.LocationFilters[1].LocationFilter.Should().Be(LocationFilter.OpenDocuments);
+
+            testSubject.SelectedLocationFilter.Should().NotBeNull();
+            testSubject.SelectedLocationFilter.LocationFilter.Should().Be(LocationFilter.CurrentDocument);
+        }
+
+        [TestMethod]
         public async Task UpdateHotspotsListAsync_UpdatesWhenManuallyTriggered()
         {
             var issueViz1 = Substitute.For<IAnalysisIssueVisualization>();
@@ -459,6 +470,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             testSubject.Dispose();
 
             activeSolutionBoundTracker.ReceivedWithAnyArgs(1).SolutionBindingChanged -= Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
+        }
+
+        [TestMethod]
+        public void SelectedLocationFilter_Set_RaisesPropertyChanged()
+        {
+            var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler;
+
+            testSubject.SelectedLocationFilter = testSubject.LocationFilters.Single(x => x.LocationFilter == LocationFilter.OpenDocuments);
+
+            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.SelectedLocationFilter)));
         }
 
         private void MockTestSubject()
