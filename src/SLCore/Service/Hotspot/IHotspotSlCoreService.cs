@@ -30,5 +30,5 @@ public interface IHotspotSlCoreService : ISLCoreService
 
     Task ChangeStatusAsync(ChangeHotspotStatusParams parameters);
 
-    void openHotspotInBrowser(OpenHotspotInBrowserParams parameters);
+    void OpenHotspotInBrowser(OpenHotspotInBrowserParams parameters);
 }
