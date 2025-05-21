@@ -174,7 +174,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>-->
-                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Hotspot.HotspotPriority" Header="{x:Static res:Resources.HotspotsControl_PriorityColumnHeader}" Width="90"  MinWidth="64">
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="HotspotPriority" Header="{x:Static res:Resources.HotspotsControl_PriorityColumnHeader}" Width="90"  MinWidth="64">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding HotspotPriority}" 
