@@ -214,7 +214,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Issue muting was not permitted due to: {0}..
+        ///   Looks up a localized string similar to Reviewing hotspot was not permitted due to: {0}..
         /// </summary>
         public static string ReviewHotspotService_NotPermitted {
             get {

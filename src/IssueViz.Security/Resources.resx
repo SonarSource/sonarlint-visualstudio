@@ -169,7 +169,7 @@
     <value>An error occurred while reviewing hotspot: {0}.</value>
   </data>
   <data name="ReviewHotspotService_NotPermitted" xml:space="preserve">
-    <value>Issue muting was not permitted due to: {0}.</value>
+    <value>Reviewing hotspot was not permitted due to: {0}.</value>
   </data>
   <data name="ReviewHotspotWindow_AcknowledgeContent" xml:space="preserve">
     <value>The code has been reviewed and does pose a risk. A fix is required.</value>
