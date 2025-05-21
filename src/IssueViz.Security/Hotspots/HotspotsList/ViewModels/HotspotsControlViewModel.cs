@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         private LocationFilterViewModel selectedLocationFilter = _locationFilterViewModels.Single(x => x.LocationFilter == LocationFilter.CurrentDocument);
         private string activeDocumentFilePath;
 
-        public ObservableCollection<IHotspotViewModel> Hotspots => GetFilteredHotspots();
+        public ObservableCollection<IHotspotViewModel> Hotspots => filteredHotspots;
 
         public IHotspotViewModel SelectedHotspot
         {
@@ -239,16 +239,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             RefreshFiltering();
         }
 
-        private void RefreshFiltering() => RaisePropertyChanged(nameof(Hotspots));
+        private void RefreshFiltering()
+        {
+            UpdateFilteredHotspots();
+            RaisePropertyChanged(nameof(Hotspots));
+        }
 
-        private ObservableCollection<IHotspotViewModel> GetFilteredHotspots()
+        private void UpdateFilteredHotspots()
         {
             filteredHotspots.Clear();
             var hotspotsToShow = GetHotspotsFilteredByLocationFilter(hotspots.ToList());
             hotspotsToShow = GetHotspotsFilteredByPriorityFilter(hotspotsToShow.ToList());
             hotspotsToShow.ToList().ForEach(filteredHotspots.Add);
-
-            return filteredHotspots;
         }
 
         private IEnumerable<IHotspotViewModel> GetHotspotsFilteredByLocationFilter(IReadOnlyList<IHotspotViewModel> source)
