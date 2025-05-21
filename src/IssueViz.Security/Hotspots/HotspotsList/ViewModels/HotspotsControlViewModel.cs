@@ -184,6 +184,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             if (newStatus is HotspotStatus.Fixed or HotspotStatus.Safe)
             {
                 hotspots.Remove(SelectedHotspot);
+                RefreshFiltering();
             }
         }
 

@@ -461,6 +461,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         }
 
         [TestMethod]
+        [DataRow(HotspotStatus.Fixed)]
+        [DataRow(HotspotStatus.Safe)]
+        public async Task ChangeHotspotStatusAsync_Succeeds_HotspotStatusFixed_RaisesEvents(HotspotStatus newStatus)
+        {
+            var hotspotKey = "ServerKey";
+            await MockSelectedHotspot(hotspotKey);
+            MockReviewHotspot(hotspotKey, newStatus, true);
+            var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler;
+
+            await testSubject.ChangeHotspotStatusAsync(newStatus);
+
+            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.Hotspots)));
+        }
+
+        [TestMethod]
         [DataRow(HotspotStatus.ToReview)]
         [DataRow(HotspotStatus.Acknowledged)]
         public async Task ChangeHotspotStatusAsync_Succeeds_HotspotStatusNotFixed_DoesNotRemoveViewModel(HotspotStatus newStatus)
@@ -473,6 +489,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
 
             testSubject.Hotspots.Should().Contain(x => x.Hotspot.Issue.IssueServerKey == hotspotKey);
             messageBox.DidNotReceive().Show(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<MessageBoxButton>(), Arg.Any<MessageBoxImage>());
+        }
+
+        [TestMethod]
+        [DataRow(HotspotStatus.ToReview)]
+        [DataRow(HotspotStatus.Acknowledged)]
+        public async Task ChangeHotspotStatusAsync_Succeeds_HotspotStatusNotFixed_DoesNotRaiseEvents(HotspotStatus newStatus)
+        {
+            var hotspotKey = "ServerKey";
+            await MockSelectedHotspot(hotspotKey);
+            MockReviewHotspot(hotspotKey, newStatus, true);
+            var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler;
+
+            await testSubject.ChangeHotspotStatusAsync(newStatus);
+
+            eventHandler.DidNotReceive().Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.Hotspots)));
         }
 
         [TestMethod]
