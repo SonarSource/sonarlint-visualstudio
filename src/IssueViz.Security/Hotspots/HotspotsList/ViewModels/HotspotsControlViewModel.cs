@@ -38,7 +38,7 @@ using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels
 {
-    internal sealed class HotspotsControlViewModel : ViewModelBase, IHotspotsControlViewModel
+    internal sealed class HotspotsControlViewModel : ViewModelBase
     {
         private static readonly ObservableCollection<LocationFilterViewModel> _locationFilterViewModels =
         [
