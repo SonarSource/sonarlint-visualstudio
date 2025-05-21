@@ -25,19 +25,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
 
 internal class PriorityFilterViewModel(HotspotPriority hotspotPriority) : ViewModelBase
 {
-    private int count;
     private bool isSelected = true;
     public HotspotPriority HotspotPriority { get; } = hotspotPriority;
-
-    public int Count
-    {
-        get => count;
-        set
-        {
-            count = value;
-            RaisePropertyChanged();
-        }
-    }
 
     public bool IsSelected
     {

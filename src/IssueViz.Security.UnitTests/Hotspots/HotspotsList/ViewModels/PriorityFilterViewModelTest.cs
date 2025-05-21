@@ -42,7 +42,6 @@ public class PriorityFilterViewModelTest
 
         priorityFilterViewModel.HotspotPriority.Should().Be(hotspotPriority);
         priorityFilterViewModel.IsSelected.Should().BeTrue();
-        priorityFilterViewModel.Count.Should().Be(0);
     }
 
     [TestMethod]
@@ -55,17 +54,5 @@ public class PriorityFilterViewModelTest
         testSubject.IsSelected = !testSubject.IsSelected;
 
         eventHandler.Received(1).Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(args => args.PropertyName == nameof(testSubject.IsSelected)));
-    }
-
-    [TestMethod]
-    public void Count_Setter_RaisesPropertyChanged()
-    {
-        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
-        testSubject.PropertyChanged += eventHandler;
-        eventHandler.ReceivedCalls().Should().BeEmpty();
-
-        testSubject.Count = 13;
-
-        eventHandler.Received(1).Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(args => args.PropertyName == nameof(testSubject.Count)));
     }
 }
