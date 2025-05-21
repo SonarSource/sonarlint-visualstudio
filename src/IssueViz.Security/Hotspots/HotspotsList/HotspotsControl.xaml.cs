@@ -52,4 +52,12 @@ internal sealed partial class HotspotsControl : UserControl
             await ViewModel.ChangeHotspotStatusAsync(dialog.ViewModel.SelectedStatusViewModel.HotspotStatus);
         }
     }
+
+    private void PriorityButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: PriorityFilterViewModel vm })
+        {
+            ViewModel.UpdatePriorityFilter(vm, !vm.IsSelected);
+        }
+    }
 }
