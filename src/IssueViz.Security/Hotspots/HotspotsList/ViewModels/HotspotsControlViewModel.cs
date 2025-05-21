@@ -45,6 +45,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             new(LocationFilter.CurrentDocument, Resources.HotspotsControl_CurrentDocumentFilter),
             new(LocationFilter.OpenDocuments, Resources.HotspotsControl_OpenDocumentsFilter),
         ];
+        private static readonly ObservableCollection<PriorityFilterViewModel> _priorityFilterViewModels =
+            new(Enum.GetValues(typeof(HotspotPriority)).Cast<HotspotPriority>().Select(x => new PriorityFilterViewModel(x)));
         private readonly object Lock = new object();
         private readonly IIssueSelectionService selectionService;
         private readonly IThreadHandling threadHandling;
@@ -54,8 +56,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         private readonly IActiveDocumentTracker activeDocumentTracker;
         private readonly ILocalHotspotsStore store;
         private IHotspotViewModel selectedHotspot;
-        private readonly ObservableCollection<IHotspotViewModel> hotspots = new ObservableCollection<IHotspotViewModel>();
-        private readonly ObservableCollection<IHotspotViewModel> filteredHotspots = new ObservableCollection<IHotspotViewModel>();
+        private readonly ObservableCollection<IHotspotViewModel> hotspots = new();
+        private readonly ObservableCollection<IHotspotViewModel> filteredHotspots = new();
         private ICommand navigateCommand;
         private readonly INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand;
         private bool isCloud;
@@ -78,6 +80,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         }
 
         public ObservableCollection<LocationFilterViewModel> LocationFilters => _locationFilterViewModels;
+
+        public ObservableCollection<PriorityFilterViewModel> PriorityFilters => _priorityFilterViewModels;
 
         public LocationFilterViewModel SelectedLocationFilter
         {
@@ -188,6 +192,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             }
         }
 
+        public void UpdatePriorityFilter(PriorityFilterViewModel viewModel, bool isSelected)
+        {
+            viewModel.IsSelected = isSelected;
+            RefreshFiltering();
+        }
+
         /// <summary>
         /// Allow the observable collection <see cref="Hotspots"/> to be modified from non-UI thread.
         /// </summary>
@@ -234,19 +244,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         private ObservableCollection<IHotspotViewModel> GetFilteredHotspots()
         {
             filteredHotspots.Clear();
-            var currentHotspots = GetHotspotsFilteredByLocationFilter();
-            currentHotspots.ToList().ForEach(filteredHotspots.Add);
+            var hotspotsToShow = GetHotspotsFilteredByLocationFilter(hotspots.ToList());
+            hotspotsToShow = GetHotspotsFilteredByPriorityFilter(hotspotsToShow.ToList());
+            hotspotsToShow.ToList().ForEach(filteredHotspots.Add);
 
             return filteredHotspots;
         }
 
-        private IEnumerable<IHotspotViewModel> GetHotspotsFilteredByLocationFilter()
+        private IEnumerable<IHotspotViewModel> GetHotspotsFilteredByLocationFilter(IReadOnlyList<IHotspotViewModel> source)
         {
             if (SelectedLocationFilter?.LocationFilter == LocationFilter.CurrentDocument)
             {
-                return hotspots.Where(x => x.Hotspot.FilePath == activeDocumentFilePath);
+                return source.Where(x => x.Hotspot.FilePath == activeDocumentFilePath);
             }
-            return hotspots;
+            return source;
+        }
+
+        private IEnumerable<IHotspotViewModel> GetHotspotsFilteredByPriorityFilter(IReadOnlyList<IHotspotViewModel> source)
+        {
+            var prioritiesToShow = PriorityFilters.Where(x => x.IsSelected).Select(x => x.HotspotPriority);
+            return source.Where(x => prioritiesToShow.Contains(x.HotspotPriority));
         }
     }
 }
