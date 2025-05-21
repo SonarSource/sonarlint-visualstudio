@@ -9,7 +9,7 @@ public class StatusViewModelTest
 {
     [TestMethod]
     [DataRow(HotspotStatus.ToReview, "to review", "description1")]
-    [DataRow(HotspotStatus.Acknowledge, "acknowledges", "description\ndescription2")]
+    [DataRow(HotspotStatus.Acknowledged, "acknowledges", "description\ndescription2")]
     [DataRow(HotspotStatus.Fixed, "fixed", "description3")]
     [DataRow(HotspotStatus.Safe, "safe", "description\n\tdescription4")]
     public void Ctor_InitializesProperties(HotspotStatus status, string title, string description)

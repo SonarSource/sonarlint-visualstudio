@@ -107,7 +107,7 @@ public static class ModelConversionExtensions
         hotspotStatus switch
         {
             SlCoreHotspotStatus.TO_REVIEW => CoreHotspotStatus.ToReview,
-            SlCoreHotspotStatus.ACKNOWLEDGED => CoreHotspotStatus.Acknowledge,
+            SlCoreHotspotStatus.ACKNOWLEDGED => CoreHotspotStatus.Acknowledged,
             SlCoreHotspotStatus.FIXED => CoreHotspotStatus.Fixed,
             SlCoreHotspotStatus.SAFE => CoreHotspotStatus.Safe,
             _ => throw new ArgumentOutOfRangeException(nameof(hotspotStatus), hotspotStatus, SLCoreStrings.ModelExtensions_UnexpectedValue)

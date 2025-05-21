@@ -205,6 +205,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An error occurred while reviewing hotspot: {0}..
+        /// </summary>
+        public static string ReviewHotspotService_AnErrorOccurred {
+            get {
+                return ResourceManager.GetString("ReviewHotspotService_AnErrorOccurred", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reviewing hotspot was not permitted due to: {0}..
+        /// </summary>
+        public static string ReviewHotspotService_NotPermitted {
+            get {
+                return ResourceManager.GetString("ReviewHotspotService_NotPermitted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The code has been reviewed and does pose a risk. A fix is required..
         /// </summary>
         public static string ReviewHotspotWindow_AcknowledgeContent {
@@ -232,6 +250,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The hotspot can not be reviewed due to the following error: {0}
+        ///Please check the logs for more details..
+        /// </summary>
+        public static string ReviewHotspotWindow_CheckReviewPermittedFailureMessage {
+            get {
+                return ResourceManager.GetString("ReviewHotspotWindow_CheckReviewPermittedFailureMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Review Hotspot Failure.
+        /// </summary>
+        public static string ReviewHotspotWindow_FailureTitle {
+            get {
+                return ResourceManager.GetString("ReviewHotspotWindow_FailureTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The code has been reviewed and modified to follow the recommended secure coding practices..
         /// </summary>
         public static string ReviewHotspotWindow_FixedContent {
@@ -246,6 +283,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string ReviewHotspotWindow_FixedTitle {
             get {
                 return ResourceManager.GetString("ReviewHotspotWindow_FixedTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred while reviewing the hotspot. The status has not been changed.
+        ///Please check the logs for more details..
+        /// </summary>
+        public static string ReviewHotspotWindow_ReviewFailureMessage {
+            get {
+                return ResourceManager.GetString("ReviewHotspotWindow_ReviewFailureMessage", resourceCulture);
             }
         }
         

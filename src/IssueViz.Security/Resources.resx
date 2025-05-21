@@ -165,6 +165,12 @@
   <data name="HotspotsToolWindowCaption" xml:space="preserve">
     <value>SonarQube Security Hotspots</value>
   </data>
+  <data name="ReviewHotspotService_AnErrorOccurred" xml:space="preserve">
+    <value>An error occurred while reviewing hotspot: {0}.</value>
+  </data>
+  <data name="ReviewHotspotService_NotPermitted" xml:space="preserve">
+    <value>Reviewing hotspot was not permitted due to: {0}.</value>
+  </data>
   <data name="ReviewHotspotWindow_AcknowledgeContent" xml:space="preserve">
     <value>The code has been reviewed and does pose a risk. A fix is required.</value>
   </data>
@@ -173,6 +179,17 @@
   </data>
   <data name="ReviewHotspotWindow_CancelButton" xml:space="preserve">
     <value>Cancel</value>
+  </data>
+  <data name="ReviewHotspotWindow_ReviewFailureMessage" xml:space="preserve">
+    <value>An error occurred while reviewing the hotspot. The status has not been changed.
+Please check the logs for more details.</value>
+  </data>
+  <data name="ReviewHotspotWindow_CheckReviewPermittedFailureMessage" xml:space="preserve">
+    <value>The hotspot can not be reviewed due to the following error: {0}
+Please check the logs for more details.</value>
+  </data>
+  <data name="ReviewHotspotWindow_FailureTitle" xml:space="preserve">
+    <value>Review Hotspot Failure</value>
   </data>
   <data name="ReviewHotspotWindow_FixedContent" xml:space="preserve">
     <value>The code has been reviewed and modified to follow the recommended secure coding practices.</value>

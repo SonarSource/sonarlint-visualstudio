@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList
@@ -49,8 +50,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             var threadHandling = componentModel.GetService<IThreadHandling>();
             var navigateToRuleDescriptionCommand = componentModel.GetService<INavigateToRuleDescriptionCommand>();
             var activeSolutionBoundTracker = componentModel.GetService<IActiveSolutionBoundTracker>();
+            var reviewHotspotsService = componentModel.GetService<IReviewHotspotsService>();
+            var messageBox = componentModel.GetService<IMessageBox>();
 
-            var viewModel = new HotspotsControlViewModel(store, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling, activeSolutionBoundTracker);
+            var viewModel = new HotspotsControlViewModel(store, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling, activeSolutionBoundTracker,
+                reviewHotspotsService, messageBox);
             viewModel.UpdateHotspotsListAsync().Forget();
             var hotspotsControl = new HotspotsControl(viewModel);
 

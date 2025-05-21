@@ -234,7 +234,7 @@ public class ModelConversionExtensionsTests
 
     [TestMethod]
     [DataRow(SlCoreHotspotStatus.TO_REVIEW, CoreHotspotStatus.ToReview)]
-    [DataRow(SlCoreHotspotStatus.ACKNOWLEDGED, CoreHotspotStatus.Acknowledge)]
+    [DataRow(SlCoreHotspotStatus.ACKNOWLEDGED, CoreHotspotStatus.Acknowledged)]
     [DataRow(SlCoreHotspotStatus.FIXED, CoreHotspotStatus.Fixed)]
     [DataRow(SlCoreHotspotStatus.SAFE, CoreHotspotStatus.Safe)]
     public void ToHotspotStatus_ConvertsCorrectly(SlCoreHotspotStatus slCoreStatus, CoreHotspotStatus coreStatus) => slCoreStatus.ToHotspotStatus().Should().Be(coreStatus);
