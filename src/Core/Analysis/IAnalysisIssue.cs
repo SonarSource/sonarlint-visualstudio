@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
     public enum HotspotStatus
     {
         ToReview,
-        Acknowledge,
+        Acknowledged,
         Fixed,
         Safe,
     }

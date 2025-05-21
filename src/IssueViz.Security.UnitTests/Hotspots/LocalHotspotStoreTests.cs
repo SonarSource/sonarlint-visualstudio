@@ -144,7 +144,7 @@ public class LocalHotspotStoreTests
 
     [TestMethod]
     [DataRow(HotspotStatus.ToReview)]
-    [DataRow(HotspotStatus.Acknowledge)]
+    [DataRow(HotspotStatus.Acknowledged)]
     [DataRow(HotspotStatus.Fixed)]
     [DataRow(HotspotStatus.Safe)]
     public void UpdateForFile_ShouldAssignHotspotStatus(HotspotStatus status)
