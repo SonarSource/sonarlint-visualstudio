@@ -27,3 +27,9 @@ internal class LocationFilterViewModel(LocationFilter locationFilter, string dis
     public LocationFilter LocationFilter { get; } = locationFilter;
     public string DisplayName { get; } = displayName;
 }
+
+public enum LocationFilter
+{
+    CurrentDocument,
+    OpenDocuments,
+}

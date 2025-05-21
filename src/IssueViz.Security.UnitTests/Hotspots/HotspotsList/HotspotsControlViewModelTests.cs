@@ -258,7 +258,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
 
             RaiseSelectionChangedEvent(issueViz);
 
-            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(IHotspotsControlViewModel.SelectedHotspot)));
+            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(HotspotsControlViewModel.SelectedHotspot)));
             eventHandler.ReceivedCalls().Should().HaveCount(1);
         }
 
@@ -275,7 +275,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
 
             RaiseSelectionChangedEvent(selectedIssue);
 
-            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(IHotspotsControlViewModel.SelectedHotspot)));
+            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(HotspotsControlViewModel.SelectedHotspot)));
             eventHandler.ReceivedCalls().Should().HaveCount(1);
         }
 

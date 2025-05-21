@@ -30,9 +30,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
 internal sealed partial class HotspotsControl : UserControl
 {
-    public IHotspotsControlViewModel ViewModel { get; }
+    public HotspotsControlViewModel ViewModel { get; }
 
-    public HotspotsControl(IHotspotsControlViewModel viewModel)
+    public HotspotsControl(HotspotsControlViewModel viewModel)
     {
         ViewModel = viewModel;
 
