@@ -8,6 +8,8 @@
              xmlns:commands="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;assembly=SonarLint.VisualStudio.IssueVisualization"
              xmlns:res="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security"
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             FocusManager.FocusedElement="{Binding ElementName=HotspotsDataGrid}"
              DataContext="{Binding ViewModel, RelativeSource={RelativeSource Mode=Self}}">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -52,6 +54,7 @@
                 <Setter Property="Margin" Value="1"/>
                 <Setter Property="Background" Value="{Binding Path=DataContext.HotspotPriority, RelativeSource={RelativeSource Self}, Converter={StaticResource PriorityToBackgroundConverter}}"/>
             </Style>
+
             <Style x:Key="RuleKeyLinkStyle" TargetType="Hyperlink">
                 <Setter Property="TextDecorations" Value="None" />
                 <Style.Triggers>
@@ -60,13 +63,29 @@
                     </Trigger>
                 </Style.Triggers>
             </Style>
+
+            <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource {x:Static vsShell:VsResourceKeys.ComboBoxStyleKey}}" />
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid UseLayoutRounding="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Name="Table" Width="*"/>
         </Grid.ColumnDefinitions>
-        <DataGrid Grid.Column="0" 
+
+        <Grid Grid.Row="0" Background="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarGradientBeginKey}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            
+            <ComboBox ItemsSource="{Binding Path=LocationFilters}" SelectedItem="{Binding Path=SelectedLocationFilter}" 
+                      DisplayMemberPath="DisplayName" Margin="5,3" MinWidth="150"/>
+        </Grid>
+
+        <DataGrid x:Name="HotspotsDataGrid" Grid.Row="1" Grid.Column="0" 
                   SelectedItem="{Binding SelectedHotspot, Mode=TwoWay, Converter={StaticResource NullableSelectedItemConverter}}"
                   ItemsSource="{Binding Hotspots}"
                   >
