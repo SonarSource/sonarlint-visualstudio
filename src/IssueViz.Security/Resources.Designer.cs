@@ -79,6 +79,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The hotspots not yet present on the server need to be fixed locally..
+        /// </summary>
+        public static string HotspotControl_LocalHotspotStatusTooltip {
+            get {
+                return ResourceManager.GetString("HotspotControl_LocalHotspotStatusTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Code.
         /// </summary>
         public static string HotspotsControl_CodeColumnHeader {
