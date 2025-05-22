@@ -268,8 +268,17 @@
                 <DataGridTemplateColumn CanUserSort="True" SortMemberPath="HotspotStatus" Header="{x:Static res:Resources.HotspotsControl_StatusColumnHeader}" Width="95">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding HotspotStatus, Converter={StaticResource HotspotStatusToLocalizedStatusConverter}}" 
-                                       Style="{StaticResource CellTextBlockStyle}"/>
+                            <TextBlock Text="{Binding HotspotStatus, Converter={StaticResource HotspotStatusToLocalizedStatusConverter}}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource CellTextBlockStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ExistsOnServer}" Value="False">
+                                                <Setter Property="ToolTip" Value="{x:Static res:Resources.HotspotControl_LocalHotspotStatusTooltip}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
