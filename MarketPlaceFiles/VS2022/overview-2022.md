@@ -2,7 +2,7 @@
 
 SonarQube for IDE (formerly SonarLint) helps you detect and fix Bugs, Code Smells, and Security Vulnerabilities in-IDE. 
 
-It supports C#, VB.NET, C, C++, JS, and TS. The extension highlights coding flaws on the fly and provides clear guidance to fix issues before code is committed. 
+It supports C#, VB.NET, C, C++, JS, TS, CSS, HTML and T-SQL. The extension highlights coding flaws on the fly and provides clear guidance to fix issues before code is committed. 
 
 ## **What is SonarQube for IDE**
 
@@ -10,8 +10,8 @@ SonarQube for IDE is a **_Free_** and **_Open Source_** IDE extension that ident
 
 SonarQube for IDE: Visual Studio is more than your average linting tool. 
 
-* Scans code written in C#, VB.NET, C, C++, Javascript, TypeScript.
-* Open source JavaScript, TypeScript, C# & VB.NET code analyzers.
+* Scans code written in C#, VB.NET, C, C++, Javascript, TypeScript, CSS, HTML, T-SQL.
+* Open source JavaScript, TypeScript, CSS, HTML, C# & VB.NET code analyzers.
 * C and C++ support for Application, Dynamic Library and Static Library types of MSBuild (.vcxproj) projects
 * Deep code analysis algorithms using pattern matching and dataflow analysis
 * Hundreds of language-specific static code analysis rules, and growing
@@ -76,6 +76,24 @@ C#
    <td>TypeScript
    </td>
    <td><a href="https://rules.sonarsource.com/typescript">View Rules</a>
+   </td>
+  </tr>
+  <tr>
+   <td>CSS
+   </td>
+   <td><a href="https://rules.sonarsource.com/css">View Rules</a>
+   </td>
+  </tr>
+    <tr>
+   <td>HTML
+   </td>
+   <td><a href="https://rules.sonarsource.com/html">View Rules</a>
+   </td>
+  </tr>
+    <tr>
+   <td>T-SQL
+   </td>
+   <td><a href="https://rules.sonarsource.com/tsql">View Rules</a>
    </td>
   </tr>
   <tr>
