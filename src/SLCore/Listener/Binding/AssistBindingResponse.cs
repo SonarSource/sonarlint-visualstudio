@@ -20,4 +20,4 @@
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Binding;
 
-public record AssistBindingResponse(string configurationScopeId);
+public record AssistBindingResponse(string? configurationScopeId);

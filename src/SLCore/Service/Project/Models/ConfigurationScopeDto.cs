@@ -20,7 +20,8 @@
 
 namespace SonarLint.VisualStudio.SLCore.Service.Project.Models;
 
-public record ConfigurationScopeDto(string id,
+public record ConfigurationScopeDto(
+    string id,
     string name,
     bool bindable,
-    BindingConfigurationDto binding);
+    BindingConfigurationDto? binding);

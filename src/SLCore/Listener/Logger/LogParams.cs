@@ -25,14 +25,11 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Logger;
 
 public class LogParams
 {
-    // nullable
-    public string message;
-    // nullable
-    public string configScopeId;
+    public string? message;
+    public string? configScopeId;
     public string threadName;
     public string loggerName;
-    // nullable
-    public string stackTrace;
+    public string? stackTrace;
 
     // private final Instant loggedAt; is ignored
 

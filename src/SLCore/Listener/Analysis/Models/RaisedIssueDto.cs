@@ -28,16 +28,16 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
 public record RaisedIssueDto(
     Guid id,
-    string serverKey,
+    string? serverKey,
     string ruleKey,
     string primaryMessage,
     [JsonConverter(typeof(MillisecondUnixTimestampDateTimeOffsetConverter))]
     DateTimeOffset introductionDate,
     bool isOnNewCode,
     bool resolved,
-    TextRangeDto textRange,
+    TextRangeDto? textRange,
     List<IssueFlowDto> flows,
     List<QuickFixDto> quickFixes,
-    string ruleDescriptionContextKey,
+    string? ruleDescriptionContextKey,
     Either<StandardModeDetails, MQRModeDetails> severityMode) : RaisedFindingDto(id, serverKey, ruleKey, primaryMessage, introductionDate, isOnNewCode, resolved, textRange, flows, quickFixes,
     ruleDescriptionContextKey, severityMode);

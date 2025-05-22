@@ -20,4 +20,4 @@
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
-public record GetBaseDirResponse(string baseDir);
+public record GetBaseDirResponse(string? baseDir);

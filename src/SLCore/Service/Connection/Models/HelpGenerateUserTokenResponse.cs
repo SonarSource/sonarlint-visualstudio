@@ -20,6 +20,6 @@
 
 namespace SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
-public record HelpGenerateUserTokenResponse(string token)
+public record HelpGenerateUserTokenResponse(string? token)
 {
 }

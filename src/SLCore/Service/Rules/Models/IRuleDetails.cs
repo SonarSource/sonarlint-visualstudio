@@ -33,7 +33,8 @@ public interface IRuleDetails
     Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto> description { get; }
     List<EffectiveRuleParamDto> parameters { get; }
 }
+
 public interface IRelevantContextRuleDetails : IRuleDetails
 {
-    string ruleDescriptionContextKey { get; }
+    string? ruleDescriptionContextKey { get; }
 }
