@@ -73,7 +73,6 @@ public class HotspotsControlViewModelTests
         MockTestSubject();
         testSubject = new HotspotsControlViewModel(hotspotsStore, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling, activeSolutionBoundTracker,
             reviewHotspotsService, messageBox, activeDocumentLocator, activeDocumentTracker);
-        UpdateAllPriorityFilters(isSelected: true);
     }
 
     [TestMethod]
