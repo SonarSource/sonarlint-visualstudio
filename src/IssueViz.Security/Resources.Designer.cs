@@ -214,6 +214,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Status.
+        /// </summary>
+        public static string HotspotsControl_StatusColumnHeader {
+            get {
+                return ResourceManager.GetString("HotspotsControl_StatusColumnHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to To Review.
+        /// </summary>
+        public static string HotspotStatus_ToReview {
+            get {
+                return ResourceManager.GetString("HotspotStatus_ToReview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarQube Security Hotspots.
         /// </summary>
         public static string HotspotsToolWindowCaption {
