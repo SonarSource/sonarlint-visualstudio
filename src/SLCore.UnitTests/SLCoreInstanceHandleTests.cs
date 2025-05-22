@@ -153,6 +153,7 @@ public class SLCoreInstanceHandleTests
                 && parameters.languageSpecificRequirements.jsTsRequirements.clientNodeJsPath == nodeJsPath
                 && parameters.languageSpecificRequirements.jsTsRequirements.bundlePath == esLintBridgePath
                 && parameters.telemetryMigration == telemetryMigrationDto));
+            activeSolutionBoundTracker.InitializationProcessor.InitializeAsync();
             configScopeUpdater.UpdateConfigScopeForCurrentSolution(Binding);
         });
     }
