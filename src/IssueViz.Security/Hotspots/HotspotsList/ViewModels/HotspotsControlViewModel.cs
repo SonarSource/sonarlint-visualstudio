@@ -28,6 +28,8 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
@@ -36,39 +38,57 @@ using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels
 {
-    internal interface IHotspotsControlViewModel : IDisposable
-    {
-        ObservableCollection<IHotspotViewModel> Hotspots { get; }
-
-        IHotspotViewModel SelectedHotspot { get; }
-
-        ICommand NavigateCommand { get; }
-
-        INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; }
-
-        bool IsCloud { get; }
-
-        Task<IEnumerable<HotspotStatus>> GetAllowedStatusesAsync();
-
-        Task ChangeHotspotStatusAsync(HotspotStatus newStatus);
-    }
-
     internal sealed class HotspotsControlViewModel : ViewModelBase, IHotspotsControlViewModel
     {
+        private static readonly ObservableCollection<LocationFilterViewModel> _locationFilterViewModels =
+        [
+            new(LocationFilter.CurrentDocument, Resources.HotspotsControl_CurrentDocumentFilter),
+            new(LocationFilter.OpenDocuments, Resources.HotspotsControl_OpenDocumentsFilter),
+        ];
         private readonly object Lock = new object();
         private readonly IIssueSelectionService selectionService;
         private readonly IThreadHandling threadHandling;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly IReviewHotspotsService reviewHotspotsService;
         private readonly IMessageBox messageBox;
+        private readonly IActiveDocumentTracker activeDocumentTracker;
         private readonly ILocalHotspotsStore store;
         private IHotspotViewModel selectedHotspot;
         private readonly ObservableCollection<IHotspotViewModel> hotspots = new ObservableCollection<IHotspotViewModel>();
+        private readonly ObservableCollection<IHotspotViewModel> filteredHotspots = new ObservableCollection<IHotspotViewModel>();
         private ICommand navigateCommand;
         private readonly INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand;
         private bool isCloud;
+        private LocationFilterViewModel selectedLocationFilter = _locationFilterViewModels.Single(x => x.LocationFilter == LocationFilter.CurrentDocument);
+        private string activeDocumentFilePath;
 
-        public ObservableCollection<IHotspotViewModel> Hotspots => hotspots;
+        public ObservableCollection<IHotspotViewModel> Hotspots => GetFilteredHotspots();
+
+        public IHotspotViewModel SelectedHotspot
+        {
+            get => selectedHotspot;
+            set
+            {
+                if (selectedHotspot != value)
+                {
+                    selectedHotspot = value;
+                    selectionService.SelectedIssue = selectedHotspot?.Hotspot;
+                }
+            }
+        }
+
+        public ObservableCollection<LocationFilterViewModel> LocationFilters => _locationFilterViewModels;
+
+        public LocationFilterViewModel SelectedLocationFilter
+        {
+            get => selectedLocationFilter;
+            set
+            {
+                selectedLocationFilter = value;
+                RaisePropertyChanged();
+                RefreshFiltering();
+            }
+        }
 
         public ICommand NavigateCommand
         {
@@ -96,7 +116,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             IThreadHandling threadHandling,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             IReviewHotspotsService reviewHotspotsService,
-            IMessageBox messageBox)
+            IMessageBox messageBox,
+            IActiveDocumentLocator activeDocumentLocator,
+            IActiveDocumentTracker activeDocumentTracker)
         {
             this.threadHandling = threadHandling;
             AllowMultiThreadedAccessToHotspotsList();
@@ -108,40 +130,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             store.IssuesChanged += Store_IssuesChanged;
 
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+            activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
+
             this.reviewHotspotsService = reviewHotspotsService;
             this.messageBox = messageBox;
-            activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
+
+            activeDocumentFilePath = activeDocumentLocator.FindActiveDocument()?.FilePath;
+            this.activeDocumentTracker = activeDocumentTracker;
+            activeDocumentTracker.ActiveDocumentChanged += OnActiveDocumentChanged;
 
             this.navigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
             SetCommands(locationNavigator);
+
+            SelectedLocationFilter = LocationFilters.Single(x => x.LocationFilter == LocationFilter.CurrentDocument);
         }
 
-        public IHotspotViewModel SelectedHotspot
-        {
-            get => selectedHotspot;
-            set
-            {
-                if (selectedHotspot != value)
-                {
-                    selectedHotspot = value;
-                    selectionService.SelectedIssue = selectedHotspot?.Hotspot;
-                }
-            }
-        }
-
-        public async Task UpdateHotspotsListAsync()
-        {
+        public async Task UpdateHotspotsListAsync() =>
             await threadHandling.RunOnBackgroundThread(() =>
             {
-                Hotspots.Clear();
+                hotspots.Clear();
                 foreach (var localHotspot in store.GetAllLocalHotspots())
                 {
-                    Hotspots.Add(new HotspotViewModel(localHotspot.Visualization, localHotspot.Priority, localHotspot.HotspotStatus));
+                    hotspots.Add(new HotspotViewModel(localHotspot.Visualization, localHotspot.Priority, localHotspot.HotspotStatus));
                 }
+                RefreshFiltering();
 
                 return Task.FromResult(true);
             });
-        }
 
         public async Task<IEnumerable<HotspotStatus>> GetAllowedStatusesAsync()
         {
@@ -168,7 +183,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             }
             if (newStatus is HotspotStatus.Fixed or HotspotStatus.Safe)
             {
-                Hotspots.Remove(SelectedHotspot);
+                hotspots.Remove(SelectedHotspot);
+                RefreshFiltering();
             }
         }
 
@@ -193,7 +209,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
 
         private void SelectionService_SelectionChanged(object sender, EventArgs e)
         {
-            selectedHotspot = Hotspots.FirstOrDefault(x => x.Hotspot == selectionService.SelectedIssue);
+            selectedHotspot = hotspots.FirstOrDefault(x => x.Hotspot == selectionService.SelectedIssue);
             RaisePropertyChanged(nameof(SelectedHotspot));
         }
 
@@ -202,8 +218,35 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             store.IssuesChanged -= Store_IssuesChanged;
             selectionService.SelectedIssueChanged -= SelectionService_SelectionChanged;
             activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
+            activeDocumentTracker.ActiveDocumentChanged -= OnActiveDocumentChanged;
         }
 
         private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args) => IsCloud = args.Configuration?.Project?.ServerConnection is ServerConnection.SonarCloud;
+
+        private void OnActiveDocumentChanged(object sender, ActiveDocumentChangedEventArgs e)
+        {
+            activeDocumentFilePath = e.ActiveTextDocument?.FilePath;
+            RefreshFiltering();
+        }
+
+        private void RefreshFiltering() => RaisePropertyChanged(nameof(Hotspots));
+
+        private ObservableCollection<IHotspotViewModel> GetFilteredHotspots()
+        {
+            filteredHotspots.Clear();
+            var currentHotspots = GetHotspotsFilteredByLocationFilter();
+            currentHotspots.ToList().ForEach(filteredHotspots.Add);
+
+            return filteredHotspots;
+        }
+
+        private IEnumerable<IHotspotViewModel> GetHotspotsFilteredByLocationFilter()
+        {
+            if (SelectedLocationFilter?.LocationFilter == LocationFilter.CurrentDocument)
+            {
+                return hotspots.Where(x => x.Hotspot.FilePath == activeDocumentFilePath);
+            }
+            return hotspots;
+        }
     }
 }

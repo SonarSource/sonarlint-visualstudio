@@ -24,6 +24,8 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
@@ -52,9 +54,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             var activeSolutionBoundTracker = componentModel.GetService<IActiveSolutionBoundTracker>();
             var reviewHotspotsService = componentModel.GetService<IReviewHotspotsService>();
             var messageBox = componentModel.GetService<IMessageBox>();
+            var activeDocumentLocator = componentModel.GetService<IActiveDocumentLocator>();
+            var activeDocumentTracker = componentModel.GetService<IActiveDocumentTracker>();
 
             var viewModel = new HotspotsControlViewModel(store, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling, activeSolutionBoundTracker,
-                reviewHotspotsService, messageBox);
+                reviewHotspotsService, messageBox, activeDocumentLocator, activeDocumentTracker);
             viewModel.UpdateHotspotsListAsync().Forget();
             var hotspotsControl = new HotspotsControl(viewModel);
 
