@@ -132,6 +132,9 @@
   <data name="HotspotsControl_DescriptionColumnHeader" xml:space="preserve">
     <value>Description</value>
   </data>
+  <data name="HotspotsControl_StatusColumnHeader" xml:space="preserve">
+    <value>Status</value>
+  </data>
   <data name="HotspotsControl_FileColumnHeader" xml:space="preserve">
     <value>File</value>
   </data>
@@ -220,5 +223,8 @@ Please check the logs for more details.</value>
   </data>
   <data name="TaintToolWindowCaption" xml:space="preserve">
     <value>SonarQube Taint Vulnerabilities</value>
+  </data>
+  <data name="HotspotStatus_ToReview" xml:space="preserve">
+    <value>To Review</value>
   </data>
 </root>

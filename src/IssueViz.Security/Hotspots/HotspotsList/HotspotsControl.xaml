@@ -17,6 +17,7 @@
             </ResourceDictionary.MergedDictionaries>
 
             <hotspotsList:PriorityToBackgroundConverter x:Key="PriorityToBackgroundConverter" />
+            <hotspotsList:HotspotStatusToLocalizedStatusConverter x:Key="HotspotStatusToLocalizedStatusConverter" />
             <core:NullableSelectedItemConverter x:Key="NullableSelectedItemConverter"/>
             <commands:NavigateToRuleDescriptionCommandConverter x:Key="NavigateToRuleDescriptionCommandConverter" />
             <core:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
@@ -160,6 +161,14 @@
                         <DataTemplate>
                             <TextBlock Text="{Binding HotspotPriority}" 
                                        Style="{StaticResource PriorityColumnCellTextBlockStyle}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="HotspotStatus" Header="{x:Static res:Resources.HotspotsControl_StatusColumnHeader}" Width="95">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding HotspotStatus, Converter={StaticResource HotspotStatusToLocalizedStatusConverter}}" 
+                                       Style="{StaticResource CellTextBlockStyle}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
