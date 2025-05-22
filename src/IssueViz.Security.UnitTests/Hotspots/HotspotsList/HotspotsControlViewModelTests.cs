@@ -60,8 +60,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
             reviewHotspotsService = Substitute.For<IReviewHotspotsService>();
             messageBox = Substitute.For<IMessageBox>();
-            testSubject = new HotspotsControlViewModel(hotspotsStore, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling, activeSolutionBoundTracker,
-                reviewHotspotsService, messageBox);
+            testSubject = CreateTestSubject();
 
             MockTestSubject();
         }
@@ -97,6 +96,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             testSubject.Hotspots[2].Hotspot.Should().Be(issueViz3);
             testSubject.Hotspots[2].HotspotPriority.Should().Be(HotspotPriority.High);
             testSubject.Hotspots[2].HotspotStatus.Should().Be(HotspotStatus.Acknowledged);
+        }
+
+        [TestMethod]
+        public void Ctor_InitializesIsCloud()
+        {
+            activeSolutionBoundTracker.CurrentConfiguration.Returns(CreateBindingConfiguration(new ServerConnection.SonarCloud("myOrg"), SonarLintMode.Connected));
+            activeSolutionBoundTracker.ClearReceivedCalls();
+
+            var hotspotsControlViewModel = CreateTestSubject();
+
+            _ = activeSolutionBoundTracker.Received(1).CurrentConfiguration;
+            hotspotsControlViewModel.IsCloud.Should().BeTrue();
         }
 
         [TestMethod]
@@ -454,6 +465,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         }
 
         [TestMethod]
+        public async Task ViewHotspotInBrowserAsync_CallsReviewHotspotsService()
+        {
+            var hotspotKey = "ServerKey";
+            await MockSelectedHotspot(hotspotKey);
+
+            await testSubject.ViewHotspotInBrowserAsync();
+
+            await reviewHotspotsService.Received(1).OpenHotspotAsync(hotspotKey);
+        }
+
+        [TestMethod]
         public void Dispose_UnsubscribesFromActiveSolutionBoundTrackerEvents()
         {
             testSubject.Dispose();
@@ -509,5 +531,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             await testSubject.UpdateHotspotsListAsync();
             testSubject.SelectedHotspot = testSubject.Hotspots.Single();
         }
+
+        private HotspotsControlViewModel CreateTestSubject() =>
+            new(hotspotsStore, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling, activeSolutionBoundTracker,
+                reviewHotspotsService, messageBox);
     }
 }

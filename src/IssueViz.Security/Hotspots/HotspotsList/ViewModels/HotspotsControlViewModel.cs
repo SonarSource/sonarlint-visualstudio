@@ -51,6 +51,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         Task<IEnumerable<HotspotStatus>> GetAllowedStatusesAsync();
 
         Task ChangeHotspotStatusAsync(HotspotStatus newStatus);
+
+        Task ViewHotspotInBrowserAsync();
     }
 
     internal sealed class HotspotsControlViewModel : ViewModelBase, IHotspotsControlViewModel
@@ -111,6 +113,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             this.reviewHotspotsService = reviewHotspotsService;
             this.messageBox = messageBox;
             activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
+            IsCloud = IsCurrentConfigurationToCloud(this.activeSolutionBoundTracker.CurrentConfiguration);
 
             this.navigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
             SetCommands(locationNavigator);
@@ -172,6 +175,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             }
         }
 
+        public Task ViewHotspotInBrowserAsync() => reviewHotspotsService.OpenHotspotAsync(SelectedHotspot.Hotspot.Issue.IssueServerKey);
+
         /// <summary>
         /// Allow the observable collection <see cref="Hotspots"/> to be modified from non-UI thread.
         /// </summary>
@@ -204,6 +209,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
         }
 
-        private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args) => IsCloud = args.Configuration?.Project?.ServerConnection is ServerConnection.SonarCloud;
+        private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args) => IsCloud = IsCurrentConfigurationToCloud(args.Configuration);
+
+        private static bool IsCurrentConfigurationToCloud(BindingConfiguration bindingConfiguration) => bindingConfiguration?.Project?.ServerConnection is ServerConnection.SonarCloud;
     }
 }

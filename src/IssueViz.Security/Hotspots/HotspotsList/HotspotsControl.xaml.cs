@@ -52,4 +52,6 @@ internal sealed partial class HotspotsControl : UserControl
             await ViewModel.ChangeHotspotStatusAsync(dialog.ViewModel.SelectedStatusViewModel.HotspotStatus);
         }
     }
+
+    private async void ViewHotspotInBrowser_OnClick(object sender, RoutedEventArgs e) => await ViewModel.ViewHotspotInBrowserAsync();
 }

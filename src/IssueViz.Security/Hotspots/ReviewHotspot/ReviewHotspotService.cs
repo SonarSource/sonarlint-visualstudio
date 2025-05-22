@@ -48,6 +48,8 @@ internal class ReviewHotspotsService(
     public Task<IReviewHotspotPermissionArgs> CheckReviewHotspotPermittedAsync(string hotspotKey) =>
         threadHandling.RunOnBackgroundThread(async () => await TryCheckStatusChangePermittedAsync(hotspotKey));
 
+    public Task OpenHotspotAsync(string hotspotKey) => threadHandling.RunOnBackgroundThread(() => TryOpenHotspot(hotspotKey));
+
     private async Task<bool> TryChangeHotspotStatusAsync(string hotspotKey, HotspotStatus newStatus)
     {
         try
@@ -94,5 +96,22 @@ internal class ReviewHotspotsService(
 
         logger.WriteLine(messageLevelContext, Resources.ReviewHotspotService_NotPermitted, response.notPermittedReason);
         return new ReviewHotspotNotPermittedArgs(response.notPermittedReason);
+    }
+
+    private void TryOpenHotspot(string hotspotKey)
+    {
+        try
+        {
+            if (!slCoreServiceProvider.TryGetTransientService(out IHotspotSlCoreService hotspotSlCoreService))
+            {
+                logger.WriteLine(SLCoreStrings.ServiceProviderNotInitialized);
+                return;
+            }
+            hotspotSlCoreService.OpenHotspotInBrowser(new OpenHotspotInBrowserParams(activeConfigScopeTracker.Current?.Id, hotspotKey));
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.WriteLine(new MessageLevelContext { Context = [nameof(hotspotKey), hotspotKey] }, Resources.ReviewHotspotService_AnErrorOccurred, ex.Message);
+        }
     }
 }
