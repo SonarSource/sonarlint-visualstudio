@@ -45,8 +45,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             new(LocationFilter.CurrentDocument, Resources.HotspotsControl_CurrentDocumentFilter),
             new(LocationFilter.OpenDocuments, Resources.HotspotsControl_OpenDocumentsFilter),
         ];
-        private static readonly ObservableCollection<PriorityFilterViewModel> _priorityFilterViewModels =
-            new(Enum.GetValues(typeof(HotspotPriority)).Cast<HotspotPriority>().Select(x => new PriorityFilterViewModel(x)));
         private readonly object Lock = new object();
         private readonly IIssueSelectionService selectionService;
         private readonly IThreadHandling threadHandling;
@@ -81,7 +79,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
 
         public ObservableCollection<LocationFilterViewModel> LocationFilters => _locationFilterViewModels;
 
-        public ObservableCollection<PriorityFilterViewModel> PriorityFilters => _priorityFilterViewModels;
+        public ObservableCollection<PriorityFilterViewModel> PriorityFilters { get; } =
+            new(Enum.GetValues(typeof(HotspotPriority)).Cast<HotspotPriority>().Select(x => new PriorityFilterViewModel(x)));
 
         public LocationFilterViewModel SelectedLocationFilter
         {
