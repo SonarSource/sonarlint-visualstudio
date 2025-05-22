@@ -30,9 +30,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
 internal sealed partial class HotspotsControl : UserControl
 {
-    public IHotspotsControlViewModel ViewModel { get; }
+    public HotspotsControlViewModel ViewModel { get; }
 
-    public HotspotsControl(IHotspotsControlViewModel viewModel)
+    public HotspotsControl(HotspotsControlViewModel viewModel)
     {
         ViewModel = viewModel;
 
@@ -50,6 +50,14 @@ internal sealed partial class HotspotsControl : UserControl
         if (dialog.ShowDialog(Application.Current.MainWindow) is true)
         {
             await ViewModel.ChangeHotspotStatusAsync(dialog.ViewModel.SelectedStatusViewModel.HotspotStatus);
+        }
+    }
+
+    private void PriorityButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: PriorityFilterViewModel vm })
+        {
+            ViewModel.UpdatePriorityFilter(vm, !vm.IsSelected);
         }
     }
 }

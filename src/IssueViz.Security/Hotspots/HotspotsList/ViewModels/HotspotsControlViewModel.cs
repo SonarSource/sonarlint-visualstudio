@@ -38,7 +38,7 @@ using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels
 {
-    internal sealed class HotspotsControlViewModel : ViewModelBase, IHotspotsControlViewModel
+    internal sealed class HotspotsControlViewModel : ViewModelBase
     {
         private static readonly ObservableCollection<LocationFilterViewModel> _locationFilterViewModels =
         [
@@ -54,15 +54,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         private readonly IActiveDocumentTracker activeDocumentTracker;
         private readonly ILocalHotspotsStore store;
         private IHotspotViewModel selectedHotspot;
-        private readonly ObservableCollection<IHotspotViewModel> hotspots = new ObservableCollection<IHotspotViewModel>();
-        private readonly ObservableCollection<IHotspotViewModel> filteredHotspots = new ObservableCollection<IHotspotViewModel>();
+        private readonly ObservableCollection<IHotspotViewModel> hotspots = new();
+        private readonly ObservableCollection<IHotspotViewModel> filteredHotspots = new();
         private ICommand navigateCommand;
         private readonly INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand;
         private bool isCloud;
         private LocationFilterViewModel selectedLocationFilter = _locationFilterViewModels.Single(x => x.LocationFilter == LocationFilter.CurrentDocument);
         private string activeDocumentFilePath;
 
-        public ObservableCollection<IHotspotViewModel> Hotspots => GetFilteredHotspots();
+        public ObservableCollection<IHotspotViewModel> Hotspots => filteredHotspots;
 
         public IHotspotViewModel SelectedHotspot
         {
@@ -78,6 +78,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         }
 
         public ObservableCollection<LocationFilterViewModel> LocationFilters => _locationFilterViewModels;
+
+        public ObservableCollection<PriorityFilterViewModel> PriorityFilters { get; } =
+            new(Enum.GetValues(typeof(HotspotPriority)).Cast<HotspotPriority>().Select(x => new PriorityFilterViewModel(x)));
 
         public LocationFilterViewModel SelectedLocationFilter
         {
@@ -188,6 +191,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             }
         }
 
+        public void UpdatePriorityFilter(PriorityFilterViewModel viewModel, bool isSelected)
+        {
+            viewModel.IsSelected = isSelected;
+            RefreshFiltering();
+        }
+
         /// <summary>
         /// Allow the observable collection <see cref="Hotspots"/> to be modified from non-UI thread.
         /// </summary>
@@ -229,24 +238,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             RefreshFiltering();
         }
 
-        private void RefreshFiltering() => RaisePropertyChanged(nameof(Hotspots));
-
-        private ObservableCollection<IHotspotViewModel> GetFilteredHotspots()
+        private void RefreshFiltering()
         {
-            filteredHotspots.Clear();
-            var currentHotspots = GetHotspotsFilteredByLocationFilter();
-            currentHotspots.ToList().ForEach(filteredHotspots.Add);
-
-            return filteredHotspots;
+            UpdateFilteredHotspots();
+            RaisePropertyChanged(nameof(Hotspots));
         }
 
-        private IEnumerable<IHotspotViewModel> GetHotspotsFilteredByLocationFilter()
+        private void UpdateFilteredHotspots()
+        {
+            filteredHotspots.Clear();
+            var hotspotsToShow = GetHotspotsFilteredByLocationFilter(hotspots.ToList());
+            hotspotsToShow = GetHotspotsFilteredByPriorityFilter(hotspotsToShow.ToList());
+            hotspotsToShow.ToList().ForEach(filteredHotspots.Add);
+        }
+
+        private IEnumerable<IHotspotViewModel> GetHotspotsFilteredByLocationFilter(IReadOnlyList<IHotspotViewModel> source)
         {
             if (SelectedLocationFilter?.LocationFilter == LocationFilter.CurrentDocument)
             {
-                return hotspots.Where(x => x.Hotspot.FilePath == activeDocumentFilePath);
+                return source.Where(x => x.Hotspot.FilePath == activeDocumentFilePath);
             }
-            return hotspots;
+            return source;
+        }
+
+        private IEnumerable<IHotspotViewModel> GetHotspotsFilteredByPriorityFilter(IReadOnlyList<IHotspotViewModel> source)
+        {
+            var prioritiesToShow = PriorityFilters.Where(x => x.IsSelected).Select(x => x.HotspotPriority);
+            return source.Where(x => prioritiesToShow.Contains(x.HotspotPriority));
         }
     }
 }
