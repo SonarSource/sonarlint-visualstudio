@@ -27,8 +27,8 @@ public class LogParams
 {
     public string? message;
     public string? configScopeId;
-    public string threadName;
-    public string loggerName;
+    public string threadName = null!;
+    public string loggerName = null!;
     public string? stackTrace;
 
     // private final Instant loggedAt; is ignored
