@@ -18,11 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections.Concurrent;
 using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -51,7 +47,11 @@ public class CancellableActionRunnerTests
         var ran = false;
         var testSubject = CreateTestSubject();
 
-        await testSubject.RunAsync(_ => { ran = true; return Task.CompletedTask; });
+        await testSubject.RunAsync(_ =>
+        {
+            ran = true;
+            return Task.CompletedTask;
+        });
 
         ran.Should().BeTrue();
     }
@@ -62,26 +62,33 @@ public class CancellableActionRunnerTests
         CancellationToken actionToken;
         var testSubject = CreateTestSubject();
 
-        await testSubject.RunAsync(token => { actionToken = token; return Task.CompletedTask; });
+        await testSubject.RunAsync(token =>
+        {
+            actionToken = token;
+            return Task.CompletedTask;
+        });
 
         actionToken.IsCancellationRequested.Should().BeFalse();
 
-        await testSubject.RunAsync(_ => Task.CompletedTask );
+        await testSubject.RunAsync(_ => Task.CompletedTask);
 
         actionToken.IsCancellationRequested.Should().BeTrue();
     }
 
-
     [TestMethod]
     public async Task RunAsync_Run100Actions_CancelsAllTokensButLatest()
     {
-        var tokens = new List<CancellationToken>(100);
-        var tasks = new List<Task>(100);
+        var tokens = new ConcurrentBag<CancellationToken>();
+        var tasks = new ConcurrentBag<Task>();
         var testSubject = CreateTestSubject();
 
         for (var i = 0; i < 100; i++)
         {
-            tasks.Add(Task.Run(() => testSubject.RunAsync(ct => { tokens.Add(ct); return Task.CompletedTask; })));
+            tasks.Add(Task.Run(() => testSubject.RunAsync(ct =>
+            {
+                tokens.Add(ct);
+                return Task.CompletedTask;
+            })));
         }
 
         await Task.WhenAll(tasks);
@@ -96,7 +103,11 @@ public class CancellableActionRunnerTests
         CancellationToken actionToken;
         var testSubject = CreateTestSubject();
 
-        await testSubject.RunAsync(token => { actionToken = token; return Task.CompletedTask; });
+        await testSubject.RunAsync(token =>
+        {
+            actionToken = token;
+            return Task.CompletedTask;
+        });
 
         actionToken.IsCancellationRequested.Should().BeFalse();
 
@@ -112,7 +123,11 @@ public class CancellableActionRunnerTests
         var testSubject = CreateTestSubject();
 
         testSubject.Dispose();
-        Func<Task> action =() => testSubject.RunAsync(_ => { ran = true; return Task.CompletedTask; });
+        Func<Task> action = () => testSubject.RunAsync(_ =>
+        {
+            ran = true;
+            return Task.CompletedTask;
+        });
 
         ran.Should().BeFalse();
         action.Should().ThrowAsync<ObjectDisposedException>();

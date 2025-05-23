@@ -250,10 +250,7 @@ public class TaintStoreTests
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
-        using (new AssertIgnoreScope())
-        {
-            testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [], [analysisIssueVisualizations[0].IssueId!.Value, Guid.NewGuid()]));
-        }
+        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [], [analysisIssueVisualizations[0].IssueId!.Value, Guid.NewGuid()]));
 
         testSubject.GetAll().Should().BeEquivalentTo(analysisIssueVisualizations.Skip(1));
         receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([analysisIssueVisualizations[0]], []));
@@ -266,10 +263,7 @@ public class TaintStoreTests
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var eventHandlerMock = CreateEventHandlerMock();
 
-        using (new AssertIgnoreScope())
-        {
-            testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [], [Guid.NewGuid()]));
-        }
+        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [], [Guid.NewGuid()]));
 
         testSubject.GetAll().Should().BeEquivalentTo(analysisIssueVisualizations);
         eventHandlerMock.DidNotReceiveWithAnyArgs().Invoke(default, default);
@@ -299,10 +293,7 @@ public class TaintStoreTests
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
-        using (new AssertIgnoreScope())
-        {
-            testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [updated1, updated2], []));
-        }
+        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [updated1, updated2], []));
 
         testSubject.GetAll().Should().BeEquivalentTo(updated1, analysisIssueVisualizations[1], analysisIssueVisualizations[2]);
         receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([analysisIssueVisualizations[0]], [updated1]));
@@ -317,10 +308,7 @@ public class TaintStoreTests
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var eventHandlerMock = CreateEventHandlerMock();
 
-        using (new AssertIgnoreScope())
-        {
-            testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [updated1, updated2], []));
-        }
+        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [updated1, updated2], []));
 
         testSubject.GetAll().Should().BeEquivalentTo(analysisIssueVisualizations);
         eventHandlerMock.DidNotReceiveWithAnyArgs().Invoke(default, default);
@@ -336,10 +324,7 @@ public class TaintStoreTests
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
-        using (new AssertIgnoreScope())
-        {
-            testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [updated], []));
-        }
+        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [updated], []));
 
         testSubject.GetAll().Should().NotContain(taintWithChangedId);
         testSubject.GetAll().Should().Contain(updated);
@@ -370,10 +355,7 @@ public class TaintStoreTests
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
-        using (new AssertIgnoreScope())
-        {
-            testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [added1, added2], [], []));
-        }
+        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [added1, added2], [], []));
 
         testSubject.GetAll().Should().BeEquivalentTo(analysisIssueVisualizations.Concat([added2]));
         receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([], [added2]));
@@ -388,10 +370,7 @@ public class TaintStoreTests
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var eventHandlerMock = CreateEventHandlerMock();
 
-        using (new AssertIgnoreScope())
-        {
-            testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [added1, added2], [], []));
-        }
+        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [added1, added2], [], []));
 
         testSubject.GetAll().Should().BeEquivalentTo(analysisIssueVisualizations);
         eventHandlerMock.DidNotReceiveWithAnyArgs().Invoke(default, default);
@@ -424,10 +403,7 @@ public class TaintStoreTests
         testSubject.Set([original], "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
-        using (new AssertIgnoreScope())
-        {
-            testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [updated], [remove]));
-        }
+        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [updated], [remove]));
 
         testSubject.GetAll().Should().BeEmpty();
         receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([original], []));
@@ -442,10 +418,7 @@ public class TaintStoreTests
         testSubject.Set([original], "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
-        using (new AssertIgnoreScope())
-        {
-            testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [add], [updated], []));
-        }
+        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [add], [updated], []));
 
         testSubject.GetAll().Should().BeEquivalentTo(updated);
         receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([original], [updated]));
