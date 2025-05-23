@@ -20,4 +20,4 @@
 
 namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 
-public record JsTsRequirementsDto(string clientNodeJsPath, string bundlePath);
+public record JsTsRequirementsDto(string? clientNodeJsPath, string? bundlePath);

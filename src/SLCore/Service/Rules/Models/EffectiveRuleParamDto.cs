@@ -20,4 +20,8 @@
 
 namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
-public record EffectiveRuleParamDto(string name, string description, string value, string defaultValue);
+public record EffectiveRuleParamDto(
+    string name,
+    string description,
+    string? value,
+    string? defaultValue);

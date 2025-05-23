@@ -22,4 +22,4 @@ using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Issue;
 
-public record CheckStatusChangePermittedResponse(bool permitted, string notPermittedReason, List<ResolutionStatus> allowedStatuses);
+public record CheckStatusChangePermittedResponse(bool permitted, string? notPermittedReason, List<ResolutionStatus> allowedStatuses);

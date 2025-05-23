@@ -30,10 +30,12 @@ public record HotspotDetailsDto(
     TextRangeDto textRange,
     string author,
     string status,
-    string resolution,
+    string? resolution,
     HotspotRuleDto rule,
-    string codeSnippet) : IOpenInIdeIssue
+    string? codeSnippet) : IOpenInIdeIssue
 {
-    [JsonIgnore] public string Key => key;
-    [JsonIgnore] public string Type => "Hotspot";
+    [JsonIgnore]
+    public string Key => key;
+    [JsonIgnore]
+    public string Type => "Hotspot";
 }

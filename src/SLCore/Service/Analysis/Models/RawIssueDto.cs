@@ -30,9 +30,9 @@ public record RawIssueDto(
     Dictionary<SoftwareQuality, ImpactSeverity> impacts,
     string ruleKey,
     string primaryMessage,
-    FileUri fileUri,
+    FileUri? fileUri,
     List<RawIssueFlowDto> flows,
     List<QuickFixDto> quickFixes,
-    TextRangeDto textRange,
+    TextRangeDto? textRange,
     string ruleDescriptionContextKey,
     VulnerabilityProbability? vulnerabilityProbability);

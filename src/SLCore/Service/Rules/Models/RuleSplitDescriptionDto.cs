@@ -18,19 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-
 namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models
 {
     public class RuleSplitDescriptionDto
     {
-        public RuleSplitDescriptionDto(string introductionHtmlContent, List<RuleDescriptionTabDto> tabs)
+        public RuleSplitDescriptionDto(string? introductionHtmlContent, List<RuleDescriptionTabDto> tabs)
         {
             this.introductionHtmlContent = introductionHtmlContent;
             this.tabs = tabs;
         }
 
-        public string introductionHtmlContent { get; }
+        public string? introductionHtmlContent { get; }
         public List<RuleDescriptionTabDto> tabs { get; }
     }
 }

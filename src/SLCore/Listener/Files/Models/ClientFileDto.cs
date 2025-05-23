@@ -27,9 +27,9 @@ public record ClientFileDto(
     string ideRelativePath,
     string configScopeId,
     bool? isTest,
-    string charset,
-    string fsPath,
-    string content = null)
+    string? charset,
+    string? fsPath,
+    string? content = null)
 {
     public bool isUserDefined => true;
 }

@@ -20,4 +20,4 @@
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Binding;
 
-public record SonarQubeConnectionParams(Uri serverUrl, string tokenName, string tokenValue);
+public record SonarQubeConnectionParams(Uri serverUrl, string? tokenName, string? tokenValue);

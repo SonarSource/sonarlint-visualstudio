@@ -30,7 +30,9 @@ public record EffectiveIssueDetailsDto(
     string name,
     Language language,
     VulnerabilityProbability? vulnerabilityProbability,
-    [JsonConverter(typeof(EitherJsonConverter<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>))] Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto> description,
+    [JsonConverter(typeof(EitherJsonConverter<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>))]
+    Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto> description,
     [JsonProperty("params")] List<EffectiveRuleParamDto> parameters,
-    [JsonConverter(typeof(EitherJsonConverter<StandardModeDetails, MQRModeDetails>))] Either<StandardModeDetails, MQRModeDetails> severityDetails,
-    string ruleDescriptionContextKey) : IRelevantContextRuleDetails;
+    [JsonConverter(typeof(EitherJsonConverter<StandardModeDetails, MQRModeDetails>))]
+    Either<StandardModeDetails, MQRModeDetails> severityDetails,
+    string? ruleDescriptionContextKey) : IRelevantContextRuleDetails;
