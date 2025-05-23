@@ -109,10 +109,7 @@ public class RuleDescriptionConversionSmokeTest
         {
             try
             {
-                using (new AssertIgnoreScope())
-                {
-                    CheckRuleDescription(ruleHelpXamlBuilder.Create(ruleDescription));
-                }
+                CheckRuleDescription(ruleHelpXamlBuilder.Create(ruleDescription));
             }
             catch (Exception)
             {

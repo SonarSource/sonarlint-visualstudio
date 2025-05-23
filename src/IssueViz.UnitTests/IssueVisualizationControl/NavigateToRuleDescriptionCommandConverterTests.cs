@@ -19,7 +19,6 @@
  */
 
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualizationControl;
 
@@ -54,27 +53,21 @@ public class NavigateToRuleDescriptionCommandConverterTests
     [TestMethod]
     public void ConvertBack_CorrectType_ReturnsNull()
     {
-        using (new AssertIgnoreScope())
-        {
-            var command = new NavigateToRuleDescriptionCommandParam { FullRuleKey = "FullRuleKey" };
+        var command = new NavigateToRuleDescriptionCommandParam { FullRuleKey = "FullRuleKey" };
 
-            var values = testSubject.ConvertBack(command, default, default, default);
+        var values = testSubject.ConvertBack(command, default, default, default);
 
-            values.Should().BeNull();
-        }
+        values.Should().BeNull();
     }
 
     [TestMethod]
     public void ConvertBack_WrongType_ReturnsValues()
     {
-        using (new AssertIgnoreScope())
-        {
-            var value = "Some str object";
+        var value = "Some str object";
 
-            var values = testSubject.ConvertBack(value, default, default, default);
+        var values = testSubject.ConvertBack(value, default, default, default);
 
-            values.Should().BeNull();
-        }
+        values.Should().BeNull();
     }
 
     [TestMethod]

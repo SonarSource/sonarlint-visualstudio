@@ -18,12 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Runtime.InteropServices;
-using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
@@ -38,13 +35,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         private static readonly Guid ValidToolWindowId = Guid.NewGuid();
 
         [TestMethod]
-        public void MefCtor_CheckIsExported()
-            => MefTestHelpers.CheckTypeCanBeImported<ToolWindowService, IToolWindowService>(
+        public void MefCtor_CheckIsExported() =>
+            MefTestHelpers.CheckTypeCanBeImported<ToolWindowService, IToolWindowService>(
                 MefTestHelpers.CreateExport<IVsUIServiceOperation>());
 
         [TestMethod]
-        public void MefCtor_CheckIsSingleton()
-            => MefTestHelpers.CheckIsSingletonMefComponent<ToolWindowService>();
+        public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ToolWindowService>();
 
         [TestMethod]
         public void MefCtor_DoesNotCallAnyServices()
@@ -66,14 +62,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             SetupFindToolWindow(uiShellMock, VSConstants.E_OUTOFMEMORY, ValidToolWindowId, frameMock.Object);
 
             var serviceOp = CreateServiceOperation(uiShellMock.Object);
-
             var testSubject = CreateTestSubject(serviceOp);
 
             // Act
-            using (new AssertIgnoreScope())
-            {
-                testSubject.Show(ValidToolWindowId);
-            }
+            testSubject.Show(ValidToolWindowId);
 
             // Non-success HResult so shouldn't have attempted to show the frame
             frameMock.Invocations.Should().BeEmpty();
@@ -121,14 +113,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             SetupFindToolWindow(uiShellMock, vsServiceResult, ValidToolWindowId, frameMock.Object);
 
             var serviceOp = CreateServiceOperation(uiShellMock.Object);
-
             var testSubject = CreateTestSubject(serviceOp);
 
             // Act
-            using (new AssertIgnoreScope())
-            {
-                testSubject.EnsureToolWindowExists(ValidToolWindowId);
-            }
+            testSubject.EnsureToolWindowExists(ValidToolWindowId);
 
             uiShellMock.VerifyAll();
 
@@ -149,14 +137,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 
             var serviceOp = CreateServiceOperation<IMyDummyToolWindow>(uiShellMock.Object);
 
-
             var testSubject = CreateTestSubject(serviceOp);
             var result = testSubject.GetToolWindow<MyDummyToolWindow, IMyDummyToolWindow>();
 
             result.Should().BeSameAs(obj);
         }
 
-        private interface IMyDummyToolWindow { }
+        private interface IMyDummyToolWindow
+        {
+        }
 
         [Guid(GuidAsString)]
         private class MyDummyToolWindow : IMyDummyToolWindow
@@ -164,7 +153,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             public const string GuidAsString = "45C7FC01-5569-4FE1-AB13-99F32B840D76";
         }
 
-        private void SetupFindToolWindow(Mock<IVsUIShell> uiShell, int hrResult, Guid toolWindowId, IVsWindowFrame toolWindowObject)
+        private void SetupFindToolWindow(
+            Mock<IVsUIShell> uiShell,
+            int hrResult,
+            Guid toolWindowId,
+            IVsWindowFrame toolWindowObject)
         {
             uiShell
                 .Setup(x => x.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fForceCreate, ref toolWindowId, out toolWindowObject))
@@ -190,11 +183,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             serviceOp.Setup(x => x.Execute<SVsUIShell, IVsUIShell, V>(It.IsAny<Func<IVsUIShell, V>>()))
                 .Returns<Func<IVsUIShell, V>>(op => op(svcToPassToCallback));
 
-
             return serviceOp.Object;
         }
 
-        private static ToolWindowService CreateTestSubject(IVsUIServiceOperation vsUIServiceOperation)
-            => new(vsUIServiceOperation);
+        private static ToolWindowService CreateTestSubject(IVsUIServiceOperation vsUIServiceOperation) => new(vsUIServiceOperation);
     }
 }

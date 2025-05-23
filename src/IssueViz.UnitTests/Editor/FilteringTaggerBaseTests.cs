@@ -18,16 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 
@@ -86,8 +80,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 
             SnapshotSpanEventArgs suppliedArgs = null;
             int eventCount = 0;
-                SnapshotSpan expectedSnapshotSpan = new SnapshotSpan(ValidBuffer.CurrentSnapshot, new Span(0, ValidBuffer.CurrentSnapshot.Length));
-            testSubject.TagsChanged += (sender, args) => { eventCount++; suppliedArgs = args; };
+            SnapshotSpan expectedSnapshotSpan = new SnapshotSpan(ValidBuffer.CurrentSnapshot, new Span(0, ValidBuffer.CurrentSnapshot.Length));
+            testSubject.TagsChanged += (sender, args) =>
+            {
+                eventCount++;
+                suppliedArgs = args;
+            };
 
             // Act
             aggregatorMock.Raise(x => x.BatchedTagsChanged += null, new BatchedTagsChangedEventArgs(Array.Empty<IMappingSpan>()));
@@ -212,10 +210,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             var inputSpan = new Span(20, 10);
             var inputSpans = new NormalizedSnapshotSpanCollection(snapshot, inputSpan);
 
-            var tagSpan1 = CreateMappingTagSpan(snapshot, new TrackedTag(), new Span(0, 0));   // no overlap
-            var tagSpan2 = CreateMappingTagSpan(snapshot, new TrackedTag(), new Span(1, 20));  // overlaps [20, 30]
+            var tagSpan1 = CreateMappingTagSpan(snapshot, new TrackedTag(), new Span(0, 0)); // no overlap
+            var tagSpan2 = CreateMappingTagSpan(snapshot, new TrackedTag(), new Span(1, 20)); // overlaps [20, 30]
             var tagSpan3 = CreateMappingTagSpan(snapshot, new TrackedTag(), new Span(30, 10)); // overlaps [20, 30]
-            var tagSpan4 = CreateMappingTagSpan(snapshot, new TrackedTag(), new Span(31, 1));  // no overlap
+            var tagSpan4 = CreateMappingTagSpan(snapshot, new TrackedTag(), new Span(31, 1)); // no overlap
             var aggregator = CreateAggregator(tagSpan1, tagSpan2, tagSpan3, tagSpan4);
 
             var testSubject = new TestableFilteringTagger(aggregator, snapshot.TextBuffer);
@@ -245,11 +243,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 
             testSubject.Dispose();
 
-            using (new AssertIgnoreScope())
-            {
-                var actual = testSubject.GetTags(inputSpans).ToArray();
-                actual.Should().BeEmpty();
-            }
+            var actual = testSubject.GetTags(inputSpans).ToArray();
+            actual.Should().BeEmpty();
         }
 
         #region Supporting types
@@ -284,7 +279,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 
             public void SetFilterResult(params IMappingTagSpan<TrackedTag>[] filteredValues)
             {
-                this.filterReturnValue = filteredValues;
+                filterReturnValue = filteredValues;
             }
 
             public ITextSnapshot GetSnapshotTestAccessor() => GetSnapshot();

@@ -45,7 +45,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         [TestMethod]
         public void Ctor_InvalidArgs_Throws()
         {
-
             Action act = () => new IssueConsumer(null, ValidFilePath, issueHandler, ValidConverter);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisSnapshot");
 
@@ -66,10 +65,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             var testSubject = new IssueConsumer(ValidTextSnapshot, "c:\\file1.txt", issueHandler, ValidConverter);
 
-            using (new AssertIgnoreScope())
-            {
-                testSubject.SetIssues("wrong file", issues);
-            }
+            testSubject.SetIssues("wrong file", issues);
 
             issueHandler.DidNotReceiveWithAnyArgs().HandleNewIssues(default);
             issueHandler.DidNotReceiveWithAnyArgs().HandleNewHotspots(default);
@@ -81,11 +77,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var issues = new IAnalysisIssue[] { ValidIssue };
 
             var testSubject = new IssueConsumer(ValidTextSnapshot, "c:\\file1.txt", issueHandler, ValidConverter);
-
-            using (new AssertIgnoreScope())
-            {
-                testSubject.SetHotspots("wrong file", issues);
-            }
+            testSubject.SetHotspots("wrong file", issues);
 
             issueHandler.DidNotReceiveWithAnyArgs().HandleNewIssues(default);
             issueHandler.DidNotReceiveWithAnyArgs().HandleNewHotspots(default);
@@ -111,10 +103,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             var testSubject = new IssueConsumer(snapshot, ValidFilePath, issueHandler, converter);
 
-            using (new AssertIgnoreScope())
-            {
-                testSubject.SetIssues(ValidFilePath, issues);
-            }
+            testSubject.SetIssues(ValidFilePath, issues);
 
             ValidateReceivedIssues(isMappableToSnapshot ? issues : []);
         }
@@ -139,10 +128,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             var testSubject = new IssueConsumer(snapshot, ValidFilePath, issueHandler, converter);
 
-            using (new AssertIgnoreScope())
-            {
-                testSubject.SetHotspots(ValidFilePath, hotspots);
-            }
+            testSubject.SetHotspots(ValidFilePath, hotspots);
 
             ValidateReceivedHotspots(isMappableToSnapshot ? hotspots : []);
         }
@@ -178,15 +164,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         [TestMethod]
         public void SetIssues_MultipleCallsToAccept_IssuesAreReplaced()
         {
-            var firstSetOfIssues = new[]
-            {
-                CreateIssue(1, 1), CreateIssue(2, 2)
-            };
+            var firstSetOfIssues = new[] { CreateIssue(1, 1), CreateIssue(2, 2) };
 
-            var secondSetOfIssues = new[]
-            {
-                CreateIssue(3,3), CreateIssue(4,4)
-            };
+            var secondSetOfIssues = new[] { CreateIssue(3, 3), CreateIssue(4, 4) };
 
             var snapshot = CreateSnapshot(lineCount: 10);
             var converter = CreatePassthroughConverter();
@@ -208,15 +188,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         [TestMethod]
         public void SetHotspots_MultipleCallsToAccept_IssuesAreReplaced()
         {
-            var firstSetOfHotspots = new[]
-            {
-                CreateIssue(1, 1), CreateIssue(2, 2)
-            };
+            var firstSetOfHotspots = new[] { CreateIssue(1, 1), CreateIssue(2, 2) };
 
-            var secondSetOfHotspots = new[]
-            {
-                CreateIssue(3,3), CreateIssue(4,4)
-            };
+            var secondSetOfHotspots = new[] { CreateIssue(3, 3), CreateIssue(4, 4) };
 
             var snapshot = CreateSnapshot(lineCount: 10);
             var converter = CreatePassthroughConverter();
@@ -259,25 +233,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         }
 
         private static IAnalysisIssue CreateIssue(int startLine, int endLine) =>
-            new DummyAnalysisIssue
-            {
-                PrimaryLocation = new DummyAnalysisIssueLocation
-                {
-                    TextRange = new DummyTextRange
-                    {
-                        StartLine = startLine,
-                        EndLine = endLine,
-                    },
-                    Message = "any message"
-                }
-            };
+            new DummyAnalysisIssue { PrimaryLocation = new DummyAnalysisIssueLocation { TextRange = new DummyTextRange { StartLine = startLine, EndLine = endLine, }, Message = "any message" } };
 
         private static IAnalysisIssue CreateFileLevelIssue()
         {
-          return new DummyAnalysisIssue
-            {
-                PrimaryLocation = new DummyAnalysisIssueLocation { TextRange = null }
-            };
+            return new DummyAnalysisIssue { PrimaryLocation = new DummyAnalysisIssueLocation { TextRange = null } };
         }
 
         private static IAnalysisIssueVisualizationConverter CreatePassthroughConverter()
