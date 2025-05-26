@@ -38,7 +38,7 @@ using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels
 {
-    internal sealed class HotspotsControlViewModel : ViewModelBase
+    internal sealed class HotspotsControlViewModel : ViewModelBase, IDisposable
     {
         private static readonly ObservableCollection<LocationFilterViewModel> _locationFilterViewModels =
         [
@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             }
         }
 
-        public ObservableCollection<LocationFilterViewModel> LocationFilters => _locationFilterViewModels;
+        public static ObservableCollection<LocationFilterViewModel> LocationFilters => _locationFilterViewModels;
 
         public ObservableCollection<PriorityFilterViewModel> PriorityFilters { get; } =
             new(Enum.GetValues(typeof(HotspotPriority)).Cast<HotspotPriority>().Select(x => new PriorityFilterViewModel(x)));
