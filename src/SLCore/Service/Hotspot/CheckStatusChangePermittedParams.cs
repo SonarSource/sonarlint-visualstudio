@@ -20,6 +20,4 @@
 
 namespace SonarLint.VisualStudio.SLCore.Service.Hotspot;
 
-public record CheckStatusChangePermittedParams(string connectionId, string hotspotKey)
-{
-}
+public record CheckStatusChangePermittedParams(string connectionId, string hotspotKey);

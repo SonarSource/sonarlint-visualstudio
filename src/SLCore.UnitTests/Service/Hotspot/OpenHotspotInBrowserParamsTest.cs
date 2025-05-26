@@ -18,17 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Service.Hotspot;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Hotspot;
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Hotspot;
 
-[JsonRpcClass("hotspot")]
-public interface IHotspotSlCoreService : ISLCoreService
+[TestClass]
+public class OpenHotspotInBrowserParamsTest
 {
-    Task<CheckStatusChangePermittedResponse> CheckStatusChangePermittedAsync(CheckStatusChangePermittedParams parameters);
+    [TestMethod]
+    public void Serialized_AsExpected()
+    {
+        var expected = """
+                       {
+                         "configScopeId": "CONFIG_SCOPE_ID",
+                         "hotspotKey": "hotspotKey"
+                       }
+                       """;
 
-    Task ChangeStatusAsync(ChangeHotspotStatusParams parameters);
+        var changeIssueStatusParams = new OpenHotspotInBrowserParams("CONFIG_SCOPE_ID", "hotspotKey");
 
-    void OpenHotspotInBrowser(OpenHotspotInBrowserParams parameters);
+        JsonConvert.SerializeObject(changeIssueStatusParams, Formatting.Indented).Should().Be(expected);
+    }
 }

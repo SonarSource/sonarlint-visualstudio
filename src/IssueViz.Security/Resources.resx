@@ -236,4 +236,10 @@ Please check the logs for more details.</value>
   <data name="HotspotStatus_ToReview" xml:space="preserve">
     <value>To Review</value>
   </data>
+  <data name="HotspotsControl_ViewInSonarQubeCloud" xml:space="preserve">
+    <value>View in SonarQube Cloud</value>
+  </data>
+  <data name="HotspotsControl_ViewInSonarQubeServer" xml:space="preserve">
+    <value>View in SonarQube Server</value>
+  </data>
 </root>

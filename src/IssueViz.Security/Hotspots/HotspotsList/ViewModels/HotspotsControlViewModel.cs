@@ -141,6 +141,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             activeDocumentFilePath = activeDocumentLocator.FindActiveDocument()?.FilePath;
             this.activeDocumentTracker = activeDocumentTracker;
             activeDocumentTracker.ActiveDocumentChanged += OnActiveDocumentChanged;
+            IsCloud = IsCurrentConfigurationToCloud(this.activeSolutionBoundTracker.CurrentConfiguration);
 
             this.navigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
             SetCommands(locationNavigator);
@@ -197,6 +198,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             RefreshFiltering();
         }
 
+        public Task ViewHotspotInBrowserAsync() => reviewHotspotsService.OpenHotspotAsync(SelectedHotspot.Hotspot.Issue.IssueServerKey);
+
         /// <summary>
         /// Allow the observable collection <see cref="Hotspots"/> to be modified from non-UI thread.
         /// </summary>
@@ -230,7 +233,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             activeDocumentTracker.ActiveDocumentChanged -= OnActiveDocumentChanged;
         }
 
-        private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args) => IsCloud = args.Configuration?.Project?.ServerConnection is ServerConnection.SonarCloud;
+        private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args) => IsCloud = IsCurrentConfigurationToCloud(args.Configuration);
 
         private void OnActiveDocumentChanged(object sender, ActiveDocumentChangedEventArgs e)
         {
@@ -266,5 +269,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             var prioritiesToShow = PriorityFilters.Where(x => x.IsSelected).Select(x => x.HotspotPriority);
             return source.Where(x => prioritiesToShow.Contains(x.HotspotPriority));
         }
+
+        private static bool IsCurrentConfigurationToCloud(BindingConfiguration bindingConfiguration) => bindingConfiguration?.Project?.ServerConnection is ServerConnection.SonarCloud;
     }
 }

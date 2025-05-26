@@ -60,4 +60,6 @@ internal sealed partial class HotspotsControl : UserControl
             ViewModel.UpdatePriorityFilter(vm, !vm.IsSelected);
         }
     }
+
+    private async void ViewHotspotInBrowser_OnClick(object sender, RoutedEventArgs e) => await ViewModel.ViewHotspotInBrowserAsync();
 }
