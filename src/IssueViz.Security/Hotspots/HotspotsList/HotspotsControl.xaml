@@ -96,7 +96,7 @@
 
             <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource {x:Static vsShell:VsResourceKeys.ComboBoxStyleKey}}" />
 
-            <ControlTemplate x:Key="BorderedContentTemplate" TargetType="ContentControl">
+            <ControlTemplate x:Key="PriorityFilterControlTemplate" TargetType="ContentControl">
                 <StackPanel Orientation="Horizontal">
                     <Border Height="18" BorderThickness="1,0,0,0" 
                             BorderBrush="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBorderKey}}"/>
@@ -153,13 +153,13 @@
                 </Grid.ColumnDefinitions>
 
                 <ContentControl Grid.Column="0" DataContext="{Binding Path=PriorityFilters[0]}" 
-                                Template="{StaticResource BorderedContentTemplate}" />
+                                Template="{StaticResource PriorityFilterControlTemplate}" />
 
                 <ContentControl Grid.Column="1" DataContext="{Binding Path=PriorityFilters[1]}" 
-                                Template="{StaticResource BorderedContentTemplate}" />
+                                Template="{StaticResource PriorityFilterControlTemplate}" />
 
                 <ContentControl Grid.Column="2" DataContext="{Binding Path=PriorityFilters[2]}" 
-                                Template="{StaticResource BorderedContentTemplate}" />
+                                Template="{StaticResource PriorityFilterControlTemplate}" />
             </Grid>
         </Grid>
 
