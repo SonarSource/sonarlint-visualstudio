@@ -132,6 +132,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
 
     private async Task UpdateConfigurationScopeForCurrentSolutionAsync()
     {
+        // this case does not follow the pattern of implementing the IRequireInitialization as it would not be worth the effort 
         await activeSolutionBoundTracker.InitializationProcessor.InitializeAsync();
         configScopeUpdater.UpdateConfigScopeForCurrentSolution(activeSolutionBoundTracker.CurrentConfiguration.Project);
     }
