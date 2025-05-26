@@ -20,6 +20,7 @@
 
             <hotspotsList:PriorityToBackgroundConverter x:Key="PriorityToBackgroundConverter" />
             <hotspotsList:PriorityToHotspotCountConverter x:Key="PriorityToHotspotCountConverter" />
+            <hotspotsList:HotspotStatusToLocalizedStatusConverter x:Key="HotspotStatusToLocalizedStatusConverter" />
             <core:NullableSelectedItemConverter x:Key="NullableSelectedItemConverter"/>
             <commands:NavigateToRuleDescriptionCommandConverter x:Key="NavigateToRuleDescriptionCommandConverter" />
             <core:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
@@ -261,6 +262,23 @@
                         <DataTemplate>
                             <TextBlock Text="{Binding HotspotPriority}" 
                                        Style="{StaticResource PriorityColumnCellTextBlockStyle}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="HotspotStatus" Header="{x:Static res:Resources.HotspotsControl_StatusColumnHeader}" Width="95">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding HotspotStatus, Converter={StaticResource HotspotStatusToLocalizedStatusConverter}}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource CellTextBlockStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ExistsOnServer}" Value="False">
+                                                <Setter Property="ToolTip" Value="{x:Static res:Resources.HotspotControl_LocalHotspotStatusTooltip}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

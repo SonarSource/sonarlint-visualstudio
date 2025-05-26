@@ -79,6 +79,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The hotspots not yet present on the server need to be fixed locally..
+        /// </summary>
+        public static string HotspotControl_LocalHotspotStatusTooltip {
+            get {
+                return ResourceManager.GetString("HotspotControl_LocalHotspotStatusTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Code.
         /// </summary>
         public static string HotspotsControl_CodeColumnHeader {
@@ -210,6 +219,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string HotspotsControl_SonarQubeTooltip {
             get {
                 return ResourceManager.GetString("HotspotsControl_SonarQubeTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Status.
+        /// </summary>
+        public static string HotspotsControl_StatusColumnHeader {
+            get {
+                return ResourceManager.GetString("HotspotsControl_StatusColumnHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to To Review.
+        /// </summary>
+        public static string HotspotStatus_ToReview {
+            get {
+                return ResourceManager.GetString("HotspotStatus_ToReview", resourceCulture);
             }
         }
         
