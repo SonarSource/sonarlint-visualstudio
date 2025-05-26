@@ -22,6 +22,4 @@ using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Hotspot;
 
-public record ChangeHotspotStatusParams(string configurationScopeId, string hotspotKey, HotspotStatus newStatus)
-{
-}
+public record ChangeHotspotStatusParams(string configurationScopeId, string hotspotKey, HotspotStatus newStatus);

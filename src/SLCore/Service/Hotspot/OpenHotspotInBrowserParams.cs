@@ -18,17 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
-
 namespace SonarLint.VisualStudio.SLCore.Service.Hotspot;
 
-[JsonRpcClass("hotspot")]
-public interface IHotspotSlCoreService : ISLCoreService
-{
-    Task<CheckStatusChangePermittedResponse> CheckStatusChangePermittedAsync(CheckStatusChangePermittedParams parameters);
-
-    Task ChangeStatusAsync(ChangeHotspotStatusParams parameters);
-
-    void OpenHotspotInBrowser(OpenHotspotInBrowserParams parameters);
-}
+public record OpenHotspotInBrowserParams(string configScopeId, string hotspotKey);
