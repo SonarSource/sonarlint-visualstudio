@@ -20,6 +20,4 @@
 
 namespace SonarLint.VisualStudio.SLCore.Service.Hotspot;
 
-public record OpenHotspotInBrowserParams(string configScopeId, string hotspotKey)
-{
-}
+public record OpenHotspotInBrowserParams(string configScopeId, string hotspotKey);
