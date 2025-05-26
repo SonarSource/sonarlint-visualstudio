@@ -19,6 +19,7 @@
             </ResourceDictionary.MergedDictionaries>
 
             <hotspotsList:PriorityToBackgroundConverter x:Key="PriorityToBackgroundConverter" />
+            <hotspotsList:PriorityToHotspotCountConverter x:Key="PriorityToHotspotCountConverter" />
             <core:NullableSelectedItemConverter x:Key="NullableSelectedItemConverter"/>
             <commands:NavigateToRuleDescriptionCommandConverter x:Key="NavigateToRuleDescriptionCommandConverter" />
             <core:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
@@ -64,7 +65,70 @@
                 </Style.Triggers>
             </Style>
 
+            <Style x:Key="PriorityFilterBorderStyle" TargetType="Button">
+                <Setter Property="Margin" Value="5, 3"/>
+                <Setter Property="Padding" Value="2"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}"/>
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.AccentLightKey}}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverOverSelectedIconBorderKey}}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                    BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Path=IsSelected}" Value="False">
+                        <Setter Property="BorderThickness" Value="0" />
+                        <Setter Property="Background" Value="Transparent" />
+                    </DataTrigger>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="BorderThickness" Value="1" />
+                        <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverKey}}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
             <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource {x:Static vsShell:VsResourceKeys.ComboBoxStyleKey}}" />
+
+            <ControlTemplate x:Key="PriorityFilterControlTemplate" TargetType="ContentControl">
+                <StackPanel Orientation="Horizontal">
+                    <Border Height="18" BorderThickness="1,0,0,0" 
+                            BorderBrush="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBorderKey}}"/>
+                    <Button Style="{StaticResource PriorityFilterBorderStyle}" Click="PriorityButton_OnClick" >
+                        <Button.Content>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Rectangle Grid.Column="0" Width="13" Height="13"
+                                           Fill="{Binding Path=HotspotPriority, Converter={StaticResource PriorityToBackgroundConverter}}"
+                                           StrokeThickness="2" RadiusX="4" RadiusY="4" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Margin="5,0,2,0" VerticalAlignment="Center">
+                                    <TextBlock.Text>
+                                        <MultiBinding Converter="{StaticResource PriorityToHotspotCountConverter}">
+                                            <Binding ElementName="HotspotsDataGrid" Path="ItemsSource" />
+                                            <!-- we need an explicit binding to IsSelected property to make sue that the converter is triggered when its value changes -->
+                                            <Binding Path="IsSelected"/>
+                                            <Binding Path="HotspotPriority"/>
+                                            <!-- this is needed to make sure that the converter is triggered when the hotspots list changes -->
+                                            <Binding ElementName="HotspotsDataGrid" Path="ItemsSource.Count" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                                <TextBlock Grid.Column="2" Text="{Binding Path=HotspotPriority}" Margin="2,0" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Button.Content>
+                    </Button>
+                </StackPanel>
+            </ControlTemplate>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid UseLayoutRounding="True">
@@ -79,10 +143,28 @@
         <Grid Grid.Row="0" Background="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarGradientBeginKey}}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             
             <ComboBox ItemsSource="{Binding Path=LocationFilters}" SelectedItem="{Binding Path=SelectedLocationFilter}" 
-                      DisplayMemberPath="DisplayName" Margin="5,3" MinWidth="150"/>
+                      DisplayMemberPath="DisplayName" Margin="7,3" MinWidth="150"/>
+
+            <Grid Grid.Column="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <ContentControl Grid.Column="0" DataContext="{Binding Path=PriorityFilters[0]}" 
+                                Template="{StaticResource PriorityFilterControlTemplate}" />
+
+                <ContentControl Grid.Column="1" DataContext="{Binding Path=PriorityFilters[1]}" 
+                                Template="{StaticResource PriorityFilterControlTemplate}" />
+
+                <ContentControl Grid.Column="2" DataContext="{Binding Path=PriorityFilters[2]}" 
+                                Template="{StaticResource PriorityFilterControlTemplate}" />
+            </Grid>
         </Grid>
 
         <DataGrid x:Name="HotspotsDataGrid" Grid.Row="1" Grid.Column="0" 
@@ -174,7 +256,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>-->
-                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Hotspot.HotspotPriority" Header="{x:Static res:Resources.HotspotsControl_PriorityColumnHeader}" Width="90"  MinWidth="64">
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="HotspotPriority" Header="{x:Static res:Resources.HotspotsControl_PriorityColumnHeader}" Width="90"  MinWidth="64">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding HotspotPriority}" 
