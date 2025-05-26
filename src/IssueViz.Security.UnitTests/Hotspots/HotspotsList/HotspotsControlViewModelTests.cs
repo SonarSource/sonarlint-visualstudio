@@ -110,11 +110,11 @@ public class HotspotsControlViewModelTests
     [TestMethod]
     public void Ctor_InitializesLocationFilters()
     {
-        testSubject.LocationFilters.Should().HaveCount(2);
-        testSubject.LocationFilters[0].LocationFilter.Should().Be(LocationFilter.CurrentDocument);
-        testSubject.LocationFilters[0].DisplayName.Should().Be(Resources.HotspotsControl_CurrentDocumentFilter);
-        testSubject.LocationFilters[1].LocationFilter.Should().Be(LocationFilter.OpenDocuments);
-        testSubject.LocationFilters[1].DisplayName.Should().Be(Resources.HotspotsControl_OpenDocumentsFilter);
+        HotspotsControlViewModel.LocationFilters.Should().HaveCount(2);
+        HotspotsControlViewModel.LocationFilters[0].LocationFilter.Should().Be(LocationFilter.CurrentDocument);
+        HotspotsControlViewModel.LocationFilters[0].DisplayName.Should().Be(Resources.HotspotsControl_CurrentDocumentFilter);
+        HotspotsControlViewModel.LocationFilters[1].LocationFilter.Should().Be(LocationFilter.OpenDocuments);
+        HotspotsControlViewModel.LocationFilters[1].DisplayName.Should().Be(Resources.HotspotsControl_OpenDocumentsFilter);
 
         testSubject.SelectedLocationFilter.Should().NotBeNull();
         testSubject.SelectedLocationFilter.LocationFilter.Should().Be(LocationFilter.CurrentDocument);
@@ -573,7 +573,7 @@ public class HotspotsControlViewModelTests
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 
-        testSubject.SelectedLocationFilter = testSubject.LocationFilters.Single(x => x.LocationFilter == LocationFilter.OpenDocuments);
+        testSubject.SelectedLocationFilter = HotspotsControlViewModel.LocationFilters.Single(x => x.LocationFilter == LocationFilter.OpenDocuments);
 
         eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.SelectedLocationFilter)));
         eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.Hotspots)));
@@ -802,7 +802,7 @@ public class HotspotsControlViewModelTests
 
     private PriorityFilterViewModel GetPriorityFilter(HotspotPriority priority) => testSubject.PriorityFilters.Single(x => x.HotspotPriority == priority);
 
-    private LocationFilterViewModel GetLocationFilter(LocationFilter location) => testSubject.LocationFilters.Single(x => x.LocationFilter == location);
+    private LocationFilterViewModel GetLocationFilter(LocationFilter location) => HotspotsControlViewModel.LocationFilters.Single(x => x.LocationFilter == location);
 
     private HotspotsControlViewModel CreateTestSubject() =>
         new(hotspotsStore, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling, activeSolutionBoundTracker,
