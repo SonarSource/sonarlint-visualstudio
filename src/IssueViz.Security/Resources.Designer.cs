@@ -97,6 +97,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Current Document.
+        /// </summary>
+        public static string HotspotsControl_CurrentDocumentFilter {
+            get {
+                return ResourceManager.GetString("HotspotsControl_CurrentDocumentFilter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Description.
         /// </summary>
         public static string HotspotsControl_DescriptionColumnHeader {
@@ -147,6 +156,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string HotspotsControl_NotOnServerTooltip {
             get {
                 return ResourceManager.GetString("HotspotsControl_NotOnServerTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Open Documents.
+        /// </summary>
+        public static string HotspotsControl_OpenDocumentsFilter {
+            get {
+                return ResourceManager.GetString("HotspotsControl_OpenDocumentsFilter", resourceCulture);
             }
         }
         

@@ -221,4 +221,10 @@ Please check the logs for more details.</value>
   <data name="TaintToolWindowCaption" xml:space="preserve">
     <value>SonarQube Taint Vulnerabilities</value>
   </data>
+  <data name="HotspotsControl_CurrentDocumentFilter" xml:space="preserve">
+    <value>Current Document</value>
+  </data>
+  <data name="HotspotsControl_OpenDocumentsFilter" xml:space="preserve">
+    <value>Open Documents</value>
+  </data>
 </root>

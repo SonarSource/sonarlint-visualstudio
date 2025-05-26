@@ -21,9 +21,12 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
+using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -38,6 +41,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
     [TestClass]
     public class HotspotsControlViewModelTests
     {
+        private const string CurrentDocumentPath = "C:\\source\\myProj\\myFile.cs";
         private HotspotsControlViewModel testSubject;
         private ILocalHotspotsStore hotspotsStore;
         private INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand;
@@ -47,6 +51,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         private IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private IReviewHotspotsService reviewHotspotsService;
         private IMessageBox messageBox;
+        private IActiveDocumentLocator activeDocumentLocator;
+        private IActiveDocumentTracker activeDocumentTracker;
         private ObservableCollection<IAnalysisIssueVisualization> originalCollection;
 
         [TestInitialize]
@@ -60,10 +66,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
             reviewHotspotsService = Substitute.For<IReviewHotspotsService>();
             messageBox = Substitute.For<IMessageBox>();
-            testSubject = new HotspotsControlViewModel(hotspotsStore, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling, activeSolutionBoundTracker,
-                reviewHotspotsService, messageBox);
+            activeDocumentLocator = Substitute.For<IActiveDocumentLocator>();
+            activeDocumentTracker = Substitute.For<IActiveDocumentTracker>();
 
             MockTestSubject();
+            testSubject = new HotspotsControlViewModel(hotspotsStore, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling, activeSolutionBoundTracker,
+                reviewHotspotsService, messageBox, activeDocumentLocator, activeDocumentTracker);
         }
 
         [TestMethod]
@@ -97,6 +105,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             testSubject.Hotspots[2].Hotspot.Should().Be(issueViz3);
             testSubject.Hotspots[2].HotspotPriority.Should().Be(HotspotPriority.High);
             testSubject.Hotspots[2].HotspotStatus.Should().Be(HotspotStatus.Acknowledged);
+        }
+
+        [TestMethod]
+        public void Ctor_InitializesLocationFilters()
+        {
+            testSubject.LocationFilters.Should().HaveCount(2);
+            testSubject.LocationFilters[0].LocationFilter.Should().Be(LocationFilter.CurrentDocument);
+            testSubject.LocationFilters[0].DisplayName.Should().Be(Resources.HotspotsControl_CurrentDocumentFilter);
+            testSubject.LocationFilters[1].LocationFilter.Should().Be(LocationFilter.OpenDocuments);
+            testSubject.LocationFilters[1].DisplayName.Should().Be(Resources.HotspotsControl_OpenDocumentsFilter);
+
+            testSubject.SelectedLocationFilter.Should().NotBeNull();
+            testSubject.SelectedLocationFilter.LocationFilter.Should().Be(LocationFilter.CurrentDocument);
+        }
+
+        [TestMethod]
+        public void Ctor_InitializesActiveDocument()
+        {
+            activeDocumentLocator.Received(1).FindActiveDocument();
+            activeDocumentTracker.Received(1).ActiveDocumentChanged += Arg.Any<EventHandler<ActiveDocumentChangedEventArgs>>();
+        }
+
+        [TestMethod]
+        public void Ctor_RegisterToSelectionChangedEvent()
+        {
+            selectionService.Received(1).SelectedIssueChanged += Arg.Any<EventHandler>();
+            selectionService.ReceivedCalls().Should().HaveCount(1);
         }
 
         [TestMethod]
@@ -143,6 +178,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         }
 
         [TestMethod]
+        public async Task UpdateHotspotsListAsync_RaisesEvents()
+        {
+            var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler;
+
+            await testSubject.UpdateHotspotsListAsync();
+
+            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.Hotspots)));
+        }
+
+        [TestMethod]
         public void IssueChangedEventRaised_RunsOnBackgroundThread()
         {
             RaiseStoreIssuesChangedEvent(Array.Empty<IAnalysisIssueVisualization>());
@@ -163,18 +209,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         }
 
         [TestMethod]
-        public void Ctor_RegisterToSelectionChangedEvent()
-        {
-            selectionService.Received(1).SelectedIssueChanged += Arg.Any<EventHandler>();
-            selectionService.ReceivedCalls().Should().HaveCount(1);
-        }
-
-        [TestMethod]
-        public void Dispose_UnregisterFromSelectionChangedEvent()
+        public void Dispose_UnregisterEvents()
         {
             testSubject.Dispose();
 
             selectionService.Received(1).SelectedIssueChanged -= Arg.Any<EventHandler>();
+            activeDocumentTracker.Received(1).ActiveDocumentChanged -= Arg.Any<EventHandler<ActiveDocumentChangedEventArgs>>();
         }
 
         [TestMethod]
@@ -421,6 +461,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         }
 
         [TestMethod]
+        [DataRow(HotspotStatus.Fixed)]
+        [DataRow(HotspotStatus.Safe)]
+        public async Task ChangeHotspotStatusAsync_Succeeds_HotspotStatusFixed_RaisesEvents(HotspotStatus newStatus)
+        {
+            var hotspotKey = "ServerKey";
+            await MockSelectedHotspot(hotspotKey);
+            MockReviewHotspot(hotspotKey, newStatus, true);
+            var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler;
+
+            await testSubject.ChangeHotspotStatusAsync(newStatus);
+
+            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.Hotspots)));
+        }
+
+        [TestMethod]
         [DataRow(HotspotStatus.ToReview)]
         [DataRow(HotspotStatus.Acknowledged)]
         public async Task ChangeHotspotStatusAsync_Succeeds_HotspotStatusNotFixed_DoesNotRemoveViewModel(HotspotStatus newStatus)
@@ -433,6 +489,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
 
             testSubject.Hotspots.Should().Contain(x => x.Hotspot.Issue.IssueServerKey == hotspotKey);
             messageBox.DidNotReceive().Show(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<MessageBoxButton>(), Arg.Any<MessageBoxImage>());
+        }
+
+        [TestMethod]
+        [DataRow(HotspotStatus.ToReview)]
+        [DataRow(HotspotStatus.Acknowledged)]
+        public async Task ChangeHotspotStatusAsync_Succeeds_HotspotStatusNotFixed_DoesNotRaiseEvents(HotspotStatus newStatus)
+        {
+            var hotspotKey = "ServerKey";
+            await MockSelectedHotspot(hotspotKey);
+            MockReviewHotspot(hotspotKey, newStatus, true);
+            var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler;
+
+            await testSubject.ChangeHotspotStatusAsync(newStatus);
+
+            eventHandler.DidNotReceive().Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.Hotspots)));
         }
 
         [TestMethod]
@@ -459,6 +531,80 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             testSubject.Dispose();
 
             activeSolutionBoundTracker.ReceivedWithAnyArgs(1).SolutionBindingChanged -= Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
+        }
+
+        [TestMethod]
+        public void SelectedLocationFilter_Set_RaisesPropertyChanged()
+        {
+            var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler;
+
+            testSubject.SelectedLocationFilter = testSubject.LocationFilters.Single(x => x.LocationFilter == LocationFilter.OpenDocuments);
+
+            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.SelectedLocationFilter)));
+            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.Hotspots)));
+        }
+
+        [TestMethod]
+        public async Task SelectedLocationFilter_OpenDocumentsFilter_ShowsAllHotspots()
+        {
+            MockActiveDocument();
+            await MockHotspotLists(CreateMockedLocalHotspots(CurrentDocumentPath), CreateMockedLocalHotspots("C:\\myProj\\OtherFile.cs"), CreateMockedLocalHotspots(CurrentDocumentPath));
+
+            testSubject.SelectedLocationFilter = testSubject.LocationFilters.Single(x => x.LocationFilter == LocationFilter.OpenDocuments);
+
+            testSubject.Hotspots.Should().HaveCount(3);
+            testSubject.Hotspots.Where(x => x.Hotspot.FilePath == CurrentDocumentPath).Should().HaveCount(2);
+            testSubject.Hotspots.Where(x => x.Hotspot.FilePath != CurrentDocumentPath).Should().HaveCount(1);
+        }
+
+        [TestMethod]
+        public async Task SelectedLocationFilter_CurrentDocumentFilter_ShowsOnlyHotspotsForActiveDocument()
+        {
+            MockActiveDocument();
+            var localHotspot = CreateMockedLocalHotspots(CurrentDocumentPath);
+            var localHotspot2 = CreateMockedLocalHotspots(CurrentDocumentPath);
+            await MockHotspotLists(localHotspot, CreateMockedLocalHotspots("C:\\myProj\\OtherFile.cs"), localHotspot2);
+
+            testSubject.SelectedLocationFilter = testSubject.LocationFilters.Single(x => x.LocationFilter == LocationFilter.CurrentDocument);
+
+            testSubject.Hotspots.Should().HaveCount(2);
+            testSubject.Hotspots.Should().Contain(x => x.Hotspot == localHotspot.Visualization);
+            testSubject.Hotspots.Should().Contain(x => x.Hotspot == localHotspot2.Visualization);
+        }
+
+        [TestMethod]
+        public async Task SelectedLocationFilter_NoFilter_ShowsAllHotspots()
+        {
+            MockActiveDocument();
+            await MockHotspotLists(CreateMockedLocalHotspots(CurrentDocumentPath), CreateMockedLocalHotspots("C:\\myProj\\OtherFile.cs"), CreateMockedLocalHotspots(CurrentDocumentPath));
+
+            testSubject.SelectedLocationFilter = null;
+
+            testSubject.Hotspots.Should().HaveCount(3);
+        }
+
+        [TestMethod]
+        public async Task ActiveDocumentChanged_RaisesEventsAndFiltersHotspotsCorrectly()
+        {
+            var localHotspot = CreateMockedLocalHotspots("C:\\myProj\\OtherFile.cs");
+            await MockHotspotLists(CreateMockedLocalHotspots(CurrentDocumentPath), localHotspot, CreateMockedLocalHotspots(CurrentDocumentPath));
+
+            MockActiveDocument(localHotspot.Visualization.FilePath);
+
+            testSubject.Hotspots.Should().HaveCount(1);
+            testSubject.Hotspots.Should().Contain(x => x.Hotspot == localHotspot.Visualization);
+        }
+
+        [TestMethod]
+        public void ActiveDocumentChanged_RaisesEvents()
+        {
+            var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler;
+
+            MockActiveDocument("C:\\myProj\\OtherFile.cs");
+
+            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.Hotspots)));
         }
 
         private void MockTestSubject()
@@ -508,6 +654,27 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             hotspotsStore.GetAllLocalHotspots().Returns([new LocalHotspot(analysisIssueVisualization, default, status)]);
             await testSubject.UpdateHotspotsListAsync();
             testSubject.SelectedHotspot = testSubject.Hotspots.Single();
+        }
+
+        private async Task MockHotspotLists(params LocalHotspot[] localHotspots)
+        {
+            hotspotsStore.GetAllLocalHotspots().Returns(localHotspots);
+            await testSubject.UpdateHotspotsListAsync();
+        }
+
+        private LocalHotspot CreateMockedLocalHotspots(string filePath)
+        {
+            var issueViz = Substitute.For<IAnalysisIssueVisualization>();
+            issueViz.FilePath.Returns(filePath);
+
+            return new LocalHotspot(issueViz, default, default);
+        }
+
+        private void MockActiveDocument(string filePath = CurrentDocumentPath)
+        {
+            var textDocument = Substitute.For<ITextDocument>();
+            textDocument.FilePath.Returns(filePath);
+            activeDocumentTracker.ActiveDocumentChanged += Raise.EventWith(new ActiveDocumentChangedEventArgs(textDocument));
         }
     }
 }
