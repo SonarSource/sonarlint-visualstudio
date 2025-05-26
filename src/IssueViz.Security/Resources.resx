@@ -229,6 +229,7 @@ Please check the logs for more details.</value>
   </data>
   <data name="HotspotsControl_OpenDocumentsFilter" xml:space="preserve">
     <value>Open Documents</value>
+  </data>
   <data name="HotspotControl_LocalHotspotStatusTooltip" xml:space="preserve">
     <value>The hotspots not yet present on the server need to be fixed locally.</value>
   </data>
