@@ -18,18 +18,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
 
-internal class LocationFilterViewModel(LocationFilter locationFilter, string displayName) : ViewModelBase
+internal class PriorityFilterViewModel(HotspotPriority hotspotPriority) : ViewModelBase
 {
-    public LocationFilter LocationFilter { get; } = locationFilter;
-    public string DisplayName { get; } = displayName;
-}
+    private bool isSelected = true;
+    public HotspotPriority HotspotPriority { get; } = hotspotPriority;
 
-public enum LocationFilter
-{
-    CurrentDocument,
-    OpenDocuments,
+    public bool IsSelected
+    {
+        get => isSelected;
+        set
+        {
+            isSelected = value;
+            RaisePropertyChanged();
+        }
+    }
 }
