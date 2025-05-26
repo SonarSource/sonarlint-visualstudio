@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
@@ -126,6 +127,13 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             telemetryMigrationProvider.Get(),
             new LanguageSpecificRequirements(new JsTsRequirementsDto(nodeLocator.Get(), esLintBridgeLocator.Get()))));
 
+        UpdateConfigurationScopeForCurrentSolutionAsync().Forget();
+    }
+
+    private async Task UpdateConfigurationScopeForCurrentSolutionAsync()
+    {
+        // this case does not follow the pattern of implementing the IRequireInitialization as it would not be worth the effort 
+        await activeSolutionBoundTracker.InitializationProcessor.InitializeAsync();
         configScopeUpdater.UpdateConfigScopeForCurrentSolution(activeSolutionBoundTracker.CurrentConfiguration.Project);
     }
 
