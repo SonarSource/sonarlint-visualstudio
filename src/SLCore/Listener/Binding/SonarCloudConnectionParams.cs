@@ -24,6 +24,6 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Binding;
 
 public record SonarCloudConnectionParams(
     string organizationKey,
-    string tokenName,
-    string tokenValue,
+    string? tokenName,
+    string? tokenValue,
     SonarCloudRegion region);

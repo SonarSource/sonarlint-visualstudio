@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -22,4 +22,4 @@ using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Telemetry;
 
-public record AnalysisDoneOnSingleLanguageParams(Language language, int analysisTimeMs);
+public record AnalysisDoneOnSingleLanguageParams(Language? language, int analysisTimeMs);

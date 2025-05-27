@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-
 namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models
 {
     public record TelemetryClientConstantAttributesDto(
@@ -27,5 +25,5 @@ namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models
         string productName,
         string productVersion,
         string ideVersion,
-        Dictionary<string, object> additionalAttributes);
+        Dictionary<string, object>? additionalAttributes);
 }
