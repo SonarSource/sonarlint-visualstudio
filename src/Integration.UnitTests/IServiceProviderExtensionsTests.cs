@@ -18,11 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -38,19 +35,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void TestInitialize()
         {
             // Create a non-MEF service
-            this.serviceInstance = new TestService();
+            serviceInstance = new TestService();
 
             // Create a MEF service
-            this.mefServiceInstance = new TestMefService();
-            var mefExports = MefTestHelpers.CreateExport<IMefService>(this.mefServiceInstance);
+            mefServiceInstance = new TestMefService();
+            var mefExports = MefTestHelpers.CreateExport<IMefService>(mefServiceInstance);
             var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
 
             // Register services
             var sp = new ConfigurableServiceProvider(false);
-            sp.RegisterService(typeof(IService), this.serviceInstance);
+            sp.RegisterService(typeof(IService), serviceInstance);
             sp.RegisterService(typeof(SComponentModel), mefModel, replaceExisting: true);
 
-            this.serviceProvider = sp;
+            serviceProvider = sp;
         }
 
         #region Tests
@@ -91,18 +88,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void IServiceProviderExtensions_GetServiceOfT_ReturnsServiceT()
         {
             // Act
-            IService actual = this.serviceProvider.GetService<IService>();
+            IService actual = serviceProvider.GetService<IService>();
 
             // Assert
             actual.Should().NotBeNull();
-            actual.Should().Be(this.serviceInstance);
+            actual.Should().Be(serviceInstance);
         }
 
         [TestMethod]
         public void IServiceProviderExtensions_GetServiceOfT_NotFound_ReturnsNull()
         {
             // Act
-            IMissingService service = this.serviceProvider.GetService<IMissingService>();
+            IMissingService service = serviceProvider.GetService<IMissingService>();
 
             // Assert
             service.Should().BeNull();
@@ -112,54 +109,65 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void IServiceProviderExtensions_GetServiceOfTU_ReturnsServiceU()
         {
             // Act
-            IOther actual = this.serviceProvider.GetService<IService, IOther>();
+            IOther actual = serviceProvider.GetService<IService, IOther>();
 
             // Assert
             actual.Should().NotBeNull();
-            actual.Should().Be(this.serviceInstance);
+            actual.Should().Be(serviceInstance);
         }
 
         [TestMethod]
         public void IServiceProviderExtensions_GetMefServiceOfT_ReturnsServiceT()
         {
             // Act
-            IMefService actual = this.serviceProvider.GetMefService<IMefService>();
+            IMefService actual = serviceProvider.GetMefService<IMefService>();
 
             // Assert
             actual.Should().NotBeNull();
-            actual.Should().Be(this.mefServiceInstance);
+            actual.Should().Be(mefServiceInstance);
         }
 
         [TestMethod]
         public void IServiceProviderExtensions_GetMefServiceOfT_NotFound_ReturnsNull()
         {
-            using (new AssertIgnoreScope())
-            {
-                // Act
-                IMissingMefService mefService = this.serviceProvider.GetMefService<IMissingMefService>();
+            // Act
+            IMissingMefService mefService = serviceProvider.GetMefService<IMissingMefService>();
 
-                // Assert
-                mefService.Should().BeNull();
-            }
+            // Assert
+            mefService.Should().BeNull();
         }
 
         #endregion Tests
 
         #region Test Services and Interfaces
 
-        private interface IMissingService { }
+        private interface IMissingService
+        {
+        }
 
-        private interface IService { }
+        private interface IService
+        {
+        }
 
-        private interface IOther { }
+        private interface IOther
+        {
+        }
 
-        private class TestService : IService, IOther { }
+        private class TestService : IService, IOther
+        {
+        }
 
-        private interface IMissingMefService { }
+        private interface IMissingMefService
+        {
+        }
 
-        private interface IMefService { }
+        private interface IMefService
+        {
+        }
 
-        private class TestMefService : IMefService { }
+        private class TestMefService : IMefService
+        {
+        }
 
         #endregion Test Services and Interfaces
     }

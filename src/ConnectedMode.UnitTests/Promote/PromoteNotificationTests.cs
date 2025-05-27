@@ -85,7 +85,6 @@ public class PromoteNotificationTests
     [TestMethod]
     public void PromoteConnectedMode_WhenConfigScopeMissMatch_DoesNotShowNotification()
     {
-        using var _ = new AssertIgnoreScope();
         testSubject.PromoteConnectedMode("ANOTHER_CONFIG_SCOPE_ID", languageToPromote);
 
         notificationService.DidNotReceive().ShowNotification(Arg.Any<INotification>());
@@ -94,7 +93,6 @@ public class PromoteNotificationTests
     [TestMethod]
     public void PromoteConnectedMode_WhenInConnectedMode_DoesNotShowNotification()
     {
-        using var _ = new AssertIgnoreScope();
         var inConnectedMode = new BindingConfiguration(
             new BoundServerProject("test", "test", new ServerConnection.SonarQube(new Uri("https://localhost:9000"))),
             SonarLintMode.Connected,
@@ -154,7 +152,7 @@ public class PromoteNotificationTests
     public void PromoteConnectedMode_SonarQubeCloudAction_NavigatesToCorrectUrl()
     {
         testSubject.PromoteConnectedMode(DefaultConfigurationScopeId, languageToPromote);
-        var notification = (Notification) notificationService.ReceivedCalls().Single().GetArguments()[0];
+        var notification = (Notification)notificationService.ReceivedCalls().Single().GetArguments()[0];
         var sonarQubeCloudAction = notification.Actions.First(a => a.CommandText == Resources.PromoteSonarQubeCloud);
 
         sonarQubeCloudAction.Action(null);
@@ -166,7 +164,7 @@ public class PromoteNotificationTests
     public void PromoteConnectedMode_LearnMoreAction_NavigatesToCorrectUrl()
     {
         testSubject.PromoteConnectedMode(DefaultConfigurationScopeId, languageToPromote);
-        var notification = (Notification) notificationService.ReceivedCalls().Single().GetArguments()[0];
+        var notification = (Notification)notificationService.ReceivedCalls().Single().GetArguments()[0];
         var learnMoreAction = notification.Actions.First(a => a.CommandText == Resources.PromoteLearnMore);
 
         learnMoreAction.Action(null);

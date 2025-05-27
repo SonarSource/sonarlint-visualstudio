@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private MockableInitializationProcessor createdInitializationProcessor;
         private NoOpThreadHandler threadHandling;
 
-        private uint boundSolutionUiContextCookie = 999;
+        private readonly uint boundSolutionUiContextCookie = 999;
         private bool isMockServiceConnected;
 
         [TestInitialize]
@@ -92,8 +92,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
 
         [TestMethod]
-        public void MefCtor_CheckIsSingleton() =>
-            MefTestHelpers.CheckIsSingletonMefComponent<ActiveSolutionBoundTracker>();
+        public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ActiveSolutionBoundTracker>();
 
         [TestMethod]
         public void ActiveSolutionBoundTracker_Initialisation_Unbound()
@@ -104,7 +103,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             Received.InOrder(() =>
             {
-                initializationProcessorFactory.Create<ActiveSolutionBoundTracker>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.SequenceEqual(initializationDependencies)), Arg.Any<Func<IThreadHandling, Task>>());
+                initializationProcessorFactory.Create<ActiveSolutionBoundTracker>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.SequenceEqual(initializationDependencies)),
+                    Arg.Any<Func<IThreadHandling, Task>>());
                 createdInitializationProcessor.InitializeAsync();
                 threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
                 vsMonitorMock.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out Arg.Any<uint>());
@@ -127,7 +127,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Connected, "Bound solution should report true activation");
             Received.InOrder(() =>
             {
-                initializationProcessorFactory.Create<ActiveSolutionBoundTracker>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.SequenceEqual(initializationDependencies)), Arg.Any<Func<IThreadHandling, Task>>());
+                initializationProcessorFactory.Create<ActiveSolutionBoundTracker>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.SequenceEqual(initializationDependencies)),
+                    Arg.Any<Func<IThreadHandling, Task>>());
                 createdInitializationProcessor.InitializeAsync();
                 threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
                 vsMonitorMock.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out Arg.Any<uint>());
@@ -272,12 +273,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             using var activeSolutionBoundTracker = CreateAndInitializeTestSubject();
 
             // Act
-            // Throwing errors will put the connection and binding out of sync, which
-            // cause a Debug.Assert in the product code that we need to suppress
-            using (new AssertIgnoreScope())
-            {
-                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true, "solution");
-            }
+            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true, "solution");
 
             // Assert
             activeSolutionBoundTracker.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone);
@@ -301,14 +297,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             using var activeSolutionBoundTracker = CreateAndInitializeTestSubject();
 
             // Act
-            // Throwing errors will put the connection and binding out of sync, which
-            // cause a Debug.Assert in the product code that we need to suppress
-            using (new AssertIgnoreScope())
-            {
-                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true, "solution");
-                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false, null);
-                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true, "solution");
-            }
+            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true, "solution");
+            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false, null);
+            activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true, "solution");
 
             // Assert
             testLogger.OutputStrings.Where(x => x.Contains("SonarQube (Server, Cloud) request failed:")).Should().HaveCount(3);
@@ -665,13 +656,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 createdInitializationProcessor = processor;
                 MockableInitializationProcessor.ConfigureWithWait(processor, tcs);
             });
-            return new ActiveSolutionBoundTracker(serviceProvider, activeSolutionTracker, configScopeUpdater, testLogger, gitEventsMonitor, configProvider, sonarQubeServiceMock, initializationProcessorFactory);
+            return new ActiveSolutionBoundTracker(serviceProvider, activeSolutionTracker, configScopeUpdater, testLogger, gitEventsMonitor, configProvider, sonarQubeServiceMock,
+                initializationProcessorFactory);
         }
 
         private ActiveSolutionBoundTracker CreateAndInitializeTestSubject()
         {
-            initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<ActiveSolutionBoundTracker>(threadHandling, new TestLogger(), processor => createdInitializationProcessor = processor);
-            var testSubject = new ActiveSolutionBoundTracker(serviceProvider, activeSolutionTracker, configScopeUpdater, testLogger, gitEventsMonitor, configProvider, sonarQubeServiceMock, initializationProcessorFactory);
+            initializationProcessorFactory
+                = MockableInitializationProcessor.CreateFactory<ActiveSolutionBoundTracker>(threadHandling, new TestLogger(), processor => createdInitializationProcessor = processor);
+            var testSubject = new ActiveSolutionBoundTracker(serviceProvider, activeSolutionTracker, configScopeUpdater, testLogger, gitEventsMonitor, configProvider, sonarQubeServiceMock,
+                initializationProcessorFactory);
             testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
             return testSubject;
         }

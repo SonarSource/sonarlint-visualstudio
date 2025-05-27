@@ -20,12 +20,8 @@
 
 using System.IO;
 using System.IO.Abstractions;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text.Projection;
-using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common;
 
@@ -48,16 +44,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         {
             var buffer = TaggerTestHelper.CreateBufferMock(filePath: null);
 
-            using (new AssertIgnoreScope())
-            {
-                var fileSystem = new Mock<IFileSystem>();
-                var testSubject = new TaggableBufferIndicator(fileSystem.Object);
+            var fileSystem = new Mock<IFileSystem>();
+            var testSubject = new TaggableBufferIndicator(fileSystem.Object);
 
-                var result = testSubject.IsTaggable(buffer.Object);
-                result.Should().BeFalse();
+            var result = testSubject.IsTaggable(buffer.Object);
+            result.Should().BeFalse();
 
-                fileSystem.Invocations.Count.Should().Be(0);
-            }
+            fileSystem.Invocations.Count.Should().Be(0);
         }
 
         [TestMethod]
