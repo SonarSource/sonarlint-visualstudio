@@ -37,62 +37,59 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger;
 [TestClass]
 public class TaggerProviderTests
 {
-    private Mock<ISonarErrorListDataSource> mockSonarErrorDataSource;
-    private Mock<IVsAwareAnalysisService> mockAnalysisService;
+    private ISonarErrorListDataSource mockSonarErrorDataSource;
+    private IVsAwareAnalysisService mockAnalysisService;
     private TestLogger logger;
-    private Mock<ISonarLanguageRecognizer> mockSonarLanguageRecognizer;
-    private Mock<ITaggableBufferIndicator> mockTaggableBufferIndicator;
+    private ISonarLanguageRecognizer mockSonarLanguageRecognizer;
+    private ITaggableBufferIndicator mockTaggableBufferIndicator;
 
     private TaggerProvider provider;
 
     private DummyTextDocumentFactoryService dummyDocumentFactoryService;
+    private IServiceProvider serviceProvider;
+    private IAnalysisRequester mockAnalysisRequester;
+    private IFileTracker mockFileTracker;
 
     [TestInitialize]
     public void SetUp()
     {
         // minimal setup to create a tagger
 
-        mockSonarErrorDataSource = new Mock<ISonarErrorListDataSource>();
-        mockAnalysisService = new Mock<IVsAwareAnalysisService>();
+        mockSonarErrorDataSource = Substitute.For<ISonarErrorListDataSource>();
+        mockAnalysisService = Substitute.For<IVsAwareAnalysisService>();
 
-        var mockServiceProvider = new Mock<IServiceProvider>();
-        var serviceProvider = mockServiceProvider.Object;
+        var mockServiceProvider = Substitute.For<IServiceProvider>();
+        serviceProvider = mockServiceProvider;
 
         dummyDocumentFactoryService = new DummyTextDocumentFactoryService();
 
         logger = new TestLogger();
 
-        mockSonarLanguageRecognizer = new Mock<ISonarLanguageRecognizer>();
+        mockSonarLanguageRecognizer = Substitute.For<ISonarLanguageRecognizer>();
 
-        mockTaggableBufferIndicator = new Mock<ITaggableBufferIndicator>();
-        mockTaggableBufferIndicator.Setup(x => x.IsTaggable(It.IsAny<ITextBuffer>())).Returns(true);
+        mockTaggableBufferIndicator = Substitute.For<ITaggableBufferIndicator>();
+        mockTaggableBufferIndicator.IsTaggable(Arg.Any<ITextBuffer>()).Returns(true);
 
-        var mockAnalysisRequester = new Mock<IAnalysisRequester>();
+        mockAnalysisRequester = Substitute.For<IAnalysisRequester>();
 
-        var mockFileTracker = new Mock<IFileTracker>();
+        mockFileTracker = Substitute.For<IFileTracker>();
 
-        provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, serviceProvider,
-            mockSonarLanguageRecognizer.Object, mockAnalysisService.Object, mockAnalysisRequester.Object,
-            mockTaggableBufferIndicator.Object, mockFileTracker.Object, logger);
+        provider = CreateTestSubject();
     }
 
     #region MEF tests
 
     [TestMethod]
-    public void CheckIsSingletonMefComponent()
-        => MefTestHelpers.CheckIsSingletonMefComponent<TaggerProvider>();
+    public void CheckIsSingletonMefComponent() => MefTestHelpers.CheckIsSingletonMefComponent<TaggerProvider>();
 
     [TestMethod]
-    public void MefCtor_CheckIsExported_TaggerProvider()
-        => MefTestHelpers.CheckTypeCanBeImported<TaggerProvider, ITaggerProvider>(GetRequiredExports());
+    public void MefCtor_CheckIsExported_TaggerProvider() => MefTestHelpers.CheckTypeCanBeImported<TaggerProvider, ITaggerProvider>(GetRequiredExports());
 
     [TestMethod]
-    public void MefCtor_CheckIsExported_DocumentEvents()
-        => MefTestHelpers.CheckTypeCanBeImported<TaggerProvider, IDocumentEvents>(GetRequiredExports());
+    public void MefCtor_CheckIsExported_DocumentEvents() => MefTestHelpers.CheckTypeCanBeImported<TaggerProvider, IDocumentEvents>(GetRequiredExports());
 
     [TestMethod]
-    public void MefCtor_Check_SameInstanceExported()
-        => MefTestHelpers.CheckMultipleExportsReturnSameInstance<TaggerProvider, ITaggerProvider, IDocumentEvents>(GetRequiredExports());
+    public void MefCtor_Check_SameInstanceExported() => MefTestHelpers.CheckMultipleExportsReturnSameInstance<TaggerProvider, ITaggerProvider, IDocumentEvents>(GetRequiredExports());
 
     private static Export[] GetRequiredExports() =>
     [
@@ -118,21 +115,21 @@ public class TaggerProviderTests
         tagger.Should().NotBeNull();
 
         VerifyAnalysisWasRequested();
-        mockAnalysisService.VerifyNoOtherCalls();
+        mockAnalysisService.ReceivedCalls().Should().HaveCount(2); // no other calls
     }
 
     [TestMethod]
     public void CreateTagger_should_return_null_when_buffer_is_not_taggable()
     {
         var doc = CreateMockedDocument("anyname");
-        mockTaggableBufferIndicator.Setup(x => x.IsTaggable(doc.TextBuffer)).Returns(false);
+        mockTaggableBufferIndicator.IsTaggable(doc.TextBuffer).Returns(false);
 
         var tagger = CreateTaggerForDocument(doc);
 
         tagger.Should().BeNull();
 
-        mockTaggableBufferIndicator.Verify(x => x.IsTaggable(doc.TextBuffer), Times.Once);
-        mockTaggableBufferIndicator.Verify(x => x.IsTaggable(It.IsAny<ITextBuffer>()), Times.Once);
+        mockTaggableBufferIndicator.Received(1).IsTaggable(doc.TextBuffer);
+        mockTaggableBufferIndicator.Received(1).IsTaggable(Arg.Any<ITextBuffer>());
     }
 
     [TestMethod]
@@ -293,8 +290,7 @@ public class TaggerProviderTests
         var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
             new string[]
             {
-                "file1.txt",
-                "D:\\BBB\\FILE3.xxx" // match should be case-insensitive
+                "file1.txt", "D:\\BBB\\FILE3.xxx" // match should be case-insensitive
             });
 
         actual.Should().BeEquivalentTo(trackers[0], trackers[2]);
@@ -306,32 +302,24 @@ public class TaggerProviderTests
         var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
 
         var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
-            new string[]
-            {
-                "unmatchedFile1.cs",
-                "file1.txt",
-                "c:\\aaa\\file2.cpp",
-                "unmatchedfile2.cpp",
-                "d:\\bbb\\file3.xxx"
-            });
+            new string[] { "unmatchedFile1.cs", "file1.txt", "c:\\aaa\\file2.cpp", "unmatchedfile2.cpp", "d:\\bbb\\file3.xxx" });
 
         actual.Should().BeEquivalentTo(trackers);
     }
 
-    private IIssueTracker[] CreateMockedIssueTrackers(params string[] filePaths) =>
-        filePaths.Select(x => CreateMockedIssueTracker(x)).ToArray();
+    private IIssueTracker[] CreateMockedIssueTrackers(params string[] filePaths) => filePaths.Select(x => CreateMockedIssueTracker(x)).ToArray();
 
     private static IIssueTracker CreateMockedIssueTracker(string filePath)
     {
-        var mock = new Mock<IIssueTracker>();
-        mock.Setup(x => x.LastAnalysisFilePath).Returns(filePath);
-        return mock.Object;
+        var mock = Substitute.For<IIssueTracker>();
+        mock.LastAnalysisFilePath.Returns(filePath);
+        return mock;
     }
 
     private ITagger<IErrorTag> CreateTaggerForDocument(ITextDocument document)
     {
-        var mockTextDataModel = new Mock<ITextDataModel>();
-        mockTextDataModel.Setup(x => x.DocumentBuffer).Returns(document.TextBuffer);
+        var mockTextDataModel = Substitute.For<ITextDataModel>();
+        mockTextDataModel.DocumentBuffer.Returns(document.TextBuffer);
 
         return provider.CreateTagger<IErrorTag>(document.TextBuffer);
     }
@@ -341,42 +329,37 @@ public class TaggerProviderTests
         var bufferContentType = Mock.Of<IContentType>();
 
         // Text buffer with a properties collection and current snapshot
-        var mockTextBuffer = new Mock<ITextBuffer>();
-        mockTextBuffer.Setup(b => b.ContentType).Returns(bufferContentType);
+        var mockTextBuffer = Substitute.For<ITextBuffer>();
+        mockTextBuffer.ContentType.Returns(bufferContentType);
 
         var dummyProperties = new PropertyCollection();
-        mockTextBuffer.Setup(p => p.Properties).Returns(dummyProperties);
+        mockTextBuffer.Properties.Returns(dummyProperties);
 
-        var mockSnapshot = new Mock<ITextSnapshot>();
-        mockSnapshot.Setup(x => x.Length).Returns(0);
-        mockTextBuffer.Setup(x => x.CurrentSnapshot).Returns(mockSnapshot.Object);
+        var mockSnapshot = Substitute.For<ITextSnapshot>();
+        mockSnapshot.Length.Returns(0);
+        mockTextBuffer.CurrentSnapshot.Returns(mockSnapshot);
 
         // Create the document and associate the buffer with the it
-        var mockTextDocument = new Mock<ITextDocument>();
-        mockTextDocument.Setup(d => d.FilePath).Returns(fileName);
-        mockTextDocument.Setup(d => d.Encoding).Returns(Encoding.UTF8);
+        var mockTextDocument = Substitute.For<ITextDocument>();
+        mockTextDocument.FilePath.Returns(fileName);
+        mockTextDocument.Encoding.Returns(Encoding.UTF8);
 
-        mockTextDocument.Setup(x => x.TextBuffer).Returns(mockTextBuffer.Object);
+        mockTextDocument.TextBuffer.Returns(mockTextBuffer);
 
         // Register the buffer-to-doc mapping for the factory service
-        dummyDocumentFactoryService.RegisterDocument(mockTextDocument.Object);
+        dummyDocumentFactoryService.RegisterDocument(mockTextDocument);
 
         var analysisLanguages = new[] { AnalysisLanguage.Javascript };
 
         SetupDetectedLanguages(fileName, bufferContentType, analysisLanguages);
 
-        return mockTextDocument.Object;
+        return mockTextDocument;
     }
 
-    private void SetupDetectedLanguages(string fileName, IContentType bufferContentType, IEnumerable<AnalysisLanguage> detectedLanguages)
-    {
-        mockSonarLanguageRecognizer
-            .Setup(x => x.Detect(fileName, bufferContentType))
-            .Returns(detectedLanguages);
-    }
+    private void SetupDetectedLanguages(string fileName, IContentType bufferContentType, IEnumerable<AnalysisLanguage> detectedLanguages) =>
+        mockSonarLanguageRecognizer.Detect(fileName, bufferContentType).Returns(detectedLanguages);
 
-    private static void VerifySingletonManagerDoesNotExist(ITextBuffer buffer) =>
-        FindSingletonManagerInPropertyCollection(buffer).Should().BeNull();
+    private static void VerifySingletonManagerDoesNotExist(ITextBuffer buffer) => FindSingletonManagerInPropertyCollection(buffer).Should().BeNull();
 
     private static SingletonDisposableTaggerManager<IErrorTag> VerifySingletonManagerExists(ITextBuffer buffer)
     {
@@ -393,9 +376,15 @@ public class TaggerProviderTests
 
     private void VerifyAnalysisWasRequested()
     {
-        mockAnalysisService.Verify(x => x.CancelForFile(It.IsAny<string>()));
-        mockAnalysisService.Verify(x => x.RequestAnalysis(It.IsAny<ITextDocument>(), It.IsAny<AnalysisSnapshot>(), It.IsAny<IEnumerable<AnalysisLanguage>>(), It.IsAny<SnapshotChangedHandler>(), It.IsAny<IAnalyzerOptions>()));
+        mockAnalysisService.Received().CancelForFile(Arg.Any<string>());
+        mockAnalysisService.Received().RequestAnalysis(Arg.Any<ITextDocument>(), Arg.Any<AnalysisSnapshot>(), Arg.Any<IEnumerable<AnalysisLanguage>>(), Arg.Any<SnapshotChangedHandler>(),
+            Arg.Any<IAnalyzerOptions>());
     }
+
+    private TaggerProvider CreateTestSubject() =>
+        new(mockSonarErrorDataSource, dummyDocumentFactoryService, serviceProvider,
+            mockSonarLanguageRecognizer, mockAnalysisService, mockAnalysisRequester,
+            mockTaggableBufferIndicator, mockFileTracker, logger);
 
     private class DummyTextDocumentFactoryService : ITextDocumentFactoryService
     {
@@ -448,12 +437,20 @@ public class TaggerProviderTests
             throw new NotImplementedException();
         }
 
-        ITextDocument ITextDocumentFactoryService.CreateAndLoadTextDocument(string filePath, IContentType contentType, Encoding encoding, out bool characterSubstitutionsOccurred)
+        ITextDocument ITextDocumentFactoryService.CreateAndLoadTextDocument(
+            string filePath,
+            IContentType contentType,
+            Encoding encoding,
+            out bool characterSubstitutionsOccurred)
         {
             throw new NotImplementedException();
         }
 
-        ITextDocument ITextDocumentFactoryService.CreateAndLoadTextDocument(string filePath, IContentType contentType, bool attemptUtf8Detection, out bool characterSubstitutionsOccurred)
+        ITextDocument ITextDocumentFactoryService.CreateAndLoadTextDocument(
+            string filePath,
+            IContentType contentType,
+            bool attemptUtf8Detection,
+            out bool characterSubstitutionsOccurred)
         {
             throw new NotImplementedException();
         }
