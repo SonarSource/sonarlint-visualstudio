@@ -29,7 +29,7 @@ using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
-internal interface IVCXCompilationDatabaseStorage : IDisposable
+internal interface IObsoleteVCXCompilationDatabaseStorage : IDisposable
 {
     ICompilationDatabaseHandle CreateDatabase(
         string file,
@@ -38,9 +38,18 @@ internal interface IVCXCompilationDatabaseStorage : IDisposable
         IEnumerable<string> environment);
 }
 
-[Export(typeof(IVCXCompilationDatabaseStorage))]
+internal interface IVcxCompilationDatabaseStorage : IDisposable
+{
+    string CreateDatabase();
+    void DeleteDatabase(string databasePath);
+    void UpdateDatabaseEntry(string databasePath, CompilationDatabaseEntry updatedEntry);
+    void RemoveDatabaseEntry(string databasePath, string entryFilePath);
+}
+
+[Export(typeof(IObsoleteVCXCompilationDatabaseStorage))]
+[Export(typeof(IVcxCompilationDatabaseStorage))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class VCXCompilationDatabaseStorage : IVCXCompilationDatabaseStorage
+internal sealed class VcxCompilationDatabaseStorage : IObsoleteVCXCompilationDatabaseStorage, IVcxCompilationDatabaseStorage
 {
     private readonly string compilationDatabaseDirectoryPath = PathHelper.GetTempDirForTask(true, "VCXCD");
     private readonly IFileSystemService fileSystemService;
@@ -49,14 +58,86 @@ internal sealed class VCXCompilationDatabaseStorage : IVCXCompilationDatabaseSto
     private bool disposed;
 
     [ImportingConstructor]
-    public VCXCompilationDatabaseStorage(IFileSystemService fileSystemService, IThreadHandling threadHandling, ILogger logger)
+    public VcxCompilationDatabaseStorage(IFileSystemService fileSystemService, IThreadHandling threadHandling, ILogger logger)
     {
         this.fileSystemService = fileSystemService;
         this.threadHandling = threadHandling;
         this.logger = logger;
-        }
+    }
 
-    public ICompilationDatabaseHandle CreateDatabase(
+    public string CreateDatabase()
+    {
+        ThrowIfDisposed();
+        threadHandling.ThrowIfOnUIThread();
+
+        var compilationDatabaseFullPath = GetCompilationDatabaseFullPath();
+
+        try
+        {
+            fileSystemService.Directory.CreateDirectory(compilationDatabaseDirectoryPath);
+            WriteDatabaseContents(compilationDatabaseFullPath, []);
+            return compilationDatabaseFullPath;
+        }
+        catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
+        {
+            logger.LogVerbose(e.ToString());
+            return null;
+        }
+    }
+
+    public void DeleteDatabase(string databasePath)
+    {
+        ThrowIfDisposed();
+        threadHandling.ThrowIfOnUIThread();
+
+        try
+        {
+            fileSystemService.File.Delete(databasePath);
+        }
+        catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
+        {
+            logger.LogVerbose(e.ToString());
+        }
+    }
+
+    public void UpdateDatabaseEntry(string databasePath, CompilationDatabaseEntry updatedEntry)
+    {
+        ThrowIfDisposed();
+        threadHandling.ThrowIfOnUIThread();
+
+        try
+        {
+            var entries = JsonConvert.DeserializeObject<List<CompilationDatabaseEntry>>(fileSystemService.File.ReadAllText(databasePath));
+            AddOrReplaceEntry(updatedEntry, entries);
+            WriteDatabaseContents(databasePath, entries);
+        }
+        catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
+        {
+            logger.LogVerbose(e.ToString());
+        }
+    }
+
+    public void RemoveDatabaseEntry(string databasePath, string entryFilePath)
+    {
+        ThrowIfDisposed();
+        threadHandling.ThrowIfOnUIThread();
+
+        try
+        {
+            var entries = JsonConvert.DeserializeObject<List<CompilationDatabaseEntry>>(fileSystemService.File.ReadAllText(databasePath));
+            var removedCount = entries.RemoveAll(x => x.File == entryFilePath);
+            if (removedCount > 0)
+            {
+                WriteDatabaseContents(databasePath, entries);
+            }
+        }
+        catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
+        {
+            logger.LogVerbose(e.ToString());
+        }
+    }
+
+    ICompilationDatabaseHandle IObsoleteVCXCompilationDatabaseStorage.CreateDatabase(
         string file,
         string directory,
         string command,
@@ -72,14 +153,13 @@ internal sealed class VCXCompilationDatabaseStorage : IVCXCompilationDatabaseSto
             File = file,
             Environment = environment
         };
-        var compilationDatabase = new[] { compilationDatabaseEntry };
 
         var compilationDatabaseFullPath = GetCompilationDatabaseFullPath();
 
         try
         {
             fileSystemService.Directory.CreateDirectory(compilationDatabaseDirectoryPath);
-            fileSystemService.File.WriteAllText(compilationDatabaseFullPath, JsonConvert.SerializeObject(compilationDatabase));
+            WriteDatabaseContents(compilationDatabaseFullPath, [compilationDatabaseEntry]);
             return new TemporaryCompilationDatabaseHandle(compilationDatabaseFullPath, fileSystemService.File, logger);
         }
         catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
@@ -89,11 +169,27 @@ internal sealed class VCXCompilationDatabaseStorage : IVCXCompilationDatabaseSto
         }
     }
 
+    private static void AddOrReplaceEntry(CompilationDatabaseEntry updatedEntry, List<CompilationDatabaseEntry> entries)
+    {
+        var existingEntryLocation = entries.FindIndex(x => x.File == updatedEntry.File);
+        if (existingEntryLocation == -1)
+        {
+            entries.Add(updatedEntry);
+        }
+        else
+        {
+            entries[existingEntryLocation] = updatedEntry;
+        }
+    }
+
+    private void WriteDatabaseContents(string databasePath, List<CompilationDatabaseEntry> entries) =>
+        fileSystemService.File.WriteAllText(databasePath, JsonConvert.SerializeObject(entries));
+
     private void ThrowIfDisposed()
     {
         if (disposed)
         {
-            throw new ObjectDisposedException(nameof(VCXCompilationDatabaseStorage));
+            throw new ObjectDisposedException(nameof(VcxCompilationDatabaseStorage));
         }
     }
 
