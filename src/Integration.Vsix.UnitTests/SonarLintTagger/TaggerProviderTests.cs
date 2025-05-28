@@ -332,35 +332,25 @@ public class TaggerProviderTests
 
         issueTracker.Received(1).DocumentSaved += Arg.Any<EventHandler<DocumentSavedEventArgs>>();
         issueTracker.Received(1).OpenDocumentRenamed += Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
+        issueTracker.Received(1).DocumentClosed += Arg.Any<EventHandler<DocumentClosedEventArgs>>();
     }
 
     [TestMethod]
-    public void RemoveIssueTracker_RaisesEvent()
+    public void IssueTracker_DocumentClosed_RaiseEvent()
     {
         var eventHandler = Substitute.For<EventHandler<DocumentClosedEventArgs>>();
-        var filePath = "file1.txt";
-        var testSubject = CreateTestSubject();
-        testSubject.DocumentClosed += eventHandler;
+        var fileName = "anyname.js";
+        var doc = CreateMockedDocument(fileName);
+        provider.DocumentClosed += eventHandler;
 
-        testSubject.RemoveIssueTracker(CreateMockedIssueTracker(filePath));
+        CreateTaggerForDocument(doc);
+        provider.ActiveTrackersForTesting.First().Dispose();
 
-        eventHandler.Received(1).Invoke(testSubject, Arg.Is<DocumentClosedEventArgs>(e => e.FullPath == filePath));
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<DocumentClosedEventArgs>(x => x.FullPath == fileName));
     }
 
     [TestMethod]
-    public void RemoveIssueTracker_UnsubscribesFromEvents()
-    {
-        var testSubject = CreateTestSubject();
-        var issueTracker = CreateMockedIssueTracker("myFile.cs");
-
-        testSubject.RemoveIssueTracker(issueTracker);
-
-        issueTracker.Received(1).DocumentSaved -= Arg.Any<EventHandler<DocumentSavedEventArgs>>();
-        issueTracker.Received(1).OpenDocumentRenamed -= Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
-    }
-
-    [TestMethod]
-    public void CreateTagger_DocumentSaved_RaiseEvent()
+    public void IssueTracker_DocumentSaved_RaiseEvent()
     {
         var eventHandler = Substitute.For<EventHandler<DocumentSavedEventArgs>>();
         var fileName = "anyname.js";
@@ -374,7 +364,7 @@ public class TaggerProviderTests
     }
 
     [TestMethod]
-    public void CreateTagger_DocumentRename_RaiseEvent()
+    public void IssueTracker_DocumentRename_RaiseEvent()
     {
         var eventHandler = Substitute.For<EventHandler<DocumentRenamedEventArgs>>();
         var oldName = "anyname.js";

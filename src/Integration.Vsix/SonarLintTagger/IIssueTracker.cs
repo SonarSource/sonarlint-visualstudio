@@ -23,7 +23,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    internal interface IIssueTracker
+    internal interface IIssueTracker : IDisposable
     {
         string LastAnalysisFilePath { get; }
         IEnumerable<AnalysisLanguage> DetectedLanguages { get; }
@@ -32,5 +32,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         event EventHandler<DocumentSavedEventArgs> DocumentSaved;
         event EventHandler<DocumentRenamedEventArgs> OpenDocumentRenamed;
+        event EventHandler<DocumentClosedEventArgs> DocumentClosed;
     }
 }

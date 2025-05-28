@@ -138,6 +138,18 @@ public class TextBufferIssueTrackerTests
         mockedJavascriptDocumentFooJs.Received(1).FileActionOccurred -= Arg.Any<EventHandler<TextDocumentFileActionEventArgs>>();
     }
 
+    [TestMethod]
+    public void Dispose_RaisesEvent()
+    {
+        var eventHandler = Substitute.For<EventHandler<DocumentClosedEventArgs>>();
+        var textBufferIssueTracker = CreateTestSubject();
+        textBufferIssueTracker.DocumentClosed += eventHandler;
+
+        textBufferIssueTracker.Dispose();
+
+        eventHandler.Received(1).Invoke(textBufferIssueTracker, Arg.Is<DocumentClosedEventArgs>(x => x.FullPath == mockedJavascriptDocumentFooJs.FilePath));
+    }
+
     private static void VerifySingletonManagerDoesNotExist(ITextBuffer buffer)
     {
         FindSingletonManagerInPropertyCollection(buffer).Should().BeNull();

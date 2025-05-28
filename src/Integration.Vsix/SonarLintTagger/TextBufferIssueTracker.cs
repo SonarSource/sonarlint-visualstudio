@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// See the README.md in this folder for more information
     /// </para>
     /// </remarks>
-    internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>, IDisposable
+    internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
     {
         internal /* for testing */ TaggerProvider Provider { get; }
         private readonly ITextBuffer textBuffer;
@@ -163,10 +163,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             document.FileActionOccurred -= SafeOnFileActionOccurred;
             textBuffer.Properties.RemoveProperty(TaggerProvider.SingletonManagerPropertyCollectionKey);
             sonarErrorDataSource.RemoveFactory(Factory);
-            Provider.RemoveIssueTracker(this);
+            DocumentClosed?.Invoke(this, new DocumentClosedEventArgs(LastAnalysisFilePath));
         }
 
         public event EventHandler<DocumentSavedEventArgs> DocumentSaved;
         public event EventHandler<DocumentRenamedEventArgs> OpenDocumentRenamed;
+        public event EventHandler<DocumentClosedEventArgs> DocumentClosed;
     }
 }
