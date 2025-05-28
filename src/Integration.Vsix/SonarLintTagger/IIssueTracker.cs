@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -25,6 +26,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     internal interface IIssueTracker
     {
         string LastAnalysisFilePath { get; }
+        IEnumerable<AnalysisLanguage> DetectedLanguages { get; }
+
         void RequestAnalysis(IAnalyzerOptions options);
+
+        event EventHandler<DocumentSavedEventArgs> DocumentSaved;
+        event EventHandler<DocumentRenamedEventArgs> OpenDocumentRenamed;
     }
 }

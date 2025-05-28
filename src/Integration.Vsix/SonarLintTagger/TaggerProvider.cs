@@ -65,7 +65,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        internal TaggerProvider(ISonarErrorListDataSource sonarErrorDataSource,
+        internal TaggerProvider(
+            ISonarErrorListDataSource sonarErrorDataSource,
             ITextDocumentFactoryService textDocumentFactoryService,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             ISonarLanguageRecognizer languageRecognizer,
@@ -104,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 reanalysisJob?.Cancel();
                 reanalysisProgressHandler?.Dispose();
 
-                var filteredIssueTrackers = FilterIssuesTrackersByPath(this.issueTrackers, args.FilePaths);
+                var filteredIssueTrackers = FilterIssuesTrackersByPath(issueTrackers, args.FilePaths);
 
                 var operations = filteredIssueTrackers
                     .Select<IIssueTracker, Action>(it => () => it.RequestAnalysis(args.Options))
@@ -119,7 +120,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         internal /* for testing */ static IEnumerable<IIssueTracker> FilterIssuesTrackersByPath(
-            IEnumerable<IIssueTracker> issueTrackers, IEnumerable<string> filePaths)
+            IEnumerable<IIssueTracker> issueTrackers,
+            IEnumerable<string> filePaths)
         {
             if (filePaths == null || !filePaths.Any())
             {
@@ -199,6 +201,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         #region IDocumentEvents methods
 
         public event EventHandler<DocumentClosedEventArgs> DocumentClosed;
+        public event EventHandler<DocumentOpenedEventArgs> DocumentOpened;
+        public event EventHandler<DocumentSavedEventArgs> DocumentSaved;
+        public event EventHandler<DocumentRenamedEventArgs> OpenDocumentRenamed;
 
         #endregion IDocumentEvents methods
     }

@@ -248,6 +248,18 @@ public class TextBufferIssueTrackerTests
     }
 
     [TestMethod]
+    public void WhenFileIsSaved_DocumentSavedEventIsRaised()
+    {
+        var eventHandler = Substitute.For<EventHandler<DocumentSavedEventArgs>>();
+        var textBufferIssueTracker = CreateTestSubject();
+        textBufferIssueTracker.DocumentSaved += eventHandler;
+
+        RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
+
+        eventHandler.Received(1).Invoke(textBufferIssueTracker, Arg.Is<DocumentSavedEventArgs>(x => x.FullPath == mockedJavascriptDocumentFooJs.FilePath));
+    }
+
+    [TestMethod]
     public void WhenFileIsLoaded_AnalysisIsNotRequested()
     {
         mockAnalysisService.ClearReceivedCalls();
@@ -262,16 +274,56 @@ public class TextBufferIssueTrackerTests
         VerifyAnalysisRequestedWithDefaultOptions(false);
     }
 
-    private static void RaiseFileSavedEvent(ITextDocument mockDocument)
+    [TestMethod]
+    public void WhenFileIsLoaded_EventsAreNotRaised()
     {
-        var args = new TextDocumentFileActionEventArgs(mockDocument.FilePath, DateTime.UtcNow, FileActionTypes.ContentSavedToDisk);
-        mockDocument.FileActionOccurred += Raise.EventWith(null, args);
+        var renamedEventHandler = Substitute.For<EventHandler<DocumentRenamedEventArgs>>();
+        var savedEventHandler = Substitute.For<EventHandler<DocumentSavedEventArgs>>();
+        var textBufferIssueTracker = CreateTestSubject();
+        textBufferIssueTracker.OpenDocumentRenamed += renamedEventHandler;
+        textBufferIssueTracker.DocumentSaved += savedEventHandler;
+
+        RaiseFileLoadedEvent(mockedJavascriptDocumentFooJs);
+
+        renamedEventHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
+        savedEventHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
     }
 
-    private static void RaiseFileLoadedEvent(ITextDocument mockDocument)
+    [TestMethod]
+    public void WhenFileIsRenamed_OpenDocumentRenamedIsRaised()
     {
-        var args = new TextDocumentFileActionEventArgs(mockDocument.FilePath, DateTime.UtcNow, FileActionTypes.ContentLoadedFromDisk);
-        mockDocument.FileActionOccurred += Raise.EventWith(null, args);
+        var eventHandler = Substitute.For<EventHandler<DocumentRenamedEventArgs>>();
+        var textBufferIssueTracker = CreateTestSubject();
+        textBufferIssueTracker.OpenDocumentRenamed += eventHandler;
+        var newFilePath = "newName.cs";
+
+        RaiseFileRenamedEvent(mockedJavascriptDocumentFooJs, newFilePath);
+
+        eventHandler.Received(1).Invoke(textBufferIssueTracker, Arg.Is<DocumentRenamedEventArgs>(x =>
+            x.FullPath == newFilePath && x.OldFilePath == mockedJavascriptDocumentFooJs.FilePath));
+    }
+
+    [TestMethod]
+    public void WhenFileIsRenamed_AnalysisIsNotRequested()
+    {
+        mockAnalysisService.ClearReceivedCalls();
+        mockTextSnapshot.ClearReceivedCalls();
+
+        RaiseFileRenamedEvent(mockedJavascriptDocumentFooJs, "newFile.cs");
+
+        VerifyAnalysisNotRequested();
+    }
+
+    private static void RaiseFileSavedEvent(ITextDocument mockDocument) => RaiseFileEvent(mockDocument, FileActionTypes.ContentSavedToDisk);
+
+    private static void RaiseFileLoadedEvent(ITextDocument mockDocument) => RaiseFileEvent(mockDocument, FileActionTypes.ContentLoadedFromDisk);
+
+    private static void RaiseFileRenamedEvent(ITextDocument mockDocument, string newFilePath) => RaiseFileEvent(mockDocument, FileActionTypes.DocumentRenamed, newFilePath);
+
+    private static void RaiseFileEvent(ITextDocument textDocument, FileActionTypes actionType, string filePath = null)
+    {
+        var args = new TextDocumentFileActionEventArgs(filePath ?? textDocument.FilePath, DateTime.UtcNow, actionType);
+        textDocument.FileActionOccurred += Raise.EventWith(null, args);
     }
 
     #endregion

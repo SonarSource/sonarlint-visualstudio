@@ -62,9 +62,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             IFileTracker fileTracker,
             ILogger logger)
         {
-
-            this.Provider = provider;
-            this.textBuffer = document.TextBuffer;
+            Provider = provider;
+            textBuffer = document.TextBuffer;
 
             this.detectedLanguages = detectedLanguages;
             this.sonarErrorDataSource = sonarErrorDataSource;
@@ -78,10 +77,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             document.FileActionOccurred += SafeOnFileActionOccurred;
 
-            sonarErrorDataSource.AddFactory(this.Factory);
+            sonarErrorDataSource.AddFactory(Factory);
             Provider.AddIssueTracker(this);
 
-            RequestAnalysis(new AnalyzerOptions{ IsOnOpen = true });
+            RequestAnalysis(new AnalyzerOptions { IsOnOpen = true });
         }
 
         private void SafeOnFileActionOccurred(object sender, TextDocumentFileActionEventArgs e)
@@ -90,12 +89,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // propagating to VS, which would display a dialogue and disable the extension.
             try
             {
-                if (e.FileActionType != FileActionTypes.ContentSavedToDisk)
+                switch (e.FileActionType)
                 {
-                    return;
+                    case FileActionTypes.ContentSavedToDisk:
+                        {
+                            RequestAnalysis(new AnalyzerOptions { IsOnOpen = false });
+                            DocumentSaved?.Invoke(this, new DocumentSavedEventArgs(document.FilePath, document.TextBuffer.CurrentSnapshot.GetText()));
+                            break;
+                        }
+                    case FileActionTypes.DocumentRenamed:
+                        {
+                            OpenDocumentRenamed?.Invoke(this, new DocumentRenamedEventArgs(e.FilePath, LastAnalysisFilePath));
+                            break;
+                        }
+                    default:
+                        return;
                 }
-
-                RequestAnalysis(new AnalyzerOptions { IsOnOpen = false });
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -153,8 +162,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             vsAwareAnalysisService.CancelForFile(LastAnalysisFilePath);
             document.FileActionOccurred -= SafeOnFileActionOccurred;
             textBuffer.Properties.RemoveProperty(TaggerProvider.SingletonManagerPropertyCollectionKey);
-            sonarErrorDataSource.RemoveFactory(this.Factory);
+            sonarErrorDataSource.RemoveFactory(Factory);
             Provider.RemoveIssueTracker(this);
         }
+
+        public event EventHandler<DocumentSavedEventArgs> DocumentSaved;
+        public event EventHandler<DocumentRenamedEventArgs> OpenDocumentRenamed;
     }
 }
