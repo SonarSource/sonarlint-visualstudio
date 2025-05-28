@@ -42,7 +42,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         internal /* for testing */ TaggerProvider Provider { get; }
         private readonly ITextBuffer textBuffer;
-        private readonly IEnumerable<AnalysisLanguage> detectedLanguages;
 
         private readonly ITextDocument document;
         private readonly ILogger logger;
@@ -51,6 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISonarErrorListDataSource sonarErrorDataSource;
 
         public string LastAnalysisFilePath { get; private set; }
+        public IEnumerable<AnalysisLanguage> DetectedLanguages { get; }
         internal /* for testing */ IssuesSnapshotFactory Factory { get; }
 
         public TextBufferIssueTracker(
@@ -65,7 +65,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             Provider = provider;
             textBuffer = document.TextBuffer;
 
-            this.detectedLanguages = detectedLanguages;
             this.sonarErrorDataSource = sonarErrorDataSource;
             this.vsAwareAnalysisService = vsAwareAnalysisService;
             this.fileTracker = fileTracker;
@@ -73,6 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.document = document;
             LastAnalysisFilePath = document.FilePath;
+            DetectedLanguages = detectedLanguages;
             Factory = new IssuesSnapshotFactory(LastAnalysisFilePath);
 
             document.FileActionOccurred += SafeOnFileActionOccurred;
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 vsAwareAnalysisService.CancelForFile(LastAnalysisFilePath);
                 var analysisSnapshot = UpdateAnalysisState();
-                vsAwareAnalysisService.RequestAnalysis(document, analysisSnapshot, detectedLanguages, SnapToNewSnapshot, options);
+                vsAwareAnalysisService.RequestAnalysis(document, analysisSnapshot, DetectedLanguages, SnapToNewSnapshot, options);
             }
             catch (NotSupportedException ex)
             {

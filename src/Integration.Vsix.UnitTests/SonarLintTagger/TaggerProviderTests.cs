@@ -307,12 +307,100 @@ public class TaggerProviderTests
         actual.Should().BeEquivalentTo(trackers);
     }
 
+    [TestMethod]
+    public void AddIssueTracker_RaisesEvent()
+    {
+        var eventHandler = Substitute.For<EventHandler<DocumentOpenedEventArgs>>();
+        var detectedLanguages = new[] { AnalysisLanguage.TypeScript, AnalysisLanguage.Javascript };
+        var filePath = "file1.txt";
+        var testSubject = CreateTestSubject();
+        testSubject.DocumentOpened += eventHandler;
+
+        testSubject.AddIssueTracker(CreateMockedIssueTracker(filePath, detectedLanguages));
+
+        eventHandler.Received(1).Invoke(testSubject, Arg.Is<DocumentOpenedEventArgs>(e =>
+            e.FullPath == filePath && e.DetectedLanguages == detectedLanguages));
+    }
+
+    [TestMethod]
+    public void AddIssueTracker_SubscribesFromEvents()
+    {
+        var testSubject = CreateTestSubject();
+        var issueTracker = CreateMockedIssueTracker("myFile.cs");
+
+        testSubject.AddIssueTracker(issueTracker);
+
+        issueTracker.Received(1).DocumentSaved += Arg.Any<EventHandler<DocumentSavedEventArgs>>();
+        issueTracker.Received(1).OpenDocumentRenamed += Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
+    }
+
+    [TestMethod]
+    public void RemoveIssueTracker_RaisesEvent()
+    {
+        var eventHandler = Substitute.For<EventHandler<DocumentClosedEventArgs>>();
+        var filePath = "file1.txt";
+        var testSubject = CreateTestSubject();
+        testSubject.DocumentClosed += eventHandler;
+
+        testSubject.RemoveIssueTracker(CreateMockedIssueTracker(filePath));
+
+        eventHandler.Received(1).Invoke(testSubject, Arg.Is<DocumentClosedEventArgs>(e => e.FullPath == filePath));
+    }
+
+    [TestMethod]
+    public void RemoveIssueTracker_UnsubscribesFromEvents()
+    {
+        var testSubject = CreateTestSubject();
+        var issueTracker = CreateMockedIssueTracker("myFile.cs");
+
+        testSubject.RemoveIssueTracker(issueTracker);
+
+        issueTracker.Received(1).DocumentSaved -= Arg.Any<EventHandler<DocumentSavedEventArgs>>();
+        issueTracker.Received(1).OpenDocumentRenamed -= Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
+    }
+
+    [TestMethod]
+    public void CreateTagger_DocumentSaved_RaiseEvent()
+    {
+        var eventHandler = Substitute.For<EventHandler<DocumentSavedEventArgs>>();
+        var fileName = "anyname.js";
+        var doc = CreateMockedDocument(fileName);
+        provider.DocumentSaved += eventHandler;
+
+        CreateTaggerForDocument(doc);
+        RaiseFileEvent(doc, FileActionTypes.ContentSavedToDisk);
+
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<DocumentSavedEventArgs>(x => x.FullPath == fileName));
+    }
+
+    [TestMethod]
+    public void CreateTagger_DocumentRename_RaiseEvent()
+    {
+        var eventHandler = Substitute.For<EventHandler<DocumentRenamedEventArgs>>();
+        var oldName = "anyname.js";
+        var newName = "newName.js";
+        var doc = CreateMockedDocument(oldName);
+        provider.OpenDocumentRenamed += eventHandler;
+
+        CreateTaggerForDocument(doc);
+        RaiseFileEvent(doc, FileActionTypes.DocumentRenamed, newName);
+
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<DocumentRenamedEventArgs>(x => x.FullPath == newName && x.OldFilePath == oldName));
+    }
+
     private IIssueTracker[] CreateMockedIssueTrackers(params string[] filePaths) => filePaths.Select(x => CreateMockedIssueTracker(x)).ToArray();
 
     private static IIssueTracker CreateMockedIssueTracker(string filePath)
     {
         var mock = Substitute.For<IIssueTracker>();
         mock.LastAnalysisFilePath.Returns(filePath);
+        return mock;
+    }
+
+    private static IIssueTracker CreateMockedIssueTracker(string filePath, IEnumerable<AnalysisLanguage> analysisLanguages)
+    {
+        var mock = CreateMockedIssueTracker(filePath);
+        mock.DetectedLanguages.Returns(analysisLanguages);
         return mock;
     }
 
@@ -385,6 +473,12 @@ public class TaggerProviderTests
         new(mockSonarErrorDataSource, dummyDocumentFactoryService, serviceProvider,
             mockSonarLanguageRecognizer, mockAnalysisService, mockAnalysisRequester,
             mockTaggableBufferIndicator, mockFileTracker, logger);
+
+    private static void RaiseFileEvent(ITextDocument textDocument, FileActionTypes actionType, string filePath = null)
+    {
+        var args = new TextDocumentFileActionEventArgs(filePath ?? textDocument.FilePath, DateTime.UtcNow, actionType);
+        textDocument.FileActionOccurred += Raise.EventWith(null, args);
+    }
 
     private class DummyTextDocumentFactoryService : ITextDocumentFactoryService
     {

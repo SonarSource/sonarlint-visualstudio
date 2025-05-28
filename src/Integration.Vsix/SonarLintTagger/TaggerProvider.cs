@@ -167,7 +167,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         private TextBufferIssueTracker InternalCreateTextBufferIssueTracker(ITextDocument textDocument, IEnumerable<AnalysisLanguage> analysisLanguages) =>
-            new TextBufferIssueTracker(
+            new(
                 this,
                 textDocument,
                 analysisLanguages,
@@ -183,6 +183,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             lock (issueTrackers)
             {
                 issueTrackers.Add(issueTracker);
+                issueTracker.DocumentSaved += OnDocumentSaved;
+                issueTracker.OpenDocumentRenamed += OnOpenDocumentRenamed;
+
+                // The lifetime of an issue tracker is tied to a single document. A document is opened, when a tracker is created.
+                DocumentOpened?.Invoke(this, new DocumentOpenedEventArgs(issueTracker.LastAnalysisFilePath, issueTracker.DetectedLanguages));
             }
         }
 
@@ -191,6 +196,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             lock (issueTrackers)
             {
                 issueTrackers.Remove(issueTracker);
+                issueTracker.DocumentSaved -= OnDocumentSaved;
+                issueTracker.OpenDocumentRenamed -= OnOpenDocumentRenamed;
 
                 // The lifetime of an issue tracker is tied to a single document. A tracker is removed when
                 // it is no longer needed i.e. the document has been closed.
@@ -204,6 +211,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public event EventHandler<DocumentOpenedEventArgs> DocumentOpened;
         public event EventHandler<DocumentSavedEventArgs> DocumentSaved;
         public event EventHandler<DocumentRenamedEventArgs> OpenDocumentRenamed;
+
+        private void OnOpenDocumentRenamed(object sender, DocumentRenamedEventArgs e) => OpenDocumentRenamed?.Invoke(this, e);
+
+        private void OnDocumentSaved(object sender, DocumentSavedEventArgs e) => DocumentSaved?.Invoke(this, e);
 
         #endregion IDocumentEvents methods
     }
