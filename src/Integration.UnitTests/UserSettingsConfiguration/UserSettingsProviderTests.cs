@@ -222,6 +222,18 @@ public class UserSettingsProviderTests
     }
 
     [TestMethod]
+    public void UserSettings_Solution_NoSolutionSettings_SolutionRawAnalysisSettingsShouldNotBeNull()
+    {
+        var rules = ImmutableDictionary.Create<string, RuleConfig>().Add("rules", default);
+        var fileExclusions = ImmutableArray.Create("exclusions");
+        SetupGlobalSettings(new GlobalRawAnalysisSettings(rules, fileExclusions));
+        SetupSolutionSettings(solutionRawAnalysisSettings: null);
+        var testSubject = CreateAndInitializeTestSubject();
+
+        testSubject.SolutionRawAnalysisSettings.Should().NotBeNull();
+    }
+
+    [TestMethod]
     public void UserSettings_Solution_ReturnsSolutionSettings()
     {
         var rules = ImmutableDictionary.Create<string, RuleConfig>().Add("rules", default);

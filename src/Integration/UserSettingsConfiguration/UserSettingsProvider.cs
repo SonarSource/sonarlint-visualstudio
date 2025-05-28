@@ -188,11 +188,14 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSe
     private (UserSettings userSettings, GlobalRawAnalysisSettings globalAnalysisSettings, SolutionRawAnalysisSettings solutionAnalysisSettings) SafeLoadUserSettings()
     {
         var globalAnalysisSettings = globalSettingsStorage.LoadSettingsFile();
+        SolutionRawAnalysisSettings solutionSettingsFromStorage = null;
 
         SolutionRawAnalysisSettings solutionRawAnalysisSettings = null;
+
         if (solutionSettingsStorage.SettingsFilePath != null)
         {
-            solutionRawAnalysisSettings = solutionSettingsStorage.LoadSettingsFile();
+            solutionSettingsFromStorage = solutionSettingsStorage.LoadSettingsFile();
+            solutionRawAnalysisSettings = solutionSettingsFromStorage ?? new SolutionRawAnalysisSettings();
         }
 
         if (globalAnalysisSettings == null && solutionRawAnalysisSettings == null)
@@ -205,7 +208,7 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSe
         var globalExclusions = globalAnalysisSettings?.UserDefinedFileExclusions;
         var properties = solutionRawAnalysisSettings?.AnalysisProperties;
         var solutionExclusions = solutionRawAnalysisSettings?.UserDefinedFileExclusions;
-        var generatedConfigsBase = solutionRawAnalysisSettings != null ? solutionSettingsStorage.ConfigurationBaseDirectory : globalSettingsStorage.ConfigurationBaseDirectory;
+        var generatedConfigsBase = solutionSettingsFromStorage != null ? solutionSettingsStorage.ConfigurationBaseDirectory : globalSettingsStorage.ConfigurationBaseDirectory;
 
         return (new UserSettings(new AnalysisSettings(rules, globalExclusions, solutionExclusions, properties), generatedConfigsBase), globalAnalysisSettings, solutionRawAnalysisSettings);
     }
