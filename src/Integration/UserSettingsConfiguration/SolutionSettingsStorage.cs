@@ -134,6 +134,7 @@ internal sealed class SolutionSettingsStorage : ISolutionSettingsStorage
         solutionFilePaths = (solutionSettingsFilePath, solutionSettingsParentFolder);
         fileMonitor = fileMonitorFactory.Create(SettingsFilePath);
         fileMonitor.FileChanged += OnFileChanged;
+        EnsureSettingsFileExists();
     }
 
     private void OnFileChanged(object sender, EventArgs e) => RaiseSettingsFileChanged();

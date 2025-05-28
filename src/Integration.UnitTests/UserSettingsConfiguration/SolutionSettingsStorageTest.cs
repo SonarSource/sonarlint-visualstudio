@@ -97,6 +97,7 @@ public class SolutionSettingsStorageTest
         });
 
         singleFileMonitorFactory.DidNotReceiveWithAnyArgs().Create(default);
+        serializer.DidNotReceiveWithAnyArgs().SafeSave<SolutionRawAnalysisSettings>(default, default);
     }
 
     [TestMethod]
@@ -117,6 +118,7 @@ public class SolutionSettingsStorageTest
             _ = activeSolutionTracker.CurrentSolutionName;
             singleFileMonitorFactory.Create(Solution1SettingsFilePath);
             solution1FileMonitor.FileChanged += Arg.Any<EventHandler>();
+            serializer.SafeSave(Solution1SettingsFilePath, Arg.Any<SolutionRawAnalysisSettings>());
             activeSolutionTracker.ActiveSolutionChanged += Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
             initializationProcessor.InitializeAsync();
         });
@@ -207,6 +209,7 @@ public class SolutionSettingsStorageTest
         activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(true, SolutionName1));
 
         settingsChanged.ReceivedWithAnyArgs().Invoke(default, default);
+        serializer.Received().SafeSave(Solution1SettingsFilePath, Arg.Any<SolutionRawAnalysisSettings>());
         singleFileMonitorFactory.Received().Create(Solution1SettingsFilePath);
         solution1Monitor.Received().FileChanged += Arg.Any<EventHandler>();
         testSubject.SettingsFilePath.Should().Be(Solution1SettingsFilePath);
@@ -244,6 +247,7 @@ public class SolutionSettingsStorageTest
         settingsChanged.ReceivedWithAnyArgs().Invoke(default, default);
         solution1Monitor.Received().FileChanged -= Arg.Any<EventHandler>();
         solution1Monitor.Received().Dispose();
+        serializer.SafeSave(Solution2SettingsFilePath, Arg.Any<SolutionRawAnalysisSettings>());
         singleFileMonitorFactory.Received().Create(Solution2SettingsFilePath);
         solution2Monitor.Received().FileChanged += Arg.Any<EventHandler>();
         testSubject.SettingsFilePath.Should().Be(Solution2SettingsFilePath);
