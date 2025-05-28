@@ -65,7 +65,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        internal TaggerProvider(ISonarErrorListDataSource sonarErrorDataSource,
+        internal TaggerProvider(
+            ISonarErrorListDataSource sonarErrorDataSource,
             ITextDocumentFactoryService textDocumentFactoryService,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             ISonarLanguageRecognizer languageRecognizer,
@@ -104,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 reanalysisJob?.Cancel();
                 reanalysisProgressHandler?.Dispose();
 
-                var filteredIssueTrackers = FilterIssuesTrackersByPath(this.issueTrackers, args.FilePaths);
+                var filteredIssueTrackers = FilterIssuesTrackersByPath(issueTrackers, args.FilePaths);
 
                 var operations = filteredIssueTrackers
                     .Select<IIssueTracker, Action>(it => () => it.RequestAnalysis(args.Options))
@@ -119,7 +120,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         internal /* for testing */ static IEnumerable<IIssueTracker> FilterIssuesTrackersByPath(
-            IEnumerable<IIssueTracker> issueTrackers, IEnumerable<string> filePaths)
+            IEnumerable<IIssueTracker> issueTrackers,
+            IEnumerable<string> filePaths)
         {
             if (filePaths == null || !filePaths.Any())
             {
@@ -165,7 +167,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         private TextBufferIssueTracker InternalCreateTextBufferIssueTracker(ITextDocument textDocument, IEnumerable<AnalysisLanguage> analysisLanguages) =>
-            new TextBufferIssueTracker(
+            new(
                 this,
                 textDocument,
                 analysisLanguages,
@@ -182,23 +184,41 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 issueTrackers.Add(issueTracker);
             }
-        }
 
-        public void RemoveIssueTracker(IIssueTracker issueTracker)
-        {
-            lock (issueTrackers)
-            {
-                issueTrackers.Remove(issueTracker);
-
-                // The lifetime of an issue tracker is tied to a single document. A tracker is removed when
-                // it is no longer needed i.e. the document has been closed.
-                DocumentClosed?.Invoke(this, new DocumentClosedEventArgs(issueTracker.LastAnalysisFilePath));
-            }
+            issueTracker.DocumentSaved += OnDocumentSaved;
+            issueTracker.OpenDocumentRenamed += OnOpenDocumentRenamed;
+            issueTracker.DocumentClosed += OnDocumentClosed;
+            // The lifetime of an issue tracker is tied to a single document. A document is opened, when a tracker is created.
+            DocumentOpened?.Invoke(this, new DocumentOpenedEventArgs(issueTracker.LastAnalysisFilePath, issueTracker.DetectedLanguages));
         }
 
         #region IDocumentEvents methods
 
         public event EventHandler<DocumentClosedEventArgs> DocumentClosed;
+        public event EventHandler<DocumentOpenedEventArgs> DocumentOpened;
+        public event EventHandler<DocumentSavedEventArgs> DocumentSaved;
+        public event EventHandler<DocumentRenamedEventArgs> OpenDocumentRenamed;
+
+        private void OnOpenDocumentRenamed(object sender, DocumentRenamedEventArgs e) => OpenDocumentRenamed?.Invoke(this, e);
+
+        private void OnDocumentSaved(object sender, DocumentSavedEventArgs e) => DocumentSaved?.Invoke(this, e);
+
+        private void OnDocumentClosed(object sender, DocumentClosedEventArgs e)
+        {
+            var issueTracker = (IIssueTracker)sender;
+
+            lock (issueTrackers)
+            {
+                issueTrackers.Remove(issueTracker);
+            }
+
+            issueTracker.DocumentSaved -= OnDocumentSaved;
+            issueTracker.OpenDocumentRenamed -= OnOpenDocumentRenamed;
+            issueTracker.DocumentClosed -= OnDocumentClosed;
+            // The lifetime of an issue tracker is tied to a single document. A tracker is removed when
+            // it is no longer needed i.e. the document has been closed.
+            DocumentClosed?.Invoke(this, new DocumentClosedEventArgs(issueTracker.LastAnalysisFilePath));
+        }
 
         #endregion IDocumentEvents methods
     }
