@@ -77,14 +77,6 @@ internal sealed class GlobalSettingsStorage : IGlobalSettingsStorage
     public string SettingsFilePath => globalFilePaths.settingsFile;
     public string ConfigurationBaseDirectory => globalFilePaths.generatedConfigsBaseDirectory;
 
-    public void EnsureSettingsFileExists()
-    {
-        if (!fileSystem.File.Exists(GlobalAnalysisSettingsFilePath))
-        {
-            serializer.SafeSave(GlobalAnalysisSettingsFilePath, new GlobalRawAnalysisSettings());
-        }
-    }
-
     public void SaveSettingsFile(GlobalRawAnalysisSettings settings) => serializer.SafeSave(SettingsFilePath, settings);
 
     public GlobalRawAnalysisSettings LoadSettingsFile() => serializer.SafeLoad<GlobalRawAnalysisSettings>(SettingsFilePath);
@@ -99,6 +91,14 @@ internal sealed class GlobalSettingsStorage : IGlobalSettingsStorage
                 globalSettingsFileMonitor.Dispose();
             }
             disposed = true;
+        }
+    }
+
+    internal void EnsureSettingsFileExists()
+    {
+        if (!fileSystem.File.Exists(GlobalAnalysisSettingsFilePath))
+        {
+            serializer.SafeSave(GlobalAnalysisSettingsFilePath, new GlobalRawAnalysisSettings());
         }
     }
 

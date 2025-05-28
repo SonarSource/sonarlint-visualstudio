@@ -80,19 +80,6 @@ internal sealed class SolutionSettingsStorage : ISolutionSettingsStorage
     public string ConfigurationBaseDirectory => solutionFilePaths?.generatedConfigsBaseDirectory;
     public event EventHandler SettingsFileChanged;
 
-    public void EnsureSettingsFileExists()
-    {
-        if (SettingsFilePath == null)
-        {
-            return;
-        }
-
-        if (!fileSystem.File.Exists(SettingsFilePath))
-        {
-            serializer.SafeSave(SettingsFilePath, new SolutionRawAnalysisSettings());
-        }
-    }
-
     public void SaveSettingsFile(SolutionRawAnalysisSettings settings) => serializer.SafeSave(SettingsFilePath, settings);
 
     public SolutionRawAnalysisSettings LoadSettingsFile() => serializer.SafeLoad<SolutionRawAnalysisSettings>(SettingsFilePath);
@@ -107,6 +94,19 @@ internal sealed class SolutionSettingsStorage : ISolutionSettingsStorage
                 activeSolutionTracker.ActiveSolutionChanged -= ActiveSolutionTrackerOnActiveSolutionChanged;
             }
             disposed = true;
+        }
+    }
+
+    internal void EnsureSettingsFileExists()
+    {
+        if (SettingsFilePath == null)
+        {
+            return;
+        }
+
+        if (!fileSystem.File.Exists(SettingsFilePath))
+        {
+            serializer.SafeSave(SettingsFilePath, new SolutionRawAnalysisSettings());
         }
     }
 
