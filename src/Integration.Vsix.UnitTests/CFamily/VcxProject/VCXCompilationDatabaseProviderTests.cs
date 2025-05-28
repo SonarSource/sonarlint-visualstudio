@@ -34,7 +34,7 @@ public class VCXCompilationDatabaseProviderTests
     private const string CDCommand = "cdcommandvalue";
     private const string EnvInclude = "envincludevalue";
     private const string SourceFilePath = "some path";
-    private IVCXCompilationDatabaseStorage storage;
+    private IObsoleteVCXCompilationDatabaseStorage storage;
     private IFileConfigProvider fileConfigProvider;
     private IEnvironmentVariableProvider envVarProvider;
     private ILogger logger;
@@ -42,7 +42,7 @@ public class VCXCompilationDatabaseProviderTests
     [TestInitialize]
     public void TestInitialize()
     {
-        storage = Substitute.For<IVCXCompilationDatabaseStorage>();
+        storage = Substitute.For<IObsoleteVCXCompilationDatabaseStorage>();
         fileConfigProvider = Substitute.For<IFileConfigProvider>();
         envVarProvider = Substitute.For<IEnvironmentVariableProvider>();
         envVarProvider.GetAll().Returns([]);
@@ -54,7 +54,7 @@ public class VCXCompilationDatabaseProviderTests
     {
         envVarProvider.GetAll().Returns([]);
         MefTestHelpers.CheckTypeCanBeImported<VCXCompilationDatabaseProvider, IVCXCompilationDatabaseProvider>(
-            MefTestHelpers.CreateExport<IVCXCompilationDatabaseStorage>(),
+            MefTestHelpers.CreateExport<IObsoleteVCXCompilationDatabaseStorage>(),
             MefTestHelpers.CreateExport<IEnvironmentVariableProvider>(envVarProvider),
             MefTestHelpers.CreateExport<IFileConfigProvider>(),
             MefTestHelpers.CreateExport<ILogger>());
