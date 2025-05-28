@@ -83,6 +83,7 @@ public class GlobalSettingsStorageTest
             environmentVariableProvider.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             singleFileMonitorFactory.Create(GlobalSettingsFilePath);
             fileMonitor.FileChanged += Arg.Any<EventHandler>();
+            serializer.SafeSave(GlobalSettingsFilePath, Arg.Any<GlobalRawAnalysisSettings>());
             initializationProcessor.InitializeAsync();
         });
         testSubject.SettingsFilePath.Should().Be(GlobalSettingsFilePath);
