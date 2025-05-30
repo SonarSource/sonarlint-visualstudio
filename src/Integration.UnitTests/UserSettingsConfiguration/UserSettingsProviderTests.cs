@@ -109,14 +109,14 @@ public class UserSettingsProviderTests
         var testSubject = CreateUninitializedTestSubject(out var barrier);
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
-        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(true, SolutionName1));
+        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(SolutionName1));
         globalSettingsStorage.SettingsFileChanged += Raise.Event();
         solutionSettingsStorage.SettingsFileChanged += Raise.Event();
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
 
         InitializeTestSubject(barrier, testSubject);
 
-        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(true, SolutionName1));
+        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(SolutionName1));
         globalSettingsStorage.SettingsFileChanged += Raise.Event();
         solutionSettingsStorage.SettingsFileChanged += Raise.Event();
         settingsChanged.ReceivedWithAnyArgs(3).Invoke(default, default);
@@ -158,7 +158,7 @@ public class UserSettingsProviderTests
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
-        VerifyCacheInvalidated(testSubject, () => activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(true, SolutionName1)));
+        VerifyCacheInvalidated(testSubject, () => activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(SolutionName1)));
 
         settingsChanged.Received(1).Invoke(testSubject, EventArgs.Empty);
     }
@@ -169,7 +169,7 @@ public class UserSettingsProviderTests
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
-        VerifyCacheInvalidated(testSubject, () => activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(false, null)));
+        VerifyCacheInvalidated(testSubject, () => activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(null)));
 
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
     }
@@ -259,7 +259,7 @@ public class UserSettingsProviderTests
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
         VerifyCacheInvalidated(testSubject, () =>
-            globalSettingsStorage.SettingsFileChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(false, null)));
+            globalSettingsStorage.SettingsFileChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(null)));
 
         settingsChanged.Received(1).Invoke(testSubject, EventArgs.Empty);
     }
@@ -271,7 +271,7 @@ public class UserSettingsProviderTests
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
         VerifyCacheInvalidated(testSubject, () =>
-            solutionSettingsStorage.SettingsFileChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(false, null)));
+            solutionSettingsStorage.SettingsFileChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(null)));
 
         settingsChanged.Received(1).Invoke(testSubject, EventArgs.Empty);
     }

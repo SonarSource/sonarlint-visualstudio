@@ -22,26 +22,34 @@ using SonarLint.VisualStudio.Core.Initialization;
 
 namespace SonarLint.VisualStudio.Core
 {
-    public class ActiveSolutionChangedEventArgs : EventArgs
+    public class ActiveSolutionChangedEventArgs(ActiveSolution activeSolution) : EventArgs
     {
-        public ActiveSolutionChangedEventArgs(bool isSolutionOpen, string solutionName)
+        private readonly ActiveSolution activeSolution = activeSolution;
+
+        public ActiveSolutionChangedEventArgs(string solutionName) : this(new ActiveSolution(solutionName, false)) // todo remove
         {
-            IsSolutionOpen = isSolutionOpen;
-            SolutionName = solutionName;
         }
 
-        public bool IsSolutionOpen { get; }
-        public string SolutionName { get; }
+        public bool IsSolutionOpen => activeSolution.IsOpen;
+        public string SolutionName => activeSolution.Name;
+
+        public ActiveSolution Solution => activeSolution;
     }
 
     public interface IActiveSolutionTracker : IRequireInitialization
     {
         string CurrentSolutionName { get; }
+        ActiveSolution CurrentSolution { get; }
         /// <summary>
         /// The active solution has changed (either opened or closed).
         /// </summary>
         /// <remarks>The solution might not be fully loaded when this event is raised.
         /// The event argument value will be true if a solution is open and false otherwise.</remarks>
         event EventHandler<ActiveSolutionChangedEventArgs> ActiveSolutionChanged;
+    }
+
+    public record struct ActiveSolution(string Name, bool IsFolderMode)
+    {
+        public bool IsOpen => Name != null;
     }
 }

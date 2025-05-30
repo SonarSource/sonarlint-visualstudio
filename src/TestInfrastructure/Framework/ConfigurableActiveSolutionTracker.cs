@@ -26,13 +26,20 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class ConfigurableActiveSolutionTracker : IActiveSolutionTracker
     {
-        public virtual string CurrentSolutionName { get; set; }
+        public virtual string CurrentSolutionName { get; private set; }
+        public virtual ActiveSolution CurrentSolution { get; private set; }
         public virtual event EventHandler<ActiveSolutionChangedEventArgs> ActiveSolutionChanged;
 
-        public void SimulateActiveSolutionChanged(bool isSolutionOpen, string solutionName)
+        public void SetCurrentSolution(string solutionName, bool isFolderMode = false)
         {
             CurrentSolutionName = solutionName;
-            this.ActiveSolutionChanged?.Invoke(this, new ActiveSolutionChangedEventArgs(isSolutionOpen, solutionName));
+            CurrentSolution = new ActiveSolution(solutionName, isFolderMode);
+        }
+
+        public void SimulateActiveSolutionChanged(string solutionName, bool isFolderMode = false)
+        {
+            SetCurrentSolution(solutionName, isFolderMode);
+            ActiveSolutionChanged?.Invoke(this, new ActiveSolutionChangedEventArgs(CurrentSolution));
         }
 
         public virtual IInitializationProcessor InitializationProcessor => Substitute.For<IInitializationProcessor>();

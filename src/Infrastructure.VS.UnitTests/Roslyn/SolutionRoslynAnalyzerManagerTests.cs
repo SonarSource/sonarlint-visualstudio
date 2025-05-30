@@ -323,7 +323,7 @@ public class SolutionRoslynAnalyzerManagerTests
         roslynWorkspaceWrapper.TryApplyChangesAsync(default).ReturnsForAnyArgs(Substitute.For<IRoslynSolutionWrapper>());
         enterpriseRoslynAnalyzerProvider.GetEnterpriseOrNullAsync(solutionName).Returns(embeddedAnalyzers);
 
-        activeSolutionTracker.ActiveSolutionChanged += Raise.Event<EventHandler<ActiveSolutionChangedEventArgs>>(this, new ActiveSolutionChangedEventArgs(true, solutionName));
+        activeSolutionTracker.ActiveSolutionChanged += Raise.Event<EventHandler<ActiveSolutionChangedEventArgs>>(this, new ActiveSolutionChangedEventArgs(solutionName));
 
         await enterpriseRoslynAnalyzerProvider.Received(1).GetEnterpriseOrNullAsync(solutionName);
         roslynWorkspaceWrapper.ReceivedWithAnyArgs(1).TryApplyChangesAsync(default);

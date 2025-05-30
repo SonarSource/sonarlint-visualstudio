@@ -36,6 +36,7 @@ namespace SonarLint.VisualStudio.Integration
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class ActiveSolutionTracker : IActiveSolutionTracker, IVsSolutionEvents2, IDisposable, IVsSolutionEvents7
     {
+        private readonly object lockObject = new object();
         private readonly IServiceProvider serviceProvider;
         private readonly ISolutionInfoProvider solutionInfoProvider;
         private readonly ILogger logger;
@@ -43,7 +44,29 @@ namespace SonarLint.VisualStudio.Integration
         private IVsSolution solution;
         private uint cookie;
 
-        public string CurrentSolutionName { get; private set; }
+        private ActiveSolution currentSolution;
+
+        public string CurrentSolutionName
+        {
+            get
+            {
+                lock (lockObject)
+                {
+                    return currentSolution.Name;
+                }
+            }
+        }
+
+        public ActiveSolution CurrentSolution
+        {
+            get
+            {
+                lock (lockObject)
+                {
+                    return currentSolution;
+                }
+            }
+        }
 
         /// <summary>
         /// <see cref="IActiveSolutionTracker.ActiveSolutionChanged"/>
@@ -73,7 +96,11 @@ namespace SonarLint.VisualStudio.Integration
                     // not subscribing to events if already disposed
                     return;
                 }
-                CurrentSolutionName = solutionInfoProvider.GetSolutionName();
+
+                lock (lockObject)
+                {
+                    currentSolution = new(solutionInfoProvider.GetSolutionName(), solutionInfoProvider.IsFolderWorkspace());
+                }
                 logger.WriteLine(Strings.ActiveSolutionTracker_InitializedSolution, CurrentSolutionName ?? Strings.ActiveSolutionTracker_NoSolutionPlaceholder);
                 solution = serviceProvider.GetService<SVsSolution, IVsSolution>();
                 Debug.Assert(solution != null, "Cannot find IVsSolution");
@@ -201,6 +228,7 @@ namespace SonarLint.VisualStudio.Integration
         private void RaiseSolutionChangedEvent(bool isSolutionOpen, [CallerMemberName] string eventType = "")
         {
             var context = new MessageLevelContext { VerboseContext = [eventType] };
+            ActiveSolution newSolution;
             // Note: if lightweight solution load is enabled then the solution might not
             // be fully opened at this point
             if (isSolutionOpen)
@@ -214,16 +242,21 @@ namespace SonarLint.VisualStudio.Integration
                     // 2) are not closed when another solution is opened -> IVsSolutionEvents2.OnAfterMergeSolution handles that case
                     return;
                 }
-                CurrentSolutionName = solutionName;
-                logger.WriteLine(context, Strings.ActiveSolutionTracker_SolutionOpen, solutionName);
+
+                newSolution = new(solutionName, solutionInfoProvider.IsFolderWorkspace());
+                logger.WriteLine(context, Strings.ActiveSolutionTracker_SolutionOpen, newSolution);
             }
             else
             {
+                newSolution = new ActiveSolution(null, false);
                 logger.WriteLine(context, Strings.ActiveSolutionTracker_SolutionClosed, CurrentSolutionName ?? Strings.ActiveSolutionTracker_DummySolutionPlaceholder);
-                CurrentSolutionName = null;
             }
 
-            ActiveSolutionChanged?.Invoke(this, new ActiveSolutionChangedEventArgs(isSolutionOpen, CurrentSolutionName));
+            lock (lockObject)
+            {
+                currentSolution = newSolution;
+            }
+            ActiveSolutionChanged?.Invoke(this, new ActiveSolutionChangedEventArgs(newSolution));
         }
     }
 }

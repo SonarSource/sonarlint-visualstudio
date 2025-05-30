@@ -131,13 +131,13 @@ public class SolutionSettingsStorageTest
         var testSubject = CreateUninitializedTestSubject(out var barrier);
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
-        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(true, SolutionName1));
+        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(SolutionName1));
         solution1FileMonitor.FileChanged += Raise.Event();
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
 
         InitializeTestSubject(barrier, testSubject);
 
-        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(true, SolutionName1));
+        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(SolutionName1));
         solution1FileMonitor.FileChanged += Raise.Event();
         settingsChanged.ReceivedWithAnyArgs(2).Invoke(default, default);
     }
@@ -204,7 +204,7 @@ public class SolutionSettingsStorageTest
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
-        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(true, SolutionName1));
+        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(SolutionName1));
 
         settingsChanged.ReceivedWithAnyArgs().Invoke(default, default);
         singleFileMonitorFactory.Received().Create(Solution1SettingsFilePath);
@@ -221,7 +221,7 @@ public class SolutionSettingsStorageTest
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
-        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(false, null));
+        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(null));
 
         settingsChanged.DidNotReceiveWithAnyArgs().Invoke(default, default);
         solution1Monitor.Received().FileChanged -= Arg.Any<EventHandler>();
@@ -239,7 +239,7 @@ public class SolutionSettingsStorageTest
         var testSubject = CreateAndInitializeTestSubject();
         var settingsChanged = SubscribeToSettingsChanged(testSubject);
 
-        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(true, SolutionName2));
+        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(SolutionName2));
 
         settingsChanged.ReceivedWithAnyArgs().Invoke(default, default);
         solution1Monitor.Received().FileChanged -= Arg.Any<EventHandler>();

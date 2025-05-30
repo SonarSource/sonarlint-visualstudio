@@ -162,7 +162,7 @@ public class SharedBindingSuggestionServiceTests
 
     private void RaiseActiveSolutionChanged(bool isSolutionOpened)
     {
-        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(isSolutionOpened, "anysln"));
+        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(isSolutionOpened ? "anysln" : null));
     }
 
     private void MockSolutionMode(SonarLintMode mode)

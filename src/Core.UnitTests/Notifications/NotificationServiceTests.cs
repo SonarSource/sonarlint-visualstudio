@@ -262,7 +262,7 @@ public class NotificationServiceTests
     [TestMethod]
     public void ActiveSolutionChangedEvent_WhenNoActiveNotification_NotificationNotClosed()
     {
-        activeSolutionTracker.ActiveSolutionChanged += Raise.Event<EventHandler<ActiveSolutionChangedEventArgs>>(this, new ActiveSolutionChangedEventArgs(false, default));
+        activeSolutionTracker.ActiveSolutionChanged += Raise.Event<EventHandler<ActiveSolutionChangedEventArgs>>(this, new ActiveSolutionChangedEventArgs((string)default));
 
         infoBarManager.DidNotReceive().CloseInfoBar(Arg.Any<IInfoBar>());
     }
@@ -272,7 +272,7 @@ public class NotificationServiceTests
     {
         var attachedNotification = ShowNotification(closeOnSolutionClose: true);
 
-        activeSolutionTracker.ActiveSolutionChanged += Raise.Event<EventHandler<ActiveSolutionChangedEventArgs>>(this, new ActiveSolutionChangedEventArgs(false, default));
+        activeSolutionTracker.ActiveSolutionChanged += Raise.Event<EventHandler<ActiveSolutionChangedEventArgs>>(this, new ActiveSolutionChangedEventArgs((string)default));
 
         AssertNotificationClosed(attachedNotification);
     }
@@ -285,7 +285,7 @@ public class NotificationServiceTests
     {
         var attachedNotification = ShowNotification(closeOnSolutionClose: closeOnSolutionClose);
 
-        activeSolutionTracker.ActiveSolutionChanged += Raise.Event<EventHandler<ActiveSolutionChangedEventArgs>>(this, new ActiveSolutionChangedEventArgs(isSolutionOpen, default));
+        activeSolutionTracker.ActiveSolutionChanged += Raise.Event<EventHandler<ActiveSolutionChangedEventArgs>>(this, new ActiveSolutionChangedEventArgs(isSolutionOpen ? "any" : null));
 
         AssertNotificationNotClosed(attachedNotification);
     }
