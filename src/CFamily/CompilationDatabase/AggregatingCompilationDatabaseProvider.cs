@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.CFamily.CompilationDatabase;
 [method:ImportingConstructor]
 internal class AggregatingCompilationDatabaseProvider(
     ICMakeCompilationDatabaseLocator cMakeCompilationDatabaseLocator,
-    IVCXCompilationDatabaseProvider vcxCompilationDatabaseProvider)
+    IObsoleteVcxCompilationDatabaseProvider vcxCompilationDatabaseProvider)
     : IAggregatingCompilationDatabaseProvider
 {
     public ICompilationDatabaseHandle GetOrNull(string sourceFilePath)

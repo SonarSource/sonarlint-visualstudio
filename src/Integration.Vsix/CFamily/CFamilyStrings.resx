@@ -143,4 +143,10 @@
   <data name="ERROR_CreatingVcxRequest" xml:space="preserve">
     <value>[CFamily Analysis] Error creating VCX request. File: {0}, Error: {1}</value>
   </data>
+  <data name="ActiveVcxCompilationDatabase_NotInitialized" xml:space="preserve">
+    <value>VCX Compilation Database is not initialized</value>
+  </data>
+  <data name="ActiveVcxCompilationDatabase_AlreadyInitialized" xml:space="preserve">
+    <value>VCX Compilation Database is already initialized</value>
+  </data>
 </root>
