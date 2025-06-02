@@ -63,7 +63,6 @@ public class VcxCompilationDatabaseStorageTests
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<VcxCompilationDatabaseStorage, IVcxCompilationDatabaseStorage>(
             MefTestHelpers.CreateExport<IFileSystemService>(),
-            MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
