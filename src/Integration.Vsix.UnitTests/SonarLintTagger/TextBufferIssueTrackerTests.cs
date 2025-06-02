@@ -142,12 +142,11 @@ public class TextBufferIssueTrackerTests
     public void Dispose_RaisesEvent()
     {
         var eventHandler = Substitute.For<EventHandler<DocumentClosedEventArgs>>();
-        var textBufferIssueTracker = CreateTestSubject();
-        textBufferIssueTracker.DocumentClosed += eventHandler;
+        taggerProvider.DocumentClosed += eventHandler;
 
-        textBufferIssueTracker.Dispose();
+        testSubject.Dispose();
 
-        eventHandler.Received(1).Invoke(textBufferIssueTracker, Arg.Is<DocumentClosedEventArgs>(x => x.FullPath == mockedJavascriptDocumentFooJs.FilePath));
+        eventHandler.Received(1).Invoke(taggerProvider, Arg.Is<DocumentClosedEventArgs>(x => x.FullPath == mockedJavascriptDocumentFooJs.FilePath));
     }
 
     private static void VerifySingletonManagerDoesNotExist(ITextBuffer buffer)
@@ -263,12 +262,11 @@ public class TextBufferIssueTrackerTests
     public void WhenFileIsSaved_DocumentSavedEventIsRaised()
     {
         var eventHandler = Substitute.For<EventHandler<DocumentSavedEventArgs>>();
-        var textBufferIssueTracker = CreateTestSubject();
-        textBufferIssueTracker.DocumentSaved += eventHandler;
+        taggerProvider.DocumentSaved += eventHandler;
 
         RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
 
-        eventHandler.Received(1).Invoke(textBufferIssueTracker, Arg.Is<DocumentSavedEventArgs>(x => x.FullPath == mockedJavascriptDocumentFooJs.FilePath));
+        eventHandler.Received(1).Invoke(taggerProvider, Arg.Is<DocumentSavedEventArgs>(x => x.FullPath == mockedJavascriptDocumentFooJs.FilePath));
     }
 
     [TestMethod]
@@ -291,9 +289,8 @@ public class TextBufferIssueTrackerTests
     {
         var renamedEventHandler = Substitute.For<EventHandler<DocumentRenamedEventArgs>>();
         var savedEventHandler = Substitute.For<EventHandler<DocumentSavedEventArgs>>();
-        var textBufferIssueTracker = CreateTestSubject();
-        textBufferIssueTracker.OpenDocumentRenamed += renamedEventHandler;
-        textBufferIssueTracker.DocumentSaved += savedEventHandler;
+        taggerProvider.OpenDocumentRenamed += renamedEventHandler;
+        taggerProvider.DocumentSaved += savedEventHandler;
 
         RaiseFileLoadedEvent(mockedJavascriptDocumentFooJs);
 
@@ -305,13 +302,12 @@ public class TextBufferIssueTrackerTests
     public void WhenFileIsRenamed_OpenDocumentRenamedIsRaised()
     {
         var eventHandler = Substitute.For<EventHandler<DocumentRenamedEventArgs>>();
-        var textBufferIssueTracker = CreateTestSubject();
-        textBufferIssueTracker.OpenDocumentRenamed += eventHandler;
+        taggerProvider.OpenDocumentRenamed += eventHandler;
         var newFilePath = "newName.cs";
 
         RaiseFileRenamedEvent(mockedJavascriptDocumentFooJs, newFilePath);
 
-        eventHandler.Received(1).Invoke(textBufferIssueTracker, Arg.Is<DocumentRenamedEventArgs>(x =>
+        eventHandler.Received(1).Invoke(taggerProvider, Arg.Is<DocumentRenamedEventArgs>(x =>
             x.FullPath == newFilePath && x.OldFilePath == mockedJavascriptDocumentFooJs.FilePath));
     }
 

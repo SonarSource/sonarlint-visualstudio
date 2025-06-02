@@ -94,12 +94,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     case FileActionTypes.ContentSavedToDisk:
                         {
                             RequestAnalysis(new AnalyzerOptions { IsOnOpen = false });
-                            DocumentSaved?.Invoke(this, new DocumentSavedEventArgs(document.FilePath, document.TextBuffer.CurrentSnapshot.GetText()));
+                            Provider.OnDocumentSaved(document.FilePath, document.TextBuffer.CurrentSnapshot.GetText());
                             break;
                         }
                     case FileActionTypes.DocumentRenamed:
                         {
-                            OpenDocumentRenamed?.Invoke(this, new DocumentRenamedEventArgs(e.FilePath, LastAnalysisFilePath));
+                            Provider.OnOpenDocumentRenamed(e.FilePath, LastAnalysisFilePath);
                             break;
                         }
                     default:
@@ -163,11 +163,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             document.FileActionOccurred -= SafeOnFileActionOccurred;
             textBuffer.Properties.RemoveProperty(TaggerProvider.SingletonManagerPropertyCollectionKey);
             sonarErrorDataSource.RemoveFactory(Factory);
-            DocumentClosed?.Invoke(this, new DocumentClosedEventArgs(LastAnalysisFilePath));
+            Provider.OnDocumentClosed(this);
         }
-
-        public event EventHandler<DocumentSavedEventArgs> DocumentSaved;
-        public event EventHandler<DocumentRenamedEventArgs> OpenDocumentRenamed;
-        public event EventHandler<DocumentClosedEventArgs> DocumentClosed;
     }
 }

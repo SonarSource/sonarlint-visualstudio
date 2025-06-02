@@ -323,19 +323,6 @@ public class TaggerProviderTests
     }
 
     [TestMethod]
-    public void AddIssueTracker_SubscribesFromEvents()
-    {
-        var testSubject = CreateTestSubject();
-        var issueTracker = CreateMockedIssueTracker("myFile.cs");
-
-        testSubject.AddIssueTracker(issueTracker);
-
-        issueTracker.Received(1).DocumentSaved += Arg.Any<EventHandler<DocumentSavedEventArgs>>();
-        issueTracker.Received(1).OpenDocumentRenamed += Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
-        issueTracker.Received(1).DocumentClosed += Arg.Any<EventHandler<DocumentClosedEventArgs>>();
-    }
-
-    [TestMethod]
     public void IssueTracker_DocumentClosed_RaiseEvent()
     {
         var eventHandler = Substitute.For<EventHandler<DocumentClosedEventArgs>>();

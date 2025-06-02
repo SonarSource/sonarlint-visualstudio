@@ -178,20 +178,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #endregion IViewTaggerProvider members
 
-        public void AddIssueTracker(IIssueTracker issueTracker)
-        {
-            lock (issueTrackers)
-            {
-                issueTrackers.Add(issueTracker);
-            }
-
-            issueTracker.DocumentSaved += OnDocumentSaved;
-            issueTracker.OpenDocumentRenamed += OnOpenDocumentRenamed;
-            issueTracker.DocumentClosed += OnDocumentClosed;
-            // The lifetime of an issue tracker is tied to a single document. A document is opened, when a tracker is created.
-            DocumentOpened?.Invoke(this, new DocumentOpenedEventArgs(issueTracker.LastAnalysisFilePath, issueTracker.DetectedLanguages));
-        }
-
         #region IDocumentEvents methods
 
         public event EventHandler<DocumentClosedEventArgs> DocumentClosed;
@@ -199,22 +185,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public event EventHandler<DocumentSavedEventArgs> DocumentSaved;
         public event EventHandler<DocumentRenamedEventArgs> OpenDocumentRenamed;
 
-        private void OnOpenDocumentRenamed(object sender, DocumentRenamedEventArgs e) => OpenDocumentRenamed?.Invoke(this, e);
-
-        private void OnDocumentSaved(object sender, DocumentSavedEventArgs e) => DocumentSaved?.Invoke(this, e);
-
-        private void OnDocumentClosed(object sender, DocumentClosedEventArgs e)
+        public void AddIssueTracker(IIssueTracker issueTracker)
         {
-            var issueTracker = (IIssueTracker)sender;
+            lock (issueTrackers)
+            {
+                issueTrackers.Add(issueTracker);
+            }
 
+            // The lifetime of an issue tracker is tied to a single document. A document is opened, when a tracker is created.
+            DocumentOpened?.Invoke(this, new DocumentOpenedEventArgs(issueTracker.LastAnalysisFilePath, issueTracker.DetectedLanguages));
+        }
+
+        public void OnOpenDocumentRenamed(string newFilePath, string oldFilePath) => OpenDocumentRenamed?.Invoke(this, new DocumentRenamedEventArgs(newFilePath, oldFilePath));
+
+        public void OnDocumentSaved(string fullPath, string newContent) => DocumentSaved?.Invoke(this, new DocumentSavedEventArgs(fullPath, newContent));
+
+        public void OnDocumentClosed(IIssueTracker issueTracker)
+        {
             lock (issueTrackers)
             {
                 issueTrackers.Remove(issueTracker);
             }
 
-            issueTracker.DocumentSaved -= OnDocumentSaved;
-            issueTracker.OpenDocumentRenamed -= OnOpenDocumentRenamed;
-            issueTracker.DocumentClosed -= OnDocumentClosed;
             // The lifetime of an issue tracker is tied to a single document. A tracker is removed when
             // it is no longer needed i.e. the document has been closed.
             DocumentClosed?.Invoke(this, new DocumentClosedEventArgs(issueTracker.LastAnalysisFilePath));
