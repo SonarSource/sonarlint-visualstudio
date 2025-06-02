@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.CFamily;
 using SonarLint.VisualStudio.CFamily.CompilationDatabase;
 using SonarLint.VisualStudio.Core;
@@ -31,7 +32,7 @@ public class ActiveVcxCompilationDatabaseTests
 {
     private const string DatabasePath = "some path";
     private const string EntryFilePath = "some file path";
-    private readonly CompilationDatabaseEntry Entry = new() { File = EntryFilePath };
+    private readonly CompilationDatabaseEntry entry = new() { File = EntryFilePath };
     private IVcxCompilationDatabaseStorage storage;
     private IThreadHandling threadHandling;
     private ICompilationDatabaseEntryGenerator generator;
@@ -110,7 +111,7 @@ public class ActiveVcxCompilationDatabaseTests
     public void AddFile_NotInitialized_Throws()
     {
         storage.CreateDatabase().Returns(DatabasePath);
-        generator.CreateOrNull(EntryFilePath).Returns(Entry);
+        generator.CreateOrNull(EntryFilePath).Returns(entry);
 
         var act = () => testSubject.AddFile(EntryFilePath);
 
@@ -122,12 +123,25 @@ public class ActiveVcxCompilationDatabaseTests
     public void AddFile_Initialized_AddsFileViaStorage()
     {
         storage.CreateDatabase().Returns(DatabasePath);
-        generator.CreateOrNull(EntryFilePath).Returns(Entry);
+        generator.CreateOrNull(EntryFilePath).Returns(entry);
         testSubject.InitializeDatabase();
 
         testSubject.AddFile(EntryFilePath);
 
-        storage.Received(1).UpdateDatabaseEntry(DatabasePath, Entry);
+        storage.Received(1).UpdateDatabaseEntry(DatabasePath, entry);
+        VerifyThrowIfOnUIThread(2);
+    }
+
+    [TestMethod]
+    public void AddFile_Initialized_EntryCannotBeGenerated_DoesNothing()
+    {
+        storage.CreateDatabase().Returns(DatabasePath);
+        generator.CreateOrNull(EntryFilePath).ReturnsNull();
+        testSubject.InitializeDatabase();
+
+        testSubject.AddFile(EntryFilePath);
+
+        storage.DidNotReceiveWithAnyArgs().UpdateDatabaseEntry(default, default);
         VerifyThrowIfOnUIThread(2);
     }
 
@@ -135,7 +149,7 @@ public class ActiveVcxCompilationDatabaseTests
     public void RemoveFile_NotInitialized_DoesNothing()
     {
         storage.CreateDatabase().Returns(DatabasePath);
-        generator.CreateOrNull(EntryFilePath).Returns(Entry);
+        generator.CreateOrNull(EntryFilePath).Returns(entry);
 
         testSubject.RemoveFile(EntryFilePath);
 
@@ -147,7 +161,7 @@ public class ActiveVcxCompilationDatabaseTests
     public void RemoveFile_Initialized_RemovesFileViaStorage()
     {
         storage.CreateDatabase().Returns(DatabasePath);
-        generator.CreateOrNull(EntryFilePath).Returns(Entry);
+        generator.CreateOrNull(EntryFilePath).Returns(entry);
         testSubject.InitializeDatabase();
 
         testSubject.RemoveFile(EntryFilePath);

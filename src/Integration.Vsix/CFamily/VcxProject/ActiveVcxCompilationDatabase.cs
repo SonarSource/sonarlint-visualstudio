@@ -89,6 +89,12 @@ internal class ActiveVcxCompilationDatabase(
             }
 
             var compilationDatabaseEntry = generator.CreateOrNull(filePath);
+
+            if (compilationDatabaseEntry is null)
+            {
+                return;
+            }
+
             storage.UpdateDatabaseEntry(databasePath, compilationDatabaseEntry);
         }
     }
