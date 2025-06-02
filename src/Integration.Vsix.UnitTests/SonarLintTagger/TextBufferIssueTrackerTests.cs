@@ -312,6 +312,18 @@ public class TextBufferIssueTrackerTests
     }
 
     [TestMethod]
+    public void WhenFileIsRenamed_LastAnalysisFilePathIsUpdated()
+    {
+        var eventHandler = Substitute.For<EventHandler<DocumentRenamedEventArgs>>();
+        taggerProvider.OpenDocumentRenamed += eventHandler;
+        var newFilePath = "newName.cs";
+
+        RaiseFileRenamedEvent(mockedJavascriptDocumentFooJs, newFilePath);
+
+        testSubject.LastAnalysisFilePath.Should().Be(newFilePath);
+    }
+
+    [TestMethod]
     public void WhenFileIsRenamed_AnalysisIsNotRequested()
     {
         mockAnalysisService.ClearReceivedCalls();

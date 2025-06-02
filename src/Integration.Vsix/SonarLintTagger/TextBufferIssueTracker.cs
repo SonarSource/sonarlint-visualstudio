@@ -100,6 +100,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     case FileActionTypes.DocumentRenamed:
                         {
                             Provider.OnOpenDocumentRenamed(e.FilePath, LastAnalysisFilePath);
+                            LastAnalysisFilePath = e.FilePath;
                             break;
                         }
                     default:
