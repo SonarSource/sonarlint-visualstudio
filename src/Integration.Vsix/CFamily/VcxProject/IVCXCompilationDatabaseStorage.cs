@@ -49,26 +49,15 @@ internal interface IVcxCompilationDatabaseStorage : IDisposable
 [Export(typeof(IObsoleteVCXCompilationDatabaseStorage))]
 [Export(typeof(IVcxCompilationDatabaseStorage))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class VcxCompilationDatabaseStorage : IObsoleteVCXCompilationDatabaseStorage, IVcxCompilationDatabaseStorage
+[method: ImportingConstructor]
+internal sealed class VcxCompilationDatabaseStorage(IFileSystemService fileSystemService, ILogger logger) : IObsoleteVCXCompilationDatabaseStorage, IVcxCompilationDatabaseStorage
 {
     private readonly string compilationDatabaseDirectoryPath = PathHelper.GetTempDirForTask(true, "VCXCD");
-    private readonly IFileSystemService fileSystemService;
-    private readonly IThreadHandling threadHandling;
-    private readonly ILogger logger;
     private bool disposed;
-
-    [ImportingConstructor]
-    public VcxCompilationDatabaseStorage(IFileSystemService fileSystemService, IThreadHandling threadHandling, ILogger logger)
-    {
-        this.fileSystemService = fileSystemService;
-        this.threadHandling = threadHandling;
-        this.logger = logger;
-    }
 
     public string CreateDatabase()
     {
         ThrowIfDisposed();
-        threadHandling.ThrowIfOnUIThread();
 
         var compilationDatabaseFullPath = GetCompilationDatabaseFullPath();
 
@@ -88,7 +77,6 @@ internal sealed class VcxCompilationDatabaseStorage : IObsoleteVCXCompilationDat
     public void DeleteDatabase(string databasePath)
     {
         ThrowIfDisposed();
-        threadHandling.ThrowIfOnUIThread();
 
         try
         {
@@ -103,7 +91,6 @@ internal sealed class VcxCompilationDatabaseStorage : IObsoleteVCXCompilationDat
     public void UpdateDatabaseEntry(string databasePath, CompilationDatabaseEntry updatedEntry)
     {
         ThrowIfDisposed();
-        threadHandling.ThrowIfOnUIThread();
 
         try
         {
@@ -120,7 +107,6 @@ internal sealed class VcxCompilationDatabaseStorage : IObsoleteVCXCompilationDat
     public void RemoveDatabaseEntry(string databasePath, string entryFilePath)
     {
         ThrowIfDisposed();
-        threadHandling.ThrowIfOnUIThread();
 
         try
         {
@@ -144,7 +130,6 @@ internal sealed class VcxCompilationDatabaseStorage : IObsoleteVCXCompilationDat
         IEnumerable<string> environment)
     {
         ThrowIfDisposed();
-        threadHandling.ThrowIfOnUIThread();
 
         var compilationDatabaseEntry = new CompilationDatabaseEntry
         {

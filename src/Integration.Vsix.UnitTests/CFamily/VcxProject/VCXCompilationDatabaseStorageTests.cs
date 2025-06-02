@@ -44,22 +44,19 @@ public class VcxCompilationDatabaseStorageTests
     private IFileSystemService fileSystemService;
     private TestLogger testLogger;
     private VcxCompilationDatabaseStorage testSubject;
-    private IThreadHandling threadHandling;
 
     [TestInitialize]
     public void TestInitialize()
     {
         fileSystemService = Substitute.For<IFileSystemService>();
-        threadHandling = Substitute.For<IThreadHandling>();
         testLogger = new TestLogger();
-        testSubject = new VcxCompilationDatabaseStorage(fileSystemService, threadHandling, testLogger);
+        testSubject = new VcxCompilationDatabaseStorage(fileSystemService, testLogger);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported_Obsolete() =>
         MefTestHelpers.CheckTypeCanBeImported<VcxCompilationDatabaseStorage, IObsoleteVCXCompilationDatabaseStorage>(
             MefTestHelpers.CreateExport<IFileSystemService>(),
-            MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
@@ -101,7 +98,6 @@ public class VcxCompilationDatabaseStorageTests
         var databaseHandle = (testSubject as IObsoleteVCXCompilationDatabaseStorage).CreateDatabase(SourceFilePath, SourceDirectory, CompileCommand, EnvValue);
 
         var temporaryCompilationDatabaseHandle = databaseHandle.Should().BeOfType<TemporaryCompilationDatabaseHandle>().Subject;
-        threadHandling.Received().ThrowIfOnUIThread();
         fileSystemService.Directory.Received().CreateDirectory(expectedDirectory);
         fileSystemService.File.Received().WriteAllText(temporaryCompilationDatabaseHandle.FilePath, Arg.Any<string>());
         VerifyDatabaseUpdated(databaseHandle.FilePath, expectedDirectory,
@@ -160,7 +156,6 @@ public class VcxCompilationDatabaseStorageTests
         var databasePath = testSubject.CreateDatabase();
 
         VerifyDatabaseUpdated(databasePath, expectedDirectory, []);
-        threadHandling.Received().ThrowIfOnUIThread();
         fileSystemService.Directory.Received().CreateDirectory(expectedDirectory);
     }
 
@@ -173,7 +168,6 @@ public class VcxCompilationDatabaseStorageTests
         var databasePath2 = testSubject.CreateDatabase();
 
         databasePath1.Should().NotBe(databasePath2);
-        threadHandling.Received(2).ThrowIfOnUIThread();
         fileSystemService.Directory.Received(2).CreateDirectory(expectedDirectory);
         fileSystemService.File.ReceivedWithAnyArgs(2).WriteAllText(default, default);
         VerifyDatabaseUpdated(databasePath1, expectedDirectory, []);
@@ -217,7 +211,6 @@ public class VcxCompilationDatabaseStorageTests
 
         testSubject.DeleteDatabase(databasePath);
 
-        threadHandling.Received().ThrowIfOnUIThread();
         fileSystemService.File.Received(1).Delete(databasePath);
     }
 
@@ -259,7 +252,6 @@ public class VcxCompilationDatabaseStorageTests
 
         testSubject.UpdateDatabaseEntry(defaultDatabaseFilePath, compilationDatabaseEntry);
 
-        threadHandling.Received().ThrowIfOnUIThread();
         VerifyDatabaseUpdated(defaultDatabaseFilePath, defaultDatabaseDirectory, [compilationDatabaseEntry]);
     }
 
@@ -274,7 +266,6 @@ public class VcxCompilationDatabaseStorageTests
 
         testSubject.UpdateDatabaseEntry(defaultDatabaseFilePath, entry3);
 
-        threadHandling.Received().ThrowIfOnUIThread();
         VerifyDatabaseUpdated(defaultDatabaseFilePath, defaultDatabaseDirectory, [entry1, entry2, entry3]);
     }
 
@@ -290,7 +281,6 @@ public class VcxCompilationDatabaseStorageTests
 
         testSubject.UpdateDatabaseEntry(defaultDatabaseFilePath, entry2New);
 
-        threadHandling.Received().ThrowIfOnUIThread();
         VerifyDatabaseUpdated(defaultDatabaseFilePath, defaultDatabaseDirectory, [entry1, entry2New, entry3]);
     }
 
@@ -331,7 +321,6 @@ public class VcxCompilationDatabaseStorageTests
 
         testSubject.RemoveDatabaseEntry(defaultDatabaseFilePath, "remove");
 
-        threadHandling.Received().ThrowIfOnUIThread();
         fileSystemService.File.DidNotReceiveWithAnyArgs().WriteAllText(default, default);
     }
 
@@ -345,7 +334,6 @@ public class VcxCompilationDatabaseStorageTests
 
         testSubject.RemoveDatabaseEntry(defaultDatabaseFilePath, "remove");
 
-        threadHandling.Received().ThrowIfOnUIThread();
         fileSystemService.File.DidNotReceiveWithAnyArgs().WriteAllText(default, default);
     }
 
@@ -360,7 +348,6 @@ public class VcxCompilationDatabaseStorageTests
 
         testSubject.RemoveDatabaseEntry(defaultDatabaseFilePath, "remove");
 
-        threadHandling.Received().ThrowIfOnUIThread();
         VerifyDatabaseUpdated(defaultDatabaseFilePath, defaultDatabaseDirectory, [entry1, entry3]);
     }
 
