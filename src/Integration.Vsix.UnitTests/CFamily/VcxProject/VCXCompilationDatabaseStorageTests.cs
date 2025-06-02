@@ -19,6 +19,7 @@
  */
 
 using System.IO;
+using System.IO.Abstractions;
 using Newtonsoft.Json;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.CFamily.CompilationDatabase;
@@ -418,5 +419,5 @@ public class VcxCompilationDatabaseStorageTests
     }
 
     private string GetSerializedDbByPath(string databasePath) =>
-        (string)fileSystemService.File.ReceivedCalls().First(x => x.GetMethodInfo().Name == "WriteAllText" && (string)x.GetArguments()[0] == databasePath).GetArguments()[1];
+        (string)fileSystemService.File.ReceivedCalls().First(x => x.GetMethodInfo().Name == nameof(IFile.WriteAllText) && (string)x.GetArguments()[0] == databasePath).GetArguments()[1];
 }
