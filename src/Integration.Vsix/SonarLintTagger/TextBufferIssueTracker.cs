@@ -38,11 +38,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// See the README.md in this folder for more information
     /// </para>
     /// </remarks>
-    internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>, IDisposable
+    internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
     {
         internal /* for testing */ TaggerProvider Provider { get; }
         private readonly ITextBuffer textBuffer;
-        private readonly IEnumerable<AnalysisLanguage> detectedLanguages;
 
         private readonly ITextDocument document;
         private readonly ILogger logger;
@@ -51,6 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISonarErrorListDataSource sonarErrorDataSource;
 
         public string LastAnalysisFilePath { get; private set; }
+        public IEnumerable<AnalysisLanguage> DetectedLanguages { get; }
         internal /* for testing */ IssuesSnapshotFactory Factory { get; }
 
         public TextBufferIssueTracker(
@@ -62,11 +62,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             IFileTracker fileTracker,
             ILogger logger)
         {
+            Provider = provider;
+            textBuffer = document.TextBuffer;
 
-            this.Provider = provider;
-            this.textBuffer = document.TextBuffer;
-
-            this.detectedLanguages = detectedLanguages;
             this.sonarErrorDataSource = sonarErrorDataSource;
             this.vsAwareAnalysisService = vsAwareAnalysisService;
             this.fileTracker = fileTracker;
@@ -74,14 +72,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.document = document;
             LastAnalysisFilePath = document.FilePath;
+            DetectedLanguages = detectedLanguages;
             Factory = new IssuesSnapshotFactory(LastAnalysisFilePath);
 
             document.FileActionOccurred += SafeOnFileActionOccurred;
 
-            sonarErrorDataSource.AddFactory(this.Factory);
+            sonarErrorDataSource.AddFactory(Factory);
             Provider.AddIssueTracker(this);
 
-            RequestAnalysis(new AnalyzerOptions{ IsOnOpen = true });
+            RequestAnalysis(new AnalyzerOptions { IsOnOpen = true });
         }
 
         private void SafeOnFileActionOccurred(object sender, TextDocumentFileActionEventArgs e)
@@ -90,12 +89,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // propagating to VS, which would display a dialogue and disable the extension.
             try
             {
-                if (e.FileActionType != FileActionTypes.ContentSavedToDisk)
+                switch (e.FileActionType)
                 {
-                    return;
+                    case FileActionTypes.ContentSavedToDisk:
+                        {
+                            RequestAnalysis(new AnalyzerOptions { IsOnOpen = false });
+                            Provider.OnDocumentSaved(document.FilePath, document.TextBuffer.CurrentSnapshot.GetText());
+                            break;
+                        }
+                    case FileActionTypes.DocumentRenamed:
+                        {
+                            Provider.OnOpenDocumentRenamed(e.FilePath, LastAnalysisFilePath);
+                            LastAnalysisFilePath = e.FilePath;
+                            break;
+                        }
+                    default:
+                        return;
                 }
-
-                RequestAnalysis(new AnalyzerOptions { IsOnOpen = false });
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -117,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 vsAwareAnalysisService.CancelForFile(LastAnalysisFilePath);
                 var analysisSnapshot = UpdateAnalysisState();
-                vsAwareAnalysisService.RequestAnalysis(document, analysisSnapshot, detectedLanguages, SnapToNewSnapshot, options);
+                vsAwareAnalysisService.RequestAnalysis(document, analysisSnapshot, DetectedLanguages, SnapToNewSnapshot, options);
             }
             catch (NotSupportedException ex)
             {
@@ -153,8 +163,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             vsAwareAnalysisService.CancelForFile(LastAnalysisFilePath);
             document.FileActionOccurred -= SafeOnFileActionOccurred;
             textBuffer.Properties.RemoveProperty(TaggerProvider.SingletonManagerPropertyCollectionKey);
-            sonarErrorDataSource.RemoveFactory(this.Factory);
-            Provider.RemoveIssueTracker(this);
+            sonarErrorDataSource.RemoveFactory(Factory);
+            Provider.OnDocumentClosed(this);
         }
     }
 }

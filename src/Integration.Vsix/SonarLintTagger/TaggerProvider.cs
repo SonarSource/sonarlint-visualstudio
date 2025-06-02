@@ -65,7 +65,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        internal TaggerProvider(ISonarErrorListDataSource sonarErrorDataSource,
+        internal TaggerProvider(
+            ISonarErrorListDataSource sonarErrorDataSource,
             ITextDocumentFactoryService textDocumentFactoryService,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             ISonarLanguageRecognizer languageRecognizer,
@@ -104,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 reanalysisJob?.Cancel();
                 reanalysisProgressHandler?.Dispose();
 
-                var filteredIssueTrackers = FilterIssuesTrackersByPath(this.issueTrackers, args.FilePaths);
+                var filteredIssueTrackers = FilterIssuesTrackersByPath(issueTrackers, args.FilePaths);
 
                 var operations = filteredIssueTrackers
                     .Select<IIssueTracker, Action>(it => () => it.RequestAnalysis(args.Options))
@@ -119,7 +120,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         internal /* for testing */ static IEnumerable<IIssueTracker> FilterIssuesTrackersByPath(
-            IEnumerable<IIssueTracker> issueTrackers, IEnumerable<string> filePaths)
+            IEnumerable<IIssueTracker> issueTrackers,
+            IEnumerable<string> filePaths)
         {
             if (filePaths == null || !filePaths.Any())
             {
@@ -165,7 +167,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         private TextBufferIssueTracker InternalCreateTextBufferIssueTracker(ITextDocument textDocument, IEnumerable<AnalysisLanguage> analysisLanguages) =>
-            new TextBufferIssueTracker(
+            new(
                 this,
                 textDocument,
                 analysisLanguages,
@@ -176,29 +178,39 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #endregion IViewTaggerProvider members
 
+        #region IDocumentEvents methods
+
+        public event EventHandler<DocumentClosedEventArgs> DocumentClosed;
+        public event EventHandler<DocumentOpenedEventArgs> DocumentOpened;
+        public event EventHandler<DocumentSavedEventArgs> DocumentSaved;
+        public event EventHandler<DocumentRenamedEventArgs> OpenDocumentRenamed;
+
         public void AddIssueTracker(IIssueTracker issueTracker)
         {
             lock (issueTrackers)
             {
                 issueTrackers.Add(issueTracker);
             }
+
+            // The lifetime of an issue tracker is tied to a single document. A document is opened, when a tracker is created.
+            DocumentOpened?.Invoke(this, new DocumentOpenedEventArgs(issueTracker.LastAnalysisFilePath, issueTracker.DetectedLanguages));
         }
 
-        public void RemoveIssueTracker(IIssueTracker issueTracker)
+        public void OnOpenDocumentRenamed(string newFilePath, string oldFilePath) => OpenDocumentRenamed?.Invoke(this, new DocumentRenamedEventArgs(newFilePath, oldFilePath));
+
+        public void OnDocumentSaved(string fullPath, string newContent) => DocumentSaved?.Invoke(this, new DocumentSavedEventArgs(fullPath, newContent));
+
+        public void OnDocumentClosed(IIssueTracker issueTracker)
         {
             lock (issueTrackers)
             {
                 issueTrackers.Remove(issueTracker);
-
-                // The lifetime of an issue tracker is tied to a single document. A tracker is removed when
-                // it is no longer needed i.e. the document has been closed.
-                DocumentClosed?.Invoke(this, new DocumentClosedEventArgs(issueTracker.LastAnalysisFilePath));
             }
+
+            // The lifetime of an issue tracker is tied to a single document. A tracker is removed when
+            // it is no longer needed i.e. the document has been closed.
+            DocumentClosed?.Invoke(this, new DocumentClosedEventArgs(issueTracker.LastAnalysisFilePath));
         }
-
-        #region IDocumentEvents methods
-
-        public event EventHandler<DocumentClosedEventArgs> DocumentClosed;
 
         #endregion IDocumentEvents methods
     }
