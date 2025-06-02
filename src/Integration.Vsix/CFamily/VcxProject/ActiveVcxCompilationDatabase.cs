@@ -20,7 +20,9 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.CFamily;
+using SonarLint.VisualStudio.CFamily.CompilationDatabase;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Synchronization;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
@@ -30,10 +32,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 internal class ActiveVcxCompilationDatabase(
     IVcxCompilationDatabaseStorage storage,
     IThreadHandling threadHandling,
-    ICompilationDatabaseEntryGenerator generator)
+    ICompilationDatabaseEntryGenerator generator,
+    IAsyncLockFactory asyncLockFactory)
     : IActiveVcxCompilationDatabase
 {
-    private readonly object lockObject = new();
+    private readonly IAsyncLock asyncLock = asyncLockFactory.Create();
     private string databasePath;
 
     public string DatabasePath
@@ -41,76 +44,76 @@ internal class ActiveVcxCompilationDatabase(
         get
         {
             threadHandling.ThrowIfOnUIThread();
-            lock (lockObject)
+
+            using (asyncLock.Acquire())
             {
                 return databasePath;
             }
         }
     }
 
-    public string InitializeDatabase()
-    {
-        threadHandling.ThrowIfOnUIThread();
-        lock (lockObject)
+    public Task<string> InitializeDatabaseAsync() =>
+        threadHandling.RunOnBackgroundThread(async () =>
         {
-            if (databasePath is not null)
+            using (await asyncLock.AcquireAsync())
             {
-                throw new InvalidOperationException(CFamilyStrings.ActiveVcxCompilationDatabase_AlreadyInitialized);
+                if (databasePath is not null)
+                {
+                    throw new InvalidOperationException(CFamilyStrings.ActiveVcxCompilationDatabase_AlreadyInitialized);
+                }
+
+                databasePath = storage.CreateDatabase();
+                return databasePath;
             }
+        });
 
-            databasePath = storage.CreateDatabase();
-            return databasePath;
-        }
-    }
-
-    public void DropDatabase()
-    {
-        threadHandling.ThrowIfOnUIThread();
-        lock (lockObject)
+    public Task DropDatabaseAsync() =>
+        threadHandling.RunOnBackgroundThread(async () =>
         {
-            if (databasePath is null)
+            using (await asyncLock.AcquireAsync())
             {
-                return;
+                if (databasePath is null)
+                {
+                    return;
+                }
+                storage.DeleteDatabase(databasePath);
+                databasePath = null;
             }
-            storage.DeleteDatabase(databasePath);
-            databasePath = null;
-        }
-    }
+        });
 
-    public void AddFile(string filePath)
-    {
-        threadHandling.ThrowIfOnUIThread();
-
-        lock (lockObject)
+    public Task AddFileAsync(string filePath) =>
+        threadHandling.RunOnBackgroundThread(async () =>
         {
-            if (databasePath is null)
+            using (await asyncLock.AcquireAsync())
             {
-                throw new InvalidOperationException(CFamilyStrings.ActiveVcxCompilationDatabase_NotInitialized);
+                if (databasePath is null)
+                {
+                    throw new InvalidOperationException(CFamilyStrings.ActiveVcxCompilationDatabase_NotInitialized);
+                }
+
+                CompilationDatabaseEntry compilationDatabaseEntry = null;
+                await threadHandling.RunOnUIThreadAsync(() => compilationDatabaseEntry = generator.CreateOrNull(filePath));
+
+                if (compilationDatabaseEntry is null)
+                {
+                    return;
+                }
+
+                storage.UpdateDatabaseEntry(databasePath, compilationDatabaseEntry);
             }
+        });
 
-            var compilationDatabaseEntry = generator.CreateOrNull(filePath);
-
-            if (compilationDatabaseEntry is null)
-            {
-                return;
-            }
-
-            storage.UpdateDatabaseEntry(databasePath, compilationDatabaseEntry);
-        }
-    }
-
-    public void RemoveFile(string filePath)
-    {
-        threadHandling.ThrowIfOnUIThread();
-
-        lock (lockObject)
+    public Task RemoveFileAsync(string filePath) =>
+        threadHandling.RunOnBackgroundThread(async () =>
         {
-            if (databasePath is null)
+            using (await asyncLock.AcquireAsync())
             {
-                return;
-            }
+                if (databasePath is null)
+                {
+                    return;
+                }
 
-            storage.RemoveDatabaseEntry(databasePath, filePath);
-        }
-    }
+                storage.RemoveDatabaseEntry(databasePath, filePath);
+            }
+        });
 }

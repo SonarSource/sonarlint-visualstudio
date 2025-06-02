@@ -22,15 +22,15 @@ namespace SonarLint.VisualStudio.CFamily;
 
 public interface IVcxCompilationDatabaseUpdater
 {
-    void AddFile(string filePath);
-    void RemoveFile(string filePath);
+    Task AddFileAsync(string filePath);
+    Task RemoveFileAsync(string filePath);
 }
 
 public interface IActiveVcxCompilationDatabase : IVcxCompilationDatabaseUpdater
 {
     string DatabasePath { get; }
 
-    string InitializeDatabase();
+    Task<string> InitializeDatabaseAsync();
 
-    void DropDatabase();
+    Task DropDatabaseAsync();
 }
