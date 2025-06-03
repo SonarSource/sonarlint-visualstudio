@@ -26,7 +26,7 @@ public interface IVcxCompilationDatabaseUpdater
     Task RemoveFileAsync(string filePath);
 }
 
-public interface IActiveVcxCompilationDatabase : IVcxCompilationDatabaseUpdater
+public interface IActiveVcxCompilationDatabase : IVcxCompilationDatabaseUpdater, IDisposable
 {
     string DatabasePath { get; }
 

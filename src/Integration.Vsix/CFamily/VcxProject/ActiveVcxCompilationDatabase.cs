@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 [Export(typeof(IActiveVcxCompilationDatabase))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class ActiveVcxCompilationDatabase(
+internal sealed class ActiveVcxCompilationDatabase(
     IVcxCompilationDatabaseStorage storage,
     IThreadHandling threadHandling,
     ICompilationDatabaseEntryGenerator generator,
@@ -38,11 +38,14 @@ internal class ActiveVcxCompilationDatabase(
 {
     private readonly IAsyncLock asyncLock = asyncLockFactory.Create();
     private string databasePath;
+    private bool disposed = false;
 
     public string DatabasePath
     {
         get
         {
+            ThrowIfDisposed();
+
             threadHandling.ThrowIfOnUIThread();
 
             using (asyncLock.Acquire())
@@ -55,6 +58,8 @@ internal class ActiveVcxCompilationDatabase(
     public Task<string> EnsureDatabaseInitializedAsync() =>
         threadHandling.RunOnBackgroundThread(async () =>
         {
+            ThrowIfDisposed();
+
             using (await asyncLock.AcquireAsync())
             {
                 return EnsureDatabaseInitializedInternal();
@@ -64,9 +69,11 @@ internal class ActiveVcxCompilationDatabase(
     public Task DropDatabaseAsync() =>
         threadHandling.RunOnBackgroundThread(async () =>
         {
+            ThrowIfDisposed();
+
             using (await asyncLock.AcquireAsync())
             {
-                if (databasePath is not null)
+                if (databasePath is null)
                 {
                     return;
                 }
@@ -78,6 +85,8 @@ internal class ActiveVcxCompilationDatabase(
     public Task AddFileAsync(string filePath) =>
         threadHandling.RunOnBackgroundThread(async () =>
         {
+            ThrowIfDisposed();
+
             using (await asyncLock.AcquireAsync())
             {
                 CompilationDatabaseEntry compilationDatabaseEntry = null;
@@ -95,9 +104,11 @@ internal class ActiveVcxCompilationDatabase(
     public Task RemoveFileAsync(string filePath) =>
         threadHandling.RunOnBackgroundThread(async () =>
         {
+            ThrowIfDisposed();
+
             using (await asyncLock.AcquireAsync())
             {
-                if (databasePath is not null)
+                if (databasePath is null)
                 {
                     return;
                 }
@@ -115,5 +126,26 @@ internal class ActiveVcxCompilationDatabase(
 
         databasePath = storage.CreateDatabase();
         return databasePath;
+    }
+
+    private void ThrowIfDisposed()
+    {
+        if (disposed)
+        {
+            throw new ObjectDisposedException(nameof(ActiveVcxCompilationDatabase));
+        }
+    }
+
+    public void Dispose()
+    {
+        if (disposed)
+        {
+            return;
+        }
+
+        asyncLock.Dispose();
+        storage.Dispose();
+        databasePath = null;
+        disposed = true;
     }
 }

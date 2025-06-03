@@ -67,7 +67,17 @@ public class ActiveVcxCompilationDatabaseTests
     }
 
     [TestMethod]
-    public async Task InitializeDatabase_CreatesAndSavesFilePath()
+    public void DatabasePath_Disposed_Throws()
+    {
+        testSubject.Dispose();
+
+        var act = () => testSubject.DatabasePath;
+
+        act.Should().Throw<ObjectDisposedException>();
+    }
+
+    [TestMethod]
+    public async Task EnsureDatabaseInitialized_CreatesAndSavesFilePath()
     {
         storage.CreateDatabase().Returns(DatabasePath);
 
@@ -78,7 +88,7 @@ public class ActiveVcxCompilationDatabaseTests
     }
 
     [TestMethod]
-    public async Task InitializeDatabase_AlreadyInitialized_Throws()
+    public async Task EnsureDatabaseInitialized_AlreadyInitialized_Throws()
     {
         await Initialize();
 
@@ -86,6 +96,16 @@ public class ActiveVcxCompilationDatabaseTests
 
         VerifyRequiresAsynchronousBackgroundExecution<string>(1);
         testSubject.DatabasePath.Should().Be(DatabasePath);
+    }
+
+    [TestMethod]
+    public async Task EnsureDatabaseInitialized_Disposed_Throws()
+    {
+        testSubject.Dispose();
+
+        var act = () => testSubject.EnsureDatabaseInitializedAsync();
+
+        await act.Should().ThrowAsync<ObjectDisposedException>();
     }
 
     [TestMethod]
@@ -108,6 +128,16 @@ public class ActiveVcxCompilationDatabaseTests
         VerifyRequiresAsynchronousBackgroundExecution<int>(1);
         testSubject.DatabasePath.Should().BeNull();
         storage.Received(1).DeleteDatabase(DatabasePath);
+    }
+
+    [TestMethod]
+    public async Task DropDatabase_Disposed_Throws()
+    {
+        testSubject.Dispose();
+
+        var act = () => testSubject.DropDatabaseAsync();
+
+        await act.Should().ThrowAsync<ObjectDisposedException>();
     }
 
     [TestMethod]
@@ -154,6 +184,26 @@ public class ActiveVcxCompilationDatabaseTests
     [TestMethod]
     public async Task AddFile_NotInitialized_EntryCannotBeGenerated_DoesNothing()
     {
+        storage.CreateDatabase().Returns(DatabasePath);
+        generator.CreateOrNull(EntryFilePath).ReturnsNull();
+
+        await testSubject.AddFileAsync(EntryFilePath);
+
+        storage.DidNotReceiveWithAnyArgs().UpdateDatabaseEntry(default, default);
+        storage.DidNotReceiveWithAnyArgs().CreateDatabase();
+        VerifyRequiresAsynchronousBackgroundExecution<int>(1);
+        Received.InOrder(() =>
+        {
+            threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+            asyncLock.AcquireAsync();
+            threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
+            generator.CreateOrNull(EntryFilePath);
+        });
+    }
+
+    [TestMethod]
+    public async Task AddFile_Initialized_EntryCannotBeGenerated_DoesNothing()
+    {
         generator.CreateOrNull(EntryFilePath).ReturnsNull();
         await Initialize();
 
@@ -171,26 +221,14 @@ public class ActiveVcxCompilationDatabaseTests
         });
     }
 
-
     [TestMethod]
-    public async Task AddFile_Initialized_EntryCannotBeGenerated_DoesNothing()
+    public async Task AddFile_Disposed_Throws()
     {
-        storage.CreateDatabase().Returns(DatabasePath);
-        generator.CreateOrNull(EntryFilePath).ReturnsNull();
-        await Initialize();
+        testSubject.Dispose();
 
-        await testSubject.AddFileAsync(EntryFilePath);
+        var act = () => testSubject.AddFileAsync(EntryFilePath);
 
-        storage.DidNotReceiveWithAnyArgs().UpdateDatabaseEntry(default, default);
-        storage.DidNotReceiveWithAnyArgs().CreateDatabase();
-        VerifyRequiresAsynchronousBackgroundExecution<int>(1);
-        Received.InOrder(() =>
-        {
-            threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
-            asyncLock.AcquireAsync();
-            threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
-            generator.CreateOrNull(EntryFilePath);
-        });
+        await act.Should().ThrowAsync<ObjectDisposedException>();
     }
 
     [TestMethod]
@@ -207,15 +245,33 @@ public class ActiveVcxCompilationDatabaseTests
     [TestMethod]
     public async Task RemoveFile_Initialized_RemovesFileViaStorage()
     {
-        storage.CreateDatabase().Returns(DatabasePath);
-        generator.CreateOrNull(EntryFilePath).Returns(entry);
         await Initialize();
 
         await testSubject.RemoveFileAsync(EntryFilePath);
 
         storage.Received(1).RemoveDatabaseEntry(DatabasePath, EntryFilePath);
         VerifyRequiresAsynchronousBackgroundExecution<int>(1);
+    }
 
+    [TestMethod]
+    public async Task RemoveFileAsync_Disposed_Throws()
+    {
+        testSubject.Dispose();
+
+        var act = () => testSubject.RemoveFileAsync(EntryFilePath);
+
+        await act.Should().ThrowAsync<ObjectDisposedException>();
+    }
+
+    [TestMethod]
+    public void Dispose_DisposesDependencies()
+    {
+        testSubject.Dispose();
+        testSubject.Dispose();
+        testSubject.Dispose();
+
+        storage.Received(1).Dispose();
+        asyncLock.Received(1).Dispose();
     }
 
     private async Task Initialize()
