@@ -33,13 +33,13 @@ internal class VCXCompilationDatabaseProvider : IVCXCompilationDatabaseProvider
     private const string IncludeEntryName = "INCLUDE";
     private const string IsHeaderEntryName = "SONAR_CFAMILY_CAPTURE_PROPERTY_isHeaderFile";
     private readonly ImmutableList<EnvironmentEntry> staticEnvironmentVariableEntries;
-    private readonly IVCXCompilationDatabaseStorage storage;
+    private readonly IObsoleteVCXCompilationDatabaseStorage storage;
     private readonly IFileConfigProvider fileConfigProvider;
     private readonly ILogger logger;
 
     [method: ImportingConstructor]
     public VCXCompilationDatabaseProvider(
-        IVCXCompilationDatabaseStorage storage,
+        IObsoleteVCXCompilationDatabaseStorage storage,
         IEnvironmentVariableProvider environmentVariableProvider,
         IFileConfigProvider fileConfigProvider,
         ILogger logger)
