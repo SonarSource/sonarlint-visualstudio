@@ -52,18 +52,12 @@ internal class ActiveVcxCompilationDatabase(
         }
     }
 
-    public Task<string> InitializeDatabaseAsync() =>
+    public Task<string> EnsureDatabaseInitializedAsync() =>
         threadHandling.RunOnBackgroundThread(async () =>
         {
             using (await asyncLock.AcquireAsync())
             {
-                if (databasePath is not null)
-                {
-                    throw new InvalidOperationException(CFamilyStrings.ActiveVcxCompilationDatabase_AlreadyInitialized);
-                }
-
-                databasePath = storage.CreateDatabase();
-                return databasePath;
+                return EnsureDatabaseInitializedInternal();
             }
         });
 
@@ -72,7 +66,7 @@ internal class ActiveVcxCompilationDatabase(
         {
             using (await asyncLock.AcquireAsync())
             {
-                if (databasePath is null)
+                if (databasePath is not null)
                 {
                     return;
                 }
@@ -86,11 +80,6 @@ internal class ActiveVcxCompilationDatabase(
         {
             using (await asyncLock.AcquireAsync())
             {
-                if (databasePath is null)
-                {
-                    throw new InvalidOperationException(CFamilyStrings.ActiveVcxCompilationDatabase_NotInitialized);
-                }
-
                 CompilationDatabaseEntry compilationDatabaseEntry = null;
                 await threadHandling.RunOnUIThreadAsync(() => compilationDatabaseEntry = generator.CreateOrNull(filePath));
 
@@ -99,7 +88,7 @@ internal class ActiveVcxCompilationDatabase(
                     return;
                 }
 
-                storage.UpdateDatabaseEntry(databasePath, compilationDatabaseEntry);
+                storage.UpdateDatabaseEntry(EnsureDatabaseInitializedInternal(), compilationDatabaseEntry);
             }
         });
 
@@ -108,7 +97,7 @@ internal class ActiveVcxCompilationDatabase(
         {
             using (await asyncLock.AcquireAsync())
             {
-                if (databasePath is null)
+                if (databasePath is not null)
                 {
                     return;
                 }
@@ -116,4 +105,15 @@ internal class ActiveVcxCompilationDatabase(
                 storage.RemoveDatabaseEntry(databasePath, filePath);
             }
         });
+
+    private string EnsureDatabaseInitializedInternal()
+    {
+        if (databasePath is not null)
+        {
+            return databasePath;
+        }
+
+        databasePath = storage.CreateDatabase();
+        return databasePath;
+    }
 }

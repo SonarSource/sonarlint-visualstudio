@@ -30,7 +30,7 @@ public interface IActiveVcxCompilationDatabase : IVcxCompilationDatabaseUpdater
 {
     string DatabasePath { get; }
 
-    Task<string> InitializeDatabaseAsync();
+    Task<string> EnsureDatabaseInitializedAsync();
 
     Task DropDatabaseAsync();
 }

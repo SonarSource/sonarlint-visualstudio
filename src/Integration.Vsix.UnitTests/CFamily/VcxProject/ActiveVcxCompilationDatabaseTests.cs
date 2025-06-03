@@ -23,7 +23,6 @@ using SonarLint.VisualStudio.CFamily;
 using SonarLint.VisualStudio.CFamily.CompilationDatabase;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Synchronization;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject;
@@ -39,6 +38,7 @@ public class ActiveVcxCompilationDatabaseTests
     private ICompilationDatabaseEntryGenerator generator;
     private ActiveVcxCompilationDatabase testSubject;
     private IAsyncLockFactory asyncLockFactory;
+    private IAsyncLock asyncLock;
 
     [TestInitialize]
     public void TestInitialize()
@@ -47,6 +47,7 @@ public class ActiveVcxCompilationDatabaseTests
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         generator = Substitute.For<ICompilationDatabaseEntryGenerator>();
         asyncLockFactory = Substitute.For<IAsyncLockFactory>();
+        asyncLock = asyncLockFactory.Create();
         testSubject = new ActiveVcxCompilationDatabase(storage, threadHandling, generator, asyncLockFactory);
     }
 
@@ -70,7 +71,7 @@ public class ActiveVcxCompilationDatabaseTests
     {
         storage.CreateDatabase().Returns(DatabasePath);
 
-        (await testSubject.InitializeDatabaseAsync()).Should().Be(DatabasePath);
+        (await testSubject.EnsureDatabaseInitializedAsync()).Should().Be(DatabasePath);
 
         VerifyRequiresAsynchronousBackgroundExecution<string>(1);
         testSubject.DatabasePath.Should().Be(DatabasePath);
@@ -79,13 +80,12 @@ public class ActiveVcxCompilationDatabaseTests
     [TestMethod]
     public async Task InitializeDatabase_AlreadyInitialized_Throws()
     {
-        storage.CreateDatabase().Returns(DatabasePath);
         await Initialize();
 
-        var act = () => testSubject.InitializeDatabaseAsync();
+        (await testSubject.EnsureDatabaseInitializedAsync()).Should().Be(DatabasePath);
 
-        act.Should().ThrowAsync<InvalidOperationException>().WithMessage(CFamilyStrings.ActiveVcxCompilationDatabase_AlreadyInitialized);
         VerifyRequiresAsynchronousBackgroundExecution<string>(1);
+        testSubject.DatabasePath.Should().Be(DatabasePath);
     }
 
     [TestMethod]
@@ -101,7 +101,6 @@ public class ActiveVcxCompilationDatabaseTests
     [TestMethod]
     public async Task DropDatabase_Initialized_Removes()
     {
-        storage.CreateDatabase().Returns(DatabasePath);
         await Initialize();
 
         await testSubject.DropDatabaseAsync();
@@ -112,20 +111,29 @@ public class ActiveVcxCompilationDatabaseTests
     }
 
     [TestMethod]
-    public async Task AddFile_NotInitialized_Throws()
+    public async Task AddFile_NotInitialized_InitializesAndAddsFile()
     {
+        storage.CreateDatabase().Returns(DatabasePath);
         generator.CreateOrNull(EntryFilePath).Returns(entry);
 
-        var act = () => testSubject.AddFileAsync(EntryFilePath);
+        await testSubject.AddFileAsync(EntryFilePath);
 
-        act.Should().ThrowAsync<InvalidOperationException>().WithMessage(CFamilyStrings.ActiveVcxCompilationDatabase_NotInitialized);
+        storage.Received(1).UpdateDatabaseEntry(DatabasePath, entry);
         VerifyRequiresAsynchronousBackgroundExecution<int>(1);
+        Received.InOrder(() =>
+        {
+            threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+            asyncLock.AcquireAsync();
+            threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
+            generator.CreateOrNull(EntryFilePath);
+            storage.CreateDatabase();
+            storage.UpdateDatabaseEntry(DatabasePath, entry);
+        });
     }
 
     [TestMethod]
     public async Task AddFile_Initialized_AddsFileViaStorage()
     {
-        storage.CreateDatabase().Returns(DatabasePath);
         generator.CreateOrNull(EntryFilePath).Returns(entry);
         await Initialize();
 
@@ -133,6 +141,34 @@ public class ActiveVcxCompilationDatabaseTests
 
         storage.Received(1).UpdateDatabaseEntry(DatabasePath, entry);
         VerifyRequiresAsynchronousBackgroundExecution<int>(1);
+        Received.InOrder(() =>
+        {
+            threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+            asyncLock.AcquireAsync();
+            threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
+            generator.CreateOrNull(EntryFilePath);
+            storage.UpdateDatabaseEntry(DatabasePath, entry);
+        });
+    }
+
+    [TestMethod]
+    public async Task AddFile_NotInitialized_EntryCannotBeGenerated_DoesNothing()
+    {
+        generator.CreateOrNull(EntryFilePath).ReturnsNull();
+        await Initialize();
+
+        await testSubject.AddFileAsync(EntryFilePath);
+
+        storage.DidNotReceiveWithAnyArgs().UpdateDatabaseEntry(default, default);
+        storage.DidNotReceiveWithAnyArgs().CreateDatabase();
+        VerifyRequiresAsynchronousBackgroundExecution<int>(1);
+        Received.InOrder(() =>
+        {
+            threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+            asyncLock.AcquireAsync();
+            threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
+            generator.CreateOrNull(EntryFilePath);
+        });
     }
 
 
@@ -146,13 +182,20 @@ public class ActiveVcxCompilationDatabaseTests
         await testSubject.AddFileAsync(EntryFilePath);
 
         storage.DidNotReceiveWithAnyArgs().UpdateDatabaseEntry(default, default);
+        storage.DidNotReceiveWithAnyArgs().CreateDatabase();
         VerifyRequiresAsynchronousBackgroundExecution<int>(1);
+        Received.InOrder(() =>
+        {
+            threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+            asyncLock.AcquireAsync();
+            threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
+            generator.CreateOrNull(EntryFilePath);
+        });
     }
 
     [TestMethod]
     public async Task RemoveFile_NotInitialized_DoesNothing()
     {
-        storage.CreateDatabase().Returns(DatabasePath);
         generator.CreateOrNull(EntryFilePath).Returns(entry);
 
         await testSubject.RemoveFileAsync(EntryFilePath);
@@ -177,7 +220,8 @@ public class ActiveVcxCompilationDatabaseTests
 
     private async Task Initialize()
     {
-        await testSubject.InitializeDatabaseAsync();
+        storage.CreateDatabase().Returns(DatabasePath);
+        await testSubject.EnsureDatabaseInitializedAsync();
         ClearReceivedCalls();
     }
 
@@ -185,7 +229,7 @@ public class ActiveVcxCompilationDatabaseTests
     {
         threadHandling.ClearReceivedCalls();
         asyncLockFactory.ClearReceivedCalls();
-        asyncLockFactory.Create().ClearReceivedCalls();
+        asyncLock.ClearReceivedCalls();
         storage.ClearReceivedCalls();
         generator.ClearReceivedCalls();
     }
@@ -199,6 +243,6 @@ public class ActiveVcxCompilationDatabaseTests
     private void VerifyRequiresAsynchronousBackgroundExecution<T>(int count)
     {
         threadHandling.Received(count).RunOnBackgroundThread(Arg.Any<Func<Task<T>>>());
-        asyncLockFactory.Create().Received(count).AcquireAsync();
+        asyncLock.Received(count).AcquireAsync();
     }
 }

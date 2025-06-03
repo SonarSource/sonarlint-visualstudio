@@ -60,24 +60,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to VCX Compilation Database is already initialized.
-        /// </summary>
-        internal static string ActiveVcxCompilationDatabase_AlreadyInitialized {
-            get {
-                return ResourceManager.GetString("ActiveVcxCompilationDatabase_AlreadyInitialized", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to VCX Compilation Database is not initialized.
-        /// </summary>
-        internal static string ActiveVcxCompilationDatabase_NotInitialized {
-            get {
-                return ResourceManager.GetString("ActiveVcxCompilationDatabase_NotInitialized", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to [CFamily Analysis] Error retrieving VCX configuration. File: {0}, Error: {1}.
         /// </summary>
         internal static string ERROR_CreatingConfig {
