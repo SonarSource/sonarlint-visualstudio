@@ -409,7 +409,7 @@ E.g. C:\Program Files\Java\jdk-17</value>
     <value>Analysis parameters</value>
   </data>
   <data name="AnalysisSettingsControl_Description" xml:space="preserve">
-    <value>Additional properties that could be passed to the code analyzers.</value>
+    <value>Additional properties that could be passed to the code analyzers. This is an advanced feature, learn more</value>
   </data>
   <data name="AddAnalysisPropertyDialog_CancelButton" xml:space="preserve">
     <value>Cancel</value>

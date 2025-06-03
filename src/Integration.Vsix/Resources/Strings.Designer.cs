@@ -178,7 +178,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Additional properties that could be passed to the code analyzers..
+        ///   Looks up a localized string similar to Additional properties that could be passed to the code analyzers. This is an advanced feature, learn more.
         /// </summary>
         public static string AnalysisSettingsControl_Description {
             get {

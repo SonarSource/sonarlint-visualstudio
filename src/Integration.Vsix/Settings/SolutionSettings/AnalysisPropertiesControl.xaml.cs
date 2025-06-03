@@ -21,7 +21,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Navigation;
 using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Settings.SolutionSettings;
 
@@ -31,10 +33,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Settings.SolutionSettings;
 [ExcludeFromCodeCoverage]
 internal partial class AnalysisPropertiesControl : UserControl
 {
+    private readonly IBrowserService browserService;
     public AnalysisPropertiesViewModel ViewModel { get; }
 
-    internal AnalysisPropertiesControl(AnalysisPropertiesViewModel viewModel)
+    internal AnalysisPropertiesControl(AnalysisPropertiesViewModel viewModel, IBrowserService browserService)
     {
+        this.browserService = browserService;
         ViewModel = viewModel;
         InitializeComponent();
     }
@@ -63,4 +67,6 @@ internal partial class AnalysisPropertiesControl : UserControl
     }
 
     private void Delete_OnClick(object sender, RoutedEventArgs e) => ViewModel.RemoveSelectedProperty();
+
+    private void OnRequestNavigate(object sender, RequestNavigateEventArgs e) => browserService.Navigate(e.Uri.AbsoluteUri);
 }
