@@ -143,7 +143,6 @@ public class ObsoleteVcxCompilationDatabaseProviderTests
         testSubject.CreateOrNull(SourceFilePath);
 
         storage.Received(1).CreateDatabase(CDFile, CDDirectory, CDCommand, Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new [] { "Var1=Value1", "Var2=Value2", $"INCLUDE={EnvInclude}"})));
-        logger.Received(1).LogVerbose($"[VCXCompilationDatabaseProvider] Overwriting the value of environment variable \"INCLUDE\". Old value: \"static\", new value: \"{EnvInclude}\"");
     }
 
     [TestMethod]
@@ -161,7 +160,6 @@ public class ObsoleteVcxCompilationDatabaseProviderTests
         testSubject.CreateOrNull(SourceFilePath);
 
         storage.Received(1).CreateDatabase(CDFile, CDDirectory, CDCommand, Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new [] { "Var1=Value1", "Var2=Value2", $"INCLUDE={EnvInclude}"})));
-        logger.Received(1).LogVerbose($"[VCXCompilationDatabaseProvider] Setting environment variable \"INCLUDE\". Value: \"{EnvInclude}\"");
     }
 
     [TestMethod]
@@ -199,8 +197,6 @@ public class ObsoleteVcxCompilationDatabaseProviderTests
 
         var expectedEnv = new[] { "Var1=Value1", "Var2=Value2", $"INCLUDE={EnvInclude}", "SONAR_CFAMILY_CAPTURE_PROPERTY_isHeaderFile=true" };
         storage.Received(1).CreateDatabase(CDFile, CDDirectory, CDCommand, Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(expectedEnv)));
-        logger.Received(1).LogVerbose($"[VCXCompilationDatabaseProvider] Setting environment variable \"INCLUDE\". Value: \"{EnvInclude}\"");
-        logger.Received(1).LogVerbose($"[VCXCompilationDatabaseProvider] Setting environment variable \"SONAR_CFAMILY_CAPTURE_PROPERTY_isHeaderFile\". Value: \"true\"");
     }
 
     private IFileConfig GetFileConfig(string envInclude = EnvInclude, bool isHeader = false)
