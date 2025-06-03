@@ -27,7 +27,7 @@ using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject;
 
 [TestClass]
-public class VCXCompilationDatabaseProviderTests
+public class ObsoleteVcxCompilationDatabaseProviderTests
 {
     private const string CDFile = "cdfilevalue";
     private const string CDDirectory = "cddirectoryvalue";
@@ -53,7 +53,7 @@ public class VCXCompilationDatabaseProviderTests
     public void MefCtor_CheckIsExported()
     {
         envVarProvider.GetAll().Returns([]);
-        MefTestHelpers.CheckTypeCanBeImported<VCXCompilationDatabaseProvider, IObsoleteVcxCompilationDatabaseProvider>(
+        MefTestHelpers.CheckTypeCanBeImported<ObsoleteVcxCompilationDatabaseProvider, IObsoleteVcxCompilationDatabaseProvider>(
             MefTestHelpers.CreateExport<IObsoleteVCXCompilationDatabaseStorage>(),
             MefTestHelpers.CreateExport<IEnvironmentVariableProvider>(envVarProvider),
             MefTestHelpers.CreateExport<IFileConfigProvider>(),
@@ -61,13 +61,13 @@ public class VCXCompilationDatabaseProviderTests
     }
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<VCXCompilationDatabaseProvider>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ObsoleteVcxCompilationDatabaseProvider>();
 
     [TestMethod]
     public void CreateOrNull_NoFileConfig_ReturnsNull()
     {
         fileConfigProvider.Get(SourceFilePath).ReturnsNull();
-        var testSubject = new VCXCompilationDatabaseProvider(
+        var testSubject = new ObsoleteVcxCompilationDatabaseProvider(
             storage,
             envVarProvider,
             fileConfigProvider,
@@ -84,7 +84,7 @@ public class VCXCompilationDatabaseProviderTests
         var fileConfig = GetFileConfig();
         fileConfigProvider.Get(SourceFilePath).Returns(fileConfig);
         storage.CreateDatabase(default, default, default, default).ReturnsNullForAnyArgs();
-        var testSubject = new VCXCompilationDatabaseProvider(
+        var testSubject = new ObsoleteVcxCompilationDatabaseProvider(
             storage,
             envVarProvider,
             fileConfigProvider,
@@ -102,7 +102,7 @@ public class VCXCompilationDatabaseProviderTests
         fileConfigProvider.Get(SourceFilePath).Returns(fileConfig);
         var compilationDatabaseHandle = Substitute.For<ICompilationDatabaseHandle>();
         storage.CreateDatabase(CDFile, CDDirectory, CDCommand, Arg.Any<IEnumerable<string>>()).Returns(compilationDatabaseHandle);
-        var testSubject = new VCXCompilationDatabaseProvider(
+        var testSubject = new ObsoleteVcxCompilationDatabaseProvider(
             storage,
             envVarProvider,
             fileConfigProvider,
@@ -117,7 +117,7 @@ public class VCXCompilationDatabaseProviderTests
         var fileConfig = GetFileConfig(null);
         fileConfigProvider.Get(SourceFilePath).Returns(fileConfig);
         envVarProvider.GetAll().Returns([("Var1", "Value1"), ("INCLUDE", "static"), ("Var2", "Value2")]);
-        var testSubject = new VCXCompilationDatabaseProvider(
+        var testSubject = new ObsoleteVcxCompilationDatabaseProvider(
             storage,
             envVarProvider,
             fileConfigProvider,
@@ -134,7 +134,7 @@ public class VCXCompilationDatabaseProviderTests
         var fileConfig = GetFileConfig(EnvInclude);
         fileConfigProvider.Get(SourceFilePath).Returns(fileConfig);
         envVarProvider.GetAll().Returns([("Var1", "Value1"), ("INCLUDE", "static"), ("Var2", "Value2")]);
-        var testSubject = new VCXCompilationDatabaseProvider(
+        var testSubject = new ObsoleteVcxCompilationDatabaseProvider(
             storage,
             envVarProvider,
             fileConfigProvider,
@@ -152,7 +152,7 @@ public class VCXCompilationDatabaseProviderTests
         var fileConfig = GetFileConfig(EnvInclude);
         fileConfigProvider.Get(SourceFilePath).Returns(fileConfig);
         envVarProvider.GetAll().Returns([("Var1", "Value1"), ("Var2", "Value2")]);
-        var testSubject = new VCXCompilationDatabaseProvider(
+        var testSubject = new ObsoleteVcxCompilationDatabaseProvider(
             storage,
             envVarProvider,
             fileConfigProvider,
@@ -170,7 +170,7 @@ public class VCXCompilationDatabaseProviderTests
         var fileConfig = GetFileConfig();
         fileConfigProvider.Get(SourceFilePath).Returns(fileConfig);
         envVarProvider.GetAll().Returns([("Var1", "Value1"), ("Var2", "Value2")]);
-        var testSubject = new VCXCompilationDatabaseProvider(
+        var testSubject = new ObsoleteVcxCompilationDatabaseProvider(
             storage,
             envVarProvider,
             fileConfigProvider,
@@ -189,7 +189,7 @@ public class VCXCompilationDatabaseProviderTests
         var fileConfig = GetFileConfig(EnvInclude, true);
         fileConfigProvider.Get(SourceFilePath).Returns(fileConfig);
         envVarProvider.GetAll().Returns([("Var1", "Value1"), ("Var2", "Value2")]);
-        var testSubject = new VCXCompilationDatabaseProvider(
+        var testSubject = new ObsoleteVcxCompilationDatabaseProvider(
             storage,
             envVarProvider,
             fileConfigProvider,

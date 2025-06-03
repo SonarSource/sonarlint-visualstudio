@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 [Export(typeof(IObsoleteVcxCompilationDatabaseProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class VCXCompilationDatabaseProvider(
+internal class ObsoleteVcxCompilationDatabaseProvider(
     IObsoleteVCXCompilationDatabaseStorage storage,
     IEnvironmentVariableProvider environmentVariableProvider,
     IFileConfigProvider fileConfigProvider,
