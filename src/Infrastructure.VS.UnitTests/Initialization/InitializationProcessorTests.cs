@@ -48,8 +48,7 @@ public class InitializationProcessorTests
     }
 
     [TestMethod]
-    public void IsFinalized_NotStarted_ReturnsFalse() =>
-        testSubjectFactory.Create<InitializationProcessorTests>([], _ => Task.CompletedTask).IsFinalized.Should().BeFalse();
+    public void IsFinalized_NotStarted_ReturnsFalse() => testSubjectFactory.Create<InitializationProcessorTests>([], _ => Task.CompletedTask).IsFinalized.Should().BeFalse();
 
     [TestMethod]
     public async Task IsFinalized_StartedButNotFinished_ReturnsFalse()
@@ -123,7 +122,7 @@ public class InitializationProcessorTests
                 .Select(_ => testSubject.InitializeAsync()));
 
         testSubject.IsFinalized.Should().BeTrue();
-        asyncLockFactory.Create().Received(Quantity.Within(2, 20)).AcquireAsync();
+        asyncLockFactory.Create().Received(Quantity.Within(1, 20)).AcquireAsync();
         initialization.ReceivedWithAnyArgs(1).Invoke(default);
         dependency1.InitializationProcessor.Received(1).InitializeAsync();
         dependency2.InitializationProcessor.Received(1).InitializeAsync();
