@@ -21,6 +21,7 @@
 using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.CFamily.CompilationDatabase;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject;
@@ -44,6 +45,8 @@ public class CompilationDatabaseEntryGeneratorTests
         fileConfigProvider = Substitute.For<IFileConfigProvider>();
         envVarProvider = Substitute.For<IEnvironmentVariableProvider>();
         logger = Substitute.For<ILogger>();
+        logger.ForContext(Arg.Any<string[]>()).Returns(logger);
+        logger.ForVerboseContext(Arg.Any<string[]>()).Returns(logger);
         testSubject = new CompilationDatabaseEntryGenerator(
             fileConfigProvider,
             envVarProvider,
@@ -62,11 +65,18 @@ public class CompilationDatabaseEntryGeneratorTests
         MefTestHelpers.CheckIsSingletonMefComponent<CompilationDatabaseEntryGenerator>();
 
     [TestMethod]
+    public void Ctor_SetsLogContext()
+    {
+        logger.Received().ForVerboseContext(nameof(CompilationDatabaseEntryGenerator));
+    }
+
+    [TestMethod]
     public void CreateOrNull_NoFileConfig_ReturnsNull()
     {
         fileConfigProvider.Get(SourceFilePath).ReturnsNull();
 
         testSubject.CreateOrNull(SourceFilePath).Should().BeNull();
+        logger.Received(1).LogVerbose(CFamilyStrings.CompilationDatabaseEntryGenerator_NotAVcxFile, SourceFilePath);
     }
 
     [TestMethod]
@@ -113,7 +123,7 @@ public class CompilationDatabaseEntryGeneratorTests
             File = CDFile,
             Environment = new [] { "Var1=Value1", "Var2=Value2", $"INCLUDE={EnvInclude}"}
         });
-        logger.Received(1).LogVerbose($"[VCXCompilationDatabaseProvider] Overwriting the value of environment variable \"INCLUDE\". Old value: \"static\", new value: \"{EnvInclude}\"");
+        logger.Received(1).LogVerbose(CFamilyStrings.CompilationDatabaseEntryGenerator_FilePropertyOverridesEnvironmentVariable, CDFile, "INCLUDE", "static", EnvInclude);
     }
 
     [TestMethod]
@@ -132,7 +142,7 @@ public class CompilationDatabaseEntryGeneratorTests
             File = CDFile,
             Environment = new [] { "Var1=Value1", "Var2=Value2", $"INCLUDE={EnvInclude}"}
         });
-        logger.Received(1).LogVerbose($"[VCXCompilationDatabaseProvider] Setting environment variable \"INCLUDE\". Value: \"{EnvInclude}\"");
+        logger.Received(1).LogVerbose(CFamilyStrings.CompilationDatabaseEntryGenerator_FilePropertyDefined, CDFile, "INCLUDE", EnvInclude);
     }
 
     [TestMethod]
@@ -165,8 +175,8 @@ public class CompilationDatabaseEntryGeneratorTests
             File = CDFile,
             Environment = new[] { "Var1=Value1", "Var2=Value2", $"INCLUDE={EnvInclude}", "SONAR_CFAMILY_CAPTURE_PROPERTY_isHeaderFile=true" }
         });
-        logger.Received(1).LogVerbose($"[VCXCompilationDatabaseProvider] Setting environment variable \"INCLUDE\". Value: \"{EnvInclude}\"");
-        logger.Received(1).LogVerbose($"[VCXCompilationDatabaseProvider] Setting environment variable \"SONAR_CFAMILY_CAPTURE_PROPERTY_isHeaderFile\". Value: \"true\"");
+        logger.Received(1).LogVerbose(CFamilyStrings.CompilationDatabaseEntryGenerator_FilePropertyDefined, CDFile, "INCLUDE", EnvInclude);
+        logger.Received(1).LogVerbose(CFamilyStrings.CompilationDatabaseEntryGenerator_FilePropertyDefined, CDFile, "SONAR_CFAMILY_CAPTURE_PROPERTY_isHeaderFile", "true");
     }
 
     private IFileConfig GetFileConfig(string envInclude = EnvInclude, bool isHeader = false)

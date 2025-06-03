@@ -44,47 +44,53 @@ internal class CompilationDatabaseEntryGenerator : ICompilationDatabaseEntryGene
     public CompilationDatabaseEntryGenerator(IFileConfigProvider fileConfigProvider, IEnvironmentVariableProvider environmentVariableProvider, ILogger logger)
     {
         this.fileConfigProvider = fileConfigProvider;
-        this.logger = logger;
+        this.logger = logger.ForVerboseContext(nameof(CompilationDatabaseEntryGenerator));
         staticEnvironmentVariableEntries = new Lazy<ImmutableList<EnvironmentEntry>>(() => ImmutableList.CreateRange(environmentVariableProvider.GetAll().Select(x => new EnvironmentEntry(x.name, x.value))));
     }
 
-    public CompilationDatabaseEntry CreateOrNull(string filePath) =>
-        fileConfigProvider.Get(filePath) is { } fileConfig
-            ? new CompilationDatabaseEntry
+    public CompilationDatabaseEntry CreateOrNull(string filePath)
+    {
+        if (fileConfigProvider.Get(filePath) is { } fileConfig)
+        {
+            return new CompilationDatabaseEntry
             {
                 File = fileConfig.CDFile,
                 Directory = fileConfig.CDDirectory,
                 Command = fileConfig.CDCommand,
                 Environment = GetEnvironmentEntries(fileConfig)
                     .Select(x => x.FormattedEntry)
-            }
-            : null;
+            };
+        }
+
+        logger.LogVerbose(CFamilyStrings.CompilationDatabaseEntryGenerator_NotAVcxFile, filePath);
+        return null;
+    }
 
     private ImmutableList<EnvironmentEntry> GetEnvironmentEntries(IFileConfig fileConfig)
     {
         ImmutableList<EnvironmentEntry> environmentEntries = staticEnvironmentVariableEntries.Value;
         if (!string.IsNullOrEmpty(fileConfig.EnvInclude))
         {
-            environmentEntries = UpdateEnvironmentWithEntry(environmentEntries, new EnvironmentEntry(IncludeEntryName, fileConfig.EnvInclude));
+            environmentEntries = UpdateEnvironmentWithEntry(fileConfig.CDFile, environmentEntries, new EnvironmentEntry(IncludeEntryName, fileConfig.EnvInclude));
         }
         if (fileConfig.IsHeaderFile)
         {
-            environmentEntries = UpdateEnvironmentWithEntry(environmentEntries, new EnvironmentEntry(IsHeaderEntryName, "true"));
+            environmentEntries = UpdateEnvironmentWithEntry(fileConfig.CDFile, environmentEntries, new EnvironmentEntry(IsHeaderEntryName, "true"));
         }
         return environmentEntries;
     }
 
-    private ImmutableList<EnvironmentEntry> UpdateEnvironmentWithEntry(ImmutableList<EnvironmentEntry> environmentEntries, EnvironmentEntry newEntry)
+    private ImmutableList<EnvironmentEntry> UpdateEnvironmentWithEntry(string fileName, ImmutableList<EnvironmentEntry> environmentEntries, EnvironmentEntry newEntry)
     {
         EnvironmentEntry oldEntry = environmentEntries.FirstOrDefault(x => x.Name == newEntry.Name);
 
         if (oldEntry.Name != null)
         {
-            logger.LogVerbose($"[VCXCompilationDatabaseProvider] Overwriting the value of environment variable \"{newEntry.Name}\". Old value: \"{oldEntry.Value}\", new value: \"{newEntry.Value}\"");
+            logger.LogVerbose(CFamilyStrings.CompilationDatabaseEntryGenerator_FilePropertyOverridesEnvironmentVariable, fileName, newEntry.Name, oldEntry.Value, newEntry.Value);
         }
         else
         {
-            logger.LogVerbose($"[VCXCompilationDatabaseProvider] Setting environment variable \"{newEntry.Name}\". Value: \"{newEntry.Value}\"");
+            logger.LogVerbose(CFamilyStrings.CompilationDatabaseEntryGenerator_FilePropertyDefined, fileName, newEntry.Name, newEntry.Value);
         }
         return environmentEntries.RemoveAll(x => x.Name == newEntry.Name).Add(newEntry);
     }

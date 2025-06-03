@@ -60,6 +60,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to File configuration &apos;{0}&apos; defines &apos;{1}&apos;. Value: &apos;{2}&apos;.
+        /// </summary>
+        internal static string CompilationDatabaseEntryGenerator_FilePropertyDefined {
+            get {
+                return ResourceManager.GetString("CompilationDatabaseEntryGenerator_FilePropertyDefined", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File configuration &apos;{0}&apos; overrides &apos;{1}&apos;. Old value: &apos;{2}&apos;, new value: &apos;{3}&apos;.
+        /// </summary>
+        internal static string CompilationDatabaseEntryGenerator_FilePropertyOverridesEnvironmentVariable {
+            get {
+                return ResourceManager.GetString("CompilationDatabaseEntryGenerator_FilePropertyOverridesEnvironmentVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File &apos;{0}&apos; is not a VCX file, ignoring....
+        /// </summary>
+        internal static string CompilationDatabaseEntryGenerator_NotAVcxFile {
+            get {
+                return ResourceManager.GetString("CompilationDatabaseEntryGenerator_NotAVcxFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [CFamily Analysis] Error retrieving VCX configuration. File: {0}, Error: {1}.
         /// </summary>
         internal static string ERROR_CreatingConfig {
