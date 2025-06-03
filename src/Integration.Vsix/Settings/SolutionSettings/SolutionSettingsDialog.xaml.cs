@@ -44,7 +44,7 @@ internal sealed partial class SolutionSettingsDialog : Window
         var globalUserSettingsUpdater = serviceProvider.GetMefService<IGlobalRawSettingsService>();
         solutionSettingsStorage = serviceProvider.GetMefService<ISolutionSettingsStorage>();
         var browserService = serviceProvider.GetMefService<IBrowserService>();
-        analysisPropertiesControl = new AnalysisPropertiesControl(new AnalysisPropertiesViewModel(solutionUserSettingsUpdater));
+        analysisPropertiesControl = new AnalysisPropertiesControl(new AnalysisPropertiesViewModel(solutionUserSettingsUpdater), browserService);
         fileExclusionsDialogControl
             = new FileExclusionsDialogControl(new FileExclusionsViewModel(browserService, globalUserSettingsUpdater, solutionUserSettingsUpdater, FileExclusionScope.Solution),
                 themeResponsive: true);

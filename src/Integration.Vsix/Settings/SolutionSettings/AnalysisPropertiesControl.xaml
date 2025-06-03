@@ -6,6 +6,7 @@
              xmlns:res="clr-namespace:SonarLint.VisualStudio.Integration.Vsix.Resources"
              xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:links="clr-namespace:SonarLint.VisualStudio.Core;assembly=SonarLint.VisualStudio.Core"
              mc:Ignorable="d"
              x:ClassModifier="internal"
              x:Name="AnalysisProperties">
@@ -89,7 +90,10 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="{x:Static res:Strings.AnalysisSettingsControl_Description}" />
+        <TextBlock Grid.Row="0" >
+            <Run Text="{x:Static res:Strings.AnalysisSettingsControl_Description}"/>
+            <Hyperlink NavigateUri="{x:Static links:DocumentationLinks.AnalysisPropertiesUri}" RequestNavigate="OnRequestNavigate"> here</Hyperlink>
+        </TextBlock>
 
         <Grid Grid.Row="1" Margin="0,10,0,0">
             <Grid.RowDefinitions>
