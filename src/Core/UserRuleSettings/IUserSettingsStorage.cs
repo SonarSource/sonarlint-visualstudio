@@ -27,8 +27,6 @@ public interface IUserSettingsStorage<T> : IRequireInitialization, IDisposable
     string SettingsFilePath { get; }
     string ConfigurationBaseDirectory { get; }
 
-    void EnsureSettingsFileExists();
-
     event EventHandler SettingsFileChanged;
 
     void SaveSettingsFile(T settings);

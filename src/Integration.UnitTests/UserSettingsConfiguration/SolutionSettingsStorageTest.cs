@@ -157,46 +157,6 @@ public class SolutionSettingsStorageTest
     }
 
     [TestMethod]
-    public void EnsureSettingsFileExists_NoSolutionOpen_DoesNotCreate()
-    {
-        activeSolutionTracker.CurrentSolutionName.Returns(null as string);
-        var testSubject = CreateAndInitializeTestSubject();
-
-        testSubject.EnsureSettingsFileExists();
-
-        fileSystem.File.DidNotReceiveWithAnyArgs().Exists(default);
-        serializer.DidNotReceiveWithAnyArgs().SafeSave(default, default(GlobalRawAnalysisSettings));
-        serializer.DidNotReceiveWithAnyArgs().SafeSave(default, default(SolutionRawAnalysisSettings));
-    }
-
-    [TestMethod]
-    public void EnsureSettingsFileExists_CreatedIfMissing()
-    {
-        activeSolutionTracker.CurrentSolutionName.Returns(SolutionName1);
-        fileSystem.File.Exists(Solution1SettingsFilePath).Returns(false);
-        var testSubject = CreateAndInitializeTestSubject();
-
-        testSubject.EnsureSettingsFileExists();
-
-        fileSystem.File.Received().Exists(Solution1SettingsFilePath);
-        serializer.Received().SafeSave(Solution1SettingsFilePath, Arg.Any<SolutionRawAnalysisSettings>());
-    }
-
-    [TestMethod]
-    public void EnsureSettingsFileExists_NotCreatedIfExists()
-    {
-        activeSolutionTracker.CurrentSolutionName.Returns(SolutionName1);
-        fileSystem.File.Exists(Solution1SettingsFilePath).Returns(true);
-        fileSystem.ClearReceivedCalls();
-        var testSubject = CreateAndInitializeTestSubject();
-
-        testSubject.EnsureSettingsFileExists();
-
-        fileSystem.File.Received().Exists(Solution1SettingsFilePath);
-        serializer.DidNotReceiveWithAnyArgs().SafeSave(default, default(SolutionRawAnalysisSettings));
-    }
-
-    [TestMethod]
     public void SolutionOpen_CreatesNewWatcher_RaisesEvent()
     {
         activeSolutionTracker.CurrentSolutionName.ReturnsNull();

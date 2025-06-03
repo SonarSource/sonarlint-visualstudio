@@ -70,7 +70,6 @@ internal sealed partial class SolutionSettingsDialog : Window
 
     private void OpenFile(object sender, RequestNavigateEventArgs e)
     {
-        solutionSettingsStorage.EnsureSettingsFileExists();
         DocumentOpener.OpenDocumentInVs(serviceProvider, solutionSettingsStorage.SettingsFilePath);
         ApplyAndClose();
     }
