@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public const string CommandSetGuidString = "1F83EA11-3B07-45B3-BF39-307FD4F42194";
 
         private ILogger logger;
-        private IVCXCompilationDatabaseStorage vcxCompilationDatabaseStorage;
+        private IObsoleteVCXCompilationDatabaseStorage vcxCompilationDatabaseStorage;
         private ISolutionRoslynAnalyzerManager solutionRoslynAnalyzerManager;
         private IProjectDocumentsEventsListener projectDocumentsEventsListener;
         private ISLCoreHandler slCoreHandler;
@@ -102,7 +102,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 await DisableRuleCommand.InitializeAsync(this, logger);
                 await CFamilyReproducerCommand.InitializeAsync(this, logger);
 
-                vcxCompilationDatabaseStorage = await this.GetMefServiceAsync<IVCXCompilationDatabaseStorage>();
+                vcxCompilationDatabaseStorage = await this.GetMefServiceAsync<IObsoleteVCXCompilationDatabaseStorage>();
 
                 projectDocumentsEventsListener = await this.GetMefServiceAsync<IProjectDocumentsEventsListener>();
                 projectDocumentsEventsListener.Initialize();
