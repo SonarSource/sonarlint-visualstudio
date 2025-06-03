@@ -20,11 +20,9 @@
 
 using System.ComponentModel.Composition;
 using System.IO;
-using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.FileMonitor;
 using SonarLint.VisualStudio.Core.Initialization;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
 
@@ -38,7 +36,6 @@ internal sealed class SolutionSettingsStorage : ISolutionSettingsStorage
     private const string SettingsFileName = "settings.json";
     private readonly IActiveSolutionTracker activeSolutionTracker;
     private readonly ISingleFileMonitorFactory fileMonitorFactory;
-    private readonly IFileSystem fileSystem;
     private readonly IAnalysisSettingsSerializer serializer;
 
     private string appDataRoot;
@@ -50,13 +47,11 @@ internal sealed class SolutionSettingsStorage : ISolutionSettingsStorage
     public SolutionSettingsStorage(
         IActiveSolutionTracker activeSolutionTracker,
         ISingleFileMonitorFactory singleFileMonitorFactory,
-        IFileSystemService fileSystem,
         IEnvironmentVariableProvider environmentVariableProvider,
         IAnalysisSettingsSerializer serializer,
         IInitializationProcessorFactory processorFactory)
     {
         this.activeSolutionTracker = activeSolutionTracker;
-        this.fileSystem = fileSystem;
         this.serializer = serializer;
         fileMonitorFactory = singleFileMonitorFactory;
         InitializationProcessor = processorFactory.CreateAndStart<SolutionSettingsStorage>(
