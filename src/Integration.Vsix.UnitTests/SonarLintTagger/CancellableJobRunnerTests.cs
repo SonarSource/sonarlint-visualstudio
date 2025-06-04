@@ -105,24 +105,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             testLogger.WriteLine("[Test] Executing test");
             var progressRecorder = new ProgressNotificationRecorder(testLogger);
 
-            var expectedState = CancellableJobRunner.RunnerState.Cancelled;
             bool op1Executed = false, op2Executed = false;
             CancellableJobRunner testSubject = null;
+            var manualResetEvent = new ManualResetEvent(false);
 
             Action op1 = () =>
             {
                 testLogger.WriteLine("[Test] Executing op1");
                 op1Executed = true;
 
-                // in some cases, the op1 is executed before the CancellableJobRunner.Start returned the runner, so testSubject can be null
-                if (testSubject == null)
-                {
-                    expectedState = CancellableJobRunner.RunnerState.Finished;
-                }
-                else
-                {
-                    testSubject.Cancel();
-                }
+                manualResetEvent.WaitOne();
+                testSubject.Cancel();
             };
 
             Action op2 = () =>
@@ -133,20 +126,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             // Act
             testSubject = CancellableJobRunner.Start("my job", new[] { op1, op2 }, progressRecorder, testLogger);
+            // in some cases, the op1 was executed before the CancellableJobRunner.Start returned the runner, so testSubject was null
+            // this made the test flaky as the state of the runner was Faulted instead of Cancelled
+            manualResetEvent.Set();
 
             WaitForRunnerToFinish(testSubject, testLogger);
             // Pause for any final progress steps to be reported before checking the progressRecorder below
             Thread.Sleep(200);
 
-            switch (expectedState)
-            {
-                case CancellableJobRunner.RunnerState.Cancelled:
-                    VerifyFirstOperationExecutedAndJobCancelled(testSubject, op1Executed, op2Executed, progressRecorder);
-                    break;
-                case CancellableJobRunner.RunnerState.Finished:
-                    VerifyAllOperationsExecuted(testSubject, op1Executed, op2Executed, progressRecorder);
-                    break;
-            }
+            VerifyFirstOperationExecutedAndJobCancelled(testSubject, op1Executed, op2Executed, progressRecorder);
         }
 
         [TestMethod]
