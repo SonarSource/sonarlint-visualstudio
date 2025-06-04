@@ -33,7 +33,7 @@ public interface IVcxDocumentEventsHandler : IDisposable
 
 [Export(typeof(IVcxDocumentEventsHandler))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
+public sealed class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
 {
     private readonly IDocumentEvents documentEvents;
     private readonly IVcxCompilationDatabaseUpdater vcxCompilationDatabaseUpdater;
@@ -70,7 +70,7 @@ public class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
         {
             ReplaceFileAsync(e.OldFilePath, e.FullPath).Forget();
         }
-        return;
+
 
         async Task ReplaceFileAsync(string oldFilePath, string fullPath)
         {
