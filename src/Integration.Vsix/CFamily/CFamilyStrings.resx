@@ -143,4 +143,13 @@
   <data name="ERROR_CreatingVcxRequest" xml:space="preserve">
     <value>[CFamily Analysis] Error creating VCX request. File: {0}, Error: {1}</value>
   </data>
+  <data name="CompilationDatabaseEntryGenerator_FilePropertyOverridesEnvironmentVariable" xml:space="preserve">
+    <value>File configuration '{0}' overrides '{1}'. Old value: '{2}', new value: '{3}'</value>
+  </data>
+  <data name="CompilationDatabaseEntryGenerator_FilePropertyDefined" xml:space="preserve">
+    <value>File configuration '{0}' defines '{1}'. Value: '{2}'</value>
+  </data>
+  <data name="CompilationDatabaseEntryGenerator_NotAVcxFile" xml:space="preserve">
+    <value>File '{0}' is not a VCX file, ignoring...</value>
+  </data>
 </root>
