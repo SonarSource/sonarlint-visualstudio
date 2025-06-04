@@ -196,9 +196,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             DocumentOpened?.Invoke(this, new DocumentOpenedEventArgs(issueTracker.LastAnalysisFilePath, issueTracker.DetectedLanguages));
         }
 
-        public void OnOpenDocumentRenamed(string newFilePath, string oldFilePath) => OpenDocumentRenamed?.Invoke(this, new DocumentRenamedEventArgs(newFilePath, oldFilePath));
+        public void OnOpenDocumentRenamed(string newFilePath, string oldFilePath, IEnumerable<AnalysisLanguage> detectedLanguages) => OpenDocumentRenamed?.Invoke(this, new DocumentRenamedEventArgs(newFilePath, oldFilePath, detectedLanguages));
 
-        public void OnDocumentSaved(string fullPath, string newContent) => DocumentSaved?.Invoke(this, new DocumentSavedEventArgs(fullPath, newContent));
+        public void OnDocumentSaved(string fullPath, string newContent, IEnumerable<AnalysisLanguage> detectedLanguages) => DocumentSaved?.Invoke(this, new DocumentSavedEventArgs(fullPath, newContent, detectedLanguages));
 
         public void OnDocumentClosed(IIssueTracker issueTracker)
         {
@@ -209,7 +209,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // The lifetime of an issue tracker is tied to a single document. A tracker is removed when
             // it is no longer needed i.e. the document has been closed.
-            DocumentClosed?.Invoke(this, new DocumentClosedEventArgs(issueTracker.LastAnalysisFilePath));
+            DocumentClosed?.Invoke(this, new DocumentClosedEventArgs(issueTracker.LastAnalysisFilePath, issueTracker.DetectedLanguages));
         }
 
         #endregion IDocumentEvents methods

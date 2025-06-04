@@ -266,7 +266,7 @@ public class TextBufferIssueTrackerTests
 
         RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
 
-        eventHandler.Received(1).Invoke(taggerProvider, Arg.Is<DocumentSavedEventArgs>(x => x.FullPath == mockedJavascriptDocumentFooJs.FilePath));
+        eventHandler.Received(1).Invoke(taggerProvider, Arg.Is<DocumentSavedEventArgs>(x => x.FullPath == mockedJavascriptDocumentFooJs.FilePath && x.DetectedLanguages == javascriptLanguage));
     }
 
     [TestMethod]
@@ -332,6 +332,19 @@ public class TextBufferIssueTrackerTests
         RaiseFileRenamedEvent(mockedJavascriptDocumentFooJs, "newFile.cs");
 
         VerifyAnalysisNotRequested();
+    }
+
+    [TestMethod]
+    public void WhenFileIsRenamed_OpenDocumentRenamedEventIsRaised()
+    {
+        var eventHandler = Substitute.For<EventHandler<DocumentRenamedEventArgs>>();
+        taggerProvider.OpenDocumentRenamed += eventHandler;
+        var newFilePath = "renamedFile.js";
+
+        RaiseFileRenamedEvent(mockedJavascriptDocumentFooJs, newFilePath);
+
+        eventHandler.Received(1).Invoke(taggerProvider, Arg.Is<DocumentRenamedEventArgs>(x =>
+            x.FullPath == newFilePath && x.OldFilePath == mockedJavascriptDocumentFooJs.FilePath && x.DetectedLanguages == javascriptLanguage));
     }
 
     private static void RaiseFileSavedEvent(ITextDocument mockDocument) => RaiseFileEvent(mockDocument, FileActionTypes.ContentSavedToDisk);
