@@ -88,7 +88,7 @@ public class ActiveVcxCompilationDatabaseTests
     }
 
     [TestMethod]
-    public async Task EnsureDatabaseInitialized_AlreadyInitialized_Throws()
+    public async Task EnsureDatabaseInitialized_AlreadyInitialized_ReturnsExistingPath()
     {
         await Initialize();
 
@@ -148,7 +148,6 @@ public class ActiveVcxCompilationDatabaseTests
 
         await testSubject.AddFileAsync(EntryFilePath);
 
-        storage.Received(1).UpdateDatabaseEntry(DatabasePath, entry);
         VerifyRequiresAsynchronousBackgroundExecution<int>(1);
         Received.InOrder(() =>
         {
