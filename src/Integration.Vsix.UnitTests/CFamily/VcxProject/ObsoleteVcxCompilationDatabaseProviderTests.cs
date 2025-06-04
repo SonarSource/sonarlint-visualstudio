@@ -80,6 +80,6 @@ public class ObsoleteVcxCompilationDatabaseProviderTests
 
         var result = testSubject.CreateOrNull(SourceFilePath);
 
-        result.Should().BeEquivalentTo(new ExternalCompilationDatabaseHandle(dbPath));
+        result.Should().BeEquivalentTo(dbPath);
     }
 }

@@ -34,8 +34,8 @@ internal class ObsoleteVcxCompilationDatabaseProvider(
     ICompilationDatabaseEntryGenerator generator)
     : IObsoleteVcxCompilationDatabaseProvider
 {
-    public ICompilationDatabaseHandle CreateOrNull(string filePath) =>
+    public string CreateOrNull(string filePath) =>
         generator.CreateOrNull(filePath) is not null && activeDatabase.DatabasePath is {} databasePath
-            ? new ExternalCompilationDatabaseHandle(databasePath)
+            ? databasePath
             : null;
 }

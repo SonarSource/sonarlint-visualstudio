@@ -90,7 +90,7 @@ public class SLCoreAnalyzer(
     {
         try
         {
-            using var temporaryResourcesHandle = EnrichPropertiesForCFamily(out var analysisProperties, path, detectedLanguages, analyzerOptions);
+            EnrichPropertiesForCFamily(out var analysisProperties, path, detectedLanguages, analyzerOptions);
 
             var stopwatch = Stopwatch.StartNew();
 
@@ -123,7 +123,7 @@ public class SLCoreAnalyzer(
         }
     }
 
-    private IDisposable EnrichPropertiesForCFamily(
+    private void EnrichPropertiesForCFamily(
         out ImmutableDictionary<string, string> properties,
         string path,
         IEnumerable<AnalysisLanguage> detectedLanguages,
@@ -133,7 +133,7 @@ public class SLCoreAnalyzer(
 
         if (!IsCFamily(detectedLanguages))
         {
-            return null;
+            return;
         }
 
         if (analyzerOptions is ICFamilyAnalyzerOptions {CreateReproducer: true})
@@ -144,11 +144,11 @@ public class SLCoreAnalyzer(
         if (properties.TryGetValue(CFamilyCompileCommandsProperty, out var userDefinedCompileCommands))
         {
             cfamilyConfigurationLog.LogVerbose(SLCoreStrings.UserDefinedCompilationDatabase, userDefinedCompileCommands);
-            return null;
+            return;
         }
 
-        var compilationDatabaseHandle = compilationDatabaseLocator.GetOrNull(path);
-        if (compilationDatabaseHandle == null)
+        var compilationDatabase = compilationDatabaseLocator.GetOrNull(path);
+        if (compilationDatabase == null)
         {
             cfamilyConfigurationLog.WriteLine(SLCoreStrings.CompilationDatabaseNotFound, path);
             // Pass empty compilation database path in order to get a more helpful message and not break the analyzer
@@ -156,9 +156,8 @@ public class SLCoreAnalyzer(
         }
         else
         {
-            properties = properties.SetItem(CFamilyCompileCommandsProperty, compilationDatabaseHandle.FilePath);
+            properties = properties.SetItem(CFamilyCompileCommandsProperty, compilationDatabase);
         }
-        return compilationDatabaseHandle;
     }
 
     private static bool IsCFamily(IEnumerable<AnalysisLanguage> detectedLanguages) => detectedLanguages != null && detectedLanguages.Contains(AnalysisLanguage.CFamily);
