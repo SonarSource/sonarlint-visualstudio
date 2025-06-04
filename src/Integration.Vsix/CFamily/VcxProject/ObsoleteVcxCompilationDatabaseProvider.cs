@@ -19,26 +19,26 @@
  */
 
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.CFamily.CMake;
+using SonarLint.VisualStudio.CFamily;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 
-namespace SonarLint.VisualStudio.CFamily.CompilationDatabase;
+namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
-[Export(typeof(IAggregatingCompilationDatabaseProvider))]
+[Export(typeof(IObsoleteVcxCompilationDatabaseProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[method:ImportingConstructor]
-internal class AggregatingCompilationDatabaseProvider(
-    ICMakeCompilationDatabaseLocator cMakeCompilationDatabaseLocator,
-    IObsoleteVcxCompilationDatabaseProvider vcxCompilationDatabaseProvider)
-    : IAggregatingCompilationDatabaseProvider
+[method: ImportingConstructor]
+internal class ObsoleteVcxCompilationDatabaseProvider(
+    IObsoleteVCXCompilationDatabaseStorage storage,
+    IEnvironmentVariableProvider environmentVariableProvider,
+    IFileConfigProvider fileConfigProvider,
+    ILogger logger)
+    : IObsoleteVcxCompilationDatabaseProvider
 {
-    public ICompilationDatabaseHandle GetOrNull(string sourceFilePath)
-    {
-        if (cMakeCompilationDatabaseLocator.Locate() is {} cmakeCompilationDatabasePath)
-        {
-            return new ExternalCompilationDatabaseHandle(cmakeCompilationDatabasePath);
-        }
+    private readonly CompilationDatabaseEntryGenerator generator = new(fileConfigProvider, environmentVariableProvider, logger);
 
-        return vcxCompilationDatabaseProvider.CreateOrNull(sourceFilePath);
-    }
+    public ICompilationDatabaseHandle CreateOrNull(string filePath) =>
+        generator.CreateOrNull(filePath) is { } fileConfig
+            ? storage.CreateDatabase(fileConfig.File, fileConfig.Directory, fileConfig.Command, fileConfig.Environment)
+            : null;
 }
