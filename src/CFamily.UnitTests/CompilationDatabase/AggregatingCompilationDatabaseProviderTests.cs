@@ -30,14 +30,14 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CompilationDatabase;
 public class AggregatingCompilationDatabaseProviderTests
 {
     private ICMakeCompilationDatabaseLocator cmake;
-    private IVCXCompilationDatabaseProvider vcx;
+    private IObsoleteVcxCompilationDatabaseProvider vcx;
     private AggregatingCompilationDatabaseProvider testSubject;
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<AggregatingCompilationDatabaseProvider, IAggregatingCompilationDatabaseProvider>(
             MefTestHelpers.CreateExport<ICMakeCompilationDatabaseLocator>(),
-            MefTestHelpers.CreateExport<IVCXCompilationDatabaseProvider>());
+            MefTestHelpers.CreateExport<IObsoleteVcxCompilationDatabaseProvider>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<AggregatingCompilationDatabaseProvider>();
@@ -46,7 +46,7 @@ public class AggregatingCompilationDatabaseProviderTests
     public void TestInitialize()
     {
         cmake = Substitute.For<ICMakeCompilationDatabaseLocator>();
-        vcx = Substitute.For<IVCXCompilationDatabaseProvider>();
+        vcx = Substitute.For<IObsoleteVcxCompilationDatabaseProvider>();
         testSubject = new AggregatingCompilationDatabaseProvider(cmake, vcx);
     }
 
