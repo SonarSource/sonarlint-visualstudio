@@ -22,7 +22,7 @@ using SonarLint.VisualStudio.Core.CFamily;
 
 namespace SonarLint.VisualStudio.CFamily.CompilationDatabase;
 
-internal sealed class ExternalCompilationDatabaseHandle(string filePath) : ICompilationDatabaseHandle
+public sealed class ExternalCompilationDatabaseHandle(string filePath) : ICompilationDatabaseHandle
 {
     public string FilePath { get; } = filePath ?? throw new ArgumentNullException(nameof(filePath));
 
