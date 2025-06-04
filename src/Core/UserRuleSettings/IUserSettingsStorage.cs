@@ -40,4 +40,5 @@ public interface IGlobalSettingsStorage : IUserSettingsStorage<GlobalRawAnalysis
 
 public interface ISolutionSettingsStorage : IUserSettingsStorage<SolutionRawAnalysisSettings>
 {
+    void EnsureSettingsFileExists();
 }

@@ -23,6 +23,7 @@ using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.FileMonitor;
 using SonarLint.VisualStudio.Core.Initialization;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Integration.UserSettingsConfiguration;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -39,6 +40,7 @@ public class SolutionSettingsStorageTest
     private const string Solution2SettingsFilePath = @"C:\some\path\to\appdata\SonarLint for Visual Studio\SolutionSettings\Solution TWO\settings.json";
     private IActiveSolutionTracker activeSolutionTracker;
     private IEnvironmentVariableProvider environmentVariableProvider;
+    private IFileSystemService fileSystem;
     private IInitializationProcessorFactory processorFactory;
     private IAnalysisSettingsSerializer serializer;
     private ISingleFileMonitorFactory singleFileMonitorFactory;
@@ -50,6 +52,7 @@ public class SolutionSettingsStorageTest
     public void Initialize()
     {
         testLogger = new TestLogger();
+        fileSystem = Substitute.For<IFileSystemService>();
         serializer = Substitute.For<IAnalysisSettingsSerializer>();
         singleFileMonitorFactory = Substitute.For<ISingleFileMonitorFactory>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
@@ -66,6 +69,7 @@ public class SolutionSettingsStorageTest
         MefTestHelpers.CheckTypeCanBeImported<SolutionSettingsStorage, ISolutionSettingsStorage>(
             MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
             MefTestHelpers.CreateExport<ISingleFileMonitorFactory>(),
+            MefTestHelpers.CreateExport<IFileSystemService>(),
             MefTestHelpers.CreateExport<IEnvironmentVariableProvider>(),
             MefTestHelpers.CreateExport<IAnalysisSettingsSerializer>(),
             MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
@@ -150,6 +154,46 @@ public class SolutionSettingsStorageTest
         activeSolutionTracker.DidNotReceiveWithAnyArgs().ActiveSolutionChanged += Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
         activeSolutionTracker.DidNotReceiveWithAnyArgs().ActiveSolutionChanged -= Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
         singleFileMonitorFactory.DidNotReceiveWithAnyArgs().Create(default);
+    }
+
+    [TestMethod]
+    public void EnsureSettingsFileExists_NoSolutionOpen_DoesNotCreate()
+    {
+        activeSolutionTracker.CurrentSolutionName.Returns(null as string);
+        var testSubject = CreateAndInitializeTestSubject();
+
+        testSubject.EnsureSettingsFileExists();
+
+        fileSystem.File.DidNotReceiveWithAnyArgs().Exists(default);
+        serializer.DidNotReceiveWithAnyArgs().SafeSave(default, default(GlobalRawAnalysisSettings));
+        serializer.DidNotReceiveWithAnyArgs().SafeSave(default, default(SolutionRawAnalysisSettings));
+    }
+
+    [TestMethod]
+    public void EnsureSettingsFileExists_CreatedIfMissing()
+    {
+        activeSolutionTracker.CurrentSolutionName.Returns(SolutionName1);
+        fileSystem.File.Exists(Solution1SettingsFilePath).Returns(false);
+        var testSubject = CreateAndInitializeTestSubject();
+
+        testSubject.EnsureSettingsFileExists();
+
+        fileSystem.File.Received().Exists(Solution1SettingsFilePath);
+        serializer.Received().SafeSave(Solution1SettingsFilePath, Arg.Any<SolutionRawAnalysisSettings>());
+    }
+
+    [TestMethod]
+    public void EnsureSettingsFileExists_NotCreatedIfExists()
+    {
+        activeSolutionTracker.CurrentSolutionName.Returns(SolutionName1);
+        fileSystem.File.Exists(Solution1SettingsFilePath).Returns(true);
+        fileSystem.ClearReceivedCalls();
+        var testSubject = CreateAndInitializeTestSubject();
+
+        testSubject.EnsureSettingsFileExists();
+
+        fileSystem.File.Received().Exists(Solution1SettingsFilePath);
+        serializer.DidNotReceiveWithAnyArgs().SafeSave(default, default(SolutionRawAnalysisSettings));
     }
 
     [TestMethod]
@@ -267,7 +311,7 @@ public class SolutionSettingsStorageTest
     private SolutionSettingsStorage CreateAndInitializeTestSubject()
     {
         processorFactory = MockableInitializationProcessor.CreateFactory<SolutionSettingsStorage>(threadHandling, testLogger);
-        var testSubject = new SolutionSettingsStorage(activeSolutionTracker, singleFileMonitorFactory, environmentVariableProvider, serializer, processorFactory);
+        var testSubject = new SolutionSettingsStorage(activeSolutionTracker, singleFileMonitorFactory, fileSystem, environmentVariableProvider, serializer, processorFactory);
         testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
         return testSubject;
     }
@@ -276,7 +320,7 @@ public class SolutionSettingsStorageTest
     {
         var tcs = barrier = new TaskCompletionSource<byte>();
         processorFactory = MockableInitializationProcessor.CreateFactory<SolutionSettingsStorage>(threadHandling, testLogger, p => MockableInitializationProcessor.ConfigureWithWait(p, tcs));
-        return new SolutionSettingsStorage(activeSolutionTracker, singleFileMonitorFactory, environmentVariableProvider, serializer, processorFactory);
+        return new SolutionSettingsStorage(activeSolutionTracker, singleFileMonitorFactory, fileSystem, environmentVariableProvider, serializer, processorFactory);
     }
 
     private ISingleFileMonitor CreateSingleFileMonitor(string path)

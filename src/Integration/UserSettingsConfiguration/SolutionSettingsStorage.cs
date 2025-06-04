@@ -23,6 +23,7 @@ using System.IO;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.FileMonitor;
 using SonarLint.VisualStudio.Core.Initialization;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
 
@@ -37,6 +38,7 @@ internal sealed class SolutionSettingsStorage : ISolutionSettingsStorage
     private readonly IActiveSolutionTracker activeSolutionTracker;
     private readonly ISingleFileMonitorFactory fileMonitorFactory;
     private readonly IAnalysisSettingsSerializer serializer;
+    private readonly IFileSystemService fileSystem;
 
     private string appDataRoot;
     private bool disposed;
@@ -47,11 +49,13 @@ internal sealed class SolutionSettingsStorage : ISolutionSettingsStorage
     public SolutionSettingsStorage(
         IActiveSolutionTracker activeSolutionTracker,
         ISingleFileMonitorFactory singleFileMonitorFactory,
+        IFileSystemService fileSystem,
         IEnvironmentVariableProvider environmentVariableProvider,
         IAnalysisSettingsSerializer serializer,
         IInitializationProcessorFactory processorFactory)
     {
         this.activeSolutionTracker = activeSolutionTracker;
+        this.fileSystem = fileSystem;
         this.serializer = serializer;
         fileMonitorFactory = singleFileMonitorFactory;
         InitializationProcessor = processorFactory.CreateAndStart<SolutionSettingsStorage>(
@@ -78,6 +82,19 @@ internal sealed class SolutionSettingsStorage : ISolutionSettingsStorage
     public void SaveSettingsFile(SolutionRawAnalysisSettings settings) => serializer.SafeSave(SettingsFilePath, settings);
 
     public SolutionRawAnalysisSettings LoadSettingsFile() => serializer.SafeLoad<SolutionRawAnalysisSettings>(SettingsFilePath);
+
+    public void EnsureSettingsFileExists()
+    {
+        if (SettingsFilePath == null)
+        {
+            return;
+        }
+
+        if (!fileSystem.File.Exists(SettingsFilePath))
+        {
+            serializer.SafeSave(SettingsFilePath, new SolutionRawAnalysisSettings());
+        }
+    }
 
     public void Dispose()
     {
