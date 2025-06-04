@@ -136,7 +136,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (disposing)
             {
-                DisposeCompilationDatabaseStorageAsync().Forget();
+                DisposeCompilationDatabaseStorage();
                 projectDocumentsEventsListener?.Dispose();
                 projectDocumentsEventsListener = null;
                 solutionRoslynAnalyzerManager?.Dispose();
@@ -146,9 +146,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        private async Task DisposeCompilationDatabaseStorageAsync()
+        private void DisposeCompilationDatabaseStorage()
         {
-            await vcxCompilationDatabase.DropDatabaseAsync();
+            var threadHandling = this.GetMefService<IThreadHandling>();
+            threadHandling.Run(async () =>
+            {
+                await vcxCompilationDatabase.DropDatabaseAsync();
+                return 0;
+            });
             vcxCompilationDatabase.Dispose();
             vcxCompilationDatabase = null;
         }
