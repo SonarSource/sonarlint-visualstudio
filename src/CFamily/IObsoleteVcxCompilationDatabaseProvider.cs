@@ -22,7 +22,7 @@ using SonarLint.VisualStudio.Core.CFamily;
 
 namespace SonarLint.VisualStudio.CFamily;
 
-public interface IVCXCompilationDatabaseProvider
+public interface IObsoleteVcxCompilationDatabaseProvider
 {
     ICompilationDatabaseHandle CreateOrNull(string filePath);
 }
