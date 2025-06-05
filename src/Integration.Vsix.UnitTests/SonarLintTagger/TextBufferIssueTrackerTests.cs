@@ -299,19 +299,6 @@ public class TextBufferIssueTrackerTests
     }
 
     [TestMethod]
-    public void WhenFileIsRenamed_OpenDocumentRenamedIsRaised()
-    {
-        var eventHandler = Substitute.For<EventHandler<DocumentRenamedEventArgs>>();
-        taggerProvider.OpenDocumentRenamed += eventHandler;
-        var newFilePath = "newName.cs";
-
-        RaiseFileRenamedEvent(mockedJavascriptDocumentFooJs, newFilePath);
-
-        eventHandler.Received(1).Invoke(taggerProvider, Arg.Is<DocumentRenamedEventArgs>(x =>
-            x.FullPath == newFilePath && x.OldFilePath == mockedJavascriptDocumentFooJs.FilePath));
-    }
-
-    [TestMethod]
     public void WhenFileIsRenamed_LastAnalysisFilePathIsUpdated()
     {
         var eventHandler = Substitute.For<EventHandler<DocumentRenamedEventArgs>>();

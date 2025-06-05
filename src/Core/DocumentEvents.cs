@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Core;
 public abstract class DocumentEventArgs(string fullPath,  IEnumerable<AnalysisLanguage> detectedLanguages) : EventArgs
 {
     /// <summary>
-    /// Full file path to the document being closed
+    /// Full path of the document of the document for which the event was raised
     /// </summary>
     public string FullPath { get; } = fullPath;
     public IEnumerable<AnalysisLanguage> DetectedLanguages { get; } = detectedLanguages;
