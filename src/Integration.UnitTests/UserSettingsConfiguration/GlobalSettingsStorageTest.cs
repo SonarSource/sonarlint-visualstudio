@@ -81,6 +81,7 @@ public class GlobalSettingsStorageTest
                 Arg.Any<Func<IThreadHandling, Task>>());
             initializationProcessor.InitializeAsync();
             environmentVariableProvider.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            serializer.SafeSave(GlobalSettingsFilePath, Arg.Any<GlobalRawAnalysisSettings>());
             singleFileMonitorFactory.Create(GlobalSettingsFilePath);
             fileMonitor.FileChanged += Arg.Any<EventHandler>();
             initializationProcessor.InitializeAsync();
@@ -116,25 +117,23 @@ public class GlobalSettingsStorageTest
     }
 
     [TestMethod]
-    public void EnsureSettingsFileExists_CreatedIfMissing()
+    public void Initialization_CreatesSettingsFileIfMissing()
     {
         fileSystem.File.Exists(GlobalSettingsFilePath).Returns(false);
-        var testSubject = CreateAndInitializeTestSubject();
 
-        testSubject.EnsureSettingsFileExists();
+        CreateAndInitializeTestSubject();
 
         fileSystem.File.Received().Exists(GlobalSettingsFilePath);
         serializer.Received().SafeSave(GlobalSettingsFilePath, Arg.Any<GlobalRawAnalysisSettings>());
     }
 
     [TestMethod]
-    public void EnsureSettingsFileExists_NotCreatedIfExists()
+    public void Initialization_SettingsFileNotCreatedIfExists()
     {
         fileSystem.File.Exists(GlobalSettingsFilePath).Returns(true);
         fileSystem.ClearReceivedCalls();
-        var testSubject = CreateAndInitializeTestSubject();
 
-        testSubject.EnsureSettingsFileExists();
+        CreateAndInitializeTestSubject();
 
         fileSystem.File.Received().Exists(GlobalSettingsFilePath);
         serializer.DidNotReceiveWithAnyArgs().SafeSave(default, default(GlobalRawAnalysisSettings));

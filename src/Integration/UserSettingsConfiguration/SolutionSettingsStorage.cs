@@ -20,7 +20,6 @@
 
 using System.ComponentModel.Composition;
 using System.IO;
-using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.FileMonitor;
 using SonarLint.VisualStudio.Core.Initialization;
@@ -38,8 +37,8 @@ internal sealed class SolutionSettingsStorage : ISolutionSettingsStorage
     private const string SettingsFileName = "settings.json";
     private readonly IActiveSolutionTracker activeSolutionTracker;
     private readonly ISingleFileMonitorFactory fileMonitorFactory;
-    private readonly IFileSystem fileSystem;
     private readonly IAnalysisSettingsSerializer serializer;
+    private readonly IFileSystemService fileSystem;
 
     private string appDataRoot;
     private bool disposed;
@@ -80,6 +79,10 @@ internal sealed class SolutionSettingsStorage : ISolutionSettingsStorage
     public string ConfigurationBaseDirectory => solutionFilePaths?.generatedConfigsBaseDirectory;
     public event EventHandler SettingsFileChanged;
 
+    public void SaveSettingsFile(SolutionRawAnalysisSettings settings) => serializer.SafeSave(SettingsFilePath, settings);
+
+    public SolutionRawAnalysisSettings LoadSettingsFile() => serializer.SafeLoad<SolutionRawAnalysisSettings>(SettingsFilePath);
+
     public void EnsureSettingsFileExists()
     {
         if (SettingsFilePath == null)
@@ -92,10 +95,6 @@ internal sealed class SolutionSettingsStorage : ISolutionSettingsStorage
             serializer.SafeSave(SettingsFilePath, new SolutionRawAnalysisSettings());
         }
     }
-
-    public void SaveSettingsFile(SolutionRawAnalysisSettings settings) => serializer.SafeSave(SettingsFilePath, settings);
-
-    public SolutionRawAnalysisSettings LoadSettingsFile() => serializer.SafeLoad<SolutionRawAnalysisSettings>(SettingsFilePath);
 
     public void Dispose()
     {

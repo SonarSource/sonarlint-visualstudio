@@ -27,8 +27,6 @@ public interface IUserSettingsStorage<T> : IRequireInitialization, IDisposable
     string SettingsFilePath { get; }
     string ConfigurationBaseDirectory { get; }
 
-    void EnsureSettingsFileExists();
-
     event EventHandler SettingsFileChanged;
 
     void SaveSettingsFile(T settings);
@@ -42,4 +40,5 @@ public interface IGlobalSettingsStorage : IUserSettingsStorage<GlobalRawAnalysis
 
 public interface ISolutionSettingsStorage : IUserSettingsStorage<SolutionRawAnalysisSettings>
 {
+    void EnsureSettingsFileExists();
 }

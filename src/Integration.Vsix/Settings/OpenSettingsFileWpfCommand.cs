@@ -56,7 +56,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             try
             {
-                globalSettingsStorage.EnsureSettingsFileExists();
                 OpenDocumentInVs(globalSettingsStorage.SettingsFilePath);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))

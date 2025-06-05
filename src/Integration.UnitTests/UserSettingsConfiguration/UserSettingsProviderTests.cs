@@ -192,6 +192,16 @@ public class UserSettingsProviderTests
     }
 
     [TestMethod]
+    public void UserSettings_NoSolution_NoGlobalSettings_GlobalRawAnalysisSettingsShouldNotBeNull()
+    {
+        SetupNoGlobalSettings();
+        SetupNoSolutionSettings();
+        var testSubject = CreateAndInitializeTestSubject();
+
+        testSubject.GlobalRawAnalysisSettings.Should().NotBeNull();
+    }
+
+    [TestMethod]
     public void UserSettings_NoSolution_ReturnsGlobalSettings()
     {
         var rules = ImmutableDictionary.Create<string, RuleConfig>().Add("rules", default);

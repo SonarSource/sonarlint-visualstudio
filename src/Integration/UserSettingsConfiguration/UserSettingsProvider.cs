@@ -187,9 +187,11 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSe
 
     private (UserSettings userSettings, GlobalRawAnalysisSettings globalAnalysisSettings, SolutionRawAnalysisSettings solutionAnalysisSettings) SafeLoadUserSettings()
     {
-        var globalAnalysisSettings = globalSettingsStorage.LoadSettingsFile();
-        SolutionRawAnalysisSettings solutionSettingsFromStorage = null;
+        GlobalRawAnalysisSettings globalAnalysisSettingsFromStorage = globalSettingsStorage.LoadSettingsFile();
+        GlobalRawAnalysisSettings globalRawAnalysisSettings
+            = globalAnalysisSettingsFromStorage ?? new GlobalRawAnalysisSettings(ImmutableDictionary<string, RuleConfig>.Empty, ImmutableArray<string>.Empty);
 
+        SolutionRawAnalysisSettings solutionSettingsFromStorage = null;
         SolutionRawAnalysisSettings solutionRawAnalysisSettings = null;
 
         if (solutionSettingsStorage.SettingsFilePath != null)
@@ -198,18 +200,18 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider, IGlobalRawSe
             solutionRawAnalysisSettings = solutionSettingsFromStorage ?? new SolutionRawAnalysisSettings();
         }
 
-        if (globalAnalysisSettings == null && solutionRawAnalysisSettings == null)
+        if (globalAnalysisSettingsFromStorage == null && solutionSettingsFromStorage == null)
         {
             logger.WriteLine(Strings.Settings_UsingDefaultSettings);
-            return (new UserSettings(new AnalysisSettings(), globalSettingsStorage.ConfigurationBaseDirectory), globalAnalysisSettings, solutionRawAnalysisSettings);
+            return (new UserSettings(new AnalysisSettings(), globalSettingsStorage.ConfigurationBaseDirectory), globalRawAnalysisSettings, solutionRawAnalysisSettings);
         }
 
-        var rules = globalAnalysisSettings?.Rules;
-        var globalExclusions = globalAnalysisSettings?.UserDefinedFileExclusions;
+        var rules = globalRawAnalysisSettings.Rules;
+        var globalExclusions = globalRawAnalysisSettings.UserDefinedFileExclusions;
         var properties = solutionRawAnalysisSettings?.AnalysisProperties;
         var solutionExclusions = solutionRawAnalysisSettings?.UserDefinedFileExclusions;
         var generatedConfigsBase = solutionSettingsFromStorage != null ? solutionSettingsStorage.ConfigurationBaseDirectory : globalSettingsStorage.ConfigurationBaseDirectory;
 
-        return (new UserSettings(new AnalysisSettings(rules, globalExclusions, solutionExclusions, properties), generatedConfigsBase), globalAnalysisSettings, solutionRawAnalysisSettings);
+        return (new UserSettings(new AnalysisSettings(rules, globalExclusions, solutionExclusions, properties), generatedConfigsBase), globalRawAnalysisSettings, solutionRawAnalysisSettings);
     }
 }
