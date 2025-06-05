@@ -56,5 +56,5 @@ public interface IDocumentEvents
     /// </summary>
     event EventHandler<DocumentRenamedEventArgs> OpenDocumentRenamed;
 
-    IReadOnlyList<Document> GetOpenedDocuments();
+    IReadOnlyList<Document> GetOpenDocuments();
 }

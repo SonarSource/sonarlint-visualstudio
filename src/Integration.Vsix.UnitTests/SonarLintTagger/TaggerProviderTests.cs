@@ -368,13 +368,13 @@ public class TaggerProviderTests
     }
 
     [TestMethod]
-    public void GetOpenedDocuments_ReturnsAmountOfIssueTrackers()
+    public void GetOpenDocuments_ReturnsAmountOfIssueTrackers()
     {
         provider.AddIssueTracker(CreateMockedIssueTracker("myFile.js", [AnalysisLanguage.Javascript]));
         provider.AddIssueTracker(CreateMockedIssueTracker("myFile2.cs", [AnalysisLanguage.RoslynFamily]));
         provider.AddIssueTracker(CreateMockedIssueTracker("myFile3.cpp", [AnalysisLanguage.CFamily]));
 
-        var result = provider.GetOpenedDocuments().ToList();
+        var result = provider.GetOpenDocuments().ToList();
 
         result.Should().HaveCount(3);
         result.Should().Contain(x => x.FullPath == "myFile.js" && x.DetectedLanguages.Contains(AnalysisLanguage.Javascript));

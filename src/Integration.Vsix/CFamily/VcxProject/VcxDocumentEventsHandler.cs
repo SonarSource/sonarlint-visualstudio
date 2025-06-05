@@ -49,7 +49,7 @@ public sealed class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
         this.documentEvents.DocumentClosed += DocumentEventsOnDocumentClosed;
         this.documentEvents.OpenDocumentRenamed += DocumentEventsOnOpenDocumentRenamed;
 
-        documentEvents.GetOpenedDocuments().ToList().ForEach(AddFileToCompilationDatabase);
+        documentEvents.GetOpenDocuments().ToList().ForEach(AddFileToCompilationDatabase);
     }
 
     public void Dispose()

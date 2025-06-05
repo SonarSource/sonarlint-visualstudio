@@ -185,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public event EventHandler<DocumentSavedEventArgs> DocumentSaved;
         public event EventHandler<DocumentRenamedEventArgs> OpenDocumentRenamed;
 
-        public IReadOnlyList<Document> GetOpenedDocuments()
+        public IReadOnlyList<Document> GetOpenDocuments()
         {
             lock (issueTrackers)
             {

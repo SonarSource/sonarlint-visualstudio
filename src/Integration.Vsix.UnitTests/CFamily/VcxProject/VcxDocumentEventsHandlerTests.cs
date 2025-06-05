@@ -59,7 +59,7 @@ public class VcxDocumentEventsHandlerTests
     public void Ctor_AddsAlreadyOpenedFilesToDb()
     {
         ClearReceivedCalls();
-        documentEvents.GetOpenedDocuments().Returns([CFamilyDocument]);
+        documentEvents.GetOpenDocuments().Returns([CFamilyDocument]);
 
         CreateTestSubject();
 
