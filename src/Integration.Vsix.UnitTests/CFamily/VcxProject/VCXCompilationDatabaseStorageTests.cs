@@ -54,12 +54,6 @@ public class VcxCompilationDatabaseStorageTests
     }
 
     [TestMethod]
-    public void MefCtor_CheckIsExported_Obsolete() =>
-        MefTestHelpers.CheckTypeCanBeImported<VcxCompilationDatabaseStorage, IObsoleteVCXCompilationDatabaseStorage>(
-            MefTestHelpers.CreateExport<IFileSystemService>(),
-            MefTestHelpers.CreateExport<ILogger>());
-
-    [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<VcxCompilationDatabaseStorage, IVcxCompilationDatabaseStorage>(
             MefTestHelpers.CreateExport<IFileSystemService>(),
@@ -67,64 +61,6 @@ public class VcxCompilationDatabaseStorageTests
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<VcxCompilationDatabaseStorage>();
-
-    [TestMethod]
-    public void CreateDatabase_Obsolete_NonCriticalException_ReturnsNull()
-    {
-        fileSystemService.Directory.CreateDirectory(default).ThrowsForAnyArgs<NotImplementedException>();
-
-        var database = (testSubject as IObsoleteVCXCompilationDatabaseStorage).CreateDatabase(default, default, default, default);
-
-        database.Should().BeNull();
-        testLogger.AssertPartialOutputStrings(nameof(NotImplementedException));
-    }
-
-    [TestMethod]
-    public void CreateDatabase_Obsolete_CriticalException_Throws()
-    {
-        fileSystemService.Directory.CreateDirectory(default).ThrowsForAnyArgs<DivideByZeroException>();
-
-        var act = () => (testSubject as IObsoleteVCXCompilationDatabaseStorage).CreateDatabase(default, default, default, default);
-
-        act.Should().Throw<DivideByZeroException>();
-    }
-
-    [TestMethod]
-    public void CreateDatabase_Obsolete_FileWritten_ReturnsPathToDatabaseWithCorrectContent()
-    {
-        var expectedDirectory = Path.Combine(Path.GetTempPath(), "SLVS", "VCXCD", PathHelper.PerVsInstanceFolderName.ToString());
-
-        var databaseHandle = (testSubject as IObsoleteVCXCompilationDatabaseStorage).CreateDatabase(SourceFilePath, SourceDirectory, CompileCommand, EnvValue);
-
-        var temporaryCompilationDatabaseHandle = databaseHandle.Should().BeOfType<TemporaryCompilationDatabaseHandle>().Subject;
-        fileSystemService.Directory.Received().CreateDirectory(expectedDirectory);
-        fileSystemService.File.Received().WriteAllText(temporaryCompilationDatabaseHandle.FilePath, Arg.Any<string>());
-        VerifyDatabaseUpdated(databaseHandle.FilePath, expectedDirectory,
-            [new CompilationDatabaseEntry { Directory = SourceDirectory, File = SourceFilePath, Command = CompileCommand, Environment = EnvValue }]);
-    }
-
-    [TestMethod]
-    public void CreateDatabase_Obsolete_CreatesDifferentHandlesForSameFile()
-    {
-        var expectedDirectory = Path.Combine(Path.GetTempPath(), "SLVS", "VCXCD", PathHelper.PerVsInstanceFolderName.ToString());
-
-        var databaseHandle1 = (testSubject as IObsoleteVCXCompilationDatabaseStorage).CreateDatabase(SourceFilePath, SourceDirectory, CompileCommand, EnvValue);
-        var databaseHandle2 = (testSubject as IObsoleteVCXCompilationDatabaseStorage).CreateDatabase(SourceFilePath, SourceDirectory, CompileCommand, EnvValue);
-
-        Directory.GetParent(databaseHandle1.FilePath).FullName.Should().BeEquivalentTo(expectedDirectory);
-        Directory.GetParent(databaseHandle2.FilePath).FullName.Should().BeEquivalentTo(expectedDirectory);
-        Path.GetFileNameWithoutExtension(databaseHandle1.FilePath).Should().NotBe(Path.GetFileNameWithoutExtension(databaseHandle2.FilePath));
-    }
-
-    [TestMethod]
-    public void CreateDatabase_Obsolete_Disposed_Throws()
-    {
-        testSubject.Dispose();
-
-        var act = () => (testSubject as IObsoleteVCXCompilationDatabaseStorage).CreateDatabase(default, default, default, default);
-
-        act.Should().Throw<ObjectDisposedException>();
-    }
 
     [TestMethod]
     public void CreateDatabase_NonCriticalException_ReturnsNull()
