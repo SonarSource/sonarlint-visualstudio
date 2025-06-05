@@ -22,27 +22,25 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Core;
 
-public abstract class DocumentEventArgs(string fullPath,  IEnumerable<AnalysisLanguage> detectedLanguages) : EventArgs
+public class DocumentEventArgs(Document document) : EventArgs
 {
-    /// <summary>
-    /// Full path of the document for which the event was raised
-    /// </summary>
-    public string FullPath { get; } = fullPath;
-    public IEnumerable<AnalysisLanguage> DetectedLanguages { get; } = detectedLanguages;
+    public Document Document { get; } = document;
 }
 
-public class DocumentClosedEventArgs(string fullPath, IEnumerable<AnalysisLanguage> detectedLanguages) : DocumentEventArgs(fullPath, detectedLanguages);
-
-public class DocumentOpenedEventArgs(string fullPath, IEnumerable<AnalysisLanguage> detectedLanguages) : DocumentEventArgs(fullPath, detectedLanguages);
-
-public class DocumentSavedEventArgs(string fullPath, string newContent, IEnumerable<AnalysisLanguage> detectedLanguages) : DocumentEventArgs(fullPath, detectedLanguages)
+public class DocumentSavedEventArgs(Document document, string newContent) : DocumentEventArgs(document)
 {
     public string NewContent { get; } = newContent;
 }
 
-public class DocumentRenamedEventArgs(string fullPath, string oldFilePath, IEnumerable<AnalysisLanguage> detectedLanguages) : DocumentEventArgs(fullPath, detectedLanguages)
+public class DocumentRenamedEventArgs(Document document, string oldFilePath) : DocumentEventArgs(document)
 {
     public string OldFilePath { get; } = oldFilePath;
+}
+
+public class Document(string fullPath, IEnumerable<AnalysisLanguage> detectedLanguages)
+{
+    public string FullPath { get; } = fullPath;
+    public IEnumerable<AnalysisLanguage> DetectedLanguages { get; } = detectedLanguages;
 }
 
 /// <summary>
@@ -50,10 +48,9 @@ public class DocumentRenamedEventArgs(string fullPath, string oldFilePath, IEnum
 /// </summary>
 public interface IDocumentEvents
 {
-    event EventHandler<DocumentClosedEventArgs> DocumentClosed;
-    event EventHandler<DocumentOpenedEventArgs> DocumentOpened;
+    event EventHandler<DocumentEventArgs> DocumentClosed;
+    event EventHandler<DocumentEventArgs> DocumentOpened;
     event EventHandler<DocumentSavedEventArgs> DocumentSaved;
-
     /// <summary>
     /// Raised when an opened document is renamed
     /// </summary>

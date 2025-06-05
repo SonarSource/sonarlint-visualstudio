@@ -192,7 +192,7 @@ public class TaggerProviderTests
         var doc1 = CreateMockedDocument("doc1.js");
 
         object actualSender = null;
-        DocumentClosedEventArgs actualEventArgs = null;
+        DocumentEventArgs actualEventArgs = null;
         int eventCount = 0;
         provider.DocumentClosed += OnDocumentClosed;
 
@@ -213,9 +213,9 @@ public class TaggerProviderTests
         eventCount.Should().Be(1);
         actualSender.Should().BeSameAs(provider);
         actualEventArgs.Should().NotBeNull();
-        actualEventArgs.FullPath.Should().Be("doc1.js");
+        actualEventArgs.Document.FullPath.Should().Be("doc1.js");
 
-        void OnDocumentClosed(object sender, DocumentClosedEventArgs e)
+        void OnDocumentClosed(object sender, DocumentEventArgs e)
         {
             eventCount++;
             actualSender = sender;
@@ -312,21 +312,21 @@ public class TaggerProviderTests
     [TestMethod]
     public void AddIssueTracker_RaisesEvent()
     {
-        var eventHandler = Substitute.For<EventHandler<DocumentOpenedEventArgs>>();
+        var eventHandler = Substitute.For<EventHandler<DocumentEventArgs>>();
         var filePath = "file1.txt";
         var testSubject = CreateTestSubject();
         testSubject.DocumentOpened += eventHandler;
 
         testSubject.AddIssueTracker(CreateMockedIssueTracker(filePath, DetectedLanguagesJsTs));
 
-        eventHandler.Received(1).Invoke(testSubject, Arg.Is<DocumentOpenedEventArgs>(e =>
-            e.FullPath == filePath && e.DetectedLanguages == DetectedLanguagesJsTs));
+        eventHandler.Received(1).Invoke(testSubject, Arg.Is<DocumentEventArgs>(e =>
+            e.Document.FullPath == filePath && e.Document.DetectedLanguages == DetectedLanguagesJsTs));
     }
 
     [TestMethod]
     public void IssueTracker_DocumentClosed_RaiseEvent()
     {
-        var eventHandler = Substitute.For<EventHandler<DocumentClosedEventArgs>>();
+        var eventHandler = Substitute.For<EventHandler<DocumentEventArgs>>();
         var fileName = "anyname.js";
         var doc = CreateMockedDocument(fileName, DetectedLanguagesJsTs);
         provider.DocumentClosed += eventHandler;
@@ -334,7 +334,7 @@ public class TaggerProviderTests
         CreateTaggerForDocument(doc);
         provider.ActiveTrackersForTesting.First().Dispose();
 
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<DocumentClosedEventArgs>(x => x.FullPath == fileName && x.DetectedLanguages == DetectedLanguagesJsTs));
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == fileName && x.Document.DetectedLanguages == DetectedLanguagesJsTs));
     }
 
     [TestMethod]
@@ -348,7 +348,7 @@ public class TaggerProviderTests
         CreateTaggerForDocument(doc);
         RaiseFileEvent(doc, FileActionTypes.ContentSavedToDisk);
 
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<DocumentSavedEventArgs>(x => x.FullPath == fileName && x.DetectedLanguages == DetectedLanguagesJsTs));
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<DocumentSavedEventArgs>(x => x.Document.FullPath == fileName && x.Document.DetectedLanguages == DetectedLanguagesJsTs));
     }
 
     [TestMethod]
@@ -363,7 +363,8 @@ public class TaggerProviderTests
         CreateTaggerForDocument(doc);
         RaiseFileEvent(doc, FileActionTypes.DocumentRenamed, newName);
 
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<DocumentRenamedEventArgs>(x => x.FullPath == newName && x.OldFilePath == oldName && x.DetectedLanguages == DetectedLanguagesJsTs));
+        eventHandler.Received(1).Invoke(Arg.Any<object>(),
+            Arg.Is<DocumentRenamedEventArgs>(x => x.Document.FullPath == newName && x.OldFilePath == oldName && x.Document.DetectedLanguages == DetectedLanguagesJsTs));
     }
 
     private IIssueTracker[] CreateMockedIssueTrackers(params string[] filePaths) => filePaths.Select(x => CreateMockedIssueTracker(x)).ToArray();

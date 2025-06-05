@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.CFamily;
 using SonarLint.VisualStudio.Core;
@@ -64,34 +63,33 @@ public sealed class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
         documentEvents.OpenDocumentRenamed -= DocumentEventsOnOpenDocumentRenamed;
     }
 
-    private void DocumentEventsOnOpenDocumentRenamed(object sender, DocumentRenamedEventArgs e)
+    private void DocumentEventsOnOpenDocumentRenamed(object sender, DocumentRenamedEventArgs args)
     {
-        if (e.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
+        if (args.Document.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
         {
             ReplaceFileAsync().Forget();
         }
 
-
         async Task ReplaceFileAsync()
         {
-            await vcxCompilationDatabaseUpdater.RemoveFileAsync(e.OldFilePath);
-            await vcxCompilationDatabaseUpdater.AddFileAsync(e.FullPath);
+            await vcxCompilationDatabaseUpdater.RemoveFileAsync(args.OldFilePath);
+            await vcxCompilationDatabaseUpdater.AddFileAsync(args.Document.FullPath);
         }
     }
 
-    private void DocumentEventsOnDocumentClosed(object sender, DocumentClosedEventArgs e)
+    private void DocumentEventsOnDocumentClosed(object sender, DocumentEventArgs args)
     {
-        if (e.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
+        if (args.Document.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
         {
-            vcxCompilationDatabaseUpdater.RemoveFileAsync(e.FullPath).Forget();
+            vcxCompilationDatabaseUpdater.RemoveFileAsync(args.Document.FullPath).Forget();
         }
     }
 
-    private void DocumentEventsOnDocumentOpened(object sender, DocumentOpenedEventArgs e)
+    private void DocumentEventsOnDocumentOpened(object sender, DocumentEventArgs args)
     {
-        if (e.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
+        if (args.Document.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
         {
-            vcxCompilationDatabaseUpdater.AddFileAsync(e.FullPath).Forget();
+            vcxCompilationDatabaseUpdater.AddFileAsync(args.Document.FullPath).Forget();
         }
     }
 }

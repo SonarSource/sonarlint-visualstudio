@@ -31,15 +31,12 @@ public class VcxDocumentEventsHandlerTests
     private VcxDocumentEventsHandler testSubject;
     private IDocumentEvents documentEvents;
     private IVcxCompilationDatabaseUpdater vcxCompilationDatabaseUpdater;
-
-    private const string CFamilyFile = "file.cpp";
     private const string CFamilyOldFile = "old.cpp";
     private const string CFamilyNewFile = "new.cpp";
-    private const string NonCFamilyFile = "file.js";
     private const string NonCFamilyOldFile = "old.js";
     private const string NonCFamilyNewFile = "new.js";
-    private static readonly AnalysisLanguage[] CFamilyLanguage = [AnalysisLanguage.CFamily];
-    private static readonly AnalysisLanguage[] NonCFamilyLanguage = [AnalysisLanguage.Javascript];
+    private static readonly Document CFamilyDocument = new(CFamilyNewFile, [AnalysisLanguage.CFamily]);
+    private static readonly Document NonCFamilyDocument = new(NonCFamilyNewFile, [AnalysisLanguage.Javascript]);
 
     [TestInitialize]
     public void TestInitialize()
@@ -56,54 +53,51 @@ public class VcxDocumentEventsHandlerTests
             MefTestHelpers.CreateExport<IVcxCompilationDatabaseUpdater>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() =>
-            MefTestHelpers.CheckIsSingletonMefComponent<VcxDocumentEventsHandler>();
-
-
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<VcxDocumentEventsHandler>();
 
     [TestMethod]
     public void Ctor_SubscribesToAllDocumentEvents()
     {
-        documentEvents.Received(1).DocumentClosed += Arg.Any<EventHandler<DocumentClosedEventArgs>>();
-        documentEvents.Received(1).DocumentOpened += Arg.Any<EventHandler<DocumentOpenedEventArgs>>();
+        documentEvents.Received(1).DocumentClosed += Arg.Any<EventHandler<DocumentEventArgs>>();
+        documentEvents.Received(1).DocumentOpened += Arg.Any<EventHandler<DocumentEventArgs>>();
         documentEvents.Received(1).OpenDocumentRenamed += Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
     }
 
     [TestMethod]
     public void DocumentOpened_CFamily_AddFileAsyncCalled()
     {
-        var args = new DocumentOpenedEventArgs(CFamilyFile, CFamilyLanguage);
+        var args = new DocumentEventArgs(CFamilyDocument);
 
         documentEvents.DocumentOpened += Raise.EventWith(documentEvents, args);
 
-        vcxCompilationDatabaseUpdater.Received(1).AddFileAsync(CFamilyFile);
+        vcxCompilationDatabaseUpdater.Received(1).AddFileAsync(CFamilyDocument.FullPath);
     }
 
     [TestMethod]
     public void DocumentClosed_CFamily_RemoveFileAsyncCalled()
     {
-        var args = new DocumentClosedEventArgs(CFamilyFile, CFamilyLanguage);
+        var args = new DocumentEventArgs(CFamilyDocument);
 
         documentEvents.DocumentClosed += Raise.EventWith(documentEvents, args);
 
-        vcxCompilationDatabaseUpdater.Received(1).RemoveFileAsync(CFamilyFile);
+        vcxCompilationDatabaseUpdater.Received(1).RemoveFileAsync(CFamilyDocument.FullPath);
     }
 
     [TestMethod]
     public void OpenDocumentRenamed_CFamily_RemoveAndAddFileAsyncCalled()
     {
-        var args = new DocumentRenamedEventArgs(CFamilyNewFile, CFamilyOldFile, CFamilyLanguage);
+        var args = new DocumentRenamedEventArgs(CFamilyDocument, CFamilyOldFile);
 
         documentEvents.OpenDocumentRenamed += Raise.EventWith(documentEvents, args);
 
         vcxCompilationDatabaseUpdater.Received(1).RemoveFileAsync(CFamilyOldFile);
-        vcxCompilationDatabaseUpdater.Received(1).AddFileAsync(CFamilyNewFile);
+        vcxCompilationDatabaseUpdater.Received(1).AddFileAsync(CFamilyDocument.FullPath);
     }
 
     [TestMethod]
     public void DocumentOpened_NonCFamily_NoAddFileAsyncCalled()
     {
-        var args = new DocumentOpenedEventArgs(NonCFamilyFile, NonCFamilyLanguage);
+        var args = new DocumentEventArgs(NonCFamilyDocument);
 
         documentEvents.DocumentOpened += Raise.EventWith(documentEvents, args);
 
@@ -113,7 +107,7 @@ public class VcxDocumentEventsHandlerTests
     [TestMethod]
     public void DocumentClosed_NonCFamily_NoRemoveFileAsyncCalled()
     {
-        var args = new DocumentClosedEventArgs(NonCFamilyFile, NonCFamilyLanguage);
+        var args = new DocumentEventArgs(NonCFamilyDocument);
 
         documentEvents.DocumentClosed += Raise.EventWith(documentEvents, args);
 
@@ -123,7 +117,7 @@ public class VcxDocumentEventsHandlerTests
     [TestMethod]
     public void OpenDocumentRenamed_NonCFamily_NoRemoveOrAddFileAsyncCalled()
     {
-        var args = new DocumentRenamedEventArgs(NonCFamilyOldFile, NonCFamilyNewFile, NonCFamilyLanguage);
+        var args = new DocumentRenamedEventArgs(NonCFamilyDocument, NonCFamilyOldFile);
 
         documentEvents.OpenDocumentRenamed += Raise.EventWith(documentEvents, args);
 
@@ -138,8 +132,8 @@ public class VcxDocumentEventsHandlerTests
         testSubject.Dispose();
         testSubject.Dispose();
 
-        documentEvents.Received(1).DocumentClosed -= Arg.Any<EventHandler<DocumentClosedEventArgs>>();
-        documentEvents.Received(1).DocumentOpened -= Arg.Any<EventHandler<DocumentOpenedEventArgs>>();
+        documentEvents.Received(1).DocumentClosed -= Arg.Any<EventHandler<DocumentEventArgs>>();
+        documentEvents.Received(1).DocumentOpened -= Arg.Any<EventHandler<DocumentEventArgs>>();
         documentEvents.Received(1).OpenDocumentRenamed -= Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
     }
 }
