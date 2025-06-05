@@ -55,4 +55,6 @@ public interface IDocumentEvents
     /// Raised when an opened document is renamed
     /// </summary>
     event EventHandler<DocumentRenamedEventArgs> OpenDocumentRenamed;
+
+    IReadOnlyList<Document> GetOpenedDocuments();
 }

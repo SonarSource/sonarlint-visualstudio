@@ -367,6 +367,21 @@ public class TaggerProviderTests
             Arg.Is<DocumentRenamedEventArgs>(x => x.Document.FullPath == newName && x.OldFilePath == oldName && x.Document.DetectedLanguages == DetectedLanguagesJsTs));
     }
 
+    [TestMethod]
+    public void GetOpenedDocuments_ReturnsAmountOfIssueTrackers()
+    {
+        provider.AddIssueTracker(CreateMockedIssueTracker("myFile.js", [AnalysisLanguage.Javascript]));
+        provider.AddIssueTracker(CreateMockedIssueTracker("myFile2.cs", [AnalysisLanguage.RoslynFamily]));
+        provider.AddIssueTracker(CreateMockedIssueTracker("myFile3.cpp", [AnalysisLanguage.CFamily]));
+
+        var result = provider.GetOpenedDocuments().ToList();
+
+        result.Should().HaveCount(3);
+        result.Should().Contain(x => x.FullPath == "myFile.js" && x.DetectedLanguages.Contains(AnalysisLanguage.Javascript));
+        result.Should().Contain(x => x.FullPath == "myFile2.cs" && x.DetectedLanguages.Contains(AnalysisLanguage.RoslynFamily));
+        result.Should().Contain(x => x.FullPath == "myFile3.cpp" && x.DetectedLanguages.Contains(AnalysisLanguage.CFamily));
+    }
+
     private IIssueTracker[] CreateMockedIssueTrackers(params string[] filePaths) => filePaths.Select(x => CreateMockedIssueTracker(x)).ToArray();
 
     private static IIssueTracker CreateMockedIssueTracker(string filePath)
