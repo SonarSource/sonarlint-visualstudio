@@ -71,6 +71,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private IProjectDocumentsEventsListener projectDocumentsEventsListener;
         private ISLCoreHandler slCoreHandler;
         private IVcxDocumentEventsHandler vcxDocumentEventsHandler;
+        private IThreadHandling threadHandling;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -104,6 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 await DisableRuleCommand.InitializeAsync(this, logger);
                 await CFamilyReproducerCommand.InitializeAsync(this, logger);
 
+                threadHandling = await this.GetMefServiceAsync<IThreadHandling>();
                 vcxCompilationDatabase = await this.GetMefServiceAsync<IActiveVcxCompilationDatabase>();
                 await vcxCompilationDatabase.EnsureDatabaseInitializedAsync();
 
@@ -156,7 +158,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void DisposeCompilationDatabaseStorage()
         {
-            var threadHandling = this.GetMefService<IThreadHandling>();
             threadHandling.Run(async () =>
             {
                 await vcxCompilationDatabase.DropDatabaseAsync();
