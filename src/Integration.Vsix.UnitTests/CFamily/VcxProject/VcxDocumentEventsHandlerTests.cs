@@ -43,7 +43,7 @@ public class VcxDocumentEventsHandlerTests
     {
         documentEvents = Substitute.For<IDocumentEvents>();
         vcxCompilationDatabaseUpdater = Substitute.For<IVcxCompilationDatabaseUpdater>();
-        testSubject = new VcxDocumentEventsHandler(documentEvents, vcxCompilationDatabaseUpdater);
+        testSubject = CreateTestSubject();
     }
 
     [TestMethod]
@@ -54,6 +54,23 @@ public class VcxDocumentEventsHandlerTests
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<VcxDocumentEventsHandler>();
+
+    [TestMethod]
+    public void Ctor_AddsAlreadyOpenedFilesToDb()
+    {
+        ClearReceivedCalls();
+        documentEvents.GetOpenedDocuments().Returns([CFamilyDocument]);
+
+        CreateTestSubject();
+
+        Received.InOrder(() =>
+        {
+            documentEvents.DocumentOpened += Arg.Any<EventHandler<DocumentEventArgs>>();
+            documentEvents.DocumentClosed += Arg.Any<EventHandler<DocumentEventArgs>>();
+            documentEvents.OpenDocumentRenamed += Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
+            vcxCompilationDatabaseUpdater.AddFileAsync(CFamilyDocument.FullPath);
+        });
+    }
 
     [TestMethod]
     public void Ctor_SubscribesToAllDocumentEvents()
@@ -135,5 +152,13 @@ public class VcxDocumentEventsHandlerTests
         documentEvents.Received(1).DocumentClosed -= Arg.Any<EventHandler<DocumentEventArgs>>();
         documentEvents.Received(1).DocumentOpened -= Arg.Any<EventHandler<DocumentEventArgs>>();
         documentEvents.Received(1).OpenDocumentRenamed -= Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
+    }
+
+    private VcxDocumentEventsHandler CreateTestSubject() => new(documentEvents, vcxCompilationDatabaseUpdater);
+
+    private void ClearReceivedCalls()
+    {
+        documentEvents.ClearReceivedCalls();
+        vcxCompilationDatabaseUpdater.ClearReceivedCalls();
     }
 }

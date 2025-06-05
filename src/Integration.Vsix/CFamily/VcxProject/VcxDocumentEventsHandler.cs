@@ -48,6 +48,8 @@ public sealed class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
         this.documentEvents.DocumentOpened += DocumentEventsOnDocumentOpened;
         this.documentEvents.DocumentClosed += DocumentEventsOnDocumentClosed;
         this.documentEvents.OpenDocumentRenamed += DocumentEventsOnOpenDocumentRenamed;
+
+        documentEvents.GetOpenedDocuments().ToList().ForEach(AddFileToCompilationDatabase);
     }
 
     public void Dispose()
@@ -85,11 +87,13 @@ public sealed class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
         }
     }
 
-    private void DocumentEventsOnDocumentOpened(object sender, DocumentEventArgs args)
+    private void DocumentEventsOnDocumentOpened(object sender, DocumentEventArgs args) => AddFileToCompilationDatabase(args.Document);
+
+    private void AddFileToCompilationDatabase(Document document)
     {
-        if (args.Document.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
+        if (document.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
         {
-            vcxCompilationDatabaseUpdater.AddFileAsync(args.Document.FullPath).Forget();
+            vcxCompilationDatabaseUpdater.AddFileAsync(document.FullPath).Forget();
         }
     }
 }
