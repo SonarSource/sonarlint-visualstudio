@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.Core;
@@ -31,25 +29,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class DocumentClosedHandler : IHotspotDocumentClosedHandler, IDisposable
     {
-        private readonly IDocumentEvents documentEvents;
+        private readonly IDocumentTracker documentTracker;
         private readonly ILocalHotspotsStoreUpdater localHotspotsStoreUpdater;
         private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
-        public DocumentClosedHandler(IDocumentEvents documentEvents,
+        public DocumentClosedHandler(
+            IDocumentTracker documentTracker,
             ILocalHotspotsStoreUpdater localHotspotsStore,
             IThreadHandling threadHandling)
         {
-            this.documentEvents = documentEvents;
-            this.localHotspotsStoreUpdater = localHotspotsStore;
+            this.documentTracker = documentTracker;
+            localHotspotsStoreUpdater = localHotspotsStore;
             this.threadHandling = threadHandling;
 
-            this.documentEvents.DocumentClosed += OnDocumentClosed;
+            this.documentTracker.DocumentClosed += OnDocumentClosed;
         }
 
-        private void OnDocumentClosed(object sender, DocumentClosedEventArgs e)
+        private void OnDocumentClosed(object sender, DocumentEventArgs e)
         {
-            UpdateStoreAsync(e.FullPath).Forget();
+            UpdateStoreAsync(e.Document.FullPath).Forget();
         }
 
         private async Task UpdateStoreAsync(string closedFilePath)
@@ -61,6 +60,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
             });
         }
 
-        public void Dispose() => documentEvents.DocumentClosed -= OnDocumentClosed;
+        public void Dispose() => documentTracker.DocumentClosed -= OnDocumentClosed;
     }
 }
