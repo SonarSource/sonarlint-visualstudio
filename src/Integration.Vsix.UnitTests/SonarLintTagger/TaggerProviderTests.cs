@@ -88,10 +88,10 @@ public class TaggerProviderTests
     public void MefCtor_CheckIsExported_TaggerProvider() => MefTestHelpers.CheckTypeCanBeImported<TaggerProvider, ITaggerProvider>(GetRequiredExports());
 
     [TestMethod]
-    public void MefCtor_CheckIsExported_DocumentEvents() => MefTestHelpers.CheckTypeCanBeImported<TaggerProvider, IDocumentEvents>(GetRequiredExports());
+    public void MefCtor_CheckIsExported_DocumentEvents() => MefTestHelpers.CheckTypeCanBeImported<TaggerProvider, IDocumentTracker>(GetRequiredExports());
 
     [TestMethod]
-    public void MefCtor_Check_SameInstanceExported() => MefTestHelpers.CheckMultipleExportsReturnSameInstance<TaggerProvider, ITaggerProvider, IDocumentEvents>(GetRequiredExports());
+    public void MefCtor_Check_SameInstanceExported() => MefTestHelpers.CheckMultipleExportsReturnSameInstance<TaggerProvider, ITaggerProvider, IDocumentTracker>(GetRequiredExports());
 
     private static Export[] GetRequiredExports() =>
     [

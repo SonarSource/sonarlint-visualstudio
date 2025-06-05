@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject;
 public class VcxDocumentEventsHandlerTests
 {
     private VcxDocumentEventsHandler testSubject;
-    private IDocumentEvents documentEvents;
+    private IDocumentTracker documentTracker;
     private IVcxCompilationDatabaseUpdater vcxCompilationDatabaseUpdater;
     private const string CFamilyOldFile = "old.cpp";
     private const string CFamilyNewFile = "new.cpp";
@@ -41,7 +41,7 @@ public class VcxDocumentEventsHandlerTests
     [TestInitialize]
     public void TestInitialize()
     {
-        documentEvents = Substitute.For<IDocumentEvents>();
+        documentTracker = Substitute.For<IDocumentTracker>();
         vcxCompilationDatabaseUpdater = Substitute.For<IVcxCompilationDatabaseUpdater>();
         testSubject = CreateTestSubject();
     }
@@ -49,7 +49,7 @@ public class VcxDocumentEventsHandlerTests
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<VcxDocumentEventsHandler, IVcxDocumentEventsHandler>(
-            MefTestHelpers.CreateExport<IDocumentEvents>(),
+            MefTestHelpers.CreateExport<IDocumentTracker>(),
             MefTestHelpers.CreateExport<IVcxCompilationDatabaseUpdater>());
 
     [TestMethod]
@@ -59,15 +59,15 @@ public class VcxDocumentEventsHandlerTests
     public void Ctor_AddsAlreadyOpenedFilesToDb()
     {
         ClearReceivedCalls();
-        documentEvents.GetOpenDocuments().Returns([CFamilyDocument]);
+        documentTracker.GetOpenDocuments().Returns([CFamilyDocument]);
 
         CreateTestSubject();
 
         Received.InOrder(() =>
         {
-            documentEvents.DocumentOpened += Arg.Any<EventHandler<DocumentEventArgs>>();
-            documentEvents.DocumentClosed += Arg.Any<EventHandler<DocumentEventArgs>>();
-            documentEvents.OpenDocumentRenamed += Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
+            documentTracker.DocumentOpened += Arg.Any<EventHandler<DocumentEventArgs>>();
+            documentTracker.DocumentClosed += Arg.Any<EventHandler<DocumentEventArgs>>();
+            documentTracker.OpenDocumentRenamed += Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
             vcxCompilationDatabaseUpdater.AddFileAsync(CFamilyDocument.FullPath);
         });
     }
@@ -75,9 +75,9 @@ public class VcxDocumentEventsHandlerTests
     [TestMethod]
     public void Ctor_SubscribesToAllDocumentEvents()
     {
-        documentEvents.Received(1).DocumentClosed += Arg.Any<EventHandler<DocumentEventArgs>>();
-        documentEvents.Received(1).DocumentOpened += Arg.Any<EventHandler<DocumentEventArgs>>();
-        documentEvents.Received(1).OpenDocumentRenamed += Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
+        documentTracker.Received(1).DocumentClosed += Arg.Any<EventHandler<DocumentEventArgs>>();
+        documentTracker.Received(1).DocumentOpened += Arg.Any<EventHandler<DocumentEventArgs>>();
+        documentTracker.Received(1).OpenDocumentRenamed += Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
     }
 
     [TestMethod]
@@ -85,7 +85,7 @@ public class VcxDocumentEventsHandlerTests
     {
         var args = new DocumentEventArgs(CFamilyDocument);
 
-        documentEvents.DocumentOpened += Raise.EventWith(documentEvents, args);
+        documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
 
         vcxCompilationDatabaseUpdater.Received(1).AddFileAsync(CFamilyDocument.FullPath);
     }
@@ -95,7 +95,7 @@ public class VcxDocumentEventsHandlerTests
     {
         var args = new DocumentEventArgs(CFamilyDocument);
 
-        documentEvents.DocumentClosed += Raise.EventWith(documentEvents, args);
+        documentTracker.DocumentClosed += Raise.EventWith(documentTracker, args);
 
         vcxCompilationDatabaseUpdater.Received(1).RemoveFileAsync(CFamilyDocument.FullPath);
     }
@@ -105,7 +105,7 @@ public class VcxDocumentEventsHandlerTests
     {
         var args = new DocumentRenamedEventArgs(CFamilyDocument, CFamilyOldFile);
 
-        documentEvents.OpenDocumentRenamed += Raise.EventWith(documentEvents, args);
+        documentTracker.OpenDocumentRenamed += Raise.EventWith(documentTracker, args);
 
         vcxCompilationDatabaseUpdater.Received(1).RemoveFileAsync(CFamilyOldFile);
         vcxCompilationDatabaseUpdater.Received(1).AddFileAsync(CFamilyDocument.FullPath);
@@ -116,7 +116,7 @@ public class VcxDocumentEventsHandlerTests
     {
         var args = new DocumentEventArgs(NonCFamilyDocument);
 
-        documentEvents.DocumentOpened += Raise.EventWith(documentEvents, args);
+        documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
 
         vcxCompilationDatabaseUpdater.DidNotReceive().AddFileAsync(Arg.Any<string>());
     }
@@ -126,7 +126,7 @@ public class VcxDocumentEventsHandlerTests
     {
         var args = new DocumentEventArgs(NonCFamilyDocument);
 
-        documentEvents.DocumentClosed += Raise.EventWith(documentEvents, args);
+        documentTracker.DocumentClosed += Raise.EventWith(documentTracker, args);
 
         vcxCompilationDatabaseUpdater.DidNotReceive().RemoveFileAsync(Arg.Any<string>());
     }
@@ -136,7 +136,7 @@ public class VcxDocumentEventsHandlerTests
     {
         var args = new DocumentRenamedEventArgs(NonCFamilyDocument, NonCFamilyOldFile);
 
-        documentEvents.OpenDocumentRenamed += Raise.EventWith(documentEvents, args);
+        documentTracker.OpenDocumentRenamed += Raise.EventWith(documentTracker, args);
 
         vcxCompilationDatabaseUpdater.DidNotReceive().RemoveFileAsync(Arg.Any<string>());
         vcxCompilationDatabaseUpdater.DidNotReceive().AddFileAsync(Arg.Any<string>());
@@ -149,16 +149,16 @@ public class VcxDocumentEventsHandlerTests
         testSubject.Dispose();
         testSubject.Dispose();
 
-        documentEvents.Received(1).DocumentClosed -= Arg.Any<EventHandler<DocumentEventArgs>>();
-        documentEvents.Received(1).DocumentOpened -= Arg.Any<EventHandler<DocumentEventArgs>>();
-        documentEvents.Received(1).OpenDocumentRenamed -= Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
+        documentTracker.Received(1).DocumentClosed -= Arg.Any<EventHandler<DocumentEventArgs>>();
+        documentTracker.Received(1).DocumentOpened -= Arg.Any<EventHandler<DocumentEventArgs>>();
+        documentTracker.Received(1).OpenDocumentRenamed -= Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
     }
 
-    private VcxDocumentEventsHandler CreateTestSubject() => new(documentEvents, vcxCompilationDatabaseUpdater);
+    private VcxDocumentEventsHandler CreateTestSubject() => new(documentTracker, vcxCompilationDatabaseUpdater);
 
     private void ClearReceivedCalls()
     {
-        documentEvents.ClearReceivedCalls();
+        documentTracker.ClearReceivedCalls();
         vcxCompilationDatabaseUpdater.ClearReceivedCalls();
     }
 }

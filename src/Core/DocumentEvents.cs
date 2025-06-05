@@ -44,9 +44,9 @@ public class Document(string fullPath, IEnumerable<AnalysisLanguage> detectedLan
 }
 
 /// <summary>
-/// Raises notifications about document events
+/// Keeps track of open documents
 /// </summary>
-public interface IDocumentEvents
+public interface IDocumentTracker
 {
     event EventHandler<DocumentEventArgs> DocumentClosed;
     event EventHandler<DocumentEventArgs> DocumentOpened;

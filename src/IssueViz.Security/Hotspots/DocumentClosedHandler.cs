@@ -29,21 +29,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class DocumentClosedHandler : IHotspotDocumentClosedHandler, IDisposable
     {
-        private readonly IDocumentEvents documentEvents;
+        private readonly IDocumentTracker documentTracker;
         private readonly ILocalHotspotsStoreUpdater localHotspotsStoreUpdater;
         private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
         public DocumentClosedHandler(
-            IDocumentEvents documentEvents,
+            IDocumentTracker documentTracker,
             ILocalHotspotsStoreUpdater localHotspotsStore,
             IThreadHandling threadHandling)
         {
-            this.documentEvents = documentEvents;
+            this.documentTracker = documentTracker;
             localHotspotsStoreUpdater = localHotspotsStore;
             this.threadHandling = threadHandling;
 
-            this.documentEvents.DocumentClosed += OnDocumentClosed;
+            this.documentTracker.DocumentClosed += OnDocumentClosed;
         }
 
         private void OnDocumentClosed(object sender, DocumentEventArgs e)
@@ -60,6 +60,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
             });
         }
 
-        public void Dispose() => documentEvents.DocumentClosed -= OnDocumentClosed;
+        public void Dispose() => documentTracker.DocumentClosed -= OnDocumentClosed;
     }
 }

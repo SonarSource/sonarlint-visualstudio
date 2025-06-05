@@ -43,12 +43,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// See the README.md in this folder for more information
     /// </remarks>
     [Export(typeof(ITaggerProvider))]
-    [Export(typeof(IDocumentEvents))]
+    [Export(typeof(IDocumentTracker))]
     [TagType(typeof(IErrorTag))]
     [ContentType("text")]
     [TextViewRole(PredefinedTextViewRoles.Document)]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class TaggerProvider : ITaggerProvider, IDocumentEvents
+    internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
     {
         internal static readonly Type SingletonManagerPropertyCollectionKey = typeof(SingletonDisposableTaggerManager<IErrorTag>);
 
@@ -178,7 +178,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #endregion IViewTaggerProvider members
 
-        #region IDocumentEvents methods
+        #region IDocumentTracker methods
 
         public event EventHandler<DocumentEventArgs> DocumentClosed;
         public event EventHandler<DocumentEventArgs> DocumentOpened;
@@ -222,6 +222,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             DocumentClosed?.Invoke(this, new DocumentEventArgs(new(issueTracker.LastAnalysisFilePath, issueTracker.DetectedLanguages)));
         }
 
-        #endregion IDocumentEvents methods
+        #endregion IDocumentTracker methods
     }
 }

@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
         [TestMethod]
         public void MefCtor_CheckIsExported() =>
             MefTestHelpers.CheckTypeCanBeImported<DocumentClosedHandler, IHotspotDocumentClosedHandler>(
-                MefTestHelpers.CreateExport<IDocumentEvents>(),
+                MefTestHelpers.CreateExport<IDocumentTracker>(),
                 MefTestHelpers.CreateExport<ILocalHotspotsStoreUpdater>(),
                 MefTestHelpers.CreateExport<IThreadHandling>());
 
@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
         [TestMethod]
         public void DocumentIsClosed_StoreUpdateIsTriggered()
         {
-            var docEvents = new Mock<IDocumentEvents>();
+            var docEvents = new Mock<IDocumentTracker>();
             var updater = new Mock<ILocalHotspotsStoreUpdater>();
 
             var testSubject = CreateTestSubject(docEvents.Object, updater.Object);
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
         {
             var callSequence = new List<string>();
 
-            var docEvents = new Mock<IDocumentEvents>();
+            var docEvents = new Mock<IDocumentTracker>();
             var updater = new Mock<ILocalHotspotsStoreUpdater>();
             var threadHandling = new Mock<IThreadHandling>();
 
@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
         [TestMethod]
         public void Dispose_EventHandlerIsUnregistered()
         {
-            var docEvents = new Mock<IDocumentEvents>();
+            var docEvents = new Mock<IDocumentTracker>();
             var updater = new Mock<ILocalHotspotsStoreUpdater>();
 
             var testSubject = CreateTestSubject(docEvents.Object, updater.Object);
@@ -95,19 +95,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
             docEvents.VerifyRemove(x => x.DocumentClosed -= It.IsAny<EventHandler<DocumentEventArgs>>(), Times.Once);
         }
 
-        private void RaiseDocClosedEvent(Mock<IDocumentEvents> docEvents, string filePath) =>
+        private void RaiseDocClosedEvent(Mock<IDocumentTracker> docEvents, string filePath) =>
             docEvents.Raise(x => x.DocumentClosed += null, new DocumentEventArgs(new(filePath, Substitute.For<IEnumerable<AnalysisLanguage>>())));
 
         private DocumentClosedHandler CreateTestSubject(
-            IDocumentEvents documentEvents = null,
+            IDocumentTracker documentTracker = null,
             ILocalHotspotsStoreUpdater updater = null,
             IThreadHandling threadHandling = null)
         {
-            documentEvents ??= Mock.Of<IDocumentEvents>();
+            documentTracker ??= Mock.Of<IDocumentTracker>();
             updater ??= Mock.Of<ILocalHotspotsStoreUpdater>();
             threadHandling ??= new NoOpThreadHandler();
 
-            return new DocumentClosedHandler(documentEvents, updater, threadHandling);
+            return new DocumentClosedHandler(documentTracker, updater, threadHandling);
         }
     }
 }
