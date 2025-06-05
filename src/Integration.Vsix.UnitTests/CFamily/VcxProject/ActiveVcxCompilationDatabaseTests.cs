@@ -52,8 +52,17 @@ public class ActiveVcxCompilationDatabaseTests
     }
 
     [TestMethod]
-    public void MefCtor_CheckIsExported() =>
+    public void MefCtor_CheckIsExported_IActiveVcxCompilationDatabase() =>
         MefTestHelpers.CheckTypeCanBeImported<ActiveVcxCompilationDatabase, IActiveVcxCompilationDatabase>(
+            MefTestHelpers.CreateExport<IVcxCompilationDatabaseStorage>(),
+            MefTestHelpers.CreateExport<IThreadHandling>(),
+            MefTestHelpers.CreateExport<IAsyncLockFactory>(),
+            MefTestHelpers.CreateExport<ICompilationDatabaseEntryGenerator>());
+
+
+    [TestMethod]
+    public void MefCtor_CheckIsExported_IVcxCompilationDatabaseUpdater() =>
+        MefTestHelpers.CheckTypeCanBeImported<ActiveVcxCompilationDatabase, IVcxCompilationDatabaseUpdater>(
             MefTestHelpers.CreateExport<IVcxCompilationDatabaseStorage>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<IAsyncLockFactory>(),
