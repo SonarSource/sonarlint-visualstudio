@@ -32,11 +32,11 @@ internal class AggregatingCompilationDatabaseProvider(
     IObsoleteVcxCompilationDatabaseProvider vcxCompilationDatabaseProvider)
     : IAggregatingCompilationDatabaseProvider
 {
-    public ICompilationDatabaseHandle GetOrNull(string sourceFilePath)
+    public string GetOrNull(string sourceFilePath)
     {
         if (cMakeCompilationDatabaseLocator.Locate() is {} cmakeCompilationDatabasePath)
         {
-            return new ExternalCompilationDatabaseHandle(cmakeCompilationDatabasePath);
+            return cmakeCompilationDatabasePath;
         }
 
         return vcxCompilationDatabaseProvider.CreateOrNull(sourceFilePath);

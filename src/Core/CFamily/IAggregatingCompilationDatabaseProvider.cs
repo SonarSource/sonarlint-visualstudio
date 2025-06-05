@@ -22,11 +22,5 @@ namespace SonarLint.VisualStudio.Core.CFamily;
 
 public interface IAggregatingCompilationDatabaseProvider
 {
-    ICompilationDatabaseHandle GetOrNull(string sourceFilePath);
+    string GetOrNull(string sourceFilePath);
 }
-
-public interface ICompilationDatabaseHandle : IDisposable
-{
-    string FilePath { get; }
-}
-

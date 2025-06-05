@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.CFamily;
+using SonarLint.VisualStudio.CFamily.CompilationDatabase;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 
@@ -29,16 +30,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
 internal class ObsoleteVcxCompilationDatabaseProvider(
-    IObsoleteVCXCompilationDatabaseStorage storage,
-    IEnvironmentVariableProvider environmentVariableProvider,
-    IFileConfigProvider fileConfigProvider,
-    ILogger logger)
+    IActiveVcxCompilationDatabase activeDatabase,
+    ICompilationDatabaseEntryGenerator generator)
     : IObsoleteVcxCompilationDatabaseProvider
 {
-    private readonly CompilationDatabaseEntryGenerator generator = new(fileConfigProvider, environmentVariableProvider, logger);
-
-    public ICompilationDatabaseHandle CreateOrNull(string filePath) =>
-        generator.CreateOrNull(filePath) is { } fileConfig
-            ? storage.CreateDatabase(fileConfig.File, fileConfig.Directory, fileConfig.Command, fileConfig.Environment)
+    public string CreateOrNull(string filePath) =>
+        generator.CreateOrNull(filePath) is not null && activeDatabase.DatabasePath is {} databasePath
+            ? databasePath
             : null;
 }

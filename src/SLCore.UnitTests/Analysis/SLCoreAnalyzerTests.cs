@@ -183,8 +183,7 @@ public class SLCoreAnalyzerTests
     public void ExecuteAnalysis_ForCFamily_PassesCompilationDatabaseAsExtraProperties()
     {
         const string compilationDatabasePath = @"C:\file\path\compilation_database.json";
-        var compilationDatabaseHandle = CreateCompilationDatabaseHandle(compilationDatabasePath);
-        SetUpCompilationDatabaseLocator(FilePath, compilationDatabaseHandle);
+        SetUpCompilationDatabaseLocator(FilePath, compilationDatabasePath);
         SetUpInitializedConfigScope();
         SetUpAnalysisProperties(customAnalysisProperties);
 
@@ -195,8 +194,7 @@ public class SLCoreAnalyzerTests
                 && customAnalysisProperties.All(x =>
                     a.extraProperties.ContainsKey(x.Key) && a.extraProperties[x.Key] == x.Value)
                 && a.extraProperties["sonar.cfamily.compile-commands"] == compilationDatabasePath),
-            Arg.Any<CancellationToken>());
-        compilationDatabaseHandle.Received().Dispose();
+            Arg.Any<CancellationToken>());;
         AssertAnalysisNotFailed();
     }
 
@@ -204,8 +202,7 @@ public class SLCoreAnalyzerTests
     public void ExecuteAnalysis_ForCFamily_CustomCompilationDatabasePathSetViaProperties_PrefersCustomPathOverLocated()
     {
         const string compilationDatabasePath = "custom comp db path";
-        var compilationDatabaseHandle = CreateCompilationDatabaseHandle("some other comp db path");
-        SetUpCompilationDatabaseLocator(FilePath, compilationDatabaseHandle);
+        SetUpCompilationDatabaseLocator(FilePath, compilationDatabasePath);
         SetUpInitializedConfigScope();
         SetUpAnalysisProperties(customAnalysisProperties.SetItem("sonar.cfamily.compile-commands", compilationDatabasePath));
 
@@ -223,7 +220,6 @@ public class SLCoreAnalyzerTests
     [TestMethod]
     public void ExecuteAnalysis_CFamilyReproducerEnabled_SetsExtraProperty()
     {
-        SetUpCompilationDatabaseLocator(FilePath, CreateCompilationDatabaseHandle("somepath"));
         SetUpInitializedConfigScope();
         var cFamilyAnalyzerOptions = CreateCFamilyAnalyzerOptions(true);
         SetUpAnalysisProperties(ImmutableDictionary.Create<string, string>().Add("sonar.cfamily.reproducer", "some other path set by the user which is ignored when using reproducer command"));
@@ -240,7 +236,6 @@ public class SLCoreAnalyzerTests
     [TestMethod]
     public void ExecuteAnalysis_CFamilyReproducerDisabled_DoesNotSetExtraProperty()
     {
-        SetUpCompilationDatabaseLocator(FilePath, CreateCompilationDatabaseHandle("somepath"));
         SetUpInitializedConfigScope();
         var cFamilyAnalyzerOptions = CreateCFamilyAnalyzerOptions(false);
 
@@ -250,21 +245,6 @@ public class SLCoreAnalyzerTests
                 a.extraProperties == null || !a.extraProperties.ContainsKey("sonar.cfamily.reproducer")),
             Arg.Any<CancellationToken>());
         AssertAnalysisNotFailed();
-    }
-
-    [TestMethod]
-    public void ExecuteAnalysis_ForCFamily_AnalysisThrows_CompilationDatabaaseDisposed()
-    {
-        const string compilationDatabasePath = @"C:\file\path\compilation_database.json";
-        var compilationDatabaseHandle = CreateCompilationDatabaseHandle(compilationDatabasePath);
-        SetUpCompilationDatabaseLocator(FilePath, compilationDatabaseHandle);
-        SetUpInitializedConfigScope();
-        analysisService.AnalyzeFilesAndTrackAsync(default, default).ThrowsAsyncForAnyArgs<InvalidOperationException>();
-
-        testSubject.ExecuteAnalysis(FilePath, analysisId, [AnalysisLanguage.CFamily], default, default);
-
-        compilationDatabaseHandle.Received().Dispose();
-        notifier.Received().AnalysisFailed(Arg.Any<InvalidOperationException>());
     }
 
     [TestMethod]
@@ -361,17 +341,10 @@ public class SLCoreAnalyzerTests
 
     private void SetUpCurrentTimeProvider(DateTimeOffset nowTime) => currentTimeProvider.Now.Returns(nowTime);
 
-    private static ICompilationDatabaseHandle CreateCompilationDatabaseHandle(string compilationDatabasePath)
-    {
-        var handle = Substitute.For<ICompilationDatabaseHandle>();
-        handle.FilePath.Returns(compilationDatabasePath);
-        return handle;
-    }
-
     private void SetUpAnalysisProperties(ImmutableDictionary<string, string> props = null) =>
         userSettingsProvider.UserSettings.Returns(new UserSettings(new AnalysisSettings(analysisProperties: props ?? ImmutableDictionary<string, string>.Empty), "any"));
 
-    private void SetUpCompilationDatabaseLocator(string filePath, ICompilationDatabaseHandle handle) => compilationDatabaseLocator.GetOrNull(filePath).Returns(handle);
+    private void SetUpCompilationDatabaseLocator(string filePath, string location) => compilationDatabaseLocator.GetOrNull(filePath).Returns(location);
 
     private static ICFamilyAnalyzerOptions CreateCFamilyAnalyzerOptions(bool createReproducer)
     {
