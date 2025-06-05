@@ -22,27 +22,25 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Core;
 
-public abstract class DocumentEventArgs(string fullPath) : EventArgs
+public abstract class DocumentEventArgs(string fullPath,  IEnumerable<AnalysisLanguage> detectedLanguages) : EventArgs
 {
     /// <summary>
-    /// Full file path to the document being closed
+    /// Full path of the document for which the event was raised
     /// </summary>
     public string FullPath { get; } = fullPath;
-}
-
-public class DocumentClosedEventArgs(string fullPath) : DocumentEventArgs(fullPath);
-
-public class DocumentOpenedEventArgs(string fullPath, IEnumerable<AnalysisLanguage> detectedLanguages) : DocumentEventArgs(fullPath)
-{
     public IEnumerable<AnalysisLanguage> DetectedLanguages { get; } = detectedLanguages;
 }
 
-public class DocumentSavedEventArgs(string fullPath, string newContent) : DocumentEventArgs(fullPath)
+public class DocumentClosedEventArgs(string fullPath, IEnumerable<AnalysisLanguage> detectedLanguages) : DocumentEventArgs(fullPath, detectedLanguages);
+
+public class DocumentOpenedEventArgs(string fullPath, IEnumerable<AnalysisLanguage> detectedLanguages) : DocumentEventArgs(fullPath, detectedLanguages);
+
+public class DocumentSavedEventArgs(string fullPath, string newContent, IEnumerable<AnalysisLanguage> detectedLanguages) : DocumentEventArgs(fullPath, detectedLanguages)
 {
     public string NewContent { get; } = newContent;
 }
 
-public class DocumentRenamedEventArgs(string fullPath, string oldFilePath) : DocumentEventArgs(fullPath)
+public class DocumentRenamedEventArgs(string fullPath, string oldFilePath, IEnumerable<AnalysisLanguage> detectedLanguages) : DocumentEventArgs(fullPath, detectedLanguages)
 {
     public string OldFilePath { get; } = oldFilePath;
 }

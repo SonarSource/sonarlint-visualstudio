@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -101,7 +102,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
         }
 
         private void RaiseDocClosedEvent(Mock<IDocumentEvents> docEvents, string filePath)
-            => docEvents.Raise(x => x.DocumentClosed += null, new DocumentClosedEventArgs(filePath));
+            => docEvents.Raise(x => x.DocumentClosed += null, new DocumentClosedEventArgs(filePath,  Substitute.For<IEnumerable<AnalysisLanguage>>()));
 
         private DocumentClosedHandler CreateTestSubject(IDocumentEvents documentEvents = null,
             ILocalHotspotsStoreUpdater updater = null,

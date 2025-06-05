@@ -30,6 +30,7 @@ using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using SonarLint.VisualStudio.Integration.CSharpVB.Install;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 using SonarLint.VisualStudio.Integration.Vsix.Events;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.SLCore;
@@ -69,6 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private ISolutionRoslynAnalyzerManager solutionRoslynAnalyzerManager;
         private IProjectDocumentsEventsListener projectDocumentsEventsListener;
         private ISLCoreHandler slCoreHandler;
+        private IVcxDocumentEventsHandler vcxDocumentEventsHandler;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -105,6 +107,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 vcxCompilationDatabase = await this.GetMefServiceAsync<IActiveVcxCompilationDatabase>();
                 await vcxCompilationDatabase.EnsureDatabaseInitializedAsync();
 
+                vcxDocumentEventsHandler = await this.GetMefServiceAsync<IVcxDocumentEventsHandler>();
+
                 projectDocumentsEventsListener = await this.GetMefServiceAsync<IProjectDocumentsEventsListener>();
                 projectDocumentsEventsListener.Initialize();
 
@@ -137,6 +141,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (disposing)
             {
                 DisposeCompilationDatabaseStorage();
+
+                vcxDocumentEventsHandler?.Dispose();
+                vcxDocumentEventsHandler = null;
+
                 projectDocumentsEventsListener?.Dispose();
                 projectDocumentsEventsListener = null;
                 solutionRoslynAnalyzerManager?.Dispose();

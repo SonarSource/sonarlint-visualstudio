@@ -94,12 +94,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     case FileActionTypes.ContentSavedToDisk:
                         {
                             RequestAnalysis(new AnalyzerOptions { IsOnOpen = false });
-                            Provider.OnDocumentSaved(document.FilePath, document.TextBuffer.CurrentSnapshot.GetText());
+                            Provider.OnDocumentSaved(document.FilePath, document.TextBuffer.CurrentSnapshot.GetText(), DetectedLanguages);
                             break;
                         }
                     case FileActionTypes.DocumentRenamed:
                         {
-                            Provider.OnOpenDocumentRenamed(e.FilePath, LastAnalysisFilePath);
+                            Provider.OnOpenDocumentRenamed(e.FilePath, LastAnalysisFilePath, DetectedLanguages);
                             LastAnalysisFilePath = e.FilePath;
                             break;
                         }

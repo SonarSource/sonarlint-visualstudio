@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.Core.Synchronization;
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
 [Export(typeof(IActiveVcxCompilationDatabase))]
+[Export(typeof(IVcxCompilationDatabaseUpdater))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
 internal sealed class ActiveVcxCompilationDatabase(
