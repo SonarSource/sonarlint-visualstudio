@@ -23,20 +23,11 @@ using System.IO;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.CFamily.CompilationDatabase;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
-internal interface IObsoleteVCXCompilationDatabaseStorage : IDisposable
-{
-    ICompilationDatabaseHandle CreateDatabase(
-        string file,
-        string directory,
-        string command,
-        IEnumerable<string> environment);
-}
 
 internal interface IVcxCompilationDatabaseStorage : IDisposable
 {
@@ -46,11 +37,10 @@ internal interface IVcxCompilationDatabaseStorage : IDisposable
     void RemoveDatabaseEntry(string databasePath, string entryFilePath);
 }
 
-[Export(typeof(IObsoleteVCXCompilationDatabaseStorage))]
 [Export(typeof(IVcxCompilationDatabaseStorage))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal sealed class VcxCompilationDatabaseStorage(IFileSystemService fileSystemService, ILogger logger) : IObsoleteVCXCompilationDatabaseStorage, IVcxCompilationDatabaseStorage
+internal sealed class VcxCompilationDatabaseStorage(IFileSystemService fileSystemService, ILogger logger) : IVcxCompilationDatabaseStorage
 {
     private readonly string compilationDatabaseDirectoryPath = PathHelper.GetTempDirForTask(true, "VCXCD");
     private bool disposed;
@@ -120,37 +110,6 @@ internal sealed class VcxCompilationDatabaseStorage(IFileSystemService fileSyste
         catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
         {
             logger.LogVerbose(e.ToString());
-        }
-    }
-
-    ICompilationDatabaseHandle IObsoleteVCXCompilationDatabaseStorage.CreateDatabase(
-        string file,
-        string directory,
-        string command,
-        IEnumerable<string> environment)
-    {
-        ThrowIfDisposed();
-
-        var compilationDatabaseEntry = new CompilationDatabaseEntry
-        {
-            Directory = directory,
-            Command = command,
-            File = file,
-            Environment = environment
-        };
-
-        var compilationDatabaseFullPath = GetCompilationDatabaseFullPath();
-
-        try
-        {
-            fileSystemService.Directory.CreateDirectory(compilationDatabaseDirectoryPath);
-            WriteDatabaseContents(compilationDatabaseFullPath, [compilationDatabaseEntry]);
-            return new TemporaryCompilationDatabaseHandle(compilationDatabaseFullPath, fileSystemService.File, logger);
-        }
-        catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
-        {
-            logger.LogVerbose(e.ToString());
-            return null;
         }
     }
 
