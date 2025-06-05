@@ -141,12 +141,12 @@ public class TextBufferIssueTrackerTests
     [TestMethod]
     public void Dispose_RaisesEvent()
     {
-        var eventHandler = Substitute.For<EventHandler<DocumentClosedEventArgs>>();
+        var eventHandler = Substitute.For<EventHandler<DocumentEventArgs>>();
         taggerProvider.DocumentClosed += eventHandler;
 
         testSubject.Dispose();
 
-        eventHandler.Received(1).Invoke(taggerProvider, Arg.Is<DocumentClosedEventArgs>(x => x.FullPath == mockedJavascriptDocumentFooJs.FilePath));
+        eventHandler.Received(1).Invoke(taggerProvider, Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == mockedJavascriptDocumentFooJs.FilePath));
     }
 
     private static void VerifySingletonManagerDoesNotExist(ITextBuffer buffer)
@@ -266,7 +266,8 @@ public class TextBufferIssueTrackerTests
 
         RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
 
-        eventHandler.Received(1).Invoke(taggerProvider, Arg.Is<DocumentSavedEventArgs>(x => x.FullPath == mockedJavascriptDocumentFooJs.FilePath && x.DetectedLanguages == javascriptLanguage));
+        eventHandler.Received(1).Invoke(taggerProvider,
+            Arg.Is<DocumentSavedEventArgs>(x => x.Document.FullPath == mockedJavascriptDocumentFooJs.FilePath && x.Document.DetectedLanguages == javascriptLanguage));
     }
 
     [TestMethod]
@@ -331,7 +332,7 @@ public class TextBufferIssueTrackerTests
         RaiseFileRenamedEvent(mockedJavascriptDocumentFooJs, newFilePath);
 
         eventHandler.Received(1).Invoke(taggerProvider, Arg.Is<DocumentRenamedEventArgs>(x =>
-            x.FullPath == newFilePath && x.OldFilePath == mockedJavascriptDocumentFooJs.FilePath && x.DetectedLanguages == javascriptLanguage));
+            x.Document.FullPath == newFilePath && x.OldFilePath == mockedJavascriptDocumentFooJs.FilePath && x.Document.DetectedLanguages == javascriptLanguage));
     }
 
     private static void RaiseFileSavedEvent(ITextDocument mockDocument) => RaiseFileEvent(mockDocument, FileActionTypes.ContentSavedToDisk);

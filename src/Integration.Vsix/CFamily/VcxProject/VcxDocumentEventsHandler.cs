@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.CFamily;
 using SonarLint.VisualStudio.Core;
@@ -35,20 +34,22 @@ public interface IVcxDocumentEventsHandler : IDisposable
 [PartCreationPolicy(CreationPolicy.Shared)]
 public sealed class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
 {
-    private readonly IDocumentEvents documentEvents;
+    private readonly IDocumentTracker documentTracker;
     private readonly IVcxCompilationDatabaseUpdater vcxCompilationDatabaseUpdater;
     private bool disposed;
 
     [ImportingConstructor]
     public VcxDocumentEventsHandler(
-        IDocumentEvents documentEvents,
+        IDocumentTracker documentTracker,
         IVcxCompilationDatabaseUpdater vcxCompilationDatabaseUpdater)
     {
-        this.documentEvents = documentEvents;
+        this.documentTracker = documentTracker;
         this.vcxCompilationDatabaseUpdater = vcxCompilationDatabaseUpdater;
-        this.documentEvents.DocumentOpened += DocumentEventsOnDocumentOpened;
-        this.documentEvents.DocumentClosed += DocumentEventsOnDocumentClosed;
-        this.documentEvents.OpenDocumentRenamed += DocumentEventsOnOpenDocumentRenamed;
+        this.documentTracker.DocumentOpened += OnDocumentOpened;
+        this.documentTracker.DocumentClosed += OnDocumentClosed;
+        this.documentTracker.OpenDocumentRenamed += OnOpenDocumentRenamed;
+
+        documentTracker.GetOpenDocuments().ToList().ForEach(AddFileToCompilationDatabase);
     }
 
     public void Dispose()
@@ -59,39 +60,40 @@ public sealed class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
         }
 
         disposed = true;
-        documentEvents.DocumentOpened -= DocumentEventsOnDocumentOpened;
-        documentEvents.DocumentClosed -= DocumentEventsOnDocumentClosed;
-        documentEvents.OpenDocumentRenamed -= DocumentEventsOnOpenDocumentRenamed;
+        documentTracker.DocumentOpened -= OnDocumentOpened;
+        documentTracker.DocumentClosed -= OnDocumentClosed;
+        documentTracker.OpenDocumentRenamed -= OnOpenDocumentRenamed;
     }
 
-    private void DocumentEventsOnOpenDocumentRenamed(object sender, DocumentRenamedEventArgs e)
+    private void OnOpenDocumentRenamed(object sender, DocumentRenamedEventArgs args)
     {
-        if (e.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
+        if (args.Document.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
         {
             ReplaceFileAsync().Forget();
         }
 
-
         async Task ReplaceFileAsync()
         {
-            await vcxCompilationDatabaseUpdater.RemoveFileAsync(e.OldFilePath);
-            await vcxCompilationDatabaseUpdater.AddFileAsync(e.FullPath);
+            await vcxCompilationDatabaseUpdater.RemoveFileAsync(args.OldFilePath);
+            await vcxCompilationDatabaseUpdater.AddFileAsync(args.Document.FullPath);
         }
     }
 
-    private void DocumentEventsOnDocumentClosed(object sender, DocumentClosedEventArgs e)
+    private void OnDocumentClosed(object sender, DocumentEventArgs args)
     {
-        if (e.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
+        if (args.Document.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
         {
-            vcxCompilationDatabaseUpdater.RemoveFileAsync(e.FullPath).Forget();
+            vcxCompilationDatabaseUpdater.RemoveFileAsync(args.Document.FullPath).Forget();
         }
     }
 
-    private void DocumentEventsOnDocumentOpened(object sender, DocumentOpenedEventArgs e)
+    private void OnDocumentOpened(object sender, DocumentEventArgs args) => AddFileToCompilationDatabase(args.Document);
+
+    private void AddFileToCompilationDatabase(Document document)
     {
-        if (e.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
+        if (document.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
         {
-            vcxCompilationDatabaseUpdater.AddFileAsync(e.FullPath).Forget();
+            vcxCompilationDatabaseUpdater.AddFileAsync(document.FullPath).Forget();
         }
     }
 }
