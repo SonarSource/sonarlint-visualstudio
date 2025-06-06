@@ -60,7 +60,14 @@ public class DiffViewServiceTests
     public void MefCtor_CheckIsNonShared() => MefTestHelpers.CheckIsNonSharedMefComponent<DiffViewService>();
 
     [TestMethod]
-    public void Ctor_InstantiatesDiffViewWindowToolPane() => toolWindowService.Received(1).GetToolWindow<DiffViewToolWindowPane, IDiffViewToolWindowPane>();
+    public void Ctor_LazyInstantiatesDiffViewWindowToolPane()
+    {
+        toolWindowService.DidNotReceive().GetToolWindow<DiffViewToolWindowPane, IDiffViewToolWindowPane>();
+
+        testSubject.ShowDiffView(textBuffer, twoChanges);
+
+        toolWindowService.Received(1).GetToolWindow<DiffViewToolWindowPane, IDiffViewToolWindowPane>();
+    }
 
     [TestMethod]
     public void ShowDiffView_CallsShowDiffWithCorrectParameters()

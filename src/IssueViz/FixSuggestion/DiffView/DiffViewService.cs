@@ -34,7 +34,7 @@ internal interface IDiffViewService
 [PartCreationPolicy(CreationPolicy.NonShared)]
 internal class DiffViewService : IDiffViewService
 {
-    private readonly IDiffViewToolWindowPane diffViewToolWindowPane;
+    private readonly Lazy<IDiffViewToolWindowPane> diffViewToolWindowPane;
     private readonly ITextViewEditor textViewEditor;
 
     [ImportingConstructor]
@@ -42,9 +42,9 @@ internal class DiffViewService : IDiffViewService
     {
         this.textViewEditor = textViewEditor;
 
-        diffViewToolWindowPane = toolWindowService.GetToolWindow<DiffViewToolWindowPane, IDiffViewToolWindowPane>();
+        diffViewToolWindowPane = new (() => toolWindowService.GetToolWindow<DiffViewToolWindowPane, IDiffViewToolWindowPane>());
     }
 
     public FinalizedFixSuggestionChange[] ShowDiffView(ITextBuffer fileTextBuffer, IReadOnlyList<FixSuggestionChange> changes) =>
-        diffViewToolWindowPane.ShowDiff(new DiffViewViewModel(textViewEditor, fileTextBuffer, changes));
+        diffViewToolWindowPane.Value.ShowDiff(new DiffViewViewModel(textViewEditor, fileTextBuffer, changes));
 }
