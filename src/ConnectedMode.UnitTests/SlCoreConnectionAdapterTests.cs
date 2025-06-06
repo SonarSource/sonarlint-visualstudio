@@ -77,7 +77,7 @@ public class SlCoreConnectionAdapterTests
 
         await slCoreConnectionAdapter.ValidateConnectionAsync(sonarQubeConnectionInfo, new TokenCredentialsModel("myToken".CreateSecureString()));
 
-        threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatus>>>()).IgnoreAwaitForNSubstituteAssertion();
+        threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatus>>>()).IgnoreAwaitForAssert();
     }
 
     [TestMethod]

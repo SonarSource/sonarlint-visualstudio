@@ -24,9 +24,13 @@ namespace SonarLint.VisualStudio.Integration.TestInfrastructure;
 
 public static class NSubstituteHelpers
 {
+    /// <summary>
+    /// Should be used for assertions to avoid warning regarding not awaiting methods when doing a call to .Received().AsyncMethod() with NSubstitute.
+    /// </summary>
+    /// <param name="task"></param>
     [ExcludeFromCodeCoverage]
-    public static void IgnoreAwaitForNSubstituteAssertion(this Task task)
+    public static void IgnoreAwaitForAssert(this Task task)
     {
-        // workaround to avoid await warning CS4014 in NSubstitute assertions for async method
+        // workaround to avoid await warning CS4014 in NSubstitute assertions for async methods
     }
 }
