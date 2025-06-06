@@ -47,6 +47,7 @@ public sealed class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
         this.vcxCompilationDatabaseUpdater = vcxCompilationDatabaseUpdater;
         this.documentTracker.DocumentOpened += OnDocumentOpened;
         this.documentTracker.DocumentClosed += OnDocumentClosed;
+        this.documentTracker.DocumentSaved += OnDocumentSaved;
         this.documentTracker.OpenDocumentRenamed += OnOpenDocumentRenamed;
 
         documentTracker.GetOpenDocuments().ToList().ForEach(AddFileToCompilationDatabase);
@@ -62,6 +63,7 @@ public sealed class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
         disposed = true;
         documentTracker.DocumentOpened -= OnDocumentOpened;
         documentTracker.DocumentClosed -= OnDocumentClosed;
+        documentTracker.DocumentSaved -= OnDocumentSaved;
         documentTracker.OpenDocumentRenamed -= OnOpenDocumentRenamed;
     }
 
@@ -88,6 +90,12 @@ public sealed class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
     }
 
     private void OnDocumentOpened(object sender, DocumentEventArgs args) => AddFileToCompilationDatabase(args.Document);
+
+    /// <summary>
+    /// Due to the fact that we can't react to project/file properties changes, regenerating the compilation database entry on file save is needed
+    /// Additionally, this is a workaround that can deal with the renaming bug described in https://sonarsource.atlassian.net/browse/SLVS-2170
+    /// </summary>
+    private void OnDocumentSaved(object sender, DocumentSavedEventArgs args) => AddFileToCompilationDatabase(args.Document);
 
     private void AddFileToCompilationDatabase(Document document)
     {
