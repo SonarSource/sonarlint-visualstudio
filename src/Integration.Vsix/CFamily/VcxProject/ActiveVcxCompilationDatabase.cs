@@ -90,15 +90,19 @@ internal sealed class ActiveVcxCompilationDatabase(
 
             using (await asyncLock.AcquireAsync())
             {
-                CompilationDatabaseEntry compilationDatabaseEntry = null;
-                await threadHandling.RunOnUIThreadAsync(() => compilationDatabaseEntry = generator.CreateOrNull(filePath));
+                await HandleNewEntryAsync(filePath);
+            }
+        });
 
-                if (compilationDatabaseEntry is null)
-                {
-                    return;
-                }
+    public Task RenameFileAsync(string oldFilePath, string newFilePath) =>
+        threadHandling.RunOnBackgroundThread(async () =>
+        {
+            ThrowIfDisposed();
 
-                storage.UpdateDatabaseEntry(EnsureDatabaseInitializedInternal(), compilationDatabaseEntry);
+            using (await asyncLock.AcquireAsync())
+            {
+                HandleRemoveEntry(oldFilePath);
+                await HandleNewEntryAsync(newFilePath);
             }
         });
 
@@ -109,14 +113,30 @@ internal sealed class ActiveVcxCompilationDatabase(
 
             using (await asyncLock.AcquireAsync())
             {
-                if (databasePath is null)
-                {
-                    return;
-                }
-
-                storage.RemoveDatabaseEntry(databasePath, filePath);
+                HandleRemoveEntry(filePath);
             }
         });
+
+    private void HandleRemoveEntry(string filePath)
+    {
+        if (databasePath is not null)
+        {
+            storage.RemoveDatabaseEntry(databasePath, filePath);
+        }
+    }
+
+    private async Task HandleNewEntryAsync(string filePath)
+    {
+        CompilationDatabaseEntry compilationDatabaseEntry = null;
+        await threadHandling.RunOnUIThreadAsync(() => compilationDatabaseEntry = generator.CreateOrNull(filePath));
+
+        if (compilationDatabaseEntry is null)
+        {
+            return;
+        }
+
+        storage.UpdateDatabaseEntry(EnsureDatabaseInitializedInternal(), compilationDatabaseEntry);
+    }
 
     private string EnsureDatabaseInitializedInternal()
     {
