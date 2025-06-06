@@ -67,6 +67,7 @@ public class VcxDocumentEventsHandlerTests
         {
             documentTracker.DocumentOpened += Arg.Any<EventHandler<DocumentEventArgs>>();
             documentTracker.DocumentClosed += Arg.Any<EventHandler<DocumentEventArgs>>();
+            documentTracker.DocumentSaved += Arg.Any<EventHandler<DocumentSavedEventArgs>>();
             documentTracker.OpenDocumentRenamed += Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
             vcxCompilationDatabaseUpdater.AddFileAsync(CFamilyDocument.FullPath);
         });
@@ -77,6 +78,7 @@ public class VcxDocumentEventsHandlerTests
     {
         documentTracker.Received(1).DocumentClosed += Arg.Any<EventHandler<DocumentEventArgs>>();
         documentTracker.Received(1).DocumentOpened += Arg.Any<EventHandler<DocumentEventArgs>>();
+        documentTracker.Received(1).DocumentSaved += Arg.Any<EventHandler<DocumentSavedEventArgs>>();
         documentTracker.Received(1).OpenDocumentRenamed += Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
     }
 
@@ -132,6 +134,16 @@ public class VcxDocumentEventsHandlerTests
     }
 
     [TestMethod]
+    public void DocumentSaved_CFamily_AddFileAsyncCalled()
+    {
+        var args = new DocumentSavedEventArgs(CFamilyDocument, string.Empty);
+
+        documentTracker.DocumentSaved += Raise.EventWith(documentTracker, args);
+
+        vcxCompilationDatabaseUpdater.Received(1).AddFileAsync(CFamilyDocument.FullPath);
+    }
+
+    [TestMethod]
     public void OpenDocumentRenamed_NonCFamily_NoRemoveOrAddFileAsyncCalled()
     {
         var args = new DocumentRenamedEventArgs(NonCFamilyDocument, NonCFamilyOldFile);
@@ -151,6 +163,7 @@ public class VcxDocumentEventsHandlerTests
 
         documentTracker.Received(1).DocumentClosed -= Arg.Any<EventHandler<DocumentEventArgs>>();
         documentTracker.Received(1).DocumentOpened -= Arg.Any<EventHandler<DocumentEventArgs>>();
+        documentTracker.Received(1).DocumentSaved -= Arg.Any<EventHandler<DocumentSavedEventArgs>>();
         documentTracker.Received(1).OpenDocumentRenamed -= Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
     }
 
