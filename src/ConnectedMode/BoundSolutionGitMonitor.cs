@@ -18,130 +18,137 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Initialization;
+using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
 
-namespace SonarLint.VisualStudio.ConnectedMode
+namespace SonarLint.VisualStudio.ConnectedMode;
+
+/// <summary>
+/// Higher-level class that raises Git events for bound solutions
+/// </summary>
+/// <remarks>
+/// This class handles changing the repo being monitored when a solution is opened/closed
+/// </remarks>
+[Export(typeof(IBoundSolutionGitMonitor))]
+// Singleton - stateful.
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal sealed class BoundSolutionGitMonitor : IBoundSolutionGitMonitor
 {
+    public event EventHandler HeadChanged;
+
     /// <summary>
-    /// Higher-level class that raises Git events for bound solutions
+    /// Factory to create a new object that will monitor the local git repo
+    /// for relevant changes
     /// </summary>
-    /// <remarks>
-    /// This class handles changing the repo being monitored when a solution is opened/closed
-    /// </remarks>
-    [Export(typeof(IBoundSolutionGitMonitor))]
-    // Singleton - stateful.
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class BoundSolutionGitMonitor : IBoundSolutionGitMonitor, IDisposable
+    internal /* for testing */ delegate IGitEvents GitEventFactory(string repoPathRoot);
+    private static readonly GitEventFactory CreateGitEvents = repoRootPath => new GitEventsMonitor(repoRootPath);
+
+    private readonly IGitWorkspaceService gitWorkspaceService;
+    private readonly GitEventFactory createLocalGitMonitor;
+    private readonly ILogger logger;
+
+    private IGitEvents currentRepoEvents;
+    private bool disposed;
+
+    public IInitializationProcessor InitializationProcessor { get; }
+
+    [ImportingConstructor]
+    public BoundSolutionGitMonitor(IGitWorkspaceService gitWorkspaceService, IInitializationProcessorFactory initializationProcessorFactory, ILogger logger)
+        : this(gitWorkspaceService, logger, initializationProcessorFactory, CreateGitEvents)
     {
-        public event EventHandler HeadChanged;
+    }
 
-        /// <summary>
-        /// Factory to create a new object that will monitor the local git repo
-        /// for relevant changes
-        /// </summary>
-        internal /* for testing */ delegate IGitEvents GitEventFactory(string repoPathRoot);
-
-        private readonly IGitWorkspaceService gitWorkspaceService;
-        private readonly GitEventFactory createLocalGitMonitor;
-        private readonly ILogger logger;
-
-        private IGitEvents currentRepoEvents;
-        private bool disposedValue;
-
-        [ImportingConstructor]
-        public BoundSolutionGitMonitor(IGitWorkspaceService gitWorkspaceService, ILogger logger)
-            : this(gitWorkspaceService, logger, CreateGitEvents)
+    internal /* for testing */ BoundSolutionGitMonitor(
+        IGitWorkspaceService gitWorkspaceService,
+        ILogger logger,
+        IInitializationProcessorFactory initializationProcessorFactory,
+        GitEventFactory gitEventFactory)
+    {
+        this.gitWorkspaceService = gitWorkspaceService;
+        this.logger = logger;
+        createLocalGitMonitor = gitEventFactory;
+        InitializationProcessor = initializationProcessorFactory.CreateAndStart<BoundSolutionGitMonitor>([], () =>
         {
-        }
-
-        internal /* for testing */ BoundSolutionGitMonitor(IGitWorkspaceService gitWorkspaceService,
-            ILogger logger,
-            GitEventFactory gitEventFactory)
-        {
-            this.gitWorkspaceService = gitWorkspaceService;
-            this.logger = logger;
-            createLocalGitMonitor = gitEventFactory;
-
-            Refresh();
-        }
-
-        private static IGitEvents CreateGitEvents(string repoRootPath) => new GitEventsMonitor(repoRootPath);
-
-        private void OnHeadChanged(object sender, EventArgs e)
-        {
-            // Forward the notification that the local repo head has changed
-            try
+            if (disposed)
             {
-                logger.LogVerbose(Resources.GitMonitor_GitBranchChanged);
-                HeadChanged?.Invoke(this, e);
+                return;
             }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(Resources.GitMonitor_EventError, ex);
-            }
-        }
 
-        public void Refresh()
+            RefreshInternal();
+        });
+    }
+
+    public void Refresh()
+    {
+        if (!InitializationProcessor.IsFinalized)
         {
-            CleanupLocalGitEventResources();
-
-            var rootPath = gitWorkspaceService.GetRepoRoot();
-
-            if (rootPath == null)
-            {
-                logger.LogVerbose(Resources.GitMonitor_NoRepo);
-            }
-            else
-            {
-                logger.LogVerbose(Resources.GitMonitor_MonitoringRepoStarted, rootPath);
-                // Avoid one potential race condition - initialize first, then set
-                // the class-level variable.
-                var local = createLocalGitMonitor(rootPath);
-                local.HeadChanged += OnHeadChanged;
-
-                currentRepoEvents = local;
-            }
+            return;
         }
 
-        private void CleanupLocalGitEventResources()
+        if (disposed)
         {
-            // Avoid potential race condition - copy the variable
-            // and clean up the copy
-            var local = currentRepoEvents;
-
-            if (local != null)
-            {
-                logger.LogVerbose(Resources.GitMonitor_MonitoringRepoStopped);
-                local.HeadChanged -= OnHeadChanged;
-                (local as IDisposable)?.Dispose();
-            }
-            currentRepoEvents = null;
+            throw new ObjectDisposedException(nameof(BoundSolutionGitMonitor));
         }
 
-        #region IDisposable
+        RefreshInternal();
+    }
 
-        private void Dispose(bool disposing)
+
+    private void OnHeadChanged(object sender, EventArgs e)
+    {
+        // Forward the notification that the local repo head has changed
+        try
         {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    CleanupLocalGitEventResources();
-                }
-
-                disposedValue = true;
-            }
+            logger.LogVerbose(Resources.GitMonitor_GitBranchChanged);
+            HeadChanged?.Invoke(this, e);
         }
-
-        public void Dispose()
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            logger.WriteLine(Resources.GitMonitor_EventError, ex);
+        }
+    }
+
+    private void RefreshInternal()
+    {
+        CleanupLocalGitEventResources();
+
+        var rootPath = gitWorkspaceService.GetRepoRoot();
+
+        if (rootPath == null)
+        {
+            logger.LogVerbose(Resources.GitMonitor_NoRepo);
+        }
+        else
+        {
+            logger.LogVerbose(Resources.GitMonitor_MonitoringRepoStarted, rootPath);
+            currentRepoEvents = createLocalGitMonitor(rootPath);
+            currentRepoEvents.HeadChanged += OnHeadChanged;
+        }
+    }
+
+    private void CleanupLocalGitEventResources()
+    {
+        if (currentRepoEvents == null)
+        {
+            return;
         }
 
-        #endregion // IDisposable
+        logger.LogVerbose(Resources.GitMonitor_MonitoringRepoStopped);
+        currentRepoEvents.HeadChanged -= OnHeadChanged;
+        currentRepoEvents.Dispose();
+        currentRepoEvents = null;
+    }
+
+    public void Dispose()
+    {
+        if (disposed)
+        {
+            return;
+        }
+
+        CleanupLocalGitEventResources();
+        disposed = true;
     }
 }

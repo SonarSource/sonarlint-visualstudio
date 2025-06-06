@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration
             this.sonarQubeService = sonarQubeService;
             this.configScopeUpdater = configScopeUpdater;
             InitializationProcessor = initializationProcessorFactory.Create<ActiveSolutionBoundTracker>(
-                [solutionTracker],
+                [solutionTracker, this.gitEventsMonitor],
                 InitializeInternalAsync);
 
             CurrentConfiguration = BindingConfiguration.Standalone;

@@ -59,7 +59,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             configProvider = Substitute.ForPartsOf<ConfigurableConfigurationProvider>();
             activeSolutionTracker = Substitute.ForPartsOf<ConfigurableActiveSolutionTracker>();
-            initializationDependencies = [activeSolutionTracker];
+            gitEventsMonitor = Substitute.For<IBoundSolutionGitMonitor>();
+            initializationDependencies = [activeSolutionTracker, gitEventsMonitor];
             testLogger = new TestLogger();
             vsMonitorMock = Substitute.For<IVsMonitorSelection>();
             vsMonitorMock.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out Arg.Any<uint>())
@@ -74,7 +75,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             sonarQubeServiceMock = Substitute.For<ISonarQubeService>();
 
-            gitEventsMonitor = Substitute.For<IBoundSolutionGitMonitor>();
             configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
             threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         }
