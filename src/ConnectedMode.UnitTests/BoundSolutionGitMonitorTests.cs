@@ -18,192 +18,246 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using SonarLint.VisualStudio.ConnectedMode.UnitTests.Extensions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.TestInfrastructure;
-using static SonarLint.VisualStudio.ConnectedMode.BoundSolutionGitMonitor;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests;
+
+[TestClass]
+public class BoundSolutionGitMonitorTests
 {
-    [TestClass]
-    public class BoundSolutionGitMonitorTests
+    private IGitWorkspaceService gitWorkspaceService;
+    private BoundSolutionGitMonitor.GitEventFactory factory;
+    private IGitEvents gitEvents;
+    private TestLogger logger;
+    private IThreadHandling threadHandling;
+    private IInitializationProcessorFactory initializationProcessorFactory;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
+        gitEvents = Substitute.For<IGitEvents>();
+        gitWorkspaceService = Substitute.For<IGitWorkspaceService>();
+        factory = Substitute.For<BoundSolutionGitMonitor.GitEventFactory>();
+        factory.Invoke(Arg.Any<string>()).Returns(gitEvents);
+        logger = Substitute.ForPartsOf<TestLogger>();
+        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+    }
+
+    private BoundSolutionGitMonitor CreateUninitializedTestSubject(out TaskCompletionSource<byte> barrier)
+    {
+        var tcs = barrier = new TaskCompletionSource<byte>();
+        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<BoundSolutionGitMonitor>(threadHandling, logger, proc => MockableInitializationProcessor.ConfigureWithWait(proc, tcs));
+        return new BoundSolutionGitMonitor(gitWorkspaceService, logger, initializationProcessorFactory, factory);
+    }
+
+
+    private BoundSolutionGitMonitor CreateAndInitializeTestSubject()
+    {
+        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<BoundSolutionGitMonitor>(threadHandling, logger);
+        var testSubject = new BoundSolutionGitMonitor(gitWorkspaceService, logger, initializationProcessorFactory, factory);
+        testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
+        return testSubject;
+    }
+
+    [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<BoundSolutionGitMonitor, IBoundSolutionGitMonitor>(
+            MefTestHelpers.CreateExport<IGitWorkspaceService>(),
+            MefTestHelpers.CreateExport<ILogger>(),
+            MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() =>
+        MefTestHelpers.CheckIsSingletonMefComponent<BoundSolutionGitMonitor>();
+
+    [TestMethod]
+    public void Initialize_NoRepo_FactoryNotCalledAndNoError()
+    {
+        SetUpGitWorkSpaceService(null);
+
+        var testSubject = CreateAndInitializeTestSubject();
+
+        gitWorkspaceService.Received(1).GetRepoRoot();
+        factory.DidNotReceiveWithAnyArgs().Invoke(default);
+    }
+
+    [TestMethod]
+    public void Initialize_ForwardsLowLevelEvent()
+    {
+        string repoPath = "some path";
+        SetUpGitWorkSpaceService(repoPath);
+
+        // first, check the factory is called
+        BoundSolutionGitMonitor testSubject = CreateAndInitializeTestSubject();
+        factory.Received().Invoke(repoPath);
+
+        // second, register for then trigger an event
+        int counter = 0;
+        testSubject.HeadChanged += (o, e) => counter++;
+
+        gitEvents.HeadChanged += Raise.Event();
+        counter.Should().Be(1);
+    }
+
+    [TestMethod]
+    public void Refresh_ChangesLowLevelMonitor()
+    {
+        string originalPath = "original path";
+        string newPath = "new path";
+
+        int counter = 0;
+
+        SetUpGitWorkSpaceService(originalPath);
+
+        var originalEventsMonitor = Substitute.For<IGitEvents>();
+        var newEventsMonitor = Substitute.For<IGitEvents>();
+
+       factory = path =>
         {
-            MefTestHelpers.CheckTypeCanBeImported<BoundSolutionGitMonitor, IBoundSolutionGitMonitor>(
-                MefTestHelpers.CreateExport<IGitWorkspaceService>(Mock.Of<IGitWorkspaceService>()),
-                MefTestHelpers.CreateExport<ILogger>());
-        }
-
-        [TestMethod]
-        public void Initialize_NoRepo_FactoryNotCalledAndNoError()
-        {
-            var gitWorkspaceService = CreateGitWorkSpaceService(null);
-            var factory = new Mock<GitEventFactory>();
-
-            var testSubject = CreateTestSubject(gitWorkspaceService.Object, factory.Object);
-
-            gitWorkspaceService.Verify(x => x.GetRepoRoot(), Times.Once);
-            factory.Invocations.Should().HaveCount(0);
-        }
-
-        [TestMethod]
-        public void Initialize_ForwardsLowLevelEvent()
-        {
-            string repoPath = "some path";
-            var gitWorkspaceService = CreateGitWorkSpaceService(repoPath);
-
-            var gitEventsMonitor = new Mock<IGitEvents>();
-            var factory = CreateFactory(gitEventsMonitor.Object);
-
-            // first, check the factory is called
-            BoundSolutionGitMonitor testSubject = CreateTestSubject(gitWorkspaceService.Object, factory.Object);
-            factory.Verify(x => x.Invoke(repoPath), Times.Once);
-
-            // second, register for then trigger an event
-            int counter = 0;
-            testSubject.HeadChanged += (o, e) => counter++;
-
-            gitEventsMonitor.RaiseHeadChangedEvent();
-            counter.Should().Be(1);
-        }
-
-        [TestMethod]
-        public void Refresh_ChangesLowLevelMonitor()
-        {
-            string originalPath = "original path";
-            string newPath = "new path";
-
-            int counter = 0;
-
-            var gitWorkspaceService = CreateGitWorkSpaceService(originalPath);
-
-            var originalEventsMonitor = new Mock<IGitEvents>();
-            var newEventsMonitor = new Mock<IGitEvents>();
-
-            GitEventFactory gitEventFactory = (string path) =>
+            if (path != originalPath && path != newPath)
             {
-                if (path != originalPath && path != newPath)
-                {
-                    throw new Exception("Test Error: Wrong path is passed to low level event monitor");
-                }
+                throw new Exception("Test Error: Wrong path is passed to low level event monitor");
+            }
 
-                return path == originalPath ? originalEventsMonitor.Object : newEventsMonitor.Object;
-            };
+            return path == originalPath ? originalEventsMonitor : newEventsMonitor;
+        };
 
-            BoundSolutionGitMonitor testSubject = CreateTestSubject(gitWorkspaceService.Object, gitEventFactory);
-            testSubject.HeadChanged += (o, e) => counter++;
+        BoundSolutionGitMonitor testSubject = CreateAndInitializeTestSubject();
+        testSubject.HeadChanged += (o, e) => counter++;
 
-            newEventsMonitor.RaiseHeadChangedEvent();
-            counter.Should().Be(0);
+        newEventsMonitor.HeadChanged += Raise.Event();
+        counter.Should().Be(0);
 
-            originalEventsMonitor.RaiseHeadChangedEvent();
-            counter.Should().Be(1);
+        originalEventsMonitor.HeadChanged += Raise.Event();
+        counter.Should().Be(1);
 
-            gitWorkspaceService.Setup(ws => ws.GetRepoRoot()).Returns(newPath);
-            originalEventsMonitor.VerifyEventUnregistered(Times.Never);
+        gitWorkspaceService.GetRepoRoot().Returns(newPath);
+        originalEventsMonitor.DidNotReceive().HeadChanged -= Arg.Any<EventHandler>();
 
-            // Act
-            testSubject.Refresh();
+        // Act
+        testSubject.Refresh();
 
-            // Old event handler should be unregistered
-            originalEventsMonitor.VerifyEventUnregistered(Times.Once);
-            originalEventsMonitor.RaiseHeadChangedEvent();
-            counter.Should().Be(1);
+        // Old event handler should be unregistered
+        originalEventsMonitor.Received(1).HeadChanged -= Arg.Any<EventHandler>();
+        originalEventsMonitor.HeadChanged += Raise.Event();
+        counter.Should().Be(1);
 
-            newEventsMonitor.RaiseHeadChangedEvent();
-            counter.Should().Be(2);
-        }
-
-        [TestMethod]
-        public void Dispose_UnregistersGitEventHandlerAndDisposesIGitEvents()
-        {
-            var gitWorkspaceService = CreateGitWorkSpaceService("any");
-
-            var gitEvents = new Mock<IGitEvents>();
-            var disposableGitEvents = gitEvents.As<IDisposable>();
-
-            var factory = CreateFactory(gitEvents.Object);
-            var testSubject = CreateTestSubject(gitWorkspaceService.Object, factory.Object);
-
-            gitEvents.VerifyEventRegistered(Times.Once);
-            gitEvents.VerifyEventUnregistered(Times.Never);
-            disposableGitEvents.Verify(x => x.Dispose(), Times.Never);
-
-            // Act
-            testSubject.Dispose();
-
-            gitEvents.VerifyEventRegistered(Times.Once); // still only once
-            gitEvents.VerifyEventUnregistered(Times.Once); // unregistered once
-            disposableGitEvents.Verify(x => x.Dispose(), Times.Once);
-        }
-
-        [TestMethod]
-        public void OnHeadChanged_NonCriticalExceptionInHandler_IsSuppressed()
-        {
-            var gitWorkspaceService = CreateGitWorkSpaceService("any");
-
-            var gitEvents = new Mock<IGitEvents>();
-            var factory = CreateFactory(gitEvents.Object);
-            var testSubject = CreateTestSubject(gitWorkspaceService.Object, factory.Object);
-
-            testSubject.HeadChanged += (sender, args) => throw new InvalidOperationException("thrown from a test");
-
-            Action op = gitEvents.RaiseHeadChangedEvent;
-
-            op.Should().NotThrow();
-        }
-
-        [TestMethod]
-        public void OnHeadChanged_CriticalExceptionInHandler_IsNotSuppressed()
-        {
-            var gitWorkspaceService = CreateGitWorkSpaceService("any");
-
-            var gitEvents = new Mock<IGitEvents>();
-            var factory = CreateFactory(gitEvents.Object);
-            var testSubject = CreateTestSubject(gitWorkspaceService.Object, factory.Object);
-
-            testSubject.HeadChanged += (sender, args) => throw new StackOverflowException("thrown from a test");
-
-            Action op = gitEvents.RaiseHeadChangedEvent;
-
-            op.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("thrown from a test");
-        }
-
-        private Mock<IGitWorkspaceService> CreateGitWorkSpaceService(string repoPath)
-        {
-            var gitWorkspaceService = new Mock<IGitWorkspaceService>();
-            gitWorkspaceService.Setup(ws => ws.GetRepoRoot()).Returns(repoPath);
-            return gitWorkspaceService;
-        }
-
-        private static Mock<GitEventFactory> CreateFactory(IGitEvents gitEvents)
-        {
-            var factory = new Mock<GitEventFactory>();
-            factory.Setup(x => x.Invoke(It.IsAny<string>())).Returns(gitEvents);
-            return factory;
-        }
-
-        private BoundSolutionGitMonitor CreateTestSubject(IGitWorkspaceService gitWorkspaceService, GitEventFactory gitEventFactory)
-            => new BoundSolutionGitMonitor(gitWorkspaceService, new TestLogger(logToConsole: true), gitEventFactory);
+        newEventsMonitor.HeadChanged += Raise.Event();
+        counter.Should().Be(2);
     }
 
-    // Separate namespace so the extension methods don't pollute the main namespace
-    namespace Extensions
+    [TestMethod]
+    public void Refresh_NotInitialized_DoesNothing()
     {
-        internal static class BoundSolutionGitMonitorTestsExtensions
-        {
-            public static void RaiseHeadChangedEvent(this Mock<IGitEvents> gitEvents)
-                => gitEvents.Raise(em => em.HeadChanged += null, null, null);
+        var testSubject = CreateUninitializedTestSubject(out _);
 
-            public static void VerifyEventRegistered(this Mock<IGitEvents> gitEvents, Func<Times> times)
-                => gitEvents.VerifyAdd(x => x.HeadChanged += It.IsAny<EventHandler>(), times);
+        testSubject.Refresh();
 
-            public static void VerifyEventUnregistered(this Mock<IGitEvents> gitEvents, Func<Times> times)
-                => gitEvents.VerifyRemove(x => x.HeadChanged -= It.IsAny<EventHandler>(), times);
-        }
+        gitWorkspaceService.DidNotReceive().GetRepoRoot();
+        factory.DidNotReceiveWithAnyArgs().Invoke(default);
     }
 
+    [TestMethod]
+    public void Refresh_Disposed_Throws()
+    {
+        var testSubject = CreateAndInitializeTestSubject();
+        testSubject.Dispose();
+
+        var act = () => testSubject.Refresh();
+
+        act.Should().Throw<ObjectDisposedException>();
+    }
+
+    [TestMethod]
+    public void Dispose_UnregistersGitEventHandlerAndDisposesIGitEvents()
+    {
+        SetUpGitWorkSpaceService("any");
+
+        var testSubject = CreateAndInitializeTestSubject();
+
+        gitEvents.Received(1).HeadChanged += Arg.Any<EventHandler>();
+        gitEvents.DidNotReceive().HeadChanged -= Arg.Any<EventHandler>();
+        gitEvents.DidNotReceive().Dispose();
+
+        // Act
+        testSubject.Dispose();
+
+        gitEvents.Received(1).HeadChanged += Arg.Any<EventHandler>();
+        gitEvents.Received(1).HeadChanged -= Arg.Any<EventHandler>();
+        gitEvents.Received(1).Dispose();
+    }
+
+    [TestMethod]
+    public void OnHeadChanged_NonCriticalExceptionInHandler_IsSuppressed()
+    {
+        SetUpGitWorkSpaceService("any");
+        var testSubject = CreateAndInitializeTestSubject();
+        testSubject.HeadChanged += (sender, args) => throw new InvalidOperationException("thrown from a test");
+
+        var op = () => gitEvents.HeadChanged += Raise.Event();
+
+        op.Should().NotThrow();
+    }
+
+    [TestMethod]
+    public void OnHeadChanged_CriticalExceptionInHandler_IsNotSuppressed()
+    {
+        SetUpGitWorkSpaceService("any");
+        var testSubject = CreateAndInitializeTestSubject();
+        testSubject.HeadChanged += (sender, args) => throw new StackOverflowException("thrown from a test");
+
+        var op = () => gitEvents.HeadChanged += Raise.Event();
+
+        op.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("thrown from a test");
+    }
+
+    [TestMethod]
+    public void BoundSolutionGitMonitor_InitializesCorrectly()
+    {
+        var testSubject = CreateAndInitializeTestSubject();
+
+        Received.InOrder(() =>
+        {
+            initializationProcessorFactory.Create<BoundSolutionGitMonitor>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.Count == 0), Arg.Any<Func<IThreadHandling, Task>>());
+            testSubject.InitializationProcessor.InitializeAsync();
+            gitWorkspaceService.GetRepoRoot();
+            factory.Invoke(Arg.Any<string>());
+            testSubject.InitializationProcessor.InitializeAsync();
+        });
+    }
+
+    [TestMethod]
+    public void BoundSolutionGitMonitor_DelaysServiceCallsUntilInitialization()
+    {
+        var testSubject = CreateUninitializedTestSubject(out var tcs);
+
+        gitWorkspaceService.DidNotReceive().GetRepoRoot();
+        factory.DidNotReceiveWithAnyArgs().Invoke(default);
+
+        tcs.SetResult(1);
+        testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
+
+        gitWorkspaceService.Received(1).GetRepoRoot();
+        factory.ReceivedWithAnyArgs(1).Invoke(default);
+    }
+
+    [TestMethod]
+    public void BoundSolutionGitMonitor_DisposeBeforeInitialized_DisposeAndInitializeDoNothing()
+    {
+        var testSubject = CreateUninitializedTestSubject(out var tcs);
+
+        testSubject.Dispose();
+        tcs.SetResult(1);
+        testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
+
+        gitWorkspaceService.DidNotReceive().GetRepoRoot();
+        factory.DidNotReceiveWithAnyArgs().Invoke(default);
+    }
+
+    private void SetUpGitWorkSpaceService(string repoPath)
+    {
+        gitWorkspaceService.GetRepoRoot().Returns(repoPath);
+    }
 }
