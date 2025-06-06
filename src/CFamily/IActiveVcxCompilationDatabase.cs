@@ -23,6 +23,7 @@ namespace SonarLint.VisualStudio.CFamily;
 public interface IVcxCompilationDatabaseUpdater
 {
     Task AddFileAsync(string filePath);
+    Task RenameFileAsync(string oldFilePath, string newFilePath);
     Task RemoveFileAsync(string filePath);
 }
 

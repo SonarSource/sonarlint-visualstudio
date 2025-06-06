@@ -76,8 +76,7 @@ public sealed class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
 
         async Task ReplaceFileAsync()
         {
-            await vcxCompilationDatabaseUpdater.RemoveFileAsync(args.OldFilePath);
-            await vcxCompilationDatabaseUpdater.AddFileAsync(args.Document.FullPath);
+            await vcxCompilationDatabaseUpdater.RenameFileAsync(args.OldFilePath, args.Document.FullPath);
         }
     }
 
