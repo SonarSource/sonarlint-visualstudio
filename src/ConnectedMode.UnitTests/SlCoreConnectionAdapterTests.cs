@@ -25,6 +25,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration.TestInfrastructure;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -76,7 +77,7 @@ public class SlCoreConnectionAdapterTests
 
         await slCoreConnectionAdapter.ValidateConnectionAsync(sonarQubeConnectionInfo, new TokenCredentialsModel("myToken".CreateSecureString()));
 
-        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatus>>>());
+        threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatus>>>()).IgnoreAwaitForNSubstituteAssertion();
     }
 
     [TestMethod]
