@@ -32,6 +32,7 @@ public class ActiveVcxCompilationDatabaseTests
 {
     private const string DatabasePath = "some path";
     private const string EntryFilePath = "some file path";
+    private const string OldFilePath = "old file path";
     private readonly CompilationDatabaseEntry entry = new() { File = EntryFilePath };
     private IVcxCompilationDatabaseStorage storage;
     private IThreadHandling threadHandling;
@@ -72,7 +73,7 @@ public class ActiveVcxCompilationDatabaseTests
     public void DatabasePath_Uninitialized_ReturnsNull()
     {
         testSubject.DatabasePath.Should().BeNull();
-        VerifyRequiresSynchronousBackgroundExecution(1);
+        VerifyRequiresSynchronousBackgroundExecution();
     }
 
     [TestMethod]
@@ -92,7 +93,7 @@ public class ActiveVcxCompilationDatabaseTests
 
         (await testSubject.EnsureDatabaseInitializedAsync()).Should().Be(DatabasePath);
 
-        VerifyRequiresAsynchronousBackgroundExecution<string>(1);
+        VerifyRequiresAsynchronousBackgroundExecution<string>();
         testSubject.DatabasePath.Should().Be(DatabasePath);
     }
 
@@ -103,7 +104,7 @@ public class ActiveVcxCompilationDatabaseTests
 
         (await testSubject.EnsureDatabaseInitializedAsync()).Should().Be(DatabasePath);
 
-        VerifyRequiresAsynchronousBackgroundExecution<string>(1);
+        VerifyRequiresAsynchronousBackgroundExecution<string>();
         testSubject.DatabasePath.Should().Be(DatabasePath);
     }
 
@@ -123,7 +124,7 @@ public class ActiveVcxCompilationDatabaseTests
         await testSubject.DropDatabaseAsync();
 
         storage.DidNotReceiveWithAnyArgs().DeleteDatabase(default);
-        VerifyRequiresAsynchronousBackgroundExecution<int>(1);
+        VerifyRequiresAsynchronousBackgroundExecution<int>();
         testSubject.DatabasePath.Should().BeNull();
     }
 
@@ -134,7 +135,7 @@ public class ActiveVcxCompilationDatabaseTests
 
         await testSubject.DropDatabaseAsync();
 
-        VerifyRequiresAsynchronousBackgroundExecution<int>(1);
+        VerifyRequiresAsynchronousBackgroundExecution<int>();
         testSubject.DatabasePath.Should().BeNull();
         storage.Received(1).DeleteDatabase(DatabasePath);
     }
@@ -157,7 +158,7 @@ public class ActiveVcxCompilationDatabaseTests
 
         await testSubject.AddFileAsync(EntryFilePath);
 
-        VerifyRequiresAsynchronousBackgroundExecution<int>(1);
+        VerifyRequiresAsynchronousBackgroundExecution<int>();
         Received.InOrder(() =>
         {
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
@@ -178,7 +179,7 @@ public class ActiveVcxCompilationDatabaseTests
         await testSubject.AddFileAsync(EntryFilePath);
 
         storage.Received(1).UpdateDatabaseEntry(DatabasePath, entry);
-        VerifyRequiresAsynchronousBackgroundExecution<int>(1);
+        VerifyRequiresAsynchronousBackgroundExecution<int>();
         Received.InOrder(() =>
         {
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
@@ -199,7 +200,7 @@ public class ActiveVcxCompilationDatabaseTests
 
         storage.DidNotReceiveWithAnyArgs().UpdateDatabaseEntry(default, default);
         storage.DidNotReceiveWithAnyArgs().CreateDatabase();
-        VerifyRequiresAsynchronousBackgroundExecution<int>(1);
+        VerifyRequiresAsynchronousBackgroundExecution<int>();
         Received.InOrder(() =>
         {
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
@@ -219,7 +220,7 @@ public class ActiveVcxCompilationDatabaseTests
 
         storage.DidNotReceiveWithAnyArgs().UpdateDatabaseEntry(default, default);
         storage.DidNotReceiveWithAnyArgs().CreateDatabase();
-        VerifyRequiresAsynchronousBackgroundExecution<int>(1);
+        VerifyRequiresAsynchronousBackgroundExecution<int>();
         Received.InOrder(() =>
         {
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
@@ -247,7 +248,7 @@ public class ActiveVcxCompilationDatabaseTests
         await testSubject.RemoveFileAsync(EntryFilePath);
 
         storage.DidNotReceiveWithAnyArgs().RemoveDatabaseEntry(default, default);
-        VerifyRequiresAsynchronousBackgroundExecution<int>(1);
+        VerifyRequiresAsynchronousBackgroundExecution<int>();
     }
 
     [TestMethod]
@@ -258,7 +259,7 @@ public class ActiveVcxCompilationDatabaseTests
         await testSubject.RemoveFileAsync(EntryFilePath);
 
         storage.Received(1).RemoveDatabaseEntry(DatabasePath, EntryFilePath);
-        VerifyRequiresAsynchronousBackgroundExecution<int>(1);
+        VerifyRequiresAsynchronousBackgroundExecution<int>();
     }
 
     [TestMethod]
@@ -282,6 +283,94 @@ public class ActiveVcxCompilationDatabaseTests
         asyncLock.Received(1).Dispose();
     }
 
+    [TestMethod]
+    public async Task RenameFile_NotInitialized_InitializesAndAddsFile()
+    {
+        storage.CreateDatabase().Returns(DatabasePath);
+        generator.CreateOrNull(EntryFilePath).Returns(entry);
+
+        await testSubject.RenameFileAsync(OldFilePath, EntryFilePath);
+
+        VerifyRequiresAsynchronousBackgroundExecution<int>();
+        Received.InOrder(() =>
+        {
+            threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+            asyncLock.AcquireAsync();
+            threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
+            generator.CreateOrNull(EntryFilePath);
+            storage.CreateDatabase();
+            storage.UpdateDatabaseEntry(DatabasePath, entry);
+        });
+    }
+
+    [TestMethod]
+    public async Task RenameFile_Initialized_RemovesOldAndAddsNewEntry()
+    {
+        await Initialize();
+        generator.CreateOrNull(EntryFilePath).Returns(entry);
+
+        await testSubject.RenameFileAsync(OldFilePath, EntryFilePath);
+
+        VerifyRequiresAsynchronousBackgroundExecution<int>();
+        Received.InOrder(() =>
+        {
+            threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+            asyncLock.AcquireAsync();
+            storage.RemoveDatabaseEntry(DatabasePath, OldFilePath);
+            threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
+            generator.CreateOrNull(EntryFilePath);
+            storage.UpdateDatabaseEntry(DatabasePath, entry);
+        });
+    }
+
+    [TestMethod]
+    public async Task RenameFile_NotInitialized_EntryCannotBeGenerated_DoesNothing()
+    {
+        storage.CreateDatabase().Returns(DatabasePath);
+        generator.CreateOrNull(EntryFilePath).ReturnsNull();
+
+        await testSubject.RenameFileAsync(OldFilePath, EntryFilePath);
+
+        storage.DidNotReceiveWithAnyArgs().UpdateDatabaseEntry(default, default);
+        storage.DidNotReceiveWithAnyArgs().CreateDatabase();
+        VerifyRequiresAsynchronousBackgroundExecution<int>();
+        Received.InOrder(() =>
+        {
+            threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+            asyncLock.AcquireAsync();
+            threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
+            generator.CreateOrNull(EntryFilePath);
+        });
+    }
+
+    [TestMethod]
+    public async Task RenameFile_Initialized_EntryCannotBeGenerated_RemovesOldOnly()
+    {
+        await Initialize();
+        generator.CreateOrNull(EntryFilePath).ReturnsNull();
+
+        await testSubject.RenameFileAsync(OldFilePath, EntryFilePath);
+
+        storage.DidNotReceiveWithAnyArgs().UpdateDatabaseEntry(default, default);
+        VerifyRequiresAsynchronousBackgroundExecution<int>();
+        Received.InOrder(() =>
+        {
+            threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+            asyncLock.AcquireAsync();
+            storage.RemoveDatabaseEntry(DatabasePath, OldFilePath);
+            threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
+            generator.CreateOrNull(EntryFilePath);
+        });
+    }
+
+    [TestMethod]
+    public async Task RenameFileAsync_Disposed_Throws()
+    {
+        testSubject.Dispose();
+        var act = () => testSubject.RenameFileAsync(EntryFilePath, "new file path");
+        await act.Should().ThrowAsync<ObjectDisposedException>();
+    }
+
     private async Task Initialize()
     {
         storage.CreateDatabase().Returns(DatabasePath);
@@ -298,15 +387,15 @@ public class ActiveVcxCompilationDatabaseTests
         generator.ClearReceivedCalls();
     }
 
-    private void VerifyRequiresSynchronousBackgroundExecution(int count)
+    private void VerifyRequiresSynchronousBackgroundExecution()
     {
-        threadHandling.Received(count).ThrowIfOnUIThread();
-        asyncLockFactory.Create().Received(count).Acquire();
+        threadHandling.Received(1).ThrowIfOnUIThread();
+        asyncLockFactory.Create().Received(1).Acquire();
     }
 
-    private void VerifyRequiresAsynchronousBackgroundExecution<T>(int count)
+    private void VerifyRequiresAsynchronousBackgroundExecution<T>()
     {
-        threadHandling.Received(count).RunOnBackgroundThread(Arg.Any<Func<Task<T>>>());
-        asyncLock.Received(count).AcquireAsync();
+        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<T>>>());
+        asyncLock.Received(1).AcquireAsync();
     }
 }

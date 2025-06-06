@@ -109,8 +109,7 @@ public class VcxDocumentEventsHandlerTests
 
         documentTracker.OpenDocumentRenamed += Raise.EventWith(documentTracker, args);
 
-        vcxCompilationDatabaseUpdater.Received(1).RemoveFileAsync(CFamilyOldFile);
-        vcxCompilationDatabaseUpdater.Received(1).AddFileAsync(CFamilyDocument.FullPath);
+        vcxCompilationDatabaseUpdater.Received(1).RenameFileAsync(CFamilyOldFile, CFamilyDocument.FullPath);
     }
 
     [TestMethod]
@@ -150,8 +149,7 @@ public class VcxDocumentEventsHandlerTests
 
         documentTracker.OpenDocumentRenamed += Raise.EventWith(documentTracker, args);
 
-        vcxCompilationDatabaseUpdater.DidNotReceive().RemoveFileAsync(Arg.Any<string>());
-        vcxCompilationDatabaseUpdater.DidNotReceive().AddFileAsync(Arg.Any<string>());
+        vcxCompilationDatabaseUpdater.DidNotReceiveWithAnyArgs().RenameFileAsync(default, default);
     }
 
     [TestMethod]

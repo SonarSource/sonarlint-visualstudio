@@ -71,13 +71,7 @@ public sealed class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
     {
         if (args.Document.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
         {
-            ReplaceFileAsync().Forget();
-        }
-
-        async Task ReplaceFileAsync()
-        {
-            await vcxCompilationDatabaseUpdater.RemoveFileAsync(args.OldFilePath);
-            await vcxCompilationDatabaseUpdater.AddFileAsync(args.Document.FullPath);
+            vcxCompilationDatabaseUpdater.RenameFileAsync(args.OldFilePath, args.Document.FullPath).Forget();
         }
     }
 
