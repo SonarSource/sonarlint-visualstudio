@@ -90,15 +90,7 @@ internal sealed class ActiveVcxCompilationDatabase(
 
             using (await asyncLock.AcquireAsync())
             {
-                CompilationDatabaseEntry compilationDatabaseEntry = null;
-                await threadHandling.RunOnUIThreadAsync(() => compilationDatabaseEntry = generator.CreateOrNull(filePath));
-
-                if (compilationDatabaseEntry is null)
-                {
-                    return;
-                }
-
-                storage.UpdateDatabaseEntry(EnsureDatabaseInitializedInternal(), compilationDatabaseEntry);
+                await HandleNewEntryAsync(filePath);
             }
         });
 
