@@ -37,12 +37,4 @@ public interface IBranchListener : ISLCoreListener
     /// <param name="parameters">Parameter's here for compability we discard it</param>
     /// <remarks>This will be implemented properly in the future when needed but features we support does not need branch awareness for now</remarks>
     Task DidChangeMatchedSonarProjectBranchAsync(object parameters);
-
-    /// <summary>
-    /// Used for checking whether a locally checked out branch matches a candidate branch name (not necessarily a Sonar branch).
-    /// For example, in "show fix suggestion" use-case, to match a local branch with a PR branch that originated a fix suggestion
-    /// </summary>
-    /// <param name="parameters">The remote branch details to match</param>
-    /// <returns>Is local branch matching the remote branch</returns>
-    Task<MatchProjectBranchResponse> MatchProjectBranchAsync(MatchProjectBranchParams parameters);
 }

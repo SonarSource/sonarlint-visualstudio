@@ -76,13 +76,5 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
 
             result.Should().Be(Task.CompletedTask);
         }
-
-        [TestMethod]
-        public async Task MatchProjectBranchAsync_ReturnsAlwaysTrue()
-        {
-            var response = await testSubject.MatchProjectBranchAsync(new MatchProjectBranchParams("my_config_scope_id", "the_branch_name"));
-
-            response.Should().BeEquivalentTo(new MatchProjectBranchResponse(true));
-        }
     }
 }
