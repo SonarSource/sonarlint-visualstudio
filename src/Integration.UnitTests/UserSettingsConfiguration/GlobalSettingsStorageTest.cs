@@ -81,8 +81,8 @@ public class GlobalSettingsStorageTest
                 Arg.Any<Func<IThreadHandling, Task>>());
             initializationProcessor.InitializeAsync();
             environmentVariableProvider.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            serializer.SafeSave(GlobalSettingsFilePath, Arg.Any<GlobalRawAnalysisSettings>());
             singleFileMonitorFactory.Create(GlobalSettingsFilePath);
+            serializer.SafeSave(GlobalSettingsFilePath, Arg.Any<GlobalRawAnalysisSettings>());
             fileMonitor.FileChanged += Arg.Any<EventHandler>();
             initializationProcessor.InitializeAsync();
         });

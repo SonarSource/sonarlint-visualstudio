@@ -103,8 +103,8 @@ internal sealed class GlobalSettingsStorage : IGlobalSettingsStorage
         var globalAnalysisSettingsFilePath = Path.GetFullPath(Path.Combine(appDataRoot, SettingsFileName));
         var generatedGlobalSettingsFolder = Path.Combine(appDataRoot, GeneratedGlobalSettingsFolderName);
         globalFilePaths = (globalAnalysisSettingsFilePath, generatedGlobalSettingsFolder);
-        EnsureSettingsFileExists();
         globalSettingsFileMonitor = fileMonitorFactory.Create(GlobalAnalysisSettingsFilePath);
+        EnsureSettingsFileExists();
         globalSettingsFileMonitor.FileChanged += OnFileChanged;
     }
 
