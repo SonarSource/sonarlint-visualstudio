@@ -125,7 +125,8 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             isFocusOnNewCode: false,
             constantsProvider.TelemetryConstants,
             telemetryMigrationProvider.Get(),
-            new LanguageSpecificRequirements(new JsTsRequirementsDto(nodeLocator.Get(), esLintBridgeLocator.Get()))));
+            new LanguageSpecificRequirements(new JsTsRequirementsDto(nodeLocator.Get(), esLintBridgeLocator.Get())),
+            automaticAnalysisEnabled: true));
 
         UpdateConfigurationScopeForCurrentSolutionAsync().Forget();
     }

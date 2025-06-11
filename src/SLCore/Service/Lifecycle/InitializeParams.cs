@@ -46,5 +46,6 @@ namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle
         bool isFocusOnNewCode,
         TelemetryClientConstantAttributesDto telemetryConstantAttributes,
         TelemetryMigrationDto? telemetryMigration,
-        LanguageSpecificRequirements? languageSpecificRequirements);
+        LanguageSpecificRequirements? languageSpecificRequirements,
+        bool automaticAnalysisEnabled);
 }
