@@ -23,6 +23,11 @@ using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.CFamily;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.SLCore;
+using SonarLint.VisualStudio.SLCore.Common.Models;
+using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Service.File;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
@@ -36,15 +41,28 @@ public sealed class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
 {
     private readonly IDocumentTracker documentTracker;
     private readonly IVcxCompilationDatabaseUpdater vcxCompilationDatabaseUpdater;
+    private readonly ISLCoreServiceProvider serviceProvider;
+    private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
+    private readonly IThreadHandling threadHandling;
+    private readonly ILogger logger;
+    private IFileRpcSLCoreService fileRpcSlCoreService;
     private bool disposed;
 
     [ImportingConstructor]
     public VcxDocumentEventsHandler(
         IDocumentTracker documentTracker,
-        IVcxCompilationDatabaseUpdater vcxCompilationDatabaseUpdater)
+        IVcxCompilationDatabaseUpdater vcxCompilationDatabaseUpdater,
+        ISLCoreServiceProvider serviceProvider,
+        IActiveConfigScopeTracker activeConfigScopeTracker,
+        IThreadHandling threadHandling,
+        ILogger logger)
     {
         this.documentTracker = documentTracker;
         this.vcxCompilationDatabaseUpdater = vcxCompilationDatabaseUpdater;
+        this.serviceProvider = serviceProvider;
+        this.activeConfigScopeTracker = activeConfigScopeTracker;
+        this.threadHandling = threadHandling;
+        this.logger = logger.ForContext(nameof(VcxDocumentEventsHandler));
         this.documentTracker.DocumentOpened += OnDocumentOpened;
         this.documentTracker.DocumentClosed += OnDocumentClosed;
         this.documentTracker.DocumentSaved += OnDocumentSaved;
@@ -73,6 +91,11 @@ public sealed class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
         {
             vcxCompilationDatabaseUpdater.RenameFileAsync(args.OldFilePath, args.Document.FullPath).Forget();
         }
+        threadHandling.RunOnBackgroundThread(() =>
+        {
+            NotifySlCoreFileClosed(args.OldFilePath);
+            NotifySlCoreFileOpened(args.Document.FullPath);
+        }).Forget();
     }
 
     private void OnDocumentClosed(object sender, DocumentEventArgs args)
@@ -81,9 +104,14 @@ public sealed class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
         {
             vcxCompilationDatabaseUpdater.RemoveFileAsync(args.Document.FullPath).Forget();
         }
+        threadHandling.RunOnBackgroundThread(() => NotifySlCoreFileClosed(args.Document.FullPath)).Forget();
     }
 
-    private void OnDocumentOpened(object sender, DocumentEventArgs args) => AddFileToCompilationDatabase(args.Document);
+    private void OnDocumentOpened(object sender, DocumentEventArgs args)
+    {
+        AddFileToCompilationDatabase(args.Document);
+        threadHandling.RunOnBackgroundThread(() => NotifySlCoreFileOpened(args.Document.FullPath)).Forget();
+    }
 
     /// <summary>
     /// Due to the fact that we can't react to project/file properties changes, regenerating the compilation database entry on file save is needed
@@ -97,5 +125,39 @@ public sealed class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
         {
             vcxCompilationDatabaseUpdater.AddFileAsync(document.FullPath).Forget();
         }
+    }
+
+    private void NotifySlCoreFileOpened(string filePath)
+    {
+        if (activeConfigScopeTracker.Current?.Id is null)
+        {
+            logger.WriteLine(SLCoreStrings.ConfigScopeNotInitialized);
+            return;
+        }
+        GetFileRpcSlCoreService()?.DidOpenFile(new DidOpenFileParams(activeConfigScopeTracker.Current.Id, new FileUri(filePath)));
+    }
+
+    private void NotifySlCoreFileClosed(string filePath)
+    {
+        if (activeConfigScopeTracker.Current?.Id is null)
+        {
+            logger.WriteLine(SLCoreStrings.ConfigScopeNotInitialized);
+            return;
+        }
+        GetFileRpcSlCoreService()?.DidCloseFile(new DidCloseFileParams(activeConfigScopeTracker.Current.Id, new FileUri(filePath)));
+    }
+
+    private IFileRpcSLCoreService GetFileRpcSlCoreService()
+    {
+        if (fileRpcSlCoreService != null)
+        {
+            return fileRpcSlCoreService;
+        }
+        if (!serviceProvider.TryGetTransientService(out IFileRpcSLCoreService service))
+        {
+            logger.WriteLine(SLCoreStrings.ServiceProviderNotInitialized);
+        }
+        fileRpcSlCoreService = service;
+        return fileRpcSlCoreService;
     }
 }
