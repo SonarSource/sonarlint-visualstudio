@@ -21,25 +21,10 @@
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Protocol;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Analysis;
+namespace SonarLint.VisualStudio.SLCore.Service.TaskProgress;
 
-[JsonRpcClass("analysis")]
-public interface IAnalysisSLCoreService : ISLCoreService
+[JsonRpcClass("taskProgress")]
+public interface ITaskProgressSLCoreService : ISLCoreService
 {
-    /// <summary>
-    /// Analyze and track issues in the provided files.
-    /// </summary>
-    Task<AnalyzeFilesResponse> AnalyzeFilesAndTrackAsync(AnalyzeFilesAndTrackParams parameters, CancellationToken token);
-
-    /// <summary>
-    /// Analyze all files in the provided list. User file exclusions and .gitignore will be respected.
-    /// </summary>
-    Task<ForceAnalyzeResponse> AnalyzeFileListAsync(AnalyzeFileListParams parameters);
-
-    /// <summary>
-    /// Analyze all files that were reported by the client as opened. User file exclusions and .gitignore will be respected.
-    /// </summary>
-    Task<ForceAnalyzeResponse> AnalyzeOpenFilesAsync(AnalyzeOpenFilesParams parameters);
-
-
+    void CancelTask(CancelTaskParams parameters);
 }
