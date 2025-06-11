@@ -43,11 +43,13 @@ internal sealed class BoundSolutionGitMonitor : IBoundSolutionGitMonitor
     /// for relevant changes
     /// </summary>
     internal /* for testing */ delegate IGitEvents GitEventFactory(string repoPathRoot);
+
     private static readonly GitEventFactory CreateGitEvents = repoRootPath => new GitEventsMonitor(repoRootPath);
 
     private readonly IGitWorkspaceService gitWorkspaceService;
     private readonly GitEventFactory createLocalGitMonitor;
     private readonly ILogger logger;
+    private readonly object lockObject = new();
 
     private IGitEvents currentRepoEvents;
     private bool disposed;
@@ -95,7 +97,6 @@ internal sealed class BoundSolutionGitMonitor : IBoundSolutionGitMonitor
         RefreshInternal();
     }
 
-
     private void OnHeadChanged(object sender, EventArgs e)
     {
         // Forward the notification that the local repo head has changed
@@ -112,19 +113,22 @@ internal sealed class BoundSolutionGitMonitor : IBoundSolutionGitMonitor
 
     private void RefreshInternal()
     {
-        CleanupLocalGitEventResources();
-
-        var rootPath = gitWorkspaceService.GetRepoRoot();
-
-        if (rootPath == null)
+        lock (lockObject)
         {
-            logger.LogVerbose(Resources.GitMonitor_NoRepo);
-        }
-        else
-        {
-            logger.LogVerbose(Resources.GitMonitor_MonitoringRepoStarted, rootPath);
-            currentRepoEvents = createLocalGitMonitor(rootPath);
-            currentRepoEvents.HeadChanged += OnHeadChanged;
+            CleanupLocalGitEventResources();
+
+            var rootPath = gitWorkspaceService.GetRepoRoot();
+
+            if (rootPath == null)
+            {
+                logger.LogVerbose(Resources.GitMonitor_NoRepo);
+            }
+            else
+            {
+                logger.LogVerbose(Resources.GitMonitor_MonitoringRepoStarted, rootPath);
+                currentRepoEvents = createLocalGitMonitor(rootPath);
+                currentRepoEvents.HeadChanged += OnHeadChanged;
+            }
         }
     }
 
