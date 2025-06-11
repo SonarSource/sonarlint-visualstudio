@@ -20,25 +20,32 @@
 
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Service.Analysis;
-using SonarLint.VisualStudio.SLCore.Service.Analysis.Models;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Analysis;
 
 [TestClass]
-public class ShouldUseEnterpriseCSharpAnalyzerParamsTests
+public class DidChangePathToCompileCommandsParamsTests
 {
     [TestMethod]
-    public void Serialize_AsExpected()
+    public void Serialize_WithPathToCompileCommands_AsExpected()
     {
-        var testSubject = new ShouldUseEnterpriseCSharpAnalyzerParams("CONFIGURATION_ID");
-        const string expectedString = """
-                                      {
-                                        "configurationScopeId": "CONFIGURATION_ID"
-                                      }
-                                      """;
+        const string expected = """{"configScopeId":"scope1","pathToCompileCommands":"C:/some/path/compile_commands.json"}""";
+        var testSubject = new DidChangePathToCompileCommandsParams("scope1", "C:/some/path/compile_commands.json");
 
-        var serializedString = JsonConvert.SerializeObject(testSubject, Formatting.Indented);
+        var serialized = JsonConvert.SerializeObject(testSubject);
 
-        serializedString.Should().Be(expectedString);
+        serialized.Should().Be(expected);
+    }
+
+    [TestMethod]
+    public void Serialize_WithNullPathToCompileCommands_AsExpected()
+    {
+        const string expected = """{"configScopeId":"scope2","pathToCompileCommands":null}""";
+        var testSubject = new DidChangePathToCompileCommandsParams("scope2", null);
+
+        var serialized = JsonConvert.SerializeObject(testSubject);
+
+        serialized.Should().Be(expected);
     }
 }
+

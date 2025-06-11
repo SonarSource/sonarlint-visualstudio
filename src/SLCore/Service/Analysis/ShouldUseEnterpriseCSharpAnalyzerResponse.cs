@@ -18,27 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Newtonsoft.Json;
-using SonarLint.VisualStudio.SLCore.Service.Analysis;
-using SonarLint.VisualStudio.SLCore.Service.Analysis.Models;
+namespace SonarLint.VisualStudio.SLCore.Service.Analysis;
 
-namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Analysis;
-
-[TestClass]
-public class ShouldUseEnterpriseCSharpAnalyzerParamsTests
-{
-    [TestMethod]
-    public void Serialize_AsExpected()
-    {
-        var testSubject = new ShouldUseEnterpriseCSharpAnalyzerParams("CONFIGURATION_ID");
-        const string expectedString = """
-                                      {
-                                        "configurationScopeId": "CONFIGURATION_ID"
-                                      }
-                                      """;
-
-        var serializedString = JsonConvert.SerializeObject(testSubject, Formatting.Indented);
-
-        serializedString.Should().Be(expectedString);
-    }
-}
+public record ShouldUseEnterpriseCSharpAnalyzerResponse(bool shouldUseEnterpriseAnalyzer);
