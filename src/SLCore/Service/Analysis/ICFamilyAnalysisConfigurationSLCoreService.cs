@@ -18,6 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.SLCore.Service.Analysis.Models;
+using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Protocol;
 
-public record ShouldUseEnterpriseCSharpAnalyzerParams(string configurationScopeId);
+namespace SonarLint.VisualStudio.SLCore.Service.Analysis;
+
+
+[JsonRpcClass("analysis")]
+public interface ICFamilyAnalysisConfigurationSLCoreService : ISLCoreService
+{
+    void DidChangePathToCompileCommands(DidChangePathToCompileCommandsParams parameters);
+}
