@@ -20,7 +20,6 @@
 
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Service.Analysis;
-using SonarLint.VisualStudio.SLCore.Service.Analysis.Models;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Analysis;
 
