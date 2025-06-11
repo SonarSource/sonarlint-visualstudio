@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Core;
 public class SLCoreServiceProviderTests
 {
     private InitializeParams defaultInitializeParams = new(default, default, default, default, default, default, default, default, default, default, default, default, default, default, default,
-        default, default, default);
+        default, default, default, default);
     private ISLCoreJsonRpc rpcMock;
     private ILifecycleManagementSLCoreService lifecycleManagementSlCoreService;
     private IThreadHandling threadHandling;
