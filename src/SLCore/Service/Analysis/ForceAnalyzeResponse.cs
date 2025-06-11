@@ -18,28 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
-
 namespace SonarLint.VisualStudio.SLCore.Service.Analysis;
 
-[JsonRpcClass("analysis")]
-public interface IAnalysisSLCoreService : ISLCoreService
-{
-    /// <summary>
-    /// Analyze and track issues in the provided files.
-    /// </summary>
-    Task<AnalyzeFilesResponse> AnalyzeFilesAndTrackAsync(AnalyzeFilesAndTrackParams parameters, CancellationToken token);
-
-    /// <summary>
-    /// Analyze all files in the provided list. User file exclusions and .gitignore will be respected.
-    /// </summary>
-    Task<ForceAnalyzeResponse> AnalyzeFileListAsync(AnalyzeFileListParams parameters);
-
-    /// <summary>
-    /// Analyze all files that were reported by the client as opened. User file exclusions and .gitignore will be respected.
-    /// </summary>
-    Task<ForceAnalyzeResponse> AnalyzeOpenFilesAsync(AnalyzeOpenFilesParams parameters);
-
-
-}
+public record ForceAnalyzeResponse(Guid? analysisId);
