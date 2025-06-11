@@ -45,22 +45,6 @@ public class BoundSolutionGitMonitorTests
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
     }
 
-    private BoundSolutionGitMonitor CreateUninitializedTestSubject(out TaskCompletionSource<byte> barrier)
-    {
-        var tcs = barrier = new TaskCompletionSource<byte>();
-        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<BoundSolutionGitMonitor>(threadHandling, logger, proc => MockableInitializationProcessor.ConfigureWithWait(proc, tcs));
-        return new BoundSolutionGitMonitor(gitWorkspaceService, logger, initializationProcessorFactory, factory);
-    }
-
-
-    private BoundSolutionGitMonitor CreateAndInitializeTestSubject()
-    {
-        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<BoundSolutionGitMonitor>(threadHandling, logger);
-        var testSubject = new BoundSolutionGitMonitor(gitWorkspaceService, logger, initializationProcessorFactory, factory);
-        testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
-        return testSubject;
-    }
-
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<BoundSolutionGitMonitor, IBoundSolutionGitMonitor>(
@@ -254,6 +238,23 @@ public class BoundSolutionGitMonitorTests
 
         gitWorkspaceService.DidNotReceive().GetRepoRoot();
         factory.DidNotReceiveWithAnyArgs().Invoke(default);
+    }
+
+
+    private BoundSolutionGitMonitor CreateUninitializedTestSubject(out TaskCompletionSource<byte> barrier)
+    {
+        var tcs = barrier = new TaskCompletionSource<byte>();
+        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<BoundSolutionGitMonitor>(threadHandling, logger, proc => MockableInitializationProcessor.ConfigureWithWait(proc, tcs));
+        return new BoundSolutionGitMonitor(gitWorkspaceService, logger, initializationProcessorFactory, factory);
+    }
+
+
+    private BoundSolutionGitMonitor CreateAndInitializeTestSubject()
+    {
+        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<BoundSolutionGitMonitor>(threadHandling, logger);
+        var testSubject = new BoundSolutionGitMonitor(gitWorkspaceService, logger, initializationProcessorFactory, factory);
+        testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
+        return testSubject;
     }
 
     private void SetUpGitWorkSpaceService(string repoPath)
