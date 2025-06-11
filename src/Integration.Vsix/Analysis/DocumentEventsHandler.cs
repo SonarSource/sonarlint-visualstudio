@@ -29,15 +29,15 @@ using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.File;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
+namespace SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
-public interface IVcxDocumentEventsHandler : IDisposable
+public interface IDocumentEventsHandler : IDisposable
 {
 }
 
-[Export(typeof(IVcxDocumentEventsHandler))]
+[Export(typeof(IDocumentEventsHandler))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public sealed class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
+public sealed class DocumentEventsHandler : IDocumentEventsHandler
 {
     private readonly IDocumentTracker documentTracker;
     private readonly IVcxCompilationDatabaseUpdater vcxCompilationDatabaseUpdater;
@@ -49,7 +49,7 @@ public sealed class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
     private bool disposed;
 
     [ImportingConstructor]
-    public VcxDocumentEventsHandler(
+    public DocumentEventsHandler(
         IDocumentTracker documentTracker,
         IVcxCompilationDatabaseUpdater vcxCompilationDatabaseUpdater,
         ISLCoreServiceProvider serviceProvider,
@@ -62,7 +62,7 @@ public sealed class VcxDocumentEventsHandler : IVcxDocumentEventsHandler
         this.serviceProvider = serviceProvider;
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.threadHandling = threadHandling;
-        this.logger = logger.ForContext(nameof(VcxDocumentEventsHandler));
+        this.logger = logger.ForContext(nameof(DocumentEventsHandler));
         this.documentTracker.DocumentOpened += OnDocumentOpened;
         this.documentTracker.DocumentClosed += OnDocumentClosed;
         this.documentTracker.DocumentSaved += OnDocumentSaved;

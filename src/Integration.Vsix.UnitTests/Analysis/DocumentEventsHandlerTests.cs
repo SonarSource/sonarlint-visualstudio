@@ -22,18 +22,18 @@ using SonarLint.VisualStudio.CFamily;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
+using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.File;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject;
+namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis;
 
 [TestClass]
-public class VcxDocumentEventsHandlerTests
+public class DocumentEventsHandlerTests
 {
-    private VcxDocumentEventsHandler testSubject;
+    private DocumentEventsHandler testSubject;
     private IDocumentTracker documentTracker;
     private IVcxCompilationDatabaseUpdater vcxCompilationDatabaseUpdater;
     private ISLCoreServiceProvider slCoreServiceProvider;
@@ -66,7 +66,7 @@ public class VcxDocumentEventsHandlerTests
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<VcxDocumentEventsHandler, IVcxDocumentEventsHandler>(
+        MefTestHelpers.CheckTypeCanBeImported<DocumentEventsHandler, IDocumentEventsHandler>(
             MefTestHelpers.CreateExport<IDocumentTracker>(),
             MefTestHelpers.CreateExport<IVcxCompilationDatabaseUpdater>(),
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
@@ -76,7 +76,7 @@ public class VcxDocumentEventsHandlerTests
         );
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<VcxDocumentEventsHandler>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<DocumentEventsHandler>();
 
     [TestMethod]
     public void Ctor_AddsAlreadyOpenedFilesToDb()
@@ -106,7 +106,7 @@ public class VcxDocumentEventsHandlerTests
     }
 
     [TestMethod]
-    public void Ctor_SetsContext() => logger.Received(1).ForContext(nameof(VcxDocumentEventsHandler));
+    public void Ctor_SetsContext() => logger.Received(1).ForContext(nameof(DocumentEventsHandler));
 
     [TestMethod]
     public void DocumentOpened_CFamily_AddFileToCompilationDbAndNotifiesSlCore()
@@ -335,7 +335,7 @@ public class VcxDocumentEventsHandlerTests
         documentTracker.Received(1).OpenDocumentRenamed -= Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
     }
 
-    private VcxDocumentEventsHandler CreateTestSubject() => new(documentTracker, vcxCompilationDatabaseUpdater, slCoreServiceProvider, activeConfigScopeTracker, threadHandling, logger);
+    private DocumentEventsHandler CreateTestSubject() => new(documentTracker, vcxCompilationDatabaseUpdater, slCoreServiceProvider, activeConfigScopeTracker, threadHandling, logger);
 
     private void ClearReceivedCalls()
     {
