@@ -85,33 +85,37 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
         documentTracker.OpenDocumentRenamed -= OnOpenDocumentRenamed;
     }
 
-    private void OnOpenDocumentRenamed(object sender, DocumentRenamedEventArgs args)
-    {
-        if (args.Document.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
+    private void OnOpenDocumentRenamed(object sender, DocumentRenamedEventArgs args) =>
+        threadHandling.RunOnBackgroundThread(async () =>
         {
-            vcxCompilationDatabaseUpdater.RenameFileAsync(args.OldFilePath, args.Document.FullPath).Forget();
-        }
-        threadHandling.RunOnBackgroundThread(() =>
+            if (args.Document.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
+            {
+                await vcxCompilationDatabaseUpdater.RenameFileAsync(args.OldFilePath, args.Document.FullPath);
+            }
+
+            var currentConfigurationScope = activeConfigScopeTracker.Current;
+            NotifySlCoreFileClosed(args.OldFilePath, currentConfigurationScope);
+            NotifySlCoreFileOpened(args.Document.FullPath, currentConfigurationScope);
+        }).Forget();
+
+    private void OnDocumentClosed(object sender, DocumentEventArgs args) =>
+        threadHandling.RunOnBackgroundThread(async () =>
         {
-            NotifySlCoreFileClosed(args.OldFilePath);
+            if (args.Document.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
+            {
+                await vcxCompilationDatabaseUpdater.RemoveFileAsync(args.Document.FullPath);
+            }
+
+            NotifySlCoreFileClosed(args.Document.FullPath);
+        }).Forget();
+
+    private void OnDocumentOpened(object sender, DocumentEventArgs args) =>
+        threadHandling.RunOnBackgroundThread(async () =>
+        {
+            await AddFileToCompilationDatabaseAsync(args.Document);
+
             NotifySlCoreFileOpened(args.Document.FullPath);
         }).Forget();
-    }
-
-    private void OnDocumentClosed(object sender, DocumentEventArgs args)
-    {
-        if (args.Document.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
-        {
-            vcxCompilationDatabaseUpdater.RemoveFileAsync(args.Document.FullPath).Forget();
-        }
-        threadHandling.RunOnBackgroundThread(() => NotifySlCoreFileClosed(args.Document.FullPath)).Forget();
-    }
-
-    private void OnDocumentOpened(object sender, DocumentEventArgs args)
-    {
-        AddFileToCompilationDatabase(args.Document);
-        threadHandling.RunOnBackgroundThread(() => NotifySlCoreFileOpened(args.Document.FullPath)).Forget();
-    }
 
     /// <summary>
     /// Due to the fact that we can't react to project/file properties changes, regenerating the compilation database entry on file save is needed
@@ -119,32 +123,32 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
     /// </summary>
     private void OnDocumentSaved(object sender, DocumentSavedEventArgs args) => AddFileToCompilationDatabase(args.Document);
 
-    private void AddFileToCompilationDatabase(Document document)
+    private void AddFileToCompilationDatabase(Document document) => AddFileToCompilationDatabaseAsync(document).Forget();
+
+    private async Task AddFileToCompilationDatabaseAsync(Document document)
     {
         if (document.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
         {
-            vcxCompilationDatabaseUpdater.AddFileAsync(document.FullPath).Forget();
+            await vcxCompilationDatabaseUpdater.AddFileAsync(document.FullPath);
         }
     }
 
-    private void NotifySlCoreFileOpened(string filePath)
+    private void NotifySlCoreFileOpened(string filePath, ConfigurationScope configScope = null)
     {
-        if (activeConfigScopeTracker.Current?.Id is null)
+        var currentConfigurationScope = configScope ?? activeConfigScopeTracker.Current;
+        if (VerifyConfigurationScopeInitialized(currentConfigurationScope))
         {
-            logger.WriteLine(SLCoreStrings.ConfigScopeNotInitialized);
-            return;
+            GetFileRpcSlCoreService()?.DidOpenFile(new DidOpenFileParams(currentConfigurationScope.Id, new FileUri(filePath)));
         }
-        GetFileRpcSlCoreService()?.DidOpenFile(new DidOpenFileParams(activeConfigScopeTracker.Current.Id, new FileUri(filePath)));
     }
 
-    private void NotifySlCoreFileClosed(string filePath)
+    private void NotifySlCoreFileClosed(string filePath, ConfigurationScope configScope = null)
     {
-        if (activeConfigScopeTracker.Current?.Id is null)
+        var currentConfigurationScope = configScope ?? activeConfigScopeTracker.Current;
+        if (VerifyConfigurationScopeInitialized(currentConfigurationScope))
         {
-            logger.WriteLine(SLCoreStrings.ConfigScopeNotInitialized);
-            return;
+            GetFileRpcSlCoreService()?.DidCloseFile(new DidCloseFileParams(currentConfigurationScope.Id, new FileUri(filePath)));
         }
-        GetFileRpcSlCoreService()?.DidCloseFile(new DidCloseFileParams(activeConfigScopeTracker.Current.Id, new FileUri(filePath)));
     }
 
     private IFileRpcSLCoreService GetFileRpcSlCoreService()
@@ -159,5 +163,17 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
         }
         fileRpcSlCoreService = service;
         return fileRpcSlCoreService;
+    }
+
+    private bool VerifyConfigurationScopeInitialized(ConfigurationScope currentConfigurationScope)
+    {
+        // if the RootPath is null, it means that the IListFilesListener was not yet invoked, so SlCore does not know about the files to be analyzed,
+        // so notifying about files opened/closed might lead to unexpected behavior
+        if (currentConfigurationScope?.Id is not null && currentConfigurationScope.RootPath is not null)
+        {
+            return true;
+        }
+        logger.WriteLine(SLCoreStrings.ConfigScopeNotInitialized);
+        return false;
     }
 }

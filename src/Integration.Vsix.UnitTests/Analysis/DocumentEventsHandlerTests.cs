@@ -47,7 +47,7 @@ public class DocumentEventsHandlerTests
     private const string NonCFamilyNewFile = "file:///tmp/SLVS/new.js";
     private static readonly Document CFamilyDocument = new(CFamilyNewFile, [AnalysisLanguage.CFamily]);
     private static readonly Document NonCFamilyDocument = new(NonCFamilyNewFile, [AnalysisLanguage.Javascript]);
-    private static readonly ConfigurationScope ConfigurationScope = new("test-scope-id");
+    private static readonly ConfigurationScope ConfigurationScope = new("test-scope-id", RootPath: "D:\\");
 
     [TestInitialize]
     public void TestInitialize()
@@ -202,8 +202,8 @@ public class DocumentEventsHandlerTests
 
         Received.InOrder(() =>
         {
-            vcxCompilationDatabaseUpdater.AddFileAsync(CFamilyDocument.FullPath);
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+            vcxCompilationDatabaseUpdater.AddFileAsync(CFamilyDocument.FullPath);
             _ = activeConfigScopeTracker.Current;
             fileRpcSlCoreService.DidOpenFile(Arg.Any<DidOpenFileParams>());
         });
@@ -218,8 +218,8 @@ public class DocumentEventsHandlerTests
 
         Received.InOrder(() =>
         {
-            vcxCompilationDatabaseUpdater.RemoveFileAsync(CFamilyDocument.FullPath);
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+            vcxCompilationDatabaseUpdater.RemoveFileAsync(CFamilyDocument.FullPath);
             _ = activeConfigScopeTracker.Current;
             fileRpcSlCoreService.DidCloseFile(Arg.Any<DidCloseFileParams>());
         });
@@ -234,8 +234,8 @@ public class DocumentEventsHandlerTests
 
         Received.InOrder(() =>
         {
-            vcxCompilationDatabaseUpdater.RenameFileAsync(CFamilyOldFile, CFamilyDocument.FullPath);
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+            vcxCompilationDatabaseUpdater.RenameFileAsync(CFamilyOldFile, CFamilyDocument.FullPath);
             _ = activeConfigScopeTracker.Current;
             fileRpcSlCoreService.DidCloseFile(Arg.Any<DidCloseFileParams>());
             fileRpcSlCoreService.DidOpenFile(Arg.Any<DidOpenFileParams>());
@@ -312,6 +312,46 @@ public class DocumentEventsHandlerTests
     public void OpenDocumentRenamed_CurrentConfigScopeIsNull_DoesNotNotifySlCoreAndLogs()
     {
         MockCurrentConfigScope(configurationScope: null);
+        var args = new DocumentRenamedEventArgs(CFamilyDocument, CFamilyOldFile);
+
+        documentTracker.OpenDocumentRenamed += Raise.EventWith(documentTracker, args);
+
+        vcxCompilationDatabaseUpdater.Received(1).RenameFileAsync(CFamilyOldFile, CFamilyDocument.FullPath);
+        fileRpcSlCoreService.DidNotReceiveWithAnyArgs().DidCloseFile(Arg.Any<DidCloseFileParams>());
+        fileRpcSlCoreService.DidNotReceiveWithAnyArgs().DidOpenFile(Arg.Any<DidOpenFileParams>());
+        logger.Received(2).WriteLine(SLCoreStrings.ConfigScopeNotInitialized);
+    }
+
+    [TestMethod]
+    public void DocumentOpened_CurrentConfigScopeIdRootNull_DoesNotNotifySlCoreAndLogs()
+    {
+        MockCurrentConfigScope(ConfigurationScope with { RootPath = null });
+        var args = new DocumentEventArgs(CFamilyDocument);
+
+        documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
+
+        vcxCompilationDatabaseUpdater.Received(1).AddFileAsync(CFamilyDocument.FullPath);
+        fileRpcSlCoreService.DidNotReceiveWithAnyArgs().DidOpenFile(Arg.Any<DidOpenFileParams>());
+        logger.Received(1).WriteLine(SLCoreStrings.ConfigScopeNotInitialized);
+    }
+
+    [TestMethod]
+    public void DocumentClosed_CurrentConfigScopeIdRootNull_DoesNotNotifySlCoreAndLogs()
+    {
+        MockCurrentConfigScope(ConfigurationScope with { RootPath = null });
+        var args = new DocumentEventArgs(CFamilyDocument);
+
+        documentTracker.DocumentClosed += Raise.EventWith(documentTracker, args);
+
+        vcxCompilationDatabaseUpdater.Received(1).RemoveFileAsync(CFamilyDocument.FullPath);
+        fileRpcSlCoreService.DidNotReceiveWithAnyArgs().DidCloseFile(Arg.Any<DidCloseFileParams>());
+        logger.Received(1).WriteLine(SLCoreStrings.ConfigScopeNotInitialized);
+    }
+
+    [TestMethod]
+    public void OpenDocumentRenamed_CurrentConfigScopeRootIsNull_DoesNotNotifySlCoreAndLogs()
+    {
+        MockCurrentConfigScope(ConfigurationScope with { RootPath = null });
         var args = new DocumentRenamedEventArgs(CFamilyDocument, CFamilyOldFile);
 
         documentTracker.OpenDocumentRenamed += Raise.EventWith(documentTracker, args);
