@@ -27,7 +27,7 @@ public interface IFindingsPublisher
     /// <summary>
     /// Handles analysis results
     /// </summary>
-    void Publish(string filePath, Guid? analysisId, IEnumerable<IAnalysisIssue> findings);
+    void Publish(string filePath, IEnumerable<IAnalysisIssue> findings);
 }
 
 public interface IIssuePublisher : IFindingsPublisher;

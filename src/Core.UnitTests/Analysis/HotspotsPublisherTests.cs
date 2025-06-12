@@ -52,7 +52,7 @@ public class HotspotPublisherTests
     {
         issueConsumerStorage.TryGet(default, out _).ReturnsForAnyArgs(false);
 
-        var act = () => testSubject.Publish("file/path", Guid.NewGuid(), Substitute.For<IEnumerable<IAnalysisIssue>>());
+        var act = () => testSubject.Publish("file/path", Substitute.For<IEnumerable<IAnalysisIssue>>());
 
         act.Should().NotThrow();
         issueConsumer.DidNotReceiveWithAnyArgs().SetIssues(default, default);
@@ -62,7 +62,6 @@ public class HotspotPublisherTests
     [TestMethod]
     public void PublishHotspots_MatchingConsumer_PublishesHotspots()
     {
-        var analysisId = Guid.NewGuid();
         var analysisIssues = Substitute.For<IEnumerable<IAnalysisIssue>>();
         issueConsumerStorage.TryGet("file/path", out Arg.Any<IIssueConsumer>())
             .Returns(info =>
@@ -71,24 +70,7 @@ public class HotspotPublisherTests
                 return true;
             });
 
-        testSubject.Publish("file/path", analysisId, analysisIssues);
-
-        issueConsumer.Received().SetHotspots("file/path", analysisIssues);
-        issueConsumer.DidNotReceiveWithAnyArgs().SetIssues(default, default);
-    }
-
-    [TestMethod]
-    public void PublishHotspots_AnalysisIdNull_PublishesHotspots()
-    {
-        var analysisIssues = Substitute.For<IEnumerable<IAnalysisIssue>>();
-        issueConsumerStorage.TryGet("file/path", out Arg.Any<IIssueConsumer>())
-            .Returns(info =>
-            {
-                info[1] = issueConsumer;
-                return true;
-            });
-
-        testSubject.Publish("file/path", analysisId: null, analysisIssues);
+        testSubject.Publish("file/path", analysisIssues);
 
         issueConsumer.Received().SetHotspots("file/path", analysisIssues);
         issueConsumer.DidNotReceiveWithAnyArgs().SetIssues(default, default);

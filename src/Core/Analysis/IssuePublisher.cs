@@ -29,7 +29,7 @@ internal class IssuePublisher(IIssueConsumerStorage issueConsumerStorage) : IIss
 {
     public string FindingsType => CoreStrings.FindingType_Issue;
 
-    public void Publish(string filePath, Guid? analysisId, IEnumerable<IAnalysisIssue> findings)
+    public void Publish(string filePath, IEnumerable<IAnalysisIssue> findings)
     {
         if (issueConsumerStorage.TryGet(filePath, out var issueConsumer))
         {
