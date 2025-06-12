@@ -56,6 +56,7 @@ public class SLCoreAnalyzerTests
         notifier = Substitute.For<IAnalysisStatusNotifier>();
         SetUpDefaultNotifier();
         logger = Substitute.For<ILogger>();
+        logger.ForContext(Arg.Any<string[]>()).Returns(logger);
         testSubject = new SLCoreAnalyzer(slCoreServiceProvider, activeConfigScopeTracker, analysisStatusNotifierFactory, logger);
 
         analysisService.AnalyzeFilesAndTrackAsync(default, default).ReturnsForAnyArgs(new AnalyzeFilesResponse(new HashSet<FileUri>(), []));
@@ -76,7 +77,7 @@ public class SLCoreAnalyzerTests
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SLCoreAnalyzer>();
 
     [TestMethod]
-    public void Ctor_LoggerSetsContext() => logger.Received(1).ForVerboseContext(nameof(SLCoreAnalyzer));
+    public void Ctor_LoggerSetsContext() => logger.Received(1).ForContext(nameof(SLCoreAnalyzer));
 
     [TestMethod]
     public async Task ExecuteAnalysis_CreatesNotifierAndStarts()
