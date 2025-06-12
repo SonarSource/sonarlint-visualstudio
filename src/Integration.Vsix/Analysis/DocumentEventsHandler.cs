@@ -106,7 +106,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
                 await vcxCompilationDatabaseUpdater.RemoveFileAsync(args.Document.FullPath);
             }
 
-            NotifySlCoreFileClosed(args.Document.FullPath);
+            NotifySlCoreFileClosed(args.Document.FullPath, activeConfigScopeTracker.Current);
         }).Forget();
 
     private void OnDocumentOpened(object sender, DocumentEventArgs args) =>
@@ -114,7 +114,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
         {
             await AddFileToCompilationDatabaseAsync(args.Document);
 
-            NotifySlCoreFileOpened(args.Document.FullPath);
+            NotifySlCoreFileOpened(args.Document.FullPath, activeConfigScopeTracker.Current);
         }).Forget();
 
     /// <summary>
@@ -142,9 +142,8 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
         }
     }
 
-    private void NotifySlCoreFileClosed(string filePath, ConfigurationScope configScope = null)
+    private void NotifySlCoreFileClosed(string filePath, ConfigurationScope currentConfigurationScope)
     {
-        var currentConfigurationScope = configScope ?? activeConfigScopeTracker.Current;
         if (VerifyConfigurationScopeInitialized(currentConfigurationScope))
         {
             GetFileRpcSlCoreService()?.DidCloseFile(new DidCloseFileParams(currentConfigurationScope.Id, new FileUri(filePath)));
