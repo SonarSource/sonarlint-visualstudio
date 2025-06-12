@@ -38,7 +38,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Analysis
             controller.ExecuteAnalysis("c:\\file.cpp", Guid.NewGuid(),
                 new[] { AnalysisLanguage.CFamily, AnalysisLanguage.Javascript }, null, CancellationToken.None);
 
-
             analyzer.RequestAnalysisCalled.Should().BeTrue();
         }
 
@@ -63,7 +62,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Analysis
             disposableMock.Verify(x => x.Dispose(), Times.Once);
         }
 
-        private static AnalyzerController CreateTestSubject(IAnalyzer analyzer,
+        private static AnalyzerController CreateTestSubject(
+            IAnalyzer analyzer,
             IAnalysisConfigMonitor analysisConfigMonitor = null) =>
             new(analysisConfigMonitor, analyzer, Mock.Of<ILogger>());
 
@@ -71,13 +71,18 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Analysis
         {
             public bool RequestAnalysisCalled { get; private set; }
 
-            public void ExecuteAnalysis(string path, Guid analysisId, IEnumerable<AnalysisLanguage> detectedLanguages, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
+            // TODO by https://sonarsource.atlassian.net/browse/SLVS-2047 Class will be completely dropped
+            public Task<Guid?> ExecuteAnalysis(List<string> path)
             {
-                detectedLanguages.Should().NotBeNull();
-                detectedLanguages.Any().Should().BeTrue();
-
                 RequestAnalysisCalled = true;
+                return Task.FromResult<Guid?>(Guid.NewGuid());
             }
+
+            // TODO by https://sonarsource.atlassian.net/browse/SLVS-2047 Class will be completely dropped
+            public Task<Guid?> ExecuteAnalysisForOpenedFiles() => throw new NotImplementedException();
+
+            // TODO by https://sonarsource.atlassian.net/browse/SLVS-2047 Class will be completely dropped
+            public void CancelAnalysis(Guid analysisId) => throw new NotImplementedException();
         }
     }
 }

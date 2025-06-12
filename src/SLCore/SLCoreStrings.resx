@@ -252,4 +252,7 @@
   <data name="SLCoreAnalysisConfigurationLogContext" xml:space="preserve">
     <value>Analysis Configuration</value>
   </data>
+  <data name="AnalysisCancelled" xml:space="preserve">
+    <value>Analysis with id {0} has been cancelled.</value>
+  </data>
 </root>
