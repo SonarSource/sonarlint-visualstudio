@@ -58,7 +58,7 @@ public class AnalysisServiceTests
         Received.InOrder(() =>
         {
            scheduler.Schedule("file/path", Arg.Any<Action<CancellationToken>>(), Arg.Any<int>());
-           issueConsumerStorage.Set("file/path", analysisId, issueConsumer);
+           issueConsumerStorage.Set("file/path", issueConsumer);
            analyzerController.ExecuteAnalysis("file/path", analysisId, detectedLanguages, analyzerOptions, Arg.Any<CancellationToken>());
         });
     }
@@ -74,7 +74,7 @@ public class AnalysisServiceTests
         testSubject.ScheduleAnalysis("file/path", default, default, default, default);
 
         scheduler.Received().Schedule("file/path", Arg.Any<Action<CancellationToken>>(), Arg.Any<int>());
-        issueConsumerStorage.DidNotReceiveWithAnyArgs().Set(default, default, default);
+        issueConsumerStorage.DidNotReceiveWithAnyArgs().Set(default, default);
         analyzerController.DidNotReceiveWithAnyArgs().ExecuteAnalysis(default, default, default, default, default);
     }
 
@@ -155,7 +155,7 @@ public class AnalysisServiceTests
     private static IIssueConsumerStorage CreateIssueConsumerStorageWithStoredItem(Guid analysisId, IIssueConsumer issueConsumer, bool result)
     {
         var issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
-        issueConsumerStorage.TryGet("file/path", out Arg.Any<Guid>(), out Arg.Any<IIssueConsumer>()).Returns(info =>
+        issueConsumerStorage.TryGet("file/path", out Arg.Any<IIssueConsumer>()).Returns(info =>
         {
             info[1] = analysisId;
             info[2] = issueConsumer;

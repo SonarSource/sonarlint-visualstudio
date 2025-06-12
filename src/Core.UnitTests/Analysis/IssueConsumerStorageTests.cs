@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Analysis
         {
             var testSubject = CreateTestSubject();
 
-            testSubject.internalStorage.Add("Key", (Guid.NewGuid(), Substitute.For<IIssueConsumer>()));
+            testSubject.internalStorage.Add("Key", Substitute.For<IIssueConsumer>());
 
             testSubject.Remove("Key");
 
@@ -55,8 +55,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Analysis
         {
             var testSubject = CreateTestSubject();
 
-            testSubject.internalStorage.Add("Key1", (Guid.NewGuid(), Substitute.For<IIssueConsumer>()));
-            testSubject.internalStorage.Add("Key2", (Guid.NewGuid(), Substitute.For<IIssueConsumer>()));
+            testSubject.internalStorage.Add("Key1", Substitute.For<IIssueConsumer>());
+            testSubject.internalStorage.Add("Key2", Substitute.For<IIssueConsumer>());
 
             testSubject.Remove("Key2");
 
@@ -79,17 +79,15 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Analysis
         {
             var testSubject = CreateTestSubject();
 
-            testSubject.internalStorage.Add("Key1", (Guid.NewGuid(), Substitute.For<IIssueConsumer>()));
+            testSubject.internalStorage.Add("Key1", Substitute.For<IIssueConsumer>());
 
-            var guid = Guid.NewGuid();
             var consumer = Substitute.For<IIssueConsumer>();
 
-            testSubject.Set("Key2", guid, consumer);
+            testSubject.Set("Key2", consumer);
 
             testSubject.internalStorage.Should().HaveCount(2);
             testSubject.internalStorage.ContainsKey("Key2").Should().BeTrue();
-            testSubject.internalStorage["Key2"].analysisID.Should().Be(guid);
-            testSubject.internalStorage["Key2"].consumer.Should().Be(consumer);
+            testSubject.internalStorage["Key2"].Should().Be(consumer);
         }
 
         [TestMethod]
@@ -97,18 +95,16 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Analysis
         {
             var testSubject = CreateTestSubject();
 
-            testSubject.internalStorage.Add("Key1", (Guid.NewGuid(), Substitute.For<IIssueConsumer>()));
-            testSubject.internalStorage.Add("Key2", (Guid.NewGuid(), Substitute.For<IIssueConsumer>()));
+            testSubject.internalStorage.Add("Key1", Substitute.For<IIssueConsumer>());
+            testSubject.internalStorage.Add("Key2", Substitute.For<IIssueConsumer>());
 
-            var guid = Guid.NewGuid();
             var consumer = Substitute.For<IIssueConsumer>();
 
-            testSubject.Set("Key2", guid, consumer);
+            testSubject.Set("Key2", consumer);
 
             testSubject.internalStorage.Should().HaveCount(2);
             testSubject.internalStorage.ContainsKey("Key2").Should().BeTrue();
-            testSubject.internalStorage["Key2"].analysisID.Should().Be(guid);
-            testSubject.internalStorage["Key2"].consumer.Should().Be(consumer);
+            testSubject.internalStorage["Key2"].Should().Be(consumer);
         }
 
         [TestMethod]
@@ -119,12 +115,11 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Analysis
             var guid = Guid.NewGuid();
             var consumer = Substitute.For<IIssueConsumer>();
 
-            testSubject.internalStorage.Add("Key", (guid, consumer));
+            testSubject.internalStorage.Add("Key", consumer);
 
-            var result = testSubject.TryGet("Key", out var outGuid, out var outConsumer);
+            var result = testSubject.TryGet("Key", out var outConsumer);
 
             result.Should().BeTrue();
-            outGuid.Should().Be(guid);
             outConsumer.Should().Be(consumer);
         }
 
@@ -133,10 +128,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Analysis
         {
             var testSubject = CreateTestSubject();
 
-            var result = testSubject.TryGet("Key", out var outGuid, out var outConsumer);
+            var result = testSubject.TryGet("Key", out var outConsumer);
 
             result.Should().BeFalse();
-            outGuid.Should().BeEmpty();
             outConsumer.Should().BeNull();
         }
 
