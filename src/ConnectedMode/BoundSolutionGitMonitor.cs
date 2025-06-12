@@ -113,11 +113,11 @@ internal sealed class BoundSolutionGitMonitor : IBoundSolutionGitMonitor
 
     private void RefreshInternal()
     {
+        var rootPath = gitWorkspaceService.GetRepoRoot();
+
         lock (lockObject)
         {
             CleanupLocalGitEventResources();
-
-            var rootPath = gitWorkspaceService.GetRepoRoot();
 
             if (rootPath == null)
             {
