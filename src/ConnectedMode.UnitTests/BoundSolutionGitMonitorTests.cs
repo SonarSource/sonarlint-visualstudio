@@ -21,6 +21,7 @@
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.TestInfrastructure;
+using static SonarLint.VisualStudio.ConnectedMode.BoundSolutionGitMonitor;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests;
 
@@ -28,7 +29,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests;
 public class BoundSolutionGitMonitorTests
 {
     private IGitWorkspaceService gitWorkspaceService;
-    private BoundSolutionGitMonitor.GitEventFactory factory;
+    private GitEventFactory factory;
     private IGitEvents gitEvents;
     private TestLogger logger;
     private IThreadHandling threadHandling;
@@ -39,7 +40,7 @@ public class BoundSolutionGitMonitorTests
     {
         gitEvents = Substitute.For<IGitEvents>();
         gitWorkspaceService = Substitute.For<IGitWorkspaceService>();
-        factory = Substitute.For<BoundSolutionGitMonitor.GitEventFactory>();
+        factory = Substitute.For<GitEventFactory>();
         factory.Invoke(Arg.Any<string>()).Returns(gitEvents);
         logger = Substitute.ForPartsOf<TestLogger>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
@@ -53,8 +54,7 @@ public class BoundSolutionGitMonitorTests
             MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() =>
-        MefTestHelpers.CheckIsSingletonMefComponent<BoundSolutionGitMonitor>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<BoundSolutionGitMonitor>();
 
     [TestMethod]
     public void Initialize_NoRepo_FactoryNotCalledAndNoError()
@@ -98,7 +98,7 @@ public class BoundSolutionGitMonitorTests
         var originalEventsMonitor = Substitute.For<IGitEvents>();
         var newEventsMonitor = Substitute.For<IGitEvents>();
 
-       factory = path =>
+        factory = path =>
         {
             if (path != originalPath && path != newPath)
             {
@@ -130,6 +130,21 @@ public class BoundSolutionGitMonitorTests
 
         newEventsMonitor.HeadChanged += Raise.Event();
         counter.Should().Be(2);
+    }
+
+    [TestMethod]
+    public void Refresh_RootPathIsNull_DisposesPreviousGitEvents()
+    {
+        SetUpGitWorkSpaceService("original path");
+        var originalEventsMonitor = Substitute.For<IGitEvents>();
+        factory = _ => originalEventsMonitor;
+        var testSubject = CreateAndInitializeTestSubject();
+        SetUpGitWorkSpaceService(null);
+
+        testSubject.Refresh();
+
+        originalEventsMonitor.Received(1).HeadChanged -= Arg.Any<EventHandler>();
+        originalEventsMonitor.Received(1).Dispose();
     }
 
     [TestMethod]
@@ -240,14 +255,13 @@ public class BoundSolutionGitMonitorTests
         factory.DidNotReceiveWithAnyArgs().Invoke(default);
     }
 
-
     private BoundSolutionGitMonitor CreateUninitializedTestSubject(out TaskCompletionSource<byte> barrier)
     {
         var tcs = barrier = new TaskCompletionSource<byte>();
-        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<BoundSolutionGitMonitor>(threadHandling, logger, proc => MockableInitializationProcessor.ConfigureWithWait(proc, tcs));
+        initializationProcessorFactory
+            = MockableInitializationProcessor.CreateFactory<BoundSolutionGitMonitor>(threadHandling, logger, proc => MockableInitializationProcessor.ConfigureWithWait(proc, tcs));
         return new BoundSolutionGitMonitor(gitWorkspaceService, logger, initializationProcessorFactory, factory);
     }
-
 
     private BoundSolutionGitMonitor CreateAndInitializeTestSubject()
     {

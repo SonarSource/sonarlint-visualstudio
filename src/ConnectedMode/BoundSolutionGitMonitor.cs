@@ -113,6 +113,7 @@ internal sealed class BoundSolutionGitMonitor : IBoundSolutionGitMonitor
 
     private void RefreshInternal()
     {
+        UpdateCurrentRepoEvents(null);
         var rootPath = gitWorkspaceService.GetRepoRoot();
 
         if (rootPath == null)
