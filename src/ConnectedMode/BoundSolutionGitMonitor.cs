@@ -115,34 +115,35 @@ internal sealed class BoundSolutionGitMonitor : IBoundSolutionGitMonitor
     {
         var rootPath = gitWorkspaceService.GetRepoRoot();
 
-        lock (lockObject)
+        if (rootPath == null)
         {
-            CleanupLocalGitEventResources();
-
-            if (rootPath == null)
-            {
-                logger.LogVerbose(Resources.GitMonitor_NoRepo);
-            }
-            else
-            {
-                logger.LogVerbose(Resources.GitMonitor_MonitoringRepoStarted, rootPath);
-                currentRepoEvents = createLocalGitMonitor(rootPath);
-                currentRepoEvents.HeadChanged += OnHeadChanged;
-            }
+            logger.LogVerbose(Resources.GitMonitor_NoRepo);
+        }
+        else
+        {
+            logger.LogVerbose(Resources.GitMonitor_MonitoringRepoStarted, rootPath);
+            UpdateCurrentRepoEvents(createLocalGitMonitor(rootPath));
         }
     }
 
-    private void CleanupLocalGitEventResources()
+    private void UpdateCurrentRepoEvents(IGitEvents value)
     {
-        if (currentRepoEvents == null)
+        lock (lockObject)
         {
-            return;
-        }
+            if (currentRepoEvents != null)
+            {
+                logger.LogVerbose(Resources.GitMonitor_MonitoringRepoStopped);
+                currentRepoEvents.HeadChanged -= OnHeadChanged;
+                currentRepoEvents.Dispose();
+            }
 
-        logger.LogVerbose(Resources.GitMonitor_MonitoringRepoStopped);
-        currentRepoEvents.HeadChanged -= OnHeadChanged;
-        currentRepoEvents.Dispose();
-        currentRepoEvents = null;
+            currentRepoEvents = value;
+
+            if (currentRepoEvents != null)
+            {
+                currentRepoEvents.HeadChanged += OnHeadChanged;
+            }
+        }
     }
 
     public void Dispose()
@@ -152,7 +153,7 @@ internal sealed class BoundSolutionGitMonitor : IBoundSolutionGitMonitor
             return;
         }
 
-        CleanupLocalGitEventResources();
+        UpdateCurrentRepoEvents(null);
         disposed = true;
     }
 }
