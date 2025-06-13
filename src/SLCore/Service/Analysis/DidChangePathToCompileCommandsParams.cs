@@ -20,4 +20,4 @@
 
 namespace SonarLint.VisualStudio.SLCore.Service.Analysis;
 
-public record DidChangePathToCompileCommandsParams(string configScopeId, string? pathToCompileCommands);
+public record DidChangePathToCompileCommandsParams(string configurationScopeId, string? pathToCompileCommands);
