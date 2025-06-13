@@ -129,6 +129,34 @@ public class VsAwareAnalysisServiceTests
         analysisService.Received(1).ScheduleAnalysis(AnalysisFilePath);
     }
 
+    [TestMethod]
+    public async Task CreateIssueConsumerAsync_ProjectInformationReturned_CreatesIssueConsumerCorrectly()
+    {
+        var document = CreateDefaultDocument();
+        MockDefaultIssueConsumerFactory(document);
+        MockGetDocumentProjectInfo(projectInfo);
+
+        await testSubject.CreateIssueConsumerAsync(document, new AnalysisSnapshot(AnalysisFilePath, analysisTextSnapshot), errorListHandler);
+
+        await vsProjectInfoProvider.Received(1).GetDocumentProjectInfoAsync(AnalysisFilePath);
+        issueConsumerFactory.Received(1).Create(document, AnalysisFilePath, analysisTextSnapshot, projectInfo.projectName, projectInfo.projectGuid, errorListHandler);
+        issueConsumerStorage.Received(1).Set(AnalysisFilePath, issueConsumer);
+    }
+
+    [TestMethod]
+    public async Task CreateIssueConsumerAsync_NoProjectInformation_CreatesIssueConsumerCorrectly()
+    {
+        var document = CreateDefaultDocument();
+        MockDefaultIssueConsumerFactory(document);
+        MockGetDocumentProjectInfo(default);
+
+        await testSubject.CreateIssueConsumerAsync(document, new AnalysisSnapshot(AnalysisFilePath, analysisTextSnapshot), errorListHandler);
+
+        await vsProjectInfoProvider.Received(1).GetDocumentProjectInfoAsync(AnalysisFilePath);
+        issueConsumerFactory.Received(1).Create(document, AnalysisFilePath, analysisTextSnapshot, default, Guid.Empty, errorListHandler);
+        issueConsumerStorage.Received(1).Set(AnalysisFilePath, issueConsumer);
+    }
+
     private static IThreadHandling CreateDefaultThreadHandling()
     {
         var mockThreadHandling = Substitute.For<IThreadHandling>();

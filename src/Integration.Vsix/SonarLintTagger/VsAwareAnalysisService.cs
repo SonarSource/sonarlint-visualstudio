@@ -37,6 +37,8 @@ internal interface IVsAwareAnalysisService
         SnapshotChangedHandler errorListHandler);
 
     void CancelForFile(string filePath);
+
+    Task<IIssueConsumer> CreateIssueConsumerAsync(ITextDocument document, AnalysisSnapshot analysisSnapshot, SnapshotChangedHandler errorListHandler);
 }
 
 [Export(typeof(IVsAwareAnalysisService))]
@@ -58,14 +60,17 @@ internal class VsAwareAnalysisService(
 
     public void CancelForFile(string filePath) => issueConsumerStorage.Remove(filePath);
 
-    private async Task RequestAnalysisAsync(
-        ITextDocument document,
-        AnalysisSnapshot analysisSnapshot,
-        SnapshotChangedHandler errorListHandler)
+    public async Task<IIssueConsumer> CreateIssueConsumerAsync(ITextDocument document, AnalysisSnapshot analysisSnapshot, SnapshotChangedHandler errorListHandler)
     {
         var (projectName, projectGuid) = await vsProjectInfoProvider.GetDocumentProjectInfoAsync(analysisSnapshot.FilePath);
         var issueConsumer = issueConsumerFactory.Create(document, analysisSnapshot.FilePath, analysisSnapshot.TextSnapshot, projectName, projectGuid, errorListHandler);
         issueConsumerStorage.Set(analysisSnapshot.FilePath, issueConsumer);
+        return issueConsumer;
+    }
+
+    private async Task RequestAnalysisAsync(ITextDocument document, AnalysisSnapshot analysisSnapshot, SnapshotChangedHandler errorListHandler)
+    {
+        var issueConsumer = await CreateIssueConsumerAsync(document, analysisSnapshot, errorListHandler);
 
         await ScheduleAnalysisOnBackgroundThreadAsync(analysisSnapshot.FilePath, issueConsumer);
     }
