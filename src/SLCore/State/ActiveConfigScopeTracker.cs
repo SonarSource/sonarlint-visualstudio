@@ -163,7 +163,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
         return true;
     }
 
-    public event EventHandler<CurrentConfigurationScopeChangedEventArgs>? CurrentConfigurationScopeChanged;
+    public event EventHandler<ConfigurationScopeChangedEventArgs>? CurrentConfigurationScopeChanged;
 
     public void Dispose()
     {

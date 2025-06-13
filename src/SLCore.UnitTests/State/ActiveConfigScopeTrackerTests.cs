@@ -39,7 +39,7 @@ public class ActiveConfigScopeTrackerTests
     private ISLCoreServiceProvider serviceProvider;
     private IAsyncLockFactory asyncLockFactory;
     private IThreadHandling threadHandling;
-    private EventHandler<CurrentConfigurationScopeChangedEventArgs> currentConfigScopeChangedEventHandler;
+    private EventHandler<ConfigurationScopeChangedEventArgs> currentConfigScopeChangedEventHandler;
 
     [TestInitialize]
     public void TestInitialize()
@@ -52,7 +52,7 @@ public class ActiveConfigScopeTrackerTests
         threadHandling = Substitute.For<IThreadHandling>();
         ConfigureServiceProvider(isServiceAvailable:true);
         ConfigureAsyncLockFactory();
-        currentConfigScopeChangedEventHandler = Substitute.For<EventHandler<CurrentConfigurationScopeChangedEventArgs>>();
+        currentConfigScopeChangedEventHandler = Substitute.For<EventHandler<ConfigurationScopeChangedEventArgs>>();
 
         testSubject = new ActiveConfigScopeTracker(serviceProvider, asyncLockFactory, threadHandling);
         testSubject.CurrentConfigurationScopeChanged += currentConfigScopeChangedEventHandler;
@@ -352,14 +352,14 @@ public class ActiveConfigScopeTrackerTests
         });
     }
 
-    private void VerifyCurrentConfigurationScopeChangedRaised(bool declarationChanged)
+    private void VerifyCurrentConfigurationScopeChangedRaised(bool definitionChanged)
     {
-        currentConfigScopeChangedEventHandler.Received(1).Invoke(testSubject, Arg.Is<CurrentConfigurationScopeChangedEventArgs>(x => x.DeclarationChanged == declarationChanged));
+        currentConfigScopeChangedEventHandler.Received(1).Invoke(testSubject, Arg.Is<ConfigurationScopeChangedEventArgs>(x => x.DefinitionChanged == definitionChanged));
     }
 
     private void VerifyCurrentConfigurationScopeChangedNotRaised()
     {
-        currentConfigScopeChangedEventHandler.DidNotReceive().Invoke(testSubject, Arg.Any<CurrentConfigurationScopeChangedEventArgs>());
+        currentConfigScopeChangedEventHandler.DidNotReceive().Invoke(testSubject, Arg.Any<ConfigurationScopeChangedEventArgs>());
     }
 
     private class ConfigurationScopeDtoComparer : IEqualityComparer<ConfigurationScopeDto>
