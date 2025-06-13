@@ -28,11 +28,7 @@ public interface IAnalysisService
     /// <summary>
     /// Starts analysis for <paramref name="filePath"/>
     /// </summary>
-    void ScheduleAnalysis(string filePath,
-        Guid analysisId,
-        IEnumerable<AnalysisLanguage> detectedLanguages,
-        IIssueConsumer issueConsumer,
-        IAnalyzerOptions analyzerOptions);
+    void ScheduleAnalysis(string filePath, IIssueConsumer issueConsumer);
 
     /// <summary>
     /// Stops issue publishing for <paramref name="filePath"/> until the next <see cref="ScheduleAnalysis"/> is called
