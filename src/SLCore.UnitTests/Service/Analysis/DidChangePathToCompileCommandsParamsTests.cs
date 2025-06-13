@@ -29,7 +29,7 @@ public class DidChangePathToCompileCommandsParamsTests
     [TestMethod]
     public void Serialize_WithPathToCompileCommands_AsExpected()
     {
-        const string expected = """{"configScopeId":"scope1","pathToCompileCommands":"C:/some/path/compile_commands.json"}""";
+        const string expected = """{"configurationScopeId":"scope1","pathToCompileCommands":"C:/some/path/compile_commands.json"}""";
         var testSubject = new DidChangePathToCompileCommandsParams("scope1", "C:/some/path/compile_commands.json");
 
         var serialized = JsonConvert.SerializeObject(testSubject);
@@ -40,7 +40,7 @@ public class DidChangePathToCompileCommandsParamsTests
     [TestMethod]
     public void Serialize_WithNullPathToCompileCommands_AsExpected()
     {
-        const string expected = """{"configScopeId":"scope2","pathToCompileCommands":null}""";
+        const string expected = """{"configurationScopeId":"scope2","pathToCompileCommands":null}""";
         var testSubject = new DidChangePathToCompileCommandsParams("scope2", null);
 
         var serialized = JsonConvert.SerializeObject(testSubject);
