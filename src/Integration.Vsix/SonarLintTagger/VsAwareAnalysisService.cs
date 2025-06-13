@@ -44,6 +44,7 @@ internal interface IVsAwareAnalysisService
 internal class VsAwareAnalysisService : IVsAwareAnalysisService
 {
     private readonly IIssueConsumerFactory issueConsumerFactory;
+    private readonly IIssueConsumerStorage issueConsumerStorage;
     private readonly IVsProjectInfoProvider vsProjectInfoProvider;
     private readonly IThreadHandling threadHandling;
     private readonly IAnalysisService analysisService;
@@ -52,10 +53,12 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
     public VsAwareAnalysisService(
         IVsProjectInfoProvider vsProjectInfoProvider,
         IIssueConsumerFactory issueConsumerFactory,
+        IIssueConsumerStorage issueConsumerStorage,
         IAnalysisService analysisService,
         IThreadHandling threadHandling)
     {
         this.issueConsumerFactory = issueConsumerFactory;
+        this.issueConsumerStorage = issueConsumerStorage;
         this.vsProjectInfoProvider = vsProjectInfoProvider;
         this.analysisService = analysisService;
         this.threadHandling = threadHandling;
@@ -67,7 +70,7 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
         SnapshotChangedHandler errorListHandler) =>
         RequestAnalysisAsync(document, analysisSnapshot, errorListHandler).Forget();
 
-    public void CancelForFile(string filePath) => analysisService.CancelForFile(filePath);
+    public void CancelForFile(string filePath) => issueConsumerStorage.Remove(filePath);
 
     private async Task RequestAnalysisAsync(
         ITextDocument document,
@@ -76,6 +79,7 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
     {
         var (projectName, projectGuid) = await vsProjectInfoProvider.GetDocumentProjectInfoAsync(analysisSnapshot.FilePath);
         var issueConsumer = issueConsumerFactory.Create(document, analysisSnapshot.FilePath, analysisSnapshot.TextSnapshot, projectName, projectGuid, errorListHandler);
+        issueConsumerStorage.Set(analysisSnapshot.FilePath, issueConsumer);
 
         await ScheduleAnalysisOnBackgroundThreadAsync(analysisSnapshot.FilePath, issueConsumer);
     }
@@ -86,7 +90,7 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
         {
             ClearErrorList(filePath, issueConsumer);
 
-            analysisService.ScheduleAnalysis(filePath, issueConsumer);
+            analysisService.ScheduleAnalysis(filePath);
         });
     }
 

@@ -29,42 +29,26 @@ internal class AnalysisService : IAnalysisService
     internal /* for testing */ const int DefaultAnalysisTimeoutMs = 60 * 1000;
 
     private readonly IAnalyzer analyzer;
-    private readonly IIssueConsumerStorage issueConsumerStorage;
     private readonly IScheduler scheduler;
 
     [ImportingConstructor]
-    internal AnalysisService(IAnalyzer analyzer, IIssueConsumerStorage issueConsumerStorage, IScheduler scheduler)
+    internal AnalysisService(IAnalyzer analyzer, IScheduler scheduler)
     {
         this.analyzer = analyzer;
-        this.issueConsumerStorage = issueConsumerStorage;
         this.scheduler = scheduler;
     }
 
-    public void ScheduleAnalysis(string filePath, IIssueConsumer issueConsumer)
+    public void ScheduleAnalysis(string filePath)
     {
         scheduler.Schedule(filePath,
             token =>
             {
                 if (!token.IsCancellationRequested)
                 {
-                    issueConsumerStorage.Set(filePath, issueConsumer);
                     analyzer.ExecuteAnalysis([filePath]);
                 }
             },
             GetAnalysisTimeoutInMilliseconds());
-    }
-
-    public void CancelForFile(string filePath)
-    {
-        scheduler.Schedule(filePath,
-            token =>
-            {
-                if (!token.IsCancellationRequested)
-                {
-                    issueConsumerStorage.Remove(filePath);
-                }
-            },
-            -1);
     }
 
     private static int GetAnalysisTimeoutInMilliseconds()
