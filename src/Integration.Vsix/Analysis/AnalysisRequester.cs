@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -41,16 +40,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         public event EventHandler<AnalysisRequestEventArgs> AnalysisRequested;
 
-        public void RequestAnalysis(IAnalyzerOptions analyzerOptions, params string[] filePaths)
+        public void RequestAnalysis(params string[] filePaths)
         {
             try
             {
-                var args = new AnalysisRequestEventArgs(analyzerOptions, filePaths);
+                var args = new AnalysisRequestEventArgs(filePaths);
                 AnalysisRequested?.Invoke(this, args);
             }
-            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Analysis.AnalysisStrings.Requester_Error, ex);
+                logger.WriteLine(AnalysisStrings.Requester_Error, ex);
             }
         }
 
