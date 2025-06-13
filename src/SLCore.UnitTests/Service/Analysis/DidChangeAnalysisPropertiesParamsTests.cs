@@ -29,7 +29,7 @@ public class DidChangeAnalysisPropertiesParamsTests
     [TestMethod]
     public void Serialized_AsExpected()
     {
-        const string expected = """{"configurationScopeId":"scope1","extraProperties":{"prop1":"val1","prop2":"val2"}}""";
+        const string expected = """{"configurationScopeId":"scope1","properties":{"prop1":"val1","prop2":"val2"}}""";
         var testSubject = new DidChangeAnalysisPropertiesParams("scope1", new Dictionary<string, string> {{"prop1", "val1"}, {"prop2", "val2"}});
 
         var serialized = JsonConvert.SerializeObject(testSubject);
@@ -40,7 +40,7 @@ public class DidChangeAnalysisPropertiesParamsTests
     [TestMethod]
     public void Serialized_NoProperties_AsExpected()
     {
-        const string expected = """{"configurationScopeId":"scope1","extraProperties":{}}""";
+        const string expected = """{"configurationScopeId":"scope1","properties":{}}""";
         var testSubject = new DidChangeAnalysisPropertiesParams("scope1", new Dictionary<string, string>());
 
         var serialized = JsonConvert.SerializeObject(testSubject);

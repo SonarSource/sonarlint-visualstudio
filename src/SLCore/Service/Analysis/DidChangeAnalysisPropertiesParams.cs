@@ -20,4 +20,4 @@
 
 namespace SonarLint.VisualStudio.SLCore.Service.Analysis;
 
-public record DidChangeAnalysisPropertiesParams(string configurationScopeId, IReadOnlyDictionary<string, string> extraProperties);
+public record DidChangeAnalysisPropertiesParams(string configurationScopeId, IReadOnlyDictionary<string, string> properties);
