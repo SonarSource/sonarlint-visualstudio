@@ -26,34 +26,38 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Analysis;
 [TestClass]
 public class AnalysisServiceTests
 {
-    [TestMethod]
-    public void MefCtor_CheckIsExported()
+    private IIssueConsumer issueConsumer;
+    private IScheduler scheduler;
+    private IAnalyzer analyzerController;
+    private IIssueConsumerStorage issueConsumerStorage;
+    private IAnalysisService testSubject;
+    private CancellationTokenSource cancellationTokenSource;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
-        MefTestHelpers.CheckTypeCanBeImported<AnalysisService, IAnalysisService>(
-            MefTestHelpers.CreateExport<IAnalyzerController>(),
-            MefTestHelpers.CreateExport<IIssueConsumerStorage>(),
-            MefTestHelpers.CreateExport<IScheduler>());
+        issueConsumer = Substitute.For<IIssueConsumer>();
+        analyzerController = Substitute.For<IAnalyzer>();
+        issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
+        MockScheduler();
+
+        testSubject = CreateTestSubject(analyzerController, issueConsumerStorage, scheduler);
     }
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton()
-    {
-        MefTestHelpers.CheckIsSingletonMefComponent<AnalysisService>();
-    }
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<AnalysisService, IAnalysisService>(
+            MefTestHelpers.CreateExport<IAnalyzer>(),
+            MefTestHelpers.CreateExport<IIssueConsumerStorage>(),
+            MefTestHelpers.CreateExport<IScheduler>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<AnalysisService>();
 
     [TestMethod]
     public void ScheduleAnalysis_AnalysisScheduler_CachesIssueConsumer_And_RunsAnalyzerController()
     {
-        var analysisId = Guid.NewGuid();
-        var detectedLanguages = Substitute.For<IEnumerable<AnalysisLanguage>>();
-        var issueConsumer = Substitute.For<IIssueConsumer>();
-        var analyzerOptions = Substitute.For<IAnalyzerOptions>();
-        var scheduler = CreateDefaultScheduler();
-        var analyzerController = Substitute.For<IAnalyzerController>();
-        var issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
-        var testSubject = CreateTestSubject(analyzerController, issueConsumerStorage, scheduler);
-
-        testSubject.ScheduleAnalysis("file/path", analysisId, detectedLanguages, issueConsumer, analyzerOptions);
+        testSubject.ScheduleAnalysis("file/path", issueConsumer);
 
         Received.InOrder(() =>
         {
@@ -66,12 +70,9 @@ public class AnalysisServiceTests
     [TestMethod]
     public void ScheduleAnalysis_JobCancelledBeforeStarting_DoesNotExecute()
     {
-        var scheduler = CreateDefaultScheduler(true);
-        var analyzerController = Substitute.For<IAnalyzerController>();
-        var issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
-        var testSubject = CreateTestSubject(analyzerController, issueConsumerStorage, scheduler);
+        cancellationTokenSource.Cancel();
 
-        testSubject.ScheduleAnalysis("file/path", default, default, default, default);
+        testSubject.ScheduleAnalysis("file/path", default);
 
         scheduler.Received().Schedule("file/path", Arg.Any<Action<CancellationToken>>(), Arg.Any<int>());
         issueConsumerStorage.DidNotReceiveWithAnyArgs().Set(default, default);
@@ -88,10 +89,8 @@ public class AnalysisServiceTests
         try
         {
             Environment.SetEnvironmentVariable(EnvironmentSettings.AnalysisTimeoutEnvVar, envSettingsResponse.ToString());
-            var scheduler = Substitute.For<IScheduler>();
-            var testSubject = CreateTestSubject(scheduler: scheduler);
 
-            testSubject.ScheduleAnalysis("file/path", default, default, default, default);
+            testSubject.ScheduleAnalysis("file/path", default);
 
             scheduler.Received().Schedule("file/path", Arg.Any<Action<CancellationToken>>(), expectedTimeout);
         }
@@ -104,10 +103,7 @@ public class AnalysisServiceTests
     [TestMethod]
     public void ScheduleAnalysis_NoEnvironmentSettings_DefaultTimeout()
     {
-        var scheduler = Substitute.For<IScheduler>();
-        var testSubject = CreateTestSubject(scheduler: scheduler);
-
-        testSubject.ScheduleAnalysis("file/path", default, default, default, default);
+        testSubject.ScheduleAnalysis("file/path", default);
 
         scheduler.Received().Schedule("file/path", Arg.Any<Action<CancellationToken>>(), AnalysisService.DefaultAnalysisTimeoutMs);
     }
@@ -115,9 +111,7 @@ public class AnalysisServiceTests
     [TestMethod]
     public void CancelForFile_JobCancelledBeforeStarting_DoesNotExecute()
     {
-        var issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
-        var scheduler = CreateDefaultScheduler(true);
-        var testSubject = CreateTestSubject(issueConsumerStorage: issueConsumerStorage, scheduler: scheduler);
+        cancellationTokenSource.Cancel();
 
         testSubject.CancelForFile("file/path");
 
@@ -128,10 +122,6 @@ public class AnalysisServiceTests
     [TestMethod]
     public void CancelForFile_RunsConsumerStorageClearAsScheduledJob()
     {
-        var issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
-        var scheduler = CreateDefaultScheduler();
-        var testSubject = CreateTestSubject(issueConsumerStorage: issueConsumerStorage, scheduler: scheduler);
-
         testSubject.CancelForFile("file/path");
 
         Received.InOrder(() =>
@@ -142,7 +132,7 @@ public class AnalysisServiceTests
     }
 
     private static IAnalysisService CreateTestSubject(
-        IAnalyzerController analyzerController = null,
+        IAnalyzer analyzerController = null,
         IIssueConsumerStorage issueConsumerStorage = null,
         IScheduler scheduler = null)
     {
@@ -152,28 +142,11 @@ public class AnalysisServiceTests
         return new AnalysisService(analyzerController, issueConsumerStorage, scheduler);
     }
 
-    private static IIssueConsumerStorage CreateIssueConsumerStorageWithStoredItem(Guid analysisId, IIssueConsumer issueConsumer, bool result)
+    private void MockScheduler()
     {
-        var issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
-        issueConsumerStorage.TryGet("file/path", out Arg.Any<IIssueConsumer>()).Returns(info =>
-        {
-            info[1] = analysisId;
-            info[2] = issueConsumer;
-            return result;
-        });
-        return issueConsumerStorage;
-    }
-
-    private static IScheduler CreateDefaultScheduler(bool createCancelled = false)
-    {
-        var cancellationTokenSource = new CancellationTokenSource();
-        if (createCancelled)
-        {
-            cancellationTokenSource.Cancel();
-        }
-        var scheduler = Substitute.For<IScheduler>();
+        scheduler = Substitute.For<IScheduler>();
+        cancellationTokenSource = new CancellationTokenSource();
         scheduler.When(x => x.Schedule(Arg.Any<string>(), Arg.Any<Action<CancellationToken>>(), Arg.Any<int>()))
             .Do(info => { info.Arg<Action<CancellationToken>>()(cancellationTokenSource.Token); });
-        return scheduler;
     }
 }

@@ -110,9 +110,7 @@ public class TextBufferIssueTrackerTests
     {
         mockAnalysisService.When(x => x.RequestAnalysis(Arg.Any<ITextDocument>(),
             Arg.Any<AnalysisSnapshot>(),
-            Arg.Any<IEnumerable<AnalysisLanguage>>(),
-            Arg.Any<SnapshotChangedHandler>(),
-            Arg.Any<IAnalyzerOptions>())).Throw(exception);
+            Arg.Any<SnapshotChangedHandler>())).Throw(exception);
     }
 
     [TestMethod]
@@ -247,7 +245,7 @@ public class TextBufferIssueTrackerTests
         mockTextSnapshot.ClearReceivedCalls();
 
         RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-        VerifyAnalysisRequestedWithDefaultOptions(false);
+        VerifyAnalysisRequestedWithDefaultOptions();
 
         // Dispose and raise -> analysis not requested
         testSubject.Dispose();
@@ -282,7 +280,7 @@ public class TextBufferIssueTrackerTests
 
         // Sanity check (that the test setup is correct and that events are actually being handled)
         RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-        VerifyAnalysisRequestedWithDefaultOptions(false);
+        VerifyAnalysisRequestedWithDefaultOptions();
     }
 
     [TestMethod]
@@ -354,7 +352,7 @@ public class TextBufferIssueTrackerTests
     [TestMethod]
     public void Ctor_AnalysisIsRequestedOnCreation()
     {
-        VerifyAnalysisRequestedWithDefaultOptions(true);
+        VerifyAnalysisRequestedWithDefaultOptions();
     }
 
     [TestMethod]
@@ -366,7 +364,7 @@ public class TextBufferIssueTrackerTests
         var analyzerOptions = Mock.Of<IAnalyzerOptions>();
         testSubject.RequestAnalysis(analyzerOptions);
 
-        VerifyAnalysisRequested(analyzerOptions);
+        VerifyAnalysisRequested();
     }
 
     [TestMethod]
@@ -382,9 +380,7 @@ public class TextBufferIssueTrackerTests
         mockAnalysisService.Received().CancelForFile("foo.js");
         mockAnalysisService.Received().RequestAnalysis(Arg.Any<ITextDocument>(),
             Arg.Is<AnalysisSnapshot>(x => x.FilePath == "newFoo.js"),
-            Arg.Any<IEnumerable<AnalysisLanguage>>(),
-            Arg.Any<SnapshotChangedHandler>(),
-            Arg.Any<IAnalyzerOptions>());
+            Arg.Any<SnapshotChangedHandler>());
     }
 
     [TestMethod]
@@ -428,7 +424,7 @@ public class TextBufferIssueTrackerTests
             .WithMessage("this is a test");
     }
 
-    private void VerifyAnalysisRequested(IAnalyzerOptions analyzerOptions)
+    private void VerifyAnalysisRequested()
     {
         var textDocument = mockedJavascriptDocumentFooJs;
         mockAnalysisService.Received().CancelForFile(textDocument.FilePath);
@@ -437,12 +433,10 @@ public class TextBufferIssueTrackerTests
         mockAnalysisService.Received().RequestAnalysis(
             textDocument,
             new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot),
-            javascriptLanguage,
-            Arg.Any<SnapshotChangedHandler>(),
-            analyzerOptions);
+            Arg.Any<SnapshotChangedHandler>());
     }
 
-    private void VerifyAnalysisRequestedWithDefaultOptions(bool isOnOpen)
+    private void VerifyAnalysisRequestedWithDefaultOptions()
     {
         var textDocument = mockedJavascriptDocumentFooJs;
         mockAnalysisService.Received().CancelForFile(textDocument.FilePath);
@@ -451,9 +445,7 @@ public class TextBufferIssueTrackerTests
         mockAnalysisService.Received().RequestAnalysis(
             textDocument,
             new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot),
-            javascriptLanguage,
-            Arg.Any<SnapshotChangedHandler>(),
-            Arg.Is<IAnalyzerOptions>(o => o.IsOnOpen == isOnOpen));
+            Arg.Any<SnapshotChangedHandler>());
     }
 
     private void VerifyAnalysisNotRequested()
@@ -462,9 +454,7 @@ public class TextBufferIssueTrackerTests
         mockTextSnapshot.DidNotReceive().GetText();
         mockAnalysisService.DidNotReceive().RequestAnalysis(Arg.Any<ITextDocument>(),
             Arg.Any<AnalysisSnapshot>(),
-            Arg.Any<IEnumerable<AnalysisLanguage>>(),
-            Arg.Any<SnapshotChangedHandler>(),
-            Arg.Any<IAnalyzerOptions>());
+            Arg.Any<SnapshotChangedHandler>());
     }
 
     #endregion RequestAnalysis

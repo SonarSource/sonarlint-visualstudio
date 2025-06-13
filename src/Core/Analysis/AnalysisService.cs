@@ -28,24 +28,19 @@ internal class AnalysisService : IAnalysisService
 {
     internal /* for testing */ const int DefaultAnalysisTimeoutMs = 60 * 1000;
 
-    private readonly IAnalyzerController analyzerController;
+    private readonly IAnalyzer analyzer;
     private readonly IIssueConsumerStorage issueConsumerStorage;
     private readonly IScheduler scheduler;
 
     [ImportingConstructor]
-    internal AnalysisService(IAnalyzerController analyzerController, IIssueConsumerStorage issueConsumerStorage, IScheduler scheduler)
+    internal AnalysisService(IAnalyzer analyzer, IIssueConsumerStorage issueConsumerStorage, IScheduler scheduler)
     {
-        this.analyzerController = analyzerController;
+        this.analyzer = analyzer;
         this.issueConsumerStorage = issueConsumerStorage;
         this.scheduler = scheduler;
     }
 
-    public void ScheduleAnalysis(
-        string filePath,
-        Guid analysisId,
-        IEnumerable<AnalysisLanguage> detectedLanguages,
-        IIssueConsumer issueConsumer,
-        IAnalyzerOptions analyzerOptions)
+    public void ScheduleAnalysis(string filePath, IIssueConsumer issueConsumer)
     {
         scheduler.Schedule(filePath,
             token =>
@@ -53,8 +48,7 @@ internal class AnalysisService : IAnalysisService
                 if (!token.IsCancellationRequested)
                 {
                     issueConsumerStorage.Set(filePath, issueConsumer);
-                    // TODO by https://sonarsource.atlassian.net/browse/SLVS-2051 Adapt the call
-                    analyzerController.ExecuteAnalysis([filePath]);
+                    analyzer.ExecuteAnalysis([filePath]);
                 }
             },
             GetAnalysisTimeoutInMilliseconds());

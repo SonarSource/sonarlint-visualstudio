@@ -19,7 +19,6 @@
  */
 
 using Microsoft.VisualStudio.Text;
-using NSubstitute.Extensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
@@ -70,7 +69,7 @@ public class VsAwareAnalysisServiceTests
         var issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
         var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, projectInfoProvider: vsProjectInfoProvider);
 
-        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot), default, errorListHandler, default);
+        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot), errorListHandler);
 
         issueConsumerFactory.Received().Create(document, analysisFilePath, analysisTextSnapshot, projectInfo.projectName, projectInfo.projectGuid,
             errorListHandler);
@@ -88,7 +87,7 @@ public class VsAwareAnalysisServiceTests
         var issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
         var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, projectInfoProvider: vsProjectInfoProvider);
 
-        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot), default, errorListHandler, default);
+        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot), errorListHandler);
 
         issueConsumerFactory.Received().Create(document, analysisFilePath, analysisTextSnapshot, default, Guid.Empty, errorListHandler);
     }
@@ -105,18 +104,14 @@ public class VsAwareAnalysisServiceTests
         var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, analysisService: analysisService,
             threadHandling: threadHandling);
 
-        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot), default, default, default);
+        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot), default);
 
         Received.InOrder(() =>
         {
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
             issueConsumer.SetIssues(analysisFilePath, []);
             issueConsumer.SetHotspots(analysisFilePath, []);
-            analysisService.ScheduleAnalysis(analysisFilePath,
-                Arg.Any<Guid>(),
-                Arg.Any<IEnumerable<AnalysisLanguage>>(),
-                issueConsumer,
-                Arg.Any<IAnalyzerOptions>());
+            analysisService.ScheduleAnalysis(analysisFilePath, issueConsumer);
         });
     }
 
@@ -126,24 +121,17 @@ public class VsAwareAnalysisServiceTests
         const string analysisFilePath = "analysis/file/path";
         var analysisTextSnapshot = Substitute.For<ITextSnapshot>();
         var document = CreateDefaultDocument();
-        var detectedLanguages = Substitute.For<IEnumerable<AnalysisLanguage>>();
-        var analyzerOptions = Substitute.For<IAnalyzerOptions>();
         var analysisService = Substitute.For<IAnalysisService>();
         var issueConsumerFactory = CreateDefaultIssueConsumerFactory(document, out var issueConsumer);
         var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, analysisService: analysisService);
 
-        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot), detectedLanguages, default, analyzerOptions);
+        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot), default);
 
-        analysisService
-            .Received()
-            .ScheduleAnalysis(analysisFilePath,
-                Arg.Is<Guid>(x => x != Guid.Empty),
-                detectedLanguages,
-                issueConsumer,
-                analyzerOptions);
+        analysisService.Received().ScheduleAnalysis(analysisFilePath, issueConsumer);
     }
 
-    private static VsAwareAnalysisService CreateTestSubject(IVsProjectInfoProvider projectInfoProvider = null,
+    private static VsAwareAnalysisService CreateTestSubject(
+        IVsProjectInfoProvider projectInfoProvider = null,
         IIssueConsumerFactory issueConsumerFactory = null,
         IAnalysisService analysisService = null,
         IThreadHandling threadHandling = null)

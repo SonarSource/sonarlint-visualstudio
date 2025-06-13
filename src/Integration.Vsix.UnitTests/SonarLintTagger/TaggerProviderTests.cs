@@ -459,8 +459,7 @@ public class TaggerProviderTests
     private void VerifyAnalysisWasRequested()
     {
         mockAnalysisService.Received().CancelForFile(Arg.Any<string>());
-        mockAnalysisService.Received().RequestAnalysis(Arg.Any<ITextDocument>(), Arg.Any<AnalysisSnapshot>(), Arg.Any<IEnumerable<AnalysisLanguage>>(), Arg.Any<SnapshotChangedHandler>(),
-            Arg.Any<IAnalyzerOptions>());
+        mockAnalysisService.Received().RequestAnalysis(Arg.Any<ITextDocument>(), Arg.Any<AnalysisSnapshot>(), Arg.Any<SnapshotChangedHandler>());
     }
 
     private TaggerProvider CreateTestSubject() =>
