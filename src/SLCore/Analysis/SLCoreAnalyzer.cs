@@ -40,7 +40,6 @@ public class SLCoreAnalyzer(
     : IAnalyzer
 {
     private readonly ILogger logger = logger.ForContext(nameof(SLCoreAnalyzer));
-    private IAnalysisSLCoreService? analysisSlCoreService;
 
     public async Task<Guid?> ExecuteAnalysis(List<string> paths)
     {
@@ -49,7 +48,8 @@ public class SLCoreAnalyzer(
         analysisStatusNotifier.AnalysisStarted();
 
         var configurationScope = activeConfigScopeTracker.Current;
-        if (!VerifyAnalysisCanBeExecuted(analysisStatusNotifier, configurationScope))
+        if (!VerifyConfigScopeInitialized(analysisStatusNotifier, configurationScope) ||
+            GetAnalysisSlCoreService(analysisStatusNotifier) is not { } analysisSlCoreService)
         {
             return null;
         }
@@ -65,7 +65,8 @@ public class SLCoreAnalyzer(
         analysisStatusNotifier.AnalysisStarted();
 
         var configurationScope = activeConfigScopeTracker.Current;
-        if (!VerifyAnalysisCanBeExecuted(analysisStatusNotifier, configurationScope))
+        if (!VerifyConfigScopeInitialized(analysisStatusNotifier, configurationScope) ||
+            GetAnalysisSlCoreService(analysisStatusNotifier) is not { } analysisSlCoreService)
         {
             return null;
         }
@@ -85,25 +86,26 @@ public class SLCoreAnalyzer(
         logger.WriteLine(SLCoreStrings.AnalysisCancelled, analysisId);
     }
 
-    private bool VerifyAnalysisCanBeExecuted(IAnalysisStatusNotifier analysisStatusNotifier, ConfigurationScope configurationScope)
+    private bool VerifyConfigScopeInitialized(IAnalysisStatusNotifier analysisStatusNotifier, ConfigurationScope configurationScope)
     {
-        if (configurationScope is not { IsReadyForAnalysis: true })
+        if (configurationScope is { IsReadyForAnalysis: true })
         {
-            analysisStatusNotifier.AnalysisNotReady(SLCoreStrings.ConfigScopeNotInitialized);
-            return false;
-        }
-        if (analysisSlCoreService != null)
-        {
-            return true;
-        }
-        if (serviceProvider.TryGetTransientService(out IAnalysisSLCoreService analysisService))
-        {
-            analysisSlCoreService = analysisService;
             return true;
         }
 
-        analysisStatusNotifier.AnalysisFailed(SLCoreStrings.ServiceProviderNotInitialized);
+        analysisStatusNotifier.AnalysisNotReady(SLCoreStrings.ConfigScopeNotInitialized);
         return false;
+    }
+
+    private IAnalysisSLCoreService? GetAnalysisSlCoreService(IAnalysisStatusNotifier analysisStatusNotifier)
+    {
+        if (serviceProvider.TryGetTransientService(out IAnalysisSLCoreService analysisService))
+        {
+            return analysisService;
+        }
+
+        analysisStatusNotifier.AnalysisFailed(SLCoreStrings.ServiceProviderNotInitialized);
+        return null;
     }
 
     private static async Task<Guid?> ExecuteAnalysisInternalAsync(
