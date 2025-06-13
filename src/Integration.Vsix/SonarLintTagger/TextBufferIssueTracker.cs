@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 vsAwareAnalysisService.CancelForFile(LastAnalysisFilePath);
                 var analysisSnapshot = UpdateAnalysisState();
-                vsAwareAnalysisService.RequestAnalysis(document, analysisSnapshot, DetectedLanguages, SnapToNewSnapshot, options);
+                vsAwareAnalysisService.RequestAnalysis(document, analysisSnapshot, SnapToNewSnapshot);
             }
             catch (NotSupportedException ex)
             {
