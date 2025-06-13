@@ -40,7 +40,8 @@ internal class AnalysisService : IAnalysisService
         this.scheduler = scheduler;
     }
 
-    public void ScheduleAnalysis(string filePath,
+    public void ScheduleAnalysis(
+        string filePath,
         Guid analysisId,
         IEnumerable<AnalysisLanguage> detectedLanguages,
         IIssueConsumer issueConsumer,
@@ -52,7 +53,8 @@ internal class AnalysisService : IAnalysisService
                 if (!token.IsCancellationRequested)
                 {
                     issueConsumerStorage.Set(filePath, issueConsumer);
-                    analyzerController.ExecuteAnalysis(filePath, analysisId, detectedLanguages, analyzerOptions, token);
+                    // TODO by https://sonarsource.atlassian.net/browse/SLVS-2051 Adapt the call
+                    analyzerController.ExecuteAnalysis([filePath]);
                 }
             },
             GetAnalysisTimeoutInMilliseconds());

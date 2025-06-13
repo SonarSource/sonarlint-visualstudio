@@ -44,8 +44,24 @@ namespace SonarLint.VisualStudio.Core.Analysis
         }
 
         #region IAnalyzerController implementation
-        public void ExecuteAnalysis(string path, Guid analysisId, IEnumerable<AnalysisLanguage> detectedLanguages, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken) =>
-            analyzer.ExecuteAnalysis(path, analysisId, detectedLanguages, analyzerOptions, cancellationToken);
+
+        // TODO by https://sonarsource.atlassian.net/browse/SLVS-2047 Class will be completely dropped
+        public void ExecuteAnalysis(
+            string path,
+            Guid analysisId,
+            IEnumerable<AnalysisLanguage> detectedLanguages,
+            IAnalyzerOptions analyzerOptions,
+            CancellationToken cancellationToken) =>
+            analyzer.ExecuteAnalysis([path]);
+
+        // TODO by https://sonarsource.atlassian.net/browse/SLVS-2047 Class will be completely dropped
+        public Task<Guid?> ExecuteAnalysis(List<string> paths) => throw new NotImplementedException();
+
+        // TODO by https://sonarsource.atlassian.net/browse/SLVS-2047 Class will be completely dropped
+        public Task<Guid?> ExecuteAnalysisForOpenFiles() => throw new NotImplementedException();
+
+        // TODO by https://sonarsource.atlassian.net/browse/SLVS-2047 Class will be completely dropped
+        public void CancelAnalysis(Guid analysisId) => throw new NotImplementedException();
 
         #endregion IAnalyzerController implementation
 

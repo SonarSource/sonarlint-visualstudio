@@ -22,10 +22,10 @@ namespace SonarLint.VisualStudio.Core.Analysis
 {
     public interface IAnalyzer
     {
-        void ExecuteAnalysis(string path,
-            Guid analysisId,
-            IEnumerable<AnalysisLanguage> detectedLanguages,
-            IAnalyzerOptions analyzerOptions,
-            CancellationToken cancellationToken);
+        Task<Guid?> ExecuteAnalysis(List<string> paths);
+
+        Task<Guid?> ExecuteAnalysisForOpenFiles();
+
+        void CancelAnalysis(Guid analysisId);
     }
 }
