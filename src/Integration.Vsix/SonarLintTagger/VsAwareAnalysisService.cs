@@ -41,29 +41,15 @@ internal interface IVsAwareAnalysisService
 
 [Export(typeof(IVsAwareAnalysisService))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class VsAwareAnalysisService : IVsAwareAnalysisService
+[method: ImportingConstructor]
+internal class VsAwareAnalysisService(
+    IVsProjectInfoProvider vsProjectInfoProvider,
+    IIssueConsumerFactory issueConsumerFactory,
+    IIssueConsumerStorage issueConsumerStorage,
+    IAnalysisService analysisService,
+    IThreadHandling threadHandling)
+    : IVsAwareAnalysisService
 {
-    private readonly IIssueConsumerFactory issueConsumerFactory;
-    private readonly IIssueConsumerStorage issueConsumerStorage;
-    private readonly IVsProjectInfoProvider vsProjectInfoProvider;
-    private readonly IThreadHandling threadHandling;
-    private readonly IAnalysisService analysisService;
-
-    [ImportingConstructor]
-    public VsAwareAnalysisService(
-        IVsProjectInfoProvider vsProjectInfoProvider,
-        IIssueConsumerFactory issueConsumerFactory,
-        IIssueConsumerStorage issueConsumerStorage,
-        IAnalysisService analysisService,
-        IThreadHandling threadHandling)
-    {
-        this.issueConsumerFactory = issueConsumerFactory;
-        this.issueConsumerStorage = issueConsumerStorage;
-        this.vsProjectInfoProvider = vsProjectInfoProvider;
-        this.analysisService = analysisService;
-        this.threadHandling = threadHandling;
-    }
-
     public void RequestAnalysis(
         ITextDocument document,
         AnalysisSnapshot analysisSnapshot,
@@ -84,15 +70,13 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
         await ScheduleAnalysisOnBackgroundThreadAsync(analysisSnapshot.FilePath, issueConsumer);
     }
 
-    private async Task ScheduleAnalysisOnBackgroundThreadAsync(string filePath, IIssueConsumer issueConsumer)
-    {
+    private async Task ScheduleAnalysisOnBackgroundThreadAsync(string filePath, IIssueConsumer issueConsumer) =>
         await threadHandling.RunOnBackgroundThread(() =>
         {
             ClearErrorList(filePath, issueConsumer);
 
             analysisService.ScheduleAnalysis(filePath);
         });
-    }
 
     private static void ClearErrorList(string filePath, IIssueConsumer issueConsumer)
     {

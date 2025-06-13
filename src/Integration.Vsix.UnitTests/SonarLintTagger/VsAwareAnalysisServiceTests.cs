@@ -30,6 +30,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger;
 public class VsAwareAnalysisServiceTests
 {
     private const string AnalysisFilePath = "analysis/file/path";
+    private readonly ITextSnapshot analysisTextSnapshot = Substitute.For<ITextSnapshot>();
+    private readonly SnapshotChangedHandler errorListHandler = Substitute.For<SnapshotChangedHandler>();
+    private readonly (string projectName, Guid projectGuid) projectInfo = (projectName: "project123", projectGuid: Guid.NewGuid());
     private IAnalysisService analysisService;
     private IIssueConsumer issueConsumer;
     private IIssueConsumerFactory issueConsumerFactory;
@@ -37,9 +40,6 @@ public class VsAwareAnalysisServiceTests
     private VsAwareAnalysisService testSubject;
     private IThreadHandling threadHandling;
     private IVsProjectInfoProvider vsProjectInfoProvider;
-    private readonly SnapshotChangedHandler errorListHandler = Substitute.For<SnapshotChangedHandler>();
-    private readonly (string projectName, Guid projectGuid) projectInfo = (projectName: "project123", projectGuid: Guid.NewGuid());
-    private readonly ITextSnapshot analysisTextSnapshot = Substitute.For<ITextSnapshot>();
 
     [TestInitialize]
     public void TestInitialize()

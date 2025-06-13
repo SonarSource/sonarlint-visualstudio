@@ -26,10 +26,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Analysis;
 [TestClass]
 public class AnalysisServiceTests
 {
-    private IScheduler scheduler;
     private IAnalyzer analyzer;
-    private IAnalysisService testSubject;
     private CancellationTokenSource cancellationTokenSource;
+    private IScheduler scheduler;
+    private IAnalysisService testSubject;
 
     [TestInitialize]
     public void TestInitialize()

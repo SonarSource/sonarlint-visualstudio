@@ -38,8 +38,7 @@ internal class AnalysisService : IAnalysisService
         this.scheduler = scheduler;
     }
 
-    public void ScheduleAnalysis(string filePath)
-    {
+    public void ScheduleAnalysis(string filePath) =>
         scheduler.Schedule(filePath,
             token =>
             {
@@ -49,7 +48,6 @@ internal class AnalysisService : IAnalysisService
                 }
             },
             GetAnalysisTimeoutInMilliseconds());
-    }
 
     private static int GetAnalysisTimeoutInMilliseconds()
     {
