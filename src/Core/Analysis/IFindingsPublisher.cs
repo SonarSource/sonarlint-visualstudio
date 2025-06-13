@@ -27,16 +27,8 @@ public interface IFindingsPublisher
     /// <summary>
     /// Handles analysis results
     /// </summary>
-    void Publish(string filePath, Guid? analysisId, IEnumerable<IAnalysisIssue> findings);
+    void Publish(string filePath, IEnumerable<IAnalysisIssue> findings);
 }
 
 public interface IIssuePublisher : IFindingsPublisher;
 public interface IHotspotPublisher : IFindingsPublisher;
-
-internal class FindingsPublisherBase
-{
-    /// <summary>
-    /// When <see cref="analysisId"/> is null, it means the issue comes directly from the server not from a local analysis (i.e. when a user muted an issue on the serer).
-    /// </summary>
-    protected bool IsValidAnalysisId(Guid? analysisId, Guid currentAnalysisId) => analysisId == null || analysisId == currentAnalysisId;
-}

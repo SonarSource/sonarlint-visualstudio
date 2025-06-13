@@ -51,7 +51,7 @@ internal class AnalysisService : IAnalysisService
             {
                 if (!token.IsCancellationRequested)
                 {
-                    issueConsumerStorage.Set(filePath, analysisId, issueConsumer);
+                    issueConsumerStorage.Set(filePath, issueConsumer);
                     analyzerController.ExecuteAnalysis(filePath, analysisId, detectedLanguages, analyzerOptions, token);
                 }
             },
