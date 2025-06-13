@@ -31,11 +31,10 @@ internal record AnalysisSnapshot(string FilePath, ITextSnapshot TextSnapshot);
 
 internal interface IVsAwareAnalysisService
 {
-    void RequestAnalysis(ITextDocument document,
+    void RequestAnalysis(
+        ITextDocument document,
         AnalysisSnapshot analysisSnapshot,
-        IEnumerable<AnalysisLanguage> detectedLanguages,
-        SnapshotChangedHandler errorListHandler,
-        IAnalyzerOptions options);
+        SnapshotChangedHandler errorListHandler);
 
     void CancelForFile(string filePath);
 }
@@ -50,7 +49,8 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
     private readonly IAnalysisService analysisService;
 
     [ImportingConstructor]
-    public VsAwareAnalysisService(IVsProjectInfoProvider vsProjectInfoProvider,
+    public VsAwareAnalysisService(
+        IVsProjectInfoProvider vsProjectInfoProvider,
         IIssueConsumerFactory issueConsumerFactory,
         IAnalysisService analysisService,
         IThreadHandling threadHandling)
@@ -61,41 +61,32 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
         this.threadHandling = threadHandling;
     }
 
-    public void RequestAnalysis(ITextDocument document,
+    public void RequestAnalysis(
+        ITextDocument document,
         AnalysisSnapshot analysisSnapshot,
-        IEnumerable<AnalysisLanguage> detectedLanguages,
-        SnapshotChangedHandler errorListHandler,
-        IAnalyzerOptions options)
-    {
-        RequestAnalysisAsync(document, analysisSnapshot, detectedLanguages, errorListHandler, options)
-            .Forget();
-    }
+        SnapshotChangedHandler errorListHandler) =>
+        RequestAnalysisAsync(document, analysisSnapshot, errorListHandler).Forget();
 
-    public void CancelForFile(string filePath) =>
-        analysisService.CancelForFile(filePath);
+    public void CancelForFile(string filePath) => analysisService.CancelForFile(filePath);
 
-    private async Task RequestAnalysisAsync(ITextDocument document,
+    private async Task RequestAnalysisAsync(
+        ITextDocument document,
         AnalysisSnapshot analysisSnapshot,
-        IEnumerable<AnalysisLanguage> detectedLanguages,
-        SnapshotChangedHandler errorListHandler,
-        IAnalyzerOptions options)
+        SnapshotChangedHandler errorListHandler)
     {
         var (projectName, projectGuid) = await vsProjectInfoProvider.GetDocumentProjectInfoAsync(analysisSnapshot.FilePath);
         var issueConsumer = issueConsumerFactory.Create(document, analysisSnapshot.FilePath, analysisSnapshot.TextSnapshot, projectName, projectGuid, errorListHandler);
 
-        await ScheduleAnalysisOnBackgroundThreadAsync(analysisSnapshot.FilePath, detectedLanguages, issueConsumer, options);
+        await ScheduleAnalysisOnBackgroundThreadAsync(analysisSnapshot.FilePath, issueConsumer);
     }
 
-    private async Task ScheduleAnalysisOnBackgroundThreadAsync(string filePath,
-        IEnumerable<AnalysisLanguage> detectedLanguages,
-        IIssueConsumer issueConsumer,
-        IAnalyzerOptions analyzerOptions)
+    private async Task ScheduleAnalysisOnBackgroundThreadAsync(string filePath, IIssueConsumer issueConsumer)
     {
         await threadHandling.RunOnBackgroundThread(() =>
         {
             ClearErrorList(filePath, issueConsumer);
 
-            analysisService.ScheduleAnalysis(filePath, Guid.NewGuid(), detectedLanguages, issueConsumer, analyzerOptions);
+            analysisService.ScheduleAnalysis(filePath, issueConsumer);
         });
     }
 
