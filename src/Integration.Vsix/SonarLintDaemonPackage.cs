@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.CFamily;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using SonarLint.VisualStudio.Integration.CSharpVB.Install;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
@@ -65,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public const string CommandSetGuidString = "1F83EA11-3B07-45B3-BF39-307FD4F42194";
 
         private ILogger logger;
-        private IActiveVcxCompilationDatabase vcxCompilationDatabase;
+        private IActiveCompilationDatabaseTracker activeCompilationDatabaseTracker;
         private ISolutionRoslynAnalyzerManager solutionRoslynAnalyzerManager;
         private IProjectDocumentsEventsListener projectDocumentsEventsListener;
         private ISLCoreHandler slCoreHandler;
@@ -105,8 +106,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 await CFamilyReproducerCommand.InitializeAsync(this, logger);
 
                 threadHandling = await this.GetMefServiceAsync<IThreadHandling>();
-                vcxCompilationDatabase = await this.GetMefServiceAsync<IActiveVcxCompilationDatabase>();
-                await vcxCompilationDatabase.EnsureDatabaseInitializedAsync();
+                activeCompilationDatabaseTracker = await this.GetMefServiceAsync<IActiveCompilationDatabaseTracker>();
+
 
                 documentEventsHandler = await this.GetMefServiceAsync<IDocumentEventsHandler>();
 
@@ -141,7 +142,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (disposing)
             {
-                DisposeCompilationDatabaseStorage();
+                activeCompilationDatabaseTracker?.Dispose();
+                activeCompilationDatabaseTracker = null;
 
                 documentEventsHandler?.Dispose();
                 documentEventsHandler = null;
@@ -153,17 +155,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 slCoreHandler?.Dispose();
                 slCoreHandler = null;
             }
-        }
-
-        private void DisposeCompilationDatabaseStorage()
-        {
-            threadHandling.Run(async () =>
-            {
-                await vcxCompilationDatabase.DropDatabaseAsync();
-                return 0;
-            });
-            vcxCompilationDatabase.Dispose();
-            vcxCompilationDatabase = null;
         }
 
         #endregion
