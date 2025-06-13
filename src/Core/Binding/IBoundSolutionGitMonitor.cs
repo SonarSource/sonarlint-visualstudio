@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Initialization;
+
 namespace SonarLint.VisualStudio.Core
 {
     // Note: this is a hack. We shouldn't need this interface: it only exists to avoid a
@@ -29,7 +31,7 @@ namespace SonarLint.VisualStudio.Core
     /// </summary>
     /// <remarks>The implementation is a singleton, and can handle switching to monitor
     /// different repos as solutions are opened and closed</remarks>
-    public interface IBoundSolutionGitMonitor : IGitEvents
+    public interface IBoundSolutionGitMonitor : IGitEvents, IRequireInitialization
     {
         /// <summary>
         /// Tells the instance that it needs to recalculate the repo to monitor

@@ -21,13 +21,14 @@
 using System;
 using System.IO;
 using System.IO.Abstractions;
+using SonarLint.VisualStudio.Core.Initialization;
 
 namespace SonarLint.VisualStudio.Core
 {
     /// <summary>
     /// Raises events for changes to a single git repo
     /// </summary>
-    public interface IGitEvents
+    public interface IGitEvents : IDisposable
     {
         /// <summary>
         /// Raised when the current head changes
@@ -35,7 +36,7 @@ namespace SonarLint.VisualStudio.Core
         event EventHandler HeadChanged;
     }
 
-    public sealed class GitEventsMonitor : IGitEvents, IDisposable
+    public sealed class GitEventsMonitor : IGitEvents
     {
         public event EventHandler HeadChanged;
         private IFileSystemWatcher fileSystemWatcher;
