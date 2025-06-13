@@ -40,14 +40,14 @@ public class TaintIssuesConfigurationScopeMonitorTests
 
     [TestMethod]
     public void Ctor_SubscribesToConfigurationScopeEvents() =>
-        activeConfigScopeTracker.Received().CurrentConfigurationScopeChanged += Arg.Any<EventHandler>();
+        activeConfigScopeTracker.Received().CurrentConfigurationScopeChanged += Arg.Any<EventHandler<CurrentConfigurationScopeChangedEventArgs>>();
 
     [TestMethod]
     public void Dispose_UnsubscribesToConfigurationScopeEvents()
     {
         testSubject.Dispose();
 
-        activeConfigScopeTracker.Received().CurrentConfigurationScopeChanged -= Arg.Any<EventHandler>();
+        activeConfigScopeTracker.Received().CurrentConfigurationScopeChanged -= Arg.Any<EventHandler<CurrentConfigurationScopeChangedEventArgs>>();
     }
 
     [TestMethod]
@@ -56,7 +56,7 @@ public class TaintIssuesConfigurationScopeMonitorTests
         var configurationScope = new ConfigurationScope("config scope");
         activeConfigScopeTracker.Current.Returns(configurationScope);
 
-        activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.Event<EventHandler>();
+        activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith<CurrentConfigurationScopeChangedEventArgs>(new (default));
 
         taintIssuesSynchronizer.Received(1).UpdateTaintVulnerabilitiesAsync(configurationScope);
     }

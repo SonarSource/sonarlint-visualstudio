@@ -107,7 +107,7 @@ public class SolutionRoslynAnalyzerManagerTests
             logger);
 
         // todo add more tests for the events
-        activeConfigScopeTracker.Received().CurrentConfigurationScopeChanged += Arg.Any<EventHandler>();
+        activeConfigScopeTracker.Received().CurrentConfigurationScopeChanged += Arg.Any<EventHandler<CurrentConfigurationScopeChangedEventArgs>>();
         activeSolutionTracker.Received().ActiveSolutionChanged += Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
     }
 
@@ -261,7 +261,7 @@ public class SolutionRoslynAnalyzerManagerTests
     {
         testSubject.Dispose();
 
-        activeConfigScopeTracker.Received().CurrentConfigurationScopeChanged -= Arg.Any<EventHandler>();
+        activeConfigScopeTracker.Received().CurrentConfigurationScopeChanged -= Arg.Any<EventHandler<CurrentConfigurationScopeChangedEventArgs>>();
         activeSolutionTracker.Received().ActiveSolutionChanged -= Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
     }
 
@@ -309,7 +309,7 @@ public class SolutionRoslynAnalyzerManagerTests
         enterpriseRoslynAnalyzerProvider.GetEnterpriseOrNullAsync(mySolution).Returns(embeddedAnalyzers);
         activeConfigScopeTracker.Current.Returns(new ConfigurationScope(mySolution));
 
-        activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.Event<EventHandler>(this, EventArgs.Empty);
+        activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith<CurrentConfigurationScopeChangedEventArgs>(new(default));
 
         await enterpriseRoslynAnalyzerProvider.Received(1).GetEnterpriseOrNullAsync(mySolution);
         roslynWorkspaceWrapper.ReceivedWithAnyArgs(1).TryApplyChangesAsync(default);

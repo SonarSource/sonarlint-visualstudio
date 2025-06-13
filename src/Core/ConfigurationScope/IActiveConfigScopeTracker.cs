@@ -34,7 +34,12 @@ public interface IActiveConfigScopeTracker : IDisposable
 
     bool TryUpdateAnalysisReadinessOnCurrentConfigScope(string id, bool isReady);
 
-    event EventHandler CurrentConfigurationScopeChanged;
+    event EventHandler<CurrentConfigurationScopeChangedEventArgs> CurrentConfigurationScopeChanged;
+}
+
+public class CurrentConfigurationScopeChangedEventArgs(bool declarationChanged) : EventArgs
+{
+    public bool DeclarationChanged { get; } = declarationChanged;
 }
 
 public record ConfigurationScope(

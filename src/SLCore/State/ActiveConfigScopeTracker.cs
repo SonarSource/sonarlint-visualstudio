@@ -66,6 +66,8 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
     {
         threadHandling.ThrowIfOnUIThread();
 
+        bool declarationChanged;
+
         if (!serviceProvider.TryGetTransientService(out IConfigurationScopeSLCoreService configurationScopeService))
         {
             throw new InvalidOperationException(SLCoreStrings.ServiceProviderNotInitialized);
@@ -81,18 +83,20 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
 
             if (currentConfigScope != null)
             {
+                declarationChanged = false;
                 configurationScopeService.DidUpdateBinding(new DidUpdateBindingParams(id, GetBinding(connectionId, sonarProjectKey)));
                 currentConfigScope = currentConfigScope with { ConnectionId = connectionId, SonarProjectId = sonarProjectKey };
             }
             else
             {
+                declarationChanged = true;
                 configurationScopeService.DidAddConfigurationScopes(new DidAddConfigurationScopesParams([
                     new ConfigurationScopeDto(id, id, true, GetBinding(connectionId, sonarProjectKey))]));
                 currentConfigScope = new ConfigurationScope(id, connectionId, sonarProjectKey);
             }
         }
 
-        OnCurrentConfigurationScopeChanged();
+        OnCurrentConfigurationScopeChanged(declarationChanged);
     }
 
     public void Reset()
@@ -102,7 +106,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
         {
             currentConfigScope = null;
         }
-        OnCurrentConfigurationScopeChanged();
+        OnCurrentConfigurationScopeChanged(true);
     }
 
     public void RemoveCurrentConfigScope()
@@ -126,7 +130,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
             currentConfigScope = null;
         }
 
-        OnCurrentConfigurationScopeChanged();
+        OnCurrentConfigurationScopeChanged(true);
     }
 
     public bool TryUpdateRootOnCurrentConfigScope(string id, string root)
@@ -140,7 +144,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
 
             currentConfigScope = currentConfigScope with { RootPath = root };
         }
-        OnCurrentConfigurationScopeChanged();
+        OnCurrentConfigurationScopeChanged(false);
         return true;
     }
 
@@ -155,11 +159,11 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
 
             currentConfigScope = currentConfigScope with { IsReadyForAnalysis = isReady};
         }
-        OnCurrentConfigurationScopeChanged();
+        OnCurrentConfigurationScopeChanged(false);
         return true;
     }
 
-    public event EventHandler CurrentConfigurationScopeChanged;
+    public event EventHandler<CurrentConfigurationScopeChangedEventArgs>? CurrentConfigurationScopeChanged;
 
     public void Dispose()
     {
@@ -170,8 +174,8 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
         ? new BindingConfigurationDto(connectionId, sonarProjectKey)
         : null;
 
-    private void OnCurrentConfigurationScopeChanged()
+    private void OnCurrentConfigurationScopeChanged(bool declarationChanged)
     {
-        CurrentConfigurationScopeChanged?.Invoke(this, EventArgs.Empty);
+        CurrentConfigurationScopeChanged?.Invoke(this, new (declarationChanged));
     }
 }
