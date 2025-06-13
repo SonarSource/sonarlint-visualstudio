@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.CFamily.CMake
 {
-    internal interface ICMakeCompilationDatabaseLocator
+    public interface ICMakeCompilationDatabaseLocator
     {
         string Locate();
     }
