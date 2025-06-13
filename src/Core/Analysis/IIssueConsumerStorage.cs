@@ -31,7 +31,8 @@ public interface IIssueConsumerStorage
     /// <param name="filePath">File system path for which the analysis was scheduled</param>
     /// <param name="analysisId">Unique analysis identifier</param>
     /// <param name="issueConsumer">Consumer for analysis results</param>
-    void Set(string filePath, Guid analysisId, IIssueConsumer issueConsumer);
+    void Set(string filePath, IIssueConsumer issueConsumer);
+
     /// <summary>
     /// Gets the latest <paramref name="analysisId"/> for <paramref name="filePath"/> and associated <paramref name="issueConsumer"/>
     /// </summary>
@@ -39,7 +40,8 @@ public interface IIssueConsumerStorage
     /// <param name="analysisId">Unique analysis identifier</param>
     /// <param name="issueConsumer">Consumer for analysis results</param>
     /// <returns>true if analysis is scheduled for the given <paramref name="filePath"/>, false otherwise</returns>
-    bool TryGet(string filePath, out Guid analysisId, out IIssueConsumer issueConsumer);
+    bool TryGet(string filePath, out IIssueConsumer issueConsumer);
+
     /// <summary>
     /// Discards the latest analysis for <paramref name="filePath"/>
     /// </summary>

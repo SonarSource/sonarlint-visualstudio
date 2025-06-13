@@ -77,7 +77,6 @@ internal class RaisedFindingProcessor(
             var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), localPath, parameters.analysisId);
             var supportedRaisedIssues = GetSupportedLanguageFindings(fileAndIssues.Value ?? []);
             findingsPublisher.Publish(localPath,
-                parameters.analysisId,
                 raiseFindingToAnalysisIssueConverter.GetAnalysisIssues(fileUri, supportedRaisedIssues));
             analysisStatusNotifier.AnalysisProgressed(supportedRaisedIssues.Length, findingsPublisher.FindingsType, parameters.isIntermediatePublication);
         }
