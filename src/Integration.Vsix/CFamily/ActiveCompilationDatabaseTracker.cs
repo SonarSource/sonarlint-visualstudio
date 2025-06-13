@@ -44,7 +44,6 @@ internal sealed class ActiveCompilationDatabaseTracker : IActiveCompilationDatab
     private readonly IThreadHandling threadHandling;
     private readonly IAsyncLock asyncLock;
     private bool isDisposed;
-    private string lastConfigScopeId;
 
     public IInitializationProcessor InitializationProcessor { get; }
     public string DatabasePath { get; private set; }
@@ -93,13 +92,11 @@ internal sealed class ActiveCompilationDatabaseTracker : IActiveCompilationDatab
         {
             if (activeConfigScopeTracker.Current is { Id: { } currentConfigScopeId } && serviceProvider.TryGetTransientService(out ICFamilyAnalysisConfigurationSLCoreService cFamilyAnalysisConfiguration))
             {
-                lastConfigScopeId = currentConfigScopeId;
                 DatabasePath = cMakeCompilationDatabaseLocator.Locate() ?? activeVcxCompilationDatabase.DatabasePath;
                 cFamilyAnalysisConfiguration.DidChangePathToCompileCommands(new(currentConfigScopeId, DatabasePath));
             }
             else
             {
-                lastConfigScopeId = null;
                 DatabasePath = null;
             }
         }
