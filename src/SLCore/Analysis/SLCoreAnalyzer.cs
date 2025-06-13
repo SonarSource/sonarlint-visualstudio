@@ -58,7 +58,7 @@ public class SLCoreAnalyzer(
             analysisStatusNotifier);
     }
 
-    public async Task<Guid?> ExecuteAnalysisForOpenedFiles()
+    public async Task<Guid?> ExecuteAnalysisForOpenFiles()
     {
         // TODO by https://sonarsource.atlassian.net/browse/SLVS-2049 Pass the analysis ID and the paths to the correct method
         var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), null);

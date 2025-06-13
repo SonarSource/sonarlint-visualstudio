@@ -164,20 +164,20 @@ public class SLCoreAnalyzerTests
     }
 
     [TestMethod]
-    public async Task ExecuteAnalysisForOpenedFiles_CreatesNotifierAndStarts()
+    public async Task ExecuteAnalysisForOpenFiles_CreatesNotifierAndStarts()
     {
-        await testSubject.ExecuteAnalysisForOpenedFiles();
+        await testSubject.ExecuteAnalysisForOpenFiles();
 
         analysisStatusNotifierFactory.Received().Create(nameof(SLCoreAnalyzer), null, null);
         notifier.Received().AnalysisStarted();
     }
 
     [TestMethod]
-    public async Task ExecuteAnalysisForOpenedFiles_ConfigScopeNotInitialized_NotifyNotReady()
+    public async Task ExecuteAnalysisForOpenFiles_ConfigScopeNotInitialized_NotifyNotReady()
     {
         activeConfigScopeTracker.Current.Returns((ConfigurationScope)null);
 
-        await testSubject.ExecuteAnalysisForOpenedFiles();
+        await testSubject.ExecuteAnalysisForOpenFiles();
 
         _ = activeConfigScopeTracker.Received().Current;
         analysisService.ReceivedCalls().Should().BeEmpty();
@@ -185,11 +185,11 @@ public class SLCoreAnalyzerTests
     }
 
     [TestMethod]
-    public async Task ExecuteAnalysisForOpenedFiles_ConfigScopeNotReadyForAnalysis_NotifyNotReady()
+    public async Task ExecuteAnalysisForOpenFiles_ConfigScopeNotReadyForAnalysis_NotifyNotReady()
     {
         activeConfigScopeTracker.Current.Returns(new ConfigurationScope(ConfigScopeId, IsReadyForAnalysis: false));
 
-        await testSubject.ExecuteAnalysisForOpenedFiles();
+        await testSubject.ExecuteAnalysisForOpenFiles();
 
         _ = activeConfigScopeTracker.Received().Current;
         analysisService.ReceivedCalls().Should().BeEmpty();
@@ -197,12 +197,12 @@ public class SLCoreAnalyzerTests
     }
 
     [TestMethod]
-    public async Task ExecuteAnalysisForOpenedFiles_ServiceProviderUnavailable_NotifyFailed()
+    public async Task ExecuteAnalysisForOpenFiles_ServiceProviderUnavailable_NotifyFailed()
     {
         SetUpAnalysisServiceProvider(false);
         SetUpInitializedConfigScope();
 
-        await testSubject.ExecuteAnalysisForOpenedFiles();
+        await testSubject.ExecuteAnalysisForOpenFiles();
 
         slCoreServiceProvider.Received().TryGetTransientService(out Arg.Any<IAnalysisSLCoreService>());
         analysisService.ReceivedCalls().Should().BeEmpty();
@@ -210,13 +210,13 @@ public class SLCoreAnalyzerTests
     }
 
     [TestMethod]
-    public async Task ExecuteAnalysisForOpenedFiles_AnalysisServiceSucceeds_ReturnsAnalysisIdFromSlCore()
+    public async Task ExecuteAnalysisForOpenFiles_AnalysisServiceSucceeds_ReturnsAnalysisIdFromSlCore()
     {
         SetUpInitializedConfigScope();
         var expectedAnalysisId = Guid.NewGuid();
         MockAnalyzeOpenFiles(expectedAnalysisId);
 
-        var analysisId = await testSubject.ExecuteAnalysisForOpenedFiles();
+        var analysisId = await testSubject.ExecuteAnalysisForOpenFiles();
 
         analysisId.Should().Be(expectedAnalysisId);
         await analysisService.Received(1)
@@ -225,24 +225,24 @@ public class SLCoreAnalyzerTests
     }
 
     [TestMethod]
-    public async Task ExecuteAnalysisForOpenedFiles_AnalysisServiceReturnsNull_NotifyFailed()
+    public async Task ExecuteAnalysisForOpenFiles_AnalysisServiceReturnsNull_NotifyFailed()
     {
         SetUpInitializedConfigScope();
         MockAnalyzeOpenFiles(analysisId: null);
 
-        await testSubject.ExecuteAnalysisForOpenedFiles();
+        await testSubject.ExecuteAnalysisForOpenFiles();
 
         notifier.Received().AnalysisFailed(SLCoreStrings.AnalysisFailedReason);
     }
 
     [TestMethod]
-    public async Task ExecuteAnalysisForOpenedFiles_AnalysisServiceThrows_NotifyFailed()
+    public async Task ExecuteAnalysisForOpenFiles_AnalysisServiceThrows_NotifyFailed()
     {
         SetUpInitializedConfigScope();
         var exception = new Exception();
         analysisService.AnalyzeOpenFilesAsync(Arg.Any<AnalyzeOpenFilesParams>()).ThrowsAsyncForAnyArgs(exception);
 
-        await testSubject.ExecuteAnalysisForOpenedFiles();
+        await testSubject.ExecuteAnalysisForOpenFiles();
 
         notifier.Received().AnalysisFailed(exception);
     }

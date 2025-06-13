@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
     {
         Task<Guid?> ExecuteAnalysis(List<string> paths);
 
-        Task<Guid?> ExecuteAnalysisForOpenedFiles();
+        Task<Guid?> ExecuteAnalysisForOpenFiles();
 
         void CancelAnalysis(Guid analysisId);
     }

@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
         public Task<Guid?> ExecuteAnalysis(List<string> paths) => throw new NotImplementedException();
 
         // TODO by https://sonarsource.atlassian.net/browse/SLVS-2047 Class will be completely dropped
-        public Task<Guid?> ExecuteAnalysisForOpenedFiles() => throw new NotImplementedException();
+        public Task<Guid?> ExecuteAnalysisForOpenFiles() => throw new NotImplementedException();
 
         // TODO by https://sonarsource.atlassian.net/browse/SLVS-2047 Class will be completely dropped
         public void CancelAnalysis(Guid analysisId) => throw new NotImplementedException();
