@@ -86,7 +86,7 @@ public class SLCoreAnalyzer(
         logger.WriteLine(SLCoreStrings.AnalysisCancelled, analysisId);
     }
 
-    private bool VerifyConfigScopeInitialized(IAnalysisStatusNotifier analysisStatusNotifier, ConfigurationScope configurationScope)
+    private static bool VerifyConfigScopeInitialized(IAnalysisStatusNotifier analysisStatusNotifier, ConfigurationScope configurationScope)
     {
         if (configurationScope is { IsReadyForAnalysis: true })
         {
