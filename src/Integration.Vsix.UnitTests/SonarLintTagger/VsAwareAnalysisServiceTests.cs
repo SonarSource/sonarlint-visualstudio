@@ -23,131 +23,146 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
+using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger;
 
 [TestClass]
 public class VsAwareAnalysisServiceTests
 {
-    [TestMethod]
-    public void MefCtor_CheckIsExported()
+    private const string AnalysisFilePath = "analysis/file/path";
+    private readonly ITextSnapshot analysisTextSnapshot = Substitute.For<ITextSnapshot>();
+    private readonly SnapshotChangedHandler errorListHandler = Substitute.For<SnapshotChangedHandler>();
+    private readonly (string projectName, Guid projectGuid) projectInfo = (projectName: "project123", projectGuid: Guid.NewGuid());
+    private IAnalysisService analysisService;
+    private IIssueConsumer issueConsumer;
+    private IIssueConsumerFactory issueConsumerFactory;
+    private IIssueConsumerStorage issueConsumerStorage;
+    private VsAwareAnalysisService testSubject;
+    private IThreadHandling threadHandling;
+    private IVsProjectInfoProvider vsProjectInfoProvider;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
-        MefTestHelpers.CheckTypeCanBeImported<VsAwareAnalysisService, IVsAwareAnalysisService>(
-            MefTestHelpers.CreateExport<IVsProjectInfoProvider>(),
-            MefTestHelpers.CreateExport<IIssueConsumerFactory>(),
-            MefTestHelpers.CreateExport<IAnalysisService>(),
-            MefTestHelpers.CreateExport<IThreadHandling>());
+        vsProjectInfoProvider = Substitute.For<IVsProjectInfoProvider>();
+        issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
+        issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
+        issueConsumer = Substitute.For<IIssueConsumer>();
+        analysisService = Substitute.For<IAnalysisService>();
+        threadHandling = CreateDefaultThreadHandling();
+
+        testSubject = new VsAwareAnalysisService(vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage, analysisService, threadHandling);
     }
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton()
-    {
-        MefTestHelpers.CheckIsSingletonMefComponent<VsAwareAnalysisService>();
-    }
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<VsAwareAnalysisService, IVsAwareAnalysisService>(
+            MefTestHelpers.CreateExport<IVsProjectInfoProvider>(),
+            MefTestHelpers.CreateExport<IIssueConsumerFactory>(),
+            MefTestHelpers.CreateExport<IIssueConsumerStorage>(),
+            MefTestHelpers.CreateExport<IAnalysisService>(),
+            MefTestHelpers.CreateExport<IThreadHandling>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<VsAwareAnalysisService>();
 
     [TestMethod]
     public void CancelForFile_UsesAnalyzerService()
     {
-        var analysisService = Substitute.For<IAnalysisService>();
-        var testSubject = CreateTestSubject(analysisService: analysisService);
-
         testSubject.CancelForFile("file/path");
 
-        analysisService.Received().CancelForFile("file/path");
+        issueConsumerStorage.Received(1).Remove("file/path");
     }
 
     [TestMethod]
     public void RequestAnalysis_ProjectInformationReturned_CreatesIssueConsumerCorrectly()
     {
-        const string analysisFilePath = "analysis/file/path";
-        var analysisTextSnapshot = Substitute.For<ITextSnapshot>();
-        var projectInfo = (projectName: "project123", projectGuid: Guid.NewGuid());
         var document = CreateDefaultDocument();
-        var errorListHandler = Substitute.For<SnapshotChangedHandler>();
-        var vsProjectInfoProvider = Substitute.For<IVsProjectInfoProvider>();
-        vsProjectInfoProvider.GetDocumentProjectInfoAsync(analysisFilePath).Returns(projectInfo);
-        var issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
-        var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, projectInfoProvider: vsProjectInfoProvider);
+        MockDefaultIssueConsumerFactory(document);
+        MockGetDocumentProjectInfo(projectInfo);
 
-        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot), errorListHandler);
+        testSubject.RequestAnalysis(document, new AnalysisSnapshot(AnalysisFilePath, analysisTextSnapshot), errorListHandler);
 
-        issueConsumerFactory.Received().Create(document, analysisFilePath, analysisTextSnapshot, projectInfo.projectName, projectInfo.projectGuid,
+        issueConsumerFactory.Received(1).Create(document, AnalysisFilePath, analysisTextSnapshot, projectInfo.projectName, projectInfo.projectGuid,
             errorListHandler);
+        issueConsumerStorage.Received(1).Set(AnalysisFilePath, issueConsumer);
     }
 
     [TestMethod]
     public void RequestAnalysis_NoProjectInformation_CreatesIssueConsumerCorrectly()
     {
-        const string analysisFilePath = "analysis/file/path";
-        var analysisTextSnapshot = Substitute.For<ITextSnapshot>();
         var document = CreateDefaultDocument();
-        var errorListHandler = Substitute.For<SnapshotChangedHandler>();
-        var vsProjectInfoProvider = Substitute.For<IVsProjectInfoProvider>();
-        vsProjectInfoProvider.GetDocumentProjectInfoAsync(analysisFilePath).Returns(default((string projectName, Guid projectGuid)));
-        var issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
-        var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, projectInfoProvider: vsProjectInfoProvider);
+        MockDefaultIssueConsumerFactory(document);
+        MockGetDocumentProjectInfo(default);
 
-        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot), errorListHandler);
+        testSubject.RequestAnalysis(document, new AnalysisSnapshot(AnalysisFilePath, analysisTextSnapshot), errorListHandler);
 
-        issueConsumerFactory.Received().Create(document, analysisFilePath, analysisTextSnapshot, default, Guid.Empty, errorListHandler);
+        issueConsumerFactory.Received().Create(document, AnalysisFilePath, analysisTextSnapshot, default, Guid.Empty, errorListHandler);
+        issueConsumerStorage.Received(1).Set(AnalysisFilePath, issueConsumer);
     }
 
     [TestMethod]
     public void RequestAnalysis_ClearsErrorListAndSchedulesAnalysisOnBackgroundThread()
     {
-        const string analysisFilePath = "analysis/file/path";
-        var analysisTextSnapshot = Substitute.For<ITextSnapshot>();
         var document = CreateDefaultDocument();
-        var analysisService = Substitute.For<IAnalysisService>();
-        var threadHandling = CreateDefaultThreadHandling();
-        var issueConsumerFactory = CreateDefaultIssueConsumerFactory(document, out var issueConsumer);
-        var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, analysisService: analysisService,
-            threadHandling: threadHandling);
+        MockDefaultIssueConsumerFactory(document);
 
-        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot), default);
+        testSubject.RequestAnalysis(document, new AnalysisSnapshot(AnalysisFilePath, analysisTextSnapshot), default);
 
         Received.InOrder(() =>
         {
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
-            issueConsumer.SetIssues(analysisFilePath, []);
-            issueConsumer.SetHotspots(analysisFilePath, []);
-            analysisService.ScheduleAnalysis(analysisFilePath, issueConsumer);
+            issueConsumer.SetIssues(AnalysisFilePath, []);
+            issueConsumer.SetHotspots(AnalysisFilePath, []);
+            analysisService.ScheduleAnalysis(AnalysisFilePath);
         });
     }
 
     [TestMethod]
     public void RequestAnalysis_ProvidesAnalysisParametersCorrectly()
     {
-        const string analysisFilePath = "analysis/file/path";
-        var analysisTextSnapshot = Substitute.For<ITextSnapshot>();
         var document = CreateDefaultDocument();
-        var analysisService = Substitute.For<IAnalysisService>();
-        var issueConsumerFactory = CreateDefaultIssueConsumerFactory(document, out var issueConsumer);
-        var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, analysisService: analysisService);
+        MockDefaultIssueConsumerFactory(document);
 
-        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot), default);
+        testSubject.RequestAnalysis(document, new AnalysisSnapshot(AnalysisFilePath, analysisTextSnapshot), default);
 
-        analysisService.Received().ScheduleAnalysis(analysisFilePath, issueConsumer);
+        analysisService.Received(1).ScheduleAnalysis(AnalysisFilePath);
     }
 
-    private static VsAwareAnalysisService CreateTestSubject(
-        IVsProjectInfoProvider projectInfoProvider = null,
-        IIssueConsumerFactory issueConsumerFactory = null,
-        IAnalysisService analysisService = null,
-        IThreadHandling threadHandling = null)
+    [TestMethod]
+    public async Task CreateIssueConsumerAsync_ProjectInformationReturned_CreatesIssueConsumerCorrectly()
     {
-        projectInfoProvider ??= Substitute.For<IVsProjectInfoProvider>();
-        issueConsumerFactory ??= Substitute.For<IIssueConsumerFactory>();
-        analysisService ??= Substitute.For<IAnalysisService>();
-        threadHandling ??= new NoOpThreadHandler();
-        return new VsAwareAnalysisService(projectInfoProvider, issueConsumerFactory, analysisService, threadHandling);
+        var document = CreateDefaultDocument();
+        MockDefaultIssueConsumerFactory(document);
+        MockGetDocumentProjectInfo(projectInfo);
+
+        await testSubject.CreateIssueConsumerAsync(document, new AnalysisSnapshot(AnalysisFilePath, analysisTextSnapshot), errorListHandler);
+
+        await vsProjectInfoProvider.Received(1).GetDocumentProjectInfoAsync(AnalysisFilePath);
+        issueConsumerFactory.Received(1).Create(document, AnalysisFilePath, analysisTextSnapshot, projectInfo.projectName, projectInfo.projectGuid, errorListHandler);
+        issueConsumerStorage.Received(1).Set(AnalysisFilePath, issueConsumer);
+    }
+
+    [TestMethod]
+    public async Task CreateIssueConsumerAsync_NoProjectInformation_CreatesIssueConsumerCorrectly()
+    {
+        var document = CreateDefaultDocument();
+        MockDefaultIssueConsumerFactory(document);
+        MockGetDocumentProjectInfo(default);
+
+        await testSubject.CreateIssueConsumerAsync(document, new AnalysisSnapshot(AnalysisFilePath, analysisTextSnapshot), errorListHandler);
+
+        await vsProjectInfoProvider.Received(1).GetDocumentProjectInfoAsync(AnalysisFilePath);
+        issueConsumerFactory.Received(1).Create(document, AnalysisFilePath, analysisTextSnapshot, default, Guid.Empty, errorListHandler);
+        issueConsumerStorage.Received(1).Set(AnalysisFilePath, issueConsumer);
     }
 
     private static IThreadHandling CreateDefaultThreadHandling()
     {
-        var threadHandling = Substitute.For<IThreadHandling>();
-        threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>()).Returns(async info => await info.Arg<Func<Task<int>>>()());
-        return threadHandling;
+        var mockThreadHandling = Substitute.For<IThreadHandling>();
+        mockThreadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>()).Returns(async info => await info.Arg<Func<Task<int>>>()());
+        return mockThreadHandling;
     }
 
     private static ITextDocument CreateDefaultDocument()
@@ -156,10 +171,9 @@ public class VsAwareAnalysisServiceTests
         return textDocument;
     }
 
-    private static IIssueConsumerFactory CreateDefaultIssueConsumerFactory(ITextDocument document, out IIssueConsumer issueConsumer)
-    {
-        var issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
-        issueConsumer = Substitute.For<IIssueConsumer>();
+    private void MockGetDocumentProjectInfo((string projectName, Guid projectGuid) projectInfoToSet) => vsProjectInfoProvider.GetDocumentProjectInfoAsync(AnalysisFilePath).Returns(projectInfoToSet);
+
+    private void MockDefaultIssueConsumerFactory(ITextDocument document) =>
         issueConsumerFactory
             .Create(document,
                 Arg.Any<string>(),
@@ -168,6 +182,4 @@ public class VsAwareAnalysisServiceTests
                 Arg.Any<Guid>(),
                 Arg.Any<SnapshotChangedHandler>())
             .Returns(issueConsumer);
-        return issueConsumerFactory;
-    }
 }
