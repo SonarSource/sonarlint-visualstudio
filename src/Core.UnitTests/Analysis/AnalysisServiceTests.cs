@@ -57,9 +57,9 @@ public class AnalysisServiceTests
 
         Received.InOrder(() =>
         {
-           scheduler.Schedule("file/path", Arg.Any<Action<CancellationToken>>(), Arg.Any<int>());
-           issueConsumerStorage.Set("file/path", issueConsumer);
-           analyzerController.ExecuteAnalysis("file/path", analysisId, detectedLanguages, analyzerOptions, Arg.Any<CancellationToken>());
+            scheduler.Schedule("file/path", Arg.Any<Action<CancellationToken>>(), Arg.Any<int>());
+            issueConsumerStorage.Set("file/path", issueConsumer);
+            analyzerController.ExecuteAnalysis(Arg.Is<List<string>>(x => x.SequenceEqual(new List<string> { "file/path" })));
         });
     }
 
@@ -75,7 +75,7 @@ public class AnalysisServiceTests
 
         scheduler.Received().Schedule("file/path", Arg.Any<Action<CancellationToken>>(), Arg.Any<int>());
         issueConsumerStorage.DidNotReceiveWithAnyArgs().Set(default, default);
-        analyzerController.DidNotReceiveWithAnyArgs().ExecuteAnalysis(default, default, default, default, default);
+        analyzerController.DidNotReceiveWithAnyArgs().ExecuteAnalysis(default);
     }
 
     [TestMethod]
@@ -99,7 +99,6 @@ public class AnalysisServiceTests
         {
             Environment.SetEnvironmentVariable(EnvironmentSettings.AnalysisTimeoutEnvVar, null);
         }
-
     }
 
     [TestMethod]
@@ -142,7 +141,8 @@ public class AnalysisServiceTests
         });
     }
 
-    private static IAnalysisService CreateTestSubject(IAnalyzerController analyzerController = null,
+    private static IAnalysisService CreateTestSubject(
+        IAnalyzerController analyzerController = null,
         IIssueConsumerStorage issueConsumerStorage = null,
         IScheduler scheduler = null)
     {
