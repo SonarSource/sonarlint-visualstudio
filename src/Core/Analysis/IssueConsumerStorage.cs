@@ -27,12 +27,12 @@ namespace SonarLint.VisualStudio.Core.Analysis
     public class IssueConsumerStorage : IIssueConsumerStorage
     {
         private readonly object Lock = new();
-        internal /*For testing*/ readonly Dictionary<string, (Guid analysisID, IIssueConsumer consumer)> internalStorage;
+        internal /*For testing*/ readonly Dictionary<string, IIssueConsumer> internalStorage;
 
         [ImportingConstructor]
         public IssueConsumerStorage()
         {
-            internalStorage = new Dictionary<string, (Guid analysisID, IIssueConsumer consumer)>();
+            internalStorage = new Dictionary<string, IIssueConsumer>();
         }
 
         public void Remove(string filePath)
@@ -43,21 +43,19 @@ namespace SonarLint.VisualStudio.Core.Analysis
             }
         }
 
-        public void Set(string filePath, Guid analysisId, IIssueConsumer issueConsumer)
+        public void Set(string filePath, IIssueConsumer issueConsumer)
         {
             lock (Lock)
             {
-                internalStorage[filePath] = (analysisId, issueConsumer);
+                internalStorage[filePath] = issueConsumer;
             }
         }
 
-        public bool TryGet(string filePath, out Guid analysisId, out IIssueConsumer issueConsumer)
+        public bool TryGet(string filePath, out IIssueConsumer issueConsumer)
         {
             lock (Lock)
             {
-                var result = internalStorage.TryGetValue(filePath, out var storedValue);
-                (analysisId, issueConsumer) = storedValue;
-                return result;
+                return internalStorage.TryGetValue(filePath, out issueConsumer);
             }
         }
     }

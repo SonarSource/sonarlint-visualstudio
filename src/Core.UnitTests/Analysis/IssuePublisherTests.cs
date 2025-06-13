@@ -50,9 +50,9 @@ public class IssuePublisherTests
     [TestMethod]
     public void PublishIssues_NoConsumerInStorage_DoesNothing()
     {
-        issueConsumerStorage.TryGet(default, out _, out _).ReturnsForAnyArgs(false);
+        issueConsumerStorage.TryGet(default, out _).ReturnsForAnyArgs(false);
 
-        var act = () => testSubject.Publish("file/path", Guid.NewGuid(), Substitute.For<IEnumerable<IAnalysisIssue>>());
+        var act = () => testSubject.Publish("file/path", Substitute.For<IEnumerable<IAnalysisIssue>>());
 
         act.Should().NotThrow();
         issueConsumer.DidNotReceiveWithAnyArgs().SetIssues(default, default);
@@ -60,54 +60,17 @@ public class IssuePublisherTests
     }
 
     [TestMethod]
-    public void PublishIssues_DifferentAnalysisId_DoesNothing()
-    {
-        issueConsumerStorage.TryGet("file/path", out Arg.Any<Guid>(), out Arg.Any<IIssueConsumer>())
-            .Returns(info =>
-            {
-                info[1] = Guid.NewGuid();
-                info[2] = issueConsumer;
-                return true;
-            });
-
-        testSubject.Publish("file/path", Guid.NewGuid(), Substitute.For<IEnumerable<IAnalysisIssue>>());
-
-        issueConsumer.DidNotReceiveWithAnyArgs().SetIssues(default, default);
-        issueConsumer.DidNotReceiveWithAnyArgs().SetHotspots(default, default);
-    }
-
-    [TestMethod]
     public void PublishIssues_MatchingConsumer_PublishesIssues()
     {
-        var analysisId = Guid.NewGuid();
         var analysisIssues = Substitute.For<IEnumerable<IAnalysisIssue>>();
-        issueConsumerStorage.TryGet("file/path", out Arg.Any<Guid>(), out Arg.Any<IIssueConsumer>())
+        issueConsumerStorage.TryGet("file/path", out Arg.Any<IIssueConsumer>())
             .Returns(info =>
             {
-                info[1] = analysisId;
-                info[2] = issueConsumer;
+                info[1] = issueConsumer;
                 return true;
             });
 
-        testSubject.Publish("file/path", analysisId, analysisIssues);
-
-        issueConsumer.Received().SetIssues("file/path", analysisIssues);
-        issueConsumer.DidNotReceiveWithAnyArgs().SetHotspots(default, default);
-    }
-
-    [TestMethod]
-    public void PublishIssues_AnalysisIdIsNull_PublishesIssues()
-    {
-        var analysisIssues = Substitute.For<IEnumerable<IAnalysisIssue>>();
-        issueConsumerStorage.TryGet("file/path", out Arg.Any<Guid>(), out Arg.Any<IIssueConsumer>())
-            .Returns(info =>
-            {
-                info[1] = Guid.NewGuid();
-                info[2] = issueConsumer;
-                return true;
-            });
-
-        testSubject.Publish("file/path", analysisId: null, analysisIssues);
+        testSubject.Publish("file/path", analysisIssues);
 
         issueConsumer.Received().SetIssues("file/path", analysisIssues);
         issueConsumer.DidNotReceiveWithAnyArgs().SetHotspots(default, default);

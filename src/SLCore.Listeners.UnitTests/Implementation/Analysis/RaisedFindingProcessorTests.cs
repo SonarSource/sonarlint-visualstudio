@@ -62,7 +62,7 @@ public class RaisedFindingProcessorTests
         testSubject.RaiseFinding(raiseFindingParams, publisher);
 
         raiseFindingParamsToAnalysisIssueConverter.Received().GetAnalysisIssues(fileUri, Arg.Is<IEnumerable<RaisedFindingDto>>(x => !x.Any()));
-        publisher.Received().Publish(fileUri.LocalPath, null, Arg.Is<IEnumerable<IAnalysisIssue>>(x => !x.Any()));
+        publisher.Received().Publish(fileUri.LocalPath, Arg.Is<IEnumerable<IAnalysisIssue>>(x => !x.Any()));
     }
 
     [TestMethod]
@@ -80,7 +80,7 @@ public class RaisedFindingProcessorTests
         testSubject.RaiseFinding(raiseFindingParams, publisher);
 
         raiseFindingParamsToAnalysisIssueConverter.Received().GetAnalysisIssues(fileUri, Arg.Is<IEnumerable<RaisedFindingDto>>(x => !x.Any()));
-        publisher.Received().Publish(fileUri.LocalPath, analysisId, Arg.Is<IEnumerable<IAnalysisIssue>>(x => !x.Any()));
+        publisher.Received().Publish(fileUri.LocalPath, Arg.Is<IEnumerable<IAnalysisIssue>>(x => !x.Any()));
     }
 
     [TestMethod]
@@ -102,7 +102,7 @@ public class RaisedFindingProcessorTests
         testSubject.RaiseFinding(raiseFindingParams, publisher);
 
         raiseFindingToAnalysisIssueConverter.Received().GetAnalysisIssues(fileUri, Arg.Is<IEnumerable<TestFinding>>(x => !x.Any()));
-        publisher.Received().Publish(fileUri.LocalPath, analysisId, Arg.Is<IEnumerable<IAnalysisIssue>>(x => !x.Any()));
+        publisher.Received().Publish(fileUri.LocalPath, Arg.Is<IEnumerable<IAnalysisIssue>>(x => !x.Any()));
         analysisStatusNotifier.DidNotReceiveWithAnyArgs().AnalysisFinished(default);
         analysisStatusNotifier.Received().AnalysisProgressed(0, FindingsType, isIntermediatePublication);
         VerifyCorrectConstantsAreUsed(constantsProvider);
@@ -128,7 +128,7 @@ public class RaisedFindingProcessorTests
         testSubject.RaiseFinding(raiseFindingParams, publisher);
 
         raiseFindingToAnalysisIssueConverter.Received().GetAnalysisIssues(fileUri, Arg.Is<IEnumerable<TestFinding>>(x => !x.Any()));
-        publisher.Received().Publish(fileUri.LocalPath, analysisId, Arg.Is<IEnumerable<IAnalysisIssue>>(x => !x.Any()));
+        publisher.Received().Publish(fileUri.LocalPath, Arg.Is<IEnumerable<IAnalysisIssue>>(x => !x.Any()));
         analysisStatusNotifier.DidNotReceiveWithAnyArgs().AnalysisFinished(default);
         analysisStatusNotifier.Received().AnalysisProgressed(0, FindingsType, isIntermediatePublication);
         VerifyCorrectConstantsAreUsed(constantsProvider);
@@ -184,7 +184,7 @@ public class RaisedFindingProcessorTests
 
         testSubject.RaiseFinding(raiseFindingParams, publisher);
 
-        publisher.Received(1).Publish(fileUri.LocalPath, analysisId, filteredIssues);
+        publisher.Received(1).Publish(fileUri.LocalPath, filteredIssues);
         raiseFindingToAnalysisIssueConverter.Received(1).GetAnalysisIssues(findingsByFileUri.Single().Key, Arg.Is<IEnumerable<TestFinding>>(
             x => x.SequenceEqual(filteredRaisedFindings)));
 
@@ -226,9 +226,9 @@ public class RaisedFindingProcessorTests
 
         testSubject.RaiseFinding(raiseFindingParams, publisher);
 
-        publisher.Received(1).Publish(fileUri1.LocalPath, analysisId,
+        publisher.Received(1).Publish(fileUri1.LocalPath,
             Arg.Is<IEnumerable<IAnalysisIssue>>(x => x.SequenceEqual(new List<IAnalysisIssue> { analysisIssue1 })));
-        publisher.Received(1).Publish(fileUri2.LocalPath, analysisId,
+        publisher.Received(1).Publish(fileUri2.LocalPath,
             Arg.Is<IEnumerable<IAnalysisIssue>>(x => x.SequenceEqual(new List<IAnalysisIssue> { analysisIssue2 })));
 
         analysisStatusNotifierFactory.Received(1).Create("SLCoreAnalyzer", fileUri1.LocalPath, analysisId);
