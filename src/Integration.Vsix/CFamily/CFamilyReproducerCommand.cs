@@ -18,12 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Design;
-using System.Diagnostics;
-using System.Linq;
 using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS;
@@ -72,9 +68,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
         /// <param name="menuCommandService">Command service to add command to, not null.</param>
-        internal /* for testing */ CFamilyReproducerCommand(IMenuCommandService menuCommandService,
-            IActiveDocumentLocator activeDocumentLocator, ISonarLanguageRecognizer languageRecognizer,
-            IAnalysisRequester analysisRequester, ILogger logger)
+        internal /* for testing */ CFamilyReproducerCommand(
+            IMenuCommandService menuCommandService,
+            IActiveDocumentLocator activeDocumentLocator,
+            ISonarLanguageRecognizer languageRecognizer,
+            IAnalysisRequester analysisRequester,
+            ILogger logger)
         {
             if (menuCommandService == null)
             {
@@ -82,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
 
             this.activeDocumentLocator = activeDocumentLocator ?? throw new ArgumentNullException(nameof(activeDocumentLocator));
-            this.sonarLanguageRecognizer = languageRecognizer ?? throw new ArgumentNullException(nameof(languageRecognizer));
+            sonarLanguageRecognizer = languageRecognizer ?? throw new ArgumentNullException(nameof(languageRecognizer));
             this.analysisRequester = analysisRequester ?? throw new ArgumentNullException(nameof(analysisRequester));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -128,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             {
                 TriggerReproducer();
             }
-            catch(Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
+            catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(CFamilyStrings.ReproCmd_Error_Execute, ex.Message);
             }
@@ -162,14 +161,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             if (activeDoc != null)
             {
-                var options = new CFamilyAnalyzerOptions
-                {
-                    IsOnOpen = false,
-                    CreateReproducer = true
-                };
-
                 logger.WriteLine(CFamilyStrings.ReproCmd_ExecutingReproducer);
-                analysisRequester.RequestAnalysis(options, activeDoc.FilePath);
+                analysisRequester.RequestAnalysis(activeDoc.FilePath);
             }
         }
     }

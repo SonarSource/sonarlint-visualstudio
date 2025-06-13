@@ -211,5 +211,5 @@ internal class MuteIssuesService(
     ///  On scheduling analysis the SlCore and current snapshot of the file are updated.
     ///  Additionally, there is a user benefit that the issue is suppressed immediately (we don’t have to wait for SlCore to call RaiseFindings, which seems to take a while)
     /// </summary>
-    private void RequestAnalysis(IFilterableIssue issue) => analysisRequester.RequestAnalysis(new AnalyzerOptions(), issue.FilePath);
+    private void RequestAnalysis(IFilterableIssue issue) => analysisRequester.RequestAnalysis(issue.FilePath);
 }

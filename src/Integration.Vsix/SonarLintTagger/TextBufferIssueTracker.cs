@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             sonarErrorDataSource.AddFactory(Factory);
             Provider.AddIssueTracker(this);
 
-            RequestAnalysis(new AnalyzerOptions { IsOnOpen = true });
+            RequestAnalysis();
         }
 
         private void SafeOnFileActionOccurred(object sender, TextDocumentFileActionEventArgs e)
@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     case FileActionTypes.ContentSavedToDisk:
                         {
-                            RequestAnalysis(new AnalyzerOptions { IsOnOpen = false });
+                            RequestAnalysis();
                             Provider.OnDocumentSaved(document.FilePath, document.TextBuffer.CurrentSnapshot.GetText(), DetectedLanguages);
                             break;
                         }
@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             sonarErrorDataSource.RefreshErrorList(Factory);
         }
 
-        public void RequestAnalysis(IAnalyzerOptions options)
+        public void RequestAnalysis()
         {
             try
             {

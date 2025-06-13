@@ -20,7 +20,6 @@
 
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
@@ -64,8 +63,7 @@ public class AnalysisConfigMonitorTests
             MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() =>
-        MefTestHelpers.CheckIsSingletonMefComponent<AnalysisConfigMonitor>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<AnalysisConfigMonitor>();
 
     [TestMethod]
     public void Ctor_UpdatesRoslynSettings()
@@ -110,7 +108,7 @@ public class AnalysisConfigMonitorTests
 
         SimulateUserSettingsChanged();
 
-        analysisRequesterMock.DidNotReceiveWithAnyArgs().RequestAnalysis(default, default(string[]));
+        analysisRequesterMock.DidNotReceiveWithAnyArgs().RequestAnalysis(default);
         _ = userSettingsProviderMock.DidNotReceiveWithAnyArgs().UserSettings;
     }
 
@@ -125,7 +123,7 @@ public class AnalysisConfigMonitorTests
         {
             roslynSettingsUpdater.Update(userSettings);
             slCoreRuleSettingsUpdater.UpdateStandaloneRulesConfiguration();
-            analysisRequesterMock.RequestAnalysis(null);
+            analysisRequesterMock.RequestAnalysis();
         });
     }
 
@@ -161,8 +159,7 @@ public class AnalysisConfigMonitorTests
         return userSettings;
     }
 
-
-    private void AssertAnalysisIsRequested() => analysisRequesterMock.Received(1).RequestAnalysis(null);
+    private void AssertAnalysisIsRequested() => analysisRequesterMock.Received(1).RequestAnalysis();
 
     private void AssertAnalysisIsNotRequested() => analysisRequesterMock.ReceivedCalls().Count().Should().Be(0);
 

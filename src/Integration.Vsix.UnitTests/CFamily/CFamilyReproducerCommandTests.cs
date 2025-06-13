@@ -18,21 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Design;
-using FluentAssertions;
 using Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
-using Moq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.CFamily.Analysis;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
+using AnalysisLanguage = SonarLint.VisualStudio.Core.Analysis.AnalysisLanguage;
+using IAnalysisRequester = SonarLint.VisualStudio.Core.Analysis.IAnalysisRequester;
 using ThreadHelper = SonarLint.VisualStudio.TestInfrastructure.ThreadHelper;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
@@ -157,19 +152,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // Arrange
             SetActiveDocument(ValidTextDocument, AnalysisLanguage.CFamily);
 
-            IAnalyzerOptions actualOptions = null;
             string[] actualFilePaths = null;
-            analysisRequesterMock.Setup(x => x.RequestAnalysis(It.IsAny<IAnalyzerOptions>(), It.IsAny<string[]>()))
-                .Callback<IAnalyzerOptions, string[]>((opts, filePaths) => { actualOptions = opts; actualFilePaths = filePaths; });
+            analysisRequesterMock.Setup(x => x.RequestAnalysis(It.IsAny<string[]>()))
+                .Callback<string[]>(filePaths => { actualFilePaths = filePaths; });
 
             // Act
             testSubject.Invoke();
 
             // Assert
             logger.AssertOutputStringExists(CFamilyStrings.ReproCmd_ExecutingReproducer);
-            var cFamilyAnalyzerOptions = actualOptions.Should().BeAssignableTo<ICFamilyAnalyzerOptions>().Subject;
-            cFamilyAnalyzerOptions.CreateReproducer.Should().BeTrue();
-            cFamilyAnalyzerOptions.IsOnOpen.Should().BeFalse();
             actualFilePaths.Should().BeEquivalentTo(ValidTextDocument.FilePath);
         }
 
@@ -219,8 +210,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             logger.AssertPartialOutputStringDoesNotExist("exception xxx");
         }
 
-        private static MenuCommand CreateCFamilyReproducerCommand(IActiveDocumentLocator documentLocator,
-            ISonarLanguageRecognizer languageRecognizer, IAnalysisRequester analysisRequester, ILogger logger)
+        private static MenuCommand CreateCFamilyReproducerCommand(
+            IActiveDocumentLocator documentLocator,
+            ISonarLanguageRecognizer languageRecognizer,
+            IAnalysisRequester analysisRequester,
+            ILogger logger)
         {
             var dummyMenuService = new DummyMenuCommandService();
             new CFamilyReproducerCommand(dummyMenuService, documentLocator, languageRecognizer, analysisRequester, logger);
@@ -249,16 +243,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             }
         }
 
-        private void VerifyDocumentLocatorCalled()
-            => docLocatorMock.Verify(x => x.FindActiveDocument(), Times.AtLeastOnce);
+        private void VerifyDocumentLocatorCalled() => docLocatorMock.Verify(x => x.FindActiveDocument(), Times.AtLeastOnce);
 
-        private void VerifyLanguageRecognizerNotCalled()
-            => languageRecognizerMock.Verify(x => x.Detect(It.IsAny<string>(), It.IsAny<IContentType>()), Times.Never);
+        private void VerifyLanguageRecognizerNotCalled() => languageRecognizerMock.Verify(x => x.Detect(It.IsAny<string>(), It.IsAny<IContentType>()), Times.Never);
 
-        private void VerifyLanguageRecognizerCalled()
-            => languageRecognizerMock.Verify(x => x.Detect(It.IsAny<string>(), It.IsAny<IContentType>()), Times.AtLeastOnce);
+        private void VerifyLanguageRecognizerCalled() => languageRecognizerMock.Verify(x => x.Detect(It.IsAny<string>(), It.IsAny<IContentType>()), Times.AtLeastOnce);
 
-        private void VerifyAnalysisNotRequested() =>
-            analysisRequesterMock.Verify(x => x.RequestAnalysis(It.IsAny<IAnalyzerOptions>(), It.IsAny<string[]>()), Times.Never);
+        private void VerifyAnalysisNotRequested() => analysisRequesterMock.Verify(x => x.RequestAnalysis(It.IsAny<string[]>()), Times.Never);
     }
 }

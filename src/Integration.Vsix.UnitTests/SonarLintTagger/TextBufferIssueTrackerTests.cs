@@ -361,8 +361,7 @@ public class TextBufferIssueTrackerTests
         // Clear the invocations that occurred during construction
         mockAnalysisService.ClearReceivedCalls();
 
-        var analyzerOptions = Mock.Of<IAnalyzerOptions>();
-        testSubject.RequestAnalysis(analyzerOptions);
+        testSubject.RequestAnalysis();
 
         VerifyAnalysisRequested();
     }
@@ -374,8 +373,7 @@ public class TextBufferIssueTrackerTests
         mockAnalysisService.ClearReceivedCalls();
         mockedJavascriptDocumentFooJs.FilePath.Returns("newFoo.js");
 
-        var analyzerOptions = Mock.Of<IAnalyzerOptions>();
-        testSubject.RequestAnalysis(analyzerOptions);
+        testSubject.RequestAnalysis();
 
         mockAnalysisService.Received().CancelForFile("foo.js");
         mockAnalysisService.Received().RequestAnalysis(Arg.Any<ITextDocument>(),
@@ -391,7 +389,7 @@ public class TextBufferIssueTrackerTests
 
         SetUpAnalysisThrows(mockAnalysisService, new InvalidOperationException());
 
-        var act = () => testSubject.RequestAnalysis(Mock.Of<IAnalyzerOptions>());
+        var act = () => testSubject.RequestAnalysis();
         act.Should().NotThrow();
 
         logger.AssertPartialOutputStringExists("[Analysis] Error triggering analysis: ");
@@ -405,7 +403,7 @@ public class TextBufferIssueTrackerTests
 
         SetUpAnalysisThrows(mockAnalysisService, new NotSupportedException("This is not supported"));
 
-        var act = () => testSubject.RequestAnalysis(Mock.Of<IAnalyzerOptions>());
+        var act = () => testSubject.RequestAnalysis();
         act.Should().NotThrow();
 
         logger.AssertOutputStringExists("[Analysis] Unable to analyze: This is not supported");
@@ -419,7 +417,7 @@ public class TextBufferIssueTrackerTests
 
         SetUpAnalysisThrows(mockAnalysisService, new DivideByZeroException("this is a test"));
 
-        var act = () => testSubject.RequestAnalysis(Mock.Of<IAnalyzerOptions>());
+        var act = () => testSubject.RequestAnalysis();
         act.Should().Throw<DivideByZeroException>()
             .WithMessage("this is a test");
     }
