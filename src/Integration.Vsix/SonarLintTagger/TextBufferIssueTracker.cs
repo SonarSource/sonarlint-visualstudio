@@ -20,6 +20,7 @@
 
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
@@ -80,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             sonarErrorDataSource.AddFactory(Factory);
             Provider.AddIssueTracker(this);
 
-            RequestAnalysis(new AnalyzerOptions { IsOnOpen = true });
+            InitializeAnalysisStateAsync().Forget();
         }
 
         private void SafeOnFileActionOccurred(object sender, TextDocumentFileActionEventArgs e)
@@ -149,9 +150,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return analysisSnapshot;
         }
 
-        private void NotifyFileTracker(ITextSnapshot snapshot)
+        private void NotifyFileTracker(ITextSnapshot snapshot) => fileTracker.AddFiles(new SourceFile(LastAnalysisFilePath, content: snapshot.GetText()));
+
+        private async Task InitializeAnalysisStateAsync()
         {
-            fileTracker.AddFiles(new SourceFile(LastAnalysisFilePath, content: snapshot.GetText()));
+            var analysisSnapshot = UpdateAnalysisState();
+            await vsAwareAnalysisService.CreateIssueConsumerAsync(document, analysisSnapshot, SnapToNewSnapshot);
         }
 
         public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans) => [];

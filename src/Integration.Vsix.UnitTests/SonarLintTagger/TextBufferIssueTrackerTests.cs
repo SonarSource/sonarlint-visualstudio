@@ -78,10 +78,7 @@ public class TextBufferIssueTrackerTests
 
     [TestMethod]
     [Description("TextBufferIssueTracker is no longer used as a real tagger and therefore should not produce any tags")]
-    public void GetTags_EmptyArray()
-    {
-        testSubject.GetTags(null).Should().BeEmpty();
-    }
+    public void GetTags_EmptyArray() => testSubject.GetTags(null).Should().BeEmpty();
 
     [TestMethod]
     public void Ctor_RegistersEventsTrackerAndFactory()
@@ -106,11 +103,14 @@ public class TextBufferIssueTrackerTests
         issuesSnapshot.Issues.Count().Should().Be(0);
     }
 
-    private static void SetUpAnalysisThrows(IVsAwareAnalysisService mockAnalysisService, Exception exception)
+    [TestMethod]
+    public void Ctor_UpdatesAnalysisStateAndCreatesIssueConsumer()
     {
-        mockAnalysisService.When(x => x.RequestAnalysis(Arg.Any<ITextDocument>(),
-            Arg.Any<AnalysisSnapshot>(),
-            Arg.Any<SnapshotChangedHandler>())).Throw(exception);
+        var textDocument = mockedJavascriptDocumentFooJs;
+
+        mockFileTracker.Received(1).AddFiles(new SourceFile(textDocument.FilePath, encoding: null, TextContent));
+        mockAnalysisService.Received(1).CreateIssueConsumerAsync(textDocument, new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot),
+            Arg.Any<SnapshotChangedHandler>());
     }
 
     [TestMethod]
@@ -145,6 +145,13 @@ public class TextBufferIssueTrackerTests
         testSubject.Dispose();
 
         eventHandler.Received(1).Invoke(taggerProvider, Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == mockedJavascriptDocumentFooJs.FilePath));
+    }
+
+    private static void SetUpAnalysisThrows(IVsAwareAnalysisService mockAnalysisService, Exception exception)
+    {
+        mockAnalysisService.When(x => x.RequestAnalysis(Arg.Any<ITextDocument>(),
+            Arg.Any<AnalysisSnapshot>(),
+            Arg.Any<SnapshotChangedHandler>())).Throw(exception);
     }
 
     private static void VerifySingletonManagerDoesNotExist(ITextBuffer buffer)
@@ -350,10 +357,10 @@ public class TextBufferIssueTrackerTests
     #region RequestAnalysis
 
     [TestMethod]
-    public void Ctor_AnalysisIsRequestedOnCreation()
-    {
-        VerifyAnalysisRequestedWithDefaultOptions();
-    }
+    public void Ctor_AnalysisNotRequestedOnCreation() =>
+        mockAnalysisService.DidNotReceive().RequestAnalysis(Arg.Any<ITextDocument>(),
+            Arg.Any<AnalysisSnapshot>(),
+            Arg.Any<SnapshotChangedHandler>());
 
     [TestMethod]
     public void RequestAnalysis_CallsAnalysisService()
