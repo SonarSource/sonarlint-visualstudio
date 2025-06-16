@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
-namespace SonarLint.VisualStudio.Integration.Vsix;
+namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 internal record AnalysisSnapshot(string FilePath, ITextSnapshot TextSnapshot);
 
@@ -37,58 +37,51 @@ internal interface IVsAwareAnalysisService
         SnapshotChangedHandler errorListHandler);
 
     void CancelForFile(string filePath);
+
+    Task<IIssueConsumer> CreateIssueConsumerAsync(ITextDocument document, AnalysisSnapshot analysisSnapshot, SnapshotChangedHandler errorListHandler);
 }
 
 [Export(typeof(IVsAwareAnalysisService))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class VsAwareAnalysisService : IVsAwareAnalysisService
+[method: ImportingConstructor]
+internal class VsAwareAnalysisService(
+    IVsProjectInfoProvider vsProjectInfoProvider,
+    IIssueConsumerFactory issueConsumerFactory,
+    IIssueConsumerStorage issueConsumerStorage,
+    IAnalysisService analysisService,
+    IThreadHandling threadHandling)
+    : IVsAwareAnalysisService
 {
-    private readonly IIssueConsumerFactory issueConsumerFactory;
-    private readonly IVsProjectInfoProvider vsProjectInfoProvider;
-    private readonly IThreadHandling threadHandling;
-    private readonly IAnalysisService analysisService;
-
-    [ImportingConstructor]
-    public VsAwareAnalysisService(
-        IVsProjectInfoProvider vsProjectInfoProvider,
-        IIssueConsumerFactory issueConsumerFactory,
-        IAnalysisService analysisService,
-        IThreadHandling threadHandling)
-    {
-        this.issueConsumerFactory = issueConsumerFactory;
-        this.vsProjectInfoProvider = vsProjectInfoProvider;
-        this.analysisService = analysisService;
-        this.threadHandling = threadHandling;
-    }
-
     public void RequestAnalysis(
         ITextDocument document,
         AnalysisSnapshot analysisSnapshot,
         SnapshotChangedHandler errorListHandler) =>
         RequestAnalysisAsync(document, analysisSnapshot, errorListHandler).Forget();
 
-    public void CancelForFile(string filePath) => analysisService.CancelForFile(filePath);
+    public void CancelForFile(string filePath) => issueConsumerStorage.Remove(filePath);
 
-    private async Task RequestAnalysisAsync(
-        ITextDocument document,
-        AnalysisSnapshot analysisSnapshot,
-        SnapshotChangedHandler errorListHandler)
+    public async Task<IIssueConsumer> CreateIssueConsumerAsync(ITextDocument document, AnalysisSnapshot analysisSnapshot, SnapshotChangedHandler errorListHandler)
     {
         var (projectName, projectGuid) = await vsProjectInfoProvider.GetDocumentProjectInfoAsync(analysisSnapshot.FilePath);
         var issueConsumer = issueConsumerFactory.Create(document, analysisSnapshot.FilePath, analysisSnapshot.TextSnapshot, projectName, projectGuid, errorListHandler);
+        issueConsumerStorage.Set(analysisSnapshot.FilePath, issueConsumer);
+        return issueConsumer;
+    }
+
+    private async Task RequestAnalysisAsync(ITextDocument document, AnalysisSnapshot analysisSnapshot, SnapshotChangedHandler errorListHandler)
+    {
+        var issueConsumer = await CreateIssueConsumerAsync(document, analysisSnapshot, errorListHandler);
 
         await ScheduleAnalysisOnBackgroundThreadAsync(analysisSnapshot.FilePath, issueConsumer);
     }
 
-    private async Task ScheduleAnalysisOnBackgroundThreadAsync(string filePath, IIssueConsumer issueConsumer)
-    {
+    private async Task ScheduleAnalysisOnBackgroundThreadAsync(string filePath, IIssueConsumer issueConsumer) =>
         await threadHandling.RunOnBackgroundThread(() =>
         {
             ClearErrorList(filePath, issueConsumer);
 
-            analysisService.ScheduleAnalysis(filePath, issueConsumer);
+            analysisService.ScheduleAnalysis(filePath);
         });
-    }
 
     private static void ClearErrorList(string filePath, IIssueConsumer issueConsumer)
     {
