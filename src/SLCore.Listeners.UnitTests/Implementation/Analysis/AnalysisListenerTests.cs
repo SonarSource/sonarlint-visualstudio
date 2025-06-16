@@ -79,7 +79,7 @@ public class AnalysisListenerTests
         activeConfigScopeTracker.Received().TryUpdateAnalysisReadinessOnCurrentConfigScope("id", isReady);
         if (isReady)
         {
-            analysisRequester.Received().RequestAnalysis(Arg.Is<IAnalyzerOptions>(o => o.IsOnOpen), Arg.Is<string[]>(s => !s.Any()));
+            analysisRequester.Received().RequestAnalysis(Arg.Is<string[]>(s => !s.Any()));
         }
 
         testLogger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.AnalysisReadinessUpdate, isReady));
@@ -111,18 +111,17 @@ public class AnalysisListenerTests
         raisedFindingProcessor.Received().RaiseFinding(raiseIssueParams, hotspotPublisher);
     }
 
-    private AnalysisListener CreateTestSubject(IActiveConfigScopeTracker activeConfigScopeTracker = null,
+    private AnalysisListener CreateTestSubject(
+        IActiveConfigScopeTracker activeConfigScopeTracker = null,
         IAnalysisRequester analysisRequester = null,
         IRaisedFindingProcessor raisedFindingProcessor = null,
         IIssuePublisher issuePublisher = null,
         IHotspotPublisher hotspotPublisher = null,
-        ILogger logger = null)
-        => new(activeConfigScopeTracker ?? Substitute.For<IActiveConfigScopeTracker>(),
+        ILogger logger = null) =>
+        new(activeConfigScopeTracker ?? Substitute.For<IActiveConfigScopeTracker>(),
             analysisRequester ?? Substitute.For<IAnalysisRequester>(),
             raisedFindingProcessor ?? Substitute.For<IRaisedFindingProcessor>(),
             issuePublisher ?? Substitute.For<IIssuePublisher>(),
             hotspotPublisher ?? Substitute.For<IHotspotPublisher>(),
             logger ?? new TestLogger());
-
-
 }

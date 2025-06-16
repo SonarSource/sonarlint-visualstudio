@@ -67,7 +67,8 @@ public class MuteIssuesServiceTests
         logger = new TestLogger();
         threadHandling = new NoOpThreadHandler();
         issueSlCoreService = Substitute.For<IIssueSLCoreService>();
-        testSubject = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, serverIssueFinder, roslynSuppressionUpdater, analysisRequester, logger, threadHandling);
+        testSubject = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, serverIssueFinder, roslynSuppressionUpdater, analysisRequester, logger,
+            threadHandling);
 
         MockNonRoslynIssue();
         activeConfigScopeTracker.Current.Returns(new Core.ConfigurationScope.ConfigurationScope("CONFIG_SCOPE_ID", RootPath: "C:\\", ConnectionId: "CONNECTION_ID"));
@@ -98,7 +99,8 @@ public class MuteIssuesServiceTests
     {
         var substituteLogger = Substitute.For<ILogger>();
 
-        _ = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, serverIssueFinder, roslynSuppressionUpdater, analysisRequester, substituteLogger, threadHandling);
+        _ = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, serverIssueFinder, roslynSuppressionUpdater, analysisRequester, substituteLogger,
+            threadHandling);
 
         substituteLogger.Received(1).ForContext("MuteIssuesService");
     }
@@ -355,7 +357,7 @@ public class MuteIssuesServiceTests
 
         _ = testSubject.ResolveIssueWithDialogAsync(roslynIssue);
 
-        analysisRequester.Received(1).RequestAnalysis(Arg.Is<AnalyzerOptions>(x => !x.IsOnOpen), Arg.Is<string[]>(x => x.SequenceEqual(new[] { roslynIssue.FilePath })));
+        analysisRequester.Received(1).RequestAnalysis(Arg.Is<string[]>(x => x.SequenceEqual(new[] { roslynIssue.FilePath })));
     }
 
     [TestMethod]
@@ -366,7 +368,7 @@ public class MuteIssuesServiceTests
 
         _ = testSubject.ResolveIssueWithDialogAsync(nonRoslynIssue);
 
-        analysisRequester.Received(1).RequestAnalysis(Arg.Is<AnalyzerOptions>(x => !x.IsOnOpen), Arg.Is<string[]>(x => x.SequenceEqual(new[] { nonRoslynIssue.FilePath })));
+        analysisRequester.Received(1).RequestAnalysis(Arg.Is<string[]>(x => x.SequenceEqual(new[] { nonRoslynIssue.FilePath })));
     }
 
     [TestMethod]
@@ -381,7 +383,7 @@ public class MuteIssuesServiceTests
         _ = testSubject.ResolveIssueWithDialogAsync(roslynIssue);
 
         roslynSuppressionUpdater.Received(1).UpdateSuppressedIssuesAsync(isResolved: true, Arg.Is<string[]>(x => x.SequenceEqual(new[] { RoslynIssueServerKey })), Arg.Any<CancellationToken>());
-        analysisRequester.Received(1).RequestAnalysis(Arg.Is<AnalyzerOptions>(x => !x.IsOnOpen), Arg.Is<string[]>(x => x.SequenceEqual(new[] { roslynIssue.FilePath })));
+        analysisRequester.Received(1).RequestAnalysis(Arg.Is<string[]>(x => x.SequenceEqual(new[] { roslynIssue.FilePath })));
     }
 
     [TestMethod]
@@ -395,7 +397,7 @@ public class MuteIssuesServiceTests
         _ = testSubject.ResolveIssueWithDialogAsync(nonRoslynIssue);
 
         roslynSuppressionUpdater.DidNotReceive().UpdateSuppressedIssuesAsync(Arg.Any<bool>(), Arg.Any<string[]>(), Arg.Any<CancellationToken>());
-        analysisRequester.Received(1).RequestAnalysis(Arg.Is<AnalyzerOptions>(x => !x.IsOnOpen), Arg.Is<string[]>(x => x.SequenceEqual(new[] { nonRoslynIssue.FilePath })));
+        analysisRequester.Received(1).RequestAnalysis(Arg.Is<string[]>(x => x.SequenceEqual(new[] { nonRoslynIssue.FilePath })));
     }
 
     private void NotInConnectedMode() => activeConfigScopeTracker.Current.Returns(new Core.ConfigurationScope.ConfigurationScope("CONFIG_SCOPE_ID"));

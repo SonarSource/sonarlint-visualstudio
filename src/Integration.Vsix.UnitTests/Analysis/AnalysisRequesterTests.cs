@@ -18,12 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 {
@@ -61,17 +56,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
                 eventRaised = true;
             };
 
-
-            var inputOptions = new Mock<IAnalyzerOptions>().Object;
-
             // Act
-            testSubject.RequestAnalysis(inputOptions, "file1", "c:\\aaa\\bbb.cs");
+            testSubject.RequestAnalysis("file1", "c:\\aaa\\bbb.cs");
 
             // Assert
             eventRaised.Should().BeTrue();
             actualSender.Should().Be(testSubject);
             actualEventArgs.Should().NotBeNull();
-            actualEventArgs.Options.Should().BeSameAs(inputOptions);
             actualEventArgs.FilePaths.Should().BeEquivalentTo("file1", "c:\\aaa\\bbb.cs");
         }
 
