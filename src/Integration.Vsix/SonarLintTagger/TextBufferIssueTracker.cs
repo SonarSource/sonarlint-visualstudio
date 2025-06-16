@@ -20,13 +20,14 @@
 
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
 {
     ///<summary>
     /// Tracks SonarLint errors for a specific buffer.
@@ -80,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             sonarErrorDataSource.AddFactory(Factory);
             Provider.AddIssueTracker(this);
 
-            RequestAnalysis(new AnalyzerOptions { IsOnOpen = true });
+            InitializeAnalysisStateAsync().Forget();
         }
 
         private void SafeOnFileActionOccurred(object sender, TextDocumentFileActionEventArgs e)
@@ -91,6 +92,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 switch (e.FileActionType)
                 {
+                    // TODO by https://sonarsource.atlassian.net/browse/SLVS-2310 Request analysis can be removed and replaced by InitializeAnalysisStateAsync
                     case FileActionTypes.ContentSavedToDisk:
                         {
                             RequestAnalysis(new AnalyzerOptions { IsOnOpen = false });
@@ -149,9 +151,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return analysisSnapshot;
         }
 
-        private void NotifyFileTracker(ITextSnapshot snapshot)
+        private void NotifyFileTracker(ITextSnapshot snapshot) => fileTracker.AddFiles(new SourceFile(LastAnalysisFilePath, content: snapshot.GetText()));
+
+        private async Task InitializeAnalysisStateAsync()
         {
-            fileTracker.AddFiles(new SourceFile(LastAnalysisFilePath, content: snapshot.GetText()));
+            var analysisSnapshot = UpdateAnalysisState();
+            await vsAwareAnalysisService.CreateIssueConsumerAsync(document, analysisSnapshot, SnapToNewSnapshot);
         }
 
         public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans) => [];
