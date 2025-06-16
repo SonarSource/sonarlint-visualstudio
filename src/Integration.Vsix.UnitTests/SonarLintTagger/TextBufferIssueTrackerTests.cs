@@ -77,19 +77,6 @@ public class TextBufferIssueTrackerTests
         testSubject = CreateTestSubject(mockedJavascriptDocumentFooJs);
     }
 
-    private TextBufferIssueTracker CreateTestSubject(ITextDocument textDocument)
-    {
-        logger = new TestLogger();
-
-        return CreateTestSubject(textDocument, logger);
-    }
-
-    private TextBufferIssueTracker CreateTestSubject(ITextDocument textDocument, ILogger logger) =>
-        new(taggerProvider,
-            textDocument, javascriptLanguage,
-            mockSonarErrorDataSource, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage,
-            mockFileTracker, threadHandling, logger);
-
     [TestMethod]
     [Description("TextBufferIssueTracker is no longer used as a real tagger and therefore should not produce any tags")]
     public void GetTags_EmptyArray() => testSubject.GetTags(null).Should().BeEmpty();
@@ -173,115 +160,6 @@ public class TextBufferIssueTrackerTests
         testSubject.Dispose();
 
         eventHandler.Received(1).Invoke(taggerProvider, Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == mockedJavascriptDocumentFooJs.FilePath));
-    }
-
-    private static void VerifySingletonManagerDoesNotExist(ITextBuffer buffer) => FindSingletonManagerInPropertyCollection(buffer).Should().BeNull();
-
-    private static void VerifySingletonManagerExists(ITextBuffer buffer) => FindSingletonManagerInPropertyCollection(buffer).Should().NotBeNull();
-
-    private static SingletonDisposableTaggerManager<IErrorTag> FindSingletonManagerInPropertyCollection(ITextBuffer buffer)
-    {
-        buffer.Properties.TryGetProperty<SingletonDisposableTaggerManager<IErrorTag>>(TaggerProvider.SingletonManagerPropertyCollectionKey,
-            out var propertyValue);
-        return propertyValue;
-    }
-
-    private void CheckFactoryWasRegisteredWithDataSource(IssuesSnapshotFactory factory, int times) => mockSonarErrorDataSource.Received(times).AddFactory(factory);
-
-    private void CheckFactoryWasUnregisteredFromDataSource(IssuesSnapshotFactory factory, int times) => mockSonarErrorDataSource.Received(times).RemoveFactory(factory);
-
-    private TaggerProvider CreateTaggerProvider()
-    {
-        var tableManagerProviderMock = Substitute.For<ITableManagerProvider>();
-        tableManagerProviderMock.GetTableManager(StandardTables.ErrorsTable)
-            .Returns(Substitute.For<ITableManager>());
-
-        var textDocFactoryServiceMock = Substitute.For<ITextDocumentFactoryService>();
-
-        var languageRecognizer = Mock.Of<ISonarLanguageRecognizer>();
-
-        var serviceProvider = new ConfigurableServiceProvider();
-        serviceProvider.RegisterService(typeof(IVsStatusbar), Mock.Of<IVsStatusbar>());
-
-        var mockAnalysisRequester = Substitute.For<IAnalysisRequester>();
-
-        var mockAnalysisScheduler = Substitute.For<IScheduler>();
-        mockAnalysisScheduler.When(x => x.Schedule(Arg.Any<string>(), Arg.Any<Action<CancellationToken>>(), Arg.Any<int>()))
-            .Do(callInfo =>
-            {
-                var analyze = callInfo.Arg<Action<CancellationToken>>();
-                analyze(new CancellationToken());
-            });
-        var analyzer = Substitute.For<IAnalyzer>();
-
-        var sonarErrorListDataSource = mockSonarErrorDataSource;
-        var textDocumentFactoryService = textDocFactoryServiceMock;
-        var analysisRequester = mockAnalysisRequester;
-        var provider = new TaggerProvider(sonarErrorListDataSource, textDocumentFactoryService,
-            serviceProvider, languageRecognizer, analysisRequester, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage, Mock.Of<ITaggableBufferIndicator>(),
-            mockFileTracker, threadHandling, analyzer, logger);
-        return provider;
-    }
-
-    private static ITextSnapshot CreateTextSnapshotMock()
-    {
-        var textSnapshot = Substitute.For<ITextSnapshot>();
-        textSnapshot.GetText().Returns(TextContent);
-        return textSnapshot;
-    }
-
-    private static ITextBuffer CreateTextBufferMock(ITextSnapshot textSnapshot)
-    {
-        // Text buffer with a properties collection and current snapshot
-        var mockTextBuffer = Substitute.For<ITextBuffer>();
-
-        var dummyProperties = new PropertyCollection();
-        mockTextBuffer.Properties.Returns(dummyProperties);
-
-        mockTextBuffer.CurrentSnapshot.Returns(textSnapshot);
-
-        return mockTextBuffer;
-    }
-
-    private static ITextDocument CreateDocumentMock(string fileName, ITextBuffer textBufferMock)
-    {
-        var mockTextDocument = Substitute.For<ITextDocument>();
-        mockTextDocument.FilePath.Returns(fileName);
-        mockTextDocument.TextBuffer.Returns(textBufferMock);
-        mockTextDocument.Encoding.Returns(Encoding.UTF8);
-
-        return mockTextDocument;
-    }
-
-    private void MockIssueConsumerFactory(ITextDocument document, IIssueConsumer issueConsumer) =>
-        issueConsumerFactory
-            .Create(document,
-                document.FilePath,
-                Arg.Any<ITextSnapshot>(),
-                Arg.Any<string>(),
-                Arg.Any<Guid>(),
-                Arg.Any<SnapshotChangedHandler>())
-            .Returns(issueConsumer);
-
-    private (string projectName, Guid projectGuid) MockGetDocumentProjectInfoAsync(string filePath)
-    {
-        var projectInfo = (projectName: "project123", projectGuid: Guid.NewGuid());
-        MockGetDocumentProjectInfoAsync(filePath, projectInfo);
-        return projectInfo;
-    }
-
-    private void MockGetDocumentProjectInfoAsync(string filePath, (string projectName, Guid projectGuid) projectInfo) =>
-        vsProjectInfoProvider.GetDocumentProjectInfoAsync(filePath).Returns(projectInfo);
-
-    private void VerifyCreateIssueConsumerWasCalled(
-        ITextDocument document,
-        (string projectName, Guid projectGuid) projectInfo,
-        IIssueConsumer issueConsumerToVerify,
-        AnalysisSnapshot analysisSnapshot)
-    {
-        vsProjectInfoProvider.Received().GetDocumentProjectInfoAsync(document.FilePath);
-        issueConsumerFactory.Received().Create(document, document.FilePath, analysisSnapshot.TextSnapshot, projectInfo.projectName, projectInfo.projectGuid, Arg.Any<SnapshotChangedHandler>());
-        issueConsumerStorage.Received().Set(document.FilePath, issueConsumerToVerify);
     }
 
     [TestMethod]
@@ -420,4 +298,126 @@ public class TextBufferIssueTrackerTests
     private void SetUpIssueConsumerStorageThrows(Exception exception) => issueConsumerStorage.When(x => x.Remove(Arg.Any<string>())).Do(x => throw exception);
 
     private void MockThreadHandling() => threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>()).Returns(info => info.Arg<Func<Task<int>>>()());
+
+    private static void VerifySingletonManagerDoesNotExist(ITextBuffer buffer) => FindSingletonManagerInPropertyCollection(buffer).Should().BeNull();
+
+    private static void VerifySingletonManagerExists(ITextBuffer buffer) => FindSingletonManagerInPropertyCollection(buffer).Should().NotBeNull();
+
+    private static SingletonDisposableTaggerManager<IErrorTag> FindSingletonManagerInPropertyCollection(ITextBuffer buffer)
+    {
+        buffer.Properties.TryGetProperty<SingletonDisposableTaggerManager<IErrorTag>>(TaggerProvider.SingletonManagerPropertyCollectionKey,
+            out var propertyValue);
+        return propertyValue;
+    }
+
+    private void CheckFactoryWasRegisteredWithDataSource(IssuesSnapshotFactory factory, int times) => mockSonarErrorDataSource.Received(times).AddFactory(factory);
+
+    private void CheckFactoryWasUnregisteredFromDataSource(IssuesSnapshotFactory factory, int times) => mockSonarErrorDataSource.Received(times).RemoveFactory(factory);
+
+    private TaggerProvider CreateTaggerProvider()
+    {
+        var tableManagerProviderMock = Substitute.For<ITableManagerProvider>();
+        tableManagerProviderMock.GetTableManager(StandardTables.ErrorsTable)
+            .Returns(Substitute.For<ITableManager>());
+
+        var textDocFactoryServiceMock = Substitute.For<ITextDocumentFactoryService>();
+
+        var languageRecognizer = Mock.Of<ISonarLanguageRecognizer>();
+
+        var serviceProvider = new ConfigurableServiceProvider();
+        serviceProvider.RegisterService(typeof(IVsStatusbar), Mock.Of<IVsStatusbar>());
+
+        var mockAnalysisRequester = Substitute.For<IAnalysisRequester>();
+
+        var mockAnalysisScheduler = Substitute.For<IScheduler>();
+        mockAnalysisScheduler.When(x => x.Schedule(Arg.Any<string>(), Arg.Any<Action<CancellationToken>>(), Arg.Any<int>()))
+            .Do(callInfo =>
+            {
+                var analyze = callInfo.Arg<Action<CancellationToken>>();
+                analyze(new CancellationToken());
+            });
+        var analyzer = Substitute.For<IAnalyzer>();
+
+        var sonarErrorListDataSource = mockSonarErrorDataSource;
+        var textDocumentFactoryService = textDocFactoryServiceMock;
+        var analysisRequester = mockAnalysisRequester;
+        var provider = new TaggerProvider(sonarErrorListDataSource, textDocumentFactoryService,
+            serviceProvider, languageRecognizer, analysisRequester, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage, Mock.Of<ITaggableBufferIndicator>(),
+            mockFileTracker, threadHandling, analyzer, logger);
+        return provider;
+    }
+
+    private static ITextSnapshot CreateTextSnapshotMock()
+    {
+        var textSnapshot = Substitute.For<ITextSnapshot>();
+        textSnapshot.GetText().Returns(TextContent);
+        return textSnapshot;
+    }
+
+    private static ITextBuffer CreateTextBufferMock(ITextSnapshot textSnapshot)
+    {
+        // Text buffer with a properties collection and current snapshot
+        var mockTextBuffer = Substitute.For<ITextBuffer>();
+
+        var dummyProperties = new PropertyCollection();
+        mockTextBuffer.Properties.Returns(dummyProperties);
+
+        mockTextBuffer.CurrentSnapshot.Returns(textSnapshot);
+
+        return mockTextBuffer;
+    }
+
+    private static ITextDocument CreateDocumentMock(string fileName, ITextBuffer textBufferMock)
+    {
+        var mockTextDocument = Substitute.For<ITextDocument>();
+        mockTextDocument.FilePath.Returns(fileName);
+        mockTextDocument.TextBuffer.Returns(textBufferMock);
+        mockTextDocument.Encoding.Returns(Encoding.UTF8);
+
+        return mockTextDocument;
+    }
+
+    private void MockIssueConsumerFactory(ITextDocument document, IIssueConsumer issueConsumer) =>
+        issueConsumerFactory
+            .Create(document,
+                document.FilePath,
+                Arg.Any<ITextSnapshot>(),
+                Arg.Any<string>(),
+                Arg.Any<Guid>(),
+                Arg.Any<SnapshotChangedHandler>())
+            .Returns(issueConsumer);
+
+    private (string projectName, Guid projectGuid) MockGetDocumentProjectInfoAsync(string filePath)
+    {
+        var projectInfo = (projectName: "project123", projectGuid: Guid.NewGuid());
+        MockGetDocumentProjectInfoAsync(filePath, projectInfo);
+        return projectInfo;
+    }
+
+    private void MockGetDocumentProjectInfoAsync(string filePath, (string projectName, Guid projectGuid) projectInfo) =>
+        vsProjectInfoProvider.GetDocumentProjectInfoAsync(filePath).Returns(projectInfo);
+
+    private void VerifyCreateIssueConsumerWasCalled(
+        ITextDocument document,
+        (string projectName, Guid projectGuid) projectInfo,
+        IIssueConsumer issueConsumerToVerify,
+        AnalysisSnapshot analysisSnapshot)
+    {
+        vsProjectInfoProvider.Received().GetDocumentProjectInfoAsync(document.FilePath);
+        issueConsumerFactory.Received().Create(document, document.FilePath, analysisSnapshot.TextSnapshot, projectInfo.projectName, projectInfo.projectGuid, Arg.Any<SnapshotChangedHandler>());
+        issueConsumerStorage.Received().Set(document.FilePath, issueConsumerToVerify);
+    }
+
+    private TextBufferIssueTracker CreateTestSubject(ITextDocument textDocument)
+    {
+        logger = new TestLogger();
+
+        return CreateTestSubject(textDocument, logger);
+    }
+
+    private TextBufferIssueTracker CreateTestSubject(ITextDocument textDocument, ILogger logger) =>
+        new(taggerProvider,
+            textDocument, javascriptLanguage,
+            mockSonarErrorDataSource, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage,
+            mockFileTracker, threadHandling, logger);
 }
