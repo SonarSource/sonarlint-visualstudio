@@ -142,7 +142,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Analysis] On {0} of file {1} an error occured: {2}.
+        ///   Looks up a localized string similar to On {0} of file {1} an error occured: {2}.
         /// </summary>
         public static string Analysis_ErrorOnFileAction {
             get {
@@ -151,20 +151,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Analysis] Error updating analysis state: {0}.
+        ///   Looks up a localized string similar to Error updating analysis state: {0}.
         /// </summary>
         public static string Analysis_ErrorUpdatingAnalysisState {
             get {
                 return ResourceManager.GetString("Analysis_ErrorUpdatingAnalysisState", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Analysis] Unable to analyze: {0}.
-        /// </summary>
-        public static string Analysis_NotSupported {
-            get {
-                return ResourceManager.GetString("Analysis_NotSupported", resourceCulture);
             }
         }
         

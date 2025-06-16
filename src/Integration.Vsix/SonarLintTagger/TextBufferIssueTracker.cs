@@ -82,6 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
             this.fileTracker = fileTracker;
             this.threadHandling = threadHandling;
             this.logger = logger;
+            logger.ForContext(nameof(TextBufferIssueTracker));
 
             this.document = document;
             LastAnalysisFilePath = document.FilePath;

@@ -130,10 +130,10 @@
     <comment>Exception message, {0} guid</comment>
   </data>
   <data name="Analysis_ErrorUpdatingAnalysisState" xml:space="preserve">
-    <value>[Analysis] Error updating analysis state: {0}</value>
+    <value>Error updating analysis state: {0}</value>
   </data>
   <data name="Analysis_ErrorOnFileAction" xml:space="preserve">
-    <value>[Analysis] On {0} of file {1} an error occured: {2}</value>
+    <value>On {0} of file {1} an error occured: {2}</value>
   </data>
   <data name="Daemon_InitializationComplete" xml:space="preserve">
     <value>Finished initializing the daemon package.</value>
@@ -278,9 +278,6 @@
   </data>
   <data name="TextBufferIssueTracker_ProjectGuidError" xml:space="preserve">
     <value>Failed to calculate project guid of file {0}, error occurred: {1}</value>
-  </data>
-  <data name="Analysis_NotSupported" xml:space="preserve">
-    <value>[Analysis] Unable to analyze: {0}</value>
   </data>
   <data name="SlCoreLocator_UsingCustomJreLocation" xml:space="preserve">
     <value>Using JRE location provided in the settings "{0}"</value>

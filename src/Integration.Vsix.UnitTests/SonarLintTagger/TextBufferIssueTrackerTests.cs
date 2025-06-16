@@ -81,15 +81,28 @@ public class TextBufferIssueTrackerTests
     {
         logger = new TestLogger();
 
-        return new TextBufferIssueTracker(taggerProvider,
+        return CreateTestSubject(textDocument, logger);
+    }
+
+    private TextBufferIssueTracker CreateTestSubject(ITextDocument textDocument, ILogger logger) =>
+        new(taggerProvider,
             textDocument, javascriptLanguage,
             mockSonarErrorDataSource, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage,
             mockFileTracker, threadHandling, logger);
-    }
 
     [TestMethod]
     [Description("TextBufferIssueTracker is no longer used as a real tagger and therefore should not produce any tags")]
     public void GetTags_EmptyArray() => testSubject.GetTags(null).Should().BeEmpty();
+
+    [TestMethod]
+    public void Ctor_SetsContext()
+    {
+        var mockedLogger = Substitute.For<ILogger>();
+
+        _ = CreateTestSubject(mockedJavascriptDocumentFooJs, mockedLogger);
+
+        mockedLogger.Received(1).ForContext(nameof(TextBufferIssueTracker));
+    }
 
     [TestMethod]
     public void Ctor_RegistersEventsTrackerAndFactory()
