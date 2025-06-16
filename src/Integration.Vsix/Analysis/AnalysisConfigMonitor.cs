@@ -37,7 +37,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor
 {
-    private readonly IAnalysisRequester analysisRequester;
     private readonly IUserSettingsProvider userSettingsProvider;
     private readonly ILogger logger;
     private readonly IThreadHandling threadHandling;
@@ -46,7 +45,6 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor
 
     [ImportingConstructor]
     public AnalysisConfigMonitor(
-        IAnalysisRequester analysisRequester,
         IUserSettingsProvider userSettingsProvider,
         ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater,
         IStandaloneRoslynSettingsUpdater roslynSettingsUpdater,
@@ -54,7 +52,6 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor
         IThreadHandling threadHandling,
         IInitializationProcessorFactory initializationProcessorFactory)
     {
-        this.analysisRequester = analysisRequester;
         this.userSettingsProvider = userSettingsProvider;
         this.logger = logger;
         this.threadHandling = threadHandling;
@@ -83,14 +80,9 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor
             {
                 roslynSettingsUpdater.Update(userSettingsProvider.UserSettings);
                 slCoreRuleSettingsUpdater.UpdateStandaloneRulesConfiguration();
-                RequestAnalysis();
             }
         ).Forget();
     }
-
-    private void RequestAnalysis() =>
-        // NB assumes exception handling is done by the AnalysisRequester
-        analysisRequester.RequestAnalysis();
 
     private bool disposedValue = false; // To detect redundant calls
 
