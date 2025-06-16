@@ -92,6 +92,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
             {
                 switch (e.FileActionType)
                 {
+                    // TODO by https://sonarsource.atlassian.net/browse/SLVS-2310 Request analysis can be removed and replaced by InitializeAnalysisStateAsync
                     case FileActionTypes.ContentSavedToDisk:
                         {
                             RequestAnalysis(new AnalyzerOptions { IsOnOpen = false });
