@@ -129,9 +129,11 @@
     <value>Cannot find tool window with the specified guid: {0}</value>
     <comment>Exception message, {0} guid</comment>
   </data>
-  <data name="Analysis_ErrorTriggeringAnalysis" xml:space="preserve">
-    <value>[Analysis] Error triggering analysis: {0}</value>
-    <comment>Output window message</comment>
+  <data name="Analysis_ErrorUpdatingAnalysisState" xml:space="preserve">
+    <value>[Analysis] Error updating analysis state: {0}</value>
+  </data>
+  <data name="Analysis_ErrorOnFileAction" xml:space="preserve">
+    <value>[Analysis] On {0} of file {1} an error occured: {2}</value>
   </data>
   <data name="Daemon_InitializationComplete" xml:space="preserve">
     <value>Finished initializing the daemon package.</value>

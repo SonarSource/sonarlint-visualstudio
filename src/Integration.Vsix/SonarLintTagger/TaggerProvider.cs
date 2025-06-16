@@ -61,12 +61,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISonarLanguageRecognizer languageRecognizer;
         private readonly IVsStatusbar vsStatusBar;
         private readonly ITaggableBufferIndicator taggableBufferIndicator;
-        private readonly IVsAwareAnalysisService analysisService;
         private readonly IVsProjectInfoProvider vsProjectInfoProvider;
         private readonly IIssueConsumerFactory issueConsumerFactory;
         private readonly IIssueConsumerStorage issueConsumerStorage;
         private readonly IFileTracker fileTracker;
         private readonly IThreadHandling threadHandling;
+        private readonly IAnalyzer analyzer;
         private readonly ILogger logger;
 
         [ImportingConstructor]
@@ -75,7 +75,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             ITextDocumentFactoryService textDocumentFactoryService,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             ISonarLanguageRecognizer languageRecognizer,
-            IVsAwareAnalysisService analysisService,
             IAnalysisRequester analysisRequester,
             IVsProjectInfoProvider vsProjectInfoProvider,
             IIssueConsumerFactory issueConsumerFactory,
@@ -83,12 +82,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             ITaggableBufferIndicator taggableBufferIndicator,
             IFileTracker fileTracker,
             IThreadHandling threadHandling,
+            IAnalyzer analyzer,
             ILogger logger)
         {
             this.sonarErrorDataSource = sonarErrorDataSource;
             this.textDocumentFactoryService = textDocumentFactoryService;
 
-            this.analysisService = analysisService;
             this.vsProjectInfoProvider = vsProjectInfoProvider;
             this.issueConsumerFactory = issueConsumerFactory;
             this.issueConsumerStorage = issueConsumerStorage;
@@ -96,6 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.taggableBufferIndicator = taggableBufferIndicator;
             this.fileTracker = fileTracker;
             this.threadHandling = threadHandling;
+            this.analyzer = analyzer;
             this.logger = logger;
 
             vsStatusBar = serviceProvider.GetService(typeof(IVsStatusbar)) as IVsStatusbar;
@@ -105,6 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly object reanalysisLockObject = new object();
         private CancellableJobRunner reanalysisJob;
         private StatusBarReanalysisProgressHandler reanalysisProgressHandler;
+        private Guid? lastAnalysisId;
 
         private void OnAnalysisRequested(object sender, AnalysisRequestEventArgs args)
         {
@@ -117,20 +118,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 reanalysisJob?.Cancel();
                 reanalysisProgressHandler?.Dispose();
+                if (lastAnalysisId.HasValue)
+                {
+                    analyzer.CancelAnalysis(lastAnalysisId.Value);
+                }
 
-                var filteredIssueTrackers = FilterIssuesTrackersByPath(issueTrackers, args.FilePaths);
+                var filteredIssueTrackers = FilterIssuesTrackersByPath(issueTrackers, args.FilePaths).ToList();
 
                 var operations = filteredIssueTrackers
-                    .Select<IIssueTracker, Action>(it => it.RequestAnalysis)
-                    .ToArray(); // create a fixed list - the user could close a file before the reanalysis completes which would cause the enumeration to change
+                    .Select<IIssueTracker, Action>(it => () => it.UpdateAnalysisSnapshotAsync())
+                    .ToList(); // create a fixed list - the user could close a file before the reanalysis completes which would cause the enumeration to change
+                var documentsToAnalyzeCount = operations.Count;
+                operations.Add(() => _ = ExecuteAnalysisAsync(filteredIssueTrackers));
 
                 reanalysisProgressHandler = new StatusBarReanalysisProgressHandler(vsStatusBar, logger);
 
-                var message = string.Format(CultureInfo.CurrentCulture, Strings.JobRunner_JobDescription_ReaanalyzeDocs, operations.Length);
+                var message = string.Format(CultureInfo.CurrentCulture, Strings.JobRunner_JobDescription_ReaanalyzeDocs, documentsToAnalyzeCount);
                 reanalysisJob = CancellableJobRunner.Start(message, operations,
                     reanalysisProgressHandler, logger);
             }
         }
+
+        private async Task ExecuteAnalysisAsync(IEnumerable<IIssueTracker> filteredIssueTrackers) =>
+            lastAnalysisId = await analyzer.ExecuteAnalysis(filteredIssueTrackers.Select(x => x.LastAnalysisFilePath).ToList());
 
         internal /* for testing */ static IEnumerable<IIssueTracker> FilterIssuesTrackersByPath(
             IEnumerable<IIssueTracker> issueTrackers,
@@ -185,7 +195,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 textDocument,
                 analysisLanguages,
                 sonarErrorDataSource,
-                analysisService,
                 vsProjectInfoProvider,
                 issueConsumerFactory,
                 issueConsumerStorage,
