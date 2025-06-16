@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
@@ -47,7 +48,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
         private readonly ITextDocument document;
         private readonly ILogger logger;
         private readonly IVsAwareAnalysisService vsAwareAnalysisService;
+        private readonly IVsProjectInfoProvider vsProjectInfoProvider;
+        private readonly IIssueConsumerFactory issueConsumerFactory;
+        private readonly IIssueConsumerStorage issueConsumerStorage;
         private readonly IFileTracker fileTracker;
+        private readonly IThreadHandling threadHandling;
         private readonly ISonarErrorListDataSource sonarErrorDataSource;
 
         public string LastAnalysisFilePath { get; private set; }
@@ -60,7 +65,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
             IEnumerable<AnalysisLanguage> detectedLanguages,
             ISonarErrorListDataSource sonarErrorDataSource,
             IVsAwareAnalysisService vsAwareAnalysisService,
+            IVsProjectInfoProvider vsProjectInfoProvider,
+            IIssueConsumerFactory issueConsumerFactory,
+            IIssueConsumerStorage issueConsumerStorage,
             IFileTracker fileTracker,
+            IThreadHandling threadHandling,
             ILogger logger)
         {
             Provider = provider;
@@ -68,7 +77,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
 
             this.sonarErrorDataSource = sonarErrorDataSource;
             this.vsAwareAnalysisService = vsAwareAnalysisService;
+            this.vsProjectInfoProvider = vsProjectInfoProvider;
+            this.issueConsumerFactory = issueConsumerFactory;
+            this.issueConsumerStorage = issueConsumerStorage;
             this.fileTracker = fileTracker;
+            this.threadHandling = threadHandling;
             this.logger = logger;
 
             this.document = document;
@@ -126,9 +139,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
         {
             try
             {
-                vsAwareAnalysisService.CancelForFile(LastAnalysisFilePath);
+                CancelForFile(LastAnalysisFilePath);
                 var analysisSnapshot = UpdateAnalysisState();
-                vsAwareAnalysisService.RequestAnalysis(document, analysisSnapshot, SnapToNewSnapshot);
+                CreateIssueConsumerAsync(analysisSnapshot).Forget();
+                vsAwareAnalysisService.RequestAnalysis(analysisSnapshot);
             }
             catch (NotSupportedException ex)
             {
@@ -155,7 +169,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
         private async Task InitializeAnalysisStateAsync()
         {
             var analysisSnapshot = UpdateAnalysisState();
-            await vsAwareAnalysisService.CreateIssueConsumerAsync(document, analysisSnapshot, SnapToNewSnapshot);
+            await CreateIssueConsumerAsync(analysisSnapshot);
+        }
+
+        private void CancelForFile(string filePath) => issueConsumerStorage.Remove(filePath);
+
+        private async Task<IIssueConsumer> CreateIssueConsumerAsync(AnalysisSnapshot analysisSnapshot)
+        {
+            var (projectName, projectGuid) = await vsProjectInfoProvider.GetDocumentProjectInfoAsync(analysisSnapshot.FilePath);
+            var issueConsumer = issueConsumerFactory.Create(document, analysisSnapshot.FilePath, analysisSnapshot.TextSnapshot, projectName, projectGuid, SnapToNewSnapshot);
+            issueConsumerStorage.Set(analysisSnapshot.FilePath, issueConsumer);
+            await threadHandling.RunOnBackgroundThread(() => ClearErrorList(analysisSnapshot.FilePath, issueConsumer));
+
+            return issueConsumer;
+        }
+
+        private static void ClearErrorList(string filePath, IIssueConsumer issueConsumer)
+        {
+            issueConsumer.SetIssues(filePath, []);
+            issueConsumer.SetHotspots(filePath, []);
         }
 
         public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans) => [];
@@ -164,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
 
         public void Dispose()
         {
-            vsAwareAnalysisService.CancelForFile(LastAnalysisFilePath);
+            CancelForFile(LastAnalysisFilePath);
             document.FileActionOccurred -= SafeOnFileActionOccurred;
             textBuffer.Properties.RemoveProperty(TaggerProvider.SingletonManagerPropertyCollectionKey);
             sonarErrorDataSource.RemoveFactory(Factory);

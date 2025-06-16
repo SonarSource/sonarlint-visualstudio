@@ -50,6 +50,11 @@ public class TextBufferIssueTrackerTests
     private IFileTracker mockFileTracker;
     private TaggerProvider taggerProvider;
     private TextBufferIssueTracker testSubject;
+    private IVsProjectInfoProvider vsProjectInfoProvider;
+    private IIssueConsumerFactory issueConsumerFactory;
+    private IIssueConsumerStorage issueConsumerStorage;
+    private IIssueConsumer issueConsumer;
+    private IThreadHandling threadHandling;
 
     [TestInitialize]
     public void SetUp()
@@ -57,24 +62,30 @@ public class TextBufferIssueTrackerTests
         mockSonarErrorDataSource = Substitute.For<ISonarErrorListDataSource>();
         mockAnalysisService = Substitute.For<IVsAwareAnalysisService>();
         mockFileTracker = Substitute.For<IFileTracker>();
+        vsProjectInfoProvider = Substitute.For<IVsProjectInfoProvider>();
+        issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
+        issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
+        issueConsumer = Substitute.For<IIssueConsumer>();
+        threadHandling = Substitute.For<IThreadHandling>();
         taggerProvider = CreateTaggerProvider();
         mockTextSnapshot = CreateTextSnapshotMock();
         mockDocumentTextBuffer = CreateTextBufferMock(mockTextSnapshot);
         mockedJavascriptDocumentFooJs = CreateDocumentMock("foo.js", mockDocumentTextBuffer);
         javascriptLanguage = [AnalysisLanguage.Javascript];
+        MockIssueConsumerFactory(mockedJavascriptDocumentFooJs, issueConsumer);
+        MockThreadHandling();
 
-        testSubject = CreateTestSubject(mockAnalysisService);
+        testSubject = CreateTestSubject(mockedJavascriptDocumentFooJs);
     }
 
-    private TextBufferIssueTracker CreateTestSubject(IVsAwareAnalysisService vsAnalysisService = null)
+    private TextBufferIssueTracker CreateTestSubject(ITextDocument textDocument)
     {
         logger = new TestLogger();
-        vsAnalysisService ??= Substitute.For<IVsAwareAnalysisService>();
 
         return new TextBufferIssueTracker(taggerProvider,
-            mockedJavascriptDocumentFooJs, javascriptLanguage,
-            mockSonarErrorDataSource, vsAnalysisService,
-            mockFileTracker, logger);
+            textDocument, javascriptLanguage,
+            mockSonarErrorDataSource, mockAnalysisService, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage,
+            mockFileTracker, threadHandling, logger);
     }
 
     [TestMethod]
@@ -107,11 +118,15 @@ public class TextBufferIssueTrackerTests
     [TestMethod]
     public void Ctor_UpdatesAnalysisStateAndCreatesIssueConsumer()
     {
-        var textDocument = mockedJavascriptDocumentFooJs;
+        var textDocument = CreateDocumentMock("foo.ts", mockDocumentTextBuffer);
+        var consumer = Substitute.For<IIssueConsumer>();
+        MockIssueConsumerFactory(textDocument, consumer);
+        var projectInfo = MockGetDocumentProjectInfoAsync(textDocument.FilePath);
+
+        _ = CreateTestSubject(textDocument);
 
         mockFileTracker.Received(1).AddFiles(new SourceFile(textDocument.FilePath, encoding: null, TextContent));
-        mockAnalysisService.Received(1).CreateIssueConsumerAsync(textDocument, new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot),
-            Arg.Any<SnapshotChangedHandler>());
+        VerifyCreateIssueConsumerWasCalled(textDocument, projectInfo, consumer, new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot));
     }
 
     [TestMethod]
@@ -126,7 +141,7 @@ public class TextBufferIssueTrackerTests
         // Act
         testSubject.Dispose();
 
-        mockAnalysisService.Received().CancelForFile(mockedJavascriptDocumentFooJs.FilePath);
+        issueConsumerStorage.Received().Remove(mockedJavascriptDocumentFooJs.FilePath);
 
         VerifySingletonManagerDoesNotExist(mockDocumentTextBuffer);
 
@@ -148,22 +163,13 @@ public class TextBufferIssueTrackerTests
         eventHandler.Received(1).Invoke(taggerProvider, Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == mockedJavascriptDocumentFooJs.FilePath));
     }
 
-    private static void SetUpAnalysisThrows(IVsAwareAnalysisService mockAnalysisService, Exception exception)
-    {
-        mockAnalysisService.When(x => x.RequestAnalysis(Arg.Any<ITextDocument>(),
-            Arg.Any<AnalysisSnapshot>(),
-            Arg.Any<SnapshotChangedHandler>())).Throw(exception);
-    }
+    private static void SetUpAnalysisThrows(IVsAwareAnalysisService mockAnalysisService, Exception exception) =>
+        mockAnalysisService.When(x => x.RequestAnalysis(
+            Arg.Any<AnalysisSnapshot>())).Throw(exception);
 
-    private static void VerifySingletonManagerDoesNotExist(ITextBuffer buffer)
-    {
-        FindSingletonManagerInPropertyCollection(buffer).Should().BeNull();
-    }
+    private static void VerifySingletonManagerDoesNotExist(ITextBuffer buffer) => FindSingletonManagerInPropertyCollection(buffer).Should().BeNull();
 
-    private static void VerifySingletonManagerExists(ITextBuffer buffer)
-    {
-        FindSingletonManagerInPropertyCollection(buffer).Should().NotBeNull();
-    }
+    private static void VerifySingletonManagerExists(ITextBuffer buffer) => FindSingletonManagerInPropertyCollection(buffer).Should().NotBeNull();
 
     private static SingletonDisposableTaggerManager<IErrorTag> FindSingletonManagerInPropertyCollection(ITextBuffer buffer)
     {
@@ -172,15 +178,9 @@ public class TextBufferIssueTrackerTests
         return propertyValue;
     }
 
-    private void CheckFactoryWasRegisteredWithDataSource(IssuesSnapshotFactory factory, int times)
-    {
-        mockSonarErrorDataSource.Received(times).AddFactory(factory);
-    }
+    private void CheckFactoryWasRegisteredWithDataSource(IssuesSnapshotFactory factory, int times) => mockSonarErrorDataSource.Received(times).AddFactory(factory);
 
-    private void CheckFactoryWasUnregisteredFromDataSource(IssuesSnapshotFactory factory, int times)
-    {
-        mockSonarErrorDataSource.Received(times).RemoveFactory(factory);
-    }
+    private void CheckFactoryWasUnregisteredFromDataSource(IssuesSnapshotFactory factory, int times) => mockSonarErrorDataSource.Received(times).RemoveFactory(factory);
 
     private TaggerProvider CreateTaggerProvider()
     {
@@ -210,7 +210,8 @@ public class TextBufferIssueTrackerTests
         var vsAwareAnalysisService = mockAnalysisService;
         var analysisRequester = mockAnalysisRequester;
         var provider = new TaggerProvider(sonarErrorListDataSource, textDocumentFactoryService,
-            serviceProvider, languageRecognizer, vsAwareAnalysisService, analysisRequester, Mock.Of<ITaggableBufferIndicator>(), mockFileTracker, logger);
+            serviceProvider, languageRecognizer, vsAwareAnalysisService, analysisRequester, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage, Mock.Of<ITaggableBufferIndicator>(),
+            mockFileTracker, threadHandling, logger);
         return provider;
     }
 
@@ -244,6 +245,37 @@ public class TextBufferIssueTrackerTests
         return mockTextDocument;
     }
 
+    private void MockIssueConsumerFactory(ITextDocument document, IIssueConsumer issueConsumer) =>
+        issueConsumerFactory
+            .Create(document,
+                document.FilePath,
+                Arg.Any<ITextSnapshot>(),
+                Arg.Any<string>(),
+                Arg.Any<Guid>(),
+                Arg.Any<SnapshotChangedHandler>())
+            .Returns(issueConsumer);
+
+    private (string projectName, Guid projectGuid) MockGetDocumentProjectInfoAsync(string filePath)
+    {
+        var projectInfo = (projectName: "project123", projectGuid: Guid.NewGuid());
+        MockGetDocumentProjectInfoAsync(filePath, projectInfo);
+        return projectInfo;
+    }
+
+    private void MockGetDocumentProjectInfoAsync(string filePath, (string projectName, Guid projectGuid) projectInfo) =>
+        vsProjectInfoProvider.GetDocumentProjectInfoAsync(filePath).Returns(projectInfo);
+
+    private void VerifyCreateIssueConsumerWasCalled(
+        ITextDocument document,
+        (string projectName, Guid projectGuid) projectInfo,
+        IIssueConsumer issueConsumerToVerify,
+        AnalysisSnapshot analysisSnapshot)
+    {
+        vsProjectInfoProvider.Received().GetDocumentProjectInfoAsync(document.FilePath);
+        issueConsumerFactory.Received().Create(document, document.FilePath, analysisSnapshot.TextSnapshot, projectInfo.projectName, projectInfo.projectGuid, Arg.Any<SnapshotChangedHandler>());
+        issueConsumerStorage.Received().Set(document.FilePath, issueConsumerToVerify);
+    }
+
     #region Triggering analysis tests
 
     [TestMethod]
@@ -254,9 +286,7 @@ public class TextBufferIssueTrackerTests
 
         RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
 
-        mockAnalysisService.DidNotReceive().RequestAnalysis(Arg.Any<ITextDocument>(),
-            Arg.Any<AnalysisSnapshot>(),
-            Arg.Any<SnapshotChangedHandler>());
+        mockAnalysisService.DidNotReceive().RequestAnalysis(Arg.Any<AnalysisSnapshot>());
     }
 
     [TestMethod]
@@ -349,10 +379,7 @@ public class TextBufferIssueTrackerTests
     #region RequestAnalysis
 
     [TestMethod]
-    public void Ctor_AnalysisNotRequestedOnCreation() =>
-        mockAnalysisService.DidNotReceive().RequestAnalysis(Arg.Any<ITextDocument>(),
-            Arg.Any<AnalysisSnapshot>(),
-            Arg.Any<SnapshotChangedHandler>());
+    public void Ctor_AnalysisNotRequestedOnCreation() => mockAnalysisService.DidNotReceive().RequestAnalysis(Arg.Any<AnalysisSnapshot>());
 
     [TestMethod]
     public void RequestAnalysis_CallsAnalysisService()
@@ -374,10 +401,8 @@ public class TextBufferIssueTrackerTests
 
         testSubject.RequestAnalysis();
 
-        mockAnalysisService.Received().CancelForFile("foo.js");
-        mockAnalysisService.Received().RequestAnalysis(Arg.Any<ITextDocument>(),
-            Arg.Is<AnalysisSnapshot>(x => x.FilePath == "newFoo.js"),
-            Arg.Any<SnapshotChangedHandler>());
+        issueConsumerStorage.Received().Remove("foo.js");
+        mockAnalysisService.Received().RequestAnalysis(Arg.Is<AnalysisSnapshot>(x => x.FilePath == "newFoo.js"));
     }
 
     [TestMethod]
@@ -421,26 +446,62 @@ public class TextBufferIssueTrackerTests
             .WithMessage("this is a test");
     }
 
+    [TestMethod]
+    public void RequestAnalysis_ProjectInformationReturned_CreatesIssueConsumerCorrectly()
+    {
+        var textDocument = CreateDocumentMock("foo1.css", mockDocumentTextBuffer);
+        var consumer = Substitute.For<IIssueConsumer>();
+        MockIssueConsumerFactory(textDocument, consumer);
+        var projectInfo = MockGetDocumentProjectInfoAsync(textDocument.FilePath);
+
+        CreateTestSubject(textDocument).RequestAnalysis(new AnalyzerOptions());
+
+        VerifyCreateIssueConsumerWasCalled(textDocument, projectInfo, consumer, new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot));
+    }
+
+    [TestMethod]
+    public void RequestAnalysis_NoProjectInformation_CreatesIssueConsumerCorrectly()
+    {
+        var textDocument = CreateDocumentMock("foo2.css", mockDocumentTextBuffer);
+        var consumer = Substitute.For<IIssueConsumer>();
+        MockIssueConsumerFactory(textDocument, consumer);
+        MockGetDocumentProjectInfoAsync(default);
+
+        CreateTestSubject(textDocument).RequestAnalysis(new AnalyzerOptions());
+
+        VerifyCreateIssueConsumerWasCalled(textDocument, (default, Guid.Empty), consumer, new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot));
+    }
+
+    [TestMethod]
+    public void RequestAnalysis_ClearsErrorList()
+    {
+        var textDocument = mockedJavascriptDocumentFooJs;
+
+        testSubject.RequestAnalysis(new AnalyzerOptions());
+
+        threadHandling.Received().RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+        issueConsumer.Received().SetIssues(textDocument.FilePath, []);
+        issueConsumer.Received().SetHotspots(textDocument.FilePath, []);
+    }
+
     private void VerifyAnalysisRequested()
     {
         var textDocument = mockedJavascriptDocumentFooJs;
-        mockAnalysisService.Received().CancelForFile(textDocument.FilePath);
+        issueConsumerStorage.Received().Remove(textDocument.FilePath);
         mockTextSnapshot.Received().GetText();
         mockFileTracker.Received().AddFiles(new SourceFile(textDocument.FilePath, null, TextContent));
         mockAnalysisService.Received().RequestAnalysis(
-            textDocument,
-            new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot),
-            Arg.Any<SnapshotChangedHandler>());
+            new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot));
     }
 
     private void VerifyAnalysisNotRequested()
     {
-        mockAnalysisService.DidNotReceive().CancelForFile(Arg.Any<string>());
+        issueConsumerStorage.DidNotReceive().Remove(Arg.Any<string>());
         mockTextSnapshot.DidNotReceive().GetText();
-        mockAnalysisService.DidNotReceive().RequestAnalysis(Arg.Any<ITextDocument>(),
-            Arg.Any<AnalysisSnapshot>(),
-            Arg.Any<SnapshotChangedHandler>());
+        mockAnalysisService.DidNotReceive().RequestAnalysis(Arg.Any<AnalysisSnapshot>());
     }
+
+    private void MockThreadHandling() => threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>()).Returns(info => info.Arg<Func<Task<int>>>()());
 
     #endregion RequestAnalysis
 }

@@ -62,7 +62,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IVsStatusbar vsStatusBar;
         private readonly ITaggableBufferIndicator taggableBufferIndicator;
         private readonly IVsAwareAnalysisService analysisService;
+        private readonly IVsProjectInfoProvider vsProjectInfoProvider;
+        private readonly IIssueConsumerFactory issueConsumerFactory;
+        private readonly IIssueConsumerStorage issueConsumerStorage;
         private readonly IFileTracker fileTracker;
+        private readonly IThreadHandling threadHandling;
         private readonly ILogger logger;
 
         [ImportingConstructor]
@@ -73,17 +77,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             ISonarLanguageRecognizer languageRecognizer,
             IVsAwareAnalysisService analysisService,
             IAnalysisRequester analysisRequester,
+            IVsProjectInfoProvider vsProjectInfoProvider,
+            IIssueConsumerFactory issueConsumerFactory,
+            IIssueConsumerStorage issueConsumerStorage,
             ITaggableBufferIndicator taggableBufferIndicator,
             IFileTracker fileTracker,
+            IThreadHandling threadHandling,
             ILogger logger)
         {
             this.sonarErrorDataSource = sonarErrorDataSource;
             this.textDocumentFactoryService = textDocumentFactoryService;
 
             this.analysisService = analysisService;
+            this.vsProjectInfoProvider = vsProjectInfoProvider;
+            this.issueConsumerFactory = issueConsumerFactory;
+            this.issueConsumerStorage = issueConsumerStorage;
             this.languageRecognizer = languageRecognizer;
             this.taggableBufferIndicator = taggableBufferIndicator;
             this.fileTracker = fileTracker;
+            this.threadHandling = threadHandling;
             this.logger = logger;
 
             vsStatusBar = serviceProvider.GetService(typeof(IVsStatusbar)) as IVsStatusbar;
@@ -174,7 +186,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 analysisLanguages,
                 sonarErrorDataSource,
                 analysisService,
+                vsProjectInfoProvider,
+                issueConsumerFactory,
+                issueConsumerStorage,
                 fileTracker,
+                threadHandling,
                 logger);
 
         #endregion IViewTaggerProvider members

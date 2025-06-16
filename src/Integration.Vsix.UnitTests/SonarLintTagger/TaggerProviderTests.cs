@@ -50,6 +50,10 @@ public class TaggerProviderTests
     private IServiceProvider serviceProvider;
     private IAnalysisRequester mockAnalysisRequester;
     private IFileTracker mockFileTracker;
+    private IVsProjectInfoProvider vsProjectInfoProvider;
+    private IIssueConsumerFactory issueConsumerFactory;
+    private IIssueConsumerStorage issueConsumerStorage;
+    private IThreadHandling threadHandling;
 
     private static readonly AnalysisLanguage[] DetectedLanguagesJsTs = [AnalysisLanguage.TypeScript, AnalysisLanguage.Javascript];
 
@@ -77,6 +81,11 @@ public class TaggerProviderTests
 
         mockFileTracker = Substitute.For<IFileTracker>();
 
+        vsProjectInfoProvider = Substitute.For<IVsProjectInfoProvider>();
+        issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
+        issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
+        threadHandling = Substitute.For<IThreadHandling>();
+
         provider = CreateTestSubject();
     }
 
@@ -102,8 +111,12 @@ public class TaggerProviderTests
         MefTestHelpers.CreateExport<ISonarLanguageRecognizer>(),
         MefTestHelpers.CreateExport<IVsAwareAnalysisService>(),
         MefTestHelpers.CreateExport<IAnalysisRequester>(),
+        MefTestHelpers.CreateExport<IVsProjectInfoProvider>(),
+        MefTestHelpers.CreateExport<IIssueConsumerFactory>(),
+        MefTestHelpers.CreateExport<IIssueConsumerStorage>(),
         MefTestHelpers.CreateExport<ITaggableBufferIndicator>(),
         MefTestHelpers.CreateExport<IFileTracker>(),
+        MefTestHelpers.CreateExport<IThreadHandling>(),
         MefTestHelpers.CreateExport<ILogger>()
     ];
 
@@ -117,8 +130,7 @@ public class TaggerProviderTests
 
         tagger.Should().NotBeNull();
 
-        mockAnalysisService.Received(1).CreateIssueConsumerAsync(Arg.Any<ITextDocument>(), Arg.Any<AnalysisSnapshot>(), Arg.Any<SnapshotChangedHandler>());
-        mockAnalysisService.ReceivedCalls().Should().HaveCount(1); // no other calls
+        VerifyCreateIssueConsumerWasCalled(doc);
     }
 
     [TestMethod]
@@ -457,21 +469,23 @@ public class TaggerProviderTests
         return propertyValue;
     }
 
-    private void VerifyAnalysisWasRequested()
-    {
-        mockAnalysisService.Received().CancelForFile(Arg.Any<string>());
-        mockAnalysisService.Received().RequestAnalysis(Arg.Any<ITextDocument>(), Arg.Any<AnalysisSnapshot>(), Arg.Any<SnapshotChangedHandler>());
-    }
-
     private TaggerProvider CreateTestSubject() =>
         new(mockSonarErrorDataSource, dummyDocumentFactoryService, serviceProvider,
-            mockSonarLanguageRecognizer, mockAnalysisService, mockAnalysisRequester,
-            mockTaggableBufferIndicator, mockFileTracker, logger);
+            mockSonarLanguageRecognizer, mockAnalysisService, mockAnalysisRequester, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage,
+            mockTaggableBufferIndicator, mockFileTracker, threadHandling, logger);
 
     private static void RaiseFileEvent(ITextDocument textDocument, FileActionTypes actionType, string filePath = null)
     {
         var args = new TextDocumentFileActionEventArgs(filePath ?? textDocument.FilePath, DateTime.UtcNow, actionType);
         textDocument.FileActionOccurred += Raise.EventWith(null, args);
+    }
+
+    private void VerifyCreateIssueConsumerWasCalled(
+        ITextDocument document)
+    {
+        vsProjectInfoProvider.Received(1).GetDocumentProjectInfoAsync(document.FilePath);
+        issueConsumerFactory.Received(1).Create(document, document.FilePath, Arg.Any<ITextSnapshot>(), Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<SnapshotChangedHandler>());
+        issueConsumerStorage.Received(1).Set(document.FilePath, Arg.Any<IIssueConsumer>());
     }
 
     private class DummyTextDocumentFactoryService : ITextDocumentFactoryService
