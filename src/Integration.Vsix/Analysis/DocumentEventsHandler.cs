@@ -44,6 +44,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
     private readonly ISLCoreServiceProvider serviceProvider;
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly IThreadHandling threadHandling;
+    private readonly IAnalysisRequester analysisRequester;
     private readonly ILogger logger;
     private IFileRpcSLCoreService fileRpcSlCoreService;
     private bool disposed;
@@ -55,6 +56,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
         ISLCoreServiceProvider serviceProvider,
         IActiveConfigScopeTracker activeConfigScopeTracker,
         IThreadHandling threadHandling,
+        IAnalysisRequester analysisRequester,
         ILogger logger)
     {
         this.documentTracker = documentTracker;
@@ -62,6 +64,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
         this.serviceProvider = serviceProvider;
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.threadHandling = threadHandling;
+        this.analysisRequester = analysisRequester;
         this.logger = logger.ForContext(nameof(DocumentEventsHandler));
         this.documentTracker.DocumentOpened += OnDocumentOpened;
         this.documentTracker.DocumentClosed += OnDocumentClosed;
@@ -121,7 +124,13 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
     /// Due to the fact that we can't react to project/file properties changes, regenerating the compilation database entry on file save is needed
     /// Additionally, this is a workaround that can deal with the renaming bug described in https://sonarsource.atlassian.net/browse/SLVS-2170
     /// </summary>
-    private void OnDocumentSaved(object sender, DocumentSavedEventArgs args) => AddFileToCompilationDatabase(args.Document);
+    private void OnDocumentSaved(object sender, DocumentSavedEventArgs args) =>
+        threadHandling.RunOnBackgroundThread(async () =>
+        {
+            await AddFileToCompilationDatabaseAsync(args.Document);
+
+            analysisRequester.RequestAnalysis(args.Document.FullPath);
+        }).Forget();
 
     private void AddFileToCompilationDatabase(Document document) => AddFileToCompilationDatabaseAsync(document).Forget();
 

@@ -247,21 +247,16 @@ public class TextBufferIssueTrackerTests
     #region Triggering analysis tests
 
     [TestMethod]
-    public void WhenFileIsSaved_AnalysisIsRequested()
+    public void WhenFileIsSaved_AnalysisIsNotRequested()
     {
         mockAnalysisService.ClearReceivedCalls();
         mockTextSnapshot.ClearReceivedCalls();
 
         RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-        VerifyAnalysisRequestedWithDefaultOptions();
 
-        // Dispose and raise -> analysis not requested
-        testSubject.Dispose();
-        mockAnalysisService.ClearReceivedCalls();
-        mockTextSnapshot.ClearReceivedCalls();
-
-        RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-        VerifyAnalysisNotRequested();
+        mockAnalysisService.DidNotReceive().RequestAnalysis(Arg.Any<ITextDocument>(),
+            Arg.Any<AnalysisSnapshot>(),
+            Arg.Any<SnapshotChangedHandler>());
     }
 
     [TestMethod]
@@ -282,13 +277,9 @@ public class TextBufferIssueTrackerTests
         mockAnalysisService.ClearReceivedCalls();
         mockTextSnapshot.ClearReceivedCalls();
 
-        // Act
         RaiseFileLoadedEvent(mockedJavascriptDocumentFooJs);
-        VerifyAnalysisNotRequested();
 
-        // Sanity check (that the test setup is correct and that events are actually being handled)
-        RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-        VerifyAnalysisRequestedWithDefaultOptions();
+        VerifyAnalysisNotRequested();
     }
 
     [TestMethod]
@@ -431,18 +422,6 @@ public class TextBufferIssueTrackerTests
     }
 
     private void VerifyAnalysisRequested()
-    {
-        var textDocument = mockedJavascriptDocumentFooJs;
-        mockAnalysisService.Received().CancelForFile(textDocument.FilePath);
-        mockTextSnapshot.Received().GetText();
-        mockFileTracker.Received().AddFiles(new SourceFile(textDocument.FilePath, null, TextContent));
-        mockAnalysisService.Received().RequestAnalysis(
-            textDocument,
-            new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot),
-            Arg.Any<SnapshotChangedHandler>());
-    }
-
-    private void VerifyAnalysisRequestedWithDefaultOptions()
     {
         var textDocument = mockedJavascriptDocumentFooJs;
         mockAnalysisService.Received().CancelForFile(textDocument.FilePath);

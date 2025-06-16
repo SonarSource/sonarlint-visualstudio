@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 
 namespace SonarLint.VisualStudio.Core.Analysis;
 
+// TODO drop this class
 [Export(typeof(IAnalysisService))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class AnalysisService : IAnalysisService
