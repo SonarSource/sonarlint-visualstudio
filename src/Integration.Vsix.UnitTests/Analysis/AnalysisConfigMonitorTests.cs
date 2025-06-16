@@ -81,8 +81,8 @@ public class AnalysisConfigMonitorTests
                 Arg.Any<Func<IThreadHandling, Task>>());
             createdInitializationProcessor.InitializeAsync();
             _ = userSettingsProviderMock.UserSettings;
-            roslynSettingsUpdater.Update(userSettings);
             userSettingsProviderMock.SettingsChanged += Arg.Any<EventHandler>();
+            roslynSettingsUpdater.Update(userSettings);
             createdInitializationProcessor.InitializeAsync(); // called as part of the CreateAndInitializeTestSubject method
         });
     }

@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using SonarLint.VisualStudio.Integration.CSharpVB.Install;
@@ -71,8 +72,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private IProjectDocumentsEventsListener projectDocumentsEventsListener;
         private ISLCoreHandler slCoreHandler;
         private IDocumentEventsHandler documentEventsHandler;
-        private IThreadHandling threadHandling;
         private ISlCoreUserAnalysisPropertiesSynchronizer slCoreUserAnalysisPropertiesSynchronizer;
+        private IAnalysisConfigMonitor analysisConfigMonitor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -106,12 +107,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 await DisableRuleCommand.InitializeAsync(this, logger);
                 await CFamilyReproducerCommand.InitializeAsync(this, logger);
 
-                threadHandling = await this.GetMefServiceAsync<IThreadHandling>();
                 activeCompilationDatabaseTracker = await this.GetMefServiceAsync<IActiveCompilationDatabaseTracker>();
                 await activeCompilationDatabaseTracker.InitializationProcessor.InitializeAsync();
 
                 slCoreUserAnalysisPropertiesSynchronizer = await this.GetMefServiceAsync<ISlCoreUserAnalysisPropertiesSynchronizer>();
                 await slCoreUserAnalysisPropertiesSynchronizer.InitializationProcessor.InitializeAsync();
+
+                analysisConfigMonitor = await this.GetMefServiceAsync<IAnalysisConfigMonitor>();
+                await analysisConfigMonitor.InitializationProcessor.InitializeAsync();
 
                 documentEventsHandler = await this.GetMefServiceAsync<IDocumentEventsHandler>();
 
@@ -146,6 +149,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (disposing)
             {
+                analysisConfigMonitor?.Dispose();
+                analysisConfigMonitor = null;
+
                 slCoreUserAnalysisPropertiesSynchronizer?.Dispose();
                 slCoreUserAnalysisPropertiesSynchronizer = null;
                 activeCompilationDatabaseTracker?.Dispose();
