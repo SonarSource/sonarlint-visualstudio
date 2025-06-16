@@ -26,18 +26,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
     [Export(typeof(IAnalysisRequester))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class AnalysisRequester : IAnalysisRequester
+    [method: ImportingConstructor]
+    public class AnalysisRequester(ILogger logger) : IAnalysisRequester
     {
-        private readonly ILogger logger;
-
-        [ImportingConstructor]
-        public AnalysisRequester(ILogger logger)
-        {
-            this.logger = logger;
-        }
-
-        #region IAnalysisRequester implementation
-
         public event EventHandler<AnalysisRequestEventArgs> AnalysisRequested;
 
         public void RequestAnalysis(params string[] filePaths)
@@ -52,7 +43,5 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 logger.WriteLine(AnalysisStrings.Requester_Error, ex);
             }
         }
-
-        #endregion IAnalysisRequester implementation
     }
 }

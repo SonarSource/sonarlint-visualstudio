@@ -36,21 +36,11 @@ namespace SonarLint.VisualStudio.Core.Analysis
         void RequestAnalysis(params string[] filePaths);
     }
 
-    public class AnalysisRequestEventArgs : EventArgs
+    public class AnalysisRequestEventArgs(IEnumerable<string> filePaths) : EventArgs
     {
-        public AnalysisRequestEventArgs(IEnumerable<string> filePaths)
-        {
-            FilePaths = filePaths;
-        }
-
         /// <summary>
         /// The list of files to analyze. Null/empty = analyze all files
         /// </summary>
-        public IEnumerable<string> FilePaths { get; }
-    }
-
-    public static class AnalysisRequesterExtensions
-    {
-        public static void RequestAnalysis(this IAnalysisRequester analysisRequester, params string[] filePaths) => analysisRequester.RequestAnalysis(filePaths);
+        public IEnumerable<string> FilePaths { get; } = filePaths;
     }
 }
