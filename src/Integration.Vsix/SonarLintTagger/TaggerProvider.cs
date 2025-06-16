@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 var filteredIssueTrackers = FilterIssuesTrackersByPath(issueTrackers, args.FilePaths);
 
                 var operations = filteredIssueTrackers
-                    .Select<IIssueTracker, Action>(it => () => it.RequestAnalysis(args.Options))
+                    .Select<IIssueTracker, Action>(it => it.RequestAnalysis)
                     .ToArray(); // create a fixed list - the user could close a file before the reanalysis completes which would cause the enumeration to change
 
                 reanalysisProgressHandler = new StatusBarReanalysisProgressHandler(vsStatusBar, logger);

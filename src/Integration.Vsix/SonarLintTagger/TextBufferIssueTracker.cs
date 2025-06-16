@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
                     // TODO by https://sonarsource.atlassian.net/browse/SLVS-2310 Request analysis can be removed and replaced by InitializeAnalysisStateAsync
                     case FileActionTypes.ContentSavedToDisk:
                         {
-                            RequestAnalysis(new AnalyzerOptions { IsOnOpen = false });
+                            RequestAnalysis();
                             Provider.OnDocumentSaved(document.FilePath, document.TextBuffer.CurrentSnapshot.GetText(), DetectedLanguages);
                             break;
                         }
@@ -123,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
             sonarErrorDataSource.RefreshErrorList(Factory);
         }
 
-        public void RequestAnalysis(IAnalyzerOptions options)
+        public void RequestAnalysis()
         {
             try
             {
