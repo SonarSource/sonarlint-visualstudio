@@ -29,6 +29,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
+using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 
@@ -109,15 +110,15 @@ public class TaggerProviderTests
     #endregion MEF tests
 
     [TestMethod]
-    public void CreateTagger_should_create_tracker_when_analysis_is_requested()
+    public void CreateTagger_should_create_tracker_when_tagger_is_created()
     {
         var doc = CreateMockedDocument("anyname");
         var tagger = CreateTaggerForDocument(doc);
 
         tagger.Should().NotBeNull();
 
-        VerifyAnalysisWasRequested();
-        mockAnalysisService.ReceivedCalls().Should().HaveCount(2); // no other calls
+        mockAnalysisService.Received(1).CreateIssueConsumerAsync(Arg.Any<ITextDocument>(), Arg.Any<AnalysisSnapshot>(), Arg.Any<SnapshotChangedHandler>());
+        mockAnalysisService.ReceivedCalls().Should().HaveCount(1); // no other calls
     }
 
     [TestMethod]
