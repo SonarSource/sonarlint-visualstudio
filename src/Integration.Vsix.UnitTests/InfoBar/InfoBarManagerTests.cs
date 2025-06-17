@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Integration.Vsix.InfoBar;
-using ThreadHelper = SonarLint.VisualStudio.TestInfrastructure.ThreadHelper;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -72,13 +71,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void MefCtor_DoesNotCallAnyServices()
         {
-            var serviceProviderMock = new Mock<IServiceProvider>();
+            var serviceProviderMock = Substitute.For<IServiceProvider>();
 
-            _ = new InfoBarManager(serviceProviderMock.Object, threadHandling);
+            _ = new InfoBarManager(serviceProviderMock, threadHandling);
 
             // The MEF constructor should be free-threaded, which it will be if
             // it doesn't make any external calls.
-            serviceProviderMock.Invocations.Should().BeEmpty();
+            serviceProviderMock.ReceivedCalls().Should().BeEmpty();
         }
 
         [TestMethod]
@@ -330,20 +329,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyReceivedThrowIfNotOnUIThread();
             infoBar.Should().NotBeNull();
 
-            var eventHandler = new Mock<Action<InfoBarButtonClickedEventArgs>>();
-            infoBar.ButtonClick += (_, args) => eventHandler.Object(args);
+            var eventHandler = Substitute.For<EventHandler<InfoBarButtonClickedEventArgs>>();
+            infoBar.ButtonClick += eventHandler;
 
             var infoBarUI = host.MockedElements.Single();
 
             infoBarUI.SimulateClickEvent(infoBarUI.Model.ActionItems.GetItem(1));
-            eventHandler.Verify(x => x(It.Is((InfoBarButtonClickedEventArgs e) => e.ClickedButtonText == "button2")), Times.Once);
-            eventHandler.VerifyNoOtherCalls();
-
-            eventHandler.Reset();
+            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<InfoBarButtonClickedEventArgs>(e => e.ClickedButtonText == "button2"));
 
             infoBarUI.SimulateClickEvent(infoBarUI.Model.ActionItems.GetItem(2));
-            eventHandler.Verify(x => x(It.Is((InfoBarButtonClickedEventArgs e) => e.ClickedButtonText == "button3")), Times.Once);
-            eventHandler.VerifyNoOtherCalls();
+            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<InfoBarButtonClickedEventArgs>(e => e.ClickedButtonText == "button3"));
         }
 
         #region MainWindow tests
@@ -437,10 +432,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var hostAsObject = (object)host;
 
-            var shellMock = new Mock<IVsShell>();
-            shellMock.Setup(x => x.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out hostAsObject));
+            var shellMock = Substitute.For<IVsShell>();
+            shellMock.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out Arg.Any<object>())
+                .Returns(callInfo => {
+                    callInfo[1] = hostAsObject;
+                    return 0; // S_OK
+                });
 
-            serviceProvider.RegisterService(typeof(SVsShell), shellMock.Object);
+            serviceProvider.RegisterService(typeof(SVsShell), shellMock);
         }
 
         #endregion Test helpers
