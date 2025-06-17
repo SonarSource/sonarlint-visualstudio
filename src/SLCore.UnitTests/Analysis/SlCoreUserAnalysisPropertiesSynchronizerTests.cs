@@ -148,23 +148,25 @@ public class SlCoreUserAnalysisPropertiesSynchronizerTests
     [TestMethod]
     public void CurrentConfigurationScopeChanged_NoConfigurationScope_DoesNotUpdateSLCore()
     {
-        var testSubject = CreateAndInitializeTestSubject();
+        CreateAndInitializeTestSubject();
         SetCurrentConfiguration(null, null);
 
         RaiseConfigScopeChanged(true);
 
+        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
         userAnalysisPropertiesService.DidNotReceiveWithAnyArgs().DidSetUserAnalysisProperties(default);
     }
 
     [TestMethod]
     public void CurrentConfigurationScopeChanged_MiscellaneousUpdate_DoesNotUpdateSLCore()
     {
-        var testSubject = CreateAndInitializeTestSubject();
+        CreateAndInitializeTestSubject();
         activeConfigScopeTracker.ClearReceivedCalls();
         SetCurrentConfiguration(DefaultConfigScope, defaultAnalysisProperties);
 
         RaiseConfigScopeChanged(false);
 
+        threadHandling.DidNotReceive().RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
         _ = activeConfigScopeTracker.DidNotReceiveWithAnyArgs().Current;
         userAnalysisPropertiesService.DidNotReceiveWithAnyArgs().DidSetUserAnalysisProperties(default);
     }
@@ -172,11 +174,12 @@ public class SlCoreUserAnalysisPropertiesSynchronizerTests
     [TestMethod]
     public void CurrentConfigurationScopeChanged_DefinitionChanged_UpdateSLCore()
     {
-        var testSubject = CreateAndInitializeTestSubject();
+        CreateAndInitializeTestSubject();
 
         SetCurrentConfiguration(DefaultConfigScope, defaultAnalysisProperties);
         RaiseConfigScopeChanged(true);
 
+        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
         userAnalysisPropertiesService.Received(1).DidSetUserAnalysisProperties(Arg.Is<DidChangeAnalysisPropertiesParams>(x => x.configurationScopeId == DefaultConfigScope && x.properties == defaultAnalysisProperties));
     }
 
@@ -184,10 +187,11 @@ public class SlCoreUserAnalysisPropertiesSynchronizerTests
     public void CurrentConfigurationScopeChanged_SameConfigurationScope_UpdateSLCore()
     {
         SetCurrentConfiguration(DefaultConfigScope, defaultAnalysisProperties);
-        var testSubject = CreateAndInitializeTestSubject();
+        CreateAndInitializeTestSubject();
 
         RaiseConfigScopeChanged(true);
 
+        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
         userAnalysisPropertiesService.Received(2).DidSetUserAnalysisProperties(Arg.Is<DidChangeAnalysisPropertiesParams>(x => x.configurationScopeId == DefaultConfigScope && x.properties == defaultAnalysisProperties));
     }
 
@@ -195,24 +199,26 @@ public class SlCoreUserAnalysisPropertiesSynchronizerTests
     public void CurrentConfigurationScopeChanged_DifferentConfigurationScope_UpdateSLCore()
     {
         SetCurrentConfiguration(DefaultConfigScope, defaultAnalysisProperties);
-        var testSubject = CreateAndInitializeTestSubject();
+        CreateAndInitializeTestSubject();
 
         const string scope2 = "scope2";
         SetCurrentConfiguration(scope2, defaultAnalysisProperties);
         RaiseConfigScopeChanged(true);
 
+        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
         userAnalysisPropertiesService.Received(1).DidSetUserAnalysisProperties(Arg.Is<DidChangeAnalysisPropertiesParams>(x => x.configurationScopeId == scope2 && x.properties == defaultAnalysisProperties));
     }
 
     [TestMethod]
     public void CurrentConfigurationScopeChanged_ServiceNotAvailable_DoesNothing()
     {
-        var testSubject = CreateAndInitializeTestSubject();
+        CreateAndInitializeTestSubject();
         SetCurrentConfiguration(DefaultConfigScope, defaultAnalysisProperties);
         serviceProvider.TryGetTransientService(out Arg.Any<IUserAnalysisPropertiesService>()).Returns(false);
 
         RaiseConfigScopeChanged(true);
 
+        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
         userAnalysisPropertiesService.DidNotReceiveWithAnyArgs().DidSetUserAnalysisProperties(default);
     }
 
@@ -220,7 +226,7 @@ public class SlCoreUserAnalysisPropertiesSynchronizerTests
     public void SettingsChanged_SynchronizesAnalysisProperties()
     {
         SetCurrentConfiguration(DefaultConfigScope, defaultAnalysisProperties);
-        var testSubject = CreateAndInitializeTestSubject();
+        CreateAndInitializeTestSubject();
 
         // Update settings and raise event
         var newProperties = ImmutableDictionary.Create<string, string>().Add("prop2", "value2");
@@ -234,12 +240,13 @@ public class SlCoreUserAnalysisPropertiesSynchronizerTests
     [TestMethod]
     public void SettingsChange_ServiceNotAvailable_DoesNothing()
     {
-        var testSubject = CreateAndInitializeTestSubject();
+        CreateAndInitializeTestSubject();
         SetCurrentConfiguration(DefaultConfigScope, defaultAnalysisProperties);
         serviceProvider.TryGetTransientService(out Arg.Any<IUserAnalysisPropertiesService>()).Returns(false);
 
         RaiseSettingsChanged();
 
+        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
         userAnalysisPropertiesService.DidNotReceiveWithAnyArgs().DidSetUserAnalysisProperties(default);
     }
 
