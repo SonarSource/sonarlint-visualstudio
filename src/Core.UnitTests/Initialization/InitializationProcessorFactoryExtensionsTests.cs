@@ -18,25 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Initialization;
-using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
 
-namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests.Initialization;
+namespace SonarLint.VisualStudio.Core.UnitTests.Initialization;
 
 [TestClass]
 public class InitializationProcessorFactoryExtensionsTests
 {
     private IRequireInitialization[] dependencies;
     private IInitializationProcessorFactory processorFactory;
-    private IInitializationProcessor processor;
 
     [TestInitialize]
     public void TestInitialize()
     {
         dependencies = [Substitute.For<IRequireInitialization>()];
         processorFactory = Substitute.For<IInitializationProcessorFactory>();
-        processor = Substitute.For<IInitializationProcessor>();
     }
 
     [TestMethod]
