@@ -117,26 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ReproCmd_DocumentIsAnalyzable" xml:space="preserve">
-    <value>Active document can be analyzed by the CFamily analyzer: {0}</value>
-  </data>
-  <data name="ReproCmd_DocumentIsNotAnalyzable" xml:space="preserve">
-    <value>SonarQube for Visual Studio: Cannot run CFamily reproducer - the active document is not analyzable by the CFamily analyzer: {0}</value>
-  </data>
-  <data name="ReproCmd_Error_Execute" xml:space="preserve">
-    <value>SonarQube for Visual Studio: Error executing the CFamily reproducer command.
-  Error: {0}</value>
-  </data>
-  <data name="ReproCmd_Error_QueryStatus" xml:space="preserve">
-    <value>SonarQube for Visual Studio: Error in calculating whether the CFamily reproducer command is available:
-  Error: {0}</value>
-  </data>
-  <data name="ReproCmd_ExecutingReproducer" xml:space="preserve">
-    <value>SonarQube for Visual Studio: Calling the CFamily reproducer...</value>
-  </data>
-  <data name="ReproCmd_NoActiveDocument" xml:space="preserve">
-    <value>SonarQube for Visual Studio: Cannot run CFamily reproducer - no active document.</value>
-  </data>
   <data name="ERROR_CreatingConfig" xml:space="preserve">
     <value>[CFamily Analysis] Error retrieving VCX configuration. File: {0}, Error: {1}</value>
   </data>

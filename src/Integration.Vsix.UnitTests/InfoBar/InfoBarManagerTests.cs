@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Integration.Vsix.InfoBar;
-using ThreadHelper = SonarLint.VisualStudio.TestInfrastructure.ThreadHelper;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -42,15 +41,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsUIShell shell;
+        private NoOpThreadHandler threadHandling;
 
         [TestInitialize]
         public void TestInit()
         {
-            ThreadHelper.SetCurrentThreadAsUIThread();
             serviceProvider = new ConfigurableServiceProvider();
 
             shell = new ConfigurableVsUIShell();
             serviceProvider.RegisterService(typeof(SVsUIShell), shell);
+
+            threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         }
 
         #region Tests
@@ -59,7 +60,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<InfoBarManager, IInfoBarManager>(
-                MefTestHelpers.CreateExport<SVsServiceProvider>());
+                MefTestHelpers.CreateExport<SVsServiceProvider>(),
+                MefTestHelpers.CreateExport<IThreadHandling>());
         }
 
         [TestMethod]
@@ -69,26 +71,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void MefCtor_DoesNotCallAnyServices()
         {
-            var serviceProviderMock = new Mock<IServiceProvider>();
+            var serviceProviderMock = Substitute.For<IServiceProvider>();
 
-            _ = new InfoBarManager(serviceProviderMock.Object);
+            _ = new InfoBarManager(serviceProviderMock, threadHandling);
 
             // The MEF constructor should be free-threaded, which it will be if
             // it doesn't make any external calls.
-            serviceProviderMock.Invocations.Should().BeEmpty();
+            serviceProviderMock.ReceivedCalls().Should().BeEmpty();
         }
 
         [TestMethod]
         public void InfoBarManager_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new InfoBarManager(null));
+            Exceptions.Expect<ArgumentNullException>(() => new InfoBarManager(null, threadHandling));
+            Exceptions.Expect<ArgumentNullException>(() => new InfoBarManager(serviceProvider, null));
         }
 
         [TestMethod]
         public void InfoBarManager_AttachInfoBar_ArgChecks()
         {
             // Arrange
-            var testSubject = new InfoBarManager(this.serviceProvider);
+            var testSubject = new InfoBarManager(this.serviceProvider, threadHandling);
 
             // Simple checks
             Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBar(Guid.Empty, null, CreateFromVsMoniker(KnownMonikers.EventError)));
@@ -102,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void InfoBarManager_AttachInfoBarWithButton_ArgChecks()
         {
             // Arrange
-            var testSubject = new InfoBarManager(this.serviceProvider);
+            var testSubject = new InfoBarManager(this.serviceProvider, threadHandling);
 
             // Simple checks
             Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBarWithButton(Guid.Empty, null, "button text", CreateFromVsMoniker(KnownMonikers.EventError)));
@@ -121,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Guid windowGuid = new Guid();
             ConfigurableVsWindowFrame frame = this.shell.RegisterToolWindow(windowGuid);
             this.serviceProvider.RegisterService(typeof(SVsInfoBarUIFactory), new ConfigurableVsInfoBarUIFactory());
-            var testSubject = new InfoBarManager(this.serviceProvider);
+            var testSubject = new InfoBarManager(this.serviceProvider, threadHandling);
             ConfigurableVsInfoBarHost host = RegisterFrameInfoBarHost(frame);
 
             // Sanity
@@ -136,6 +139,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             infoBarWrapper.Closed += (s, e) => closed = true;
 
             // Assert
+            VerifyReceivedThrowIfNotOnUIThread();
             infoBarWrapper.Should().NotBeNull();
             host.AssertInfoBars(1);
             var infoBarUI = host.MockedElements.Single();
@@ -181,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             Guid windowGuid = new Guid();
             ConfigurableVsWindowFrame frame = this.shell.RegisterToolWindow(windowGuid);
-            var testSubject = new InfoBarManager(this.serviceProvider);
+            var testSubject = new InfoBarManager(this.serviceProvider, threadHandling);
 
             // Case 1: No service
             this.serviceProvider.AssertOnUnexpectedServiceRequest = false;
@@ -189,6 +193,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act + Assert
             testSubject.AttachInfoBarWithButton(windowGuid, "Hello", "world", default).Should().BeNull();
             frame.ShowNoActivateCalledCount.Should().Be(0);
+            VerifyReceivedThrowIfNotOnUIThread();
 
             // Case 2: Service exists, no host for frame
             this.serviceProvider.RegisterService(typeof(SVsInfoBarUIFactory), new ConfigurableVsInfoBarUIFactory());
@@ -196,12 +201,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act + Assert
             testSubject.AttachInfoBarWithButton(windowGuid, "Hello", "world", default).Should().BeNull();
             frame.ShowNoActivateCalledCount.Should().Be(0);
+            VerifyReceivedThrowIfNotOnUIThread();
         }
 
         [TestMethod]
         public void CloseInfoBar_WhenNullInfoBar_Throws()
         {
-            var testSubject = new InfoBarManager(serviceProvider);
+            var testSubject = new InfoBarManager(serviceProvider, threadHandling);
 
             Exceptions.Expect<ArgumentNullException>(() => testSubject.CloseInfoBar(null));
         }
@@ -210,7 +216,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void CloseInfoBar_WhenInfoBarIsNotPrivateInfoBarWrapper_Throws()
         {
             var invalidInfoBar = Substitute.For<IInfoBar>();
-            var testSubject = new InfoBarManager(serviceProvider);
+            var testSubject = new InfoBarManager(serviceProvider, threadHandling);
 
             Exceptions.Expect<ArgumentException>(() => testSubject.CloseInfoBar(invalidInfoBar));
         }
@@ -222,7 +228,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var windowGuid = Guid.NewGuid();
             var frame = this.shell.RegisterToolWindow(windowGuid);
             this.serviceProvider.RegisterService(typeof(SVsInfoBarUIFactory), new ConfigurableVsInfoBarUIFactory());
-            var testSubject = new InfoBarManager(serviceProvider);
+            var testSubject = new InfoBarManager(serviceProvider, threadHandling);
             var host = RegisterFrameInfoBarHost(frame);
             var infoBarWrapper = testSubject.AttachInfoBarWithButton(windowGuid, "Hello", "world", default);
             var closed = false;
@@ -230,11 +236,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Sanity
             host.AssertInfoBars(1);
+            VerifyReceivedThrowIfNotOnUIThread();
 
             // Act
             testSubject.CloseInfoBar(infoBarWrapper);
 
             // Assert
+            VerifyReceivedThrowIfNotOnUIThread();
             closed.Should().BeTrue("Expected to auto-close");
             host.AssertInfoBars(0);
         }
@@ -277,6 +285,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var infoBar = testSubject.AttachInfoBarWithButtons(dummyWindowGuid, "message", buttons, default);
 
+            VerifyReceivedThrowIfNotOnUIThread();
             infoBar.Should().NotBeNull();
 
             host.AssertInfoBars(1);
@@ -317,22 +326,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var infoBar = testSubject.AttachInfoBarWithButtons(dummyWindowGuid, "message", buttons, default);
 
+            VerifyReceivedThrowIfNotOnUIThread();
             infoBar.Should().NotBeNull();
 
-            var eventHandler = new Mock<Action<InfoBarButtonClickedEventArgs>>();
-            infoBar.ButtonClick += (_, args) => eventHandler.Object(args);
+            var eventHandler = Substitute.For<EventHandler<InfoBarButtonClickedEventArgs>>();
+            infoBar.ButtonClick += eventHandler;
 
             var infoBarUI = host.MockedElements.Single();
 
             infoBarUI.SimulateClickEvent(infoBarUI.Model.ActionItems.GetItem(1));
-            eventHandler.Verify(x => x(It.Is((InfoBarButtonClickedEventArgs e) => e.ClickedButtonText == "button2")), Times.Once);
-            eventHandler.VerifyNoOtherCalls();
-
-            eventHandler.Reset();
+            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<InfoBarButtonClickedEventArgs>(e => e.ClickedButtonText == "button2"));
 
             infoBarUI.SimulateClickEvent(infoBarUI.Model.ActionItems.GetItem(2));
-            eventHandler.Verify(x => x(It.Is((InfoBarButtonClickedEventArgs e) => e.ClickedButtonText == "button3")), Times.Once);
-            eventHandler.VerifyNoOtherCalls();
+            eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<InfoBarButtonClickedEventArgs>(e => e.ClickedButtonText == "button3"));
         }
 
         #region MainWindow tests
@@ -360,16 +366,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var host = new ConfigurableVsInfoBarHost();
             RegisterMainWindowHostWithShell(sp, host);
 
-            var testSubject = new InfoBarManager(sp);
+            var testSubject = new InfoBarManager(sp, threadHandling);
             host.AssertInfoBars(0);
 
             var infoBar = testSubject.AttachInfoBarToMainWindow("message", default);
             infoBar.Should().NotBeNull();
+            VerifyReceivedThrowIfNotOnUIThread();
 
             host.AssertInfoBars(1);
 
             testSubject.CloseInfoBar(infoBar);
             host.AssertInfoBars(0);
+            VerifyReceivedThrowIfNotOnUIThread();
         }
 
         [TestMethod]
@@ -378,11 +386,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var sp = new ConfigurableServiceProvider();
             RegisterMainWindowHostWithShell(sp, null);
 
-            var testSubject = new InfoBarManager(sp);
+            var testSubject = new InfoBarManager(sp, threadHandling);
 
             // infoBarUIFactory not called
             var actual = testSubject.AttachInfoBarToMainWindow("message", default);
             actual.Should().BeNull();
+            VerifyReceivedThrowIfNotOnUIThread();
             sp.AssertServiceUsed(typeof(SVsShell));
             sp.AssertServiceNotUsed(typeof(SVsInfoBarUIFactory));
         }
@@ -393,7 +402,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Test helpers
 
-        private static InfoBarManager CreateTestSubject(ConfigurableVsUIShell vsUiShell = null)
+        private void VerifyReceivedThrowIfNotOnUIThread()
+        {
+            threadHandling.Received().ThrowIfNotOnUIThread();
+            threadHandling.ClearReceivedCalls();
+        }
+
+        private InfoBarManager CreateTestSubject(ConfigurableVsUIShell vsUiShell = null)
         {
             vsUiShell ??= new ConfigurableVsUIShell();
 
@@ -401,7 +416,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             serviceProviderMock.RegisterService(typeof(SVsUIShell), vsUiShell);
             serviceProviderMock.RegisterService(typeof(SVsInfoBarUIFactory), new ConfigurableVsInfoBarUIFactory());
 
-            return new InfoBarManager(serviceProviderMock);
+            return new InfoBarManager(serviceProviderMock, threadHandling);
         }
 
         private static SonarLintImageMoniker CreateFromVsMoniker(ImageMoniker imageMoniker) => new SonarLintImageMoniker(imageMoniker.Guid, imageMoniker.Id);
@@ -417,10 +432,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var hostAsObject = (object)host;
 
-            var shellMock = new Mock<IVsShell>();
-            shellMock.Setup(x => x.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out hostAsObject));
+            var shellMock = Substitute.For<IVsShell>();
+            shellMock.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out Arg.Any<object>())
+                .Returns(callInfo => {
+                    callInfo[1] = hostAsObject;
+                    return 0; // S_OK
+                });
 
-            serviceProvider.RegisterService(typeof(SVsShell), shellMock.Object);
+            serviceProvider.RegisterService(typeof(SVsShell), shellMock);
         }
 
         #endregion Test helpers
