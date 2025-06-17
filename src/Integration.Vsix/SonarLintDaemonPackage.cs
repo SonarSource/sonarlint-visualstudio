@@ -104,7 +104,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 await MuteIssueCommand.InitializeAsync(this, logger);
                 await DisableRuleCommand.InitializeAsync(this, logger);
-                await CFamilyReproducerCommand.InitializeAsync(this, logger);
 
                 threadHandling = await this.GetMefServiceAsync<IThreadHandling>();
                 activeCompilationDatabaseTracker = await this.GetMefServiceAsync<IActiveCompilationDatabaseTracker>();
