@@ -24,7 +24,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
-using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
 using SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
 using SonarLint.VisualStudio.SLCore.Analysis;
 
@@ -36,9 +35,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis;
 /// </summary>
 [Export(typeof(IAnalysisConfigMonitor))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposable
+internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor
 {
-    private readonly IAnalysisRequester analysisRequester;
     private readonly IUserSettingsProvider userSettingsProvider;
     private readonly ILogger logger;
     private readonly IThreadHandling threadHandling;
@@ -47,7 +45,6 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
 
     [ImportingConstructor]
     public AnalysisConfigMonitor(
-        IAnalysisRequester analysisRequester,
         IUserSettingsProvider userSettingsProvider,
         ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater,
         IStandaloneRoslynSettingsUpdater roslynSettingsUpdater,
@@ -55,7 +52,6 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
         IThreadHandling threadHandling,
         IInitializationProcessorFactory initializationProcessorFactory)
     {
-        this.analysisRequester = analysisRequester;
         this.userSettingsProvider = userSettingsProvider;
         this.logger = logger;
         this.threadHandling = threadHandling;
@@ -66,12 +62,12 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
             [userSettingsProvider],
             () =>
             {
-                roslynSettingsUpdater.Update(userSettingsProvider.UserSettings);
                 if (disposedValue)
                 {
                     return;
                 }
                 userSettingsProvider.SettingsChanged += OnUserSettingsChanged;
+                roslynSettingsUpdater.Update(userSettingsProvider.UserSettings);
             });
     }
 
@@ -84,14 +80,9 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposabl
             {
                 roslynSettingsUpdater.Update(userSettingsProvider.UserSettings);
                 slCoreRuleSettingsUpdater.UpdateStandaloneRulesConfiguration();
-                RequestAnalysis();
             }
         ).Forget();
     }
-
-    private void RequestAnalysis() =>
-        // NB assumes exception handling is done by the AnalysisRequester
-        analysisRequester.RequestAnalysis();
 
     private bool disposedValue = false; // To detect redundant calls
 

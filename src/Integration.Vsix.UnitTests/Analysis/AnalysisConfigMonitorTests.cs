@@ -31,7 +31,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis;
 [TestClass]
 public class AnalysisConfigMonitorTests
 {
-    private IAnalysisRequester analysisRequesterMock;
     private TestLogger logger;
     private IStandaloneRoslynSettingsUpdater roslynSettingsUpdater;
     private ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater;
@@ -43,7 +42,6 @@ public class AnalysisConfigMonitorTests
     [TestInitialize]
     public void TestInitialize()
     {
-        analysisRequesterMock = Substitute.For<IAnalysisRequester>();
         userSettingsProviderMock = Substitute.For<IUserSettingsProvider>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         slCoreRuleSettingsUpdater = Substitute.For<ISLCoreRuleSettingsUpdater>();
@@ -54,7 +52,6 @@ public class AnalysisConfigMonitorTests
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<AnalysisConfigMonitor, IAnalysisConfigMonitor>(
-            MefTestHelpers.CreateExport<IAnalysisRequester>(),
             MefTestHelpers.CreateExport<IUserSettingsProvider>(),
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
@@ -63,7 +60,8 @@ public class AnalysisConfigMonitorTests
             MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<AnalysisConfigMonitor>();
+    public void MefCtor_CheckIsSingleton() =>
+        MefTestHelpers.CheckIsSingletonMefComponent<AnalysisConfigMonitor>();
 
     [TestMethod]
     public void Ctor_UpdatesRoslynSettings()
@@ -81,24 +79,10 @@ public class AnalysisConfigMonitorTests
                 Arg.Any<Func<IThreadHandling, Task>>());
             createdInitializationProcessor.InitializeAsync();
             _ = userSettingsProviderMock.UserSettings;
-            roslynSettingsUpdater.Update(userSettings);
             userSettingsProviderMock.SettingsChanged += Arg.Any<EventHandler>();
+            roslynSettingsUpdater.Update(userSettings);
             createdInitializationProcessor.InitializeAsync(); // called as part of the CreateAndInitializeTestSubject method
         });
-    }
-
-    [TestMethod]
-    public void WhenUserSettingsChange_AnalysisIsRequested()
-    {
-        _ = CreateAndInitializeTestSubject();
-        threadHandling.ClearReceivedCalls();
-
-        SimulateUserSettingsChanged();
-
-        // Should re-analyse
-        AssertAnalysisIsRequested();
-        AssertSwitchedToBackgroundThread();
-        logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
     }
 
     [TestMethod]
@@ -108,36 +92,40 @@ public class AnalysisConfigMonitorTests
 
         SimulateUserSettingsChanged();
 
-        analysisRequesterMock.DidNotReceiveWithAnyArgs().RequestAnalysis(default);
         _ = userSettingsProviderMock.DidNotReceiveWithAnyArgs().UserSettings;
     }
 
     [TestMethod]
-    public void WhenUserSettingsChange_UpdatesSlCoreSettingsBeforeTriggeringAnalysis()
+    public void WhenUserSettingsChange_UpdatesRoslynAndSlCoreSettings()
     {
         _ = CreateAndInitializeTestSubject();
+        roslynSettingsUpdater.ClearReceivedCalls();
+        threadHandling.ClearReceivedCalls();
 
         var userSettings = SimulateUserSettingsChanged();
 
         Received.InOrder(() =>
         {
+            threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
             roslynSettingsUpdater.Update(userSettings);
             slCoreRuleSettingsUpdater.UpdateStandaloneRulesConfiguration();
-            analysisRequesterMock.RequestAnalysis();
         });
+        logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
     }
 
     [TestMethod]
     public void WhenDisposed_EventsAreIgnored()
     {
         var testSubject = CreateAndInitializeTestSubject();
+        roslynSettingsUpdater.ClearReceivedCalls();
 
         // Act
         testSubject.Dispose();
 
         // Raise events and check they are ignored
         SimulateUserSettingsChanged();
-        AssertAnalysisIsNotRequested();
+        roslynSettingsUpdater.DidNotReceiveWithAnyArgs().Update(default);
+        slCoreRuleSettingsUpdater.DidNotReceiveWithAnyArgs().UpdateStandaloneRulesConfiguration();
     }
 
     [TestMethod]
@@ -159,10 +147,6 @@ public class AnalysisConfigMonitorTests
         return userSettings;
     }
 
-    private void AssertAnalysisIsRequested() => analysisRequesterMock.Received(1).RequestAnalysis();
-
-    private void AssertAnalysisIsNotRequested() => analysisRequesterMock.ReceivedCalls().Count().Should().Be(0);
-
     private void AssertSwitchedToBackgroundThread() => threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
 
     private AnalysisConfigMonitor CreateUninitializedTestSubject(out TaskCompletionSource<byte> barrier)
@@ -174,7 +158,6 @@ public class AnalysisConfigMonitorTests
             createdInitializationProcessor = processor;
         });
         return new AnalysisConfigMonitor(
-            analysisRequesterMock,
             userSettingsProviderMock,
             slCoreRuleSettingsUpdater,
             roslynSettingsUpdater,
@@ -187,7 +170,6 @@ public class AnalysisConfigMonitorTests
     {
         initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<AnalysisConfigMonitor>(threadHandling, logger, processor => createdInitializationProcessor = processor);
         var testSubject = new AnalysisConfigMonitor(
-            analysisRequesterMock,
             userSettingsProviderMock,
             slCoreRuleSettingsUpdater,
             roslynSettingsUpdater,
