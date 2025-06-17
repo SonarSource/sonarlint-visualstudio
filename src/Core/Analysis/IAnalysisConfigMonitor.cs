@@ -22,5 +22,5 @@ using SonarLint.VisualStudio.Core.Initialization;
 
 namespace SonarLint.VisualStudio.Core.Analysis
 {
-    public interface IAnalysisConfigMonitor : IRequireInitialization;
+    public interface IAnalysisConfigMonitor : IDisposable, IRequireInitialization;
 }
