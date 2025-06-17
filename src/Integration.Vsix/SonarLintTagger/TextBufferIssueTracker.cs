@@ -107,6 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
                 {
                     case FileActionTypes.ContentSavedToDisk:
                         {
+                            UpdateAnalysisSnapshotAsync().Forget();
                             Provider.OnDocumentSaved(document.FilePath, document.TextBuffer.CurrentSnapshot.GetText(), DetectedLanguages);
                             break;
                         }

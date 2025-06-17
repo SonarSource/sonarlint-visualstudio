@@ -41,7 +41,6 @@ public class DocumentEventsHandlerTests
     private IFileRpcSLCoreService fileRpcSlCoreService;
     private IActiveConfigScopeTracker activeConfigScopeTracker;
     private IThreadHandling threadHandling;
-    private IAnalysisRequester analysisRequester;
     private const string CFamilyOldFile = "file:///tmp/SLVS/old.cpp";
     private const string CFamilyNewFile = "file:///tmp/SLVS/new.cpp";
     private const string NonCFamilyOldFile = "file:///tmp/SLVS/old.js";
@@ -57,7 +56,6 @@ public class DocumentEventsHandlerTests
         vcxCompilationDatabaseUpdater = Substitute.For<IVcxCompilationDatabaseUpdater>();
         activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
         threadHandling = Substitute.For<IThreadHandling>();
-        analysisRequester = Substitute.For<IAnalysisRequester>();
         MockThreadHandling();
         MockCurrentConfigScope(ConfigurationScope);
         MockSlCoreServices();
@@ -74,7 +72,6 @@ public class DocumentEventsHandlerTests
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
-            MefTestHelpers.CreateExport<IAnalysisRequester>(),
             MefTestHelpers.CreateExport<ILogger>()
         );
 
@@ -173,14 +170,13 @@ public class DocumentEventsHandlerTests
     }
 
     [TestMethod]
-    public void DocumentSaved_CFamily_AddFileAsyncCalledAndRequestsAnalysis()
+    public void DocumentSaved_CFamily_AddFileToCompilationDb()
     {
         var args = new DocumentSavedEventArgs(CFamilyDocument, string.Empty);
 
         documentTracker.DocumentSaved += Raise.EventWith(documentTracker, args);
 
         vcxCompilationDatabaseUpdater.Received(1).AddFileAsync(CFamilyDocument.FullPath);
-        analysisRequester.Received(1).RequestAnalysis(Arg.Is<string[]>(x => x.SequenceEqual(new List<string> { CFamilyDocument.FullPath })));
     }
 
     [TestMethod]
@@ -198,7 +194,7 @@ public class DocumentEventsHandlerTests
     }
 
     [TestMethod]
-    public void DocumentSaved_NonCFamily_RequestsAnalysis()
+    public void DocumentSaved_NonCFamily_DoesNothing()
     {
         var args = new DocumentSavedEventArgs(NonCFamilyDocument, string.Empty);
 
@@ -206,7 +202,6 @@ public class DocumentEventsHandlerTests
 
         vcxCompilationDatabaseUpdater.ReceivedCalls().Should().HaveCount(0);
         fileRpcSlCoreService.ReceivedCalls().Should().HaveCount(0);
-        analysisRequester.Received(1).RequestAnalysis(Arg.Is<string[]>(x => x.SequenceEqual(new List<string> { NonCFamilyDocument.FullPath })));
     }
 
     [TestMethod]
@@ -269,7 +264,6 @@ public class DocumentEventsHandlerTests
         {
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
             vcxCompilationDatabaseUpdater.AddFileAsync(CFamilyDocument.FullPath);
-            analysisRequester.RequestAnalysis(Arg.Is<string[]>(x => x.SequenceEqual(new List<string> { CFamilyDocument.FullPath })));
         });
     }
 
@@ -406,8 +400,7 @@ public class DocumentEventsHandlerTests
         documentTracker.Received(1).OpenDocumentRenamed -= Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
     }
 
-    private DocumentEventsHandler CreateTestSubject() =>
-        new(documentTracker, vcxCompilationDatabaseUpdater, slCoreServiceProvider, activeConfigScopeTracker, threadHandling, analysisRequester, logger);
+    private DocumentEventsHandler CreateTestSubject() => new(documentTracker, vcxCompilationDatabaseUpdater, slCoreServiceProvider, activeConfigScopeTracker, threadHandling, logger);
 
     private void ClearReceivedCalls()
     {

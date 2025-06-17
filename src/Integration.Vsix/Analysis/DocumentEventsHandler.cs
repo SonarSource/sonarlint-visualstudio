@@ -44,7 +44,6 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
     private readonly ISLCoreServiceProvider serviceProvider;
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly IThreadHandling threadHandling;
-    private readonly IAnalysisRequester analysisRequester;
     private readonly ILogger logger;
     private IFileRpcSLCoreService fileRpcSlCoreService;
     private bool disposed;
@@ -56,7 +55,6 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
         ISLCoreServiceProvider serviceProvider,
         IActiveConfigScopeTracker activeConfigScopeTracker,
         IThreadHandling threadHandling,
-        IAnalysisRequester analysisRequester,
         ILogger logger)
     {
         this.documentTracker = documentTracker;
@@ -64,7 +62,6 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
         this.serviceProvider = serviceProvider;
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.threadHandling = threadHandling;
-        this.analysisRequester = analysisRequester;
         this.logger = logger.ForContext(nameof(DocumentEventsHandler));
         this.documentTracker.DocumentOpened += OnDocumentOpened;
         this.documentTracker.DocumentClosed += OnDocumentClosed;
@@ -128,8 +125,6 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
         threadHandling.RunOnBackgroundThread(async () =>
         {
             await AddFileToCompilationDatabaseAsync(args.Document);
-
-            analysisRequester.RequestAnalysis(args.Document.FullPath);
         }).Forget();
 
     private void AddFileToCompilationDatabase(Document document) => AddFileToCompilationDatabaseAsync(document).Forget();

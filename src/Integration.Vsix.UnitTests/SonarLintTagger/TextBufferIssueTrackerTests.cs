@@ -175,6 +175,21 @@ public class TextBufferIssueTrackerTests
     }
 
     [TestMethod]
+    public void WhenFileIsSaved_AnalysisSnapshotIsUpdated()
+    {
+        var textDocument = CreateDocumentMock("foo1.css", mockDocumentTextBuffer);
+        var consumer = Substitute.For<IIssueConsumer>();
+        MockIssueConsumerFactory(textDocument, consumer);
+        var projectInfo = MockGetDocumentProjectInfoAsync(textDocument.FilePath);
+        CreateTestSubject(textDocument);
+
+        RaiseFileSavedEvent(textDocument);
+
+        mockFileTracker.Received().AddFiles(new SourceFile(textDocument.FilePath, encoding: null, TextContent));
+        VerifyCreateIssueConsumerWasCalled(textDocument, projectInfo, consumer, new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot));
+    }
+
+    [TestMethod]
     public void WhenFileIsLoaded_EventsAreNotRaised()
     {
         var renamedEventHandler = Substitute.For<EventHandler<DocumentRenamedEventArgs>>();
@@ -213,7 +228,7 @@ public class TextBufferIssueTrackerTests
             x.Document.FullPath == newFilePath && x.OldFilePath == mockedJavascriptDocumentFooJs.FilePath && x.Document.DetectedLanguages == javascriptLanguage));
     }
 
-    private static void RaiseFileSavedEvent(ITextDocument mockDocument) => RaiseFileEvent(mockDocument, FileActionTypes.ContentSavedToDisk);
+    private void RaiseFileSavedEvent(ITextDocument mockDocument) => RaiseFileEvent(mockDocument, FileActionTypes.ContentSavedToDisk);
 
     private static void RaiseFileLoadedEvent(ITextDocument mockDocument) => RaiseFileEvent(mockDocument, FileActionTypes.ContentLoadedFromDisk);
 
