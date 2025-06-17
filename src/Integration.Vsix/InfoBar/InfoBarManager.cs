@@ -35,11 +35,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
     internal class InfoBarManager : IInfoBarManager
     {
         private readonly IServiceProvider serviceProvider;
+        private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
-        public InfoBarManager([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public InfoBarManager([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IThreadHandling threadHandling)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.threadHandling = threadHandling ?? throw new ArgumentNullException(nameof(threadHandling));
         }
 
         #region IInfoBarManager
@@ -95,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
                 throw new ArgumentNullException(nameof(buttonTexts));
             }
 
-            ThreadHelper.ThrowIfNotOnUIThread();
+            threadHandling.ThrowIfNotOnUIThread();
 
             // Note: this will return null if the VS main window hasn't been initialized
             // e.g. on startup when the startup dialog is visible
@@ -127,7 +129,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
 
         private IInfoBar AttachInfoBarToolWindowImpl(Guid toolWindowGuid, string message, SonarLintImageMoniker imageMoniker, ButtonStyle buttonStyle = ButtonStyle.Button, params string[] buttonTexts)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            threadHandling.ThrowIfNotOnUIThread();
 
             IVsUIShell shell = serviceProvider.GetService<SVsUIShell, IVsUIShell>();
             IVsWindowFrame frame = GetToolWindowFrame(shell, toolWindowGuid);
@@ -147,7 +149,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
 
         private IInfoBar AttachInfoBarImpl(IVsInfoBarHost host, string message, SonarLintImageMoniker imageMoniker, ButtonStyle buttonStyle = ButtonStyle.Button, params string[] buttonTexts)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            threadHandling.ThrowIfNotOnUIThread();
 
             InfoBarModel model = CreateModel(message, buttonTexts, buttonStyle, imageMoniker);
             IVsInfoBarUIFactory infoBarUIFactory = serviceProvider.GetService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
@@ -156,7 +158,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
             if (TryCreateInfoBarUI(infoBarUIFactory, model, out uiElement))
             {
                 host.AddInfoBar(uiElement);
-                return new PrivateInfoBarWrapper(host, uiElement);
+                return new PrivateInfoBarWrapper(host, uiElement, threadHandling);
             }
 
             return null;
@@ -241,13 +243,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
 
         private class PrivateInfoBarWrapper : IInfoBar, IVsInfoBarUIEvents
         {
+            private readonly IThreadHandling threadHandling;
             private uint? cookie;
             private bool isClosed;
 
-            public PrivateInfoBarWrapper(IVsInfoBarHost host, IVsInfoBarUIElement uiElement)
+            public PrivateInfoBarWrapper(IVsInfoBarHost host, IVsInfoBarUIElement uiElement, IThreadHandling threadHandling)
             {
                 Debug.Assert(host != null);
                 Debug.Assert(uiElement != null);
+                this.threadHandling = threadHandling;
 
                 this.Host = host;
                 this.InfoBarUIElement = uiElement;
@@ -270,7 +274,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
                     return;
                 }
 
-                ThreadHelper.ThrowIfNotOnUIThread();
+                threadHandling.ThrowIfNotOnUIThread();
                 // This will fire the Closed event
                 this.InfoBarUIElement.Close();
 
@@ -281,7 +285,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
             {
                 CloseUIElement();
 
-                ThreadHelper.ThrowIfNotOnUIThread();
+                threadHandling.ThrowIfNotOnUIThread();
                 if (Host != null )
                 {
                     Host.RemoveInfoBar(InfoBarUIElement);
