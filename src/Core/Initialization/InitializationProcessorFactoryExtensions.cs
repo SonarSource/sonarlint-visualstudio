@@ -18,11 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Initialization;
-
-namespace SonarLint.VisualStudio.Infrastructure.VS.Initialization;
+namespace SonarLint.VisualStudio.Core.Initialization;
 
 public static class InitializationProcessorFactoryExtensions
 {
@@ -48,7 +44,9 @@ public static class InitializationProcessorFactoryExtensions
         Func<IThreadHandling, Task> initialization)
     {
         var initializationProcessor = factory.Create<T>(dependencies, initialization);
-        initializationProcessor.InitializeAsync().Forget();
+        InitializeFireAndForget(initializationProcessor);
         return initializationProcessor;
     }
+
+    private static void InitializeFireAndForget(IInitializationProcessor initializationProcessor) => initializationProcessor.InitializeAsync(); // .Forget() is a VS extension method and is not available here
 }

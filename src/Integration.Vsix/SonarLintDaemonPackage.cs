@@ -23,7 +23,6 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.CFamily;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -34,6 +33,7 @@ using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.Events;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.SLCore;
+using SonarLint.VisualStudio.SLCore.Analysis;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -72,6 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private ISLCoreHandler slCoreHandler;
         private IDocumentEventsHandler documentEventsHandler;
         private IThreadHandling threadHandling;
+        private ISlCoreUserAnalysisPropertiesSynchronizer slCoreUserAnalysisPropertiesSynchronizer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -107,7 +108,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 threadHandling = await this.GetMefServiceAsync<IThreadHandling>();
                 activeCompilationDatabaseTracker = await this.GetMefServiceAsync<IActiveCompilationDatabaseTracker>();
+                await activeCompilationDatabaseTracker.InitializationProcessor.InitializeAsync();
 
+                slCoreUserAnalysisPropertiesSynchronizer = await this.GetMefServiceAsync<ISlCoreUserAnalysisPropertiesSynchronizer>();
+                await slCoreUserAnalysisPropertiesSynchronizer.InitializationProcessor.InitializeAsync();
 
                 documentEventsHandler = await this.GetMefServiceAsync<IDocumentEventsHandler>();
 
@@ -142,6 +146,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (disposing)
             {
+                slCoreUserAnalysisPropertiesSynchronizer?.Dispose();
+                slCoreUserAnalysisPropertiesSynchronizer = null;
                 activeCompilationDatabaseTracker?.Dispose();
                 activeCompilationDatabaseTracker = null;
 
