@@ -61,8 +61,7 @@ public class SLCoreAnalyzerTests
 
         analysisService.AnalyzeFilesAndTrackAsync(default, default).ReturnsForAnyArgs(new AnalyzeFilesResponse(new HashSet<FileUri>(), []));
 
-        // TODO by https://sonarsource.atlassian.net/browse/SLVS-2049 Pass the analysis ID and the paths to the correct method
-        void SetUpDefaultNotifier() => analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), Arg.Any<string>(), Arg.Any<Guid?>()).Returns(notifier);
+        void SetUpDefaultNotifier() => analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), Arg.Any<string[]>()).Returns(notifier);
     }
 
     [TestMethod]
@@ -84,7 +83,7 @@ public class SLCoreAnalyzerTests
     {
         await testSubject.ExecuteAnalysis([FilePath]);
 
-        analysisStatusNotifierFactory.Received().Create(nameof(SLCoreAnalyzer), FilePath, null);
+        analysisStatusNotifierFactory.Received().Create(nameof(SLCoreAnalyzer), [FilePath]);
         notifier.Received().AnalysisStarted();
     }
 
@@ -97,7 +96,7 @@ public class SLCoreAnalyzerTests
 
         _ = activeConfigScopeTracker.Received().Current;
         analysisService.ReceivedCalls().Should().BeEmpty();
-        notifier.Received().AnalysisNotReady(SLCoreStrings.ConfigScopeNotInitialized);
+        notifier.Received().AnalysisNotReady(null, SLCoreStrings.ConfigScopeNotInitialized);
     }
 
     [TestMethod]
@@ -109,7 +108,7 @@ public class SLCoreAnalyzerTests
 
         _ = activeConfigScopeTracker.Received().Current;
         analysisService.ReceivedCalls().Should().BeEmpty();
-        notifier.Received().AnalysisNotReady(SLCoreStrings.ConfigScopeNotInitialized);
+        notifier.Received().AnalysisNotReady(null, SLCoreStrings.ConfigScopeNotInitialized);
     }
 
     [TestMethod]
@@ -122,7 +121,7 @@ public class SLCoreAnalyzerTests
 
         slCoreServiceProvider.Received().TryGetTransientService(out Arg.Any<IAnalysisSLCoreService>());
         analysisService.ReceivedCalls().Should().BeEmpty();
-        notifier.Received().AnalysisFailed(SLCoreStrings.ServiceProviderNotInitialized);
+        notifier.Received().AnalysisFailed(null, SLCoreStrings.ServiceProviderNotInitialized);
     }
 
     [TestMethod]
@@ -148,7 +147,7 @@ public class SLCoreAnalyzerTests
 
         await testSubject.ExecuteAnalysis([FilePath]);
 
-        notifier.Received().AnalysisFailed(SLCoreStrings.AnalysisFailedReason);
+        notifier.Received().AnalysisFailed(null, SLCoreStrings.AnalysisFailedReason);
     }
 
     [TestMethod]
@@ -160,7 +159,7 @@ public class SLCoreAnalyzerTests
 
         await testSubject.ExecuteAnalysis([FilePath]);
 
-        notifier.Received().AnalysisFailed(exception);
+        notifier.Received().AnalysisFailed(null, exception);
     }
 
     [TestMethod]
@@ -168,7 +167,7 @@ public class SLCoreAnalyzerTests
     {
         await testSubject.ExecuteAnalysisForOpenFiles();
 
-        analysisStatusNotifierFactory.Received().Create(nameof(SLCoreAnalyzer), null, null);
+        analysisStatusNotifierFactory.Received().Create(nameof(SLCoreAnalyzer));
         notifier.Received().AnalysisStarted();
     }
 
@@ -181,7 +180,7 @@ public class SLCoreAnalyzerTests
 
         _ = activeConfigScopeTracker.Received().Current;
         analysisService.ReceivedCalls().Should().BeEmpty();
-        notifier.Received().AnalysisNotReady(SLCoreStrings.ConfigScopeNotInitialized);
+        notifier.Received().AnalysisNotReady(null, SLCoreStrings.ConfigScopeNotInitialized);
     }
 
     [TestMethod]
@@ -193,7 +192,7 @@ public class SLCoreAnalyzerTests
 
         _ = activeConfigScopeTracker.Received().Current;
         analysisService.ReceivedCalls().Should().BeEmpty();
-        notifier.Received().AnalysisNotReady(SLCoreStrings.ConfigScopeNotInitialized);
+        notifier.Received().AnalysisNotReady(null, SLCoreStrings.ConfigScopeNotInitialized);
     }
 
     [TestMethod]
@@ -206,7 +205,7 @@ public class SLCoreAnalyzerTests
 
         slCoreServiceProvider.Received().TryGetTransientService(out Arg.Any<IAnalysisSLCoreService>());
         analysisService.ReceivedCalls().Should().BeEmpty();
-        notifier.Received().AnalysisFailed(SLCoreStrings.ServiceProviderNotInitialized);
+        notifier.Received().AnalysisFailed(null, SLCoreStrings.ServiceProviderNotInitialized);
     }
 
     [TestMethod]
@@ -232,7 +231,7 @@ public class SLCoreAnalyzerTests
 
         await testSubject.ExecuteAnalysisForOpenFiles();
 
-        notifier.Received().AnalysisFailed(SLCoreStrings.AnalysisFailedReason);
+        notifier.Received().AnalysisFailed(null, SLCoreStrings.AnalysisFailedReason);
     }
 
     [TestMethod]
@@ -244,7 +243,7 @@ public class SLCoreAnalyzerTests
 
         await testSubject.ExecuteAnalysisForOpenFiles();
 
-        notifier.Received().AnalysisFailed(exception);
+        notifier.Received().AnalysisFailed(null, exception);
     }
 
     [TestMethod]
@@ -274,10 +273,10 @@ public class SLCoreAnalyzerTests
 
     private void AssertAnalysisNotFailed()
     {
-        notifier.DidNotReceiveWithAnyArgs().AnalysisCancelled();
-        notifier.DidNotReceiveWithAnyArgs().AnalysisFailed(default(Exception));
-        notifier.DidNotReceiveWithAnyArgs().AnalysisFailed(default(string));
-        notifier.ReceivedWithAnyArgs().AnalysisFinished(default);
+        notifier.DidNotReceiveWithAnyArgs().AnalysisCancelled(default);
+        notifier.DidNotReceiveWithAnyArgs().AnalysisFailed(default, default(Exception));
+        notifier.DidNotReceiveWithAnyArgs().AnalysisFailed(default, default(string));
+        notifier.ReceivedWithAnyArgs().AnalysisFinished(default, default);
     }
 
     private void SetUpAnalysisServiceProvider(bool result = true) =>

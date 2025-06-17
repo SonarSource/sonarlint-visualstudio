@@ -74,11 +74,11 @@ internal class RaisedFindingProcessor(
         {
             var fileUri = fileAndIssues.Key;
             var localPath = fileUri.LocalPath;
-            var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), localPath, parameters.analysisId);
+            var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), [localPath]);
             var supportedRaisedIssues = GetSupportedLanguageFindings(fileAndIssues.Value ?? []);
             findingsPublisher.Publish(localPath,
                 raiseFindingToAnalysisIssueConverter.GetAnalysisIssues(fileUri, supportedRaisedIssues));
-            analysisStatusNotifier.AnalysisProgressed(supportedRaisedIssues.Length, findingsPublisher.FindingsType, parameters.isIntermediatePublication);
+            analysisStatusNotifier.AnalysisProgressed(parameters.analysisId, supportedRaisedIssues.Length, findingsPublisher.FindingsType, parameters.isIntermediatePublication);
         }
     }
 

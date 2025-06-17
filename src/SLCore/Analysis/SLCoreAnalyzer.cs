@@ -43,8 +43,7 @@ public class SLCoreAnalyzer(
 
     public async Task<Guid?> ExecuteAnalysis(List<string> paths)
     {
-        // TODO by https://sonarsource.atlassian.net/browse/SLVS-2049 Pass the analysis ID and the paths to the correct method
-        var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), paths[0]);
+        var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), paths.ToArray());
         analysisStatusNotifier.AnalysisStarted();
 
         var configurationScope = activeConfigScopeTracker.Current;
@@ -60,8 +59,7 @@ public class SLCoreAnalyzer(
 
     public async Task<Guid?> ExecuteAnalysisForOpenFiles()
     {
-        // TODO by https://sonarsource.atlassian.net/browse/SLVS-2049 Pass the analysis ID and the paths to the correct method
-        var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), null);
+        var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer));
         analysisStatusNotifier.AnalysisStarted();
 
         var configurationScope = activeConfigScopeTracker.Current;
@@ -93,7 +91,7 @@ public class SLCoreAnalyzer(
             return true;
         }
 
-        analysisStatusNotifier.AnalysisNotReady(SLCoreStrings.ConfigScopeNotInitialized);
+        analysisStatusNotifier.AnalysisNotReady(analysisId: null, SLCoreStrings.ConfigScopeNotInitialized);
         return false;
     }
 
@@ -104,7 +102,7 @@ public class SLCoreAnalyzer(
             return analysisService;
         }
 
-        analysisStatusNotifier.AnalysisFailed(SLCoreStrings.ServiceProviderNotInitialized);
+        analysisStatusNotifier.AnalysisFailed(analysisId: null, SLCoreStrings.ServiceProviderNotInitialized);
         return null;
     }
 
@@ -112,29 +110,30 @@ public class SLCoreAnalyzer(
         Func<Task<ForceAnalyzeResponse>> slCoreAnalyzeFilesFunc,
         IAnalysisStatusNotifier analysisStatusNotifier)
     {
+        ForceAnalyzeResponse? analyzerResponse = null;
         try
         {
             var stopwatch = Stopwatch.StartNew();
-            var analyzerResponse = await slCoreAnalyzeFilesFunc();
+            analyzerResponse = await slCoreAnalyzeFilesFunc();
 
             if (analyzerResponse.analysisId == null)
             {
-                analysisStatusNotifier.AnalysisFailed(SLCoreStrings.AnalysisFailedReason);
+                analysisStatusNotifier.AnalysisFailed(analyzerResponse.analysisId, SLCoreStrings.AnalysisFailedReason);
             }
             else
             {
-                analysisStatusNotifier.AnalysisFinished(stopwatch.Elapsed);
+                analysisStatusNotifier.AnalysisFinished(analyzerResponse.analysisId, stopwatch.Elapsed);
             }
 
             return analyzerResponse.analysisId;
         }
         catch (OperationCanceledException)
         {
-            analysisStatusNotifier.AnalysisCancelled();
+            analysisStatusNotifier.AnalysisCancelled(analysisId: analyzerResponse?.analysisId);
         }
         catch (Exception e)
         {
-            analysisStatusNotifier.AnalysisFailed(e);
+            analysisStatusNotifier.AnalysisFailed(analysisId: analyzerResponse?.analysisId, e);
         }
 
         return null;
