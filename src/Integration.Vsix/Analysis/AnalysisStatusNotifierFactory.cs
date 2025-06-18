@@ -30,14 +30,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     [method: ImportingConstructor]
     internal class AnalysisStatusNotifierFactory(IStatusBarNotifier statusBarNotifier, ILogger logger) : IAnalysisStatusNotifierFactory
     {
-        public IAnalysisStatusNotifier Create(string analyzerName, params string[] filePaths)
-        {
-            if (analyzerName == null)
-            {
-                throw new ArgumentNullException(nameof(analyzerName));
-            }
-
-            return new AnalysisStatusNotifier(analyzerName, filePaths, statusBarNotifier, logger);
-        }
+        public IAnalysisStatusNotifier Create(params string[] filePaths) => new AnalysisStatusNotifier(filePaths, statusBarNotifier, logger);
     }
 }

@@ -61,6 +61,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analysis.
+        /// </summary>
+        internal static string AnalysisLogContext {
+            get {
+                return ResourceManager.GetString("AnalysisLogContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Binding has changed. Open documents will be re-analysed..
         /// </summary>
         internal static string ConfigMonitor_BindingChanged {

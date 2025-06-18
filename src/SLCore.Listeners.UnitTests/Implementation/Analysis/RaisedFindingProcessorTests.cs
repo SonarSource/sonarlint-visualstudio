@@ -20,7 +20,6 @@
 
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
@@ -188,7 +187,7 @@ public class RaisedFindingProcessorTests
         raiseFindingToAnalysisIssueConverter.Received(1).GetAnalysisIssues(findingsByFileUri.Single().Key, Arg.Is<IEnumerable<TestFinding>>(
             x => x.SequenceEqual(filteredRaisedFindings)));
 
-        analysisStatusNotifierFactory.Received(1).Create("SLCoreAnalyzer", [fileUri.LocalPath]);
+        analysisStatusNotifierFactory.Received(1).Create([fileUri.LocalPath]);
         analysisStatusNotifier.DidNotReceiveWithAnyArgs().AnalysisFinished(default, default);
         analysisStatusNotifier.Received().AnalysisProgressed(analysisId, 2, FindingsType, isIntermediate);
         VerifyCorrectConstantsAreUsed(constantsProvider);
@@ -231,8 +230,8 @@ public class RaisedFindingProcessorTests
         publisher.Received(1).Publish(fileUri2.LocalPath,
             Arg.Is<IEnumerable<IAnalysisIssue>>(x => x.SequenceEqual(new List<IAnalysisIssue> { analysisIssue2 })));
 
-        analysisStatusNotifierFactory.Received(1).Create("SLCoreAnalyzer", [fileUri1.LocalPath]);
-        analysisStatusNotifierFactory.Received(1).Create("SLCoreAnalyzer", [fileUri2.LocalPath]);
+        analysisStatusNotifierFactory.Received(1).Create([fileUri1.LocalPath]);
+        analysisStatusNotifierFactory.Received(1).Create([fileUri2.LocalPath]);
         notifier1.DidNotReceiveWithAnyArgs().AnalysisFinished(default, default);
         notifier1.Received().AnalysisProgressed(analysisId, 1, FindingsType, isIntermediate);
         notifier2.DidNotReceiveWithAnyArgs().AnalysisFinished(default, default);
@@ -283,7 +282,7 @@ public class RaisedFindingProcessorTests
         IAnalysisStatusNotifierFactory analysisStatusNotifierFactory)
     {
         analysisStatusNotifier = Substitute.For<IAnalysisStatusNotifier>();
-        analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), [filePath]).Returns(analysisStatusNotifier);
+        analysisStatusNotifierFactory.Create([filePath]).Returns(analysisStatusNotifier);
     }
 
     private static TestFinding CreateTestFinding(string ruleKey)

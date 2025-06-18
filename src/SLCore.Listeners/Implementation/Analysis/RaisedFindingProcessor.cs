@@ -21,7 +21,6 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
@@ -74,7 +73,7 @@ internal class RaisedFindingProcessor(
         {
             var fileUri = fileAndIssues.Key;
             var localPath = fileUri.LocalPath;
-            var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), [localPath]);
+            var analysisStatusNotifier = analysisStatusNotifierFactory.Create([localPath]);
             var supportedRaisedIssues = GetSupportedLanguageFindings(fileAndIssues.Value ?? []);
             findingsPublisher.Publish(localPath,
                 raiseFindingToAnalysisIssueConverter.GetAnalysisIssues(fileUri, supportedRaisedIssues));

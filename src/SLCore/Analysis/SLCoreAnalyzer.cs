@@ -43,7 +43,7 @@ public class SLCoreAnalyzer(
 
     public async Task<Guid?> ExecuteAnalysis(List<string> paths)
     {
-        var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), paths.ToArray());
+        var analysisStatusNotifier = analysisStatusNotifierFactory.Create(paths.ToArray());
         analysisStatusNotifier.AnalysisStarted();
 
         var configurationScope = activeConfigScopeTracker.Current;

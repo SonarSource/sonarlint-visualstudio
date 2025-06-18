@@ -33,26 +33,6 @@ public class AnalysisStatusNotifierFactoryTests
         MefTestHelpers.CheckTypeCanBeImported<AnalysisStatusNotifierFactory, IAnalysisStatusNotifierFactory>(MefTestHelpers.CreateExport<IStatusBarNotifier>(), MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
-    public void Create_NullAnalyzerName_ArgumentNullException()
-    {
-        var testSubject = CreateTestSubject();
-
-        Action act = () => testSubject.Create(null, "file path");
-
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analyzerName");
-    }
-
-    [TestMethod]
-    public void Create_NullFilePath_ArgumentNullException()
-    {
-        var testSubject = CreateTestSubject();
-
-        Action act = () => testSubject.Create("analyzer");
-
-        act.Should().NotThrow();
-    }
-
-    [TestMethod]
     public void Create_ValidArguments_Created()
     {
         var testSubject = CreateTestSubject();

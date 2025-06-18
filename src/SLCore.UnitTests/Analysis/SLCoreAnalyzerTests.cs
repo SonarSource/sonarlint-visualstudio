@@ -61,7 +61,7 @@ public class SLCoreAnalyzerTests
 
         analysisService.AnalyzeFilesAndTrackAsync(default, default).ReturnsForAnyArgs(new AnalyzeFilesResponse(new HashSet<FileUri>(), []));
 
-        void SetUpDefaultNotifier() => analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), Arg.Any<string[]>()).Returns(notifier);
+        void SetUpDefaultNotifier() => analysisStatusNotifierFactory.Create(Arg.Any<string[]>()).Returns(notifier);
     }
 
     [TestMethod]
@@ -83,7 +83,7 @@ public class SLCoreAnalyzerTests
     {
         await testSubject.ExecuteAnalysis([FilePath]);
 
-        analysisStatusNotifierFactory.Received().Create(nameof(SLCoreAnalyzer), [FilePath]);
+        analysisStatusNotifierFactory.Received().Create([FilePath]);
         notifier.Received().AnalysisStarted();
     }
 

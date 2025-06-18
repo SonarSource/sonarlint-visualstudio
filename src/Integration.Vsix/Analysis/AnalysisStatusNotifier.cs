@@ -26,13 +26,13 @@ using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
     internal class AnalysisStatusNotifier(
-        string analyzerName,
         string[] filePaths,
         IStatusBarNotifier statusBarNotifier,
         ILogger logger)
         : IAnalysisStatusNotifier
     {
         private readonly string formattedFileNames = string.Join(", ", filePaths.Select(Path.GetFileName));
+        private readonly ILogger logger = logger.ForContext(AnalysisStrings.AnalysisLogContext);
 
         public void AnalysisStarted()
         {
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             Notify("", false);
         }
 
-        private void Log(string messageFormat, params object[] args) => logger.WriteLine($"[{analyzerName}] " + messageFormat, args);
+        private void Log(string messageFormat, params object[] args) => logger.WriteLine(messageFormat, args);
 
         private void Notify(string messageFormat, bool showSpinner)
         {
