@@ -46,7 +46,7 @@ public class FileExclusionsTests
         var analysisSettings = new AnalysisSettings([], [someOtherFileExclusion, testingFile.RelativePath]);
         sharedFileAnalysisTestsRunner.SetFileExclusions(configScope, analysisSettings.NormalizedFileExclusions);
 
-        await sharedFileAnalysisTestsRunner.VerifyAnalysisSkipped(testingFile, configScope, extraProperties: (testingFile as ITestingFileWithProperties)?.GetAnalysisProperties());
+        await sharedFileAnalysisTestsRunner.VerifyAnalysisSkipped(testingFile, configScope);
     }
 
     [DataTestMethod]
@@ -57,7 +57,8 @@ public class FileExclusionsTests
         var analysisSettings = new AnalysisSettings([], [someOtherFileExclusion]);
         sharedFileAnalysisTestsRunner.SetFileExclusions(configScope, analysisSettings.NormalizedFileExclusions);
 
-        var fileAnalysisResults = await sharedFileAnalysisTestsRunner.RunFileAnalysis(testingFile, configScope, extraProperties: (testingFile as ITestingFileWithProperties)?.GetAnalysisProperties());
+        var fileAnalysisResults
+            = await sharedFileAnalysisTestsRunner.RunFileAnalysis(testingFile, configScope, compilationDatabasePath: (testingFile as ITestingCFamily)?.GetCompilationDatabasePath());
 
         fileAnalysisResults.Count.Should().Be(1);
         fileAnalysisResults.Single().Value.Should().HaveCount(testingFile.ExpectedIssues.Count);

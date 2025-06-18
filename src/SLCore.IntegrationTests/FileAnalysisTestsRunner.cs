@@ -30,7 +30,6 @@ using SonarLint.VisualStudio.SLCore.Listener.Files.Models;
 using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 using SonarLint.VisualStudio.SLCore.Listeners.Implementation.Analysis;
 using SonarLint.VisualStudio.SLCore.Service.Analysis;
-using SonarLint.VisualStudio.SLCore.Service.Analysis.Models;
 using SonarLint.VisualStudio.SLCore.Service.Rules;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using SonarLint.VisualStudio.SLCore.State;
@@ -48,7 +47,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
     internal static readonly VueIssuesFile VueIssues = new();
     internal static readonly SecretsIssuesFile SecretsIssues = new();
     internal static readonly HtmlIssuesFile HtmlIssues = new();
-    private ActiveConfigScopeTracker activeConfigScopeTracker;
+    private readonly ActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly IListFilesListener listFilesListener;
     private readonly IAnalysisListener analysisListener;
     private readonly SLCoreTestRunner slCoreTestRunner;
@@ -105,13 +104,13 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         ITestingFile testingFile,
         string configScope,
         bool sendContent = false,
-        Dictionary<string, string> extraProperties = null)
+        string compilationDatabasePath = null)
     {
         try
         {
-            var (analysisId, analysisRaisedIssues) = await SetUpAnalysis(testingFile, configScope, sendContent);
+            var analysisRaisedIssues = await SetUpAnalysis(testingFile, configScope, sendContent, compilationDatabasePath);
 
-            await RunSlCoreFileAnalysis(configScope, testingFile.GetFullPath(), analysisId, extraProperties);
+            await RunSlCoreFileAnalysis(configScope, testingFile.GetFullPath());
             await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task, "analysis completion");
             return analysisRaisedIssues.Task.Result.issuesByFileUri;
         }
@@ -124,15 +123,12 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
     public async Task VerifyAnalysisSkipped(
         ITestingFile testingFile,
         string configScope,
-        bool sendContent = false,
-        Dictionary<string, string> extraProperties = null)
+        bool sendContent = false)
     {
         try
         {
-            var (analysisId, analysisRaisedIssues) = await SetUpAnalysis(testingFile, configScope, sendContent);
-
-            var rawIssueDtos = await RunSlCoreFileAnalysis(configScope, testingFile.GetFullPath(), analysisId, extraProperties);
-            rawIssueDtos.Should().BeEmpty();
+            var analysisRaisedIssues = await SetUpAnalysis(testingFile, configScope, sendContent);
+            await RunSlCoreFileAnalysis(configScope, testingFile.GetFullPath());
             analysisRaisedIssues.Task.IsCompleted.Should().BeFalse();
         }
         finally
@@ -141,22 +137,33 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         }
     }
 
-    private async Task<(Guid analysisId, TaskCompletionSource<RaiseFindingParams<RaisedIssueDto>> analysisRaisedIssues)> SetUpAnalysis(ITestingFile testingFile, string configScope, bool sendContent)
+    private async Task<TaskCompletionSource<RaiseFindingParams<RaisedIssueDto>>> SetUpAnalysis(
+        ITestingFile testingFile,
+        string configScope,
+        bool sendContent,
+        string compilationDatabasePath = null)
     {
+        activeConfigScopeTracker.SetCurrentConfigScope(configScope);
         SetUpListFiles(testingFile.RelativePath, sendContent, configScope, testingFile.GetFullPath());
-        var analysisId = Guid.NewGuid();
         var analysisReadyCompletionSource = new TaskCompletionSource<DidChangeAnalysisReadinessParams>();
         var analysisRaisedIssues = new TaskCompletionSource<RaiseFindingParams<RaisedIssueDto>>();
         SetUpAnalysisListener(
             configScope,
-            analysisId,
             analysisReadyCompletionSource,
             analysisRaisedIssues);
-
-        activeConfigScopeTracker.SetCurrentConfigScope(configScope);
+        SetupAnalysisProperties(configScope, compilationDatabasePath);
 
         await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task, "analysis readiness");
-        return (analysisId, analysisRaisedIssues);
+        return analysisRaisedIssues;
+    }
+
+    private void SetupAnalysisProperties(string configScope, string compilationDatabasePath)
+    {
+        slCoreTestRunner.SLCoreServiceProvider.TryGetTransientService(out ICFamilyAnalysisConfigurationSLCoreService slCoreService).Should().BeTrue();
+        if (compilationDatabasePath is not null)
+        {
+            slCoreService.DidChangePathToCompileCommands(new DidChangePathToCompileCommandsParams(configScope, compilationDatabasePath));
+        }
     }
 
     private void SetUpListFiles(
@@ -174,7 +181,6 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
 
     private void SetUpAnalysisListener(
         string configScopeId,
-        Guid analysisId,
         TaskCompletionSource<DidChangeAnalysisReadinessParams> analysisReadyCompletionSource,
         TaskCompletionSource<RaiseFindingParams<RaisedIssueDto>> analysisRaisedIssues)
     {
@@ -188,29 +194,24 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
             .Do(info =>
             {
                 var raiseIssuesParams = info.Arg<RaiseFindingParams<RaisedIssueDto>>();
-                if (raiseIssuesParams.analysisId == analysisId && !raiseIssuesParams.isIntermediatePublication)
+                if (!raiseIssuesParams.isIntermediatePublication)
                 {
                     analysisRaisedIssues.SetResult(raiseIssuesParams);
                 }
             });
     }
 
-    private async Task<List<RawIssueDto>> RunSlCoreFileAnalysis(
+    private async Task<ForceAnalyzeResponse> RunSlCoreFileAnalysis(
         string configScopeId,
-        string fileToAnalyzeAbsolutePath,
-        Guid analysisId,
-        Dictionary<string, string> extraProperties = null)
+        string fileToAnalyzeAbsolutePath
+    )
     {
-        extraProperties ??= [];
-
         slCoreTestRunner.SLCoreServiceProvider.TryGetTransientService(out IAnalysisSLCoreService analysisService).Should().BeTrue();
 
-        var (failedAnalysisFiles, rawIssueDtos) = await analysisService.AnalyzeFilesAndTrackAsync(
-            new AnalyzeFilesAndTrackParams(configScopeId, analysisId,
-                [new FileUri(fileToAnalyzeAbsolutePath)], extraProperties, false,
-                DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()), CancellationToken.None);
-        failedAnalysisFiles.Should().BeEmpty();
-        return rawIssueDtos;
+        var response = await analysisService.AnalyzeFileListAsync(
+            new AnalyzeFileListParams(configScopeId,
+                [new FileUri(fileToAnalyzeAbsolutePath)]));
+        return response;
     }
 
     private static ClientFileDto CreateFileToAnalyze(
@@ -241,9 +242,9 @@ public interface ITestingFile
     List<TestIssue> ExpectedIssues { get; }
 }
 
-internal interface ITestingFileWithProperties : ITestingFile
+internal interface ITestingCFamily : ITestingFile
 {
-    Dictionary<string, string> GetAnalysisProperties();
+    string GetCompilationDatabasePath();
 }
 
 public record TestIssue(
@@ -291,12 +292,12 @@ internal class TypeScriptWithBomFile : ITestingFile
 
     public List<TestIssue> ExpectedIssues =>
     [
-        new ("typescript:S1135", new TextRangeDto(1, 3, 1, 7), CleanCodeAttribute.COMPLETE, 0),
+        new("typescript:S1135", new TextRangeDto(1, 3, 1, 7), CleanCodeAttribute.COMPLETE, 0),
         new("typescript:S2737", new TextRangeDto(5, 2, 5, 7), CleanCodeAttribute.CLEAR, 0),
     ];
 }
 
-internal class CFamilyIssuesFile : ITestingFileWithProperties
+internal class CFamilyIssuesFile : ITestingCFamily
 {
     public string RelativePath => @"Resources\CFamilyIssues.cpp";
 
@@ -308,9 +309,9 @@ internal class CFamilyIssuesFile : ITestingFileWithProperties
         new("cpp:S4962", new TextRangeDto(10, 13, 10, 17), CleanCodeAttribute.CONVENTIONAL, 0),
     ];
 
-    public Dictionary<string, string> GetAnalysisProperties() => GenerateTestCompilationDatabase();
+    public string GetCompilationDatabasePath() => GenerateTestCompilationDatabase();
 
-    private Dictionary<string, string> GenerateTestCompilationDatabase()
+    private string GenerateTestCompilationDatabase()
     {
         /* The CFamily analysis apart from the source code file requires also the compilation database file.
            The compilation database file must contain the absolute path to the source code file the compilation database json file and the compiler path.
@@ -332,11 +333,7 @@ internal class CFamilyIssuesFile : ITestingFileWithProperties
         var tempCompilationDatabase = Path.ChangeExtension(Path.GetTempFileName(), ".json");
         File.WriteAllText(tempCompilationDatabase, jsonContent);
 
-        var compilationDatabase = new Dictionary<string, string>
-        {
-            { "sonar.cfamily.compile-commands", tempCompilationDatabase }
-        };
-        return compilationDatabase;
+        return tempCompilationDatabase;
     }
 
     private static string NormalizePath(string path)
