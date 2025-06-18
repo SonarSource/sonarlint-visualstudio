@@ -124,7 +124,6 @@ public class TextBufferIssueTrackerTests
 
         _ = CreateTestSubject(textDocument);
 
-        mockFileTracker.Received(1).AddFiles(new SourceFile(textDocument.FilePath, encoding: null, TextContent));
         VerifyCreateIssueConsumerWasCalled(textDocument, projectInfo, consumer, new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot));
     }
 
@@ -188,7 +187,6 @@ public class TextBufferIssueTrackerTests
 
         RaiseFileSavedEvent(textDocument);
 
-        mockFileTracker.Received().AddFiles(new SourceFile(textDocument.FilePath, encoding: null, TextContent));
         VerifyCreateIssueConsumerWasCalled(textDocument, projectInfo, consumer, new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot));
     }
 
@@ -437,5 +435,5 @@ public class TextBufferIssueTrackerTests
         new(taggerProvider,
             textDocument, javascriptLanguage,
             mockSonarErrorDataSource, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage,
-            mockFileTracker, threadHandling, logger);
+            threadHandling, logger);
 }

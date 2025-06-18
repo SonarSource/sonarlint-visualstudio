@@ -129,6 +129,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     .Select<IIssueTracker, Action>(it => () => it.UpdateAnalysisSnapshotAsync())
                     .ToList(); // create a fixed list - the user could close a file before the reanalysis completes which would cause the enumeration to change
                 var documentsToAnalyzeCount = operations.Count;
+                operations.Add(() => NotifyFileTracker(filteredIssueTrackers));
                 operations.Add(() => _ = ExecuteAnalysisAsync(filteredIssueTrackers));
 
                 reanalysisProgressHandler = new StatusBarReanalysisProgressHandler(vsStatusBar, logger);
@@ -154,6 +155,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         internal IEnumerable<IIssueTracker> ActiveTrackersForTesting => issueTrackers;
+
+        private void NotifyFileTracker(string filePath, string content) => fileTracker.AddFiles(CreateSourceFile(filePath, content));
+
+        private void NotifyFileTracker(IEnumerable<IIssueTracker> filteredIssueTrackers)
+        {
+            var sourceFilesToUpdate = filteredIssueTrackers.Select(it => CreateSourceFile(it.LastAnalysisFilePath, it.GetText()));
+            fileTracker.AddFiles(sourceFilesToUpdate.ToArray());
+        }
+
+        private static SourceFile CreateSourceFile(string filePath, string content) => new(filePath, content: content);
 
         #region IViewTaggerProvider members
 
@@ -198,7 +209,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 vsProjectInfoProvider,
                 issueConsumerFactory,
                 issueConsumerStorage,
-                fileTracker,
                 threadHandling,
                 logger);
 
@@ -226,16 +236,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 issueTrackers.Add(issueTracker);
             }
 
+            var filePath = issueTracker.LastAnalysisFilePath;
+            var content = issueTracker.GetText();
+
+            NotifyFileTracker(filePath, content);
             // The lifetime of an issue tracker is tied to a single document. A document is opened, then a tracker is created.
-            DocumentOpened?.Invoke(this, new DocumentOpenedEventArgs(new(issueTracker.LastAnalysisFilePath, issueTracker.DetectedLanguages),
-                issueTracker.GetText()));
+            DocumentOpened?.Invoke(this, new DocumentOpenedEventArgs(new(filePath, issueTracker.DetectedLanguages), content));
         }
 
         public void OnOpenDocumentRenamed(string newFilePath, string oldFilePath, IEnumerable<AnalysisLanguage> detectedLanguages) =>
             OpenDocumentRenamed?.Invoke(this, new DocumentRenamedEventArgs(new(newFilePath, detectedLanguages), oldFilePath));
 
-        public void OnDocumentSaved(string fullPath, string newContent, IEnumerable<AnalysisLanguage> detectedLanguages) =>
+        public void OnDocumentSaved(string fullPath, string newContent, IEnumerable<AnalysisLanguage> detectedLanguages)
+        {
+            NotifyFileTracker(fullPath, newContent);
             DocumentSaved?.Invoke(this, new DocumentSavedEventArgs(new(fullPath, detectedLanguages), newContent));
+        }
 
         public void OnDocumentClosed(IIssueTracker issueTracker)
         {

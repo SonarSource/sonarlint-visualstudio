@@ -52,7 +52,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
         private readonly IVsProjectInfoProvider vsProjectInfoProvider;
         private readonly IIssueConsumerFactory issueConsumerFactory;
         private readonly IIssueConsumerStorage issueConsumerStorage;
-        private readonly IFileTracker fileTracker;
         private readonly IThreadHandling threadHandling;
         private readonly ISonarErrorListDataSource sonarErrorDataSource;
 
@@ -68,7 +67,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
             IVsProjectInfoProvider vsProjectInfoProvider,
             IIssueConsumerFactory issueConsumerFactory,
             IIssueConsumerStorage issueConsumerStorage,
-            IFileTracker fileTracker,
             IThreadHandling threadHandling,
             ILogger logger)
         {
@@ -79,7 +77,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
             this.vsProjectInfoProvider = vsProjectInfoProvider;
             this.issueConsumerFactory = issueConsumerFactory;
             this.issueConsumerStorage = issueConsumerStorage;
-            this.fileTracker = fileTracker;
             this.threadHandling = threadHandling;
             this.logger = logger;
             logger.ForContext(nameof(TextBufferIssueTracker));
@@ -153,12 +150,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
         private AnalysisSnapshot UpdateAnalysisState()
         {
             LastAnalysisFilePath = document.FilePath; // Refresh the stored file path in case the document has been renamed
-            var analysisSnapshot = new AnalysisSnapshot(LastAnalysisFilePath, document.TextBuffer.CurrentSnapshot);
-            NotifyFileTracker(analysisSnapshot.TextSnapshot);
-            return analysisSnapshot;
+            return new AnalysisSnapshot(LastAnalysisFilePath, document.TextBuffer.CurrentSnapshot);
         }
-
-        private void NotifyFileTracker(ITextSnapshot snapshot) => fileTracker.AddFiles(new SourceFile(LastAnalysisFilePath, content: snapshot.GetText()));
 
         private async Task InitializeAnalysisStateAsync()
         {

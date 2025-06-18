@@ -341,6 +341,19 @@ public class TaggerProviderTests
     }
 
     [TestMethod]
+    public void AddIssueTracker_AddsNewFileToFileTracker()
+    {
+        var filePath = "file1.txt";
+        var content = "some text";
+        var testSubject = CreateTestSubject();
+        var issueTracker = CreateMockedIssueTracker(filePath, DetectedLanguagesJsTs, content: content);
+
+        testSubject.AddIssueTracker(issueTracker);
+
+        mockFileTracker.Received(1).AddFiles(new SourceFile(filePath, encoding: null, content));
+    }
+
+    [TestMethod]
     public void IssueTracker_DocumentClosed_RaiseEvent()
     {
         var eventHandler = Substitute.For<EventHandler<DocumentEventArgs>>();
@@ -366,6 +379,20 @@ public class TaggerProviderTests
         RaiseFileEvent(doc, FileActionTypes.ContentSavedToDisk);
 
         eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<DocumentSavedEventArgs>(x => x.Document.FullPath == fileName && x.Document.DetectedLanguages == DetectedLanguagesJsTs));
+    }
+
+    [TestMethod]
+    public void IssueTracker_DocumentSaved_AddsNewFileToFileTracker()
+    {
+        var filePath = "anyname.js";
+        string content = "new content";
+        var doc = CreateMockedDocument(filePath, DetectedLanguagesJsTs, content: content);
+        CreateTaggerForDocument(doc);
+        mockFileTracker.ClearReceivedCalls();
+
+        RaiseFileEvent(doc, FileActionTypes.ContentSavedToDisk);
+
+        mockFileTracker.Received(1).AddFiles(new SourceFile(filePath, encoding: null, content));
     }
 
     [TestMethod]
@@ -443,6 +470,21 @@ public class TaggerProviderTests
         analyzer.Received(1).CancelAnalysis(analysisId1.Value);
     }
 
+    [TestMethod]
+    public void AnalysisRequested_TwoOpenedDocuments_AddFilesToFileTrackerInBatch()
+    {
+        string[] sourceFiles = ["file.js", "file2.js"];
+        CreateTaggerForDocument(CreateMockedDocument(sourceFiles[0], DetectedLanguagesJsTs));
+        provider.AddIssueTracker(CreateMockedIssueTracker(sourceFiles[1]));
+        mockFileTracker.ClearReceivedCalls();
+
+        mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new AnalysisRequestEventArgs([]));
+
+        mockFileTracker.Received(1).AddFiles(Arg.Is<SourceFile[]>(files => files.Length == 2 &&
+                                                                           files[0].FilePath == sourceFiles[0] &&
+                                                                           files[1].FilePath == sourceFiles[1]));
+    }
+
     private IIssueTracker[] CreateMockedIssueTrackers(params string[] filePaths) => filePaths.Select(CreateMockedIssueTracker).ToArray();
 
     private static IIssueTracker CreateMockedIssueTracker(string filePath)
@@ -468,7 +510,7 @@ public class TaggerProviderTests
         return provider.CreateTagger<IErrorTag>(document.TextBuffer);
     }
 
-    private ITextDocument CreateMockedDocument(string fileName, IEnumerable<AnalysisLanguage> detectectedLanguages = null)
+    private ITextDocument CreateMockedDocument(string fileName, IEnumerable<AnalysisLanguage> detectedLanguages = null, string content = null)
     {
         var bufferContentType = Substitute.For<IContentType>();
 
@@ -482,6 +524,7 @@ public class TaggerProviderTests
         var mockSnapshot = Substitute.For<ITextSnapshot>();
         mockSnapshot.Length.Returns(0);
         mockTextBuffer.CurrentSnapshot.Returns(mockSnapshot);
+        mockTextBuffer.CurrentSnapshot.GetText().Returns(content);
 
         // Create the document and associate the buffer with the it
         var mockTextDocument = Substitute.For<ITextDocument>();
@@ -493,7 +536,7 @@ public class TaggerProviderTests
         // Register the buffer-to-doc mapping for the factory service
         dummyDocumentFactoryService.RegisterDocument(mockTextDocument);
 
-        var analysisLanguages = detectectedLanguages ?? [AnalysisLanguage.Javascript];
+        var analysisLanguages = detectedLanguages ?? [AnalysisLanguage.Javascript];
 
         SetupDetectedLanguages(fileName, bufferContentType, analysisLanguages);
 
