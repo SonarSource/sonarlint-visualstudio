@@ -143,7 +143,6 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         bool sendContent,
         string compilationDatabasePath = null)
     {
-        activeConfigScopeTracker.SetCurrentConfigScope(configScope);
         SetUpListFiles(testingFile.RelativePath, sendContent, configScope, testingFile.GetFullPath());
         var analysisReadyCompletionSource = new TaskCompletionSource<DidChangeAnalysisReadinessParams>();
         var analysisRaisedIssues = new TaskCompletionSource<RaiseFindingParams<RaisedIssueDto>>();
@@ -151,6 +150,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
             configScope,
             analysisReadyCompletionSource,
             analysisRaisedIssues);
+        activeConfigScopeTracker.SetCurrentConfigScope(configScope);
         SetupAnalysisProperties(configScope, compilationDatabasePath);
 
         await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task, "analysis readiness");
