@@ -159,11 +159,12 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
 
     private void SetupAnalysisProperties(string configScope, string compilationDatabasePath)
     {
-        slCoreTestRunner.SLCoreServiceProvider.TryGetTransientService(out ICFamilyAnalysisConfigurationSLCoreService slCoreService).Should().BeTrue();
-        if (compilationDatabasePath is not null)
+        if (compilationDatabasePath is null)
         {
-            slCoreService.DidChangePathToCompileCommands(new DidChangePathToCompileCommandsParams(configScope, compilationDatabasePath));
+            return;
         }
+        slCoreTestRunner.SLCoreServiceProvider.TryGetTransientService(out ICFamilyAnalysisConfigurationSLCoreService slCoreService).Should().BeTrue();
+        slCoreService.DidChangePathToCompileCommands(new DidChangePathToCompileCommandsParams(configScope, compilationDatabasePath));
     }
 
     private void SetUpListFiles(
