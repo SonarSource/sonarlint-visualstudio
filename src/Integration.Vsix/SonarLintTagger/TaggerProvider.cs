@@ -132,7 +132,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
                 .ToList(); // create a fixed list - the user could close a file before the reanalysis completes which would cause the enumeration to change
             var documentsToAnalyzeCount = operations.Count;
             operations.Add(() => NotifyFileTracker(filteredIssueTrackers));
-            operations.Add(() => _ = ExecuteAnalysisAsync(filteredIssueTrackers));
+           operations.Add(() => ExecuteAnalysisAsync(filteredIssueTrackers).Forget());
 
             reanalysisProgressHandler = new StatusBarReanalysisProgressHandler(vsStatusBar, logger);
 
