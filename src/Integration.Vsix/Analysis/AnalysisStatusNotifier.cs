@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -26,78 +25,65 @@ using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
-    internal class AnalysisStatusNotifier : IAnalysisStatusNotifier
+    internal class AnalysisStatusNotifier(
+        string[] filePaths,
+        IStatusBarNotifier statusBarNotifier,
+        ILogger logger)
+        : IAnalysisStatusNotifier
     {
-        private readonly string analyzerName;
-        private readonly string filePath;
-        private readonly Guid? analysisId;
-        private readonly IStatusBarNotifier statusBarNotifier;
-        private readonly ILogger logger;
-
-        public AnalysisStatusNotifier(string analyzerName, string filePath, Guid? analysisId, IStatusBarNotifier statusBarNotifier, ILogger logger)
-        {
-            this.analyzerName = analyzerName;
-            this.filePath = filePath;
-            this.analysisId = analysisId;
-            this.statusBarNotifier = statusBarNotifier;
-            this.logger = logger;
-        }
+        private readonly string formattedFileNames = string.Join(", ", filePaths.Select(Path.GetFileName));
+        private readonly ILogger logger = logger.ForContext(AnalysisStrings.AnalysisLogContext);
 
         public void AnalysisStarted()
         {
-            Log(AnalysisStrings.MSG_AnalysisStarted, filePath, analysisId);
+            Log(AnalysisStrings.MSG_AnalysisStarted, formattedFileNames);
 
             Notify(AnalysisStrings.Notifier_AnalysisStarted, true);
         }
 
         public void AnalysisProgressed(
+            Guid? analysisId,
             int issueCount,
             string findingType,
             bool isIntermediate) =>
-            Log(AnalysisStrings.MSG_FoundIssues, issueCount, findingType, filePath, analysisId, !isIntermediate);
+            Log(AnalysisStrings.MSG_FoundIssues, analysisId, issueCount, findingType, formattedFileNames, !isIntermediate);
 
-        public void AnalysisFinished(TimeSpan analysisTime)
+        public void AnalysisFinished(Guid? analysisId, TimeSpan analysisTime)
         {
-            Log(AnalysisStrings.MSG_AnalysisComplete, filePath, analysisId, Math.Round(analysisTime.TotalSeconds, 3));
+            Log(AnalysisStrings.MSG_AnalysisComplete, analysisId, formattedFileNames, Math.Round(analysisTime.TotalSeconds, 3));
 
             Notify(AnalysisStrings.Notifier_AnalysisFinished, false);
         }
 
-        public void AnalysisCancelled()
+        public void AnalysisCancelled(Guid? analysisId)
         {
-            Log(AnalysisStrings.MSG_AnalysisAborted, filePath, analysisId);
+            Log(AnalysisStrings.MSG_AnalysisAborted, analysisId, formattedFileNames);
 
             Notify("", false);
         }
 
-        public void AnalysisFailed(Exception ex)
-        {
-            AnalysisFailed(ex.ToString());
-        }
+        public void AnalysisFailed(Guid? analysisId, Exception ex) => AnalysisFailed(analysisId, ex.ToString());
 
-        public void AnalysisFailed(string failureMessage)
+        public void AnalysisFailed(Guid? analysisId, string failureMessage)
         {
-            Log(AnalysisStrings.MSG_AnalysisFailed, filePath, analysisId, failureMessage);
+            Log(AnalysisStrings.MSG_AnalysisFailed, analysisId, formattedFileNames, failureMessage);
 
             Notify(AnalysisStrings.Notifier_AnalysisFailed, false);
         }
 
-        public void AnalysisNotReady(string reason)
+        public void AnalysisNotReady(Guid? analysisId, string reason)
         {
-            Log(AnalysisStrings.MSG_AnalysisNotReady, filePath, analysisId, reason);
+            Log(AnalysisStrings.MSG_AnalysisNotReady, analysisId, formattedFileNames, reason);
 
             Notify("", false);
         }
 
-        private void Log(string messageFormat, params object[] args)
-        {
-            logger.WriteLine($"[{analyzerName}] " + messageFormat, args);
-        }
+        private void Log(string messageFormat, params object[] args) => logger.WriteLine(messageFormat, args);
 
         private void Notify(string messageFormat, bool showSpinner)
         {
-            var fileName = Path.GetFileName(filePath);
-            var message = string.Format(messageFormat, fileName);
+            var fileNames = formattedFileNames;
+            var message = string.Format(messageFormat, fileNames);
             statusBarNotifier.Notify(message, showSpinner);
         }
     }

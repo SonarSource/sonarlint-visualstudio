@@ -18,63 +18,30 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
-using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
+namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis;
+
+[TestClass]
+public class AnalysisStatusNotifierFactoryTests
 {
-    [TestClass]
-    public class AnalysisStatusNotifierFactoryTests
+    [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<AnalysisStatusNotifierFactory, IAnalysisStatusNotifierFactory>(MefTestHelpers.CreateExport<IStatusBarNotifier>(), MefTestHelpers.CreateExport<ILogger>());
+
+    [TestMethod]
+    public void Create_ValidArguments_Created()
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<AnalysisStatusNotifierFactory, IAnalysisStatusNotifierFactory>(new[]
-            {
-                MefTestHelpers.CreateExport<IStatusBarNotifier>(),
-                MefTestHelpers.CreateExport<ILogger>()
-            });
-        }
+        var testSubject = CreateTestSubject();
 
-        [TestMethod]
-        public void Create_NullAnalyzerName_ArgumentNullException()
-        {
-            var testSubject = CreateTestSubject();
+        var result = testSubject.Create("some analyzer", "some path");
 
-            Action act = () => testSubject.Create(null, "file path");
-
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analyzerName");
-        }
-
-        [TestMethod]
-        public void Create_NullFilePath_ArgumentNullException()
-        {
-            var testSubject = CreateTestSubject();
-
-            Action act = () => testSubject.Create("analyzer", null);
-
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
-        }
-
-        [TestMethod]
-        public void Create_ValidArguments_Created()
-        {
-            var testSubject = CreateTestSubject();
-
-            var result = testSubject.Create("some analyzer", "some path");
-
-            result.Should().NotBeNull();
-            result.Should().BeOfType<AnalysisStatusNotifier>();
-        }
-
-        private AnalysisStatusNotifierFactory CreateTestSubject() =>
-            new(Mock.Of<IStatusBarNotifier>(), Mock.Of<ILogger>());
+        result.Should().NotBeNull();
+        result.Should().BeOfType<AnalysisStatusNotifier>();
     }
+
+    private AnalysisStatusNotifierFactory CreateTestSubject() => new(Substitute.For<IStatusBarNotifier>(), Substitute.For<ILogger>());
 }
