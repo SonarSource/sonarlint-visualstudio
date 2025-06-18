@@ -151,13 +151,13 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
             analysisReadyCompletionSource,
             analysisRaisedIssues);
         activeConfigScopeTracker.SetCurrentConfigScope(configScope);
-        SetupAnalysisProperties(configScope, compilationDatabasePath);
+        SetupCompilationDatabase(configScope, compilationDatabasePath);
 
         await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task, "analysis readiness");
         return analysisRaisedIssues;
     }
 
-    private void SetupAnalysisProperties(string configScope, string compilationDatabasePath)
+    private void SetupCompilationDatabase(string configScope, string compilationDatabasePath)
     {
         if (compilationDatabasePath is null)
         {
