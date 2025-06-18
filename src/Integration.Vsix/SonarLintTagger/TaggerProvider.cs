@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 var filteredIssueTrackers = FilterIssuesTrackersByPath(issueTrackers, args.FilePaths).ToList();
 
                 var operations = filteredIssueTrackers
-                    .Select<IIssueTracker, Action>(it => () => it.UpdateAnalysisSnapshotAsync())
+                    .Select<IIssueTracker, Action>(it => () => it.UpdateAnalysisStateAsync())
                     .ToList(); // create a fixed list - the user could close a file before the reanalysis completes which would cause the enumeration to change
                 var documentsToAnalyzeCount = operations.Count;
                 operations.Add(() => NotifyFileTracker(filteredIssueTrackers));

@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
                 {
                     case FileActionTypes.ContentSavedToDisk:
                         {
-                            UpdateAnalysisSnapshotAsync().Forget();
+                            UpdateAnalysisStateAsync().Forget();
                             Provider.OnDocumentSaved(document.FilePath, GetText(), DetectedLanguages);
                             break;
                         }
@@ -132,7 +132,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
             sonarErrorDataSource.RefreshErrorList(Factory);
         }
 
-        public async Task UpdateAnalysisSnapshotAsync()
+        public async Task UpdateAnalysisStateAsync()
         {
             try
             {
@@ -147,7 +147,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
 
         public string GetText() => document.TextBuffer.CurrentSnapshot.GetText();
 
-        private AnalysisSnapshot UpdateAnalysisState()
+        private AnalysisSnapshot GetAnalysisSnapshot()
         {
             LastAnalysisFilePath = document.FilePath; // Refresh the stored file path in case the document has been renamed
             return new AnalysisSnapshot(LastAnalysisFilePath, document.TextBuffer.CurrentSnapshot);
@@ -155,7 +155,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
 
         private async Task InitializeAnalysisStateAsync()
         {
-            var analysisSnapshot = UpdateAnalysisState();
+            var analysisSnapshot = GetAnalysisSnapshot();
             await CreateIssueConsumerAsync(analysisSnapshot);
         }
 
