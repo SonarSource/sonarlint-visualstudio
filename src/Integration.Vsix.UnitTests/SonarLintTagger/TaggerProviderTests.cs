@@ -431,8 +431,10 @@ public class TaggerProviderTests
     {
         var fileName = "file.js";
         CreateTaggerForDocument(CreateMockedDocument(fileName, DetectedLanguagesJsTs));
+        var manualReset = CreateManualResetEventForRequestAnalysis([fileName]);
 
         mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new AnalysisRequestEventArgs([fileName]));
+        manualReset.WaitOne(AnalysisTimeout);
 
         var expectedMessage = string.Format(Vsix.Resources.Strings.JobRunner_JobDescription_ReaanalyzeDocs, 1);
         logger.AssertPartialOutputStringExists(expectedMessage);
