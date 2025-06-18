@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.CFamily;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -31,7 +32,7 @@ using SonarLint.VisualStudio.SLCore.Service.File;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
-public interface IDocumentEventsHandler : IDisposable
+public interface IDocumentEventsHandler : IDisposable, IRequireInitialization
 {
 }
 
@@ -45,7 +46,6 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
-    private IFileRpcSLCoreService fileRpcSlCoreService;
     private bool disposed;
 
     [ImportingConstructor]
@@ -54,6 +54,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
         IVcxCompilationDatabaseUpdater vcxCompilationDatabaseUpdater,
         ISLCoreServiceProvider serviceProvider,
         IActiveConfigScopeTracker activeConfigScopeTracker,
+        IInitializationProcessorFactory initializationProcessorFactory,
         IThreadHandling threadHandling,
         ILogger logger)
     {
@@ -62,14 +63,42 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
         this.serviceProvider = serviceProvider;
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.threadHandling = threadHandling;
-        this.logger = logger.ForContext(nameof(DocumentEventsHandler));
-        this.documentTracker.DocumentOpened += OnDocumentOpened;
-        this.documentTracker.DocumentClosed += OnDocumentClosed;
-        this.documentTracker.DocumentSaved += OnDocumentSaved;
-        this.documentTracker.OpenDocumentRenamed += OnOpenDocumentRenamed;
+        this.logger = logger.ForVerboseContext(nameof(DocumentEventsHandler));
 
-        documentTracker.GetOpenDocuments().ToList().ForEach(AddFileToCompilationDatabase);
+        InitializationProcessor = initializationProcessorFactory.CreateAndStart<DocumentEventsHandler>([], async () =>
+        {
+            if (disposed)
+            {
+                return;
+            }
+
+            activeConfigScopeTracker.CurrentConfigurationScopeChanged += ActiveConfigScopeTracker_CurrentConfigurationScopeChanged;
+
+            documentTracker.DocumentOpened += OnDocumentOpened;
+            documentTracker.DocumentClosed += OnDocumentClosed;
+            documentTracker.DocumentSaved += OnDocumentSaved;
+            documentTracker.OpenDocumentRenamed += OnOpenDocumentRenamed;
+
+            var openDocuments = documentTracker.GetOpenDocuments();
+            await AddFilesToCompilationDatabaseAsync(openDocuments);
+            NotifySlCoreFilesOpened(activeConfigScopeTracker.Current, openDocuments);
+        });
     }
+
+    private void ActiveConfigScopeTracker_CurrentConfigurationScopeChanged(object sender, ConfigurationScopeChangedEventArgs e)
+    {
+        if (!e.DefinitionChanged)
+        {
+            return;
+        }
+
+        threadHandling.RunOnBackgroundThread(() =>
+        {
+            NotifySlCoreFilesOpened(activeConfigScopeTracker.Current, documentTracker.GetOpenDocuments());
+        }).Forget();
+    }
+
+    public IInitializationProcessor InitializationProcessor { get; }
 
     public void Dispose()
     {
@@ -79,10 +108,14 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
         }
 
         disposed = true;
-        documentTracker.DocumentOpened -= OnDocumentOpened;
-        documentTracker.DocumentClosed -= OnDocumentClosed;
-        documentTracker.DocumentSaved -= OnDocumentSaved;
-        documentTracker.OpenDocumentRenamed -= OnOpenDocumentRenamed;
+        if (InitializationProcessor.IsFinalized)
+        {
+            activeConfigScopeTracker.CurrentConfigurationScopeChanged -= ActiveConfigScopeTracker_CurrentConfigurationScopeChanged;
+            documentTracker.DocumentOpened -= OnDocumentOpened;
+            documentTracker.DocumentClosed -= OnDocumentClosed;
+            documentTracker.DocumentSaved -= OnDocumentSaved;
+            documentTracker.OpenDocumentRenamed -= OnOpenDocumentRenamed;
+        }
     }
 
     private void OnOpenDocumentRenamed(object sender, DocumentRenamedEventArgs args) =>
@@ -95,7 +128,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
 
             var currentConfigurationScope = activeConfigScopeTracker.Current;
             NotifySlCoreFileClosed(args.OldFilePath, currentConfigurationScope);
-            NotifySlCoreFileOpened(args.Document.FullPath, currentConfigurationScope);
+            NotifySlCoreFilesOpened(currentConfigurationScope, args.Document);
         }).Forget();
 
     private void OnDocumentClosed(object sender, DocumentEventArgs args) =>
@@ -112,9 +145,9 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
     private void OnDocumentOpened(object sender, DocumentOpenedEventArgs args) =>
         threadHandling.RunOnBackgroundThread(async () =>
         {
-            await AddFileToCompilationDatabaseAsync(args.Document);
+            await AddFilesToCompilationDatabaseAsync(args.Document);
 
-            NotifySlCoreFileOpened(args.Document.FullPath, activeConfigScopeTracker.Current);
+            NotifySlCoreFilesOpened(activeConfigScopeTracker.Current, args.Document);
         }).Forget();
 
     /// <summary>
@@ -124,25 +157,25 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
     private void OnDocumentSaved(object sender, DocumentSavedEventArgs args) =>
         threadHandling.RunOnBackgroundThread(async () =>
         {
-            await AddFileToCompilationDatabaseAsync(args.Document);
+            await AddFilesToCompilationDatabaseAsync(args.Document);
         }).Forget();
 
-    private void AddFileToCompilationDatabase(Document document) => AddFileToCompilationDatabaseAsync(document).Forget();
-
-    private async Task AddFileToCompilationDatabaseAsync(Document document)
+    private async Task AddFilesToCompilationDatabaseAsync(params IReadOnlyCollection<Document> documents)
     {
-        if (document.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
+        foreach (var document in documents.Where(document => document.DetectedLanguages.Contains(AnalysisLanguage.CFamily)))
         {
             await vcxCompilationDatabaseUpdater.AddFileAsync(document.FullPath);
         }
     }
 
-    private void NotifySlCoreFileOpened(string filePath, ConfigurationScope configScope = null)
+    private void NotifySlCoreFilesOpened(ConfigurationScope configurationScope, params IReadOnlyCollection<Document> openDocuments)
     {
-        var currentConfigurationScope = configScope ?? activeConfigScopeTracker.Current;
-        if (VerifyConfigurationScopeInitialized(currentConfigurationScope))
+        if (VerifyConfigurationScopeInitialized(configurationScope) && GetFileRpcSlCoreServiceOrNull() is { } fileRpcSlCoreService)
         {
-            GetFileRpcSlCoreService()?.DidOpenFile(new DidOpenFileParams(currentConfigurationScope.Id, new FileUri(filePath)));
+            foreach (var openDocument in openDocuments)
+            {
+                fileRpcSlCoreService.DidOpenFile(new(configurationScope.Id, new FileUri(openDocument.FullPath)));
+            }
         }
     }
 
@@ -150,33 +183,26 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
     {
         if (VerifyConfigurationScopeInitialized(currentConfigurationScope))
         {
-            GetFileRpcSlCoreService()?.DidCloseFile(new DidCloseFileParams(currentConfigurationScope.Id, new FileUri(filePath)));
+            GetFileRpcSlCoreServiceOrNull()?.DidCloseFile(new DidCloseFileParams(currentConfigurationScope.Id, new FileUri(filePath)));
         }
     }
 
-    private IFileRpcSLCoreService GetFileRpcSlCoreService()
+    private IFileRpcSLCoreService GetFileRpcSlCoreServiceOrNull()
     {
-        if (fileRpcSlCoreService != null)
-        {
-            return fileRpcSlCoreService;
-        }
         if (!serviceProvider.TryGetTransientService(out IFileRpcSLCoreService service))
         {
-            logger.WriteLine(SLCoreStrings.ServiceProviderNotInitialized);
+            logger.LogVerbose(SLCoreStrings.ServiceProviderNotInitialized);
         }
-        fileRpcSlCoreService = service;
-        return fileRpcSlCoreService;
+        return service;
     }
 
     private bool VerifyConfigurationScopeInitialized(ConfigurationScope currentConfigurationScope)
     {
-        // if the RootPath is null, it means that the IListFilesListener was not yet invoked, so SlCore does not know about the files to be analyzed,
-        // so notifying about files opened/closed might lead to unexpected behavior
-        if (currentConfigurationScope?.Id is not null && currentConfigurationScope.RootPath is not null)
+        if (currentConfigurationScope?.Id is not null)
         {
             return true;
         }
-        logger.WriteLine(SLCoreStrings.ConfigScopeNotInitialized);
+        logger.LogVerbose(SLCoreStrings.ConfigScopeNotInitialized);
         return false;
     }
 }
