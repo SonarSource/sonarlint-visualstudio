@@ -325,15 +325,19 @@ public class TaggerProviderTests
     [TestMethod]
     public void AddIssueTracker_RaisesEvent()
     {
-        var eventHandler = Substitute.For<EventHandler<DocumentEventArgs>>();
+        var eventHandler = Substitute.For<EventHandler<DocumentOpenedEventArgs>>();
         var filePath = "file1.txt";
+        var content = "some text";
         var testSubject = CreateTestSubject();
         testSubject.DocumentOpened += eventHandler;
+        var issueTracker = CreateMockedIssueTracker(filePath, DetectedLanguagesJsTs, content: content);
 
-        testSubject.AddIssueTracker(CreateMockedIssueTracker(filePath, DetectedLanguagesJsTs));
+        testSubject.AddIssueTracker(issueTracker);
 
-        eventHandler.Received(1).Invoke(testSubject, Arg.Is<DocumentEventArgs>(e =>
-            e.Document.FullPath == filePath && e.Document.DetectedLanguages == DetectedLanguagesJsTs));
+        eventHandler.Received(1).Invoke(testSubject, Arg.Is<DocumentOpenedEventArgs>(e =>
+            e.Document.FullPath == filePath &&
+            e.Document.DetectedLanguages == DetectedLanguagesJsTs &&
+            e.Content == content));
     }
 
     [TestMethod]
@@ -448,10 +452,11 @@ public class TaggerProviderTests
         return mock;
     }
 
-    private static IIssueTracker CreateMockedIssueTracker(string filePath, IEnumerable<AnalysisLanguage> analysisLanguages)
+    private static IIssueTracker CreateMockedIssueTracker(string filePath, IEnumerable<AnalysisLanguage> analysisLanguages, string content = "")
     {
         var mock = CreateMockedIssueTracker(filePath);
         mock.DetectedLanguages.Returns(analysisLanguages);
+        mock.GetText().Returns(content);
         return mock;
     }
 

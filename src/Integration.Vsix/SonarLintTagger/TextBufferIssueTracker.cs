@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
                     case FileActionTypes.ContentSavedToDisk:
                         {
                             UpdateAnalysisSnapshotAsync().Forget();
-                            Provider.OnDocumentSaved(document.FilePath, document.TextBuffer.CurrentSnapshot.GetText(), DetectedLanguages);
+                            Provider.OnDocumentSaved(document.FilePath, GetText(), DetectedLanguages);
                             break;
                         }
                     case FileActionTypes.DocumentRenamed:
@@ -147,6 +147,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
                 logger.WriteLine(Strings.Analysis_ErrorUpdatingAnalysisState, ex);
             }
         }
+
+        public string GetText() => document.TextBuffer.CurrentSnapshot.GetText();
 
         private AnalysisSnapshot UpdateAnalysisState()
         {

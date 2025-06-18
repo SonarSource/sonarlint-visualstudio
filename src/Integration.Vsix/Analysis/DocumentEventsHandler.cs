@@ -109,7 +109,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
             NotifySlCoreFileClosed(args.Document.FullPath, activeConfigScopeTracker.Current);
         }).Forget();
 
-    private void OnDocumentOpened(object sender, DocumentEventArgs args) =>
+    private void OnDocumentOpened(object sender, DocumentOpenedEventArgs args) =>
         threadHandling.RunOnBackgroundThread(async () =>
         {
             await AddFileToCompilationDatabaseAsync(args.Document);

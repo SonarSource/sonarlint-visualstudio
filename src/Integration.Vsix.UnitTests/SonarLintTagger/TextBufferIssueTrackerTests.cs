@@ -129,6 +129,9 @@ public class TextBufferIssueTrackerTests
     }
 
     [TestMethod]
+    public void GetText_ReturnExpectedSnapshotText() => testSubject.GetText().Should().Be(TextContent);
+
+    [TestMethod]
     public void Dispose_CleansUpEventsAndRegistrations()
     {
         // Sanity checks
@@ -228,7 +231,7 @@ public class TextBufferIssueTrackerTests
             x.Document.FullPath == newFilePath && x.OldFilePath == mockedJavascriptDocumentFooJs.FilePath && x.Document.DetectedLanguages == javascriptLanguage));
     }
 
-    private void RaiseFileSavedEvent(ITextDocument mockDocument) => RaiseFileEvent(mockDocument, FileActionTypes.ContentSavedToDisk);
+    private static void RaiseFileSavedEvent(ITextDocument mockDocument) => RaiseFileEvent(mockDocument, FileActionTypes.ContentSavedToDisk);
 
     private static void RaiseFileLoadedEvent(ITextDocument mockDocument) => RaiseFileEvent(mockDocument, FileActionTypes.ContentLoadedFromDisk);
 

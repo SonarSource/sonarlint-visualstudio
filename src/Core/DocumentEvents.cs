@@ -32,6 +32,11 @@ public class DocumentSavedEventArgs(Document document, string newContent) : Docu
     public string NewContent { get; } = newContent;
 }
 
+public class DocumentOpenedEventArgs(Document document, string content) : DocumentEventArgs(document)
+{
+    public string Content { get; } = content;
+}
+
 public class DocumentRenamedEventArgs(Document document, string oldFilePath) : DocumentEventArgs(document)
 {
     public string OldFilePath { get; } = oldFilePath;
@@ -49,7 +54,7 @@ public class Document(string fullPath, IEnumerable<AnalysisLanguage> detectedLan
 public interface IDocumentTracker
 {
     event EventHandler<DocumentEventArgs> DocumentClosed;
-    event EventHandler<DocumentEventArgs> DocumentOpened;
+    event EventHandler<DocumentOpenedEventArgs> DocumentOpened;
     event EventHandler<DocumentSavedEventArgs> DocumentSaved;
     /// <summary>
     /// Raised when an opened document is renamed
