@@ -27,6 +27,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         string LastAnalysisFilePath { get; }
         IEnumerable<AnalysisLanguage> DetectedLanguages { get; }
 
-        void RequestAnalysis();
+        Task UpdateAnalysisStateAsync();
+
+        string GetText();
     }
 }
