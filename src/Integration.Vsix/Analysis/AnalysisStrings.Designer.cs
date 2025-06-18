@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Analysis {1} finished for {0}, analysis time: {2}s.
+        ///   Looks up a localized string similar to Analysis {0} finished for {1}, analysis time: {2}s.
         /// </summary>
         internal static string MSG_AnalysisComplete {
             get {
@@ -153,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Analysis {1} not ready for files {0}. Reason: {2}.
+        ///   Looks up a localized string similar to Analysis {0} not ready for files {1}. Reason: {2}.
         /// </summary>
         internal static string MSG_AnalysisNotReady {
             get {
@@ -171,7 +171,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Analysis {3} found {0} {1}(s) in {2} [final: {4}].
+        ///   Looks up a localized string similar to Analysis {0} found {1} {2}(s) in {3} [final: {4}].
         /// </summary>
         internal static string MSG_FoundIssues {
             get {

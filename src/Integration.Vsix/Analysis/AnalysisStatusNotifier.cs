@@ -46,11 +46,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             int issueCount,
             string findingType,
             bool isIntermediate) =>
-            Log(AnalysisStrings.MSG_FoundIssues, issueCount, findingType, formattedFileNames, analysisId, !isIntermediate);
+            Log(AnalysisStrings.MSG_FoundIssues, analysisId, issueCount, findingType, formattedFileNames, !isIntermediate);
 
         public void AnalysisFinished(Guid? analysisId, TimeSpan analysisTime)
         {
-            Log(AnalysisStrings.MSG_AnalysisComplete, formattedFileNames, analysisId, Math.Round(analysisTime.TotalSeconds, 3));
+            Log(AnalysisStrings.MSG_AnalysisComplete, analysisId, formattedFileNames, Math.Round(analysisTime.TotalSeconds, 3));
 
             Notify(AnalysisStrings.Notifier_AnalysisFinished, false);
         }
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         public void AnalysisNotReady(Guid? analysisId, string reason)
         {
-            Log(AnalysisStrings.MSG_AnalysisNotReady, formattedFileNames, analysisId, reason);
+            Log(AnalysisStrings.MSG_AnalysisNotReady, analysisId, formattedFileNames, reason);
 
             Notify("", false);
         }

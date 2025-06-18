@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             var testSubject = CreateTestSubject(filePath, analyzerName, logger: logger);
             testSubject.AnalysisProgressed(analysisId, 123, "finding", isIntermediate);
 
-            var expectedMessage = string.Format(AnalysisStrings.MSG_FoundIssues, 123, "finding", Path.GetFileName(filePath), analysisId, !isIntermediate);
+            var expectedMessage = string.Format(AnalysisStrings.MSG_FoundIssues, analysisId, 123, "finding", Path.GetFileName(filePath), !isIntermediate);
             logger.AssertPartialOutputStringExists(expectedMessage);
             logger.AssertPartialOutputStringExists(analyzerName);
         }
@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
 
             testSubject.AnalysisFinished(analysisId, TimeSpan.FromSeconds(6.54321));
 
-            var expectedMessage = string.Format(AnalysisStrings.MSG_AnalysisComplete, Path.GetFileName(filePath), analysisId, 6.543);
+            var expectedMessage = string.Format(AnalysisStrings.MSG_AnalysisComplete, analysisId, Path.GetFileName(filePath), 6.543);
             logger.AssertPartialOutputStringExists(expectedMessage);
 
             logger.AssertPartialOutputStringExists(analyzerName);
@@ -176,7 +176,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
 
             testSubject.AnalysisNotReady(analysisId, reason);
 
-            var expectedMessage = string.Format(AnalysisStrings.MSG_AnalysisNotReady, Path.GetFileName(filePath), analysisId, reason);
+            var expectedMessage = string.Format(AnalysisStrings.MSG_AnalysisNotReady, analysisId, Path.GetFileName(filePath), reason);
             logger.AssertPartialOutputStringExists(analyzerName);
             logger.AssertPartialOutputStringExists(expectedMessage);
             logger.OutputStrings.Count.Should().Be(1);

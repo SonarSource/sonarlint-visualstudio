@@ -158,7 +158,7 @@
     <value>SonarQube for Visual Studio: Analyzing {0}</value>
   </data>
   <data name="MSG_AnalysisComplete" xml:space="preserve">
-    <value>Analysis {1} finished for {0}, analysis time: {2}s</value>
+    <value>Analysis {0} finished for {1}, analysis time: {2}s</value>
   </data>
   <data name="MSG_AnalysisAborted" xml:space="preserve">
     <value>Aborted analysis {0} of {1}, analysis has been re-triggered or has timed-out.</value>
@@ -170,7 +170,7 @@
     <value>Analyzing {0}</value>
   </data>
   <data name="MSG_FoundIssues" xml:space="preserve">
-    <value>Analysis {3} found {0} {1}(s) in {2} [final: {4}]</value>
+    <value>Analysis {0} found {1} {2}(s) in {3} [final: {4}]</value>
   </data>
   <data name="ConfigMonitor_BindingChanged" xml:space="preserve">
     <value>Binding has changed. Open documents will be re-analysed.</value>
@@ -197,6 +197,6 @@
     <value>Mute Issue Warning</value>
   </data>
   <data name="MSG_AnalysisNotReady" xml:space="preserve">
-    <value>Analysis {1} not ready for files {0}. Reason: {2}</value>
+    <value>Analysis {0} not ready for files {1}. Reason: {2}</value>
   </data>
 </root>
