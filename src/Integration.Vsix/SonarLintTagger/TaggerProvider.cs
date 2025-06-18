@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -132,7 +133,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
                 .ToList(); // create a fixed list - the user could close a file before the reanalysis completes which would cause the enumeration to change
             var documentsToAnalyzeCount = operations.Count;
             operations.Add(() => NotifyFileTracker(filteredIssueTrackers));
-           operations.Add(() => ExecuteAnalysisAsync(filteredIssueTrackers).Forget());
+            operations.Add(() => ExecuteAnalysisAsync(filteredIssueTrackers).Forget());
 
             reanalysisProgressHandler = new StatusBarReanalysisProgressHandler(vsStatusBar, logger);
 
