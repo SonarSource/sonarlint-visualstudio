@@ -88,7 +88,7 @@ public class DocumentEventsHandlerTests
 
         Received.InOrder(() =>
         {
-            documentTracker.DocumentOpened += Arg.Any<EventHandler<DocumentEventArgs>>();
+            documentTracker.DocumentOpened += Arg.Any<EventHandler<DocumentOpenedEventArgs>>();
             documentTracker.DocumentClosed += Arg.Any<EventHandler<DocumentEventArgs>>();
             documentTracker.DocumentSaved += Arg.Any<EventHandler<DocumentSavedEventArgs>>();
             documentTracker.OpenDocumentRenamed += Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
@@ -100,7 +100,7 @@ public class DocumentEventsHandlerTests
     public void Ctor_SubscribesToAllDocumentEvents()
     {
         documentTracker.Received(1).DocumentClosed += Arg.Any<EventHandler<DocumentEventArgs>>();
-        documentTracker.Received(1).DocumentOpened += Arg.Any<EventHandler<DocumentEventArgs>>();
+        documentTracker.Received(1).DocumentOpened += Arg.Any<EventHandler<DocumentOpenedEventArgs>>();
         documentTracker.Received(1).DocumentSaved += Arg.Any<EventHandler<DocumentSavedEventArgs>>();
         documentTracker.Received(1).OpenDocumentRenamed += Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
     }
@@ -111,7 +111,7 @@ public class DocumentEventsHandlerTests
     [TestMethod]
     public void DocumentOpened_CFamily_AddFileToCompilationDbAndNotifiesSlCore()
     {
-        var args = new DocumentEventArgs(CFamilyDocument);
+        var args = new DocumentOpenedEventArgs(CFamilyDocument, string.Empty);
 
         documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
 
@@ -148,7 +148,7 @@ public class DocumentEventsHandlerTests
     [TestMethod]
     public void DocumentOpened_NonCFamily_DoesNotAddFileToCompilationDbButNotifiesSlCore()
     {
-        var args = new DocumentEventArgs(NonCFamilyDocument);
+        var args = new DocumentOpenedEventArgs(NonCFamilyDocument, string.Empty);
 
         documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
 
@@ -170,7 +170,7 @@ public class DocumentEventsHandlerTests
     }
 
     [TestMethod]
-    public void DocumentSaved_CFamily_AddFileAsyncCalled()
+    public void DocumentSaved_CFamily_AddFileToCompilationDb()
     {
         var args = new DocumentSavedEventArgs(CFamilyDocument, string.Empty);
 
@@ -194,9 +194,20 @@ public class DocumentEventsHandlerTests
     }
 
     [TestMethod]
+    public void DocumentSaved_NonCFamily_DoesNothing()
+    {
+        var args = new DocumentSavedEventArgs(NonCFamilyDocument, string.Empty);
+
+        documentTracker.DocumentSaved += Raise.EventWith(documentTracker, args);
+
+        vcxCompilationDatabaseUpdater.ReceivedCalls().Should().HaveCount(0);
+        fileRpcSlCoreService.ReceivedCalls().Should().HaveCount(0);
+    }
+
+    [TestMethod]
     public void DocumentOpened_ExecutesOnBackgroundThread()
     {
-        var args = new DocumentEventArgs(CFamilyDocument);
+        var args = new DocumentOpenedEventArgs(CFamilyDocument, string.Empty);
 
         documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
 
@@ -243,10 +254,24 @@ public class DocumentEventsHandlerTests
     }
 
     [TestMethod]
+    public void DocumentSaved_ExecutesOnBackgroundThread()
+    {
+        var args = new DocumentSavedEventArgs(CFamilyDocument, "using System;");
+
+        documentTracker.DocumentSaved += Raise.EventWith(documentTracker, args);
+
+        Received.InOrder(() =>
+        {
+            threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+            vcxCompilationDatabaseUpdater.AddFileAsync(CFamilyDocument.FullPath);
+        });
+    }
+
+    [TestMethod]
     public void DocumentOpened_SlCoreServiceNotAvailable_DoesNotNotifySlCoreAndLogs()
     {
         MockFileRpcService(service: null, succeeds: false);
-        var args = new DocumentEventArgs(CFamilyDocument);
+        var args = new DocumentOpenedEventArgs(CFamilyDocument, string.Empty);
 
         documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
 
@@ -286,7 +311,7 @@ public class DocumentEventsHandlerTests
     public void DocumentOpened_CurrentConfigScopeIsNull_DoesNotNotifySlCoreAndLogs()
     {
         MockCurrentConfigScope(configurationScope: null);
-        var args = new DocumentEventArgs(CFamilyDocument);
+        var args = new DocumentOpenedEventArgs(CFamilyDocument, string.Empty);
 
         documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
 
@@ -326,7 +351,7 @@ public class DocumentEventsHandlerTests
     public void DocumentOpened_CurrentConfigScopeIdRootNull_DoesNotNotifySlCoreAndLogs()
     {
         MockCurrentConfigScope(ConfigurationScope with { RootPath = null });
-        var args = new DocumentEventArgs(CFamilyDocument);
+        var args = new DocumentOpenedEventArgs(CFamilyDocument, string.Empty);
 
         documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
 
@@ -370,7 +395,7 @@ public class DocumentEventsHandlerTests
         testSubject.Dispose();
 
         documentTracker.Received(1).DocumentClosed -= Arg.Any<EventHandler<DocumentEventArgs>>();
-        documentTracker.Received(1).DocumentOpened -= Arg.Any<EventHandler<DocumentEventArgs>>();
+        documentTracker.Received(1).DocumentOpened -= Arg.Any<EventHandler<DocumentOpenedEventArgs>>();
         documentTracker.Received(1).DocumentSaved -= Arg.Any<EventHandler<DocumentSavedEventArgs>>();
         documentTracker.Received(1).OpenDocumentRenamed -= Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
     }
