@@ -21,7 +21,6 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -42,7 +41,6 @@ internal class MuteIssuesService(
     ISLCoreServiceProvider slCoreServiceProvider,
     IServerIssueFinder serverIssueFinder,
     IRoslynSuppressionUpdater roslynSuppressionUpdater,
-    IAnalysisRequester analysisRequester,
     ILogger logger,
     IThreadHandling threadHandling)
     : IMuteIssuesService
@@ -169,7 +167,6 @@ internal class MuteIssuesService(
                 false // Muting taints are not supported yet
             ));
             await UpdateRoslynSuppressionsAsync(issue, issueServerKey);
-            RequestAnalysis(issue);
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
@@ -205,11 +202,4 @@ internal class MuteIssuesService(
             await roslynSuppressionUpdater.UpdateSuppressedIssuesAsync(isResolved: true, [serverIssueKey], new CancellationToken());
         }
     }
-
-    /// <summary>
-    ///  Scheduling analysis is not needed from a technical perspective, but it’s easier and faster (as we don’t need to refactor the code to make the updating of the file snapshot cache in VS and SlCore separate from analysis scheduling).
-    ///  On scheduling analysis the SlCore and current snapshot of the file are updated.
-    ///  Additionally, there is a user benefit that the issue is suppressed immediately (we don’t have to wait for SlCore to call RaiseFindings, which seems to take a while)
-    /// </summary>
-    private void RequestAnalysis(IFilterableIssue issue) => analysisRequester.RequestAnalysis(issue.FilePath);
 }
