@@ -33,7 +33,6 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation.Analysis;
 [method: ImportingConstructor]
 internal class AnalysisListener(
     IActiveConfigScopeTracker activeConfigScopeTracker,
-    IAnalysisRequester analysisRequester,
     IRaisedFindingProcessor raisedFindingProcessor,
     IIssuePublisher issuePublisher,
     IHotspotPublisher hotspotPublisher,
@@ -47,10 +46,6 @@ internal class AnalysisListener(
         if (activeConfigScopeTracker.TryUpdateAnalysisReadinessOnCurrentConfigScope(configScopeId, parameters.areReadyForAnalysis))
         {
             logger.WriteLine(SLCoreStrings.AnalysisReadinessUpdate, parameters.areReadyForAnalysis);
-            if (parameters.areReadyForAnalysis)
-            {
-                analysisRequester.RequestAnalysis();
-            }
         }
         else
         {
