@@ -100,8 +100,69 @@ public class DocumentEventsHandlerTests
             documentTracker.DocumentSaved += Arg.Any<EventHandler<DocumentSavedEventArgs>>();
             documentTracker.OpenDocumentRenamed += Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
             documentTracker.GetOpenDocuments(); // the remaining logic is tested in other tests
+            slCoreServiceProvider.TryGetTransientService(out Arg.Any<IFileRpcSLCoreService>());
             testSubject.InitializationProcessor.InitializeAsync(); // called by CreateAndInitializeTestSubject
         });
+    }
+
+    [TestMethod]
+    public void Ctor_WithOpenCFamilyFiles_AddsToCompilationDbAndNotifiesSlCore()
+    {
+        documentTracker.GetOpenDocuments().Returns([CFamilyDocument, NonCFamilyDocument, CFamilyDocument2, NonCFamilyDocument2]);
+        var testSubject = CreateAndInitializeTestSubject();
+
+        Received.InOrder(() =>
+        {
+            testSubject.InitializationProcessor.InitializeAsync();
+            documentTracker.GetOpenDocuments();
+            vcxCompilationDatabaseUpdater.AddFileAsync(CFamilyDocument.FullPath);
+            vcxCompilationDatabaseUpdater.AddFileAsync(CFamilyDocument2.FullPath);
+            fileRpcSlCoreService.DidOpenFile(Arg.Is<DidOpenFileParams>(x => x.configurationScopeId == ConfigurationScope.Id && IsExpectedFileUri(x.fileUri, CFamilyDocument.FullPath)));
+            fileRpcSlCoreService.DidOpenFile(Arg.Is<DidOpenFileParams>(x => x.configurationScopeId == ConfigurationScope.Id && IsExpectedFileUri(x.fileUri, NonCFamilyDocument.FullPath)));
+            fileRpcSlCoreService.DidOpenFile(Arg.Is<DidOpenFileParams>(x => x.configurationScopeId == ConfigurationScope.Id && IsExpectedFileUri(x.fileUri, CFamilyDocument2.FullPath)));
+            fileRpcSlCoreService.DidOpenFile(Arg.Is<DidOpenFileParams>(x => x.configurationScopeId == ConfigurationScope.Id && IsExpectedFileUri(x.fileUri, NonCFamilyDocument2.FullPath)));
+            testSubject.InitializationProcessor.InitializeAsync(); // called by CreateAndInitializeTestSubject
+        });
+    }
+
+    [TestMethod]
+    public void Ctor_NoConfigurationScope_WithOpenCFamilyFiles_AddsToCompilationDb_DoesNotNotifySlCore()
+    {
+        MockCurrentConfigScope(null);
+        documentTracker.GetOpenDocuments().Returns([CFamilyDocument, NonCFamilyDocument, CFamilyDocument2, NonCFamilyDocument2]);
+        var testSubject = CreateAndInitializeTestSubject();
+
+        Received.InOrder(() =>
+        {
+            testSubject.InitializationProcessor.InitializeAsync();
+            documentTracker.GetOpenDocuments();
+            vcxCompilationDatabaseUpdater.AddFileAsync(CFamilyDocument.FullPath);
+            vcxCompilationDatabaseUpdater.AddFileAsync(CFamilyDocument2.FullPath);
+            testSubject.InitializationProcessor.InitializeAsync(); // called by CreateAndInitializeTestSubject
+        });
+
+        fileRpcSlCoreService.DidNotReceiveWithAnyArgs().DidOpenFile(default);
+        logger.Received(1).LogVerbose(SLCoreStrings.ConfigScopeNotInitialized);
+    }
+
+    [TestMethod]
+    public void Ctor_SlCoreServiceNotAvailable_WithOpenCFamilyFiles_AddsToCompilationDb_DoesNotNotifySlCore()
+    {
+        MockFileRpcService(service: null, succeeds: false);
+        documentTracker.GetOpenDocuments().Returns([CFamilyDocument, NonCFamilyDocument, CFamilyDocument2, NonCFamilyDocument2]);
+        var testSubject = CreateAndInitializeTestSubject();
+
+        Received.InOrder(() =>
+        {
+            testSubject.InitializationProcessor.InitializeAsync();
+            documentTracker.GetOpenDocuments();
+            vcxCompilationDatabaseUpdater.AddFileAsync(CFamilyDocument.FullPath);
+            vcxCompilationDatabaseUpdater.AddFileAsync(CFamilyDocument2.FullPath);
+            testSubject.InitializationProcessor.InitializeAsync(); // called by CreateAndInitializeTestSubject
+        });
+
+        fileRpcSlCoreService.DidNotReceiveWithAnyArgs().DidOpenFile(default);
+        logger.Received(1).LogVerbose(SLCoreStrings.ServiceProviderNotInitialized);
     }
 
     [TestMethod]
@@ -114,7 +175,7 @@ public class DocumentEventsHandlerTests
 
         vcxCompilationDatabaseUpdater.Received(1).AddFileAsync(CFamilyDocument.FullPath);
         fileRpcSlCoreService.Received(1)
-            .DidOpenFile(Arg.Is<DidOpenFileParams>(x => x.configurationScopeId == activeConfigScopeTracker.Current.Id && IsExpectedFileUri(x.fileUri, CFamilyDocument.FullPath)));
+            .DidOpenFile(Arg.Is<DidOpenFileParams>(x => x.configurationScopeId == ConfigurationScope.Id && IsExpectedFileUri(x.fileUri, CFamilyDocument.FullPath)));
     }
 
     [TestMethod]
@@ -127,7 +188,7 @@ public class DocumentEventsHandlerTests
 
         vcxCompilationDatabaseUpdater.Received(1).RemoveFileAsync(CFamilyDocument.FullPath);
         fileRpcSlCoreService.Received(1)
-            .DidCloseFile(Arg.Is<DidCloseFileParams>(x => x.configurationScopeId == activeConfigScopeTracker.Current.Id && IsExpectedFileUri(x.fileUri, CFamilyDocument.FullPath)));
+            .DidCloseFile(Arg.Is<DidCloseFileParams>(x => x.configurationScopeId == ConfigurationScope.Id && IsExpectedFileUri(x.fileUri, CFamilyDocument.FullPath)));
     }
 
     [TestMethod]
@@ -139,9 +200,9 @@ public class DocumentEventsHandlerTests
         documentTracker.OpenDocumentRenamed += Raise.EventWith(documentTracker, args);
 
         vcxCompilationDatabaseUpdater.Received(1).RenameFileAsync(CFamilyOldFile, CFamilyDocument.FullPath);
-        fileRpcSlCoreService.Received(1).DidCloseFile(Arg.Is<DidCloseFileParams>(x => x.configurationScopeId == activeConfigScopeTracker.Current.Id && IsExpectedFileUri(x.fileUri, CFamilyOldFile)));
+        fileRpcSlCoreService.Received(1).DidCloseFile(Arg.Is<DidCloseFileParams>(x => x.configurationScopeId == ConfigurationScope.Id && IsExpectedFileUri(x.fileUri, CFamilyOldFile)));
         fileRpcSlCoreService.Received(1)
-            .DidOpenFile(Arg.Is<DidOpenFileParams>(x => x.configurationScopeId == activeConfigScopeTracker.Current.Id && IsExpectedFileUri(x.fileUri, CFamilyDocument.FullPath)));
+            .DidOpenFile(Arg.Is<DidOpenFileParams>(x => x.configurationScopeId == ConfigurationScope.Id && IsExpectedFileUri(x.fileUri, CFamilyDocument.FullPath)));
     }
 
     [TestMethod]
@@ -154,7 +215,7 @@ public class DocumentEventsHandlerTests
 
         vcxCompilationDatabaseUpdater.DidNotReceive().AddFileAsync(Arg.Any<string>());
         fileRpcSlCoreService.Received(1)
-            .DidOpenFile(Arg.Is<DidOpenFileParams>(x => x.configurationScopeId == activeConfigScopeTracker.Current.Id && IsExpectedFileUri(x.fileUri, NonCFamilyDocument.FullPath)));
+            .DidOpenFile(Arg.Is<DidOpenFileParams>(x => x.configurationScopeId == ConfigurationScope.Id && IsExpectedFileUri(x.fileUri, NonCFamilyDocument.FullPath)));
     }
 
     [TestMethod]
@@ -167,7 +228,7 @@ public class DocumentEventsHandlerTests
 
         vcxCompilationDatabaseUpdater.DidNotReceive().RemoveFileAsync(Arg.Any<string>());
         fileRpcSlCoreService.Received(1)
-            .DidCloseFile(Arg.Is<DidCloseFileParams>(x => x.configurationScopeId == activeConfigScopeTracker.Current.Id && IsExpectedFileUri(x.fileUri, NonCFamilyDocument.FullPath)));
+            .DidCloseFile(Arg.Is<DidCloseFileParams>(x => x.configurationScopeId == ConfigurationScope.Id && IsExpectedFileUri(x.fileUri, NonCFamilyDocument.FullPath)));
     }
 
     [TestMethod]
@@ -191,9 +252,9 @@ public class DocumentEventsHandlerTests
 
         vcxCompilationDatabaseUpdater.DidNotReceiveWithAnyArgs().RenameFileAsync(default, default);
         fileRpcSlCoreService.Received(1)
-            .DidCloseFile(Arg.Is<DidCloseFileParams>(x => x.configurationScopeId == activeConfigScopeTracker.Current.Id && IsExpectedFileUri(x.fileUri, NonCFamilyOldFile)));
+            .DidCloseFile(Arg.Is<DidCloseFileParams>(x => x.configurationScopeId == ConfigurationScope.Id && IsExpectedFileUri(x.fileUri, NonCFamilyOldFile)));
         fileRpcSlCoreService.Received(1).DidOpenFile(Arg.Is<DidOpenFileParams>(x =>
-            x.configurationScopeId == activeConfigScopeTracker.Current.Id && IsExpectedFileUri(x.fileUri, NonCFamilyDocument.FullPath)));
+            x.configurationScopeId == ConfigurationScope.Id && IsExpectedFileUri(x.fileUri, NonCFamilyDocument.FullPath)));
     }
 
     [TestMethod]
@@ -402,32 +463,12 @@ public class DocumentEventsHandlerTests
     }
 
     [TestMethod]
-    public void Ctor_WithOpenCFamilyFiles_AddsToCompilationDbAndNotifiesSlCore()
-    {
-        documentTracker.GetOpenDocuments().Returns([CFamilyDocument, NonCFamilyDocument, CFamilyDocument2, NonCFamilyDocument2]);
-        CreateAndInitializeTestSubject();
-
-        documentTracker.Received(1).GetOpenDocuments();
-        vcxCompilationDatabaseUpdater.Received(1).AddFileAsync(CFamilyDocument.FullPath);
-        vcxCompilationDatabaseUpdater.Received(1).AddFileAsync(CFamilyDocument2.FullPath);
-        fileRpcSlCoreService.Received(1)
-            .DidOpenFile(Arg.Is<DidOpenFileParams>(x => x.configurationScopeId == activeConfigScopeTracker.Current.Id && IsExpectedFileUri(x.fileUri, CFamilyDocument.FullPath)));
-        fileRpcSlCoreService.Received(1)
-            .DidOpenFile(Arg.Is<DidOpenFileParams>(x => x.configurationScopeId == activeConfigScopeTracker.Current.Id && IsExpectedFileUri(x.fileUri, CFamilyDocument2.FullPath)));
-        fileRpcSlCoreService.Received(1)
-            .DidOpenFile(Arg.Is<DidOpenFileParams>(x => x.configurationScopeId == activeConfigScopeTracker.Current.Id && IsExpectedFileUri(x.fileUri, NonCFamilyDocument.FullPath)));
-        fileRpcSlCoreService.Received(1)
-            .DidOpenFile(Arg.Is<DidOpenFileParams>(x => x.configurationScopeId == activeConfigScopeTracker.Current.Id && IsExpectedFileUri(x.fileUri, NonCFamilyDocument2.FullPath)));
-    }
-
-    [TestMethod]
     public void ActiveConfigScopeTracker_CurrentConfigurationScopeChanged_DefinitionChanged_TriggersNotification()
     {
         CreateAndInitializeTestSubject();
         documentTracker.GetOpenDocuments().Returns([CFamilyDocument, NonCFamilyDocument]);
-        var eventArgs = new ConfigurationScopeChangedEventArgs(definitionChanged: true);
 
-        activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith(activeConfigScopeTracker, eventArgs);
+        activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith(new ConfigurationScopeChangedEventArgs(definitionChanged: true));
 
         fileRpcSlCoreService.Received(1)
             .DidOpenFile(Arg.Is<DidOpenFileParams>(x => x.configurationScopeId == ConfigurationScope.Id && x.fileUri.LocalPath == new FileUri(CFamilyDocument.FullPath).LocalPath));
@@ -440,11 +481,38 @@ public class DocumentEventsHandlerTests
     {
         CreateAndInitializeTestSubject();
         documentTracker.GetOpenDocuments().Returns([CFamilyDocument, NonCFamilyDocument]);
-        var eventArgs = new ConfigurationScopeChangedEventArgs(definitionChanged: false);
 
-        activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith(activeConfigScopeTracker, eventArgs);
+        activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith(new ConfigurationScopeChangedEventArgs(definitionChanged: false));
 
         fileRpcSlCoreService.DidNotReceive().DidOpenFile(Arg.Any<DidOpenFileParams>());
+    }
+
+    [TestMethod]
+    public void ActiveConfigScopeTracker_CurrentConfigurationScopeChanged_NoActiveConfigurationScope_DoesNothing()
+    {
+        MockCurrentConfigScope(null);
+        CreateAndInitializeTestSubject();
+        logger.ClearReceivedCalls();
+        documentTracker.GetOpenDocuments().Returns([CFamilyDocument, NonCFamilyDocument]);
+
+        activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith(new ConfigurationScopeChangedEventArgs(definitionChanged: true));
+
+        fileRpcSlCoreService.DidNotReceive().DidOpenFile(Arg.Any<DidOpenFileParams>());
+        logger.Received(1).LogVerbose(SLCoreStrings.ConfigScopeNotInitialized);
+    }
+
+    [TestMethod]
+    public void ActiveConfigScopeTracker_CurrentConfigurationScopeChanged_SlCoreServiceNotAvailable_DoesNothing()
+    {
+        MockFileRpcService(service: null, succeeds: false);
+        CreateAndInitializeTestSubject();
+        logger.ClearReceivedCalls();
+        documentTracker.GetOpenDocuments().Returns([CFamilyDocument, NonCFamilyDocument]);
+
+        activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith(new ConfigurationScopeChangedEventArgs(definitionChanged: true));
+
+        fileRpcSlCoreService.DidNotReceive().DidOpenFile(Arg.Any<DidOpenFileParams>());
+        logger.Received(1).LogVerbose(SLCoreStrings.ServiceProviderNotInitialized);
     }
 
     private DocumentEventsHandler CreateUninitializedTestSubject(out TaskCompletionSource<byte> barrier)
