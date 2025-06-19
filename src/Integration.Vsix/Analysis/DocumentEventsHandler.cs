@@ -79,7 +79,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
             documentTracker.DocumentSaved += OnDocumentSaved;
             documentTracker.OpenDocumentRenamed += OnOpenDocumentRenamed;
 
-            var openDocuments = documentTracker.GetOpenDocuments();
+            var openDocuments = documentTracker.GetOpenDocuments().ToArray();
             await AddFilesToCompilationDatabaseAsync(openDocuments);
             NotifySlCoreFilesOpened(activeConfigScopeTracker.Current, openDocuments);
         });
@@ -94,7 +94,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
 
         threadHandling.RunOnBackgroundThread(() =>
         {
-            NotifySlCoreFilesOpened(activeConfigScopeTracker.Current, documentTracker.GetOpenDocuments());
+            NotifySlCoreFilesOpened(activeConfigScopeTracker.Current, documentTracker.GetOpenDocuments().ToArray());
         }).Forget();
     }
 
@@ -160,7 +160,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
             await AddFilesToCompilationDatabaseAsync(args.Document);
         }).Forget();
 
-    private async Task AddFilesToCompilationDatabaseAsync(params IReadOnlyCollection<Document> documents)
+    private async Task AddFilesToCompilationDatabaseAsync(params Document[] documents)
     {
         foreach (var document in documents.Where(document => document.DetectedLanguages.Contains(AnalysisLanguage.CFamily)))
         {
@@ -168,7 +168,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
         }
     }
 
-    private void NotifySlCoreFilesOpened(ConfigurationScope configurationScope, params IReadOnlyCollection<Document> openDocuments)
+    private void NotifySlCoreFilesOpened(ConfigurationScope configurationScope, params Document[] openDocuments)
     {
         if (VerifyConfigurationScopeInitialized(configurationScope) && GetFileRpcSlCoreServiceOrNull() is { } fileRpcSlCoreService)
         {
