@@ -41,6 +41,8 @@ namespace SonarLint.VisualStudio.SLCore.Core
     {
         void Initialize(InitializeParams parameters);
 
+        bool IsInitialized { get; }
+
         void Shutdown();
     }
 
@@ -62,6 +64,17 @@ namespace SonarLint.VisualStudio.SLCore.Core
         private readonly object locker = new();
         private bool backendInitialized;
         private ISLCoreJsonRpc? jsonRpc;
+
+        public bool IsInitialized
+        {
+            get
+            {
+                lock (locker)
+                {
+                    return backendInitialized;
+                }
+            }
+        }
 
         public bool TryGetTransientService<TService>([NotNullWhen(returnValue: true)]out TService? service) where TService : class, ISLCoreService
         {
