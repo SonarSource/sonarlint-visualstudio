@@ -42,6 +42,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
     internal static readonly JavaScriptIssuesFile JavaScriptIssues = new();
     internal static readonly OneIssueRuleWithParamFile OneIssueRuleWithParam = new();
     internal static readonly TypeScriptIssuesFile TypeScriptIssues = new();
+    internal static readonly TypeScriptWithBomFile TypeScriptWithBom = new();
     internal static readonly CFamilyIssuesFile CFamilyIssues = new();
     internal static readonly CssIssuesFile CssIssues = new();
     internal static readonly VueIssuesFile VueIssues = new();
@@ -281,6 +282,17 @@ internal class TypeScriptIssuesFile : ITestingFile
         new("typescript:S2737", new TextRangeDto(3, 2, 3, 7), CleanCodeAttribute.CLEAR, 0),
         new("typescript:S1186", new TextRangeDto(7, 16, 7, 19), CleanCodeAttribute.COMPLETE, 0),
         new("typescript:S3776", new TextRangeDto(30, 9, 30, 18), CleanCodeAttribute.FOCUSED, 21)
+    ];
+}
+
+internal class TypeScriptWithBomFile : ITestingFile
+{
+    public string RelativePath => @"Resources\TypeScriptWithBom.ts";
+
+    public List<TestIssue> ExpectedIssues =>
+    [
+        new ("typescript:S1135", new TextRangeDto(1, 3, 1, 7), CleanCodeAttribute.COMPLETE, 0),
+        new("typescript:S2737", new TextRangeDto(5, 2, 5, 7), CleanCodeAttribute.CLEAR, 0),
     ];
 }
 
