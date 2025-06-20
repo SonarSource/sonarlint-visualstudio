@@ -37,7 +37,7 @@ public class ClientFileDtoFactory(ILogger logger) : IClientFileDtoFactory
         if (rootPath is not null && sourceFile?.FilePath is not null && RelativePathHelper.GetRelativePathToRootFolder(rootPath, sourceFile.FilePath) is {} ideRelativePath)
         {
             var uri = new FileUri(sourceFile.FilePath);
-            return new ClientFileDto(uri, ideRelativePath, configScopeId, null, sourceFile.Encoding, sourceFile.FilePath, sourceFile.Content);
+            return new ClientFileDto(uri, ideRelativePath, configScopeId, null, sourceFile.Encoding, sourceFile.FilePath/*, sourceFile.Content*/);
         }
 
         logger.WriteLine(

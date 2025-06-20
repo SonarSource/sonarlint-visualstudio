@@ -63,6 +63,14 @@ public class SimpleAnalysisTests
         => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.TypeScriptIssues, true);
 
     [TestMethod]
+    public Task DefaultRuleConfig_ContentFromDisk_TypeScriptWithBomAnalysisProducesExpectedIssues()
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.TypeScriptWithBom, false);
+
+    [TestMethod]
+    public Task DefaultRuleConfig_ContentFromRpc_TypeScriptWithBomAnalysisProducesExpectedIssues()
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.TypeScriptWithBom, true);
+
+    [TestMethod]
     public Task DefaultRuleConfig_ContentFromDisk_CFamilyAnalysisProducesExpectedIssues()
         => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.CFamilyIssues, false);
 
