@@ -21,7 +21,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.SLCore.Service.Lifecycle;
 
 namespace SonarLint.VisualStudio.SLCore.Core
 {
@@ -31,8 +33,15 @@ namespace SonarLint.VisualStudio.SLCore.Core
         /// Gets a transient object representing an SLCore service. The object should not be cached
         /// </summary>
         /// <typeparam name="TService">An interface inherited from <see cref="ISLCoreService"/></typeparam>
-        /// <returns>True if the underlying connection is alive, False if the connection is unavailable at the moment</returns>
-        bool TryGetTransientService<TService>(out TService service) where TService : class, ISLCoreService;
+        /// <returns>True if the underlying connection is alive, False if the connection is unavailable at the moment or the backend hasn't been initialized</returns>
+        bool TryGetTransientService<TService>([NotNullWhen(returnValue: true)]out TService? service) where TService : class, ISLCoreService;
+    }
+
+    public interface ISLCoreRpcManager
+    {
+        void Initialize(InitializeParams parameters);
+
+        void Shutdown();
     }
 
     internal interface ISLCoreServiceProviderWriter : ISLCoreServiceProvider
@@ -46,66 +55,106 @@ namespace SonarLint.VisualStudio.SLCore.Core
     [Export(typeof(ISLCoreServiceProvider))]
     [Export(typeof(ISLCoreServiceProviderWriter))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class SLCoreServiceProvider : ISLCoreServiceProviderWriter
+    [method: ImportingConstructor]
+    internal class SLCoreServiceProvider(IThreadHandling threadHandling, ILogger logger) : ISLCoreServiceProviderWriter, ISLCoreRpcManager
     {
+        private readonly Dictionary<Type, object> cache = new();
+        private readonly object locker = new();
+        private bool backendInitialized;
+        private ISLCoreJsonRpc? jsonRpc;
 
-        private readonly Dictionary<Type, object> cache = new Dictionary<Type, object>();
-        private readonly object cacheLock = new object();
-        private ISLCoreJsonRpc jsonRpc;
-        private readonly IThreadHandling threadHandling;
-        private readonly ILogger logger;
-
-        [ImportingConstructor]
-        public SLCoreServiceProvider(IThreadHandling threadHandling, ILogger logger)
-        {
-            this.threadHandling = threadHandling;
-            this.logger = logger;
-        }
-
-        public bool TryGetTransientService<TService>(out TService service) where TService : class, ISLCoreService
+        public bool TryGetTransientService<TService>([NotNullWhen(returnValue: true)]out TService? service) where TService : class, ISLCoreService
         {
             threadHandling.ThrowIfOnUIThread();
 
-            service = default;
-
+            service = null;
             var serviceType = typeof(TService);
             if (!serviceType.IsInterface)
             {
                 throw new ArgumentException($"The type argument {serviceType.FullName} is not an interface");
             }
 
-            lock (cacheLock)
+            lock (locker)
             {
-                if (jsonRpc == null || !jsonRpc.IsAlive)
+                if (!backendInitialized)
                 {
                     return false;
                 }
-
-                if (!cache.TryGetValue(serviceType, out var cachedService))
-                {
-                    try
-                    {
-                        cachedService = jsonRpc.CreateService<TService>();
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.WriteLine(SLCoreStrings.SLCoreServiceProvider_CreateServiceError, ex.Message);
-                        return false;
-                    }
-                    cache.Add(serviceType, cachedService);
-                }
-
-                service = (TService)cachedService;
-                return true;
+                return TryGetTransientServiceInternal(out service);
             }
+        }
+
+        private bool TryGetTransientServiceInternal<TService>([NotNullWhen(returnValue: true)]out TService? service)
+            where TService : class, ISLCoreService
+        {
+            service = null;
+            var serviceType = typeof(TService);
+
+            if (jsonRpc is not { IsAlive: true })
+            {
+                return false;
+            }
+
+            if (!cache.TryGetValue(serviceType, out var cachedService))
+            {
+                try
+                {
+                    cachedService = jsonRpc.CreateService<TService>();
+                }
+                catch (Exception ex)
+                {
+                    logger.WriteLine(SLCoreStrings.SLCoreServiceProvider_CreateServiceError, ex.Message);
+                    return false;
+                }
+                cache.Add(serviceType, cachedService);
+            }
+
+            service = (TService)cachedService;
+            return true;
         }
 
         public void SetCurrentConnection(ISLCoreJsonRpc newRpcInstance)
         {
-            lock (cacheLock)
+            lock (locker)
             {
                 jsonRpc = newRpcInstance;
+                backendInitialized = false;
                 cache.Clear();
+            }
+        }
+
+        public void Initialize(InitializeParams parameters)
+        {
+            threadHandling.ThrowIfOnUIThread();
+
+            lock (locker)
+            {
+                if (backendInitialized)
+                {
+                    throw new InvalidOperationException(SLCoreStrings.BackendAlreadyInitialized);
+                }
+
+                if (!TryGetTransientServiceInternal(out ILifecycleManagementSLCoreService? lifecycleManagement))
+                {
+                    throw new InvalidOperationException(SLCoreStrings.ServiceProviderNotInitialized);
+                }
+
+                lifecycleManagement.Initialize(parameters);
+                backendInitialized = true;
+            }
+        }
+
+        public void Shutdown()
+        {
+            threadHandling.ThrowIfOnUIThread();
+
+            lock (locker)
+            {
+                if (TryGetTransientServiceInternal(out ILifecycleManagementSLCoreService? lifecycleManagement))
+                {
+                    lifecycleManagement.Shutdown();
+                }
+                backendInitialized = false;
             }
         }
     }
