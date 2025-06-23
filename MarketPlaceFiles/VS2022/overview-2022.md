@@ -1,163 +1,49 @@
-## **SonarQube for IDE: Your first line of defense for quality and secure code**
+# **SonarQube for IDE: Visual Studio 2022 (formerly SonarLint)**
 
-SonarQube for IDE (formerly SonarLint) helps you detect and fix Bugs, Code Smells, and Security Vulnerabilities in-IDE. 
+SonarQube for IDE by [Sonar](https://www.sonarsource.com/) is a free, sophisticated static analysis tool that enhances your code quality and security. Analyze your code early—as you write or generate it.
+Local analysis automatically identifies quality and security issues in real-time, even with AI-generated code. Fix issues found using QuickFix or the AI CodeFix feature,
+before pushing to your SCM. This ensures your code meets your quality standards and is safe for running in production.
 
-It supports C#, VB.NET, C, C++, JS, TS, CSS, HTML and T-SQL. The extension highlights coding flaws on the fly and provides clear guidance to fix issues before code is committed. 
+Understand the "why" behind issues with detailed contextual information, turning SonarQube for IDE into your personal coding tutor, and levelling up your coding skills.
 
-## **What is SonarQube for IDE**
+Connect to [SonarQube Server](https://www.sonarsource.com/products/sonarqube/) or [SonarQube Cloud](https://www.sonarsource.com/products/sonarcloud/) (you can create a
+[free SonarQube Cloud account](https://www.sonarsource.com/products/sonarcloud/signup/) to get started), to create a powerful, unified code quality platform for your team,
+throughout the software development lifecycle. [This connection](https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/team-features/connected-mode/)
+enables sharing of consistent language rulesets and project settings, and unlocks analysis of deeply hidden security issues, fostering collaboration and code uniformity.
+Additionally, Connected Mode unlocks analysis of T-SQL and custom secret rules detection.
 
-SonarQube for IDE is a **_Free_** and **_Open Source_** IDE extension that identifies and helps you fix Code Quality and Code Security issues as you code. Analogous to a spell checker, SonarQube for IDE squiggles flaws and provides real-time feedback and clear remediation guidance so you can deliver clean code from the get-go. 
+SonarQube for IDE is the only extension you need in Visual Studio for ensuring both code quality and code security. It supports a wide range of languages:
+C, C++, C#, VB.NET, JavaScript, TypeScript, HTML, CSS. Refer to our [documentation](https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/) for the complete list of
+supported languages, rules, and secret detection capabilities.
 
-SonarQube for IDE: Visual Studio is more than your average linting tool. 
+Get started for free. Check the [Requirements](https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/getting-started/requirements/) and
+[Installation](https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/getting-started/installation/) pages —
+download SonarQube for IDE in the Extension Marketplace and enjoy safe coding!
 
-* Scans code written in C#, VB.NET, C, C++, Javascript, TypeScript, CSS, HTML, T-SQL.
-* Open source JavaScript, TypeScript, CSS, HTML, C# & VB.NET code analyzers.
-* C and C++ support for Application, Dynamic Library and Static Library types of MSBuild (.vcxproj) projects
-* Deep code analysis algorithms using pattern matching and dataflow analysis
-* Hundreds of language-specific static code analysis rules, and growing
-* In-context help and remediation guidance with detailed examples 
+# **How it works**
 
-    Highlights issues in your code, tells you why they are harmful, and how they should be fixed
+Simply open any source file, start coding, and you will start seeing issues reported by SonarQube for IDE.
+Issues are highlighted in your code and also listed in the 'Error List' panel.
 
+![sonarqube-for-vs](https://raw.githubusercontent.com/wiki/SonarSource/sonarlint-visualstudio/images/sonarqube-for-vs.gif)
 
-SonarQube for IDE provides Visual Studio developers a comprehensive in-IDE solution for improving the quality and security of the code they deliver. 
+You can access the detailed rule description directly from your editor, using the provided contextual menu.
 
-[Learn More](https://www.sonarsource.com/products/sonarlint/features/visual-studio/)
+![sonarqube-for-vs-rule-description](https://raw.githubusercontent.com/wiki/SonarSource/sonarlint-visualstudio/images/sonarqube-for-vs-ruledescription.gif)
 
-
-![sonarlint-warnings](https://raw.githubusercontent.com/wiki/SonarSource/sonarlint-visualstudio/images/Marketplace/squiggly.png)
-
-## **Get Started with SonarQube for IDE**
-
-After you download SonarQube for IDE, simply open a project, start coding and SonarQube for IDE will start analyzing your issues.
-
-You can also check out the [SonarQube for IDE documentation here](https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/). 
-
-
-## **Why SonarQube for IDE**
-
-With unparalleled support for C#, VB.NET, C, C++, JavaScript, and TypeScript, SonarQube for IDE performs on-the-fly smart analysis to ensure that the code you deliver is always high quality and secure. 
-
-
-
-* **Instant feedback on coding issues**
-
-    SonarQube for IDE provides immediate feedback on Bugs, Code Smells, and Security Vulnerabilities as you code. 
-
-* **Hundreds of language-specific rules with clear guidance**
-
-    SonarQube for IDE provides you with all the information on why the highlighted issue is problematic and how to fix it. With clear remediation guidance and plenty of detailed examples, addressing issues is simple and intuitive.
-
-
-    Check out the language specific rules:
-
-
-<table>
-  <tr>
-   <td>
-C#
-   </td>
-   <td><a href="https://rules.sonarsource.com/csharp">View Rules</a>
-   </td>
-  </tr>
-  <tr>
-   <td>VB.NET
-   </td>
-   <td><a href="https://rules.sonarsource.com/vbnet">View Rules</a>
-   </td>
-  </tr>
-  <tr>
-   <td>JavaScript
-   </td>
-   <td><a href="https://rules.sonarsource.com/javascript">View Rules</a>
-   </td>
-  </tr>
-  <tr>
-   <td>TypeScript
-   </td>
-   <td><a href="https://rules.sonarsource.com/typescript">View Rules</a>
-   </td>
-  </tr>
-  <tr>
-   <td>CSS
-   </td>
-   <td><a href="https://rules.sonarsource.com/css">View Rules</a>
-   </td>
-  </tr>
-    <tr>
-   <td>HTML
-   </td>
-   <td><a href="https://rules.sonarsource.com/html">View Rules</a>
-   </td>
-  </tr>
-    <tr>
-   <td>T-SQL
-   </td>
-   <td><a href="https://rules.sonarsource.com/tsql">View Rules</a>
-   </td>
-  </tr>
-  <tr>
-   <td>C++
-   </td>
-   <td><a href="https://rules.sonarsource.com/cpp">View Rules</a>
-   </td>
-  </tr>
-  <tr>
-   <td>C
-   </td>
-   <td><a href="https://rules.sonarsource.com/c">View Rules</a>
-   </td>
-  </tr>
-</table>
-
-
-
-
-* **Fast and Precise Analysis**
-
-    High precision analysis means fewer false positives and false negatives, providing consistent, reliable results. 
-
-* **Helps you grow in your development journey**
-
-    Aside from detecting issues and providing useful cues to fix the issues, the insights provided by SonarQube for IDE support better code ownership so that as a developer you will begin to recognize those mistakes and remember to prevent them in the future. 
-
-
-
-## **SonarQube for IDE for Teams**
-
-SonarQube for IDE works great as a standalone tool but you can take it to the next level by connecting it with [SonarQube Server](https://www.sonarqube.org/) or [SonarQube Cloud](https://sonarcloud.io/). SonarQube (Server, Cloud) analyze Pull Requests and branches in your DevOps platform (BitBucket, GitHub, Microsoft Azure, GitLab) and perform non-disruptive code quality and security checks to reliably track your codebase health. 
-
-The 'connected mode' configuration ties SonarQube for IDE's continuous Code Quality and Code Security analysis from IDE to the entire CI/CD workflow and back again to your IDE. 
-
-
-
-* **Common expectations for Code Quality and Code Security**
-
-    Applied rules and analysis settings from SonarQube (Server, Cloud) are extended to SonarQube for IDE so that teams can coalesce on a shared definition of code health.
-
-* **More rule coverage**
-
-    When paired with SonarQube (Server, Cloud), you can benefit from additional rules for security vulnerabilities and security hotspots in IDE to identify issues earlier.
-
-* **Smart notifications for improved quality and delivery**
-
-    'Connected mode' sends smart alerts to individuals/teams when new issues are discovered. With everyone in the loop, issues can be addressed promptly, improving the overall software quality and delivery.    
-
-
-
-## **Connect with our Community**
+# **Connect with our Community**
 
 Have questions or need to report issues or provide suggestions? Stay connected with us on the [SonarSource Community Forum](https://community.sonarsource.com/).
 
 
-## **Our strong open source commitment**
+# **Our strong open source commitment**
 
 Since 2007 to present, SonarSource has invested in working closely with our community to provide code quality and security tooling that directly empower developers to deliver better software.  
 
-Check out the [source code on GitHub](https://github.com/SonarSource/sonarlint-visualstudio) or view our [issue tracker.](https://github.com/SonarSource/sonarlint-visualstudio/issues) If you are interested in contributing, visit our [contributing page](https://github.com/SonarSource/sonarlint-visualstudio/blob/master/CONTRIBUTING.md).
+Check out the [source code on GitHub](https://github.com/SonarSource/sonarlint-visualstudio) and if you are interested in contributing, visit our [contributing page](https://github.com/SonarSource/sonarlint-visualstudio/blob/master/CONTRIBUTING.md).
 
 
-## **License**
+# **License**
 
 Copyright 2017-2025 SonarSource SA
 
