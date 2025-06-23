@@ -184,6 +184,7 @@ public class TextBufferIssueTrackerTests
         MockIssueConsumerFactory(textDocument, consumer);
         var projectInfo = MockGetDocumentProjectInfoAsync(textDocument.FilePath);
         CreateTestSubject(textDocument);
+        ClearIssueConsumerCalls();
 
         RaiseFileSavedEvent(textDocument);
 
@@ -227,6 +228,22 @@ public class TextBufferIssueTrackerTests
 
         eventHandler.Received(1).Invoke(taggerProvider, Arg.Is<DocumentRenamedEventArgs>(x =>
             x.Document.FullPath == newFilePath && x.OldFilePath == mockedJavascriptDocumentFooJs.FilePath && x.Document.DetectedLanguages == javascriptLanguage));
+    }
+
+    [TestMethod]
+    public void WhenFileIsRenamed_AnalysisSnapshotIsUpdated()
+    {
+        var textDocument = CreateDocumentMock("foo1.css", mockDocumentTextBuffer);
+        var consumer = Substitute.For<IIssueConsumer>();
+        MockIssueConsumerFactory(textDocument, consumer);
+        var projectInfo = MockGetDocumentProjectInfoAsync(textDocument.FilePath);
+        CreateTestSubject(textDocument);
+        ClearIssueConsumerCalls();
+        var newFilePath = "renamedFile.js";
+
+        RaiseFileRenamedEvent(mockedJavascriptDocumentFooJs, newFilePath);
+
+        VerifyCreateIssueConsumerWasCalled(textDocument, projectInfo, consumer, new AnalysisSnapshot(newFilePath, textDocument.TextBuffer.CurrentSnapshot));
     }
 
     private static void RaiseFileSavedEvent(ITextDocument mockDocument) => RaiseFileEvent(mockDocument, FileActionTypes.ContentSavedToDisk);
@@ -436,4 +453,11 @@ public class TextBufferIssueTrackerTests
             textDocument, javascriptLanguage,
             mockSonarErrorDataSource, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage,
             threadHandling, logger);
+
+    private void ClearIssueConsumerCalls()
+    {
+        issueConsumerStorage.ClearReceivedCalls();
+        issueConsumerFactory.ClearReceivedCalls();
+        vsProjectInfoProvider.ClearReceivedCalls();
+    }
 }

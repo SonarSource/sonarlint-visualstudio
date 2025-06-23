@@ -139,8 +139,10 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
                     }
                 case FileActionTypes.DocumentRenamed:
                     {
-                        Provider.OnOpenDocumentRenamed(e.FilePath, LastAnalysisFilePath, DetectedLanguages);
+                        var oldFilePath = LastAnalysisFilePath;
                         LastAnalysisFilePath = e.FilePath;
+                        UpdateAnalysisStateAsync().Forget();
+                        Provider.OnOpenDocumentRenamed(e.FilePath, oldFilePath, DetectedLanguages);
                         break;
                     }
                 default:
