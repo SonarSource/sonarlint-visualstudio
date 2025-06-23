@@ -54,7 +54,6 @@ public class TextBufferIssueTrackerTests
     private IIssueConsumerFactory issueConsumerFactory;
     private IIssueConsumerStorage issueConsumerStorage;
     private IIssueConsumer issueConsumer;
-    private IThreadHandling threadHandling;
 
     [TestInitialize]
     public void SetUp()
@@ -65,14 +64,12 @@ public class TextBufferIssueTrackerTests
         issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
         issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
         issueConsumer = Substitute.For<IIssueConsumer>();
-        threadHandling = Substitute.For<IThreadHandling>();
         taggerProvider = CreateTaggerProvider();
         mockTextSnapshot = CreateTextSnapshotMock();
         mockDocumentTextBuffer = CreateTextBufferMock(mockTextSnapshot);
         mockedJavascriptDocumentFooJs = CreateDocumentMock("foo.js", mockDocumentTextBuffer);
         javascriptLanguage = [AnalysisLanguage.Javascript];
         MockIssueConsumerFactory(mockedJavascriptDocumentFooJs, issueConsumer);
-        MockThreadHandling();
 
         testSubject = CreateTestSubject(mockedJavascriptDocumentFooJs);
     }
@@ -329,8 +326,6 @@ public class TextBufferIssueTrackerTests
 
     private void SetUpIssueConsumerStorageThrows(Exception exception) => issueConsumerStorage.When(x => x.Remove(Arg.Any<string>())).Do(x => throw exception);
 
-    private void MockThreadHandling() => threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>()).Returns(info => info.Arg<Func<Task<int>>>()());
-
     private static void VerifySingletonManagerDoesNotExist(ITextBuffer buffer) => FindSingletonManagerInPropertyCollection(buffer).Should().BeNull();
 
     private static void VerifySingletonManagerExists(ITextBuffer buffer) => FindSingletonManagerInPropertyCollection(buffer).Should().NotBeNull();
@@ -375,7 +370,7 @@ public class TextBufferIssueTrackerTests
         var analysisRequester = mockAnalysisRequester;
         var provider = new TaggerProvider(sonarErrorListDataSource, textDocumentFactoryService,
             serviceProvider, languageRecognizer, analysisRequester, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage, Mock.Of<ITaggableBufferIndicator>(),
-            mockFileTracker, threadHandling, analyzer, logger);
+            mockFileTracker, analyzer, logger);
         return provider;
     }
 
@@ -449,8 +444,7 @@ public class TextBufferIssueTrackerTests
     private TextBufferIssueTracker CreateTestSubject(ITextDocument textDocument, ILogger logger) =>
         new(taggerProvider,
             textDocument, javascriptLanguage,
-            mockSonarErrorDataSource, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage,
-            threadHandling, logger);
+            mockSonarErrorDataSource, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage, logger);
 
     private void ClearIssueConsumerCalls()
     {
