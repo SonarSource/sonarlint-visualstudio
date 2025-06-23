@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix;
 
 internal interface IVsProjectInfoProvider
 {
-    Task<(string projectName, Guid projectGuid)> GetDocumentProjectInfoAsync(string filePath);
+    (string projectName, Guid projectGuid) GetDocumentProjectInfo(string filePath);
 }
 
 [Export(typeof(IVsProjectInfoProvider))]
@@ -45,12 +45,12 @@ internal class VsProjectInfoProvider(
     private readonly Lazy<DTE2> dte = new(serviceProvider.GetService<SDTE, DTE2>);
     private readonly Lazy<IVsSolution5> vsSolution = new(serviceProvider.GetService<SVsSolution, IVsSolution5>);
 
-    public async Task<(string projectName, Guid projectGuid)> GetDocumentProjectInfoAsync(string filePath)
+    public (string projectName, Guid projectGuid) GetDocumentProjectInfo(string filePath)
     {
         string projectName = null;
         var projectGuid = Guid.Empty;
 
-        await threadHandling.RunOnUIThreadAsync(() =>
+        threadHandling.RunOnUIThread(() =>
         {
             var documentFilePath = filePath;
             var project = GetProject(documentFilePath);

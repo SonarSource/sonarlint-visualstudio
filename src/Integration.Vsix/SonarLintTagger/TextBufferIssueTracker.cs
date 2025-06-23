@@ -20,7 +20,6 @@
 
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
@@ -89,18 +88,18 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         sonarErrorDataSource.AddFactory(Factory);
         Provider.AddIssueTracker(this);
 
-        InitializeAnalysisStateAsync().Forget();
+        InitializeAnalysisState();
     }
 
     public string LastAnalysisFilePath { get; private set; }
     public IEnumerable<AnalysisLanguage> DetectedLanguages { get; }
 
-    public async Task UpdateAnalysisStateAsync()
+    public void UpdateAnalysisState()
     {
         try
         {
-            CancelForFile(LastAnalysisFilePath);
-            await InitializeAnalysisStateAsync();
+            RemoveIssueConsumer(LastAnalysisFilePath);
+            InitializeAnalysisState();
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
@@ -112,7 +111,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
 
     public void Dispose()
     {
-        CancelForFile(LastAnalysisFilePath);
+        RemoveIssueConsumer(LastAnalysisFilePath);
         document.FileActionOccurred -= SafeOnFileActionOccurred;
         textBuffer.Properties.RemoveProperty(TaggerProvider.SingletonManagerPropertyCollectionKey);
         sonarErrorDataSource.RemoveFactory(Factory);
@@ -133,14 +132,16 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
             {
                 case FileActionTypes.ContentSavedToDisk:
                     {
-                        UpdateAnalysisStateAsync().Forget();
+                        UpdateAnalysisState();
                         Provider.OnDocumentSaved(document.FilePath, GetText(), DetectedLanguages);
                         break;
                     }
                 case FileActionTypes.DocumentRenamed:
                     {
-                        Provider.OnOpenDocumentRenamed(e.FilePath, LastAnalysisFilePath, DetectedLanguages);
+                        var oldFilePath = LastAnalysisFilePath;
                         LastAnalysisFilePath = e.FilePath;
+                        UpdateAnalysisState();
+                        Provider.OnOpenDocumentRenamed(e.FilePath, oldFilePath, DetectedLanguages);
                         break;
                     }
                 default:
@@ -161,26 +162,22 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         sonarErrorDataSource.RefreshErrorList(Factory);
     }
 
-    private AnalysisSnapshot GetAnalysisSnapshot()
-    {
-        LastAnalysisFilePath = document.FilePath; // Refresh the stored file path in case the document has been renamed
-        return new AnalysisSnapshot(LastAnalysisFilePath, document.TextBuffer.CurrentSnapshot);
-    }
+    private AnalysisSnapshot GetAnalysisSnapshot() => new(LastAnalysisFilePath, document.TextBuffer.CurrentSnapshot);
 
-    private async Task InitializeAnalysisStateAsync()
+    private void InitializeAnalysisState()
     {
         var analysisSnapshot = GetAnalysisSnapshot();
-        await CreateIssueConsumerAsync(analysisSnapshot);
+        CreateIssueConsumer(analysisSnapshot);
     }
 
-    private void CancelForFile(string filePath) => issueConsumerStorage.Remove(filePath);
+    private void RemoveIssueConsumer(string filePath) => issueConsumerStorage.Remove(filePath);
 
-    private async Task CreateIssueConsumerAsync(AnalysisSnapshot analysisSnapshot)
+    private void CreateIssueConsumer(AnalysisSnapshot analysisSnapshot)
     {
-        var (projectName, projectGuid) = await vsProjectInfoProvider.GetDocumentProjectInfoAsync(analysisSnapshot.FilePath);
+        var (projectName, projectGuid) = vsProjectInfoProvider.GetDocumentProjectInfo(analysisSnapshot.FilePath);
         var issueConsumer = issueConsumerFactory.Create(document, analysisSnapshot.FilePath, analysisSnapshot.TextSnapshot, projectName, projectGuid, SnapToNewSnapshot);
         issueConsumerStorage.Set(analysisSnapshot.FilePath, issueConsumer);
-        await threadHandling.RunOnBackgroundThread(() => ClearErrorList(analysisSnapshot.FilePath, issueConsumer));
+        ClearErrorList(analysisSnapshot.FilePath, issueConsumer);
     }
 
     private static void ClearErrorList(string filePath, IIssueConsumer issueConsumer)

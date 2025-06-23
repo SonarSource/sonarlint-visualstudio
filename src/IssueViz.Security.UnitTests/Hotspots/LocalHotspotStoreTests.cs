@@ -76,7 +76,6 @@ public class LocalHotspotStoreTests
 
         testSubject.UpdateForFile("file1", hotspots);
 
-        threadHandling.Received(1).ThrowIfOnUIThread();
         VerifyContent(testSubject, hotspots.Select(x => new LocalHotspot(x, default, default)).ToArray());
         eventListener.Events.Should()
             .BeEquivalentTo(new IssuesChangedEventArgs([], hotspots));
