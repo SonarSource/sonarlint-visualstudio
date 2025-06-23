@@ -22,6 +22,7 @@ namespace System.Diagnostics.CodeAnalysis;
 
 /// <summary>Specifies that when a method returns <see cref="ReturnValue"/>, the parameter will not be null even if the corresponding type allows it.</summary>
 [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+[ExcludeFromCodeCoverage] // taken from https://github.com/dotnet/runtime/blob/1d1bf92fcf43aa6981804dc53c5174445069c9e4/src/libraries/System.Private.CoreLib/src/System/Diagnostics/CodeAnalysis/NullableAttributes.cs#L69
 public sealed class NotNullWhenAttribute : Attribute
 {
     /// <summary>Initializes the attribute with the specified return value condition.</summary>
