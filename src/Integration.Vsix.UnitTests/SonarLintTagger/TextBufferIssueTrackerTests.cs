@@ -120,7 +120,7 @@ public class TextBufferIssueTrackerTests
         var textDocument = CreateDocumentMock("foo.ts", mockDocumentTextBuffer);
         var consumer = Substitute.For<IIssueConsumer>();
         MockIssueConsumerFactory(textDocument, consumer);
-        var projectInfo = MockGetDocumentProjectInfoAsync(textDocument.FilePath);
+        var projectInfo = MockGetDocumentProjectInfo(textDocument.FilePath);
 
         _ = CreateTestSubject(textDocument);
 
@@ -182,7 +182,7 @@ public class TextBufferIssueTrackerTests
         var textDocument = CreateDocumentMock("foo1.css", mockDocumentTextBuffer);
         var consumer = Substitute.For<IIssueConsumer>();
         MockIssueConsumerFactory(textDocument, consumer);
-        var projectInfo = MockGetDocumentProjectInfoAsync(textDocument.FilePath);
+        var projectInfo = MockGetDocumentProjectInfo(textDocument.FilePath);
         CreateTestSubject(textDocument);
         ClearIssueConsumerCalls();
 
@@ -237,7 +237,7 @@ public class TextBufferIssueTrackerTests
         var textDocument = CreateDocumentMock("foo1.css", mockDocumentTextBuffer);
         var consumer = Substitute.For<IIssueConsumer>();
         MockIssueConsumerFactory(textDocument, consumer, fileName: newFilePath);
-        var projectInfo = MockGetDocumentProjectInfoAsync(newFilePath);
+        var projectInfo = MockGetDocumentProjectInfo(newFilePath);
         CreateTestSubject(textDocument);
         ClearIssueConsumerCalls();
 
@@ -259,70 +259,69 @@ public class TextBufferIssueTrackerTests
     }
 
     [TestMethod]
-    public async Task UpdateAnalysisStateAsync_CancelsForPreviousFilePath()
+    public void UpdateAnalysisState_CancelsForPreviousFilePath()
     {
         mockedJavascriptDocumentFooJs.FilePath.Returns("newFoo.js");
 
-        await testSubject.UpdateAnalysisStateAsync();
+        testSubject.UpdateAnalysisState();
 
         issueConsumerStorage.Received().Remove("foo.js");
     }
 
     [TestMethod]
-    public async Task UpdateAnalysisStateAsync_ProjectInformationReturned_CreatesIssueConsumerCorrectly()
+    public void UpdateAnalysisState_ProjectInformationReturned_CreatesIssueConsumerCorrectly()
     {
         var textDocument = CreateDocumentMock("foo1.css", mockDocumentTextBuffer);
         var consumer = Substitute.For<IIssueConsumer>();
         MockIssueConsumerFactory(textDocument, consumer);
-        var projectInfo = MockGetDocumentProjectInfoAsync(textDocument.FilePath);
+        var projectInfo = MockGetDocumentProjectInfo(textDocument.FilePath);
 
-        await CreateTestSubject(textDocument).UpdateAnalysisStateAsync();
+        CreateTestSubject(textDocument).UpdateAnalysisState();
 
         VerifyCreateIssueConsumerWasCalled(textDocument, projectInfo, consumer, new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot));
     }
 
     [TestMethod]
-    public async Task UpdateAnalysisStateAsync_NoProjectInformation_CreatesIssueConsumerCorrectly()
+    public void UpdateAnalysisState_NoProjectInformation_CreatesIssueConsumerCorrectly()
     {
         var textDocument = CreateDocumentMock("foo2.css", mockDocumentTextBuffer);
         var consumer = Substitute.For<IIssueConsumer>();
         MockIssueConsumerFactory(textDocument, consumer);
-        MockGetDocumentProjectInfoAsync(default);
+        MockGetDocumentProjectInfo(default);
 
-        await CreateTestSubject(textDocument).UpdateAnalysisStateAsync();
+        CreateTestSubject(textDocument).UpdateAnalysisState();
 
         VerifyCreateIssueConsumerWasCalled(textDocument, (default, Guid.Empty), consumer, new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot));
     }
 
     [TestMethod]
-    public async Task UpdateAnalysisStateAsync_ClearsErrorList()
+    public void UpdateAnalysisState_ClearsErrorList()
     {
         var textDocument = mockedJavascriptDocumentFooJs;
 
-        await CreateTestSubject(textDocument).UpdateAnalysisStateAsync();
+        CreateTestSubject(textDocument).UpdateAnalysisState();
 
-        await threadHandling.Received().RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
         issueConsumer.Received().SetIssues(textDocument.FilePath, []);
         issueConsumer.Received().SetHotspots(textDocument.FilePath, []);
     }
 
     [TestMethod]
-    public void UpdateAnalysisStateAsync_NonCriticalException_IsSuppressed()
+    public void UpdateAnalysisState_NonCriticalException_IsSuppressed()
     {
         SetUpIssueConsumerStorageThrows(new InvalidOperationException());
 
-        var act = () => testSubject.UpdateAnalysisStateAsync();
+        var act = () => testSubject.UpdateAnalysisState();
 
         act.Should().NotThrow();
         logger.AssertPartialOutputStringExists(string.Format(Strings.Analysis_ErrorUpdatingAnalysisState, string.Empty));
     }
 
     [TestMethod]
-    public void UpdateAnalysisStateAsync_CriticalException_IsNotSuppressed()
+    public void UpdateAnalysisState_CriticalException_IsNotSuppressed()
     {
         SetUpIssueConsumerStorageThrows(new DivideByZeroException("this is a test"));
 
-        var act = () => testSubject.UpdateAnalysisStateAsync();
+        var act = () => testSubject.UpdateAnalysisState();
 
         act.Should().Throw<DivideByZeroException>()
             .WithMessage("this is a test");
@@ -420,15 +419,14 @@ public class TextBufferIssueTrackerTests
                 Arg.Any<SnapshotChangedHandler>())
             .Returns(issueConsumer);
 
-    private (string projectName, Guid projectGuid) MockGetDocumentProjectInfoAsync(string filePath)
+    private (string projectName, Guid projectGuid) MockGetDocumentProjectInfo(string filePath)
     {
         var projectInfo = (projectName: "project123", projectGuid: Guid.NewGuid());
-        MockGetDocumentProjectInfoAsync(filePath, projectInfo);
+        MockGetDocumentProjectInfo(filePath, projectInfo);
         return projectInfo;
     }
 
-    private void MockGetDocumentProjectInfoAsync(string filePath, (string projectName, Guid projectGuid) projectInfo) =>
-        vsProjectInfoProvider.GetDocumentProjectInfoAsync(filePath).Returns(projectInfo);
+    private void MockGetDocumentProjectInfo(string filePath, (string projectName, Guid projectGuid) projectInfo) => vsProjectInfoProvider.GetDocumentProjectInfo(filePath).Returns(projectInfo);
 
     private void VerifyCreateIssueConsumerWasCalled(
         ITextDocument document,
@@ -436,7 +434,7 @@ public class TextBufferIssueTrackerTests
         IIssueConsumer issueConsumerToVerify,
         AnalysisSnapshot analysisSnapshot)
     {
-        vsProjectInfoProvider.Received().GetDocumentProjectInfoAsync(analysisSnapshot.FilePath);
+        vsProjectInfoProvider.Received().GetDocumentProjectInfo(analysisSnapshot.FilePath);
         issueConsumerFactory.Received().Create(document, analysisSnapshot.FilePath, analysisSnapshot.TextSnapshot, projectInfo.projectName, projectInfo.projectGuid, Arg.Any<SnapshotChangedHandler>());
         issueConsumerStorage.Received().Set(analysisSnapshot.FilePath, issueConsumerToVerify);
     }
