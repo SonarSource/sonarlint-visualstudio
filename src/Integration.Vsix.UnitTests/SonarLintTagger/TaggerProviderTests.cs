@@ -457,8 +457,10 @@ public class TaggerProviderTests
         CreateTaggerForDocument(CreateMockedDocument(sourceFiles[0], DetectedLanguagesJsTs));
         provider.AddIssueTracker(CreateMockedIssueTracker(sourceFiles[1]));
         mockFileTracker.ClearReceivedCalls();
+        var analysisExecutingSignal = CreateAnalysisExecutingSignal(sourceFiles);
 
         mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new AnalysisRequestEventArgs([]));
+        analysisExecutingSignal.WaitOne(AnalysisTimeout);
 
         mockFileTracker.Received(1).AddFiles(Arg.Is<SourceFile[]>(files => files.Length == 2 &&
                                                                            files[0].FilePath == sourceFiles[0] &&
@@ -560,7 +562,7 @@ public class TaggerProviderTests
         issueConsumerStorage.Received(1).Set(document.FilePath, Arg.Any<IIssueConsumer>());
     }
 
-    private ManualResetEvent CreateAnalysisExecutingSignal(List<string> filesToAnalyze)
+    private ManualResetEvent CreateAnalysisExecutingSignal(IEnumerable<string> filesToAnalyze)
     {
         var manualResetEvent = new ManualResetEvent(false);
         analyzer.When(x => x.ExecuteAnalysis(Arg.Is<List<string>>(y => y.SequenceEqual(filesToAnalyze)))).Do(args =>
