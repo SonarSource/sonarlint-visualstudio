@@ -577,7 +577,7 @@ public class TaggerProviderTests
     private void VerifyCreateIssueConsumerWasCalled(
         ITextDocument document)
     {
-        vsProjectInfoProvider.Received(1).GetDocumentProjectInfoAsync(document.FilePath);
+        vsProjectInfoProvider.Received(1).GetDocumentProjectInfo(document.FilePath);
         issueConsumerFactory.Received(1).Create(document, document.FilePath, Arg.Any<ITextSnapshot>(), Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<SnapshotChangedHandler>());
         issueConsumerStorage.Received(1).Set(document.FilePath, Arg.Any<IIssueConsumer>());
     }
