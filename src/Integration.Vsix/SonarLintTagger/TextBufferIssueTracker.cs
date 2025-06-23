@@ -51,7 +51,6 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
     private readonly ILogger logger;
     private readonly ISonarErrorListDataSource sonarErrorDataSource;
     private readonly ITextBuffer textBuffer;
-    private readonly IThreadHandling threadHandling;
     private readonly IVsProjectInfoProvider vsProjectInfoProvider;
     internal /* for testing */ TaggerProvider Provider { get; }
     internal /* for testing */ IssuesSnapshotFactory Factory { get; }
@@ -64,7 +63,6 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         IVsProjectInfoProvider vsProjectInfoProvider,
         IIssueConsumerFactory issueConsumerFactory,
         IIssueConsumerStorage issueConsumerStorage,
-        IThreadHandling threadHandling,
         ILogger logger)
     {
         Provider = provider;
@@ -74,7 +72,6 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         this.vsProjectInfoProvider = vsProjectInfoProvider;
         this.issueConsumerFactory = issueConsumerFactory;
         this.issueConsumerStorage = issueConsumerStorage;
-        this.threadHandling = threadHandling;
         this.logger = logger;
         logger.ForContext(nameof(TextBufferIssueTracker));
 
