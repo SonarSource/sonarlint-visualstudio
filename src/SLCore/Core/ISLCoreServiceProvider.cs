@@ -55,6 +55,7 @@ namespace SonarLint.VisualStudio.SLCore.Core
     }
 
     [Export(typeof(ISLCoreServiceProvider))]
+    [Export(typeof(ISLCoreRpcManager))]
     [Export(typeof(ISLCoreServiceProviderWriter))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     [method: ImportingConstructor]
@@ -128,6 +129,8 @@ namespace SonarLint.VisualStudio.SLCore.Core
 
         public void SetCurrentConnection(ISLCoreJsonRpc newRpcInstance)
         {
+            threadHandling.ThrowIfOnUIThread();
+
             lock (locker)
             {
                 jsonRpc = newRpcInstance;
