@@ -445,7 +445,7 @@ public class TaggerProviderTests
         CreateTaggerForDocument(CreateMockedDocument(filesToaAnalyze[0], DetectedLanguagesJsTs));
 
         mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new AnalysisRequestEventArgs(filesToaAnalyze));
-        analysisExecutingSignal.WaitOne();
+        analysisExecutingSignal.WaitOne(AnalysisTimeout);
 
         analyzer.Received(1).ExecuteAnalysis(Arg.Is<List<string>>(x => x.SequenceEqual(filesToaAnalyze)));
     }
