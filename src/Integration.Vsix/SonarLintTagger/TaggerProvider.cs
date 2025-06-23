@@ -68,7 +68,6 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
     internal readonly ISonarErrorListDataSource sonarErrorDataSource;
     private readonly ITaggableBufferIndicator taggableBufferIndicator;
     internal readonly ITextDocumentFactoryService textDocumentFactoryService;
-    private readonly IThreadHandling threadHandling;
     private readonly IVsProjectInfoProvider vsProjectInfoProvider;
     private readonly IVsStatusbar vsStatusBar;
     private Guid? lastAnalysisId;
@@ -89,7 +88,6 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
         IIssueConsumerStorage issueConsumerStorage,
         ITaggableBufferIndicator taggableBufferIndicator,
         IFileTracker fileTracker,
-        IThreadHandling threadHandling,
         IAnalyzer analyzer,
         ILogger logger)
     {
@@ -102,7 +100,6 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
         this.languageRecognizer = languageRecognizer;
         this.taggableBufferIndicator = taggableBufferIndicator;
         this.fileTracker = fileTracker;
-        this.threadHandling = threadHandling;
         this.analyzer = analyzer;
         this.logger = logger;
 
@@ -210,7 +207,6 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
             vsProjectInfoProvider,
             issueConsumerFactory,
             issueConsumerStorage,
-            threadHandling,
             logger);
 
     #endregion IViewTaggerProvider members
