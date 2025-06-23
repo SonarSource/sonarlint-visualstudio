@@ -38,8 +38,8 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
 internal sealed class FileAnalysisTestsRunner : IDisposable
 {
-    private const double AnalysisReadinessWaitTimeout = 60;
-    private const double AnalysisCompletionWaitTimeout = 60;
+    private readonly TimeSpan AnalysisReadinessWaitTimeout = TimeSpan.FromSeconds(60);
+    private readonly TimeSpan AnalysisCompletionWaitTimeout = TimeSpan.FromSeconds(60);
     internal static readonly JavaScriptIssuesFile JavaScriptIssues = new();
     internal static readonly OneIssueRuleWithParamFile OneIssueRuleWithParam = new();
     internal static readonly TypeScriptIssuesFile TypeScriptIssues = new();
@@ -113,7 +113,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
             var analysisRaisedIssues = await SetUpAnalysis(testingFile, configScope, sendContent, compilationDatabasePath);
 
             await RunSlCoreFileAnalysis(configScope, testingFile.GetFullPath());
-            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task, "analysis completion", TimeSpan.FromSeconds(AnalysisCompletionWaitTimeout));
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task, "analysis completion", AnalysisCompletionWaitTimeout);
             return analysisRaisedIssues.Task.Result.issuesByFileUri;
         }
         finally
@@ -155,7 +155,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         activeConfigScopeTracker.SetCurrentConfigScope(configScope);
         SetupCompilationDatabase(configScope, compilationDatabasePath);
 
-        await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task, "analysis readiness", TimeSpan.FromSeconds(AnalysisReadinessWaitTimeout));
+        await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task, "analysis readiness", AnalysisReadinessWaitTimeout);
         return analysisRaisedIssues;
     }
 
