@@ -52,7 +52,6 @@ public class TaggerProviderTests
     private IVsProjectInfoProvider vsProjectInfoProvider;
     private IIssueConsumerFactory issueConsumerFactory;
     private IIssueConsumerStorage issueConsumerStorage;
-    private IThreadHandling threadHandling;
     private IAnalyzer analyzer;
 
     private static readonly AnalysisLanguage[] DetectedLanguagesJsTs = [AnalysisLanguage.TypeScript, AnalysisLanguage.Javascript];
@@ -83,7 +82,6 @@ public class TaggerProviderTests
         vsProjectInfoProvider = Substitute.For<IVsProjectInfoProvider>();
         issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
         issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
-        threadHandling = Substitute.For<IThreadHandling>();
         analyzer = Substitute.For<IAnalyzer>();
 
         provider = CreateTestSubject();
@@ -115,7 +113,6 @@ public class TaggerProviderTests
         MefTestHelpers.CreateExport<IIssueConsumerStorage>(),
         MefTestHelpers.CreateExport<ITaggableBufferIndicator>(),
         MefTestHelpers.CreateExport<IFileTracker>(),
-        MefTestHelpers.CreateExport<IThreadHandling>(),
         MefTestHelpers.CreateExport<IAnalyzer>(),
         MefTestHelpers.CreateExport<ILogger>()
     ];
@@ -566,7 +563,7 @@ public class TaggerProviderTests
     private TaggerProvider CreateTestSubject() =>
         new(mockSonarErrorDataSource, dummyDocumentFactoryService, serviceProvider,
             mockSonarLanguageRecognizer, mockAnalysisRequester, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage,
-            mockTaggableBufferIndicator, mockFileTracker, threadHandling, analyzer, logger);
+            mockTaggableBufferIndicator, mockFileTracker, analyzer, logger);
 
     private static void RaiseFileEvent(ITextDocument textDocument, FileActionTypes actionType, string filePath = null)
     {
