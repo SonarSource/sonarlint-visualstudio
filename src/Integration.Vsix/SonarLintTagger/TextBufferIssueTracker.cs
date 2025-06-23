@@ -99,7 +99,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
     {
         try
         {
-            CancelForFile(LastAnalysisFilePath);
+            RemoveIssueConsumer(LastAnalysisFilePath);
             await InitializeAnalysisStateAsync();
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -112,7 +112,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
 
     public void Dispose()
     {
-        CancelForFile(LastAnalysisFilePath);
+        RemoveIssueConsumer(LastAnalysisFilePath);
         document.FileActionOccurred -= SafeOnFileActionOccurred;
         textBuffer.Properties.RemoveProperty(TaggerProvider.SingletonManagerPropertyCollectionKey);
         sonarErrorDataSource.RemoveFactory(Factory);
@@ -175,7 +175,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         await CreateIssueConsumerAsync(analysisSnapshot);
     }
 
-    private void CancelForFile(string filePath) => issueConsumerStorage.Remove(filePath);
+    private void RemoveIssueConsumer(string filePath) => issueConsumerStorage.Remove(filePath);
 
     private async Task CreateIssueConsumerAsync(AnalysisSnapshot analysisSnapshot)
     {
