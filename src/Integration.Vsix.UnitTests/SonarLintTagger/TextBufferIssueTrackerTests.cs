@@ -233,15 +233,15 @@ public class TextBufferIssueTrackerTests
     [TestMethod]
     public void WhenFileIsRenamed_AnalysisSnapshotIsUpdated()
     {
+        var newFilePath = "renamedFile.js";
         var textDocument = CreateDocumentMock("foo1.css", mockDocumentTextBuffer);
         var consumer = Substitute.For<IIssueConsumer>();
-        MockIssueConsumerFactory(textDocument, consumer);
-        var projectInfo = MockGetDocumentProjectInfoAsync(textDocument.FilePath);
+        MockIssueConsumerFactory(textDocument, consumer, fileName: newFilePath);
+        var projectInfo = MockGetDocumentProjectInfoAsync(newFilePath);
         CreateTestSubject(textDocument);
         ClearIssueConsumerCalls();
-        var newFilePath = "renamedFile.js";
 
-        RaiseFileRenamedEvent(mockedJavascriptDocumentFooJs, newFilePath);
+        RaiseFileRenamedEvent(textDocument, newFilePath);
 
         VerifyCreateIssueConsumerWasCalled(textDocument, projectInfo, consumer, new AnalysisSnapshot(newFilePath, textDocument.TextBuffer.CurrentSnapshot));
     }
@@ -410,10 +410,10 @@ public class TextBufferIssueTrackerTests
         return mockTextDocument;
     }
 
-    private void MockIssueConsumerFactory(ITextDocument document, IIssueConsumer issueConsumer) =>
+    private void MockIssueConsumerFactory(ITextDocument document, IIssueConsumer issueConsumer, string fileName = null) =>
         issueConsumerFactory
             .Create(document,
-                document.FilePath,
+                fileName ?? document.FilePath,
                 Arg.Any<ITextSnapshot>(),
                 Arg.Any<string>(),
                 Arg.Any<Guid>(),
@@ -436,9 +436,9 @@ public class TextBufferIssueTrackerTests
         IIssueConsumer issueConsumerToVerify,
         AnalysisSnapshot analysisSnapshot)
     {
-        vsProjectInfoProvider.Received().GetDocumentProjectInfoAsync(document.FilePath);
-        issueConsumerFactory.Received().Create(document, document.FilePath, analysisSnapshot.TextSnapshot, projectInfo.projectName, projectInfo.projectGuid, Arg.Any<SnapshotChangedHandler>());
-        issueConsumerStorage.Received().Set(document.FilePath, issueConsumerToVerify);
+        vsProjectInfoProvider.Received().GetDocumentProjectInfoAsync(analysisSnapshot.FilePath);
+        issueConsumerFactory.Received().Create(document, analysisSnapshot.FilePath, analysisSnapshot.TextSnapshot, projectInfo.projectName, projectInfo.projectGuid, Arg.Any<SnapshotChangedHandler>());
+        issueConsumerStorage.Received().Set(analysisSnapshot.FilePath, issueConsumerToVerify);
     }
 
     private TextBufferIssueTracker CreateTestSubject(ITextDocument textDocument)

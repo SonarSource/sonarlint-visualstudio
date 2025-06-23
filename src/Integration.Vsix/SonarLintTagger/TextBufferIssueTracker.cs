@@ -163,11 +163,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         sonarErrorDataSource.RefreshErrorList(Factory);
     }
 
-    private AnalysisSnapshot GetAnalysisSnapshot()
-    {
-        LastAnalysisFilePath = document.FilePath; // Refresh the stored file path in case the document has been renamed
-        return new AnalysisSnapshot(LastAnalysisFilePath, document.TextBuffer.CurrentSnapshot);
-    }
+    private AnalysisSnapshot GetAnalysisSnapshot() => new(LastAnalysisFilePath, document.TextBuffer.CurrentSnapshot);
 
     private async Task InitializeAnalysisStateAsync()
     {
