@@ -38,6 +38,7 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
 internal sealed class FileAnalysisTestsRunner : IDisposable
 {
+    private const double AnalysisReadinessWaitTimeout = 60;
     internal static readonly JavaScriptIssuesFile JavaScriptIssues = new();
     internal static readonly OneIssueRuleWithParamFile OneIssueRuleWithParam = new();
     internal static readonly TypeScriptIssuesFile TypeScriptIssues = new();
@@ -153,7 +154,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         activeConfigScopeTracker.SetCurrentConfigScope(configScope);
         SetupCompilationDatabase(configScope, compilationDatabasePath);
 
-        await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task, "analysis readiness");
+        await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task, "analysis readiness", TimeSpan.FromSeconds(AnalysisReadinessWaitTimeout));
         return analysisRaisedIssues;
     }
 
