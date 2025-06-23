@@ -343,11 +343,13 @@ public class SLCoreServiceProviderTests
         testSubject.IsInitialized.Should().BeFalse();
     }
 
-    [TestMethod]
-    public void Shutdown_DoesNotThrow_WhenServiceNotAvailable()
+    [DataRow(true)]
+    [DataRow(false)]
+    [DataTestMethod]
+    public void Shutdown_ServiceNotAvailable_DoesNotThrow(bool isInitialized)
     {
         SetUpConnectionState(rpcMock, true);
-        SetConnectionAndInitialize(rpcMock, initialized: true);
+        SetConnectionAndInitialize(rpcMock, initialized: isInitialized);
         rpcMock.CreateService<ILifecycleManagementSLCoreService>().Throws(new Exception("creation failed"));
 
         Action act = () => testSubject.Shutdown();
@@ -356,17 +358,20 @@ public class SLCoreServiceProviderTests
         testSubject.IsInitialized.Should().BeFalse();
     }
 
-    [TestMethod]
-    public void Shutdown_DoesNotThrow_WhenConnectionNotAlive()
+    [DataRow(true)]
+    [DataRow(false)]
+    [DataTestMethod]
+    public void Shutdown_ConnectionNotAlive_DoesNotCallShutdownAndDoesNotThrow(bool isInitialized)
     {
         SetUpConnectionState(rpcMock, true);
-        SetConnectionAndInitialize(rpcMock, initialized: true);
+        SetConnectionAndInitialize(rpcMock, initialized: isInitialized);
         SetUpConnectionState(rpcMock, false);
 
         Action act = () => testSubject.Shutdown();
 
         act.Should().NotThrow();
         testSubject.IsInitialized.Should().BeFalse();
+        lifecycleManagementSlCoreService.DidNotReceive().Shutdown();
     }
 
     private static void SetUpServiceCreation<T>(ISLCoreJsonRpc rpcMock, T service) where T : class, ISLCoreService
