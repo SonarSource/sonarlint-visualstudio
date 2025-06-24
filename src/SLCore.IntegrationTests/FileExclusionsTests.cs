@@ -47,9 +47,9 @@ public class FileExclusionsTests
         var analysisSettings = new AnalysisSettings([], [someOtherFileExclusion, testingFile.RelativePath]);
         var fileExclusionsListener = sharedFileAnalysisTestsRunner.SetFileExclusionsInMockedListener(configScope, analysisSettings.NormalizedFileExclusions);
 
-        await sharedFileAnalysisTestsRunner.VerifyAnalysisSkipped(testingFile, configScope);
+        await sharedFileAnalysisTestsRunner.VerifyAnalysisSkippedForExclusions(testingFile, configScope);
 
-        fileExclusionsListener.Received().GetFileExclusionsAsync(Arg.Is<GetFileExclusionsParams>(p => p.configurationScopeId == configScope));
+        await fileExclusionsListener.Received().GetFileExclusionsAsync(Arg.Is<GetFileExclusionsParams>(p => p.configurationScopeId == configScope));
     }
 
     [DataTestMethod]
@@ -63,7 +63,7 @@ public class FileExclusionsTests
         var fileAnalysisResults
             = await sharedFileAnalysisTestsRunner.RunAutomaticFileAnalysis(testingFile, configScope, compilationDatabasePath: (testingFile as ITestingCFamily)?.GetCompilationDatabasePath());
 
-        fileExclusionsListener.Received().GetFileExclusionsAsync(Arg.Is<GetFileExclusionsParams>(p => p.configurationScopeId == configScope));
+        await fileExclusionsListener.Received().GetFileExclusionsAsync(Arg.Is<GetFileExclusionsParams>(p => p.configurationScopeId == configScope));
         fileAnalysisResults.Count.Should().Be(1);
         fileAnalysisResults.Single().Value.Should().HaveCount(testingFile.ExpectedIssues.Count);
     }

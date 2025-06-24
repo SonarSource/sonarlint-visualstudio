@@ -101,6 +101,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
 
     public IGetFileExclusionsListener SetFileExclusionsInMockedListener(string configScopeId, IEnumerable<string> fileExclusions)
     {
+        getFileExclusionsListener.ClearSubstitute();
         getFileExclusionsListener.GetFileExclusionsAsync(Arg.Is<GetFileExclusionsParams>(x => x.configurationScopeId == configScopeId))
             .Returns(new GetFileExclusionsResponse(fileExclusions.ToHashSet()));
         return getFileExclusionsListener;
@@ -125,7 +126,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         }
     }
 
-    public async Task VerifyAnalysisSkipped(
+    public async Task VerifyAnalysisSkippedForExclusions(
         ITestingFile testingFile,
         string configScope,
         bool sendContent = false)
@@ -133,7 +134,17 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         try
         {
             var analysisRaisedIssues = await SetUpAnalysis(testingFile, configScope, sendContent);
+            var fileExclusionListenerCompletionSource = new TaskCompletionSource<int>();
+            getFileExclusionsListener.When(x => x.GetFileExclusionsAsync(Arg.Any<GetFileExclusionsParams>())).Do(callInfo =>
+            {
+                var fileExclusionsParams = callInfo.Arg<GetFileExclusionsParams>();
+                if (fileExclusionsParams.configurationScopeId == configScope)
+                {
+                    fileExclusionListenerCompletionSource.SetResult(1);
+                }
+            });
             NotifyDidOpenFile(configScope, testingFile.GetFullPath());
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(fileExclusionListenerCompletionSource.Task, "file exclusions listener");
             await Task.WhenAny(analysisRaisedIssues.Task, Task.Delay(TimeSpan.FromSeconds(2))); // wait for a short time to see if any issues are raised
             analysisRaisedIssues.Task.IsCompleted.Should().BeFalse();
         }
