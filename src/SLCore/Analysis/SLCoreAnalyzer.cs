@@ -74,7 +74,7 @@ public class SLCoreAnalyzer(
 
     public void CancelAnalysis(Guid analysisId)
     {
-        if (!serviceProvider.TryGetTransientService(out ITaskProgressSLCoreService taskProgressSlCoreService))
+        if (!serviceProvider.TryGetTransientService(out ITaskProgressSLCoreService? taskProgressSlCoreService))
         {
             logger.WriteLine(SLCoreStrings.ServiceProviderNotInitialized);
             return;
@@ -97,7 +97,7 @@ public class SLCoreAnalyzer(
 
     private IAnalysisSLCoreService? GetAnalysisSlCoreService(IAnalysisStatusNotifier analysisStatusNotifier)
     {
-        if (serviceProvider.TryGetTransientService(out IAnalysisSLCoreService analysisService))
+        if (serviceProvider.TryGetTransientService(out IAnalysisSLCoreService? analysisService))
         {
             return analysisService;
         }

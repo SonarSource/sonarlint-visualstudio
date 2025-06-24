@@ -81,7 +81,7 @@ public sealed class SlCoreUserAnalysisPropertiesSynchronizer : ISlCoreUserAnalys
 
     private void HandleSettingsChange()
     {
-        if (activeConfigScopeTracker.Current is { Id: { } currentConfigScopeId } && serviceProvider.TryGetTransientService(out IUserAnalysisPropertiesService userAnalysisPropertiesService))
+        if (activeConfigScopeTracker.Current is { Id: { } currentConfigScopeId } && serviceProvider.TryGetTransientService(out IUserAnalysisPropertiesService? userAnalysisPropertiesService))
         {
             userAnalysisPropertiesService.DidSetUserAnalysisProperties(new(currentConfigScopeId, userSettingsProvider.UserSettings.AnalysisSettings.AnalysisProperties));
         }
