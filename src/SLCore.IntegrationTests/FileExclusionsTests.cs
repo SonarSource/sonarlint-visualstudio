@@ -21,6 +21,7 @@
 using System.IO;
 using System.Reflection;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
+using SonarLint.VisualStudio.SLCore.Listener.Files;
 
 namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
@@ -44,9 +45,11 @@ public class FileExclusionsTests
     {
         var configScope = GetConfigurationScopeName(testingFile);
         var analysisSettings = new AnalysisSettings([], [someOtherFileExclusion, testingFile.RelativePath]);
-        sharedFileAnalysisTestsRunner.SetFileExclusions(configScope, analysisSettings.NormalizedFileExclusions);
+        var fileExclusionsListener = sharedFileAnalysisTestsRunner.SetFileExclusionsInMockedListener(configScope, analysisSettings.NormalizedFileExclusions);
 
         await sharedFileAnalysisTestsRunner.VerifyAnalysisSkipped(testingFile, configScope);
+
+        fileExclusionsListener.Received().GetFileExclusionsAsync(Arg.Is<GetFileExclusionsParams>(p => p.configurationScopeId == configScope));
     }
 
     [DataTestMethod]
@@ -55,11 +58,12 @@ public class FileExclusionsTests
     {
         var configScope = GetConfigurationScopeName(testingFile);
         var analysisSettings = new AnalysisSettings([], [someOtherFileExclusion]);
-        sharedFileAnalysisTestsRunner.SetFileExclusions(configScope, analysisSettings.NormalizedFileExclusions);
+        var fileExclusionsListener = sharedFileAnalysisTestsRunner.SetFileExclusionsInMockedListener(configScope, analysisSettings.NormalizedFileExclusions);
 
         var fileAnalysisResults
             = await sharedFileAnalysisTestsRunner.RunAutomaticFileAnalysis(testingFile, configScope, compilationDatabasePath: (testingFile as ITestingCFamily)?.GetCompilationDatabasePath());
 
+        fileExclusionsListener.Received().GetFileExclusionsAsync(Arg.Is<GetFileExclusionsParams>(p => p.configurationScopeId == configScope));
         fileAnalysisResults.Count.Should().Be(1);
         fileAnalysisResults.Single().Value.Should().HaveCount(testingFile.ExpectedIssues.Count);
     }

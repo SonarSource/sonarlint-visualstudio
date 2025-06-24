@@ -99,9 +99,12 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         rulesCoreService.UpdateStandaloneRulesConfiguration(new UpdateStandaloneRulesConfigurationParams(ruleConfig));
     }
 
-    public void SetFileExclusions(string configScopeId, IEnumerable<string> fileExclusions) =>
+    public IGetFileExclusionsListener SetFileExclusionsInMockedListener(string configScopeId, IEnumerable<string> fileExclusions)
+    {
         getFileExclusionsListener.GetFileExclusionsAsync(Arg.Is<GetFileExclusionsParams>(x => x.configurationScopeId == configScopeId))
             .Returns(new GetFileExclusionsResponse(fileExclusions.ToHashSet()));
+        return getFileExclusionsListener;
+    }
 
     public async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunAutomaticFileAnalysis(
         ITestingFile testingFile,
@@ -131,6 +134,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         {
             var analysisRaisedIssues = await SetUpAnalysis(testingFile, configScope, sendContent);
             NotifyDidOpenFile(configScope, testingFile.GetFullPath());
+            await Task.WhenAny(analysisRaisedIssues.Task, Task.Delay(TimeSpan.FromSeconds(2))); // wait for a short time to see if any issues are raised
             analysisRaisedIssues.Task.IsCompleted.Should().BeFalse();
         }
         finally
