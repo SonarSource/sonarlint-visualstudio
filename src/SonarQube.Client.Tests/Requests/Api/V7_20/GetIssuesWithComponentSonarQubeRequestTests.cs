@@ -76,7 +76,7 @@ public class GetIssuesWithComponentSonarQubeRequestTests
         {
             Logger = new TestLogger(),
             ProjectKey = projectKey,
-            Statuses = statusesToRequest,
+            IssueStatuses = statusesToRequest,
             ComponentKey = componentKey
         };
 

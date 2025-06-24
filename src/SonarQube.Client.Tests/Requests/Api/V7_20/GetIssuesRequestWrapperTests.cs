@@ -88,7 +88,7 @@ public class GetIssuesRequestWrapperTests
             {
                 Logger = new TestLogger(),
                 ProjectKey = projectKey,
-                Statuses = statusesToRequest,
+                IssueStatuses = statusesToRequest,
                 Branch = branch,
                 IssueKeys = issueKeys,
                 RuleId = ruleId,
@@ -98,7 +98,7 @@ public class GetIssuesRequestWrapperTests
             {
                 Logger = new TestLogger(),
                 ProjectKey = projectKey,
-                Statuses = statusesToRequest,
+                IssueStatuses = statusesToRequest,
                 Branch = branch,
                 IssueKeys = issueKeys,
                 RuleId = ruleId,
@@ -119,7 +119,7 @@ public class GetIssuesRequestWrapperTests
         Console.WriteLine($"Invocation [{invocationIndex}]: {actualQueryString}");
         actualQueryString.Contains($"?{componentKeyName}=component1").Should().BeTrue();
         actualQueryString.Contains("&projects=aaaProject").Should().BeTrue();
-        actualQueryString.Contains("&statuses=xStatus").Should().BeTrue();
+        actualQueryString.Contains("&issueStatuses=xStatus").Should().BeTrue();
         actualQueryString.Contains("&branch=yBranch").Should().BeTrue();
         actualQueryString.Contains("&rules=rule1").Should().BeTrue();
 

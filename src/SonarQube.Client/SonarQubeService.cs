@@ -144,7 +144,7 @@ public class SonarQubeService : ISonarQubeService, IDisposable
                 request.Branch = branch;
                 request.IssueKeys = issueKeys;
                 request.Languages = string.Join(",", languageProvider.RoslynLanguages.Select(x => x.ServerLanguageKey));
-                request.Statuses = "RESOLVED"; // Resolved issues will be hidden in SLVS
+                request.IssueStatuses = "FALSE_POSITIVE,ACCEPTED,FIXED"; // Resolved issues will be hidden in SLVS
             },
             token);
 

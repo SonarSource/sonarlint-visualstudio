@@ -42,7 +42,7 @@ internal class GetIssuesRequestWrapper<T> : IGetIssuesRequest
 
     public string ProjectKey { get; set; }
 
-    public string Statuses { get; set; }
+    public string IssueStatuses { get; set; }
 
     public string Branch { get; set; }
 
@@ -59,7 +59,7 @@ internal class GetIssuesRequestWrapper<T> : IGetIssuesRequest
         // Transfer all IGetIssuesRequest properties to the inner request. If more properties are
         // added to IGetIssuesRequest, this block should set them.
         innerRequest.ProjectKey = ProjectKey;
-        innerRequest.Statuses = Statuses;
+        innerRequest.IssueStatuses = IssueStatuses;
         innerRequest.Branch = Branch;
         innerRequest.Logger = Logger;
         innerRequest.IssueKeys = IssueKeys;

@@ -27,7 +27,7 @@ interface IGetIssuesRequest : IRequest<SonarQubeIssue[]>
 {
     string ProjectKey { get; set; }
 
-    string Statuses { get; set; }
+    string IssueStatuses { get; set; }
 
     /// <summary>
     /// The branch name to fetch.

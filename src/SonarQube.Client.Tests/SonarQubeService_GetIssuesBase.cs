@@ -48,7 +48,7 @@ namespace SonarQube.Client.Tests
 
             var languagesParameter = languages is null ? string.Empty : "&languages=" + string.Join("%2C", languages);
 
-            SetupRequest($"api/issues/search?projects={projectName}&statuses=RESOLVED&types={issueType}{languagesParameter}&p={pageNumber}&ps={PageSize}", $@"
+            SetupRequest($"api/issues/search?projects={projectName}&issueStatuses=FALSE_POSITIVE%2CACCEPTED%2CFIXED&types={issueType}{languagesParameter}&p={pageNumber}&ps={PageSize}", $@"
 {{
   ""paging"": {{
     ""pageIndex"": {pageNumber},

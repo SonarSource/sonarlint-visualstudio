@@ -37,8 +37,8 @@ internal class GetIssuesRequest : PagedRequestBase<SonarQubeIssue>
     [JsonProperty("projects")]
     public virtual string ProjectKey { get; set; }
 
-    [JsonProperty("statuses")]
-    public string Statuses { get; set; }
+    [JsonProperty("issueStatuses")]
+    public string IssueStatuses { get; set; }
 
     [JsonProperty("issues")]
     public string IssueKeysAsString => IssueKeys == null ? null : string.Join(",", IssueKeys);
