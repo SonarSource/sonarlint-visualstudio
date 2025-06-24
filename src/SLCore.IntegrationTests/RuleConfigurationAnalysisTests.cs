@@ -49,7 +49,7 @@ public class RuleConfigurationAnalysisTests
         var ruleConfig = CreateInactiveRuleConfig(ruleToDisable.ruleKey);
         sharedFileAnalysisTestsRunner.SetRuleConfiguration(ruleConfig);
 
-        var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunFileAnalysis(FileAnalysisTestsRunner.JavaScriptIssues, TestContext.TestName);
+        var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunAutomaticFileAnalysis(FileAnalysisTestsRunner.JavaScriptIssues, TestContext.TestName);
 
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(FileAnalysisTestsRunner.JavaScriptIssues.GetFullPath())].Should().HaveCount(FileAnalysisTestsRunner.JavaScriptIssues.ExpectedIssues.Count - 1);
@@ -62,10 +62,11 @@ public class RuleConfigurationAnalysisTests
         var secretsRuleConfig = CreateInactiveRuleConfig(multipleIssuesRule.ruleKey);
         sharedFileAnalysisTestsRunner.SetRuleConfiguration(secretsRuleConfig);
 
-        var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunFileAnalysis(FileAnalysisTestsRunner.SecretsIssues, TestContext.TestName);
+        var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunAutomaticFileAnalysis(FileAnalysisTestsRunner.SecretsIssues, TestContext.TestName);
 
         issuesByFileUri.Should().HaveCount(1);
-        issuesByFileUri[new FileUri(FileAnalysisTestsRunner.SecretsIssues.GetFullPath())].Should().HaveCount(FileAnalysisTestsRunner.SecretsIssues.ExpectedIssues.Count - multipleIssuesRule.issuesCount);
+        issuesByFileUri[new FileUri(FileAnalysisTestsRunner.SecretsIssues.GetFullPath())].Should()
+            .HaveCount(FileAnalysisTestsRunner.SecretsIssues.ExpectedIssues.Count - multipleIssuesRule.issuesCount);
     }
 
     [TestMethod]
@@ -75,7 +76,7 @@ public class RuleConfigurationAnalysisTests
         var ruleConfig = CreateInactiveRuleConfig(ruleToDisable.ruleKey);
         using var customTestRunner = await FileAnalysisTestsRunner.CreateInstance(TestContext.TestName, ruleConfig);
 
-        var issuesByFileUri = await customTestRunner.RunFileAnalysis(FileAnalysisTestsRunner.JavaScriptIssues, TestContext.TestName);
+        var issuesByFileUri = await customTestRunner.RunAutomaticFileAnalysis(FileAnalysisTestsRunner.JavaScriptIssues, TestContext.TestName);
 
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(FileAnalysisTestsRunner.JavaScriptIssues.GetFullPath())].Should().HaveCount(FileAnalysisTestsRunner.JavaScriptIssues.ExpectedIssues.Count - 1);
@@ -88,10 +89,11 @@ public class RuleConfigurationAnalysisTests
         var secretsRuleConfig = CreateInactiveRuleConfig(multipleIssuesRule.ruleKey);
         using var customTestRunner = await FileAnalysisTestsRunner.CreateInstance(TestContext.TestName, secretsRuleConfig);
 
-        var issuesByFileUri = await customTestRunner.RunFileAnalysis(FileAnalysisTestsRunner.SecretsIssues, TestContext.TestName);
+        var issuesByFileUri = await customTestRunner.RunAutomaticFileAnalysis(FileAnalysisTestsRunner.SecretsIssues, TestContext.TestName);
 
         issuesByFileUri.Should().HaveCount(1);
-        issuesByFileUri[new FileUri(FileAnalysisTestsRunner.SecretsIssues.GetFullPath())].Should().HaveCount(FileAnalysisTestsRunner.SecretsIssues.ExpectedIssues.Count - multipleIssuesRule.issuesCount);
+        issuesByFileUri[new FileUri(FileAnalysisTestsRunner.SecretsIssues.GetFullPath())].Should()
+            .HaveCount(FileAnalysisTestsRunner.SecretsIssues.ExpectedIssues.Count - multipleIssuesRule.issuesCount);
     }
 
     [TestMethod]
@@ -100,7 +102,7 @@ public class RuleConfigurationAnalysisTests
         var ctorParamsRuleConfig = CreateActiveCtorParamRuleConfig(threshold: OneIssueRuleWithParamFile.ActualCtorParams + 1);
         sharedFileAnalysisTestsRunner.SetRuleConfiguration(ctorParamsRuleConfig);
 
-        var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunFileAnalysis(FileAnalysisTestsRunner.OneIssueRuleWithParam, TestContext.TestName);
+        var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunAutomaticFileAnalysis(FileAnalysisTestsRunner.OneIssueRuleWithParam, TestContext.TestName);
 
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(FileAnalysisTestsRunner.OneIssueRuleWithParam.GetFullPath())].Should().HaveCount(0);
@@ -112,7 +114,7 @@ public class RuleConfigurationAnalysisTests
         var ctorParamsRuleConfig = CreateActiveCtorParamRuleConfig(threshold: OneIssueRuleWithParamFile.ActualCtorParams - 1);
         sharedFileAnalysisTestsRunner.SetRuleConfiguration(ctorParamsRuleConfig);
 
-        var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunFileAnalysis(FileAnalysisTestsRunner.OneIssueRuleWithParam, TestContext.TestName);
+        var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunAutomaticFileAnalysis(FileAnalysisTestsRunner.OneIssueRuleWithParam, TestContext.TestName);
 
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(FileAnalysisTestsRunner.OneIssueRuleWithParam.GetFullPath())].Should().HaveCount(1);
@@ -125,7 +127,7 @@ public class RuleConfigurationAnalysisTests
         var htmlRuleConfig = CreateInactiveRuleConfig(multipleIssuesRule.ruleKey);
         sharedFileAnalysisTestsRunner.SetRuleConfiguration(htmlRuleConfig);
 
-        var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunFileAnalysis(FileAnalysisTestsRunner.HtmlIssues, TestContext.TestName);
+        var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunAutomaticFileAnalysis(FileAnalysisTestsRunner.HtmlIssues, TestContext.TestName);
 
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(FileAnalysisTestsRunner.HtmlIssues.GetFullPath())].Should().HaveCount(FileAnalysisTestsRunner.HtmlIssues.ExpectedIssues.Count - multipleIssuesRule.issuesCount);
@@ -138,21 +140,14 @@ public class RuleConfigurationAnalysisTests
         var htmlRuleConfig = CreateInactiveRuleConfig(multipleIssuesRule.ruleKey);
         using var customTestRunner = await FileAnalysisTestsRunner.CreateInstance(TestContext.TestName, htmlRuleConfig);
 
-        var issuesByFileUri = await customTestRunner.RunFileAnalysis(FileAnalysisTestsRunner.HtmlIssues, TestContext.TestName);
+        var issuesByFileUri = await customTestRunner.RunAutomaticFileAnalysis(FileAnalysisTestsRunner.HtmlIssues, TestContext.TestName);
 
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(FileAnalysisTestsRunner.HtmlIssues.GetFullPath())].Should().HaveCount(FileAnalysisTestsRunner.HtmlIssues.ExpectedIssues.Count - multipleIssuesRule.issuesCount);
     }
 
     private static Dictionary<string, StandaloneRuleConfigDto> CreateActiveCtorParamRuleConfig(int threshold) =>
-        new()
-        {
-            { OneIssueRuleWithParamFile.CtorParamRuleId, new StandaloneRuleConfigDto(isActive: true, new() { { OneIssueRuleWithParamFile.CtorParamName, threshold.ToString() } }) }
-        };
+        new() { { OneIssueRuleWithParamFile.CtorParamRuleId, new StandaloneRuleConfigDto(isActive: true, new() { { OneIssueRuleWithParamFile.CtorParamName, threshold.ToString() } }) } };
 
-    private static Dictionary<string, StandaloneRuleConfigDto> CreateInactiveRuleConfig(string ruleId) =>
-        new()
-        {
-            { ruleId, new StandaloneRuleConfigDto(isActive: false, []) }
-        };
+    private static Dictionary<string, StandaloneRuleConfigDto> CreateInactiveRuleConfig(string ruleId) => new() { { ruleId, new StandaloneRuleConfigDto(isActive: false, []) } };
 }

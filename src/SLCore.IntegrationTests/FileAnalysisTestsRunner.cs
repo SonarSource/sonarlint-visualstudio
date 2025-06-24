@@ -30,6 +30,7 @@ using SonarLint.VisualStudio.SLCore.Listener.Files.Models;
 using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 using SonarLint.VisualStudio.SLCore.Listeners.Implementation.Analysis;
 using SonarLint.VisualStudio.SLCore.Service.Analysis;
+using SonarLint.VisualStudio.SLCore.Service.File;
 using SonarLint.VisualStudio.SLCore.Service.Rules;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using SonarLint.VisualStudio.SLCore.State;
@@ -102,7 +103,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         getFileExclusionsListener.GetFileExclusionsAsync(Arg.Is<GetFileExclusionsParams>(x => x.configurationScopeId == configScopeId))
             .Returns(new GetFileExclusionsResponse(fileExclusions.ToHashSet()));
 
-    public async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysis(
+    public async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunAutomaticFileAnalysis(
         ITestingFile testingFile,
         string configScope,
         bool sendContent = false,
@@ -111,8 +112,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         try
         {
             var analysisRaisedIssues = await SetUpAnalysis(testingFile, configScope, sendContent, compilationDatabasePath);
-
-            await RunSlCoreFileAnalysis(configScope, testingFile.GetFullPath());
+            NotifyDidOpenFile(configScope, testingFile.GetFullPath());
             await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task, "analysis completion", AnalysisCompletionWaitTimeout);
             return analysisRaisedIssues.Task.Result.issuesByFileUri;
         }
@@ -130,7 +130,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         try
         {
             var analysisRaisedIssues = await SetUpAnalysis(testingFile, configScope, sendContent);
-            await RunSlCoreFileAnalysis(configScope, testingFile.GetFullPath());
+            NotifyDidOpenFile(configScope, testingFile.GetFullPath());
             analysisRaisedIssues.Task.IsCompleted.Should().BeFalse();
         }
         finally
@@ -204,17 +204,11 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
             });
     }
 
-    private async Task<ForceAnalyzeResponse> RunSlCoreFileAnalysis(
-        string configScopeId,
-        string fileToAnalyzeAbsolutePath
-    )
+    private void NotifyDidOpenFile(string configScopeId, string fileToAnalyzeAbsolutePath)
     {
-        slCoreTestRunner.SLCoreServiceProvider.TryGetTransientService(out IAnalysisSLCoreService analysisService).Should().BeTrue();
+        slCoreTestRunner.SLCoreServiceProvider.TryGetTransientService(out IFileRpcSLCoreService analysisService).Should().BeTrue();
 
-        var response = await analysisService.AnalyzeFileListAsync(
-            new AnalyzeFileListParams(configScopeId,
-                [new FileUri(fileToAnalyzeAbsolutePath)]));
-        return response;
+        analysisService.DidOpenFile(new DidOpenFileParams(configScopeId, new FileUri(fileToAnalyzeAbsolutePath)));
     }
 
     private static ClientFileDto CreateFileToAnalyze(

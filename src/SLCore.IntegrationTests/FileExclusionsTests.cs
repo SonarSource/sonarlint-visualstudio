@@ -58,7 +58,7 @@ public class FileExclusionsTests
         sharedFileAnalysisTestsRunner.SetFileExclusions(configScope, analysisSettings.NormalizedFileExclusions);
 
         var fileAnalysisResults
-            = await sharedFileAnalysisTestsRunner.RunFileAnalysis(testingFile, configScope, compilationDatabasePath: (testingFile as ITestingCFamily)?.GetCompilationDatabasePath());
+            = await sharedFileAnalysisTestsRunner.RunAutomaticFileAnalysis(testingFile, configScope, compilationDatabasePath: (testingFile as ITestingCFamily)?.GetCompilationDatabasePath());
 
         fileAnalysisResults.Count.Should().Be(1);
         fileAnalysisResults.Single().Value.Should().HaveCount(testingFile.ExpectedIssues.Count);

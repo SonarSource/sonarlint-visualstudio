@@ -54,16 +54,15 @@ public class SimpleAnalysisTests
     public Task DefaultRuleConfig_ContentFromRpc_TypeScriptAnalysisProducesExpectedIssues() => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.TypeScriptIssues, true);
 
     [TestMethod]
-    public Task DefaultRuleConfig_ContentFromDisk_TypeScriptWithBomAnalysisProducesExpectedIssues()
-        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.TypeScriptWithBom, false);
+    public Task DefaultRuleConfig_ContentFromDisk_TypeScriptWithBomAnalysisProducesExpectedIssues() =>
+        DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.TypeScriptWithBom, false);
 
     [TestMethod]
-    public Task DefaultRuleConfig_ContentFromRpc_TypeScriptWithBomAnalysisProducesExpectedIssues()
-        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.TypeScriptWithBom, true);
+    public Task DefaultRuleConfig_ContentFromRpc_TypeScriptWithBomAnalysisProducesExpectedIssues() =>
+        DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.TypeScriptWithBom, true);
 
     [TestMethod]
-    public Task DefaultRuleConfig_ContentFromDisk_CFamilyAnalysisProducesExpectedIssues()
-        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.CFamilyIssues, false);
+    public Task DefaultRuleConfig_ContentFromDisk_CFamilyAnalysisProducesExpectedIssues() => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.CFamilyIssues, false);
 
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromRpc_CFamilyAnalysisProducesExpectedIssues() => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.CFamilyIssues, true);
@@ -88,7 +87,7 @@ public class SimpleAnalysisTests
 
     private async Task DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(ITestingFile testingFile, bool sendContent)
     {
-        var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunFileAnalysis(
+        var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunAutomaticFileAnalysis(
             testingFile,
             TestContext.TestName,
             sendContent: sendContent,
