@@ -46,7 +46,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
 {
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly ISLCoreRpcFactory slCoreRpcFactory;
-    private readonly ISLCoreServiceProvider serviceProvider;
+    private readonly ISLCoreRpcManager slCoreRpcManager;
     private readonly IServerConnectionsProvider serverConnectionConfigurationProvider;
     private readonly IConfigScopeUpdater configScopeUpdater;
     private readonly ISLCoreConstantsProvider constantsProvider;
@@ -63,7 +63,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
 
     internal SLCoreInstanceHandle(
         ISLCoreRpcFactory slCoreRpcFactory,
-        ISLCoreServiceProvider serviceProvider,
+        ISLCoreRpcManager slCoreRpcManager,
         ISLCoreConstantsProvider constantsProvider,
         ISLCoreLanguageProvider slCoreLanguageProvider,
         ISLCoreFoldersProvider slCoreFoldersProvider,
@@ -78,7 +78,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         IThreadHandling threadHandling)
     {
         this.slCoreRpcFactory = slCoreRpcFactory;
-        this.serviceProvider = serviceProvider;
+        this.slCoreRpcManager = slCoreRpcManager;
         this.constantsProvider = constantsProvider;
         this.slCoreLanguageProvider = slCoreLanguageProvider;
         this.slCoreFoldersProvider = slCoreFoldersProvider;
@@ -99,15 +99,12 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
 
         SLCoreRpc = slCoreRpcFactory.StartNewRpcInstance();
 
-        if (!serviceProvider.TryGetTransientService(out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService))
-        {
-            throw new InvalidOperationException(SLCoreStrings.ServiceProviderNotInitialized);
-        }
+
 
         var serverConnectionConfigurations = serverConnectionConfigurationProvider.GetServerConnections();
         var (storageRoot, workDir, sonarlintUserHome) = slCoreFoldersProvider.GetWorkFolders();
 
-        lifecycleManagementSlCoreService.Initialize(new InitializeParams(
+        var initializationParams = new InitializeParams(
             constantsProvider.ClientConstants,
             new HttpConfigurationDto(new SslConfigurationDto()),
             constantsProvider.BackendCapabilities,
@@ -125,14 +122,16 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             isFocusOnNewCode: false,
             constantsProvider.TelemetryConstants,
             telemetryMigrationProvider.Get(),
-            new LanguageSpecificRequirements(new JsTsRequirementsDto(nodeLocator.Get(), esLintBridgeLocator.Get()))));
+            new LanguageSpecificRequirements(new JsTsRequirementsDto(nodeLocator.Get(), esLintBridgeLocator.Get())));
+
+        slCoreRpcManager.Initialize(initializationParams);
 
         UpdateConfigurationScopeForCurrentSolutionAsync().Forget();
     }
 
     private async Task UpdateConfigurationScopeForCurrentSolutionAsync()
     {
-        // this case does not follow the pattern of implementing the IRequireInitialization as it would not be worth the effort 
+        // this case does not follow the pattern of implementing the IRequireInitialization as it would not be worth the effort
         await activeSolutionBoundTracker.InitializationProcessor.InitializeAsync();
         configScopeUpdater.UpdateConfigScopeForCurrentSolution(activeSolutionBoundTracker.CurrentConfiguration.Project);
     }
@@ -151,10 +150,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             threadHandling.Run(async () =>
             {
                 await threadHandling.SwitchToBackgroundThread();
-                if (serviceProvider.TryGetTransientService(out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService))
-                {
-                    lifecycleManagementSlCoreService.Shutdown();
-                }
+                slCoreRpcManager.Shutdown();
 
                 return 0;
             });

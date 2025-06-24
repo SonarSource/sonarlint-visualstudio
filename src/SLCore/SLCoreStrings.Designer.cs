@@ -123,6 +123,15 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SLCore Backend already initialized.
+        /// </summary>
+        public static string BackendAlreadyInitialized {
+            get {
+                return ResourceManager.GetString("BackendAlreadyInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [CertificateChainValidator] Certificate validation failed for the following reason(s):.
         /// </summary>
         public static string CertificateValidator_Failed {

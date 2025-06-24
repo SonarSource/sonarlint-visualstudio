@@ -123,6 +123,9 @@
   <data name="ServiceProviderNotInitialized" xml:space="preserve">
     <value>Service Provider is unavailable</value>
   </data>
+  <data name="BackendAlreadyInitialized" xml:space="preserve">
+    <value>SLCore Backend already initialized</value>
+  </data>
   <data name="SLCoreHandler_InstanceAlreadyRunning" xml:space="preserve">
     <value>Current instance is alive</value>
   </data>
