@@ -54,7 +54,7 @@ public class SLCoreServiceProviderTests
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
-    public void MefCtor_LifecycleManagerInterface_CheckIsExported() =>
+    public void MefCtor_SLCoreRpcManagerInterface_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<SLCoreServiceProvider, ISLCoreRpcManager>(
             MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<ILogger>());
@@ -157,7 +157,7 @@ public class SLCoreServiceProviderTests
         SetUpConnectionState(rpcMock2, true);
         SetUpServiceCreation(rpcMock2, service2);
 
-        testSubject.SetCurrentConnection(rpcMock2);
+        testSubject.SetCurrentRpcInstance(rpcMock2);
         SetInitializedState(rpcMock2);
         testSubject.TryGetTransientService(out ITestSLcoreService1 requestedService).Should().BeTrue();
 
@@ -167,7 +167,7 @@ public class SLCoreServiceProviderTests
     }
 
     [TestMethod]
-    public void SetCurrentConnection_ClearsAllCachedServices()
+    public void SetCurrentRpcInstance_ClearsAllCachedServices()
     {
         var service1 = Substitute.For<ITestSLcoreService1>();
         var service2 = Substitute.For<ITestSLcoreService2>();
@@ -192,7 +192,7 @@ public class SLCoreServiceProviderTests
         SetUpServiceCreation(rpcMock2, service2New);
         SetUpServiceCreation(rpcMock2, service3New);
 
-        testSubject.SetCurrentConnection(rpcMock2);
+        testSubject.SetCurrentRpcInstance(rpcMock2);
         SetInitializedState(rpcMock2);
 
         testSubject.TryGetTransientService(out ITestSLcoreService1 requestedService1).Should().BeTrue();
@@ -204,7 +204,7 @@ public class SLCoreServiceProviderTests
     }
 
     [TestMethod]
-    public void TryGetTransientService_WithoutInitialize_ReturnsFalse()
+    public void TryGetTransientService_WithoutInitializeAndConnection_ReturnsFalse()
     {
         SetConnectionAndInitialize(rpcMock, false);
 
@@ -214,10 +214,12 @@ public class SLCoreServiceProviderTests
         service.Should().BeNull();
     }
 
-    [TestMethod]
-    public void TryGetTransientService_WithoutInitialize_AndConnectionAlive_ReturnsFalse()
+    [DataRow(true)]
+    [DataRow(false)]
+    [DataTestMethod]
+    public void TryGetTransientService_WithoutInitialize_ReturnsFalse(bool isAlive)
     {
-        SetUpConnectionState(rpcMock, true);
+        SetUpConnectionState(rpcMock, isAlive);
         SetConnectionAndInitialize(rpcMock, false);
 
         var result = testSubject.TryGetTransientService(out ITestSLcoreService1 service);
@@ -239,14 +241,14 @@ public class SLCoreServiceProviderTests
     }
 
     [TestMethod]
-    public void SetCurrentConnection_ResetsInitializationState()
+    public void SetCurrentRpcInstance_ResetsInitializationState()
     {
         SetUpConnectionState(rpcMock, true);
         SetConnectionAndInitialize(rpcMock, initialized: true);
         var service1 = Substitute.For<ITestSLcoreService1>();
         SetUpServiceCreation(rpcMock, service1);
 
-        testSubject.SetCurrentConnection(rpcMock);
+        testSubject.SetCurrentRpcInstance(rpcMock);
 
         testSubject.TryGetTransientService(out ITestSLcoreService1 serviceAfter).Should().BeFalse();
         serviceAfter.Should().BeNull();
@@ -390,7 +392,7 @@ public class SLCoreServiceProviderTests
     {
         if (jsonRpc != null)
         {
-            testSubject.SetCurrentConnection(jsonRpc);
+            testSubject.SetCurrentRpcInstance(jsonRpc);
             if (initialized)
             {
                 SetInitializedState(jsonRpc);

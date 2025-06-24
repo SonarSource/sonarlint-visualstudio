@@ -86,7 +86,7 @@ internal sealed class SlCoreRpc : ISLCoreRpc
         this.slCoreProcess = slCoreProcess;
         var jsonRpc = this.slCoreProcess.AttachJsonRpc(rpcDebugger);
         var slCoreJsonRpc = slCoreJsonRpcFactory.CreateSLCoreJsonRpc(jsonRpc);
-        slCoreServiceProvider.SetCurrentConnection(slCoreJsonRpc);
+        slCoreServiceProvider.SetCurrentRpcInstance(slCoreJsonRpc);
         listenerSetUp.Setup(slCoreJsonRpc);
 
         ShutdownTask = jsonRpc.Completion;

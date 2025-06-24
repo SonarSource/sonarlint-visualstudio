@@ -73,7 +73,7 @@ public class SLCoreRpcFactoryTests
             slCoreProcessFactory.StartNewProcess(slCoreLaunchParameters);
             slCoreProcess.AttachJsonRpc(rpcDebugger);
             slCoreJsonRpcFactory.CreateSLCoreJsonRpc(jsonRpc);
-            slCoreServiceProviderWriter.SetCurrentConnection(slCoreJsonRpc);
+            slCoreServiceProviderWriter.SetCurrentRpcInstance(slCoreJsonRpc);
             slCoreListenerSetUp.Setup(slCoreJsonRpc);
         });
     }
