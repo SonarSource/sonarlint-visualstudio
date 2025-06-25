@@ -21,6 +21,7 @@
 using SonarLint.VisualStudio.CFamily;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
@@ -43,6 +44,7 @@ public class DocumentEventsHandlerTests
     private IThreadHandling threadHandling;
     private IInitializationProcessorFactory initializationProcessorFactory;
     private readonly IRequireInitialization[] initializationDependencies = [];
+    private IActiveCompilationDatabaseTracker activeCompilationDatabaseTracker;
     private const string CFamilyOldFile = "file:///tmp/SLVS/old.cpp";
     private const string CFamilyNewFile = "file:///tmp/SLVS/new.cpp";
     private const string NonCFamilyOldFile = "file:///tmp/SLVS/old.js";
@@ -60,6 +62,7 @@ public class DocumentEventsHandlerTests
         documentTracker.GetOpenDocuments().Returns(new List<Document>());
         vcxCompilationDatabaseUpdater = Substitute.For<IVcxCompilationDatabaseUpdater>();
         activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
+        activeCompilationDatabaseTracker = Substitute.For<IActiveCompilationDatabaseTracker>();
         threadHandling = Substitute.For<IThreadHandling>();
         MockThreadHandling();
         MockCurrentConfigScope(ConfigurationScope);
@@ -77,6 +80,7 @@ public class DocumentEventsHandlerTests
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
             MefTestHelpers.CreateExport<IInitializationProcessorFactory>(),
+            MefTestHelpers.CreateExport<IActiveCompilationDatabaseTracker>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<ILogger>()
         );
@@ -92,7 +96,8 @@ public class DocumentEventsHandlerTests
         Received.InOrder(() =>
         {
             logger.ForVerboseContext(nameof(DocumentEventsHandler));
-            initializationProcessorFactory.Create<DocumentEventsHandler>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.SequenceEqual(initializationDependencies)), Arg.Any<Func<IThreadHandling, Task>>());
+            initializationProcessorFactory.Create<DocumentEventsHandler>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.SequenceEqual(initializationDependencies)),
+                Arg.Any<Func<IThreadHandling, Task>>());
             testSubject.InitializationProcessor.InitializeAsync();
             activeConfigScopeTracker.CurrentConfigurationScopeChanged += Arg.Any<EventHandler<ConfigurationScopeChangedEventArgs>>();
             documentTracker.DocumentOpened += Arg.Any<EventHandler<DocumentOpenedEventArgs>>();
@@ -166,7 +171,7 @@ public class DocumentEventsHandlerTests
     }
 
     [TestMethod]
-    public void DocumentOpened_CFamily_AddFileToCompilationDbAndNotifiesSlCore()
+    public void DocumentOpened_CFamily_VcxProject_AddFileToCompilationDbAndNotifiesSlCore()
     {
         CreateAndInitializeTestSubject();
         var args = new DocumentOpenedEventArgs(CFamilyDocument, string.Empty);
@@ -179,7 +184,21 @@ public class DocumentEventsHandlerTests
     }
 
     [TestMethod]
-    public void DocumentClosed_CFamily_RemoveFileFromCompilationDbAndNotifiesSlCore()
+    public void DocumentOpened_CFamily_CMakeProject_DoesNotAddFileToVcxCompilationDbButNotifiesSlCore()
+    {
+        CreateAndInitializeTestSubject();
+        activeCompilationDatabaseTracker.IsCmake.Returns(true);
+        var args = new DocumentOpenedEventArgs(CFamilyDocument, string.Empty);
+
+        documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
+
+        vcxCompilationDatabaseUpdater.DidNotReceiveWithAnyArgs().AddFileAsync(default);
+        fileRpcSlCoreService.Received(1)
+            .DidOpenFile(Arg.Is<DidOpenFileParams>(x => x.configurationScopeId == ConfigurationScope.Id && IsExpectedFileUri(x.fileUri, CFamilyDocument.FullPath)));
+    }
+
+    [TestMethod]
+    public void DocumentClosed_CFamily_VcxProject_RemoveFileFromCompilationDbAndNotifiesSlCore()
     {
         CreateAndInitializeTestSubject();
         var args = new DocumentEventArgs(CFamilyDocument);
@@ -192,7 +211,21 @@ public class DocumentEventsHandlerTests
     }
 
     [TestMethod]
-    public void OpenDocumentRenamed_CFamily_RenamesFileInCompilationDbAndNotifiesSlCore()
+    public void DocumentClosed_CFamily_CMakeProject_DoesNotRemoveFileFromCompilationDbButNotifiesSlCore()
+    {
+        CreateAndInitializeTestSubject();
+        activeCompilationDatabaseTracker.IsCmake.Returns(true);
+        var args = new DocumentEventArgs(CFamilyDocument);
+
+        documentTracker.DocumentClosed += Raise.EventWith(documentTracker, args);
+
+        vcxCompilationDatabaseUpdater.DidNotReceiveWithAnyArgs().RemoveFileAsync(default);
+        fileRpcSlCoreService.Received(1)
+            .DidCloseFile(Arg.Is<DidCloseFileParams>(x => x.configurationScopeId == ConfigurationScope.Id && IsExpectedFileUri(x.fileUri, CFamilyDocument.FullPath)));
+    }
+
+    [TestMethod]
+    public void OpenDocumentRenamed_CFamily_VcxProject_RenamesFileInCompilationDbAndNotifiesSlCore()
     {
         CreateAndInitializeTestSubject();
         var args = new DocumentRenamedEventArgs(CFamilyDocument, CFamilyOldFile);
@@ -206,7 +239,22 @@ public class DocumentEventsHandlerTests
     }
 
     [TestMethod]
-    public void DocumentOpened_NonCFamily_DoesNotAddFileToCompilationDbButNotifiesSlCore()
+    public void OpenDocumentRenamed_CFamily_CMakeProject_DoesNotRenameFileInCompilationDbButNotifiesSlCore()
+    {
+        CreateAndInitializeTestSubject();
+        activeCompilationDatabaseTracker.IsCmake.Returns(true);
+        var args = new DocumentRenamedEventArgs(CFamilyDocument, CFamilyOldFile);
+
+        documentTracker.OpenDocumentRenamed += Raise.EventWith(documentTracker, args);
+
+        vcxCompilationDatabaseUpdater.DidNotReceiveWithAnyArgs().RenameFileAsync(default, default);
+        fileRpcSlCoreService.Received(1).DidCloseFile(Arg.Is<DidCloseFileParams>(x => x.configurationScopeId == ConfigurationScope.Id && IsExpectedFileUri(x.fileUri, CFamilyOldFile)));
+        fileRpcSlCoreService.Received(1)
+            .DidOpenFile(Arg.Is<DidOpenFileParams>(x => x.configurationScopeId == ConfigurationScope.Id && IsExpectedFileUri(x.fileUri, CFamilyDocument.FullPath)));
+    }
+
+    [TestMethod]
+    public void DocumentOpened_NonCFamily_DoesNotAddFileToVcxCompilationDbButNotifiesSlCore()
     {
         CreateAndInitializeTestSubject();
         var args = new DocumentOpenedEventArgs(NonCFamilyDocument, string.Empty);
@@ -232,7 +280,7 @@ public class DocumentEventsHandlerTests
     }
 
     [TestMethod]
-    public void DocumentSaved_CFamily_AddFileToCompilationDb()
+    public void DocumentSaved_CFamily_VcxProject_AddFileToCompilationDb()
     {
         CreateAndInitializeTestSubject();
         var args = new DocumentSavedEventArgs(CFamilyDocument, string.Empty);
@@ -240,6 +288,18 @@ public class DocumentEventsHandlerTests
         documentTracker.DocumentSaved += Raise.EventWith(documentTracker, args);
 
         vcxCompilationDatabaseUpdater.Received(1).AddFileAsync(CFamilyDocument.FullPath);
+    }
+
+    [TestMethod]
+    public void DocumentSaved_CFamily_CmakeProject_DoesNotAddFileToVcxCompilationDb()
+    {
+        CreateAndInitializeTestSubject();
+        activeCompilationDatabaseTracker.IsCmake.Returns(true);
+        var args = new DocumentSavedEventArgs(CFamilyDocument, string.Empty);
+
+        documentTracker.DocumentSaved += Raise.EventWith(documentTracker, args);
+
+        vcxCompilationDatabaseUpdater.DidNotReceiveWithAnyArgs().AddFileAsync(default);
     }
 
     [TestMethod]
@@ -528,6 +588,7 @@ public class DocumentEventsHandlerTests
             slCoreServiceProvider,
             activeConfigScopeTracker,
             initializationProcessorFactory,
+            activeCompilationDatabaseTracker,
             threadHandling,
             logger);
     }
@@ -541,6 +602,7 @@ public class DocumentEventsHandlerTests
             slCoreServiceProvider,
             activeConfigScopeTracker,
             initializationProcessorFactory,
+            activeCompilationDatabaseTracker,
             threadHandling,
             logger);
         handler.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
