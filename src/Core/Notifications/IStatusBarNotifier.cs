@@ -18,18 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Notifications;
+namespace SonarLint.VisualStudio.Core.Notifications;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
+public interface IStatusBarNotifier
 {
-    [Export(typeof(IAnalysisStatusNotifierFactory))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    [method: ImportingConstructor]
-    internal class AnalysisStatusNotifierFactory(IStatusBarNotifier statusBarNotifier, ILogger logger) : IAnalysisStatusNotifierFactory
-    {
-        public IAnalysisStatusNotifier Create(params string[] filePaths) => new AnalysisStatusNotifier(filePaths, statusBarNotifier, logger);
-    }
+    void Notify(string message, bool showSpinner);
 }
