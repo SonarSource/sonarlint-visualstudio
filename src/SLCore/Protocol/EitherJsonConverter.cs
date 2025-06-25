@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -87,7 +84,10 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
             return objectType == typeof(Either<TLeft, TRight>);
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue,
+        public override object ReadJson(
+            JsonReader reader,
+            Type objectType,
+            object existingValue,
             JsonSerializer serializer)
         {
             var jToken = JToken.ReadFrom(reader);
@@ -97,7 +97,9 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
                 throw new InvalidOperationException($"Expected {JTokenType.Object}, found {jToken.Type}");
             }
 
-            foreach (var jsonProperty in jToken.Children().Select(x => x.Path))
+            var jsonProperties = jToken.Children().Select(x => x.Path).ToList();
+
+            foreach (var jsonProperty in jsonProperties)
             {
                 if (leftProperties.Contains(jsonProperty))
                 {
@@ -105,6 +107,18 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
                 }
 
                 if (rightProperties.Contains(jsonProperty))
+                {
+                    return Either<TLeft, TRight>.CreateRight(jToken.ToObject<TRight>());
+                }
+            }
+
+            if (!jsonProperties.Any())
+            {
+                if (!leftProperties.Any())
+                {
+                    return Either<TLeft, TRight>.CreateLeft(jToken.ToObject<TLeft>());
+                }
+                if (!rightProperties.Any())
                 {
                     return Either<TLeft, TRight>.CreateRight(jToken.ToObject<TRight>());
                 }

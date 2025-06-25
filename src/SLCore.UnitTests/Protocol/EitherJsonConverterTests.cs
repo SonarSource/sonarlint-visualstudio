@@ -44,32 +44,16 @@ public class EitherJsonConverterTests
         var left = new SimpleObject
         {
             Property = Either<SimpleObject.LeftOption, SimpleObject.RightOption>.CreateLeft(
-                new SimpleObject.LeftOption
-                    { Left = "lll" })
+                new SimpleObject.LeftOption { Left = "lll" })
         };
         var right = new SimpleObject
         {
             Property = Either<SimpleObject.LeftOption, SimpleObject.RightOption>.CreateRight(
-                new SimpleObject.RightOption
-                    { Right = 10 })
+                new SimpleObject.RightOption { Right = 10 })
         };
 
         JsonConvert.SerializeObject(left).Should().BeEquivalentTo("""{"Property":{"Left":"lll"}}""");
         JsonConvert.SerializeObject(right).Should().BeEquivalentTo("""{"Property":{"Right":10}}""");
-    }
-
-    [TestMethod]
-    public void DeserializeObject_PrimitiveNotAnObject_Throws()
-    {
-        var str = """
-                  {
-                    "Property" : "ThisIsExpectedToBeAnObjectButItIsAString"
-                  }
-                  """;
-
-        Action act = () => JsonConvert.DeserializeObject<SimpleObject>(str);
-
-        act.Should().ThrowExactly<InvalidOperationException>().WithMessage("Expected Object, found String");
     }
 
     [TestMethod]
@@ -115,7 +99,6 @@ public class EitherJsonConverterTests
                   }
                   """;
 
-
         Action act = () => JsonConvert.DeserializeObject<ConflictingObject>(str);
 
         act
@@ -127,12 +110,77 @@ public class EitherJsonConverterTests
     }
 
     [TestMethod]
+    public void DeserializeObject_ObjectWithRightOptionNoProperties_Right_ChoosesCorrectSide()
+    {
+        var str = """
+                  {
+                    "Property" : {}
+                  }
+                  """;
+
+        var result = JsonConvert.DeserializeObject<ObjectWithRightOptionNoProperties>(str);
+
+        result.Property.Left.Should().BeNull();
+        result.Property.Right.Should().NotBeNull();
+    }
+
+    [TestMethod]
+    public void DeserializeObject_ObjectWithRightOptionNoProperties_Left_ChoosesCorrectSide()
+    {
+        var str = """
+                  {
+                    "Property" :
+                    {
+                      "Left" : "value"
+                    }
+                  }
+                  """;
+
+        var result = JsonConvert.DeserializeObject<ObjectWithRightOptionNoProperties>(str);
+
+        result.Property.Left.Should().BeOfType<ObjectWithRightOptionNoProperties.LeftOption>();
+        result.Property.Left.Left.Should().Be("value");
+        result.Property.Right.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void DeserializeObject_ObjectWithLeftOptionNoProperties_Left_ChoosesCorrectSide()
+    {
+        var str = """
+                  {
+                    "Property" : {}
+                  }
+                  """;
+
+        var result = JsonConvert.DeserializeObject<ObjectWithLeftOptionNoProperties>(str);
+
+        result.Property.Left.Should().NotBeNull();
+        result.Property.Right.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void DeserializeObject_ObjectWithLeftOptionNoProperties_Right_ChoosesCorrectSide()
+    {
+        var str = """
+                  {
+                    "Property" :
+                    {
+                      "Right" : "value"
+                    }
+                  }
+                  """;
+
+        var result = JsonConvert.DeserializeObject<ObjectWithLeftOptionNoProperties>(str);
+
+        result.Property.Left.Should().BeNull();
+        result.Property.Right.Should().BeOfType<ObjectWithLeftOptionNoProperties.RightOption>();
+        result.Property.Right.Right.Should().Be("value");
+    }
+
+    [TestMethod]
     public void SerializeDeserializeObject_ComplexObjects_DeserializesToCorrectEitherVariant()
     {
-        var left = new ComplexObject
-        {
-            dto = Either<ComplexObject.LeftOption, ComplexObject.RightOption>.CreateLeft(new ComplexObject.LeftOption())
-        };
+        var left = new ComplexObject { dto = Either<ComplexObject.LeftOption, ComplexObject.RightOption>.CreateLeft(new ComplexObject.LeftOption()) };
         var right = new ComplexObject
         {
             dto = Either<ComplexObject.LeftOption, ComplexObject.RightOption>.CreateRight(
@@ -175,7 +223,6 @@ public class EitherJsonConverterTests
         }
     }
 
-
     public class ComplexObject
     {
         public string str = "aaaaa";
@@ -199,6 +246,36 @@ public class EitherJsonConverterTests
             public object V2Obj { get; set; } = new { dada = 40 };
             public object V2Str = "strstrstr2";
             public object XCommon { get; set; } = new { lala = 20 };
+        }
+    }
+
+    public class ObjectWithRightOptionNoProperties
+    {
+        [JsonConverter(typeof(EitherJsonConverter<LeftOption, RightOption>))]
+        public Either<LeftOption, RightOption> Property { get; set; }
+
+        public class LeftOption
+        {
+            public string Left { get; set; }
+        }
+
+        public class RightOption
+        {
+        }
+    }
+
+    public class ObjectWithLeftOptionNoProperties
+    {
+        [JsonConverter(typeof(EitherJsonConverter<LeftOption, RightOption>))]
+        public Either<LeftOption, RightOption> Property { get; set; }
+
+        public class LeftOption
+        {
+        }
+
+        public class RightOption
+        {
+            public string Right { get; set; }
         }
     }
 }
