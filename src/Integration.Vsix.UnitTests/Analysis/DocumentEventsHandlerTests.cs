@@ -169,7 +169,7 @@ public class DocumentEventsHandlerTests
     public void DocumentOpened_CFamily_AddFileToCompilationDbAndNotifiesSlCore()
     {
         CreateAndInitializeTestSubject();
-        var args = new DocumentOpenedEventArgs(CFamilyDocument, string.Empty);
+        var args = new DocumentOpenedEventArgs(CFamilyDocument);
 
         documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
 
@@ -209,7 +209,7 @@ public class DocumentEventsHandlerTests
     public void DocumentOpened_NonCFamily_DoesNotAddFileToCompilationDbButNotifiesSlCore()
     {
         CreateAndInitializeTestSubject();
-        var args = new DocumentOpenedEventArgs(NonCFamilyDocument, string.Empty);
+        var args = new DocumentOpenedEventArgs(NonCFamilyDocument);
 
         documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
 
@@ -235,7 +235,7 @@ public class DocumentEventsHandlerTests
     public void DocumentSaved_CFamily_AddFileToCompilationDb()
     {
         CreateAndInitializeTestSubject();
-        var args = new DocumentSavedEventArgs(CFamilyDocument, string.Empty);
+        var args = new DocumentSavedEventArgs(CFamilyDocument);
 
         documentTracker.DocumentSaved += Raise.EventWith(documentTracker, args);
 
@@ -260,7 +260,7 @@ public class DocumentEventsHandlerTests
     [TestMethod]
     public void DocumentSaved_NonCFamily_DoesNothing()
     {
-        var args = new DocumentSavedEventArgs(NonCFamilyDocument, string.Empty);
+        var args = new DocumentSavedEventArgs(NonCFamilyDocument);
 
         documentTracker.DocumentSaved += Raise.EventWith(documentTracker, args);
 
@@ -273,7 +273,7 @@ public class DocumentEventsHandlerTests
     {
         CreateAndInitializeTestSubject();
         threadHandling.ClearReceivedCalls();
-        var args = new DocumentOpenedEventArgs(CFamilyDocument, string.Empty);
+        var args = new DocumentOpenedEventArgs(CFamilyDocument);
 
         documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
 
@@ -328,7 +328,7 @@ public class DocumentEventsHandlerTests
     {
         CreateAndInitializeTestSubject();
         threadHandling.ClearReceivedCalls();
-        var args = new DocumentSavedEventArgs(CFamilyDocument, "using System;");
+        var args = new DocumentSavedEventArgs(CFamilyDocument);
 
         documentTracker.DocumentSaved += Raise.EventWith(documentTracker, args);
 
@@ -344,7 +344,7 @@ public class DocumentEventsHandlerTests
     {
         CreateAndInitializeTestSubject();
         MockFileRpcService(service: null, succeeds: false);
-        var args = new DocumentOpenedEventArgs(CFamilyDocument, string.Empty);
+        var args = new DocumentOpenedEventArgs(CFamilyDocument);
 
         documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
 
@@ -387,7 +387,7 @@ public class DocumentEventsHandlerTests
     {
         CreateAndInitializeTestSubject();
         MockCurrentConfigScope(configurationScope: null);
-        var args = new DocumentOpenedEventArgs(CFamilyDocument, string.Empty);
+        var args = new DocumentOpenedEventArgs(CFamilyDocument);
 
         documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
 

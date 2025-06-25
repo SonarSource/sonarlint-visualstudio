@@ -130,7 +130,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
                 case FileActionTypes.ContentSavedToDisk:
                     {
                         UpdateAnalysisState();
-                        Provider.OnDocumentSaved(document.FilePath, GetText(), DetectedLanguages);
+                        Provider.OnDocumentSaved(document.FilePath, DetectedLanguages);
                         break;
                     }
                 case FileActionTypes.DocumentRenamed:
