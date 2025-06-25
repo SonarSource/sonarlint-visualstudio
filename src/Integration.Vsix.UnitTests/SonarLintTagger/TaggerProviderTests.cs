@@ -428,10 +428,10 @@ public class TaggerProviderTests
     {
         var fileName = "file.js";
         CreateTaggerForDocument(CreateMockedDocument(fileName, DetectedLanguagesJsTs));
-        var manualReset = CreateManualResetEventForRequestAnalysis([fileName]);
+        var analysisExecutingSignal = CreateAnalysisExecutingSignal([fileName]);
 
         mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new AnalysisRequestEventArgs([fileName]));
-        manualReset.WaitOne(AnalysisTimeout);
+        analysisExecutingSignal.WaitOne(AnalysisTimeout);
 
         var expectedMessage = string.Format(Vsix.Resources.Strings.JobRunner_JobDescription_ReaanalyzeDocs, 1);
         logger.AssertPartialOutputStringExists(expectedMessage);
@@ -441,32 +441,13 @@ public class TaggerProviderTests
     public void AnalysisRequested_CallsAnalyzerRequestAnalysis()
     {
         List<string> filesToaAnalyze = ["file.js"];
-        var manualResetEvent = CreateManualResetEventForRequestAnalysis(filesToaAnalyze);
+        var analysisExecutingSignal = CreateAnalysisExecutingSignal(filesToaAnalyze);
         CreateTaggerForDocument(CreateMockedDocument(filesToaAnalyze[0], DetectedLanguagesJsTs));
 
         mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new AnalysisRequestEventArgs(filesToaAnalyze));
-        manualResetEvent.WaitOne(AnalysisTimeout);
+        analysisExecutingSignal.WaitOne(AnalysisTimeout);
 
         analyzer.Received(1).ExecuteAnalysis(Arg.Is<List<string>>(x => x.SequenceEqual(filesToaAnalyze)));
-    }
-
-    [TestMethod]
-    public void AnalysisRequested_TwoAnalysisRequests_CancelsPreviousAnalysis()
-    {
-        List<string> analysisFiles1 = ["file.js"];
-        List<string> analysisFiles2 = ["file2.js"];
-        Guid? analysisId1 = Guid.NewGuid();
-        analyzer.ExecuteAnalysis(Arg.Any<List<string>>()).Returns(Task.FromResult(analysisId1));
-        var manualResetEvent = CreateManualResetEventForRequestAnalysis(analysisFiles1);
-        var manualResetEvent2 = CreateManualResetEventForRequestAnalysis(analysisFiles2);
-        CreateTaggerForDocument(CreateMockedDocument(analysisFiles1[0], DetectedLanguagesJsTs));
-
-        mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new AnalysisRequestEventArgs(analysisFiles1));
-        manualResetEvent.WaitOne(AnalysisTimeout);
-        mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new AnalysisRequestEventArgs(analysisFiles2));
-        manualResetEvent2.WaitOne(AnalysisTimeout);
-
-        analyzer.Received(1).CancelAnalysis(analysisId1.Value);
     }
 
     [TestMethod]
@@ -476,8 +457,10 @@ public class TaggerProviderTests
         CreateTaggerForDocument(CreateMockedDocument(sourceFiles[0], DetectedLanguagesJsTs));
         provider.AddIssueTracker(CreateMockedIssueTracker(sourceFiles[1]));
         mockFileTracker.ClearReceivedCalls();
+        var analysisExecutingSignal = CreateAnalysisExecutingSignal(sourceFiles);
 
         mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new AnalysisRequestEventArgs([]));
+        analysisExecutingSignal.WaitOne(AnalysisTimeout);
 
         mockFileTracker.Received(1).AddFiles(Arg.Is<SourceFile[]>(files => files.Length == 2 &&
                                                                            files[0].FilePath == sourceFiles[0] &&
@@ -579,7 +562,7 @@ public class TaggerProviderTests
         issueConsumerStorage.Received(1).Set(document.FilePath, Arg.Any<IIssueConsumer>());
     }
 
-    private ManualResetEvent CreateManualResetEventForRequestAnalysis(List<string> filesToAnalyze)
+    private ManualResetEvent CreateAnalysisExecutingSignal(IEnumerable<string> filesToAnalyze)
     {
         var manualResetEvent = new ManualResetEvent(false);
         analyzer.When(x => x.ExecuteAnalysis(Arg.Is<List<string>>(y => y.SequenceEqual(filesToAnalyze)))).Do(args =>

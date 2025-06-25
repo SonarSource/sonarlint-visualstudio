@@ -59,8 +59,6 @@ public class SLCoreAnalyzerTests
         logger.ForContext(Arg.Any<string[]>()).Returns(logger);
         testSubject = new SLCoreAnalyzer(slCoreServiceProvider, activeConfigScopeTracker, analysisStatusNotifierFactory, logger);
 
-        analysisService.AnalyzeFilesAndTrackAsync(default, default).ReturnsForAnyArgs(new AnalyzeFilesResponse(new HashSet<FileUri>(), []));
-
         void SetUpDefaultNotifier() => analysisStatusNotifierFactory.Create(Arg.Any<string[]>()).Returns(notifier);
     }
 
