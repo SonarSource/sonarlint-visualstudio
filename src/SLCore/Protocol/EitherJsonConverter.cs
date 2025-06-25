@@ -105,12 +105,12 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
             {
                 if (leftProperties.Contains(jsonProperty))
                 {
-                    return Either<TLeft, TRight>.CreateLeft(jToken.ToObject<TLeft>());
+                    return Either<TLeft, TRight>.CreateLeft(jToken.ToObject<TLeft>()!);
                 }
 
                 if (rightProperties.Contains(jsonProperty))
                 {
-                    return Either<TLeft, TRight>.CreateRight(jToken.ToObject<TRight>());
+                    return Either<TLeft, TRight>.CreateRight(jToken.ToObject<TRight>()!);
                 }
             }
             return null;
@@ -122,11 +122,11 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
             {
                 if (!leftProperties.Any())
                 {
-                    return Either<TLeft, TRight>.CreateLeft(jToken.ToObject<TLeft>());
+                    return Either<TLeft, TRight>.CreateLeft(jToken.ToObject<TLeft>()!);
                 }
                 if (!rightProperties.Any())
                 {
-                    return Either<TLeft, TRight>.CreateRight(jToken.ToObject<TRight>());
+                    return Either<TLeft, TRight>.CreateRight(jToken.ToObject<TRight>()!);
                 }
             }
             return null;
