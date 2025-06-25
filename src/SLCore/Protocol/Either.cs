@@ -32,9 +32,9 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
         public TLeft? Left { get; private init; }
         public TRight? Right { get; private init; }
 
-        public static Either<TLeft, TRight> CreateLeft(TLeft left) => new() { Left = left ?? throw new ArgumentNullException(nameof(left)) };
+        public static Either<TLeft, TRight> CreateLeft(TLeft? left) => new() { Left = left ?? throw new ArgumentNullException(nameof(left)) };
 
-        public static Either<TLeft, TRight> CreateRight(TRight right) => new() { Right = right ?? throw new ArgumentNullException(nameof(right)) };
+        public static Either<TLeft, TRight> CreateRight(TRight? right) => new() { Right = right ?? throw new ArgumentNullException(nameof(right)) };
 
         public static implicit operator Either<TLeft, TRight>(TLeft left) => CreateLeft(left);
 
