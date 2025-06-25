@@ -79,10 +79,7 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
             serializer.Serialize(writer, either?.Right);
         }
 
-        public override bool CanConvert(Type objectType)
-        {
-            return objectType == typeof(Either<TLeft, TRight>);
-        }
+        public override bool CanConvert(Type objectType) => objectType == typeof(Either<TLeft, TRight>);
 
         public override object ReadJson(
             JsonReader reader,
@@ -91,14 +88,19 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
             JsonSerializer serializer)
         {
             var jToken = JToken.ReadFrom(reader);
-
             if (jToken.Type != JTokenType.Object)
             {
                 throw new InvalidOperationException($"Expected {JTokenType.Object}, found {jToken.Type}");
             }
 
             var jsonProperties = jToken.Children().Select(x => x.Path).ToList();
+            var either = ChooseForNonEmptyProperties(jsonProperties, jToken) ?? ChooseForEmptyProperties(jsonProperties, jToken);
 
+            return either ?? throw new InvalidOperationException(SLCoreStrings.EitherJsonConverter_NoDefinitiveChoiceExceptionMessage);
+        }
+
+        private Either<TLeft, TRight>? ChooseForNonEmptyProperties(List<string> jsonProperties, JToken jToken)
+        {
             foreach (var jsonProperty in jsonProperties)
             {
                 if (leftProperties.Contains(jsonProperty))
@@ -111,7 +113,11 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
                     return Either<TLeft, TRight>.CreateRight(jToken.ToObject<TRight>()!);
                 }
             }
+            return null;
+        }
 
+        private Either<TLeft, TRight>? ChooseForEmptyProperties(List<string> jsonProperties, JToken jToken)
+        {
             if (!jsonProperties.Any())
             {
                 if (!leftProperties.Any())
@@ -123,8 +129,7 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
                     return Either<TLeft, TRight>.CreateRight(jToken.ToObject<TRight>()!);
                 }
             }
-
-            throw new InvalidOperationException(SLCoreStrings.EitherJsonConverter_NoDefinitiveChoiceExceptionMessage);
+            return null;
         }
     }
 }
