@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
             if (!rightProperties.Any() && !leftProperties.Any())
             {
                 throw new ArgumentException(
-                    $"Types {typeof(TLeft)} and {typeof(TRight)} have equivalent sets of properties and fields");
+                    string.Format(SLCoreStrings.EitherJsonConverter_EquivalentPropertiesExceptionMessage, typeof(TLeft), typeof(TRight)));
             }
         }
 
@@ -66,17 +66,17 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
                 .ToHashSet();
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
-            var either = (Either<TLeft, TRight>)value;
+            var either = value as Either<TLeft, TRight>;
 
-            if (either.Left != null)
+            if (either?.Left != null)
             {
                 serializer.Serialize(writer, either.Left);
                 return;
             }
 
-            serializer.Serialize(writer, either.Right);
+            serializer.Serialize(writer, either?.Right);
         }
 
         public override bool CanConvert(Type objectType)
@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
         public override object ReadJson(
             JsonReader reader,
             Type objectType,
-            object existingValue,
+            object? existingValue,
             JsonSerializer serializer)
         {
             var jToken = JToken.ReadFrom(reader);
@@ -103,12 +103,12 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
             {
                 if (leftProperties.Contains(jsonProperty))
                 {
-                    return Either<TLeft, TRight>.CreateLeft(jToken.ToObject<TLeft>());
+                    return Either<TLeft, TRight>.CreateLeft(jToken.ToObject<TLeft>()!);
                 }
 
                 if (rightProperties.Contains(jsonProperty))
                 {
-                    return Either<TLeft, TRight>.CreateRight(jToken.ToObject<TRight>());
+                    return Either<TLeft, TRight>.CreateRight(jToken.ToObject<TRight>()!);
                 }
             }
 
@@ -116,15 +116,15 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
             {
                 if (!leftProperties.Any())
                 {
-                    return Either<TLeft, TRight>.CreateLeft(jToken.ToObject<TLeft>());
+                    return Either<TLeft, TRight>.CreateLeft(jToken.ToObject<TLeft>()!);
                 }
                 if (!rightProperties.Any())
                 {
-                    return Either<TLeft, TRight>.CreateRight(jToken.ToObject<TRight>());
+                    return Either<TLeft, TRight>.CreateRight(jToken.ToObject<TRight>()!);
                 }
             }
 
-            throw new InvalidOperationException("Unable to make a definitive choice between Either options");
+            throw new InvalidOperationException(SLCoreStrings.EitherJsonConverter_NoDefinitiveChoiceExceptionMessage);
         }
     }
 }

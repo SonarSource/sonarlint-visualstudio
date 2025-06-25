@@ -28,28 +28,28 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
     [Export(typeof(ISLCoreListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     [method: ImportingConstructor]
-    public class ProgressListener(IStatusBarNotifier slCoreStatusNotifier) : IProgressListener
+    public class ProgressListener(IStatusBarNotifier statusNotifier) : IProgressListener
     {
         /// <inheritdoc />
         public Task StartProgressAsync(StartProgressParams parameters)
         {
-            slCoreStatusNotifier.Notify(FormatNotification(parameters.title), false);
+            statusNotifier.Notify(FormatNotification(parameters.title), false);
             return Task.CompletedTask;
         }
 
         /// <inheritdoc />
         public void ReportProgress(ReportProgressParams parameters)
         {
-            if (parameters.notification.Left is { } updateNotification)
+            if (parameters.notification is { Left: { } updateNotification })
             {
-                slCoreStatusNotifier.Notify(FormatNotification(updateNotification.message), false);
+                statusNotifier.Notify(FormatNotification(updateNotification.message), false);
             }
             else if (parameters.notification.Right != null)
             {
-                slCoreStatusNotifier.Notify(string.Empty, false);
+                statusNotifier.Notify(string.Empty, false);
             }
         }
 
-        private string FormatNotification(string message) => $"{SLCoreStrings.LongProductName}: {message}";
+        private static string FormatNotification(string message) => $"{SLCoreStrings.LongProductName}: {message}";
     }
 }

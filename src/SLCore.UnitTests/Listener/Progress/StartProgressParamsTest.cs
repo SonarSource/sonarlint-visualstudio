@@ -50,4 +50,29 @@ public class StartProgressParamsTest
 
         actual.Should().BeEquivalentTo(expected);
     }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void Serialized_AsExpected(bool boolValue)
+    {
+        var taskId = Guid.NewGuid().ToString();
+        var configurationScopeId = "configScope";
+        var title = "analyze";
+        var message = "analyze 1 file";
+        var testSubject = new StartProgressParams(taskId, configurationScopeId, title, message, boolValue, boolValue);
+        string expected = $@"
+            {{
+              ""taskId"": ""{taskId}"",
+              ""configurationScopeId"": ""{configurationScopeId}"",
+              ""title"": ""{title}"",
+              ""message"": ""{message}"",
+              ""indeterminate"": {boolValue},
+              ""cancellable"": {boolValue}
+            }}";
+
+        var actual = JsonConvert.SerializeObject(testSubject, Formatting.Indented);
+
+        actual.Should().BeEquivalentTo(expected);
+    }
 }

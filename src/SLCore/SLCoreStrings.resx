@@ -261,4 +261,10 @@
   <data name="LongProductName" xml:space="preserve">
     <value>SonarQube for Visual Studio</value>
   </data>
+  <data name="EitherJsonConverter_EquivalentPropertiesExceptionMessage" xml:space="preserve">
+    <value>Types {0} and {1} have equivalent sets of properties and fields</value>
+  </data>
+  <data name="EitherJsonConverter_NoDefinitiveChoiceExceptionMessage" xml:space="preserve">
+    <value>Unable to make a definitive choice between Either options</value>
+  </data>
 </root>
