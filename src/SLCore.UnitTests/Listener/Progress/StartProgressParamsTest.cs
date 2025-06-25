@@ -61,17 +61,10 @@ public class StartProgressParamsTest
         var title = "analyze";
         var message = "analyze 1 file";
         var testSubject = new StartProgressParams(taskId, configurationScopeId, title, message, boolValue, boolValue);
-        string expected = $@"
-            {{
-              ""taskId"": ""{taskId}"",
-              ""configurationScopeId"": ""{configurationScopeId}"",
-              ""title"": ""{title}"",
-              ""message"": ""{message}"",
-              ""indeterminate"": {boolValue},
-              ""cancellable"": {boolValue}
-            }}";
+        string expected
+            = $@"{{""taskId"":""{taskId}"",""configurationScopeId"":""{configurationScopeId}"",""title"":""{title}"",""message"":""{message}"",""indeterminate"":{boolValue.ToString().ToLower()},""cancellable"":{boolValue.ToString().ToLower()}}}";
 
-        var actual = JsonConvert.SerializeObject(testSubject, Formatting.Indented);
+        var actual = JsonConvert.SerializeObject(testSubject);
 
         actual.Should().BeEquivalentTo(expected);
     }
