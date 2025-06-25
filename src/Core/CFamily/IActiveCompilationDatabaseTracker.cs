@@ -25,4 +25,5 @@ namespace SonarLint.VisualStudio.Core.CFamily;
 public interface IActiveCompilationDatabaseTracker : IRequireInitialization, IDisposable
 {
     string DatabasePath { get; }
+    bool IsCmake { get; }
 }
