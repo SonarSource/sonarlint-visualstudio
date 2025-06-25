@@ -18,50 +18,31 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Listener.Progress;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
+namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests;
+
+[TestClass]
+public class ProgressListenerTests
 {
-    [TestClass]
-    public class ProgressListenerTests
+    [TestMethod]
+    public void MefCtor_CheckIsExported() => MefTestHelpers.CheckTypeCanBeImported<ProgressListener, ISLCoreListener>();
+
+    [TestMethod]
+    public void Mef_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ProgressListener>();
+
+    [TestMethod]
+    [DataRow(null)]
+    [DataRow("something")]
+    public void StartProgress_ReturnsCompletedTaskAlways(string parameter)
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<ProgressListener, ISLCoreListener>();
-        }
+        var testSubject = new ProgressListener();
 
-        [TestMethod]
-        public void Mef_CheckIsSingleton()
-        {
-            MefTestHelpers.CheckIsSingletonMefComponent<ProgressListener>();
-        }
+        var result = testSubject.StartProgressAsync(CreateStartProgressParam(parameter));
 
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow(5)]
-        [DataRow("something")]
-        public void StartProgress_ReturnsCompletedTaskAlways(object parameter)
-        {
-            var testSubject = new ProgressListener();
-
-            var result = testSubject.StartProgressAsync(parameter);
-
-            result.Should().Be(Task.CompletedTask);
-        }
-
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow(5)]
-        [DataRow("something")]
-        public void ReportProgress_ReturnsCompletedTaskAlways(object parameter)
-        {
-            var testSubject = new ProgressListener();
-
-            var result = testSubject.ReportProgressAsync(parameter);
-
-            result.Should().Be(Task.CompletedTask);
-        }
+        result.Should().Be(Task.CompletedTask);
     }
+
+    private static StartProgressParams CreateStartProgressParam(string title) => new(taskId: "id", title: title, message: null, configurationScopeId: null, indeterminate: true, cancellable: true);
 }

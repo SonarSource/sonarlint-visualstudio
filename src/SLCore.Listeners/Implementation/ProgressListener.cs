@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Progress;
 
@@ -29,22 +28,12 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class ProgressListener : IProgressListener
     {
-        /// <summary>
-        /// Stub method for compability with SLCore. We do not support progress
-        /// </summary>
-        /// <param name="parameters">Parameter's here for compability we discard it</param>
-        public Task StartProgressAsync(object parameters)
-        {
-            return Task.CompletedTask;
-        }
+        /// <inheritdoc />
+        public Task StartProgressAsync(StartProgressParams parameters) => Task.CompletedTask;
 
-        /// <summary>
-        /// Stub method for compability with SLCore. We do not support progress
-        /// </summary>
-        /// <param name="parameters">Parameter's here for compability we discard it</param>
-        public Task ReportProgressAsync(object parameters)
+        /// <inheritdoc />
+        public void ReportProgress(ReportProgressParams parameters)
         {
-            return Task.CompletedTask;
         }
     }
 }
