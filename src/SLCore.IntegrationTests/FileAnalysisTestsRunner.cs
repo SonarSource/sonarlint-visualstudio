@@ -21,6 +21,7 @@
 using System.IO;
 using System.Text;
 using NSubstitute.ClearExtensions;
+using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
@@ -72,7 +73,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
 
         rpcLogger = new TestLogger();
         slCoreTestRunner.AddListener(new LoggerListener(rpcLogger));
-        slCoreTestRunner.AddListener(new ProgressListener());
+        slCoreTestRunner.AddListener(new ProgressListener(Substitute.For<IStatusBarNotifier>()));
         slCoreTestRunner.AddListener(analysisListener);
         slCoreTestRunner.AddListener(listFilesListener);
         slCoreTestRunner.AddListener(new AnalysisConfigurationProviderListener());

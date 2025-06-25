@@ -258,4 +258,7 @@
   <data name="AnalysisCancelled" xml:space="preserve">
     <value>Analysis with id {0} has been cancelled.</value>
   </data>
+  <data name="LongProductName" xml:space="preserve">
+    <value>SonarQube for Visual Studio</value>
+  </data>
 </root>

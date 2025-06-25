@@ -18,16 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Progress;
+using SonarLint.VisualStudio.SLCore.Protocol;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests;
 
 [TestClass]
 public class ProgressListenerTests
 {
+    private ProgressListener testSubject;
+    private IStatusBarNotifier statusNotifier;
+
+    [TestInitialize]
+    public void TestInitialize()
+    {
+        statusNotifier = Substitute.For<IStatusBarNotifier>();
+        testSubject = new ProgressListener(statusNotifier);
+    }
+
     [TestMethod]
-    public void MefCtor_CheckIsExported() => MefTestHelpers.CheckTypeCanBeImported<ProgressListener, ISLCoreListener>();
+    public void MefCtor_CheckIsExported() => MefTestHelpers.CheckTypeCanBeImported<ProgressListener, ISLCoreListener>(MefTestHelpers.CreateExport<IStatusBarNotifier>());
 
     [TestMethod]
     public void Mef_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ProgressListener>();
@@ -35,14 +47,39 @@ public class ProgressListenerTests
     [TestMethod]
     [DataRow(null)]
     [DataRow("something")]
-    public void StartProgress_ReturnsCompletedTaskAlways(string parameter)
+    public void StartProgress_UpdatesStatus(string title)
     {
-        var testSubject = new ProgressListener();
+        var startProgressParams = CreateStartProgressParam(title);
 
-        var result = testSubject.StartProgressAsync(CreateStartProgressParam(parameter));
+        var result = testSubject.StartProgressAsync(startProgressParams);
 
+        statusNotifier.Received(1).Notify(Arg.Is<string>(s => s == $"{SLCoreStrings.LongProductName}: {title}"), false);
         result.Should().Be(Task.CompletedTask);
     }
 
+    [TestMethod]
+    [DataRow(null)]
+    [DataRow("something")]
+    public void ReportProgressAsync_ProgressUpdateNotification_UpdatesStatus(string title)
+    {
+        var reportProgressParam = CreateReportProgressParams(new ProgressUpdateNotification(title, 0));
+
+        testSubject.ReportProgress(reportProgressParam);
+
+        statusNotifier.Received(1).Notify(Arg.Is<string>(s => s == $"{SLCoreStrings.LongProductName}: {title}"), false);
+    }
+
+    [TestMethod]
+    public void ReportProgressAsync_ProgressEndNotification_ClearsStatus()
+    {
+        var reportProgressParam = CreateReportProgressParams(new ProgressEndNotification());
+
+        testSubject.ReportProgress(reportProgressParam);
+
+        statusNotifier.Received(1).Notify(Arg.Is<string>(s => s == string.Empty), false);
+    }
+
     private static StartProgressParams CreateStartProgressParam(string title) => new(taskId: "id", title: title, message: null, configurationScopeId: null, indeterminate: true, cancellable: true);
+
+    private static ReportProgressParams CreateReportProgressParams(Either<ProgressUpdateNotification, ProgressEndNotification> notification) => new ReportProgressParams("id", notification);
 }

@@ -286,6 +286,15 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarQube for Visual Studio.
+        /// </summary>
+        public static string LongProductName {
+            get {
+                return ResourceManager.GetString("LongProductName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unexpected enum value.
         /// </summary>
         public static string ModelExtensions_UnexpectedValue {
