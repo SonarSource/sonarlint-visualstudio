@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.CFamily;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.SLCore;
@@ -44,6 +45,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
     private readonly IVcxCompilationDatabaseUpdater vcxCompilationDatabaseUpdater;
     private readonly ISLCoreServiceProvider serviceProvider;
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
+    private readonly IActiveCompilationDatabaseTracker activeCompilationDatabaseTracker;
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
     private bool disposed;
@@ -55,6 +57,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
         ISLCoreServiceProvider serviceProvider,
         IActiveConfigScopeTracker activeConfigScopeTracker,
         IInitializationProcessorFactory initializationProcessorFactory,
+        IActiveCompilationDatabaseTracker activeCompilationDatabaseTracker,
         IThreadHandling threadHandling,
         ILogger logger)
     {
@@ -62,6 +65,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
         this.vcxCompilationDatabaseUpdater = vcxCompilationDatabaseUpdater;
         this.serviceProvider = serviceProvider;
         this.activeConfigScopeTracker = activeConfigScopeTracker;
+        this.activeCompilationDatabaseTracker = activeCompilationDatabaseTracker;
         this.threadHandling = threadHandling;
         this.logger = logger.ForVerboseContext(nameof(DocumentEventsHandler));
 
@@ -121,7 +125,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
     private void OnOpenDocumentRenamed(object sender, DocumentRenamedEventArgs args) =>
         threadHandling.RunOnBackgroundThread(async () =>
         {
-            if (args.Document.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
+            if (ShouldUpdateVcxCompilationDatabase(args.Document.DetectedLanguages))
             {
                 await vcxCompilationDatabaseUpdater.RenameFileAsync(args.OldFilePath, args.Document.FullPath);
             }
@@ -134,7 +138,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
     private void OnDocumentClosed(object sender, DocumentEventArgs args) =>
         threadHandling.RunOnBackgroundThread(async () =>
         {
-            if (args.Document.DetectedLanguages.Contains(AnalysisLanguage.CFamily))
+            if (ShouldUpdateVcxCompilationDatabase(args.Document.DetectedLanguages))
             {
                 await vcxCompilationDatabaseUpdater.RemoveFileAsync(args.Document.FullPath);
             }
@@ -162,7 +166,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
 
     private async Task AddFilesToCompilationDatabaseAsync(params Document[] documents)
     {
-        foreach (var document in documents.Where(document => document.DetectedLanguages.Contains(AnalysisLanguage.CFamily)))
+        foreach (var document in documents.Where(document => ShouldUpdateVcxCompilationDatabase(document.DetectedLanguages)))
         {
             await vcxCompilationDatabaseUpdater.AddFileAsync(document.FullPath);
         }
@@ -205,4 +209,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
         logger.LogVerbose(SLCoreStrings.ConfigScopeNotInitialized);
         return false;
     }
+
+    private bool ShouldUpdateVcxCompilationDatabase(IEnumerable<AnalysisLanguage> fileLanguages) =>
+        fileLanguages.Contains(AnalysisLanguage.CFamily) && activeCompilationDatabaseTracker.DatabaseType == CompilationDatabaseType.VCX;
 }

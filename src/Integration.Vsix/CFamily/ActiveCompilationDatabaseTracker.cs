@@ -27,7 +27,6 @@ using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Core.Synchronization;
-using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Analysis;
 
@@ -47,6 +46,7 @@ internal sealed class ActiveCompilationDatabaseTracker : IActiveCompilationDatab
 
     public IInitializationProcessor InitializationProcessor { get; }
     public string DatabasePath { get; private set; }
+    public CompilationDatabaseType DatabaseType { get; private set; }
 
     [ImportingConstructor]
     public ActiveCompilationDatabaseTracker(
@@ -90,9 +90,12 @@ internal sealed class ActiveCompilationDatabaseTracker : IActiveCompilationDatab
     {
         using (await asyncLock.AcquireAsync())
         {
-            if (activeConfigScopeTracker.Current is { Id: { } currentConfigScopeId } && serviceProvider.TryGetTransientService(out ICFamilyAnalysisConfigurationSLCoreService cFamilyAnalysisConfiguration))
+            if (activeConfigScopeTracker.Current is { Id: { } currentConfigScopeId } &&
+                serviceProvider.TryGetTransientService(out ICFamilyAnalysisConfigurationSLCoreService cFamilyAnalysisConfiguration))
             {
-                DatabasePath = cMakeCompilationDatabaseLocator.Locate() ?? activeVcxCompilationDatabase.DatabasePath;
+                var cmakeCompilationDatabasePath = cMakeCompilationDatabaseLocator.Locate();
+                DatabasePath = cmakeCompilationDatabasePath ?? activeVcxCompilationDatabase.DatabasePath;
+                DatabaseType = cmakeCompilationDatabasePath != null ? CompilationDatabaseType.CMake : CompilationDatabaseType.VCX;
                 cFamilyAnalysisConfiguration.DidChangePathToCompileCommands(new(currentConfigScopeId, DatabasePath));
             }
             else

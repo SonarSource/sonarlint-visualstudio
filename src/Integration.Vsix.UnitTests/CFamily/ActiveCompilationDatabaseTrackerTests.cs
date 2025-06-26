@@ -137,11 +137,12 @@ public class ActiveCompilationDatabaseTrackerTests
     [TestMethod]
     public void Ctor_ConfigScopeExists_InitializesWithCMakeDatabase()
     {
-        SetCurrentConfiguration(DefaultConfigScope,CmakeJson, null);
+        SetCurrentConfiguration(DefaultConfigScope, CmakeJson, null);
 
         var testSubject = CreateAndInitializeTestSubject();
 
         testSubject.DatabasePath.Should().Be(CmakeJson);
+        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.CMake);
         VerifyCalledService(DefaultConfigScope, CmakeJson);
         VerifyOnBackgroundThreadLockTakenAndReleased(1);
     }
@@ -149,11 +150,12 @@ public class ActiveCompilationDatabaseTrackerTests
     [TestMethod]
     public void Ctor_ConfigScopeExists_CMakeDatabaseNotAvailable_InitializesWithVcxDatabase()
     {
-        SetCurrentConfiguration(DefaultConfigScope,null, VcxJson);
+        SetCurrentConfiguration(DefaultConfigScope, null, VcxJson);
 
         var testSubject = CreateAndInitializeTestSubject();
 
         testSubject.DatabasePath.Should().Be(VcxJson);
+        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.VCX);
         VerifyCalledService(DefaultConfigScope, VcxJson);
         VerifyOnBackgroundThreadLockTakenAndReleased(1);
     }
@@ -188,11 +190,12 @@ public class ActiveCompilationDatabaseTrackerTests
     public void CurrentConfigurationScopeChanged_PrefersCMakeDatabase_WhenAvailable()
     {
         var testSubject = CreateAndInitializeTestSubject();
-        SetCurrentConfiguration(DefaultConfigScope,CmakeJson, null);
+        SetCurrentConfiguration(DefaultConfigScope, CmakeJson, null);
 
         RaiseEventNewConfigScope();
 
         testSubject.DatabasePath.Should().Be(CmakeJson);
+        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.CMake);
         VerifyCalledService(DefaultConfigScope, CmakeJson);
         VerifyOnBackgroundThreadLockTakenAndReleased(1 + 1);
     }
@@ -201,11 +204,12 @@ public class ActiveCompilationDatabaseTrackerTests
     public void CurrentConfigurationScopeChanged_FallsBackToVcxDatabase_WhenCMakeNotAvailable()
     {
         var testSubject = CreateAndInitializeTestSubject();
-        SetCurrentConfiguration(DefaultConfigScope,null, VcxJson);
+        SetCurrentConfiguration(DefaultConfigScope, null, VcxJson);
 
         RaiseEventNewConfigScope();
 
         testSubject.DatabasePath.Should().Be(VcxJson);
+        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.VCX);
         VerifyCalledService(DefaultConfigScope, VcxJson);
         VerifyOnBackgroundThreadLockTakenAndReleased(1 + 1);
     }
@@ -213,7 +217,7 @@ public class ActiveCompilationDatabaseTrackerTests
     [TestMethod]
     public void CurrentConfigurationScopeChanged_SameConfigurationScopeId_UpdateSLCore()
     {
-        SetCurrentConfiguration(DefaultConfigScope,CmakeJson, null);
+        SetCurrentConfiguration(DefaultConfigScope, CmakeJson, null);
         var testSubject = CreateAndInitializeTestSubject();
         testSubject.DatabasePath.Should().Be(CmakeJson); // sanity check
         VerifyOnBackgroundThreadLockTakenAndReleased(1);
@@ -222,6 +226,7 @@ public class ActiveCompilationDatabaseTrackerTests
         RaiseEventNewConfigScope();
 
         testSubject.DatabasePath.Should().Be(VcxJson);
+        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.VCX);
         VerifyCalledService(DefaultConfigScope, VcxJson);
         VerifyOnBackgroundThreadLockTakenAndReleased(1 + 1);
     }
@@ -229,7 +234,7 @@ public class ActiveCompilationDatabaseTrackerTests
     [TestMethod]
     public void CurrentConfigurationScopeChanged_DifferentConfigurationScope_UpdateSLCore()
     {
-        SetCurrentConfiguration(DefaultConfigScope,CmakeJson, null);
+        SetCurrentConfiguration(DefaultConfigScope, CmakeJson, null);
         var testSubject = CreateAndInitializeTestSubject();
         testSubject.DatabasePath.Should().Be(CmakeJson); // sanity check
         VerifyOnBackgroundThreadLockTakenAndReleased(1);
@@ -239,6 +244,7 @@ public class ActiveCompilationDatabaseTrackerTests
         RaiseEventNewConfigScope();
 
         testSubject.DatabasePath.Should().Be(VcxJson);
+        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.VCX);
         VerifyCalledService(scope2, VcxJson);
         VerifyOnBackgroundThreadLockTakenAndReleased(1 + 1);
     }
@@ -246,7 +252,7 @@ public class ActiveCompilationDatabaseTrackerTests
     [TestMethod]
     public void CurrentConfigurationScopeChanged_SameConfigurationScopeId_NotRedeclaredButUpdated_DoesNothing()
     {
-        SetCurrentConfiguration(DefaultConfigScope,CmakeJson, null);
+        SetCurrentConfiguration(DefaultConfigScope, CmakeJson, null);
         var testSubject = CreateAndInitializeTestSubject();
         testSubject.DatabasePath.Should().Be(CmakeJson); // sanity check
         VerifyOnBackgroundThreadLockTakenAndReleased(1);
@@ -257,6 +263,7 @@ public class ActiveCompilationDatabaseTrackerTests
         activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith<ConfigurationScopeChangedEventArgs>(new(false));
 
         testSubject.DatabasePath.Should().Be(CmakeJson);
+        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.CMake);
         cFamilyAnalysisConfigurationSlCore.DidNotReceiveWithAnyArgs().DidChangePathToCompileCommands(default);
         cMakeCompilationDatabaseLocator.DidNotReceiveWithAnyArgs().Locate();
         _ = activeVcxCompilationDatabase.DidNotReceiveWithAnyArgs().DatabasePath;
@@ -266,7 +273,7 @@ public class ActiveCompilationDatabaseTrackerTests
     [TestMethod]
     public void CurrentConfigurationScopeChanged_ServiceNotAvailable_SetsToNull()
     {
-        SetCurrentConfiguration(DefaultConfigScope,CmakeJson, null);
+        SetCurrentConfiguration(DefaultConfigScope, CmakeJson, null);
         var testSubject = CreateAndInitializeTestSubject();
 
         serviceProvider.TryGetTransientService(out ICFamilyAnalysisConfigurationSLCoreService _).Returns(false);
@@ -282,7 +289,7 @@ public class ActiveCompilationDatabaseTrackerTests
     [TestMethod]
     public void CurrentConfigurationScopeChanged_ServiceNotAvailableAndThenAvailable_Recovers()
     {
-        SetCurrentConfiguration(DefaultConfigScope,CmakeJson, null);
+        SetCurrentConfiguration(DefaultConfigScope, CmakeJson, null);
         var testSubject = CreateAndInitializeTestSubject();
         serviceProvider.TryGetTransientService(out ICFamilyAnalysisConfigurationSLCoreService _).Returns(false);
 
@@ -318,8 +325,7 @@ public class ActiveCompilationDatabaseTrackerTests
         });
     }
 
-    private void RaiseEventNewConfigScope() =>
-        activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith<ConfigurationScopeChangedEventArgs>(new(true));
+    private void RaiseEventNewConfigScope() => activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith<ConfigurationScopeChangedEventArgs>(new(true));
 
     private void SetCurrentConfiguration(string configurationScopeId, string cmakePath, string vcxPath)
     {
@@ -333,7 +339,6 @@ public class ActiveCompilationDatabaseTrackerTests
         cFamilyAnalysisConfigurationSlCore.Received()
             .DidChangePathToCompileCommands(Arg.Is<DidChangePathToCompileCommandsParams>(
                 x => x.configurationScopeId == configurationScopeId && x.pathToCompileCommands == databasePath));
-
 
     private void VerifyOnBackgroundThreadLockTakenAndReleased(int count) =>
         Received.InOrder(() =>
