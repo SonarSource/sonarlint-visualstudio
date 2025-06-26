@@ -76,10 +76,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             int operationThreadId = -1;
 
             CancellableJobRunner testSubject = null;
+            var manualResetEvent = new ManualResetEvent(false);
 
             Action op1 = () =>
             {
                 testLogger.WriteLine("[Test] Executing op1");
+                // the testSubject can be null, which throws a null reference exception and sets the runner to Faulted
+                // so we to make sure that op1 is executed after the CancellableJobRunner.Start returned the job runner to prevent flakiness
+                manualResetEvent.WaitOne();
                 testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Running);
 
                 op1Executed = true;
@@ -90,6 +94,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             // Act
             testSubject = CancellableJobRunner.Start("my job", new[] { op1, op2 }, progressRecorder, testLogger);
+            manualResetEvent.Set();
             WaitForRunnerToFinish(testSubject, testLogger);
 
             // Assert
