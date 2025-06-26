@@ -79,6 +79,7 @@ public class SLCoreConstantsProviderTests
             BackendCapability.FULL_SYNCHRONIZATION,
             BackendCapability.TELEMETRY,
             BackendCapability.MONITORING,
+            BackendCapability.ISSUE_STREAMING,
         ];
         var actual = testSubject.BackendCapabilities;
 

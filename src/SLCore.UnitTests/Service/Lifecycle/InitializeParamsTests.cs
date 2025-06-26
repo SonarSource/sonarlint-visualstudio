@@ -44,6 +44,7 @@ public class InitializeParamsTests
                 BackendCapability.FULL_SYNCHRONIZATION,
                 BackendCapability.TELEMETRY,
                 BackendCapability.MONITORING,
+                BackendCapability.ISSUE_STREAMING,
             ],
             "storageRoot",
             "workDir",
@@ -86,7 +87,8 @@ public class InitializeParamsTests
                                           "SERVER_SENT_EVENTS",
                                           "FULL_SYNCHRONIZATION",
                                           "TELEMETRY",
-                                          "MONITORING"
+                                          "MONITORING",
+                                          "ISSUE_STREAMING"
                                         ],
                                         "storageRoot": "storageRoot",
                                         "workDir": "workDir",
