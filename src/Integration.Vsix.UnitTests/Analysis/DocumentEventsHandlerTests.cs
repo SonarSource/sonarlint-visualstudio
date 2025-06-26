@@ -189,7 +189,7 @@ public class DocumentEventsHandlerTests
     {
         CreateAndInitializeTestSubject();
         MockCompilationDatabaseType(CompilationDatabaseType.CMake);
-        var args = new DocumentOpenedEventArgs(CFamilyDocument, string.Empty);
+        var args = new DocumentOpenedEventArgs(CFamilyDocument);
 
         documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
 
@@ -296,7 +296,7 @@ public class DocumentEventsHandlerTests
     {
         CreateAndInitializeTestSubject();
         MockCompilationDatabaseType(CompilationDatabaseType.CMake);
-        var args = new DocumentSavedEventArgs(CFamilyDocument, string.Empty);
+        var args = new DocumentSavedEventArgs(CFamilyDocument);
 
         documentTracker.DocumentSaved += Raise.EventWith(documentTracker, args);
 
