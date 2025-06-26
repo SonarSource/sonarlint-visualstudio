@@ -18,50 +18,68 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
+using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Listener.Progress;
+using SonarLint.VisualStudio.SLCore.Protocol;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
+namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests;
+
+[TestClass]
+public class ProgressListenerTests
 {
-    [TestClass]
-    public class ProgressListenerTests
+    private ProgressListener testSubject;
+    private IStatusBarNotifier statusNotifier;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<ProgressListener, ISLCoreListener>();
-        }
-
-        [TestMethod]
-        public void Mef_CheckIsSingleton()
-        {
-            MefTestHelpers.CheckIsSingletonMefComponent<ProgressListener>();
-        }
-
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow(5)]
-        [DataRow("something")]
-        public void StartProgress_ReturnsCompletedTaskAlways(object parameter)
-        {
-            var testSubject = new ProgressListener();
-
-            var result = testSubject.StartProgressAsync(parameter);
-
-            result.Should().Be(Task.CompletedTask);
-        }
-
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow(5)]
-        [DataRow("something")]
-        public void ReportProgress_ReturnsCompletedTaskAlways(object parameter)
-        {
-            var testSubject = new ProgressListener();
-
-            var result = testSubject.ReportProgressAsync(parameter);
-
-            result.Should().Be(Task.CompletedTask);
-        }
+        statusNotifier = Substitute.For<IStatusBarNotifier>();
+        testSubject = new ProgressListener(statusNotifier);
     }
+
+    [TestMethod]
+    public void MefCtor_CheckIsExported() => MefTestHelpers.CheckTypeCanBeImported<ProgressListener, ISLCoreListener>(MefTestHelpers.CreateExport<IStatusBarNotifier>());
+
+    [TestMethod]
+    public void Mef_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ProgressListener>();
+
+    [TestMethod]
+    [DataRow(null)]
+    [DataRow("something")]
+    public void StartProgress_UpdatesStatus(string title)
+    {
+        var startProgressParams = CreateStartProgressParam(title);
+
+        var result = testSubject.StartProgressAsync(startProgressParams);
+
+        statusNotifier.Received(1).Notify(Arg.Is<string>(s => s == $"{SLCoreStrings.LongProductName}: {title}"), false);
+        result.Should().Be(Task.CompletedTask);
+    }
+
+    [TestMethod]
+    [DataRow(null)]
+    [DataRow("something")]
+    public void ReportProgressAsync_ProgressUpdateNotification_UpdatesStatus(string title)
+    {
+        var reportProgressParam = CreateReportProgressParams(new ProgressUpdateNotification(title, 0));
+
+        testSubject.ReportProgress(reportProgressParam);
+
+        statusNotifier.Received(1).Notify(Arg.Is<string>(s => s == $"{SLCoreStrings.LongProductName}: {title}"), false);
+    }
+
+    [TestMethod]
+    public void ReportProgressAsync_ProgressEndNotification_ClearsStatus()
+    {
+        var reportProgressParam = CreateReportProgressParams(new ProgressEndNotification());
+
+        testSubject.ReportProgress(reportProgressParam);
+
+        statusNotifier.Received(1).Notify(Arg.Is<string>(s => s == string.Empty), false);
+    }
+
+    private static StartProgressParams CreateStartProgressParam(string title) => new(taskId: "id", title: title, message: null, configurationScopeId: null, indeterminate: true, cancellable: true);
+
+    private static ReportProgressParams CreateReportProgressParams(Either<ProgressUpdateNotification, ProgressEndNotification> notification) => new ReportProgressParams("id", notification);
 }

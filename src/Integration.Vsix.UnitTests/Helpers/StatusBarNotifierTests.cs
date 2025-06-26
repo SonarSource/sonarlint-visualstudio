@@ -18,32 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 {
     [TestClass]
     public class StatusBarNotifierTests
     {
-        private object statusIcon = (short) Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General;
+        private object statusIcon = (short)Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General;
 
         [TestMethod]
-        public void MefCtor_CheckIsExported()
-         => MefTestHelpers.CheckTypeCanBeImported<StatusBarNotifier, IStatusBarNotifier>(
-             MefTestHelpers.CreateExport<IVsUIServiceOperation>());
+        public void MefCtor_CheckIsExported() =>
+            MefTestHelpers.CheckTypeCanBeImported<StatusBarNotifier, IStatusBarNotifier>(
+                MefTestHelpers.CreateExport<IVsUIServiceOperation>());
 
         [TestMethod]
-        public void MefCtor_CheckIsSingleton()
-            => MefTestHelpers.CheckIsSingletonMefComponent<StatusBarNotifier>();
+        public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<StatusBarNotifier>();
 
         [TestMethod]
         public void MefCtor_DoesNotCallAnyServices()
@@ -80,10 +73,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 
             // Set up the mock to invoke the operation with the supplied VS service
             serviceOp.Setup(x => x.Execute<IVsStatusbar, IVsStatusbar>(It.IsAny<Action<IVsStatusbar>>()))
-                .Callback<Action<IVsStatusbar>>(op => {
+                .Callback<Action<IVsStatusbar>>(op =>
+                {
                     callback?.Invoke();
                     op(svcToPassToCallback);
-                    });
+                });
 
             return serviceOp.Object;
         }

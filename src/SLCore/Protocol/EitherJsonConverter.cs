@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -57,7 +54,7 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
             if (!rightProperties.Any() && !leftProperties.Any())
             {
                 throw new ArgumentException(
-                    $"Types {typeof(TLeft)} and {typeof(TRight)} have equivalent sets of properties and fields");
+                    string.Format(SLCoreStrings.EitherJsonConverter_EquivalentPropertiesExceptionMessage, typeof(TLeft), typeof(TRight)));
             }
         }
 
@@ -69,48 +66,70 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
                 .ToHashSet();
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
-            var either = (Either<TLeft, TRight>)value;
+            var either = value as Either<TLeft, TRight>;
 
-            if (either.Left != null)
+            if (either?.Left != null)
             {
                 serializer.Serialize(writer, either.Left);
                 return;
             }
 
-            serializer.Serialize(writer, either.Right);
+            serializer.Serialize(writer, either?.Right);
         }
 
-        public override bool CanConvert(Type objectType)
-        {
-            return objectType == typeof(Either<TLeft, TRight>);
-        }
+        public override bool CanConvert(Type objectType) => objectType == typeof(Either<TLeft, TRight>);
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue,
+        public override object ReadJson(
+            JsonReader reader,
+            Type objectType,
+            object? existingValue,
             JsonSerializer serializer)
         {
             var jToken = JToken.ReadFrom(reader);
-
             if (jToken.Type != JTokenType.Object)
             {
                 throw new InvalidOperationException($"Expected {JTokenType.Object}, found {jToken.Type}");
             }
 
-            foreach (var jsonProperty in jToken.Children().Select(x => x.Path))
+            var jsonProperties = jToken.Children().Select(x => x.Path).ToList();
+            var either = ChooseForNonEmptyProperties(jsonProperties, jToken) ?? ChooseForEmptyProperties(jsonProperties, jToken);
+
+            return either ?? throw new InvalidOperationException(SLCoreStrings.EitherJsonConverter_NoDefinitiveChoiceExceptionMessage);
+        }
+
+        private Either<TLeft, TRight>? ChooseForNonEmptyProperties(List<string> jsonProperties, JToken jToken)
+        {
+            foreach (var jsonProperty in jsonProperties)
             {
                 if (leftProperties.Contains(jsonProperty))
                 {
-                    return Either<TLeft, TRight>.CreateLeft(jToken.ToObject<TLeft>());
+                    return Either<TLeft, TRight>.CreateLeft(jToken.ToObject<TLeft>()!);
                 }
 
                 if (rightProperties.Contains(jsonProperty))
                 {
-                    return Either<TLeft, TRight>.CreateRight(jToken.ToObject<TRight>());
+                    return Either<TLeft, TRight>.CreateRight(jToken.ToObject<TRight>()!);
                 }
             }
+            return null;
+        }
 
-            throw new InvalidOperationException("Unable to make a definitive choice between Either options");
+        private Either<TLeft, TRight>? ChooseForEmptyProperties(List<string> jsonProperties, JToken jToken)
+        {
+            if (!jsonProperties.Any())
+            {
+                if (!leftProperties.Any())
+                {
+                    return Either<TLeft, TRight>.CreateLeft(jToken.ToObject<TLeft>()!);
+                }
+                if (!rightProperties.Any())
+                {
+                    return Either<TLeft, TRight>.CreateRight(jToken.ToObject<TRight>()!);
+                }
+            }
+            return null;
         }
     }
 }

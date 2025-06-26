@@ -223,6 +223,24 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Types {0} and {1} have equivalent sets of properties and fields.
+        /// </summary>
+        public static string EitherJsonConverter_EquivalentPropertiesExceptionMessage {
+            get {
+                return ResourceManager.GetString("EitherJsonConverter_EquivalentPropertiesExceptionMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to make a definitive choice between Either options.
+        /// </summary>
+        public static string EitherJsonConverter_NoDefinitiveChoiceExceptionMessage {
+            get {
+                return ResourceManager.GetString("EitherJsonConverter_NoDefinitiveChoiceExceptionMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to FileExclusions.
         /// </summary>
         public static string FileExclusionsLogContext {
@@ -282,6 +300,15 @@ namespace SonarLint.VisualStudio.SLCore {
         public static string ListFiles_NoRoot {
             get {
                 return ResourceManager.GetString("ListFiles_NoRoot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube for Visual Studio.
+        /// </summary>
+        public static string LongProductName {
+            get {
+                return ResourceManager.GetString("LongProductName", resourceCulture);
             }
         }
         
