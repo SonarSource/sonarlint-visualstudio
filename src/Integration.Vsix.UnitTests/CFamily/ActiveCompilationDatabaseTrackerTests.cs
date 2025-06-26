@@ -142,7 +142,7 @@ public class ActiveCompilationDatabaseTrackerTests
         var testSubject = CreateAndInitializeTestSubject();
 
         testSubject.DatabasePath.Should().Be(CmakeJson);
-        testSubject.IsCmake.Should().BeTrue();
+        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.CMake);
         VerifyCalledService(DefaultConfigScope, CmakeJson);
         VerifyOnBackgroundThreadLockTakenAndReleased(1);
     }
@@ -155,7 +155,7 @@ public class ActiveCompilationDatabaseTrackerTests
         var testSubject = CreateAndInitializeTestSubject();
 
         testSubject.DatabasePath.Should().Be(VcxJson);
-        testSubject.IsCmake.Should().BeFalse();
+        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.VCX);
         VerifyCalledService(DefaultConfigScope, VcxJson);
         VerifyOnBackgroundThreadLockTakenAndReleased(1);
     }
@@ -195,7 +195,7 @@ public class ActiveCompilationDatabaseTrackerTests
         RaiseEventNewConfigScope();
 
         testSubject.DatabasePath.Should().Be(CmakeJson);
-        testSubject.IsCmake.Should().BeTrue();
+        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.CMake);
         VerifyCalledService(DefaultConfigScope, CmakeJson);
         VerifyOnBackgroundThreadLockTakenAndReleased(1 + 1);
     }
@@ -209,7 +209,7 @@ public class ActiveCompilationDatabaseTrackerTests
         RaiseEventNewConfigScope();
 
         testSubject.DatabasePath.Should().Be(VcxJson);
-        testSubject.IsCmake.Should().BeFalse();
+        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.VCX);
         VerifyCalledService(DefaultConfigScope, VcxJson);
         VerifyOnBackgroundThreadLockTakenAndReleased(1 + 1);
     }
@@ -226,7 +226,7 @@ public class ActiveCompilationDatabaseTrackerTests
         RaiseEventNewConfigScope();
 
         testSubject.DatabasePath.Should().Be(VcxJson);
-        testSubject.IsCmake.Should().BeFalse();
+        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.VCX);
         VerifyCalledService(DefaultConfigScope, VcxJson);
         VerifyOnBackgroundThreadLockTakenAndReleased(1 + 1);
     }
@@ -244,7 +244,7 @@ public class ActiveCompilationDatabaseTrackerTests
         RaiseEventNewConfigScope();
 
         testSubject.DatabasePath.Should().Be(VcxJson);
-        testSubject.IsCmake.Should().BeFalse();
+        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.VCX);
         VerifyCalledService(scope2, VcxJson);
         VerifyOnBackgroundThreadLockTakenAndReleased(1 + 1);
     }
@@ -263,7 +263,7 @@ public class ActiveCompilationDatabaseTrackerTests
         activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith<ConfigurationScopeChangedEventArgs>(new(false));
 
         testSubject.DatabasePath.Should().Be(CmakeJson);
-        testSubject.IsCmake.Should().BeTrue();
+        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.CMake);
         cFamilyAnalysisConfigurationSlCore.DidNotReceiveWithAnyArgs().DidChangePathToCompileCommands(default);
         cMakeCompilationDatabaseLocator.DidNotReceiveWithAnyArgs().Locate();
         _ = activeVcxCompilationDatabase.DidNotReceiveWithAnyArgs().DatabasePath;

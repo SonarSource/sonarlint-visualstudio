@@ -67,6 +67,7 @@ public class DocumentEventsHandlerTests
         MockThreadHandling();
         MockCurrentConfigScope(ConfigurationScope);
         MockSlCoreServices();
+        MockCompilationDatabaseType(CompilationDatabaseType.VCX);
         logger = Substitute.For<ILogger>();
         logger.ForVerboseContext(Arg.Any<string[]>()).Returns(logger);
         initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<DocumentEventsHandler>(threadHandling, logger);
@@ -187,7 +188,7 @@ public class DocumentEventsHandlerTests
     public void DocumentOpened_CFamily_CMakeProject_DoesNotAddFileToVcxCompilationDbButNotifiesSlCore()
     {
         CreateAndInitializeTestSubject();
-        activeCompilationDatabaseTracker.IsCmake.Returns(true);
+        MockCompilationDatabaseType(CompilationDatabaseType.CMake);
         var args = new DocumentOpenedEventArgs(CFamilyDocument, string.Empty);
 
         documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
@@ -214,7 +215,7 @@ public class DocumentEventsHandlerTests
     public void DocumentClosed_CFamily_CMakeProject_DoesNotRemoveFileFromCompilationDbButNotifiesSlCore()
     {
         CreateAndInitializeTestSubject();
-        activeCompilationDatabaseTracker.IsCmake.Returns(true);
+        MockCompilationDatabaseType(CompilationDatabaseType.CMake);
         var args = new DocumentEventArgs(CFamilyDocument);
 
         documentTracker.DocumentClosed += Raise.EventWith(documentTracker, args);
@@ -242,7 +243,7 @@ public class DocumentEventsHandlerTests
     public void OpenDocumentRenamed_CFamily_CMakeProject_DoesNotRenameFileInCompilationDbButNotifiesSlCore()
     {
         CreateAndInitializeTestSubject();
-        activeCompilationDatabaseTracker.IsCmake.Returns(true);
+        MockCompilationDatabaseType(CompilationDatabaseType.CMake);
         var args = new DocumentRenamedEventArgs(CFamilyDocument, CFamilyOldFile);
 
         documentTracker.OpenDocumentRenamed += Raise.EventWith(documentTracker, args);
@@ -294,7 +295,7 @@ public class DocumentEventsHandlerTests
     public void DocumentSaved_CFamily_CmakeProject_DoesNotAddFileToVcxCompilationDb()
     {
         CreateAndInitializeTestSubject();
-        activeCompilationDatabaseTracker.IsCmake.Returns(true);
+        MockCompilationDatabaseType(CompilationDatabaseType.CMake);
         var args = new DocumentSavedEventArgs(CFamilyDocument, string.Empty);
 
         documentTracker.DocumentSaved += Raise.EventWith(documentTracker, args);
@@ -633,4 +634,6 @@ public class DocumentEventsHandlerTests
     private static bool IsExpectedFileUri(FileUri fileUri, string path) => fileUri.LocalPath == new FileUri(path).LocalPath;
 
     private void MockCurrentConfigScope(ConfigurationScope configurationScope) => activeConfigScopeTracker.Current.Returns(configurationScope);
+
+    private void MockCompilationDatabaseType(CompilationDatabaseType type) => activeCompilationDatabaseTracker.DatabaseType.Returns(type);
 }

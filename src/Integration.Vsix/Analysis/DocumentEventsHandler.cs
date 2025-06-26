@@ -210,5 +210,6 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
         return false;
     }
 
-    private bool ShouldUpdateVcxCompilationDatabase(IEnumerable<AnalysisLanguage> fileLanguages) => fileLanguages.Contains(AnalysisLanguage.CFamily) && !activeCompilationDatabaseTracker.IsCmake;
+    private bool ShouldUpdateVcxCompilationDatabase(IEnumerable<AnalysisLanguage> fileLanguages) =>
+        fileLanguages.Contains(AnalysisLanguage.CFamily) && activeCompilationDatabaseTracker.DatabaseType == CompilationDatabaseType.VCX;
 }

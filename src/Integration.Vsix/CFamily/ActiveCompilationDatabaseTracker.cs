@@ -46,7 +46,7 @@ internal sealed class ActiveCompilationDatabaseTracker : IActiveCompilationDatab
 
     public IInitializationProcessor InitializationProcessor { get; }
     public string DatabasePath { get; private set; }
-    public bool IsCmake { get; private set; }
+    public CompilationDatabaseType DatabaseType { get; private set; }
 
     [ImportingConstructor]
     public ActiveCompilationDatabaseTracker(
@@ -95,7 +95,7 @@ internal sealed class ActiveCompilationDatabaseTracker : IActiveCompilationDatab
             {
                 var cmakeCompilationDatabasePath = cMakeCompilationDatabaseLocator.Locate();
                 DatabasePath = cmakeCompilationDatabasePath ?? activeVcxCompilationDatabase.DatabasePath;
-                IsCmake = cmakeCompilationDatabasePath != null;
+                DatabaseType = cmakeCompilationDatabasePath != null ? CompilationDatabaseType.CMake : CompilationDatabaseType.VCX;
                 cFamilyAnalysisConfiguration.DidChangePathToCompileCommands(new(currentConfigScopeId, DatabasePath));
             }
             else
