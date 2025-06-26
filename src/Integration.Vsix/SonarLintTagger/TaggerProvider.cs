@@ -129,7 +129,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
                 .Select<IIssueTracker, Action>(it => it.UpdateAnalysisState)
                 .ToList(); // create a fixed list - the user could close a file before the reanalysis completes which would cause the enumeration to change
             var documentsToAnalyzeCount = operations.Count;
-            operations.Add(() => NotifyFileTracker(filteredIssueTrackers));
+            operations.Add(() => NotifyFileTrackerOpenFilesCurrentState(filteredIssueTrackers));
             operations.Add(() => ExecuteAnalysisAsync(filteredIssueTrackers).Forget());
 
             reanalysisProgressHandler = new StatusBarReanalysisProgressHandler(vsStatusBar, logger);
@@ -154,15 +154,16 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
         return issueTrackers.Where(it => filePaths.Contains(it.LastAnalysisFilePath, StringComparer.OrdinalIgnoreCase));
     }
 
-    private void NotifyFileTracker(string filePath, string content) => fileTracker.AddFiles(CreateSourceFile(filePath, content));
+    private void NotifyFileTrackerFileChanged(string filePath) => fileTracker.AddFiles(CreateSourceFile(filePath));
 
-    private void NotifyFileTracker(IEnumerable<IIssueTracker> filteredIssueTrackers)
+    private void NotifyFileTrackerOpenFilesCurrentState(IEnumerable<IIssueTracker> filteredIssueTrackers)
     {
-        var sourceFilesToUpdate = filteredIssueTrackers.Select(it => CreateSourceFile(it.LastAnalysisFilePath, it.GetText()));
+        // still sending the content here because the files may be dirty in this case
+        var sourceFilesToUpdate = filteredIssueTrackers.Select(file => CreateSourceFile(file.LastAnalysisFilePath, file.GetText()));
         fileTracker.AddFiles(sourceFilesToUpdate.ToArray());
     }
 
-    private static SourceFile CreateSourceFile(string filePath, string content) => new(filePath, content: content);
+    private static SourceFile CreateSourceFile(string filePath, string content = null) => new(filePath, content: content);
 
     #region IViewTaggerProvider members
 
@@ -234,20 +235,19 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
         }
 
         var filePath = issueTracker.LastAnalysisFilePath;
-        var content = issueTracker.GetText();
 
-        NotifyFileTracker(filePath, content);
+        NotifyFileTrackerFileChanged(filePath);
         // The lifetime of an issue tracker is tied to a single document. A document is opened, then a tracker is created.
-        DocumentOpened?.Invoke(this, new DocumentOpenedEventArgs(new Document(filePath, issueTracker.DetectedLanguages), content));
+        DocumentOpened?.Invoke(this, new DocumentOpenedEventArgs(new Document(filePath, issueTracker.DetectedLanguages)));
     }
 
     public void OnOpenDocumentRenamed(string newFilePath, string oldFilePath, IEnumerable<AnalysisLanguage> detectedLanguages) =>
         OpenDocumentRenamed?.Invoke(this, new DocumentRenamedEventArgs(new Document(newFilePath, detectedLanguages), oldFilePath));
 
-    public void OnDocumentSaved(string fullPath, string newContent, IEnumerable<AnalysisLanguage> detectedLanguages)
+    public void OnDocumentSaved(string fullPath, IEnumerable<AnalysisLanguage> detectedLanguages)
     {
-        NotifyFileTracker(fullPath, newContent);
-        DocumentSaved?.Invoke(this, new DocumentSavedEventArgs(new Document(fullPath, detectedLanguages), newContent));
+        NotifyFileTrackerFileChanged(fullPath);
+        DocumentSaved?.Invoke(this, new DocumentSavedEventArgs(new Document(fullPath, detectedLanguages)));
     }
 
     public void OnDocumentClosed(IIssueTracker issueTracker)

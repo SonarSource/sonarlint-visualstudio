@@ -333,8 +333,7 @@ public class TaggerProviderTests
 
         eventHandler.Received(1).Invoke(testSubject, Arg.Is<DocumentOpenedEventArgs>(e =>
             e.Document.FullPath == filePath &&
-            e.Document.DetectedLanguages == DetectedLanguagesJsTs &&
-            e.Content == content));
+            e.Document.DetectedLanguages == DetectedLanguagesJsTs));
     }
 
     [TestMethod]
@@ -347,7 +346,7 @@ public class TaggerProviderTests
 
         testSubject.AddIssueTracker(issueTracker);
 
-        mockFileTracker.Received(1).AddFiles(new SourceFile(filePath, encoding: null, content));
+        mockFileTracker.Received(1).AddFiles(new SourceFile(filePath, encoding: null, content: null));
     }
 
     [TestMethod]
@@ -389,7 +388,7 @@ public class TaggerProviderTests
 
         RaiseFileEvent(doc, FileActionTypes.ContentSavedToDisk);
 
-        mockFileTracker.Received(1).AddFiles(new SourceFile(filePath, encoding: null, content));
+        mockFileTracker.Received(1).AddFiles(new SourceFile(filePath, encoding: null, content: null));
     }
 
     [TestMethod]
