@@ -18,21 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
+namespace SonarLint.VisualStudio.Core.Notifications;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Progress;
-
-public interface IProgressListener : ISLCoreListener
+public interface IStatusBarNotifier
 {
-    /// <summary>
-    /// Requests the client to start showing progress to users.
-    /// If there is an error while creating the corresponding UI, clients can fail the returned future.
-    /// Tasks requesting the start of the progress should wait for the client to answer before continuing.
-    /// </summary>
-    Task StartProgressAsync(StartProgressParams parameters);
-
-    /// <summary>
-    /// Reports progress to the client.
-    /// </summary>
-    void ReportProgress(ReportProgressParams parameters);
+    void Notify(string message, bool showSpinner);
 }

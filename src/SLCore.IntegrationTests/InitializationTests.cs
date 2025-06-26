@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
@@ -62,7 +63,7 @@ public class InitializationTests
         using (var slCoreTestRunner = new SLCoreTestRunner(infrastructureLogger, slCoreStdErrorLogger, TestContext.TestName))
         {
             slCoreTestRunner.AddListener(new LoggerListener(rpcLogger));
-            slCoreTestRunner.AddListener(new ProgressListener());
+            slCoreTestRunner.AddListener(new ProgressListener(Substitute.For<IStatusBarNotifier>()));
             slCoreTestRunner.AddListener(analysisListener);
             await slCoreTestRunner.Start(rpcLogger);
 
@@ -92,14 +93,13 @@ public class InitializationTests
     private static async Task WaitForAnalysisReadiness(TaskCompletionSource<DidChangeAnalysisReadinessParams> analysisReadyCompletionSource) =>
         await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task, "analysis readiness");
 
-
-
-    private static IAnalysisListener SetUpAnalysisListenerToUnblockOnAnalysisReady(string configScopeId,
+    private static IAnalysisListener SetUpAnalysisListenerToUnblockOnAnalysisReady(
+        string configScopeId,
         TaskCompletionSource<DidChangeAnalysisReadinessParams> analysisReadyCompletionSource)
     {
         var analysisListener = Substitute.For<IAnalysisListener>();
         analysisListener.When(l =>
-            l.DidChangeAnalysisReadiness(Arg.Is<DidChangeAnalysisReadinessParams>(a =>
+                l.DidChangeAnalysisReadiness(Arg.Is<DidChangeAnalysisReadinessParams>(a =>
                     a.areReadyForAnalysis && a.configurationScopeIds.Contains(configScopeId))))
             .Do(info => analysisReadyCompletionSource.SetResult(info.Arg<DidChangeAnalysisReadinessParams>()));
         return analysisListener;

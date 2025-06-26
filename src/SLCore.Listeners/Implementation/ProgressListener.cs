@@ -19,7 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
+using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Progress;
 
@@ -27,24 +27,29 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 {
     [Export(typeof(ISLCoreListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class ProgressListener : IProgressListener
+    [method: ImportingConstructor]
+    public class ProgressListener(IStatusBarNotifier statusNotifier) : IProgressListener
     {
-        /// <summary>
-        /// Stub method for compability with SLCore. We do not support progress
-        /// </summary>
-        /// <param name="parameters">Parameter's here for compability we discard it</param>
-        public Task StartProgressAsync(object parameters)
+        /// <inheritdoc />
+        public Task StartProgressAsync(StartProgressParams parameters)
         {
+            statusNotifier.Notify(FormatNotification(parameters.title), false);
             return Task.CompletedTask;
         }
 
-        /// <summary>
-        /// Stub method for compability with SLCore. We do not support progress
-        /// </summary>
-        /// <param name="parameters">Parameter's here for compability we discard it</param>
-        public Task ReportProgressAsync(object parameters)
+        /// <inheritdoc />
+        public void ReportProgress(ReportProgressParams parameters)
         {
-            return Task.CompletedTask;
+            if (parameters.notification is { Left: { } updateNotification })
+            {
+                statusNotifier.Notify(FormatNotification(updateNotification.message), false);
+            }
+            else if (parameters.notification.Right != null)
+            {
+                statusNotifier.Notify(string.Empty, false);
+            }
         }
+
+        private static string FormatNotification(string message) => $"{SLCoreStrings.LongProductName}: {message}";
     }
 }
