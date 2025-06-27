@@ -126,8 +126,11 @@
   <data name="DisabledNotificationsFailedToLoad" xml:space="preserve">
     <value>[Notifications] Couldn't load disabled notification config. Notification will be shown.</value>
   </data>
-  <data name="FileMonitory_CreatedDirectory" xml:space="preserve">
+  <data name="FileMonitor_CreatedDirectory" xml:space="preserve">
     <value>Created directory: {0}</value>
+  </data>
+  <data name="FileMonitor_CleanedUpDirectory" xml:space="preserve">
+    <value>Cleaned up empty directory: {0}</value>
   </data>
   <data name="FileMonitor_ErrorHandlingFileChange" xml:space="preserve">
     <value>Error handling file change notification: {0}</value>

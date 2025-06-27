@@ -87,6 +87,24 @@ namespace SonarLint.VisualStudio.Core.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cleaned up empty directory: {0}.
+        /// </summary>
+        internal static string FileMonitor_CleanedUpDirectory {
+            get {
+                return ResourceManager.GetString("FileMonitor_CleanedUpDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Created directory: {0}.
+        /// </summary>
+        internal static string FileMonitor_CreatedDirectory {
+            get {
+                return ResourceManager.GetString("FileMonitor_CreatedDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error handling file change notification: {0}.
         /// </summary>
         internal static string FileMonitor_ErrorHandlingFileChange {
@@ -101,15 +119,6 @@ namespace SonarLint.VisualStudio.Core.Resources {
         internal static string FileMonitor_FileChanged {
             get {
                 return ResourceManager.GetString("FileMonitor_FileChanged", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Created directory: {0}.
-        /// </summary>
-        internal static string FileMonitory_CreatedDirectory {
-            get {
-                return ResourceManager.GetString("FileMonitory_CreatedDirectory", resourceCulture);
             }
         }
     }
