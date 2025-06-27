@@ -5,14 +5,14 @@
         <Identity Id="SonarLint.0DE19254-1DCA-4479-8EAF-58E5D677FF4D" Version="8.22.0.0" Language="en-US" Publisher="SonarSource" />
         <DisplayName>SonarQube for Visual Studio 2022</DisplayName>
         <Preview>false</Preview>
-        <Description xml:space="preserve">Linter to detect and fix coding issues locally in C#, VB.NET, C, C++, JS, TS and CSS code. Use with SonarQube (Server, Cloud) for optimal team performance.</Description>
+        <Description xml:space="preserve">Advanced linter to detect and fix coding issues locally in C#, VB.NET, C/C++, JS, TS, CSS, HTML, T-SQL. Use with SonarQube (Server, Cloud) for optimal team performance.</Description>
         <MoreInfo>http://vs.sonarlint.org</MoreInfo>
         <License>LICENSE</License>
         <GettingStartedGuide>http://vs.sonarlint.org</GettingStartedGuide>
         <ReleaseNotes>https://github.com/SonarSource/sonarlint-visualstudio/releases</ReleaseNotes>
         <Icon>Resources\sonarqube_for_ide_logo_128px.png</Icon>
         <PreviewImage>Resources\sonarqube_for_ide_logo_200px.png</PreviewImage>
-        <Tags>SonarLint;SonarQube;Analysis;Roslyn;CodeAnalysis;Analyzer;Code analysis;Sonar;Debt;Technical;Tech;Quality</Tags>
+        <Tags>SonarLint;SonarQube;Analysis;Roslyn;CodeAnalysis;Analyzer;Code analysis;Sonar;Debt;Technical;Tech;Quality;C#;VB.NET;C;C++;Javascript;TypeScript;CSS;HTML;T-SQL</Tags>
     </Metadata>
     <Installation>
       <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0.31808.319,18.0)">
