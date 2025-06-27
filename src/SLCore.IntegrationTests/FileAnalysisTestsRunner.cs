@@ -21,8 +21,10 @@
 using System.IO;
 using System.Text;
 using NSubstitute.ClearExtensions;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
@@ -59,6 +61,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
     private readonly TestLogger slCoreStdErrorLogger;
     private readonly TestLogger rpcLogger;
     private readonly IGetFileExclusionsListener getFileExclusionsListener;
+    private readonly IClientFileDtoFactory clientFileDtoFactory;
 
     private FileAnalysisTestsRunner(string testClassName, Dictionary<string, StandaloneRuleConfigDto> initialRuleConfig = null)
     {
@@ -79,6 +82,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         slCoreTestRunner.AddListener(new AnalysisConfigurationProviderListener());
         slCoreTestRunner.AddListener(getFileExclusionsListener);
 
+        clientFileDtoFactory = new ClientFileDtoFactory(infrastructureLogger);
         slCoreTestRunner.MockInitialSlCoreRulesSettings(initialRuleConfig ?? []);
 
         activeConfigScopeTracker = new ActiveConfigScopeTracker(slCoreTestRunner.SLCoreServiceProvider,
@@ -116,8 +120,28 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
     {
         try
         {
-            var analysisRaisedIssues = await SetUpAnalysis(testingFile, configScope, sendContent, compilationDatabasePath);
+            var analysisRaisedIssues = await SetUpAnalysis(configScope, sendContent, compilationDatabasePath, testingFile);
             NotifyDidOpenFile(configScope, testingFile.GetFullPath());
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task, "analysis completion", AnalysisCompletionWaitTimeout);
+            return analysisRaisedIssues.Task.Result.issuesByFileUri;
+        }
+        finally
+        {
+            activeConfigScopeTracker.RemoveCurrentConfigScope();
+        }
+    }
+
+    public async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunAutomaticMultipleFileAnalysis(
+        List<ITestingFile> testingFiles,
+        string configScope,
+        string compilationDatabasePath = null)
+    {
+        try
+        {
+            // SlCore triggers analysis when DidUpdateFileSystem is invoked only for the opened files
+            testingFiles.ForEach(x => NotifyDidOpenFile(configScope, x.GetFullPath()));
+            var analysisRaisedIssues = await SetUpAnalysis(configScope, sendContent: false, compilationDatabasePath, testingFiles.ToArray());
+            NotifyDidUpdateFileSystem(configScope, testingFiles);
             await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task, "analysis completion", AnalysisCompletionWaitTimeout);
             return analysisRaisedIssues.Task.Result.issuesByFileUri;
         }
@@ -134,7 +158,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
     {
         try
         {
-            var analysisRaisedIssues = await SetUpAnalysis(testingFile, configScope, sendContent);
+            var analysisRaisedIssues = await SetUpAnalysis(configScope, sendContent, compilationDatabasePath: null, testingFile);
             var fileExclusionListenerCompletionSource = new TaskCompletionSource<int>();
             getFileExclusionsListener.When(x => x.GetFileExclusionsAsync(Arg.Any<GetFileExclusionsParams>())).Do(callInfo =>
             {
@@ -156,12 +180,12 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
     }
 
     private async Task<TaskCompletionSource<RaiseFindingParams<RaisedIssueDto>>> SetUpAnalysis(
-        ITestingFile testingFile,
         string configScope,
         bool sendContent,
-        string compilationDatabasePath = null)
+        string compilationDatabasePath = null,
+        params ITestingFile[] testingFiles)
     {
-        SetUpListFiles(testingFile.RelativePath, sendContent, configScope, testingFile.GetFullPath());
+        SetUpListFiles(sendContent, configScope, testingFiles);
         var analysisReadyCompletionSource = new TaskCompletionSource<DidChangeAnalysisReadinessParams>();
         var analysisRaisedIssues = new TaskCompletionSource<RaiseFindingParams<RaisedIssueDto>>();
         SetUpAnalysisListener(
@@ -186,16 +210,15 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
     }
 
     private void SetUpListFiles(
-        string fileToAnalyzeRelativePath,
         bool sendContent,
         string configScope,
-        string fileToAnalyzeAbsolutePath)
+        params ITestingFile[] testingFiles)
     {
         listFilesListener.ClearSubstitute();
+        var testFilesToAnalyze = testingFiles.Select(x =>
+            CreateFileToAnalyze(x.RelativePath, x.GetFullPath(), configScope, sendContent)).ToList();
         listFilesListener.ListFilesAsync(Arg.Is<ListFilesParams>(p => p.configScopeId == configScope))
-            .Returns(Task.FromResult(new ListFilesResponse([
-                CreateFileToAnalyze(fileToAnalyzeRelativePath, fileToAnalyzeAbsolutePath, configScope, sendContent)
-            ])));
+            .Returns(Task.FromResult(new ListFilesResponse(testFilesToAnalyze)));
     }
 
     private void SetUpAnalysisListener(
@@ -222,9 +245,20 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
 
     private void NotifyDidOpenFile(string configScopeId, string fileToAnalyzeAbsolutePath)
     {
-        slCoreTestRunner.SLCoreServiceProvider.TryGetTransientService(out IFileRpcSLCoreService analysisService).Should().BeTrue();
+        slCoreTestRunner.SLCoreServiceProvider.TryGetTransientService(out IFileRpcSLCoreService fileRpcService).Should().BeTrue();
 
-        analysisService.DidOpenFile(new DidOpenFileParams(configScopeId, new FileUri(fileToAnalyzeAbsolutePath)));
+        fileRpcService!.DidOpenFile(new DidOpenFileParams(configScopeId, new FileUri(fileToAnalyzeAbsolutePath)));
+    }
+
+    private void NotifyDidUpdateFileSystem(string configScopeId, List<ITestingFile> testingFiles)
+    {
+        slCoreTestRunner.SLCoreServiceProvider.TryGetTransientService(out IFileRpcSLCoreService fileRpcService).Should().BeTrue();
+
+        var root = Path.GetPathRoot(testingFiles[0].GetFullPath());
+        var sourceFiles = testingFiles.Select(x => new SourceFile(x.GetFullPath()));
+        var addedFiles = sourceFiles.Select(x => clientFileDtoFactory.CreateOrNull(configScopeId, root, x));
+
+        fileRpcService!.DidUpdateFileSystem(new DidUpdateFileSystemParams([], [], addedFiles.ToList()));
     }
 
     private static ClientFileDto CreateFileToAnalyze(
