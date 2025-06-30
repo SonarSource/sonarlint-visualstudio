@@ -360,7 +360,7 @@ public class QuickFixActionsSourceTests
         return new QuickFixActionsSource(lightBulbBroker,
             bufferTagAggregatorFactoryService.Object,
             textView,
-            textBuffer.CurrentSnapshot,
+            textBuffer,
             Mock.Of<IQuickFixesTelemetryManager>(),
             logger,
             threadHandling);
