@@ -30,7 +30,6 @@ public record SourceFile
     {
         FilePath = filePath;
         Content = content?.Content;
-        // Encoding = encoding ?? System.Text.Encoding.UTF8.WebName;
         Encoding = content?.Encoding;
     }
 }
