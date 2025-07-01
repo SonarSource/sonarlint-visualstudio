@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.Core.FileMonitor
                     logger.WriteLine(Strings.FileMonitor_CleanedUpDirectory, monitoredFile.DirectoryName);
                 }
             }
-            catch (Exception e)
+            catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
             {
                 logger.LogVerbose(e.Message);
             }
