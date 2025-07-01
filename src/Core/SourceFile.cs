@@ -26,10 +26,13 @@ public record SourceFile
     public string Content { get; }
     public string Encoding { get; }
 
-    public SourceFile(string filePath, string encoding = null, string content = null)
+    public SourceFile(string filePath, SourceFileContent content = null)
     {
         FilePath = filePath;
-        Content = content;
-        Encoding = encoding ?? System.Text.Encoding.UTF8.WebName;
+        Content = content?.Content;
+        // Encoding = encoding ?? System.Text.Encoding.UTF8.WebName;
+        Encoding = content?.Encoding;
     }
 }
+
+public record SourceFileContent(string Content, string Encoding);
