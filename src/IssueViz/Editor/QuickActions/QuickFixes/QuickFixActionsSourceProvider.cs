@@ -60,7 +60,7 @@ internal class QuickFixActionsSourceProvider(
         return new QuickFixActionsSource(lightBulbBroker,
             bufferTagAggregatorFactoryService,
             textView,
-            textBuffer.CurrentSnapshot,
+            textBuffer,
             quickFixesTelemetryManager,
             logger,
             threadHandling);

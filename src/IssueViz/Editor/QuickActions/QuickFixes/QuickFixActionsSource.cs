@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
 internal sealed class QuickFixActionsSource : ISuggestedActionsSource
 {
     private readonly ILightBulbBroker lightBulbBroker;
-    private readonly ITextSnapshot textSnapshot;
+    private readonly ITextBuffer textBuffer;
     private readonly ITextView textView;
     private readonly ILogger logger;
     private readonly IThreadHandling threadHandling;
@@ -43,19 +43,19 @@ internal sealed class QuickFixActionsSource : ISuggestedActionsSource
     public QuickFixActionsSource(ILightBulbBroker lightBulbBroker,
         IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
         ITextView textView,
-        ITextSnapshot textSnapshot,
+        ITextBuffer textBuffer,
         IQuickFixesTelemetryManager quickFixesTelemetryManager,
         ILogger logger,
         IThreadHandling threadHandling)
     {
         this.lightBulbBroker = lightBulbBroker;
-        this.textSnapshot = textSnapshot;
+        this.textBuffer = textBuffer;
         this.textView = textView;
         this.quickFixesTelemetryManager = quickFixesTelemetryManager;
         this.logger = logger;
         this.threadHandling = threadHandling;
 
-        issueLocationsTagAggregator = bufferTagAggregatorFactoryService.CreateTagAggregator<IIssueLocationTag>(textSnapshot.TextBuffer);
+        issueLocationsTagAggregator = bufferTagAggregatorFactoryService.CreateTagAggregator<IIssueLocationTag>(textBuffer);
         issueLocationsTagAggregator.TagsChanged += TagAggregator_TagsChanged;
     }
 
@@ -74,9 +74,9 @@ internal sealed class QuickFixActionsSource : ISuggestedActionsSource
             {
                 foreach (var issueViz in issuesWithFixes)
                 {
-                    var applicableFixes = issueViz.QuickFixes.Where(x => x.CanBeApplied(textSnapshot));
+                    var applicableFixes = issueViz.QuickFixes.Where(x => x.CanBeApplied(textBuffer.CurrentSnapshot));
 
-                    allActions.AddRange(applicableFixes.Select(fix => new QuickFixSuggestedAction(fix, textSnapshot.TextBuffer, issueViz, quickFixesTelemetryManager, logger)));
+                    allActions.AddRange(applicableFixes.Select(fix => new QuickFixSuggestedAction(fix, textBuffer, issueViz, quickFixesTelemetryManager, logger)));
                 }
             }
         }
@@ -112,7 +112,7 @@ internal sealed class QuickFixActionsSource : ISuggestedActionsSource
             .Select(x => x.Tag.Location)
             .OfType<IAnalysisIssueVisualization>()
             .Where(x =>
-                x.QuickFixes.Any(fix => fix.CanBeApplied(textSnapshot)));
+                x.QuickFixes.Any(fix => fix.CanBeApplied(textBuffer.CurrentSnapshot)));
 
         return issuesWithFixes.Any();
     }
