@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
         }
 
         [TestMethod]
-        public void NonCriticalExceptions_AreSuppressed()
+        public void FileChangedEvent_NonCriticalExceptions_AreSuppressed()
         {
             using var testSubject = new SingleFileMonitor(watcherFactoryMock, fileSystemMock, FileFullPath, testLogger);
             testSubject.FileChanged += (s, args) => throw new InvalidOperationException("XXX non-critical exception");
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
         }
 
         [TestMethod]
-        public void CriticalExceptions_AreNotSuppressed()
+        public void FileChangedEvent_CriticalExceptions_AreNotSuppressed()
         {
             using var testSubject = new SingleFileMonitor(watcherFactoryMock, fileSystemMock, FileFullPath, testLogger);
             testSubject.FileChanged += (s, args) => throw new StackOverflowException("YYY critical exception");
@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
         }
 
         [TestMethod]
-        public void DirectoryDoesNotExist_IsCreated()
+        public void Ctor_DirectoryDoesNotExist_IsCreated()
         {
             directoryInfoMock.Exists.Returns(false);
 
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
         }
 
         [TestMethod]
-        public void DirectoryDoesExist_IsNotCreated()
+        public void Ctor_DirectoryDoesExist_IsNotCreated()
         {
             using var testSubject = new SingleFileMonitor(watcherFactoryMock, fileSystemMock, FileFullPath, testLogger);
 
@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
         }
 
         [TestMethod]
-        public void OnlyRaisesEventsIfHasListeners()
+        public void FileChanged_EventOnlyRaisesEventsIfHasListeners()
         {
             var testDir = CreateTestSpecificDirectory();
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
@@ -152,7 +152,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
         }
 
         [TestMethod]
-        public void DisposeWhileHandlingFileEvent_DisposedWatcherIsNotCalled()
+        public void Dispose_WhileHandlingFileEvent_DisposedWatcherIsNotCalled()
         {
             // Timing issue - event notifications happen on a different thread so we could
             // be in the middle of handling an event when the monitor is disposed. This
@@ -322,7 +322,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
         }
 
         [TestMethod]
-        public void WatchesProvidedFile()
+        public void Ctor_WatchesProvidedFile()
         {
             using var testSubject = new SingleFileMonitor(watcherFactoryMock, fileSystemMock, FileFullPath, new TestLogger());
 
