@@ -41,7 +41,7 @@ public class MultipleFilesAnalysis
     {
         List<ITestingFile> testingFiles = [FileAnalysisTestsRunner.SecretsIssues, FileAnalysisTestsRunner.HtmlIssues];
 
-        var issuesByFileUri = await _sharedFileAnalysisTestsRunner.RunAutomaticMultipleFileAnalysis(
+        var issuesByFileUri = await _sharedFileAnalysisTestsRunner.RunAnalysisOnUpdateFiles(
             testingFiles, TestContext.TestName);
 
         issuesByFileUri.Should().HaveCount(testingFiles.Count);

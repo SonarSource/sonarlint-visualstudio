@@ -112,7 +112,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         return getFileExclusionsListener;
     }
 
-    public async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunAutomaticFileAnalysis(
+    public async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunAnalysisOnOpenFile(
         ITestingFile testingFile,
         string configScope,
         bool sendContent = false,
@@ -131,7 +131,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         }
     }
 
-    public async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunAutomaticMultipleFileAnalysis(
+    public async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunAnalysisOnUpdateFiles(
         List<ITestingFile> testingFiles,
         string configScope,
         string compilationDatabasePath = null)

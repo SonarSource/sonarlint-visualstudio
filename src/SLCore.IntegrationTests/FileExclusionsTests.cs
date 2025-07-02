@@ -61,7 +61,7 @@ public class FileExclusionsTests
         var fileExclusionsListener = sharedFileAnalysisTestsRunner.SetFileExclusionsInMockedListener(configScope, analysisSettings.NormalizedFileExclusions);
 
         var fileAnalysisResults
-            = await sharedFileAnalysisTestsRunner.RunAutomaticFileAnalysis(testingFile, configScope, compilationDatabasePath: (testingFile as ITestingCFamily)?.GetCompilationDatabasePath());
+            = await sharedFileAnalysisTestsRunner.RunAnalysisOnOpenFile(testingFile, configScope, compilationDatabasePath: (testingFile as ITestingCFamily)?.GetCompilationDatabasePath());
 
         await fileExclusionsListener.Received().GetFileExclusionsAsync(Arg.Is<GetFileExclusionsParams>(p => p.configurationScopeId == configScope));
         fileAnalysisResults.Count.Should().Be(1);

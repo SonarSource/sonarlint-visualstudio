@@ -87,7 +87,7 @@ public class SimpleAnalysisTests
 
     private async Task DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(ITestingFile testingFile, bool sendContent)
     {
-        var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunAutomaticFileAnalysis(
+        var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunAnalysisOnOpenFile(
             testingFile,
             TestContext.TestName,
             sendContent: sendContent,
