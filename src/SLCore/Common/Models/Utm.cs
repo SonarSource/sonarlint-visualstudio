@@ -18,8 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Common.Models;
+using SonarLint.VisualStudio.Core.Telemetry;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Connection.Models;
+namespace SonarLint.VisualStudio.SLCore.Common.Models;
 
-public record HelpGenerateUserTokenParams(string serverUrl, Utm? utm);
+public record Utm(
+    string content,
+    string term,
+    string medium = TelemetryLinks.Utm.Medium,
+    string source = TelemetryLinks.Utm.Source);

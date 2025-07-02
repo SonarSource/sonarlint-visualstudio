@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -165,10 +166,15 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
                 return failedResponse;
             }
 
-            var serverUri = connectionInfo.ServerType == ConnectionServerType.SonarCloud ? connectionInfo.CloudServerRegion.Url.ToString() : connectionInfo.Id;
+            var serverUri = connectionInfo.ServerType == ConnectionServerType.SonarCloud
+                ? connectionInfo.CloudServerRegion.Url.ToString()
+                : connectionInfo.Id;
+
             try
             {
-                var slCoreResponse = await connectionConfigurationSlCoreService.HelpGenerateUserTokenAsync(new HelpGenerateUserTokenParams(serverUri), cancellationToken);
+                var utmContent = connectionInfo.ServerType == ConnectionServerType.SonarCloud ? "create-edit-sqc-connection" : "create-edit-sqs-connection";
+                var utm = new Utm(utmContent, "generate-token");
+                var slCoreResponse = await connectionConfigurationSlCoreService.HelpGenerateUserTokenAsync(new HelpGenerateUserTokenParams(serverUri, utm), cancellationToken);
                 return new ResponseStatusWithData<string>(true, slCoreResponse.token);
             }
             catch (Exception ex)

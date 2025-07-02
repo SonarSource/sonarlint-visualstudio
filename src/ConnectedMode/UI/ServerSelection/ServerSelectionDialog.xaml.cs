@@ -43,8 +43,8 @@ public partial class ServerSelectionDialog : Window
 
     private void FreeSonaQubeCloudFreeTier_OnRequestNavigate(object sender, RequestNavigateEventArgs e)
     {
-        var telemetryLinkId = TelemetryLinks.SonarQubeCloudFreeSignUpId;
-        connectedModeUiServices.BrowserService.Navigate(TelemetryLinks.LinkIdToUrls[telemetryLinkId]);
+        const string telemetryLinkId = TelemetryLinks.SonarQubeCloudFreeSignUpId;
+        connectedModeUiServices.BrowserService.Navigate(TelemetryLinks.Utm.Link(TelemetryLinks.LinkIdToUrls[telemetryLinkId], "create-new-connection", "create-sonarqube-cloud-free-tier"));
         telemetryManager.LinkClicked(telemetryLinkId);
     }
 

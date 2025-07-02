@@ -487,19 +487,23 @@ public class SlCoreConnectionAdapterTests
 
         await testSubject.GenerateTokenAsync(connection.Info, CancellationToken.None);
 
+        var expectedUrl = sonarCloudConnection.ServerUri.ToString();
+        var expectedUtm = new Utm("create-edit-sqc-connection", "generate-token");
         await connectionConfigurationSlCoreService.Received(1).HelpGenerateUserTokenAsync(
-            Arg.Is<HelpGenerateUserTokenParams>(param => param.serverUrl == sonarCloudConnection.ServerUri.ToString()), Arg.Any<CancellationToken>());
+            Arg.Is<HelpGenerateUserTokenParams>(param => param.serverUrl == expectedUrl && param.utm == expectedUtm), Arg.Any<CancellationToken>());
     }
 
     [TestMethod]
-    public async Task GenerateTokenAsync_SonarQubeConnectionInfo__CallsSlCoreWithCorrectParams()
+    public async Task GenerateTokenAsync_SonarQubeConnectionInfo_CallsSlCoreWithCorrectParams()
     {
         var connection = sonarQubeConnection.ToConnection();
 
         await testSubject.GenerateTokenAsync(connection.Info, CancellationToken.None);
 
+        var expectedUrl = sonarQubeConnection.ServerUri.ToString();
+        var expectedUtm = new Utm("create-edit-sqs-connection", "generate-token");
         await connectionConfigurationSlCoreService.Received(1).HelpGenerateUserTokenAsync(
-            Arg.Is<HelpGenerateUserTokenParams>(param => param.serverUrl == sonarQubeConnection.ServerUri.ToString()), Arg.Any<CancellationToken>());
+            Arg.Is<HelpGenerateUserTokenParams>(param => param.serverUrl == expectedUrl && param.utm == expectedUtm), Arg.Any<CancellationToken>());
     }
 
     [TestMethod]
@@ -517,7 +521,7 @@ public class SlCoreConnectionAdapterTests
     [TestMethod]
     public async Task GenerateTokenAsync_ThrowsException_ReturnsFalse()
     {
-        var exception = "error";
+        const string exception = "error";
         connectionConfigurationSlCoreService
             .When(slCore => slCore.HelpGenerateUserTokenAsync(Arg.Any<HelpGenerateUserTokenParams>(), Arg.Any<CancellationToken>()))
             .Do(_ => throw new Exception(exception));

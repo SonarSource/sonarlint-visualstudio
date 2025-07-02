@@ -18,11 +18,38 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Text;
+
 namespace SonarLint.VisualStudio.Core.Telemetry;
 
 public static class TelemetryLinks
 {
     public const string SonarQubeCloudFreeSignUpId = "sonarqubeCloudFreeSignUp";
 
-    public static Dictionary<string, string> LinkIdToUrls { get; } = new() { { SonarQubeCloudFreeSignUpId, "https://www.sonarsource.com/products/sonarcloud/signup-free/" } };
+    public static Dictionary<string, string> LinkIdToUrls { get; } = new()
+    {
+        { SonarQubeCloudFreeSignUpId, "https://www.sonarsource.com/products/sonarcloud/signup-free/" }
+    };
+
+    public static class Utm
+    {
+        public const string Medium = "referral";
+        public const string Source = "sq-ide-product-visual-studio";
+
+        public static string Link(string url, string content, string term)
+        {
+            var sb = new StringBuilder(url);
+            sb.Append(url.Contains("?") ? "&" : "?");
+            sb.Append("utm_medium=");
+            sb.Append(Medium);
+            sb.Append("&utm_source=");
+            sb.Append(Source);
+            sb.Append("&utm_content=");
+            sb.Append(content);
+            sb.Append("&utm_term=");
+            sb.Append(term);
+            return sb.ToString();
+        }
+    }
+
 }
