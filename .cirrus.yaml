@@ -4,6 +4,8 @@ env:
   ARTIFACTORY_USER: VAULT[development/artifactory/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-private-reader username]
   CIRRUS_SHELL: bash
   USERPROFILE: C:\sonar-ci # Fixes error MSB3073 and path too long issue with restored packages
+  SLACK_TOKEN: VAULT[development/kv/data/slack data.token]
+  SLACK_CHANNEL: squad-ide-visualstudio-bots
   TMP_DIR: C:\sonar-ci\temp
   MSVC: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.40.33807\bin\Hostx64\x64\cl.exe # Required for CFamily integration tests
 
@@ -21,6 +23,11 @@ calculate_version_script_definition: &CALCULATE_VERSION_SCRIPT_DEFINITION |
 
 only_sonarsource_qa: &ONLY_SONARSOURCE_QA
   $CIRRUS_USER_COLLABORATOR == "true" && $CIRRUS_TAG == "" && ($CIRRUS_PR != "" || $CIRRUS_BRANCH == "master" || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH =~ "dogfood-on-.*")
+
+slack_notification_script_definition: &SLACK_NOTIFICATION_SCRIPT_DEFINITION |
+  if [[ $CIRRUS_BRANCH == "master" || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH =~ "dogfood-on-.*" ]]; then
+    source slack-failure-notification
+  fi
 
 build_task:
   ec2_instance: *INSTANCE_DEFINITION
@@ -113,6 +120,7 @@ build_task:
   on_failure:
     asmref_artifacts:
       path: "src/Integration.Vsix/**/AsmRef_*.txt"
+    slack_notification_script: *SLACK_NOTIFICATION_SCRIPT_DEFINITION
 
 dogfood_task:
   depends_on:
@@ -133,6 +141,8 @@ dogfood_task:
     PrivateGalleryCreator.exe --input=binaries --terminate --source="https://binaries.sonarsource.com/SonarLint-for-VisualStudio/dogfood/${PROJECT_VERSION}/" --output=/tmp/dogfood/feed.xml
     cp binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix /tmp/dogfood/${PROJECT_VERSION}/
     .cirrus/publish-dogfood-site.sh /tmp/dogfood
+  on_failure:
+    slack_notification_script: *SLACK_NOTIFICATION_SCRIPT_DEFINITION
 
 mend_scan_task:
   ec2_instance: *INSTANCE_DEFINITION
@@ -152,6 +162,8 @@ mend_scan_task:
   always:
     ws_artifacts:
       path: "whitesource/**/*"
+  on_failure:
+    slack_notification_script: *SLACK_NOTIFICATION_SCRIPT_DEFINITION
 
 promote_task:
   ec2_instance: *INSTANCE_DEFINITION
@@ -167,3 +179,5 @@ promote_task:
     jf rt bpr --status "it-passed" "${CIRRUS_REPO_NAME}" "${CI_BUILD_NUMBER}" "sonarsource-public-builds"
     source cirrus-env PROMOTE
     github-notify-promotion
+  on_failure:
+    slack_notification_script: *SLACK_NOTIFICATION_SCRIPT_DEFINITION
