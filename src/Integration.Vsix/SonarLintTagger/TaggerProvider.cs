@@ -52,6 +52,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
 {
+    private static readonly string DefaultContentEncoding = System.Text.Encoding.UTF8.WebName;
+
     internal static readonly Type SingletonManagerPropertyCollectionKey = typeof(SingletonDisposableTaggerManager<IErrorTag>);
     private readonly IAnalyzer analyzer;
     private readonly IFileTracker fileTracker;
@@ -163,7 +165,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
         fileTracker.AddFiles(sourceFilesToUpdate.ToArray());
     }
 
-    private static SourceFile CreateSourceFile(string filePath, string content = null) => new(filePath, content: content);
+    private static SourceFile CreateSourceFile(string filePath, string content = null) => new(filePath, content is null ? null : new SourceFileContent(content, DefaultContentEncoding));
 
     #region IViewTaggerProvider members
 
