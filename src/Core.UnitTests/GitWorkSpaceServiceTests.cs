@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
@@ -106,14 +107,14 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
 
-        private static GitWorkSpaceService CreateTestSubject(ISolutionInfoProvider solutionInfoProvider, ILogger logger, IFileSystem fileSystem = null)
+        private static GitWorkSpaceService CreateTestSubject(ISolutionInfoProvider solutionInfoProvider, ILogger logger, IFileSystemService fileSystem = null)
         {
             fileSystem ??= CreateFileSystem().Object;
 
             return new GitWorkSpaceService(solutionInfoProvider, logger, fileSystem);
         }
 
-        private static Mock<IFileSystem> CreateFileSystem(params string[] existingFolders)
+        private static Mock<IFileSystemService> CreateFileSystem(params string[] existingFolders)
         {
             var directory = new Mock<IDirectory>();
             directory.Setup(d => d.Exists(It.IsAny<string>())).Returns(false);
@@ -123,7 +124,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
                 directory.Setup(d => d.Exists(existingFolder)).Returns(true);
             }
 
-            var fileSystem = new Mock<IFileSystem>();
+            var fileSystem = new Mock<IFileSystemService>();
             fileSystem.SetupGet(fs => fs.Directory).Returns(directory.Object);
 
             return fileSystem;

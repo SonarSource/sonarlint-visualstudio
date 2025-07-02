@@ -22,6 +22,7 @@ using System.IO;
 using System.Text;
 using NSubstitute.ClearExtensions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
@@ -79,7 +80,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         slCoreTestRunner.AddListener(new ProgressListener(Substitute.For<IStatusBarNotifier>()));
         slCoreTestRunner.AddListener(analysisListener);
         slCoreTestRunner.AddListener(listFilesListener);
-        slCoreTestRunner.AddListener(new AnalysisConfigurationProviderListener());
+        slCoreTestRunner.AddListener(new AnalysisConfigurationProviderListener(Substitute.For<IActiveConfigScopeTracker>(), Substitute.For<IGitWorkspaceService>()));
         slCoreTestRunner.AddListener(getFileExclusionsListener);
 
         clientFileDtoFactory = new ClientFileDtoFactory(infrastructureLogger);
