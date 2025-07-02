@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using NSubstitute.ReturnsExtensions;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
@@ -28,41 +30,71 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation.Analy
 [TestClass]
 public class AnalysisConfigurationProviderListenerTests
 {
-    [TestMethod]
-    public void MefCtor_CheckIsExported()
+    private IFolderWorkspaceService folderWorkspaceService;
+    private IGitWorkspaceService gitWorkspaceService;
+    private AnalysisConfigurationProviderListener testSubject;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
-        MefTestHelpers.CheckTypeCanBeImported<AnalysisConfigurationProviderListener, ISLCoreListener>();
+        folderWorkspaceService = Substitute.For<IFolderWorkspaceService>();
+        gitWorkspaceService = Substitute.For<IGitWorkspaceService>();
+
+        testSubject = new AnalysisConfigurationProviderListener(
+            folderWorkspaceService,
+            gitWorkspaceService);
     }
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton()
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<AnalysisConfigurationProviderListener, ISLCoreListener>(
+            MefTestHelpers.CreateExport<IFolderWorkspaceService>(),
+            MefTestHelpers.CreateExport<IGitWorkspaceService>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<AnalysisConfigurationProviderListener>();
+
+    [TestMethod]
+    public void GetBaseDirAsync_FolderWorkspaceRootExists_ReturnsFolderWorkspaceRoot()
     {
-        MefTestHelpers.CheckIsSingletonMefComponent<AnalysisConfigurationProviderListener>();
+        var expectedWorkspaceRoot = "C:\\workspace\\root";
+        folderWorkspaceService.FindRootDirectory().Returns(expectedWorkspaceRoot);
+
+        var result = testSubject.GetBaseDirAsync(new GetBaseDirParams("any")).Result;
+
+        result.baseDir.Should().Be(expectedWorkspaceRoot);
     }
 
-    [DataRow(null)]
-    [DataRow("")]
-    [DataRow("configScopeId")]
-    [DataRow("configScopeId123")]
-    [DataTestMethod]
-    public void GetBaseDirAsync_AnyValue_ReturnsNull(string configScopeId)
+    [TestMethod]
+    public void GetBaseDirAsync_FolderWorkspaceRootDoesNotExist_ReturnsGitRepoRoot()
     {
-        var testSubject = new AnalysisConfigurationProviderListener();
+        var expectedRepoRoot = "C:\\repo\\root";
+        folderWorkspaceService.FindRootDirectory().ReturnsNull();
+        gitWorkspaceService.GetRepoRoot().Returns(expectedRepoRoot);
 
-        var result = testSubject.GetBaseDirAsync(new GetBaseDirParams(configScopeId)).Result;
+        var result = testSubject.GetBaseDirAsync(new GetBaseDirParams("any")).Result;
+
+        result.baseDir.Should().Be(expectedRepoRoot);
+    }
+
+    [TestMethod]
+    public void GetBaseDirAsync_BothRootsNull_ReturnsNull()
+    {
+        folderWorkspaceService.FindRootDirectory().ReturnsNull();
+        gitWorkspaceService.GetRepoRoot().ReturnsNull();
+
+        var result = testSubject.GetBaseDirAsync(new GetBaseDirParams("any")).Result;
 
         result.baseDir.Should().BeNull();
     }
 
     [DataRow(null, [new string[0]])]
     [DataRow("", [new string[0]])]
-    [DataRow("configScopeId", [new[]{@"C:\file1"}])]
-    [DataRow("configScopeId123", [new[]{@"C:\file1", @"D:\file"}])]
+    [DataRow("configScopeId", [new[] {@"C:\file1"}])]
+    [DataRow("configScopeId123", [new[] {@"C:\file1", @"D:\file"}])]
     [DataTestMethod]
     public void GetInferredAnalysisProperties_AnyValue_ReturnsEmptySet(string configScopeId, string[] files)
     {
-        var testSubject = new AnalysisConfigurationProviderListener();
-
         var result = testSubject.GetInferredAnalysisPropertiesAsync(new GetInferredAnalysisPropertiesParams(configScopeId,
                 files.Select(x => new FileUri(x)).ToList()))
             .Result;
