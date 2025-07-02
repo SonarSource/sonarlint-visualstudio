@@ -47,6 +47,7 @@ namespace SonarLint.VisualStudio.Core.FileMonitor
     /// </remarks>
     internal sealed class SingleFileMonitor : ISingleFileMonitor
     {
+        private readonly IFileInfo monitoredFile;
         private readonly IFileSystemWatcher fileWatcher;
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
@@ -54,26 +55,29 @@ namespace SonarLint.VisualStudio.Core.FileMonitor
 
         internal SingleFileMonitor(IFileSystemWatcherFactory factory, IFileSystem fileSystem, string filePathToMonitor, ILogger logger)
         {
-            this.MonitoredFilePath = filePathToMonitor;
+            monitoredFile = fileSystem.FileInfo.FromFileName(filePathToMonitor);
             this.fileSystem = fileSystem;
+            this.logger = logger.ForVerboseContext(nameof(SingleFileMonitor), monitoredFile.Directory.Name, monitoredFile.Name);
 
-            EnsureDirectoryExists(filePathToMonitor, logger);
+            EnsureDirectoryExists();
 
             fileWatcher = factory.CreateNew();
             fileWatcher.Path = Path.GetDirectoryName(filePathToMonitor); // NB will throw if the directory does not exist
             fileWatcher.Filter = Path.GetFileName(filePathToMonitor);
-            fileWatcher.NotifyFilter = System.IO.NotifyFilters.CreationTime | System.IO.NotifyFilters.LastWrite |
-                NotifyFilters.FileName | NotifyFilters.DirectoryName;
+            fileWatcher.NotifyFilter =
+                NotifyFilters.CreationTime
+                | NotifyFilters.LastWrite
+                | NotifyFilters.FileName
+                | NotifyFilters.DirectoryName;
 
             fileWatcher.Changed += OnFileChanged;
             fileWatcher.Created += OnFileChanged;
             fileWatcher.Deleted += OnFileChanged;
             fileWatcher.Renamed += OnFileChanged;
 
-            this.logger = logger;
         }
 
-        public string MonitoredFilePath { get; }
+        public string MonitoredFilePath => monitoredFile.FullName;
 
         private EventHandler fileChangedHandlers;
         public event EventHandler FileChanged
@@ -101,20 +105,35 @@ namespace SonarLint.VisualStudio.Core.FileMonitor
             }
         }
 
-        private void EnsureDirectoryExists(string filePath, ILogger logger)
+        private void EnsureDirectoryExists()
         {
             // Exception handling: not much point in catch exceptions here - if we can't
             // create a missing directory then the creation of the file watcher will
             // fail too, so the monitor class won't be constructed correctly.
-            var dirPath = Path.GetDirectoryName(filePath);
-            if (!fileSystem.Directory.Exists(dirPath))
+            if (!monitoredFile.Directory.Exists)
             {
-                fileSystem.Directory.CreateDirectory(dirPath);
-                logger.WriteLine(Strings.FileMonitory_CreatedDirectory, dirPath);
+                monitoredFile.Directory.Create();
+                logger.WriteLine(Strings.FileMonitor_CreatedDirectory, monitoredFile.DirectoryName);
             }
         }
 
-        private void OnFileChanged(object sender, System.IO.FileSystemEventArgs args)
+        private void CleanUpEmptyDirectory()
+        {
+            try
+            {
+                if (!monitoredFile.Directory.EnumerateFileSystemInfos().Any())
+                {
+                    monitoredFile.Directory.Delete(false);
+                    logger.WriteLine(Strings.FileMonitor_CleanedUpDirectory, monitoredFile.DirectoryName);
+                }
+            }
+            catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
+            {
+                logger.LogVerbose(e.Message);
+            }
+        }
+
+        private void OnFileChanged(object sender, FileSystemEventArgs args)
         {
             Debug.Assert(fileChangedHandlers != null, "Not expecting file system events to be monitored if there are no listeners");
             if (fileChangedHandlers == null || disposedValue)
@@ -175,6 +194,7 @@ namespace SonarLint.VisualStudio.Core.FileMonitor
                     fileWatcher.Renamed -= OnFileChanged;
                     fileWatcher.Dispose();
                     fileChangedHandlers = null;
+                    CleanUpEmptyDirectory();
                 }
             }
         }

@@ -29,187 +29,142 @@ namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
     [TestClass]
     public class SingleFileMonitorTests
     {
+        private const string DirectoryName = "MonitoredDir";
+        private const string FileName = "MonitoredFile.ext";
+        private const string DirectoryFullPath = $"""C:\a\b\c\{DirectoryName}""";
+        private const string FileFullPath = $"""{DirectoryFullPath}\{FileName}""";
+
+        private TestLogger testLogger;
+        private IFileSystem fileSystemMock;
+        private IDirectoryInfo directoryInfoMock;
+        private IFileSystemWatcherFactory watcherFactoryMock;
+        private Mock<IFileSystemWatcher> watcherMock;
+
         public TestContext TestContext { get; set; }
 
-        [TestMethod]
-        public void NonCriticalExceptions_AreSuppressed()
+        [TestInitialize]
+        public void TestInitialize()
         {
-            // Arrange
-            var fileSystemMock = CreateFileSystemMock();
-
-            var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
-            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
-
-            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, fileSystemMock.Object, "c:\\dummy\\file.txt", testLogger))
-            {
-                fileMonitor.FileChanged += (s, args) => throw new InvalidOperationException("XXX non-critical exception");
-
-                // Act
-                watcherMock
-                    .Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
-
-                // Assert
-                testLogger.AssertPartialOutputStringExists("XXX non-critical exception");
-                fileMonitor.MonitoredFilePath.Should().Be("c:\\dummy\\file.txt");
-            }
+            testLogger = new TestLogger(logToConsole: true, logThreadId: true);
+            CreateFileSystemMock(FileFullPath, FileName, DirectoryFullPath, DirectoryName);
+            watcherFactoryMock = CreateFactoryAndWatcherMocks(out watcherMock);
         }
 
         [TestMethod]
-        public void CriticalExceptions_AreNotSuppressed()
+        public void FileChangedEvent_NonCriticalExceptions_AreSuppressed()
         {
-            // Arrange
-            var fileSystemMock = CreateFileSystemMock();
+            using var testSubject = new SingleFileMonitor(watcherFactoryMock, fileSystemMock, FileFullPath, testLogger);
+            testSubject.FileChanged += (s, args) => throw new InvalidOperationException("XXX non-critical exception");
 
-            var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
-            Action act = () =>
-            {
-                watcherMock.Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
-            };
+            watcherMock
+                .Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
 
-            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
-
-            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, fileSystemMock.Object, "c:\\dummy\\file.txt", testLogger))
-            {
-                fileMonitor.FileChanged += (s, args) => throw new StackOverflowException("YYY critical exception");
-
-                // Act and assert
-                act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("YYY critical exception");
-            }
+            testLogger.AssertPartialOutputStringExists("XXX non-critical exception");
+            testSubject.MonitoredFilePath.Should().Be(FileFullPath);
         }
 
         [TestMethod]
-        public void DirectoryDoesNotExist_IsCreated()
+        public void FileChangedEvent_CriticalExceptions_AreNotSuppressed()
         {
-            // Arrange
-            var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(false);
+            using var testSubject = new SingleFileMonitor(watcherFactoryMock, fileSystemMock, FileFullPath, testLogger);
+            testSubject.FileChanged += (s, args) => throw new StackOverflowException("YYY critical exception");
 
-            var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
-            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
+            Action act = () => watcherMock.Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
 
-            // Act
-            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, fileSystemMock.Object, "c:\\dummy\\file.txt", testLogger))
-            {
-                // Assert
-                fileSystemMock.Verify(x => x.Directory.Exists("c:\\dummy"), Times.Once);
-                fileSystemMock.Verify(x => x.Directory.CreateDirectory("c:\\dummy"), Times.Once);
-                testLogger.AssertPartialOutputStringExists("c:\\dummy");
-            }
+            act.Should().ThrowExactly<StackOverflowException>().WithMessage("YYY critical exception");
         }
 
         [TestMethod]
-        public void DirectoryDoesExist_IsNotCreated()
+        public void Ctor_DirectoryDoesNotExist_IsCreated()
         {
-            // Arrange
-            var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
+            directoryInfoMock.Exists.Returns(false);
 
-            var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
-            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
+            using var testSubject = new SingleFileMonitor(watcherFactoryMock, fileSystemMock, FileFullPath, testLogger);
 
-            // Act
-            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, fileSystemMock.Object, "c:\\dummy\\file.txt", testLogger))
+            Received.InOrder(() =>
             {
-                // Assert
-                fileSystemMock.Verify(x => x.Directory.Exists("c:\\dummy"), Times.Once);
-                fileSystemMock.Verify(x => x.Directory.CreateDirectory("c:\\dummy"), Times.Never);
-                testLogger.AssertPartialOutputStringDoesNotExist("c:\\dummy");
-            }
+                fileSystemMock.FileInfo.FromFileName(FileFullPath);
+                directoryInfoMock.Create();
+            });
+            testLogger.AssertPartialOutputStringExists(DirectoryFullPath);
         }
 
         [TestMethod]
-        public void OnlyRaisesEventsIfHasListeners()
+        public void Ctor_DirectoryDoesExist_IsNotCreated()
         {
-            // Arrange
-            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
+            using var testSubject = new SingleFileMonitor(watcherFactoryMock, fileSystemMock, FileFullPath, testLogger);
+
+            directoryInfoMock.DidNotReceiveWithAnyArgs().Create();
+            testLogger.AssertPartialOutputStringDoesNotExist(DirectoryFullPath);
+        }
+
+        [TestMethod]
+        public void FileChanged_EventOnlyRaisesEventsIfHasListeners()
+        {
             var testDir = CreateTestSpecificDirectory();
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
-
             EventHandler dummyHandler = (sender, args) => { };
+            using var testSubject = (SingleFileMonitor)CreateRealTestSubject(filePathToMonitor, testLogger);
+            testSubject.MonitoredFilePath.Should().Be(filePathToMonitor);
 
-            using (var fileMonitor = CreateTestSubject(filePathToMonitor, testLogger))
-            {
-                var singleFileMonitor = fileMonitor as SingleFileMonitor;
-                singleFileMonitor.Should().NotBeNull();
+            // 1. Nothing registered -> underlying wrapper should not be raising events
+            testSubject.FileWatcherIsRaisingEvents.Should().BeFalse();
 
-                singleFileMonitor.MonitoredFilePath.Should().Be(filePathToMonitor);
+            // 2. Register a listener -> start monitoring
+            testSubject.FileChanged += dummyHandler;
+            testSubject.FileWatcherIsRaisingEvents.Should().BeTrue();
 
-                // 1. Nothing registered -> underlying wrapper should not be raising events
-                singleFileMonitor.FileWatcherIsRaisingEvents.Should().BeFalse();
-
-                // 2. Register a listener -> start monitoring
-                singleFileMonitor.FileChanged += dummyHandler;
-                singleFileMonitor.FileWatcherIsRaisingEvents.Should().BeTrue();
-
-                // 3. Unregister the listener -> stop monitoring
-                singleFileMonitor.FileChanged -= dummyHandler;
-                singleFileMonitor.FileWatcherIsRaisingEvents.Should().BeFalse();
-            }
+            // 3. Unregister the listener -> stop monitoring
+            testSubject.FileChanged -= dummyHandler;
+            testSubject.FileWatcherIsRaisingEvents.Should().BeFalse();
         }
 
         [TestMethod]
         public void AfterDispose_EventsAreIgnored()
         {
-            Action<Mock<IFileSystemWatcher>> op = (watcherMock) => watcherMock.Raise(x => x.Created += null, new FileSystemEventArgs(WatcherChangeTypes.Created, "", ""));
+            Action op = () => watcherMock.Raise(x => x.Created += null, new FileSystemEventArgs(WatcherChangeTypes.Created, "", ""));
             DoRaise_Dispose_RaiseAgain(op);
 
-            op = (watcherMock) => watcherMock.Raise(x => x.Deleted += null, new FileSystemEventArgs(WatcherChangeTypes.Created, "", ""));
+            op = () => watcherMock.Raise(x => x.Deleted += null, new FileSystemEventArgs(WatcherChangeTypes.Created, "", ""));
             DoRaise_Dispose_RaiseAgain(op);
 
-            op = (watcherMock) => watcherMock.Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Created, "", ""));
+            op = () => watcherMock.Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Created, "", ""));
             DoRaise_Dispose_RaiseAgain(op);
 
-            op = (watcherMock) => watcherMock.Raise(x => x.Renamed += null, new RenamedEventArgs(WatcherChangeTypes.Created, "", "", ""));
+            op = () => watcherMock.Raise(x => x.Renamed += null, new RenamedEventArgs(WatcherChangeTypes.Created, "", "", ""));
             DoRaise_Dispose_RaiseAgain(op);
 
-
-            void DoRaise_Dispose_RaiseAgain(Action<Mock<IFileSystemWatcher>> raiseEvent)
+            void DoRaise_Dispose_RaiseAgain(Action raiseEvent)
             {
-                // Arrange
-                var fileSystemMock = CreateFileSystemMock();
-
-                var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
-                var testLogger = new TestLogger();
-
-                var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, fileSystemMock.Object, "c:\\dummy\\file.txt", testLogger);
-
                 var eventCount = 0;
-                fileMonitor.FileChanged += (s, args) => eventCount++;
+                var testSubject = new SingleFileMonitor(watcherFactoryMock, fileSystemMock, FileFullPath, testLogger);
+                testSubject.FileChanged += (s, args) => eventCount++;
 
                 // 1. First event is handled
-                raiseEvent(watcherMock);
+                raiseEvent();
                 eventCount.Should().Be(1);
 
                 // 2. Dispose then re-raise
-                fileMonitor.Dispose();
-                raiseEvent(watcherMock);
+                testSubject.Dispose();
+                raiseEvent();
                 eventCount.Should().Be(1);
             }
         }
 
         [TestMethod]
-        public void DisposeWhileHandlingFileEvent_DisposedWatcherIsNotCalled()
+        public void Dispose_WhileHandlingFileEvent_DisposedWatcherIsNotCalled()
         {
             // Timing issue - event notifications happen on a different thread so we could
             // be in the middle of handling an event when the monitor is disposed. This
             // shouldn't cause an error.
-
-            // Arrange
-            var timeout = System.Diagnostics.Debugger.IsAttached ? 1000 * 60 * 5 : 1000;
-            var testLogger = new TestLogger();
-
-            var fileSystemMock  = CreateFileSystemMock();
-
-            var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
-            var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, fileSystemMock.Object, "c:\\dummy\\file.txt", testLogger);
-
+            var timeout = Debugger.IsAttached ? 1000 * 60 * 5 : 1000;
             var eventHandlerStartedEvent = new ManualResetEvent(false);
             var disposeCalledEvent = new ManualResetEvent(false);
-
+            var testSubject = new SingleFileMonitor(watcherFactoryMock, fileSystemMock, FileFullPath, testLogger);
 
             // Stage 1: listen to events from the monitor
             var disposedEventSignalled = false;
-            fileMonitor.FileChanged += (s, args) =>
+            testSubject.FileChanged += (s, args) =>
             {
                 //*******************************
                 // Do not assert in this callback
@@ -221,18 +176,16 @@ namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
                 disposedEventSignalled = disposeCalledEvent.WaitOne(timeout);
             };
 
-
             // Stage 2: raise the file system event then block until we are in the event handler
             var eventHandlerMethodTask = System.Threading.Tasks.Task.Run((Action)(() =>
                 watcherMock.Raise(x => x.Created += null, new FileSystemEventArgs(WatcherChangeTypes.Created, "", ""))));
 
             eventHandlerStartedEvent.WaitOne(timeout).Should().BeTrue();
 
-
             // Stage 3: dispose the monitor, unblock the background thread and wait until it has finished
             watcherMock.Reset(); // reset the counts of calls to the watcher
 
-            fileMonitor.Dispose();
+            testSubject.Dispose();
             disposeCalledEvent.Set();
 
             eventHandlerMethodTask.Wait(timeout).Should().BeTrue();
@@ -248,202 +201,212 @@ namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
             watcherMock.VerifyNoOtherCalls();
         }
 
+        [TestMethod]
+        public void Dispose_DirectoryNotEmpty_DoesNotDelete()
+        {
+            var testSubject = new SingleFileMonitor(watcherFactoryMock, fileSystemMock, FileFullPath, testLogger);
+            directoryInfoMock.EnumerateFileSystemInfos().Returns([Substitute.For<IFileSystemInfo>()]);
+
+            testSubject.Dispose();
+            testSubject.Dispose();
+            testSubject.Dispose();
+
+            directoryInfoMock.DidNotReceiveWithAnyArgs().Delete(default);
+        }
+
+        [TestMethod]
+        public void Dispose_CleansUpEmptyDirectory()
+        {
+            var testSubject = new  SingleFileMonitor(watcherFactoryMock, fileSystemMock, FileFullPath, testLogger);
+            directoryInfoMock.EnumerateFileSystemInfos().Returns([]);
+
+            testSubject.Dispose();
+            testSubject.Dispose();
+            testSubject.Dispose();
+
+            directoryInfoMock.Received(1).Delete(false);
+        }
+
+        [TestMethod]
+        public void Dispose_DirectoryDeleteThrows_ExceptionLoggedAndIgnored()
+        {
+            directoryInfoMock.EnumerateFileSystemInfos().Returns([]);
+            var exceptionMessage = "this is a test";
+            directoryInfoMock.When(x => x.Delete(Arg.Any<bool>())).Throw(new Exception(exceptionMessage));
+            var testSubject = new  SingleFileMonitor(watcherFactoryMock, fileSystemMock, FileFullPath, testLogger);
+
+            var act = () => testSubject.Dispose();
+
+            act.Should().NotThrow();
+            testLogger.AssertPartialOutputStringExists(exceptionMessage);
+        }
+
         #region Simple file operations
+
         // Check simple file operations are handled and don't produce duplicates
 
         [TestMethod]
         public void RealFile_FileCreationIsTracked()
         {
-            // Arrange
-            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
             var testDir = CreateTestSpecificDirectory();
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
+            using var testSubject = CreateRealTestSubject(filePathToMonitor, testLogger);
+            var testWrapper = CreateWaitableFileMonitor(testSubject);
 
-            using (var singleFileMonitor = CreateTestSubject(filePathToMonitor, testLogger))
-            {
-                var testWrapper = new WaitableFileMonitor(singleFileMonitor);
-                testWrapper.EventCount.Should().Be(0);
+            File.WriteAllText(filePathToMonitor, "initial text");
+            testWrapper.WaitForEventAndThrowIfMissing();
 
-                // Act: create the file
-                File.WriteAllText(filePathToMonitor, "initial text");
-                testWrapper.WaitForEventAndThrowIfMissing();
-                testWrapper.EventCount.Should().Be(1);
-            }
+            testWrapper.EventCount.Should().Be(1);
         }
 
         [TestMethod]
         public void RealFile_FileChangeIsTracked()
         {
-            // Arrange
-            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
             var testDir = CreateTestSpecificDirectory();
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
             File.WriteAllText(filePathToMonitor, "contents");
+            using var testSubject = CreateRealTestSubject(filePathToMonitor, testLogger);
+            var testWrapper = CreateWaitableFileMonitor(testSubject);
 
-            using (var singleFileMonitor = CreateTestSubject(filePathToMonitor, testLogger))
-            {
-                var testWrapper = new WaitableFileMonitor(singleFileMonitor);
-                testWrapper.EventCount.Should().Be(0);
+            File.AppendAllText(filePathToMonitor, " more text");
+            testWrapper.WaitForEventAndThrowIfMissing();
 
-                // Act: amend the file
-                File.AppendAllText(filePathToMonitor, " more text");
-                testWrapper.WaitForEventAndThrowIfMissing();
-                testWrapper.EventCount.Should().Be(1);
-            }
+            testWrapper.EventCount.Should().Be(1);
         }
 
         [TestMethod]
         public void RealFile_FileDeletionIsTracked()
         {
-            // Arrange
-            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
             var testDir = CreateTestSpecificDirectory();
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
             File.WriteAllText(filePathToMonitor, "contents");
+            using var testSubject = CreateRealTestSubject(filePathToMonitor, testLogger);
+            var testWrapper = CreateWaitableFileMonitor(testSubject);
 
-            using (var singleFileMonitor = CreateTestSubject(filePathToMonitor, testLogger))
-            {
-                var testWrapper = new WaitableFileMonitor(singleFileMonitor);
-                testWrapper.EventCount.Should().Be(0);
+            File.Delete(filePathToMonitor);
+            testWrapper.WaitForEventAndThrowIfMissing();
 
-                // Act: delete the file
-                File.Delete(filePathToMonitor);
-                testWrapper.WaitForEventAndThrowIfMissing();
-                testWrapper.EventCount.Should().Be(1);
-            }
+            testWrapper.EventCount.Should().Be(1);
         }
 
         [TestMethod]
         public void RealFile_RenameFromTrackedFileName_IsTracked()
         {
-            // Arrange
-            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
             var testDir = CreateTestSpecificDirectory();
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
             File.WriteAllText(filePathToMonitor, "contents");
+            using var testSubject = CreateRealTestSubject(filePathToMonitor, testLogger);
+            var testWrapper = CreateWaitableFileMonitor(testSubject);
 
-            using (var singleFileMonitor = CreateTestSubject(filePathToMonitor, testLogger))
-            {
-                var testWrapper = new WaitableFileMonitor(singleFileMonitor);
-                testWrapper.EventCount.Should().Be(0);
+            var renamedFile = Path.ChangeExtension(filePathToMonitor, "moved");
+            File.Move(filePathToMonitor, renamedFile);
+            testWrapper.WaitForEventAndThrowIfMissing();
 
-                // Act: rename the file from the tracked name
-                var renamedFile = Path.ChangeExtension(filePathToMonitor, "moved");
-                File.Move(filePathToMonitor, renamedFile);
-
-                testWrapper.WaitForEventAndThrowIfMissing();
-                testWrapper.EventCount.Should().Be(1);
-            }
+            testWrapper.EventCount.Should().Be(1);
         }
 
         [TestMethod]
         public void RealFile_RenameToTrackedFileName_IsTracked()
         {
-            // Arrange
-            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
             var testDir = CreateTestSpecificDirectory();
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
             var otherFilePath = Path.ChangeExtension(filePathToMonitor, "other");
             File.WriteAllText(otherFilePath, "contents");
+            using var testSubject = CreateRealTestSubject(filePathToMonitor, testLogger);
+            var testWrapper = CreateWaitableFileMonitor(testSubject);
 
-            using (var singleFileMonitor = CreateTestSubject(filePathToMonitor, testLogger))
-            {
-                var testWrapper = new WaitableFileMonitor(singleFileMonitor);
-                testWrapper.EventCount.Should().Be(0);
+            File.Move(otherFilePath, filePathToMonitor);
+            testWrapper.WaitForEventAndThrowIfMissing();
 
-                // Act: rename the file to the tracked name
-                File.Move(otherFilePath, filePathToMonitor);
-
-                testWrapper.WaitForEventAndThrowIfMissing();
-                testWrapper.EventCount.Should().Be(1);
-            }
+            testWrapper.EventCount.Should().Be(1);
         }
 
         [TestMethod]
-        public void WatchesProvidedFile()
+        public void Ctor_WatchesProvidedFile()
         {
-            var testDir = CreateTestSpecificDirectory();
-            var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
-            var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
+            using var testSubject = new SingleFileMonitor(watcherFactoryMock, fileSystemMock, FileFullPath, new TestLogger());
 
-            using var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, CreateFileSystemMock().Object, filePathToMonitor, new TestLogger());
-
-            fileMonitor.MonitoredFilePath.Should().Be(filePathToMonitor);
-            watcherMock.VerifySet(mock => mock.Path = Path.GetDirectoryName(filePathToMonitor), Times.Once());
-            watcherMock.VerifySet(mock => mock.Filter = Path.GetFileName(filePathToMonitor), Times.Once());
+            testSubject.MonitoredFilePath.Should().Be(FileFullPath);
+            watcherMock.VerifySet(mock => mock.Path = DirectoryFullPath, Times.Once());
+            watcherMock.VerifySet(mock => mock.Filter = FileName, Times.Once());
             watcherMock.VerifySet(mock => mock.NotifyFilter = (NotifyFilters.CreationTime | NotifyFilters.LastWrite |
-                                                              NotifyFilters.FileName | NotifyFilters.DirectoryName), Times.Once());
+                                                               NotifyFilters.FileName | NotifyFilters.DirectoryName), Times.Once());
         }
 
         [TestMethod]
         public void File_DuplicateChangesSameTime_AreIgnored()
         {
-            var filePath = "test\\";
+            using var testSubject = new SingleFileMonitor(watcherFactoryMock, fileSystemMock, FileFullPath, testLogger);
+            var testWrapper = CreateWaitableFileMonitor(testSubject);
 
-            var fileSystemMock = CreateFileSystemMock();
+            watcherMock.Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, FileFullPath, ""));
+            watcherMock.Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, FileFullPath, ""));
 
-            var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
-            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
-
-            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, fileSystemMock.Object, filePath, testLogger))
-            {
-                var waitableFileMonitor = new WaitableFileMonitor(fileMonitor);
-                waitableFileMonitor.EventCount.Should().Be(0);
-                watcherMock.Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, filePath , ""));
-                watcherMock.Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, filePath, ""));
-                waitableFileMonitor.EventCount.Should().Be(1);
-            }
+            testWrapper.EventCount.Should().Be(1);
         }
 
         [TestMethod]
         public void File_DuplicateChangesDifferentTime_NotIgnored()
         {
-            var filePath = "test\\";
-
-            var fileSystemMock = CreateFileSystemMock();
-
-            var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
-            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
-
             var dateTime = DateTime.Now;
+            using var testSubject = new SingleFileMonitor(watcherFactoryMock, fileSystemMock, FileFullPath, testLogger);
+            var testWrapper = CreateWaitableFileMonitor(testSubject);
 
-            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, fileSystemMock.Object, filePath, testLogger))
-            {
-                var waitableFileMonitor = new WaitableFileMonitor(fileMonitor);
-                waitableFileMonitor.EventCount.Should().Be(0);
+            fileSystemMock.File.GetLastWriteTimeUtc(FileFullPath).Returns(dateTime);
+            watcherMock.Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, DirectoryFullPath, FileName));
 
-                fileSystemMock.Setup(x => x.File.GetLastWriteTimeUtc(filePath)).Returns(dateTime);
-                watcherMock.Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, filePath, ""));
+            fileSystemMock.File.GetLastWriteTimeUtc(FileFullPath).Returns(dateTime.AddMilliseconds(1));
+            watcherMock.Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, DirectoryFullPath, FileName));
 
-                fileSystemMock.Setup(x => x.File.GetLastWriteTimeUtc(filePath)).Returns(dateTime.AddMilliseconds(1));
-                watcherMock.Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, filePath, ""));
-
-                waitableFileMonitor.EventCount.Should().Be(2);
-            }
+            testWrapper.EventCount.Should().Be(2);
         }
 
-        private Mock<IFileSystem> CreateFileSystemMock()
+        private void CreateFileSystemMock(
+            string filePath,
+            string fileName,
+            string directoryPath,
+            string directoryName)
         {
-            var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
-            fileSystemMock.Setup(x => x.File.GetLastWriteTimeUtc(It.IsAny<string>())).Returns(DateTime.MaxValue);
+            fileSystemMock = Substitute.For<IFileSystem>();
+            fileSystemMock.File.GetLastWriteTimeUtc(Arg.Any<string>()).Returns(DateTime.MaxValue);
 
-            return fileSystemMock;
+            var fileInfoMock = Substitute.For<IFileInfo>();
+            directoryInfoMock = Substitute.For<IDirectoryInfo>();
+
+            fileInfoMock.FullName.Returns(filePath);
+            fileInfoMock.Name.Returns(fileName);
+            fileInfoMock.DirectoryName.Returns(directoryPath);
+
+            directoryInfoMock.Exists.Returns(true);
+            directoryInfoMock.FullName.Returns(directoryPath);
+            directoryInfoMock.Name.Returns(directoryName);
+            directoryInfoMock.EnumerateFileSystemInfos().Returns([fileInfoMock]);
+
+            fileInfoMock.Directory.Returns(directoryInfoMock);
+
+            fileSystemMock.FileInfo.FromFileName(filePath).Returns(fileInfoMock);
         }
 
-        private static Mock<IFileSystemWatcherFactory> CreateFactoryAndWatcherMocks(out Mock<IFileSystemWatcher> watcherMock)
+        private static IFileSystemWatcherFactory CreateFactoryAndWatcherMocks(out Mock<IFileSystemWatcher> watcherMock)
         {
+            // watcherMock is left as a Moq mock because FileSystemEventHandler does not inherit from EventHandler and NSubstitute's Raise.Event doesn't work
             watcherMock = new Mock<IFileSystemWatcher>();
-            var watcherFactoryMock = new Mock<IFileSystemWatcherFactory>();
-            watcherFactoryMock
-                .Setup(x => x.CreateNew())
-                .Returns(watcherMock.Object);
+            var watcherFactoryMock = Substitute.For<IFileSystemWatcherFactory>();
+            watcherFactoryMock.CreateNew().Returns(watcherMock.Object);
             return watcherFactoryMock;
+        }
+
+        private static WaitableFileMonitor CreateWaitableFileMonitor(ISingleFileMonitor testSubject)
+        {
+            var testWrapper = new WaitableFileMonitor(testSubject);
+
+            testWrapper.EventCount.Should().Be(0);
+            return testWrapper;
         }
 
         #endregion Simple file operations
 
-        private static ISingleFileMonitor CreateTestSubject(string filePathToMonitor, ILogger logger)
+        private static ISingleFileMonitor CreateRealTestSubject(string filePathToMonitor, ILogger logger)
         {
             return new SingleFileMonitorFactory(logger).Create(filePathToMonitor);
         }
@@ -469,13 +432,13 @@ namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
                 this.singleFileMonitor.FileChanged += OnFileChanged;
             }
 
-            private readonly AutoResetEvent signal = new AutoResetEvent(false);
+            private readonly AutoResetEvent signal = new(false);
 
             public int EventCount { get; private set; }
 
             public void WaitForEventAndThrowIfMissing()
             {
-                var timeout = System.Diagnostics.Debugger.IsAttached ? 1000 * 60 * 5 : 1000;
+                var timeout = Debugger.IsAttached ? 1000 * 60 * 5 : 1000;
                 var signaled = signal.WaitOne(timeout);
                 signaled.Should().Be(true); // throw if we timed out
             }
