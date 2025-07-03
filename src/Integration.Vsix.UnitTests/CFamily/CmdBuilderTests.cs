@@ -216,6 +216,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [DataRow("StructMemberAlignment", "1Byte", "/Zp1 ")]
         [DataRow("AdditionalIncludeDirectories", "a;;b;c", "/I\"a\" /I\"b\" /I\"c\" ")]
         [DataRow("AdditionalIncludeDirectories", ";;;", "")]
+        [DataRow("AdditionalIncludeDirectories", "; ;;", "")]
         [DataRow("PreprocessorDefinitions", "a;;b;;c;", "/D\"a\" /D\"b\" /D\"c\" ")]
         [DataRow("UndefinePreprocessorDefinitions", ";a;;b;;c;", "/Ua /Ub /Uc ")]
         [DataRow("ForcedIncludeFiles", "a/;;b\\;c\\\\", "/FI\"a\" /FI\"b\" /FI\"c\" ")]
