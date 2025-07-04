@@ -26,4 +26,7 @@ public record Utm(
     string content,
     string term,
     string medium = TelemetryLinks.Utm.Medium,
-    string source = TelemetryLinks.Utm.Source);
+    string source = TelemetryLinks.Utm.Source)
+{
+    public static Utm From(TelemetryLinks.Utm telemetryUtm) => new(telemetryUtm.Content, telemetryUtm.Term);
+}

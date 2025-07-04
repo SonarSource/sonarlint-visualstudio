@@ -157,7 +157,7 @@ public class PromoteNotificationTests
 
         sonarQubeCloudAction.Action(null);
 
-        browserService.Received(1).Navigate(TelemetryLinks.Utm.Link(TelemetryLinks.LinkIdToUrls[TelemetryLinks.SonarQubeCloudFreeSignUpId], "promote-connected-mode-languages", "create-sonarqube-cloud-free-tier"));
+        browserService.Received(1).Navigate(TelemetryLinks.SonarQubeCloudFreeSignUpPromoteConnectedModeLanguages.GetUtmLink);
     }
 
     [TestMethod]

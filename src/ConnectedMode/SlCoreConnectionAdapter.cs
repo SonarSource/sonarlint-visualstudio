@@ -166,20 +166,18 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
                 return failedResponse;
             }
 
-            var serverUri = connectionInfo.ServerType == ConnectionServerType.SonarCloud
-                ? connectionInfo.CloudServerRegion.Url.ToString()
-                : connectionInfo.Id;
+            var helpGenerateUserTokenParams = connectionInfo.ServerType == ConnectionServerType.SonarCloud
+                ? new HelpGenerateUserTokenParams(connectionInfo.CloudServerRegion.Url.ToString(), Utm.From(TelemetryLinks.SonarQubeCloudCreateEditConnectionGenerateToken))
+                : new HelpGenerateUserTokenParams(connectionInfo.Id, Utm.From(TelemetryLinks.SonarQubeServerCreateEditConnectionGenerateToken));
 
             try
             {
-                var utmContent = connectionInfo.ServerType == ConnectionServerType.SonarCloud ? "create-edit-sqc-connection" : "create-edit-sqs-connection";
-                var utm = new Utm(utmContent, "generate-token");
-                var slCoreResponse = await connectionConfigurationSlCoreService.HelpGenerateUserTokenAsync(new HelpGenerateUserTokenParams(serverUri, utm), cancellationToken);
+                var slCoreResponse = await connectionConfigurationSlCoreService.HelpGenerateUserTokenAsync(helpGenerateUserTokenParams, cancellationToken);
                 return new ResponseStatusWithData<string>(true, slCoreResponse.token);
             }
             catch (Exception ex)
             {
-                logger.LogVerbose(Resources.GenerateToken_Fails, serverUri, ex.Message);
+                logger.LogVerbose(Resources.GenerateToken_Fails, helpGenerateUserTokenParams.serverUrl, ex.Message);
                 return failedResponse;
             }
         });
