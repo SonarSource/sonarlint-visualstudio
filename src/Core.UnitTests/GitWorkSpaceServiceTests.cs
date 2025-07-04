@@ -37,6 +37,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         {
             MefTestHelpers.CheckTypeCanBeImported<GitWorkSpaceService, IGitWorkspaceService>(
                 MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
+                MefTestHelpers.CreateExport<IFileSystemService>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 

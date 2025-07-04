@@ -32,7 +32,8 @@ internal class AnalysisConfigurationProviderListener(IFolderWorkspaceService fol
 {
     public Task<GetBaseDirResponse> GetBaseDirAsync(GetBaseDirParams parameters)
     {
-        return Task.FromResult(new GetBaseDirResponse(folderWorkspaceService.FindRootDirectory() ?? gitWorkspaceService.GetRepoRoot()));
+        var rootDirectory = folderWorkspaceService.FindRootDirectory() ?? gitWorkspaceService.GetRepoRoot();
+        return Task.FromResult(new GetBaseDirResponse(rootDirectory));
     }
 
     public Task<GetInferredAnalysisPropertiesResponse> GetInferredAnalysisPropertiesAsync(GetInferredAnalysisPropertiesParams parameters)

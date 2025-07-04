@@ -44,7 +44,8 @@ internal class GitWorkSpaceService : IGitWorkspaceService
 
     private const string GitFolder = ".git";
 
-    private sealed record GitWorkspaceCache(string WorkspaceRoot, string GitRoot);
+    private record struct GitWorkspaceCache(string WorkspaceRoot, string GitRoot);
+    private readonly object lockObject = new();
     private GitWorkspaceCache value;
 
 
@@ -58,22 +59,18 @@ internal class GitWorkSpaceService : IGitWorkspaceService
 
     public string GetRepoRoot()
     {
-        GitWorkspaceCache currentValue;
-        GitWorkspaceCache updatedValue;
-        do
-        {
-            currentValue = value;
-            var workspaceRoot = solutionInfoProvider.GetSolutionDirectory();
+        var workspaceRoot = solutionInfoProvider.GetSolutionDirectory();
 
-            if (currentValue?.WorkspaceRoot == workspaceRoot)
+        lock (lockObject)
+        {
+            if (value.WorkspaceRoot == workspaceRoot)
             {
-                return currentValue?.GitRoot;
+                return value.GitRoot;
             }
 
-            updatedValue = new GitWorkspaceCache(workspaceRoot, Calculate(workspaceRoot));
-        } while (Interlocked.CompareExchange(ref value, updatedValue, currentValue) != currentValue);
-
-        return updatedValue.GitRoot;
+            value = new GitWorkspaceCache(workspaceRoot, Calculate(workspaceRoot));
+            return value.GitRoot;
+        }
     }
 
     private string Calculate(string workspaceRoot)
