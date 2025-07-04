@@ -23,29 +23,23 @@ namespace SonarLint.VisualStudio.Core.UnitTests;
 [TestClass]
 public class SourceFileTests
 {
-    private const string path = @"C:\Users\Project\JustASourceFile.cs";
-
     [TestMethod]
-    public void SourceFile_NoContent_ContentAndEncodingAreNull()
+    public void SourceFile_EncodingDefaultsToUTF8()
     {
-        var sourceFile = new SourceFile(path);
+        var sourceFile = new SourceFile(@"C:\Users\Project\JustASourceFile.cs");
 
-        sourceFile.FilePath.Should().Be(path);
-        sourceFile.Encoding.Should().BeNull();
-        sourceFile.Content.Should().BeNull();
+        sourceFile.Encoding.Should().Be("utf-8");
     }
 
     [DataTestMethod]
-    [DataRow("a", "windows-1250")]
-    [DataRow("b", "windows-1251")]
-    [DataRow("c", "windows-1252")]
-    [DataRow("d", "iso-8859-15")]
-    public void SourceFile_WithContent(string content, string encoding)
+    [DataRow("windows-1250")]
+    [DataRow("windows-1251")]
+    [DataRow("windows-1252")]
+    [DataRow("iso-8859-15")]
+    public void SourceFile_StoresFileEncoding(string encoding)
     {
-        var sourceFile = new SourceFile(path, new SourceFileContent(content, encoding));
+        var sourceFile = new SourceFile(@"C:\Users\Project\JustASourceFile.cs", encoding);
 
-        sourceFile.FilePath.Should().Be(path);
         sourceFile.Encoding.Should().Be(encoding);
-        sourceFile.Content.Should().Be(content);
     }
 }

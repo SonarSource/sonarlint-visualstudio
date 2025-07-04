@@ -333,7 +333,8 @@ public class TaggerProviderTests
 
         eventHandler.Received(1).Invoke(testSubject, Arg.Is<DocumentOpenedEventArgs>(e =>
             e.Document.FullPath == filePath &&
-            e.Document.DetectedLanguages == DetectedLanguagesJsTs));
+            e.Document.DetectedLanguages == DetectedLanguagesJsTs &&
+            e.Content == content));
     }
 
     [TestMethod]
@@ -346,7 +347,7 @@ public class TaggerProviderTests
 
         testSubject.AddIssueTracker(issueTracker);
 
-        mockFileTracker.Received(1).AddFiles(new SourceFile(filePath, null));
+        mockFileTracker.Received(1).AddFiles(new SourceFile(filePath, encoding: null, content));
     }
 
     [TestMethod]
@@ -388,7 +389,7 @@ public class TaggerProviderTests
 
         RaiseFileEvent(doc, FileActionTypes.ContentSavedToDisk);
 
-        mockFileTracker.Received(1).AddFiles(new SourceFile(filePath, null));
+        mockFileTracker.Received(1).AddFiles(new SourceFile(filePath, encoding: null, content));
     }
 
     [TestMethod]
@@ -440,14 +441,12 @@ public class TaggerProviderTests
     public void AnalysisRequested_CallsAnalyzerRequestAnalysis()
     {
         List<string> filesToaAnalyze = ["file.js"];
-        var content = "content123";
         var analysisExecutingSignal = CreateAnalysisExecutingSignal(filesToaAnalyze);
-        CreateTaggerForDocument(CreateMockedDocument(filesToaAnalyze[0], DetectedLanguagesJsTs, content));
+        CreateTaggerForDocument(CreateMockedDocument(filesToaAnalyze[0], DetectedLanguagesJsTs));
 
         mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new AnalysisRequestEventArgs(filesToaAnalyze));
         analysisExecutingSignal.WaitOne(AnalysisTimeout);
 
-        mockFileTracker.Received(1).AddFiles(new SourceFile(filesToaAnalyze[0], new(content, Encoding.UTF8.WebName)));
         analyzer.Received(1).ExecuteAnalysis(Arg.Is<List<string>>(x => x.SequenceEqual(filesToaAnalyze)));
     }
 
