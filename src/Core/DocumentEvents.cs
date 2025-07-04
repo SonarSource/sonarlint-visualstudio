@@ -27,9 +27,15 @@ public class DocumentEventArgs(Document document) : EventArgs
     public Document Document { get; } = document;
 }
 
-public class DocumentSavedEventArgs(Document document) : DocumentEventArgs(document);
+public class DocumentSavedEventArgs(Document document, string newContent) : DocumentEventArgs(document)
+{
+    public string NewContent { get; } = newContent;
+}
 
-public class DocumentOpenedEventArgs(Document document) : DocumentEventArgs(document);
+public class DocumentOpenedEventArgs(Document document, string content) : DocumentEventArgs(document)
+{
+    public string Content { get; } = content;
+}
 
 public class DocumentRenamedEventArgs(Document document, string oldFilePath) : DocumentEventArgs(document)
 {

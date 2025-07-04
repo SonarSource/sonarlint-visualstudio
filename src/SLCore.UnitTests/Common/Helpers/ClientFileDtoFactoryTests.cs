@@ -84,11 +84,10 @@ public class ClientFileDtoFactoryTests
     public void Create_WithContent_ConstructsValidDto()
     {
         const string content = "somecontent";
-        const string encoding = "someencoding";
 
-        var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", @"C:\", new SourceFile(@"C:\Code\Project\File1.js", new SourceFileContent(content, encoding)));
+        var result = testSubject.CreateOrNull("CONFIG_SCOPE_ID", @"C:\", new SourceFile(@"C:\Code\Project\File1.js", content: content));
 
-        ValidateDto(result, @"C:\Code\Project\File1.js", @"Code\Project\File1.js", expectedContent: content, expectedCharset: encoding);
+        ValidateDto(result, @"C:\Code\Project\File1.js", @"Code\Project\File1.js", expectedContent: content);
     }
 
     [TestMethod]
@@ -170,14 +169,14 @@ public class ClientFileDtoFactoryTests
         testLogger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ClientFile_NotRelative_Skipped, filePath, rootPath));
     }
 
-    private static void ValidateDto(ClientFileDto actual, string expectedFsPath, string expectedIdeRelativePath, string expectedContent = null, string expectedCharset = null)
+    private static void ValidateDto(ClientFileDto actual, string expectedFsPath, string expectedIdeRelativePath, string expectedContent = null)
     {
         actual.Should().BeEquivalentTo(new ClientFileDto(
             new FileUri(expectedFsPath),
             expectedIdeRelativePath,
             "CONFIG_SCOPE_ID",
             null,
-            expectedCharset,
+            "utf-8",
             expectedFsPath,
             expectedContent));
         actual.isUserDefined.Should().BeTrue();
