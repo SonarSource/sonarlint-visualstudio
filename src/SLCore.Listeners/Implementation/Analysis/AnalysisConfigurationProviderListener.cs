@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
@@ -26,11 +27,13 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation.Analysis;
 
 [Export(typeof(ISLCoreListener))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class AnalysisConfigurationProviderListener : IAnalysisConfigurationProviderListener
+[method: ImportingConstructor]
+internal class AnalysisConfigurationProviderListener(IFolderWorkspaceService folderWorkspaceService, IGitWorkspaceService gitWorkspaceService) : IAnalysisConfigurationProviderListener
 {
     public Task<GetBaseDirResponse> GetBaseDirAsync(GetBaseDirParams parameters)
     {
-        return Task.FromResult(new GetBaseDirResponse(null));
+        var rootDirectory = folderWorkspaceService.FindRootDirectory() ?? gitWorkspaceService.GetRepoRoot();
+        return Task.FromResult(new GetBaseDirResponse(rootDirectory));
     }
 
     public Task<GetInferredAnalysisPropertiesResponse> GetInferredAnalysisPropertiesAsync(GetInferredAnalysisPropertiesParams parameters)
