@@ -157,7 +157,7 @@ public class PromoteNotificationTests
 
         sonarQubeCloudAction.Action(null);
 
-        browserService.Received(1).Navigate(TelemetryLinks.LinkIdToUrls[TelemetryLinks.SonarQubeCloudFreeSignUpId]);
+        browserService.Received(1).Navigate(TelemetryLinks.SonarQubeCloudFreeSignUpPromoteConnectedModeLanguages.GetUtmLink);
     }
 
     [TestMethod]

@@ -19,6 +19,7 @@
  */
 
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Connection.Models;
@@ -29,12 +30,19 @@ public class HelpGenerateUserTokenParamsTests
     [TestMethod]
     public void Serialize_AsExpected()
     {
-        var helpGenerateUserTokenParams = new HelpGenerateUserTokenParams("http://localhost:9000");
-        var expected = """
-                       {
-                         "serverUrl": "http://localhost:9000"
-                       }
-                       """;
+        var utm = new Utm(content: "some-utm-content", term: "a-utm-term");
+        var helpGenerateUserTokenParams = new HelpGenerateUserTokenParams("http://localhost:9000", utm);
+        const string expected = """
+                                {
+                                  "serverUrl": "http://localhost:9000",
+                                  "utm": {
+                                    "content": "some-utm-content",
+                                    "term": "a-utm-term",
+                                    "medium": "referral",
+                                    "source": "sq-ide-product-visual-studio"
+                                  }
+                                }
+                                """;
 
         var actual = JsonConvert.SerializeObject(helpGenerateUserTokenParams, Formatting.Indented);
 

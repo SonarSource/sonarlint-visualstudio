@@ -110,8 +110,8 @@ public sealed class PromoteNotification : IPromoteNotification, IDisposable
 
     private void OnTrySonarQubeCloud()
     {
-        browserService.Navigate(TelemetryLinks.LinkIdToUrls[TelemetryLinks.SonarQubeCloudFreeSignUpId]);
-        telemetryManager.LinkClicked(TelemetryLinks.SonarQubeCloudFreeSignUpId);
+        browserService.Navigate(TelemetryLinks.SonarQubeCloudFreeSignUpPromoteConnectedModeLanguages.GetUtmLink);
+        telemetryManager.LinkClicked(TelemetryLinks.SonarQubeCloudFreeSignUpPromoteConnectedModeLanguages.Id);
     }
 
     private void OnLearnMore() => browserService.Navigate(DocumentationLinks.ConnectedModeBenefits);
