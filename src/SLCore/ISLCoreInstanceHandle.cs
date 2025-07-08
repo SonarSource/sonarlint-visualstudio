@@ -99,8 +99,6 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
 
         SLCoreRpc = slCoreRpcFactory.StartNewRpcInstance();
 
-
-
         var serverConnectionConfigurations = serverConnectionConfigurationProvider.GetServerConnections();
         var (storageRoot, workDir, sonarlintUserHome) = slCoreFoldersProvider.GetWorkFolders();
 
@@ -122,7 +120,12 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             isFocusOnNewCode: false,
             constantsProvider.TelemetryConstants,
             telemetryMigrationProvider.Get(),
-            new LanguageSpecificRequirements(new JsTsRequirementsDto(nodeLocator.Get(), esLintBridgeLocator.Get())),
+            new LanguageSpecificRequirements(new JsTsRequirementsDto(nodeLocator.Get(), esLintBridgeLocator.Get()),
+                new OmnisharpRequirementsDto(@"C:\Users\gabriela.trutan\Desktop\omnisharp\omnisharp-roslyn-1.39.12-mono",
+                    @"C:\Users\gabriela.trutan\Desktop\omnisharp\omnisharp-roslyn-1.39.12-net6",
+                    @"C:\Users\gabriela.trutan\Desktop\omnisharp\omnisharp-roslyn-1.39.12-net472",
+                    @"C:\Users\gabriela.trutan\Desktop\omnisharp\sonar-csharp-enterprise-plugin-10.12.0.118525.jar",
+                    @"C:\Users\gabriela.trutan\Desktop\omnisharp\sonar-csharp-enterprise-plugin-10.12.0.118525.jar")),
             automaticAnalysisEnabled: true);
 
         slCoreRpcManager.Initialize(initializationParams);

@@ -20,6 +20,15 @@
           "Microsoft.IdentityModel.Clients.ActiveDirectory": "3.13.8"
         }
       },
+      "Microsoft.CodeAnalysis.CSharp": {
+        "type": "Direct",
+        "requested": "[3.11.0, )",
+        "resolved": "3.11.0",
+        "contentHash": "aDRRb7y/sXoJyDqFEQ3Il9jZxyUMHkShzZeCRjQf3SS84n2J0cTEi3TbwVZE9XJvAeMJhGfVVxwOdjYBg6ljmw==",
+        "dependencies": {
+          "Microsoft.CodeAnalysis.Common": "[3.11.0]"
+        }
+      },
       "Microsoft.VisualStudio.LanguageServices": {
         "type": "Direct",
         "requested": "[3.11.0, )",

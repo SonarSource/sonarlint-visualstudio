@@ -23,6 +23,7 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.ConnectedMode;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -30,7 +31,6 @@ using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using SonarLint.VisualStudio.Integration.CSharpVB.Install;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.Events;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.SLCore;
@@ -124,7 +124,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 var importBeforeFileGenerator = await this.GetMefServiceAsync<IImportBeforeFileGenerator>();
                 importBeforeFileGenerator.UpdateOrCreateTargetsFileAsync().Forget();
 
-                LegacyInstallationCleanup.CleanupDaemonFiles(logger);
+                Thread listenerThread = new Thread(() => StartRpc().ConfigureAwait(false)) { IsBackground = true };
+                listenerThread.Start();
 
                 slCoreHandler = await this.GetMefServiceAsync<ISLCoreHandler>();
                 slCoreHandler.EnableSloop();
@@ -134,6 +135,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 logger?.WriteLine(Strings.ERROR_InitializingDaemon, ex);
             }
             logger?.WriteLine(Strings.Daemon_InitializationComplete);
+        }
+
+        private async Task StartRpc()
+        {
+            var abc = await this.GetMefServiceAsync<IAnalysisRpcServer>();
+            abc.StartListen().ConfigureAwait(false);
         }
 
         private async Task MigrateBindingsToServerConnectionsIfNeededAsync()

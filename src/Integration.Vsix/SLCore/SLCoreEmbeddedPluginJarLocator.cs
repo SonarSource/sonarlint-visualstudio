@@ -62,7 +62,11 @@ public class SLCoreEmbeddedPluginJarLocator : ISLCoreEmbeddedPluginJarLocator
 
         if (fileSystem.Directory.Exists(jarFolderPath))
         {
-            return fileSystem.Directory.GetFiles(jarFolderPath, "*.jar").ToList();
+            var jars = fileSystem.Directory.GetFiles(jarFolderPath, "*.jar").ToList();
+            jars.Add(@"C:\Users\gabriela.trutan\Desktop\omnisharp\sonarlint-omnisharp-plugin-1.33-SNAPSHOT.jar");
+            var ja = jars.Where(j => j.Contains("sonar-csharp-enterprise-plugin")).First();
+            jars.Remove(ja);
+            return jars;
         }
         return new List<string>();
     }
@@ -79,6 +83,8 @@ public class SLCoreEmbeddedPluginJarLocator : ISLCoreEmbeddedPluginJarLocator
                 connectedModeEmbeddedPluginPathsByKey.Add(plugin.Key, pluginFilePath);
             }
         }
+
+        connectedModeEmbeddedPluginPathsByKey.Add("omnisharp", @"C:\Users\gabriela.trutan\Desktop\omnisharp\sonarlint-omnisharp-plugin-1.33-SNAPSHOT.jar");
 
         return connectedModeEmbeddedPluginPathsByKey;
     }

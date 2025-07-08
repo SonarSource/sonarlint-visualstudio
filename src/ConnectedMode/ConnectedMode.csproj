@@ -47,6 +47,7 @@
     <None Remove="UI\Resources\Styles.xaml" />
     <None Remove="UI\Resources\TrashCanImage.xaml" />
     <None Remove="UI\ServerSelection\ServerSelectionDialog.xaml" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.11.0" />
     <Resource Include="UI\Resources\sonarqube_for_ide_logo_16px.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>

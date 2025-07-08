@@ -225,6 +225,14 @@
         "resolved": "3.3.2",
         "contentHash": "7xt6zTlIEizUgEsYAIgm37EbdkiMmr6fP6J9pDoKEpiGM4pi32BCPGr/IczmSJI9Zzp0a6HOzpr9OvpMP+2veA=="
       },
+      "Microsoft.CodeAnalysis.CSharp": {
+        "type": "Transitive",
+        "resolved": "3.11.0",
+        "contentHash": "aDRRb7y/sXoJyDqFEQ3Il9jZxyUMHkShzZeCRjQf3SS84n2J0cTEi3TbwVZE9XJvAeMJhGfVVxwOdjYBg6ljmw==",
+        "dependencies": {
+          "Microsoft.CodeAnalysis.Common": "[3.11.0]"
+        }
+      },
       "Microsoft.CSharp": {
         "type": "Transitive",
         "resolved": "4.7.0",
@@ -1235,6 +1243,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Alm.Authentication": "[4.0.0.1, )",
+          "Microsoft.CodeAnalysis.CSharp": "[3.11.0, )",
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
           "Newtonsoft.Json": "[13.0.3, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",

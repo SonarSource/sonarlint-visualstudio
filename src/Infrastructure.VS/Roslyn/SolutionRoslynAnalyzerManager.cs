@@ -85,7 +85,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         this.analyzerComparer = analyzerComparer;
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.activeSolutionTracker = activeSolutionTracker;
-        this.asyncLock = asyncLockFactory.Create();
+        asyncLock = asyncLockFactory.Create();
         this.logger = logger.ForVerboseContext("Roslyn Analyzers");
 
         activeConfigScopeTracker.CurrentConfigurationScopeChanged += OnConfigurationScopeChanged;
@@ -100,12 +100,12 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
 
             if (solutionName is null)
             {
-                await RemoveCurrentAnalyzersAsync();
+                //await RemoveCurrentAnalyzersAsync();
                 return;
             }
             try
             {
-                await UpdateAnalyzersIfChangedAsync(await ChooseAnalyzersAsync(solutionName));
+                //await UpdateAnalyzersIfChangedAsync(await ChooseAnalyzersAsync(solutionName));
             }
             catch (Exception e)
             {

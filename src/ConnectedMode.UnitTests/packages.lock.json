@@ -1478,6 +1478,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Alm.Authentication": "[4.0.0.1, )",
+          "Microsoft.CodeAnalysis.CSharp": "[3.11.0, )",
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
           "Newtonsoft.Json": "[13.0.3, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",

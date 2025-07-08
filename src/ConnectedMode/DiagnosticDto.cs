@@ -18,13 +18,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
+namespace SonarLint.VisualStudio.ConnectedMode;
 
-public record JsTsRequirementsDto(string? clientNodeJsPath, string? bundlePath);
+public record DiagnosticDto(
+    string FileName,
+    int Line,
+    int Column,
+    int EndLine,
+    int EndColumn,
+    string Text,
+    QuickFixe[] QuickFixes,
+    string Id,
+    DiagnosticLocationDto[] AdditionalLocations) : DiagnosticLocationDto(FileName, Line, Column, EndLine, EndColumn, Text, QuickFixes)
+{
+}
 
-public record OmnisharpRequirementsDto(
-    string monoDistributionPath,
-    string dotNet6DistributionPath,
-    string dotNet472DistributionPath,
-    string ossAnalyzerPath,
-    string enterpriseAnalyzerPath);
+public record DiagnosticLocationDto(
+    string FileName,
+    int Line,
+    int Column,
+    int EndLine,
+    int EndColumn,
+    string Text,
+    QuickFixe[] QuickFixes)
+{
+}
+
+public class QuickFixe
+{
+}
