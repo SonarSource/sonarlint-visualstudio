@@ -30,7 +30,7 @@ public interface IActiveConfigScopeTracker : IDisposable
 
     void RemoveCurrentConfigScope();
 
-    bool TryUpdateRootOnCurrentConfigScope(string id, string root, string commandsBasDir);
+    bool TryUpdateRootOnCurrentConfigScope(string id, string root, string commandsBaseDir);
 
     bool TryUpdateAnalysisReadinessOnCurrentConfigScope(string id, bool isReady);
 

@@ -37,20 +37,20 @@ internal class AnalysisConfigurationProviderListener(IActiveConfigScopeTracker a
     {
         string baseDir;
         var currentConfigurationScope = activeConfigScopeTracker.Current;
-        if (currentConfigurationScope?.Id != parameters.configurationScopeId)
+
+        if (currentConfigurationScope is not null && currentConfigurationScope.Id == parameters.configurationScopeId)
+        {
+            baseDir = currentConfigurationScope.CommandsBaseDir;
+        }
+        else
         {
             analysisConfigLogger.WriteLine(SLCoreStrings.ConfigurationScopeMismatch, parameters.configurationScopeId, currentConfigurationScope?.Id);
             baseDir = null;
         }
-        else
-        {
-            baseDir = currentConfigurationScope.CommandsBaseDir;
-        }
+
         return Task.FromResult(new GetBaseDirResponse(baseDir));
     }
 
-    public Task<GetInferredAnalysisPropertiesResponse> GetInferredAnalysisPropertiesAsync(GetInferredAnalysisPropertiesParams parameters)
-    {
-        return Task.FromResult(new GetInferredAnalysisPropertiesResponse([]));
-    }
+    public Task<GetInferredAnalysisPropertiesResponse> GetInferredAnalysisPropertiesAsync(GetInferredAnalysisPropertiesParams parameters) =>
+        Task.FromResult(new GetInferredAnalysisPropertiesResponse([]));
 }
