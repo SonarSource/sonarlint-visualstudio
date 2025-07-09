@@ -76,6 +76,10 @@ public class ActiveConfigScopeTrackerTests
     }
 
     [TestMethod]
+    public void Ctor_InitializesLogContexts() =>
+        logger.Received(1).ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.ConfigurationScope_LogContext);
+
+    [TestMethod]
     public void SetCurrentConfigScope_SetsUnboundScope()
     {
         const string configScopeId = "myid";
