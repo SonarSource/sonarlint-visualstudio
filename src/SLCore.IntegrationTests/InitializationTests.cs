@@ -54,7 +54,7 @@ public class InitializationTests
     public async Task Sloop_ConfigScopeSetAndUnsetWithoutErrors()
     {
         const string configScopeId = "ConfigScope1";
-        var infrastructureLogger = new TestLogger();
+        var infrastructureLogger = new TestLogger(logVerbose: false);
         var rpcLogger = new TestLogger();
         var slCoreStdErrorLogger = new TestLogger();
         var analysisReadyCompletionSource = new TaskCompletionSource<DidChangeAnalysisReadinessParams>();
@@ -69,7 +69,8 @@ public class InitializationTests
 
             var activeConfigScopeTracker = new ActiveConfigScopeTracker(slCoreTestRunner.SLCoreServiceProvider,
                 new AsyncLockFactory(),
-                new NoOpThreadHandler());
+                new NoOpThreadHandler(),
+                infrastructureLogger);
 
             activeConfigScopeTracker.SetCurrentConfigScope(configScopeId);
 

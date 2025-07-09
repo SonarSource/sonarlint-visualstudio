@@ -59,17 +59,20 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
     private readonly IListFilesListener listFilesListener;
     private readonly IAnalysisListener analysisListener;
     private readonly SLCoreTestRunner slCoreTestRunner;
-    private readonly TestLogger infrastructureLogger;
-    private readonly TestLogger slCoreStdErrorLogger;
     private readonly TestLogger rpcLogger;
     private readonly IGetFileExclusionsListener getFileExclusionsListener;
     private readonly IClientFileDtoFactory clientFileDtoFactory;
 
     private FileAnalysisTestsRunner(string testClassName, Dictionary<string, StandaloneRuleConfigDto> initialRuleConfig = null)
     {
-        infrastructureLogger = new TestLogger();
-        slCoreStdErrorLogger = new TestLogger();
+        var infrastructureLogger = new TestLogger();
+        var slCoreStdErrorLogger = new TestLogger();
         slCoreTestRunner = new SLCoreTestRunner(infrastructureLogger, slCoreStdErrorLogger, testClassName);
+
+        activeConfigScopeTracker = new ActiveConfigScopeTracker(slCoreTestRunner.SLCoreServiceProvider,
+            new AsyncLockFactory(),
+            new NoOpThreadHandler(),
+            infrastructureLogger);
 
         analysisListener = Substitute.For<IAnalysisListener>();
         getFileExclusionsListener = Substitute.For<IGetFileExclusionsListener>();
@@ -81,19 +84,11 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         slCoreTestRunner.AddListener(new ProgressListener(Substitute.For<IStatusBarNotifier>()));
         slCoreTestRunner.AddListener(analysisListener);
         slCoreTestRunner.AddListener(listFilesListener);
-        var folderWorkspaceService = Substitute.For<IFolderWorkspaceService>();
-        folderWorkspaceService.FindRootDirectory().ReturnsNull();
-        var gitWorkspaceService = Substitute.For<IGitWorkspaceService>();
-        gitWorkspaceService.GetRepoRoot().ReturnsNull();
-        slCoreTestRunner.AddListener(new AnalysisConfigurationProviderListener(folderWorkspaceService, gitWorkspaceService));
+        slCoreTestRunner.AddListener(new AnalysisConfigurationProviderListener(activeConfigScopeTracker));
         slCoreTestRunner.AddListener(getFileExclusionsListener);
 
         clientFileDtoFactory = new ClientFileDtoFactory(infrastructureLogger);
         slCoreTestRunner.MockInitialSlCoreRulesSettings(initialRuleConfig ?? []);
-
-        activeConfigScopeTracker = new ActiveConfigScopeTracker(slCoreTestRunner.SLCoreServiceProvider,
-            new AsyncLockFactory(),
-            new NoOpThreadHandler());
     }
 
     public static async Task<FileAnalysisTestsRunner> CreateInstance(string testClassName, Dictionary<string, StandaloneRuleConfigDto> initialRuleConfig = null)

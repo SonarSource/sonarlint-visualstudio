@@ -30,7 +30,7 @@ public interface IActiveConfigScopeTracker : IDisposable
 
     void RemoveCurrentConfigScope();
 
-    bool TryUpdateRootOnCurrentConfigScope(string id, string root);
+    bool TryUpdateRootOnCurrentConfigScope(string id, string root, string commandsBasDir);
 
     bool TryUpdateAnalysisReadinessOnCurrentConfigScope(string id, bool isReady);
 
@@ -50,6 +50,7 @@ public record ConfigurationScope(
     string ConnectionId = null,
     string SonarProjectId = null,
     string RootPath = null,
+    string CommandsBaseDir = null,
     bool IsReadyForAnalysis = false)
 {
     public string Id { get; } = Id ?? throw new ArgumentNullException(nameof(Id));

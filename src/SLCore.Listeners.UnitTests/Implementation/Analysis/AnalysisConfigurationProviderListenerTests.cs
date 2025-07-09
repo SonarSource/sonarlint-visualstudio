@@ -20,6 +20,7 @@
 
 using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
@@ -30,62 +31,58 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation.Analy
 [TestClass]
 public class AnalysisConfigurationProviderListenerTests
 {
-    private IFolderWorkspaceService folderWorkspaceService;
-    private IGitWorkspaceService gitWorkspaceService;
+    private IActiveConfigScopeTracker activeConfigScopeTracker;
     private AnalysisConfigurationProviderListener testSubject;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        folderWorkspaceService = Substitute.For<IFolderWorkspaceService>();
-        gitWorkspaceService = Substitute.For<IGitWorkspaceService>();
+        activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
 
         testSubject = new AnalysisConfigurationProviderListener(
-            folderWorkspaceService,
-            gitWorkspaceService);
+            activeConfigScopeTracker);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<AnalysisConfigurationProviderListener, ISLCoreListener>(
-            MefTestHelpers.CreateExport<IFolderWorkspaceService>(),
-            MefTestHelpers.CreateExport<IGitWorkspaceService>());
+            MefTestHelpers.CreateExport<IActiveConfigScopeTracker>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<AnalysisConfigurationProviderListener>();
 
     [TestMethod]
-    public void GetBaseDirAsync_FolderWorkspaceRootExists_ReturnsFolderWorkspaceRoot()
+    public void GetBaseDirAsync_NoConfigurationScope_ReturnsNull()
     {
-        var expectedWorkspaceRoot = "C:\\workspace\\root";
-        folderWorkspaceService.FindRootDirectory().Returns(expectedWorkspaceRoot);
-
-        var result = testSubject.GetBaseDirAsync(new GetBaseDirParams("any")).Result;
-
-        result.baseDir.Should().Be(expectedWorkspaceRoot);
-    }
-
-    [TestMethod]
-    public void GetBaseDirAsync_FolderWorkspaceRootDoesNotExist_ReturnsGitRepoRoot()
-    {
-        var expectedRepoRoot = "C:\\repo\\root";
-        folderWorkspaceService.FindRootDirectory().ReturnsNull();
-        gitWorkspaceService.GetRepoRoot().Returns(expectedRepoRoot);
-
-        var result = testSubject.GetBaseDirAsync(new GetBaseDirParams("any")).Result;
-
-        result.baseDir.Should().Be(expectedRepoRoot);
-    }
-
-    [TestMethod]
-    public void GetBaseDirAsync_BothRootsNull_ReturnsNull()
-    {
-        folderWorkspaceService.FindRootDirectory().ReturnsNull();
-        gitWorkspaceService.GetRepoRoot().ReturnsNull();
+        activeConfigScopeTracker.Current.ReturnsNull();
 
         var result = testSubject.GetBaseDirAsync(new GetBaseDirParams("any")).Result;
 
         result.baseDir.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void GetBaseDirAsync_ConfigurationScopeIdDoesNotMatch_ReturnsNull()
+    {
+        var configScope = new ConfigurationScope("scope1", CommandsBaseDir: "C:\\workspace\\root");
+        activeConfigScopeTracker.Current.Returns(configScope);
+
+        var result = testSubject.GetBaseDirAsync(new GetBaseDirParams("different-scope")).Result;
+
+        result.baseDir.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void GetBaseDirAsync_ConfigurationScopeIdMatches_ReturnsCommandsBaseDir()
+    {
+        const string scopeId = "scope1";
+        const string expectedBaseDir = "C:\\workspace\\root";
+        var configScope = new ConfigurationScope(scopeId, CommandsBaseDir: expectedBaseDir);
+        activeConfigScopeTracker.Current.Returns(configScope);
+
+        var result = testSubject.GetBaseDirAsync(new GetBaseDirParams(scopeId)).Result;
+
+        result.baseDir.Should().Be(expectedBaseDir);
     }
 
     [DataRow(null, [new string[0]])]
