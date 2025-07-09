@@ -29,13 +29,20 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation.Analysis;
 [Export(typeof(ISLCoreListener))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class AnalysisConfigurationProviderListener(IActiveConfigScopeTracker activeConfigScopeTracker) : IAnalysisConfigurationProviderListener
+internal class AnalysisConfigurationProviderListener(IActiveConfigScopeTracker activeConfigScopeTracker, ILogger logger) : IAnalysisConfigurationProviderListener
 {
+    private readonly ILogger analysisConfigLogger = logger.ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.SLCoreAnalysisConfigurationLogContext);
+
     public Task<GetBaseDirResponse> GetBaseDirAsync(GetBaseDirParams parameters)
     {
-        string baseDir = null;
+        string baseDir;
         var currentConfigurationScope = activeConfigScopeTracker.Current;
-        if (currentConfigurationScope?.Id == parameters.configurationScopeId)
+        if (currentConfigurationScope?.Id != parameters.configurationScopeId)
+        {
+            analysisConfigLogger.WriteLine(SLCoreStrings.ConfigurationScopeMismatch, parameters.configurationScopeId, currentConfigurationScope?.Id);
+            baseDir = null;
+        }
+        else
         {
             baseDir = currentConfigurationScope.CommandsBaseDir;
         }

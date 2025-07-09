@@ -84,7 +84,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         slCoreTestRunner.AddListener(new ProgressListener(Substitute.For<IStatusBarNotifier>()));
         slCoreTestRunner.AddListener(analysisListener);
         slCoreTestRunner.AddListener(listFilesListener);
-        slCoreTestRunner.AddListener(new AnalysisConfigurationProviderListener(activeConfigScopeTracker));
+        slCoreTestRunner.AddListener(new AnalysisConfigurationProviderListener(activeConfigScopeTracker, infrastructureLogger));
         slCoreTestRunner.AddListener(getFileExclusionsListener);
 
         clientFileDtoFactory = new ClientFileDtoFactory(infrastructureLogger);

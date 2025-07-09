@@ -33,23 +33,30 @@ public class AnalysisConfigurationProviderListenerTests
 {
     private IActiveConfigScopeTracker activeConfigScopeTracker;
     private AnalysisConfigurationProviderListener testSubject;
+    private TestLogger logger;
 
     [TestInitialize]
     public void TestInitialize()
     {
         activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
+        logger = Substitute.ForPartsOf<TestLogger>();
 
         testSubject = new AnalysisConfigurationProviderListener(
-            activeConfigScopeTracker);
+            activeConfigScopeTracker, logger);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<AnalysisConfigurationProviderListener, ISLCoreListener>(
-            MefTestHelpers.CreateExport<IActiveConfigScopeTracker>());
+            MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
+            MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<AnalysisConfigurationProviderListener>();
+
+    [TestMethod]
+    public void Ctor_InitializesLogContexts() =>
+        logger.Received(1).ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.SLCoreAnalysisConfigurationLogContext);
 
     [TestMethod]
     public void GetBaseDirAsync_NoConfigurationScope_ReturnsNull()
@@ -70,6 +77,7 @@ public class AnalysisConfigurationProviderListenerTests
         var result = testSubject.GetBaseDirAsync(new GetBaseDirParams("different-scope")).Result;
 
         result.baseDir.Should().BeNull();
+        logger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ConfigurationScopeMismatch, "different-scope", "scope1"));
     }
 
     [TestMethod]
