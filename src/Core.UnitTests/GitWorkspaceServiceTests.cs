@@ -30,12 +30,12 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
     [TestClass]
-    public class GitWorkSpaceServiceTests
+    public class GitWorkspaceServiceTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<GitWorkSpaceService, IGitWorkspaceService>(
+            MefTestHelpers.CheckTypeCanBeImported<GitWorkspaceService, IGitWorkspaceService>(
                 MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
                 MefTestHelpers.CreateExport<IFileSystemService>(),
                 MefTestHelpers.CreateExport<ILogger>());
@@ -108,11 +108,11 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
 
-        private static GitWorkSpaceService CreateTestSubject(ISolutionInfoProvider solutionInfoProvider, ILogger logger, IFileSystemService fileSystem = null)
+        private static GitWorkspaceService CreateTestSubject(ISolutionInfoProvider solutionInfoProvider, ILogger logger, IFileSystemService fileSystem = null)
         {
             fileSystem ??= CreateFileSystem().Object;
 
-            return new GitWorkSpaceService(solutionInfoProvider, logger, fileSystem);
+            return new GitWorkspaceService(solutionInfoProvider, logger, fileSystem);
         }
 
         private static Mock<IFileSystemService> CreateFileSystem(params string[] existingFolders)

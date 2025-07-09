@@ -36,7 +36,7 @@ public interface IGitWorkspaceService
 }
 
 [Export(typeof(IGitWorkspaceService))]
-internal class GitWorkSpaceService : IGitWorkspaceService
+internal class GitWorkspaceService : IGitWorkspaceService
 {
     private readonly ILogger logger;
     private readonly ISolutionInfoProvider solutionInfoProvider;
@@ -46,11 +46,11 @@ internal class GitWorkSpaceService : IGitWorkspaceService
 
     private record struct GitWorkspaceCache(string WorkspaceRoot, string GitRoot);
     private readonly object lockObject = new();
-    private GitWorkspaceCache value;
+    private GitWorkspaceCache currentWorkspace;
 
 
     [ImportingConstructor]
-    public GitWorkSpaceService(ISolutionInfoProvider solutionInfoProvider, ILogger logger, IFileSystemService fileSystem)
+    public GitWorkspaceService(ISolutionInfoProvider solutionInfoProvider, ILogger logger, IFileSystemService fileSystem)
     {
         this.solutionInfoProvider = solutionInfoProvider;
         this.logger = logger;
@@ -63,13 +63,13 @@ internal class GitWorkSpaceService : IGitWorkspaceService
 
         lock (lockObject)
         {
-            if (value.WorkspaceRoot == workspaceRoot)
+            if (currentWorkspace.WorkspaceRoot == workspaceRoot)
             {
-                return value.GitRoot;
+                return currentWorkspace.GitRoot;
             }
 
-            value = new GitWorkspaceCache(workspaceRoot, Calculate(workspaceRoot));
-            return value.GitRoot;
+            currentWorkspace = new GitWorkspaceCache(workspaceRoot, Calculate(workspaceRoot));
+            return currentWorkspace.GitRoot;
         }
     }
 
