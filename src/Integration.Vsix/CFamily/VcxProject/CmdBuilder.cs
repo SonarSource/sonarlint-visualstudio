@@ -88,10 +88,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
             path = DoubleSeparatorRegEx.Replace(path, @"\");
 
-            if (path[path.Length - 1] == '\\')
-            {
-                path = path.Substring(0, path.Length - 1);
-            }
+            path = path.TrimEnd('\\');
             return AddQuote(path);
         }
 
@@ -193,7 +190,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
         private void AddPathListOptions(IVCRulePropertyStorage ivcRulePropertyStorage, string vsOption, string compileOption, string[] separator)
         {
             var pathListOptions = ivcRulePropertyStorage.GetEvaluatedPropertyValue(vsOption);
-            string[] opts = pathListOptions.Split(separator, StringSplitOptions.RemoveEmptyEntries);
+            var opts = pathListOptions.Split(separator, StringSplitOptions.RemoveEmptyEntries).Where(o => !string.IsNullOrWhiteSpace(o));
             foreach (string opt in opts)
             {
                 AddCmdOpt(compileOption + AdjustPath(opt));
