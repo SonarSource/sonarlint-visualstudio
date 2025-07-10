@@ -268,6 +268,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarQube Dependency Risks.
+        /// </summary>
+        public static string ReportViewToolWindowCaption {
+            get {
+                return ResourceManager.GetString("ReportViewToolWindowCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An error occurred while reviewing hotspot: {0}..
         /// </summary>
         public static string ReviewHotspotService_AnErrorOccurred {

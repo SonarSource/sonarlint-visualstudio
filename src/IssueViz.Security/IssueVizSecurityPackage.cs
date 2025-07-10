@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Security.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList;
 using Task = System.Threading.Tasks.Task;
@@ -52,6 +53,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
     [ProvideToolWindow(typeof(TaintToolWindow), MultiInstances = false, Transient = false, // Note: Transient must false when using ProvideToolWindowVisibility
         Style = VsDockStyle.Tabbed, Window = VsWindowKindErrorList, Width = 700, Height = 250)]
     [ProvideToolWindowVisibility(typeof(TaintToolWindow), TaintIssuesExistUIContext.GuidString)]
+    [ProvideToolWindow(typeof(ReportViewToolWindow), MultiInstances = false, Transient = false, // Note: Transient must false when using ProvideToolWindowVisibility
+        Style = VsDockStyle.Tabbed, Window = VsWindowKindErrorList, Width = 700, Height = 250)]
+    [ProvideToolWindowVisibility(typeof(ReportViewToolWindow), ReportViewIssuesExistUIContext.GuidString)]
     public sealed class IssueVizSecurityPackage : AsyncPackage
     {
         /// <summary>
@@ -78,6 +82,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
                 new CommandID(Constants.CommandSetGuid, Constants.TaintToolWindowCommandId),
                 TaintToolWindow.ToolWindowId);
 
+            await ShowToolWindowCommand.CreateAsync(this,
+                new CommandID(Constants.CommandSetGuid, Constants.ReportViewToolWindowCommandId),
+                ReportViewToolWindow.ToolWindowId);
+
             logger.WriteLine(Resources.FinishedPackageInitialization);
         }
 
@@ -91,6 +99,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
             if (toolWindowType == typeof(TaintToolWindow))
             {
                 return new TaintToolWindow(this);
+            }
+
+            if (toolWindowType == typeof(ReportViewToolWindow))
+            {
+                return new ReportViewToolWindow(this);
             }
 
             return base.InstantiateToolWindow(toolWindowType);
