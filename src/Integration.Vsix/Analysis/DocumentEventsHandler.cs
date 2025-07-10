@@ -69,7 +69,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
         this.threadHandling = threadHandling;
         this.logger = logger.ForVerboseContext(nameof(DocumentEventsHandler));
 
-        InitializationProcessor = initializationProcessorFactory.CreateAndStart<DocumentEventsHandler>([], async () =>
+        InitializationProcessor = initializationProcessorFactory.CreateAndStart<DocumentEventsHandler>([activeCompilationDatabaseTracker], async () =>
         {
             if (disposed)
             {
@@ -77,17 +77,23 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
             }
 
             activeConfigScopeTracker.CurrentConfigurationScopeChanged += ActiveConfigScopeTracker_CurrentConfigurationScopeChanged;
+            activeCompilationDatabaseTracker.DatabaseChanged += ActiveCompilationDatabaseTracker_DatabaseChanged;
 
             documentTracker.DocumentOpened += OnDocumentOpened;
             documentTracker.DocumentClosed += OnDocumentClosed;
             documentTracker.DocumentSaved += OnDocumentSaved;
             documentTracker.OpenDocumentRenamed += OnOpenDocumentRenamed;
 
-            var openDocuments = documentTracker.GetOpenDocuments().ToArray();
+            var openDocuments = documentTracker.GetOpenDocuments();
             await AddFilesToCompilationDatabaseAsync(openDocuments);
             NotifySlCoreFilesOpened(activeConfigScopeTracker.Current, openDocuments);
         });
     }
+
+    private void ActiveCompilationDatabaseTracker_DatabaseChanged(object sender, EventArgs e) =>
+        threadHandling
+            .RunOnBackgroundThread(() => AddFilesToCompilationDatabaseAsync(documentTracker.GetOpenDocuments()))
+            .Forget();
 
     private void ActiveConfigScopeTracker_CurrentConfigurationScopeChanged(object sender, ConfigurationScopeChangedEventArgs e)
     {
@@ -115,6 +121,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
         if (InitializationProcessor.IsFinalized)
         {
             activeConfigScopeTracker.CurrentConfigurationScopeChanged -= ActiveConfigScopeTracker_CurrentConfigurationScopeChanged;
+            activeCompilationDatabaseTracker.DatabaseChanged -= ActiveCompilationDatabaseTracker_DatabaseChanged;
             documentTracker.DocumentOpened -= OnDocumentOpened;
             documentTracker.DocumentClosed -= OnDocumentClosed;
             documentTracker.DocumentSaved -= OnDocumentSaved;
@@ -211,5 +218,5 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
     }
 
     private bool ShouldUpdateVcxCompilationDatabase(IEnumerable<AnalysisLanguage> fileLanguages) =>
-        fileLanguages.Contains(AnalysisLanguage.CFamily) && activeCompilationDatabaseTracker.DatabaseType == CompilationDatabaseType.VCX;
+        fileLanguages.Contains(AnalysisLanguage.CFamily) && activeCompilationDatabaseTracker.CurrentDatabase?.DatabaseType == CompilationDatabaseType.VCX;
 }

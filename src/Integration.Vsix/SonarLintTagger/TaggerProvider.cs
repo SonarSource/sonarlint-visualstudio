@@ -218,11 +218,11 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
     public event EventHandler<DocumentSavedEventArgs> DocumentSaved;
     public event EventHandler<DocumentRenamedEventArgs> OpenDocumentRenamed;
 
-    public List<Document> GetOpenDocuments()
+    public Document[] GetOpenDocuments()
     {
         lock (issueTrackers)
         {
-            return issueTrackers.Select(it => new Document(it.LastAnalysisFilePath, it.DetectedLanguages)).ToList();
+            return issueTrackers.Select(it => new Document(it.LastAnalysisFilePath, it.DetectedLanguages)).ToArray();
         }
     }
 

@@ -43,7 +43,7 @@ public class DocumentEventsHandlerTests
     private IActiveConfigScopeTracker activeConfigScopeTracker;
     private IThreadHandling threadHandling;
     private IInitializationProcessorFactory initializationProcessorFactory;
-    private readonly IRequireInitialization[] initializationDependencies = [];
+    private IRequireInitialization[] initializationDependencies;
     private IActiveCompilationDatabaseTracker activeCompilationDatabaseTracker;
     private const string CFamilyOldFile = "file:///tmp/SLVS/old.cpp";
     private const string CFamilyNewFile = "file:///tmp/SLVS/new.cpp";
@@ -59,10 +59,11 @@ public class DocumentEventsHandlerTests
     public void TestInitialize()
     {
         documentTracker = Substitute.For<IDocumentTracker>();
-        documentTracker.GetOpenDocuments().Returns(new List<Document>());
+        documentTracker.GetOpenDocuments().Returns([]);
         vcxCompilationDatabaseUpdater = Substitute.For<IVcxCompilationDatabaseUpdater>();
         activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
         activeCompilationDatabaseTracker = Substitute.For<IActiveCompilationDatabaseTracker>();
+        initializationDependencies = [activeCompilationDatabaseTracker];
         threadHandling = Substitute.For<IThreadHandling>();
         MockThreadHandling();
         MockCurrentConfigScope(ConfigurationScope);
@@ -101,6 +102,7 @@ public class DocumentEventsHandlerTests
                 Arg.Any<Func<IThreadHandling, Task>>());
             testSubject.InitializationProcessor.InitializeAsync();
             activeConfigScopeTracker.CurrentConfigurationScopeChanged += Arg.Any<EventHandler<ConfigurationScopeChangedEventArgs>>();
+            activeCompilationDatabaseTracker.DatabaseChanged += Arg.Any<EventHandler>();
             documentTracker.DocumentOpened += Arg.Any<EventHandler<DocumentOpenedEventArgs>>();
             documentTracker.DocumentClosed += Arg.Any<EventHandler<DocumentEventArgs>>();
             documentTracker.DocumentSaved += Arg.Any<EventHandler<DocumentSavedEventArgs>>();
@@ -517,6 +519,7 @@ public class DocumentEventsHandlerTests
         subject.Dispose();
 
         activeConfigScopeTracker.Received(1).CurrentConfigurationScopeChanged -= Arg.Any<EventHandler<ConfigurationScopeChangedEventArgs>>();
+        activeCompilationDatabaseTracker.Received(1).DatabaseChanged -= Arg.Any<EventHandler>();
         documentTracker.Received(1).DocumentClosed -= Arg.Any<EventHandler<DocumentEventArgs>>();
         documentTracker.Received(1).DocumentOpened -= Arg.Any<EventHandler<DocumentOpenedEventArgs>>();
         documentTracker.Received(1).DocumentSaved -= Arg.Any<EventHandler<DocumentSavedEventArgs>>();
@@ -574,6 +577,50 @@ public class DocumentEventsHandlerTests
 
         fileRpcSlCoreService.DidNotReceive().DidOpenFile(Arg.Any<DidOpenFileParams>());
         logger.Received(1).LogVerbose(SLCoreStrings.ServiceProviderNotInitialized);
+    }
+
+
+    [TestMethod]
+    public void ActiveCompilationDatabaseTracker_DatabaseChanged_UpdatesCompilationDatabase()
+    {
+        CreateAndInitializeTestSubject();
+        documentTracker.GetOpenDocuments().Returns([CFamilyDocument, NonCFamilyDocument, CFamilyDocument2]);
+        vcxCompilationDatabaseUpdater.ClearReceivedCalls();
+        threadHandling.ClearReceivedCalls();
+
+        activeCompilationDatabaseTracker.DatabaseChanged += Raise.EventWith(EventArgs.Empty);
+
+        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+        vcxCompilationDatabaseUpdater.Received(1).AddFileAsync(CFamilyDocument.FullPath);
+        vcxCompilationDatabaseUpdater.Received(1).AddFileAsync(CFamilyDocument2.FullPath);
+        vcxCompilationDatabaseUpdater.DidNotReceive().AddFileAsync(NonCFamilyDocument.FullPath);
+    }
+
+    [TestMethod]
+    public void ActiveCompilationDatabaseTracker_DatabaseChanged_WhenNoCFamilyFiles_DoesNotUpdateCompilationDatabase()
+    {
+        CreateAndInitializeTestSubject();
+        documentTracker.GetOpenDocuments().Returns([NonCFamilyDocument, NonCFamilyDocument2]);
+        vcxCompilationDatabaseUpdater.ClearReceivedCalls();
+
+        activeCompilationDatabaseTracker.DatabaseChanged += Raise.EventWith(EventArgs.Empty);
+
+        vcxCompilationDatabaseUpdater.DidNotReceiveWithAnyArgs().AddFileAsync(default);
+    }
+
+    [DataTestMethod]
+    [DataRow(CompilationDatabaseType.CMake)]
+    [DataRow(null)]
+    public void ActiveCompilationDatabaseTracker_DatabaseChanged_WhenDatabaseNotVcx_DoesNotUpdateCompilationDatabase(CompilationDatabaseType? databaseType)
+    {
+        CreateAndInitializeTestSubject();
+        MockCompilationDatabaseType(databaseType);
+        documentTracker.GetOpenDocuments().Returns([CFamilyDocument, NonCFamilyDocument, CFamilyDocument2]);
+        vcxCompilationDatabaseUpdater.ClearReceivedCalls();
+
+        activeCompilationDatabaseTracker.DatabaseChanged += Raise.EventWith(EventArgs.Empty);
+
+        vcxCompilationDatabaseUpdater.DidNotReceiveWithAnyArgs().AddFileAsync(default);
     }
 
     private DocumentEventsHandler CreateUninitializedTestSubject(out TaskCompletionSource<byte> barrier)
@@ -635,5 +682,5 @@ public class DocumentEventsHandlerTests
 
     private void MockCurrentConfigScope(ConfigurationScope configurationScope) => activeConfigScopeTracker.Current.Returns(configurationScope);
 
-    private void MockCompilationDatabaseType(CompilationDatabaseType type) => activeCompilationDatabaseTracker.DatabaseType.Returns(type);
+    private void MockCompilationDatabaseType(CompilationDatabaseType? type) => activeCompilationDatabaseTracker.CurrentDatabase.Returns(type is null ? null : new CompilationDatabaseInfo("any", type.Value));
 }
