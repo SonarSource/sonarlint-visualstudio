@@ -18,8 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
+[ExcludeFromCodeCoverage]
 internal static class ReportViewIssuesExistUIContext
 {
     public const string GuidString = "8063B617-88CF-4AF6-94F3-5E74E144B0A8";

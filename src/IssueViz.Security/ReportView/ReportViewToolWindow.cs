@@ -18,12 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
 [Guid(ToolWindowIdAsString)]
+[ExcludeFromCodeCoverage]
 internal class ReportViewToolWindow : ToolWindowPane
 {
     private const string ToolWindowIdAsString = "6CDF14D1-EFE5-4651-B8B2-32D7AE954E16";
