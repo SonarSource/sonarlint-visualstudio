@@ -173,22 +173,16 @@ internal sealed class ActiveConfigScopeTracker(
 
     public event EventHandler<ConfigurationScopeChangedEventArgs>? CurrentConfigurationScopeChanged;
 
-    public void Dispose()
-    {
+    public void Dispose() =>
         asyncLock?.Dispose();
-    }
 
     private static BindingConfigurationDto? GetBinding(string? connectionId, string? sonarProjectKey) => connectionId is not null
         ? new BindingConfigurationDto(connectionId, sonarProjectKey)
         : null;
 
-    private void LogConfigurationScopeChangedUnsafe()
-    {
-        logger.WriteLine(SLCoreStrings.ConfigurationScopeChanged, CurrentConfigScope);
-    }
+    private void LogConfigurationScopeChangedUnsafe() =>
+        logger.LogVerbose(SLCoreStrings.ConfigurationScopeChanged, CurrentConfigScope);
 
-    private void OnCurrentConfigurationScopeChanged(bool declarationChanged)
-    {
+    private void OnCurrentConfigurationScopeChanged(bool declarationChanged) =>
         CurrentConfigurationScopeChanged?.Invoke(this, new (declarationChanged));
-    }
 }
