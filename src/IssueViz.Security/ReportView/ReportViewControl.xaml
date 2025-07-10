@@ -1,0 +1,6 @@
+﻿<UserControl x:Class="SonarLint.VisualStudio.IssueVisualization.Security.ReportView.ReportViewControl"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid></Grid>
+</UserControl>

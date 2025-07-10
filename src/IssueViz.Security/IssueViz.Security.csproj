@@ -60,6 +60,10 @@
     <Page Include="Hotspots\ReviewHotspot\ReviewHostpotWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="ReportView\ReportViewControl.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
     <Page Include="SharedUI\SharedResources.xaml">
       <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>

@@ -18,14 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
-{
-    internal static class Constants
-    {
-        public static readonly Guid CommandSetGuid = new Guid("97856422-20A2-4DB5-A468-1BAA9B6EEC38");
+using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.Shell;
 
-        public const int HotspotsToolWindowCommandId = 0x0100;
-        public const int TaintToolWindowCommandId = 0x0101;
-        public const int ReportViewToolWindowCommandId = 0x0102;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
+
+[Guid(ToolWindowIdAsString)]
+internal class ReportViewToolWindow : ToolWindowPane
+{
+    private const string ToolWindowIdAsString = "6CDF14D1-EFE5-4651-B8B2-32D7AE954E16";
+    public static readonly Guid ToolWindowId = new Guid(ToolWindowIdAsString);
+
+    public ReportViewToolWindow(IServiceProvider serviceProvider)
+    {
+        Caption = Resources.ReportViewToolWindowCaption;
+        Content = new ReportViewControl();
     }
 }
