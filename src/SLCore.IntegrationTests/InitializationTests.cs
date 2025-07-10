@@ -69,7 +69,8 @@ public class InitializationTests
 
             var activeConfigScopeTracker = new ActiveConfigScopeTracker(slCoreTestRunner.SLCoreServiceProvider,
                 new AsyncLockFactory(),
-                new NoOpThreadHandler());
+                new NoOpThreadHandler(),
+                new TestLogger());
 
             activeConfigScopeTracker.SetCurrentConfigScope(configScopeId);
 

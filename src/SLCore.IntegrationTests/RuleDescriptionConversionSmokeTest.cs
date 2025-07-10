@@ -49,7 +49,7 @@ public class RuleDescriptionConversionSmokeTest
         await slCoreTestRunner.Start(rpcLogger);
 
         var ruleHelpXamlBuilder = CreateRuleHelpXamlBuilder();
-        var activeConfigScopeTracker = CreateActiveConfigScopeTracker(slCoreTestRunner);
+        var activeConfigScopeTracker = CreateActiveConfigScopeTracker(slCoreTestRunner, infrastructureLogger);
         var slCoreRuleMetaDataProvider = CreateSlCoreRuleMetaDataProvider(slCoreTestRunner, activeConfigScopeTracker, infrastructureLogger);
         activeConfigScopeTracker.SetCurrentConfigScope(configScope);
         slCoreTestRunner.SLCoreServiceProvider.TryGetTransientService(out IRulesSLCoreService rulesSlCoreService).Should().BeTrue();
@@ -136,10 +136,11 @@ public class RuleDescriptionConversionSmokeTest
             new RuleInfoConverter(),
             testLogger);
 
-    private static ActiveConfigScopeTracker CreateActiveConfigScopeTracker(SLCoreTestRunner slCoreTestRunner) =>
+    private static ActiveConfigScopeTracker CreateActiveConfigScopeTracker(SLCoreTestRunner slCoreTestRunner, TestLogger infrastructureLogger) =>
         new(slCoreTestRunner.SLCoreServiceProvider,
             new AsyncLockFactory(),
-            new NoOpThreadHandler());
+            new NoOpThreadHandler(),
+            infrastructureLogger);
 
     private static RuleHelpXamlBuilder CreateRuleHelpXamlBuilder()
     {

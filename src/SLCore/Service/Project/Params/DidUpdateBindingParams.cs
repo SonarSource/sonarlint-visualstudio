@@ -23,4 +23,4 @@ using SonarLint.VisualStudio.SLCore.Service.Project.Models;
 namespace SonarLint.VisualStudio.SLCore.Service.Project.Params;
 
 public record DidUpdateBindingParams(string configScopeId,
-    BindingConfigurationDto updatedBinding);
+    BindingConfigurationDto? updatedBinding);

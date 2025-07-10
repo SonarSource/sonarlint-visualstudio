@@ -36,6 +36,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 public class ListFilesListener(
     IFolderWorkspaceService folderWorkspaceService,
     ISolutionWorkspaceService solutionWorkspaceService,
+    IGitWorkspaceService gitWorkspaceService,
     ISharedBindingConfigProvider sharedBindingConfigProvider,
     IActiveConfigScopeTracker activeConfigScopeTracker,
     IClientFileDtoFactory clientFileDtoFactory,
@@ -54,7 +55,7 @@ public class ListFilesListener(
             return [];
         }
 
-        var (workspaceFilesPaths, workspaceRootPath) = GetWorkspaceFiles();
+        var (workspaceFilesPaths, workspaceRootPath, commandsBaseDirectory) = GetWorkspaceFiles();
 
         if (workspaceRootPath is null)
         {
@@ -62,7 +63,7 @@ public class ListFilesListener(
             return [];
         }
 
-        if (!activeConfigScopeTracker.TryUpdateRootOnCurrentConfigScope(parameters.configScopeId, workspaceRootPath))
+        if (!activeConfigScopeTracker.TryUpdateRootOnCurrentConfigScope(parameters.configScopeId, workspaceRootPath, commandsBaseDirectory))
         {
             logger.WriteLine(SLCoreStrings.ConfigScopeConflict);
             return [];
@@ -76,15 +77,16 @@ public class ListFilesListener(
             ? workspaceFilePaths.Append(sharedBindingFilePath)
             : workspaceFilePaths;
 
-    private (IReadOnlyCollection<string> workspaceFilesPaths, string workspaceRootPath) GetWorkspaceFiles()
+    private (IReadOnlyCollection<string> workspaceFilesPaths, string workspaceRootPath, string commandsBaseDirectory) GetWorkspaceFiles()
     {
         if (folderWorkspaceService.IsFolderWorkspace())
         {
-            return (folderWorkspaceService.ListFiles(), GetFolderModeRoot());
+            var workspaceRootPath = GetFolderModeRoot();
+            return (folderWorkspaceService.ListFiles(), workspaceRootPath, workspaceRootPath);
         }
 
         var solutionFiles = solutionWorkspaceService.ListFiles();
-        return (solutionFiles, GetSolutionModeRoot(solutionFiles.FirstOrDefault()));
+        return (solutionFiles, GetSolutionModeRoot(solutionFiles.FirstOrDefault()), gitWorkspaceService.GetRepoRoot());
     }
 
     private List<ClientFileDto> GetClientFilesDtos(

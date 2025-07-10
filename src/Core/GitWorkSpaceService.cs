@@ -21,65 +21,80 @@
 using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
+using SonarLint.VisualStudio.Core.Initialization;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
-namespace SonarLint.VisualStudio.Core
+namespace SonarLint.VisualStudio.Core;
+
+public interface IGitWorkspaceService
 {
-    public interface IGitWorkspaceService
+    /// <summary>
+    /// Returns the file path to the current Git repository root
+    /// Or null if not a git repo
+    /// </summary>
+    string GetRepoRoot();
+}
+
+[Export(typeof(IGitWorkspaceService))]
+internal class GitWorkspaceService : IGitWorkspaceService
+{
+    private readonly ILogger logger;
+    private readonly ISolutionInfoProvider solutionInfoProvider;
+    private readonly IFileSystem fileSystem;
+
+    private const string GitFolder = ".git";
+
+    private record struct GitWorkspaceCache(string WorkspaceRoot, string GitRoot);
+    private readonly object lockObject = new();
+    private GitWorkspaceCache currentWorkspace;
+
+
+    [ImportingConstructor]
+    public GitWorkspaceService(ISolutionInfoProvider solutionInfoProvider, ILogger logger, IFileSystemService fileSystem)
     {
-        /// <summary>
-        /// Returns the file path to the current Git repository root
-        /// Or null if not a git repo
-        /// </summary>
-        string GetRepoRoot();
+        this.solutionInfoProvider = solutionInfoProvider;
+        this.logger = logger;
+        this.fileSystem = fileSystem;
     }
 
-    [Export(typeof(IGitWorkspaceService))]
-    internal class GitWorkSpaceService : IGitWorkspaceService
+    public string GetRepoRoot()
     {
-        private readonly ILogger logger;
-        private readonly ISolutionInfoProvider solutionInfoProvider;
-        private readonly IFileSystem fileSystem;
+        var workspaceRoot = solutionInfoProvider.GetSolutionDirectory();
 
-        private const string gitFolder = ".git";
-
-        [ImportingConstructor]
-        public GitWorkSpaceService(ISolutionInfoProvider solutionInfoProvider, ILogger logger) : this(solutionInfoProvider, logger, new FileSystem())
-        { }
-
-        internal GitWorkSpaceService(ISolutionInfoProvider solutionInfoProvider, ILogger logger, IFileSystem fileSystem)
+        lock (lockObject)
         {
-            this.solutionInfoProvider = solutionInfoProvider;
-            this.logger = logger;
-            this.fileSystem = fileSystem;
+            if (currentWorkspace.WorkspaceRoot == workspaceRoot)
+            {
+                return currentWorkspace.GitRoot;
+            }
+
+            currentWorkspace = new GitWorkspaceCache(workspaceRoot, Calculate(workspaceRoot));
+            return currentWorkspace.GitRoot;
         }
+    }
 
-        public string GetRepoRoot()
+    private string Calculate(string workspaceRoot)
+    {
+        if (workspaceRoot == null)
         {
-            var workspaceRoot = solutionInfoProvider.GetSolutionDirectory();
-            string gitRoot;
-
-            if (workspaceRoot == null)
-            {
-                return null;
-            }
-
-            var currentDir = new DirectoryInfo(workspaceRoot);
-
-            do
-            {
-                gitRoot = Path.Combine(currentDir.FullName, gitFolder);
-
-                if (fileSystem.Directory.Exists(gitRoot))
-                {
-                    return currentDir.FullName;
-                }
-
-                currentDir = currentDir.Parent;
-            }
-            while (currentDir != null && fileSystem.Directory.Exists(currentDir.FullName));
-
-            logger.WriteLine(CoreStrings.NoGitFolder);
             return null;
         }
+
+        var currentDir = new DirectoryInfo(workspaceRoot);
+
+        do
+        {
+            var gitRoot = Path.Combine(currentDir.FullName, GitFolder);
+
+            if (fileSystem.Directory.Exists(gitRoot))
+            {
+                return currentDir.FullName;
+            }
+
+            currentDir = currentDir.Parent;
+        } while (currentDir != null && fileSystem.Directory.Exists(currentDir.FullName));
+
+        logger.WriteLine(CoreStrings.NoGitFolder);
+        return null;
     }
 }
