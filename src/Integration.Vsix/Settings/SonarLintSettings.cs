@@ -71,6 +71,12 @@ internal sealed class SonarLintSettings : ISonarLintSettings, IDisposable
         set => SetValue(nameof(IsFocusOnNewCodeEnabled), value);
     }
 
+    public CredentialStoreType CredentialStoreType
+    {
+        get => (CredentialStoreType)GetValueOrDefault(nameof(CredentialStoreType), (int)CredentialStoreType.Default);
+        set => SetValue(nameof(CredentialStoreType), (int)value);
+    }
+
     public void Dispose() => disposed = true;
 
     internal bool GetValueOrDefault(string key, bool defaultValue)

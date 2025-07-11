@@ -31,12 +31,14 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
     private bool isActivateMoreEnabled;
     private bool showCloudRegion;
     private bool isFocusOnNewCodeEnabled;
+    private CredentialStoreType credentialStoreType;
     private readonly ISonarLintSettings slSettings;
     private readonly IFocusOnNewCodeServiceUpdater focusOnNewCodeServiceUpdater;
     private readonly IBrowserService browserService;
 
     public ICommand OpenSettingsFileCommand { get; }
     public IEnumerable<DaemonLogLevel> DaemonLogLevels { get; } = Enum.GetValues(typeof(DaemonLogLevel)).Cast<DaemonLogLevel>();
+    public IEnumerable<CredentialStoreType> CredentialStoreTypes { get; } = Enum.GetValues(typeof(CredentialStoreType)).Cast<CredentialStoreType>();
 
     public string JreLocation
     {
@@ -88,6 +90,16 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         }
     }
 
+    public CredentialStoreType CredentialStoreType
+    {
+        get => credentialStoreType;
+        set
+        {
+            credentialStoreType = value;
+            RaisePropertyChanged();
+        }
+    }
+
     public GeneralOptionsDialogControlViewModel(
         ISonarLintSettings slSettings,
         IFocusOnNewCodeServiceUpdater focusOnNewCodeServiceUpdater,
@@ -105,6 +117,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         JreLocation = slSettings.JreLocation;
         ShowCloudRegion = slSettings.ShowCloudRegion;
         IsFocusOnNewCodeEnabled = focusOnNewCodeServiceUpdater.Current.IsEnabled;
+        CredentialStoreType = slSettings.CredentialStoreType;
     }
 
     private void FocusOnNewCodeServiceUpdaterOnChanged(object sender, NewCodeStatusChangedEventArgs e) => IsFocusOnNewCodeEnabled = e.NewStatus.IsEnabled;
@@ -115,6 +128,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         slSettings.IsActivateMoreEnabled = IsActivateMoreEnabled;
         slSettings.JreLocation = JreLocation?.Trim();
         slSettings.ShowCloudRegion = ShowCloudRegion;
+        slSettings.CredentialStoreType = CredentialStoreType;
         focusOnNewCodeServiceUpdater.SetPreference(IsFocusOnNewCodeEnabled);
     }
 

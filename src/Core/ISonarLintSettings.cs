@@ -36,5 +36,12 @@ namespace SonarLint.VisualStudio.Integration
         string JreLocation { get; set; }
         bool ShowCloudRegion { get; set; }
         bool IsFocusOnNewCodeEnabled { get; set; }
+        CredentialStoreType CredentialStoreType { get; set; }
+    }
+
+    public enum CredentialStoreType
+    {
+        Default,
+        DPAPI
     }
 }
