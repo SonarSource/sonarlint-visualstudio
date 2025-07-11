@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
@@ -26,11 +27,14 @@ using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 
+[Export(typeof(ISolutionBindingFileLoader))]
+[PartCreationPolicy(CreationPolicy.Shared)]
 internal class SolutionBindingFileLoader : ISolutionBindingFileLoader
 {
     private readonly IFileSystem fileSystem;
     private readonly ILogger logger;
 
+    [ImportingConstructor]
     public SolutionBindingFileLoader(ILogger logger)
         : this(logger, new FileSystem())
     {
