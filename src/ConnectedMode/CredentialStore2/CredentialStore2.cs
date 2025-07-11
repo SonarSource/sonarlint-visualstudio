@@ -23,8 +23,10 @@ using System.IO;
 using System.Security;
 using System.Security.Cryptography;
 using System.Text;
+using System.Windows;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
@@ -44,22 +46,17 @@ public class CredentialStore2 : ISolutionBindingCredentialsLoader, IDisposable
 {
     private readonly IFileSystemService fileSystem;
     private readonly IAsyncLock asyncLock;
+    private readonly IThreadHandling threadHandling;
     private readonly string storagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SLVS_Credentials", "credentials.json");
-    private readonly SecureString masterPassword;
+    private SecureString masterPassword;
     private bool disposed = false;
 
     [ImportingConstructor]
-    public CredentialStore2(IFileSystemService fileSystem, IAsyncLockFactory asyncLockFactory)
+    public CredentialStore2(IFileSystemService fileSystem, IAsyncLockFactory asyncLockFactory, IThreadHandling threadHandling)
     {
         this.fileSystem = fileSystem;
+        this.threadHandling = threadHandling;
         asyncLock = asyncLockFactory.Create();
-
-        masterPassword = new SecureString();
-        foreach (char c in "testpassword")
-        {
-            masterPassword.AppendChar(c);
-        }
-        masterPassword.MakeReadOnly();
     }
 
     public void DeleteCredentials(Uri targetUri)
@@ -171,6 +168,13 @@ public class CredentialStore2 : ISolutionBindingCredentialsLoader, IDisposable
         byte[] result = null;
         try
         {
+            EnsureMasterPasswordInitialized();
+            
+            if (masterPassword == null || masterPassword.Length == 0)
+            {
+                throw new InvalidOperationException("Master password is required but was not provided");
+            }
+            
             masterPasswordUnprotectedBytes = Encoding.UTF8.GetBytes(masterPassword.ToUnsecureString());
             result = operation(masterPasswordUnprotectedBytes);
         }
@@ -179,6 +183,23 @@ public class CredentialStore2 : ISolutionBindingCredentialsLoader, IDisposable
             Clear(masterPasswordUnprotectedBytes);
         }
         return result;
+    }
+
+    private void EnsureMasterPasswordInitialized()
+    {
+        if (masterPassword == null || masterPassword.Length == 0)
+        {
+            threadHandling.RunOnUIThread(() =>
+            {
+                var dialog = new MasterPasswordDialog();
+                var dialogResult = dialog.ShowDialog();
+                
+                if (dialogResult.HasValue && dialogResult.Value)
+                {
+                    masterPassword = dialog.MasterPassword;
+                }
+            });
+        }
     }
 
     private string ReadToken(Uri targetUri)
