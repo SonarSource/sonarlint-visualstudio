@@ -33,9 +33,7 @@ using SonarLint.VisualStudio.SLCore.Service.File;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
-public interface IDocumentEventsHandler : IDisposable, IRequireInitialization
-{
-}
+public interface IDocumentEventsHandler : IDisposable, IRequireInitialization;
 
 [Export(typeof(IDocumentEventsHandler))]
 [PartCreationPolicy(CreationPolicy.Shared)]

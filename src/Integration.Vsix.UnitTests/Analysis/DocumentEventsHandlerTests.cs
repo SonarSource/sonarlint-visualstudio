@@ -499,6 +499,8 @@ public class DocumentEventsHandlerTests
 
         activeConfigScopeTracker.DidNotReceive().CurrentConfigurationScopeChanged += Arg.Any<EventHandler<ConfigurationScopeChangedEventArgs>>();
         activeConfigScopeTracker.DidNotReceive().CurrentConfigurationScopeChanged -= Arg.Any<EventHandler<ConfigurationScopeChangedEventArgs>>();
+        activeCompilationDatabaseTracker.DidNotReceive().DatabaseChanged += Arg.Any<EventHandler>();
+        activeCompilationDatabaseTracker.DidNotReceive().DatabaseChanged -= Arg.Any<EventHandler>();
         documentTracker.DidNotReceive().DocumentOpened += Arg.Any<EventHandler<DocumentOpenedEventArgs>>();
         documentTracker.DidNotReceive().DocumentOpened -= Arg.Any<EventHandler<DocumentOpenedEventArgs>>();
         documentTracker.DidNotReceive().DocumentClosed += Arg.Any<EventHandler<DocumentEventArgs>>();
