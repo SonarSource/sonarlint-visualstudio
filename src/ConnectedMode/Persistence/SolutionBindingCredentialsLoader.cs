@@ -18,19 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 {
-    internal class SolutionBindingCredentialsLoader : ISolutionBindingCredentialsLoader
+    [Export(typeof(ISolutionBindingCredentialsLoaderImpl))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    [method: ImportingConstructor]
+    internal class DefaultBindingCredentialsLoader(ICredentialStoreService store) : ISolutionBindingCredentialsLoaderImpl
     {
-        private readonly ICredentialStoreService store;
-
-        public SolutionBindingCredentialsLoader(ICredentialStoreService store)
-        {
-            this.store = store ?? throw new ArgumentNullException(nameof(store));
-        }
+        public CredentialStoreType StoreType => CredentialStoreType.Default;
 
         public void DeleteCredentials(Uri boundServerUri)
         {

@@ -25,6 +25,6 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Credentials
 {
     internal interface ICredentialsListener : ISLCoreListener
     {
-        Task<GetCredentialsResponse> GetCredentialsAsync(GetCredentialsParams parameters);
+        GetCredentialsResponse GetCredentials(GetCredentialsParams parameters);
     }
 }

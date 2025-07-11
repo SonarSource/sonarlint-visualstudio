@@ -124,4 +124,13 @@
   <data name="BindingDirectoryNotDeleted" xml:space="preserve">
     <value>The Connected Mode configuration file '{0}' does not exist. Connected Mode configuration not deleted.</value>
   </data>
+  <data name="DpapiCurrentUserCredentialsLoader_Save_NotATokenError" xml:space="preserve">
+    <value>Only token credentials are supported</value>
+  </data>
+  <data name="CredentialsLoader_LogContext" xml:space="preserve">
+    <value>Credentials Loader</value>
+  </data>
+  <data name="DpapiCurrentUserCredentialsLoader_NoCredentials" xml:space="preserve">
+    <value>Credentials for connection {0} not found</value>
+  </data>
 </root>

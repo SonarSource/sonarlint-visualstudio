@@ -319,14 +319,20 @@ public class SonarLintSettingsTests
     }
 
     [TestMethod]
-    public void IsFocusOnNewCodeEnabled_SetValue_GetsAndSetsCorrectly()
+    public void IsFocusOnNewCodeEnabled_Should(bool value)
     {
+
         store.GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsFocusOnNewCodeEnabled), false).Returns(true);
 
-        testSubject.IsFocusOnNewCodeEnabled = true;
-        var value = testSubject.IsFocusOnNewCodeEnabled;
+        testSubject.IsFocusOnNewCodeEnabled.Should().BeFalse();
+        store.Received().GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsFocusOnNewCodeEnabled), false);
+    }
 
-        value.Should().BeTrue();
+    [TestMethod]
+    public void IsFocusOnNewCodeEnabled_SetValue_SetsCorrectly()
+    {
+        testSubject.IsFocusOnNewCodeEnabled = true;
+
         store.Received().SetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsFocusOnNewCodeEnabled), true);
     }
 

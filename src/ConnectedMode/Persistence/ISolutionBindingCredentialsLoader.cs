@@ -19,15 +19,20 @@
  */
 
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Persistence
+namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
+
+public interface ISolutionBindingCredentialsLoader
 {
-    interface ISolutionBindingCredentialsLoader
-    {
-        void DeleteCredentials(Uri boundServerUri);
+    void DeleteCredentials(Uri boundServerUri);
 
-        IConnectionCredentials Load(Uri boundServerUri);
+    IConnectionCredentials Load(Uri boundServerUri);
 
-        void Save(IConnectionCredentials credentials, Uri boundServerUri);
-    }
+    void Save(IConnectionCredentials credentials, Uri boundServerUri);
+}
+
+public interface ISolutionBindingCredentialsLoaderImpl : ISolutionBindingCredentialsLoader
+{
+    CredentialStoreType StoreType { get; }
 }

@@ -20,63 +20,34 @@
 
 using System.ComponentModel.Composition;
 using System.IO;
-using System.IO.Abstractions;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Persistence;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 
 [Export(typeof(IServerConnectionsRepository))]
 [Export(typeof(IServerConnectionWithInvalidTokenRepository))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class ServerConnectionsRepository : IServerConnectionsRepository, IServerConnectionWithInvalidTokenRepository
+[method: ImportingConstructor]
+internal class ServerConnectionsRepository(
+    IJsonFileHandler jsonFileHandle,
+    IServerConnectionModelMapper serverConnectionModelMapper,
+    ISolutionBindingCredentialsLoader credentialsLoader,
+    IEnvironmentVariableProvider environmentVariables,
+    IFileSystemService fileSystem,
+    ILogger logger)
+    : IServerConnectionsRepository, IServerConnectionWithInvalidTokenRepository
 {
     internal const string ConnectionsFileName = "connections.json";
-
-    private readonly ISolutionBindingCredentialsLoader credentialsLoader;
-    private readonly IFileSystem fileSystem;
-    private readonly ILogger logger;
-    private readonly IJsonFileHandler jsonFileHandle;
-    private readonly IServerConnectionModelMapper serverConnectionModelMapper;
-    private readonly string connectionsStorageFilePath;
+    private readonly string connectionsStorageFilePath = GetStorageFilePath(environmentVariables);
     private readonly HashSet<string> connectionIdsWithInvalidToken = new();
-    private static readonly object LockObject = new();
-    private static readonly object TokenLockObject = new();
+    private readonly object lockObject = new();
+    private readonly object tokenLockObject = new();
 
     public event EventHandler ConnectionChanged;
     public event EventHandler<ServerConnectionUpdatedEventArgs> CredentialsChanged;
-
-    [ImportingConstructor]
-    public ServerConnectionsRepository(
-        IJsonFileHandler jsonFileHandle,
-        IServerConnectionModelMapper serverConnectionModelMapper,
-        ICredentialStoreService credentialStoreService,
-        ILogger logger) : this(jsonFileHandle,
-        serverConnectionModelMapper,
-        new SolutionBindingCredentialsLoader(credentialStoreService),
-        EnvironmentVariableProvider.Instance,
-        new FileSystem(),
-        logger)
-    {
-    }
-
-    internal /* for testing */ ServerConnectionsRepository(
-        IJsonFileHandler jsonFileHandle,
-        IServerConnectionModelMapper serverConnectionModelMapper,
-        ISolutionBindingCredentialsLoader credentialsLoader,
-        IEnvironmentVariableProvider environmentVariables,
-        IFileSystem fileSystem,
-        ILogger logger)
-    {
-        this.jsonFileHandle = jsonFileHandle;
-        this.serverConnectionModelMapper = serverConnectionModelMapper;
-        this.credentialsLoader = credentialsLoader;
-        this.fileSystem = fileSystem;
-        this.logger = logger;
-        connectionsStorageFilePath = GetStorageFilePath(environmentVariables);
-    }
 
     public bool TryGet(string connectionId, out ServerConnection serverConnection)
     {
@@ -118,10 +89,8 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository, IServ
         return wasDeleted;
     }
 
-    public bool TryUpdateSettingsById(string connectionId, ServerConnectionSettings connectionSettings)
-    {
-        return SafeUpdateConnectionsFile(connections => TryUpdateConnectionSettings(connections, connectionId, connectionSettings));
-    }
+    public bool TryUpdateSettingsById(string connectionId, ServerConnectionSettings connectionSettings) =>
+        SafeUpdateConnectionsFile(connections => TryUpdateConnectionSettings(connections, connectionId, connectionSettings));
 
     public bool TryUpdateCredentialsById(string connectionId, IConnectionCredentials credentials)
     {
@@ -147,7 +116,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository, IServ
 
     public void AddConnectionIdWithInvalidToken(string connectionId)
     {
-        lock (TokenLockObject)
+        lock (tokenLockObject)
         {
             connectionIdsWithInvalidToken.Add(connectionId);
         }
@@ -155,7 +124,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository, IServ
 
     public bool HasInvalidToken(string connectionId)
     {
-        lock (TokenLockObject)
+        lock (tokenLockObject)
         {
             return connectionIdsWithInvalidToken.Contains(connectionId);
         }
@@ -163,7 +132,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository, IServ
 
     internal void RemoveConnectionIdWithInvalidToken(string connectionId)
     {
-        lock (TokenLockObject)
+        lock (tokenLockObject)
         {
             connectionIdsWithInvalidToken.Remove(connectionId);
         }
@@ -249,7 +218,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository, IServ
 
     private bool SafeUpdateConnectionsFile(Func<List<ServerConnection>, bool> tryUpdateConnectionModels)
     {
-        lock (LockObject)
+        lock (lockObject)
         {
             try
             {
