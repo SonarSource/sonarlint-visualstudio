@@ -19,10 +19,13 @@
  */
 
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
+using System.Security;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Credentials;
+using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 {
@@ -33,12 +36,12 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class CredentialsListener : ICredentialsListener
     {
-        private readonly ICredentialProvider credentialProvider;
+        private readonly ISolutionBindingCredentialsLoader credentialsLoader;
 
         [ImportingConstructor]
-        public CredentialsListener(ICredentialProvider credentialProvider)
+        public CredentialsListener(ISolutionBindingCredentialsLoader credentialsLoader)
         {
-            this.credentialProvider = credentialProvider;
+            this.credentialsLoader = credentialsLoader;
         }
 
         public Task<GetCredentialsResponse> GetCredentialsAsync(GetCredentialsParams parameters)
@@ -49,16 +52,25 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
             }
 
             var serverUri = new Uri(parameters.connectionId);
-            var credentials = credentialProvider.GetCredentials(serverUri);
+            var credentials = credentialsLoader.Load(serverUri);
 
             if (credentials == null)
             {
                 return Task.FromResult(GetCredentialsResponse.NoCredentials);
             }
 
-            return Task.FromResult(string.IsNullOrEmpty(credentials.Password)
-                ? new GetCredentialsResponse(new TokenDto(credentials.Username))
-                : new GetCredentialsResponse(new UsernamePasswordDto(credentials.Username, credentials.Password)));
+            if (credentials is ITokenCredentials tokenCredentials)
+            {
+                return Task.FromResult(new GetCredentialsResponse(new TokenDto(tokenCredentials.Token.ToUnsecureString())));
+            }
+            else if (credentials is IUsernameAndPasswordCredentials usernamePasswordCredentials)
+            {
+                return Task.FromResult(new GetCredentialsResponse(new UsernamePasswordDto(
+                    usernamePasswordCredentials.UserName, 
+                    usernamePasswordCredentials.Password.ToUnsecureString())));
+            }
+
+            return Task.FromResult(GetCredentialsResponse.NoCredentials);
         }
     }
 }

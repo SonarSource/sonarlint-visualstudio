@@ -61,7 +61,8 @@ public class ServerConnectionsRepositoryTests
         MefTestHelpers.CheckTypeCanBeImported<ServerConnectionsRepository, IServerConnectionsRepository>(
             MefTestHelpers.CreateExport<IJsonFileHandler>(),
             MefTestHelpers.CreateExport<IServerConnectionModelMapper>(),
-            MefTestHelpers.CreateExport<ICredentialStoreService>(),
+            MefTestHelpers.CreateExport<ISolutionBindingCredentialsLoader>(),
+            MefTestHelpers.CreateExport<IEnvironmentVariableProvider>(),
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
@@ -69,7 +70,8 @@ public class ServerConnectionsRepositoryTests
         MefTestHelpers.CheckTypeCanBeImported<ServerConnectionsRepository, IServerConnectionWithInvalidTokenRepository>(
             MefTestHelpers.CreateExport<IJsonFileHandler>(),
             MefTestHelpers.CreateExport<IServerConnectionModelMapper>(),
-            MefTestHelpers.CreateExport<ICredentialStoreService>(),
+            MefTestHelpers.CreateExport<ISolutionBindingCredentialsLoader>(),
+            MefTestHelpers.CreateExport<IEnvironmentVariableProvider>(),
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]

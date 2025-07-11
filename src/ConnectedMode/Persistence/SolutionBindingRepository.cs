@@ -42,23 +42,8 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
         IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider,
         IBindingJsonModelConverter bindingJsonModelConverter,
         IServerConnectionsRepository serverConnectionsRepository,
-        ICredentialStoreService credentialStoreService,
-        ILogger logger)
-        : this(unintrusiveBindingPathProvider,
-            bindingJsonModelConverter,
-            serverConnectionsRepository,
-            new SolutionBindingFileLoader(logger),
-            new SolutionBindingCredentialsLoader(credentialStoreService),
-            logger)
-    {
-    }
-
-    internal /* for testing */ SolutionBindingRepository(
-        IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider,
-        IBindingJsonModelConverter bindingJsonModelConverter,
-        IServerConnectionsRepository serverConnectionsRepository,
-        ISolutionBindingFileLoader solutionBindingFileLoader,
         ISolutionBindingCredentialsLoader credentialsLoader,
+        ISolutionBindingFileLoader solutionBindingFileLoader,
         ILogger logger)
     {
         this.unintrusiveBindingPathProvider = unintrusiveBindingPathProvider;

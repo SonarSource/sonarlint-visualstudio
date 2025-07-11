@@ -22,7 +22,7 @@ using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 {
-    interface ISolutionBindingCredentialsLoader
+    public interface ISolutionBindingCredentialsLoader
     {
         void DeleteCredentials(Uri boundServerUri);
 
