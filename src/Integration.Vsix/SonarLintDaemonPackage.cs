@@ -24,6 +24,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -102,6 +103,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 logger.WriteLine(Strings.SQVSVersionLog, VersionHelper.SonarLintVersion);
 
                 // This migration should be performed before initializing other services, independent if a solution or a folder is opened.
+
+                var solutionBindingRepository = this.GetMefService<ISolutionBindingRepository>();
                 await MigrateBindingsToServerConnectionsIfNeededAsync();
 
                 await MuteIssueCommand.InitializeAsync(this, logger);
