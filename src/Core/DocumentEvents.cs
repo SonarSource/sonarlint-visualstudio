@@ -61,5 +61,5 @@ public interface IDocumentTracker
     /// </summary>
     event EventHandler<DocumentRenamedEventArgs> OpenDocumentRenamed;
 
-    List<Document> GetOpenDocuments();
+    Document[] GetOpenDocuments();
 }

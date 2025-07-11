@@ -43,10 +43,22 @@ internal sealed class ActiveCompilationDatabaseTracker : IActiveCompilationDatab
     private readonly IThreadHandling threadHandling;
     private readonly IAsyncLock asyncLock;
     private bool isDisposed;
+    private CompilationDatabaseInfo? database;
 
     public IInitializationProcessor InitializationProcessor { get; }
-    public string DatabasePath { get; private set; }
-    public CompilationDatabaseType DatabaseType { get; private set; }
+
+    public CompilationDatabaseInfo? CurrentDatabase
+    {
+        get
+        {
+            using (asyncLock.Acquire())
+            {
+                return database;
+            }
+        }
+    }
+
+    public event EventHandler DatabaseChanged;
 
     [ImportingConstructor]
     public ActiveCompilationDatabaseTracker(
@@ -94,15 +106,17 @@ internal sealed class ActiveCompilationDatabaseTracker : IActiveCompilationDatab
                 serviceProvider.TryGetTransientService(out ICFamilyAnalysisConfigurationSLCoreService cFamilyAnalysisConfiguration))
             {
                 var cmakeCompilationDatabasePath = cMakeCompilationDatabaseLocator.Locate();
-                DatabasePath = cmakeCompilationDatabasePath ?? activeVcxCompilationDatabase.DatabasePath;
-                DatabaseType = cmakeCompilationDatabasePath != null ? CompilationDatabaseType.CMake : CompilationDatabaseType.VCX;
-                cFamilyAnalysisConfiguration.DidChangePathToCompileCommands(new(currentConfigScopeId, DatabasePath));
+                database = new(cmakeCompilationDatabasePath ?? activeVcxCompilationDatabase.DatabasePath,
+                    cmakeCompilationDatabasePath != null ? CompilationDatabaseType.CMake : CompilationDatabaseType.VCX);
+                cFamilyAnalysisConfiguration.DidChangePathToCompileCommands(new(currentConfigScopeId, database?.FullPath));
             }
             else
             {
-                DatabasePath = null;
+                database = null;
             }
         }
+
+        DatabaseChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public void Dispose()
