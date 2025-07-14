@@ -22,11 +22,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.VisualStudio.PlatformUI;
 
 namespace SonarLint.VisualStudio.ConnectedMode.CredentialStore2;
 
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
-public partial class MasterPasswordDialog : Window
+public partial class MasterPasswordDialog : DialogWindow
 {
     public SecureString MasterPassword { get; private set; }
 

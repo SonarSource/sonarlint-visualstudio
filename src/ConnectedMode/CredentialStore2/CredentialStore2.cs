@@ -26,6 +26,7 @@ using System.Text;
 using System.Windows;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Synchronization;
@@ -45,39 +46,40 @@ internal class CredentialDto
 public class CredentialStore2 : ISolutionBindingCredentialsLoader, IDisposable
 {
     private readonly IFileSystemService fileSystem;
-    private readonly IAsyncLock asyncLock;
     private readonly IThreadHandling threadHandling;
     private readonly string storagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SLVS_Credentials", "credentials.json");
-    private SecureString masterPassword;
     private bool disposed = false;
+    private ILogger log;
+    private MasterPasswordManager masterPasswordManager;
 
     [ImportingConstructor]
-    public CredentialStore2(IFileSystemService fileSystem, IAsyncLockFactory asyncLockFactory, IThreadHandling threadHandling)
+    public CredentialStore2(
+        IFileSystemService fileSystem,
+        IThreadHandling threadHandling,
+        ILogger log)
     {
         this.fileSystem = fileSystem;
         this.threadHandling = threadHandling;
-        asyncLock = asyncLockFactory.Create();
+        this.log = log;
+        masterPasswordManager = new MasterPasswordManager(threadHandling);
     }
 
     public void DeleteCredentials(Uri targetUri)
     {
         ThrowIfDisposed();
 
-        using (asyncLock.Acquire())
+        if (targetUri == null || !fileSystem.File.Exists(storagePath))
         {
-            if (targetUri == null || !fileSystem.File.Exists(storagePath))
-            {
-                return;
-            }
+            return;
+        }
 
-            var allText = fileSystem.File.ReadAllText(storagePath);
-            var dictionary = JsonConvert.DeserializeObject<Dictionary<Uri, CredentialDto>>(allText);
+        var allText = fileSystem.File.ReadAllText(storagePath);
+        var dictionary = JsonConvert.DeserializeObject<Dictionary<Uri, CredentialDto>>(allText);
 
-            if (dictionary != null && dictionary.Remove(targetUri))
-            {
-                var serializedDictionary = JsonConvert.SerializeObject(dictionary);
-                fileSystem.File.WriteAllText(storagePath, serializedDictionary);
-            }
+        if (dictionary != null && dictionary.Remove(targetUri))
+        {
+            var serializedDictionary = JsonConvert.SerializeObject(dictionary);
+            fileSystem.File.WriteAllText(storagePath, serializedDictionary);
         }
     }
 
@@ -85,18 +87,21 @@ public class CredentialStore2 : ISolutionBindingCredentialsLoader, IDisposable
     {
         ThrowIfDisposed();
 
-        using (asyncLock.Acquire())
+        string encryptedToken = ReadToken(boundServerUri);
+
+        if (encryptedToken == null)
         {
-            string encryptedToken = ReadToken(boundServerUri);
-
-            if (encryptedToken == null)
-            {
-                return null;
-            }
-
-            var secureToken = GetSecureString(encryptedToken);
-            return new TokenAuthCredentials(secureToken);
+            return null;
         }
+
+        var secureToken = GetSecureString(encryptedToken);
+
+        if (secureToken == null)
+        {
+            return null;
+        }
+
+        return new TokenAuthCredentials(secureToken);
     }
 
     public void Save(IConnectionCredentials credentials, Uri boundServerUri)
@@ -108,30 +113,27 @@ public class CredentialStore2 : ISolutionBindingCredentialsLoader, IDisposable
             throw new ArgumentException("Only token credentials are supported", nameof(credentials));
         }
 
-        using (asyncLock.Acquire())
+        var tokenProtectedBytes = UseMasterPasswordSafe(masterPasswordBytes =>
         {
-            var tokenProtectedBytes = UseMasterPasswordSafe(masterPasswordBytes =>
+            byte[] tokenUnprotected = null;
+            byte[] tokenProtected = null;
+            try
             {
-                byte[] tokenUnprotected = null;
-                byte[] tokenProtected = null;
-                try
-                {
-                    tokenUnprotected = Encoding.UTF8.GetBytes(tokenCredentials.Token.ToUnsecureString());
-                    tokenProtected = ProtectedData.Protect(
-                        tokenUnprotected,
-                        masterPasswordBytes,
-                        DataProtectionScope.LocalMachine);
-                }
-                finally
-                {
-                    Clear(tokenUnprotected);
-                }
+                tokenUnprotected = Encoding.UTF8.GetBytes(tokenCredentials.Token.ToUnsecureString());
+                tokenProtected = ProtectedData.Protect(
+                    tokenUnprotected,
+                    masterPasswordBytes,
+                    DataProtectionScope.LocalMachine);
+            }
+            finally
+            {
+                Clear(tokenUnprotected);
+            }
 
-                return tokenProtected;
-            });
+            return tokenProtected;
+        });
 
-            WriteToken(boundServerUri, Convert.ToBase64String(tokenProtectedBytes));
-        }
+        WriteToken(boundServerUri, Convert.ToBase64String(tokenProtectedBytes));
     }
 
     private SecureString GetSecureString(string encryptedToken)
@@ -147,6 +149,12 @@ public class CredentialStore2 : ISolutionBindingCredentialsLoader, IDisposable
                     masterPasswordBytes,
                     DataProtectionScope.LocalMachine));
             unprotectedString = Encoding.UTF8.GetString(tokenUnprotectedBytes);
+        }
+        catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
+        {
+            log.WriteLine(e.ToString());
+            masterPasswordManager.Reset();
+            return null;
         }
         finally
         {
@@ -168,13 +176,12 @@ public class CredentialStore2 : ISolutionBindingCredentialsLoader, IDisposable
         byte[] result = null;
         try
         {
-            EnsureMasterPasswordInitialized();
-            
+            var masterPassword = masterPasswordManager.EnsureMasterPasswordInitialized();
             if (masterPassword == null || masterPassword.Length == 0)
             {
                 throw new InvalidOperationException("Master password is required but was not provided");
             }
-            
+
             masterPasswordUnprotectedBytes = Encoding.UTF8.GetBytes(masterPassword.ToUnsecureString());
             result = operation(masterPasswordUnprotectedBytes);
         }
@@ -183,23 +190,6 @@ public class CredentialStore2 : ISolutionBindingCredentialsLoader, IDisposable
             Clear(masterPasswordUnprotectedBytes);
         }
         return result;
-    }
-
-    private void EnsureMasterPasswordInitialized()
-    {
-        if (masterPassword == null || masterPassword.Length == 0)
-        {
-            threadHandling.RunOnUIThread(() =>
-            {
-                var dialog = new MasterPasswordDialog();
-                var dialogResult = dialog.ShowDialog();
-                
-                if (dialogResult.HasValue && dialogResult.Value)
-                {
-                    masterPassword = dialog.MasterPassword;
-                }
-            });
-        }
     }
 
     private string ReadToken(Uri targetUri)
@@ -267,8 +257,61 @@ public class CredentialStore2 : ISolutionBindingCredentialsLoader, IDisposable
             return;
         }
 
-        asyncLock.Dispose();
-        masterPassword?.Dispose();
+        masterPasswordManager.Dispose();
         disposed = true;
+    }
+
+    private class MasterPasswordManager
+    {
+        private SecureString masterPassword;
+        private readonly IThreadHandling threadHandling;
+        private readonly object lockObj = new object();
+
+        public MasterPasswordManager(IThreadHandling threadHandling)
+        {
+            this.threadHandling = threadHandling;
+        }
+
+        public SecureString EnsureMasterPasswordInitialized()
+        {
+            var updatedPassword = null as SecureString;
+            threadHandling.RunOnUIThread(() =>
+            {
+                lock (lockObj)
+                {
+                    if (masterPassword != null)
+                    {
+                        updatedPassword = masterPassword;
+                        return;
+                    }
+
+                    var dialog = new MasterPasswordDialog();
+                    var dialogResult = dialog.ShowDialog(Application.Current.MainWindow); // need to make this show only once
+
+                    if (dialogResult.HasValue && dialogResult.Value)
+                    {
+                        updatedPassword = masterPassword = dialog.MasterPassword;
+                    }
+                }
+            });
+
+            return updatedPassword;
+        }
+
+        public void Reset()
+        {
+            lock (lockObj)
+            {
+                masterPassword = null;
+            }
+        }
+
+        public void Dispose()
+        {
+            lock (lockObj)
+            {
+                masterPassword?.Dispose();
+            }
+        }
     }
 }
