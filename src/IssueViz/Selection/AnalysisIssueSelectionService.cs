@@ -19,10 +19,8 @@
  */
 
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -31,7 +29,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection;
 internal sealed class AnalysisIssueSelectionService : IAnalysisIssueSelectionService
 {
     private Guid uiContextGuid = new Guid(Commands.Constants.UIContextGuid);
-    private readonly IVsMonitorSelection monitorSelection;
+    private readonly IVsUIServiceOperation uiServiceOperation;
     private readonly IIssueSelectionService selectionService;
 
     private IAnalysisIssueVisualization selectedIssue;
@@ -43,10 +41,10 @@ internal sealed class AnalysisIssueSelectionService : IAnalysisIssueSelectionSer
 
     [ImportingConstructor]
     public AnalysisIssueSelectionService(
-        [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+        IVsUIServiceOperation uiServiceOperation,
         IIssueSelectionService selectionService)
     {
-        monitorSelection = serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
+        this.uiServiceOperation = uiServiceOperation;
         this.selectionService = selectionService;
         this.selectionService.SelectedIssueChanged += SelectionService_SelectedIssueChanged;
     }
@@ -89,30 +87,24 @@ internal sealed class AnalysisIssueSelectionService : IAnalysisIssueSelectionSer
         }
     }
 
-    private void RaiseSelectionChanged(SelectionChangeLevel changeLevel)
-    {
+    private void RaiseSelectionChanged(SelectionChangeLevel changeLevel) =>
         SelectionChanged?.Invoke(this, new SelectionChangedEventArgs(changeLevel, SelectedIssue, SelectedFlow, SelectedLocation));
-    }
 
-    private void UpdateUiContext()
-    {
-        if (monitorSelection.GetCmdUIContextCookie(ref uiContextGuid, out uint cookie) == VSConstants.S_OK)
+    private void UpdateUiContext() =>
+        uiServiceOperation.Execute<Microsoft.VisualStudio.Shell.Interop.SVsShellMonitorSelection, Microsoft.VisualStudio.Shell.Interop.IVsMonitorSelection>(monitorSelection =>
         {
-            var shouldActivate = SelectedIssue != null;
+            if (monitorSelection.GetCmdUIContextCookie(ref uiContextGuid, out uint cookie) == Microsoft.VisualStudio.VSConstants.S_OK)
+            {
+                var shouldActivate = SelectedIssue != null;
+                monitorSelection.SetCmdUIContext(cookie, shouldActivate ? 1 : 0);
+            }
+        });
 
-            monitorSelection.SetCmdUIContext(cookie, shouldActivate ? 1 : 0);
-        }
-    }
+    private IAnalysisIssueFlowVisualization GetFirstFlowOrDefault() =>
+        selectedIssue?.Flows?.FirstOrDefault();
 
-    private IAnalysisIssueFlowVisualization GetFirstFlowOrDefault()
-    {
-        return selectedIssue?.Flows?.FirstOrDefault();
-    }
-
-    private IAnalysisIssueLocationVisualization GetFirstLocationOrDefault()
-    {
-        return selectedFlow?.Locations?.FirstOrDefault();
-    }
+    private IAnalysisIssueLocationVisualization GetFirstLocationOrDefault() =>
+        selectedFlow?.Locations?.FirstOrDefault();
 
     private void SelectionService_SelectedIssueChanged(object sender, EventArgs e)
     {
