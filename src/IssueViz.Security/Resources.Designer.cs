@@ -61,6 +61,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Severity impact:.
+        /// </summary>
+        public static string DependencyRiskImpactSeverityTooltip {
+            get {
+                return ResourceManager.GetString("DependencyRiskImpactSeverityTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Solution findings.
+        /// </summary>
+        public static string DependencyRisksGroupTitle {
+            get {
+                return ResourceManager.GetString("DependencyRisksGroupTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prohibited License.
+        /// </summary>
+        public static string DependencyRiskType_ProhibitedLicense {
+            get {
+                return ResourceManager.GetString("DependencyRiskType_ProhibitedLicense", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error displaying tool window. Window id: {0}. Error: {1}.
         /// </summary>
         public static string ERR_ShowToolWindow_Exception {

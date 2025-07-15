@@ -245,4 +245,13 @@ Please check the logs for more details.</value>
   <data name="ReportViewToolWindowCaption" xml:space="preserve">
     <value>SonarQube Dependency Risks</value>
   </data>
+  <data name="DependencyRisksGroupTitle" xml:space="preserve">
+    <value>Solution findings</value>
+  </data>
+  <data name="DependencyRiskType_ProhibitedLicense" xml:space="preserve">
+    <value>Prohibited License</value>
+  </data>
+  <data name="DependencyRiskImpactSeverityTooltip" xml:space="preserve">
+    <value>Severity impact:</value>
+  </data>
 </root>
