@@ -34,7 +34,7 @@ public class GroupDependencyRiskViewModelTest
     [TestMethod]
     public void Ctor_HasPropertiesInitialized()
     {
-        testSubject.Title.Should().Be(Resources.DependencyRisksGroupTitle);
+        GroupDependencyRiskViewModel.Title.Should().Be(Resources.DependencyRisksGroupTitle);
         testSubject.Risks.Should().BeEmpty();
     }
 
