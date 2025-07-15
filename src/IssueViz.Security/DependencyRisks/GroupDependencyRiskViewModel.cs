@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
 internal class GroupDependencyRiskViewModel : ViewModelBase
 {
-    public string Title => Resources.DependencyRisksGroupTitle;
+    public static string Title => Resources.DependencyRisksGroupTitle;
 
     public ObservableCollection<DependencyRiskViewModel> Risks { get; } = new();
 
