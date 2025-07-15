@@ -48,6 +48,7 @@ public class ActiveCompilationDatabaseTrackerTests
     private TestLogger testLogger;
     private ISLCoreServiceProvider serviceProvider;
     private IAsyncLock asyncLock;
+    private EventHandler databasePathChangedHandler;
 
     private readonly IRequireInitialization[] initializationDependencies = [];
 
@@ -63,6 +64,7 @@ public class ActiveCompilationDatabaseTrackerTests
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         testLogger = Substitute.ForPartsOf<TestLogger>();
         serviceProvider = Substitute.For<ISLCoreServiceProvider>();
+        databasePathChangedHandler = Substitute.For<EventHandler>();
         SetUpServiceProvider();
         asyncLock = Substitute.For<IAsyncLock>();
         asyncLockFactory.Create().Returns(asyncLock);
@@ -98,7 +100,7 @@ public class ActiveCompilationDatabaseTrackerTests
             releaser.Dispose();
             testSubject.InitializationProcessor.InitializeAsync(); // called by CreateAndInitializeTestSubject
         });
-        testSubject.DatabasePath.Should().BeNull();
+        testSubject.CurrentDatabase.Should().BeNull();
         VerifyOnBackgroundThreadLockTakenAndReleased(1);
     }
 
@@ -141,8 +143,7 @@ public class ActiveCompilationDatabaseTrackerTests
 
         var testSubject = CreateAndInitializeTestSubject();
 
-        testSubject.DatabasePath.Should().Be(CmakeJson);
-        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.CMake);
+        testSubject.CurrentDatabase.Should().BeEquivalentTo(new CompilationDatabaseInfo(CmakeJson, CompilationDatabaseType.CMake));
         VerifyCalledService(DefaultConfigScope, CmakeJson);
         VerifyOnBackgroundThreadLockTakenAndReleased(1);
     }
@@ -154,8 +155,7 @@ public class ActiveCompilationDatabaseTrackerTests
 
         var testSubject = CreateAndInitializeTestSubject();
 
-        testSubject.DatabasePath.Should().Be(VcxJson);
-        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.VCX);
+        testSubject.CurrentDatabase.Should().BeEquivalentTo(new CompilationDatabaseInfo(VcxJson, CompilationDatabaseType.VCX));
         VerifyCalledService(DefaultConfigScope, VcxJson);
         VerifyOnBackgroundThreadLockTakenAndReleased(1);
     }
@@ -168,8 +168,19 @@ public class ActiveCompilationDatabaseTrackerTests
 
         var testSubject = CreateAndInitializeTestSubject();
 
-        testSubject.DatabasePath.Should().BeNull();
+        testSubject.CurrentDatabase.Should().BeNull();
         cFamilyAnalysisConfigurationSlCore.DidNotReceiveWithAnyArgs().DidChangePathToCompileCommands(default);
+    }
+
+    [TestMethod]
+    public void CurrentDatabase_AcquiresLock()
+    {
+        var testSubject = CreateAndInitializeTestSubject();
+        asyncLock.ClearReceivedCalls();
+
+        _ = testSubject.CurrentDatabase;
+
+        asyncLock.Received(1).Acquire();
     }
 
     [TestMethod]
@@ -181,8 +192,9 @@ public class ActiveCompilationDatabaseTrackerTests
 
         RaiseEventNewConfigScope();
 
-        testSubject.DatabasePath.Should().BeNull();
+        testSubject.CurrentDatabase.Should().BeNull();
         cFamilyAnalysisConfigurationSlCore.DidNotReceiveWithAnyArgs().DidChangePathToCompileCommands(default);
+        databasePathChangedHandler.Received(1).Invoke(testSubject, EventArgs.Empty);
         VerifyOnBackgroundThreadLockTakenAndReleased(1 + 1);
     }
 
@@ -194,9 +206,9 @@ public class ActiveCompilationDatabaseTrackerTests
 
         RaiseEventNewConfigScope();
 
-        testSubject.DatabasePath.Should().Be(CmakeJson);
-        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.CMake);
+        testSubject.CurrentDatabase.Should().BeEquivalentTo(new CompilationDatabaseInfo(CmakeJson, CompilationDatabaseType.CMake));
         VerifyCalledService(DefaultConfigScope, CmakeJson);
+        databasePathChangedHandler.Received(1).Invoke(testSubject, EventArgs.Empty);
         VerifyOnBackgroundThreadLockTakenAndReleased(1 + 1);
     }
 
@@ -208,9 +220,9 @@ public class ActiveCompilationDatabaseTrackerTests
 
         RaiseEventNewConfigScope();
 
-        testSubject.DatabasePath.Should().Be(VcxJson);
-        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.VCX);
+        testSubject.CurrentDatabase.Should().BeEquivalentTo(new CompilationDatabaseInfo(VcxJson, CompilationDatabaseType.VCX));
         VerifyCalledService(DefaultConfigScope, VcxJson);
+        databasePathChangedHandler.Received(1).Invoke(testSubject, EventArgs.Empty);
         VerifyOnBackgroundThreadLockTakenAndReleased(1 + 1);
     }
 
@@ -219,15 +231,15 @@ public class ActiveCompilationDatabaseTrackerTests
     {
         SetCurrentConfiguration(DefaultConfigScope, CmakeJson, null);
         var testSubject = CreateAndInitializeTestSubject();
-        testSubject.DatabasePath.Should().Be(CmakeJson); // sanity check
+        testSubject.CurrentDatabase.Should().BeEquivalentTo(new CompilationDatabaseInfo(CmakeJson, CompilationDatabaseType.CMake)); // sanity check
         VerifyOnBackgroundThreadLockTakenAndReleased(1);
 
         SetCurrentConfiguration(DefaultConfigScope, null, VcxJson);
         RaiseEventNewConfigScope();
 
-        testSubject.DatabasePath.Should().Be(VcxJson);
-        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.VCX);
+        testSubject.CurrentDatabase.Should().BeEquivalentTo(new CompilationDatabaseInfo(VcxJson, CompilationDatabaseType.VCX));
         VerifyCalledService(DefaultConfigScope, VcxJson);
+        databasePathChangedHandler.Received(1).Invoke(testSubject, EventArgs.Empty);
         VerifyOnBackgroundThreadLockTakenAndReleased(1 + 1);
     }
 
@@ -236,16 +248,16 @@ public class ActiveCompilationDatabaseTrackerTests
     {
         SetCurrentConfiguration(DefaultConfigScope, CmakeJson, null);
         var testSubject = CreateAndInitializeTestSubject();
-        testSubject.DatabasePath.Should().Be(CmakeJson); // sanity check
+        testSubject.CurrentDatabase.Should().BeEquivalentTo(new CompilationDatabaseInfo(CmakeJson, CompilationDatabaseType.CMake)); // sanity check
         VerifyOnBackgroundThreadLockTakenAndReleased(1);
 
         const string scope2 = "scope2";
         SetCurrentConfiguration(scope2, null, VcxJson);
         RaiseEventNewConfigScope();
 
-        testSubject.DatabasePath.Should().Be(VcxJson);
-        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.VCX);
+        testSubject.CurrentDatabase.Should().BeEquivalentTo(new CompilationDatabaseInfo(VcxJson, CompilationDatabaseType.VCX));
         VerifyCalledService(scope2, VcxJson);
+        databasePathChangedHandler.Received(1).Invoke(testSubject, EventArgs.Empty);
         VerifyOnBackgroundThreadLockTakenAndReleased(1 + 1);
     }
 
@@ -254,7 +266,7 @@ public class ActiveCompilationDatabaseTrackerTests
     {
         SetCurrentConfiguration(DefaultConfigScope, CmakeJson, null);
         var testSubject = CreateAndInitializeTestSubject();
-        testSubject.DatabasePath.Should().Be(CmakeJson); // sanity check
+        testSubject.CurrentDatabase.Should().BeEquivalentTo(new CompilationDatabaseInfo(CmakeJson, CompilationDatabaseType.CMake)); // sanity check
         VerifyOnBackgroundThreadLockTakenAndReleased(1);
 
         cFamilyAnalysisConfigurationSlCore.ClearReceivedCalls();
@@ -262,11 +274,11 @@ public class ActiveCompilationDatabaseTrackerTests
         activeVcxCompilationDatabase.ClearReceivedCalls();
         activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith<ConfigurationScopeChangedEventArgs>(new(false));
 
-        testSubject.DatabasePath.Should().Be(CmakeJson);
-        testSubject.DatabaseType.Should().Be(CompilationDatabaseType.CMake);
+        testSubject.CurrentDatabase.Should().BeEquivalentTo(new CompilationDatabaseInfo(CmakeJson, CompilationDatabaseType.CMake));
         cFamilyAnalysisConfigurationSlCore.DidNotReceiveWithAnyArgs().DidChangePathToCompileCommands(default);
         cMakeCompilationDatabaseLocator.DidNotReceiveWithAnyArgs().Locate();
         _ = activeVcxCompilationDatabase.DidNotReceiveWithAnyArgs().DatabasePath;
+        databasePathChangedHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
         VerifyOnBackgroundThreadLockTakenAndReleased(1); // still one invocation, as the event is just ignored
     }
 
@@ -275,14 +287,15 @@ public class ActiveCompilationDatabaseTrackerTests
     {
         SetCurrentConfiguration(DefaultConfigScope, CmakeJson, null);
         var testSubject = CreateAndInitializeTestSubject();
-
         serviceProvider.TryGetTransientService(out ICFamilyAnalysisConfigurationSLCoreService _).Returns(false);
         const string scope2 = "scope2";
+
         SetCurrentConfiguration(scope2, null, VcxJson);
         RaiseEventNewConfigScope();
 
-        testSubject.DatabasePath.Should().BeNull();
+        testSubject.CurrentDatabase.Should().BeNull();
         cFamilyAnalysisConfigurationSlCore.DidNotReceive().DidChangePathToCompileCommands(Arg.Is<DidChangePathToCompileCommandsParams>(x => x.configurationScopeId == scope2));
+        databasePathChangedHandler.Received(1).Invoke(testSubject, EventArgs.Empty);
         VerifyOnBackgroundThreadLockTakenAndReleased(1 + 1);
     }
 
@@ -296,13 +309,16 @@ public class ActiveCompilationDatabaseTrackerTests
         const string scope2 = "scope2";
         SetCurrentConfiguration(scope2, null, VcxJson);
         RaiseEventNewConfigScope();
-        testSubject.DatabasePath.Should().BeNull(); // sanity check
+        testSubject.CurrentDatabase.Should().BeNull(); // sanity check
+        databasePathChangedHandler.Received(1).Invoke(testSubject, EventArgs.Empty);
+
         SetUpServiceProvider();
         // recovery to the same id causes an update despite the optimization to ignore updates to the same id
         SetCurrentConfiguration(DefaultConfigScope, CmakeJson, null);
         RaiseEventNewConfigScope();
 
-        testSubject.DatabasePath.Should().Be(CmakeJson);
+        testSubject.CurrentDatabase.Should().BeEquivalentTo(new CompilationDatabaseInfo(CmakeJson, CompilationDatabaseType.CMake));
+        databasePathChangedHandler.Received(2).Invoke(testSubject, EventArgs.Empty);
         VerifyOnBackgroundThreadLockTakenAndReleased(1 + 1 + 1);
     }
 
@@ -387,6 +403,8 @@ public class ActiveCompilationDatabaseTrackerTests
             threadHandling,
             serviceProvider);
         tracker.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
+        tracker.DatabaseChanged += databasePathChangedHandler;
+
         return tracker;
     }
 }

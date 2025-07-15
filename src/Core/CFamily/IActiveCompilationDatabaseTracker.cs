@@ -24,9 +24,14 @@ namespace SonarLint.VisualStudio.Core.CFamily;
 
 public interface IActiveCompilationDatabaseTracker : IRequireInitialization, IDisposable
 {
-    string DatabasePath { get; }
-    CompilationDatabaseType DatabaseType { get; }
+    CompilationDatabaseInfo? CurrentDatabase { get; }
+    /// <summary>
+    /// Raised when configuration scope and/or associated compilation database path changes. May result in 'duplicate' events if different configuration scopes reuse the same compilation database.
+    /// </summary>
+    event EventHandler DatabaseChanged;
 }
+
+public readonly record struct CompilationDatabaseInfo(string FullPath, CompilationDatabaseType DatabaseType);
 
 public enum CompilationDatabaseType
 {
