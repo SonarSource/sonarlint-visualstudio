@@ -43,6 +43,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             trackProjectDocuments = Substitute.For<IVsTrackProjectDocuments2>();
             serviceOperation = Substitute.For<IVsUIServiceOperation>();
             serviceOperation
+                .When(x => x.ExecuteAsync<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(Arg.Any<Action<IVsTrackProjectDocuments2>>()))
+                .Do(call =>
+                {
+                    var action = (Action<IVsTrackProjectDocuments2>)call.Args()[0];
+                    action(trackProjectDocuments);
+                });
+            serviceOperation
                 .When(x => x.Execute<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(Arg.Any<Action<IVsTrackProjectDocuments2>>()))
                 .Do(call =>
                 {
@@ -70,7 +77,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             {
                 initializationProcessorFactory.Create<FileRenamesEventSource>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.Count == 0), Arg.Any<Func<IThreadHandling, Task>>());
                 testSubject.InitializationProcessor.InitializeAsync();
-                serviceOperation.Execute<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(Arg.Any<Action<IVsTrackProjectDocuments2>>());
+                serviceOperation.ExecuteAsync<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(Arg.Any<Action<IVsTrackProjectDocuments2>>());
                 trackProjectDocuments.AdviseTrackProjectDocumentsEvents(testSubject, out _);
                 testSubject.InitializationProcessor.InitializeAsync(); // called by CreateAndInitializeTestSubject
             });
@@ -92,6 +99,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             testSubject.Dispose();
             testSubject.Dispose();
 
+            serviceOperation.Received(1).Execute<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(Arg.Any<Action<IVsTrackProjectDocuments2>>());
             trackProjectDocuments.Received(1).UnadviseTrackProjectDocumentsEvents(cookie);
         }
 
@@ -147,7 +155,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             barrier.SetResult(1);
             testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
 
-            serviceOperation.Received(1).Execute<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(Arg.Any<Action<IVsTrackProjectDocuments2>>());
             trackProjectDocuments.Received(1).AdviseTrackProjectDocumentsEvents(testSubject, out _);
         }
 

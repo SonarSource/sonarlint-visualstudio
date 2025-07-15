@@ -59,14 +59,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             this.serviceOperation = serviceOperation;
             InitializationProcessor = initializationProcessorFactory.CreateAndStart<FileRenamesEventSource>(
                 [],
-                () =>
+                async () =>
                 {
                     if (disposed)
                     {
                         return;
                     }
 
-                    serviceOperation.Execute<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(svc =>
+                    await serviceOperation.ExecuteAsync<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(svc =>
                     {
                         svc.AdviseTrackProjectDocumentsEvents(this, out trackDocumentEventsCookie);
                     });
