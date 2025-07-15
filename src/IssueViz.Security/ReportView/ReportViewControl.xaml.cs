@@ -20,12 +20,16 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Controls;
+using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
 internal sealed partial class ReportViewControl : UserControl
 {
+    public ReportViewModel ReportViewModel { get; } = new();
+    public IResourceFinder ResourceFinder { get; } = new ResourceFinder();
+
     public ReportViewControl()
     {
         InitializeComponent();

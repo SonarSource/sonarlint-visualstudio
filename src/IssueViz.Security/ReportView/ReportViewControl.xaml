@@ -1,6 +1,185 @@
 ﻿<UserControl x:Class="SonarLint.VisualStudio.IssueVisualization.Security.ReportView.ReportViewControl"
              x:ClassModifier="internal"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid></Grid>
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks"
+             xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:res="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security"
+             DataContext="{Binding RelativeSource={RelativeSource Mode=Self}, Path=ReportViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary
+                    Source="../DependencyRisks/DependencyRiskImpactSeverity.xaml" />
+                <ResourceDictionary
+                    Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <local:DependencyRiskImpactSeverityToImageSourceConverter
+                x:Key="DependencyRiskImpactSeverityToImageSourceConverter" />
+            <local:DependencyRiskTypeToLocalizedTypeConverter x:Key="DependencyRiskTypeToLocalizedTypeConverter" />
+
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+            <Style TargetType="TreeView">
+                <Style.Setters>
+                    <Setter Property="BorderThickness" Value="0" />
+                    <Setter Property="Background" Value="Transparent" />
+                </Style.Setters>
+            </Style>
+
+            <!-- Default ToggleButton template for Expander arrow -->
+            <ControlTemplate x:Key="ExpanderToggleButton" TargetType="ToggleButton">
+                <Grid Margin="10,0,0,0">
+                    <Path x:Name="Arrow" Fill="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}"
+                          Data="M 0 0 L 8 4 L 0 8 Z" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                        <Setter TargetName="Arrow" Property="Data" Value="M 0 0 L 8 0 L 4 6 Z" />
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+
+            <Style TargetType="TreeViewItem">
+                <Setter Property="IsExpanded" Value="True" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TreeViewItem">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Border Name="Bd" Grid.ColumnSpan="2"
+                                        Background="{TemplateBinding Background}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        SnapsToDevicePixels="true"
+                                        Margin="{TemplateBinding Margin}">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <ToggleButton x:Name="ExpanderArrow" Width="16" Height="16" Margin="2,0,2,0"
+                                                      IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                                                      Visibility="{Binding HasItems, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                      Template="{StaticResource ExpanderToggleButton}" />
+                                        <ContentPresenter x:Name="Header" ContentSource="Header" Margin="5,0,0,0"
+                                                          VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Border>
+                                <ItemsPresenter Grid.Row="1" Grid.Column="0" x:Name="ItemsHost" Margin="15,0,0,0" />
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Foreground"
+                                            Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveTextBrushKey}}" />
+                                    <Setter Property="Background"
+                                            Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveBrushKey}}" />
+                                </Trigger>
+                                <MultiTrigger>
+                                    <MultiTrigger.Conditions>
+                                        <Condition Property="IsSelected" Value="True" />
+                                        <Condition Property="Selector.IsSelectionActive" Value="False" />
+                                    </MultiTrigger.Conditions>
+                                    <MultiTrigger.Setters>
+                                        <Setter Property="Foreground"
+                                                Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveTextBrushKey}}" />
+                                        <Setter Property="Background"
+                                                Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveBrushKey}}" />
+                                    </MultiTrigger.Setters>
+                                </MultiTrigger>
+                                <Trigger Property="IsExpanded" Value="False">
+                                    <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="IssueTextBlockStyle" TargetType="TextBlock">
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+
+            <Style x:Key="GroupTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                <Setter Property="FontSize"
+                        Value="{DynamicResource {x:Static vsShell:VsFonts.Environment111PercentFontSizeKey}}" />
+            </Style>
+
+            <Style x:Key="TypeTextBoxStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="FontStyle" Value="Italic" />
+                <Setter Property="FontSize"
+                        Value="{DynamicResource {x:Static vsShell:VsFonts.Environment90PercentFontSizeKey}}" />
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TreeView Grid.Row="0" Margin="0,5">
+            <TreeViewItem DataContext="{Binding Path=GroupDependencyRisk}" ItemsSource="{Binding Path=Risks}">
+                <TreeViewItem.Header>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="{Binding Title}" Style="{StaticResource GroupTextBlockStyle}" />
+                        <TextBlock Grid.Column="1" Margin="5,0,0,0"
+                                   Text="{Binding Path=Risks.Count, StringFormat={}({0} issues)}"
+                                   Style="{StaticResource GroupTextBlockStyle}" />
+                    </Grid>
+                </TreeViewItem.Header>
+            </TreeViewItem>
+
+            <TreeView.Resources>
+                <DataTemplate DataType="{x:Type local:DependencyRiskViewModel}">
+                    <Grid Margin="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Image Grid.Column="0" Height="17" VerticalAlignment="Center">
+                            <Image.Source>
+                                <MultiBinding
+                                    Converter="{StaticResource DependencyRiskImpactSeverityToImageSourceConverter}">
+                                    <Binding Path="ImpactSeverity" />
+                                    <Binding RelativeSource="{RelativeSource Self}" />
+                                    <Binding Path="ResourceFinder"
+                                             RelativeSource="{RelativeSource FindAncestor, AncestorType=UserControl}" />
+                                </MultiBinding>
+                            </Image.Source>
+                            <Image.ToolTip>
+                                <StackPanel>
+                                    <TextBlock>
+                                        <Run Text="{x:Static res:Resources.DependencyRiskImpactSeverityTooltip}" />
+                                        <Run Text="{Binding ImpactSeverity}" />
+                                    </TextBlock>
+                                </StackPanel>
+                            </Image.ToolTip>
+                        </Image>
+                        <TextBlock Grid.Column="1" Text="{Binding PackageName, StringFormat={}{0}:}" Margin="2,0" 
+                                   Style="{StaticResource IssueTextBlockStyle}"/>
+                        <TextBlock Grid.Column="2" Text="{Binding PackageVersion}" Margin="1,0" 
+                                   Style="{StaticResource IssueTextBlockStyle}"/>
+                        <TextBlock Grid.Column="3"
+                                   Text="{Binding Type, Converter={StaticResource DependencyRiskTypeToLocalizedTypeConverter}}"
+                                   Margin="3,0"
+                                   Style="{StaticResource TypeTextBoxStyle}" />
+                    </Grid>
+                </DataTemplate>
+            </TreeView.Resources>
+        </TreeView>
+    </Grid>
 </UserControl>
