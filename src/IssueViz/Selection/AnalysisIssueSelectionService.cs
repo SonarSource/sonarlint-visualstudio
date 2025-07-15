@@ -37,6 +37,7 @@ internal sealed class AnalysisIssueSelectionService : IAnalysisIssueSelectionSer
     private IAnalysisIssueVisualization selectedIssue;
     private IAnalysisIssueFlowVisualization selectedFlow;
     private IAnalysisIssueLocationVisualization selectedLocation;
+    private bool disposed = false;
 
     public event EventHandler<SelectionChangedEventArgs> SelectionChanged;
 
@@ -126,6 +127,12 @@ internal sealed class AnalysisIssueSelectionService : IAnalysisIssueSelectionSer
 
     public void Dispose()
     {
+        if (disposed)
+        {
+            return;
+        }
+
+        disposed = true;
         SelectionChanged = null;
         selectionService.SelectedIssueChanged -= SelectionService_SelectedIssueChanged;
     }
