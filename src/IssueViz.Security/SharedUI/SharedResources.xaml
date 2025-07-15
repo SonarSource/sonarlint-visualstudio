@@ -4,7 +4,7 @@
                     xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
                     xmlns:core="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
                     xmlns:issueVisualizationControl="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;assembly=SonarLint.VisualStudio.IssueVisualization"
-                >
+                    xmlns:res="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security">
 
     <vsTheming:BrushToColorConverter x:Key="BrushToColorConverter"/>
 
@@ -221,6 +221,16 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+    <Style x:Key="ViewIssueInBrowserMenuItemStyle" TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=ViewModel.IsCloud}" Value="True">
+                <Setter Property="Header" Value="{x:Static res:Resources.ViewIssueInSonarQubeCloud}"/>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=ViewModel.IsCloud}" Value="False">
+                <Setter Property="Header" Value="{x:Static res:Resources.ViewIssueInSonarQubeServer}"/>
+            </DataTrigger>
+        </Style.Triggers>
     </Style>
 
 </ResourceDictionary>

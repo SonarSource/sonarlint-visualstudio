@@ -33,19 +33,7 @@
                         <imaging:CrispImage Source="/SonarLint.VisualStudio.IssueVisualization.Security;component/SharedUI/sonarqube_for_ide_logo_16px.png" />
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Click="ViewHotspotInBrowser_OnClick">
-                    <MenuItem.Style>
-                        <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=ViewModel.IsCloud}" Value="True">
-                                    <Setter Property="Header" Value="{x:Static res:Resources.HotspotsControl_ViewInSonarQubeCloud}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=ViewModel.IsCloud}" Value="False">
-                                    <Setter Property="Header" Value="{x:Static res:Resources.HotspotsControl_ViewInSonarQubeServer}"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </MenuItem.Style>
+                <MenuItem Click="ViewHotspotInBrowser_OnClick" Style="{StaticResource ViewIssueInBrowserMenuItemStyle}">
                     <MenuItem.Icon>
                         <imaging:CrispImage Moniker="{x:Static vsCatalog:KnownMonikers.BrowserLink}" />
                     </MenuItem.Icon>
