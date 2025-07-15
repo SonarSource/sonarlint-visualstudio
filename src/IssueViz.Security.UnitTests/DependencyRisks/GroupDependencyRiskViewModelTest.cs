@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.DependencyRisks;
@@ -31,8 +32,39 @@ public class GroupDependencyRiskViewModelTest
     public void Initialize() => testSubject = new GroupDependencyRiskViewModel();
 
     [TestMethod]
-    public void Title_ReturnsExpectedResource() => testSubject.Title.Should().Be(Resources.DependencyRisksGroupTitle);
+    public void Ctor_HasPropertiesInitialized()
+    {
+        testSubject.Title.Should().Be(Resources.DependencyRisksGroupTitle);
+        testSubject.Risks.Should().BeEmpty();
+    }
 
     [TestMethod]
-    public void Risks_ContainsExpectedNumberOfItems() => testSubject.Risks.Should().HaveCount(3);
+    public void InitializeRisks_InitializesRisks()
+    {
+        testSubject.InitializeRisks();
+
+        testSubject.Risks.Should().HaveCount(3);
+    }
+
+    [TestMethod]
+    public void InitializeRisks_RaisesPropertyChanged()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+
+        testSubject.InitializeRisks();
+
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.HasRisks)));
+    }
+
+    [TestMethod]
+    public void HasRisks_ReturnsTrue_WhenThereAreRisks()
+    {
+        testSubject.InitializeRisks();
+
+        testSubject.HasRisks.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void HasRisks_ReturnsFalse_WhenThereAreRisks() => testSubject.HasRisks.Should().BeFalse();
 }

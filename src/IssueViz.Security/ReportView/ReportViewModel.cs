@@ -26,4 +26,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 internal class ReportViewModel : ViewModelBase
 {
     public GroupDependencyRiskViewModel GroupDependencyRisk { get; } = new();
+
+    public ReportViewModel()
+    {
+        GroupDependencyRisk.InitializeRisks();
+    }
 }

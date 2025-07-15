@@ -31,5 +31,9 @@ public class ReportViewModelTest
     public void Initialize() => testSubject = new ReportViewModel();
 
     [TestMethod]
-    public void Ctor_ContainsGroupDependencyRisk() => testSubject.GroupDependencyRisk.Should().NotBeNull();
+    public void Ctor_InitializesDependencyRisks()
+    {
+        testSubject.GroupDependencyRisk.Should().NotBeNull();
+        testSubject.GroupDependencyRisk.Risks.Should().NotBeEmpty();
+    }
 }

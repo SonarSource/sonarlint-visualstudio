@@ -28,19 +28,27 @@ internal class GroupDependencyRiskViewModel : ViewModelBase
 {
     public string Title => Resources.DependencyRisksGroupTitle;
 
-    public ObservableCollection<DependencyRiskViewModel> Risks { get; } = new()
+    public ObservableCollection<DependencyRiskViewModel> Risks { get; } = new();
+
+    public bool HasRisks => Risks.Count > 0;
+
+    public void InitializeRisks()
     {
-        new DependencyRiskViewModel
+        // TOOD by https://sonarsource.atlassian.net/browse/SLVS-2371: remove hard coded implementation and show risks from store
+        Risks.Add(new DependencyRiskViewModel
         {
             PackageName = "System.ComponentModel.Composition", PackageVersion = "9.0.70", ImpactSeverity = DependencyRiskImpactSeverity.Blocker, Type = DependencyRiskType.Vulnerability
-        },
-        new DependencyRiskViewModel
-        {
-            PackageName = "System.Windows.Presentation", PackageVersion = "1.9", ImpactSeverity = DependencyRiskImpactSeverity.High, Type = DependencyRiskType.ProhibitedLicense
-        },
-        new DependencyRiskViewModel
-        {
-            PackageName = "Microsoft.Owin.Host.HttpListener", PackageVersion = "13.6.6", ImpactSeverity = DependencyRiskImpactSeverity.Info, Type = DependencyRiskType.Vulnerability
-        }
-    };
+        });
+        Risks.Add(
+            new DependencyRiskViewModel
+            {
+                PackageName = "System.Windows.Presentation", PackageVersion = "1.9", ImpactSeverity = DependencyRiskImpactSeverity.High, Type = DependencyRiskType.ProhibitedLicense
+            });
+        Risks.Add(
+            new DependencyRiskViewModel
+            {
+                PackageName = "Microsoft.Owin.Host.HttpListener", PackageVersion = "13.6.6", ImpactSeverity = DependencyRiskImpactSeverity.Info, Type = DependencyRiskType.Vulnerability
+            });
+        RaisePropertyChanged(nameof(HasRisks));
+    }
 }
