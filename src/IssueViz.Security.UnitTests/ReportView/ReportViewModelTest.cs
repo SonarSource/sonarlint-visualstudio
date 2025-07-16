@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView;
@@ -26,9 +27,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportVie
 public class ReportViewModelTest
 {
     private ReportViewModel testSubject;
+    private IActiveSolutionBoundTracker activeSolutionBoundTracker;
 
     [TestInitialize]
-    public void Initialize() => testSubject = new ReportViewModel();
+    public void Initialize()
+    {
+        activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
+        testSubject = new ReportViewModel(activeSolutionBoundTracker);
+    }
 
     [TestMethod]
     public void Ctor_InitializesDependencyRisks()
