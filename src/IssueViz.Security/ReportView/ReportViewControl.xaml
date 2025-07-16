@@ -133,7 +133,7 @@
 
         <TreeView Grid.Row="0" Margin="0,5"  Visibility="{Binding Path=GroupDependencyRisk.HasRisks, Converter={StaticResource TrueToVisibleConverter}}">
             <TreeViewItem DataContext="{Binding Path=GroupDependencyRisk}" ItemsSource="{Binding Path=Risks}"
-                          PreviewMouseUp="TreeViewItem_OnPreviewMouseUp" ContextMenu="{StaticResource DependencyRiskContextMenu}">
+                          PreviewMouseUp="TreeViewItem_OnPreviewMouseUp">
                 <TreeViewItem.Header>
                     <Grid Cursor="Hand">
                         <Grid.ColumnDefinitions>
@@ -151,7 +151,8 @@
 
             <TreeView.Resources>
                 <DataTemplate DataType="{x:Type local:DependencyRiskViewModel}">
-                    <Grid Margin="2">
+                    <Grid Margin="2" ContextMenu="{StaticResource DependencyRiskContextMenu}" 
+                          MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />

@@ -81,4 +81,12 @@ internal sealed partial class ReportViewControl : UserControl
             contextMenu.DataContext = ReportViewModel;
         }
     }
+
+    private void TreeViewItem_OnMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is FrameworkElement element && FindParentOfType<TreeViewItem>(element) is { } treeViewItem)
+        {
+            treeViewItem.IsSelected = true;
+        }
+    }
 }
