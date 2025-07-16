@@ -18,118 +18,114 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Linq;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.Infrastructure.VS;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Selection
+namespace SonarLint.VisualStudio.IssueVisualization.Selection;
+
+[Export(typeof(IAnalysisIssueSelectionService))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal sealed class AnalysisIssueSelectionService : IAnalysisIssueSelectionService
 {
-    [Export(typeof(IAnalysisIssueSelectionService))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class AnalysisIssueSelectionService : IAnalysisIssueSelectionService
+    private Guid uiContextGuid = new Guid(Commands.Constants.UIContextGuid);
+    private readonly IVsUIServiceOperation uiServiceOperation;
+    private readonly IIssueSelectionService selectionService;
+
+    private IAnalysisIssueVisualization selectedIssue;
+    private IAnalysisIssueFlowVisualization selectedFlow;
+    private IAnalysisIssueLocationVisualization selectedLocation;
+    private bool disposed = false;
+
+    public event EventHandler<SelectionChangedEventArgs> SelectionChanged;
+
+    [ImportingConstructor]
+    public AnalysisIssueSelectionService(
+        IVsUIServiceOperation uiServiceOperation,
+        IIssueSelectionService selectionService)
     {
-        private Guid uiContextGuid = new Guid(Commands.Constants.UIContextGuid);
-        private readonly IVsMonitorSelection monitorSelection;
-        private readonly IIssueSelectionService selectionService;
+        this.uiServiceOperation = uiServiceOperation;
+        this.selectionService = selectionService;
+        this.selectionService.SelectedIssueChanged += SelectionService_SelectedIssueChanged;
+    }
 
-        private IAnalysisIssueVisualization selectedIssue;
-        private IAnalysisIssueFlowVisualization selectedFlow;
-        private IAnalysisIssueLocationVisualization selectedLocation;
-
-        public event EventHandler<SelectionChangedEventArgs> SelectionChanged;
-
-        [ImportingConstructor]
-        public AnalysisIssueSelectionService(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            IIssueSelectionService selectionService)
+    public IAnalysisIssueVisualization SelectedIssue
+    {
+        get => selectedIssue;
+        set
         {
-            monitorSelection = serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
-            this.selectionService = selectionService;
-            this.selectionService.SelectedIssueChanged += SelectionService_SelectedIssueChanged;
+            selectedIssue = value;
+            selectedFlow = GetFirstFlowOrDefault();
+            selectedLocation = GetFirstLocationOrDefault();
+
+            UpdateUiContext();
+
+            RaiseSelectionChanged(SelectionChangeLevel.Issue);
         }
+    }
 
-        public IAnalysisIssueVisualization SelectedIssue
+    public IAnalysisIssueFlowVisualization SelectedFlow
+    {
+        get => selectedFlow;
+        set
         {
-            get => selectedIssue;
-            set
-            {
-                selectedIssue = value;
-                selectedFlow = GetFirstFlowOrDefault();
-                selectedLocation = GetFirstLocationOrDefault();
+            selectedFlow = value;
+            selectedLocation = GetFirstLocationOrDefault();
 
-                UpdateUiContext();
-
-                RaiseSelectionChanged(SelectionChangeLevel.Issue);
-            }
+            RaiseSelectionChanged(SelectionChangeLevel.Flow);
         }
+    }
 
-        public IAnalysisIssueFlowVisualization SelectedFlow
+    public IAnalysisIssueLocationVisualization SelectedLocation
+    {
+        get => selectedLocation;
+        set
         {
-            get => selectedFlow;
-            set
-            {
-                selectedFlow = value;
-                selectedLocation = GetFirstLocationOrDefault();
+            selectedLocation = value;
 
-                RaiseSelectionChanged(SelectionChangeLevel.Flow);
-            }
+            RaiseSelectionChanged(SelectionChangeLevel.Location);
         }
+    }
 
-        public IAnalysisIssueLocationVisualization SelectedLocation
+    private void RaiseSelectionChanged(SelectionChangeLevel changeLevel) =>
+        SelectionChanged?.Invoke(this, new SelectionChangedEventArgs(changeLevel, SelectedIssue, SelectedFlow, SelectedLocation));
+
+    private void UpdateUiContext() =>
+        uiServiceOperation.Execute<Microsoft.VisualStudio.Shell.Interop.SVsShellMonitorSelection, Microsoft.VisualStudio.Shell.Interop.IVsMonitorSelection>(monitorSelection =>
         {
-            get => selectedLocation;
-            set
-            {
-                selectedLocation = value;
-
-                RaiseSelectionChanged(SelectionChangeLevel.Location);
-            }
-        }
-
-        private void RaiseSelectionChanged(SelectionChangeLevel changeLevel)
-        {
-            SelectionChanged?.Invoke(this, new SelectionChangedEventArgs(changeLevel, SelectedIssue, SelectedFlow, SelectedLocation));
-        }
-
-        private void UpdateUiContext()
-        {
-            if (monitorSelection.GetCmdUIContextCookie(ref uiContextGuid, out uint cookie) == VSConstants.S_OK)
+            if (monitorSelection.GetCmdUIContextCookie(ref uiContextGuid, out uint cookie) == Microsoft.VisualStudio.VSConstants.S_OK)
             {
                 var shouldActivate = SelectedIssue != null;
-
                 monitorSelection.SetCmdUIContext(cookie, shouldActivate ? 1 : 0);
             }
-        }
+        });
 
-        private IAnalysisIssueFlowVisualization GetFirstFlowOrDefault()
+    private IAnalysisIssueFlowVisualization GetFirstFlowOrDefault() =>
+        selectedIssue?.Flows?.FirstOrDefault();
+
+    private IAnalysisIssueLocationVisualization GetFirstLocationOrDefault() =>
+        selectedFlow?.Locations?.FirstOrDefault();
+
+    private void SelectionService_SelectedIssueChanged(object sender, EventArgs e)
+    {
+        if (selectionService.SelectedIssue != SelectedIssue)
         {
-            return selectedIssue?.Flows?.FirstOrDefault();
-        }
+            var hasSecondaryLocations = selectionService.SelectedIssue != null &&
+                                        selectionService.SelectedIssue.Flows.SelectMany(x => x.Locations).Any();
 
-        private IAnalysisIssueLocationVisualization GetFirstLocationOrDefault()
+            SelectedIssue = hasSecondaryLocations ? selectionService.SelectedIssue : null;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (disposed)
         {
-            return selectedFlow?.Locations?.FirstOrDefault();
+            return;
         }
 
-        private void SelectionService_SelectedIssueChanged(object sender, EventArgs e)
-        {
-            if (selectionService.SelectedIssue != SelectedIssue)
-            {
-                var hasSecondaryLocations = selectionService.SelectedIssue != null &&
-                                            selectionService.SelectedIssue.Flows.SelectMany(x => x.Locations).Any();
-
-                SelectedIssue = hasSecondaryLocations ? selectionService.SelectedIssue : null;
-            }
-        }
-
-        public void Dispose()
-        {
-            SelectionChanged = null;
-            selectionService.SelectedIssueChanged -= SelectionService_SelectedIssueChanged;
-        }
+        disposed = true;
+        SelectionChanged = null;
+        selectionService.SelectedIssueChanged -= SelectionService_SelectedIssueChanged;
     }
 }
