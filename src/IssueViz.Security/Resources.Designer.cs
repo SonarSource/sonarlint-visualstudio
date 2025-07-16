@@ -295,6 +295,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to issue.
+        /// </summary>
+        public static string IssueText {
+            get {
+                return ResourceManager.GetString("IssueText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Please ensure that your solution is bound to a SonarQube project that contains dependency risks..
         /// </summary>
         public static string NoDependencyRiskFoundText {

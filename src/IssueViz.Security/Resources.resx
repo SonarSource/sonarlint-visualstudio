@@ -260,4 +260,7 @@ Please check the logs for more details.</value>
   <data name="NoDependencyRiskFoundTitle" xml:space="preserve">
     <value>No Dependency Risks were found.</value>
   </data>
+  <data name="IssueText" xml:space="preserve">
+    <value>issue</value>
+  </data>
 </root>

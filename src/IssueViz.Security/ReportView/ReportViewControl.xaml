@@ -24,6 +24,7 @@
 
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
             <wpf:BoolToVisibilityConverter x:Key="TrueToCollapsedConverter" FalseValue="Visible" TrueValue="Collapsed" />
+            <wpf:EnglishPluralizationConverter x:Key="EnglishPluralizationConverter" />
 
             <Style TargetType="TreeView">
                 <Style.Setters>
@@ -138,8 +139,8 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBlock Grid.Column="0" Text="{Binding Title}" Style="{StaticResource GroupTextBlockStyle}" />
-                        <TextBlock Grid.Column="1" Margin="5,0,0,0"
-                                   Text="{Binding Path=Risks.Count, StringFormat={}({0} issues)}"
+                        <TextBlock Grid.Column="1" Margin="3,0,0,0"
+                                   Text="{Binding Path=Risks.Count, Converter={StaticResource EnglishPluralizationConverter}, ConverterParameter={x:Static res:Resources.IssueText}, StringFormat={}({0})}"
                                    Style="{StaticResource GroupTextBlockStyle}" />
                     </Grid>
                 </TreeViewItem.Header>
