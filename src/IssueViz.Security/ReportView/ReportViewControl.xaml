@@ -66,11 +66,11 @@
                                         BorderBrush="{TemplateBinding BorderBrush}"
                                         SnapsToDevicePixels="true"
                                         Margin="{TemplateBinding Margin}">
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" >
                                         <ToggleButton x:Name="ExpanderArrow" Width="16" Height="16" Margin="2,0,2,0"
                                                       IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
                                                       Visibility="{Binding HasItems, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource TrueToVisibleConverter}}"
-                                                      Template="{StaticResource ExpanderToggleButton}" />
+                                                      Template="{StaticResource ExpanderToggleButton}" Cursor="Hand"/>
                                         <ContentPresenter x:Name="Header" ContentSource="Header" Margin="5,0,0,0"
                                                           VerticalAlignment="Center" />
                                     </StackPanel>
@@ -128,9 +128,10 @@
         </Grid.RowDefinitions>
 
         <TreeView Grid.Row="0" Margin="0,5"  Visibility="{Binding Path=GroupDependencyRisk.HasRisks, Converter={StaticResource TrueToVisibleConverter}}">
-            <TreeViewItem DataContext="{Binding Path=GroupDependencyRisk}" ItemsSource="{Binding Path=Risks}">
+            <TreeViewItem DataContext="{Binding Path=GroupDependencyRisk}" ItemsSource="{Binding Path=Risks}"
+                          PreviewMouseUp="TreeViewItem_OnPreviewMouseUp">
                 <TreeViewItem.Header>
-                    <Grid>
+                    <Grid Cursor="Hand">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
