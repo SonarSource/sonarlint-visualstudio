@@ -18,16 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.WPF;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-internal class ReportViewModel : ViewModelBase
+internal class ReportViewModel : ServerViewModel
 {
     public GroupDependencyRiskViewModel GroupDependencyRisk { get; } = new();
 
-    public ReportViewModel()
+    public ReportViewModel(IActiveSolutionBoundTracker activeSolutionBoundTracker) : base(activeSolutionBoundTracker)
     {
         GroupDependencyRisk.InitializeRisks();
     }

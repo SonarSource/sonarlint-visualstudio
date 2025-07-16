@@ -20,7 +20,9 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
@@ -33,7 +35,9 @@ internal class ReportViewToolWindow : ToolWindowPane
 
     public ReportViewToolWindow(IServiceProvider serviceProvider)
     {
+        var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+        var activeSolutionBoundTracker = componentModel?.GetService<IActiveSolutionBoundTracker>();
         Caption = Resources.ReportViewToolWindowCaption;
-        Content = new ReportViewControl();
+        Content = new ReportViewControl(activeSolutionBoundTracker);
     }
 }
