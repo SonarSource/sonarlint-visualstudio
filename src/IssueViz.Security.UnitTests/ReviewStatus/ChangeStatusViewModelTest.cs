@@ -92,7 +92,7 @@ public class ChangeStatusViewModelTest
 
         testSubject.SelectedStatusViewModel = new StatusViewModel<HotspotStatus>(HotspotStatus.Acknowledged, StatusTitle, StatusDescription);
 
-        testSubject.Error.Should().NotBeNull();
+        GetCommentValidationError().Should().NotBeNull();
         testSubject.IsSubmitButtonEnabled.Should().BeFalse();
     }
 
@@ -129,7 +129,7 @@ public class ChangeStatusViewModelTest
 
         testSubject.Comment = string.Empty;
 
-        testSubject.Error.Should().Be(Resources.CommentRequiredErrorMessage);
+        GetCommentValidationError().Should().Be(Resources.CommentRequiredErrorMessage);
     }
 
     [TestMethod]
@@ -143,7 +143,7 @@ public class ChangeStatusViewModelTest
 
         testSubject.Comment = string.Empty;
 
-        testSubject.Error.Should().BeNull();
+        GetCommentValidationError().Should().BeNull();
     }
 
     [TestMethod]
@@ -154,9 +154,11 @@ public class ChangeStatusViewModelTest
 
         testSubject.Comment = string.Empty;
 
-        testSubject.Error.Should().BeNull();
+        GetCommentValidationError().Should().BeNull();
     }
 
     private ChangeStatusViewModel<HotspotStatus> CreateTestSubject(HotspotStatus status, bool showComment, IEnumerable<HotspotStatus> statusesWithMandatoryComment) =>
         new(status, allowedStatuses, statusesWithMandatoryComment, allStatusViewModels, showComment);
+
+    private string GetCommentValidationError() => testSubject[nameof(testSubject.Comment)];
 }
