@@ -23,7 +23,7 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-internal class ServerViewModel : ViewModelBase, IDisposable
+internal abstract class ServerViewModel : ViewModelBase, IDisposable
 {
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private bool isCloud;
@@ -38,7 +38,7 @@ internal class ServerViewModel : ViewModelBase, IDisposable
         }
     }
 
-    public ServerViewModel(IActiveSolutionBoundTracker activeSolutionBoundTracker)
+    protected ServerViewModel(IActiveSolutionBoundTracker activeSolutionBoundTracker)
     {
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;

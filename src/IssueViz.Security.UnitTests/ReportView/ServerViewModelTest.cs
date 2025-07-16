@@ -93,7 +93,7 @@ public class ServerViewModelTest
         activeSolutionBoundTracker.ReceivedWithAnyArgs(1).SolutionBindingChanged -= Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
     }
 
-    private ServerViewModel CreateTestSubject() => new(activeSolutionBoundTracker);
+    private ServerViewModel CreateTestSubject() => new ReportViewModel(activeSolutionBoundTracker);
 
     private static BindingConfiguration CreateBindingConfiguration(ServerConnection serverConnection, SonarLintMode mode) =>
         new(new BoundServerProject("my solution", "my project", serverConnection), mode, string.Empty);
