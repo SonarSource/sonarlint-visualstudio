@@ -56,11 +56,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             var messageBox = componentModel.GetService<IMessageBox>();
             var activeDocumentLocator = componentModel.GetService<IActiveDocumentLocator>();
             var activeDocumentTracker = componentModel.GetService<IActiveDocumentTracker>();
+            var browserService = componentModel.GetService<IBrowserService>();
 
             var viewModel = new HotspotsControlViewModel(store, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling, activeSolutionBoundTracker,
                 reviewHotspotsService, messageBox, activeDocumentLocator, activeDocumentTracker);
             viewModel.UpdateHotspotsListAsync().Forget();
-            var hotspotsControl = new HotspotsControl(viewModel);
+            var hotspotsControl = new HotspotsControl(viewModel, browserService, activeSolutionBoundTracker);
 
             Content = hotspotsControl;
         }

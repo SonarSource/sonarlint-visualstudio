@@ -26,5 +26,6 @@ public interface IChangeStatusViewModel
 {
     IStatusViewModel SelectedStatusViewModel { get; set; }
     ObservableCollection<IStatusViewModel> AllowedStatusViewModels { get; }
+    string Comment { get; set; }
     bool IsSubmitButtonEnabled { get; }
 }

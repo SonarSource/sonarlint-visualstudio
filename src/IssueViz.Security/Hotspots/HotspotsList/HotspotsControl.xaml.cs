@@ -21,7 +21,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Controls;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 using static SonarLint.VisualStudio.ConnectedMode.UI.WindowExtensions;
@@ -31,6 +33,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
 internal sealed partial class HotspotsControl : UserControl
 {
+    private readonly IBrowserService browserService;
+    private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly IReadOnlyList<StatusViewModel<HotspotStatus>> allStatusViewModels =
     [
         new(HotspotStatus.ToReview, Security.Resources.ReviewHotspotWindow_ToReviewTitle,
@@ -45,8 +49,10 @@ internal sealed partial class HotspotsControl : UserControl
 
     public HotspotsControlViewModel ViewModel { get; }
 
-    public HotspotsControl(HotspotsControlViewModel viewModel)
+    public HotspotsControl(HotspotsControlViewModel viewModel, IBrowserService browserService, IActiveSolutionBoundTracker activeSolutionBoundTracker)
     {
+        this.browserService = browserService;
+        this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         ViewModel = viewModel;
 
         InitializeComponent();
@@ -61,7 +67,7 @@ internal sealed partial class HotspotsControl : UserControl
         }
 
         var statusListViewModel = new ChangeStatusViewModel<HotspotStatus>(hotspotViewModel.HotspotStatus, allowedStatuses, allStatusViewModels);
-        var dialog = new ChangeStatusWindow(statusListViewModel);
+        var dialog = new ChangeStatusWindow(statusListViewModel, browserService, activeSolutionBoundTracker);
         if (dialog.ShowDialog(Application.Current.MainWindow) is true)
         {
             await ViewModel.ChangeHotspotStatusAsync(statusListViewModel.SelectedStatusViewModel.GetCurrentStatus<HotspotStatus>());

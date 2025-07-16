@@ -27,6 +27,7 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
 {
     private readonly IReadOnlyList<StatusViewModel<T>> allStatusViewModels;
     private IStatusViewModel selectedStatusViewModel;
+    private string comment;
 
     public ChangeStatusViewModel(T currentStatus, IEnumerable<T> allowedStatuses, IReadOnlyList<StatusViewModel<T>> allStatusViewModels)
     {
@@ -43,6 +44,16 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
             selectedStatusViewModel = value;
             RaisePropertyChanged();
             RaisePropertyChanged(nameof(IsSubmitButtonEnabled));
+        }
+    }
+
+    public string Comment
+    {
+        get => comment;
+        set
+        {
+            comment = value;
+            RaisePropertyChanged();
         }
     }
 
