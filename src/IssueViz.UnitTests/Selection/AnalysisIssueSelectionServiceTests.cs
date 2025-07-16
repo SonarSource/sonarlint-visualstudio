@@ -42,7 +42,6 @@ public class AnalysisIssueSelectionServiceTests
         selectionService = Substitute.For<IIssueSelectionService>();
         uiServiceOperation = Substitute.For<IVsUIServiceOperation>();
 
-        // Setup the UIServiceOperation to execute the action with the monitor selection
         uiServiceOperation.When(x => x.Execute<SVsShellMonitorSelection, IVsMonitorSelection>(Arg.Any<Action<IVsMonitorSelection>>()))
             .Do(x =>
             {
