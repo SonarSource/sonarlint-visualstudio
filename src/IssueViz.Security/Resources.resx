@@ -236,10 +236,10 @@ Please check the logs for more details.</value>
   <data name="HotspotControl_LocalHotspotStatusTooltip" xml:space="preserve">
     <value>The hotspots not yet present on the server need to be fixed locally.</value>
   </data>
-  <data name="HotspotsControl_ViewInSonarQubeCloud" xml:space="preserve">
+  <data name="ViewIssueInSonarQubeCloud" xml:space="preserve">
     <value>View in SonarQube Cloud</value>
   </data>
-  <data name="HotspotsControl_ViewInSonarQubeServer" xml:space="preserve">
+  <data name="ViewIssueInSonarQubeServer" xml:space="preserve">
     <value>View in SonarQube Server</value>
   </data>
   <data name="ReportViewToolWindowCaption" xml:space="preserve">
