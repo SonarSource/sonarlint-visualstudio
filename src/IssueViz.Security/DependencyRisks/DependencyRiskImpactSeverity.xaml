@@ -4,7 +4,7 @@
 >
     
     <!-- ***********************************************************************************
-         Auto-generated from the SVG files by SvgToXaml. See Readme.txt for more information.    
+         Auto-generated from the SVG files by SvgToXaml. See src/Education/UI/Readme.txt for more information.    
          *********************************************************************************** -->
     <DrawingImage x:Key="BlockerSeverityDrawingImage">
         <DrawingImage.Drawing>
