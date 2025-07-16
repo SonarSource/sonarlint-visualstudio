@@ -31,6 +31,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
 internal sealed partial class HotspotsControl : UserControl
 {
+    private readonly IReadOnlyList<StatusViewModel<HotspotStatus>> allStatusViewModels =
+    [
+        new(HotspotStatus.ToReview, Security.Resources.ReviewHotspotWindow_ToReviewTitle,
+            Security.Resources.ReviewHotspotWindow_ToReviewContent),
+        new(HotspotStatus.Acknowledged, Security.Resources.ReviewHotspotWindow_AcknowledgeTitle,
+            Security.Resources.ReviewHotspotWindow_AcknowledgeContent),
+        new(HotspotStatus.Fixed, Security.Resources.ReviewHotspotWindow_FixedTitle,
+            Security.Resources.ReviewHotspotWindow_FixedContent),
+        new(HotspotStatus.Safe, Security.Resources.ReviewHotspotWindow_SafeTitle,
+            Security.Resources.ReviewHotspotWindow_SafeContent)
+    ];
+
     public HotspotsControlViewModel ViewModel { get; }
 
     public HotspotsControl(HotspotsControlViewModel viewModel)
@@ -47,17 +59,7 @@ internal sealed partial class HotspotsControl : UserControl
         {
             return;
         }
-        IReadOnlyList<StatusViewModel<HotspotStatus>> allStatusViewModels =
-        [
-            new(HotspotStatus.ToReview, Security.Resources.ReviewHotspotWindow_ToReviewTitle,
-                Security.Resources.ReviewHotspotWindow_ToReviewContent),
-            new(HotspotStatus.Acknowledged, Security.Resources.ReviewHotspotWindow_AcknowledgeTitle,
-                Security.Resources.ReviewHotspotWindow_AcknowledgeContent),
-            new(HotspotStatus.Fixed, Security.Resources.ReviewHotspotWindow_FixedTitle,
-                Security.Resources.ReviewHotspotWindow_FixedContent),
-            new(HotspotStatus.Safe, Security.Resources.ReviewHotspotWindow_SafeTitle,
-                Security.Resources.ReviewHotspotWindow_SafeContent)
-        ];
+
         var statusListViewModel = new ChangeStatusViewModel<HotspotStatus>(hotspotViewModel.HotspotStatus, allowedStatuses, allStatusViewModels);
         var dialog = new ChangeStatusWindow(statusListViewModel);
         if (dialog.ShowDialog(Application.Current.MainWindow) is true)
