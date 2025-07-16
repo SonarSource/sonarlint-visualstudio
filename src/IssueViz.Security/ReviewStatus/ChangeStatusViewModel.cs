@@ -52,8 +52,9 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
         {
             selectedStatusViewModel = value;
             RaisePropertyChanged();
+            // order matters here, we want to validate the comment before checking if the submit button is enabled
+            RaisePropertyChanged(nameof(Comment));
             RaisePropertyChanged(nameof(IsSubmitButtonEnabled));
-            RaisePropertyChanged(nameof(Comment)); // enforce comment validation
         }
     }
 
