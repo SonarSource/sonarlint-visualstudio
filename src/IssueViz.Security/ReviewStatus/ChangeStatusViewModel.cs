@@ -29,11 +29,16 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
     private IStatusViewModel selectedStatusViewModel;
     private string comment;
 
-    public ChangeStatusViewModel(T currentStatus, IEnumerable<T> allowedStatuses, IReadOnlyList<StatusViewModel<T>> allStatusViewModels)
+    public ChangeStatusViewModel(
+        T currentStatus,
+        IEnumerable<T> allowedStatuses,
+        IReadOnlyList<StatusViewModel<T>> allStatusViewModels,
+        bool showComment)
     {
         this.allStatusViewModels = allStatusViewModels;
         InitializeStatuses(allowedStatuses);
         InitializeCurrentStatus(currentStatus);
+        ShowComment = showComment;
     }
 
     public IStatusViewModel SelectedStatusViewModel
@@ -57,6 +62,7 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
         }
     }
 
+    public bool ShowComment { get; }
     public bool IsSubmitButtonEnabled => SelectedStatusViewModel != null;
 
     public ObservableCollection<IStatusViewModel> AllowedStatusViewModels { get; set; } = [];

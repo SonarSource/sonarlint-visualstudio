@@ -29,7 +29,6 @@ public class ChangeStatusViewModelTest
 {
     private ChangeStatusViewModel<HotspotStatus> testSubject;
     private HotspotStatus[] allowedStatuses;
-    private readonly HotspotStatus currentStatus = HotspotStatus.Safe;
     private List<StatusViewModel<HotspotStatus>> allStatusViewModels;
 
     [TestInitialize]
@@ -40,26 +39,30 @@ public class ChangeStatusViewModelTest
             .Cast<HotspotStatus>()
             .Select(status => new StatusViewModel<HotspotStatus>(status, status.ToString(), status.ToString())).ToList();
 
-        testSubject = new ChangeStatusViewModel<HotspotStatus>(currentStatus, allowedStatuses, allStatusViewModels);
+        testSubject = CreateTestSubject(HotspotStatus.Safe, showComment: false);
     }
 
     [TestMethod]
-    public void Ctor_InitializesProperties()
+    [DataRow(HotspotStatus.Acknowledged, true)]
+    [DataRow(HotspotStatus.Safe, false)]
+    public void Ctor_InitializesProperties(HotspotStatus status, bool showComment)
     {
+        testSubject = CreateTestSubject(status, showComment);
         testSubject.AllowedStatusViewModels.Should().HaveCount(allowedStatuses.Length);
         foreach (var allowedStatus in allowedStatuses)
         {
             testSubject.AllowedStatusViewModels.Should().ContainSingle(x => x.GetCurrentStatus<HotspotStatus>() == allowedStatus);
         }
 
-        testSubject.SelectedStatusViewModel.GetCurrentStatus<HotspotStatus>().Should().Be(currentStatus);
+        testSubject.SelectedStatusViewModel.GetCurrentStatus<HotspotStatus>().Should().Be(status);
         testSubject.SelectedStatusViewModel.IsChecked.Should().BeTrue();
+        testSubject.ShowComment.Should().Be(showComment);
     }
 
     [TestMethod]
     public void Ctor_CurrentStatusNotInListOfAllowedStatuses_SetsSelectionToNull()
     {
-        testSubject = new ChangeStatusViewModel<HotspotStatus>(HotspotStatus.ToReview, allowedStatuses, allStatusViewModels);
+        testSubject = CreateTestSubject(HotspotStatus.ToReview, showComment: false);
 
         testSubject.SelectedStatusViewModel.Should().BeNull();
     }
@@ -103,4 +106,6 @@ public class ChangeStatusViewModelTest
 
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.Comment)));
     }
+
+    private ChangeStatusViewModel<HotspotStatus> CreateTestSubject(HotspotStatus status, bool showComment) => new(status, allowedStatuses, allStatusViewModels, showComment);
 }

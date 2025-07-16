@@ -9,6 +9,7 @@
     WindowStartupLocation="CenterOwner"
     xmlns:resx="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security"
     xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+    xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
     x:Name="ReviewHotspotWindowName"
     Title="{x:Static security:Resources.ReviewHotspotWindow_Title}">
     <Window.Resources>
@@ -17,6 +18,7 @@
                 <ResourceDictionary
                     Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
 
             <Style x:Key="ChangeIssueStatusWithHandlerBorderStyle" TargetType="Border"
                    BasedOn="{StaticResource ChangeIssueStatusBorderStyle}">
@@ -77,7 +79,8 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <Grid Grid.Row="1" Margin="0, 10" HorizontalAlignment="Center">
+        <Grid Grid.Row="1" Margin="0, 10" HorizontalAlignment="Center" 
+              Visibility="{Binding Path=ShowComment, Converter={StaticResource TrueToVisibleConverter}}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
