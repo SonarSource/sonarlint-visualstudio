@@ -122,6 +122,9 @@
             </Style>
 
             <ContextMenu x:Key="DependencyRiskContextMenu" Loaded="DependencyRiskContextMenu_OnLoaded">
+                <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}" 
+                          Click="ChangeScaStatusMenuItem_OnClick" 
+                          Style="{StaticResource ChangeStatusMenuItemStyle}"/>
                 <MenuItem Click="ViewDependencyRiskInBrowser_OnClick" Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
             </ContextMenu>
         </ResourceDictionary>
@@ -132,7 +135,8 @@
         </Grid.RowDefinitions>
 
         <TreeView Grid.Row="0" Margin="0,5"  Visibility="{Binding Path=GroupDependencyRisk.HasRisks, Converter={StaticResource TrueToVisibleConverter}}">
-            <TreeViewItem DataContext="{Binding Path=GroupDependencyRisk}" ItemsSource="{Binding Path=Risks}"
+            <TreeViewItem x:Name="GroupDependencyRiskTreeViewItem" DataContext="{Binding Path=GroupDependencyRisk}" 
+                          ItemsSource="{Binding Path=Risks}"
                           PreviewMouseUp="TreeViewItem_OnPreviewMouseUp">
                 <TreeViewItem.Header>
                     <Grid Cursor="Hand">

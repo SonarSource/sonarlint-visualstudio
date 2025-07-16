@@ -75,4 +75,15 @@ public class DependencyRiskViewModelTest
 
         eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.ImpactSeverity)));
     }
+
+    [TestMethod]
+    public void Status_Set_RaisesPropertyChanged()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+
+        testSubject.Status = DependencyRiskStatus.Accepted;
+
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.Status)));
+    }
 }

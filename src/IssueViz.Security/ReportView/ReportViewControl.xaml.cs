@@ -23,19 +23,41 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
 internal sealed partial class ReportViewControl : UserControl
 {
+    private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+    private readonly IBrowserService browserService;
+    // TODO by https://sonarsource.atlassian.net/browse/SLVS-2376: get the allowed statuses returned by SlCore
+    private readonly DependencyRiskStatus[] allowedDependencyRiskStatuses = [DependencyRiskStatus.Open, DependencyRiskStatus.Confirmed, DependencyRiskStatus.Accepted, DependencyRiskStatus.Safe];
+    private readonly IReadOnlyList<StatusViewModel<DependencyRiskStatus>> allDependencyRiskStatusViewModels =
+    [
+        new(DependencyRiskStatus.Open, DependencyRiskStatus.Open.ToString(),
+            Security.Resources.ChangeDependencyRiskStatus_OpenDescription),
+        new(DependencyRiskStatus.Confirmed, DependencyRiskStatus.Confirmed.ToString(),
+            Security.Resources.ChangeDependencyRiskStatus_ConfirmedDescription),
+        new(DependencyRiskStatus.Accepted, DependencyRiskStatus.Accepted.ToString(),
+            Security.Resources.ChangeDependencyRiskStatus_AcceptedDescription),
+        new(DependencyRiskStatus.Safe, DependencyRiskStatus.Safe.ToString(),
+            Security.Resources.ChangeDependencyRiskStatus_SafeDescription)
+    ];
+
     public ReportViewModel ReportViewModel { get; }
     public IResourceFinder ResourceFinder { get; } = new ResourceFinder();
 
-    public ReportViewControl(IActiveSolutionBoundTracker activeSolutionBoundTracker)
+    public ReportViewControl(IActiveSolutionBoundTracker activeSolutionBoundTracker, IBrowserService browserService)
     {
+        this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+        this.browserService = browserService;
         ReportViewModel = new ReportViewModel(activeSolutionBoundTracker);
         InitializeComponent();
     }
@@ -88,5 +110,34 @@ internal sealed partial class ReportViewControl : UserControl
         {
             treeViewItem.IsSelected = true;
         }
+    }
+
+    private void ChangeScaStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (GetSelectedTreeViewItem(GroupDependencyRiskTreeViewItem) is not { DataContext: DependencyRiskViewModel selectedDependencyRiskViewModel })
+        {
+            return;
+        }
+
+        var changeStatusViewModel = new ChangeStatusViewModel<DependencyRiskStatus>(selectedDependencyRiskViewModel.Status, allowedDependencyRiskStatuses, allDependencyRiskStatusViewModels,
+            showComment: true,
+            [DependencyRiskStatus.Accepted, DependencyRiskStatus.Safe]);
+        var dialog = new ChangeStatusWindow(changeStatusViewModel, browserService, activeSolutionBoundTracker);
+        if (dialog.ShowDialog(Application.Current.MainWindow) is true)
+        {
+            // TODO by https://sonarsource.atlassian.net/browse/SLVS-2376: implement actual status change
+        }
+    }
+
+    private static TreeViewItem GetSelectedTreeViewItem(TreeViewItem parent)
+    {
+        foreach (var child in parent.Items)
+        {
+            if (parent.ItemContainerGenerator.ContainerFromItem(child) is TreeViewItem { IsSelected: true } childContainer)
+            {
+                return childContainer;
+            }
+        }
+        return null;
     }
 }
