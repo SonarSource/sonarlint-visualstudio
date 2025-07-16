@@ -88,6 +88,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Comment is required..
+        /// </summary>
+        public static string CommentRequiredErrorMessage {
+            get {
+                return ResourceManager.GetString("CommentRequiredErrorMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Severity impact:.
         /// </summary>
         public static string DependencyRiskImpactSeverityTooltip {

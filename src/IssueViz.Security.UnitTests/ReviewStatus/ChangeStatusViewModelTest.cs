@@ -27,6 +27,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReviewSta
 [TestClass]
 public class ChangeStatusViewModelTest
 {
+    private const string StatusTitle = "title";
+    private const string StatusDescription = "description";
     private ChangeStatusViewModel<HotspotStatus> testSubject;
     private HotspotStatus[] allowedStatuses;
     private List<StatusViewModel<HotspotStatus>> allStatusViewModels;
@@ -39,7 +41,7 @@ public class ChangeStatusViewModelTest
             .Cast<HotspotStatus>()
             .Select(status => new StatusViewModel<HotspotStatus>(status, status.ToString(), status.ToString())).ToList();
 
-        testSubject = CreateTestSubject(HotspotStatus.Safe, showComment: false);
+        testSubject = CreateTestSubject(HotspotStatus.Safe, showComment: false, statusesWithMandatoryComment: []);
     }
 
     [TestMethod]
@@ -47,7 +49,7 @@ public class ChangeStatusViewModelTest
     [DataRow(HotspotStatus.Safe, false)]
     public void Ctor_InitializesProperties(HotspotStatus status, bool showComment)
     {
-        testSubject = CreateTestSubject(status, showComment);
+        testSubject = CreateTestSubject(status, showComment, statusesWithMandatoryComment: []);
         testSubject.AllowedStatusViewModels.Should().HaveCount(allowedStatuses.Length);
         foreach (var allowedStatus in allowedStatuses)
         {
@@ -62,7 +64,7 @@ public class ChangeStatusViewModelTest
     [TestMethod]
     public void Ctor_CurrentStatusNotInListOfAllowedStatuses_SetsSelectionToNull()
     {
-        testSubject = CreateTestSubject(HotspotStatus.ToReview, showComment: false);
+        testSubject = CreateTestSubject(HotspotStatus.ToReview, showComment: false, statusesWithMandatoryComment: []);
 
         testSubject.SelectedStatusViewModel.Should().BeNull();
     }
@@ -76,11 +78,22 @@ public class ChangeStatusViewModelTest
     }
 
     [TestMethod]
-    public void IsSubmitButtonEnabled_SelectedStatusViewModelIsSet_ReturnsTrue()
+    public void IsSubmitButtonEnabled_SelectedStatusViewModelIsSet_NoValidationErrors_ReturnsTrue()
     {
-        testSubject.SelectedStatusViewModel = new StatusViewModel<HotspotStatus>(default, "title", "description");
+        testSubject.SelectedStatusViewModel = new StatusViewModel<HotspotStatus>(default, StatusTitle, StatusDescription);
 
         testSubject.IsSubmitButtonEnabled.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void IsSubmitButtonEnabled_SelectedStatusViewModelIsSet_HasValidationErrors_ReturnsFalse()
+    {
+        testSubject = CreateTestSubject(HotspotStatus.Acknowledged, showComment: true, statusesWithMandatoryComment: [HotspotStatus.Acknowledged]);
+
+        testSubject.SelectedStatusViewModel = new StatusViewModel<HotspotStatus>(HotspotStatus.Acknowledged, StatusTitle, StatusDescription);
+
+        testSubject.Error.Should().NotBeNull();
+        testSubject.IsSubmitButtonEnabled.Should().BeFalse();
     }
 
     [TestMethod]
@@ -90,10 +103,11 @@ public class ChangeStatusViewModelTest
         testSubject.PropertyChanged += eventHandler;
         eventHandler.ReceivedCalls().Should().BeEmpty();
 
-        testSubject.SelectedStatusViewModel = new StatusViewModel<HotspotStatus>(default, "title", "description");
+        testSubject.SelectedStatusViewModel = new StatusViewModel<HotspotStatus>(default, StatusTitle, StatusDescription);
 
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.SelectedStatusViewModel)));
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsSubmitButtonEnabled)));
+        eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.Comment)));
     }
 
     [TestMethod]
@@ -107,5 +121,42 @@ public class ChangeStatusViewModelTest
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.Comment)));
     }
 
-    private ChangeStatusViewModel<HotspotStatus> CreateTestSubject(HotspotStatus status, bool showComment) => new(status, allowedStatuses, allStatusViewModels, showComment);
+    [TestMethod]
+    public void Error_ReturnsCommentRequired_WhenSelectedStatusIsRequired()
+    {
+        testSubject = CreateTestSubject(HotspotStatus.Acknowledged, showComment: true, statusesWithMandatoryComment: [HotspotStatus.Acknowledged]);
+        testSubject.SelectedStatusViewModel = new StatusViewModel<HotspotStatus>(HotspotStatus.Acknowledged, StatusTitle, StatusDescription);
+
+        testSubject.Comment = string.Empty;
+
+        testSubject.Error.Should().Be(Resources.CommentRequiredErrorMessage);
+    }
+
+    [TestMethod]
+    [DataRow(HotspotStatus.Fixed)]
+    [DataRow(HotspotStatus.Safe)]
+    [DataRow(HotspotStatus.ToReview)]
+    public void Error_ReturnsNull_WhenSelectedStatusIsNotRequired(HotspotStatus currentStatus)
+    {
+        testSubject = CreateTestSubject(HotspotStatus.Acknowledged, showComment: true, statusesWithMandatoryComment: [HotspotStatus.Acknowledged]);
+        testSubject.SelectedStatusViewModel = new StatusViewModel<HotspotStatus>(currentStatus, StatusTitle, StatusDescription);
+
+        testSubject.Comment = string.Empty;
+
+        testSubject.Error.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void Error_ReturnsNull_WhenNoStatusesWithMandatoryCommentExist()
+    {
+        testSubject = CreateTestSubject(HotspotStatus.Acknowledged, showComment: true, statusesWithMandatoryComment: []);
+        testSubject.SelectedStatusViewModel = new StatusViewModel<HotspotStatus>(HotspotStatus.Acknowledged, StatusTitle, StatusDescription);
+
+        testSubject.Comment = string.Empty;
+
+        testSubject.Error.Should().BeNull();
+    }
+
+    private ChangeStatusViewModel<HotspotStatus> CreateTestSubject(HotspotStatus status, bool showComment, IEnumerable<HotspotStatus> statusesWithMandatoryComment) =>
+        new(status, allowedStatuses, statusesWithMandatoryComment, allStatusViewModels, showComment);
 }

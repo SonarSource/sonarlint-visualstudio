@@ -10,6 +10,7 @@
     xmlns:resx="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security"
     xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
     xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
+    xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI;assembly=SonarLint.VisualStudio.ConnectedMode"
     x:Name="ReviewHotspotWindowName"
     Title="{x:Static security:Resources.ReviewHotspotWindow_Title}">
     <Window.Resources>
@@ -19,6 +20,8 @@
                     Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
+            <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverterWithHidden" FalseValue="Hidden"
+                                           TrueValue="Visible" />
 
             <Style x:Key="ChangeIssueStatusWithHandlerBorderStyle" TargetType="Border"
                    BasedOn="{StaticResource ChangeIssueStatusBorderStyle}">
@@ -79,18 +82,20 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <Grid Grid.Row="1" Margin="0, 10" HorizontalAlignment="Center" 
+        <Grid Grid.Row="1" Margin="0, 10" HorizontalAlignment="Center"
               Visibility="{Binding Path=ShowComment, Converter={StaticResource TrueToVisibleConverter}}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0" Text="{x:Static resx:Resources.ChangeStatusWindow_CommentLabel}"
                        Style="{StaticResource ChangeIssueStatusLabelStyle}"
                        Margin="0, 0,0,2" />
-            <TextBox Grid.Row="1" Text="{Binding Path=Comment, UpdateSourceTrigger=PropertyChanged}"
+            <TextBox x:Name="CommentTextBox" Grid.Row="1"
+                     Text="{Binding Path=Comment, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, NotifyOnValidationError=True}"
                      Style="{StaticResource CommentTextStyle}"
                      Margin="0" />
             <TextBlock Grid.Row="2" Style="{StaticResource FormattingHelpBlock}"
@@ -101,6 +106,10 @@
                 </Hyperlink>
                 <Run Text="{x:Static resx:Resources.ChangeStatusWindow_FormattingHelpExamples}" />
             </TextBlock>
+            <ui:WarningMessage Grid.Row="3"
+                               WarningText="{Binding Path=(Validation.Errors)[0].ErrorContent, ElementName=CommentTextBox}"
+                               Margin="0,5,0,0"
+                               Visibility="{Binding (Validation.HasError), ElementName=CommentTextBox, Converter={StaticResource TrueToVisibleConverterWithHidden}}" />
         </Grid>
 
         <Grid Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,5, 0">

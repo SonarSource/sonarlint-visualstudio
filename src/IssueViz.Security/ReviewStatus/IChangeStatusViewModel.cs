@@ -19,10 +19,11 @@
  */
 
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 
-public interface IChangeStatusViewModel
+public interface IChangeStatusViewModel : IDataErrorInfo
 {
     IStatusViewModel SelectedStatusViewModel { get; set; }
     ObservableCollection<IStatusViewModel> AllowedStatusViewModels { get; }

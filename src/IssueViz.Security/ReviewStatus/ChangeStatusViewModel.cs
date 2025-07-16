@@ -25,16 +25,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 
 public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel where T : struct, Enum
 {
+    private readonly IEnumerable<T> statusesWithMandatoryComment;
     private readonly IReadOnlyList<StatusViewModel<T>> allStatusViewModels;
     private IStatusViewModel selectedStatusViewModel;
     private string comment;
+    private string validationError;
 
     public ChangeStatusViewModel(
         T currentStatus,
         IEnumerable<T> allowedStatuses,
+        IEnumerable<T> statusesWithMandatoryComment,
         IReadOnlyList<StatusViewModel<T>> allStatusViewModels,
         bool showComment)
     {
+        this.statusesWithMandatoryComment = statusesWithMandatoryComment;
         this.allStatusViewModels = allStatusViewModels;
         InitializeStatuses(allowedStatuses);
         InitializeCurrentStatus(currentStatus);
@@ -49,6 +53,7 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
             selectedStatusViewModel = value;
             RaisePropertyChanged();
             RaisePropertyChanged(nameof(IsSubmitButtonEnabled));
+            RaisePropertyChanged(nameof(Comment)); // enforce comment validation
         }
     }
 
@@ -62,9 +67,22 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
         }
     }
 
-    public bool ShowComment { get; }
-    public bool IsSubmitButtonEnabled => SelectedStatusViewModel != null;
+    public string this[string columnName]
+    {
+        get
+        {
+            validationError = null;
+            if (columnName == nameof(Comment) && string.IsNullOrEmpty(Comment) && IsCommentRequired())
+            {
+                validationError = Resources.CommentRequiredErrorMessage;
+            }
+            return validationError;
+        }
+    }
 
+    public string Error => validationError;
+    public bool ShowComment { get; }
+    public bool IsSubmitButtonEnabled => SelectedStatusViewModel != null && Error is null;
     public ObservableCollection<IStatusViewModel> AllowedStatusViewModels { get; set; } = [];
 
     private void InitializeStatuses(IEnumerable<T> allowedStatuses)
@@ -83,4 +101,6 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
         }
         SelectedStatusViewModel.IsChecked = true;
     }
+
+    private bool IsCommentRequired() => statusesWithMandatoryComment.Any(x => SelectedStatusViewModel.HasStatus(x));
 }

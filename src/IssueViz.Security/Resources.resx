@@ -266,4 +266,7 @@ Please check the logs for more details.</value>
   <data name="ChangeStatusWindow_FormattingHelpLink" xml:space="preserve">
     <value>Formatting Help</value>
   </data>
+  <data name="CommentRequiredErrorMessage" xml:space="preserve">
+    <value>Comment is required.</value>
+  </data>
 </root>
