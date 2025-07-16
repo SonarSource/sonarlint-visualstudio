@@ -61,6 +61,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Severity impact:.
+        /// </summary>
+        public static string DependencyRiskImpactSeverityTooltip {
+            get {
+                return ResourceManager.GetString("DependencyRiskImpactSeverityTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Solution findings.
+        /// </summary>
+        public static string DependencyRisksGroupTitle {
+            get {
+                return ResourceManager.GetString("DependencyRisksGroupTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error displaying tool window. Window id: {0}. Error: {1}.
         /// </summary>
         public static string ERR_ShowToolWindow_Exception {
@@ -250,20 +268,38 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to To Review.
-        /// </summary>
-        public static string HotspotStatus_ToReview {
-            get {
-                return ResourceManager.GetString("HotspotStatus_ToReview", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SonarQube Security Hotspots.
         /// </summary>
         public static string HotspotsToolWindowCaption {
             get {
                 return ResourceManager.GetString("HotspotsToolWindowCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to issue.
+        /// </summary>
+        public static string IssueText {
+            get {
+                return ResourceManager.GetString("IssueText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please ensure that your solution is bound to a SonarQube project that contains dependency risks..
+        /// </summary>
+        public static string NoDependencyRiskFoundText {
+            get {
+                return ResourceManager.GetString("NoDependencyRiskFoundText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No Dependency Risks were found..
+        /// </summary>
+        public static string NoDependencyRiskFoundTitle {
+            get {
+                return ResourceManager.GetString("NoDependencyRiskFoundTitle", resourceCulture);
             }
         }
         
