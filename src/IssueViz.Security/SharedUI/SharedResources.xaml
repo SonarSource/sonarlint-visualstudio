@@ -5,6 +5,10 @@
                     xmlns:core="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
                     xmlns:issueVisualizationControl="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;assembly=SonarLint.VisualStudio.IssueVisualization"
                     xmlns:res="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary
+            Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Browse.xaml" />
+    </ResourceDictionary.MergedDictionaries>
 
     <vsTheming:BrushToColorConverter x:Key="BrushToColorConverter"/>
 
@@ -223,11 +227,16 @@
         </Setter>
     </Style>
     <Style x:Key="ViewIssueInBrowserMenuItemStyle" TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+        <Setter Property="Icon">
+            <Setter.Value>
+                <Image Source="{StaticResource BrowserLinkDrawingImage}"  />
+            </Setter.Value>
+        </Setter>
         <Style.Triggers>
-            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=ViewModel.IsCloud}" Value="True">
+            <DataTrigger Binding="{Binding Path=IsCloud}" Value="True">
                 <Setter Property="Header" Value="{x:Static res:Resources.ViewIssueInSonarQubeCloud}"/>
             </DataTrigger>
-            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=ViewModel.IsCloud}" Value="False">
+            <DataTrigger Binding="{Binding Path=IsCloud}" Value="False">
                 <Setter Property="Header" Value="{x:Static res:Resources.ViewIssueInSonarQubeServer}"/>
             </DataTrigger>
         </Style.Triggers>

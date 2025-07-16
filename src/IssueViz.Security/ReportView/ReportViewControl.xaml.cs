@@ -23,6 +23,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
@@ -30,11 +31,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
 internal sealed partial class ReportViewControl : UserControl
 {
-    public ReportViewModel ReportViewModel { get; } = new();
+    public ReportViewModel ReportViewModel { get; }
     public IResourceFinder ResourceFinder { get; } = new ResourceFinder();
 
-    public ReportViewControl()
+    public ReportViewControl(IActiveSolutionBoundTracker activeSolutionBoundTracker)
     {
+        ReportViewModel = new ReportViewModel(activeSolutionBoundTracker);
         InitializeComponent();
     }
 
@@ -64,5 +66,19 @@ internal sealed partial class ReportViewControl : UserControl
             parent = VisualTreeHelper.GetParent(parent);
         }
         return null;
+    }
+
+    private void ViewDependencyRiskInBrowser_OnClick(object sender, RoutedEventArgs e)
+    {
+        // TODO by https://sonarsource.atlassian.net/browse/SLVS-2372: implement actual navigation to the browser 
+    }
+
+    private void DependencyRiskContextMenu_OnLoaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is ContextMenu contextMenu)
+        {
+            // setting the DataContext directly on the context menu does not work for the TreeViewItem
+            contextMenu.DataContext = ReportViewModel;
+        }
     }
 }

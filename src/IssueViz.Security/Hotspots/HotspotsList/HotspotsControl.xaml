@@ -10,7 +10,6 @@
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              FocusManager.FocusedElement="{Binding ElementName=HotspotsDataGrid}"
-             xmlns:vsCatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              DataContext="{Binding ViewModel, RelativeSource={RelativeSource Mode=Self}}">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -33,11 +32,9 @@
                         <imaging:CrispImage Source="/SonarLint.VisualStudio.IssueVisualization.Security;component/SharedUI/sonarqube_for_ide_logo_16px.png" />
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Click="ViewHotspotInBrowser_OnClick" Style="{StaticResource ViewIssueInBrowserMenuItemStyle}">
-                    <MenuItem.Icon>
-                        <imaging:CrispImage Moniker="{x:Static vsCatalog:KnownMonikers.BrowserLink}" />
-                    </MenuItem.Icon>
-                </MenuItem>
+                <MenuItem Click="ViewHotspotInBrowser_OnClick" 
+                          DataContext="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=ViewModel}"
+                          Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
             </ContextMenu>
 
             <!-- Extend the shared data grid row style to add the context menu and navigability data bindings -->

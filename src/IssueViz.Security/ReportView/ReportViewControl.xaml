@@ -14,8 +14,6 @@
                 <ResourceDictionary
                     Source="../DependencyRisks/DependencyRiskImpactSeverity.xaml" />
                 <ResourceDictionary Source="../SharedUI/SharedResources.xaml" />
-                <ResourceDictionary
-                    Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <local:DependencyRiskImpactSeverityToImageSourceConverter
@@ -122,6 +120,10 @@
                 <Setter Property="FontSize"
                         Value="{DynamicResource {x:Static vsShell:VsFonts.Environment90PercentFontSizeKey}}" />
             </Style>
+
+            <ContextMenu x:Key="DependencyRiskContextMenu" Loaded="DependencyRiskContextMenu_OnLoaded">
+                <MenuItem Click="ViewDependencyRiskInBrowser_OnClick" Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
+            </ContextMenu>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
@@ -131,7 +133,7 @@
 
         <TreeView Grid.Row="0" Margin="0,5"  Visibility="{Binding Path=GroupDependencyRisk.HasRisks, Converter={StaticResource TrueToVisibleConverter}}">
             <TreeViewItem DataContext="{Binding Path=GroupDependencyRisk}" ItemsSource="{Binding Path=Risks}"
-                          PreviewMouseUp="TreeViewItem_OnPreviewMouseUp">
+                          PreviewMouseUp="TreeViewItem_OnPreviewMouseUp" ContextMenu="{StaticResource DependencyRiskContextMenu}">
                 <TreeViewItem.Header>
                     <Grid Cursor="Hand">
                         <Grid.ColumnDefinitions>
