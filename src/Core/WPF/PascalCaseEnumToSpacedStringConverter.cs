@@ -8,7 +8,7 @@
  * License as published by the Free Software Foundation; either
  * version 3 of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful;
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
@@ -19,13 +19,17 @@
  */
 
 using System.Globalization;
+using System.Text;
 using System.Windows.Data;
-using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+namespace SonarLint.VisualStudio.Core.WPF;
 
-[ValueConversion(typeof(DependencyRiskType), typeof(string))]
-public class DependencyRiskTypeToLocalizedTypeConverter : IValueConverter
+/// <summary>
+/// Converts an enum value that uses PascalCase to a string with words separated by spaces.
+/// If the value is not an Enum, or if it contains only upper case letters, returns the string representation of the received value.
+/// </summary>
+[ValueConversion(typeof(Enum), typeof(string))]
+public class PascalCaseEnumToSpacedStringConverter : IValueConverter
 {
     public object Convert(
         object value,
@@ -33,17 +37,27 @@ public class DependencyRiskTypeToLocalizedTypeConverter : IValueConverter
         object parameter,
         CultureInfo culture)
     {
-        if (value is null || !Enum.IsDefined(typeof(DependencyRiskType), value))
-        {
-            return string.Empty;
-        }
+        var enumValue = value?.ToString();
+        return value is not Enum ? enumValue : SeparateWordsBySpace(enumValue);
+    }
 
-        var type = (DependencyRiskType)value;
-        return type switch
+    private static string SeparateWordsBySpace(string text)
+    {
+        if (text.All(char.IsUpper))
         {
-            DependencyRiskType.ProhibitedLicense => Resources.DependencyRiskType_ProhibitedLicense,
-            _ => type.ToString(),
-        };
+            return text;
+        }
+        var stringBuilder = new StringBuilder();
+        stringBuilder.Append(text[0]);
+        for (var i = 1; i < text.Length; i++)
+        {
+            if (char.IsUpper(text[i]))
+            {
+                stringBuilder.Append(' ');
+            }
+            stringBuilder.Append(text[i]);
+        }
+        return stringBuilder.ToString();
     }
 
     public object ConvertBack(

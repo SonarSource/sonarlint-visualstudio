@@ -233,9 +233,6 @@ Please check the logs for more details.</value>
   <data name="HotspotControl_LocalHotspotStatusTooltip" xml:space="preserve">
     <value>The hotspots not yet present on the server need to be fixed locally.</value>
   </data>
-  <data name="HotspotStatus_ToReview" xml:space="preserve">
-    <value>To Review</value>
-  </data>
   <data name="HotspotsControl_ViewInSonarQubeCloud" xml:space="preserve">
     <value>View in SonarQube Cloud</value>
   </data>
@@ -247,9 +244,6 @@ Please check the logs for more details.</value>
   </data>
   <data name="DependencyRisksGroupTitle" xml:space="preserve">
     <value>Solution findings</value>
-  </data>
-  <data name="DependencyRiskType_ProhibitedLicense" xml:space="preserve">
-    <value>Prohibited License</value>
   </data>
   <data name="DependencyRiskImpactSeverityTooltip" xml:space="preserve">
     <value>Severity impact:</value>

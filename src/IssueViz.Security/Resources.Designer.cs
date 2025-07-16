@@ -79,15 +79,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prohibited License.
-        /// </summary>
-        public static string DependencyRiskType_ProhibitedLicense {
-            get {
-                return ResourceManager.GetString("DependencyRiskType_ProhibitedLicense", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Error displaying tool window. Window id: {0}. Error: {1}.
         /// </summary>
         public static string ERR_ShowToolWindow_Exception {
@@ -273,15 +264,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string HotspotsControl_ViewInSonarQubeServer {
             get {
                 return ResourceManager.GetString("HotspotsControl_ViewInSonarQubeServer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to To Review.
-        /// </summary>
-        public static string HotspotStatus_ToReview {
-            get {
-                return ResourceManager.GetString("HotspotStatus_ToReview", resourceCulture);
             }
         }
         

@@ -20,11 +20,12 @@
 
             <local:DependencyRiskImpactSeverityToImageSourceConverter
                 x:Key="DependencyRiskImpactSeverityToImageSourceConverter" />
-            <local:DependencyRiskTypeToLocalizedTypeConverter x:Key="DependencyRiskTypeToLocalizedTypeConverter" />
+            
 
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
             <wpf:BoolToVisibilityConverter x:Key="TrueToCollapsedConverter" FalseValue="Visible" TrueValue="Collapsed" />
             <wpf:EnglishPluralizationConverter x:Key="EnglishPluralizationConverter" />
+            <wpf:PascalCaseEnumToSpacedStringConverter x:Key="PascalCaseEnumToSpacedStringConverter" />
 
             <Style TargetType="TreeView">
                 <Style.Setters>
@@ -179,7 +180,7 @@
                         <TextBlock Grid.Column="2" Text="{Binding PackageVersion}" Margin="1,0"
                                    Style="{StaticResource IssueTextBlockStyle}" />
                         <TextBlock Grid.Column="3"
-                                   Text="{Binding Type, Converter={StaticResource DependencyRiskTypeToLocalizedTypeConverter}}"
+                                   Text="{Binding Type, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}"
                                    Margin="3,0"
                                    Style="{StaticResource TypeTextBoxStyle}" />
                     </Grid>
