@@ -8,7 +8,7 @@
  * License as published by the Free Software Foundation; either
  * version 3 of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful;
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
@@ -18,45 +18,45 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList;
+using SonarLint.VisualStudio.Core.WPF;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.HotspotsList;
+namespace SonarLint.VisualStudio.Core.UnitTests.WPF;
 
 [TestClass]
-public class HotspotStatusToLocalizedStatusConverterTest
+public class PascalCaseEnumToSpacedStringConverterTest
 {
-    private HotspotStatusToLocalizedStatusConverter testSubject;
+    private PascalCaseEnumToSpacedStringConverter testSubject;
 
     [TestInitialize]
-    public void TestInitialize() => testSubject = new HotspotStatusToLocalizedStatusConverter();
+    public void TestInitialize() => testSubject = new PascalCaseEnumToSpacedStringConverter();
 
-    [TestMethod]
-    [DataRow(HotspotStatus.ToReview, "To Review")]
-    [DataRow(HotspotStatus.Acknowledged, "Acknowledged")]
-    [DataRow(HotspotStatus.Fixed, "Fixed")]
-    [DataRow(HotspotStatus.Safe, "Safe")]
-    public void Convert_StatusProvided_ConvertsAsExpected(HotspotStatus status, string expected)
+    [DataTestMethod]
+    [DataRow(TestEnum.Value1, "Value1")]
+    [DataRow(TestEnum.TwoWords, "Two Words")]
+    [DataRow(TestEnum.ThreeWordsHere, "Three Words Here")]
+    [DataRow(TestEnum.MULTIPLEWORDS, "MULTIPLEWORDS")]
+    public void Convert_TypeProvided_ConvertsAsExpected(TestEnum type, string expected)
     {
-        var result = testSubject.Convert(status, null, null, null);
+        var result = testSubject.Convert(type, null, null, null);
 
         result.Should().Be(expected);
     }
 
     [TestMethod]
-    public void Convert_InvalidHotspotStatus_ReturnsEmptyString()
+    public void Convert_InvalidType_ReturnsReceivedValue()
     {
-        var result = testSubject.Convert((HotspotStatus)13, null, null, null);
+        var value = "test";
+        var result = testSubject.Convert(value, null, null, null);
 
-        result.Should().Be(string.Empty);
+        result.Should().Be(value);
     }
 
     [TestMethod]
-    public void Convert_NoHotspotStatusProvided_ReturnsEmptyString()
+    public void Convert_NoEnumProvided_ReturnsReceivedValue()
     {
         var result = testSubject.Convert(null, null, null, null);
 
-        result.Should().Be(string.Empty);
+        result.Should().BeNull();
     }
 
     [TestMethod]
@@ -65,5 +65,13 @@ public class HotspotStatusToLocalizedStatusConverterTest
         Action act = () => testSubject.ConvertBack(null, null, null, null);
 
         act.Should().Throw<NotImplementedException>();
+    }
+
+    public enum TestEnum
+    {
+        Value1,
+        TwoWords,
+        ThreeWordsHere,
+        MULTIPLEWORDS
     }
 }

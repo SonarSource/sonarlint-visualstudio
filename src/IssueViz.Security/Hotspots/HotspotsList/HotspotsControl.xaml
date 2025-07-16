@@ -21,7 +21,7 @@
 
             <hotspotsList:PriorityToBackgroundConverter x:Key="PriorityToBackgroundConverter" />
             <hotspotsList:PriorityToHotspotCountConverter x:Key="PriorityToHotspotCountConverter" />
-            <hotspotsList:HotspotStatusToLocalizedStatusConverter x:Key="HotspotStatusToLocalizedStatusConverter" />
+            <core:PascalCaseEnumToSpacedStringConverter x:Key="PascalCaseEnumToSpacedStringConverter" />
             <core:NullableSelectedItemConverter x:Key="NullableSelectedItemConverter"/>
             <commands:NavigateToRuleDescriptionCommandConverter x:Key="NavigateToRuleDescriptionCommandConverter" />
             <core:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
@@ -286,7 +286,7 @@
                 <DataGridTemplateColumn CanUserSort="True" SortMemberPath="HotspotStatus" Header="{x:Static res:Resources.HotspotsControl_StatusColumnHeader}" Width="95">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding HotspotStatus, Converter={StaticResource HotspotStatusToLocalizedStatusConverter}}">
+                            <TextBlock Text="{Binding HotspotStatus, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource CellTextBlockStyle}">
                                         <Style.Triggers>
