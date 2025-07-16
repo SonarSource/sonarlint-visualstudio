@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
@@ -50,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix;
 [ContentType("text")]
 [TextViewRole(PredefinedTextViewRoles.Document)]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
+internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, IDocumentTracker
 {
     internal static readonly Type SingletonManagerPropertyCollectionKey = typeof(SingletonDisposableTaggerManager<IErrorTag>);
     private readonly IAnalyzer analyzer;
@@ -69,7 +70,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
     private readonly ITaggableBufferIndicator taggableBufferIndicator;
     internal readonly ITextDocumentFactoryService textDocumentFactoryService;
     private readonly IVsProjectInfoProvider vsProjectInfoProvider;
-    private readonly IVsStatusbar vsStatusBar;
+    private IVsStatusbar vsStatusBar;
     private Guid? lastAnalysisId;
     private CancellableJobRunner reanalysisJob;
     private StatusBarReanalysisProgressHandler reanalysisProgressHandler;
@@ -89,11 +90,11 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
         ITaggableBufferIndicator taggableBufferIndicator,
         IFileTracker fileTracker,
         IAnalyzer analyzer,
-        ILogger logger)
+        ILogger logger,
+        IInitializationProcessorFactory initializationProcessorFactory)
     {
         this.sonarErrorDataSource = sonarErrorDataSource;
         this.textDocumentFactoryService = textDocumentFactoryService;
-
         this.vsProjectInfoProvider = vsProjectInfoProvider;
         this.issueConsumerFactory = issueConsumerFactory;
         this.issueConsumerStorage = issueConsumerStorage;
@@ -103,17 +104,21 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
         this.analyzer = analyzer;
         this.logger = logger;
 
-        vsStatusBar = serviceProvider.GetService(typeof(IVsStatusbar)) as IVsStatusbar;
-        analysisRequester.AnalysisRequested += OnAnalysisRequested;
+        InitializationProcessor = initializationProcessorFactory.CreateAndStart<TaggerProvider>(
+            [],
+            threadHandling => threadHandling.RunOnUIThreadAsync(() =>
+            {
+                vsStatusBar = serviceProvider.GetService(typeof(IVsStatusbar)) as IVsStatusbar;
+                analysisRequester.AnalysisRequested += OnAnalysisRequested;
+            }));
     }
+
+    public IInitializationProcessor InitializationProcessor { get; private set; }
 
     private void OnAnalysisRequested(object sender, AnalysisRequestEventArgs args)
     {
-        // Handle notification from the single file monitor that the settings file has changed.
+        // This method is not currently used, but is left here as there are opportunities to use it in the future
 
-        // Re-analysis could take multiple seconds so it's possible that we'll get another
-        // file change notification before the re-analysis has completed.
-        // If that happens we'll cancel the current re-analysis and start another one.
         lock (reanalysisLockObject)
         {
             reanalysisJob?.Cancel();
