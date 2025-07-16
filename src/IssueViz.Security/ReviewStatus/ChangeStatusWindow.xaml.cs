@@ -22,23 +22,20 @@ using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Markup;
-using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 
 /// <summary>
 /// Interaction logic for ReviewHotspotWindow.xaml
 /// </summary>
-[ContentProperty(nameof(ReviewHotspotWindow))]
 [ExcludeFromCodeCoverage]
-public partial class ReviewHotspotWindow : Window
+public partial class ChangeStatusWindow : Window
 {
-    public ReviewHotspotsViewModel ViewModel { get; }
+    public IChangeStatusViewModel ViewModel { get; }
 
-    public ReviewHotspotWindow(HotspotStatus currentStatus, IEnumerable<HotspotStatus> allowedStatuses)
+    public ChangeStatusWindow(IChangeStatusViewModel iChangeStatusViewModel)
     {
-        ViewModel = new ReviewHotspotsViewModel(currentStatus, allowedStatuses);
+        ViewModel = iChangeStatusViewModel;
 
         InitializeComponent();
     }
@@ -62,7 +59,7 @@ public partial class ReviewHotspotWindow : Window
     {
         // The RadioButton consumes the click event, so the click event is not bubbled back to the parent
         // ListBox.SelectedItem is not triggered, so we have to update the view model manually
-        if (sender is RadioButton { IsChecked: true, DataContext: StatusViewModel statusViewModel })
+        if (sender is RadioButton { IsChecked: true, DataContext: IStatusViewModel statusViewModel })
         {
             ViewModel.SelectedStatusViewModel = statusViewModel;
         }

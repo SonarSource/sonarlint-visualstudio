@@ -18,18 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.WPF;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 
-public class StatusViewModel(HotspotStatus hotspotStatus, string title, string description) : ViewModelBase
+public class StatusViewModel<T>(T status, string title, string description) : ViewModelBase, IStatusViewModel where T : struct, Enum
 {
     private bool isChecked;
 
-    public HotspotStatus HotspotStatus { get; } = hotspotStatus;
+    public T Status { get; } = status;
     public string Title { get; } = title;
     public string Description { get; } = description;
+
+    public bool HasStatus<T>(T status) where T : struct, Enum => status.Equals(Status);
 
     public bool IsChecked
     {
