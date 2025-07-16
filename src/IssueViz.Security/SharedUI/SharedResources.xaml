@@ -158,8 +158,17 @@
         <Setter Property="TextAlignment" Value="Left"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
- 
-    
+
+    <Style x:Key="OverlayTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource CellTextBlockStyle}">
+        <Setter Property="TextAlignment" Value="Center" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.InactiveCaptionTextKey}}" />
+    </Style>
+
+    <Style x:Key="OverlayTitleTextStyle" TargetType="TextBlock" BasedOn="{StaticResource OverlayTextBlockStyle}">
+        <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+
     <!-- Context menu styles-->
     <Style TargetType="ContextMenu">
         <Setter Property="MinWidth" Value="200"/>

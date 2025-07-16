@@ -51,16 +51,6 @@
                 </Style.Triggers>
             </Style>
 
-            <Style x:Key="OverlayTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource CellTextBlockStyle}">
-                <Setter Property="TextAlignment" Value="Center" />
-                <Setter Property="HorizontalAlignment" Value="Center" />
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.InactiveCaptionTextKey}}" />
-            </Style>
-
-            <Style x:Key="OverlayTitleTextStyle" TargetType="TextBlock" BasedOn="{StaticResource OverlayTextBlockStyle}">
-                <Setter Property="FontWeight" Value="Bold" />
-            </Style>
-
             <Style x:Key="OverlayGridStyle" TargetType="Grid">
                 <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBackgroundKey}}" />
                 <Setter Property="Visibility" Value="Collapsed" />

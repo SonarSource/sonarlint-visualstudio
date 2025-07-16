@@ -236,9 +236,6 @@ Please check the logs for more details.</value>
   <data name="HotspotControl_LocalHotspotStatusTooltip" xml:space="preserve">
     <value>The hotspots not yet present on the server need to be fixed locally.</value>
   </data>
-  <data name="HotspotStatus_ToReview" xml:space="preserve">
-    <value>To Review</value>
-  </data>
   <data name="HotspotsControl_ViewInSonarQubeCloud" xml:space="preserve">
     <value>View in SonarQube Cloud</value>
   </data>
@@ -247,5 +244,20 @@ Please check the logs for more details.</value>
   </data>
   <data name="ReportViewToolWindowCaption" xml:space="preserve">
     <value>SonarQube Dependency Risks</value>
+  </data>
+  <data name="DependencyRisksGroupTitle" xml:space="preserve">
+    <value>Solution findings</value>
+  </data>
+  <data name="DependencyRiskImpactSeverityTooltip" xml:space="preserve">
+    <value>Severity impact:</value>
+  </data>
+  <data name="NoDependencyRiskFoundText" xml:space="preserve">
+    <value>Please ensure that your solution is bound to a SonarQube project that contains dependency risks.</value>
+  </data>
+  <data name="NoDependencyRiskFoundTitle" xml:space="preserve">
+    <value>No Dependency Risks were found.</value>
+  </data>
+  <data name="IssueText" xml:space="preserve">
+    <value>issue</value>
   </data>
 </root>

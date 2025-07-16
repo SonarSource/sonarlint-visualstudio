@@ -20,12 +20,11 @@
 
 using System.Globalization;
 using System.Windows.Data;
-using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList;
+namespace SonarLint.VisualStudio.Core.WPF;
 
-[ValueConversion(typeof(HotspotStatus), typeof(string))]
-public class HotspotStatusToLocalizedStatusConverter : IValueConverter
+[ValueConversion(typeof(int), typeof(string))]
+public class EnglishPluralizationConverter : IValueConverter
 {
     public object Convert(
         object value,
@@ -33,17 +32,12 @@ public class HotspotStatusToLocalizedStatusConverter : IValueConverter
         object parameter,
         CultureInfo culture)
     {
-        if (value is not HotspotStatus status)
+        if (value is not int count || parameter is not string singularLocalization)
         {
             return string.Empty;
         }
-
-        return status switch
-        {
-            HotspotStatus.ToReview => Resources.HotspotStatus_ToReview,
-            HotspotStatus.Acknowledged or HotspotStatus.Fixed or HotspotStatus.Safe => status.ToString(),
-            _ => string.Empty,
-        };
+        var singular = $"{count} {singularLocalization}";
+        return count == 1 ? singular : $"{singular}s";
     }
 
     public object ConvertBack(
