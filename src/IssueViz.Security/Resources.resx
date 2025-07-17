@@ -257,4 +257,16 @@ Please check the logs for more details.</value>
   <data name="IssueText" xml:space="preserve">
     <value>issue</value>
   </data>
+  <data name="ChangeStatusWindow_CommentLabel" xml:space="preserve">
+    <value>Add a comment:</value>
+  </data>
+  <data name="ChangeStatusWindow_FormattingHelpExamples" xml:space="preserve">
+    <value>: *Bold*, ``Code``, * Bullet point</value>
+  </data>
+  <data name="ChangeStatusWindow_FormattingHelpLink" xml:space="preserve">
+    <value>Formatting Help</value>
+  </data>
+  <data name="CommentRequiredErrorMessage" xml:space="preserve">
+    <value>Comment is required.</value>
+  </data>
 </root>

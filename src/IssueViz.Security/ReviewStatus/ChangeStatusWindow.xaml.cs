@@ -22,6 +22,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Navigation;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 
@@ -31,11 +34,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 [ExcludeFromCodeCoverage]
 public partial class ChangeStatusWindow : Window
 {
+    private readonly IBrowserService browserService;
+    private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     public IChangeStatusViewModel ViewModel { get; }
 
-    public ChangeStatusWindow(IChangeStatusViewModel iChangeStatusViewModel)
+    public ChangeStatusWindow(IChangeStatusViewModel changeStatusViewModel, IBrowserService browserService, IActiveSolutionBoundTracker activeSolutionBoundTracker)
     {
-        ViewModel = iChangeStatusViewModel;
+        this.browserService = browserService;
+        this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+        ViewModel = changeStatusViewModel;
 
         InitializeComponent();
     }
@@ -63,5 +70,14 @@ public partial class ChangeStatusWindow : Window
         {
             ViewModel.SelectedStatusViewModel = statusViewModel;
         }
+    }
+
+    private void FormattingHelpHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+    {
+        var serverConnection = activeSolutionBoundTracker.CurrentConfiguration.Project.ServerConnection;
+        var serverUri = serverConnection.ServerUri.ToString();
+
+        browserService.Navigate(serverConnection is ServerConnection.SonarCloud ? $"{serverUri}markdown/help" : $"{serverUri}formatting/help");
+        e.Handled = true;
     }
 }
