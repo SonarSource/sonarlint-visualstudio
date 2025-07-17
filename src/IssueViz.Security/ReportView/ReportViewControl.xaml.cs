@@ -39,17 +39,6 @@ internal sealed partial class ReportViewControl : UserControl
     private readonly IBrowserService browserService;
     // TODO by https://sonarsource.atlassian.net/browse/SLVS-2376: get the allowed statuses returned by SlCore
     private readonly DependencyRiskStatus[] allowedDependencyRiskStatuses = [DependencyRiskStatus.Open, DependencyRiskStatus.Confirmed, DependencyRiskStatus.Accepted, DependencyRiskStatus.Safe];
-    private readonly IReadOnlyList<StatusViewModel<DependencyRiskStatus>> allDependencyRiskStatusViewModels =
-    [
-        new(DependencyRiskStatus.Open, DependencyRiskStatus.Open.ToString(),
-            Security.Resources.ChangeDependencyRiskStatus_OpenDescription),
-        new(DependencyRiskStatus.Confirmed, DependencyRiskStatus.Confirmed.ToString(),
-            Security.Resources.ChangeDependencyRiskStatus_ConfirmedDescription),
-        new(DependencyRiskStatus.Accepted, DependencyRiskStatus.Accepted.ToString(),
-            Security.Resources.ChangeDependencyRiskStatus_AcceptedDescription),
-        new(DependencyRiskStatus.Safe, DependencyRiskStatus.Safe.ToString(),
-            Security.Resources.ChangeDependencyRiskStatus_SafeDescription)
-    ];
 
     public ReportViewModel ReportViewModel { get; }
     public IResourceFinder ResourceFinder { get; } = new ResourceFinder();
@@ -119,9 +108,7 @@ internal sealed partial class ReportViewControl : UserControl
             return;
         }
 
-        var changeStatusViewModel = new ChangeStatusViewModel<DependencyRiskStatus>(selectedDependencyRiskViewModel.Status, allowedDependencyRiskStatuses, allDependencyRiskStatusViewModels,
-            showComment: true,
-            [DependencyRiskStatus.Accepted, DependencyRiskStatus.Safe]);
+        var changeStatusViewModel = new ChangeDependencyRiskStatusViewModel(selectedDependencyRiskViewModel.Status, allowedDependencyRiskStatuses);
         var dialog = new ChangeStatusWindow(changeStatusViewModel, browserService, activeSolutionBoundTracker);
         if (dialog.ShowDialog(Application.Current.MainWindow) is true)
         {
