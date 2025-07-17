@@ -25,14 +25,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 
 public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel where T : struct, Enum
 {
-    private readonly IReadOnlyList<StatusViewModel<T>> allStatusViewModels;
     private IStatusViewModel selectedStatusViewModel;
+    private string comment;
+    private string validationError;
 
-    public ChangeStatusViewModel(T currentStatus, IEnumerable<T> allowedStatuses, IReadOnlyList<StatusViewModel<T>> allStatusViewModels)
+    public ChangeStatusViewModel(
+        T currentStatus,
+        IReadOnlyList<StatusViewModel<T>> allStatusViewModels,
+        bool showComment = false)
     {
-        this.allStatusViewModels = allStatusViewModels;
-        InitializeStatuses(allowedStatuses);
+        AllStatusViewModels = new ObservableCollection<IStatusViewModel>(allStatusViewModels);
         InitializeCurrentStatus(currentStatus);
+        ShowComment = showComment;
     }
 
     public IStatusViewModel SelectedStatusViewModel
@@ -42,24 +46,47 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
         {
             selectedStatusViewModel = value;
             RaisePropertyChanged();
+            // order matters here, we want to validate the comment before checking if the submit button is enabled
+            RaisePropertyChanged(nameof(Comment));
             RaisePropertyChanged(nameof(IsSubmitButtonEnabled));
         }
     }
 
-    public bool IsSubmitButtonEnabled => SelectedStatusViewModel != null;
-
-    public ObservableCollection<IStatusViewModel> AllowedStatusViewModels { get; set; } = [];
-
-    private void InitializeStatuses(IEnumerable<T> allowedStatuses)
+    public string Comment
     {
-        AllowedStatusViewModels.Clear();
-        allStatusViewModels.ToList().ForEach(vm => vm.IsChecked = false);
-        allStatusViewModels.Where(x => allowedStatuses.Contains(x.Status)).ToList().ForEach(vm => AllowedStatusViewModels.Add(vm));
+        get => comment;
+        set
+        {
+            comment = value;
+            RaisePropertyChanged();
+        }
     }
+
+    /// <summary>
+    /// Implementation of <see cref="System.ComponentModel.IDataErrorInfo "/> needed for view validation 
+    /// </summary>
+    public string this[string columnName]
+    {
+        get
+        {
+            validationError = null;
+            if (columnName == nameof(Comment) && string.IsNullOrEmpty(Comment) && SelectedStatusViewModel.IsCommentRequired)
+            {
+                validationError = Resources.CommentRequiredErrorMessage;
+            }
+            RaisePropertyChanged(nameof(IsSubmitButtonEnabled));
+            return validationError;
+        }
+    }
+
+    public string Error => validationError;
+    public bool ShowComment { get; }
+    public bool IsSubmitButtonEnabled => SelectedStatusViewModel != null && Error is null;
+    public ObservableCollection<IStatusViewModel> AllStatusViewModels { get; }
 
     private void InitializeCurrentStatus(T currentStatus)
     {
-        SelectedStatusViewModel = AllowedStatusViewModels.FirstOrDefault(x => Equals(x.GetCurrentStatus<T>(), currentStatus));
+        SelectedStatusViewModel = AllStatusViewModels.FirstOrDefault(x => Equals(x.GetCurrentStatus<T>(), currentStatus));
         if (SelectedStatusViewModel == null)
         {
             return;

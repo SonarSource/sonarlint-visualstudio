@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
@@ -35,6 +36,7 @@ using SonarLint.VisualStudio.IssueVisualization.Selection;
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList
 {
     [Guid(ToolWindowIdAsString)]
+    [ExcludeFromCodeCoverage]
     public class HotspotsToolWindow : ToolWindowPane
     {
         private const string ToolWindowIdAsString = "4BCD4392-DBCF-4AA2-9852-01129D229CD8";
@@ -56,11 +58,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             var messageBox = componentModel.GetService<IMessageBox>();
             var activeDocumentLocator = componentModel.GetService<IActiveDocumentLocator>();
             var activeDocumentTracker = componentModel.GetService<IActiveDocumentTracker>();
+            var browserService = componentModel.GetService<IBrowserService>();
 
             var viewModel = new HotspotsControlViewModel(store, navigateToRuleDescriptionCommand, locationNavigator, selectionService, threadHandling, activeSolutionBoundTracker,
                 reviewHotspotsService, messageBox, activeDocumentLocator, activeDocumentTracker);
             viewModel.UpdateHotspotsListAsync().Forget();
-            var hotspotsControl = new HotspotsControl(viewModel);
+            var hotspotsControl = new HotspotsControl(viewModel, browserService, activeSolutionBoundTracker);
 
             Content = hotspotsControl;
         }
