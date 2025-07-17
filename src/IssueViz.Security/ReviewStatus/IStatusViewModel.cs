@@ -25,6 +25,7 @@ public interface IStatusViewModel
     bool IsChecked { get; set; }
     string Title { get; }
     string Description { get; }
+    bool IsCommentRequired { get; }
 
     T GetCurrentStatus<T>() where T : struct, Enum;
 }

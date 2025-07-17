@@ -38,13 +38,13 @@ internal sealed partial class HotspotsControl : UserControl
     private readonly IReadOnlyList<StatusViewModel<HotspotStatus>> allStatusViewModels =
     [
         new(HotspotStatus.ToReview, Security.Resources.ReviewHotspotWindow_ToReviewTitle,
-            Security.Resources.ReviewHotspotWindow_ToReviewContent),
+            Security.Resources.ReviewHotspotWindow_ToReviewContent, isCommentRequired: false),
         new(HotspotStatus.Acknowledged, Security.Resources.ReviewHotspotWindow_AcknowledgeTitle,
-            Security.Resources.ReviewHotspotWindow_AcknowledgeContent),
+            Security.Resources.ReviewHotspotWindow_AcknowledgeContent, isCommentRequired: false),
         new(HotspotStatus.Fixed, Security.Resources.ReviewHotspotWindow_FixedTitle,
-            Security.Resources.ReviewHotspotWindow_FixedContent),
+            Security.Resources.ReviewHotspotWindow_FixedContent, isCommentRequired: false),
         new(HotspotStatus.Safe, Security.Resources.ReviewHotspotWindow_SafeTitle,
-            Security.Resources.ReviewHotspotWindow_SafeContent)
+            Security.Resources.ReviewHotspotWindow_SafeContent, isCommentRequired: false)
     ];
 
     public HotspotsControlViewModel ViewModel { get; }

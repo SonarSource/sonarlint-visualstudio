@@ -25,7 +25,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 
 public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel where T : struct, Enum
 {
-    private readonly IEnumerable<T> statusesWithMandatoryComment;
     private readonly IReadOnlyList<StatusViewModel<T>> allStatusViewModels;
     private IStatusViewModel selectedStatusViewModel;
     private string comment;
@@ -35,10 +34,8 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
         T currentStatus,
         IEnumerable<T> allowedStatuses,
         IReadOnlyList<StatusViewModel<T>> allStatusViewModels,
-        bool showComment = false,
-        IEnumerable<T> statusesWithMandatoryComment = null)
+        bool showComment = false)
     {
-        this.statusesWithMandatoryComment = statusesWithMandatoryComment;
         this.allStatusViewModels = allStatusViewModels;
         InitializeStatuses(allowedStatuses);
         InitializeCurrentStatus(currentStatus);
@@ -76,7 +73,7 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
         get
         {
             validationError = null;
-            if (columnName == nameof(Comment) && string.IsNullOrEmpty(Comment) && IsCommentRequired())
+            if (columnName == nameof(Comment) && string.IsNullOrEmpty(Comment) && SelectedStatusViewModel.IsCommentRequired)
             {
                 validationError = Resources.CommentRequiredErrorMessage;
             }
@@ -106,6 +103,4 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
         }
         SelectedStatusViewModel.IsChecked = true;
     }
-
-    private bool IsCommentRequired() => statusesWithMandatoryComment != null && statusesWithMandatoryComment.Any(x => Equals(SelectedStatusViewModel.GetCurrentStatus<T>(), x));
 }

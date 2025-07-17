@@ -39,7 +39,7 @@ public class ChangeStatusViewModelTest
         allowedStatuses = [HotspotStatus.Acknowledged, HotspotStatus.Safe];
         allStatusViewModels = Enum.GetValues(typeof(HotspotStatus))
             .Cast<HotspotStatus>()
-            .Select(status => new StatusViewModel<HotspotStatus>(status, status.ToString(), status.ToString())).ToList();
+            .Select(status => new StatusViewModel<HotspotStatus>(status, status.ToString(), status.ToString(), isCommentRequired: false)).ToList();
 
         testSubject = CreateTestSubject(HotspotStatus.Safe);
     }
@@ -80,7 +80,7 @@ public class ChangeStatusViewModelTest
     [TestMethod]
     public void IsSubmitButtonEnabled_SelectedStatusViewModelIsSet_NoValidationErrors_ReturnsTrue()
     {
-        testSubject.SelectedStatusViewModel = new StatusViewModel<HotspotStatus>(default, StatusTitle, StatusDescription);
+        testSubject.SelectedStatusViewModel = CreateStatusViewModel(default);
 
         testSubject.IsSubmitButtonEnabled.Should().BeTrue();
     }
@@ -88,9 +88,9 @@ public class ChangeStatusViewModelTest
     [TestMethod]
     public void IsSubmitButtonEnabled_SelectedStatusViewModelIsSet_HasValidationErrors_ReturnsFalse()
     {
-        testSubject = CreateTestSubject(HotspotStatus.Acknowledged, showComment: true, statusesWithMandatoryComment: [HotspotStatus.Acknowledged]);
+        testSubject.Comment = null;
 
-        testSubject.SelectedStatusViewModel = new StatusViewModel<HotspotStatus>(HotspotStatus.Acknowledged, StatusTitle, StatusDescription);
+        testSubject.SelectedStatusViewModel = CreateStatusViewModel(HotspotStatus.Safe, isCommentRequired: true);
 
         GetCommentValidationError().Should().NotBeNull();
         testSubject.IsSubmitButtonEnabled.Should().BeFalse();
@@ -103,11 +103,14 @@ public class ChangeStatusViewModelTest
         testSubject.PropertyChanged += eventHandler;
         eventHandler.ReceivedCalls().Should().BeEmpty();
 
-        testSubject.SelectedStatusViewModel = new StatusViewModel<HotspotStatus>(default, StatusTitle, StatusDescription);
+        testSubject.SelectedStatusViewModel = CreateStatusViewModel(default);
 
-        eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.SelectedStatusViewModel)));
-        eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsSubmitButtonEnabled)));
-        eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.Comment)));
+        Received.InOrder(() =>
+        {
+            eventHandler.Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.SelectedStatusViewModel)));
+            eventHandler.Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.Comment)));
+            eventHandler.Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsSubmitButtonEnabled)));
+        });
     }
 
     [TestMethod]
@@ -124,8 +127,7 @@ public class ChangeStatusViewModelTest
     [TestMethod]
     public void Error_ReturnsCommentRequired_WhenSelectedStatusIsRequired()
     {
-        testSubject = CreateTestSubject(HotspotStatus.Acknowledged, showComment: true, statusesWithMandatoryComment: [HotspotStatus.Acknowledged]);
-        testSubject.SelectedStatusViewModel = new StatusViewModel<HotspotStatus>(HotspotStatus.Acknowledged, StatusTitle, StatusDescription);
+        testSubject.SelectedStatusViewModel = CreateStatusViewModel(HotspotStatus.Safe, isCommentRequired: true);
 
         testSubject.Comment = string.Empty;
 
@@ -134,25 +136,9 @@ public class ChangeStatusViewModelTest
     }
 
     [TestMethod]
-    [DataRow(HotspotStatus.Fixed)]
-    [DataRow(HotspotStatus.Safe)]
-    [DataRow(HotspotStatus.ToReview)]
-    public void Error_ReturnsNull_WhenSelectedStatusIsNotRequired(HotspotStatus currentStatus)
+    public void Error_ReturnsNull_WhenSelectedStatusIsNotRequired()
     {
-        testSubject = CreateTestSubject(HotspotStatus.Acknowledged, showComment: true, statusesWithMandatoryComment: [HotspotStatus.Acknowledged]);
-        testSubject.SelectedStatusViewModel = new StatusViewModel<HotspotStatus>(currentStatus, StatusTitle, StatusDescription);
-
-        testSubject.Comment = string.Empty;
-
-        GetCommentValidationError().Should().BeNull();
-        testSubject.Error.Should().BeNull();
-    }
-
-    [TestMethod]
-    public void Error_ReturnsNull_WhenNoStatusesWithMandatoryCommentExist()
-    {
-        testSubject = CreateTestSubject(HotspotStatus.Acknowledged, showComment: true, statusesWithMandatoryComment: []);
-        testSubject.SelectedStatusViewModel = new StatusViewModel<HotspotStatus>(HotspotStatus.Acknowledged, StatusTitle, StatusDescription);
+        testSubject.SelectedStatusViewModel = CreateStatusViewModel(HotspotStatus.Fixed, isCommentRequired: false);
 
         testSubject.Comment = string.Empty;
 
@@ -171,8 +157,9 @@ public class ChangeStatusViewModelTest
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsSubmitButtonEnabled)));
     }
 
-    private ChangeStatusViewModel<HotspotStatus> CreateTestSubject(HotspotStatus status, bool showComment = false, IEnumerable<HotspotStatus> statusesWithMandatoryComment = null) =>
-        new(status, allowedStatuses, allStatusViewModels, showComment, statusesWithMandatoryComment);
+    private ChangeStatusViewModel<HotspotStatus> CreateTestSubject(HotspotStatus status, bool showComment = false) => new(status, allowedStatuses, allStatusViewModels, showComment);
 
     private string GetCommentValidationError() => testSubject[nameof(testSubject.Comment)];
+
+    private static StatusViewModel<HotspotStatus> CreateStatusViewModel(HotspotStatus status, bool isCommentRequired = false) => new(status, StatusTitle, StatusDescription, isCommentRequired);
 }
