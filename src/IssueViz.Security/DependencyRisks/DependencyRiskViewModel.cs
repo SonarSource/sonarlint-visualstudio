@@ -29,6 +29,7 @@ internal class DependencyRiskViewModel : ViewModelBase
     private string packageVersion;
     private DependencyRiskImpactSeverity impactSeverity;
     private DependencyRiskType type;
+    private DependencyRiskStatus status;
 
     public string PackageName
     {
@@ -66,6 +67,16 @@ internal class DependencyRiskViewModel : ViewModelBase
         set
         {
             type = value;
+            RaisePropertyChanged();
+        }
+    }
+
+    public DependencyRiskStatus Status
+    {
+        get => status;
+        set
+        {
+            status = value;
             RaisePropertyChanged();
         }
     }

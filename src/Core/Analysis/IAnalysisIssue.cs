@@ -153,6 +153,14 @@ namespace SonarLint.VisualStudio.Core.Analysis
         ProhibitedLicense
     }
 
+    public enum DependencyRiskStatus
+    {
+        Open,
+        Confirmed,
+        Accepted,
+        Safe
+    }
+
     public static class IAnalysisIssueExtensions
     {
         public static bool IsFileLevel(this IAnalysisIssueBase issue)
