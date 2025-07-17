@@ -61,6 +61,51 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This finding is valid, but it may not be fixed for a while..
+        /// </summary>
+        public static string ChangeDependencyRiskStatus_AcceptedDescription {
+            get {
+                return ResourceManager.GetString("ChangeDependencyRiskStatus_AcceptedDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This finding has been reviewed and the risk is valid..
+        /// </summary>
+        public static string ChangeDependencyRiskStatus_ConfirmedDescription {
+            get {
+                return ResourceManager.GetString("ChangeDependencyRiskStatus_ConfirmedDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This finding has not yet been reviewed..
+        /// </summary>
+        public static string ChangeDependencyRiskStatus_OpenDescription {
+            get {
+                return ResourceManager.GetString("ChangeDependencyRiskStatus_OpenDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This finding does not pose a risk. No fix is needed..
+        /// </summary>
+        public static string ChangeDependencyRiskStatus_SafeDescription {
+            get {
+                return ResourceManager.GetString("ChangeDependencyRiskStatus_SafeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Change Status.
+        /// </summary>
+        public static string ChangeStatusMenuItem {
+            get {
+                return ResourceManager.GetString("ChangeStatusMenuItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add a comment:.
         /// </summary>
         public static string ChangeStatusWindow_CommentLabel {
