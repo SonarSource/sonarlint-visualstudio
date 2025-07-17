@@ -49,10 +49,10 @@ public class ChangeStatusViewModelTest
         testSubject.AllowedStatusViewModels.Should().HaveCount(allowedStatuses.Length);
         foreach (var allowedStatus in allowedStatuses)
         {
-            testSubject.AllowedStatusViewModels.Should().ContainSingle(x => x.HasStatus(allowedStatus));
+            testSubject.AllowedStatusViewModels.Should().ContainSingle(x => x.GetCurrentStatus<HotspotStatus>() == allowedStatus);
         }
 
-        testSubject.SelectedStatusViewModel.HasStatus(currentStatus).Should().BeTrue();
+        testSubject.SelectedStatusViewModel.GetCurrentStatus<HotspotStatus>().Should().Be(currentStatus);
         testSubject.SelectedStatusViewModel.IsChecked.Should().BeTrue();
     }
 

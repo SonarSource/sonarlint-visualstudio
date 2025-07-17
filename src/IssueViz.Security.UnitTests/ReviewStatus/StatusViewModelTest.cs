@@ -27,6 +27,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReviewSta
 [TestClass]
 public class StatusViewModelTest
 {
+    private const string StatusTitle = "title";
+    private const string StatusDescription = "description";
+
     [TestMethod]
     [DataRow(HotspotStatus.ToReview, "to review", "description1")]
     [DataRow(HotspotStatus.Acknowledged, "acknowledges", "description\ndescription2")]
@@ -45,7 +48,7 @@ public class StatusViewModelTest
     [TestMethod]
     public void IsChecked_Set_RaisesEvents()
     {
-        var testSubject = new StatusViewModel<HotspotStatus>(default, "title", "description");
+        var testSubject = new StatusViewModel<HotspotStatus>(default, StatusTitle, StatusDescription);
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
         eventHandler.ReceivedCalls().Should().BeEmpty();
@@ -53,5 +56,26 @@ public class StatusViewModelTest
         testSubject.IsChecked = !testSubject.IsChecked;
 
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsChecked)));
+    }
+
+    [TestMethod]
+    public void GetCurrentStatus_ReturnsCurrentStatus_WhenTypeIsCorrect()
+    {
+        var testSubject = new StatusViewModel<HotspotStatus>(HotspotStatus.Fixed, StatusTitle, StatusDescription);
+
+        var result = testSubject.GetCurrentStatus<HotspotStatus>();
+
+        result.Should().Be(HotspotStatus.Fixed);
+    }
+
+    [TestMethod]
+    public void GetCurrentStatus_Throws_WhenTypeIsIncorrect()
+    {
+        var testSubject = new StatusViewModel<HotspotStatus>(HotspotStatus.Fixed, StatusTitle, StatusDescription);
+
+        Action action = () => testSubject.GetCurrentStatus<DependencyRiskType>();
+
+        action.Should().Throw<InvalidOperationException>()
+            .WithMessage($"Cannot get status of type {typeof(DependencyRiskType)} from {nameof(IStatusViewModel)} of type {typeof(HotspotStatus)}.");
     }
 }

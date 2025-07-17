@@ -30,8 +30,6 @@ public class StatusViewModel<T>(T status, string title, string description) : Vi
     public string Title { get; } = title;
     public string Description { get; } = description;
 
-    public bool HasStatus<T>(T status) where T : struct, Enum => status.Equals(Status);
-
     public bool IsChecked
     {
         get => isChecked;
@@ -40,5 +38,15 @@ public class StatusViewModel<T>(T status, string title, string description) : Vi
             isChecked = value;
             RaisePropertyChanged();
         }
+    }
+
+    public P GetCurrentStatus<P>() where P : struct, Enum
+    {
+        if (typeof(P) != typeof(T))
+        {
+            throw new InvalidOperationException($"Cannot get status of type {typeof(P)} from {nameof(IStatusViewModel)} of type {typeof(T)}.");
+        }
+
+        return (P)(object)Status;
     }
 }

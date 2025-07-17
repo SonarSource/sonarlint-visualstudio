@@ -26,5 +26,5 @@ public interface IStatusViewModel
     string Title { get; }
     string Description { get; }
 
-    bool HasStatus<T>(T status) where T : struct, Enum;
+    T GetCurrentStatus<T>() where T : struct, Enum;
 }

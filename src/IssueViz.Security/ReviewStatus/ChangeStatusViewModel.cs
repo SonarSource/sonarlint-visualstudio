@@ -59,7 +59,7 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
 
     private void InitializeCurrentStatus(T currentStatus)
     {
-        SelectedStatusViewModel = AllowedStatusViewModels.FirstOrDefault(x => x.HasStatus(currentStatus));
+        SelectedStatusViewModel = AllowedStatusViewModels.FirstOrDefault(x => Equals(x.GetCurrentStatus<T>(), currentStatus));
         if (SelectedStatusViewModel == null)
         {
             return;

@@ -64,7 +64,7 @@ internal sealed partial class HotspotsControl : UserControl
         var dialog = new ChangeStatusWindow(statusListViewModel);
         if (dialog.ShowDialog(Application.Current.MainWindow) is true)
         {
-            await ViewModel.ChangeHotspotStatusAsync((statusListViewModel.SelectedStatusViewModel as StatusViewModel<HotspotStatus>)!.Status);
+            await ViewModel.ChangeHotspotStatusAsync(statusListViewModel.SelectedStatusViewModel.GetCurrentStatus<HotspotStatus>());
         }
     }
 
