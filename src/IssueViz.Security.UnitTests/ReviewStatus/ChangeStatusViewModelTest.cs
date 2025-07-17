@@ -41,7 +41,7 @@ public class ChangeStatusViewModelTest
             .Cast<HotspotStatus>()
             .Select(status => new StatusViewModel<HotspotStatus>(status, status.ToString(), status.ToString())).ToList();
 
-        testSubject = CreateTestSubject(HotspotStatus.Safe, showComment: false, statusesWithMandatoryComment: []);
+        testSubject = CreateTestSubject(HotspotStatus.Safe);
     }
 
     [TestMethod]
@@ -49,7 +49,7 @@ public class ChangeStatusViewModelTest
     [DataRow(HotspotStatus.Safe, false)]
     public void Ctor_InitializesProperties(HotspotStatus status, bool showComment)
     {
-        testSubject = CreateTestSubject(status, showComment, statusesWithMandatoryComment: []);
+        testSubject = CreateTestSubject(status, showComment);
         testSubject.AllowedStatusViewModels.Should().HaveCount(allowedStatuses.Length);
         foreach (var allowedStatus in allowedStatuses)
         {
@@ -64,7 +64,7 @@ public class ChangeStatusViewModelTest
     [TestMethod]
     public void Ctor_CurrentStatusNotInListOfAllowedStatuses_SetsSelectionToNull()
     {
-        testSubject = CreateTestSubject(HotspotStatus.ToReview, showComment: false, statusesWithMandatoryComment: []);
+        testSubject = CreateTestSubject(HotspotStatus.ToReview);
 
         testSubject.SelectedStatusViewModel.Should().BeNull();
     }
@@ -160,8 +160,8 @@ public class ChangeStatusViewModelTest
         testSubject.Error.Should().BeNull();
     }
 
-    private ChangeStatusViewModel<HotspotStatus> CreateTestSubject(HotspotStatus status, bool showComment, IEnumerable<HotspotStatus> statusesWithMandatoryComment) =>
-        new(status, allowedStatuses, statusesWithMandatoryComment, allStatusViewModels, showComment);
+    private ChangeStatusViewModel<HotspotStatus> CreateTestSubject(HotspotStatus status, bool showComment = false, IEnumerable<HotspotStatus> statusesWithMandatoryComment = null) =>
+        new(status, allowedStatuses, allStatusViewModels, showComment, statusesWithMandatoryComment);
 
     private string GetCommentValidationError() => testSubject[nameof(testSubject.Comment)];
 }

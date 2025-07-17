@@ -34,9 +34,9 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
     public ChangeStatusViewModel(
         T currentStatus,
         IEnumerable<T> allowedStatuses,
-        IEnumerable<T> statusesWithMandatoryComment,
         IReadOnlyList<StatusViewModel<T>> allStatusViewModels,
-        bool showComment)
+        bool showComment = false,
+        IEnumerable<T> statusesWithMandatoryComment = null)
     {
         this.statusesWithMandatoryComment = statusesWithMandatoryComment;
         this.allStatusViewModels = allStatusViewModels;
@@ -103,5 +103,5 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
         SelectedStatusViewModel.IsChecked = true;
     }
 
-    private bool IsCommentRequired() => statusesWithMandatoryComment.Any(x => SelectedStatusViewModel.HasStatus(x));
+    private bool IsCommentRequired() => statusesWithMandatoryComment != null && statusesWithMandatoryComment.Any(x => SelectedStatusViewModel.HasStatus(x));
 }
