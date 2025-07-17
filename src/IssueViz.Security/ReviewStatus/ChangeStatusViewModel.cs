@@ -19,29 +19,23 @@
  */
 
 using System.Collections.ObjectModel;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.WPF;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 
-public class ReviewHotspotsViewModel : ViewModelBase
+public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel where T : struct, Enum
 {
-    private readonly IReadOnlyList<StatusViewModel> allStatusViewModels =
-    [
-        new(HotspotStatus.ToReview, Resources.ReviewHotspotWindow_ToReviewTitle, Resources.ReviewHotspotWindow_ToReviewContent),
-        new(HotspotStatus.Acknowledged, Resources.ReviewHotspotWindow_AcknowledgeTitle, Resources.ReviewHotspotWindow_AcknowledgeContent),
-        new(HotspotStatus.Fixed, Resources.ReviewHotspotWindow_FixedTitle, Resources.ReviewHotspotWindow_FixedContent),
-        new(HotspotStatus.Safe, Resources.ReviewHotspotWindow_SafeTitle, Resources.ReviewHotspotWindow_SafeContent)
-    ];
-    private StatusViewModel selectedStatusViewModel;
+    private readonly IReadOnlyList<StatusViewModel<T>> allStatusViewModels;
+    private IStatusViewModel selectedStatusViewModel;
 
-    public ReviewHotspotsViewModel(HotspotStatus currentStatus, IEnumerable<HotspotStatus> allowedStatuses)
+    public ChangeStatusViewModel(T currentStatus, IEnumerable<T> allowedStatuses, IReadOnlyList<StatusViewModel<T>> allStatusViewModels)
     {
+        this.allStatusViewModels = allStatusViewModels;
         InitializeStatuses(allowedStatuses);
         InitializeCurrentStatus(currentStatus);
     }
 
-    public StatusViewModel SelectedStatusViewModel
+    public IStatusViewModel SelectedStatusViewModel
     {
         get => selectedStatusViewModel;
         set
@@ -54,18 +48,18 @@ public class ReviewHotspotsViewModel : ViewModelBase
 
     public bool IsSubmitButtonEnabled => SelectedStatusViewModel != null;
 
-    public ObservableCollection<StatusViewModel> AllowedStatusViewModels { get; set; } = [];
+    public ObservableCollection<IStatusViewModel> AllowedStatusViewModels { get; set; } = [];
 
-    private void InitializeStatuses(IEnumerable<HotspotStatus> allowedStatuses)
+    private void InitializeStatuses(IEnumerable<T> allowedStatuses)
     {
         AllowedStatusViewModels.Clear();
         allStatusViewModels.ToList().ForEach(vm => vm.IsChecked = false);
-        allStatusViewModels.Where(x => allowedStatuses.Contains(x.HotspotStatus)).ToList().ForEach(vm => AllowedStatusViewModels.Add(vm));
+        allStatusViewModels.Where(x => allowedStatuses.Contains(x.Status)).ToList().ForEach(vm => AllowedStatusViewModels.Add(vm));
     }
 
-    private void InitializeCurrentStatus(HotspotStatus currentStatus)
+    private void InitializeCurrentStatus(T currentStatus)
     {
-        SelectedStatusViewModel = AllowedStatusViewModels.FirstOrDefault(x => x.HotspotStatus == currentStatus);
+        SelectedStatusViewModel = AllowedStatusViewModels.FirstOrDefault(x => Equals(x.GetCurrentStatus<T>(), currentStatus));
         if (SelectedStatusViewModel == null)
         {
             return;

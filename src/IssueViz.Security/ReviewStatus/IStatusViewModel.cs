@@ -18,26 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.WPF;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
-
-public class StatusViewModel(HotspotStatus hotspotStatus, string title, string description) : ViewModelBase
+public interface IStatusViewModel
 {
-    private bool isChecked;
+    bool IsChecked { get; set; }
+    string Title { get; }
+    string Description { get; }
 
-    public HotspotStatus HotspotStatus { get; } = hotspotStatus;
-    public string Title { get; } = title;
-    public string Description { get; } = description;
-
-    public bool IsChecked
-    {
-        get => isChecked;
-        set
-        {
-            isChecked = value;
-            RaisePropertyChanged();
-        }
-    }
+    T GetCurrentStatus<T>() where T : struct, Enum;
 }
