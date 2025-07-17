@@ -30,13 +30,11 @@ public class ChangeStatusViewModelTest
     private const string StatusTitle = "title";
     private const string StatusDescription = "description";
     private ChangeStatusViewModel<HotspotStatus> testSubject;
-    private HotspotStatus[] allowedStatuses;
     private List<StatusViewModel<HotspotStatus>> allStatusViewModels;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        allowedStatuses = [HotspotStatus.Acknowledged, HotspotStatus.Safe];
         allStatusViewModels = Enum.GetValues(typeof(HotspotStatus))
             .Cast<HotspotStatus>()
             .Select(status => new StatusViewModel<HotspotStatus>(status, status.ToString(), status.ToString(), isCommentRequired: false)).ToList();
@@ -47,26 +45,14 @@ public class ChangeStatusViewModelTest
     [TestMethod]
     [DataRow(HotspotStatus.Acknowledged, true)]
     [DataRow(HotspotStatus.Safe, false)]
-    public void Ctor_InitializesProperties(HotspotStatus status, bool showComment)
+    public void Ctor_InitializesProperties(HotspotStatus currentStatus, bool showComment)
     {
-        testSubject = CreateTestSubject(status, showComment);
-        testSubject.AllowedStatusViewModels.Should().HaveCount(allowedStatuses.Length);
-        foreach (var allowedStatus in allowedStatuses)
-        {
-            testSubject.AllowedStatusViewModels.Should().ContainSingle(x => x.GetCurrentStatus<HotspotStatus>() == allowedStatus);
-        }
+        testSubject = CreateTestSubject(currentStatus, showComment);
 
-        testSubject.SelectedStatusViewModel.GetCurrentStatus<HotspotStatus>().Should().Be(status);
+        testSubject.AllStatusViewModels.Should().HaveCount(allStatusViewModels.Count);
+        testSubject.SelectedStatusViewModel.GetCurrentStatus<HotspotStatus>().Should().Be(currentStatus);
         testSubject.SelectedStatusViewModel.IsChecked.Should().BeTrue();
         testSubject.ShowComment.Should().Be(showComment);
-    }
-
-    [TestMethod]
-    public void Ctor_CurrentStatusNotInListOfAllowedStatuses_SetsSelectionToNull()
-    {
-        testSubject = CreateTestSubject(HotspotStatus.ToReview);
-
-        testSubject.SelectedStatusViewModel.Should().BeNull();
     }
 
     [TestMethod]
@@ -157,7 +143,7 @@ public class ChangeStatusViewModelTest
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsSubmitButtonEnabled)));
     }
 
-    private ChangeStatusViewModel<HotspotStatus> CreateTestSubject(HotspotStatus status, bool showComment = false) => new(status, allowedStatuses, allStatusViewModels, showComment);
+    private ChangeStatusViewModel<HotspotStatus> CreateTestSubject(HotspotStatus status, bool showComment = false) => new(status, allStatusViewModels, showComment);
 
     private string GetCommentValidationError() => testSubject[nameof(testSubject.Comment)];
 

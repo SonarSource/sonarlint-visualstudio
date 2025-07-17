@@ -35,17 +35,6 @@ internal sealed partial class HotspotsControl : UserControl
 {
     private readonly IBrowserService browserService;
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-    private readonly IReadOnlyList<StatusViewModel<HotspotStatus>> allStatusViewModels =
-    [
-        new(HotspotStatus.ToReview, Security.Resources.ReviewHotspotWindow_ToReviewTitle,
-            Security.Resources.ReviewHotspotWindow_ToReviewContent, isCommentRequired: false),
-        new(HotspotStatus.Acknowledged, Security.Resources.ReviewHotspotWindow_AcknowledgeTitle,
-            Security.Resources.ReviewHotspotWindow_AcknowledgeContent, isCommentRequired: false),
-        new(HotspotStatus.Fixed, Security.Resources.ReviewHotspotWindow_FixedTitle,
-            Security.Resources.ReviewHotspotWindow_FixedContent, isCommentRequired: false),
-        new(HotspotStatus.Safe, Security.Resources.ReviewHotspotWindow_SafeTitle,
-            Security.Resources.ReviewHotspotWindow_SafeContent, isCommentRequired: false)
-    ];
 
     public HotspotsControlViewModel ViewModel { get; }
 
@@ -66,7 +55,7 @@ internal sealed partial class HotspotsControl : UserControl
             return;
         }
 
-        var statusListViewModel = new ChangeStatusViewModel<HotspotStatus>(hotspotViewModel.HotspotStatus, allowedStatuses, allStatusViewModels);
+        var statusListViewModel = new ChangeHotspotStatusViewModel(hotspotViewModel.HotspotStatus, allowedStatuses);
         var dialog = new ChangeStatusWindow(statusListViewModel, browserService, activeSolutionBoundTracker);
         if (dialog.ShowDialog(Application.Current.MainWindow) is true)
         {

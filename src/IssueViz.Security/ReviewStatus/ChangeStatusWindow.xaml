@@ -59,7 +59,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <ListBox Grid.Row="0" ItemsSource="{Binding AllowedStatusViewModels}"
+        <ListBox Grid.Row="0" ItemsSource="{Binding AllStatusViewModels}"
                  SelectedItem="{Binding Path=SelectedStatusViewModel}"
                  Style="{StaticResource ChangeIssueStatusListBoxStyle}"
                  ItemContainerStyle="{StaticResource NoSelectionListBoxItemStyle}">

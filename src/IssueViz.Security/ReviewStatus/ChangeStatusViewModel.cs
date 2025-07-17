@@ -25,19 +25,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 
 public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel where T : struct, Enum
 {
-    private readonly IReadOnlyList<StatusViewModel<T>> allStatusViewModels;
     private IStatusViewModel selectedStatusViewModel;
     private string comment;
     private string validationError;
 
     public ChangeStatusViewModel(
         T currentStatus,
-        IEnumerable<T> allowedStatuses,
         IReadOnlyList<StatusViewModel<T>> allStatusViewModels,
         bool showComment = false)
     {
-        this.allStatusViewModels = allStatusViewModels;
-        InitializeStatuses(allowedStatuses);
+        AllStatusViewModels = new ObservableCollection<IStatusViewModel>(allStatusViewModels);
         InitializeCurrentStatus(currentStatus);
         ShowComment = showComment;
     }
@@ -85,18 +82,11 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
     public string Error => validationError;
     public bool ShowComment { get; }
     public bool IsSubmitButtonEnabled => SelectedStatusViewModel != null && Error is null;
-    public ObservableCollection<IStatusViewModel> AllowedStatusViewModels { get; set; } = [];
-
-    private void InitializeStatuses(IEnumerable<T> allowedStatuses)
-    {
-        AllowedStatusViewModels.Clear();
-        allStatusViewModels.ToList().ForEach(vm => vm.IsChecked = false);
-        allStatusViewModels.Where(x => allowedStatuses.Contains(x.Status)).ToList().ForEach(vm => AllowedStatusViewModels.Add(vm));
-    }
+    public ObservableCollection<IStatusViewModel> AllStatusViewModels { get; }
 
     private void InitializeCurrentStatus(T currentStatus)
     {
-        SelectedStatusViewModel = AllowedStatusViewModels.FirstOrDefault(x => Equals(x.GetCurrentStatus<T>(), currentStatus));
+        SelectedStatusViewModel = AllStatusViewModels.FirstOrDefault(x => Equals(x.GetCurrentStatus<T>(), currentStatus));
         if (SelectedStatusViewModel == null)
         {
             return;
