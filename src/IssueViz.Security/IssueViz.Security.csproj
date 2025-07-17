@@ -60,7 +60,7 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
-    <Page Include="Hotspots\ReviewHotspot\ReviewHostpotWindow.xaml">
+    <Page Include="ReviewStatus\ChangeStatusWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ReportView\ReportViewControl.xaml">
