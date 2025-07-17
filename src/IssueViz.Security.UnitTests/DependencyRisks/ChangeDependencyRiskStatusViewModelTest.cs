@@ -47,16 +47,14 @@ public class ChangeDependencyRiskStatusViewModelTest
     [TestMethod]
     public void Ctor_AcceptedAndSafeStatusHaveMandatoryComment()
     {
-        var allowedStatuses = Enum.GetValues(typeof(DependencyRiskStatus)).Cast<DependencyRiskStatus>().ToList();
+        var allStatuses = Enum.GetValues(typeof(DependencyRiskStatus)).Cast<DependencyRiskStatus>().ToList();
 
-        var testSubject = new ChangeDependencyRiskStatusViewModel(default, allowedStatuses);
+        var testSubject = new ChangeDependencyRiskStatusViewModel(default, allStatuses);
 
-        testSubject.AllStatusViewModels.Should().HaveCount(allowedStatuses.Count);
-
+        testSubject.AllStatusViewModels.Should().HaveCount(allStatuses.Count);
         var mandatoryComments = GetViewModelsWithStatusesWithMandatoryComments(testSubject);
-        mandatoryComments.All(vm => vm.IsCommentRequired).Should().BeTrue();
-
-        testSubject.AllStatusViewModels.Except(mandatoryComments).All(vm => !vm.IsCommentRequired).Should().BeTrue();
+        mandatoryComments.Should().OnlyContain(vm => vm.IsCommentRequired);
+        testSubject.AllStatusViewModels.Except(mandatoryComments).Should().OnlyContain(vm => !vm.IsCommentRequired);
     }
 
     [TestMethod]
