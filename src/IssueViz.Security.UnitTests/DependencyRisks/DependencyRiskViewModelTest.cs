@@ -33,6 +33,16 @@ public class DependencyRiskViewModelTest
     public void Initialize() => testSubject = new DependencyRiskViewModel();
 
     [TestMethod]
+    public void Ctor_InitializesProperties()
+    {
+        testSubject.Type.Should().Be(DependencyRiskType.Vulnerability);
+        testSubject.PackageName.Should().BeNull();
+        testSubject.PackageVersion.Should().BeNull();
+        testSubject.ImpactSeverity.Should().Be(DependencyRiskImpactSeverity.Info);
+        testSubject.Status.Should().Be(DependencyRiskStatus.Open);
+    }
+
+    [TestMethod]
     public void Type_Set_RaisesPropertyChanged()
     {
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
