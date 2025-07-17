@@ -68,6 +68,9 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
         }
     }
 
+    /// <summary>
+    /// Implementation of <see cref="System.ComponentModel.IDataErrorInfo "/> needed for view validation 
+    /// </summary>
     public string this[string columnName]
     {
         get
