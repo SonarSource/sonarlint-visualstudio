@@ -55,11 +55,11 @@ internal sealed partial class HotspotsControl : UserControl
             return;
         }
 
-        var statusListViewModel = new ChangeHotspotStatusViewModel(hotspotViewModel.HotspotStatus, allowedStatuses);
-        var dialog = new ChangeStatusWindow(statusListViewModel, browserService, activeSolutionBoundTracker);
+        var changeHotspotStatusViewModel = new ChangeHotspotStatusViewModel(hotspotViewModel.HotspotStatus, allowedStatuses);
+        var dialog = new ChangeStatusWindow(changeHotspotStatusViewModel, browserService, activeSolutionBoundTracker);
         if (dialog.ShowDialog(Application.Current.MainWindow) is true)
         {
-            await ViewModel.ChangeHotspotStatusAsync(statusListViewModel.SelectedStatusViewModel.GetCurrentStatus<HotspotStatus>());
+            await ViewModel.ChangeHotspotStatusAsync(changeHotspotStatusViewModel.SelectedStatusViewModel.GetCurrentStatus<HotspotStatus>());
         }
     }
 

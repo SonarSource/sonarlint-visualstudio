@@ -42,6 +42,17 @@ public class ChangeHotspotStatusViewModelTest
     }
 
     [TestMethod]
+    public void Ctor_NoStatusHasMandatoryComment()
+    {
+        var allowedStatuses = Enum.GetValues(typeof(HotspotStatus)).Cast<HotspotStatus>().ToList();
+
+        var testSubject = new ChangeHotspotStatusViewModel(default, allowedStatuses);
+
+        testSubject.AllStatusViewModels.Should().HaveCount(allowedStatuses.Count);
+        testSubject.AllStatusViewModels.All(vm => !vm.IsCommentRequired).Should().BeTrue();
+    }
+
+    [TestMethod]
     public void SelectedStatus_IsInListOfAllowedStatuses_InitializesCorrectly()
     {
         var currentStatus = HotspotStatus.Acknowledged;
