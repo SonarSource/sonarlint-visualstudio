@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
@@ -35,6 +36,7 @@ using SonarLint.VisualStudio.IssueVisualization.Selection;
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList
 {
     [Guid(ToolWindowIdAsString)]
+    [ExcludeFromCodeCoverage]
     public class HotspotsToolWindow : ToolWindowPane
     {
         private const string ToolWindowIdAsString = "4BCD4392-DBCF-4AA2-9852-01129D229CD8";

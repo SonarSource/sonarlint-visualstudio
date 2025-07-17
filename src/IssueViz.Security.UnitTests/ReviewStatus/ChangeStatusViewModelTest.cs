@@ -130,6 +130,7 @@ public class ChangeStatusViewModelTest
         testSubject.Comment = string.Empty;
 
         GetCommentValidationError().Should().Be(Resources.CommentRequiredErrorMessage);
+        testSubject.Error.Should().Be(Resources.CommentRequiredErrorMessage);
     }
 
     [TestMethod]
@@ -144,6 +145,7 @@ public class ChangeStatusViewModelTest
         testSubject.Comment = string.Empty;
 
         GetCommentValidationError().Should().BeNull();
+        testSubject.Error.Should().BeNull();
     }
 
     [TestMethod]
@@ -155,6 +157,7 @@ public class ChangeStatusViewModelTest
         testSubject.Comment = string.Empty;
 
         GetCommentValidationError().Should().BeNull();
+        testSubject.Error.Should().BeNull();
     }
 
     private ChangeStatusViewModel<HotspotStatus> CreateTestSubject(HotspotStatus status, bool showComment, IEnumerable<HotspotStatus> statusesWithMandatoryComment) =>

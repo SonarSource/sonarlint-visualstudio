@@ -81,7 +81,7 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
         }
     }
 
-    public string Error => null;
+    public string Error => validationError;
     public bool ShowComment { get; }
     public bool IsSubmitButtonEnabled => SelectedStatusViewModel != null && this[nameof(Comment)] is null;
     public ObservableCollection<IStatusViewModel> AllowedStatusViewModels { get; set; } = [];
