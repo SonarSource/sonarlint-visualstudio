@@ -31,24 +31,29 @@ public class StatusViewModelTest
     private const string StatusDescription = "description";
 
     [TestMethod]
-    [DataRow(HotspotStatus.ToReview, "to review", "description1")]
-    [DataRow(HotspotStatus.Acknowledged, "acknowledges", "description\ndescription2")]
-    [DataRow(HotspotStatus.Fixed, "fixed", "description3")]
-    [DataRow(HotspotStatus.Safe, "safe", "description\n\tdescription4")]
-    public void Ctor_InitializesProperties(HotspotStatus status, string title, string description)
+    [DataRow(HotspotStatus.ToReview, "to review", "description1", false)]
+    [DataRow(HotspotStatus.Acknowledged, "acknowledges", "description\ndescription2", true)]
+    [DataRow(HotspotStatus.Fixed, "fixed", "description3", false)]
+    [DataRow(HotspotStatus.Safe, "safe", "description\n\tdescription4", true)]
+    public void Ctor_InitializesProperties(
+        HotspotStatus status,
+        string title,
+        string description,
+        bool isCommentRequired)
     {
-        var testSubject = new StatusViewModel<HotspotStatus>(status, title, description);
+        var testSubject = new StatusViewModel<HotspotStatus>(status, title, description, isCommentRequired);
 
         testSubject.Status.Should().Be(status);
         testSubject.Title.Should().Be(title);
         testSubject.Description.Should().Be(description);
         testSubject.IsChecked.Should().BeFalse();
+        testSubject.IsCommentRequired.Should().Be(isCommentRequired);
     }
 
     [TestMethod]
     public void IsChecked_Set_RaisesEvents()
     {
-        var testSubject = new StatusViewModel<HotspotStatus>(default, StatusTitle, StatusDescription);
+        var testSubject = CreateStatusViewModel(default);
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
         eventHandler.ReceivedCalls().Should().BeEmpty();
@@ -61,7 +66,7 @@ public class StatusViewModelTest
     [TestMethod]
     public void GetCurrentStatus_ReturnsCurrentStatus_WhenTypeIsCorrect()
     {
-        var testSubject = new StatusViewModel<HotspotStatus>(HotspotStatus.Fixed, StatusTitle, StatusDescription);
+        var testSubject = CreateStatusViewModel(HotspotStatus.Fixed);
 
         var result = testSubject.GetCurrentStatus<HotspotStatus>();
 
@@ -71,11 +76,13 @@ public class StatusViewModelTest
     [TestMethod]
     public void GetCurrentStatus_Throws_WhenTypeIsIncorrect()
     {
-        var testSubject = new StatusViewModel<HotspotStatus>(HotspotStatus.Fixed, StatusTitle, StatusDescription);
+        var testSubject = CreateStatusViewModel(HotspotStatus.Fixed);
 
         Action action = () => testSubject.GetCurrentStatus<DependencyRiskType>();
 
         action.Should().Throw<InvalidOperationException>()
             .WithMessage($"Cannot get status of type {typeof(DependencyRiskType)} from {nameof(IStatusViewModel)} of type {typeof(HotspotStatus)}.");
     }
+
+    private static StatusViewModel<HotspotStatus> CreateStatusViewModel(HotspotStatus status) => new(status, StatusTitle, StatusDescription, isCommentRequired: false);
 }

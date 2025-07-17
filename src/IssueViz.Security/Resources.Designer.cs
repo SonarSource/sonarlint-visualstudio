@@ -61,6 +61,42 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add a comment:.
+        /// </summary>
+        public static string ChangeStatusWindow_CommentLabel {
+            get {
+                return ResourceManager.GetString("ChangeStatusWindow_CommentLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to : *Bold*, ``Code``, * Bullet point.
+        /// </summary>
+        public static string ChangeStatusWindow_FormattingHelpExamples {
+            get {
+                return ResourceManager.GetString("ChangeStatusWindow_FormattingHelpExamples", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Formatting Help.
+        /// </summary>
+        public static string ChangeStatusWindow_FormattingHelpLink {
+            get {
+                return ResourceManager.GetString("ChangeStatusWindow_FormattingHelpLink", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Comment is required..
+        /// </summary>
+        public static string CommentRequiredErrorMessage {
+            get {
+                return ResourceManager.GetString("CommentRequiredErrorMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Severity impact:.
         /// </summary>
         public static string DependencyRiskImpactSeverityTooltip {

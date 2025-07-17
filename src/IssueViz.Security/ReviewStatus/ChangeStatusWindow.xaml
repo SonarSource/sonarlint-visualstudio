@@ -7,6 +7,10 @@
     xmlns:security="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security"
     mc:Ignorable="d"
     WindowStartupLocation="CenterOwner"
+    xmlns:resx="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security"
+    xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+    xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
+    xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI;assembly=SonarLint.VisualStudio.ConnectedMode"
     x:Name="ReviewHotspotWindowName"
     Title="{x:Static security:Resources.ReviewHotspotWindow_Title}">
     <Window.Resources>
@@ -15,9 +19,32 @@
                 <ResourceDictionary
                     Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
+            <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverterWithHidden" FalseValue="Hidden"
+                                           TrueValue="Visible" />
 
-            <Style x:Key="ChangeIssueStatusWithHandlerBorderStyle" TargetType="Border" BasedOn="{StaticResource ChangeIssueStatusBorderStyle}">
+            <Style x:Key="ChangeIssueStatusWithHandlerBorderStyle" TargetType="Border"
+                   BasedOn="{StaticResource ChangeIssueStatusBorderStyle}">
                 <EventSetter Event="MouseLeftButtonDown" Handler="Border_MouseDown" />
+            </Style>
+
+            <Style x:Key="FormattingHelpBlock" TargetType="TextBlock"
+                   BasedOn="{StaticResource ChangeIssueStatusLabelStyle}">
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.CaptionTextKey}}" />
+                <Setter Property="HorizontalAlignment" Value="Left" />
+                <Setter Property="VerticalAlignment" Value="Top" />
+            </Style>
+            <Style x:Key="CommentTextStyle" TargetType="TextBox">
+                <Setter Property="HorizontalAlignment" Value="Left" />
+                <Setter Property="Height" Value="60" />
+                <Setter Property="VerticalAlignment" Value="Top" />
+                <Setter Property="Width" Value="500" />
+                <Setter Property="AcceptsReturn" Value="True" />
+                <Setter Property="AcceptsTab" Value="True" />
+                <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+                <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.CaptionTextKey}}" />
             </Style>
         </ResourceDictionary>
     </Window.Resources>
@@ -29,9 +56,10 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <ListBox Grid.Row="0" ItemsSource="{Binding AllowedStatusViewModels}"
+        <ListBox Grid.Row="0" ItemsSource="{Binding AllStatusViewModels}"
                  SelectedItem="{Binding Path=SelectedStatusViewModel}"
                  Style="{StaticResource ChangeIssueStatusListBoxStyle}"
                  ItemContainerStyle="{StaticResource NoSelectionListBoxItemStyle}">
@@ -46,15 +74,45 @@
                             <RadioButton Grid.Row="0" GroupName="StatusGroup" Content="{Binding Path=Title}"
                                          Style="{StaticResource ChangeIssueStatusRadioButtonStyle}"
                                          IsChecked="{Binding IsChecked}" Checked="RadioButton_OnChecked" />
-                            <TextBlock Grid.Row="1" Text="{Binding Path=Description}" 
-                                       Style="{StaticResource ChangeIssueStatusLabelStyle}"/>
+                            <TextBlock Grid.Row="1" Text="{Binding Path=Description}"
+                                       Style="{StaticResource ChangeIssueStatusLabelStyle}" />
                         </Grid>
                     </Border>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <Grid Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,5, 0">
+        <Grid Grid.Row="1" Margin="0, 10" HorizontalAlignment="Center"
+              Visibility="{Binding Path=ShowComment, Converter={StaticResource TrueToVisibleConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="{x:Static resx:Resources.ChangeStatusWindow_CommentLabel}"
+                       Style="{StaticResource ChangeIssueStatusLabelStyle}"
+                       Margin="0, 0,0,2" />
+            <TextBox x:Name="CommentTextBox" Grid.Row="1"
+                     Text="{Binding Path=Comment, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, NotifyOnValidationError=True}"
+                     Style="{StaticResource CommentTextStyle}"
+                     Margin="0" />
+            <TextBlock Grid.Row="2" Style="{StaticResource FormattingHelpBlock}"
+                       Margin="0, 2,0,0">
+                <Hyperlink Name="FormattingHelpHyperlink" NavigateUri=""
+                           RequestNavigate="FormattingHelpHyperlink_RequestNavigate">
+                    <Run Text="{x:Static resx:Resources.ChangeStatusWindow_FormattingHelpLink}" />
+                </Hyperlink>
+                <Run Text="{x:Static resx:Resources.ChangeStatusWindow_FormattingHelpExamples}" />
+            </TextBlock>
+            <ui:WarningMessage Grid.Row="3"
+                               WarningText="{Binding Path=(Validation.Errors)[0].ErrorContent, ElementName=CommentTextBox}"
+                               Margin="0,5,0,0"
+                               Visibility="{Binding (Validation.HasError), ElementName=CommentTextBox, Converter={StaticResource TrueToVisibleConverterWithHidden}}" />
+        </Grid>
+
+        <Grid Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,5, 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />

@@ -22,13 +22,18 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 
-public class StatusViewModel<T>(T status, string title, string description) : ViewModelBase, IStatusViewModel where T : struct, Enum
+public class StatusViewModel<T>(
+    T status,
+    string title,
+    string description,
+    bool isCommentRequired) : ViewModelBase, IStatusViewModel where T : struct, Enum
 {
     private bool isChecked;
 
     public T Status { get; } = status;
     public string Title { get; } = title;
     public string Description { get; } = description;
+    public bool IsCommentRequired { get; } = isCommentRequired;
 
     public bool IsChecked
     {
