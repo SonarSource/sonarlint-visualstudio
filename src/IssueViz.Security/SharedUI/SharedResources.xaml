@@ -4,7 +4,8 @@
                     xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
                     xmlns:core="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
                     xmlns:issueVisualizationControl="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;assembly=SonarLint.VisualStudio.IssueVisualization"
-                    xmlns:res="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security">
+                    xmlns:res="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security"
+                    xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging">
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary
             Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Browse.xaml" />
@@ -214,7 +215,7 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <ContentPresenter Grid.Column="0" x:Name="Icon" Margin="5,0,10,0" VerticalAlignment="Center" ContentSource="Icon"/>
-                            <ContentPresenter Grid.Column="1" x:Name="Header" ContentSource="Header" />
+                            <ContentPresenter Grid.Column="1" x:Name="Header" ContentSource="Header" VerticalAlignment="Center" />
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -229,7 +230,7 @@
     <Style x:Key="ViewIssueInBrowserMenuItemStyle" TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
         <Setter Property="Icon">
             <Setter.Value>
-                <Image Source="{StaticResource BrowserLinkDrawingImage}"  />
+                <imaging:CrispImage Source="{StaticResource BrowserLinkDrawingImage}"  />
             </Setter.Value>
         </Setter>
         <Style.Triggers>
@@ -240,6 +241,13 @@
                 <Setter Property="Header" Value="{x:Static res:Resources.ViewIssueInSonarQubeServer}"/>
             </DataTrigger>
         </Style.Triggers>
+    </Style>
+    <Style x:Key="ChangeStatusMenuItemStyle" TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+        <Setter Property="Icon">
+            <Setter.Value>
+                <imaging:CrispImage Source="/SonarLint.VisualStudio.IssueVisualization.Security;component/SharedUI/sonarqube_for_ide_logo_16px.png"/>
+            </Setter.Value>
+        </Setter>
     </Style>
 
 </ResourceDictionary>
