@@ -160,6 +160,17 @@ public class ChangeStatusViewModelTest
         testSubject.Error.Should().BeNull();
     }
 
+    [TestMethod]
+    public void Error_RaisesEvents()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+
+        GetCommentValidationError();
+
+        eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsSubmitButtonEnabled)));
+    }
+
     private ChangeStatusViewModel<HotspotStatus> CreateTestSubject(HotspotStatus status, bool showComment = false, IEnumerable<HotspotStatus> statusesWithMandatoryComment = null) =>
         new(status, allowedStatuses, allStatusViewModels, showComment, statusesWithMandatoryComment);
 

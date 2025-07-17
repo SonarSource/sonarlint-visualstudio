@@ -77,13 +77,14 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
             {
                 validationError = Resources.CommentRequiredErrorMessage;
             }
+            RaisePropertyChanged(nameof(IsSubmitButtonEnabled));
             return validationError;
         }
     }
 
     public string Error => validationError;
     public bool ShowComment { get; }
-    public bool IsSubmitButtonEnabled => SelectedStatusViewModel != null && this[nameof(Comment)] is null;
+    public bool IsSubmitButtonEnabled => SelectedStatusViewModel != null && Error is null;
     public ObservableCollection<IStatusViewModel> AllowedStatusViewModels { get; set; } = [];
 
     private void InitializeStatuses(IEnumerable<T> allowedStatuses)
