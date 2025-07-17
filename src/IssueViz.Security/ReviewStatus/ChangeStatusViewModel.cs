@@ -104,5 +104,5 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
         SelectedStatusViewModel.IsChecked = true;
     }
 
-    private bool IsCommentRequired() => statusesWithMandatoryComment != null && statusesWithMandatoryComment.Any(x => SelectedStatusViewModel.HasStatus(x));
+    private bool IsCommentRequired() => statusesWithMandatoryComment != null && statusesWithMandatoryComment.Any(x => Equals(SelectedStatusViewModel.GetCurrentStatus<T>(), x));
 }
