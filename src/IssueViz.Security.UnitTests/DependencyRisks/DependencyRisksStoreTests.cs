@@ -105,7 +105,7 @@ public class DependencyRisksStoreTests
     }
 
     [TestMethod]
-    public void Remove_ItemDoesNotExist_DoesNotthing()
+    public void Remove_ItemDoesNotExist_DoesNothing()
     {
         var risk1 = CreateDependencyRisk();
         var risk2 = CreateDependencyRisk();
