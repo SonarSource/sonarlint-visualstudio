@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.DependencyRisks;
@@ -27,73 +25,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Dependenc
 [TestClass]
 public class DependencyRiskViewModelTest
 {
-    private DependencyRiskViewModel testSubject;
-
-    [TestInitialize]
-    public void Initialize() => testSubject = new DependencyRiskViewModel();
-
     [TestMethod]
     public void Ctor_InitializesProperties()
     {
-        testSubject.Type.Should().Be(DependencyRiskType.Vulnerability);
-        testSubject.PackageName.Should().BeNull();
-        testSubject.PackageVersion.Should().BeNull();
-        testSubject.ImpactSeverity.Should().Be(DependencyRiskImpactSeverity.Info);
-        testSubject.Status.Should().Be(DependencyRiskStatus.Open);
-    }
+        var dependencyRisk = Substitute.For<IDependencyRisk>();
 
-    [TestMethod]
-    public void Type_Set_RaisesPropertyChanged()
-    {
-        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
-        testSubject.PropertyChanged += eventHandler;
+        var testSubject = new DependencyRiskViewModel(dependencyRisk);
 
-        testSubject.Type = DependencyRiskType.ProhibitedLicense;
-
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.Type)));
-    }
-
-    [TestMethod]
-    public void PackageName_Set_RaisesPropertyChanged()
-    {
-        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
-        testSubject.PropertyChanged += eventHandler;
-
-        testSubject.PackageName = "System.Xaml";
-
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.PackageName)));
-    }
-
-    [TestMethod]
-    public void PackageVersion_Set_RaisesPropertyChanged()
-    {
-        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
-        testSubject.PropertyChanged += eventHandler;
-
-        testSubject.PackageVersion = "1.00";
-
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.PackageVersion)));
-    }
-
-    [TestMethod]
-    public void ImpactSeverity_Set_RaisesPropertyChanged()
-    {
-        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
-        testSubject.PropertyChanged += eventHandler;
-
-        testSubject.ImpactSeverity = DependencyRiskImpactSeverity.Blocker;
-
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.ImpactSeverity)));
-    }
-
-    [TestMethod]
-    public void Status_Set_RaisesPropertyChanged()
-    {
-        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
-        testSubject.PropertyChanged += eventHandler;
-
-        testSubject.Status = DependencyRiskStatus.Accepted;
-
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.Status)));
+        testSubject.DependencyRisk.Should().Be(dependencyRisk);
     }
 }

@@ -25,10 +25,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
 internal class ReportViewModel : ServerViewModel
 {
-    public GroupDependencyRiskViewModel GroupDependencyRisk { get; } = new();
+    public GroupDependencyRiskViewModel GroupDependencyRisk { get; }
 
-    public ReportViewModel(IActiveSolutionBoundTracker activeSolutionBoundTracker) : base(activeSolutionBoundTracker)
+    public ReportViewModel(IActiveSolutionBoundTracker activeSolutionBoundTracker, IDependencyRisksStore dependencyRisksStore) : base(activeSolutionBoundTracker)
     {
+        GroupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore);
         GroupDependencyRisk.InitializeRisks();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        GroupDependencyRisk.Dispose();
+        base.Dispose(disposing);
     }
 }

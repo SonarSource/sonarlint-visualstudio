@@ -27,9 +27,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Dependenc
 public class GroupDependencyRiskViewModelTest
 {
     private GroupDependencyRiskViewModel testSubject;
+    private IDependencyRisksStore dependencyRisksStore;
 
     [TestInitialize]
-    public void Initialize() => testSubject = new GroupDependencyRiskViewModel();
+    public void Initialize()
+    {
+        dependencyRisksStore = Substitute.For<IDependencyRisksStore>();
+        testSubject = CreateTestSubject();
+    }
 
     [TestMethod]
     public void Ctor_HasPropertiesInitialized()
@@ -39,11 +44,22 @@ public class GroupDependencyRiskViewModelTest
     }
 
     [TestMethod]
+    public void Ctor_SubscribesToEvents() => dependencyRisksStore.Received().DependencyRisksChanged += Arg.Any<EventHandler>();
+
+    [TestMethod]
     public void InitializeRisks_InitializesRisks()
     {
+        var dependencyRisk = Substitute.For<IDependencyRisk>();
+        var dependencyRisk2 = Substitute.For<IDependencyRisk>();
+        MockRisksInStore(dependencyRisk, dependencyRisk2);
+        dependencyRisksStore.ClearReceivedCalls();
+
         testSubject.InitializeRisks();
 
-        testSubject.Risks.Should().HaveCount(3);
+        dependencyRisksStore.Received(1).GetAll();
+        testSubject.Risks.Should().HaveCount(2);
+        testSubject.Risks.Should().ContainSingle(vm => vm.DependencyRisk == dependencyRisk);
+        testSubject.Risks.Should().ContainSingle(vm => vm.DependencyRisk == dependencyRisk2);
     }
 
     [TestMethod]
@@ -60,11 +76,38 @@ public class GroupDependencyRiskViewModelTest
     [TestMethod]
     public void HasRisks_ReturnsTrue_WhenThereAreRisks()
     {
+        MockRisksInStore(Substitute.For<IDependencyRisk>());
+
         testSubject.InitializeRisks();
 
         testSubject.HasRisks.Should().BeTrue();
     }
 
     [TestMethod]
-    public void HasRisks_ReturnsFalse_WhenThereAreRisks() => testSubject.HasRisks.Should().BeFalse();
+    public void HasRisks_ReturnsFalse_WhenThereAreNoRisks() => testSubject.HasRisks.Should().BeFalse();
+
+    [TestMethod]
+    public void DependencyRisksChanged_RefreshesRisks()
+    {
+        var dependencyRisk = Substitute.For<IDependencyRisk>();
+        MockRisksInStore(dependencyRisk);
+        dependencyRisksStore.ClearReceivedCalls();
+
+        dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
+
+        dependencyRisksStore.Received(1).GetAll();
+        testSubject.Risks.Should().ContainSingle(vm => vm.DependencyRisk == dependencyRisk);
+    }
+
+    [TestMethod]
+    public void Dispose_UnsubscribesFromEvents()
+    {
+        testSubject.Dispose();
+
+        dependencyRisksStore.Received(1).DependencyRisksChanged -= Arg.Any<EventHandler>();
+    }
+
+    private GroupDependencyRiskViewModel CreateTestSubject() => new(dependencyRisksStore);
+
+    private void MockRisksInStore(params IDependencyRisk[] dependencyRisks) => dependencyRisksStore.GetAll().Returns(dependencyRisks);
 }
