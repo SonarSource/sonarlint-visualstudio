@@ -250,4 +250,84 @@ public class ModelConversionExtensionsTests
                                                                       Actual value was 1000.
                                                                       """);
     }
+
+    [TestMethod]
+    [DataRow(ScaStatus.OPEN, DependencyRiskStatus.Open)]
+    [DataRow(ScaStatus.CONFIRM, DependencyRiskStatus.Confirmed)]
+    [DataRow(ScaStatus.ACCEPT, DependencyRiskStatus.Accepted)]
+    [DataRow(ScaStatus.SAFE, DependencyRiskStatus.Safe)]
+    public void ToDependencyRiskStatus_ConvertsCorrectly(ScaStatus scaStatus, DependencyRiskStatus expectedStatus) =>
+        scaStatus.ToDependencyRiskStatus().Should().Be(expectedStatus);
+
+    [TestMethod]
+    public void ToDependencyRiskStatus_ValueOutOfRange_Throws()
+    {
+        var act = () => ((ScaStatus)1000).ToDependencyRiskStatus();
+
+        act.Should().Throw<ArgumentOutOfRangeException>().WithMessage("""
+                                                                      Unexpected enum value
+                                                                      Parameter name: scaStatus
+                                                                      Actual value was 1000.
+                                                                      """);
+    }
+
+    [TestMethod]
+    [DataRow(ScaType.VULNERABILITY, DependencyRiskType.Vulnerability)]
+    [DataRow(ScaType.PROHIBITED_LICENSE, DependencyRiskType.ProhibitedLicense)]
+    public void ToDependencyRiskType_ConvertsCorrectly(ScaType scaType, DependencyRiskType expectedType) =>
+        scaType.ToDependencyRiskType().Should().Be(expectedType);
+
+    [TestMethod]
+    public void ToDependencyRiskType_ValueOutOfRange_Throws()
+    {
+        var act = () => ((ScaType)1000).ToDependencyRiskType();
+
+        act.Should().Throw<ArgumentOutOfRangeException>().WithMessage("""
+                                                                      Unexpected enum value
+                                                                      Parameter name: scaType
+                                                                      Actual value was 1000.
+                                                                      """);
+    }
+
+    [TestMethod]
+    [DataRow(ScaSeverity.INFO, DependencyRiskImpactSeverity.Info)]
+    [DataRow(ScaSeverity.LOW, DependencyRiskImpactSeverity.Low)]
+    [DataRow(ScaSeverity.MEDIUM, DependencyRiskImpactSeverity.Medium)]
+    [DataRow(ScaSeverity.HIGH, DependencyRiskImpactSeverity.High)]
+    [DataRow(ScaSeverity.BLOCKER, DependencyRiskImpactSeverity.Blocker)]
+    public void ToDependencyRiskSeverity_ConvertsCorrectly(ScaSeverity scaSeverity, DependencyRiskImpactSeverity expectedSeverity) =>
+        scaSeverity.ToDependencyRiskSeverity().Should().Be(expectedSeverity);
+
+    [TestMethod]
+    public void ToDependencyRiskSeverity_ValueOutOfRange_Throws()
+    {
+        var act = () => ((ScaSeverity)1000).ToDependencyRiskSeverity();
+
+        act.Should().Throw<ArgumentOutOfRangeException>().WithMessage("""
+                                                                      Unexpected enum value
+                                                                      Parameter name: scaSeverity
+                                                                      Actual value was 1000.
+                                                                      """);
+    }
+
+    [TestMethod]
+    [DataRow(ScaTransition.CONFIRM, DependencyRiskTransition.Confirm)]
+    [DataRow(ScaTransition.REOPEN, DependencyRiskTransition.Reopen)]
+    [DataRow(ScaTransition.SAFE, DependencyRiskTransition.Safe)]
+    [DataRow(ScaTransition.FIXED, DependencyRiskTransition.Fixed)]
+    [DataRow(ScaTransition.ACCEPT, DependencyRiskTransition.Accept)]
+    public void ToDependencyRiskTransition_ConvertsCorrectly(ScaTransition scaTransition, DependencyRiskTransition expectedTransition) =>
+        scaTransition.ToDependencyRiskTransition().Should().Be(expectedTransition);
+
+    [TestMethod]
+    public void ToDependencyRiskTransition_ValueOutOfRange_Throws()
+    {
+        var act = () => ((ScaTransition)1000).ToDependencyRiskTransition();
+
+        act.Should().Throw<ArgumentOutOfRangeException>().WithMessage("""
+                                                                      Unexpected enum value
+                                                                      Parameter name: scaTransition
+                                                                      Actual value was 1000.
+                                                                      """);
+    }
 }

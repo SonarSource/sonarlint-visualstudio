@@ -112,4 +112,45 @@ public static class ModelConversionExtensions
             SlCoreHotspotStatus.SAFE => CoreHotspotStatus.Safe,
             _ => throw new ArgumentOutOfRangeException(nameof(hotspotStatus), hotspotStatus, SLCoreStrings.ModelExtensions_UnexpectedValue)
         };
+
+    public static DependencyRiskStatus ToDependencyRiskStatus(this ScaStatus scaStatus) =>
+        scaStatus switch
+        {
+            ScaStatus.OPEN => DependencyRiskStatus.Open,
+            ScaStatus.CONFIRM => DependencyRiskStatus.Confirmed,
+            ScaStatus.ACCEPT => DependencyRiskStatus.Accepted,
+            ScaStatus.SAFE => DependencyRiskStatus.Safe,
+            _ => throw new ArgumentOutOfRangeException(nameof(scaStatus), scaStatus, SLCoreStrings.ModelExtensions_UnexpectedValue)
+        };
+
+    public static DependencyRiskType ToDependencyRiskType(this ScaType scaType) =>
+        scaType switch
+        {
+            ScaType.VULNERABILITY => DependencyRiskType.Vulnerability,
+            ScaType.PROHIBITED_LICENSE => DependencyRiskType.ProhibitedLicense,
+            _ => throw new ArgumentOutOfRangeException(nameof(scaType), scaType, SLCoreStrings.ModelExtensions_UnexpectedValue)
+        };
+
+    public static DependencyRiskImpactSeverity ToDependencyRiskSeverity(this ScaSeverity scaSeverity) =>
+        scaSeverity switch
+        {
+            ScaSeverity.INFO => DependencyRiskImpactSeverity.Info,
+            ScaSeverity.LOW => DependencyRiskImpactSeverity.Low,
+            ScaSeverity.MEDIUM => DependencyRiskImpactSeverity.Medium,
+            ScaSeverity.HIGH => DependencyRiskImpactSeverity.High,
+            ScaSeverity.BLOCKER => DependencyRiskImpactSeverity.Blocker,
+            _ => throw new ArgumentOutOfRangeException(nameof(scaSeverity), scaSeverity, SLCoreStrings.ModelExtensions_UnexpectedValue)
+        };
+
+
+    public static DependencyRiskTransition ToDependencyRiskTransition(this ScaTransition scaTransition) =>
+        scaTransition switch
+        {
+            ScaTransition.CONFIRM => DependencyRiskTransition.Confirm,
+            ScaTransition.REOPEN => DependencyRiskTransition.Reopen,
+            ScaTransition.SAFE => DependencyRiskTransition.Safe,
+            ScaTransition.FIXED => DependencyRiskTransition.Fixed,
+            ScaTransition.ACCEPT => DependencyRiskTransition.Accept,
+            _ => throw new ArgumentOutOfRangeException(nameof(scaTransition), scaTransition, SLCoreStrings.ModelExtensions_UnexpectedValue)
+        };
 }
