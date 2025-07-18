@@ -60,11 +60,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             logger.WriteLine(TaintResources.SyncPackage_Initializing);
 
             bindingMonitor = componentModel.GetService<ITaintIssuesBindingMonitor>();
-            var taintIssuesSynchronizer = componentModel.GetService<ITaintIssuesSynchronizer>();
+            var taintIssuesSynchronizer = componentModel.GetService<IServerIssuesSynchronizer>();
 
             await ThreadHandling.Instance.SwitchToBackgroundThread();
 
-            await taintIssuesSynchronizer.UpdateTaintVulnerabilitiesAsync(componentModel.GetService<IActiveConfigScopeTracker>().Current);
+            await taintIssuesSynchronizer.UpdateServerIssuesAsync(componentModel.GetService<IActiveConfigScopeTracker>().Current);
 
             logger.WriteLine(TaintResources.SyncPackage_Initialized);
         }
