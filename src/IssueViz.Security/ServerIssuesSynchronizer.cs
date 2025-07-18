@@ -23,56 +23,68 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Service.SCA;
 using SonarLint.VisualStudio.SLCore.Service.Taint;
 using VSShellInterop = Microsoft.VisualStudio.Shell.Interop;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint;
+namespace SonarLint.VisualStudio.IssueVisualization.Security;
 
-internal interface ITaintIssuesSynchronizer
+internal interface IServerIssuesSynchronizer
 {
     /// <summary>
     ///     Fetches taint vulnerabilities from the server, converts them into visualizations and populates <see cref="ITaintStore" />.
     /// </summary>
-    Task UpdateTaintVulnerabilitiesAsync(ConfigurationScope configurationScope);
+    Task UpdateServerIssuesAsync(ConfigurationScope configurationScope);
 }
 
-[Export(typeof(ITaintIssuesSynchronizer))]
+[Export(typeof(IServerIssuesSynchronizer))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class TaintIssuesSynchronizer : ITaintIssuesSynchronizer
+internal sealed class ServerIssuesSynchronizer : IServerIssuesSynchronizer
 {
     private readonly IAsyncLock asyncLock;
-    private readonly ITaintIssueToIssueVisualizationConverter converter;
-    private readonly ILogger logger;
-    private readonly ISLCoreServiceProvider slCoreServiceProvider;
     private readonly ITaintStore taintStore;
-    private readonly IThreadHandling threadHandling;
+    private readonly IDependencyRisksStore dependencyRisksStore;
+    private readonly ISLCoreServiceProvider slCoreServiceProvider;
+    private readonly ITaintIssueToIssueVisualizationConverter taintConverter;
     private readonly IToolWindowService toolWindowService;
     private readonly IVsUIServiceOperation vSServiceOperation;
+    private readonly IThreadHandling threadHandling;
+    private readonly ILogger generalLogger;
+    private readonly ILogger taintLogger;
+    private readonly ILogger scaLogger;
+    private readonly IScaIssueDtoToDependencyRiskConverter scaConverter;
 
-    [ImportingConstructor]
-    public TaintIssuesSynchronizer(
-        ITaintStore taintStore,
+    [method: ImportingConstructor]
+    public ServerIssuesSynchronizer(ITaintStore taintStore,
+        IDependencyRisksStore dependencyRisksStore,
         ISLCoreServiceProvider slCoreServiceProvider,
-        ITaintIssueToIssueVisualizationConverter converter,
+        ITaintIssueToIssueVisualizationConverter taintConverter,
         IToolWindowService toolWindowService,
         IVsUIServiceOperation vSServiceOperation,
         IThreadHandling threadHandling,
         IAsyncLockFactory asyncLockFactory,
-        ILogger logger)
+        ILogger logger,
+        IScaIssueDtoToDependencyRiskConverter scaConverter)
     {
         this.taintStore = taintStore;
+        this.dependencyRisksStore = dependencyRisksStore;
         this.slCoreServiceProvider = slCoreServiceProvider;
-        this.converter = converter;
+        this.taintConverter = taintConverter;
         this.toolWindowService = toolWindowService;
         this.vSServiceOperation = vSServiceOperation;
-        asyncLock = asyncLockFactory.Create();
         this.threadHandling = threadHandling;
-        this.logger = logger;
+        generalLogger = logger.ForContext(Resources.Synchronizer_LogContext_General);
+        taintLogger = generalLogger.ForContext(Resources.Synchronizer_LogContext_Taint);
+        scaLogger = generalLogger.ForContext(Resources.Synchronizer_LogContext_Sca);
+        this.scaConverter = scaConverter;
+        asyncLock = asyncLockFactory.Create();
     }
 
-    public Task UpdateTaintVulnerabilitiesAsync(ConfigurationScope configurationScope) =>
+    public Task UpdateServerIssuesAsync(ConfigurationScope configurationScope) =>
         threadHandling.RunOnBackgroundThread(async () =>
         {
             using (await asyncLock.AcquireAsync())
@@ -83,41 +95,81 @@ internal sealed class TaintIssuesSynchronizer : ITaintIssuesSynchronizer
 
     private async Task PerformSynchronizationInternalAsync(ConfigurationScope configurationScope)
     {
+        if (!IsConnectedModeConfigScope(configurationScope)
+            || !IsConfigScopeReady(configurationScope))
+        {
+            HandleNoTaintIssues();
+            HandleNoScaIssues();
+            return;
+        }
+
+        await UpdateTaintsAsync(configurationScope);
+        await UpdateScaAsync(configurationScope);
+    }
+
+    private async Task UpdateTaintsAsync(ConfigurationScope configurationScope)
+    {
         try
         {
-            if (!IsConnectedModeConfigScope(configurationScope)
-                || !IsConfigScopeReady(configurationScope)
-                || !TryGetSLCoreService(out var taintService))
+            if (!TryGetSlCoreService(out ITaintVulnerabilityTrackingSlCoreService taintService, taintLogger))
             {
                 HandleNoTaintIssues();
                 return;
             }
 
-            if (IsAlreadyInitializedForConfigScope(configurationScope))
+            if (IsAlreadyInitializedForConfigScope(configurationScope, taintStore.ConfigurationScope, taintLogger))
             {
                 return;
             }
 
             var taintsResponse = await taintService.ListAllAsync(new ListAllTaintsParams(configurationScope.Id, true));
-            logger.WriteLine(TaintResources.Synchronizer_NumberOfServerIssues, taintsResponse.taintVulnerabilities.Count);
+            taintLogger.WriteLine(Resources.Synchronizer_NumberOfTaintIssues, taintsResponse.taintVulnerabilities.Count);
 
-            taintStore.Set(taintsResponse.taintVulnerabilities.Select(x => converter.Convert(x, configurationScope.RootPath)).ToArray(), configurationScope.Id);
+            taintStore.Set(taintsResponse.taintVulnerabilities.Select(x => taintConverter.Convert(x, configurationScope.RootPath)).ToArray(), configurationScope.Id);
 
             HandleUIContextUpdate(taintsResponse.taintVulnerabilities.Count);
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            logger.WriteLine(TaintResources.Synchronizer_Failure, ex);
+            taintLogger.WriteLine(Resources.Synchronizer_Failure, ex);
             HandleNoTaintIssues();
         }
     }
 
-    private bool TryGetSLCoreService(out ITaintVulnerabilityTrackingSlCoreService taintService)
+    private async Task UpdateScaAsync(ConfigurationScope configurationScope)
     {
-        var result = slCoreServiceProvider.TryGetTransientService(out taintService);
+        try
+        {
+            if (!TryGetSlCoreService(out IScaIssueTrackingRpcService scaService, scaLogger))
+            {
+                HandleNoScaIssues();
+                return;
+            }
+
+            if (IsAlreadyInitializedForConfigScope(configurationScope, dependencyRisksStore.CurrentConfigurationScope, scaLogger))
+            {
+                return;
+            }
+
+            var scaResponse = await scaService.ListAllAsync(new ListAllScaIssuesParams(configurationScope.Id));
+            scaLogger.WriteLine(Resources.Synchronizer_NumberOfScaIssues, scaResponse.scaIssues.Count);
+
+            var dependencyRisks = scaResponse.scaIssues.Select(x => scaConverter.Convert(x)).ToArray();
+            dependencyRisksStore.Set(dependencyRisks, configurationScope.Id);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            scaLogger.WriteLine(Resources.Synchronizer_Failure, ex);
+            HandleNoScaIssues();
+        }
+    }
+
+    private bool TryGetSlCoreService<T>(out T service, ILogger logger) where T : class, ISLCoreService
+    {
+        var result = slCoreServiceProvider.TryGetTransientService(out service);
         if (!result)
         {
-            logger.WriteLine(TaintResources.Synchronizer_SLCoreNotReady);
+            logger.WriteLine(Resources.Synchronizer_SLCoreNotReady);
         }
         return result;
     }
@@ -127,17 +179,17 @@ internal sealed class TaintIssuesSynchronizer : ITaintIssuesSynchronizer
         var isReady = configurationScope.RootPath is not null;
         if (!isReady)
         {
-            logger.LogVerbose(TaintResources.Synchronizer_Verbose_ConfigScopeNotReady);
+            generalLogger.LogVerbose(Resources.Synchronizer_Verbose_ConfigScopeNotReady);
         }
         return isReady;
     }
 
-    private bool IsAlreadyInitializedForConfigScope(ConfigurationScope configurationScope)
+    private bool IsAlreadyInitializedForConfigScope(ConfigurationScope configurationScope, string currentStoreConfigurationScope, ILogger logger)
     {
-        var isAlreadyInitialized = taintStore.ConfigurationScope == configurationScope.Id;
-        if (!isAlreadyInitialized)
+        var isAlreadyInitialized = currentStoreConfigurationScope == configurationScope.Id;
+        if (isAlreadyInitialized)
         {
-            logger.LogVerbose(TaintResources.Synchronizer_Verbose_AlreadyInitialized);
+            logger.LogVerbose(Resources.Synchronizer_Verbose_AlreadyInitialized);
         }
         return isAlreadyInitialized;
     }
@@ -166,7 +218,7 @@ internal sealed class TaintIssuesSynchronizer : ITaintIssuesSynchronizer
             return true;
         }
 
-        logger.WriteLine(TaintResources.Synchronizer_NotInConnectedMode);
+        generalLogger.WriteLine(Resources.Synchronizer_NotInConnectedMode);
         return false;
     }
 
@@ -174,6 +226,11 @@ internal sealed class TaintIssuesSynchronizer : ITaintIssuesSynchronizer
     {
         taintStore.Reset();
         UpdateTaintIssuesUIContext(false);
+    }
+
+    private void HandleNoScaIssues()
+    {
+        dependencyRisksStore.Reset();
     }
 
     private void UpdateTaintIssuesUIContext(bool hasTaintIssues) =>

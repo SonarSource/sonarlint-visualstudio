@@ -52,41 +52,44 @@ public class DependencyRisksStoreTests
     }
 
     [TestMethod]
-    public void Update_SetsItems()
+    public void Set_SetsItems()
     {
         var risk1 = CreateDependencyRisk();
         var risk2 = CreateDependencyRisk();
         IDependencyRisk[] risks = [risk1, risk2];
 
-        testSubject.Set(risks);
+        testSubject.Set(risks, "test-scope");
 
         var storedRisks = testSubject.GetAll();
         storedRisks.Should().BeEquivalentTo(risks);
+        testSubject.CurrentConfigurationScope.Should().Be("test-scope");
         eventHandler.Received(1).Invoke(testSubject, EventArgs.Empty);
     }
 
     [TestMethod]
-    public void Update_RaisesEvent()
+    public void Set_RaisesEvent()
     {
-        testSubject.Set([]);
-        testSubject.Set([]);
-        testSubject.Set([]);
+        testSubject.Set([], "test-scope1");
+        testSubject.Set([], "test-scope2");
+        testSubject.Set([], "test-scope3");
 
         eventHandler.Received(3).Invoke(testSubject, EventArgs.Empty);
     }
 
     [TestMethod]
-    public void Update_OverwritesExistingItems()
+    public void Set_OverwritesExistingItems()
     {
         var initialRisks = new[] { CreateDependencyRisk(), CreateDependencyRisk() };
-        testSubject.Set(initialRisks);
+        testSubject.Set(initialRisks, "initial-scope");
+        testSubject.CurrentConfigurationScope.Should().Be("initial-scope");
 
         var newRisk = CreateDependencyRisk();
 
-        testSubject.Set([newRisk]);
+        testSubject.Set([newRisk], "new-scope");
 
         var storedRisks = testSubject.GetAll();
         storedRisks.Should().BeEquivalentTo(newRisk);
+        testSubject.CurrentConfigurationScope.Should().Be("new-scope");
     }
 
     [TestMethod]
@@ -94,7 +97,7 @@ public class DependencyRisksStoreTests
     {
         var risk1 = CreateDependencyRisk();
         var risk2 = CreateDependencyRisk();
-        testSubject.Set([risk1, risk2]);
+        testSubject.Set([risk1, risk2], "test-scope");
 
         eventHandler.ClearReceivedCalls();
         testSubject.Remove(risk1);
@@ -109,7 +112,7 @@ public class DependencyRisksStoreTests
     {
         var risk1 = CreateDependencyRisk();
         var risk2 = CreateDependencyRisk();
-        testSubject.Set([risk1, risk2]);
+        testSubject.Set([risk1, risk2], "test-scope");
         var nonExistentRisk = CreateDependencyRisk();
 
         eventHandler.ClearReceivedCalls();
@@ -122,12 +125,14 @@ public class DependencyRisksStoreTests
     [TestMethod]
     public void Reset_HasItems_ClearsItemsAndRaisesEvent()
     {
-        testSubject.Set([CreateDependencyRisk(), CreateDependencyRisk()]);
+        testSubject.Set([CreateDependencyRisk(), CreateDependencyRisk()], "test-scope");
+        testSubject.CurrentConfigurationScope.Should().Be("test-scope");
 
         eventHandler.ClearReceivedCalls();
         testSubject.Reset();
 
         testSubject.GetAll().Should().BeEmpty();
+        testSubject.CurrentConfigurationScope.Should().BeNull();
         eventHandler.Received(1).Invoke(testSubject, EventArgs.Empty);
     }
 
@@ -145,14 +150,14 @@ public class DependencyRisksStoreTests
         var risk1 = CreateDependencyRisk();
         var risk2 = CreateDependencyRisk();
         IDependencyRisk[] originalRisks = [risk1, risk2];
-        testSubject.Set(originalRisks);
+        testSubject.Set(originalRisks, "original-scope");
 
         var result1 = testSubject.GetAll();
         var result2= testSubject.GetAll();
         result1.Should().NotBeSameAs(result2);
 
         var risk3 = CreateDependencyRisk();
-        testSubject.Set([risk3]);
+        testSubject.Set([risk3], "updated-scope");
 
         result1.Should().BeEquivalentTo(originalRisks);
         testSubject.GetAll().Should().BeEquivalentTo(risk3);

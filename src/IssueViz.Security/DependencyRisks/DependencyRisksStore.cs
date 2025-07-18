@@ -24,9 +24,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
 public interface IDependencyRisksStore
 {
+    string CurrentConfigurationScope { get; }
+
     IReadOnlyCollection<IDependencyRisk> GetAll();
 
-    void Set(IEnumerable<IDependencyRisk> dependencyRisks);
+    void Set(IEnumerable<IDependencyRisk> dependencyRisks, string configurationScopeId);
 
     void Remove(IDependencyRisk dependencyRisk);
 
@@ -41,6 +43,18 @@ internal class DependencyRisksStore : IDependencyRisksStore
 {
     private readonly List<IDependencyRisk> currentDependencyRisks = new();
     private readonly object lockObject = new();
+    private string currentConfigurationScope;
+
+    public string CurrentConfigurationScope
+    {
+        get
+        {
+            lock (lockObject)
+            {
+                return currentConfigurationScope;
+            }
+        }
+    }
 
     public IReadOnlyCollection<IDependencyRisk> GetAll()
     {
@@ -50,12 +64,13 @@ internal class DependencyRisksStore : IDependencyRisksStore
         }
     }
 
-    public void Set(IEnumerable<IDependencyRisk> dependencyRisks)
+    public void Set(IEnumerable<IDependencyRisk> dependencyRisks, string configurationScopeId)
     {
         lock (lockObject)
         {
             currentDependencyRisks.Clear();
             currentDependencyRisks.AddRange(dependencyRisks);
+            currentConfigurationScope = configurationScopeId;
         }
 
         RaiseDependencyRisksChanged();
@@ -78,11 +93,12 @@ internal class DependencyRisksStore : IDependencyRisksStore
     {
         lock (lockObject)
         {
-            if (currentDependencyRisks.Count <= 0)
+            if (currentConfigurationScope == null && currentDependencyRisks.Count <= 0)
             {
                 return;
             }
 
+            currentConfigurationScope = null;
             currentDependencyRisks.Clear();
         }
 
