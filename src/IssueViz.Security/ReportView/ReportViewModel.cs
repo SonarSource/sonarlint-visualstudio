@@ -32,4 +32,10 @@ internal class ReportViewModel : ServerViewModel
         GroupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore);
         GroupDependencyRisk.InitializeRisks();
     }
+
+    protected override void Dispose(bool disposing)
+    {
+        GroupDependencyRisk.Dispose();
+        base.Dispose(disposing);
+    }
 }

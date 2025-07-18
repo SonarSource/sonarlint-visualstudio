@@ -19,13 +19,21 @@
  */
 
 using System.Collections.ObjectModel;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
-internal class GroupDependencyRiskViewModel(IDependencyRisksStore dependencyRisksStore) : ViewModelBase
+internal class GroupDependencyRiskViewModel : ViewModelBase, IDisposable
 {
+    private readonly IDependencyRisksStore dependencyRisksStore;
+
+    public GroupDependencyRiskViewModel(IDependencyRisksStore dependencyRisksStore)
+    {
+        this.dependencyRisksStore = dependencyRisksStore;
+        dependencyRisksStore.DependencyRisksChanged += OnDependencyRiskChanged;
+        InitializeRisks();
+    }
+
     public static string Title => Resources.DependencyRisksGroupTitle;
 
     public ObservableCollection<DependencyRiskViewModel> Risks { get; } = new();
@@ -34,21 +42,13 @@ internal class GroupDependencyRiskViewModel(IDependencyRisksStore dependencyRisk
 
     public void InitializeRisks()
     {
-        // TOOD by https://sonarsource.atlassian.net/browse/SLVS-2371: remove hard coded implementation and show risks from store
-        Risks.Add(new DependencyRiskViewModel
-        {
-            PackageName = "System.ComponentModel.Composition", PackageVersion = "9.0.70", ImpactSeverity = DependencyRiskImpactSeverity.Blocker, Type = DependencyRiskType.Vulnerability
-        });
-        Risks.Add(
-            new DependencyRiskViewModel
-            {
-                PackageName = "System.Windows.Presentation", PackageVersion = "1.9", ImpactSeverity = DependencyRiskImpactSeverity.High, Type = DependencyRiskType.ProhibitedLicense
-            });
-        Risks.Add(
-            new DependencyRiskViewModel
-            {
-                PackageName = "Microsoft.Owin.Host.HttpListener", PackageVersion = "13.6.6", ImpactSeverity = DependencyRiskImpactSeverity.Info, Type = DependencyRiskType.Vulnerability
-            });
+        Risks.Clear();
+        var newDependencyRiskViewModels = dependencyRisksStore.GetAll().Select(x => new DependencyRiskViewModel(x)).ToList();
+        newDependencyRiskViewModels.ForEach(Risks.Add);
         RaisePropertyChanged(nameof(HasRisks));
     }
+
+    private void OnDependencyRiskChanged(object sender, EventArgs e) => InitializeRisks();
+
+    public void Dispose() => dependencyRisksStore.DependencyRisksChanged -= OnDependencyRiskChanged;
 }

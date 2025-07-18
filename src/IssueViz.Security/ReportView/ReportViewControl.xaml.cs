@@ -108,7 +108,7 @@ internal sealed partial class ReportViewControl : UserControl
             return;
         }
 
-        var changeStatusViewModel = new ChangeDependencyRiskStatusViewModel(selectedDependencyRiskViewModel.Status, allowedDependencyRiskStatuses);
+        var changeStatusViewModel = new ChangeDependencyRiskStatusViewModel(selectedDependencyRiskViewModel.DependencyRisk.Status, allowedDependencyRiskStatuses);
         var dialog = new ChangeStatusWindow(changeStatusViewModel, browserService, activeSolutionBoundTracker);
         if (dialog.ShowDialog(Application.Current.MainWindow) is true)
         {

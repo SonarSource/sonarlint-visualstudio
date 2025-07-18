@@ -29,18 +29,39 @@ public class ReportViewModelTest
 {
     private ReportViewModel testSubject;
     private IActiveSolutionBoundTracker activeSolutionBoundTracker;
+    private IDependencyRisksStore dependencyRisksStore;
 
     [TestInitialize]
     public void Initialize()
     {
         activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
-        testSubject = new ReportViewModel(activeSolutionBoundTracker, Substitute.For<IDependencyRisksStore>());
+        dependencyRisksStore = Substitute.For<IDependencyRisksStore>();
+        testSubject = CreateTestSubject();
     }
 
     [TestMethod]
     public void Ctor_InitializesDependencyRisks()
     {
+        var dependencyRisk = Substitute.For<IDependencyRisk>();
+        MockRisksInStore(dependencyRisk);
+
+        testSubject = CreateTestSubject();
+
         testSubject.GroupDependencyRisk.Should().NotBeNull();
-        testSubject.GroupDependencyRisk.Risks.Should().NotBeEmpty();
+        testSubject.GroupDependencyRisk.Risks.Should().ContainSingle(vm => vm.DependencyRisk == dependencyRisk);
     }
+
+    [TestMethod]
+    public void Dispose_UnsubscribesFromEvents()
+    {
+        MockRisksInStore(Substitute.For<IDependencyRisk>(), Substitute.For<IDependencyRisk>());
+
+        testSubject.Dispose();
+
+        dependencyRisksStore.Received(1).DependencyRisksChanged -= Arg.Any<EventHandler>();
+    }
+
+    private ReportViewModel CreateTestSubject() => new(activeSolutionBoundTracker, dependencyRisksStore);
+
+    private void MockRisksInStore(params IDependencyRisk[] dependencyRisks) => dependencyRisksStore.GetAll().Returns(dependencyRisks);
 }
