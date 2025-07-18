@@ -284,4 +284,34 @@ Please check the logs for more details.</value>
   <data name="ChangeDependencyRiskStatus_SafeDescription" xml:space="preserve">
     <value>This finding does not pose a risk. No fix is needed.</value>
   </data>
+  <data name="Synchronizer_Failure" xml:space="preserve">
+    <value>Failed to synchronize server issues: {0}.</value>
+  </data>
+  <data name="Synchronizer_NotInConnectedMode" xml:space="preserve">
+    <value>Unable to fetch server issues: not in connected mode.</value>
+  </data>
+  <data name="Synchronizer_SLCoreNotReady" xml:space="preserve">
+    <value>Unable to fetch server issues: SLCore backend is not available.</value>
+  </data>
+  <data name="Synchronizer_NumberOfTaintIssues" xml:space="preserve">
+    <value>Fetched {0} taint vulnerabilities.</value>
+  </data>
+  <data name="Synchronizer_NumberOfScaIssues" xml:space="preserve">
+    <value>Fetched {0} dependency risks.</value>
+  </data>
+  <data name="Synchronizer_Verbose_ConfigScopeNotReady" xml:space="preserve">
+    <value>Configuration scope root hasn't been initialized...</value>
+  </data>
+  <data name="Synchronizer_Verbose_AlreadyInitialized" xml:space="preserve">
+    <value>Storage has already been initialized for current configuration scope</value>
+  </data>
+  <data name="Synchronizer_LogContext_General" xml:space="preserve">
+    <value>Server Issue Sync</value>
+  </data>
+  <data name="Synchronizer_LogContext_Taint" xml:space="preserve">
+    <value>Taint</value>
+  </data>
+  <data name="Synchronizer_LogContext_Sca" xml:space="preserve">
+    <value>Dependency Risks</value>
+  </data>
 </root>

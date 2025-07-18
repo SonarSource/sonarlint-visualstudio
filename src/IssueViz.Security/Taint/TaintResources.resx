@@ -117,35 +117,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Synchronizer_Failure" xml:space="preserve">
-    <value>[Taint] Failed to synchronize taint vulnerabilities with the connected server: {0}.</value>
-  </data>
-  <data name="Synchronizer_NotInConnectedMode" xml:space="preserve">
-    <value>[Taint] Unable to fetch taint vulnerabilities: not in connected mode.</value>
-  </data>
-  <data name="Synchronizer_SLCoreNotReady" xml:space="preserve">
-    <value>[Taint] Unable to fetch taint vulnerabilities: SLCore backend is not available.</value>
-  </data>
-  <data name="Synchronizer_NumberOfServerIssues" xml:space="preserve">
-    <value>[Taint] Fetched {0} taint vulnerabilities.</value>
-  </data>
   <data name="SyncPackage_Initialized" xml:space="preserve">
     <value>[Taint] Finished initializing taint issues synchronization package.</value>
   </data>
   <data name="SyncPackage_Initializing" xml:space="preserve">
     <value>[Taint] Initializing taint issues synchronization package...</value>
   </data>
-  <data name="Synchronizer_UnsupportedSQVersion" xml:space="preserve">
-    <value>[Taint] Displaying taint vulnerabilities in the IDE requires SonarQube Server v8.6 or later, or SonarQube Cloud. Connected SonarQube Server version: v{0}
-    Visit {1} to find out more about this and other SonarQube for Visual Studio features.</value>
-  </data>
   <data name="TaintIssue_SeverityUndefined" xml:space="preserve">
     <value>Taint issue with id: {0} has no defined severity</value>
-  </data>
-  <data name="Synchronizer_Verbose_ConfigScopeNotReady" xml:space="preserve">
-    <value>[Taint Sync] Configuration scope root hasn't been initialized...</value>
-  </data>
-  <data name="Synchronizer_Verbose_AlreadyInitialized" xml:space="preserve">
-    <value>[Taint Sync] Taint storage has already been initialized for current configuration scope</value>
   </data>
 </root>
