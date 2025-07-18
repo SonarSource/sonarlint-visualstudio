@@ -161,6 +161,15 @@ namespace SonarLint.VisualStudio.Core.Analysis
         Safe
     }
 
+    public enum DependencyRiskTransition
+    {
+        Confirm,
+        Reopen,
+        Safe,
+        Fixed,
+        Accept
+    }
+
     public static class IAnalysisIssueExtensions
     {
         public static bool IsFileLevel(this IAnalysisIssueBase issue)

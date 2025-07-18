@@ -22,8 +22,6 @@ using System.ComponentModel.Composition;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
-public interface IDependencyRisk;
-
 public interface IDependencyRisksStore
 {
     IReadOnlyCollection<IDependencyRisk> GetAll();
