@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView;
@@ -33,7 +34,7 @@ public class ReportViewModelTest
     public void Initialize()
     {
         activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
-        testSubject = new ReportViewModel(activeSolutionBoundTracker);
+        testSubject = new ReportViewModel(activeSolutionBoundTracker, Substitute.For<IDependencyRisksStore>());
     }
 
     [TestMethod]

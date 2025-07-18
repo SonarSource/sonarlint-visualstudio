@@ -24,7 +24,7 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
-internal class GroupDependencyRiskViewModel : ViewModelBase
+internal class GroupDependencyRiskViewModel(IDependencyRisksStore dependencyRisksStore) : ViewModelBase
 {
     public static string Title => Resources.DependencyRisksGroupTitle;
 

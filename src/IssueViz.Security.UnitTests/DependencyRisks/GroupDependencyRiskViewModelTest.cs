@@ -27,9 +27,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Dependenc
 public class GroupDependencyRiskViewModelTest
 {
     private GroupDependencyRiskViewModel testSubject;
+    private IDependencyRisksStore dependencyRisksStore;
 
     [TestInitialize]
-    public void Initialize() => testSubject = new GroupDependencyRiskViewModel();
+    public void Initialize()
+    {
+        dependencyRisksStore = Substitute.For<IDependencyRisksStore>();
+        testSubject = new GroupDependencyRiskViewModel(dependencyRisksStore);
+    }
 
     [TestMethod]
     public void Ctor_HasPropertiesInitialized()
