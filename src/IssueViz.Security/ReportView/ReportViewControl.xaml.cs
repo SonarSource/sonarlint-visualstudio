@@ -43,11 +43,11 @@ internal sealed partial class ReportViewControl : UserControl
     public ReportViewModel ReportViewModel { get; }
     public IResourceFinder ResourceFinder { get; } = new ResourceFinder();
 
-    public ReportViewControl(IActiveSolutionBoundTracker activeSolutionBoundTracker, IBrowserService browserService)
+    public ReportViewControl(IActiveSolutionBoundTracker activeSolutionBoundTracker, IBrowserService browserService, IDependencyRisksStore dependencyRisksStore)
     {
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.browserService = browserService;
-        ReportViewModel = new ReportViewModel(activeSolutionBoundTracker);
+        ReportViewModel = new ReportViewModel(activeSolutionBoundTracker, dependencyRisksStore);
         InitializeComponent();
     }
 
@@ -108,7 +108,7 @@ internal sealed partial class ReportViewControl : UserControl
             return;
         }
 
-        var changeStatusViewModel = new ChangeDependencyRiskStatusViewModel(selectedDependencyRiskViewModel.Status, allowedDependencyRiskStatuses);
+        var changeStatusViewModel = new ChangeDependencyRiskStatusViewModel(selectedDependencyRiskViewModel.DependencyRisk.Status, allowedDependencyRiskStatuses);
         var dialog = new ChangeStatusWindow(changeStatusViewModel, browserService, activeSolutionBoundTracker);
         if (dialog.ShowDialog(Application.Current.MainWindow) is true)
         {

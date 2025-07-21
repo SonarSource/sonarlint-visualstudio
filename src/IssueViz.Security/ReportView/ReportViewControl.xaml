@@ -167,7 +167,7 @@
                             <Image.Source>
                                 <MultiBinding
                                     Converter="{StaticResource DependencyRiskImpactSeverityToImageSourceConverter}">
-                                    <Binding Path="ImpactSeverity" />
+                                    <Binding Path="DependencyRisk.Severity" />
                                     <Binding RelativeSource="{RelativeSource Self}" />
                                     <Binding Path="ResourceFinder"
                                              RelativeSource="{RelativeSource FindAncestor, AncestorType=UserControl}" />
@@ -177,17 +177,17 @@
                                 <StackPanel>
                                     <TextBlock>
                                         <Run Text="{x:Static res:Resources.DependencyRiskImpactSeverityTooltip}" />
-                                        <Run Text="{Binding ImpactSeverity}" />
+                                        <Run Text="{Binding DependencyRisk.Severity}" />
                                     </TextBlock>
                                 </StackPanel>
                             </Image.ToolTip>
                         </Image>
-                        <TextBlock Grid.Column="1" Text="{Binding PackageName, StringFormat={}{0}:}" Margin="2,0"
+                        <TextBlock Grid.Column="1" Text="{Binding DependencyRisk.PackageName, StringFormat={}{0}:}" Margin="2,0"
                                    Style="{StaticResource IssueTextBlockStyle}" />
-                        <TextBlock Grid.Column="2" Text="{Binding PackageVersion}" Margin="1,0"
+                        <TextBlock Grid.Column="2" Text="{Binding DependencyRisk.PackageVersion}" Margin="1,0"
                                    Style="{StaticResource IssueTextBlockStyle}" />
                         <TextBlock Grid.Column="3"
-                                   Text="{Binding Type, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}"
+                                   Text="{Binding DependencyRisk.Type, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}"
                                    Margin="3,0"
                                    Style="{StaticResource TypeTextBoxStyle}" />
                     </Grid>

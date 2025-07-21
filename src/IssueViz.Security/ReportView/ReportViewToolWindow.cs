@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
@@ -39,7 +40,8 @@ internal class ReportViewToolWindow : ToolWindowPane
         var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
         var activeSolutionBoundTracker = componentModel?.GetService<IActiveSolutionBoundTracker>();
         var browserService = componentModel?.GetService<IBrowserService>();
+        var dependencyRiskStore = componentModel?.GetService<IDependencyRisksStore>();
         Caption = Resources.ReportViewToolWindowCaption;
-        Content = new ReportViewControl(activeSolutionBoundTracker, browserService);
+        Content = new ReportViewControl(activeSolutionBoundTracker, browserService, dependencyRiskStore);
     }
 }
