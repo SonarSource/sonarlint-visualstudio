@@ -164,7 +164,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
 
         public async Task<IEnumerable<HotspotStatus>> GetAllowedStatusesAsync()
         {
-            var response = await reviewHotspotsService.CheckReviewHotspotPermittedAsync(SelectedHotspot.Hotspot.Issue.IssueServerKey);
+            var response = SelectedHotspot == null
+                ? new ReviewHotspotNotPermittedArgs(Resources.ReviewHotspotWindow_NoStatusSelectedFailureMessage)
+                : await reviewHotspotsService.CheckReviewHotspotPermittedAsync(SelectedHotspot.Hotspot.Issue.IssueServerKey);
             switch (response)
             {
                 case ReviewHotspotPermittedArgs reviewHotspotPermittedArgs:

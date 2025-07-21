@@ -191,6 +191,9 @@ Please check the logs for more details.</value>
     <value>The hotspot can not be reviewed due to the following error: {0}
 Please check the logs for more details.</value>
   </data>
+  <data name="ReviewHotspotWindow_NoStatusSelectedFailureMessage" xml:space="preserve">
+    <value>No hotspot has been selected.</value>
+  </data>
   <data name="ReviewHotspotWindow_FailureTitle" xml:space="preserve">
     <value>Review Hotspot Failure</value>
   </data>
