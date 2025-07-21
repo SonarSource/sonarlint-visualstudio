@@ -350,6 +350,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No hotspot has been selected..
+        /// </summary>
+        public static string ReviewHotspotWindow_NoStatusSelectedFailureMessage {
+            get {
+                return ResourceManager.GetString("ReviewHotspotWindow_NoStatusSelectedFailureMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An error occurred while reviewing the hotspot. The status has not been changed.
         ///Please check the logs for more details..
         /// </summary>

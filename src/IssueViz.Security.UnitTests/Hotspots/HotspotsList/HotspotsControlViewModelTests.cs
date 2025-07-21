@@ -469,6 +469,19 @@ public class HotspotsControlViewModelTests
     }
 
     [TestMethod]
+    public async Task GetAllowedStatusesAsync_NoStatusSelected_ShowsMessageBoxAndReturnsNull()
+    {
+        testSubject.SelectedHotspot = null;
+
+        var result = await testSubject.GetAllowedStatusesAsync();
+
+        result.Should().BeNull();
+        messageBox.Received(1).Show(
+            Arg.Is<string>(x => x == string.Format(Resources.ReviewHotspotWindow_CheckReviewPermittedFailureMessage, Resources.ReviewHotspotWindow_NoStatusSelectedFailureMessage)),
+            Arg.Is<string>(x => x == Resources.ReviewHotspotWindow_FailureTitle), MessageBoxButton.OK, MessageBoxImage.Error);
+    }
+
+    [TestMethod]
     [DataRow(HotspotStatus.Fixed)]
     [DataRow(HotspotStatus.Safe)]
     public async Task ChangeHotspotStatusAsync_Succeeds_HotspotStatusFixed_RemovesViewModel(HotspotStatus newStatus)
@@ -557,6 +570,16 @@ public class HotspotsControlViewModelTests
         await testSubject.ViewHotspotInBrowserAsync();
 
         await reviewHotspotsService.Received(1).OpenHotspotAsync(hotspotKey);
+    }
+
+    [TestMethod]
+    public async Task ViewHotspotInBrowserAsync_NoHotspotSelected_DoesNotThrowException()
+    {
+        testSubject.SelectedHotspot = null;
+
+        await testSubject.ViewHotspotInBrowserAsync();
+
+        await reviewHotspotsService.Received(1).OpenHotspotAsync(null);
     }
 
     [TestMethod]
