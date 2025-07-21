@@ -573,6 +573,16 @@ public class HotspotsControlViewModelTests
     }
 
     [TestMethod]
+    public async Task ViewHotspotInBrowserAsync_NoHotspotSelected_DoesNotThrowException()
+    {
+        testSubject.SelectedHotspot = null;
+
+        await testSubject.ViewHotspotInBrowserAsync();
+
+        await reviewHotspotsService.Received(1).OpenHotspotAsync(null);
+    }
+
+    [TestMethod]
     public void Dispose_UnsubscribesFromActiveSolutionBoundTrackerEvents()
     {
         testSubject.Dispose();
