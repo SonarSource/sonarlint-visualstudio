@@ -42,7 +42,8 @@ public class SLCoreConstantsProvider(IUserAgentProvider userAgentProvider, IVsIn
         BackendCapability.FULL_SYNCHRONIZATION,
         BackendCapability.TELEMETRY,
         BackendCapability.MONITORING,
-        BackendCapability.ISSUE_STREAMING
+        BackendCapability.ISSUE_STREAMING,
+        BackendCapability.SCA_SYNCHRONIZATION
     ];
 
     public TelemetryClientConstantAttributesDto TelemetryConstants =>
