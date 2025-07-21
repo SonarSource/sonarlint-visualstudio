@@ -77,7 +77,7 @@ internal sealed class ServerIssuesSynchronizer : IServerIssuesSynchronizer
         this.toolWindowService = toolWindowService;
         this.vSServiceOperation = vSServiceOperation;
         this.threadHandling = threadHandling;
-        generalLogger = logger.ForContext(Resources.Synchronizer_LogContext_General);
+        generalLogger = logger.ForContext(Resources.Synchronizer_LogContext_General).ForVerboseContext(nameof(ServerIssuesSynchronizer));
         taintLogger = generalLogger.ForContext(Resources.Synchronizer_LogContext_Taint);
         scaLogger = generalLogger.ForContext(Resources.Synchronizer_LogContext_Sca);
         this.scaConverter = scaConverter;
@@ -184,7 +184,7 @@ internal sealed class ServerIssuesSynchronizer : IServerIssuesSynchronizer
         return isReady;
     }
 
-    private bool IsAlreadyInitializedForConfigScope(ConfigurationScope configurationScope, string currentStoreConfigurationScope, ILogger logger)
+    private static bool IsAlreadyInitializedForConfigScope(ConfigurationScope configurationScope, string currentStoreConfigurationScope, ILogger logger)
     {
         var isAlreadyInitialized = currentStoreConfigurationScope == configurationScope.Id;
         if (isAlreadyInitialized)
