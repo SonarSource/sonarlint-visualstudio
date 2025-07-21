@@ -56,7 +56,7 @@ public class SolutionBindingRepositoryTests
         solutionBindingFileLoader = Substitute.For<ISolutionBindingFileLoader>();
         logger = new TestLogger();
 
-        testSubject = new SolutionBindingRepository(unintrusiveBindingPathProvider, bindingJsonModelConverter, serverConnectionsRepository, solutionBindingFileLoader, credentialsLoader, logger);
+        testSubject = new SolutionBindingRepository(unintrusiveBindingPathProvider, bindingJsonModelConverter, serverConnectionsRepository, credentialsLoader, solutionBindingFileLoader, logger);
 
         mockCredentials = new UsernameAndPasswordCredentials("user", "pwd".ToSecureString());
 
@@ -72,13 +72,15 @@ public class SolutionBindingRepositoryTests
             MefTestHelpers.CreateExport<IUnintrusiveBindingPathProvider>(),
             MefTestHelpers.CreateExport<IBindingJsonModelConverter>(),
             MefTestHelpers.CreateExport<IServerConnectionsRepository>(),
-            MefTestHelpers.CreateExport<ICredentialStoreService>(),
+            MefTestHelpers.CreateExport<ISolutionBindingCredentialsLoader>(),
+            MefTestHelpers.CreateExport<ISolutionBindingFileLoader>(),
             MefTestHelpers.CreateExport<ILogger>());
         MefTestHelpers.CheckTypeCanBeImported<SolutionBindingRepository, ILegacySolutionBindingRepository>(
             MefTestHelpers.CreateExport<IUnintrusiveBindingPathProvider>(),
             MefTestHelpers.CreateExport<IBindingJsonModelConverter>(),
             MefTestHelpers.CreateExport<IServerConnectionsRepository>(),
-            MefTestHelpers.CreateExport<ICredentialStoreService>(),
+            MefTestHelpers.CreateExport<ISolutionBindingCredentialsLoader>(),
+            MefTestHelpers.CreateExport<ISolutionBindingFileLoader>(),
             MefTestHelpers.CreateExport<ILogger>());
     }
 
