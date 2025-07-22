@@ -43,11 +43,15 @@ internal sealed partial class ReportViewControl : UserControl
     public ReportViewModel ReportViewModel { get; }
     public IResourceFinder ResourceFinder { get; } = new ResourceFinder();
 
-    public ReportViewControl(IActiveSolutionBoundTracker activeSolutionBoundTracker, IBrowserService browserService, IDependencyRisksStore dependencyRisksStore)
+    public ReportViewControl(
+        IActiveSolutionBoundTracker activeSolutionBoundTracker,
+        IBrowserService browserService,
+        IDependencyRisksStore dependencyRisksStore,
+        IThreadHandling threadHandling)
     {
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.browserService = browserService;
-        ReportViewModel = new ReportViewModel(activeSolutionBoundTracker, dependencyRisksStore);
+        ReportViewModel = new ReportViewModel(activeSolutionBoundTracker, dependencyRisksStore, threadHandling);
         InitializeComponent();
     }
 
@@ -81,7 +85,7 @@ internal sealed partial class ReportViewControl : UserControl
 
     private void ViewDependencyRiskInBrowser_OnClick(object sender, RoutedEventArgs e)
     {
-        // TODO by https://sonarsource.atlassian.net/browse/SLVS-2372: implement actual navigation to the browser 
+        // TODO by https://sonarsource.atlassian.net/browse/SLVS-2372: implement actual navigation to the browser
     }
 
     private void DependencyRiskContextMenu_OnLoaded(object sender, RoutedEventArgs e)

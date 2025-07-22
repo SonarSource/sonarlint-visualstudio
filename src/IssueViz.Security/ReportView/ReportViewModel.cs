@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
@@ -27,9 +28,9 @@ internal class ReportViewModel : ServerViewModel
 {
     public GroupDependencyRiskViewModel GroupDependencyRisk { get; }
 
-    public ReportViewModel(IActiveSolutionBoundTracker activeSolutionBoundTracker, IDependencyRisksStore dependencyRisksStore) : base(activeSolutionBoundTracker)
+    public ReportViewModel(IActiveSolutionBoundTracker activeSolutionBoundTracker, IDependencyRisksStore dependencyRisksStore, IThreadHandling threadHandling) : base(activeSolutionBoundTracker)
     {
-        GroupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore);
+        GroupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore, threadHandling);
         GroupDependencyRisk.InitializeRisks();
     }
 

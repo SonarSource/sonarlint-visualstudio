@@ -19,6 +19,7 @@
  */
 
 using System.Collections.ObjectModel;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
@@ -26,12 +27,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IDisposable
 {
     private readonly IDependencyRisksStore dependencyRisksStore;
+    private readonly IThreadHandling threadHandling;
 
-    public GroupDependencyRiskViewModel(IDependencyRisksStore dependencyRisksStore)
+    public GroupDependencyRiskViewModel(IDependencyRisksStore dependencyRisksStore, IThreadHandling threadHandling)
     {
         this.dependencyRisksStore = dependencyRisksStore;
+        this.threadHandling = threadHandling;
         dependencyRisksStore.DependencyRisksChanged += OnDependencyRiskChanged;
-        InitializeRisks();
     }
 
     public static string Title => Resources.DependencyRisksGroupTitle;
@@ -40,13 +42,14 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IDisposable
 
     public bool HasRisks => Risks.Count > 0;
 
-    public void InitializeRisks()
-    {
-        Risks.Clear();
-        var newDependencyRiskViewModels = dependencyRisksStore.GetAll().Select(x => new DependencyRiskViewModel(x)).ToList();
-        newDependencyRiskViewModels.ForEach(Risks.Add);
-        RaisePropertyChanged(nameof(HasRisks));
-    }
+    public void InitializeRisks() =>
+        threadHandling.RunOnUIThread(() =>
+        {
+            Risks.Clear();
+            var newDependencyRiskViewModels = dependencyRisksStore.GetAll().Select(x => new DependencyRiskViewModel(x)).ToList();
+            newDependencyRiskViewModels.ForEach(Risks.Add);
+            RaisePropertyChanged(nameof(HasRisks));
+        });
 
     private void OnDependencyRiskChanged(object sender, EventArgs e) => InitializeRisks();
 
