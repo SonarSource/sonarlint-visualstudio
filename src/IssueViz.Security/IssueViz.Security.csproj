@@ -56,6 +56,10 @@
     <Page Include="DependencyRisks\DependencyRiskImpactSeverity.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="DependencyRisks\DependencyRiskDetailsControl.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+    </Page>
     <Page Include="Hotspots\HotspotsList\HotspotsControl.xaml">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <Generator>XamlIntelliSenseFileGenerator</Generator>

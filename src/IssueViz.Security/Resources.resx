@@ -268,7 +268,7 @@ Please check the logs for more details.</value>
   </data>
   <data name="CommentRequiredErrorMessage" xml:space="preserve">
     <value>Comment is required.</value>
-   </data>
+  </data>
   <data name="ChangeStatusMenuItem" xml:space="preserve">
     <value>Change Status</value>
   </data>
@@ -313,5 +313,32 @@ Please check the logs for more details.</value>
   </data>
   <data name="Synchronizer_LogContext_Sca" xml:space="preserve">
     <value>Dependency Risks</value>
+  </data>
+  <data name="DependencyRiskDetails_SeverityImpact" xml:space="preserve">
+    <value>Severity of impact</value>
+  </data>
+  <data name="DependencyRiskDetails_WhatRisk" xml:space="preserve">
+    <value>What's the risk?</value>
+  </data>
+  <data name="DependencyRiskDetails_CvssScore" xml:space="preserve">
+    <value>CVSS score</value>
+  </data>
+  <data name="DependencyRiskDetails_HowToFix" xml:space="preserve">
+    <value>How can I fix it?</value>
+  </data>
+  <data name="DependencyRiskDetails_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="DependencyRiskDetails_FindAlternativeDescription" xml:space="preserve">
+    <value>If no update is available, consider switching to an alternative dependency that provides the same functionality but without the vulnerability.</value>
+  </data>
+  <data name="DependencyRiskDetails_FindAlternativeHeader" xml:space="preserve">
+    <value>Find an alternative</value>
+  </data>
+  <data name="DependencyRiskDetails_UpdateDependencyDescription" xml:space="preserve">
+    <value>If an updated version of the dependency that fixes the vulnerability is available, update to that version. Always test your application thoroughly after updating a dependency to ensure nothing breaks.</value>
+  </data>
+  <data name="DependencyRiskDetails_UpdateDependencyHeader" xml:space="preserve">
+    <value>Update the dependency</value>
   </data>
 </root>
