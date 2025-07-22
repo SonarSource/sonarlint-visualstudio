@@ -26,11 +26,12 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks
 {
+    /// <summary>
+    /// Converts a <see cref="DependencyRiskImpactSeverity"/> to a resource based on the severity and a suffix that can be provided via the converter parameter.
+    /// </summary>
     [ValueConversion(typeof(DependencyRiskImpactSeverity), typeof(ImageSource))]
-    public class DependencyRiskImpactSeverityToImageSourceConverter : IMultiValueConverter
+    public class DependencyRiskSeverityToResourceConverter : IMultiValueConverter
     {
-        private const string Suffix = "SeverityDrawingImage";
-
         public object Convert(
             object[] values,
             Type targetType,
@@ -42,7 +43,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks
                 return null;
             }
 
-            return resourceFinder.TryFindResource(element, $"{severity}{Suffix}");
+            return resourceFinder.TryFindResource(element, $"{severity}{parameter}");
         }
 
         public object[] ConvertBack(
