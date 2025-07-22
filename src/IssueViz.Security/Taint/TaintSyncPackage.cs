@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
     [Guid("EEEB81FA-D6C3-438D-B29E-9FAAC91471CC")]
     public sealed class TaintSyncPackage : AsyncPackage
     {
-        private ITaintIssuesBindingMonitor bindingMonitor;
+        private IServerIssuesConfigurationScopeMonitor serverIssuesConfigurationScopeMonitor;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -59,12 +59,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
             logger.WriteLine(TaintResources.SyncPackage_Initializing);
 
-            bindingMonitor = componentModel.GetService<ITaintIssuesBindingMonitor>();
-            var taintIssuesSynchronizer = componentModel.GetService<ITaintIssuesSynchronizer>();
+            serverIssuesConfigurationScopeMonitor = componentModel.GetService<IServerIssuesConfigurationScopeMonitor>();
+            var taintIssuesSynchronizer = componentModel.GetService<IServerIssuesSynchronizer>();
 
             await ThreadHandling.Instance.SwitchToBackgroundThread();
 
-            await taintIssuesSynchronizer.UpdateTaintVulnerabilitiesAsync(componentModel.GetService<IActiveConfigScopeTracker>().Current);
+            await taintIssuesSynchronizer.UpdateServerIssuesAsync(componentModel.GetService<IActiveConfigScopeTracker>().Current);
 
             logger.WriteLine(TaintResources.SyncPackage_Initialized);
         }
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         {
             if (disposing)
             {
-                bindingMonitor?.Dispose();
+                serverIssuesConfigurationScopeMonitor?.Dispose();
             }
 
             base.Dispose(disposing);
