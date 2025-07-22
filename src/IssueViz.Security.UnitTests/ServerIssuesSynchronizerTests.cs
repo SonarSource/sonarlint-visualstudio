@@ -164,7 +164,7 @@ public class ServerIssuesSynchronizerTests
     }
 
     [TestMethod]
-    public async Task UpdateServerIssuesAsyncConnectedModeNotReady_StoreAndUIContextCleared()
+    public async Task UpdateServerIssuesAsync_ConnectedModeNotReady_StoreAndUIContextCleared()
     {
         const uint cookie = 123;
         SetUpMonitorSelectionMock(cookie);
