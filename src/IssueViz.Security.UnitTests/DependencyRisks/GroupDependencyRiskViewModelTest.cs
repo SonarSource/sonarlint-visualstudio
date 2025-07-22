@@ -19,7 +19,9 @@
  */
 
 using System.ComponentModel;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.DependencyRisks;
 
@@ -28,12 +30,14 @@ public class GroupDependencyRiskViewModelTest
 {
     private GroupDependencyRiskViewModel testSubject;
     private IDependencyRisksStore dependencyRisksStore;
+    private IThreadHandling threadHandling;
 
     [TestInitialize]
     public void Initialize()
     {
         dependencyRisksStore = Substitute.For<IDependencyRisksStore>();
-        testSubject = CreateTestSubject();
+        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+        testSubject = new(dependencyRisksStore, threadHandling);
     }
 
     [TestMethod]
@@ -45,6 +49,14 @@ public class GroupDependencyRiskViewModelTest
 
     [TestMethod]
     public void Ctor_SubscribesToEvents() => dependencyRisksStore.Received().DependencyRisksChanged += Arg.Any<EventHandler>();
+
+    [TestMethod]
+    public void InitializeRisks_ExecutesOnUIThread()
+    {
+        testSubject.InitializeRisks();
+
+        threadHandling.Received(1).RunOnUIThread(Arg.Any<Action>());
+    }
 
     [TestMethod]
     public void InitializeRisks_InitializesRisks()
@@ -106,8 +118,6 @@ public class GroupDependencyRiskViewModelTest
 
         dependencyRisksStore.Received(1).DependencyRisksChanged -= Arg.Any<EventHandler>();
     }
-
-    private GroupDependencyRiskViewModel CreateTestSubject() => new(dependencyRisksStore);
 
     private void MockRisksInStore(params IDependencyRisk[] dependencyRisks) => dependencyRisksStore.GetAll().Returns(dependencyRisks);
 }

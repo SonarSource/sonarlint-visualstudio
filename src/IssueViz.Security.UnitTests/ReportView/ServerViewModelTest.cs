@@ -19,7 +19,6 @@
  */
 
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView;
@@ -94,8 +93,10 @@ public class ServerViewModelTest
         activeSolutionBoundTracker.ReceivedWithAnyArgs(1).SolutionBindingChanged -= Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
     }
 
-    private ServerViewModel CreateTestSubject() => new ReportViewModel(activeSolutionBoundTracker, Substitute.For<IDependencyRisksStore>());
+    private ServerViewModel CreateTestSubject() => new TestServerViewModel(activeSolutionBoundTracker);
 
     private static BindingConfiguration CreateBindingConfiguration(ServerConnection serverConnection, SonarLintMode mode) =>
         new(new BoundServerProject("my solution", "my project", serverConnection), mode, string.Empty);
+
+    private class TestServerViewModel(IActiveSolutionBoundTracker activeSolutionBoundTracker) : ServerViewModel(activeSolutionBoundTracker);
 }
