@@ -295,7 +295,10 @@ public class ServerIssuesSynchronizerTests
         logger.AssertPartialOutputStringExists(Resources.Synchronizer_SLCoreNotReady);
         Received.InOrder(() =>
         {
+            threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+            asyncLock.AcquireAsync();
             slCoreServiceProvider.TryGetTransientService(out Arg.Any<IScaIssueTrackingRpcService>());
+            asyncLockReleaser.Dispose();
         });
         scaService.ReceivedCalls().Should().BeEmpty();
         scaConverter.ReceivedCalls().Should().BeEmpty();
