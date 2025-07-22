@@ -18,15 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.SCA;
 
-[JsonRpcClass("sca")]
-public interface IScaIssueTrackingRpcService : ISLCoreService
-{
-    Task<ListAllScaIssuesResponse> ListAllAsync(ListAllScaIssuesParams parameters);
-
-    Task<GetDependencyRiskDetailsResponse> GetDependencyRiskDetailsAsync(GetDependencyRiskDetailsParams parameters);
-}
+public record GetDependencyRiskDetailsResponse(
+    String key,
+    ScaSeverity severity,
+    String packageName,
+    String version,
+    ScaType type,
+    String vulnerabilityId,
+    String description,
+    List<AffectedPackageDto> affectedPackages);
