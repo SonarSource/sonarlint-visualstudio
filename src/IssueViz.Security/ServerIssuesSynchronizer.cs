@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security;
 internal interface IServerIssuesSynchronizer
 {
     /// <summary>
-    ///     Fetches taint vulnerabilities from the server, converts them into visualizations and populates <see cref="ITaintStore" />.
+    ///     Fetches issues (e.g. taint vulnerabilities, dependency risks) from the server, converts them into models and populates corresponding store
     /// </summary>
     Task UpdateServerIssuesAsync(ConfigurationScope configurationScope);
 }
