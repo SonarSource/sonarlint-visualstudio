@@ -189,11 +189,11 @@
                 <TextBlock Grid.Column="0" Style="{StaticResource HeaderTextStyle}">
                     <Hyperlink NavigateUri="https://www.sonarsource.com" RequestNavigate="OnNavigateToDependencyRisk"
                                FontWeight="Bold">
-                        <Run Text="{Binding Path=VulnerabilityId}" />
+                        <Run Text="{Binding Path=VulnerabilityId, Mode=OneWay}" />
                     </Hyperlink>
 
                     <Run Text="-" />
-                    <Run Text="{Binding Path=VulnerabilityDescription}" />
+                    <Run Text="{Binding Path=VulnerabilityDescription, Mode=OneWay}" />
                 </TextBlock>
             </Grid>
 
@@ -212,7 +212,7 @@
                         <MultiBinding
                             Converter="{StaticResource DependencyRiskSeverityToResourceConverter}"
                             ConverterParameter="SeverityBubble">
-                            <Binding Path="Severity" />
+                            <Binding Path="Severity" Mode="OneWay"/>
                             <Binding RelativeSource="{RelativeSource Self}" />
                             <Binding Path="ResourceFinder"
                                      RelativeSource="{RelativeSource FindAncestor, AncestorType=UserControl}" />
@@ -224,14 +224,14 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Column="0" Text="{Binding Severity}"
+                        <TextBlock Grid.Column="0" Text="{Binding Severity, Mode=OneWay}"
                                    Margin="5,0" />
                         <Image Grid.Column="1">
                             <Image.Source>
                                 <MultiBinding
                                     Converter="{StaticResource DependencyRiskSeverityToResourceConverter}"
                                     ConverterParameter="SeverityDrawingImage">
-                                    <Binding Path="Severity" />
+                                    <Binding Path="Severity" Mode="OneWay"/>
                                     <Binding RelativeSource="{RelativeSource Self}" />
                                     <Binding Path="ResourceFinder"
                                              RelativeSource="{RelativeSource FindAncestor, AncestorType=UserControl}" />
@@ -253,8 +253,8 @@
                     <TextBlock Grid.Row="0" Text="{x:Static res:Resources.DependencyRiskDetails_CvssScore}"
                                Style="{StaticResource Header3TextStyle}" />
                     <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="2,0">
-                        <TextBlock Text="{Binding ImpactScore}" Style="{StaticResource BodyTextStyle}" />
-                        <TextBlock Text="{Binding  ImpactDescription}" Style="{StaticResource BodyTextStyle}"
+                        <TextBlock Text="{Binding ImpactScore, Mode=OneWay}" Style="{StaticResource BodyTextStyle}" />
+                        <TextBlock Text="{Binding  ImpactDescription, Mode=OneWay}" Style="{StaticResource BodyTextStyle}"
                                    Margin="2" />
                     </StackPanel>
                 </Grid>
@@ -270,7 +270,7 @@
 
                         <StackPanel Grid.Column="0" Margin="0,0,10,0">
                             <TextBlock Text="Description" Style="{StaticResource SubHeaderTextStyle}" />
-                            <TextBlock Style="{StaticResource BodyTextStyle}" Text="{Binding Description}"
+                            <TextBlock Style="{StaticResource BodyTextStyle}" Text="{Binding Description, Mode=OneWay}"
                                        Margin="0,10" />
                         </StackPanel>
                     </Grid>
