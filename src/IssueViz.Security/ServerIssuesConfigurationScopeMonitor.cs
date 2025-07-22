@@ -25,14 +25,14 @@ using SonarLint.VisualStudio.Core.ConfigurationScope;
 namespace SonarLint.VisualStudio.IssueVisualization.Security
 {
     /// <summary>
-    /// Listens to binding changes and triggers fetching of taint vulnerabilities from the connected server.
+    /// Listens to binding changes and triggers fetching of server issues from the connected server.
     /// Doesn't do initial sync - only triggers the fetch when the binding changes.
     /// </summary>
-    internal interface ITaintIssuesBindingMonitor : IDisposable;
+    internal interface IServerIssuesConfigurationScopeMonitor : IDisposable;
 
-    [Export(typeof(ITaintIssuesBindingMonitor))]
+    [Export(typeof(IServerIssuesConfigurationScopeMonitor))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class ServerIssuesConfigurationScopeMonitor : ITaintIssuesBindingMonitor
+    internal sealed class ServerIssuesConfigurationScopeMonitor : IServerIssuesConfigurationScopeMonitor
     {
         private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
         private readonly IServerIssuesSynchronizer serverIssuesSynchronizer;

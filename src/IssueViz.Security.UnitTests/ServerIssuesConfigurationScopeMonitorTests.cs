@@ -50,7 +50,7 @@ public class ServerIssuesConfigurationScopeMonitorTests
     }
 
     [TestMethod]
-    public void ConfigScopeChangedEvent_CallsTaintSynchronizer()
+    public void ConfigScopeChangedEvent_CallsServerIssuesSynchronizer()
     {
         var configurationScope = new ConfigurationScope("config scope");
         activeConfigScopeTracker.Current.Returns(configurationScope);

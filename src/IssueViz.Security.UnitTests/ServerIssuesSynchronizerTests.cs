@@ -126,9 +126,12 @@ public class ServerIssuesSynchronizerTests
             scaConverter);
     }
 
+    [TestMethod]
+    public void Ctor_SetsBaseLogContext() =>
+        logger.Received(1).ForContext(Resources.Synchronizer_LogContext_General);
 
     [TestMethod]
-    public async Task UpdateServerIssuesAsync_ConfigScope_NoConfigurationScope_StoreAndUIContextCleared()
+    public async Task UpdateServerIssuesAsyncNoConfigurationScope_StoreAndUIContextCleared()
     {
         const uint cookie = 123;
         SetUpMonitorSelectionMock(cookie);
@@ -145,7 +148,7 @@ public class ServerIssuesSynchronizerTests
     }
 
     [TestMethod]
-    public async Task UpdateServerIssuesAsync_ConfigScope_StandaloneMode_StoreAndUIContextCleared()
+    public async Task UpdateServerIssuesAsyncStandaloneMode_StoreAndUIContextCleared()
     {
         const uint cookie = 123;
         SetUpMonitorSelectionMock(cookie);
@@ -161,7 +164,7 @@ public class ServerIssuesSynchronizerTests
     }
 
     [TestMethod]
-    public async Task UpdateServerIssuesAsync_ConfigScope_ConnectedModeNotReady_StoreAndUIContextCleared()
+    public async Task UpdateServerIssuesAsyncConnectedModeNotReady_StoreAndUIContextCleared()
     {
         const uint cookie = 123;
         SetUpMonitorSelectionMock(cookie);

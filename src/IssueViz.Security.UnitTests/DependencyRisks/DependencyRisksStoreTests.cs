@@ -70,8 +70,8 @@ public class DependencyRisksStoreTests
     public void Set_RaisesEvent()
     {
         testSubject.Set([], "test-scope1");
+        testSubject.Set([], "test-scope1");
         testSubject.Set([], "test-scope2");
-        testSubject.Set([], "test-scope3");
 
         eventHandler.Received(3).Invoke(testSubject, EventArgs.Empty);
     }
