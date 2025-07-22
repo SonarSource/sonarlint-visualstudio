@@ -148,7 +148,7 @@ public class ServerIssuesSynchronizerTests
     }
 
     [TestMethod]
-    public async Task UpdateServerIssuesAsyncStandaloneMode_StoreAndUIContextCleared()
+    public async Task UpdateServerIssuesAsync_StandaloneMode_StoreAndUIContextCleared()
     {
         const uint cookie = 123;
         SetUpMonitorSelectionMock(cookie);
