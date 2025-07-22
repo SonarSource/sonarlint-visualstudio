@@ -22,33 +22,33 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
+namespace SonarLint.VisualStudio.IssueVisualization.Security
 {
     /// <summary>
-    /// Listens to binding changes and triggers fetching of taint vulnerabilities from the connected server.
+    /// Listens to binding changes and triggers fetching of server issues from the connected server.
     /// Doesn't do initial sync - only triggers the fetch when the binding changes.
     /// </summary>
-    internal interface ITaintIssuesBindingMonitor : IDisposable;
+    internal interface IServerIssuesConfigurationScopeMonitor : IDisposable;
 
-    [Export(typeof(ITaintIssuesBindingMonitor))]
+    [Export(typeof(IServerIssuesConfigurationScopeMonitor))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class TaintIssuesConfigurationScopeMonitor : ITaintIssuesBindingMonitor
+    internal sealed class ServerIssuesConfigurationScopeMonitor : IServerIssuesConfigurationScopeMonitor
     {
         private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
-        private readonly ITaintIssuesSynchronizer taintIssuesSynchronizer;
+        private readonly IServerIssuesSynchronizer serverIssuesSynchronizer;
 
         [ImportingConstructor]
-        public TaintIssuesConfigurationScopeMonitor(IActiveConfigScopeTracker activeConfigScopeTracker,
-            ITaintIssuesSynchronizer taintIssuesSynchronizer)
+        public ServerIssuesConfigurationScopeMonitor(IActiveConfigScopeTracker activeConfigScopeTracker,
+            IServerIssuesSynchronizer serverIssuesSynchronizer)
         {
             this.activeConfigScopeTracker = activeConfigScopeTracker;
-            this.taintIssuesSynchronizer = taintIssuesSynchronizer;
+            this.serverIssuesSynchronizer = serverIssuesSynchronizer;
 
             this.activeConfigScopeTracker.CurrentConfigurationScopeChanged += ActiveConfigScopeTrackerOnCurrentConfigurationScopeChanged;
         }
 
         private void ActiveConfigScopeTrackerOnCurrentConfigurationScopeChanged(object sender, EventArgs e) =>
-            taintIssuesSynchronizer.UpdateTaintVulnerabilitiesAsync(activeConfigScopeTracker.Current).Forget();
+            serverIssuesSynchronizer.UpdateServerIssuesAsync(activeConfigScopeTracker.Current).Forget();
 
         public void Dispose() =>
             activeConfigScopeTracker.CurrentConfigurationScopeChanged -= ActiveConfigScopeTrackerOnCurrentConfigurationScopeChanged;

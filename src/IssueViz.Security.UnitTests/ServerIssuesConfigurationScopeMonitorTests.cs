@@ -19,23 +19,22 @@
  */
 
 using SonarLint.VisualStudio.Core.ConfigurationScope;
-using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests;
 
 [TestClass]
-public class TaintIssuesConfigurationScopeMonitorTests
+public class ServerIssuesConfigurationScopeMonitorTests
 {
-    private TaintIssuesConfigurationScopeMonitor testSubject;
+    private ServerIssuesConfigurationScopeMonitor testSubject;
     private IActiveConfigScopeTracker activeConfigScopeTracker;
-    private ITaintIssuesSynchronizer taintIssuesSynchronizer;
+    private IServerIssuesSynchronizer serverIssuesSynchronizer;
 
     [TestInitialize]
     public void TestInitialize()
     {
         activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
-        taintIssuesSynchronizer = Substitute.For<ITaintIssuesSynchronizer>();
-        testSubject = new TaintIssuesConfigurationScopeMonitor(activeConfigScopeTracker, taintIssuesSynchronizer);
+        serverIssuesSynchronizer = Substitute.For<IServerIssuesSynchronizer>();
+        testSubject = new ServerIssuesConfigurationScopeMonitor(activeConfigScopeTracker, serverIssuesSynchronizer);
     }
 
     [TestMethod]
@@ -51,13 +50,13 @@ public class TaintIssuesConfigurationScopeMonitorTests
     }
 
     [TestMethod]
-    public void ConfigScopeChangedEvent_CallsTaintSynchronizer()
+    public void ConfigScopeChangedEvent_CallsServerIssuesSynchronizer()
     {
         var configurationScope = new ConfigurationScope("config scope");
         activeConfigScopeTracker.Current.Returns(configurationScope);
 
         activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith<ConfigurationScopeChangedEventArgs>(new (default));
 
-        taintIssuesSynchronizer.Received(1).UpdateTaintVulnerabilitiesAsync(configurationScope);
+        serverIssuesSynchronizer.Received(1).UpdateServerIssuesAsync(configurationScope);
     }
 }
