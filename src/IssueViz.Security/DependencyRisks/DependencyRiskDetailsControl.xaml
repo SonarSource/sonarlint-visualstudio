@@ -115,7 +115,7 @@
                                     <RowDefinition Height="auto" />
                                     <RowDefinition Height="auto" />
                                 </Grid.RowDefinitions>
-                                <Border x:Name="mainBorder" Background="{TemplateBinding Background}"
+                                <Border x:Name="mainBorder" Background="Transparent"
                                         BorderThickness="0" Margin="0" />
                                 <ContentPresenter Grid.Row="0" x:Name="contentPresenter" ContentSource="Header"
                                                   Focusable="False"
