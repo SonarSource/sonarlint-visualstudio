@@ -18,15 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Service.SCA;
 
-namespace SonarLint.VisualStudio.SLCore.Service.SCA;
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.SCA;
 
-[JsonRpcClass("sca")]
-public interface IScaIssueTrackingRpcService : ISLCoreService
+[TestClass]
+public class GetDependencyRiskDetailsParamsTest
 {
-    Task<ListAllScaIssuesResponse> ListAllAsync(ListAllScaIssuesParams parameters);
+    [DataTestMethod]
+    [DataRow("scope 1")]
+    [DataRow("other scope 2")]
+    public void Serialized_AsExpected(string configurationScopeId)
+    {
+        var dependencyRiskKey = Guid.NewGuid().ToString();
+        var expected = $$"""{"configurationScopeId":"{{configurationScopeId}}","dependencyRiskKey":"{{dependencyRiskKey}}"}""";
 
-    Task<GetDependencyRiskDetailsResponse> GetDependencyRiskDetailsAsync(GetDependencyRiskDetailsParams parameters);
+        var listAllTaintsParams = new GetDependencyRiskDetailsParams(configurationScopeId, dependencyRiskKey);
+
+        JsonConvert.SerializeObject(listAllTaintsParams).Should().Be(expected);
+    }
 }

@@ -18,15 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
-
 namespace SonarLint.VisualStudio.SLCore.Service.SCA;
 
-[JsonRpcClass("sca")]
-public interface IScaIssueTrackingRpcService : ISLCoreService
-{
-    Task<ListAllScaIssuesResponse> ListAllAsync(ListAllScaIssuesParams parameters);
-
-    Task<GetDependencyRiskDetailsResponse> GetDependencyRiskDetailsAsync(GetDependencyRiskDetailsParams parameters);
-}
+public record AffectedPackageDto(
+    string purl,
+    string recommendation,
+    RecommendationDetailsDto recommendationDetails);
