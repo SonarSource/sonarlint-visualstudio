@@ -27,9 +27,9 @@ using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.DependencyRisks;
 
 [TestClass]
-public class DependencyRiskImpactSeverityToImageSourceConverterTest
+public class DependencyRiskSeverityToResourceConverterTest
 {
-    private DependencyRiskImpactSeverityToImageSourceConverter testSubject;
+    private DependencyRiskSeverityToResourceConverter testSubject;
     private IResourceFinder resourceFinder;
     private Button uiElement;
 
@@ -38,7 +38,7 @@ public class DependencyRiskImpactSeverityToImageSourceConverterTest
     {
         uiElement = new Button();
         resourceFinder = Substitute.For<IResourceFinder>();
-        testSubject = new DependencyRiskImpactSeverityToImageSourceConverter();
+        testSubject = new DependencyRiskSeverityToResourceConverter();
     }
 
     [TestMethod]
@@ -77,12 +77,13 @@ public class DependencyRiskImpactSeverityToImageSourceConverterTest
     [DynamicData(nameof(GetAllDependencyRiskImpactSeverities))]
     public void Convert_ReturnsResourceForSeverity(DependencyRiskImpactSeverity severity)
     {
+        var suffix = "SeverityDrawingImage";
         var expectedResource = new Style();
-        resourceFinder.TryFindResource(uiElement, $"{severity}SeverityDrawingImage").Returns(expectedResource);
+        resourceFinder.TryFindResource(uiElement, $"{severity}{suffix}").Returns(expectedResource);
 
-        var result = testSubject.Convert([severity, uiElement, resourceFinder], null, null, CultureInfo.InvariantCulture);
+        var result = testSubject.Convert([severity, uiElement, resourceFinder], null, suffix, CultureInfo.InvariantCulture);
 
-        resourceFinder.Received(1).TryFindResource(uiElement, $"{severity}SeverityDrawingImage");
+        resourceFinder.Received(1).TryFindResource(uiElement, $"{severity}{suffix}");
         result.Should().Be(expectedResource);
     }
 
