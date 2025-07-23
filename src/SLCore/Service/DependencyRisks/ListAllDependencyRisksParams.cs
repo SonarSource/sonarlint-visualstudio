@@ -18,33 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.SLCore.Common.Models;
+namespace SonarLint.VisualStudio.SLCore.Service.DependencyRisks;
 
-public record ScaIssueDto(
-    Guid id,
-    ScaType type,
-    ScaSeverity severity,
-    ScaStatus status,
-    string packageName,
-    string packageVersion,
-    List<ScaTransition> transitions);
-
-public enum ScaSeverity
-{
-    INFO, LOW, MEDIUM, HIGH, BLOCKER
-}
-
-public enum ScaType
-{
-    VULNERABILITY, PROHIBITED_LICENSE
-}
-
-public enum ScaStatus
-{
-    OPEN, CONFIRM, ACCEPT, SAFE
-}
-
-public enum ScaTransition
-{
-    CONFIRM, REOPEN, SAFE, FIXED, ACCEPT
-}
+public record ListAllDependencyRisksParams(string configurationScopeId);

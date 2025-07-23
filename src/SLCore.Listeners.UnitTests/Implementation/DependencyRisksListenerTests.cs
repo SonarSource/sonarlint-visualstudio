@@ -22,14 +22,14 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Listener.SCA;
+using SonarLint.VisualStudio.SLCore.Listener.DependencyRisks;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation;
 
 [TestClass]
-public class ScaIssuesListenerTests
+public class DependencyRisksListenerTests
 {
-    private ScaIssuesListener testSubject;
+    private DependencyRisksListener testSubject;
     private IDependencyRisksStore dependencyRisksStore;
     private IScaIssueDtoToDependencyRiskConverter converter;
     private ILogger logger;
@@ -45,18 +45,18 @@ public class ScaIssuesListenerTests
         converter = Substitute.For<IScaIssueDtoToDependencyRiskConverter>();
         logger = Substitute.For<ILogger>();
 
-        testSubject = new ScaIssuesListener(dependencyRisksStore, converter, logger);
+        testSubject = new DependencyRisksListener(dependencyRisksStore, converter, logger);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<ScaIssuesListener, ISLCoreListener>(
+        MefTestHelpers.CheckTypeCanBeImported<DependencyRisksListener, ISLCoreListener>(
             MefTestHelpers.CreateExport<IDependencyRisksStore>(),
             MefTestHelpers.CreateExport<IScaIssueDtoToDependencyRiskConverter>(),
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ScaIssuesListener>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<DependencyRisksListener>();
 
     [TestMethod]
     public void DidChangeScaIssues_ConfigurationScopeMismatch_LogsWarningAndDoesNotUpdateStore()
@@ -64,7 +64,7 @@ public class ScaIssuesListenerTests
         dependencyRisksStore.CurrentConfigurationScope.Returns(StoreConfigScopeId);
         var parameters = CreateParams(ParamsConfigScopeId);
 
-        testSubject.DidChangeScaIssues(parameters);
+        testSubject.DidChangeDependencyRisks(parameters);
 
         dependencyRisksStore.DidNotReceiveWithAnyArgs().Set(default, default);
         converter.DidNotReceiveWithAnyArgs().Convert(default);
@@ -79,7 +79,7 @@ public class ScaIssuesListenerTests
         var (scaIssue3, dependencyRisk3) = CreateScaIssueAndDependencyRisk();
         var parameters = CreateParams(ConfigScopeId, [scaIssue1, scaIssue2], [scaIssue3]);
 
-        testSubject.DidChangeScaIssues(parameters);
+        testSubject.DidChangeDependencyRisks(parameters);
 
         dependencyRisksStore.Received(1).Set(
             Arg.Is<IDependencyRisk[]>(issues =>
@@ -97,7 +97,7 @@ public class ScaIssuesListenerTests
 
         var parameters = CreateParams(ConfigScopeId);
 
-        testSubject.DidChangeScaIssues(parameters);
+        testSubject.DidChangeDependencyRisks(parameters);
 
         converter.DidNotReceiveWithAnyArgs().Convert(default!);
         dependencyRisksStore.Received(1).Set(
@@ -105,9 +105,9 @@ public class ScaIssuesListenerTests
             ConfigScopeId);
     }
 
-    private (ScaIssueDto scaIssue, IDependencyRisk dependencyRisk) CreateScaIssueAndDependencyRisk()
+    private (DependencyRiskDto scaIssue, IDependencyRisk dependencyRisk) CreateScaIssueAndDependencyRisk()
     {
-        var scaIssue = new ScaIssueDto(
+        var scaIssue = new DependencyRiskDto(
             Guid.NewGuid(),
             default,
             default,
@@ -121,10 +121,10 @@ public class ScaIssuesListenerTests
         return (scaIssue, dependencyRisk);
     }
 
-    private static DidChangeScaIssuesParams CreateParams(
+    private static DidChangeDependencyRisksParams CreateParams(
         string configScopeId,
-        List<ScaIssueDto> addedScaIssues = null,
-        List<ScaIssueDto> updatedScaIssues = null) =>
+        List<DependencyRiskDto> addedScaIssues = null,
+        List<DependencyRiskDto> updatedScaIssues = null) =>
         new(
             configScopeId,
             [Guid.NewGuid()],

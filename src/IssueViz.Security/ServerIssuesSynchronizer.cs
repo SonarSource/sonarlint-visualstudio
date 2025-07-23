@@ -27,7 +27,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList;
 using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Service.SCA;
+using SonarLint.VisualStudio.SLCore.Service.DependencyRisks;
 using SonarLint.VisualStudio.SLCore.Service.Taint;
 using VSShellInterop = Microsoft.VisualStudio.Shell.Interop;
 
@@ -55,7 +55,7 @@ internal sealed class ServerIssuesSynchronizer : IServerIssuesSynchronizer
     private readonly IThreadHandling threadHandling;
     private readonly ILogger generalLogger;
     private readonly ILogger taintLogger;
-    private readonly ILogger scaLogger;
+    private readonly ILogger dependencyRiskLogger;
     private readonly IScaIssueDtoToDependencyRiskConverter scaConverter;
 
     [method: ImportingConstructor]
@@ -79,7 +79,7 @@ internal sealed class ServerIssuesSynchronizer : IServerIssuesSynchronizer
         this.threadHandling = threadHandling;
         generalLogger = logger.ForContext(Resources.Synchronizer_LogContext_General).ForVerboseContext(nameof(ServerIssuesSynchronizer));
         taintLogger = generalLogger.ForContext(Resources.Synchronizer_LogContext_Taint);
-        scaLogger = generalLogger.ForContext(Resources.Synchronizer_LogContext_Sca);
+        dependencyRiskLogger = generalLogger.ForContext(Resources.Synchronizer_LogContext_DependencyRisks);
         this.scaConverter = scaConverter;
         asyncLock = asyncLockFactory.Create();
     }
@@ -140,26 +140,26 @@ internal sealed class ServerIssuesSynchronizer : IServerIssuesSynchronizer
     {
         try
         {
-            if (!TryGetSlCoreService(out IScaIssueTrackingRpcService scaService, scaLogger))
+            if (!TryGetSlCoreService(out IDependencyRiskSlCoreService scaService, dependencyRiskLogger))
             {
                 HandleNoScaIssues();
                 return;
             }
 
-            if (IsAlreadyInitializedForConfigScope(configurationScope, dependencyRisksStore.CurrentConfigurationScope, scaLogger))
+            if (IsAlreadyInitializedForConfigScope(configurationScope, dependencyRisksStore.CurrentConfigurationScope, dependencyRiskLogger))
             {
                 return;
             }
 
-            var scaResponse = await scaService.ListAllAsync(new ListAllScaIssuesParams(configurationScope.Id));
-            scaLogger.WriteLine(Resources.Synchronizer_NumberOfScaIssues, scaResponse.scaIssues.Count);
+            var scaResponse = await scaService.ListAllAsync(new ListAllDependencyRisksParams(configurationScope.Id));
+            dependencyRiskLogger.WriteLine(Resources.Synchronizer_NumberOfDependencyRisks, scaResponse.dependencyRisks.Count);
 
-            var dependencyRisks = scaResponse.scaIssues.Select(x => scaConverter.Convert(x)).ToArray();
+            var dependencyRisks = scaResponse.dependencyRisks.Select(x => scaConverter.Convert(x)).ToArray();
             dependencyRisksStore.Set(dependencyRisks, configurationScope.Id);
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            scaLogger.WriteLine(Resources.Synchronizer_Failure, ex);
+            dependencyRiskLogger.WriteLine(Resources.Synchronizer_Failure, ex);
             HandleNoScaIssues();
         }
     }

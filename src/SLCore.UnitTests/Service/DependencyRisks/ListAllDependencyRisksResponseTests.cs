@@ -20,12 +20,12 @@
 
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Common.Models;
-using SonarLint.VisualStudio.SLCore.Service.SCA;
+using SonarLint.VisualStudio.SLCore.Service.DependencyRisks;
 
-namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.SCA;
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.DependencyRisks;
 
 [TestClass]
-public class ListAllScaIssuesResponseTests
+public class ListAllDependencyRisksResponseTests
 {
     [TestMethod]
     public void Deserialize_ShouldCorrectlyDeserializeJson()
@@ -33,7 +33,7 @@ public class ListAllScaIssuesResponseTests
         const string json =
             """
             {
-                "scaIssues": [
+                "dependencyRisks": [
                     {
                         "id": "71814600-2924-4B88-9E1A-1AF0B46F8D48",
                         "type": "VULNERABILITY",
@@ -56,28 +56,28 @@ public class ListAllScaIssuesResponseTests
             }
             """;
 
-        var result = JsonConvert.DeserializeObject<ListAllScaIssuesResponse>(json);
+        var result = JsonConvert.DeserializeObject<ListAllDependencyRisksResponse>(json);
 
-        var expected = new ListAllScaIssuesResponse(
+        var expected = new ListAllDependencyRisksResponse(
             [
                 new(
                     Guid.Parse("71814600-2924-4B88-9E1A-1AF0B46F8D48"),
-                    ScaType.VULNERABILITY,
-                    ScaSeverity.HIGH,
-                    ScaStatus.OPEN,
+                    DependencyRiskType.VULNERABILITY,
+                    DependencyRiskSeverity.HIGH,
+                    DependencyRiskStatus.OPEN,
                     "vulnerable-package",
                     "1.0.0",
-                    [ScaTransition.CONFIRM, ScaTransition.SAFE]),
+                    [DependencyRiskTransition.CONFIRM, DependencyRiskTransition.SAFE]),
                 new(
                     Guid.Parse("EA425B61-AF22-48AC-98E1-78B644D34876"),
-                    ScaType.PROHIBITED_LICENSE,
-                    ScaSeverity.MEDIUM,
-                    ScaStatus.CONFIRM,
+                    DependencyRiskType.PROHIBITED_LICENSE,
+                    DependencyRiskSeverity.MEDIUM,
+                    DependencyRiskStatus.CONFIRM,
                     "license-issue-package",
                     "2.1.0",
-                    [ScaTransition.REOPEN, ScaTransition.ACCEPT])
+                    [DependencyRiskTransition.REOPEN, DependencyRiskTransition.ACCEPT])
             ]);
 
-        result.Should().BeEquivalentTo(expected, options => options.ComparingByMembers<ListAllScaIssuesResponse>().ComparingByMembers<ScaIssueDto>());
+        result.Should().BeEquivalentTo(expected, options => options.ComparingByMembers<ListAllDependencyRisksResponse>().ComparingByMembers<DependencyRiskDto>());
     }
 }

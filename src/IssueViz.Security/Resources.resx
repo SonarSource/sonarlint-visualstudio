@@ -296,7 +296,7 @@ Please check the logs for more details.</value>
   <data name="Synchronizer_NumberOfTaintIssues" xml:space="preserve">
     <value>Fetched {0} taint vulnerabilities.</value>
   </data>
-  <data name="Synchronizer_NumberOfScaIssues" xml:space="preserve">
+  <data name="Synchronizer_NumberOfDependencyRisks" xml:space="preserve">
     <value>Fetched {0} dependency risks.</value>
   </data>
   <data name="Synchronizer_Verbose_ConfigScopeNotReady" xml:space="preserve">
@@ -311,7 +311,7 @@ Please check the logs for more details.</value>
   <data name="Synchronizer_LogContext_Taint" xml:space="preserve">
     <value>Taint</value>
   </data>
-  <data name="Synchronizer_LogContext_Sca" xml:space="preserve">
+  <data name="Synchronizer_LogContext_DependencyRisks" xml:space="preserve">
     <value>Dependency Risks</value>
   </data>
 </root>
