@@ -548,20 +548,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Dependency Risks.
+        /// </summary>
+        public static string Synchronizer_LogContext_DependencyRisks {
+            get {
+                return ResourceManager.GetString("Synchronizer_LogContext_DependencyRisks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Server Issue Sync.
         /// </summary>
         public static string Synchronizer_LogContext_General {
             get {
                 return ResourceManager.GetString("Synchronizer_LogContext_General", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Dependency Risks.
-        /// </summary>
-        public static string Synchronizer_LogContext_Sca {
-            get {
-                return ResourceManager.GetString("Synchronizer_LogContext_Sca", resourceCulture);
             }
         }
         
@@ -586,9 +586,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         /// <summary>
         ///   Looks up a localized string similar to Fetched {0} dependency risks..
         /// </summary>
-        public static string Synchronizer_NumberOfScaIssues {
+        public static string Synchronizer_NumberOfDependencyRisks {
             get {
-                return ResourceManager.GetString("Synchronizer_NumberOfScaIssues", resourceCulture);
+                return ResourceManager.GetString("Synchronizer_NumberOfDependencyRisks", resourceCulture);
             }
         }
         

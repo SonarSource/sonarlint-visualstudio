@@ -24,7 +24,7 @@ using SonarLint.VisualStudio.SLCore.Common.Models;
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Models;
 
 [TestClass]
-public class ScaIssueDtoTests
+public class DependencyRiskDtoTests
 {
     [TestMethod]
     public void Deserialize_ReturnsCorrectObject()
@@ -42,25 +42,25 @@ public class ScaIssueDtoTests
             }
             """;
 
-        var result = JsonConvert.DeserializeObject<ScaIssueDto>(json);
+        var result = JsonConvert.DeserializeObject<DependencyRiskDto>(json);
 
-        var expected = new ScaIssueDto(
+        var expected = new DependencyRiskDto(
             new Guid("89F33AFC-E00F-4C87-AC8E-16C2EC6A51CD"),
-            ScaType.VULNERABILITY,
-            ScaSeverity.HIGH,
-            ScaStatus.OPEN,
+            DependencyRiskType.VULNERABILITY,
+            DependencyRiskSeverity.HIGH,
+            DependencyRiskStatus.OPEN,
             "testPackage",
             "1.0.0",
-            [ScaTransition.CONFIRM, ScaTransition.SAFE]
+            [DependencyRiskTransition.CONFIRM, DependencyRiskTransition.SAFE]
         );
 
         result.Should().BeEquivalentTo(expected, options =>
-            options.ComparingByMembers<ScaIssueDto>());
+            options.ComparingByMembers<DependencyRiskDto>());
     }
 
     [TestMethod]
     [DynamicData(nameof(ScaSeverities))]
-    public void Deserialize_ReturnsCorrectSeverity(ScaSeverity expectedSeverity)
+    public void Deserialize_ReturnsCorrectSeverity(DependencyRiskSeverity expectedSeverity)
     {
         var json =
             $$"""
@@ -75,14 +75,14 @@ public class ScaIssueDtoTests
               }
               """;
 
-        var result = JsonConvert.DeserializeObject<ScaIssueDto>(json);
+        var result = JsonConvert.DeserializeObject<DependencyRiskDto>(json);
 
         result.severity.Should().Be(expectedSeverity);
     }
 
     [TestMethod]
     [DynamicData(nameof(ScaTypes))]
-    public void Deserialize_ReturnsCorrectType(ScaType expectedType)
+    public void Deserialize_ReturnsCorrectType(DependencyRiskType expectedType)
     {
         var json =
             $$"""
@@ -97,14 +97,14 @@ public class ScaIssueDtoTests
               }
               """;
 
-        var result = JsonConvert.DeserializeObject<ScaIssueDto>(json);
+        var result = JsonConvert.DeserializeObject<DependencyRiskDto>(json);
 
         result.type.Should().Be(expectedType);
     }
 
     [TestMethod]
     [DynamicData(nameof(ScaStatuses))]
-    public void Deserialize_ReturnsCorrectStatuses(ScaStatus expectedStatus)
+    public void Deserialize_ReturnsCorrectStatuses(DependencyRiskStatus expectedStatus)
     {
         var json =
             $$"""
@@ -119,7 +119,7 @@ public class ScaIssueDtoTests
               }
               """;
 
-        var result = JsonConvert.DeserializeObject<ScaIssueDto>(json);
+        var result = JsonConvert.DeserializeObject<DependencyRiskDto>(json);
 
         result.status.Should().Be(expectedStatus);
     }
@@ -140,7 +140,7 @@ public class ScaIssueDtoTests
             }
             """;
 
-        var result = JsonConvert.DeserializeObject<ScaIssueDto>(json);
+        var result = JsonConvert.DeserializeObject<DependencyRiskDto>(json);
 
         result.Should().NotBeNull();
         result.transitions.Should().NotBeNull();
@@ -149,7 +149,7 @@ public class ScaIssueDtoTests
 
     [TestMethod]
     [DynamicData(nameof(ScaTransitions))]
-    public void Deserialize_ReturnsCorrectTransition(ScaTransition expectedTransition)
+    public void Deserialize_ReturnsCorrectTransition(DependencyRiskTransition expectedTransition)
     {
         var json =
             $$"""
@@ -164,7 +164,7 @@ public class ScaIssueDtoTests
               }
               """;
 
-        var result = JsonConvert.DeserializeObject<ScaIssueDto>(json);
+        var result = JsonConvert.DeserializeObject<DependencyRiskDto>(json);
 
         result.transitions.Should().BeEquivalentTo(expectedTransition);
     }
@@ -185,17 +185,17 @@ public class ScaIssueDtoTests
             }
             """;
 
-        var result = JsonConvert.DeserializeObject<ScaIssueDto>(json);
+        var result = JsonConvert.DeserializeObject<DependencyRiskDto>(json);
 
         result.transitions.Should().BeEquivalentTo([
-            ScaTransition.CONFIRM,
-            ScaTransition.FIXED,
-            ScaTransition.ACCEPT
+            DependencyRiskTransition.CONFIRM,
+            DependencyRiskTransition.FIXED,
+            DependencyRiskTransition.ACCEPT
         ]);
     }
 
-    public static IEnumerable<object[]> ScaSeverities => Enum.GetValues(typeof(ScaSeverity)).Cast<ScaSeverity>().Select(x => new object[] { x });
-    public static IEnumerable<object[]> ScaTypes => Enum.GetValues(typeof(ScaType)).Cast<ScaType>().Select(x => new object[] { x });
-    public static IEnumerable<object[]> ScaStatuses => Enum.GetValues(typeof(ScaStatus)).Cast<ScaStatus>().Select(x => new object[] { x });
-    public static IEnumerable<object[]> ScaTransitions => Enum.GetValues(typeof(ScaTransition)).Cast<ScaTransition>().Select(x => new object[] { x });
+    public static IEnumerable<object[]> ScaSeverities => Enum.GetValues(typeof(DependencyRiskSeverity)).Cast<DependencyRiskSeverity>().Select(x => new object[] { x });
+    public static IEnumerable<object[]> ScaTypes => Enum.GetValues(typeof(DependencyRiskType)).Cast<DependencyRiskType>().Select(x => new object[] { x });
+    public static IEnumerable<object[]> ScaStatuses => Enum.GetValues(typeof(DependencyRiskStatus)).Cast<DependencyRiskStatus>().Select(x => new object[] { x });
+    public static IEnumerable<object[]> ScaTransitions => Enum.GetValues(typeof(DependencyRiskTransition)).Cast<DependencyRiskTransition>().Select(x => new object[] { x });
 }
