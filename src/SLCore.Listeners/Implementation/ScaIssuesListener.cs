@@ -20,6 +20,8 @@
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.SCA;
 
@@ -27,11 +29,26 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 
 [Export(typeof(ISLCoreListener))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class ScaIssuesListener : IScaIssueListener
+[method: ImportingConstructor]
+internal class ScaIssuesListener(
+    IDependencyRisksStore dependencyRisksStore,
+    IScaIssueDtoToDependencyRiskConverter converter,
+    ILogger logger) : IScaIssueListener
 {
+    private readonly ILogger logger = logger.ForVerboseContext(nameof(ScaIssuesListener));
+
     [ExcludeFromCodeCoverage]
     public void DidChangeScaIssues(DidChangeScaIssuesParams parameters)
     {
-        // todo https://sonarsource.atlassian.net/browse/SLVS-2368 update risks store
+        var currentScope = dependencyRisksStore.CurrentConfigurationScope;
+        if (currentScope != parameters.configurationScopeId)
+        {
+            logger.LogVerbose(SLCoreStrings.ConfigurationScopeMismatch, parameters.configurationScopeId, currentScope);
+            return;
+        }
+
+        var actualIssues = parameters.addedScaIssues.Concat(parameters.updatedScaIssues).Select(converter.Convert).ToArray();
+
+        dependencyRisksStore.Set(actualIssues, parameters.configurationScopeId);
     }
 }
