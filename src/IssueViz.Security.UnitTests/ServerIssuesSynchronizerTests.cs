@@ -31,8 +31,8 @@ using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Service.DependencyRisks;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
-using SonarLint.VisualStudio.SLCore.Service.SCA;
 using SonarLint.VisualStudio.SLCore.Service.Taint;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -45,7 +45,7 @@ public class ServerIssuesSynchronizerTests
     private IDependencyRisksStore dependencyRisksStore;
     private ISLCoreServiceProvider slCoreServiceProvider;
     private ITaintVulnerabilityTrackingSlCoreService taintService;
-    private IScaIssueTrackingRpcService scaService;
+    private IDependencyRiskSlCoreService dependencyRiskSlCoreService;
     private ITaintIssueToIssueVisualizationConverter taintConverter;
     private IScaIssueDtoToDependencyRiskConverter scaConverter;
     private IToolWindowService toolWindowService;
@@ -102,8 +102,8 @@ public class ServerIssuesSynchronizerTests
         taintStore = Substitute.For<ITaintStore>();
         dependencyRisksStore = Substitute.For<IDependencyRisksStore>();
         taintService = Substitute.For<ITaintVulnerabilityTrackingSlCoreService>();
-        scaService = Substitute.For<IScaIssueTrackingRpcService>();
-        slCoreServiceProvider = CreateDefaultServiceProvider(taintService, scaService);
+        dependencyRiskSlCoreService = Substitute.For<IDependencyRiskSlCoreService>();
+        slCoreServiceProvider = CreateDefaultServiceProvider(taintService, dependencyRiskSlCoreService);
         taintConverter = Substitute.For<ITaintIssueToIssueVisualizationConverter>();
         scaConverter = Substitute.For<IScaIssueDtoToDependencyRiskConverter>();
         toolWindowService = Substitute.For<IToolWindowService>();
@@ -268,7 +268,7 @@ public class ServerIssuesSynchronizerTests
         CheckUIContextIsCleared(cookie);
         logger.AssertPartialOutputStringExists("this is a test");
         asyncLockReleaser.Received().Dispose();
-        scaService.ReceivedWithAnyArgs(1).ListAllAsync(default);
+        dependencyRiskSlCoreService.ReceivedWithAnyArgs(1).ListAllAsync(default);
         dependencyRisksStore.DidNotReceiveWithAnyArgs().Reset();
     }
 
@@ -287,7 +287,7 @@ public class ServerIssuesSynchronizerTests
     [TestMethod]
     public async Task UpdateServerIssuesAsync_Sca_ServiceNotInitialized_DependencyRisksStoreCleared()
     {
-        slCoreServiceProvider.TryGetTransientService(out IScaIssueTrackingRpcService _).Returns(false);
+        slCoreServiceProvider.TryGetTransientService(out IDependencyRiskSlCoreService _).Returns(false);
 
         await testSubject.UpdateServerIssuesAsync(ConnectedReady);
 
@@ -297,10 +297,10 @@ public class ServerIssuesSynchronizerTests
         {
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
             asyncLock.AcquireAsync();
-            slCoreServiceProvider.TryGetTransientService(out Arg.Any<IScaIssueTrackingRpcService>());
+            slCoreServiceProvider.TryGetTransientService(out Arg.Any<IDependencyRiskSlCoreService>());
             asyncLockReleaser.Dispose();
         });
-        scaService.ReceivedCalls().Should().BeEmpty();
+        dependencyRiskSlCoreService.ReceivedCalls().Should().BeEmpty();
         scaConverter.ReceivedCalls().Should().BeEmpty();
     }
 
@@ -312,7 +312,7 @@ public class ServerIssuesSynchronizerTests
         await testSubject.UpdateServerIssuesAsync(ConnectedReady);
 
         dependencyRisksStore.DidNotReceiveWithAnyArgs().Set(default, default);
-        scaService.ReceivedCalls().Should().BeEmpty();
+        dependencyRiskSlCoreService.ReceivedCalls().Should().BeEmpty();
     }
 
     [TestMethod]
@@ -325,13 +325,13 @@ public class ServerIssuesSynchronizerTests
         scaConverter.ReceivedCalls().Should().BeEmpty();
         dependencyRisksStore.Received(1).Set(Arg.Is<IEnumerable<IDependencyRisk>>(x =>
             !x.Any()), ConnectedReady.Id);
-        logger.AssertPartialOutputStringExists(string.Format(Resources.Synchronizer_NumberOfScaIssues, 0));
+        logger.AssertPartialOutputStringExists(string.Format(Resources.Synchronizer_NumberOfDependencyRisks, 0));
     }
 
     [TestMethod]
     public async Task UpdateServerIssuesAsync_Sca_MultipleIssues_SetsStoreDependencyRisks()
     {
-        List<ScaIssueDto> scaIssues = [CreateDefaultScaDto(), CreateDefaultScaDto(), CreateDefaultScaDto()];
+        List<DependencyRiskDto> scaIssues = [CreateDefaultDependencyRiskDto(), CreateDefaultDependencyRiskDto(), CreateDefaultDependencyRiskDto()];
         List<IDependencyRisk> dependencyRisks = [
             Substitute.For<IDependencyRisk>(),
             Substitute.For<IDependencyRisk>(),
@@ -354,7 +354,7 @@ public class ServerIssuesSynchronizerTests
     public async Task UpdateServerIssuesAsync_Sca_NonCriticalException_DependencyRisksStoreCleared()
     {
         ConfigureTaintService(ConnectedReady.Id, []);
-        slCoreServiceProvider.TryGetTransientService(out IScaIssueTrackingRpcService _)
+        slCoreServiceProvider.TryGetTransientService(out IDependencyRiskSlCoreService _)
             .Throws(new Exception("sca service error"));
 
         await testSubject.UpdateServerIssuesAsync(ConnectedReady);
@@ -368,7 +368,7 @@ public class ServerIssuesSynchronizerTests
     [TestMethod]
     public async Task UpdateServerIssuesAsync_Sca_CriticalException_ExceptionNotCaught()
     {
-        slCoreServiceProvider.TryGetTransientService(out IScaIssueTrackingRpcService _)
+        slCoreServiceProvider.TryGetTransientService(out IDependencyRiskSlCoreService _)
             .Throws(new DivideByZeroException());
 
         var act = async () => await testSubject.UpdateServerIssuesAsync(ConnectedReady);
@@ -386,7 +386,7 @@ public class ServerIssuesSynchronizerTests
         });
     }
 
-    private static ISLCoreServiceProvider CreateDefaultServiceProvider(ITaintVulnerabilityTrackingSlCoreService taintService, IScaIssueTrackingRpcService scaService)
+    private static ISLCoreServiceProvider CreateDefaultServiceProvider(ITaintVulnerabilityTrackingSlCoreService taintService, IDependencyRiskSlCoreService scaService)
     {
         var slCoreServiceProvider = Substitute.For<ISLCoreServiceProvider>();
         slCoreServiceProvider.TryGetTransientService(out ITaintVulnerabilityTrackingSlCoreService _).Returns(call =>
@@ -394,7 +394,7 @@ public class ServerIssuesSynchronizerTests
             call[0] = taintService;
             return true;
         });
-        slCoreServiceProvider.TryGetTransientService(out IScaIssueTrackingRpcService _).Returns(call =>
+        slCoreServiceProvider.TryGetTransientService(out IDependencyRiskSlCoreService _).Returns(call =>
         {
             call[0] = scaService;
             return true;
@@ -444,7 +444,7 @@ public class ServerIssuesSynchronizerTests
             "rulecontext",
             false);
 
-    private static ScaIssueDto CreateDefaultScaDto() =>
+    private static DependencyRiskDto CreateDefaultDependencyRiskDto() =>
         new(Guid.NewGuid(), default, default, default, default, default, default);
 
     private void CheckUIContextIsCleared(uint expectedCookie) => CheckUIContextUpdated(expectedCookie, 0);
@@ -467,9 +467,9 @@ public class ServerIssuesSynchronizerTests
             .Returns(new ListAllTaintsResponse(vulnerabilities ?? []));
     }
 
-    private void ConfigureScaService(string configScopeId, List<ScaIssueDto> scaIssues)
+    private void ConfigureScaService(string configScopeId, List<DependencyRiskDto> scaIssues)
     {
-        scaService.ListAllAsync(Arg.Is<ListAllScaIssuesParams>(x => x.configurationScopeId == configScopeId))
-            .Returns(new ListAllScaIssuesResponse(scaIssues ?? []));
+        dependencyRiskSlCoreService.ListAllAsync(Arg.Is<ListAllDependencyRisksParams>(x => x.configurationScopeId == configScopeId))
+            .Returns(new ListAllDependencyRisksResponse(scaIssues ?? []));
     }
 }

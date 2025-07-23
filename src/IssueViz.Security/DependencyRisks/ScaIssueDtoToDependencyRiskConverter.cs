@@ -26,14 +26,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
 public interface IScaIssueDtoToDependencyRiskConverter
 {
-    IDependencyRisk Convert(ScaIssueDto dto);
+    IDependencyRisk Convert(DependencyRiskDto dto);
 }
 
 [Export(typeof(IScaIssueDtoToDependencyRiskConverter))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class ScaIssueDtoToDependencyRiskConverter : IScaIssueDtoToDependencyRiskConverter
 {
-    public IDependencyRisk Convert(ScaIssueDto dto) =>
+    public IDependencyRisk Convert(DependencyRiskDto dto) =>
         new DependencyRisk(dto.id,
             dto.type.ToDependencyRiskType(),
             dto.severity.ToDependencyRiskSeverity(),

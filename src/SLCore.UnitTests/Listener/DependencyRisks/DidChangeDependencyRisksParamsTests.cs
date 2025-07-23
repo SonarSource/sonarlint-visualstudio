@@ -20,12 +20,12 @@
 
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Common.Models;
-using SonarLint.VisualStudio.SLCore.Listener.SCA;
+using SonarLint.VisualStudio.SLCore.Listener.DependencyRisks;
 
-namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.SCA;
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.DependencyRisks;
 
 [TestClass]
-public class DidChangeScaIssuesParamsTests
+public class DidChangeDependencyRisksParamsTests
 {
     [TestMethod]
     public void Deserialize_ShouldCorrectlyDeserializeJson()
@@ -34,11 +34,11 @@ public class DidChangeScaIssuesParamsTests
             """
             {
                 "configurationScopeId": "test-scope-id",
-                "closedScaIssueIds": [
+                "closedDependencyRiskIds": [
                     "1A3A6FE9-F984-4A77-A06A-D824FE10F319",
                     "3BAAE21A-7C43-44BC-A675-DEB71D2B3E18"
                 ],
-                "addedScaIssues": [
+                "addedDependencyRisks": [
                     {
                         "id": "71814600-2924-4B88-9E1A-1AF0B46F8D48",
                         "type": "VULNERABILITY",
@@ -49,7 +49,7 @@ public class DidChangeScaIssuesParamsTests
                         "transitions": ["CONFIRM", "SAFE"]
                     }
                 ],
-                "updatedScaIssues": [
+                "updatedDependencyRisks": [
                     {
                         "id": "EA425B61-AF22-48AC-98E1-78B644D34876",
                         "type": "PROHIBITED_LICENSE",
@@ -72,41 +72,41 @@ public class DidChangeScaIssuesParamsTests
             }
             """;
 
-        var result = JsonConvert.DeserializeObject<DidChangeScaIssuesParams>(json);
+        var result = JsonConvert.DeserializeObject<DidChangeDependencyRisksParams>(json);
 
-        var expected = new DidChangeScaIssuesParams(
+        var expected = new DidChangeDependencyRisksParams(
             "test-scope-id",
             [Guid.Parse("1A3A6FE9-F984-4A77-A06A-D824FE10F319"), Guid.Parse("3BAAE21A-7C43-44BC-A675-DEB71D2B3E18")],
             [
                 new(
                     Guid.Parse("71814600-2924-4B88-9E1A-1AF0B46F8D48"),
-                    ScaType.VULNERABILITY,
-                    ScaSeverity.HIGH,
-                    ScaStatus.OPEN,
+                    DependencyRiskType.VULNERABILITY,
+                    DependencyRiskSeverity.HIGH,
+                    DependencyRiskStatus.OPEN,
                     "vulnerable-package",
                     "1.0.0",
-                    [ScaTransition.CONFIRM, ScaTransition.SAFE])
+                    [DependencyRiskTransition.CONFIRM, DependencyRiskTransition.SAFE])
             ],
             [
                 new(
                     Guid.Parse("EA425B61-AF22-48AC-98E1-78B644D34876"),
-                    ScaType.PROHIBITED_LICENSE,
-                    ScaSeverity.MEDIUM,
-                    ScaStatus.CONFIRM,
+                    DependencyRiskType.PROHIBITED_LICENSE,
+                    DependencyRiskSeverity.MEDIUM,
+                    DependencyRiskStatus.CONFIRM,
                     "license-issue-package",
                     "2.1.0",
-                    [ScaTransition.REOPEN, ScaTransition.ACCEPT]),
+                    [DependencyRiskTransition.REOPEN, DependencyRiskTransition.ACCEPT]),
 
                 new(
                     Guid.Parse("247010FE-26DE-4BF3-BED6-B12A8E8B13C6"),
-                    ScaType.VULNERABILITY,
-                    ScaSeverity.BLOCKER,
-                    ScaStatus.ACCEPT,
+                    DependencyRiskType.VULNERABILITY,
+                    DependencyRiskSeverity.BLOCKER,
+                    DependencyRiskStatus.ACCEPT,
                     "critical-package",
                     "0.9.2",
-                    [ScaTransition.REOPEN, ScaTransition.FIXED])
+                    [DependencyRiskTransition.REOPEN, DependencyRiskTransition.FIXED])
             ]);
 
-        result.Should().BeEquivalentTo(expected, options => options.ComparingByMembers<DidChangeScaIssuesParams>().ComparingByMembers<ScaIssueDto>());
+        result.Should().BeEquivalentTo(expected, options => options.ComparingByMembers<DidChangeDependencyRisksParams>().ComparingByMembers<DependencyRiskDto>());
     }
 }

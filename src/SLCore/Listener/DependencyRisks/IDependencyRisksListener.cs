@@ -18,6 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.SLCore.Service.SCA;
+using SonarLint.VisualStudio.SLCore.Core;
 
-public record ListAllScaIssuesParams(string configurationScopeId);
+namespace SonarLint.VisualStudio.SLCore.Listener.DependencyRisks;
+
+public interface IDependencyRisksListener : ISLCoreListener
+{
+    void DidChangeDependencyRisks(DidChangeDependencyRisksParams parameters);
+}
