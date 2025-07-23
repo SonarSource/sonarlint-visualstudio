@@ -18,24 +18,33 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Newtonsoft.Json;
-using SonarLint.VisualStudio.SLCore.Service.SCA;
+namespace SonarLint.VisualStudio.SLCore.Common.Models;
 
-namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.SCA;
+public record DependencyRiskDto(
+    Guid id,
+    DependencyRiskType type,
+    DependencyRiskSeverity severity,
+    DependencyRiskStatus status,
+    string packageName,
+    string packageVersion,
+    List<DependencyRiskTransition> transitions);
 
-[TestClass]
-public class ListAllScaIssuesParamsTests
+public enum DependencyRiskSeverity
 {
+    INFO, LOW, MEDIUM, HIGH, BLOCKER
+}
 
-    [DataTestMethod]
-    [DataRow("scope 1")]
-    [DataRow("other scope 2")]
-    public void Serialized_AsExpected(string configurationScopeId)
-    {
-        var expected = $$"""{"configurationScopeId":"{{configurationScopeId}}"}""";
+public enum DependencyRiskType
+{
+    VULNERABILITY, PROHIBITED_LICENSE
+}
 
-        var listAllTaintsParams = new ListAllScaIssuesParams(configurationScopeId);
+public enum DependencyRiskStatus
+{
+    OPEN, CONFIRM, ACCEPT, SAFE
+}
 
-        JsonConvert.SerializeObject(listAllTaintsParams).Should().Be(expected);
-    }
+public enum DependencyRiskTransition
+{
+    CONFIRM, REOPEN, SAFE, FIXED, ACCEPT
 }

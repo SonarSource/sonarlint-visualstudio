@@ -23,22 +23,22 @@ using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Listener.SCA;
+using SonarLint.VisualStudio.SLCore.Listener.DependencyRisks;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 
 [Export(typeof(ISLCoreListener))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class ScaIssuesListener(
+internal class DependencyRisksListener(
     IDependencyRisksStore dependencyRisksStore,
     IScaIssueDtoToDependencyRiskConverter converter,
-    ILogger logger) : IScaIssueListener
+    ILogger logger) : IDependencyRisksListener
 {
-    private readonly ILogger logger = logger.ForVerboseContext(nameof(ScaIssuesListener));
+    private readonly ILogger logger = logger.ForVerboseContext(nameof(DependencyRisksListener));
 
     [ExcludeFromCodeCoverage]
-    public void DidChangeScaIssues(DidChangeScaIssuesParams parameters)
+    public void DidChangeDependencyRisks(DidChangeDependencyRisksParams parameters)
     {
         var currentScope = dependencyRisksStore.CurrentConfigurationScope;
         if (currentScope != parameters.configurationScopeId)
@@ -47,7 +47,7 @@ internal class ScaIssuesListener(
             return;
         }
 
-        var actualIssues = parameters.addedScaIssues.Concat(parameters.updatedScaIssues).Select(converter.Convert).ToArray();
+        var actualIssues = parameters.addedDependencyRisks.Concat(parameters.updatedDependencyRisks).Select(converter.Convert).ToArray();
 
         dependencyRisksStore.Set(actualIssues, parameters.configurationScopeId);
     }

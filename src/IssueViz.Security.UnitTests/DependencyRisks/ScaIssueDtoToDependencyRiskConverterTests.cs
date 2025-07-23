@@ -22,6 +22,9 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
+using DependencyRiskStatus = SonarLint.VisualStudio.SLCore.Common.Models.DependencyRiskStatus;
+using DependencyRiskTransition = SonarLint.VisualStudio.SLCore.Common.Models.DependencyRiskTransition;
+using DependencyRiskType = SonarLint.VisualStudio.SLCore.Common.Models.DependencyRiskType;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.DependencyRisks;
 
@@ -48,26 +51,26 @@ public class ScaIssueDtoToDependencyRiskConverterTests
         var testId = Guid.NewGuid();
         const string packageName = "TestPackage";
         const string packageVersion = "1.2.4";
-        var dto = new ScaIssueDto(
+        var dto = new DependencyRiskDto(
             testId,
-            ScaType.VULNERABILITY,
-            ScaSeverity.HIGH,
-            ScaStatus.CONFIRM,
+            DependencyRiskType.VULNERABILITY,
+            DependencyRiskSeverity.HIGH,
+            DependencyRiskStatus.CONFIRM,
             packageName,
             packageVersion,
-            [ScaTransition.CONFIRM, ScaTransition.REOPEN]);
+            [DependencyRiskTransition.CONFIRM, DependencyRiskTransition.REOPEN]);
 
         var result = testSubject.Convert(dto);
 
         result.Should().BeEquivalentTo(
             new DependencyRisk(
                 testId,
-                DependencyRiskType.Vulnerability,
+                Core.Analysis.DependencyRiskType.Vulnerability,
                 DependencyRiskImpactSeverity.High,
-                DependencyRiskStatus.Confirmed,
+                Core.Analysis.DependencyRiskStatus.Confirmed,
                 packageName,
                 packageVersion,
-                [DependencyRiskTransition.Confirm, DependencyRiskTransition.Reopen]
+                [Core.Analysis.DependencyRiskTransition.Confirm, Core.Analysis.DependencyRiskTransition.Reopen]
             ));
     }
 }

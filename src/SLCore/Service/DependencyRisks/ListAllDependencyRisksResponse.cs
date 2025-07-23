@@ -20,6 +20,6 @@
 
 using SonarLint.VisualStudio.SLCore.Common.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Service.SCA;
+namespace SonarLint.VisualStudio.SLCore.Service.DependencyRisks;
 
-public record ListAllScaIssuesResponse(List<ScaIssueDto> scaIssues);
+public record ListAllDependencyRisksResponse(List<DependencyRiskDto> dependencyRisks);
