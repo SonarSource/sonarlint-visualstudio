@@ -299,6 +299,15 @@ Please check the logs for more details.</value>
   <data name="Synchronizer_Failure" xml:space="preserve">
     <value>Failed to synchronize server issues: {0}.</value>
   </data>
+  <data name="DependencyRiskStatusChangeFailedTitle" xml:space="preserve">
+    <value>Dependency Risk Status Change Failed</value>
+  </data>
+  <data name="DependencyRiskStatusChangeError" xml:space="preserve">
+    <value>An error occurred when changing the status.</value>
+  </data>
+  <data name="DependencyRiskNullTransitionError" xml:space="preserve">
+    <value>Cannot change status: transition is not specified</value>
+  </data>
   <data name="Synchronizer_NotInConnectedMode" xml:space="preserve">
     <value>Unable to fetch server issues: not in connected mode.</value>
   </data>
@@ -329,7 +338,13 @@ Please check the logs for more details.</value>
   <data name="LogContext_ShowInBrowser" xml:space="preserve">
     <value>Show in Browser</value>
   </data>
+  <data name="LogContext_ChangeStatus" xml:space="preserve">
+    <value>Change Status</value>
+  </data>
   <data name="ShowDependencyRisk_Error_ShowingInBrowser" xml:space="preserve">
     <value>Error when showing dependency risk in browser: {0}</value>
+  </data>
+  <data name="ChangeDependencyRisk_Error_ChangingStatus" xml:space="preserve">
+    <value>Error when changing dependency risk status: {0}</value>
   </data>
 </root>

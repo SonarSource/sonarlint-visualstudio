@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.DependencyRisks;
@@ -29,9 +30,23 @@ public class DependencyRiskViewModelTest
     public void Ctor_InitializesProperties()
     {
         var dependencyRisk = Substitute.For<IDependencyRisk>();
+        dependencyRisk.Transitions.Returns([]);
 
         var testSubject = new DependencyRiskViewModel(dependencyRisk);
 
         testSubject.DependencyRisk.Should().Be(dependencyRisk);
+        testSubject.IsTransitionAllowed.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void Ctor_WithTransitions_InitializesProperties()
+    {
+        var dependencyRisk = Substitute.For<IDependencyRisk>();
+        dependencyRisk.Transitions.Returns([DependencyRiskTransition.Accept]);
+
+        var testSubject = new DependencyRiskViewModel(dependencyRisk);
+
+        testSubject.DependencyRisk.Should().Be(dependencyRisk);
+        testSubject.IsTransitionAllowed.Should().BeTrue();
     }
 }

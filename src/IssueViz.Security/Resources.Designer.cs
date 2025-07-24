@@ -60,6 +60,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error when changing dependency risk status: {0}.
+        /// </summary>
+        public static string ChangeDependencyRisk_Error_ChangingStatus {
+            get {
+                return ResourceManager.GetString("ChangeDependencyRisk_Error_ChangingStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This finding is valid, but it may not be fixed for a while..
         /// </summary>
         public static string ChangeDependencyRiskStatus_AcceptedDescription {
@@ -186,11 +195,38 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot change status: transition is not specified.
+        /// </summary>
+        public static string DependencyRiskNullTransitionError {
+            get {
+                return ResourceManager.GetString("DependencyRiskNullTransitionError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Solution findings.
         /// </summary>
         public static string DependencyRisksGroupTitle {
             get {
                 return ResourceManager.GetString("DependencyRisksGroupTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred when changing the status..
+        /// </summary>
+        public static string DependencyRiskStatusChangeError {
+            get {
+                return ResourceManager.GetString("DependencyRiskStatusChangeError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dependency Risk Status Change Failed.
+        /// </summary>
+        public static string DependencyRiskStatusChangeFailedTitle {
+            get {
+                return ResourceManager.GetString("DependencyRiskStatusChangeFailedTitle", resourceCulture);
             }
         }
         
@@ -380,6 +416,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string IssueText {
             get {
                 return ResourceManager.GetString("IssueText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Change Status.
+        /// </summary>
+        public static string LogContext_ChangeStatus {
+            get {
+                return ResourceManager.GetString("LogContext_ChangeStatus", resourceCulture);
             }
         }
         

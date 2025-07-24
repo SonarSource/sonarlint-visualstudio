@@ -70,7 +70,7 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
         get
         {
             validationError = null;
-            if (columnName == nameof(Comment) && string.IsNullOrEmpty(Comment) && (SelectedStatusViewModel?.IsCommentRequired ?? false))
+            if (columnName == nameof(Comment) && string.IsNullOrWhiteSpace(Comment) && (SelectedStatusViewModel?.IsCommentRequired ?? false))
             {
                 validationError = Resources.CommentRequiredErrorMessage;
             }

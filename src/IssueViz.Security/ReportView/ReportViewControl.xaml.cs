@@ -47,13 +47,21 @@ internal sealed partial class ReportViewControl : UserControl
         IBrowserService browserService,
         IDependencyRisksStore dependencyRisksStore,
         IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler,
+        IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler,
+        IMessageBox messageBox,
         ITelemetryManager telemetryManager,
         IThreadHandling threadHandling)
     {
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.browserService = browserService;
         this.showDependencyRiskInBrowserHandler = showDependencyRiskInBrowserHandler;
-        ReportViewModel = new ReportViewModel(activeSolutionBoundTracker, dependencyRisksStore, telemetryManager, threadHandling);
+        ReportViewModel = new ReportViewModel(activeSolutionBoundTracker,
+            dependencyRisksStore,
+            showDependencyRiskInBrowserHandler,
+            changeDependencyRiskStatusHandler,
+            messageBox,
+            telemetryManager,
+            threadHandling);
         InitializeComponent();
     }
 
@@ -92,7 +100,7 @@ internal sealed partial class ReportViewControl : UserControl
             return;
         }
 
-        showDependencyRiskInBrowserHandler.ShowInBrowser(selectedDependencyRiskViewModel.DependencyRisk.Id);
+        ReportViewModel.ShowInBrowser(selectedDependencyRiskViewModel.DependencyRisk);
     }
 
     private void DependencyRiskContextMenu_OnLoaded(object sender, RoutedEventArgs e)
@@ -112,7 +120,7 @@ internal sealed partial class ReportViewControl : UserControl
         }
     }
 
-    private void ChangeScaStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
+    private async void ChangeScaStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
     {
         if (ReportViewModel.GroupDependencyRisk.SelectedItem is not { } selectedDependencyRiskViewModel)
         {
@@ -123,7 +131,7 @@ internal sealed partial class ReportViewControl : UserControl
         var dialog = new ChangeStatusWindow(changeStatusViewModel, browserService, activeSolutionBoundTracker);
         if (dialog.ShowDialog(Application.Current.MainWindow) is true)
         {
-            // TODO by https://sonarsource.atlassian.net/browse/SLVS-2376: implement actual status change
+            await ReportViewModel.ChangeStatusAsync(selectedDependencyRiskViewModel.DependencyRisk, changeStatusViewModel.GetSelectedTransition(), changeStatusViewModel.GetNormalizedComment());
         }
     }
 

@@ -28,6 +28,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Dependenc
 public class ChangeDependencyRiskStatusViewModelTest
 {
     private readonly List<DependencyRiskTransition> statusWithMandatoryComment = [DependencyRiskTransition.Accept, DependencyRiskTransition.Safe];
+    private readonly List<DependencyRiskTransition> defaulTransitions = [DependencyRiskTransition.Accept, DependencyRiskTransition.Safe];
 
     [TestMethod]
     public void Ctor_InitializesProperties()
@@ -56,27 +57,42 @@ public class ChangeDependencyRiskStatusViewModelTest
     }
 
     [TestMethod]
-    public void GetSelectedStatus_DefaultsToNull()
+    public void GetSelectedTransition_DefaultsToNull()
     {
         List<DependencyRiskTransition> allowedTransitions = [DependencyRiskTransition.Accept, DependencyRiskTransition.Safe];
         var testSubject = new ChangeDependencyRiskStatusViewModel(allowedTransitions);
 
-        var result = testSubject.SelectedStatusViewModel.GetCurrentStatus<DependencyRiskTransition>();
+        var result = testSubject.GetSelectedTransition();
 
         result.Should().BeNull();
     }
 
     [TestMethod]
-    public void GetSelectedStatus_ReturnsSelectedStatus()
+    public void GetSelectedTransition_ReturnsSelected()
     {
         List<DependencyRiskTransition> allowedTransitions = [DependencyRiskTransition.Accept, DependencyRiskTransition.Safe];
         var testSubject = new ChangeDependencyRiskStatusViewModel(allowedTransitions);
         var acceptViewModel = testSubject.AllStatusViewModels.First(vm => vm.GetCurrentStatus<DependencyRiskTransition>() == DependencyRiskTransition.Accept);
         testSubject.SelectedStatusViewModel = acceptViewModel;
 
-        var result = testSubject.SelectedStatusViewModel.GetCurrentStatus<DependencyRiskTransition>();
+        var result = testSubject.GetSelectedTransition();
 
         result.Should().Be(DependencyRiskTransition.Accept);
+    }
+
+    [DataTestMethod]
+    [DataRow(null, null)]
+    [DataRow("", null)]
+    [DataRow("   \t\n  ", null)]
+    [DataRow("  test comment  ", "test comment")]
+    [DataRow("test comment", "test comment")]
+    public void GetNormalizedComment_ReturnsExpectedResult(string inputComment, string expectedResult)
+    {
+        var testSubject = new ChangeDependencyRiskStatusViewModel(defaulTransitions);
+
+        testSubject.Comment = inputComment;
+
+        testSubject.GetNormalizedComment().Should().Be(expectedResult);
     }
 
     private List<IStatusViewModel> GetViewModelsWithStatusesWithMandatoryComments(ChangeDependencyRiskStatusViewModel testSubject) =>

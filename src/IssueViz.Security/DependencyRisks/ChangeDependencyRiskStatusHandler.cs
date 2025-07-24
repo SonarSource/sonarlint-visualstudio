@@ -18,9 +18,54 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.SLCore;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
+using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Service.DependencyRisks;
+
 namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
-public class ChangeDependencyRiskStatusHandler
+public interface IChangeDependencyRiskStatusHandler
 {
+    Task<bool> ChangeStatusAsync(Guid dependencyRiskId, DependencyRiskTransition transition, string comment);
+}
 
+[Export(typeof(IChangeDependencyRiskStatusHandler))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+public class ChangeDependencyRiskStatusHandler(ISLCoreServiceProvider serviceProvider, IActiveConfigScopeTracker activeConfigScopeTracker, IThreadHandling threadHandling, ILogger logger)
+    : IChangeDependencyRiskStatusHandler
+{
+    private readonly ILogger logger = logger.ForContext(Resources.LogContext_DependencyRisks, Resources.LogContext_ChangeStatus);
+
+    public Task<bool> ChangeStatusAsync(Guid dependencyRiskId, DependencyRiskTransition transition, string comment) =>
+        threadHandling.RunOnBackgroundThread(async () =>
+        {
+            try
+            {
+                if (!serviceProvider.TryGetTransientService(out IDependencyRiskSlCoreService service))
+                {
+                    logger.WriteLine(SLCoreStrings.ServiceProviderNotInitialized);
+                    return false;
+                }
+
+                if (activeConfigScopeTracker.Current is not { Id: { } currentConfigScopeId })
+                {
+                    logger.WriteLine(SLCoreStrings.ConfigScopeNotInitialized);
+                    return false;
+                }
+
+                await service.ChangeStatusAsync(new(currentConfigScopeId, dependencyRiskId, transition.ToSlCoreDependencyRiskTransition(), comment));
+                return true;
+            }
+            catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
+            {
+                logger.WriteLine(Resources.ChangeDependencyRisk_Error_ChangingStatus, e.Message);
+                return false;
+            }
+        });
 }
