@@ -55,12 +55,12 @@ public class ShowDependencyRiskInBrowserHandler(
                         logger.WriteLine(SLCoreStrings.ConfigScopeNotInitialized);
                         return;
                     }
-                    if (!slCoreServiceProvider.TryGetTransientService(out IDependencyRiskSlCoreService scaIssuesSlCoreService))
+                    if (!slCoreServiceProvider.TryGetTransientService(out IDependencyRiskSlCoreService dependencyRiskSlCoreService))
                     {
                         logger.WriteLine(SLCoreStrings.ServiceProviderNotInitialized);
                         return;
                     }
-                    await scaIssuesSlCoreService.OpenDependencyRiskInBrowserAsync(new(configScopeId, id));
+                    await dependencyRiskSlCoreService.OpenDependencyRiskInBrowserAsync(new(configScopeId, id));
                 }
                 catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {
