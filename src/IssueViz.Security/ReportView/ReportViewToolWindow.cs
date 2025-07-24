@@ -41,8 +41,9 @@ internal class ReportViewToolWindow : ToolWindowPane
         var activeSolutionBoundTracker = componentModel?.GetService<IActiveSolutionBoundTracker>();
         var browserService = componentModel?.GetService<IBrowserService>();
         var dependencyRiskStore = componentModel?.GetService<IDependencyRisksStore>();
+        var showDependencyRiskInBrowser = componentModel?.GetService<IShowDependencyRiskInBrowserHandler>();
         var threadHandling = componentModel?.GetService<IThreadHandling>();
         Caption = Resources.ReportViewToolWindowCaption;
-        Content = new ReportViewControl(activeSolutionBoundTracker, browserService, dependencyRiskStore, threadHandling);
+        Content = new ReportViewControl(activeSolutionBoundTracker, browserService, dependencyRiskStore, showDependencyRiskInBrowser, threadHandling);
     }
 }
