@@ -18,6 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
 namespace SonarLint.VisualStudio.SLCore.Common.Models;
 
 public record DependencyRiskDto(
@@ -44,6 +47,7 @@ public enum DependencyRiskStatus
     OPEN, CONFIRM, ACCEPT, SAFE
 }
 
+[JsonConverter(typeof(StringEnumConverter))]
 public enum DependencyRiskTransition
 {
     CONFIRM, REOPEN, SAFE, FIXED, ACCEPT

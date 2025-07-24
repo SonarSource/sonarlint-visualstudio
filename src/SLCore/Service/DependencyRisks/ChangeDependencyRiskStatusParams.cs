@@ -18,17 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.DependencyRisks;
 
-[JsonRpcClass("dependencyRisk")]
-public interface IDependencyRiskSlCoreService : ISLCoreService
-{
-    Task<ListAllDependencyRisksResponse> ListAllAsync(ListAllDependencyRisksParams parameters);
-
-    Task OpenDependencyRiskInBrowserAsync(OpenDependencyRiskInBrowserParams parameters);
-
-    Task ChangeStatusAsync(ChangeDependencyRiskStatusParams parameters);
-}
+public record ChangeDependencyRiskStatusParams(string configurationScopeId, Guid dependencyRiskKey, DependencyRiskTransition transition, string? comment);
