@@ -66,6 +66,8 @@ internal sealed class TelemetryManager : ITelemetryManager,
 
     public void AddedAutomaticBindings() => telemetryHelper.Notify(telemetryService => telemetryService.AddedAutomaticBindings());
 
+    public void DependencyRiskInvestigatedLocally() => telemetryHelper.Notify(telemetryService => telemetryService.DependencyRiskInvestigatedLocally());
+
     private static IEnumerable<FixSuggestionResolvedParams> ConvertFixSuggestionChangeToResolvedParams(string suggestionId, IEnumerable<bool> changeApplicationStatus) =>
         changeApplicationStatus
             .Select((status, index) =>

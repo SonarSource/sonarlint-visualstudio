@@ -20,6 +20,7 @@
 
 using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
@@ -27,11 +28,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IDisposable
 {
     private readonly IDependencyRisksStore dependencyRisksStore;
+    private readonly ITelemetryManager telemetryManager;
     private readonly IThreadHandling threadHandling;
+    private DependencyRiskViewModel selectedItem;
 
-    public GroupDependencyRiskViewModel(IDependencyRisksStore dependencyRisksStore, IThreadHandling threadHandling)
+    public GroupDependencyRiskViewModel(IDependencyRisksStore dependencyRisksStore, ITelemetryManager telemetryManager, IThreadHandling threadHandling)
     {
         this.dependencyRisksStore = dependencyRisksStore;
+        this.telemetryManager = telemetryManager;
         this.threadHandling = threadHandling;
         dependencyRisksStore.DependencyRisksChanged += OnDependencyRiskChanged;
     }
@@ -41,6 +45,22 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IDisposable
     public ObservableCollection<DependencyRiskViewModel> Risks { get; } = new();
 
     public bool HasRisks => Risks.Count > 0;
+
+    public DependencyRiskViewModel SelectedItem
+    {
+        get => selectedItem;
+        set
+        {
+            if (selectedItem != value)
+            {
+                selectedItem = value;
+                if (selectedItem != null)
+                {
+                    telemetryManager.DependencyRiskInvestigatedLocally();
+                }
+            }
+        }
+    }
 
     public void InitializeRisks() =>
         threadHandling.RunOnUIThread(() =>

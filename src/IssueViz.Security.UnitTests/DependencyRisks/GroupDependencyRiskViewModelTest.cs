@@ -20,6 +20,7 @@
 
 using System.ComponentModel;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -31,13 +32,15 @@ public class GroupDependencyRiskViewModelTest
     private GroupDependencyRiskViewModel testSubject;
     private IDependencyRisksStore dependencyRisksStore;
     private IThreadHandling threadHandling;
+    private ITelemetryManager telemetryManager;
 
     [TestInitialize]
     public void Initialize()
     {
         dependencyRisksStore = Substitute.For<IDependencyRisksStore>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
-        testSubject = new(dependencyRisksStore, threadHandling);
+        telemetryManager = Substitute.For<ITelemetryManager>();
+        testSubject = new(dependencyRisksStore, telemetryManager, threadHandling);
     }
 
     [TestMethod]
@@ -109,6 +112,63 @@ public class GroupDependencyRiskViewModelTest
 
         dependencyRisksStore.Received(1).GetAll();
         testSubject.Risks.Should().ContainSingle(vm => vm.DependencyRisk == dependencyRisk);
+    }
+
+    [TestMethod]
+    public void SelectedItem_Initially_IsNull()
+    {
+        testSubject.SelectedItem.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void SelectedItem_SetToValue_CallsTelemetry()
+    {
+        var risk = Substitute.For<IDependencyRisk>();
+        var riskViewModel = new DependencyRiskViewModel(risk);
+
+        testSubject.SelectedItem = riskViewModel;
+
+        testSubject.SelectedItem.Should().BeSameAs(riskViewModel);
+        telemetryManager.Received(1).DependencyRiskInvestigatedLocally();
+    }
+
+    [TestMethod]
+    public void SelectedItem_SetToSameValue_DoesNotCallTelemetry()
+    {
+        var riskViewModel = new DependencyRiskViewModel(Substitute.For<IDependencyRisk>());
+        testSubject.SelectedItem = riskViewModel;
+        telemetryManager.ClearReceivedCalls();
+
+        testSubject.SelectedItem = riskViewModel;
+
+        telemetryManager.DidNotReceive().DependencyRiskInvestigatedLocally();
+    }
+
+    [TestMethod]
+    public void SelectedItem_SetToDifferentValue_CallsTelemetry()
+    {
+        var riskViewModel1 = new DependencyRiskViewModel(Substitute.For<IDependencyRisk>());
+        var riskViewModel2 = new DependencyRiskViewModel(Substitute.For<IDependencyRisk>());
+        testSubject.SelectedItem = riskViewModel1;
+        telemetryManager.ClearReceivedCalls();
+
+        testSubject.SelectedItem = riskViewModel2;
+
+        testSubject.SelectedItem.Should().BeSameAs(riskViewModel2);
+        telemetryManager.Received(1).DependencyRiskInvestigatedLocally();
+    }
+
+    [TestMethod]
+    public void SelectedItem_SetToNull_DoesNotCallTelemetry()
+    {
+        var riskViewModel1 = new DependencyRiskViewModel(Substitute.For<IDependencyRisk>());
+        testSubject.SelectedItem = riskViewModel1;
+        telemetryManager.ClearReceivedCalls();
+
+        testSubject.SelectedItem = null;
+
+        testSubject.SelectedItem.Should().BeNull();
+        telemetryManager.DidNotReceive().DependencyRiskInvestigatedLocally();
     }
 
     [TestMethod]
