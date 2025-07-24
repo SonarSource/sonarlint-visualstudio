@@ -37,6 +37,7 @@ internal sealed partial class ReportViewControl : UserControl
 {
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly IBrowserService browserService;
+    private readonly IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler;
     // TODO by https://sonarsource.atlassian.net/browse/SLVS-2376: get the allowed statuses returned by SlCore
     private readonly DependencyRiskStatus[] allowedDependencyRiskStatuses = [DependencyRiskStatus.Open, DependencyRiskStatus.Confirmed, DependencyRiskStatus.Accepted, DependencyRiskStatus.Safe];
 
@@ -47,10 +48,12 @@ internal sealed partial class ReportViewControl : UserControl
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IBrowserService browserService,
         IDependencyRisksStore dependencyRisksStore,
+        IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler,
         IThreadHandling threadHandling)
     {
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.browserService = browserService;
+        this.showDependencyRiskInBrowserHandler = showDependencyRiskInBrowserHandler;
         ReportViewModel = new ReportViewModel(activeSolutionBoundTracker, dependencyRisksStore, threadHandling);
         InitializeComponent();
     }
@@ -85,7 +88,12 @@ internal sealed partial class ReportViewControl : UserControl
 
     private void ViewDependencyRiskInBrowser_OnClick(object sender, RoutedEventArgs e)
     {
-        // TODO by https://sonarsource.atlassian.net/browse/SLVS-2372: implement actual navigation to the browser
+        if (GetSelectedTreeViewItem(GroupDependencyRiskTreeViewItem) is not { DataContext: DependencyRiskViewModel selectedDependencyRiskViewModel })
+        {
+            return;
+        }
+
+        showDependencyRiskInBrowserHandler.ShowInBrowser(selectedDependencyRiskViewModel.DependencyRisk.Id);
     }
 
     private void DependencyRiskContextMenu_OnLoaded(object sender, RoutedEventArgs e)

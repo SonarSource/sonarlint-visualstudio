@@ -348,6 +348,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Dependency Risks.
+        /// </summary>
+        public static string LogContext_DependencyRisks {
+            get {
+                return ResourceManager.GetString("LogContext_DependencyRisks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show in Browser.
+        /// </summary>
+        public static string LogContext_ShowInBrowser {
+            get {
+                return ResourceManager.GetString("LogContext_ShowInBrowser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Please ensure that your solution is bound to a SonarQube project that contains dependency risks..
         /// </summary>
         public static string NoDependencyRiskFoundText {
@@ -530,6 +548,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error when showing dependency risk in browser: {0}.
+        /// </summary>
+        public static string ShowDependencyRisk_Error_ShowingInBrowser {
+            get {
+                return ResourceManager.GetString("ShowDependencyRisk_Error_ShowingInBrowser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Initializing security package....
         /// </summary>
         public static string StartedPackageInitialization {
@@ -544,15 +571,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string Synchronizer_Failure {
             get {
                 return ResourceManager.GetString("Synchronizer_Failure", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Dependency Risks.
-        /// </summary>
-        public static string Synchronizer_LogContext_DependencyRisks {
-            get {
-                return ResourceManager.GetString("Synchronizer_LogContext_DependencyRisks", resourceCulture);
             }
         }
         
