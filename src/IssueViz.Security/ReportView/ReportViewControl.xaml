@@ -134,7 +134,10 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <TreeView Grid.Row="0" Margin="0,5"  Visibility="{Binding Path=GroupDependencyRisk.HasRisks, Converter={StaticResource TrueToVisibleConverter}}">
+        <TreeView Grid.Row="0" Margin="0,5"  Visibility="{Binding Path=GroupDependencyRisk.HasRisks, Converter={StaticResource TrueToVisibleConverter}}" SelectedItemChanged="TreeView_OnSelectedItemChanged">
+            <TreeView.InputBindings>
+
+            </TreeView.InputBindings>
             <TreeViewItem x:Name="GroupDependencyRiskTreeViewItem" DataContext="{Binding Path=GroupDependencyRisk}" 
                           ItemsSource="{Binding Path=Risks}"
                           PreviewMouseUp="TreeViewItem_OnPreviewMouseUp">

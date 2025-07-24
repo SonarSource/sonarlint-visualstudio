@@ -20,6 +20,7 @@
 
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
@@ -28,9 +29,9 @@ internal class ReportViewModel : ServerViewModel
 {
     public GroupDependencyRiskViewModel GroupDependencyRisk { get; }
 
-    public ReportViewModel(IActiveSolutionBoundTracker activeSolutionBoundTracker, IDependencyRisksStore dependencyRisksStore, IThreadHandling threadHandling) : base(activeSolutionBoundTracker)
+    public ReportViewModel(IActiveSolutionBoundTracker activeSolutionBoundTracker, IDependencyRisksStore dependencyRisksStore, ITelemetryManager telemetryManager, IThreadHandling threadHandling) : base(activeSolutionBoundTracker)
     {
-        GroupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore, threadHandling);
+        GroupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore, telemetryManager, threadHandling);
         GroupDependencyRisk.InitializeRisks();
     }
 

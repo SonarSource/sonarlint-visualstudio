@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 
@@ -38,6 +39,7 @@ internal sealed partial class ReportViewControl : UserControl
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly IBrowserService browserService;
     private readonly IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler;
+    private readonly ITelemetryManager telemetryManager;
     // TODO by https://sonarsource.atlassian.net/browse/SLVS-2376: get the allowed statuses returned by SlCore
     private readonly DependencyRiskStatus[] allowedDependencyRiskStatuses = [DependencyRiskStatus.Open, DependencyRiskStatus.Confirmed, DependencyRiskStatus.Accepted, DependencyRiskStatus.Safe];
 
@@ -49,12 +51,14 @@ internal sealed partial class ReportViewControl : UserControl
         IBrowserService browserService,
         IDependencyRisksStore dependencyRisksStore,
         IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler,
+        ITelemetryManager telemetryManager,
         IThreadHandling threadHandling)
     {
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.browserService = browserService;
         this.showDependencyRiskInBrowserHandler = showDependencyRiskInBrowserHandler;
-        ReportViewModel = new ReportViewModel(activeSolutionBoundTracker, dependencyRisksStore, threadHandling);
+        this.telemetryManager = telemetryManager;
+        ReportViewModel = new ReportViewModel(activeSolutionBoundTracker, dependencyRisksStore, telemetryManager, threadHandling);
         InitializeComponent();
     }
 
@@ -88,7 +92,7 @@ internal sealed partial class ReportViewControl : UserControl
 
     private void ViewDependencyRiskInBrowser_OnClick(object sender, RoutedEventArgs e)
     {
-        if (GetSelectedTreeViewItem(GroupDependencyRiskTreeViewItem) is not { DataContext: DependencyRiskViewModel selectedDependencyRiskViewModel })
+        if (ReportViewModel.GroupDependencyRisk.SelectedItem is not { } selectedDependencyRiskViewModel)
         {
             return;
         }
@@ -115,7 +119,7 @@ internal sealed partial class ReportViewControl : UserControl
 
     private void ChangeScaStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
     {
-        if (GetSelectedTreeViewItem(GroupDependencyRiskTreeViewItem) is not { DataContext: DependencyRiskViewModel selectedDependencyRiskViewModel })
+        if (ReportViewModel.GroupDependencyRisk.SelectedItem is not { } selectedDependencyRiskViewModel)
         {
             return;
         }
@@ -128,15 +132,6 @@ internal sealed partial class ReportViewControl : UserControl
         }
     }
 
-    private static TreeViewItem GetSelectedTreeViewItem(TreeViewItem parent)
-    {
-        foreach (var child in parent.Items)
-        {
-            if (parent.ItemContainerGenerator.ContainerFromItem(child) is TreeViewItem { IsSelected: true } childContainer)
-            {
-                return childContainer;
-            }
-        }
-        return null;
-    }
+    private void TreeView_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) =>
+        ReportViewModel.GroupDependencyRisk.SelectedItem = e.NewValue as DependencyRiskViewModel;
 }

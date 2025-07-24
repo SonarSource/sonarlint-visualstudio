@@ -41,4 +41,6 @@ public interface ITelemetryManager
     void AddedFromSharedBindings();
 
     void AddedAutomaticBindings();
+
+    void DependencyRiskInvestigatedLocally();
 }
