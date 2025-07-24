@@ -39,7 +39,6 @@ internal sealed partial class ReportViewControl : UserControl
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly IBrowserService browserService;
     private readonly IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler;
-    private readonly ITelemetryManager telemetryManager;
     // TODO by https://sonarsource.atlassian.net/browse/SLVS-2376: get the allowed statuses returned by SlCore
     private readonly DependencyRiskStatus[] allowedDependencyRiskStatuses = [DependencyRiskStatus.Open, DependencyRiskStatus.Confirmed, DependencyRiskStatus.Accepted, DependencyRiskStatus.Safe];
 
@@ -57,7 +56,6 @@ internal sealed partial class ReportViewControl : UserControl
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.browserService = browserService;
         this.showDependencyRiskInBrowserHandler = showDependencyRiskInBrowserHandler;
-        this.telemetryManager = telemetryManager;
         ReportViewModel = new ReportViewModel(activeSolutionBoundTracker, dependencyRisksStore, telemetryManager, threadHandling);
         InitializeComponent();
     }
