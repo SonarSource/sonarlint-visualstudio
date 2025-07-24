@@ -284,6 +284,18 @@ Please check the logs for more details.</value>
   <data name="ChangeDependencyRiskStatus_SafeDescription" xml:space="preserve">
     <value>This finding does not pose a risk. No fix is needed.</value>
   </data>
+  <data name="ChangeDependencyRiskStatus_ReopenTitle" xml:space="preserve">
+    <value>Reopen</value>
+  </data>
+  <data name="ChangeDependencyRiskStatus_ConfirmTitle" xml:space="preserve">
+    <value>Confirm</value>
+  </data>
+  <data name="ChangeDependencyRiskStatus_AcceptTitle" xml:space="preserve">
+    <value>Accept</value>
+  </data>
+  <data name="ChangeDependencyRiskStatus_SafeTitle" xml:space="preserve">
+    <value>Safe</value>
+  </data>
   <data name="Synchronizer_Failure" xml:space="preserve">
     <value>Failed to synchronize server issues: {0}.</value>
   </data>

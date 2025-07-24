@@ -27,58 +27,58 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Dependenc
 [TestClass]
 public class ChangeDependencyRiskStatusViewModelTest
 {
-    private readonly List<DependencyRiskStatus> statusWithMandatoryComment = [DependencyRiskStatus.Accepted, DependencyRiskStatus.Safe];
+    private readonly List<DependencyRiskTransition> statusWithMandatoryComment = [DependencyRiskTransition.Accept, DependencyRiskTransition.Safe];
 
     [TestMethod]
     public void Ctor_InitializesProperties()
     {
-        var currentStatus = DependencyRiskStatus.Open;
-        List<DependencyRiskStatus> allowedStatuses = [DependencyRiskStatus.Open, DependencyRiskStatus.Confirmed];
+        List<DependencyRiskTransition> allowedTransitions = [DependencyRiskTransition.Reopen, DependencyRiskTransition.Confirm];
 
-        var testSubject = new ChangeDependencyRiskStatusViewModel(currentStatus, allowedStatuses);
+        var testSubject = new ChangeDependencyRiskStatusViewModel(allowedTransitions);
 
-        testSubject.AllStatusViewModels.Should().HaveCount(allowedStatuses.Count);
-        testSubject.AllStatusViewModels.Should().Contain(x => x.GetCurrentStatus<DependencyRiskStatus>() == DependencyRiskStatus.Open);
-        testSubject.AllStatusViewModels.Should().Contain(x => x.GetCurrentStatus<DependencyRiskStatus>() == DependencyRiskStatus.Confirmed);
-        testSubject.SelectedStatusViewModel.GetCurrentStatus<DependencyRiskStatus>().Should().Be(currentStatus);
+        testSubject.AllStatusViewModels.Should().HaveCount(allowedTransitions.Count);
+        testSubject.AllStatusViewModels.Should().Contain(x => x.GetCurrentStatus<DependencyRiskTransition>() == DependencyRiskTransition.Reopen);
+        testSubject.AllStatusViewModels.Should().Contain(x => x.GetCurrentStatus<DependencyRiskTransition>() == DependencyRiskTransition.Confirm);
         testSubject.ShowComment.Should().BeTrue();
     }
 
     [TestMethod]
-    public void Ctor_AcceptedAndSafeStatusHaveMandatoryComment()
+    public void Ctor_AcceptAndSafeTransitionsHaveMandatoryComment()
     {
-        var allStatuses = Enum.GetValues(typeof(DependencyRiskStatus)).Cast<DependencyRiskStatus>().ToList();
+        List<DependencyRiskTransition> allTransitions = [DependencyRiskTransition.Reopen, DependencyRiskTransition.Confirm, DependencyRiskTransition.Accept, DependencyRiskTransition.Safe];
 
-        var testSubject = new ChangeDependencyRiskStatusViewModel(default, allStatuses);
+        var testSubject = new ChangeDependencyRiskStatusViewModel(allTransitions);
 
-        testSubject.AllStatusViewModels.Should().HaveCount(allStatuses.Count);
+        testSubject.AllStatusViewModels.Should().HaveCount(allTransitions.Count);
         var mandatoryComments = GetViewModelsWithStatusesWithMandatoryComments(testSubject);
         mandatoryComments.Should().OnlyContain(vm => vm.IsCommentRequired);
         testSubject.AllStatusViewModels.Except(mandatoryComments).Should().OnlyContain(vm => !vm.IsCommentRequired);
     }
 
     [TestMethod]
-    public void SelectedStatus_IsInListOfAllowedStatuses_InitializesCorrectly()
+    public void GetSelectedStatus_DefaultsToNull()
     {
-        var currentStatus = DependencyRiskStatus.Accepted;
-        List<DependencyRiskStatus> allowedStatuses = [DependencyRiskStatus.Safe, DependencyRiskStatus.Accepted];
+        List<DependencyRiskTransition> allowedTransitions = [DependencyRiskTransition.Accept, DependencyRiskTransition.Safe];
+        var testSubject = new ChangeDependencyRiskStatusViewModel(allowedTransitions);
 
-        var testSubject = new ChangeDependencyRiskStatusViewModel(currentStatus, allowedStatuses);
+        var result = testSubject.SelectedStatusViewModel.GetCurrentStatus<DependencyRiskTransition>();
 
-        testSubject.SelectedStatusViewModel.GetCurrentStatus<DependencyRiskStatus>().Should().Be(currentStatus);
+        result.Should().BeNull();
     }
 
     [TestMethod]
-    public void SelectedStatus_IsNotInListOfAllowedStatuses_InitializesNull()
+    public void GetSelectedStatus_ReturnsSelectedStatus()
     {
-        var currentStatus = DependencyRiskStatus.Open;
-        List<DependencyRiskStatus> allowedStatuses = [DependencyRiskStatus.Safe, DependencyRiskStatus.Accepted];
+        List<DependencyRiskTransition> allowedTransitions = [DependencyRiskTransition.Accept, DependencyRiskTransition.Safe];
+        var testSubject = new ChangeDependencyRiskStatusViewModel(allowedTransitions);
+        var acceptViewModel = testSubject.AllStatusViewModels.First(vm => vm.GetCurrentStatus<DependencyRiskTransition>() == DependencyRiskTransition.Accept);
+        testSubject.SelectedStatusViewModel = acceptViewModel;
 
-        var testSubject = new ChangeDependencyRiskStatusViewModel(currentStatus, allowedStatuses);
+        var result = testSubject.SelectedStatusViewModel.GetCurrentStatus<DependencyRiskTransition>();
 
-        testSubject.SelectedStatusViewModel.Should().BeNull();
+        result.Should().Be(DependencyRiskTransition.Accept);
     }
 
     private List<IStatusViewModel> GetViewModelsWithStatusesWithMandatoryComments(ChangeDependencyRiskStatusViewModel testSubject) =>
-        testSubject.AllStatusViewModels.Where(vm => statusWithMandatoryComment.Contains(vm.GetCurrentStatus<DependencyRiskStatus>())).ToList();
+        testSubject.AllStatusViewModels.Where(vm => statusWithMandatoryComment.Contains(vm.GetCurrentStatus<DependencyRiskTransition>())).ToList();
 }

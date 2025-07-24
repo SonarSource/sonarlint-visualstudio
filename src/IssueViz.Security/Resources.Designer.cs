@@ -69,11 +69,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Accept.
+        /// </summary>
+        public static string ChangeDependencyRiskStatus_AcceptTitle {
+            get {
+                return ResourceManager.GetString("ChangeDependencyRiskStatus_AcceptTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This finding has been reviewed and the risk is valid..
         /// </summary>
         public static string ChangeDependencyRiskStatus_ConfirmedDescription {
             get {
                 return ResourceManager.GetString("ChangeDependencyRiskStatus_ConfirmedDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Confirm.
+        /// </summary>
+        public static string ChangeDependencyRiskStatus_ConfirmTitle {
+            get {
+                return ResourceManager.GetString("ChangeDependencyRiskStatus_ConfirmTitle", resourceCulture);
             }
         }
         
@@ -87,11 +105,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reopen.
+        /// </summary>
+        public static string ChangeDependencyRiskStatus_ReopenTitle {
+            get {
+                return ResourceManager.GetString("ChangeDependencyRiskStatus_ReopenTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This finding does not pose a risk. No fix is needed..
         /// </summary>
         public static string ChangeDependencyRiskStatus_SafeDescription {
             get {
                 return ResourceManager.GetString("ChangeDependencyRiskStatus_SafeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Safe.
+        /// </summary>
+        public static string ChangeDependencyRiskStatus_SafeTitle {
+            get {
+                return ResourceManager.GetString("ChangeDependencyRiskStatus_SafeTitle", resourceCulture);
             }
         }
         

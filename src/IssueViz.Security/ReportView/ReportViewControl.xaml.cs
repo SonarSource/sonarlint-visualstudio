@@ -25,7 +25,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
@@ -39,8 +38,6 @@ internal sealed partial class ReportViewControl : UserControl
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly IBrowserService browserService;
     private readonly IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler;
-    // TODO by https://sonarsource.atlassian.net/browse/SLVS-2376: get the allowed statuses returned by SlCore
-    private readonly DependencyRiskStatus[] allowedDependencyRiskStatuses = [DependencyRiskStatus.Open, DependencyRiskStatus.Confirmed, DependencyRiskStatus.Accepted, DependencyRiskStatus.Safe];
 
     public ReportViewModel ReportViewModel { get; }
     public IResourceFinder ResourceFinder { get; } = new ResourceFinder();
@@ -122,7 +119,7 @@ internal sealed partial class ReportViewControl : UserControl
             return;
         }
 
-        var changeStatusViewModel = new ChangeDependencyRiskStatusViewModel(selectedDependencyRiskViewModel.DependencyRisk.Status, allowedDependencyRiskStatuses);
+        var changeStatusViewModel = new ChangeDependencyRiskStatusViewModel(selectedDependencyRiskViewModel.DependencyRisk.Transitions);
         var dialog = new ChangeStatusWindow(changeStatusViewModel, browserService, activeSolutionBoundTracker);
         if (dialog.ShowDialog(Application.Current.MainWindow) is true)
         {
@@ -130,6 +127,5 @@ internal sealed partial class ReportViewControl : UserControl
         }
     }
 
-    private void TreeView_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) =>
-        ReportViewModel.GroupDependencyRisk.SelectedItem = e.NewValue as DependencyRiskViewModel;
+    private void TreeView_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) => ReportViewModel.GroupDependencyRisk.SelectedItem = e.NewValue as DependencyRiskViewModel;
 }
