@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Core
         public const string FileExclusionsPatternJsonFile = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/using/file-exclusions/#using-wildcards";
         public const string UseSharedBinding = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/team-features/connected-mode-setup/#bind-using-shared-configuration";
         public const string SetupSharedBinding = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/team-features/connected-mode-setup/#save-the-connection-binding";
-        public const string CleanCode = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/using/software-qualities/";
+        public const string CleanCode = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/using/software-qualities";
         public const string OpenInIdeIssueLocation = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/troubleshooting/#no-matching-issue-found";
         public const string OpenInIdeBindingSetup = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/troubleshooting/#no-matching-project-found";
         public const string UnbindingProject = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/team-features/connected-mode-setup/#unbinding-a-project";
