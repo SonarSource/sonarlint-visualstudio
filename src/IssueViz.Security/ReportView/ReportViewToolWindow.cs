@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
@@ -43,7 +44,8 @@ internal class ReportViewToolWindow : ToolWindowPane
         var dependencyRiskStore = componentModel?.GetService<IDependencyRisksStore>();
         var showDependencyRiskInBrowser = componentModel?.GetService<IShowDependencyRiskInBrowserHandler>();
         var threadHandling = componentModel?.GetService<IThreadHandling>();
+        var telemetryManager = componentModel?.GetService<ITelemetryManager>();
         Caption = Resources.ReportViewToolWindowCaption;
-        Content = new ReportViewControl(activeSolutionBoundTracker, browserService, dependencyRiskStore, showDependencyRiskInBrowser, threadHandling);
+        Content = new ReportViewControl(activeSolutionBoundTracker, browserService, dependencyRiskStore, showDependencyRiskInBrowser, telemetryManager, threadHandling);
     }
 }

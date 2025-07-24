@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -65,7 +66,7 @@ public class ReportViewModelTest
         dependencyRisksStore.Received(1).DependencyRisksChanged -= Arg.Any<EventHandler>();
     }
 
-    private ReportViewModel CreateTestSubject() => new(activeSolutionBoundTracker, dependencyRisksStore, Substitute.ForPartsOf<NoOpThreadHandler>());
+    private ReportViewModel CreateTestSubject() => new(activeSolutionBoundTracker, dependencyRisksStore, Substitute.For<ITelemetryManager>(), Substitute.ForPartsOf<NoOpThreadHandler>());
 
     private void MockRisksInStore(params IDependencyRisk[] dependencyRisks) => dependencyRisksStore.GetAll().Returns(dependencyRisks);
 }
