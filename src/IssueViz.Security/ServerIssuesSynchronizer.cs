@@ -79,7 +79,7 @@ internal sealed class ServerIssuesSynchronizer : IServerIssuesSynchronizer
         this.threadHandling = threadHandling;
         generalLogger = logger.ForContext(Resources.Synchronizer_LogContext_General).ForVerboseContext(nameof(ServerIssuesSynchronizer));
         taintLogger = generalLogger.ForContext(Resources.Synchronizer_LogContext_Taint);
-        dependencyRiskLogger = generalLogger.ForContext(Resources.Synchronizer_LogContext_DependencyRisks);
+        dependencyRiskLogger = generalLogger.ForContext(Resources.LogContext_DependencyRisks);
         this.scaConverter = scaConverter;
         asyncLock = asyncLockFactory.Create();
     }
