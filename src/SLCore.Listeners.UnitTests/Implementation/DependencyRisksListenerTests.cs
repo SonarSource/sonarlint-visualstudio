@@ -66,7 +66,7 @@ public class DependencyRisksListenerTests
 
         testSubject.DidChangeDependencyRisks(parameters);
 
-        dependencyRisksStore.DidNotReceiveWithAnyArgs().Set(default, default);
+        dependencyRisksStore.DidNotReceiveWithAnyArgs().Update(default);
         converter.DidNotReceiveWithAnyArgs().Convert(default);
     }
 
@@ -74,19 +74,21 @@ public class DependencyRisksListenerTests
     public void DidChangeScaIssues_ConfigurationScopeMatches_UpdatesStoreWithConvertedIssues()
     {
         dependencyRisksStore.CurrentConfigurationScope.Returns(ConfigScopeId);
-        var (scaIssue1, dependencyRisk1) = CreateScaIssueAndDependencyRisk();
-        var (scaIssue2, dependencyRisk2) = CreateScaIssueAndDependencyRisk();
-        var (scaIssue3, dependencyRisk3) = CreateScaIssueAndDependencyRisk();
-        var parameters = CreateParams(ConfigScopeId, [scaIssue1, scaIssue2], [scaIssue3]);
+        var (riskDto1, dependencyRisk1) = CreateScaIssueAndDependencyRisk();
+        var (riskDto2, dependencyRisk2) = CreateScaIssueAndDependencyRisk();
+        var (riskDto3, dependencyRisk3) = CreateScaIssueAndDependencyRisk();
+        var closedRiskIds = new HashSet<Guid> { Guid.NewGuid(), Guid.NewGuid() };
+        var parameters = CreateParams(ConfigScopeId, [riskDto1, riskDto2], [riskDto3], closedRiskIds);
 
         testSubject.DidChangeDependencyRisks(parameters);
 
-        dependencyRisksStore.Received(1).Set(
-            Arg.Is<IDependencyRisk[]>(issues =>
-                issues.Contains(dependencyRisk1) &&
-                issues.Contains(dependencyRisk2) &&
-                issues.Contains(dependencyRisk3)),
-            ConfigScopeId);
+        var expectedUpdate = new DependencyRisksUpdate(
+            ConfigScopeId,
+            [dependencyRisk1, dependencyRisk2],
+            [dependencyRisk3],
+            closedRiskIds);
+
+        VerifyUpdateCall(expectedUpdate);
         logger.DidNotReceiveWithAnyArgs().WriteLine(default, default, default);
     }
 
@@ -94,20 +96,26 @@ public class DependencyRisksListenerTests
     public void DidChangeScaIssues_EmptyLists_UpdatesStoreWithEmptyList()
     {
         dependencyRisksStore.CurrentConfigurationScope.Returns(ConfigScopeId);
-
         var parameters = CreateParams(ConfigScopeId);
+        var expectedUpdate = new DependencyRisksUpdate(ConfigScopeId, [], [], []);
 
         testSubject.DidChangeDependencyRisks(parameters);
 
         converter.DidNotReceiveWithAnyArgs().Convert(default!);
-        dependencyRisksStore.Received(1).Set(
-            Arg.Is<IEnumerable<IDependencyRisk>>(issues => !issues.Any()),
-            ConfigScopeId);
+        VerifyUpdateCall(expectedUpdate);
     }
 
-    private (DependencyRiskDto scaIssue, IDependencyRisk dependencyRisk) CreateScaIssueAndDependencyRisk()
+    private void VerifyUpdateCall(DependencyRisksUpdate expectedUpdate)
     {
-        var scaIssue = new DependencyRiskDto(
+        dependencyRisksStore.Received(1).Update(Arg.Any<DependencyRisksUpdate>());
+        var updateCall = dependencyRisksStore.ReceivedCalls().Single(call => call.GetMethodInfo().Name == "Update");
+        var actualUpdate = (DependencyRisksUpdate)updateCall.GetArguments()[0];
+        actualUpdate.Should().BeEquivalentTo(expectedUpdate);
+    }
+
+    private (DependencyRiskDto riskDto, IDependencyRisk dependencyRisk) CreateScaIssueAndDependencyRisk()
+    {
+        var riskDto = new DependencyRiskDto(
             Guid.NewGuid(),
             default,
             default,
@@ -116,18 +124,19 @@ public class DependencyRisksListenerTests
             string.Empty,
             []);
         var dependencyRisk = Substitute.For<IDependencyRisk>();
-        converter.Convert(scaIssue).Returns(dependencyRisk);
+        converter.Convert(riskDto).Returns(dependencyRisk);
 
-        return (scaIssue, dependencyRisk);
+        return (riskDto, dependencyRisk);
     }
 
     private static DidChangeDependencyRisksParams CreateParams(
         string configScopeId,
         List<DependencyRiskDto> addedScaIssues = null,
-        List<DependencyRiskDto> updatedScaIssues = null) =>
+        List<DependencyRiskDto> updatedScaIssues = null,
+        HashSet<Guid> closedDependencyRiskIds = null) =>
         new(
             configScopeId,
-            [Guid.NewGuid()],
+            closedDependencyRiskIds ?? [],
             addedScaIssues ?? [],
             updatedScaIssues ?? []);
 }
