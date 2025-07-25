@@ -21,14 +21,22 @@
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.WPF;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-internal class DependencyRiskViewModel(IDependencyRisk dependencyRisk)
-    : ViewModelBase
+internal class ResolutionFilterViewModel(bool isResolved, bool isSelected) : ViewModelBase
 {
-    public bool IsTransitionAllowed { get; } = dependencyRisk.Transitions.Any();
+    private bool isSelected = isSelected;
+    public bool IsResolved { get; } = isResolved;
+    public string Title { get; } = isResolved ? "Resolved" : "Open";
 
-    public bool IsResolved { get; } = dependencyRisk.Status is DependencyRiskStatus.Accepted or DependencyRiskStatus.Safe;
-
-    public IDependencyRisk DependencyRisk { get; } = dependencyRisk;
+    public bool IsSelected
+    {
+        get => isSelected;
+        set
+        {
+            isSelected = value;
+            RaisePropertyChanged();
+        }
+    }
 }
+

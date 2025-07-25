@@ -46,9 +46,12 @@ internal class ReportViewModel : ServerViewModel
         this.showDependencyRiskInBrowserHandler = showDependencyRiskInBrowserHandler;
         this.changeDependencyRiskStatusHandler = changeDependencyRiskStatusHandler;
         this.messageBox = messageBox;
-        GroupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore, telemetryManager, threadHandling);
+        ResolutionFilters = [new ResolutionFilterViewModel(false, true), new ResolutionFilterViewModel(true, false)];
+        GroupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore, ResolutionFilters, telemetryManager, threadHandling);
         GroupDependencyRisk.InitializeRisks();
     }
+
+    public ResolutionFilterViewModel[] ResolutionFilters { get; }
 
     protected override void Dispose(bool disposing)
     {

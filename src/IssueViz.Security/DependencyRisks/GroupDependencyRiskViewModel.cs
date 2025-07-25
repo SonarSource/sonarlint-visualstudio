@@ -22,19 +22,28 @@ using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Core.WPF;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
 internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IDisposable
 {
     private readonly IDependencyRisksStore dependencyRisksStore;
+    private readonly ResolutionFilterViewModel[] resolutionFilters;
     private readonly ITelemetryManager telemetryManager;
     private readonly IThreadHandling threadHandling;
     private DependencyRiskViewModel selectedItem;
+    private readonly ObservableCollection<DependencyRiskViewModel> risks = new();
+    private readonly ObservableCollection<DependencyRiskViewModel> filteredRisks = new();
 
-    public GroupDependencyRiskViewModel(IDependencyRisksStore dependencyRisksStore, ITelemetryManager telemetryManager, IThreadHandling threadHandling)
+    public GroupDependencyRiskViewModel(
+        IDependencyRisksStore dependencyRisksStore,
+        ResolutionFilterViewModel[] resolutionFilters,
+        ITelemetryManager telemetryManager,
+        IThreadHandling threadHandling)
     {
         this.dependencyRisksStore = dependencyRisksStore;
+        this.resolutionFilters = resolutionFilters;
         this.telemetryManager = telemetryManager;
         this.threadHandling = threadHandling;
         dependencyRisksStore.DependencyRisksChanged += OnDependencyRiskChanged;
@@ -42,9 +51,10 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IDisposable
 
     public static string Title => Resources.DependencyRisksGroupTitle;
 
-    public ObservableCollection<DependencyRiskViewModel> Risks { get; } = new();
+    public ObservableCollection<DependencyRiskViewModel> Risks => risks;
+    public ObservableCollection<DependencyRiskViewModel> FilteredRisks => filteredRisks;
 
-    public bool HasRisks => Risks.Count > 0;
+    public bool HasRisks => risks.Count > 0;
 
     public DependencyRiskViewModel SelectedItem
     {
@@ -65,13 +75,43 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IDisposable
     public void InitializeRisks() =>
         threadHandling.RunOnUIThread(() =>
         {
-            Risks.Clear();
-            var newDependencyRiskViewModels = dependencyRisksStore.GetAll().Select(x => new DependencyRiskViewModel(x)).ToList();
-            newDependencyRiskViewModels.ForEach(Risks.Add);
+            risks.Clear();
+            var dependencyRisks = dependencyRisksStore.GetAll();
+            var newDependencyRiskViewModels = dependencyRisks
+                .OrderByDescending(x => x.Severity)
+                .ThenBy(x => x.Status)
+                .Select(x => new DependencyRiskViewModel(x));
+            foreach (var riskViewModel in newDependencyRiskViewModels)
+            {
+                risks.Add(riskViewModel);
+            }
+            RefreshFiltering();
             RaisePropertyChanged(nameof(HasRisks));
         });
 
     private void OnDependencyRiskChanged(object sender, EventArgs e) => InitializeRisks();
 
     public void Dispose() => dependencyRisksStore.DependencyRisksChanged -= OnDependencyRiskChanged;
+
+    public void UpdatePriorityFilter(ResolutionFilterViewModel viewModel, bool isSelected)
+    {
+        viewModel.IsSelected = isSelected;
+        RefreshFiltering();
+    }
+
+    private void RefreshFiltering()
+    {
+        UpdateFilteredHotspots();
+        RaisePropertyChanged(nameof(FilteredRisks));
+    }
+
+    private void UpdateFilteredHotspots()
+    {
+        filteredRisks.Clear();
+        var selectedResolutions = resolutionFilters.Where(x => x.IsSelected).Select(x => x.IsResolved).ToArray();
+        foreach (var dependencyRiskViewModel in risks.Where(x => selectedResolutions.Contains(x.IsResolved)))
+        {
+            filteredRisks.Add(dependencyRiskViewModel);
+        }
+    }
 }

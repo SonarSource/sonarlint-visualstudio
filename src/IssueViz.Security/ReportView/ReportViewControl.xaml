@@ -2,7 +2,8 @@
              x:ClassModifier="internal"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks"
+             xmlns:dependencyRisks="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks"
+             xmlns:reportView="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security.ReportView"
              xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:res="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security"
@@ -16,7 +17,7 @@
                 <ResourceDictionary Source="../SharedUI/SharedResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <local:DependencyRiskImpactSeverityToImageSourceConverter
+            <dependencyRisks:DependencyRiskImpactSeverityToImageSourceConverter
                 x:Key="DependencyRiskImpactSeverityToImageSourceConverter" />
             
 
@@ -128,16 +129,100 @@
                           Style="{StaticResource ChangeStatusMenuItemStyle}"/>
                 <MenuItem Click="ViewDependencyRiskInBrowser_OnClick" Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
             </ContextMenu>
+            
+            <Style x:Key="ResolutionFilterBorderStyle" TargetType="Button">
+                <Setter Property="Margin" Value="5, 3"/>
+                <Setter Property="Padding" Value="2"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}"/>
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.AccentLightKey}}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverOverSelectedIconBorderKey}}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                    BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Path=IsSelected}" Value="False">
+                        <Setter Property="BorderThickness" Value="0" />
+                        <Setter Property="Background" Value="Transparent" />
+                    </DataTrigger>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="BorderThickness" Value="1" />
+                        <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverKey}}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            
+            <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource {x:Static vsShell:VsResourceKeys.ComboBoxStyleKey}}" />
+
+            <reportView:ResolutionToCountConverter x:Key="ResolutionToCountConverter" />
+            <ControlTemplate x:Key="ResolutionFilterControlTemplate" TargetType="ContentControl">
+                <StackPanel Orientation="Horizontal">
+                    <Border Height="18" BorderThickness="1,0,0,0" 
+                            BorderBrush="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBorderKey}}"/>
+                    <Button Style="{StaticResource ResolutionFilterBorderStyle}" Click="ResolutionButton_OnClick" >
+                        <Button.Content>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Margin="5,0,2,0" VerticalAlignment="Center">
+                                    <TextBlock.Text>
+                                        <MultiBinding Converter="{StaticResource ResolutionToCountConverter}">
+                                            <Binding ElementName="GroupDependencyRiskTreeViewItem" Path="DataContext.Risks" />
+                                            <!-- we need an explicit binding to IsSelected property to make sue that the converter is triggered when its value changes -->
+                                            <Binding Path="IsResolved"/>
+                                            <!-- this is needed to make sure that the converter is triggered when the hotspots list changes -->
+                                            <Binding ElementName="GroupDependencyRiskTreeViewItem" Path="DataContext.Risks.Count" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                                <TextBlock Grid.Column="1" Text="{Binding Path=Title}" Margin="2,0" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Button.Content>
+                    </Button>
+                </StackPanel>
+            </ControlTemplate>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Name="Table" Width="*"/>
+        </Grid.ColumnDefinitions>
 
-        <TreeView Grid.Row="0" Margin="0,5"  Visibility="{Binding Path=GroupDependencyRisk.HasRisks, Converter={StaticResource TrueToVisibleConverter}}" SelectedItemChanged="TreeView_OnSelectedItemChanged">
+        <Grid Grid.Row="0" Background="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarGradientBeginKey}}" Visibility="{Binding Path=GroupDependencyRisk.HasRisks, Converter={StaticResource TrueToVisibleConverter}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <ContentControl Grid.Column="0" DataContext="{Binding Path=ResolutionFilters[0]}" 
+                                Template="{StaticResource ResolutionFilterControlTemplate}" />
+
+                <ContentControl Grid.Column="1" DataContext="{Binding Path=ResolutionFilters[1]}" 
+                                Template="{StaticResource ResolutionFilterControlTemplate}" />
+            </Grid>
+        </Grid>
+
+        <TreeView Grid.Row="1" Grid.Column="0" Margin="0,5"  Visibility="{Binding Path=GroupDependencyRisk.HasRisks, Converter={StaticResource TrueToVisibleConverter}}" SelectedItemChanged="TreeView_OnSelectedItemChanged">
             <TreeViewItem x:Name="GroupDependencyRiskTreeViewItem" DataContext="{Binding Path=GroupDependencyRisk}" 
-                          ItemsSource="{Binding Path=Risks}"
+                          ItemsSource="{Binding Path=FilteredRisks}"
                           PreviewMouseUp="TreeViewItem_OnPreviewMouseUp">
                 <TreeViewItem.Header>
                     <Grid Cursor="Hand">
@@ -148,14 +233,14 @@
 
                         <TextBlock Grid.Column="0" Text="{Binding Title}" Style="{StaticResource GroupTextBlockStyle}" />
                         <TextBlock Grid.Column="1" Margin="3,0,0,0"
-                                   Text="{Binding Path=Risks.Count, Converter={StaticResource EnglishPluralizationConverter}, ConverterParameter={x:Static res:Resources.IssueText}, StringFormat={}({0})}"
+                                   Text="{Binding Path=FilteredRisks.Count, Converter={StaticResource EnglishPluralizationConverter}, ConverterParameter={x:Static res:Resources.IssueText}, StringFormat={}({0})}"
                                    Style="{StaticResource GroupTextBlockStyle}" />
                     </Grid>
                 </TreeViewItem.Header>
             </TreeViewItem>
 
             <TreeView.Resources>
-                <DataTemplate DataType="{x:Type local:DependencyRiskViewModel}">
+                <DataTemplate DataType="{x:Type dependencyRisks:DependencyRiskViewModel}">
                     <Grid Margin="2" ContextMenu="{StaticResource DependencyRiskContextMenu}" 
                           MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown">
                         <Grid.ColumnDefinitions>
@@ -201,7 +286,7 @@
             </TreeView.Resources>
         </TreeView>
 
-        <Grid Grid.Row="0" Background="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBackgroundKey}}"
+        <Grid Grid.Row="1" Background="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBackgroundKey}}"
               Panel.ZIndex="1000" Visibility="{Binding Path=GroupDependencyRisk.HasRisks, Converter={StaticResource TrueToCollapsedConverter}}">
             <StackPanel VerticalAlignment="Center">
                 <TextBlock Style="{StaticResource OverlayTitleTextStyle}"
