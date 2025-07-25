@@ -26,6 +26,9 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Initialization;
+using SonarLint.VisualStudio.Core.Synchronization;
+using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
@@ -370,7 +373,7 @@ public class TextBufferIssueTrackerTests
         var analysisRequester = mockAnalysisRequester;
         var provider = new TaggerProvider(sonarErrorListDataSource, textDocumentFactoryService,
             serviceProvider, languageRecognizer, analysisRequester, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage, Mock.Of<ITaggableBufferIndicator>(),
-            mockFileTracker, analyzer, logger);
+            mockFileTracker, analyzer, logger, new InitializationProcessorFactory(Substitute.For<IAsyncLockFactory>(), new NoOpThreadHandler(), new TestLogger()));
         return provider;
     }
 
