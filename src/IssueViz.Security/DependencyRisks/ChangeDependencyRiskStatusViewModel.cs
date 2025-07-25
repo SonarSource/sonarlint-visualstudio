@@ -23,21 +23,25 @@ using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
-internal class ChangeDependencyRiskStatusViewModel(DependencyRiskStatus currentStatus, IEnumerable<DependencyRiskStatus> allowedStatuses)
-    : ChangeStatusViewModel<DependencyRiskStatus>(currentStatus, GetAllowedStatuses(allowedStatuses), showComment: true)
+internal class ChangeDependencyRiskStatusViewModel(IEnumerable<DependencyRiskTransition> allowedStatuses)
+    : ChangeStatusViewModel<DependencyRiskTransition>(null, GetAllowedStatuses(allowedStatuses), showComment: true)
 {
-    private static readonly IReadOnlyList<StatusViewModel<DependencyRiskStatus>> AllDependencyRiskStatusViewModels =
+    private static readonly IReadOnlyList<StatusViewModel<DependencyRiskTransition>> AllDependencyRiskStatusViewModels =
     [
-        new(DependencyRiskStatus.Open, DependencyRiskStatus.Open.ToString(),
+        new(DependencyRiskTransition.Reopen, Resources.ChangeDependencyRiskStatus_ReopenTitle,
             Resources.ChangeDependencyRiskStatus_OpenDescription, isCommentRequired: false),
-        new(DependencyRiskStatus.Confirmed, DependencyRiskStatus.Confirmed.ToString(),
+        new(DependencyRiskTransition.Confirm, Resources.ChangeDependencyRiskStatus_ConfirmTitle,
             Resources.ChangeDependencyRiskStatus_ConfirmedDescription, isCommentRequired: false),
-        new(DependencyRiskStatus.Accepted, DependencyRiskStatus.Accepted.ToString(),
+        new(DependencyRiskTransition.Accept, Resources.ChangeDependencyRiskStatus_AcceptTitle,
             Resources.ChangeDependencyRiskStatus_AcceptedDescription, isCommentRequired: true),
-        new(DependencyRiskStatus.Safe, DependencyRiskStatus.Safe.ToString(),
+        new(DependencyRiskTransition.Safe, Resources.ChangeDependencyRiskStatus_SafeTitle,
             Resources.ChangeDependencyRiskStatus_SafeDescription, isCommentRequired: true)
     ];
 
-    private static List<StatusViewModel<DependencyRiskStatus>> GetAllowedStatuses(IEnumerable<DependencyRiskStatus> allowedStatuses) =>
-        AllDependencyRiskStatusViewModels.Where(vm => allowedStatuses.Any(hotspotStatus => vm.GetCurrentStatus<DependencyRiskStatus>() == hotspotStatus)).ToList();
+    public DependencyRiskTransition? GetSelectedTransition() => SelectedStatusViewModel?.GetCurrentStatus<DependencyRiskTransition>();
+
+    public string GetNormalizedComment() => string.IsNullOrWhiteSpace(Comment) ? null : Comment.Trim();
+
+    private static List<StatusViewModel<DependencyRiskTransition>> GetAllowedStatuses(IEnumerable<DependencyRiskTransition> allowedStatuses) =>
+        AllDependencyRiskStatusViewModels.Where(vm => allowedStatuses.Any(hotspotStatus => vm.GetCurrentStatus<DependencyRiskTransition>() == hotspotStatus)).ToList();
 }

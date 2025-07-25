@@ -64,8 +64,8 @@ public class GroupDependencyRiskViewModelTest
     [TestMethod]
     public void InitializeRisks_InitializesRisks()
     {
-        var dependencyRisk = Substitute.For<IDependencyRisk>();
-        var dependencyRisk2 = Substitute.For<IDependencyRisk>();
+        var dependencyRisk = CreateDependencyRisk();
+        var dependencyRisk2 = CreateDependencyRisk();
         MockRisksInStore(dependencyRisk, dependencyRisk2);
         dependencyRisksStore.ClearReceivedCalls();
 
@@ -91,7 +91,7 @@ public class GroupDependencyRiskViewModelTest
     [TestMethod]
     public void HasRisks_ReturnsTrue_WhenThereAreRisks()
     {
-        MockRisksInStore(Substitute.For<IDependencyRisk>());
+        MockRisksInStore(CreateDependencyRisk());
 
         testSubject.InitializeRisks();
 
@@ -104,7 +104,7 @@ public class GroupDependencyRiskViewModelTest
     [TestMethod]
     public void DependencyRisksChanged_RefreshesRisks()
     {
-        var dependencyRisk = Substitute.For<IDependencyRisk>();
+        var dependencyRisk = CreateDependencyRisk();
         MockRisksInStore(dependencyRisk);
         dependencyRisksStore.ClearReceivedCalls();
 
@@ -123,7 +123,7 @@ public class GroupDependencyRiskViewModelTest
     [TestMethod]
     public void SelectedItem_SetToValue_CallsTelemetry()
     {
-        var risk = Substitute.For<IDependencyRisk>();
+        var risk = CreateDependencyRisk();
         var riskViewModel = new DependencyRiskViewModel(risk);
 
         testSubject.SelectedItem = riskViewModel;
@@ -135,7 +135,7 @@ public class GroupDependencyRiskViewModelTest
     [TestMethod]
     public void SelectedItem_SetToSameValue_DoesNotCallTelemetry()
     {
-        var riskViewModel = new DependencyRiskViewModel(Substitute.For<IDependencyRisk>());
+        var riskViewModel = new DependencyRiskViewModel(CreateDependencyRisk());
         testSubject.SelectedItem = riskViewModel;
         telemetryManager.ClearReceivedCalls();
 
@@ -147,8 +147,8 @@ public class GroupDependencyRiskViewModelTest
     [TestMethod]
     public void SelectedItem_SetToDifferentValue_CallsTelemetry()
     {
-        var riskViewModel1 = new DependencyRiskViewModel(Substitute.For<IDependencyRisk>());
-        var riskViewModel2 = new DependencyRiskViewModel(Substitute.For<IDependencyRisk>());
+        var riskViewModel1 = new DependencyRiskViewModel(CreateDependencyRisk());
+        var riskViewModel2 = new DependencyRiskViewModel(CreateDependencyRisk());
         testSubject.SelectedItem = riskViewModel1;
         telemetryManager.ClearReceivedCalls();
 
@@ -161,7 +161,7 @@ public class GroupDependencyRiskViewModelTest
     [TestMethod]
     public void SelectedItem_SetToNull_DoesNotCallTelemetry()
     {
-        var riskViewModel1 = new DependencyRiskViewModel(Substitute.For<IDependencyRisk>());
+        var riskViewModel1 = new DependencyRiskViewModel(CreateDependencyRisk());
         testSubject.SelectedItem = riskViewModel1;
         telemetryManager.ClearReceivedCalls();
 
@@ -177,6 +177,13 @@ public class GroupDependencyRiskViewModelTest
         testSubject.Dispose();
 
         dependencyRisksStore.Received(1).DependencyRisksChanged -= Arg.Any<EventHandler>();
+    }
+
+    private IDependencyRisk CreateDependencyRisk()
+    {
+        var risk = Substitute.For<IDependencyRisk>();
+        risk.Transitions.Returns([]);
+        return risk;
     }
 
     private void MockRisksInStore(params IDependencyRisk[] dependencyRisks) => dependencyRisksStore.GetAll().Returns(dependencyRisks);

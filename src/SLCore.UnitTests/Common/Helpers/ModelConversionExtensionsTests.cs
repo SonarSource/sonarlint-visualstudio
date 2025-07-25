@@ -338,4 +338,25 @@ public class ModelConversionExtensionsTests
                                                                       Actual value was 1000.
                                                                       """);
     }
+
+    [TestMethod]
+    [DataRow(CoreDependencyRiskTransition.Confirm, SlCoreDependencyRiskTransition.CONFIRM)]
+    [DataRow(CoreDependencyRiskTransition.Reopen, SlCoreDependencyRiskTransition.REOPEN)]
+    [DataRow(CoreDependencyRiskTransition.Safe, SlCoreDependencyRiskTransition.SAFE)]
+    [DataRow(CoreDependencyRiskTransition.Fixed, SlCoreDependencyRiskTransition.FIXED)]
+    [DataRow(CoreDependencyRiskTransition.Accept, SlCoreDependencyRiskTransition.ACCEPT)]
+    public void ToSlCoreDependencyRiskTransition_ConvertsCorrectly(CoreDependencyRiskTransition dependencyRiskTransition, SlCoreDependencyRiskTransition expectedTransition) =>
+        dependencyRiskTransition.ToSlCoreDependencyRiskTransition().Should().Be(expectedTransition);
+
+    [TestMethod]
+    public void ToSlCoreDependencyRiskTransition_ValueOutOfRange_Throws()
+    {
+        var act = () => ((CoreDependencyRiskTransition)1000).ToSlCoreDependencyRiskTransition();
+
+        act.Should().Throw<ArgumentOutOfRangeException>().WithMessage("""
+                                                                      Unexpected enum value
+                                                                      Parameter name: dependencyRiskTransition
+                                                                      Actual value was 1000.
+                                                                      """);
+    }
 }

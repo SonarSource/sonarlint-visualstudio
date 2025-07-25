@@ -39,13 +39,16 @@ internal class ReportViewToolWindow : ToolWindowPane
     public ReportViewToolWindow(IServiceProvider serviceProvider)
     {
         var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
-        var activeSolutionBoundTracker = componentModel?.GetService<IActiveSolutionBoundTracker>();
-        var browserService = componentModel?.GetService<IBrowserService>();
-        var dependencyRiskStore = componentModel?.GetService<IDependencyRisksStore>();
-        var showDependencyRiskInBrowser = componentModel?.GetService<IShowDependencyRiskInBrowserHandler>();
-        var threadHandling = componentModel?.GetService<IThreadHandling>();
-        var telemetryManager = componentModel?.GetService<ITelemetryManager>();
         Caption = Resources.ReportViewToolWindowCaption;
-        Content = new ReportViewControl(activeSolutionBoundTracker, browserService, dependencyRiskStore, showDependencyRiskInBrowser, telemetryManager, threadHandling);
+        Content = new ReportViewControl(
+            componentModel?.GetService<IActiveSolutionBoundTracker>(),
+            componentModel?.GetService<IBrowserService>(),
+            componentModel?.GetService<IDependencyRisksStore>(),
+            componentModel?.GetService<IShowDependencyRiskInBrowserHandler>(),
+            componentModel?.GetService<IChangeDependencyRiskStatusHandler>(),
+            componentModel?.GetService<IMessageBox>(),
+            componentModel?.GetService<ITelemetryManager>(),
+            componentModel?.GetService<IThreadHandling>()
+            );
     }
 }

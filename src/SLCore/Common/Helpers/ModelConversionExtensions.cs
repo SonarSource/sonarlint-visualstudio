@@ -161,4 +161,15 @@ public static class ModelConversionExtensions
             SlCoreDependencyRiskTransition.ACCEPT => CoreDependencyRiskTransition.Accept,
             _ => throw new ArgumentOutOfRangeException(nameof(dependencyRiskTransition), dependencyRiskTransition, SLCoreStrings.ModelExtensions_UnexpectedValue)
         };
+
+    public static SlCoreDependencyRiskTransition ToSlCoreDependencyRiskTransition(this CoreDependencyRiskTransition dependencyRiskTransition) =>
+        dependencyRiskTransition switch
+        {
+            CoreDependencyRiskTransition.Confirm => SlCoreDependencyRiskTransition.CONFIRM,
+            CoreDependencyRiskTransition.Reopen => SlCoreDependencyRiskTransition.REOPEN,
+            CoreDependencyRiskTransition.Safe => SlCoreDependencyRiskTransition.SAFE,
+            CoreDependencyRiskTransition.Fixed => SlCoreDependencyRiskTransition.FIXED,
+            CoreDependencyRiskTransition.Accept => SlCoreDependencyRiskTransition.ACCEPT,
+            _ => throw new ArgumentOutOfRangeException(nameof(dependencyRiskTransition), dependencyRiskTransition, SLCoreStrings.ModelExtensions_UnexpectedValue)
+        };
 }

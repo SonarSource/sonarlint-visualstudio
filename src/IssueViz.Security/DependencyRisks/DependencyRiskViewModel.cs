@@ -25,5 +25,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 internal class DependencyRiskViewModel(IDependencyRisk dependencyRisk)
     : ViewModelBase
 {
+    public bool IsTransitionAllowed { get; } = dependencyRisk.Transitions.Any();
+
     public IDependencyRisk DependencyRisk { get; } = dependencyRisk;
 }

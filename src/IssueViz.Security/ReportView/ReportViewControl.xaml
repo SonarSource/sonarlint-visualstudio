@@ -124,6 +124,7 @@
             <ContextMenu x:Key="DependencyRiskContextMenu" Loaded="DependencyRiskContextMenu_OnLoaded">
                 <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}" 
                           Click="ChangeScaStatusMenuItem_OnClick" 
+                          IsEnabled="{Binding Path=GroupDependencyRisk.SelectedItem.IsTransitionAllowed}"
                           Style="{StaticResource ChangeStatusMenuItemStyle}"/>
                 <MenuItem Click="ViewDependencyRiskInBrowser_OnClick" Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
             </ContextMenu>
@@ -162,6 +163,7 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <Image Grid.Column="0" Height="17" VerticalAlignment="Center">
                             <Image.Source>
@@ -187,6 +189,10 @@
                         <TextBlock Grid.Column="2" Text="{Binding DependencyRisk.PackageVersion}" Margin="1,0"
                                    Style="{StaticResource IssueTextBlockStyle}" />
                         <TextBlock Grid.Column="3"
+                                   Text="{Binding DependencyRisk.Status, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}"
+                                   Margin="3,0"
+                                   Style="{StaticResource TypeTextBoxStyle}" />
+                        <TextBlock Grid.Column="4"
                                    Text="{Binding DependencyRisk.Type, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}"
                                    Margin="3,0"
                                    Style="{StaticResource TypeTextBoxStyle}" />
