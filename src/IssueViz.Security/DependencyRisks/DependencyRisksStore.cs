@@ -30,18 +30,30 @@ public interface IDependencyRisksStore
 
     void Set(IEnumerable<IDependencyRisk> dependencyRisks, string configurationScopeId);
 
-    void Remove(IDependencyRisk dependencyRisk);
-
     void Reset();
 
+    void Update(DependencyRisksUpdate dependencyRisksUpdate);
+
     event EventHandler DependencyRisksChanged;
+}
+
+public class DependencyRisksUpdate(
+    string configurationScope,
+    IEnumerable<IDependencyRisk> added,
+    IEnumerable<IDependencyRisk> updated,
+    IEnumerable<Guid> closed)
+{
+    public string ConfigurationScope { get; } = !string.IsNullOrEmpty(configurationScope) ? configurationScope : throw new ArgumentNullException(nameof(configurationScope));
+    public IEnumerable<IDependencyRisk> Added { get; } = added ?? throw new ArgumentNullException(nameof(added));
+    public IEnumerable<IDependencyRisk> Updated { get; } = updated ?? throw new ArgumentNullException(nameof(updated));
+    public IEnumerable<Guid> Closed { get; } = closed ?? throw new ArgumentNullException(nameof(closed));
 }
 
 [Export(typeof(IDependencyRisksStore))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class DependencyRisksStore : IDependencyRisksStore
 {
-    private readonly List<IDependencyRisk> currentDependencyRisks = new();
+    private Dictionary<Guid, IDependencyRisk> currentDependencyRisks = new();
     private readonly object lockObject = new();
     private string currentConfigurationScope;
 
@@ -60,7 +72,7 @@ internal class DependencyRisksStore : IDependencyRisksStore
     {
         lock (lockObject)
         {
-            return currentDependencyRisks.ToList().AsReadOnly();
+            return currentDependencyRisks.Values.ToList();
         }
     }
 
@@ -68,22 +80,8 @@ internal class DependencyRisksStore : IDependencyRisksStore
     {
         lock (lockObject)
         {
-            currentDependencyRisks.Clear();
-            currentDependencyRisks.AddRange(dependencyRisks);
+            currentDependencyRisks = dependencyRisks.ToDictionary(x => x.Id);
             currentConfigurationScope = configurationScopeId;
-        }
-
-        RaiseDependencyRisksChanged();
-    }
-
-    public void Remove(IDependencyRisk dependencyRisk)
-    {
-        lock (lockObject)
-        {
-            if (!currentDependencyRisks.Remove(dependencyRisk))
-            {
-                return;
-            }
         }
 
         RaiseDependencyRisksChanged();
@@ -103,6 +101,63 @@ internal class DependencyRisksStore : IDependencyRisksStore
         }
 
         RaiseDependencyRisksChanged();
+    }
+
+    public void Update(DependencyRisksUpdate dependencyRisksUpdate)
+    {
+        bool hasChanges;
+
+        lock (lockObject)
+        {
+            if (dependencyRisksUpdate.ConfigurationScope != currentConfigurationScope)
+            {
+                Debug.Fail("Unexpected configuration scope");
+                return;
+            }
+
+            UpdateStore(dependencyRisksUpdate, out hasChanges);
+        }
+
+        if (hasChanges)
+        {
+            RaiseDependencyRisksChanged();
+        }
+    }
+
+    private void UpdateStore(DependencyRisksUpdate dependencyRisksUpdate, out bool hasChanges)
+    {
+        hasChanges = false;
+        foreach (var closedId in dependencyRisksUpdate.Closed)
+        {
+            if (!currentDependencyRisks.Remove(closedId))
+            {
+                Debug.Fail("Dependency Risk update: attempt to remove a non-existent risk");
+                continue;
+            }
+            hasChanges = true;
+        }
+
+        foreach (var updatedRisk in dependencyRisksUpdate.Updated)
+        {
+            if (!currentDependencyRisks.ContainsKey(updatedRisk.Id))
+            {
+                Debug.Fail("Dependency Risk  update: attempt to update a non-existent risk");
+                continue;
+            }
+            currentDependencyRisks[updatedRisk.Id] = updatedRisk;
+            hasChanges = true;
+        }
+
+        foreach (var addedRisk in dependencyRisksUpdate.Added)
+        {
+            if (currentDependencyRisks.ContainsKey(addedRisk.Id))
+            {
+                Debug.Fail("Dependency Risk update: attempt to add an already existing risk");
+                continue;
+            }
+            currentDependencyRisks[addedRisk.Id] = addedRisk;
+            hasChanges = true;
+        }
     }
 
     public event EventHandler DependencyRisksChanged;

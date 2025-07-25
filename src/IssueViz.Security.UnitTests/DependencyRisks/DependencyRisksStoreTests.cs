@@ -93,36 +93,6 @@ public class DependencyRisksStoreTests
     }
 
     [TestMethod]
-    public void Remove_ItemExists_RemovesItemAndRaisesEvent()
-    {
-        var risk1 = CreateDependencyRisk();
-        var risk2 = CreateDependencyRisk();
-        testSubject.Set([risk1, risk2], "test-scope");
-
-        eventHandler.ClearReceivedCalls();
-        testSubject.Remove(risk1);
-
-        var storedRisks = testSubject.GetAll();
-        storedRisks.Should().BeEquivalentTo(risk2);
-        eventHandler.Received(1).Invoke(testSubject, EventArgs.Empty);
-    }
-
-    [TestMethod]
-    public void Remove_ItemDoesNotExist_DoesNothing()
-    {
-        var risk1 = CreateDependencyRisk();
-        var risk2 = CreateDependencyRisk();
-        testSubject.Set([risk1, risk2], "test-scope");
-        var nonExistentRisk = CreateDependencyRisk();
-
-        eventHandler.ClearReceivedCalls();
-        testSubject.Remove(nonExistentRisk);
-
-        testSubject.GetAll().Should().BeEquivalentTo(risk1, risk2);
-        eventHandler.DidNotReceive().Invoke(Arg.Any<object>(), Arg.Any<EventArgs>());
-    }
-
-    [TestMethod]
     public void Reset_HasItems_ClearsItemsAndRaisesEvent()
     {
         testSubject.Set([CreateDependencyRisk(), CreateDependencyRisk()], "test-scope");
@@ -153,7 +123,7 @@ public class DependencyRisksStoreTests
         testSubject.Set(originalRisks, "original-scope");
 
         var result1 = testSubject.GetAll();
-        var result2= testSubject.GetAll();
+        var result2 = testSubject.GetAll();
         result1.Should().NotBeSameAs(result2);
 
         var risk3 = CreateDependencyRisk();
@@ -163,9 +133,153 @@ public class DependencyRisksStoreTests
         testSubject.GetAll().Should().BeEquivalentTo(risk3);
     }
 
-    private static IDependencyRisk CreateDependencyRisk()
+    [TestMethod]
+    public void Update_DifferentConfigurationScope_DoesNothing()
+    {
+        var risk1 = CreateDependencyRisk();
+        var risk2 = CreateDependencyRisk();
+        SetInitialState([risk1, risk2], "scope1");
+        var update = new DependencyRisksUpdate("scope2", [], [], []);
+
+        testSubject.Update(update);
+
+        testSubject.GetAll().Should().BeEquivalentTo(risk1, risk2);
+        eventHandler.DidNotReceive().Invoke(Arg.Any<object>(), Arg.Any<EventArgs>());
+    }
+
+    [TestMethod]
+    public void Update_AddRisks_AddsRisksAndRaisesEvent()
+    {
+        var risk1 = CreateDependencyRisk();
+        SetInitialState([risk1], "scope1");
+        var newRisk1 = CreateDependencyRisk();
+        var newRisk2 = CreateDependencyRisk();
+        var update = new DependencyRisksUpdate("scope1", [newRisk1, newRisk2], [], []);
+
+        testSubject.Update(update);
+
+        testSubject.GetAll().Should().BeEquivalentTo(risk1, newRisk1, newRisk2);
+        eventHandler.Received(1).Invoke(testSubject, EventArgs.Empty);
+    }
+
+    [TestMethod]
+    public void Update_UpdateRisks_UpdatesRisksAndRaisesEvent()
+    {
+        var matchingId = Guid.NewGuid();
+        var risk1 = CreateDependencyRisk(matchingId);
+        var risk2 = CreateDependencyRisk();
+        SetInitialState([risk1, risk2], "scope1");
+        var updatedRisk = CreateDependencyRisk(matchingId);
+        var update = new DependencyRisksUpdate("scope1", [], [updatedRisk], []);
+
+        testSubject.Update(update);
+
+        testSubject.GetAll().Should().BeEquivalentTo(updatedRisk, risk2);
+        testSubject.GetAll().Should().NotContain(risk1);
+        eventHandler.Received(1).Invoke(testSubject, EventArgs.Empty);
+    }
+
+    [TestMethod]
+    public void Update_CloseRisks_RemovesRisksAndRaisesEvent()
+    {
+        var risk1 = CreateDependencyRisk();
+        var risk2 = CreateDependencyRisk();
+        SetInitialState([risk1, risk2], "scope1");
+        var update = new DependencyRisksUpdate("scope1", [], [], [risk1.Id]);
+
+        testSubject.Update(update);
+
+        testSubject.GetAll().Should().BeEquivalentTo(risk2);
+        testSubject.GetAll().Should().NotContain(risk1);
+        eventHandler.Received(1).Invoke(testSubject, EventArgs.Empty);
+    }
+
+    [TestMethod]
+    public void Update_MultipleDifferentOperations_ProcessesAllAndRaisesEventOnce()
+    {
+        var updatedId =  Guid.NewGuid();
+        var risk1 = CreateDependencyRisk();
+        var risk2 = CreateDependencyRisk(updatedId);
+        var risk3 = CreateDependencyRisk();
+        SetInitialState([risk1, risk2, risk3], "scope1");
+        var newRisk = CreateDependencyRisk();
+        var updatedRisk = CreateDependencyRisk(updatedId);
+
+        var update = new DependencyRisksUpdate("scope1", [newRisk], [updatedRisk], [risk3.Id]);
+
+        testSubject.Update(update);
+
+        testSubject.GetAll().Should().BeEquivalentTo(risk1, updatedRisk, newRisk);
+        testSubject.GetAll().Should().NotContain(risk2);
+        testSubject.GetAll().Should().NotContain(risk3);
+        eventHandler.Received(1).Invoke(testSubject, EventArgs.Empty);
+    }
+
+    [TestMethod]
+    public void Update_NoChanges_DoesNotRaiseEvent()
+    {
+        var risk1 = CreateDependencyRisk();
+        SetInitialState([risk1], "scope1");
+
+        var update = new DependencyRisksUpdate("scope1", [], [], []);
+
+        testSubject.Update(update);
+
+        testSubject.GetAll().Should().BeEquivalentTo(risk1);
+        eventHandler.DidNotReceive().Invoke(Arg.Any<object>(), Arg.Any<EventArgs>());
+    }
+
+    [TestMethod]
+    public void Update_TryAddExistingRisk_IgnoresAndDoesNotRaiseEvent()
+    {
+        var risk1 = CreateDependencyRisk();
+        SetInitialState([risk1], "scope1");
+        var update = new DependencyRisksUpdate("scope1", [risk1], [], []);
+
+        testSubject.Update(update);
+
+        testSubject.GetAll().Should().BeEquivalentTo(risk1);
+        eventHandler.DidNotReceive().Invoke(Arg.Any<object>(), Arg.Any<EventArgs>());
+    }
+
+    [TestMethod]
+    public void Update_TryUpdateNonExistentRisk_IgnoresAndDoesNotRaiseEvent()
+    {
+        var risk1 = CreateDependencyRisk();
+        SetInitialState([risk1], "scope1");
+        var nonExistentRisk = CreateDependencyRisk();
+        var update = new DependencyRisksUpdate("scope1", [], [nonExistentRisk], []);
+
+        testSubject.Update(update);
+
+        testSubject.GetAll().Should().BeEquivalentTo(risk1);
+        eventHandler.DidNotReceive().Invoke(Arg.Any<object>(), Arg.Any<EventArgs>());
+    }
+
+    [TestMethod]
+    public void Update_TryCloseNonExistentRisk_IgnoresAndDoesNotRaiseEvent()
+    {
+        var risk1 = CreateDependencyRisk();
+        SetInitialState([risk1], "scope1");
+        var nonExistentRiskId = Guid.NewGuid();
+        var update = new DependencyRisksUpdate("scope1", [], [], [nonExistentRiskId]);
+
+        testSubject.Update(update);
+
+        testSubject.GetAll().Should().BeEquivalentTo(risk1);
+        eventHandler.DidNotReceive().Invoke(Arg.Any<object>(), Arg.Any<EventArgs>());
+    }
+
+    private static IDependencyRisk CreateDependencyRisk(Guid? matchingId = null)
     {
         var risk = Substitute.For<IDependencyRisk>();
+        risk.Id.Returns(matchingId ?? Guid.NewGuid());
         return risk;
+    }
+
+    private void SetInitialState(IEnumerable<IDependencyRisk> risks, string configurationScope)
+    {
+        testSubject.Set(risks, configurationScope);
+        eventHandler.ClearReceivedCalls();
     }
 }
