@@ -47,8 +47,10 @@ internal class DependencyRisksListener(
             return;
         }
 
-        var actualIssues = parameters.addedDependencyRisks.Concat(parameters.updatedDependencyRisks).Select(converter.Convert).ToArray();
-
-        dependencyRisksStore.Set(actualIssues, parameters.configurationScopeId);
+        dependencyRisksStore.Update(new DependencyRisksUpdate(
+            currentScope,
+            parameters.addedDependencyRisks.Select(converter.Convert),
+            parameters.updatedDependencyRisks.Select(converter.Convert),
+            parameters.closedDependencyRiskIds));
     }
 }
