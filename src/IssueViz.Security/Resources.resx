@@ -284,8 +284,29 @@ Please check the logs for more details.</value>
   <data name="ChangeDependencyRiskStatus_SafeDescription" xml:space="preserve">
     <value>This finding does not pose a risk. No fix is needed.</value>
   </data>
+  <data name="ChangeDependencyRiskStatus_ReopenTitle" xml:space="preserve">
+    <value>Reopen</value>
+  </data>
+  <data name="ChangeDependencyRiskStatus_ConfirmTitle" xml:space="preserve">
+    <value>Confirm</value>
+  </data>
+  <data name="ChangeDependencyRiskStatus_AcceptTitle" xml:space="preserve">
+    <value>Accept</value>
+  </data>
+  <data name="ChangeDependencyRiskStatus_SafeTitle" xml:space="preserve">
+    <value>Safe</value>
+  </data>
   <data name="Synchronizer_Failure" xml:space="preserve">
     <value>Failed to synchronize server issues: {0}.</value>
+  </data>
+  <data name="DependencyRiskStatusChangeFailedTitle" xml:space="preserve">
+    <value>Dependency Risk Status Change Failed</value>
+  </data>
+  <data name="DependencyRiskStatusChangeError" xml:space="preserve">
+    <value>An error occurred when changing the status.</value>
+  </data>
+  <data name="DependencyRiskNullTransitionError" xml:space="preserve">
+    <value>Cannot change status: transition is not specified</value>
   </data>
   <data name="Synchronizer_NotInConnectedMode" xml:space="preserve">
     <value>Unable to fetch server issues: not in connected mode.</value>
@@ -317,7 +338,13 @@ Please check the logs for more details.</value>
   <data name="LogContext_ShowInBrowser" xml:space="preserve">
     <value>Show in Browser</value>
   </data>
+  <data name="LogContext_ChangeStatus" xml:space="preserve">
+    <value>Change Status</value>
+  </data>
   <data name="ShowDependencyRisk_Error_ShowingInBrowser" xml:space="preserve">
     <value>Error when showing dependency risk in browser: {0}</value>
+  </data>
+  <data name="ChangeDependencyRisk_Error_ChangingStatus" xml:space="preserve">
+    <value>Error when changing dependency risk status: {0}</value>
   </data>
 </root>

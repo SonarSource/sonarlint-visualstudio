@@ -30,7 +30,7 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
     private string validationError;
 
     public ChangeStatusViewModel(
-        T currentStatus,
+        T? currentStatus,
         IReadOnlyList<StatusViewModel<T>> allStatusViewModels,
         bool showComment = false)
     {
@@ -63,14 +63,14 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
     }
 
     /// <summary>
-    /// Implementation of <see cref="System.ComponentModel.IDataErrorInfo "/> needed for view validation 
+    /// Implementation of <see cref="System.ComponentModel.IDataErrorInfo "/> needed for view validation
     /// </summary>
     public string this[string columnName]
     {
         get
         {
             validationError = null;
-            if (columnName == nameof(Comment) && string.IsNullOrEmpty(Comment) && SelectedStatusViewModel.IsCommentRequired)
+            if (columnName == nameof(Comment) && string.IsNullOrWhiteSpace(Comment) && (SelectedStatusViewModel?.IsCommentRequired ?? false))
             {
                 validationError = Resources.CommentRequiredErrorMessage;
             }
@@ -84,8 +84,12 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
     public bool IsSubmitButtonEnabled => SelectedStatusViewModel != null && Error is null;
     public ObservableCollection<IStatusViewModel> AllStatusViewModels { get; }
 
-    private void InitializeCurrentStatus(T currentStatus)
+    private void InitializeCurrentStatus(T? currentStatus)
     {
+        if (currentStatus == null)
+        {
+            return;
+        }
         SelectedStatusViewModel = AllStatusViewModels.FirstOrDefault(x => Equals(x.GetCurrentStatus<T>(), currentStatus));
         if (SelectedStatusViewModel == null)
         {
