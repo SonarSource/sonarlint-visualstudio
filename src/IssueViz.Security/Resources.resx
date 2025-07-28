@@ -347,4 +347,10 @@ Please check the logs for more details.</value>
   <data name="ChangeDependencyRisk_Error_ChangingStatus" xml:space="preserve">
     <value>Error when changing dependency risk status: {0}</value>
   </data>
+  <data name="ResolutionFilter_Resolved" xml:space="preserve">
+    <value>Resolved</value>
+  </data>
+  <data name="ResolutionFilter_Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
 </root>

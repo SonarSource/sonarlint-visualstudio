@@ -139,6 +139,18 @@ public class ReportViewModelTest
         messageBox.Received(1).Show(Resources.DependencyRiskStatusChangeFailedTitle, Resources.DependencyRiskNullTransitionError, MessageBoxButton.OK, MessageBoxImage.Error);
     }
 
+    [TestMethod]
+    public void ResolutionFilters_ExpectedResolutionAndDefaultSelection()
+    {
+        var resolutionFilters = testSubject.ResolutionFilters;
+
+        resolutionFilters.Should().HaveCount(2);
+        resolutionFilters[0].IsResolved.Should().BeTrue();
+        resolutionFilters[0].IsSelected.Should().BeTrue();
+        resolutionFilters[1].IsResolved.Should().BeFalse();
+        resolutionFilters[1].IsSelected.Should().BeFalse();
+    }
+
     private ReportViewModel CreateTestSubject() =>
         new(activeSolutionBoundTracker,
             dependencyRisksStore,

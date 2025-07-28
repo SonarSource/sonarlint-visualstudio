@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
@@ -27,7 +26,7 @@ internal class ResolutionFilterViewModel(bool isResolved, bool isSelected) : Vie
 {
     private bool isSelected = isSelected;
     public bool IsResolved { get; } = isResolved;
-    public string Title { get; } = isResolved ? "Resolved" : "Open";
+    public string Title { get; } = isResolved ? Resources.ResolutionFilter_Resolved : Resources.ResolutionFilter_Open;
 
     public bool IsSelected
     {
@@ -39,4 +38,3 @@ internal class ResolutionFilterViewModel(bool isResolved, bool isSelected) : Vie
         }
     }
 }
-
