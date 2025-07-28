@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IDisposable
 {
     private readonly IDependencyRisksStore dependencyRisksStore;
-    private readonly IDependencyRiskFilter[] filters;
+    private readonly IReadOnlyCollection<IDependencyRiskFilter> filters;
     private readonly ITelemetryManager telemetryManager;
     private readonly IThreadHandling threadHandling;
     private DependencyRiskViewModel selectedItem;
@@ -38,7 +38,7 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IDisposable
 
     public GroupDependencyRiskViewModel(
         IDependencyRisksStore dependencyRisksStore,
-        IDependencyRiskFilter[] filters,
+        IReadOnlyCollection<IDependencyRiskFilter> filters,
         ITelemetryManager telemetryManager,
         IThreadHandling threadHandling)
     {

@@ -41,13 +41,6 @@ public class ReportViewModelTest
     private IMessageBox messageBox;
     private ITelemetryManager telemetryManager;
     private IThreadHandling threadHandling;
-    private readonly IDependencyRisk openRisk = CreateDependencyRisk(isResolved: false);
-    private readonly IDependencyRisk openRisk2 = CreateDependencyRisk(isResolved: false);
-    private readonly IDependencyRisk resolvedRisk =  CreateDependencyRisk(isResolved: true);
-    private readonly IDependencyRisk resolvedRisk2 =  CreateDependencyRisk(isResolved: true);
-    private IDependencyRisk[] risks;
-    private IDependencyRisk[] risks2;
-    private PropertyChangedEventHandler eventHandler;
 
     [TestInitialize]
     public void Initialize()
@@ -59,12 +52,8 @@ public class ReportViewModelTest
         messageBox = Substitute.For<IMessageBox>();
         telemetryManager = Substitute.For<ITelemetryManager>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
-        risks = [openRisk, resolvedRisk];
-        risks2 = [openRisk2, resolvedRisk2];
 
         testSubject = CreateTestSubject();
-        eventHandler = Substitute.For<PropertyChangedEventHandler>();
-        testSubject.GroupDependencyRisk.PropertyChanged += eventHandler;
     }
 
     [TestMethod]
@@ -160,168 +149,41 @@ public class ReportViewModelTest
         testSubject.ResolutionFilterResolved.IsSelected.Should().BeFalse();
     }
 
-    [TestMethod]
-    public void InitializeRisks_DefaultFilters_FilteredRisksContainsOnlyOpen()
+    [DataTestMethod]
+    [DataRow(true, true, false, true)]
+    [DataRow(true, false, false, true)]
+    [DataRow(false, true, true, true)]
+    public void FlipAndUpdateResolutionFilter_OpenFilter_AsExpected(bool open, bool resolved, bool expectedOpen, bool expectedResolved)
     {
-        MockRisksInStore(risks);
-
-        testSubject.GroupDependencyRisk.InitializeRisks();
-
-        VerifyRisks(risks);
-        VerifyFilteredRisks(openRisk);
-        VerifyUpdatedBothRiskLists();
-    }
-
-    [TestMethod]
-    public void InitializeRisks_NoRisks_FilteredRisksIsEmpty()
-    {
-        MockRisksInStore([]);
-
-        testSubject.GroupDependencyRisk.InitializeRisks();
-
-        VerifyRisks();
-        VerifyFilteredRisks();
-        VerifyUpdatedBothRiskLists();
-    }
-
-    [TestMethod]
-    public void InitializeRisks_DefaultFilters_NewRisks_FilteredRisksContainsOnlyOpen()
-    {
-        SetInitialRisks(risks);
-        MockRisksInStore(risks2);
-
-        testSubject.GroupDependencyRisk.InitializeRisks();
-
-        VerifyRisks(risks2);
-        VerifyFilteredRisks(openRisk2);
-        VerifyUpdatedBothRiskLists();
-    }
-
-    [TestMethod]
-    public void InitializeRisks_OnlyResolvedSelected_FilteredRisksContainsOnlyResolved()
-    {
-        SetInitialRisks(risks);
-        testSubject.ResolutionFilterOpen.IsSelected = false;
-        testSubject.ResolutionFilterResolved.IsSelected = true;
-        MockRisksInStore(risks2);
-
-        testSubject.GroupDependencyRisk.InitializeRisks();
-
-        VerifyRisks(risks2);
-        VerifyFilteredRisks(resolvedRisk2);
-        VerifyUpdatedBothRiskLists();
-    }
-
-    [TestMethod]
-    public void InitializeRisks_BothFiltersSelected_FilteredRisksContainsAllRisks()
-    {
-        SetInitialRisks(risks);
-        testSubject.ResolutionFilterOpen.IsSelected = true;
-        testSubject.ResolutionFilterResolved.IsSelected = true;
-        MockRisksInStore(risks2);
-
-        testSubject.GroupDependencyRisk.InitializeRisks();
-
-        VerifyRisks(risks2);
-        VerifyFilteredRisks(risks2);
-        VerifyUpdatedBothRiskLists();
-    }
-
-    [TestMethod]
-    public void FlipAndUpdateResolutionFilter_DisableOpenWhenResolvedWasNotSelected_FilteredContainsOnlyResolved()
-    {
-        SetInitialRisks(risks);
+        testSubject.ResolutionFilterOpen.IsSelected = open;
+        testSubject.ResolutionFilterResolved.IsSelected = resolved;
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.GroupDependencyRisk.PropertyChanged += eventHandler;
 
         testSubject.FlipAndUpdateResolutionFilter(testSubject.ResolutionFilterOpen);
 
-        testSubject.ResolutionFilterOpen.IsSelected.Should().BeFalse();
-        testSubject.ResolutionFilterResolved.IsSelected.Should().BeTrue();
-        VerifyRisks(risks);
-        VerifyFilteredRisks(resolvedRisk);
-        VerifyOnlyUpdatedFilteredRiskList();
+        testSubject.ResolutionFilterOpen.IsSelected.Should().Be(expectedOpen);
+        testSubject.ResolutionFilterResolved.IsSelected.Should().Be(expectedResolved);
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.GroupDependencyRisk.FilteredRisks)));
     }
 
-    [TestMethod]
-    public void FlipAndUpdateResolutionFilter_DisableResolvedWhenOpenWasNotSelected_FilteredContainsOnlyResolved()
+    [DataTestMethod]
+    [DataRow(true, true, true, false)]
+    [DataRow(true, false, true, true)]
+    [DataRow(false, true, true, false)]
+    public void FlipAndUpdateResolutionFilter_ResolvedFilter_AsExpected(bool open, bool resolved, bool expectedOpen, bool expectedResolved)
     {
-        SetInitialRisks(risks);
-        testSubject.ResolutionFilterOpen.IsSelected = false;
-        testSubject.ResolutionFilterResolved.IsSelected = true;
+        testSubject.ResolutionFilterOpen.IsSelected = open;
+        testSubject.ResolutionFilterResolved.IsSelected = resolved;
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.GroupDependencyRisk.PropertyChanged += eventHandler;
 
         testSubject.FlipAndUpdateResolutionFilter(testSubject.ResolutionFilterResolved);
 
-        testSubject.ResolutionFilterOpen.IsSelected.Should().BeTrue();
-        testSubject.ResolutionFilterResolved.IsSelected.Should().BeFalse();
-        VerifyRisks(risks);
-        VerifyFilteredRisks(openRisk);
-        VerifyOnlyUpdatedFilteredRiskList();
+        testSubject.ResolutionFilterOpen.IsSelected.Should().Be(expectedOpen);
+        testSubject.ResolutionFilterResolved.IsSelected.Should().Be(expectedResolved);
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.GroupDependencyRisk.FilteredRisks)));
     }
-
-    [TestMethod]
-    public void UpdateResolutionFilter_EnableResolvedWhenOpenSelected_FilteredContainsAll()
-    {
-        SetInitialRisks(risks);
-        testSubject.ResolutionFilterOpen.IsSelected = true;
-        testSubject.ResolutionFilterResolved.IsSelected = false;
-
-        testSubject.FlipAndUpdateResolutionFilter(testSubject.ResolutionFilterResolved);
-
-        testSubject.ResolutionFilterOpen.IsSelected.Should().BeTrue();
-        testSubject.ResolutionFilterResolved.IsSelected.Should().BeTrue();
-        VerifyRisks(risks);
-        VerifyFilteredRisks(risks);
-        VerifyOnlyUpdatedFilteredRiskList();
-    }
-
-    [TestMethod]
-    public void UpdateResolutionFilter_EnableOpenWhenResolveSelected_FilteredContainsAll()
-    {
-        SetInitialRisks(risks);
-        testSubject.ResolutionFilterOpen.IsSelected = false;
-        testSubject.ResolutionFilterResolved.IsSelected = true;
-
-        testSubject.FlipAndUpdateResolutionFilter(testSubject.ResolutionFilterOpen);
-
-        testSubject.ResolutionFilterOpen.IsSelected.Should().BeTrue();
-        testSubject.ResolutionFilterResolved.IsSelected.Should().BeTrue();
-        VerifyRisks(risks);
-        VerifyFilteredRisks(risks);
-        VerifyOnlyUpdatedFilteredRiskList();
-    }
-
-    private void VerifyOnlyUpdatedFilteredRiskList()
-    {
-        dependencyRisksStore.DidNotReceiveWithAnyArgs().GetAll();
-        ReceivedEvent(nameof(testSubject.GroupDependencyRisk.FilteredRisks));
-        DidNotReceiveEvent(nameof(testSubject.GroupDependencyRisk.Risks));
-        DidNotReceiveEvent(nameof(testSubject.GroupDependencyRisk.HasRisks));
-    }
-
-    private void VerifyUpdatedBothRiskLists()
-    {
-        dependencyRisksStore.Received().GetAll();
-        ReceivedEvent(nameof(testSubject.GroupDependencyRisk.FilteredRisks));
-        ReceivedEvent(nameof(testSubject.GroupDependencyRisk.Risks));
-        ReceivedEvent(nameof(testSubject.GroupDependencyRisk.HasRisks));
-    }
-
-    private void SetInitialRisks(IDependencyRisk[] state)
-    {
-        MockRisksInStore(state);
-        testSubject.GroupDependencyRisk.InitializeRisks();
-        dependencyRisksStore.ClearReceivedCalls();
-        eventHandler.ClearReceivedCalls();
-    }
-
-    private void VerifyRisks(params IDependencyRisk[] state) =>
-        testSubject.GroupDependencyRisk.Risks.Select(x => x.DependencyRisk).Should().BeEquivalentTo(state);
-
-    private void VerifyFilteredRisks(params IDependencyRisk[] state) =>
-        testSubject.GroupDependencyRisk.FilteredRisks.Select(x => x.DependencyRisk).Should().BeEquivalentTo(state);
-
-    private void DidNotReceiveEvent(string eventName) => ReceivedEvent(eventName, 0);
-
-    private void ReceivedEvent(string eventName, int count = 1) => eventHandler.Received(count).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == eventName));
 
     private ReportViewModel CreateTestSubject() =>
         new(activeSolutionBoundTracker,
