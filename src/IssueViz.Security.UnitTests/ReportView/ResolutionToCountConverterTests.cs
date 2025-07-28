@@ -111,11 +111,11 @@ public class ResolutionToCountConverterTests
     }
 
     [TestMethod]
-    public void ConvertBack_NotImplementedException()
+    public void ConvertBack_InvalidOperationException()
     {
         Action act = () => testSubject.ConvertBack("any", null, null, null);
 
-        act.Should().Throw<NotImplementedException>();
+        act.Should().Throw<InvalidOperationException>();
     }
 
     private static DependencyRiskViewModel CreateRiskViewModel(bool isResolved)

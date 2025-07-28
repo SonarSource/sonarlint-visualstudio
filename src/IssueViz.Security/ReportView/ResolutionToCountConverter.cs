@@ -48,5 +48,5 @@ public class ResolutionToCountConverter : IMultiValueConverter
         Type[] targetTypes,
         object parameter,
         CultureInfo culture) =>
-        throw new NotImplementedException();
+        throw new InvalidOperationException();
 }
