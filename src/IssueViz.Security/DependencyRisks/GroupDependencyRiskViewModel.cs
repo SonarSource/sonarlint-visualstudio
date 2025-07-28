@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IDisposable
 {
     private readonly IDependencyRisksStore dependencyRisksStore;
-    private readonly ResolutionFilterViewModel[] resolutionFilters;
+    private readonly IDependencyRiskFilter[] filters;
     private readonly ITelemetryManager telemetryManager;
     private readonly IThreadHandling threadHandling;
     private DependencyRiskViewModel selectedItem;
@@ -38,12 +38,12 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IDisposable
 
     public GroupDependencyRiskViewModel(
         IDependencyRisksStore dependencyRisksStore,
-        ResolutionFilterViewModel[] resolutionFilters,
+        IDependencyRiskFilter[] filters,
         ITelemetryManager telemetryManager,
         IThreadHandling threadHandling)
     {
         this.dependencyRisksStore = dependencyRisksStore;
-        this.resolutionFilters = resolutionFilters;
+        this.filters = filters;
         this.telemetryManager = telemetryManager;
         this.threadHandling = threadHandling;
         dependencyRisksStore.DependencyRisksChanged += OnDependencyRiskChanged;
@@ -86,6 +86,7 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IDisposable
                 risks.Add(riskViewModel);
             }
             RefreshFiltering();
+            RaisePropertyChanged(nameof(Risks));
             RaisePropertyChanged(nameof(HasRisks));
         });
 
@@ -93,13 +94,7 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IDisposable
 
     public void Dispose() => dependencyRisksStore.DependencyRisksChanged -= OnDependencyRiskChanged;
 
-    public void UpdatePriorityFilter(ResolutionFilterViewModel viewModel, bool isSelected)
-    {
-        viewModel.IsSelected = isSelected;
-        RefreshFiltering();
-    }
-
-    private void RefreshFiltering()
+    public void RefreshFiltering()
     {
         UpdateFilteredHotspots();
         RaisePropertyChanged(nameof(FilteredRisks));
@@ -108,8 +103,7 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IDisposable
     private void UpdateFilteredHotspots()
     {
         filteredRisks.Clear();
-        var selectedResolutions = resolutionFilters.Where(x => x.IsSelected).Select(x => x.IsResolved).ToArray();
-        foreach (var dependencyRiskViewModel in risks.Where(x => selectedResolutions.Contains(x.IsResolved)))
+        foreach (var dependencyRiskViewModel in risks.Where(x => filters.All(f => !f.IsFilteredOut(x))))
         {
             filteredRisks.Add(dependencyRiskViewModel);
         }

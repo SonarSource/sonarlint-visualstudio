@@ -46,17 +46,25 @@ internal class ReportViewModel : ServerViewModel
         this.showDependencyRiskInBrowserHandler = showDependencyRiskInBrowserHandler;
         this.changeDependencyRiskStatusHandler = changeDependencyRiskStatusHandler;
         this.messageBox = messageBox;
-        ResolutionFilters = [new ResolutionFilterViewModel(false, true), new ResolutionFilterViewModel(true, false)];
-        GroupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore, ResolutionFilters, telemetryManager, threadHandling);
+        GroupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore, [ResolutionFilterOpen, ResolutionFilterResolved], telemetryManager, threadHandling);
         GroupDependencyRisk.InitializeRisks();
     }
 
-    public ResolutionFilterViewModel[] ResolutionFilters { get; }
+    public ResolutionFilterViewModel ResolutionFilterOpen {get;} =  new(false, true);
+    public ResolutionFilterViewModel ResolutionFilterResolved {get;} =  new(true, false);
 
-    protected override void Dispose(bool disposing)
+    public void FlipAndUpdateResolutionFilter(ResolutionFilterViewModel viewModel)
     {
-        GroupDependencyRisk.Dispose();
-        base.Dispose(disposing);
+        viewModel.IsSelected = !viewModel.IsSelected;
+        if (viewModel == ResolutionFilterOpen)
+        {
+            ResolutionFilterResolved.IsSelected = true;
+        }
+        if (viewModel == ResolutionFilterResolved)
+        {
+            ResolutionFilterOpen.IsSelected = true;
+        }
+        GroupDependencyRisk.RefreshFiltering();
     }
 
     public async Task ChangeStatusAsync(IDependencyRisk dependencyRisk, DependencyRiskTransition? selectedTransition, string getNormalizedComment)
@@ -79,4 +87,11 @@ internal class ReportViewModel : ServerViewModel
 
     public void ShowInBrowser(IDependencyRisk dependencyRisk) =>
         showDependencyRiskInBrowserHandler.ShowInBrowser(dependencyRisk.Id);
+
+
+    protected override void Dispose(bool disposing)
+    {
+        GroupDependencyRisk.Dispose();
+        base.Dispose(disposing);
+    }
 }

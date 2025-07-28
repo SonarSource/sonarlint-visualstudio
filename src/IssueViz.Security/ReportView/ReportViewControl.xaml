@@ -212,10 +212,10 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <ContentControl Grid.Column="0" DataContext="{Binding Path=ResolutionFilters[0]}" 
+                <ContentControl Grid.Column="0" DataContext="{Binding Path=ResolutionFilterOpen}" 
                                 Template="{StaticResource ResolutionFilterControlTemplate}" />
 
-                <ContentControl Grid.Column="1" DataContext="{Binding Path=ResolutionFilters[1]}" 
+                <ContentControl Grid.Column="1" DataContext="{Binding Path=ResolutionFilterResolved}" 
                                 Template="{StaticResource ResolutionFilterControlTemplate}" />
             </Grid>
         </Grid>

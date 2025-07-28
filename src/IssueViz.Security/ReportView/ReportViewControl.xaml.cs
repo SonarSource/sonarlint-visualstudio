@@ -141,7 +141,7 @@ internal sealed partial class ReportViewControl : UserControl
     {
         if (sender is FrameworkElement { DataContext: ResolutionFilterViewModel vm })
         {
-            ReportViewModel.GroupDependencyRisk.UpdatePriorityFilter(vm, !vm.IsSelected);
+            ReportViewModel.FlipAndUpdateResolutionFilter(vm);
         }
     }
 }

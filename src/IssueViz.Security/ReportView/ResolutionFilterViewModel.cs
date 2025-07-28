@@ -19,10 +19,16 @@
  */
 
 using SonarLint.VisualStudio.Core.WPF;
+using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-internal class ResolutionFilterViewModel(bool isResolved, bool isSelected) : ViewModelBase
+internal interface IDependencyRiskFilter
+{
+    bool IsFilteredOut(DependencyRiskViewModel dependencyRisk);
+}
+
+internal class ResolutionFilterViewModel(bool isResolved, bool isSelected) : ViewModelBase, IDependencyRiskFilter
 {
     private bool isSelected = isSelected;
     public bool IsResolved { get; } = isResolved;
@@ -36,5 +42,15 @@ internal class ResolutionFilterViewModel(bool isResolved, bool isSelected) : Vie
             isSelected = value;
             RaisePropertyChanged();
         }
+    }
+
+    public bool IsFilteredOut(DependencyRiskViewModel dependencyRisk)
+    {
+        if (isSelected)
+        {
+            return false;
+        }
+
+        return IsResolved == dependencyRisk.IsResolved;
     }
 }

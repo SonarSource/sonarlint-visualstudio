@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
 using System.Windows;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -40,6 +41,13 @@ public class ReportViewModelTest
     private IMessageBox messageBox;
     private ITelemetryManager telemetryManager;
     private IThreadHandling threadHandling;
+    private readonly IDependencyRisk openRisk = CreateDependencyRisk(isResolved: false);
+    private readonly IDependencyRisk openRisk2 = CreateDependencyRisk(isResolved: false);
+    private readonly IDependencyRisk resolvedRisk =  CreateDependencyRisk(isResolved: true);
+    private readonly IDependencyRisk resolvedRisk2 =  CreateDependencyRisk(isResolved: true);
+    private IDependencyRisk[] risks;
+    private IDependencyRisk[] risks2;
+    private PropertyChangedEventHandler eventHandler;
 
     [TestInitialize]
     public void Initialize()
@@ -51,8 +59,12 @@ public class ReportViewModelTest
         messageBox = Substitute.For<IMessageBox>();
         telemetryManager = Substitute.For<ITelemetryManager>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+        risks = [openRisk, resolvedRisk];
+        risks2 = [openRisk2, resolvedRisk2];
 
         testSubject = CreateTestSubject();
+        eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.GroupDependencyRisk.PropertyChanged += eventHandler;
     }
 
     [TestMethod]
@@ -83,9 +95,8 @@ public class ReportViewModelTest
     [TestMethod]
     public void ShowInBrowser_CallsHandler()
     {
-        var dependencyRisk = CreateDependencyRisk();
         var riskId = Guid.NewGuid();
-        dependencyRisk.Id.Returns(riskId);
+        var dependencyRisk = CreateDependencyRisk(riskId);
 
         testSubject.ShowInBrowser(dependencyRisk);
 
@@ -95,9 +106,8 @@ public class ReportViewModelTest
     [TestMethod]
     public async Task ChangeStatusAsync_CallsHandler_Success()
     {
-        var dependencyRisk = CreateDependencyRisk();
         var riskId = Guid.NewGuid();
-        dependencyRisk.Id.Returns(riskId);
+        var dependencyRisk = CreateDependencyRisk(riskId);
         var transition = DependencyRiskTransition.Accept;
         var comment = "test comment";
         changeDependencyRiskStatusHandler.ChangeStatusAsync(riskId, transition, comment).Returns(true);
@@ -111,9 +121,8 @@ public class ReportViewModelTest
     [TestMethod]
     public async Task ChangeStatusAsync_CallsHandler_Failure_ShowsMessageBox()
     {
-        var dependencyRisk = CreateDependencyRisk();
         var riskId = Guid.NewGuid();
-        dependencyRisk.Id.Returns(riskId);
+        var dependencyRisk = CreateDependencyRisk(riskId);
         const DependencyRiskTransition transition = DependencyRiskTransition.Accept;
         const string comment = "test comment";
         changeDependencyRiskStatusHandler.ChangeStatusAsync(riskId, transition, comment).Returns(false);
@@ -128,8 +137,6 @@ public class ReportViewModelTest
     public async Task ChangeStatusAsync_NullTransition_DoesNotCallHandler_ShowsMessageBox()
     {
         var dependencyRisk = CreateDependencyRisk();
-        var riskId = Guid.NewGuid();
-        dependencyRisk.Id.Returns(riskId);
         DependencyRiskTransition? transition = null;
         const string comment = "test comment";
 
@@ -140,16 +147,181 @@ public class ReportViewModelTest
     }
 
     [TestMethod]
-    public void ResolutionFilters_ExpectedResolutionAndDefaultSelection()
+    public void ResolutionFilterOpen_ExpectedResolutionAndDefaultSelection()
     {
-        var resolutionFilters = testSubject.ResolutionFilters;
-
-        resolutionFilters.Should().HaveCount(2);
-        resolutionFilters[0].IsResolved.Should().BeTrue();
-        resolutionFilters[0].IsSelected.Should().BeTrue();
-        resolutionFilters[1].IsResolved.Should().BeFalse();
-        resolutionFilters[1].IsSelected.Should().BeFalse();
+        testSubject.ResolutionFilterOpen.IsResolved.Should().BeFalse();
+        testSubject.ResolutionFilterOpen.IsSelected.Should().BeTrue();
     }
+
+    [TestMethod]
+    public void ResolutionFilterResolved_ExpectedResolutionAndDefaultSelection()
+    {
+        testSubject.ResolutionFilterResolved.IsResolved.Should().BeTrue();
+        testSubject.ResolutionFilterResolved.IsSelected.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void InitializeRisks_DefaultFilters_FilteredRisksContainsOnlyOpen()
+    {
+        MockRisksInStore(risks);
+
+        testSubject.GroupDependencyRisk.InitializeRisks();
+
+        VerifyRisks(risks);
+        VerifyFilteredRisks(openRisk);
+        VerifyUpdatedBothRiskLists();
+    }
+
+    [TestMethod]
+    public void InitializeRisks_NoRisks_FilteredRisksIsEmpty()
+    {
+        MockRisksInStore([]);
+
+        testSubject.GroupDependencyRisk.InitializeRisks();
+
+        VerifyRisks();
+        VerifyFilteredRisks();
+        VerifyUpdatedBothRiskLists();
+    }
+
+    [TestMethod]
+    public void InitializeRisks_DefaultFilters_NewRisks_FilteredRisksContainsOnlyOpen()
+    {
+        SetInitialRisks(risks);
+        MockRisksInStore(risks2);
+
+        testSubject.GroupDependencyRisk.InitializeRisks();
+
+        VerifyRisks(risks2);
+        VerifyFilteredRisks(openRisk2);
+        VerifyUpdatedBothRiskLists();
+    }
+
+    [TestMethod]
+    public void InitializeRisks_OnlyResolvedSelected_FilteredRisksContainsOnlyResolved()
+    {
+        SetInitialRisks(risks);
+        testSubject.ResolutionFilterOpen.IsSelected = false;
+        testSubject.ResolutionFilterResolved.IsSelected = true;
+        MockRisksInStore(risks2);
+
+        testSubject.GroupDependencyRisk.InitializeRisks();
+
+        VerifyRisks(risks2);
+        VerifyFilteredRisks(resolvedRisk2);
+        VerifyUpdatedBothRiskLists();
+    }
+
+    [TestMethod]
+    public void InitializeRisks_BothFiltersSelected_FilteredRisksContainsAllRisks()
+    {
+        SetInitialRisks(risks);
+        testSubject.ResolutionFilterOpen.IsSelected = true;
+        testSubject.ResolutionFilterResolved.IsSelected = true;
+        MockRisksInStore(risks2);
+
+        testSubject.GroupDependencyRisk.InitializeRisks();
+
+        VerifyRisks(risks2);
+        VerifyFilteredRisks(risks2);
+        VerifyUpdatedBothRiskLists();
+    }
+
+    [TestMethod]
+    public void FlipAndUpdateResolutionFilter_DisableOpenWhenResolvedWasNotSelected_FilteredContainsOnlyResolved()
+    {
+        SetInitialRisks(risks);
+
+        testSubject.FlipAndUpdateResolutionFilter(testSubject.ResolutionFilterOpen);
+
+        testSubject.ResolutionFilterOpen.IsSelected.Should().BeFalse();
+        testSubject.ResolutionFilterResolved.IsSelected.Should().BeTrue();
+        VerifyRisks(risks);
+        VerifyFilteredRisks(resolvedRisk);
+        VerifyOnlyUpdatedFilteredRiskList();
+    }
+
+    [TestMethod]
+    public void FlipAndUpdateResolutionFilter_DisableResolvedWhenOpenWasNotSelected_FilteredContainsOnlyResolved()
+    {
+        SetInitialRisks(risks);
+        testSubject.ResolutionFilterOpen.IsSelected = false;
+        testSubject.ResolutionFilterResolved.IsSelected = true;
+
+        testSubject.FlipAndUpdateResolutionFilter(testSubject.ResolutionFilterResolved);
+
+        testSubject.ResolutionFilterOpen.IsSelected.Should().BeTrue();
+        testSubject.ResolutionFilterResolved.IsSelected.Should().BeFalse();
+        VerifyRisks(risks);
+        VerifyFilteredRisks(openRisk);
+        VerifyOnlyUpdatedFilteredRiskList();
+    }
+
+    [TestMethod]
+    public void UpdateResolutionFilter_EnableResolvedWhenOpenSelected_FilteredContainsAll()
+    {
+        SetInitialRisks(risks);
+        testSubject.ResolutionFilterOpen.IsSelected = true;
+        testSubject.ResolutionFilterResolved.IsSelected = false;
+
+        testSubject.FlipAndUpdateResolutionFilter(testSubject.ResolutionFilterResolved);
+
+        testSubject.ResolutionFilterOpen.IsSelected.Should().BeTrue();
+        testSubject.ResolutionFilterResolved.IsSelected.Should().BeTrue();
+        VerifyRisks(risks);
+        VerifyFilteredRisks(risks);
+        VerifyOnlyUpdatedFilteredRiskList();
+    }
+
+    [TestMethod]
+    public void UpdateResolutionFilter_EnableOpenWhenResolveSelected_FilteredContainsAll()
+    {
+        SetInitialRisks(risks);
+        testSubject.ResolutionFilterOpen.IsSelected = false;
+        testSubject.ResolutionFilterResolved.IsSelected = true;
+
+        testSubject.FlipAndUpdateResolutionFilter(testSubject.ResolutionFilterOpen);
+
+        testSubject.ResolutionFilterOpen.IsSelected.Should().BeTrue();
+        testSubject.ResolutionFilterResolved.IsSelected.Should().BeTrue();
+        VerifyRisks(risks);
+        VerifyFilteredRisks(risks);
+        VerifyOnlyUpdatedFilteredRiskList();
+    }
+
+    private void VerifyOnlyUpdatedFilteredRiskList()
+    {
+        dependencyRisksStore.DidNotReceiveWithAnyArgs().GetAll();
+        ReceivedEvent(nameof(testSubject.GroupDependencyRisk.FilteredRisks));
+        DidNotReceiveEvent(nameof(testSubject.GroupDependencyRisk.Risks));
+        DidNotReceiveEvent(nameof(testSubject.GroupDependencyRisk.HasRisks));
+    }
+
+    private void VerifyUpdatedBothRiskLists()
+    {
+        dependencyRisksStore.Received().GetAll();
+        ReceivedEvent(nameof(testSubject.GroupDependencyRisk.FilteredRisks));
+        ReceivedEvent(nameof(testSubject.GroupDependencyRisk.Risks));
+        ReceivedEvent(nameof(testSubject.GroupDependencyRisk.HasRisks));
+    }
+
+    private void SetInitialRisks(IDependencyRisk[] state)
+    {
+        MockRisksInStore(state);
+        testSubject.GroupDependencyRisk.InitializeRisks();
+        dependencyRisksStore.ClearReceivedCalls();
+        eventHandler.ClearReceivedCalls();
+    }
+
+    private void VerifyRisks(params IDependencyRisk[] state) =>
+        testSubject.GroupDependencyRisk.Risks.Select(x => x.DependencyRisk).Should().BeEquivalentTo(state);
+
+    private void VerifyFilteredRisks(params IDependencyRisk[] state) =>
+        testSubject.GroupDependencyRisk.FilteredRisks.Select(x => x.DependencyRisk).Should().BeEquivalentTo(state);
+
+    private void DidNotReceiveEvent(string eventName) => ReceivedEvent(eventName, 0);
+
+    private void ReceivedEvent(string eventName, int count = 1) => eventHandler.Received(count).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == eventName));
 
     private ReportViewModel CreateTestSubject() =>
         new(activeSolutionBoundTracker,
@@ -160,10 +332,12 @@ public class ReportViewModelTest
             telemetryManager,
             threadHandling);
 
-    private static IDependencyRisk CreateDependencyRisk()
+    private static IDependencyRisk CreateDependencyRisk(Guid? id = null, bool isResolved = false)
     {
         var risk = Substitute.For<IDependencyRisk>();
+        risk.Id.Returns(id ?? Guid.NewGuid());
         risk.Transitions.Returns([]);
+        risk.Status.Returns(isResolved ? DependencyRiskStatus.Accepted : DependencyRiskStatus.Open);
         return risk;
     }
 
