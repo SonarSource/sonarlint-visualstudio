@@ -45,6 +45,7 @@ namespace SonarLint.VisualStudio.Core
         public const string UnbindingProject = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/team-features/connected-mode-setup/#unbinding-a-project";
         public const string SslCertificate = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/team-features/advanced-configuration/#server-ssl-certificates";
         public const string AnalysisProperties = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/using/scan-my-project/#specify-additional-analyzer-properties";
+        public const string DependencyRisks = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/using/dependency-risks/";
 
         public static readonly Uri UnbindingProjectUri = new(UnbindingProject);
         public static readonly Uri ConnectedModeUri = new(ConnectedMode);
@@ -53,5 +54,6 @@ namespace SonarLint.VisualStudio.Core
         public static readonly Uri FileExclusionsPatternUri = new(FileExclusionsPatternJsonFile);
         public static readonly Uri DisablingARuleUri = new(DisablingARule);
         public static readonly Uri AnalysisPropertiesUri = new(AnalysisProperties);
+        public static readonly Uri DependencyRisksUri = new(DependencyRisks);
     }
 }

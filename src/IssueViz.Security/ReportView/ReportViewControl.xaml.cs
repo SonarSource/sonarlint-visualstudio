@@ -23,6 +23,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Navigation;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -144,4 +145,6 @@ internal sealed partial class ReportViewControl : UserControl
             ReportViewModel.FlipAndUpdateResolutionFilter(vm);
         }
     }
+
+    private void Hyperlink_OnRequestNavigate(object sender, RequestNavigateEventArgs e) => browserService.Navigate(e.Uri.AbsoluteUri);
 }
