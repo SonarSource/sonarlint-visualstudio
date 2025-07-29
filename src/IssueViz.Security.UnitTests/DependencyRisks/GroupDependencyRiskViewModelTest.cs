@@ -22,6 +22,7 @@ using System.ComponentModel;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.DependencyRisks;
@@ -33,6 +34,13 @@ public class GroupDependencyRiskViewModelTest
     private IDependencyRisksStore dependencyRisksStore;
     private IThreadHandling threadHandling;
     private ITelemetryManager telemetryManager;
+    private List<IDependencyRiskFilter> dependencyRiskFilters;
+    private PropertyChangedEventHandler eventHandler;
+    private readonly IDependencyRisk risk1 = CreateDependencyRisk();
+    private readonly IDependencyRisk risk2 = CreateDependencyRisk();
+    private readonly IDependencyRisk risk3 = CreateDependencyRisk();
+    private IDependencyRisk[] risksOld;
+    private IDependencyRisk[] risks;
 
     [TestInitialize]
     public void Initialize()
@@ -40,7 +48,12 @@ public class GroupDependencyRiskViewModelTest
         dependencyRisksStore = Substitute.For<IDependencyRisksStore>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         telemetryManager = Substitute.For<ITelemetryManager>();
-        testSubject = new(dependencyRisksStore, telemetryManager, threadHandling);
+        dependencyRiskFilters = [Substitute.For<IDependencyRiskFilter>()];
+        testSubject = new(dependencyRisksStore, dependencyRiskFilters, telemetryManager, threadHandling);
+        eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+        risksOld = [CreateDependencyRisk(), CreateDependencyRisk()];
+        risks = [risk1, risk2, risk3];
     }
 
     [TestMethod]
@@ -80,9 +93,6 @@ public class GroupDependencyRiskViewModelTest
     [TestMethod]
     public void InitializeRisks_RaisesPropertyChanged()
     {
-        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
-        testSubject.PropertyChanged += eventHandler;
-
         testSubject.InitializeRisks();
 
         eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.HasRisks)));
@@ -112,6 +122,136 @@ public class GroupDependencyRiskViewModelTest
 
         dependencyRisksStore.Received(1).GetAll();
         testSubject.Risks.Should().ContainSingle(vm => vm.DependencyRisk == dependencyRisk);
+    }
+
+    [TestMethod]
+    public void InitializeRisks_DefaultFilters_FilteredRisksContainsOnlyOpen()
+    {
+        MockRisksInStore(risksOld);
+        dependencyRiskFilters.Clear();
+        var passAllFilter = Substitute.For<IDependencyRiskFilter>();
+        passAllFilter.IsFilteredOut(default).ReturnsForAnyArgs(false);
+
+        testSubject.InitializeRisks();
+
+        VerifyRisks(risksOld);
+        VerifyFilteredRisks(risksOld);
+        VerifyUpdatedBothRiskLists();
+    }
+
+    [TestMethod]
+    public void InitializeRisks_NoRisks_FilteredRisksIsEmpty()
+    {
+        MockRisksInStore([]);
+
+        testSubject.InitializeRisks();
+
+        testSubject.HasRisks.Should().BeFalse();
+        VerifyRisks();
+        VerifyFilteredRisks();
+        VerifyUpdatedBothRiskLists();
+    }
+
+    [TestMethod]
+    public void InitializeRisks_PassAllFilter_FilteredRisksContainsAll()
+    {
+        SetInitialRisks(risksOld);
+        MockRisksInStore(risks);
+
+        testSubject.InitializeRisks();
+
+        testSubject.HasRisks.Should().BeTrue();
+        VerifyRisks(risks);
+        VerifyFilteredRisks(risks);
+        VerifyUpdatedBothRiskLists();
+    }
+
+    [TestMethod]
+    public void InitializeRisks_RemoveAllFilter_FilteredRisksEmpty()
+    {
+        SetInitialRisks(risksOld);
+        MockRisksInStore(risks);
+        dependencyRiskFilters.Single().IsFilteredOut(default).ReturnsForAnyArgs(true);
+
+        testSubject.InitializeRisks();
+
+        testSubject.HasRisks.Should().BeTrue();
+        VerifyRisks(risks);
+        VerifyFilteredRisks([]);
+        VerifyUpdatedBothRiskLists();
+    }
+
+    [TestMethod]
+    public void InitializeRisks_SomeIssuesFilteredOut_FilteredRisksContainsOnlyRemaining()
+    {
+        SetInitialRisks(risksOld);
+        MockRisksInStore(risks);
+        dependencyRiskFilters.Clear();
+        AddRemoveFilter(risk1);
+        AddRemoveFilter(risk3);
+
+        testSubject.InitializeRisks();
+
+        testSubject.HasRisks.Should().BeTrue();
+        VerifyRisks(risks);
+        VerifyFilteredRisks(risk2);
+        VerifyUpdatedBothRiskLists();
+    }
+
+    [TestMethod]
+    public void RefreshFiltering_NoRisks_FilteredRisksIsEmpty()
+    {
+        SetInitialRisks([]);
+
+        testSubject.RefreshFiltering();
+
+        testSubject.HasRisks.Should().BeFalse();
+        VerifyRisks();
+        VerifyFilteredRisks();
+        VerifyOnlyUpdatedFilteredRiskList();
+    }
+
+    [TestMethod]
+    public void RefreshFiltering_PassAllFilter_FilteredRisksContainsAll()
+    {
+        SetInitialRisks(risks);
+
+        testSubject.RefreshFiltering();
+
+        testSubject.HasRisks.Should().BeTrue();
+        VerifyRisks(risks);
+        VerifyFilteredRisks(risks);
+        VerifyOnlyUpdatedFilteredRiskList();
+    }
+
+    [TestMethod]
+    public void RefreshFiltering_RemoveAllFilter_FilteredRisksEmpty()
+    {
+        SetInitialRisks(risks);
+        dependencyRiskFilters.Single().IsFilteredOut(default).ReturnsForAnyArgs(true);
+
+        testSubject.RefreshFiltering();
+
+        testSubject.HasRisks.Should().BeTrue();
+        VerifyRisks(risks);
+        VerifyFilteredRisks([]);
+        VerifyOnlyUpdatedFilteredRiskList();
+    }
+
+    [TestMethod]
+    public void RefreshFiltering_SomeIssuesFilteredOut_FilteredRisksContainsOnlyRemaining()
+    {
+        SetInitialRisks(risks);
+        dependencyRiskFilters.Clear();
+        AddRemoveFilter(risk1);
+        AddRemoveFilter(risk3);
+
+        testSubject.RefreshFiltering();
+
+        testSubject.HasRisks.Should().BeTrue();
+        VerifyRisks(risks);
+        VerifyFilteredRisks(risk2);
+        VerifyOnlyUpdatedFilteredRiskList();
     }
 
     [TestMethod]
@@ -179,12 +319,52 @@ public class GroupDependencyRiskViewModelTest
         dependencyRisksStore.Received(1).DependencyRisksChanged -= Arg.Any<EventHandler>();
     }
 
-    private IDependencyRisk CreateDependencyRisk()
+    private void VerifyOnlyUpdatedFilteredRiskList()
+    {
+        dependencyRisksStore.DidNotReceiveWithAnyArgs().GetAll();
+        ReceivedEvent(nameof(testSubject.FilteredRisks));
+        DidNotReceiveEvent(nameof(testSubject.Risks));
+        DidNotReceiveEvent(nameof(testSubject.HasRisks));
+    }
+
+    private void VerifyUpdatedBothRiskLists()
+    {
+        dependencyRisksStore.Received().GetAll();
+        ReceivedEvent(nameof(testSubject.FilteredRisks));
+        ReceivedEvent(nameof(testSubject.Risks));
+        ReceivedEvent(nameof(testSubject.HasRisks));
+    }
+
+    private void SetInitialRisks(IDependencyRisk[] state)
+    {
+        MockRisksInStore(state);
+        testSubject.InitializeRisks();
+        dependencyRisksStore.ClearReceivedCalls();
+        eventHandler.ClearReceivedCalls();
+    }
+
+    private void VerifyRisks(params IDependencyRisk[] state) => testSubject.Risks.Select(x => x.DependencyRisk).Should().BeEquivalentTo(state);
+
+    private void VerifyFilteredRisks(params IDependencyRisk[] state) => testSubject.FilteredRisks.Select(x => x.DependencyRisk).Should().BeEquivalentTo(state);
+
+    private void DidNotReceiveEvent(string eventName) => ReceivedEvent(eventName, 0);
+
+    private void ReceivedEvent(string eventName, int count = 1) => eventHandler.Received(count).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == eventName));
+
+    private void MockRisksInStore(params IDependencyRisk[] dependencyRisks) => dependencyRisksStore.GetAll().Returns(dependencyRisks);
+
+    private void AddRemoveFilter(IDependencyRisk toRemove)
+    {
+        var removeFilter = Substitute.For<IDependencyRiskFilter>();
+        removeFilter.IsFilteredOut(Arg.Is<DependencyRiskViewModel>(x => x.DependencyRisk == toRemove)).Returns(true);
+        dependencyRiskFilters.Add(removeFilter);
+    }
+
+    private static IDependencyRisk CreateDependencyRisk(Guid? id = null)
     {
         var risk = Substitute.For<IDependencyRisk>();
+        risk.Id.Returns(id ?? Guid.NewGuid());
         risk.Transitions.Returns([]);
         return risk;
     }
-
-    private void MockRisksInStore(params IDependencyRisk[] dependencyRisks) => dependencyRisksStore.GetAll().Returns(dependencyRisks);
 }

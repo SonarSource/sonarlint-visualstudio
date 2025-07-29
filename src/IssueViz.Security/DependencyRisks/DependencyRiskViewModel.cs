@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
@@ -26,6 +27,8 @@ internal class DependencyRiskViewModel(IDependencyRisk dependencyRisk)
     : ViewModelBase
 {
     public bool IsTransitionAllowed { get; } = dependencyRisk.Transitions.Any();
+
+    public bool IsResolved { get; } = dependencyRisk.Status is DependencyRiskStatus.Accepted or DependencyRiskStatus.Safe;
 
     public IDependencyRisk DependencyRisk { get; } = dependencyRisk;
 }
