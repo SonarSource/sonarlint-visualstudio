@@ -38,7 +38,7 @@ internal sealed partial class ReportViewControl : UserControl
 {
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly IBrowserService browserService;
-    private readonly IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler;
+
 
     public ReportViewModel ReportViewModel { get; }
     public IResourceFinder ResourceFinder { get; } = new ResourceFinder();
@@ -55,7 +55,6 @@ internal sealed partial class ReportViewControl : UserControl
     {
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.browserService = browserService;
-        this.showDependencyRiskInBrowserHandler = showDependencyRiskInBrowserHandler;
         ReportViewModel = new ReportViewModel(activeSolutionBoundTracker,
             dependencyRisksStore,
             showDependencyRiskInBrowserHandler,
