@@ -177,7 +177,7 @@
                                     <TextBlock.Text>
                                         <MultiBinding Converter="{StaticResource ResolutionToCountConverter}">
                                             <Binding ElementName="GroupDependencyRiskTreeViewItem" Path="DataContext.Risks" />
-                                            <!-- we need an explicit binding to IsSelected property to make sue that the converter is triggered when its value changes -->
+                                            <!-- we need an explicit binding to IsSelected property to make sure that the converter is triggered when its value changes -->
                                             <Binding Path="IsResolved"/>
                                             <!-- this is needed to make sure that the converter is triggered when the hotspots list changes -->
                                             <Binding ElementName="GroupDependencyRiskTreeViewItem" Path="DataContext.Risks.Count" />
