@@ -294,7 +294,7 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Received update for {0} dependency risks..
+        ///   Looks up a localized string similar to Received update for dependency risks. {0} added, {1} updated, {2} closed.
         /// </summary>
         public static string DependencyRiskListener_NumberOfDependencyRisks {
             get {

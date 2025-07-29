@@ -274,7 +274,7 @@
     <value>Unable to make a definitive choice between Either options</value>
   </data>  
   <data name="DependencyRiskListener_NumberOfDependencyRisks" xml:space="preserve">
-    <value>Received update for {0} dependency risks.</value>
+    <value>Received update for dependency risks. {0} added, {1} updated, {2} closed</value>
   </data>
   <data name="ConfigScope_UpdatedBinding" xml:space="preserve">
     <value>Updated binding for Configuration Scope {0}</value>
