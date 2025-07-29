@@ -294,6 +294,15 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Received update for {0} dependency risks..
+        /// </summary>
+        public static string DependencyRiskListener_NumberOfDependencyRisks {
+            get {
+                return ResourceManager.GetString("DependencyRiskListener_NumberOfDependencyRisks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Types {0} and {1} have equivalent sets of properties and fields.
         /// </summary>
         public static string EitherJsonConverter_EquivalentPropertiesExceptionMessage {

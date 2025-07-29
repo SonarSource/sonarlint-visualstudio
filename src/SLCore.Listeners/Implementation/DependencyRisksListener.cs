@@ -47,6 +47,7 @@ internal class DependencyRisksListener(
             return;
         }
 
+        logger.LogVerbose(SLCoreStrings.DependencyRiskListener_NumberOfDependencyRisks, parameters.addedDependencyRisks.Count + parameters.updatedDependencyRisks.Count + parameters.closedDependencyRiskIds.Count);
         dependencyRisksStore.Update(new DependencyRisksUpdate(
             currentScope,
             parameters.addedDependencyRisks.Select(converter.Convert),
