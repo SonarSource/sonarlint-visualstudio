@@ -46,4 +46,12 @@ public class DocumentationLinksTests
 
         DocumentationLinks.ConnectedModeBenefitsUri.Should().Be(expectedUri);
     }
+
+    [TestMethod]
+    public void DependencyRisksUri_HasCorrectUri()
+    {
+        var expectedUri = new Uri(DocumentationLinks.DependencyRisks);
+
+        DocumentationLinks.DependencyRisksUri.Should().Be(expectedUri);
+    }
 }
