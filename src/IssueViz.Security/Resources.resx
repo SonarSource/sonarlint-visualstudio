@@ -252,7 +252,7 @@ Please check the logs for more details.</value>
     <value>Severity impact:</value>
   </data>
   <data name="NoDependencyRiskFoundText" xml:space="preserve">
-    <value>Please ensure that your solution is bound to a SonarQube project that contains dependency risks.</value>
+    <value>Please ensure that your solution is bound to a SonarQube project that contains dependency risks</value>
   </data>
   <data name="NoDependencyRiskFoundTitle" xml:space="preserve">
     <value>No Dependency Risks were found.</value>
