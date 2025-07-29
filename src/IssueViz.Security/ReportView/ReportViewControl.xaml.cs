@@ -136,4 +136,12 @@ internal sealed partial class ReportViewControl : UserControl
     }
 
     private void TreeView_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) => ReportViewModel.GroupDependencyRisk.SelectedItem = e.NewValue as DependencyRiskViewModel;
+
+    private void ResolutionButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: ResolutionFilterViewModel vm })
+        {
+            ReportViewModel.FlipAndUpdateResolutionFilter(vm);
+        }
+    }
 }

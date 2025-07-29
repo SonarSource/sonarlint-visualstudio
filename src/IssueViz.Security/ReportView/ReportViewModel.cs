@@ -46,19 +46,36 @@ internal class ReportViewModel : ServerViewModel
         this.showDependencyRiskInBrowserHandler = showDependencyRiskInBrowserHandler;
         this.changeDependencyRiskStatusHandler = changeDependencyRiskStatusHandler;
         this.messageBox = messageBox;
-        GroupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore, telemetryManager, threadHandling);
+        GroupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore, [ResolutionFilterOpen, ResolutionFilterResolved], telemetryManager, threadHandling);
         GroupDependencyRisk.InitializeRisks();
     }
 
-    protected override void Dispose(bool disposing)
+    public ResolutionFilterViewModel ResolutionFilterOpen { get; } = new(false, true);
+    public ResolutionFilterViewModel ResolutionFilterResolved { get; } = new(true, false);
+
+    public void FlipAndUpdateResolutionFilter(ResolutionFilterViewModel viewModel)
     {
-        GroupDependencyRisk.Dispose();
-        base.Dispose(disposing);
+        viewModel.IsSelected = !viewModel.IsSelected;
+        EnableOtherFilter(viewModel);
+        GroupDependencyRisk.RefreshFiltering();
+    }
+
+    private void EnableOtherFilter(ResolutionFilterViewModel viewModel)
+    {
+        // this is done to not end up in a situation when both filters are disabled
+        if (viewModel == ResolutionFilterOpen)
+        {
+            ResolutionFilterResolved.IsSelected = true;
+        }
+        if (viewModel == ResolutionFilterResolved)
+        {
+            ResolutionFilterOpen.IsSelected = true;
+        }
     }
 
     public async Task ChangeStatusAsync(IDependencyRisk dependencyRisk, DependencyRiskTransition? selectedTransition, string getNormalizedComment)
     {
-        if (selectedTransition is not {} transition)
+        if (selectedTransition is not { } transition)
         {
             ShowFailureMessage(Resources.DependencyRiskNullTransitionError);
             return;
@@ -74,6 +91,11 @@ internal class ReportViewModel : ServerViewModel
 
     private void ShowFailureMessage(string errorMessage) => messageBox.Show(Resources.DependencyRiskStatusChangeFailedTitle, errorMessage, MessageBoxButton.OK, MessageBoxImage.Error);
 
-    public void ShowInBrowser(IDependencyRisk dependencyRisk) =>
-        showDependencyRiskInBrowserHandler.ShowInBrowser(dependencyRisk.Id);
+    public void ShowInBrowser(IDependencyRisk dependencyRisk) => showDependencyRiskInBrowserHandler.ShowInBrowser(dependencyRisk.Id);
+
+    protected override void Dispose(bool disposing)
+    {
+        GroupDependencyRisk.Dispose();
+        base.Dispose(disposing);
+    }
 }

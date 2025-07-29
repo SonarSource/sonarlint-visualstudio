@@ -49,4 +49,20 @@ public class DependencyRiskViewModelTest
         testSubject.DependencyRisk.Should().Be(dependencyRisk);
         testSubject.IsTransitionAllowed.Should().BeTrue();
     }
+
+    [DataTestMethod]
+    [DataRow(DependencyRiskStatus.Open, false)]
+    [DataRow(DependencyRiskStatus.Confirmed, false)]
+    [DataRow(DependencyRiskStatus.Accepted, true)]
+    [DataRow(DependencyRiskStatus.Safe, true)]
+    public void Ctor_SetsIsResolved_Correctly(DependencyRiskStatus status, bool expectedIsResolved)
+    {
+        var dependencyRisk = Substitute.For<IDependencyRisk>();
+        dependencyRisk.Status.Returns(status);
+        dependencyRisk.Transitions.Returns([]);
+
+        var testSubject = new DependencyRiskViewModel(dependencyRisk);
+
+        testSubject.IsResolved.Should().Be(expectedIsResolved);
+    }
 }
