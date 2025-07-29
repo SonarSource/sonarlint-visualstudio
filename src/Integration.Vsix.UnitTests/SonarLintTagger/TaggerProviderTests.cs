@@ -484,6 +484,20 @@ public class TaggerProviderTests
                                                                            files[1].FilePath == sourceFiles[1]));
     }
 
+    #region Dispose tests
+
+    [TestMethod]
+    public void Dispose_MultipleCalls_OnlyDisposesOnce()
+    {
+        testSubject.Dispose();
+        testSubject.Dispose();
+        testSubject.Dispose();
+
+        mockAnalysisRequester.Received(1).AnalysisRequested -= Arg.Any<EventHandler<AnalysisRequestEventArgs>>();
+    }
+
+    #endregion
+
     private IIssueTracker[] CreateMockedIssueTrackers(params string[] filePaths) => filePaths.Select(CreateMockedIssueTracker).ToArray();
 
     private static IIssueTracker CreateMockedIssueTracker(string filePath)

@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix;
 [ContentType("text")]
 [TextViewRole(PredefinedTextViewRoles.Document)]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, IDocumentTracker
+internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, IDocumentTracker, IDisposable
 {
     internal static readonly Type SingletonManagerPropertyCollectionKey = typeof(SingletonDisposableTaggerManager<IErrorTag>);
     private readonly IAnalyzer analyzer;
@@ -62,6 +62,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
     private readonly ISet<IIssueTracker> issueTrackers = new HashSet<IIssueTracker>();
 
     private readonly ISonarLanguageRecognizer languageRecognizer;
+    private readonly IAnalysisRequester analysisRequester;
     private readonly ILogger logger;
 
     private readonly object reanalysisLockObject = new();
@@ -74,6 +75,8 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
     private Guid? lastAnalysisId;
     private CancellableJobRunner reanalysisJob;
     private StatusBarReanalysisProgressHandler reanalysisProgressHandler;
+
+    private bool disposed;
 
     internal IEnumerable<IIssueTracker> ActiveTrackersForTesting => issueTrackers;
 
@@ -99,6 +102,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
         this.issueConsumerFactory = issueConsumerFactory;
         this.issueConsumerStorage = issueConsumerStorage;
         this.languageRecognizer = languageRecognizer;
+        this.analysisRequester = analysisRequester;
         this.taggableBufferIndicator = taggableBufferIndicator;
         this.fileTracker = fileTracker;
         this.analyzer = analyzer;
@@ -268,4 +272,19 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
     }
 
     #endregion IDocumentTracker methods
+
+    public void Dispose()
+    {
+        if (disposed)
+        {
+            return;
+        }
+
+        if (InitializationProcessor.IsFinalized)
+        {
+            analysisRequester.AnalysisRequested -= OnAnalysisRequested;
+        }
+
+        disposed = true;
+    }
 }
