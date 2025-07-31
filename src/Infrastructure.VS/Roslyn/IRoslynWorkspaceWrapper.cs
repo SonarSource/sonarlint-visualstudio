@@ -58,11 +58,11 @@ internal class AnalyzerChange(ImmutableArray<AnalyzerFileReference> analyzersToR
     }
 }
 
-internal interface IRoslynWorkspaceWrapper
+public interface IRoslynWorkspaceWrapper
 {
     IRoslynSolutionWrapper CurrentSolution { get; }
 
-    Task<IRoslynSolutionWrapper> TryApplyChangesAsync(IAnalyzerChange analyzerChange);
+    internal Task<IRoslynSolutionWrapper> TryApplyChangesAsync(IAnalyzerChange analyzerChange);
 }
 
 [Export(typeof(IRoslynWorkspaceWrapper))]

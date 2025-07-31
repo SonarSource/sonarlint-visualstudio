@@ -26,7 +26,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
-internal interface IRoslynSolutionWrapper
+public interface IRoslynSolutionWrapper
 {
     IRoslynSolutionWrapper RemoveAnalyzerReferences(IReadOnlyCollection<AnalyzerFileReference> analyzers);
 

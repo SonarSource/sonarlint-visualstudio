@@ -20,14 +20,17 @@
 
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration.CSharpVB;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
+
 
 internal record AnalysisSnapshot(string FilePath, ITextSnapshot TextSnapshot);
 
@@ -46,24 +49,32 @@ internal record AnalysisSnapshot(string FilePath, ITextSnapshot TextSnapshot);
 internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
 {
     private readonly ITextDocument document;
+    private readonly ISonarLintRoslynAnalyzer roslynAnalyzer;
     private readonly IIssueConsumerFactory issueConsumerFactory;
     private readonly IIssueConsumerStorage issueConsumerStorage;
+    private readonly IAnalysisStopwatchService analysisStopwatchService;
     private readonly ILogger logger;
+    private readonly IThreadHandling threadHandling;
     private readonly ISonarErrorListDataSource sonarErrorDataSource;
     private readonly ITextBuffer textBuffer;
     private readonly IVsProjectInfoProvider vsProjectInfoProvider;
     internal /* for testing */ TaggerProvider Provider { get; }
     internal /* for testing */ IssuesSnapshotFactory Factory { get; }
 
+    private CancellationTokenSource analysisCancellation;
+
     public TextBufferIssueTracker(
         TaggerProvider provider,
         ITextDocument document,
+        ISonarLintRoslynAnalyzer roslynAnalyzer,
         IEnumerable<AnalysisLanguage> detectedLanguages,
         ISonarErrorListDataSource sonarErrorDataSource,
         IVsProjectInfoProvider vsProjectInfoProvider,
         IIssueConsumerFactory issueConsumerFactory,
         IIssueConsumerStorage issueConsumerStorage,
-        ILogger logger)
+        IAnalysisStopwatchService analysisStopwatchService,
+        ILogger logger,
+        IThreadHandling threadHandling)
     {
         Provider = provider;
         textBuffer = document.TextBuffer;
@@ -72,10 +83,13 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         this.vsProjectInfoProvider = vsProjectInfoProvider;
         this.issueConsumerFactory = issueConsumerFactory;
         this.issueConsumerStorage = issueConsumerStorage;
+        this.analysisStopwatchService = analysisStopwatchService;
         this.logger = logger;
+        this.threadHandling = threadHandling;
         logger.ForContext(nameof(TextBufferIssueTracker));
 
         this.document = document;
+        this.roslynAnalyzer = roslynAnalyzer;
         LastAnalysisFilePath = document.FilePath;
         DetectedLanguages = detectedLanguages;
         Factory = new IssuesSnapshotFactory(LastAnalysisFilePath);
@@ -163,18 +177,34 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
 
     private void InitializeAnalysisState()
     {
+        analysisStopwatchService.Current = (Stopwatch.StartNew(), DateTime.Now);
+        analysisCancellation?.Cancel();
+        analysisCancellation = new CancellationTokenSource();
         var analysisSnapshot = GetAnalysisSnapshot();
-        CreateIssueConsumer(analysisSnapshot);
+        var issueConsumer = CreateIssueConsumer(analysisSnapshot);
+        var analysisFilePath = LastAnalysisFilePath;
+
+        threadHandling.RunOnBackgroundThread(async () =>
+            {
+                var analysisIssues = await roslynAnalyzer.AnalyzeAsync(analysisFilePath, analysisCancellation.Token);
+                if (analysisIssues == null)
+                {
+                    return;
+                }
+                issueConsumer.SetIssues(analysisFilePath, analysisIssues);
+            })
+        .Forget();
     }
 
     private void RemoveIssueConsumer(string filePath) => issueConsumerStorage.Remove(filePath);
 
-    private void CreateIssueConsumer(AnalysisSnapshot analysisSnapshot)
+    private IIssueConsumer CreateIssueConsumer(AnalysisSnapshot analysisSnapshot)
     {
         var (projectName, projectGuid) = vsProjectInfoProvider.GetDocumentProjectInfo(analysisSnapshot.FilePath);
         var issueConsumer = issueConsumerFactory.Create(document, analysisSnapshot.FilePath, analysisSnapshot.TextSnapshot, projectName, projectGuid, SnapToNewSnapshot);
         issueConsumerStorage.Set(analysisSnapshot.FilePath, issueConsumer);
         ClearErrorList(analysisSnapshot.FilePath, issueConsumer);
+        return issueConsumer;
     }
 
     private static void ClearErrorList(string filePath, IIssueConsumer issueConsumer)

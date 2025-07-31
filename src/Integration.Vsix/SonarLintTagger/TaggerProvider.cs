@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration.CSharpVB;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
@@ -62,17 +63,20 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
 
     private readonly ISonarLanguageRecognizer languageRecognizer;
     private readonly ILogger logger;
+    private readonly IThreadHandling threadHandling;
 
     private readonly object reanalysisLockObject = new();
 
     internal readonly ISonarErrorListDataSource sonarErrorDataSource;
     private readonly ITaggableBufferIndicator taggableBufferIndicator;
     internal readonly ITextDocumentFactoryService textDocumentFactoryService;
+    private readonly ISonarLintRoslynAnalyzer roslynAnalyzer;
     private readonly IVsProjectInfoProvider vsProjectInfoProvider;
     private readonly IVsStatusbar vsStatusBar;
     private Guid? lastAnalysisId;
     private CancellableJobRunner reanalysisJob;
     private StatusBarReanalysisProgressHandler reanalysisProgressHandler;
+    private IAnalysisStopwatchService analysisStopwatchService;
 
     internal IEnumerable<IIssueTracker> ActiveTrackersForTesting => issueTrackers;
 
@@ -81,6 +85,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
         ISonarErrorListDataSource sonarErrorDataSource,
         ITextDocumentFactoryService textDocumentFactoryService,
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+        ISonarLintRoslynAnalyzer roslynAnalyzer,
         ISonarLanguageRecognizer languageRecognizer,
         IAnalysisRequester analysisRequester,
         IVsProjectInfoProvider vsProjectInfoProvider,
@@ -89,10 +94,13 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
         ITaggableBufferIndicator taggableBufferIndicator,
         IFileTracker fileTracker,
         IAnalyzer analyzer,
-        ILogger logger)
+        ILogger logger,
+        IThreadHandling threadHandling,
+        IAnalysisStopwatchService analysisStopwatchService)
     {
         this.sonarErrorDataSource = sonarErrorDataSource;
         this.textDocumentFactoryService = textDocumentFactoryService;
+        this.roslynAnalyzer = roslynAnalyzer;
 
         this.vsProjectInfoProvider = vsProjectInfoProvider;
         this.issueConsumerFactory = issueConsumerFactory;
@@ -102,6 +110,8 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
         this.fileTracker = fileTracker;
         this.analyzer = analyzer;
         this.logger = logger;
+        this.threadHandling = threadHandling;
+        this.analysisStopwatchService = analysisStopwatchService;
 
         vsStatusBar = serviceProvider.GetService(typeof(IVsStatusbar)) as IVsStatusbar;
         analysisRequester.AnalysisRequested += OnAnalysisRequested;
@@ -202,12 +212,15 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
         new(
             this,
             textDocument,
+            roslynAnalyzer,
             analysisLanguages,
             sonarErrorDataSource,
             vsProjectInfoProvider,
             issueConsumerFactory,
             issueConsumerStorage,
-            logger);
+            analysisStopwatchService,
+            logger,
+            threadHandling);
 
     #endregion IViewTaggerProvider members
 

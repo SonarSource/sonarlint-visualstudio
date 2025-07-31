@@ -20,14 +20,26 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Text;
+using System.Xml;
+using System.Xml.Serialization;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Core.Synchronization;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
+using Document = Microsoft.CodeAnalysis.Document;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
+
+
 
 public interface ISolutionRoslynAnalyzerManager : IDisposable
 {
