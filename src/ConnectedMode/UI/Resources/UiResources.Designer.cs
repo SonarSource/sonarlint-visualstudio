@@ -1007,7 +1007,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A Software-as-a-Service (Saas) tool that easily integrates into the cloud DevOps platforms and extends the CI/CD workflow to systematically help developers and organizations deliver CleanCode..
+        ///   Looks up a localized string similar to A Software-as-a-Service (SaaS) tool that easily integrates into cloud DevOps platforms, extending the CI/CD workflow to systematically help you deliver good quality and secure code..
         /// </summary>
         public static string SonarCloudDescription {
             get {
@@ -1016,7 +1016,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An open-source, self-managed tool that easily integrates into the developers&apos; CI/CD pipeline and DevOps platform to systematically help developers and organizations deliver Clean Code..
+        ///   Looks up a localized string similar to A self-managed tool that easily integrates into your CI/CD pipelines and DevOps platforms to systematically help you deliver good quality and secure code..
         /// </summary>
         public static string SonarQubeDescription {
             get {
