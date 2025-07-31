@@ -24,6 +24,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Infrastructure.VS;
@@ -83,13 +84,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
             errorTableManager.SourcesChanged += ErrorTableManagerOnSourcesChanged;
 
             errorTableManager.AddSource(this, StandardTableColumnDefinitions.DetailsExpander,
-                                                   StandardTableColumnDefinitions.ErrorSeverity, StandardTableColumnDefinitions.ErrorCode,
-                                                   StandardTableColumnDefinitions.ErrorSource, StandardTableColumnDefinitions.BuildTool,
-                                                   StandardTableColumnDefinitions.ErrorSource, StandardTableColumnDefinitions.ErrorCategory,
-                                                   StandardTableColumnDefinitions.Text, StandardTableColumnDefinitions.DocumentName,
-                                                   StandardTableColumnDefinitions.Line, StandardTableColumnDefinitions.Column,
-                                                   StandardTableColumnDefinitions.ProjectName,
-                                                   StandardTableKeyNames.SuppressionState);
+                StandardTableColumnDefinitions.ErrorSeverity, StandardTableColumnDefinitions.ErrorCode,
+                StandardTableColumnDefinitions.ErrorSource, StandardTableColumnDefinitions.BuildTool,
+                StandardTableColumnDefinitions.ErrorSource, StandardTableColumnDefinitions.ErrorCategory,
+                StandardTableColumnDefinitions.Text, StandardTableColumnDefinitions.DocumentName,
+                StandardTableColumnDefinitions.Line, StandardTableColumnDefinitions.Column,
+                StandardTableColumnDefinitions.ProjectName,
+                StandardTableKeyNames.SuppressionState);
         }
 
         private void ErrorTableManagerOnSourcesChanged(object sender, EventArgs e)

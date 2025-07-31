@@ -88,17 +88,15 @@ public class SonarLintRoslynAnalyzer(
         }
         var semanticModel2 = compilationWithAnalyzers.Compilation.GetSemanticModel(syntaxTree2);
 
-        var analyzerSyntacticDiagnosticsAsync = await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(semanticModel2.SyntaxTree, token);
-        var analyzerSemanticDiagnosticsAsync = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel2, null, token);
+        var analyzerSyntacticDiagnosticsAsync = compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(semanticModel2.SyntaxTree, token);
+        var analyzerSemanticDiagnosticsAsync =  compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel2, null, token);
 
-        var issues = ConvertToAnalysisIssues(analyzerSemanticDiagnosticsAsync, analyzerSyntacticDiagnosticsAsync);
+        var issues = ConvertToAnalysisIssues(await analyzerSyntacticDiagnosticsAsync, await analyzerSemanticDiagnosticsAsync);
 
         return issues;
     }
 
-    private static ImmutableList<IAnalysisIssue> ConvertToAnalysisIssues(
-        ImmutableArray<Diagnostic> analyzerSemanticDiagnosticsAsync,
-        ImmutableArray<Diagnostic> syntax)
+    private static ImmutableList<IAnalysisIssue> ConvertToAnalysisIssues(ImmutableArray<Diagnostic> syntax, ImmutableArray<Diagnostic> analyzerSemanticDiagnosticsAsync)
     {
         var issues = analyzerSemanticDiagnosticsAsync.Concat(syntax)
             .Select(diagnostic =>
@@ -107,7 +105,7 @@ public class SonarLintRoslynAnalyzer(
                 var isWarning = diagnostic.Severity == DiagnosticSeverity.Error || diagnostic.Severity == DiagnosticSeverity.Warning;
                 return new AnalysisIssue(
                     null,
-                    diagnostic.Id + ":" + diagnostic.Id,
+                    diagnostic.Id + ":" + "GG",
                     null,
                     diagnostic.IsSuppressed,
                     isWarning ? AnalysisIssueSeverity.Critical : AnalysisIssueSeverity.Minor,

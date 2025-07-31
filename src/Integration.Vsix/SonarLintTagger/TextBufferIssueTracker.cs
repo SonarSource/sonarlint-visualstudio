@@ -94,6 +94,12 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         DetectedLanguages = detectedLanguages;
         Factory = new IssuesSnapshotFactory(LastAnalysisFilePath);
 
+        var textBuffer2 = textBuffer as ITextBuffer2;
+        textBuffer2.ChangedOnBackground += (sender, args) =>
+        {
+            InitializeAnalysisState();
+        };
+
         document.FileActionOccurred += SafeOnFileActionOccurred;
 
         sonarErrorDataSource.AddFactory(Factory);
