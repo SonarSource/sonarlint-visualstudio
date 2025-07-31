@@ -124,6 +124,7 @@ public static class ModelConversionExtensions
     public static CoreDependencyRiskStatus ToDependencyRiskStatus(this SlCoreDependencyRiskStatus dependencyRiskStatus) =>
         dependencyRiskStatus switch
         {
+            SlCoreDependencyRiskStatus.FIXED => CoreDependencyRiskStatus.Fixed,
             SlCoreDependencyRiskStatus.OPEN => CoreDependencyRiskStatus.Open,
             SlCoreDependencyRiskStatus.CONFIRM => CoreDependencyRiskStatus.Confirmed,
             SlCoreDependencyRiskStatus.ACCEPT => CoreDependencyRiskStatus.Accepted,
@@ -149,7 +150,6 @@ public static class ModelConversionExtensions
             SlCoreDependencyRiskSeverity.BLOCKER => CoreDependencyRiskSeverity.Blocker,
             _ => throw new ArgumentOutOfRangeException(nameof(dependencyRiskSeverity), dependencyRiskSeverity, SLCoreStrings.ModelExtensions_UnexpectedValue)
         };
-
 
     public static CoreDependencyRiskTransition ToDependencyRiskTransition(this SlCoreDependencyRiskTransition dependencyRiskTransition) =>
         dependencyRiskTransition switch

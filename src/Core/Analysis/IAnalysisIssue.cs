@@ -155,6 +155,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
     public enum DependencyRiskStatus
     {
+        Fixed,
         Open,
         Confirmed,
         Accepted,
