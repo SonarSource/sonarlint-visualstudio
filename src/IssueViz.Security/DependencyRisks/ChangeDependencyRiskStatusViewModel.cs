@@ -35,7 +35,9 @@ internal class ChangeDependencyRiskStatusViewModel(IEnumerable<DependencyRiskTra
         new(DependencyRiskTransition.Accept, Resources.ChangeDependencyRiskStatus_AcceptTitle,
             Resources.ChangeDependencyRiskStatus_AcceptedDescription, isCommentRequired: true),
         new(DependencyRiskTransition.Safe, Resources.ChangeDependencyRiskStatus_SafeTitle,
-            Resources.ChangeDependencyRiskStatus_SafeDescription, isCommentRequired: true)
+            Resources.ChangeDependencyRiskStatus_SafeDescription, isCommentRequired: true),
+        new(DependencyRiskTransition.Fixed, Resources.ChangeDependencyRiskStatus_FixedTitle,
+            Resources.ChangeDependencyRiskStatus_FixedDescription, isCommentRequired: false)
     ];
 
     public DependencyRiskTransition? GetSelectedTransition() => SelectedStatusViewModel?.GetCurrentStatus<DependencyRiskTransition>();
