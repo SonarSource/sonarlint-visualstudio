@@ -44,7 +44,7 @@ public enum DependencyRiskType
 
 public enum DependencyRiskStatus
 {
-    OPEN, CONFIRM, ACCEPT, SAFE
+    FIXED, OPEN, CONFIRM, ACCEPT, SAFE
 }
 
 [JsonConverter(typeof(StringEnumConverter))]

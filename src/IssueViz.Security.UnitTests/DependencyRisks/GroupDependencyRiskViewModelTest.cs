@@ -20,6 +20,7 @@
 
 using System.ComponentModel;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
@@ -39,6 +40,7 @@ public class GroupDependencyRiskViewModelTest
     private readonly IDependencyRisk risk1 = CreateDependencyRisk();
     private readonly IDependencyRisk risk2 = CreateDependencyRisk();
     private readonly IDependencyRisk risk3 = CreateDependencyRisk();
+    private readonly IDependencyRisk fixedRisk = CreateDependencyRisk(status: DependencyRiskStatus.Fixed);
     private IDependencyRisk[] risksOld;
     private IDependencyRisk[] risks;
 
@@ -196,6 +198,21 @@ public class GroupDependencyRiskViewModelTest
         VerifyRisks(risks);
         VerifyFilteredRisks(risk2);
         VerifyUpdatedBothRiskLists();
+    }
+
+    [TestMethod]
+    public void InitializeRisks_FixedRisks_FilteredRisksDoNotContainRisksAlreadyFixed()
+    {
+        var risksWithFixed = risks.ToList();
+        risksWithFixed.Add(fixedRisk);
+        MockRisksInStore(risksWithFixed.ToArray());
+
+        testSubject.InitializeRisks();
+
+        testSubject.HasRisks.Should().BeTrue();
+        testSubject.Risks.Should().NotContain(vm => vm.DependencyRisk.Status == DependencyRiskStatus.Fixed);
+        VerifyRisks(risks);
+        VerifyFilteredRisks(risks);
     }
 
     [TestMethod]
@@ -360,10 +377,11 @@ public class GroupDependencyRiskViewModelTest
         dependencyRiskFilters.Add(removeFilter);
     }
 
-    private static IDependencyRisk CreateDependencyRisk(Guid? id = null)
+    private static IDependencyRisk CreateDependencyRisk(Guid? id = null, DependencyRiskStatus status = DependencyRiskStatus.Open)
     {
         var risk = Substitute.For<IDependencyRisk>();
         risk.Id.Returns(id ?? Guid.NewGuid());
+        risk.Status.Returns(status);
         risk.Transitions.Returns([]);
         return risk;
     }
