@@ -20,6 +20,7 @@
 
 using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
@@ -78,6 +79,7 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IDisposable
             risks.Clear();
             var dependencyRisks = dependencyRisksStore.GetAll();
             var newDependencyRiskViewModels = dependencyRisks
+                .Where(x => x.Status != DependencyRiskStatus.Fixed)
                 .OrderByDescending(x => x.Severity)
                 .ThenBy(x => x.Status)
                 .Select(x => new DependencyRiskViewModel(x));
