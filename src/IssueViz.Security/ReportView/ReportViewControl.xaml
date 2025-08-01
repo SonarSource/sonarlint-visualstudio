@@ -265,7 +265,7 @@
                                 <StackPanel>
                                     <TextBlock>
                                         <Run Text="{x:Static res:Resources.DependencyRiskImpactSeverityTooltip}" />
-                                        <Run Text="{Binding DependencyRisk.Severity}" />
+                                        <Run Text="{Binding DependencyRisk.Severity, Mode=OneWay}" />
                                     </TextBlock>
                                 </StackPanel>
                             </Image.ToolTip>
