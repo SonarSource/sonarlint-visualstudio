@@ -71,9 +71,13 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
+                            <!-- Due to a WPF bug, when binding to a IsChecked property in the view model, the radio buttons are not selectable anymore in some cases
+                                 due to the radio button group unselecting the radio button immediately after selection. 
+                                 Present workaround: bind to the selection of the ListBox -->
                             <RadioButton Grid.Row="0" GroupName="StatusGroup" Content="{Binding Path=Title}"
                                          Style="{StaticResource ChangeIssueStatusRadioButtonStyle}"
-                                         IsChecked="{Binding IsChecked}" Checked="RadioButton_OnChecked" />
+                                         IsChecked="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" 
+                                         Checked="RadioButton_OnChecked" />
                             <TextBlock Grid.Row="1" Text="{Binding Path=Description}"
                                        Style="{StaticResource ChangeIssueStatusLabelStyle}" />
                         </Grid>

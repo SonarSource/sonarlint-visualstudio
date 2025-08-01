@@ -63,7 +63,6 @@ public class MuteViewModel : ViewModelBase
 
     public void InitializeStatuses(IEnumerable<SonarQubeIssueTransition> transitions)
     {
-        allStatusViewModels.ToList().ForEach(vm => vm.IsChecked = false);
         SelectedStatusViewModel = null;
 
         AllowedStatusViewModels.Clear();

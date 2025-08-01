@@ -22,7 +22,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 
 public interface IStatusViewModel
 {
-    bool IsChecked { get; set; }
     string Title { get; }
     string Description { get; }
     bool IsCommentRequired { get; }

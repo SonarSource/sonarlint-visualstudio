@@ -51,15 +51,11 @@ public partial class ChangeStatusWindow : Window
 
     private void Border_MouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (sender is not Border { Child: Panel panel })
+        if (sender is not Border { Child: Panel { DataContext: IStatusViewModel statusViewModel } })
         {
             return;
         }
-        var radioButton = panel.Children.OfType<RadioButton>().FirstOrDefault();
-        if (radioButton != null)
-        {
-            radioButton.IsChecked = true;
-        }
+        ViewModel.SelectedStatusViewModel = statusViewModel;
     }
 
     private void RadioButton_OnChecked(object sender, RoutedEventArgs e)
