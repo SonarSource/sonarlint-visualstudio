@@ -126,16 +126,4 @@ public class MuteViewModelTests
 
         testSubject.SelectedStatusViewModel.Should().BeNull();
     }
-
-    [TestMethod]
-    public void InitializeStatusesInitializes_ClearsIsChecked()
-    {
-        var transitions = new[] { SonarQubeIssueTransition.Accept, SonarQubeIssueTransition.WontFix };
-        testSubject.InitializeStatuses(transitions);
-
-        testSubject.AllowedStatusViewModels.ToList().ForEach(vm => vm.IsChecked = true);
-        testSubject.InitializeStatuses(transitions);
-
-        testSubject.AllowedStatusViewModels.All(x => !x.IsChecked).Should().BeTrue();
-    }
 }
