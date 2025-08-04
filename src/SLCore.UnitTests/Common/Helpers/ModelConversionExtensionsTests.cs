@@ -260,6 +260,7 @@ public class ModelConversionExtensionsTests
     }
 
     [TestMethod]
+    [DataRow(SlCoreDependencyRiskStatus.FIXED, CoreDependencyRiskStatus.Fixed)]
     [DataRow(SlCoreDependencyRiskStatus.OPEN, CoreDependencyRiskStatus.Open)]
     [DataRow(SlCoreDependencyRiskStatus.CONFIRM, CoreDependencyRiskStatus.Confirmed)]
     [DataRow(SlCoreDependencyRiskStatus.ACCEPT, CoreDependencyRiskStatus.Accepted)]
