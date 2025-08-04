@@ -91,10 +91,5 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
             return;
         }
         SelectedStatusViewModel = AllStatusViewModels.FirstOrDefault(x => Equals(x.GetCurrentStatus<T>(), currentStatus));
-        if (SelectedStatusViewModel == null)
-        {
-            return;
-        }
-        SelectedStatusViewModel.IsChecked = true;
     }
 }

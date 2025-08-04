@@ -51,7 +51,6 @@ public class ChangeStatusViewModelTest
 
         testSubject.AllStatusViewModels.Should().HaveCount(allStatusViewModels.Count);
         testSubject.SelectedStatusViewModel.GetCurrentStatus<HotspotStatus>().Should().Be(currentStatus);
-        testSubject.SelectedStatusViewModel.IsChecked.Should().BeTrue();
         testSubject.ShowComment.Should().Be(showComment);
     }
 

@@ -25,19 +25,7 @@ namespace SonarLint.VisualStudio.Integration.Transition;
 
 public class StatusViewModel(SonarQubeIssueTransition transition, string title, string description) : ViewModelBase
 {
-    private bool isChecked;
-
     public SonarQubeIssueTransition Transition { get; } = transition;
     public string Title { get; } = title;
     public string Description { get; } = description;
-
-    public bool IsChecked
-    {
-        get => isChecked;
-        set
-        {
-            isChecked = value;
-            RaisePropertyChanged();
-        }
-    }
 }
