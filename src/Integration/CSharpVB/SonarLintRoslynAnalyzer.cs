@@ -81,7 +81,7 @@ public class SonarLintRoslynAnalyzer(
 
         var compilationWithAnalyzers = await GetCompilationWithAnalyzersAsync(compilation, project);
 
-        var syntaxTree2 = compilationWithAnalyzers.Compilation.SyntaxTrees.SingleOrDefault(x => x.FilePath == filePath);
+        var syntaxTree2 = compilationWithAnalyzers.Compilation.SyntaxTrees.SingleOrDefault(x => CompareFilePath(filePath, x.FilePath));
         if (syntaxTree2 == null)
         {
             return null; // todo
@@ -335,16 +335,41 @@ public class SonarLintRoslynAnalyzer(
 
     private Project FindDocumentAndProject(string filePath)
     {
-        foreach (var roslynSolutionProject in workspaceWrapper.CurrentSolution.RoslynSolution.Projects)
+        var currentSolutionRoslynSolution = workspaceWrapper.CurrentSolution.RoslynSolution;
+        var roslynSolutionWorkspace = currentSolutionRoslynSolution.Workspace;
+
+        foreach (var roslynSolutionProject in currentSolutionRoslynSolution.Projects)
         {
             foreach (var document in roslynSolutionProject.Documents)
             {
-                if (document.FilePath?.Equals(filePath) ?? false)
+                var documentFilePath = document.FilePath;
+                if (CompareFilePath(filePath, documentFilePath))
                 {
                     return roslynSolutionProject;
                 }
             }
         }
         return default;
+    }
+
+    private static bool CompareFilePath(
+        string filePath,
+        string documentFilePath)
+    {
+        if (documentFilePath is null)
+        {
+            return false;
+        }
+
+        if (documentFilePath.Equals(filePath))
+        {
+            return true;
+        }
+
+        if (documentFilePath.StartsWith(filePath) && documentFilePath.EndsWith(".g.cs"))
+        {
+            return true;
+        }
+        return false;
     }
 }

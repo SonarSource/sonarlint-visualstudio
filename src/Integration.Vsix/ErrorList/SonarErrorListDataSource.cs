@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
             var tableDataSources = errorTableManager.Sources;
 
             SubscribeToErrorListUpdates(tableDataSources, "ErrorListDataSource", "VS Sink", 550d, ref globalErrorListDataSource);
-            SubscribeToErrorListUpdates(tableDataSources, SonarLintTableControlConstants.ErrorListDataSourceIdentifier, "SL Sink", 0d, ref sonarLintDataSource);
+            SubscribeToErrorListUpdates(tableDataSources, SonarLintTableControlConstants.ErrorListDataSourceIdentifier, "SL Sink", 500d, ref sonarLintDataSource);
         }
 
         private void SubscribeToErrorListUpdates(IReadOnlyList<ITableDataSource> tableDataSources, string sourceIdentifier, string logContext, double correctionInMs, ref ITableDataSource dataSourceCache)

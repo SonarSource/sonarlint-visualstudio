@@ -116,7 +116,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         try
         {
             RemoveIssueConsumer(LastAnalysisFilePath);
-            InitializeAnalysisState();
+            InitializeAnalysisState(true);
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
@@ -181,18 +181,23 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
 
     private AnalysisSnapshot GetAnalysisSnapshot() => new(LastAnalysisFilePath, document.TextBuffer.CurrentSnapshot);
 
-    private void InitializeAnalysisState()
+    private void InitializeAnalysisState(bool forceAnalysis = false)
     {
         analysisStopwatchService.Current = (Stopwatch.StartNew(), DateTime.Now);
         analysisCancellation?.Cancel();
-        analysisCancellation = new CancellationTokenSource();
+        var cts = analysisCancellation = new CancellationTokenSource();
         var analysisSnapshot = GetAnalysisSnapshot();
         var issueConsumer = CreateIssueConsumer(analysisSnapshot);
         var analysisFilePath = LastAnalysisFilePath;
 
         threadHandling.RunOnBackgroundThread(async () =>
             {
-                var analysisIssues = await roslynAnalyzer.AnalyzeAsync(analysisFilePath, analysisCancellation.Token);
+                if (!forceAnalysis)
+                {
+                    await Task.Delay(500, cts.Token);
+                }
+
+                var analysisIssues = await roslynAnalyzer.AnalyzeAsync(analysisFilePath, cts.Token);
                 if (analysisIssues == null)
                 {
                     return;
