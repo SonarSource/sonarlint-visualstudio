@@ -4,11 +4,11 @@
        NB we assume that the SonarC# and SonarVB NuGet packages have the same version number. -->
   <PropertyGroup>
     <!-- Note: Guide on how to update the analyzers is on the xtranet! -->
-    <EmbeddedSonarAnalyzerVersion>10.14.0.120626</EmbeddedSonarAnalyzerVersion>
-    <EmbeddedSonarCFamilyAnalyzerVersion>6.68.0.85760</EmbeddedSonarCFamilyAnalyzerVersion>
-    <EmbeddedSonarJSAnalyzerVersion>11.0.0.33655</EmbeddedSonarJSAnalyzerVersion>
+    <EmbeddedSonarAnalyzerVersion>10.15.0.120848</EmbeddedSonarAnalyzerVersion>
+    <EmbeddedSonarCFamilyAnalyzerVersion>6.70.0.87073</EmbeddedSonarCFamilyAnalyzerVersion>
+    <EmbeddedSonarJSAnalyzerVersion>11.2.0.34013</EmbeddedSonarJSAnalyzerVersion>
     <EmbeddedSonarHtmlAnalyzerVersion>3.19.0.5695</EmbeddedSonarHtmlAnalyzerVersion>
-    <EmbeddedSonarSecretsJarVersion>2.25.0.7448</EmbeddedSonarSecretsJarVersion>
+    <EmbeddedSonarSecretsJarVersion>2.26.0.7517</EmbeddedSonarSecretsJarVersion>
     <!-- SLOOP: Binaries for SonarLint Out Of Process -->
     <EmbeddedSloopVersion>10.27.0.81927</EmbeddedSloopVersion>
     <EmbeddedEsLintBridgeVersion>1.0.0</EmbeddedEsLintBridgeVersion>
