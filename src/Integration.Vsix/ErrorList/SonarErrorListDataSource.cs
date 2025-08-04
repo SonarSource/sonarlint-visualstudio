@@ -97,11 +97,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
         {
             var tableDataSources = errorTableManager.Sources;
 
-            SubscribeToErrorListUpdates(tableDataSources, "ErrorListDataSource", "VS Sink", ref globalErrorListDataSource);
-            SubscribeToErrorListUpdates(tableDataSources, SonarLintTableControlConstants.ErrorListDataSourceIdentifier, "SL Sink", ref sonarLintDataSource);
+            SubscribeToErrorListUpdates(tableDataSources, "ErrorListDataSource", "VS Sink", 550d, ref globalErrorListDataSource);
+            SubscribeToErrorListUpdates(tableDataSources, SonarLintTableControlConstants.ErrorListDataSourceIdentifier, "SL Sink", 0d, ref sonarLintDataSource);
         }
 
-        private void SubscribeToErrorListUpdates(IReadOnlyList<ITableDataSource> tableDataSources, string sourceIdentifier, string logContext, ref ITableDataSource dataSourceCache)
+        private void SubscribeToErrorListUpdates(IReadOnlyList<ITableDataSource> tableDataSources, string sourceIdentifier, string logContext, double correctionInMs, ref ITableDataSource dataSourceCache)
         {
             if (dataSourceCache != null)
             {
@@ -115,7 +115,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
             }
 
             dataSourceCache = tableDataSource;
-            dataSourceCache.Subscribe(new Sink(performanceLogger.ForContext(logContext), Identifier, threadHandling, analysisStopwatchService));
+            dataSourceCache.Subscribe(new Sink(performanceLogger.ForContext(logContext), Identifier, correctionInMs, threadHandling, analysisStopwatchService));
         }
 
         #region ITableDataSource members

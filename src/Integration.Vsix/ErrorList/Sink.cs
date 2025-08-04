@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 
-public class Sink(ILogger perfLogger, string name, IThreadHandling threadHandling, IAnalysisStopwatchService analysisStopwatchService) : ITableDataSink
+public class Sink(ILogger perfLogger, string name, double correction, IThreadHandling threadHandling, IAnalysisStopwatchService analysisStopwatchService) : ITableDataSink
 {
     public string Name { get; } = name;
 
@@ -58,7 +58,7 @@ public class Sink(ILogger perfLogger, string name, IThreadHandling threadHandlin
         {
             var statsString = CountStats(newSnapshot);
 
-            perfLogger.WriteLine("{0} -> {1}, {2}, Update {3}: [ {4} ]", startTime.ToString("O"), currentTime.ToString("O"), elapsedTotalMilliseconds, newSnapshot.Count, statsString);
+            perfLogger.WriteLine("{2}, corrected {3}, Update {4}: [ {5} ] | {0} -> {1}", startTime.ToString("O"), currentTime.ToString("O"), elapsedTotalMilliseconds, Math.Max(0d, elapsedTotalMilliseconds - correction), newSnapshot.Count, statsString);
         }).Forget();
     }
 
