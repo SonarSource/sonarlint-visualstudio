@@ -48,9 +48,9 @@ internal class EmbeddedDotnetAnalyzersLocator : IEmbeddedDotnetAnalyzersLocator
         this.fileSystem = fileSystem;
     }
 
-    public List<string> GetBasicAnalyzerFullPaths() => GetAnalyzerDlls().Where(x => x.Contains("CSharp") && !x.Contains(EnterpriseInfix)).ToList();
+    public List<string> GetBasicAnalyzerFullPaths() => GetAnalyzerDlls().Where(x => !x.Contains(EnterpriseInfix)).ToList();
 
-    public List<string> GetEnterpriseAnalyzerFullPaths() => GetAnalyzerDlls().Where(x => x.Contains("CSharp")).ToList();
+    public List<string> GetEnterpriseAnalyzerFullPaths() => GetAnalyzerDlls().ToList();
 
     private string[] GetAnalyzerDlls() => fileSystem.Directory.GetFiles(GetPathToParentFolder(), DllsSearchPattern);
 
