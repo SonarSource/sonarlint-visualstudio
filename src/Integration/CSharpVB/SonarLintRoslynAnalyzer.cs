@@ -117,8 +117,8 @@ public class SonarLintRoslynAnalyzer(
                         new TextRange(
                             fileLinePositionSpan.StartLinePosition.Line + 1,
                             fileLinePositionSpan.EndLinePosition.Line + 1,
-                            fileLinePositionSpan.StartLinePosition.Character + 1,
-                            fileLinePositionSpan.EndLinePosition.Character + 1,
+                            fileLinePositionSpan.StartLinePosition.Character,
+                            fileLinePositionSpan.EndLinePosition.Character,
                             null)), [
                     ]);
             }).Cast<IAnalysisIssue>()
