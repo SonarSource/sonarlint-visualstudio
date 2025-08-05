@@ -1,22 +1,22 @@
-﻿// /*
-//  * SonarLint for Visual Studio
-//  * Copyright (C) 2016-2025 SonarSource SA
-//  * mailto:info AT sonarsource DOT com
-//  *
-//  * This program is free software; you can redistribute it and/or
-//  * modify it under the terms of the GNU Lesser General Public
-//  * License as published by the Free Software Foundation; either
-//  * version 3 of the License, or (at your option) any later version.
-//  *
-//  * This program is distributed in the hope that it will be useful,
-//  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//  * Lesser General Public License for more details.
-//  *
-//  * You should have received a copy of the GNU Lesser General Public License
-//  * along with this program; if not, write to the Free Software Foundation,
-//  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-//  */
+﻿/*
+ * SonarLint for Visual Studio
+ * Copyright (C) 2016-2025 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -34,6 +34,7 @@ using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
+using SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
 using Document = Microsoft.CodeAnalysis.Document;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB;
@@ -58,10 +59,20 @@ public class SonarLintRoslynAnalyzer(
     IThreadHandling threadHandling)
     : ISonarLintRoslynAnalyzer
 {
-    private IAsyncLock asyncLock = asyncLockFactory.Create();
-    private string lastConfigScopeId;
-    private SonarLintConfiguration cachedSonarLintConfig;
+    /// <summary>
+    ///     The file will never be written to disk so the path is irrelevant.
+    ///     It only needs to be named 'SonarLint.Xml' so the sonar-dotnet analyzers could load it.
+    /// </summary>
+    private static readonly string DummySonarLintXmlFilePath = Path.Combine(Path.GetTempPath(), "SonarLint.xml");
+
+    private static readonly List<Language> Languages = [Language.CSharp, Language.VBNET];
+    private readonly IAsyncLock asyncLock = asyncLockFactory.Create();
     private ImmutableArray<DiagnosticAnalyzer>? cachedAnalyzers;
+    private ImmutableDictionary<string, ReportDiagnostic> cachedCsharpDiagnosticStatuses;
+    private ImmutableDictionary<string, ReportDiagnostic> cachedVbnetDiagnosticStatuses;
+    private SonarLintConfiguration cachedCsharpSonarLintConfig;
+    private SonarLintConfiguration cacheVbnetSonarLintConfig;
+    private string lastConfigScopeId;
 
     public async Task<ImmutableList<IAnalysisIssue>> AnalyzeAsync(string filePath, CancellationToken token)
     {
@@ -89,7 +100,7 @@ public class SonarLintRoslynAnalyzer(
         var semanticModel2 = compilationWithAnalyzers.Compilation.GetSemanticModel(syntaxTree2);
 
         var analyzerSyntacticDiagnosticsAsync = compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(semanticModel2.SyntaxTree, token);
-        var analyzerSemanticDiagnosticsAsync =  compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel2, null, token);
+        var analyzerSemanticDiagnosticsAsync = compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel2, null, token);
 
         var issues = ConvertToAnalysisIssues(await analyzerSyntacticDiagnosticsAsync, await analyzerSemanticDiagnosticsAsync);
 
@@ -102,7 +113,7 @@ public class SonarLintRoslynAnalyzer(
             .Select(diagnostic =>
             {
                 var fileLinePositionSpan = diagnostic.Location.GetMappedLineSpan();
-                var isWarning = diagnostic.Severity == DiagnosticSeverity.Error || diagnostic.Severity == DiagnosticSeverity.Warning;
+                var isWarning = diagnostic.Severity is DiagnosticSeverity.Error or DiagnosticSeverity.Warning;
                 return new AnalysisIssue(
                     null,
                     diagnostic.Id + ":" + "GG",
@@ -129,39 +140,79 @@ public class SonarLintRoslynAnalyzer(
     private async Task<CompilationWithAnalyzers> GetCompilationWithAnalyzersAsync(Compilation compilation, Project project)
     {
         var currentScopeId = activeConfigScopeTracker.Current?.Id;
+        var language = compilation.Language switch
+        {
+            "C#" => Language.CSharp,
+            "Visual Basic" => Language.VBNET,
+            _ => throw new NotImplementedException(),
+        };
 
-        var (sonarLintConfiguration, diagnosticAnalyzers) = await GetConfigurationAsync(currentScopeId);
-        var compilationWithAnalyzers = compilation.WithAnalyzers(
+        var (sonarLintConfiguration, diagnosticStatuses, diagnosticAnalyzers) = await GetConfigurationAsync(currentScopeId, language);
+
+        var withSonarLintAdditionalFiles = GetWithSonarLintAdditionalFiles(project.AnalyzerOptions, sonarLintConfiguration);
+
+        var compilationWithAnalyzers = compilation.WithOptions(compilation.Options.WithSpecificDiagnosticOptions(diagnosticStatuses)).WithAnalyzers(
             diagnosticAnalyzers!.Value,
             new CompilationWithAnalyzersOptions(
-                GetWithSonarLintAdditionalFiles(project.AnalyzerOptions, sonarLintConfiguration),
-                onAnalyzerException: OnAnalyzerException,
-                concurrentAnalysis: true,
-                logAnalyzerExecutionTime: false,
-                reportSuppressedDiagnostics: false));
+                withSonarLintAdditionalFiles,
+                OnAnalyzerException,
+                true,
+                false,
+                false));
         return compilationWithAnalyzers;
     }
 
-    private async Task<(SonarLintConfiguration cachedSonarLintConfig, ImmutableArray<DiagnosticAnalyzer>? cachedAnalyzers)> GetConfigurationAsync(string currentScopeId)
+    private async Task<(SonarLintConfiguration cachedSonarLintConfig, ImmutableDictionary<string, ReportDiagnostic> cachedDiagnosticStatuses, ImmutableArray<DiagnosticAnalyzer>? cachedAnalyzers)>
+        GetConfigurationAsync(string currentScopeId, Language language)
     {
+        // this method is trash and needs to be rewritten
+
         using (await asyncLock.AcquireAsync())
         {
-            if (lastConfigScopeId != currentScopeId || currentScopeId == null || cachedSonarLintConfig == null || cachedAnalyzers == null) // todo this cache is stupid
-            {
-                var exclusions = ConvertExclusions(userSettingsProvider.UserSettings);
-                var (ruleStatusesByLanguage, ruleParametersByLanguage) = ConvertRules(userSettingsProvider.UserSettings);
-                cachedSonarLintConfig = roslynConfigGenerator.Generate(
-                    ruleParametersByLanguage[Language.CSharp],
-                    userSettingsProvider.UserSettings.AnalysisSettings.AnalysisProperties,
-                    exclusions,
-                    Language.CSharp);
-                cachedAnalyzers = await GetAnalyzersAsync(currentScopeId);
-                lastConfigScopeId = currentScopeId;
-            }
+            var exclusions = ConvertExclusions(userSettingsProvider.UserSettings);
+            var (ruleStatusesByLanguage, ruleParametersByLanguage) = ConvertRules(userSettingsProvider.UserSettings);
 
-            return (cachedSonarLintConfig, cachedAnalyzers);
+            cachedCsharpDiagnosticStatuses = ruleStatusesByLanguage[Language.CSharp].ToImmutableDictionary(
+                x => x.Key,
+                ConvertSeverityToReportDiagnostic);
+            cachedVbnetDiagnosticStatuses = ruleStatusesByLanguage[Language.VBNET].ToImmutableDictionary(
+                x => x.Key,
+                ConvertSeverityToReportDiagnostic);
+
+            cachedCsharpSonarLintConfig = roslynConfigGenerator.Generate(
+                ruleParametersByLanguage[Language.CSharp],
+                userSettingsProvider.UserSettings.AnalysisSettings.AnalysisProperties,
+                exclusions,
+                Language.CSharp);
+            cacheVbnetSonarLintConfig = roslynConfigGenerator.Generate(
+                ruleParametersByLanguage[Language.VBNET],
+                userSettingsProvider.UserSettings.AnalysisSettings.AnalysisProperties,
+                exclusions,
+                Language.VBNET);
+            cachedAnalyzers = await GetAnalyzersAsync(currentScopeId);
+            lastConfigScopeId = currentScopeId;
+
+            if (language == Language.CSharp)
+            {
+                return (cachedCsharpSonarLintConfig, cachedCsharpDiagnosticStatuses, cachedAnalyzers);
+            }
+            else
+            {
+                return (cacheVbnetSonarLintConfig, cachedVbnetDiagnosticStatuses, cachedAnalyzers);
+            }
         }
     }
+
+    private static ReportDiagnostic ConvertSeverityToReportDiagnostic(IRoslynRuleStatus y) =>
+        y.GetSeverity() switch
+        {
+            RuleAction.None => ReportDiagnostic.Suppress,
+            RuleAction.Hidden => ReportDiagnostic.Hidden,
+            RuleAction.Info => ReportDiagnostic.Info,
+            RuleAction.Warning => ReportDiagnostic.Warn,
+            RuleAction.Error => ReportDiagnostic.Error,
+            _ => throw new ArgumentOutOfRangeException()
+        };
 
     private async Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersAsync(string configurationScopeId)
     {
@@ -183,10 +234,8 @@ public class SonarLintRoslynAnalyzer(
         return analyzerTypes;
     }
 
-    private void OnAnalyzerException(Exception arg1, DiagnosticAnalyzer arg2, Diagnostic arg3)
-    {
-        logger.WriteLine(new MessageLevelContext() { Context = ["Roslyn Analyzer", arg2.GetType().Name, arg3.Id]}, arg1.ToString());
-    }
+    private void OnAnalyzerException(Exception arg1, DiagnosticAnalyzer arg2, Diagnostic arg3) =>
+        logger.WriteLine(new MessageLevelContext { Context = ["Roslyn Analyzer", arg2.GetType().Name, arg3.Id] }, arg1.ToString());
 
     public static AdditionalText Convert(SonarLintConfiguration sonarLintConfiguration)
     {
@@ -197,8 +246,8 @@ public class SonarLintRoslynAnalyzer(
     }
 
     /// <summary>
-    /// Add sonar-dotnet analyzer additional files.
-    /// Override any existing sonar-dotnet analyzer additional files that were already in the project.
+    ///     Add sonar-dotnet analyzer additional files.
+    ///     Override any existing sonar-dotnet analyzer additional files that were already in the project.
     /// </summary>
     private static AnalyzerOptions GetWithSonarLintAdditionalFiles(AnalyzerOptions workspaceAnalyzerOptions, SonarLintConfiguration sonarLintConfiguration)
     {
@@ -215,63 +264,10 @@ public class SonarLintRoslynAnalyzer(
 
         return finalAnalyzerOptions;
 
-        bool IsSonarLintAdditionalFile(AdditionalText existingAdditionalFile)
-        {
-            return Path.GetFileName(existingAdditionalFile.Path).Equals(
+        bool IsSonarLintAdditionalFile(AdditionalText existingAdditionalFile) =>
+            Path.GetFileName(existingAdditionalFile.Path).Equals(
                 sonarLintAdditionalFileName,
                 StringComparison.OrdinalIgnoreCase);
-        }
-    }
-
-    /// <summary>
-    /// The file will never be written to disk so the path is irrelevant.
-    /// It only needs to be named 'SonarLint.Xml' so the sonar-dotnet analyzers could load it.
-    /// </summary>
-    private static readonly string DummySonarLintXmlFilePath = Path.Combine(Path.GetTempPath(), "SonarLint.xml");
-
-    // There isn't a public implementation of source text so we need to create one
-    internal class AdditionalTextImpl : AdditionalText
-    {
-        private readonly SourceText sourceText;
-
-        public AdditionalTextImpl(string path, string content)
-        {
-            Path = path;
-            sourceText = SourceText.From(content);
-        }
-
-        public override string Path { get; }
-
-        public override SourceText GetText(CancellationToken cancellationToken = default) => sourceText;
-    }
-
-    internal static class SonarLintConfigurationSerializer
-    {
-        public static string Serialize(SonarLintConfiguration sonarLintConfiguration)
-        {
-            var settings = new XmlWriterSettings
-            {
-                CloseOutput = true,
-                ConformanceLevel = ConformanceLevel.Document,
-                Indent = true,
-                NamespaceHandling = NamespaceHandling.OmitDuplicates,
-                OmitXmlDeclaration = false,
-                Encoding = new UTF8Encoding(false) // to avoid generating unicode BOM
-            };
-
-            using (var stream = new MemoryStream { Position = 0 })
-            using (var xmlWriter = XmlWriter.Create(stream, settings))
-            {
-                var serializer = new XmlSerializer(typeof(SonarLintConfiguration));
-                serializer.Serialize(xmlWriter, sonarLintConfiguration);
-                xmlWriter.Flush();
-
-                var data = stream.ToArray();
-                var sonarLintXmlFileContent = Encoding.UTF8.GetString(data);
-
-                return sonarLintXmlFileContent;
-            }
-        }
     }
 
     private static StandaloneRoslynFileExclusions ConvertExclusions(UserSettings settings)
@@ -287,7 +283,7 @@ public class SonarLintRoslynAnalyzer(
         foreach (var analysisSettingsRule in settings.AnalysisSettings.Rules)
         {
             if (!SonarCompositeRuleId.TryParse(analysisSettingsRule.Key, out var ruleId)
-                || !new List<Language> { Language.CSharp, Language.VBNET }.Contains(ruleId.Language))
+                || !Languages.Contains(ruleId.Language))
             {
                 continue;
             }
@@ -304,33 +300,12 @@ public class SonarLintRoslynAnalyzer(
     {
         var dictionary = new Dictionary<Language, List<T>>();
 
-        foreach (var language in new List<Language> { Language.CSharp, Language.VBNET })
+        foreach (var language in Languages)
         {
             dictionary[language] = [];
         }
 
         return dictionary;
-    }
-
-    internal class StandaloneRoslynRuleStatus(SonarCompositeRuleId ruleId, bool isEnabled) : IRoslynRuleStatus
-    {
-        public string Key => ruleId.RuleKey;
-
-        public RuleAction GetSeverity() => isEnabled ? RuleAction.Warning : RuleAction.None;
-    }
-
-    internal class StandaloneRoslynRuleParameters(SonarCompositeRuleId ruleId, IReadOnlyDictionary<string, string> parameters) : IRuleParameters
-    {
-        public string Key { get; } = ruleId.RuleKey;
-        public string RepositoryKey { get; } = ruleId.RepoKey;
-        public IReadOnlyDictionary<string, string> Parameters { get; } = parameters;
-    }
-
-    internal class StandaloneRoslynFileExclusions(AnalysisSettings exclusions) : IFileExclusions
-    {
-        private readonly string[] exclusions = exclusions.NormalizedFileExclusions.ToArray();
-
-        public Dictionary<string, string> ToDictionary() => new() { { "sonar.exclusions", string.Join(",", exclusions) } };
     }
 
     private Project FindDocumentAndProject(string filePath, out string analysisFilePath)
@@ -370,6 +345,50 @@ public class SonarLintRoslynAnalyzer(
 
         analysisFilePath = document.FilePath;
         return true;
+    }
 
+    // There isn't a public implementation of source text so we need to create one
+    internal class AdditionalTextImpl : AdditionalText
+    {
+        private readonly SourceText sourceText;
+
+        public override string Path { get; }
+
+        public AdditionalTextImpl(string path, string content)
+        {
+            Path = path;
+            sourceText = SourceText.From(content);
+        }
+
+        public override SourceText GetText(CancellationToken cancellationToken = default) => sourceText;
+    }
+
+    internal static class SonarLintConfigurationSerializer
+    {
+        public static string Serialize(SonarLintConfiguration sonarLintConfiguration)
+        {
+            var settings = new XmlWriterSettings
+            {
+                CloseOutput = true,
+                ConformanceLevel = ConformanceLevel.Document,
+                Indent = true,
+                NamespaceHandling = NamespaceHandling.OmitDuplicates,
+                OmitXmlDeclaration = false,
+                Encoding = new UTF8Encoding(false) // to avoid generating unicode BOM
+            };
+
+            using (var stream = new MemoryStream { Position = 0 })
+            using (var xmlWriter = XmlWriter.Create(stream, settings))
+            {
+                var serializer = new XmlSerializer(typeof(SonarLintConfiguration));
+                serializer.Serialize(xmlWriter, sonarLintConfiguration);
+                xmlWriter.Flush();
+
+                var data = stream.ToArray();
+                var sonarLintXmlFileContent = Encoding.UTF8.GetString(data);
+
+                return sonarLintXmlFileContent;
+            }
+        }
     }
 }
