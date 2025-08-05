@@ -78,29 +78,78 @@ public class SonarLintRoslynAnalyzer(
     {
         threadHandling.ThrowIfOnUIThread();
 
-        var project = FindDocumentAndProject(filePath, out var analysisFilePath);
-        if (project == null)
+        var projectsWithDocument = FindProjectsWithDocument(filePath);
+        if (projectsWithDocument.Count == 0)
         {
-            return null; // todo
+            logger.WriteLine($"No projects found containing file: {filePath}");
+            return ImmutableList<IAnalysisIssue>.Empty;
         }
 
+        var uniqueIssues = new List<IAnalysisIssue>();
+        foreach (var (project, analysisFilePath) in projectsWithDocument)
+        {
+            var projectIssues = await AnalyzeInProjectAsync(project, analysisFilePath, token);
+            if (projectIssues != null)
+            {
+                foreach (var issue in projectIssues)
+                {
+                    if (!IsDuplicateIssue(uniqueIssues, issue))
+                    {
+                        uniqueIssues.Add(issue);
+                    }
+                }
+            }
+        }
+
+        return uniqueIssues.ToImmutableList();
+    }
+
+    private static bool IsDuplicateIssue(List<IAnalysisIssue> existingIssues, IAnalysisIssue newIssue) =>
+        existingIssues.Any(existing =>
+            existing.RuleKey == newIssue.RuleKey
+            && existing.PrimaryLocation.FilePath == newIssue.PrimaryLocation.FilePath
+            && AreTextRangesEqual(existing.PrimaryLocation.TextRange, newIssue.PrimaryLocation.TextRange));
+
+    private static bool AreTextRangesEqual(ITextRange range1, ITextRange range2)
+    {
+        if (range1 == null && range2 == null)
+        {
+            return true;
+        }
+
+        if (range1 == null || range2 == null)
+        {
+            return false;
+        }
+
+        return range1.StartLine == range2.StartLine &&
+               range1.EndLine == range2.EndLine &&
+               range1.StartLineOffset == range2.StartLineOffset &&
+               range1.EndLineOffset == range2.EndLineOffset;
+    }
+
+    private async Task<ImmutableList<IAnalysisIssue>> AnalyzeInProjectAsync(Project project, string analysisFilePath, CancellationToken token)
+    {
         var compilation = await project.GetCompilationAsync(token);
         if (compilation == null)
         {
-            return null; // todo
+            logger.WriteLine($"Failed to get compilation for project: {project.Name}");
+            return null;
         }
 
         var compilationWithAnalyzers = await GetCompilationWithAnalyzersAsync(compilation, project);
 
-        var syntaxTree2 = compilationWithAnalyzers.Compilation.SyntaxTrees.SingleOrDefault(x => analysisFilePath.Equals(x.FilePath));
-        if (syntaxTree2 == null)
+        var syntaxTree = compilationWithAnalyzers.Compilation.SyntaxTrees.SingleOrDefault(x => analysisFilePath.Equals(x.FilePath));
+        if (syntaxTree == null)
         {
-            return null; // todo
+            logger.WriteLine($"Failed to get syntax tree for file: {analysisFilePath} in project {project.Name}");
+            return null;
         }
-        var semanticModel2 = compilationWithAnalyzers.Compilation.GetSemanticModel(syntaxTree2);
 
-        var analyzerSyntacticDiagnosticsAsync = compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(semanticModel2.SyntaxTree, token);
-        var analyzerSemanticDiagnosticsAsync = compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel2, null, token);
+        var semanticModel = compilationWithAnalyzers.Compilation.GetSemanticModel(syntaxTree);
+
+        var analyzerSyntacticDiagnosticsAsync = compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(semanticModel.SyntaxTree, token);
+        var analyzerSemanticDiagnosticsAsync = compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, null, token);
 
         var issues = ConvertToAnalysisIssues(await analyzerSyntacticDiagnosticsAsync, await analyzerSemanticDiagnosticsAsync);
 
@@ -308,22 +357,26 @@ public class SonarLintRoslynAnalyzer(
         return dictionary;
     }
 
-    private Project FindDocumentAndProject(string filePath, out string analysisFilePath)
+    /// <summary>
+    /// Find all projects that contain the specified file
+    /// </summary>
+    private List<(Project project, string analysisFilePath)> FindProjectsWithDocument(string filePath)
     {
-        analysisFilePath = null;
+        var result = new List<(Project, string)>();
         var currentSolutionRoslynSolution = workspaceWrapper.CurrentSolution.RoslynSolution;
 
         foreach (var roslynSolutionProject in currentSolutionRoslynSolution.Projects)
         {
             foreach (var document in roslynSolutionProject.Documents)
             {
-                if (CompareFilePath(filePath, document, out analysisFilePath))
+                if (CompareFilePath(filePath, document, out var analysisFilePath))
                 {
-                    return roslynSolutionProject;
+                    result.Add((roslynSolutionProject, analysisFilePath));
                 }
             }
         }
-        return default;
+
+        return result;
     }
 
     private static bool CompareFilePath(
@@ -377,18 +430,17 @@ public class SonarLintRoslynAnalyzer(
                 Encoding = new UTF8Encoding(false) // to avoid generating unicode BOM
             };
 
-            using (var stream = new MemoryStream { Position = 0 })
-            using (var xmlWriter = XmlWriter.Create(stream, settings))
-            {
-                var serializer = new XmlSerializer(typeof(SonarLintConfiguration));
-                serializer.Serialize(xmlWriter, sonarLintConfiguration);
-                xmlWriter.Flush();
+            using var stream = new MemoryStream { Position = 0 };
+            using var xmlWriter = XmlWriter.Create(stream, settings);
 
-                var data = stream.ToArray();
-                var sonarLintXmlFileContent = Encoding.UTF8.GetString(data);
+            var serializer = new XmlSerializer(typeof(SonarLintConfiguration));
+            serializer.Serialize(xmlWriter, sonarLintConfiguration);
+            xmlWriter.Flush();
 
-                return sonarLintXmlFileContent;
-            }
+            var data = stream.ToArray();
+            var sonarLintXmlFileContent = Encoding.UTF8.GetString(data);
+
+            return sonarLintXmlFileContent;
         }
     }
 }
