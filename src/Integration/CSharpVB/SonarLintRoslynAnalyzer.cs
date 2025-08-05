@@ -67,7 +67,7 @@ public class SonarLintRoslynAnalyzer(
     {
         threadHandling.ThrowIfOnUIThread();
 
-        var project = FindDocumentAndProject(filePath);
+        var project = FindDocumentAndProject(filePath, out var analysisFilePath);
         if (project == null)
         {
             return null; // todo
@@ -81,7 +81,7 @@ public class SonarLintRoslynAnalyzer(
 
         var compilationWithAnalyzers = await GetCompilationWithAnalyzersAsync(compilation, project);
 
-        var syntaxTree2 = compilationWithAnalyzers.Compilation.SyntaxTrees.SingleOrDefault(x => CompareFilePath(filePath, x.FilePath));
+        var syntaxTree2 = compilationWithAnalyzers.Compilation.SyntaxTrees.SingleOrDefault(x => analysisFilePath.Equals(x.FilePath));
         if (syntaxTree2 == null)
         {
             return null; // todo
@@ -333,17 +333,16 @@ public class SonarLintRoslynAnalyzer(
         public Dictionary<string, string> ToDictionary() => new() { { "sonar.exclusions", string.Join(",", exclusions) } };
     }
 
-    private Project FindDocumentAndProject(string filePath)
+    private Project FindDocumentAndProject(string filePath, out string analysisFilePath)
     {
+        analysisFilePath = null;
         var currentSolutionRoslynSolution = workspaceWrapper.CurrentSolution.RoslynSolution;
-        var roslynSolutionWorkspace = currentSolutionRoslynSolution.Workspace;
 
         foreach (var roslynSolutionProject in currentSolutionRoslynSolution.Projects)
         {
             foreach (var document in roslynSolutionProject.Documents)
             {
-                var documentFilePath = document.FilePath;
-                if (CompareFilePath(filePath, documentFilePath))
+                if (CompareFilePath(filePath, document, out analysisFilePath))
                 {
                     return roslynSolutionProject;
                 }
@@ -354,22 +353,23 @@ public class SonarLintRoslynAnalyzer(
 
     private static bool CompareFilePath(
         string filePath,
-        string documentFilePath)
+        Document document,
+        out string analysisFilePath)
     {
-        if (documentFilePath is null)
+        analysisFilePath = null;
+        if (document.FilePath is null)
         {
             return false;
         }
 
-        if (documentFilePath.Equals(filePath))
+        if (!document.FilePath.Equals(filePath)
+            && (!document.FilePath.StartsWith(filePath) || !document.FilePath.EndsWith(".g.cs")))
         {
-            return true;
+            return false;
         }
 
-        if (documentFilePath.StartsWith(filePath) && documentFilePath.EndsWith(".g.cs"))
-        {
-            return true;
-        }
-        return false;
+        analysisFilePath = document.FilePath;
+        return true;
+
     }
 }
