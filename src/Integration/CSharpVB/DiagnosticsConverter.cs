@@ -21,28 +21,15 @@
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB;
 
 public interface IDiagnosticsConverter
 {
-    /// <summary>
-    /// Converts Roslyn diagnostics to SonarLint analysis issues
-    /// </summary>
-    /// <param name="syntaxDiagnostics">Syntax diagnostics from Roslyn analyzer</param>
-    /// <param name="semanticDiagnostics">Semantic diagnostics from Roslyn analyzer</param>
-    /// <returns>A list of SonarLint analysis issues</returns>
-    IEnumerable<IAnalysisIssue> Convert(ImmutableArray<Diagnostic> syntaxDiagnostics, ImmutableArray<Diagnostic> semanticDiagnostics);
+    IEnumerable<SonarDiagnostic> ConvertToDiagnostics(ImmutableArray<Diagnostic> syntaxDiagnostics, ImmutableArray<Diagnostic> semanticDiagnostics);
 
-    /// <summary>
-    /// Determines if an issue is a duplicate of an existing issue
-    /// </summary>
-    /// <param name="existingIssues">List of existing issues</param>
-    /// <param name="newIssue">New issue to check</param>
-    /// <returns>True if the issue is a duplicate, otherwise false</returns>
-    bool IsDuplicateIssue(List<IAnalysisIssue> existingIssues, IAnalysisIssue newIssue);
+    IAnalysisIssue ConvertToAnalysisIssue(SonarDiagnostic diagnostic);
 }
 
 [Export(typeof(IDiagnosticsConverter))]
@@ -51,54 +38,79 @@ public class DiagnosticsConverter : IDiagnosticsConverter
 {
     public IEnumerable<IAnalysisIssue> Convert(ImmutableArray<Diagnostic> syntaxDiagnostics, ImmutableArray<Diagnostic> semanticDiagnostics)
     {
-        var issues = semanticDiagnostics.Concat(syntaxDiagnostics)
+        return ConvertToDiagnostics(syntaxDiagnostics, semanticDiagnostics)
+            .Select(ConvertToAnalysisIssue);
+    }
+
+    public IEnumerable<SonarDiagnostic> ConvertToDiagnostics(ImmutableArray<Diagnostic> syntaxDiagnostics, ImmutableArray<Diagnostic> semanticDiagnostics)
+    {
+        var diagnostics = semanticDiagnostics.Concat(syntaxDiagnostics)
             .Select(diagnostic =>
             {
                 var fileLinePositionSpan = diagnostic.Location.GetMappedLineSpan();
                 var isWarning = diagnostic.Severity is DiagnosticSeverity.Error or DiagnosticSeverity.Warning;
-                return new AnalysisIssue(
-                    null,
+
+                var textRange = new SonarTextRange(
+                    fileLinePositionSpan.StartLinePosition.Line + 1,
+                    fileLinePositionSpan.EndLinePosition.Line + 1,
+                    fileLinePositionSpan.StartLinePosition.Character,
+                    fileLinePositionSpan.EndLinePosition.Character,
+                    null); // todo line hash calculation
+
+                var location = new SonarDiagnosticLocation(
+                    diagnostic.GetMessage(),
+                    diagnostic.Location.SourceTree.FilePath,
+                    textRange);
+
+                return new SonarDiagnostic(
                     diagnostic.Id + ":" + "GG",
-                    null,
-                    diagnostic.IsSuppressed,
-                    isWarning ? AnalysisIssueSeverity.Critical : AnalysisIssueSeverity.Minor,
-                    AnalysisIssueType.CodeSmell,
-                    new Impact(SoftwareQuality.Maintainability, isWarning ? SoftwareQualitySeverity.High : SoftwareQualitySeverity.Low),
-                    new AnalysisIssueLocation(
-                        diagnostic.GetMessage(),
-                        diagnostic.Location.SourceTree.FilePath,
-                        new TextRange(
-                            fileLinePositionSpan.StartLinePosition.Line + 1,
-                            fileLinePositionSpan.EndLinePosition.Line + 1,
-                            fileLinePositionSpan.StartLinePosition.Character,
-                            fileLinePositionSpan.EndLinePosition.Character,
-                            null)),
-                    []);
-            }).Cast<IAnalysisIssue>();
-        return issues;
+                    isWarning,
+                    location,
+                    []); // todo secondary locations and quick fixes
+            });
+        return diagnostics;
     }
 
-    public bool IsDuplicateIssue(List<IAnalysisIssue> existingIssues, IAnalysisIssue newIssue) =>
-        existingIssues.Any(existing =>
-            existing.RuleKey == newIssue.RuleKey
-            && existing.PrimaryLocation.FilePath == newIssue.PrimaryLocation.FilePath
-            && AreTextRangesEqual(existing.PrimaryLocation.TextRange, newIssue.PrimaryLocation.TextRange));
-
-    private static bool AreTextRangesEqual(ITextRange range1, ITextRange range2)
+    public IAnalysisIssue ConvertToAnalysisIssue(SonarDiagnostic diagnostic)
     {
-        if (range1 == null && range2 == null)
-        {
-            return true;
-        }
+        var analysisIssueFlows = diagnostic.Flows.Select(flow =>
+            new AnalysisIssueFlow(
+                flow.Locations.Select(location =>
+                    new AnalysisIssueLocation(
+                        location.Message,
+                        location.FilePath,
+                        new TextRange(
+                            location.TextRange.StartLine,
+                            location.TextRange.EndLine,
+                            location.TextRange.StartLineOffset,
+                            location.TextRange.EndLineOffset,
+                            location.TextRange.LineHash)
+                    )
+                ).ToList()
+            )
+        ).ToList();
 
-        if (range1 == null || range2 == null)
-        {
-            return false;
-        }
+        var primaryLocation = new AnalysisIssueLocation(
+            diagnostic.PrimaryLocation.Message,
+            diagnostic.PrimaryLocation.FilePath,
+            new TextRange(
+                diagnostic.PrimaryLocation.TextRange.StartLine,
+                diagnostic.PrimaryLocation.TextRange.EndLine,
+                diagnostic.PrimaryLocation.TextRange.StartLineOffset,
+                diagnostic.PrimaryLocation.TextRange.EndLineOffset,
+                diagnostic.PrimaryLocation.TextRange.LineHash)
+        );
 
-        return range1.StartLine == range2.StartLine &&
-               range1.EndLine == range2.EndLine &&
-               range1.StartLineOffset == range2.StartLineOffset &&
-               range1.EndLineOffset == range2.EndLineOffset;
+        return new AnalysisIssue(
+            null,
+            diagnostic.RuleKey,
+            null,
+            false,
+            diagnostic.IsWarning ? AnalysisIssueSeverity.Critical : AnalysisIssueSeverity.Minor,
+            AnalysisIssueType.CodeSmell,
+            new Impact(SoftwareQuality.Maintainability, diagnostic.IsWarning ? SoftwareQualitySeverity.High : SoftwareQualitySeverity.Low),
+            primaryLocation,
+            analysisIssueFlows,
+            diagnostic.Fixes);
     }
 }

@@ -24,8 +24,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
-using Document = Microsoft.CodeAnalysis.Document;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB;
 
@@ -44,19 +42,19 @@ internal class SonarLintRoslynAnalyzer(
     ILogger logger,
     IThreadHandling threadHandling) : ISonarLintRoslynAnalyzer
 {
-
     public async Task<ImmutableList<IAnalysisIssue>> AnalyzeAsync(string[] filePaths, CancellationToken token)
     {
-        return await AnalyzeAsync(filePaths, await configurationManager.GetConfigurationAsync(), token);
+        var sonarDiagnostics = await AnalyzeInternalAsync(filePaths, await configurationManager.GetConfigurationAsync(), token);
+        return sonarDiagnostics.Select(diagnosticsConverter.ConvertToAnalysisIssue).ToImmutableList();
     }
 
-    public async Task<ImmutableList<IAnalysisIssue>> AnalyzeAsync(
+    public async Task<ImmutableList<SonarDiagnostic>> AnalyzeInternalAsync(
         string[] filePaths,
         ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token)
     {
         threadHandling.ThrowIfOnUIThread();
-        var uniqueIssues = new List<IAnalysisIssue>();
+        var uniqueDiagnostics = new HashSet<SonarDiagnostic>(DiagnosticDuplicatesComparer.Instance);
 
         var analysisPathsByProject = filePaths
             .SelectMany(documentFinder.FindProjectsWithDocument)
@@ -69,27 +67,30 @@ internal class SonarLintRoslynAnalyzer(
 
             foreach (var analysisFilePath in projectAndPaths)
             {
-                var projectIssues = await AnalyzeInProjectAsync(compilationWithAnalyzers, analysisFilePath, project.Name, token);
+                var projectDiagnostics = await AnalyzeInProjectAsync(compilationWithAnalyzers, analysisFilePath, project.Name, token);
 
-                if (projectIssues == null)
+                if (projectDiagnostics == null)
                 {
                     continue;
                 }
 
-                foreach (var issue in projectIssues)
+                foreach (var diagnostic in projectDiagnostics)
                 {
-                    if (!diagnosticsConverter.IsDuplicateIssue(uniqueIssues, issue))
+                    if (!uniqueDiagnostics.Add(diagnostic))
                     {
-                        uniqueIssues.Add(issue);
+                        // todo log issue merged
                     }
                 }
             }
         }
 
-        return uniqueIssues.ToImmutableList();
+        return uniqueDiagnostics.ToImmutableList();
     }
 
-    private async Task<CompilationWithAnalyzers> GetProjectCompilationAsync(CancellationToken token, Project project, ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations)
+    private async Task<CompilationWithAnalyzers> GetProjectCompilationAsync(
+        CancellationToken token,
+        Project project,
+        ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations)
     {
         var compilation = await project.GetCompilationAsync(token);
         if (compilation == null)
@@ -102,7 +103,7 @@ internal class SonarLintRoslynAnalyzer(
         return compilationWithAnalyzers;
     }
 
-    private async Task<IEnumerable<IAnalysisIssue>> AnalyzeInProjectAsync(
+    private async Task<IEnumerable<SonarDiagnostic>> AnalyzeInProjectAsync(
         CompilationWithAnalyzers compilationWithAnalyzers,
         string analysisFilePath,
         string projectName,
@@ -121,14 +122,16 @@ internal class SonarLintRoslynAnalyzer(
         var analyzerSyntacticDiagnosticsAsync = compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(semanticModel.SyntaxTree, token);
         var analyzerSemanticDiagnosticsAsync = compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, null, token);
 
-        var issues = diagnosticsConverter.Convert(
-            await analyzerSyntacticDiagnosticsAsync,
-            await analyzerSemanticDiagnosticsAsync);
+        var syntaxDiagnostics = await analyzerSyntacticDiagnosticsAsync;
+        var semanticDiagnostics = await analyzerSemanticDiagnosticsAsync;
 
-        return issues;
+        return diagnosticsConverter.ConvertToDiagnostics(syntaxDiagnostics, semanticDiagnostics);
     }
 
-    private CompilationWithAnalyzers GetCompilationWithAnalyzers(Compilation compilation, Project project, ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations)
+    private CompilationWithAnalyzers GetCompilationWithAnalyzers(
+        Compilation compilation,
+        Project project,
+        ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations)
     {
         var language = compilation.Language switch
         {
