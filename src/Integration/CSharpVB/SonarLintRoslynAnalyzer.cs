@@ -132,15 +132,14 @@ internal class SonarLintRoslynAnalyzer(
         // todo cleanup globalconfig from AnalyzerConfigDocuments, but check if that is not breaking/discarding the compilation
         // todo cleanup SonarLint.xml from AdditionalFiles, but check if that is not breaking/discarding the compilation
 
-        var (sonarLintConfiguration, diagnosticStatuses, diagnosticAnalyzers) =
-            await configurationManager.GetConfigurationAsync(language);
+        var roslynAnalysisConfiguration = await configurationManager.GetConfigurationAsync(language);
 
         var compilationWithAnalyzers = compilation
-            .WithOptions(compilation.Options.WithSpecificDiagnosticOptions(diagnosticStatuses))
+            .WithOptions(compilation.Options.WithSpecificDiagnosticOptions(roslynAnalysisConfiguration.DiagnosticOptions))
             .WithAnalyzers(
-                diagnosticAnalyzers,
+                roslynAnalysisConfiguration.Analyzers,
                 new CompilationWithAnalyzersOptions(
-                    project.AnalyzerOptions.WithAdditionalFiles(project.AnalyzerOptions.AdditionalFiles.Concat([sonarLintConfiguration]).ToImmutableArray()),
+                    project.AnalyzerOptions.WithAdditionalFiles(project.AnalyzerOptions.AdditionalFiles.Concat([roslynAnalysisConfiguration.SonarLintXml]).ToImmutableArray()),
                     OnAnalyzerException,
                     true,
                     false,

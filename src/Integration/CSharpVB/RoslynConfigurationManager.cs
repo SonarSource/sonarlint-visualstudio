@@ -35,8 +35,10 @@ namespace SonarLint.VisualStudio.Integration.CSharpVB;
 
 internal interface IRoslynConfigurationManager
 {
-    Task<(AdditionalText sonarLintXmlContent, ImmutableDictionary<string, ReportDiagnostic>, ImmutableArray<DiagnosticAnalyzer> Value)> GetConfigurationAsync(Language language);
+    Task<RoslynAnalysisConfiguration> GetConfigurationAsync(Language language);
 }
+
+internal record RoslynAnalysisConfiguration(AdditionalText SonarLintXml, ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions, ImmutableArray<DiagnosticAnalyzer> Analyzers);
 
 [Export(typeof(IRoslynConfigurationManager))]
 [PartCreationPolicy(CreationPolicy.Shared)]
@@ -59,8 +61,10 @@ internal class RoslynConfigurationManager(
     private AdditionalText cachedVbnetSonarLintAdditionalFile;
     private string lastConfigScopeId;
 
-    public async Task<(AdditionalText sonarLintXmlContent, ImmutableDictionary<string, ReportDiagnostic>, ImmutableArray<DiagnosticAnalyzer> Value)> GetConfigurationAsync(Language language)
+    public async Task<RoslynAnalysisConfiguration> GetConfigurationAsync(Language language)
     {
+        // this class is mostly needed for VS-based manual analysis to work. QP info and
+
         var configurationScopeId = activeConfigScopeTracker.Current?.Id;
 
         using (await asyncLock.AcquireAsync())
@@ -92,9 +96,10 @@ internal class RoslynConfigurationManager(
                 lastConfigScopeId = configurationScopeId;
             }
 
-            return language == Language.CSharp
+            var configurationAsync = language == Language.CSharp
                 ? (cachedCsharpSonarLintAdditionalFile, cachedCsharpDiagnosticStatuses, cachedAnalyzers.Value)
                 : (cachedVbnetSonarLintAdditionalFile, cachedVbnetDiagnosticStatuses, cachedAnalyzers.Value);
+            return new RoslynAnalysisConfiguration(configurationAsync.Item1, configurationAsync.Item2, configurationAsync.Item3);
         }
     }
 
