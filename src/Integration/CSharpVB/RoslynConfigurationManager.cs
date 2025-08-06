@@ -24,6 +24,7 @@ using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
@@ -32,35 +33,21 @@ using SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB;
 
-public interface IRoslynConfigurationManager
+internal interface IRoslynConfigurationManager
 {
-    /// <summary>
-    /// Gets the configuration for a specific language
-    /// </summary>
-    /// <param name="configurationScopeId">Current configuration scope ID</param>
-    /// <param name="language">The language to get configuration for</param>
-    /// <returns>The configuration tuple containing SonarLintConfiguration, diagnostic statuses, and analyzers</returns>
-    Task<(SonarLintConfiguration sonarLintConfig, ImmutableDictionary<string, ReportDiagnostic> diagnosticStatuses, ImmutableArray<DiagnosticAnalyzer>? analyzers)>
-        GetConfigurationAsync(string configurationScopeId, Language language);
-    
-    /// <summary>
-    /// Combines SonarLint analyzer configuration with existing workspace analyzer options 
-    /// </summary>
-    /// <param name="workspaceAnalyzerOptions">The existing analyzer options from the workspace</param>
-    /// <param name="sonarLintConfiguration">The SonarLint configuration to add</param>
-    /// <returns>Combined analyzer options</returns>
-    AnalyzerOptions GetWithSonarLintAdditionalFiles(AnalyzerOptions workspaceAnalyzerOptions, SonarLintConfiguration sonarLintConfiguration);
+    Task<(AdditionalText sonarLintXmlContent, ImmutableDictionary<string, ReportDiagnostic>, ImmutableArray<DiagnosticAnalyzer> Value)> GetConfigurationAsync(Language language);
 }
 
 [Export(typeof(IRoslynConfigurationManager))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-public class RoslynConfigurationManager(
+internal class RoslynConfigurationManager(
     IUserSettingsProvider userSettingsProvider,
     ISonarLintConfigGenerator roslynConfigGenerator,
     IEnterpriseRoslynAnalyzerProvider enterpriseAnalyzerProvider,
     IBasicRoslynAnalyzerProvider basicAnalyzerProvider,
     IAsyncLockFactory asyncLockFactory,
+    IActiveConfigScopeTracker activeConfigScopeTracker,
     ILogger logger) : IRoslynConfigurationManager
 {
     private static readonly List<Language> Languages = [Language.CSharp, Language.VBNET];
@@ -68,78 +55,47 @@ public class RoslynConfigurationManager(
     private ImmutableArray<DiagnosticAnalyzer>? cachedAnalyzers;
     private ImmutableDictionary<string, ReportDiagnostic> cachedCsharpDiagnosticStatuses;
     private ImmutableDictionary<string, ReportDiagnostic> cachedVbnetDiagnosticStatuses;
-    private SonarLintConfiguration cachedCsharpSonarLintConfig;
-    private SonarLintConfiguration cachedVbnetSonarLintConfig;
+    private AdditionalText cachedCsharpSonarLintAdditionalFile;
+    private AdditionalText cachedVbnetSonarLintAdditionalFile;
     private string lastConfigScopeId;
 
-    public async Task<(SonarLintConfiguration sonarLintConfig, ImmutableDictionary<string, ReportDiagnostic> diagnosticStatuses, ImmutableArray<DiagnosticAnalyzer>? analyzers)>
-        GetConfigurationAsync(string configurationScopeId, Language language)
+    public async Task<(AdditionalText sonarLintXmlContent, ImmutableDictionary<string, ReportDiagnostic>, ImmutableArray<DiagnosticAnalyzer> Value)> GetConfigurationAsync(Language language)
     {
+        var configurationScopeId = activeConfigScopeTracker.Current?.Id;
+
         using (await asyncLock.AcquireAsync())
         {
-            // If config scope hasn't changed, use cached configuration
-            if (configurationScopeId == lastConfigScopeId && 
-                cachedAnalyzers.HasValue && 
-                (language == Language.CSharp ? cachedCsharpSonarLintConfig != null : cachedVbnetSonarLintConfig != null))
+            if (configurationScopeId != lastConfigScopeId || !cachedAnalyzers.HasValue)
             {
-                return language == Language.CSharp
-                    ? (cachedCsharpSonarLintConfig, cachedCsharpDiagnosticStatuses, cachedAnalyzers)
-                    : (cachedVbnetSonarLintConfig, cachedVbnetDiagnosticStatuses, cachedAnalyzers);
+                var exclusions = ConvertExclusions(userSettingsProvider.UserSettings);
+                var (ruleStatusesByLanguage, ruleParametersByLanguage) = ConvertRules(userSettingsProvider.UserSettings);
+
+                cachedCsharpDiagnosticStatuses = ruleStatusesByLanguage[Language.CSharp].ToImmutableDictionary(
+                    x => x.Key,
+                    ConvertSeverityToReportDiagnostic);
+                cachedVbnetDiagnosticStatuses = ruleStatusesByLanguage[Language.VBNET].ToImmutableDictionary(
+                    x => x.Key,
+                    ConvertSeverityToReportDiagnostic);
+
+                cachedCsharpSonarLintAdditionalFile = ConfigurationSerializationService.Convert(ConfigurationSerializationService.Serialize(roslynConfigGenerator.Generate(
+                    ruleParametersByLanguage[Language.CSharp],
+                    userSettingsProvider.UserSettings.AnalysisSettings.AnalysisProperties,
+                    exclusions,
+                    Language.CSharp)));
+                cachedVbnetSonarLintAdditionalFile = ConfigurationSerializationService.Convert(ConfigurationSerializationService.Serialize(roslynConfigGenerator.Generate(
+                    ruleParametersByLanguage[Language.VBNET],
+                    userSettingsProvider.UserSettings.AnalysisSettings.AnalysisProperties,
+                    exclusions,
+                    Language.VBNET)));
+
+                cachedAnalyzers = await GetAnalyzersAsync(configurationScopeId);
+                lastConfigScopeId = configurationScopeId;
             }
 
-            // Otherwise, regenerate the configuration
-            var exclusions = ConvertExclusions(userSettingsProvider.UserSettings);
-            var (ruleStatusesByLanguage, ruleParametersByLanguage) = ConvertRules(userSettingsProvider.UserSettings);
-
-            // Cache diagnostic statuses for each language
-            cachedCsharpDiagnosticStatuses = ruleStatusesByLanguage[Language.CSharp].ToImmutableDictionary(
-                x => x.Key,
-                ConvertSeverityToReportDiagnostic);
-            cachedVbnetDiagnosticStatuses = ruleStatusesByLanguage[Language.VBNET].ToImmutableDictionary(
-                x => x.Key,
-                ConvertSeverityToReportDiagnostic);
-
-            // Generate and cache SonarLint configuration for each language
-            cachedCsharpSonarLintConfig = roslynConfigGenerator.Generate(
-                ruleParametersByLanguage[Language.CSharp],
-                userSettingsProvider.UserSettings.AnalysisSettings.AnalysisProperties,
-                exclusions,
-                Language.CSharp);
-            cachedVbnetSonarLintConfig = roslynConfigGenerator.Generate(
-                ruleParametersByLanguage[Language.VBNET],
-                userSettingsProvider.UserSettings.AnalysisSettings.AnalysisProperties,
-                exclusions,
-                Language.VBNET);
-                
-            // Get and cache analyzers for the current configuration scope
-            cachedAnalyzers = await GetAnalyzersAsync(configurationScopeId);
-            lastConfigScopeId = configurationScopeId;
-
             return language == Language.CSharp
-                ? (cachedCsharpSonarLintConfig, cachedCsharpDiagnosticStatuses, cachedAnalyzers)
-                : (cachedVbnetSonarLintConfig, cachedVbnetDiagnosticStatuses, cachedAnalyzers);
+                ? (cachedCsharpSonarLintAdditionalFile, cachedCsharpDiagnosticStatuses, cachedAnalyzers.Value)
+                : (cachedVbnetSonarLintAdditionalFile, cachedVbnetDiagnosticStatuses, cachedAnalyzers.Value);
         }
-    }
-
-    public AnalyzerOptions GetWithSonarLintAdditionalFiles(AnalyzerOptions workspaceAnalyzerOptions, SonarLintConfiguration sonarLintConfiguration)
-    {
-        var sonarLintAdditionalFile = ConfigurationSerializationService.Convert(sonarLintConfiguration);
-        var sonarLintAdditionalFileName = Path.GetFileName(sonarLintAdditionalFile.Path);
-
-        var additionalFiles = workspaceAnalyzerOptions.AdditionalFiles;
-        var builder = ImmutableArray.CreateBuilder<AdditionalText>();
-        builder.AddRange(additionalFiles.Where(x => !IsSonarLintAdditionalFile(x)));
-        builder.Add(sonarLintAdditionalFile);
-
-        var modifiedAdditionalFiles = builder.ToImmutable();
-        var finalAnalyzerOptions = new AnalyzerOptions(modifiedAdditionalFiles, workspaceAnalyzerOptions.AnalyzerConfigOptionsProvider);
-
-        return finalAnalyzerOptions;
-
-        bool IsSonarLintAdditionalFile(AdditionalText existingAdditionalFile) =>
-            Path.GetFileName(existingAdditionalFile.Path).Equals(
-                sonarLintAdditionalFileName,
-                StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersAsync(string configurationScopeId)

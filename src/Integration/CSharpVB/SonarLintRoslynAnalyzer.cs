@@ -24,7 +24,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using Document = Microsoft.CodeAnalysis.Document;
 
@@ -39,23 +38,20 @@ public interface ISonarLintRoslynAnalyzer
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
 internal class SonarLintRoslynAnalyzer(
-    IActiveConfigScopeTracker activeConfigScopeTracker,
     IRoslynConfigurationManager configurationManager,
-    IRoslynWorkspaceWrapper roslynWorkspaceWrapper,
     IRoslynDocumentFinder documentFinder,
     IDiagnosticsConverter diagnosticsConverter,
     ILogger logger,
     IThreadHandling threadHandling) : ISonarLintRoslynAnalyzer
 {
+
     public async Task<ImmutableList<IAnalysisIssue>> AnalyzeAsync(string[] filePaths, CancellationToken token)
     {
         threadHandling.ThrowIfOnUIThread();
         var uniqueIssues = new List<IAnalysisIssue>();
 
-        var solution = roslynWorkspaceWrapper.CurrentSolution;
-
         var analysisPathsByProject = filePaths
-            .SelectMany(x => documentFinder.FindProjectsWithDocument(x, solution.RoslynSolution))
+            .SelectMany(documentFinder.FindProjectsWithDocument)
             .GroupBy(x => x.project, x => x.analysisFilePath);
 
         foreach (var projectAndPaths in analysisPathsByProject)
@@ -113,6 +109,7 @@ internal class SonarLintRoslynAnalyzer(
 
         var semanticModel = compilationWithAnalyzers.Compilation.GetSemanticModel(syntaxTree);
 
+        // todo issue streaming, syntactic diagnostics should appear first
         var analyzerSyntacticDiagnosticsAsync = compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(semanticModel.SyntaxTree, token);
         var analyzerSemanticDiagnosticsAsync = compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, null, token);
 
@@ -125,7 +122,6 @@ internal class SonarLintRoslynAnalyzer(
 
     private async Task<CompilationWithAnalyzers> GetCompilationWithAnalyzersAsync(Compilation compilation, Project project)
     {
-        var currentScopeId = activeConfigScopeTracker.Current?.Id;
         var language = compilation.Language switch
         {
             "C#" => Language.CSharp,
@@ -133,18 +129,18 @@ internal class SonarLintRoslynAnalyzer(
             _ => throw new NotImplementedException(),
         };
 
-        var (sonarLintConfiguration, diagnosticStatuses, diagnosticAnalyzers) =
-            await configurationManager.GetConfigurationAsync(currentScopeId, language);
+        // todo cleanup globalconfig from AnalyzerConfigDocuments, but check if that is not breaking/discarding the compilation
+        // todo cleanup SonarLint.xml from AdditionalFiles, but check if that is not breaking/discarding the compilation
 
-        var withSonarLintAdditionalFiles =
-            configurationManager.GetWithSonarLintAdditionalFiles(project.AnalyzerOptions, sonarLintConfiguration);
+        var (sonarLintConfiguration, diagnosticStatuses, diagnosticAnalyzers) =
+            await configurationManager.GetConfigurationAsync(language);
 
         var compilationWithAnalyzers = compilation
             .WithOptions(compilation.Options.WithSpecificDiagnosticOptions(diagnosticStatuses))
             .WithAnalyzers(
-                diagnosticAnalyzers!.Value,
+                diagnosticAnalyzers,
                 new CompilationWithAnalyzersOptions(
-                    withSonarLintAdditionalFiles,
+                    project.AnalyzerOptions.WithAdditionalFiles(project.AnalyzerOptions.AdditionalFiles.Concat([sonarLintConfiguration]).ToImmutableArray()),
                     OnAnalyzerException,
                     true,
                     false,

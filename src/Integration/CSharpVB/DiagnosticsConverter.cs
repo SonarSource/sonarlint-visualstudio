@@ -72,8 +72,8 @@ public class DiagnosticsConverter : IDiagnosticsConverter
                             fileLinePositionSpan.EndLinePosition.Line + 1,
                             fileLinePositionSpan.StartLinePosition.Character,
                             fileLinePositionSpan.EndLinePosition.Character,
-                            null)), [
-                    ]);
+                            null)),
+                    []);
             }).Cast<IAnalysisIssue>();
         return issues;
     }

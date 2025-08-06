@@ -36,24 +36,13 @@ public static class ConfigurationSerializationService
     /// </summary>
     private static readonly string DummySonarLintXmlFilePath = Path.Combine(Path.GetTempPath(), "SonarLint.xml");
 
-    /// <summary>
-    /// Converts a SonarLintConfiguration object to an AdditionalText that can be used by Roslyn analyzers
-    /// </summary>
-    /// <param name="sonarLintConfiguration">The configuration to convert</param>
-    /// <returns>An AdditionalText representation of the configuration</returns>
-    public static AdditionalText Convert(SonarLintConfiguration sonarLintConfiguration)
+    public static AdditionalText Convert(string sonarLintXmlFileContent)
     {
-        var sonarLintXmlFileContent = Serialize(sonarLintConfiguration);
         var sonarLintXmlAdditionalText = new AdditionalTextImpl(DummySonarLintXmlFilePath, sonarLintXmlFileContent);
 
         return sonarLintXmlAdditionalText;
     }
 
-    /// <summary>
-    /// Serializes a SonarLintConfiguration object to XML string
-    /// </summary>
-    /// <param name="sonarLintConfiguration">The configuration to serialize</param>
-    /// <returns>XML string representation of the configuration</returns>
     public static string Serialize(SonarLintConfiguration sonarLintConfiguration)
     {
         var settings = new XmlWriterSettings

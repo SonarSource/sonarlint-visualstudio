@@ -28,17 +28,20 @@ namespace SonarLint.VisualStudio.Integration.CSharpVB;
 
 internal interface IRoslynDocumentFinder
 {
-    List<(Project project, string analysisFilePath)> FindProjectsWithDocument(string filePath, Solution solution);
+    List<(Project project, string analysisFilePath)> FindProjectsWithDocument(string filePath);
 }
 
 [Export(typeof(IRoslynDocumentFinder))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-public class RoslynDocumentFinder(
+public class RoslynProjectFinder(
+    IRoslynWorkspaceWrapper roslynWorkspaceWrapper,
     ILogger logger) : IRoslynDocumentFinder
 {
-    public List<(Project project, string analysisFilePath)> FindProjectsWithDocument(string filePath, Solution solution)
+    public List<(Project project, string analysisFilePath)> FindProjectsWithDocument(string filePath)
     {
+        var solution = roslynWorkspaceWrapper.CurrentSolution.RoslynSolution;
+
         var result = new List<(Project, string)>();
 
         foreach (var roslynSolutionProject in solution.Projects)
