@@ -47,6 +47,14 @@ internal class SonarLintRoslynAnalyzer(
 
     public async Task<ImmutableList<IAnalysisIssue>> AnalyzeAsync(string[] filePaths, CancellationToken token)
     {
+        return await AnalyzeAsync(filePaths, await configurationManager.GetConfigurationAsync(), token);
+    }
+
+    public async Task<ImmutableList<IAnalysisIssue>> AnalyzeAsync(
+        string[] filePaths,
+        ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
+        CancellationToken token)
+    {
         threadHandling.ThrowIfOnUIThread();
         var uniqueIssues = new List<IAnalysisIssue>();
 
@@ -57,7 +65,7 @@ internal class SonarLintRoslynAnalyzer(
         foreach (var projectAndPaths in analysisPathsByProject)
         {
             var project = projectAndPaths.Key;
-            var compilationWithAnalyzers = await GetProjectCompilationAsync(token, project);
+            var compilationWithAnalyzers = await GetProjectCompilationAsync(token, project, sonarRoslynAnalysisConfigurations);
 
             foreach (var analysisFilePath in projectAndPaths)
             {
@@ -81,7 +89,7 @@ internal class SonarLintRoslynAnalyzer(
         return uniqueIssues.ToImmutableList();
     }
 
-    private async Task<CompilationWithAnalyzers> GetProjectCompilationAsync(CancellationToken token, Project project)
+    private async Task<CompilationWithAnalyzers> GetProjectCompilationAsync(CancellationToken token, Project project, ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations)
     {
         var compilation = await project.GetCompilationAsync(token);
         if (compilation == null)
@@ -90,7 +98,7 @@ internal class SonarLintRoslynAnalyzer(
             return null;
         }
 
-        var compilationWithAnalyzers = await GetCompilationWithAnalyzersAsync(compilation, project);
+        var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation, project, sonarRoslynAnalysisConfigurations);
         return compilationWithAnalyzers;
     }
 
@@ -120,7 +128,7 @@ internal class SonarLintRoslynAnalyzer(
         return issues;
     }
 
-    private async Task<CompilationWithAnalyzers> GetCompilationWithAnalyzersAsync(Compilation compilation, Project project)
+    private CompilationWithAnalyzers GetCompilationWithAnalyzers(Compilation compilation, Project project, ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations)
     {
         var language = compilation.Language switch
         {
@@ -132,14 +140,14 @@ internal class SonarLintRoslynAnalyzer(
         // todo cleanup globalconfig from AnalyzerConfigDocuments, but check if that is not breaking/discarding the compilation
         // todo cleanup SonarLint.xml from AdditionalFiles, but check if that is not breaking/discarding the compilation
 
-        var roslynAnalysisConfiguration = await configurationManager.GetConfigurationAsync(language);
+        var analysisConfigurationForLanguage = sonarRoslynAnalysisConfigurations[language];
 
         var compilationWithAnalyzers = compilation
-            .WithOptions(compilation.Options.WithSpecificDiagnosticOptions(roslynAnalysisConfiguration.DiagnosticOptions))
+            .WithOptions(compilation.Options.WithSpecificDiagnosticOptions(analysisConfigurationForLanguage.DiagnosticOptions))
             .WithAnalyzers(
-                roslynAnalysisConfiguration.Analyzers,
+                analysisConfigurationForLanguage.Analyzers,
                 new CompilationWithAnalyzersOptions(
-                    project.AnalyzerOptions.WithAdditionalFiles(project.AnalyzerOptions.AdditionalFiles.Concat([roslynAnalysisConfiguration.SonarLintXml]).ToImmutableArray()),
+                    project.AnalyzerOptions.WithAdditionalFiles(project.AnalyzerOptions.AdditionalFiles.Concat([analysisConfigurationForLanguage.SonarLintXml]).ToImmutableArray()),
                     OnAnalyzerException,
                     true,
                     false,

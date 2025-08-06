@@ -35,10 +35,10 @@ namespace SonarLint.VisualStudio.Integration.CSharpVB;
 
 internal interface IRoslynConfigurationManager
 {
-    Task<RoslynAnalysisConfiguration> GetConfigurationAsync(Language language);
+    Task<ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration>> GetConfigurationAsync();
 }
 
-internal record RoslynAnalysisConfiguration(AdditionalText SonarLintXml, ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions, ImmutableArray<DiagnosticAnalyzer> Analyzers);
+internal record SonarRoslynAnalysisConfiguration(AdditionalText SonarLintXml, ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions, ImmutableArray<DiagnosticAnalyzer> Analyzers);
 
 [Export(typeof(IRoslynConfigurationManager))]
 [PartCreationPolicy(CreationPolicy.Shared)]
@@ -54,14 +54,10 @@ internal class RoslynConfigurationManager(
 {
     private static readonly List<Language> Languages = [Language.CSharp, Language.VBNET];
     private readonly IAsyncLock asyncLock = asyncLockFactory.Create();
-    private ImmutableArray<DiagnosticAnalyzer>? cachedAnalyzers;
-    private ImmutableDictionary<string, ReportDiagnostic> cachedCsharpDiagnosticStatuses;
-    private ImmutableDictionary<string, ReportDiagnostic> cachedVbnetDiagnosticStatuses;
-    private AdditionalText cachedCsharpSonarLintAdditionalFile;
-    private AdditionalText cachedVbnetSonarLintAdditionalFile;
+    private ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> cache;
     private string lastConfigScopeId;
 
-    public async Task<RoslynAnalysisConfiguration> GetConfigurationAsync(Language language)
+    public async Task<ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration>> GetConfigurationAsync()
     {
         // this class is mostly needed for VS-based manual analysis to work. QP info and
 
@@ -69,37 +65,40 @@ internal class RoslynConfigurationManager(
 
         using (await asyncLock.AcquireAsync())
         {
-            if (configurationScopeId != lastConfigScopeId || !cachedAnalyzers.HasValue)
+            if (configurationScopeId != lastConfigScopeId || cache == null)
             {
                 var exclusions = ConvertExclusions(userSettingsProvider.UserSettings);
                 var (ruleStatusesByLanguage, ruleParametersByLanguage) = ConvertRules(userSettingsProvider.UserSettings);
 
-                cachedCsharpDiagnosticStatuses = ruleStatusesByLanguage[Language.CSharp].ToImmutableDictionary(
+                var csharpDiagnosticStatuses = ruleStatusesByLanguage[Language.CSharp].ToImmutableDictionary(
                     x => x.Key,
                     ConvertSeverityToReportDiagnostic);
-                cachedVbnetDiagnosticStatuses = ruleStatusesByLanguage[Language.VBNET].ToImmutableDictionary(
+                var vbnetDiagnosticStatuses = ruleStatusesByLanguage[Language.VBNET].ToImmutableDictionary(
                     x => x.Key,
                     ConvertSeverityToReportDiagnostic);
 
-                cachedCsharpSonarLintAdditionalFile = ConfigurationSerializationService.Convert(ConfigurationSerializationService.Serialize(roslynConfigGenerator.Generate(
+                var csharpSonarLintAdditionalFile = ConfigurationSerializationService.Convert(ConfigurationSerializationService.Serialize(roslynConfigGenerator.Generate(
                     ruleParametersByLanguage[Language.CSharp],
                     userSettingsProvider.UserSettings.AnalysisSettings.AnalysisProperties,
                     exclusions,
                     Language.CSharp)));
-                cachedVbnetSonarLintAdditionalFile = ConfigurationSerializationService.Convert(ConfigurationSerializationService.Serialize(roslynConfigGenerator.Generate(
+                var vbnetSonarLintAdditionalFile = ConfigurationSerializationService.Convert(ConfigurationSerializationService.Serialize(roslynConfigGenerator.Generate(
                     ruleParametersByLanguage[Language.VBNET],
                     userSettingsProvider.UserSettings.AnalysisSettings.AnalysisProperties,
                     exclusions,
                     Language.VBNET)));
 
-                cachedAnalyzers = await GetAnalyzersAsync(configurationScopeId);
+                // analyzer caching may be improved
+                var analyzers = await GetAnalyzersAsync(configurationScopeId);
                 lastConfigScopeId = configurationScopeId;
+
+                var builder = ImmutableDictionary.CreateBuilder<Language, SonarRoslynAnalysisConfiguration>();
+                builder.Add(Language.CSharp, new SonarRoslynAnalysisConfiguration(csharpSonarLintAdditionalFile, csharpDiagnosticStatuses, analyzers));
+                builder.Add(Language.VBNET, new SonarRoslynAnalysisConfiguration(vbnetSonarLintAdditionalFile, vbnetDiagnosticStatuses, analyzers));
+                cache = builder.ToImmutable();
             }
 
-            var configurationAsync = language == Language.CSharp
-                ? (cachedCsharpSonarLintAdditionalFile, cachedCsharpDiagnosticStatuses, cachedAnalyzers.Value)
-                : (cachedVbnetSonarLintAdditionalFile, cachedVbnetDiagnosticStatuses, cachedAnalyzers.Value);
-            return new RoslynAnalysisConfiguration(configurationAsync.Item1, configurationAsync.Item2, configurationAsync.Item3);
+            return cache;
         }
     }
 
