@@ -197,7 +197,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
                     await Task.Delay(500, cts.Token);
                 }
 
-                var analysisIssues = await roslynAnalyzer.AnalyzeAsync(analysisFilePath, cts.Token);
+                var analysisIssues = await roslynAnalyzer.AnalyzeAsync([analysisFilePath], cts.Token);
                 if (analysisIssues == null)
                 {
                     return;
