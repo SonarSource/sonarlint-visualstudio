@@ -27,12 +27,35 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB;
 
-public interface ISonarLintRoslynAnalyzer
+public interface ISonarLintRoslynAnalyzerPoC
 {
     Task<ImmutableList<IAnalysisIssue>> AnalyzeAsync(string[] filePaths, CancellationToken token);
 }
 
-[Export(typeof(ISonarLintRoslynAnalyzer))]
+[Export(typeof(ISonarLintRoslynAnalyzerPoC))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+internal class SonarLintRoslynAnalyzerPoC(
+    IRoslynConfigurationManager configurationManager,
+    ISonarRoslynAnalysisEngine roslynAnalysisEngine,
+    IDiagnosticsConverter diagnosticsConverter) : ISonarLintRoslynAnalyzerPoC
+{
+    public async Task<ImmutableList<IAnalysisIssue>> AnalyzeAsync(string[] filePaths, CancellationToken token)
+    {
+        var sonarDiagnostics = await roslynAnalysisEngine.AnalyzeAsync(filePaths, await configurationManager.GetConfigurationAsync(), token);
+        return sonarDiagnostics.Select(diagnosticsConverter.ConvertToAnalysisIssue).ToImmutableList();
+    }
+}
+
+public interface ISonarRoslynAnalysisEngine
+{
+    Task<IEnumerable<SonarDiagnostic>> AnalyzeAsync(
+        string[] filePaths,
+        ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
+        CancellationToken token);
+}
+
+[Export(typeof(ISonarRoslynAnalysisEngine))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
 internal class SonarLintRoslynAnalyzer(
@@ -40,15 +63,9 @@ internal class SonarLintRoslynAnalyzer(
     IRoslynDocumentFinder documentFinder,
     IDiagnosticsConverter diagnosticsConverter,
     ILogger logger,
-    IThreadHandling threadHandling) : ISonarLintRoslynAnalyzer
+    IThreadHandling threadHandling) : ISonarRoslynAnalysisEngine
 {
-    public async Task<ImmutableList<IAnalysisIssue>> AnalyzeAsync(string[] filePaths, CancellationToken token)
-    {
-        var sonarDiagnostics = await AnalyzeInternalAsync(filePaths, await configurationManager.GetConfigurationAsync(), token);
-        return sonarDiagnostics.Select(diagnosticsConverter.ConvertToAnalysisIssue).ToImmutableList();
-    }
-
-    public async Task<ImmutableList<SonarDiagnostic>> AnalyzeInternalAsync(
+    public async Task<IEnumerable<SonarDiagnostic>> AnalyzeAsync(
         string[] filePaths,
         ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token)
@@ -80,11 +97,15 @@ internal class SonarLintRoslynAnalyzer(
                     {
                         // todo log issue merged
                     }
+                    else
+                    {
+                        // todo issue streaming?
+                    }
                 }
             }
         }
 
-        return uniqueDiagnostics.ToImmutableList();
+        return uniqueDiagnostics;
     }
 
     private async Task<CompilationWithAnalyzers> GetProjectCompilationAsync(

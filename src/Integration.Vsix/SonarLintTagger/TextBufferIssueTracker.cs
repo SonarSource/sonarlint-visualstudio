@@ -49,7 +49,7 @@ internal record AnalysisSnapshot(string FilePath, ITextSnapshot TextSnapshot);
 internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
 {
     private readonly ITextDocument document;
-    private readonly ISonarLintRoslynAnalyzer roslynAnalyzer;
+    private readonly ISonarLintRoslynAnalyzerPoC roslynAnalyzerPoC;
     private readonly IIssueConsumerFactory issueConsumerFactory;
     private readonly IIssueConsumerStorage issueConsumerStorage;
     private readonly IAnalysisStopwatchService analysisStopwatchService;
@@ -66,7 +66,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
     public TextBufferIssueTracker(
         TaggerProvider provider,
         ITextDocument document,
-        ISonarLintRoslynAnalyzer roslynAnalyzer,
+        ISonarLintRoslynAnalyzerPoC roslynAnalyzerPoC,
         IEnumerable<AnalysisLanguage> detectedLanguages,
         ISonarErrorListDataSource sonarErrorDataSource,
         IVsProjectInfoProvider vsProjectInfoProvider,
@@ -89,7 +89,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         logger.ForContext(nameof(TextBufferIssueTracker));
 
         this.document = document;
-        this.roslynAnalyzer = roslynAnalyzer;
+        this.roslynAnalyzerPoC = roslynAnalyzerPoC;
         LastAnalysisFilePath = document.FilePath;
         DetectedLanguages = detectedLanguages;
         Factory = new IssuesSnapshotFactory(LastAnalysisFilePath);
@@ -197,7 +197,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
                     await Task.Delay(500, cts.Token);
                 }
 
-                var analysisIssues = await roslynAnalyzer.AnalyzeAsync([analysisFilePath], cts.Token);
+                var analysisIssues = await roslynAnalyzerPoC.AnalyzeAsync([analysisFilePath], cts.Token);
                 if (analysisIssues == null)
                 {
                     return;

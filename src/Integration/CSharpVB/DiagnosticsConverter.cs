@@ -36,12 +36,6 @@ public interface IDiagnosticsConverter
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class DiagnosticsConverter : IDiagnosticsConverter
 {
-    public IEnumerable<IAnalysisIssue> Convert(ImmutableArray<Diagnostic> syntaxDiagnostics, ImmutableArray<Diagnostic> semanticDiagnostics)
-    {
-        return ConvertToDiagnostics(syntaxDiagnostics, semanticDiagnostics)
-            .Select(ConvertToAnalysisIssue);
-    }
-
     public IEnumerable<SonarDiagnostic> ConvertToDiagnostics(ImmutableArray<Diagnostic> syntaxDiagnostics, ImmutableArray<Diagnostic> semanticDiagnostics)
     {
         var diagnostics = semanticDiagnostics.Concat(syntaxDiagnostics)

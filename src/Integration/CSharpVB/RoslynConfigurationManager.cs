@@ -38,8 +38,6 @@ internal interface IRoslynConfigurationManager
     Task<ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration>> GetConfigurationAsync();
 }
 
-internal record SonarRoslynAnalysisConfiguration(AdditionalText SonarLintXml, ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions, ImmutableArray<DiagnosticAnalyzer> Analyzers);
-
 [Export(typeof(IRoslynConfigurationManager))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]

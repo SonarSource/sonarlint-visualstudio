@@ -70,7 +70,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
     internal readonly ISonarErrorListDataSource sonarErrorDataSource;
     private readonly ITaggableBufferIndicator taggableBufferIndicator;
     internal readonly ITextDocumentFactoryService textDocumentFactoryService;
-    private readonly ISonarLintRoslynAnalyzer roslynAnalyzer;
+    private readonly ISonarLintRoslynAnalyzerPoC roslynAnalyzerPoC;
     private readonly IVsProjectInfoProvider vsProjectInfoProvider;
     private readonly IVsStatusbar vsStatusBar;
     private Guid? lastAnalysisId;
@@ -85,7 +85,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
         ISonarErrorListDataSource sonarErrorDataSource,
         ITextDocumentFactoryService textDocumentFactoryService,
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-        ISonarLintRoslynAnalyzer roslynAnalyzer,
+        ISonarLintRoslynAnalyzerPoC roslynAnalyzerPoC,
         ISonarLanguageRecognizer languageRecognizer,
         IAnalysisRequester analysisRequester,
         IVsProjectInfoProvider vsProjectInfoProvider,
@@ -100,7 +100,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
     {
         this.sonarErrorDataSource = sonarErrorDataSource;
         this.textDocumentFactoryService = textDocumentFactoryService;
-        this.roslynAnalyzer = roslynAnalyzer;
+        this.roslynAnalyzerPoC = roslynAnalyzerPoC;
 
         this.vsProjectInfoProvider = vsProjectInfoProvider;
         this.issueConsumerFactory = issueConsumerFactory;
@@ -212,7 +212,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IDocumentTracker
         new(
             this,
             textDocument,
-            roslynAnalyzer,
+            roslynAnalyzerPoC,
             analysisLanguages,
             sonarErrorDataSource,
             vsProjectInfoProvider,
