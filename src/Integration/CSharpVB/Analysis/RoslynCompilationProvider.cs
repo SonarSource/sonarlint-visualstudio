@@ -26,51 +26,20 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis;
 
-internal interface ISonarRoslynAnalysisEngine
+internal interface ISonarRoslynProjectCompilationProvider
 {
-    Task<IEnumerable<SonarDiagnostic>> AnalyzeAsync(
-        List<ProjectAnalysisCommands> analysisCommands,
+    Task<CompilationWithAnalyzers> GetProjectCompilationAsync(
+        Project project,
         ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token);
 }
 
-[Export(typeof(ISonarRoslynAnalysisEngine))]
+[Export(typeof(ISonarRoslynProjectCompilationProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class SonarLintRoslynAnalysisEngine(IRoslynDiagnosticsConverter diagnosticsConverter, ILogger logger) : ISonarRoslynAnalysisEngine
+internal class SonarRoslynProjectCompilationProvider(ILogger logger) : ISonarRoslynProjectCompilationProvider
 {
-    public async Task<IEnumerable<SonarDiagnostic>> AnalyzeAsync(
-        List<ProjectAnalysisCommands> analysisCommands,
-        ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
-        CancellationToken token)
-    {
-        var uniqueDiagnostics = new HashSet<SonarDiagnostic>(DiagnosticDuplicatesComparer.Instance);
-        foreach (var projectAnalysisCommands in analysisCommands)
-        {
-            var compilationWithAnalyzers = await GetProjectCompilationAsync(projectAnalysisCommands.Project, sonarRoslynAnalysisConfigurations, token);
-
-            foreach (var analysisCommand in projectAnalysisCommands.AnalysisCommands)
-            {
-                var diagnostics = await analysisCommand.ExecuteAsync(compilationWithAnalyzers, token);
-
-                foreach (var diagnostic in diagnostics.Select(diagnosticsConverter.ConvertToSonarDiagnostic))
-                {
-                    if (!uniqueDiagnostics.Add(diagnostic))
-                    {
-                        // todo log issue merged
-                    }
-                    else
-                    {
-                        // todo issue streaming?
-                    }
-                }
-            }
-        }
-
-        return uniqueDiagnostics;
-    }
-
-    private async Task<CompilationWithAnalyzers> GetProjectCompilationAsync(
+    public async Task<CompilationWithAnalyzers> GetProjectCompilationAsync(
         Project project,
         ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token)
