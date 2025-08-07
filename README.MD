@@ -4,8 +4,7 @@
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=sonarlint-visualstudio&metric=coverage)](https://sonarcloud.io/component_measures?id=sonarlint-visualstudio&metric=new_lines_to_cover&view=list)
 
 
-SonarQube for Visual Studio 2017, 2019, and 2022 is an extension that provides on-the-fly feedback to developers on new bugs and
-quality issues in C#, VB.NET, C/C++, TypeScript and JavaScript to help produce [Clean Code](https://www.sonarsource.com/solutions/clean-code/).
+SonarQube for IDE is a Visual Studio 2017, 2019 and 2022 extension that provides on-the-fly feedback to developers on new bugs and quality issues in C#, VB.NET, C/C++, TypeScript and JavaScript to help produce [integrated code quality and security](https://www.sonarsource.com/solutions/for-developers/).
 
 SonarQube for Visual Studio is free, open source, and available in the Visual Studio Marketplace:
 * [SonarQube for Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=SonarSource.SonarLintforVisualStudio2022)
@@ -17,9 +16,9 @@ Note: SonarQube for Visual Studio 2017 and 2019 has been deprecated. New version
 
 ## Features
 * On-the-fly feedback
-* Support C#, VB.Net, Javascript and C/C++.
+* Support C#, VB.Net, Javascript, C/C++ etc.
 * Support for standalone analysis.
-* Support for connected mode for C# and VB.Net projects.
+* Support for connected mode.
 
 [Connected Mode](https://docs.sonarsource.com/sonarlint/visual-studio/team-features/connected-mode/) provides suppression of issues marked as **False Positive** or **Won't Fix** on SonarQube (Server, Cloud). Follow the link for more information.
 
