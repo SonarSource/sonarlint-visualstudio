@@ -16,9 +16,9 @@ Note: SonarQube for Visual Studio 2017 and 2019 has been deprecated. New version
 
 ## Features
 * On-the-fly feedback
-* Support C#, VB.Net, Javascript and C/C++.
+* Support C#, VB.Net, Javascript, C/C++ etc.
 * Support for standalone analysis.
-* Support for connected mode for C# and VB.Net projects.
+* Support for connected mode.
 
 [Connected Mode](https://docs.sonarsource.com/sonarlint/visual-studio/team-features/connected-mode/) provides suppression of issues marked as **False Positive** or **Won't Fix** on SonarQube (Server, Cloud). Follow the link for more information.
 
