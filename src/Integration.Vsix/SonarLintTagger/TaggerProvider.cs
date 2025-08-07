@@ -30,6 +30,8 @@ using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.CSharpVB;
+using SonarLint.VisualStudio.Integration.CSharpVB.Analysis;
+using SonarLint.VisualStudio.Integration.CSharpVB.Analysis.PoC;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;

@@ -24,7 +24,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using Document = Microsoft.CodeAnalysis.Document;
 
-namespace SonarLint.VisualStudio.Integration.CSharpVB;
+namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis;
 
 internal interface IRoslynDocumentFinder
 {

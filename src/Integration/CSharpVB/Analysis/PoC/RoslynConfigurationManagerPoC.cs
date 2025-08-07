@@ -20,7 +20,6 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
@@ -31,17 +30,12 @@ using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
 
-namespace SonarLint.VisualStudio.Integration.CSharpVB;
-
-internal interface IRoslynConfigurationManager
-{
-    Task<ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration>> GetConfigurationAsync();
-}
+namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis.PoC;
 
 [Export(typeof(IRoslynConfigurationManager))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class RoslynConfigurationManager(
+internal class RoslynConfigurationManagerPoC(
     IUserSettingsProvider userSettingsProvider,
     ISonarLintConfigGenerator roslynConfigGenerator,
     IEnterpriseRoslynAnalyzerProvider enterpriseAnalyzerProvider,

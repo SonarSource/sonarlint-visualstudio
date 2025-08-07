@@ -23,29 +23,8 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.Integration.CSharpVB;
-
-public interface ISonarLintRoslynAnalyzerPoC
-{
-    Task<ImmutableList<IAnalysisIssue>> AnalyzeAsync(string[] filePaths, CancellationToken token);
-}
-
-[Export(typeof(ISonarLintRoslynAnalyzerPoC))]
-[PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-internal class SonarLintRoslynAnalyzerPoC(
-    IRoslynConfigurationManager configurationManager,
-    ISonarRoslynAnalysisEngine roslynAnalysisEngine,
-    IDiagnosticsConverter diagnosticsConverter) : ISonarLintRoslynAnalyzerPoC
-{
-    public async Task<ImmutableList<IAnalysisIssue>> AnalyzeAsync(string[] filePaths, CancellationToken token)
-    {
-        var sonarDiagnostics = await roslynAnalysisEngine.AnalyzeAsync(filePaths, await configurationManager.GetConfigurationAsync(), token);
-        return sonarDiagnostics.Select(diagnosticsConverter.ConvertToAnalysisIssue).ToImmutableList();
-    }
-}
+namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis;
 
 public interface ISonarRoslynAnalysisEngine
 {
@@ -61,7 +40,7 @@ public interface ISonarRoslynAnalysisEngine
 internal class SonarLintRoslynAnalyzer(
     IRoslynConfigurationManager configurationManager,
     IRoslynDocumentFinder documentFinder,
-    IDiagnosticsConverter diagnosticsConverter,
+    IRoslynDiagnosticsConverter diagnosticsConverter,
     ILogger logger,
     IThreadHandling threadHandling) : ISonarRoslynAnalysisEngine
 {

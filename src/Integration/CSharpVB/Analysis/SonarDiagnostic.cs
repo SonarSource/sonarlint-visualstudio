@@ -20,7 +20,7 @@
 
 using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.Integration.CSharpVB;
+namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis;
 
 public class DiagnosticDuplicatesComparer : IEqualityComparer<SonarDiagnostic>
 {

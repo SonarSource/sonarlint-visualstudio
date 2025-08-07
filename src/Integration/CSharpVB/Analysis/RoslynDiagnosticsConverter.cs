@@ -21,20 +21,17 @@
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
-using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.Integration.CSharpVB;
+namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis;
 
-public interface IDiagnosticsConverter
+public interface IRoslynDiagnosticsConverter
 {
     IEnumerable<SonarDiagnostic> ConvertToDiagnostics(ImmutableArray<Diagnostic> syntaxDiagnostics, ImmutableArray<Diagnostic> semanticDiagnostics);
-
-    IAnalysisIssue ConvertToAnalysisIssue(SonarDiagnostic diagnostic);
 }
 
-[Export(typeof(IDiagnosticsConverter))]
+[Export(typeof(IRoslynDiagnosticsConverter))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class DiagnosticsConverter : IDiagnosticsConverter
+public class RoslynDiagnosticsConverter : IRoslynDiagnosticsConverter
 {
     public IEnumerable<SonarDiagnostic> ConvertToDiagnostics(ImmutableArray<Diagnostic> syntaxDiagnostics, ImmutableArray<Diagnostic> semanticDiagnostics)
     {
@@ -63,48 +60,5 @@ public class DiagnosticsConverter : IDiagnosticsConverter
                     []); // todo secondary locations and quick fixes
             });
         return diagnostics;
-    }
-
-    public IAnalysisIssue ConvertToAnalysisIssue(SonarDiagnostic diagnostic)
-    {
-        var analysisIssueFlows = diagnostic.Flows.Select(flow =>
-            new AnalysisIssueFlow(
-                flow.Locations.Select(location =>
-                    new AnalysisIssueLocation(
-                        location.Message,
-                        location.FilePath,
-                        new TextRange(
-                            location.TextRange.StartLine,
-                            location.TextRange.EndLine,
-                            location.TextRange.StartLineOffset,
-                            location.TextRange.EndLineOffset,
-                            location.TextRange.LineHash)
-                    )
-                ).ToList()
-            )
-        ).ToList();
-
-        var primaryLocation = new AnalysisIssueLocation(
-            diagnostic.PrimaryLocation.Message,
-            diagnostic.PrimaryLocation.FilePath,
-            new TextRange(
-                diagnostic.PrimaryLocation.TextRange.StartLine,
-                diagnostic.PrimaryLocation.TextRange.EndLine,
-                diagnostic.PrimaryLocation.TextRange.StartLineOffset,
-                diagnostic.PrimaryLocation.TextRange.EndLineOffset,
-                diagnostic.PrimaryLocation.TextRange.LineHash)
-        );
-
-        return new AnalysisIssue(
-            null,
-            diagnostic.RuleKey,
-            null,
-            false,
-            diagnostic.IsWarning ? AnalysisIssueSeverity.Critical : AnalysisIssueSeverity.Minor,
-            AnalysisIssueType.CodeSmell,
-            new Impact(SoftwareQuality.Maintainability, diagnostic.IsWarning ? SoftwareQualitySeverity.High : SoftwareQualitySeverity.Low),
-            primaryLocation,
-            analysisIssueFlows,
-            diagnostic.Fixes);
     }
 }

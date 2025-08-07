@@ -19,12 +19,11 @@
  */
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Integration.CSharpVB;
+namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis;
 
-public record SonarRoslynAnalysisConfiguration(
-    AdditionalText SonarLintXml,
-    ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions,
-    ImmutableArray<DiagnosticAnalyzer> Analyzers);
+internal interface IRoslynConfigurationManager
+{
+    Task<ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration>> GetConfigurationAsync();
+}
