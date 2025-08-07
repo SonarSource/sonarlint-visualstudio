@@ -23,19 +23,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis;
 
-internal class FileSemanticAnalysis(string analysisFilePath) : IAnalysisCommand
+internal interface ISonarRoslynAnalysisCommand
 {
-    public async Task<IEnumerable<Diagnostic>> ExecuteAsync(CompilationWithAnalyzers compilation, CancellationToken token)
-    {
-        var syntaxTree = compilation.Compilation.SyntaxTrees.SingleOrDefault(x => analysisFilePath.Equals(x.FilePath));
-
-        if (syntaxTree == null)
-        {
-            return []; // todo log?
-        }
-
-        var semanticModel = compilation.Compilation.GetSemanticModel(syntaxTree);
-
-        return await compilation.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, null, token);
-    }
+    Task<IEnumerable<Diagnostic>> ExecuteAsync(CompilationWithAnalyzers compilation, CancellationToken token);
 }

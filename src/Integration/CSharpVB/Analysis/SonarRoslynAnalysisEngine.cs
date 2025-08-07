@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis;
 internal interface ISonarRoslynAnalysisEngine
 {
     Task<IEnumerable<SonarDiagnostic>> AnalyzeAsync(
-        List<ProjectAnalysisCommands> analysisCommands,
+        List<SonarRoslynProjectAnalysisCommands> analysisCommands,
         ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token);
 }
@@ -43,7 +43,7 @@ internal class SequentialSonarRoslynAnalysisEngine(
     ILogger logger) : ISonarRoslynAnalysisEngine
 {
     public async Task<IEnumerable<SonarDiagnostic>> AnalyzeAsync(
-        List<ProjectAnalysisCommands> analysisCommands,
+        List<SonarRoslynProjectAnalysisCommands> analysisCommands,
         ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token)
     {

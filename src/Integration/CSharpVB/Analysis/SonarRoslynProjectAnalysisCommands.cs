@@ -22,8 +22,8 @@ using Microsoft.CodeAnalysis;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis;
 
-internal class ProjectAnalysisCommands(Project project, IReadOnlyCollection<IAnalysisCommand> analysisCommands)
+internal class SonarRoslynProjectAnalysisCommands(Project project, IReadOnlyCollection<ISonarRoslynAnalysisCommand> analysisCommands)
 {
-    public Project Project { get; init; } = project;
-    public IReadOnlyCollection<IAnalysisCommand> AnalysisCommands { get; init; } = analysisCommands;
+    public Project Project { get; } = project;
+    public IReadOnlyCollection<ISonarRoslynAnalysisCommand> AnalysisCommands { get; init; } = analysisCommands;
 }

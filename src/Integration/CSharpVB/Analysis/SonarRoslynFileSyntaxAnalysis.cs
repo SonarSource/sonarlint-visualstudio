@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis;
 
-internal class FileSyntaxAnalysis(string analysisFilePath) : IAnalysisCommand
+internal class SonarRoslynFileSyntaxAnalysis(string analysisFilePath) : ISonarRoslynAnalysisCommand
 {
     public async Task<IEnumerable<Diagnostic>> ExecuteAsync(CompilationWithAnalyzers compilation, CancellationToken token)
     {

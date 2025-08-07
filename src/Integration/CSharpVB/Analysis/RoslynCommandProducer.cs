@@ -26,21 +26,21 @@ using Document = Microsoft.CodeAnalysis.Document;
 namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis;
 
 
-internal interface IRoslynCommandProducer
+internal interface ISonarRoslynSolutionAnalysisCommandProvider
 {
-    List<ProjectAnalysisCommands> GetFileAnalysisCommands(string[] filePaths);
+    List<SonarRoslynProjectAnalysisCommands> GetAnalysisCommandsForCurrentSolution(string[] filePaths);
 }
 
-[Export(typeof(IRoslynCommandProducer))]
+[Export(typeof(ISonarRoslynSolutionAnalysisCommandProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class RoslynCommandProducer(
+internal class SonarRoslynSolutionAnalysisCommandProvider(
     IRoslynWorkspaceWrapper roslynWorkspaceWrapper,
-    ILogger logger) : IRoslynCommandProducer
+    ILogger logger) : ISonarRoslynSolutionAnalysisCommandProvider
 {
-    public List<ProjectAnalysisCommands> GetFileAnalysisCommands(string[] filePaths)
+    public List<SonarRoslynProjectAnalysisCommands> GetAnalysisCommandsForCurrentSolution(string[] filePaths)
     {
-        var result = new List<ProjectAnalysisCommands>();
+        var result = new List<SonarRoslynProjectAnalysisCommands>();
         foreach (string filePath in filePaths)
         {
             var solution = roslynWorkspaceWrapper.CurrentSolution.RoslynSolution;
@@ -48,7 +48,7 @@ internal class RoslynCommandProducer(
             // todo this will not find unloaded projects
             foreach (var project in solution.Projects)
             {
-                var commands = new List<IAnalysisCommand>();
+                var commands = new List<ISonarRoslynAnalysisCommand>();
 
                 foreach (var document in project.Documents)
                 {
@@ -57,13 +57,13 @@ internal class RoslynCommandProducer(
                         continue;
                     }
 
-                    commands.Add(new FileSyntaxAnalysis(analysisFilePath));
-                    commands.Add(new FileSemanticAnalysis(analysisFilePath));
+                    commands.Add(new SonarRoslynFileSyntaxAnalysis(analysisFilePath));
+                    commands.Add(new SonarRoslynFileSemanticAnalysis(analysisFilePath));
                 }
 
                 if (commands.Any())
                 {
-                    result.Add(new ProjectAnalysisCommands(project, commands));
+                    result.Add(new SonarRoslynProjectAnalysisCommands(project, commands));
                 }
                 else
                 {

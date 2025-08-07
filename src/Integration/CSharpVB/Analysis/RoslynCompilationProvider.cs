@@ -62,9 +62,9 @@ internal class SonarRoslynProjectCompilationProvider(ILogger logger) : ISonarRos
     {
         var language = compilation.Language switch
         {
-            "C#" => Language.CSharp,
-            "Visual Basic" => Language.VBNET,
-            _ => throw new NotImplementedException(),
+            LanguageNames.CSharp => Language.CSharp,
+            LanguageNames.VisualBasic => Language.VBNET,
+            _ => throw new ArgumentOutOfRangeException(nameof(compilation.Language)),
         };
 
         // todo cleanup globalconfig from AnalyzerConfigDocuments, but check if that is not breaking/discarding the compilation

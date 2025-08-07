@@ -30,7 +30,7 @@ public interface IRoslynDiagnosticsConverter
 
 [Export(typeof(IRoslynDiagnosticsConverter))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class RoslynDiagnosticsConverter : IRoslynDiagnosticsConverter
+public class SonarRoslynDiagnosticsConverter : IRoslynDiagnosticsConverter
 {
     public SonarDiagnostic ConvertToSonarDiagnostic(Diagnostic diagnostic)
     {

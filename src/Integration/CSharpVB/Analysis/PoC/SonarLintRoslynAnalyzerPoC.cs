@@ -35,7 +35,7 @@ public interface ISonarLintRoslynAnalyzerPoC
 [method: ImportingConstructor]
 internal class SonarLintRoslynAnalyzerPoC(
     IRoslynConfigurationManagerPoC configurationManagerPoC,
-    IRoslynCommandProducer roslynCommandProducer,
+    ISonarRoslynSolutionAnalysisCommandProvider sonarRoslynSolutionAnalysisCommandProvider,
     ISonarRoslynAnalysisEngine roslynAnalysisEngine,
     ISonarDiagnosticsConverterPoC diagnosticsConverterPoC,
     IThreadHandling threadHandling) : ISonarLintRoslynAnalyzerPoC
@@ -43,7 +43,7 @@ internal class SonarLintRoslynAnalyzerPoC(
     public async Task<ImmutableList<IAnalysisIssue>> AnalyzeAsync(string[] filePaths, CancellationToken token)
     {
         threadHandling.ThrowIfOnUIThread();
-        var sonarDiagnostics = await roslynAnalysisEngine.AnalyzeAsync(roslynCommandProducer.GetFileAnalysisCommands(filePaths), await configurationManagerPoC.GetConfigurationAsync(), token);
+        var sonarDiagnostics = await roslynAnalysisEngine.AnalyzeAsync(sonarRoslynSolutionAnalysisCommandProvider.GetAnalysisCommandsForCurrentSolution(filePaths), await configurationManagerPoC.GetConfigurationAsync(), token);
         return sonarDiagnostics.Select(diagnosticsConverterPoC.ConvertToAnalysisIssue).ToImmutableList();
     }
 }
