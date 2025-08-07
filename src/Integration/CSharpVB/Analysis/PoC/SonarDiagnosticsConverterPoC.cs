@@ -64,7 +64,7 @@ public class SonarDiagnosticsConverterPoC : ISonarDiagnosticsConverterPoC
 
         return new AnalysisIssue(
             null,
-            diagnostic.RuleKey,
+            diagnostic.RuleKey + ":" + "GG",
             null,
             false,
             diagnostic.IsWarning ? AnalysisIssueSeverity.Critical : AnalysisIssueSeverity.Minor,

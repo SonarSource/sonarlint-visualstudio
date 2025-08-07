@@ -18,12 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
-using SonarLint.VisualStudio.Core;
+using Microsoft.CodeAnalysis;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis;
 
-internal interface IRoslynConfigurationManager
+internal class ProjectAnalysisCommands(Project project, IReadOnlyCollection<IAnalysisCommand> analysisCommands)
 {
-    Task<ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration>> GetConfigurationAsync();
+    public Project Project { get; init; } = project;
+    public IReadOnlyCollection<IAnalysisCommand> AnalysisCommands { get; init; } = analysisCommands;
 }

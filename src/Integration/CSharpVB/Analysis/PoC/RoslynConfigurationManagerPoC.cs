@@ -32,7 +32,12 @@ using SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis.PoC;
 
-[Export(typeof(IRoslynConfigurationManager))]
+internal interface IRoslynConfigurationManagerPoC
+{
+    Task<ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration>> GetConfigurationAsync();
+}
+
+[Export(typeof(IRoslynConfigurationManagerPoC))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
 internal class RoslynConfigurationManagerPoC(
@@ -42,7 +47,7 @@ internal class RoslynConfigurationManagerPoC(
     IBasicRoslynAnalyzerProvider basicAnalyzerProvider,
     IAsyncLockFactory asyncLockFactory,
     IActiveConfigScopeTracker activeConfigScopeTracker,
-    ILogger logger) : IRoslynConfigurationManager
+    ILogger logger) : IRoslynConfigurationManagerPoC
 {
     private static readonly List<Language> Languages = [Language.CSharp, Language.VBNET];
     private readonly IAsyncLock asyncLock = asyncLockFactory.Create();

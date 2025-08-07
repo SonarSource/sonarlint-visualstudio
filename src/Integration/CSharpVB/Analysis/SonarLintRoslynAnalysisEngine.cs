@@ -26,10 +26,10 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis;
 
-public interface ISonarRoslynAnalysisEngine
+internal interface ISonarRoslynAnalysisEngine
 {
     Task<IEnumerable<SonarDiagnostic>> AnalyzeAsync(
-        string[] filePaths,
+        List<ProjectAnalysisCommands> analysisCommands,
         ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token);
 }
@@ -37,40 +37,23 @@ public interface ISonarRoslynAnalysisEngine
 [Export(typeof(ISonarRoslynAnalysisEngine))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class SonarLintRoslynAnalyzer(
-    IRoslynConfigurationManager configurationManager,
-    IRoslynDocumentFinder documentFinder,
-    IRoslynDiagnosticsConverter diagnosticsConverter,
-    ILogger logger,
-    IThreadHandling threadHandling) : ISonarRoslynAnalysisEngine
+internal class SonarLintRoslynAnalysisEngine(IRoslynDiagnosticsConverter diagnosticsConverter, ILogger logger) : ISonarRoslynAnalysisEngine
 {
     public async Task<IEnumerable<SonarDiagnostic>> AnalyzeAsync(
-        string[] filePaths,
+        List<ProjectAnalysisCommands> analysisCommands,
         ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token)
     {
-        threadHandling.ThrowIfOnUIThread();
         var uniqueDiagnostics = new HashSet<SonarDiagnostic>(DiagnosticDuplicatesComparer.Instance);
-
-        var analysisPathsByProject = filePaths
-            .SelectMany(documentFinder.FindProjectsWithDocument)
-            .GroupBy(x => x.project, x => x.analysisFilePath);
-
-        foreach (var projectAndPaths in analysisPathsByProject)
+        foreach (var projectAnalysisCommands in analysisCommands)
         {
-            var project = projectAndPaths.Key;
-            var compilationWithAnalyzers = await GetProjectCompilationAsync(token, project, sonarRoslynAnalysisConfigurations);
+            var compilationWithAnalyzers = await GetProjectCompilationAsync(projectAnalysisCommands.Project, sonarRoslynAnalysisConfigurations, token);
 
-            foreach (var analysisFilePath in projectAndPaths)
+            foreach (var analysisCommand in projectAnalysisCommands.AnalysisCommands)
             {
-                var projectDiagnostics = await AnalyzeInProjectAsync(compilationWithAnalyzers, analysisFilePath, project.Name, token);
+                var diagnostics = await analysisCommand.ExecuteAsync(compilationWithAnalyzers, token);
 
-                if (projectDiagnostics == null)
-                {
-                    continue;
-                }
-
-                foreach (var diagnostic in projectDiagnostics)
+                foreach (var diagnostic in diagnostics.Select(diagnosticsConverter.ConvertToSonarDiagnostic))
                 {
                     if (!uniqueDiagnostics.Add(diagnostic))
                     {
@@ -88,9 +71,9 @@ internal class SonarLintRoslynAnalyzer(
     }
 
     private async Task<CompilationWithAnalyzers> GetProjectCompilationAsync(
-        CancellationToken token,
         Project project,
-        ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations)
+        ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
+        CancellationToken token)
     {
         var compilation = await project.GetCompilationAsync(token);
         if (compilation == null)
@@ -101,31 +84,6 @@ internal class SonarLintRoslynAnalyzer(
 
         var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation, project, sonarRoslynAnalysisConfigurations);
         return compilationWithAnalyzers;
-    }
-
-    private async Task<IEnumerable<SonarDiagnostic>> AnalyzeInProjectAsync(
-        CompilationWithAnalyzers compilationWithAnalyzers,
-        string analysisFilePath,
-        string projectName,
-        CancellationToken token)
-    {
-        var syntaxTree = compilationWithAnalyzers.Compilation.SyntaxTrees.SingleOrDefault(x => analysisFilePath.Equals(x.FilePath));
-        if (syntaxTree == null)
-        {
-            logger.WriteLine($"Failed to get syntax tree for file: {analysisFilePath} in project {projectName}");
-            return [];
-        }
-
-        var semanticModel = compilationWithAnalyzers.Compilation.GetSemanticModel(syntaxTree);
-
-        // todo issue streaming, syntactic diagnostics should appear first
-        var analyzerSyntacticDiagnosticsAsync = compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(semanticModel.SyntaxTree, token);
-        var analyzerSemanticDiagnosticsAsync = compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, null, token);
-
-        var syntaxDiagnostics = await analyzerSyntacticDiagnosticsAsync;
-        var semanticDiagnostics = await analyzerSemanticDiagnosticsAsync;
-
-        return diagnosticsConverter.ConvertToDiagnostics(syntaxDiagnostics, semanticDiagnostics);
     }
 
     private CompilationWithAnalyzers GetCompilationWithAnalyzers(

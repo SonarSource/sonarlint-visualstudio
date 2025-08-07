@@ -20,6 +20,7 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis.PoC;
@@ -33,13 +34,16 @@ public interface ISonarLintRoslynAnalyzerPoC
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
 internal class SonarLintRoslynAnalyzerPoC(
-    IRoslynConfigurationManager configurationManager,
+    IRoslynConfigurationManagerPoC configurationManagerPoC,
+    IRoslynCommandProducer roslynCommandProducer,
     ISonarRoslynAnalysisEngine roslynAnalysisEngine,
-    ISonarDiagnosticsConverterPoC diagnosticsConverterPoC) : ISonarLintRoslynAnalyzerPoC
+    ISonarDiagnosticsConverterPoC diagnosticsConverterPoC,
+    IThreadHandling threadHandling) : ISonarLintRoslynAnalyzerPoC
 {
     public async Task<ImmutableList<IAnalysisIssue>> AnalyzeAsync(string[] filePaths, CancellationToken token)
     {
-        var sonarDiagnostics = await roslynAnalysisEngine.AnalyzeAsync(filePaths, await configurationManager.GetConfigurationAsync(), token);
+        threadHandling.ThrowIfOnUIThread();
+        var sonarDiagnostics = await roslynAnalysisEngine.AnalyzeAsync(roslynCommandProducer.GetFileAnalysisCommands(filePaths), await configurationManagerPoC.GetConfigurationAsync(), token);
         return sonarDiagnostics.Select(diagnosticsConverterPoC.ConvertToAnalysisIssue).ToImmutableList();
     }
 }

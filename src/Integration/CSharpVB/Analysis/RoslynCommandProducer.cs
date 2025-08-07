@@ -19,45 +19,62 @@
  */
 
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using Document = Microsoft.CodeAnalysis.Document;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis;
 
-internal interface IRoslynDocumentFinder
+
+internal interface IRoslynCommandProducer
 {
-    List<(Project project, string analysisFilePath)> FindProjectsWithDocument(string filePath);
+    List<ProjectAnalysisCommands> GetFileAnalysisCommands(string[] filePaths);
 }
 
-[Export(typeof(IRoslynDocumentFinder))]
+[Export(typeof(IRoslynCommandProducer))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-public class RoslynProjectFinder(
+internal class RoslynCommandProducer(
     IRoslynWorkspaceWrapper roslynWorkspaceWrapper,
-    ILogger logger) : IRoslynDocumentFinder
+    ILogger logger) : IRoslynCommandProducer
 {
-    public List<(Project project, string analysisFilePath)> FindProjectsWithDocument(string filePath)
+    public List<ProjectAnalysisCommands> GetFileAnalysisCommands(string[] filePaths)
     {
-        var solution = roslynWorkspaceWrapper.CurrentSolution.RoslynSolution;
-
-        var result = new List<(Project, string)>();
-
-        foreach (var roslynSolutionProject in solution.Projects)
+        var result = new List<ProjectAnalysisCommands>();
+        foreach (string filePath in filePaths)
         {
-            foreach (var document in roslynSolutionProject.Documents)
+            var solution = roslynWorkspaceWrapper.CurrentSolution.RoslynSolution;
+
+            // todo this will not find unloaded projects
+            foreach (var project in solution.Projects)
             {
-                if (CompareFilePath(filePath, document, out var analysisFilePath))
+                var commands = new List<IAnalysisCommand>();
+
+                foreach (var document in project.Documents)
                 {
-                    result.Add((roslynSolutionProject, analysisFilePath));
+                    if (!CompareFilePath(filePath, document, out var analysisFilePath))
+                    {
+                        continue;
+                    }
+
+                    commands.Add(new FileSyntaxAnalysis(analysisFilePath));
+                    commands.Add(new FileSemanticAnalysis(analysisFilePath));
+                }
+
+                if (commands.Any())
+                {
+                    result.Add(new ProjectAnalysisCommands(project, commands));
+                }
+                else
+                {
+                    logger.WriteLine($"No projects found containing file: {filePath}");
                 }
             }
         }
 
-        if (result.Count == 0)
+        if (!result.Any())
         {
-            logger.WriteLine($"No projects found containing file: {filePath}");
+            logger.WriteLine("No projects to analyze");
         }
 
         return result;

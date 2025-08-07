@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
 
@@ -26,39 +25,34 @@ namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis;
 
 public interface IRoslynDiagnosticsConverter
 {
-    IEnumerable<SonarDiagnostic> ConvertToDiagnostics(ImmutableArray<Diagnostic> syntaxDiagnostics, ImmutableArray<Diagnostic> semanticDiagnostics);
+    SonarDiagnostic ConvertToSonarDiagnostic(Diagnostic diagnostic);
 }
 
 [Export(typeof(IRoslynDiagnosticsConverter))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class RoslynDiagnosticsConverter : IRoslynDiagnosticsConverter
 {
-    public IEnumerable<SonarDiagnostic> ConvertToDiagnostics(ImmutableArray<Diagnostic> syntaxDiagnostics, ImmutableArray<Diagnostic> semanticDiagnostics)
+    public SonarDiagnostic ConvertToSonarDiagnostic(Diagnostic diagnostic)
     {
-        var diagnostics = semanticDiagnostics.Concat(syntaxDiagnostics)
-            .Select(diagnostic =>
-            {
-                var fileLinePositionSpan = diagnostic.Location.GetMappedLineSpan();
-                var isWarning = diagnostic.Severity is DiagnosticSeverity.Error or DiagnosticSeverity.Warning;
+        var fileLinePositionSpan = diagnostic.Location.GetMappedLineSpan();
+        var isWarning = diagnostic.Severity is DiagnosticSeverity.Error or DiagnosticSeverity.Warning; // todo remove this
 
-                var textRange = new SonarTextRange(
-                    fileLinePositionSpan.StartLinePosition.Line + 1,
-                    fileLinePositionSpan.EndLinePosition.Line + 1,
-                    fileLinePositionSpan.StartLinePosition.Character,
-                    fileLinePositionSpan.EndLinePosition.Character,
-                    null); // todo line hash calculation
+        var textRange = new SonarTextRange(
+            fileLinePositionSpan.StartLinePosition.Line + 1,
+            fileLinePositionSpan.EndLinePosition.Line + 1,
+            fileLinePositionSpan.StartLinePosition.Character,
+            fileLinePositionSpan.EndLinePosition.Character,
+            null); // todo line hash calculation
 
-                var location = new SonarDiagnosticLocation(
-                    diagnostic.GetMessage(),
-                    diagnostic.Location.SourceTree.FilePath,
-                    textRange);
+        var location = new SonarDiagnosticLocation(
+            diagnostic.GetMessage(),
+            diagnostic.Location.SourceTree!.FilePath,
+            textRange);
 
-                return new SonarDiagnostic(
-                    diagnostic.Id + ":" + "GG",
-                    isWarning,
-                    location,
-                    []); // todo secondary locations and quick fixes
-            });
-        return diagnostics;
+        return new SonarDiagnostic(
+            diagnostic.Id,
+            isWarning,
+            location,
+            []); // todo secondary locations and quick fixes
     }
 }
