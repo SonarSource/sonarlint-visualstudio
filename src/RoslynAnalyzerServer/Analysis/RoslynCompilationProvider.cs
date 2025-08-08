@@ -47,14 +47,8 @@ internal class SonarRoslynProjectCompilationProvider(ILogger logger) : ISonarRos
         CancellationToken token)
     {
         var compilation = await project.GetCompilationAsync(token);
-        if (compilation == null)
-        {
-            logger.WriteLine($"Failed to get compilation for project: {project.Name}");
-            return null;
-        }
 
         var analysisConfigurationForLanguage = sonarRoslynAnalysisConfigurations[compilation.Language];
-
 
         return ApplyAnalyzersAndAdditionalFile(
             ApplyDiagnosticOptions(compilation, analysisConfigurationForLanguage),
