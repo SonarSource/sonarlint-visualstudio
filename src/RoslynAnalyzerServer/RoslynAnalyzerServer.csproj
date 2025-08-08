@@ -6,10 +6,20 @@
     <RootNamespace>SonarLint.VisualStudio.RoslynAnalyzerServer</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.RoslynAnalyzerServer</AssemblyName>
     <Nullable>enable</Nullable>
+    <RequiresLanguageServices>true</RequiresLanguageServices>
   </PropertyGroup>
+
+  <ItemGroup Label="Framework references">
+    <Reference Include="System.ComponentModel.Composition" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.11.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="3.11.0" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

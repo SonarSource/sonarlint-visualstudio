@@ -23,7 +23,7 @@
 Include patterns:
 - 'Sonar*'
 Exclude patterns:
-# Number of matches: 13
+# Number of matches: 14
 
 ---
 Assembly: 'SonarLint.2022, Version=8.26.0.0, Culture=neutral, PublicKeyToken=null'
@@ -304,7 +304,15 @@ Referenced assemblies:
 # Number of references: 13
 
 ---
-Assembly: 'SonarLint.VisualStudio.SLCore, Version=8.26.0.0, Culture=neutral, PublicKeyToken=null'
+Assembly: 'SonarLint.VisualStudio.RoslynAnalyzerServer, Version=8.24.0.0, Culture=neutral, PublicKeyToken=null'
+Relative path: 'SonarLint.VisualStudio.RoslynAnalyzerServer.dll'
+
+Referenced assemblies:
+- 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+# Number of references: 1
+
+---
+Assembly: 'SonarLint.VisualStudio.SLCore, Version=8.24.0.0, Culture=neutral, PublicKeyToken=null'
 Relative path: 'SonarLint.VisualStudio.SLCore.dll'
 
 Referenced assemblies:
