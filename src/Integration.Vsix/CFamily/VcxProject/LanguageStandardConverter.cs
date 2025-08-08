@@ -27,6 +27,8 @@ internal static class LanguageStandardConverter
         {
             null or "" or "Default" => string.Empty,
             "stdcpplatest" => "/std:c++latest",
+            "stdcpp23" => "/std:c++23",
+            "stdcpp23preview" => "/std:c++23preview",
             "stdcpp20" => "/std:c++20",
             "stdcpp17" => "/std:c++17",
             "stdcpp14" => "/std:c++14",

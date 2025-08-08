@@ -31,6 +31,8 @@ public class LanguageStandardConverterTests
     [DataRow("Default", "")]
     [DataRow(null, "")]
     [DataRow("stdcpplatest", "/std:c++latest")]
+    [DataRow("stdcpp23", "/std:c++23")]
+    [DataRow("stdcpp23preview", "/std:c++23preview")]
     [DataRow("stdcpp20", "/std:c++20")]
     [DataRow("stdcpp17", "/std:c++17")]
     [DataRow("stdcpp14", "/std:c++14")]
