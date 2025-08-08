@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
 internal interface ISonarRoslynProjectCompilationProvider
 {
-    Task<CompilationWithAnalyzers> GetProjectCompilationAsync(
+    Task<ISonarRoslynCompilationWithAnalyzersWrapper> GetProjectCompilationAsync(
         ISonarRoslynProjectWrapper project,
         ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token);
@@ -41,7 +41,7 @@ internal interface ISonarRoslynProjectCompilationProvider
 [method: ImportingConstructor]
 internal class SonarRoslynProjectCompilationProvider(ILogger logger) : ISonarRoslynProjectCompilationProvider
 {
-    public async Task<CompilationWithAnalyzers> GetProjectCompilationAsync(
+    public async Task<ISonarRoslynCompilationWithAnalyzersWrapper> GetProjectCompilationAsync(
         ISonarRoslynProjectWrapper project,
         ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token)
@@ -56,7 +56,7 @@ internal class SonarRoslynProjectCompilationProvider(ILogger logger) : ISonarRos
             analysisConfigurationForLanguage);
     }
 
-    private CompilationWithAnalyzers ApplyAnalyzersAndAdditionalFile(
+    private ISonarRoslynCompilationWithAnalyzersWrapper ApplyAnalyzersAndAdditionalFile(
         ISonarRoslynCompilationWrapper compilation,
         ISonarRoslynProjectWrapper project,
         SonarRoslynAnalysisConfiguration analysisConfigurationForLanguage)

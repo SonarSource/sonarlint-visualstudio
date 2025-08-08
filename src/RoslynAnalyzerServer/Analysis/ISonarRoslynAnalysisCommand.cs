@@ -20,10 +20,11 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
 internal interface ISonarRoslynAnalysisCommand
 {
-    Task<IEnumerable<Diagnostic>> ExecuteAsync(CompilationWithAnalyzers compilation, CancellationToken token);
+    Task<IEnumerable<Diagnostic>> ExecuteAsync(ISonarRoslynCompilationWithAnalyzersWrapper compilation, CancellationToken token);
 }

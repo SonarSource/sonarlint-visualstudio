@@ -12,5 +12,5 @@ internal interface ISonarRoslynCompilationWrapper
 
     ISonarRoslynCompilationWrapper WithOptions(CompilationOptions withSpecificDiagnosticOptions);
 
-    CompilationWithAnalyzers WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersOptions compilationWithAnalyzersOptions);
+    ISonarRoslynCompilationWithAnalyzersWrapper WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersOptions compilationWithAnalyzersOptions);
 }
