@@ -18,18 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
 namespace SonarLint.VisualStudio.Core.Analysis
 {
     public interface IAnalysisStatusNotifier
     {
         void AnalysisStarted();
-        void AnalysisProgressed(int issueCount, string findingType, bool isIntermediate);
-        void AnalysisFinished(TimeSpan analysisTime);
-        void AnalysisCancelled();
-        void AnalysisFailed(Exception ex);
-        void AnalysisFailed(string failureMessage);
-        void AnalysisNotReady(string reason);
+
+        void AnalysisProgressed(
+            Guid? analysisId,
+            int issueCount,
+            string findingType,
+            bool isIntermediate);
+
+        void AnalysisFinished(Guid? analysisId, TimeSpan analysisTime);
+
+        void AnalysisCancelled(Guid? analysisId);
+
+        void AnalysisFailed(Guid? analysisId, Exception ex);
+
+        void AnalysisFailed(Guid? analysisId, string failureMessage);
+
+        void AnalysisNotReady(Guid? analysisId, string reason);
     }
 }

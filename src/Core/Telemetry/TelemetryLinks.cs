@@ -18,11 +18,53 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Text;
+
 namespace SonarLint.VisualStudio.Core.Telemetry;
 
 public static class TelemetryLinks
 {
-    public const string SonarQubeCloudFreeSignUpId = "sonarqubeCloudFreeSignUp";
+    private const string SonarQubeCloudFreeSignUpId = "sonarqubeCloudFreeSignUp";
+    private const string SonarQubeCloudFreeSignUpUrl = "https://www.sonarsource.com/products/sonarcloud/signup-free/";
 
-    public static Dictionary<string, string> LinkIdToUrls { get; } = new() { { SonarQubeCloudFreeSignUpId, "https://www.sonarsource.com/products/sonarcloud/signup-free/" } };
+    public static readonly TelemetryLink SonarQubeCloudFreeSignUpCreateNewConnection = new (
+        SonarQubeCloudFreeSignUpId,
+        SonarQubeCloudFreeSignUpUrl,
+        new Utm("create-new-connection", "create-sonarqube-cloud-free-tier"));
+
+    public static readonly TelemetryLink SonarQubeCloudFreeSignUpPromoteConnectedModeLanguages = new (
+        SonarQubeCloudFreeSignUpId,
+        SonarQubeCloudFreeSignUpUrl,
+        new Utm("promote-connected-mode-languages", "create-sonarqube-cloud-free-tier"));
+
+    public static readonly Utm SonarQubeCloudCreateEditConnectionGenerateToken = new("create-edit-sqc-connection", "generate-token");
+    public static readonly Utm SonarQubeServerCreateEditConnectionGenerateToken = new("create-edit-sqs-connection", "generate-token");
+
+    public record TelemetryLink(string Id, string Url, Utm Utm)
+    {
+        public string GetUtmLink => Utm == null ? Url : Utm.ToLink(Url);
+    }
+
+    public record Utm(
+        string Content,
+        string Term)
+    {
+        public const string Medium = "referral";
+        public const string Source = "sq-ide-product-visual-studio";
+
+        public string ToLink(string url)
+        {
+            var sb = new StringBuilder(url);
+            sb.Append(url.Contains("?") ? "&" : "?");
+            sb.Append("utm_medium=");
+            sb.Append(Medium);
+            sb.Append("&utm_source=");
+            sb.Append(Source);
+            sb.Append("&utm_content=");
+            sb.Append(Content);
+            sb.Append("&utm_term=");
+            sb.Append(Term);
+            return sb.ToString();
+        }
+    }
 }

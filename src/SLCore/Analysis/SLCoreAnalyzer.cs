@@ -18,19 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
-using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Analysis;
+using SonarLint.VisualStudio.SLCore.Service.TaskProgress;
 
 namespace SonarLint.VisualStudio.SLCore.Analysis;
 
@@ -41,125 +36,106 @@ public class SLCoreAnalyzer(
     ISLCoreServiceProvider serviceProvider,
     IActiveConfigScopeTracker activeConfigScopeTracker,
     IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
-    ICurrentTimeProvider currentTimeProvider,
-    IAggregatingCompilationDatabaseProvider compilationDatabaseLocator,
-    IUserSettingsProvider userSettingsProvider,
     ILogger logger)
     : IAnalyzer
 {
-    private const string CFamilyCompileCommandsProperty = "sonar.cfamily.compile-commands";
-    private const string CFamilyReproducerProperty = "sonar.cfamily.reproducer";
+    private readonly ILogger logger = logger.ForContext(nameof(SLCoreAnalyzer));
 
-    private readonly ILogger cfamilyConfigurationLog = logger.ForContext(SLCoreStrings.SLCoreAnalysisConfigurationLogContext).ForVerboseContext(nameof(EnrichPropertiesForCFamily));
-
-    public void ExecuteAnalysis(
-        string path,
-        Guid analysisId,
-        IEnumerable<AnalysisLanguage> detectedLanguages,
-        IAnalyzerOptions analyzerOptions,
-        CancellationToken cancellationToken)
+    public async Task<Guid?> ExecuteAnalysis(List<string> paths)
     {
-        var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), path, analysisId);
+        var analysisStatusNotifier = analysisStatusNotifierFactory.Create(paths.ToArray());
         analysisStatusNotifier.AnalysisStarted();
 
         var configurationScope = activeConfigScopeTracker.Current;
-        if (configurationScope is not { IsReadyForAnalysis: true })
+        if (!VerifyConfigScopeInitialized(analysisStatusNotifier, configurationScope) ||
+            GetAnalysisSlCoreService(analysisStatusNotifier) is not { } analysisSlCoreService)
         {
-            analysisStatusNotifier.AnalysisNotReady(SLCoreStrings.ConfigScopeNotInitialized);
-            return;
+            return null;
         }
 
-        if (!serviceProvider.TryGetTransientService(out IAnalysisSLCoreService analysisService))
-        {
-            analysisStatusNotifier.AnalysisFailed(SLCoreStrings.ServiceProviderNotInitialized);
-            return;
-        }
-
-        ExecuteAnalysisInternalAsync(path, configurationScope.Id, analysisId, detectedLanguages, analyzerOptions, analysisService, analysisStatusNotifier, cancellationToken).Forget();
+        return await ExecuteAnalysisInternalAsync(() => analysisSlCoreService!.AnalyzeFileListAsync(new AnalyzeFileListParams(configurationScope.Id, paths.Select(x => new FileUri(x)).ToList())),
+            analysisStatusNotifier);
     }
 
-    private async Task ExecuteAnalysisInternalAsync(
-        string path,
-        string configScopeId,
-        Guid analysisId,
-        IEnumerable<AnalysisLanguage> detectedLanguages,
-        IAnalyzerOptions analyzerOptions,
-        IAnalysisSLCoreService analysisService,
-        IAnalysisStatusNotifier analysisStatusNotifier,
-        CancellationToken cancellationToken)
+    public async Task<Guid?> ExecuteAnalysisForOpenFiles()
     {
+        var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer));
+        analysisStatusNotifier.AnalysisStarted();
+
+        var configurationScope = activeConfigScopeTracker.Current;
+        if (!VerifyConfigScopeInitialized(analysisStatusNotifier, configurationScope) ||
+            GetAnalysisSlCoreService(analysisStatusNotifier) is not { } analysisSlCoreService)
+        {
+            return null;
+        }
+
+        return await ExecuteAnalysisInternalAsync(() => analysisSlCoreService!.AnalyzeOpenFilesAsync(new AnalyzeOpenFilesParams(configurationScope.Id)), analysisStatusNotifier);
+    }
+
+    public void CancelAnalysis(Guid analysisId)
+    {
+        if (!serviceProvider.TryGetTransientService(out ITaskProgressSLCoreService? taskProgressSlCoreService))
+        {
+            logger.WriteLine(SLCoreStrings.ServiceProviderNotInitialized);
+            return;
+        }
+
+        taskProgressSlCoreService.CancelTask(new CancelTaskParams(analysisId.ToString()));
+        logger.WriteLine(SLCoreStrings.AnalysisCancelled, analysisId);
+    }
+
+    private static bool VerifyConfigScopeInitialized(IAnalysisStatusNotifier analysisStatusNotifier, ConfigurationScope configurationScope)
+    {
+        if (configurationScope is { IsReadyForAnalysis: true })
+        {
+            return true;
+        }
+
+        analysisStatusNotifier.AnalysisNotReady(analysisId: null, SLCoreStrings.ConfigScopeNotInitialized);
+        return false;
+    }
+
+    private IAnalysisSLCoreService? GetAnalysisSlCoreService(IAnalysisStatusNotifier analysisStatusNotifier)
+    {
+        if (serviceProvider.TryGetTransientService(out IAnalysisSLCoreService? analysisService))
+        {
+            return analysisService;
+        }
+
+        analysisStatusNotifier.AnalysisFailed(analysisId: null, SLCoreStrings.ServiceProviderNotInitialized);
+        return null;
+    }
+
+    private static async Task<Guid?> ExecuteAnalysisInternalAsync(
+        Func<Task<ForceAnalyzeResponse>> slCoreAnalyzeFilesFunc,
+        IAnalysisStatusNotifier analysisStatusNotifier)
+    {
+        ForceAnalyzeResponse? analyzerResponse = null;
         try
         {
-            using var temporaryResourcesHandle = EnrichPropertiesForCFamily(out var analysisProperties, path, detectedLanguages, analyzerOptions);
-
             var stopwatch = Stopwatch.StartNew();
+            analyzerResponse = await slCoreAnalyzeFilesFunc();
 
-            var (failedAnalysisFiles, _) = await analysisService.AnalyzeFilesAndTrackAsync(
-                new AnalyzeFilesAndTrackParams(
-                    configScopeId,
-                    analysisId,
-                    [new FileUri(path)],
-                    analysisProperties,
-                    analyzerOptions?.IsOnOpen ?? false,
-                    currentTimeProvider.Now.ToUnixTimeMilliseconds()),
-                cancellationToken);
-
-            if (failedAnalysisFiles.Any())
+            if (analyzerResponse.analysisId == null)
             {
-                analysisStatusNotifier.AnalysisFailed(SLCoreStrings.AnalysisFailedReason);
+                analysisStatusNotifier.AnalysisFailed(analyzerResponse.analysisId, SLCoreStrings.AnalysisFailedReason);
             }
             else
             {
-                analysisStatusNotifier.AnalysisFinished(stopwatch.Elapsed);
+                analysisStatusNotifier.AnalysisFinished(analyzerResponse.analysisId, stopwatch.Elapsed);
             }
+
+            return analyzerResponse.analysisId;
         }
         catch (OperationCanceledException)
         {
-            analysisStatusNotifier.AnalysisCancelled();
+            analysisStatusNotifier.AnalysisCancelled(analysisId: analyzerResponse?.analysisId);
         }
         catch (Exception e)
         {
-            analysisStatusNotifier.AnalysisFailed(e);
+            analysisStatusNotifier.AnalysisFailed(analysisId: analyzerResponse?.analysisId, e);
         }
+
+        return null;
     }
-
-    private IDisposable EnrichPropertiesForCFamily(
-        out ImmutableDictionary<string, string> properties,
-        string path,
-        IEnumerable<AnalysisLanguage> detectedLanguages,
-        IAnalyzerOptions analyzerOptions)
-    {
-        properties = userSettingsProvider.UserSettings.AnalysisSettings.AnalysisProperties;
-
-        if (!IsCFamily(detectedLanguages))
-        {
-            return null;
-        }
-
-        if (analyzerOptions is ICFamilyAnalyzerOptions {CreateReproducer: true})
-        {
-            properties = properties.SetItem(CFamilyReproducerProperty, path);
-        }
-
-        if (properties.TryGetValue(CFamilyCompileCommandsProperty, out var userDefinedCompileCommands))
-        {
-            cfamilyConfigurationLog.LogVerbose(SLCoreStrings.UserDefinedCompilationDatabase, userDefinedCompileCommands);
-            return null;
-        }
-
-        var compilationDatabaseHandle = compilationDatabaseLocator.GetOrNull(path);
-        if (compilationDatabaseHandle == null)
-        {
-            cfamilyConfigurationLog.WriteLine(SLCoreStrings.CompilationDatabaseNotFound, path);
-            // Pass empty compilation database path in order to get a more helpful message and not break the analyzer
-            properties = properties.SetItem(CFamilyCompileCommandsProperty, "");
-        }
-        else
-        {
-            properties = properties.SetItem(CFamilyCompileCommandsProperty, compilationDatabaseHandle.FilePath);
-        }
-        return compilationDatabaseHandle;
-    }
-
-    private static bool IsCFamily(IEnumerable<AnalysisLanguage> detectedLanguages) => detectedLanguages != null && detectedLanguages.Contains(AnalysisLanguage.CFamily);
 }

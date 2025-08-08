@@ -38,7 +38,7 @@ public class SLCoreInstanceFactoryTests
     {
         MefTestHelpers.CheckTypeCanBeImported<SLCoreInstanceFactory, ISLCoreInstanceFactory>(
             MefTestHelpers.CreateExport<ISLCoreRpcFactory>(),
-            MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
+            MefTestHelpers.CreateExport<ISLCoreRpcManager>(),
             MefTestHelpers.CreateExport<ISLCoreConstantsProvider>(),
             MefTestHelpers.CreateExport<ISLCoreLanguageProvider>(),
             MefTestHelpers.CreateExport<ISLCoreFoldersProvider>(),
@@ -63,7 +63,7 @@ public class SLCoreInstanceFactoryTests
     public void CreateInstance_ReturnsNonNull()
     {
         var islCoreRpcFactory = Substitute.For<ISLCoreRpcFactory>();
-        var slCoreServiceProvider = Substitute.For<ISLCoreServiceProvider>();
+        var slCoreRpcManager = Substitute.For<ISLCoreRpcManager>();
         var islCoreConstantsProvider = Substitute.For<ISLCoreConstantsProvider>();
         var slCoreLanguageProvider = Substitute.For<ISLCoreLanguageProvider>();
         var islCoreFoldersProvider = Substitute.For<ISLCoreFoldersProvider>();
@@ -79,7 +79,7 @@ public class SLCoreInstanceFactoryTests
 
         var testSubject = new SLCoreInstanceFactory(
             islCoreRpcFactory,
-            slCoreServiceProvider,
+            slCoreRpcManager,
             islCoreConstantsProvider,
             slCoreLanguageProvider,
             islCoreFoldersProvider,

@@ -120,9 +120,6 @@
   <data name="CCATooltip" xml:space="preserve">
     <value>Clean Code attributes are characteristics code needs to have to be considered clean</value>
   </data>
-  <data name="CleanCodeHyperLink" xml:space="preserve">
-    <value>Learn more about Clean Code</value>
-  </data>
   <data name="Education_NoRuleInfo" xml:space="preserve">
     <value>[Education] Unable to locate help for rule '{0}'. Help should be available at https://rules.sonarsource.com.</value>
   </data>

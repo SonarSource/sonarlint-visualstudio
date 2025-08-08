@@ -22,139 +22,164 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
+
+internal record AnalysisSnapshot(string FilePath, ITextSnapshot TextSnapshot);
+
+///<summary>
+///Tracks SonarLint errors for a specific buffer.
+///</summary>
+///<remarks>
+/// <para>
+/// The lifespan of this object is tied to the lifespan of the taggers on the view. On creation of the first tagger,
+/// it starts tracking errors. On the disposal of the last tagger, it shuts down.
+/// </para>
+/// <para>
+/// See the README.md in this folder for more information
+/// </para>
+///</remarks>
+internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
 {
-    ///<summary>
-    /// Tracks SonarLint errors for a specific buffer.
-    ///</summary>
-    /// <remarks>
-    /// <para>The lifespan of this object is tied to the lifespan of the taggers on the view. On creation of the first tagger,
-    /// it starts tracking errors. On the disposal of the last tagger, it shuts down.</para>
-    /// <para>
-    /// See the README.md in this folder for more information
-    /// </para>
-    /// </remarks>
-    internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>, IDisposable
+    private readonly ITextDocument document;
+    private readonly IIssueConsumerFactory issueConsumerFactory;
+    private readonly IIssueConsumerStorage issueConsumerStorage;
+    private readonly ILogger logger;
+    private readonly ISonarErrorListDataSource sonarErrorDataSource;
+    private readonly ITextBuffer textBuffer;
+    private readonly IVsProjectInfoProvider vsProjectInfoProvider;
+    internal /* for testing */ TaggerProvider Provider { get; }
+    internal /* for testing */ IssuesSnapshotFactory Factory { get; }
+
+    public TextBufferIssueTracker(
+        TaggerProvider provider,
+        ITextDocument document,
+        IEnumerable<AnalysisLanguage> detectedLanguages,
+        ISonarErrorListDataSource sonarErrorDataSource,
+        IVsProjectInfoProvider vsProjectInfoProvider,
+        IIssueConsumerFactory issueConsumerFactory,
+        IIssueConsumerStorage issueConsumerStorage,
+        ILogger logger)
     {
-        internal /* for testing */ TaggerProvider Provider { get; }
-        private readonly ITextBuffer textBuffer;
-        private readonly IEnumerable<AnalysisLanguage> detectedLanguages;
+        Provider = provider;
+        textBuffer = document.TextBuffer;
 
-        private readonly ITextDocument document;
-        private readonly ILogger logger;
-        private readonly IVsAwareAnalysisService vsAwareAnalysisService;
-        private readonly IFileTracker fileTracker;
-        private readonly ISonarErrorListDataSource sonarErrorDataSource;
+        this.sonarErrorDataSource = sonarErrorDataSource;
+        this.vsProjectInfoProvider = vsProjectInfoProvider;
+        this.issueConsumerFactory = issueConsumerFactory;
+        this.issueConsumerStorage = issueConsumerStorage;
+        this.logger = logger;
+        logger.ForContext(nameof(TextBufferIssueTracker));
 
-        public string LastAnalysisFilePath { get; private set; }
-        internal /* for testing */ IssuesSnapshotFactory Factory { get; }
+        this.document = document;
+        LastAnalysisFilePath = document.FilePath;
+        DetectedLanguages = detectedLanguages;
+        Factory = new IssuesSnapshotFactory(LastAnalysisFilePath);
 
-        public TextBufferIssueTracker(
-            TaggerProvider provider,
-            ITextDocument document,
-            IEnumerable<AnalysisLanguage> detectedLanguages,
-            ISonarErrorListDataSource sonarErrorDataSource,
-            IVsAwareAnalysisService vsAwareAnalysisService,
-            IFileTracker fileTracker,
-            ILogger logger)
+        document.FileActionOccurred += SafeOnFileActionOccurred;
+
+        sonarErrorDataSource.AddFactory(Factory);
+        Provider.AddIssueTracker(this);
+
+        InitializeAnalysisState();
+    }
+
+    public string LastAnalysisFilePath { get; private set; }
+    public IEnumerable<AnalysisLanguage> DetectedLanguages { get; }
+
+    public void UpdateAnalysisState()
+    {
+        try
         {
-
-            this.Provider = provider;
-            this.textBuffer = document.TextBuffer;
-
-            this.detectedLanguages = detectedLanguages;
-            this.sonarErrorDataSource = sonarErrorDataSource;
-            this.vsAwareAnalysisService = vsAwareAnalysisService;
-            this.fileTracker = fileTracker;
-            this.logger = logger;
-
-            this.document = document;
-            LastAnalysisFilePath = document.FilePath;
-            Factory = new IssuesSnapshotFactory(LastAnalysisFilePath);
-
-            document.FileActionOccurred += SafeOnFileActionOccurred;
-
-            sonarErrorDataSource.AddFactory(this.Factory);
-            Provider.AddIssueTracker(this);
-
-            RequestAnalysis(new AnalyzerOptions{ IsOnOpen = true });
+            RemoveIssueConsumer(LastAnalysisFilePath);
+            InitializeAnalysisState();
         }
-
-        private void SafeOnFileActionOccurred(object sender, TextDocumentFileActionEventArgs e)
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            // Handles callback from VS. Suppress non-critical errors to prevent them
-            // propagating to VS, which would display a dialogue and disable the extension.
-            try
+            logger.WriteLine(Strings.Analysis_ErrorUpdatingAnalysisState, ex);
+        }
+    }
+
+    public string GetText() => document.TextBuffer.CurrentSnapshot.GetText();
+
+    public void Dispose()
+    {
+        RemoveIssueConsumer(LastAnalysisFilePath);
+        document.FileActionOccurred -= SafeOnFileActionOccurred;
+        textBuffer.Properties.RemoveProperty(TaggerProvider.SingletonManagerPropertyCollectionKey);
+        sonarErrorDataSource.RemoveFactory(Factory);
+        Provider.OnDocumentClosed(this);
+    }
+
+    public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans) => [];
+
+    public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
+
+    private void SafeOnFileActionOccurred(object sender, TextDocumentFileActionEventArgs e)
+    {
+        // Handles callback from VS. Suppress non-critical errors to prevent them
+        // propagating to VS, which would display a dialogue and disable the extension.
+        try
+        {
+            switch (e.FileActionType)
             {
-                if (e.FileActionType != FileActionTypes.ContentSavedToDisk)
-                {
+                case FileActionTypes.ContentSavedToDisk:
+                    {
+                        UpdateAnalysisState();
+                        Provider.OnDocumentSaved(document.FilePath, GetText(), DetectedLanguages);
+                        break;
+                    }
+                case FileActionTypes.DocumentRenamed:
+                    {
+                        var oldFilePath = LastAnalysisFilePath;
+                        LastAnalysisFilePath = e.FilePath;
+                        UpdateAnalysisState();
+                        Provider.OnOpenDocumentRenamed(e.FilePath, oldFilePath, DetectedLanguages);
+                        break;
+                    }
+                default:
                     return;
-                }
-
-                RequestAnalysis(new AnalyzerOptions { IsOnOpen = false });
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(Strings.Analysis_ErrorTriggeringAnalysis, ex);
             }
         }
-
-        private void SnapToNewSnapshot(IIssuesSnapshot newSnapshot)
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            // Tell our factory to snap to a new snapshot.
-            Factory.UpdateSnapshot(newSnapshot);
-
-            sonarErrorDataSource.RefreshErrorList(Factory);
+            logger.WriteLine(Strings.Analysis_ErrorOnFileAction, e.FileActionType, document.FilePath, ex);
         }
+    }
 
-        public void RequestAnalysis(IAnalyzerOptions options)
-        {
-            try
-            {
-                vsAwareAnalysisService.CancelForFile(LastAnalysisFilePath);
-                var analysisSnapshot = UpdateAnalysisState();
-                vsAwareAnalysisService.RequestAnalysis(document, analysisSnapshot, detectedLanguages, SnapToNewSnapshot, options);
-            }
-            catch (NotSupportedException ex)
-            {
-                // Display a simple user-friendly message for options we know are not supported.
-                // See https://github.com/SonarSource/sonarlint-visualstudio/pull/2212
-                logger.WriteLine(Strings.Analysis_NotSupported, ex.Message);
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(Strings.Analysis_ErrorTriggeringAnalysis, ex);
-            }
-        }
+    private void SnapToNewSnapshot(IIssuesSnapshot newSnapshot)
+    {
+        // Tell our factory to snap to a new snapshot.
+        Factory.UpdateSnapshot(newSnapshot);
 
-        private AnalysisSnapshot UpdateAnalysisState()
-        {
-            LastAnalysisFilePath = document.FilePath; // Refresh the stored file path in case the document has been renamed
-            var analysisSnapshot = new AnalysisSnapshot(LastAnalysisFilePath, document.TextBuffer.CurrentSnapshot);
-            NotifyFileTracker(analysisSnapshot.TextSnapshot);
-            return analysisSnapshot;
-        }
+        sonarErrorDataSource.RefreshErrorList(Factory);
+    }
 
-        private void NotifyFileTracker(ITextSnapshot snapshot)
-        {
-            fileTracker.AddFiles(new SourceFile(LastAnalysisFilePath, content: snapshot.GetText()));
-        }
+    private AnalysisSnapshot GetAnalysisSnapshot() => new(LastAnalysisFilePath, document.TextBuffer.CurrentSnapshot);
 
-        public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans) => [];
+    private void InitializeAnalysisState()
+    {
+        var analysisSnapshot = GetAnalysisSnapshot();
+        CreateIssueConsumer(analysisSnapshot);
+    }
 
-        public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
+    private void RemoveIssueConsumer(string filePath) => issueConsumerStorage.Remove(filePath);
 
-        public void Dispose()
-        {
-            vsAwareAnalysisService.CancelForFile(LastAnalysisFilePath);
-            document.FileActionOccurred -= SafeOnFileActionOccurred;
-            textBuffer.Properties.RemoveProperty(TaggerProvider.SingletonManagerPropertyCollectionKey);
-            sonarErrorDataSource.RemoveFactory(this.Factory);
-            Provider.RemoveIssueTracker(this);
-        }
+    private void CreateIssueConsumer(AnalysisSnapshot analysisSnapshot)
+    {
+        var (projectName, projectGuid) = vsProjectInfoProvider.GetDocumentProjectInfo(analysisSnapshot.FilePath);
+        var issueConsumer = issueConsumerFactory.Create(document, analysisSnapshot.FilePath, analysisSnapshot.TextSnapshot, projectName, projectGuid, SnapToNewSnapshot);
+        issueConsumerStorage.Set(analysisSnapshot.FilePath, issueConsumer);
+        ClearErrorList(analysisSnapshot.FilePath, issueConsumer);
+    }
+
+    private static void ClearErrorList(string filePath, IIssueConsumer issueConsumer)
+    {
+        issueConsumer.SetIssues(filePath, []);
+        issueConsumer.SetHotspots(filePath, []);
     }
 }

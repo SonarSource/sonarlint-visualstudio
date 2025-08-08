@@ -18,41 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Integration.Vsix.Helpers;
+using SonarLint.VisualStudio.Core.Notifications;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
     [Export(typeof(IAnalysisStatusNotifierFactory))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class AnalysisStatusNotifierFactory : IAnalysisStatusNotifierFactory
+    [method: ImportingConstructor]
+    internal class AnalysisStatusNotifierFactory(IStatusBarNotifier statusBarNotifier, ILogger logger) : IAnalysisStatusNotifierFactory
     {
-        private readonly IStatusBarNotifier statusBarNotifier;
-        private readonly ILogger logger;
-
-        [ImportingConstructor]
-        public AnalysisStatusNotifierFactory(IStatusBarNotifier statusBarNotifier, ILogger logger)
-        {
-            this.statusBarNotifier = statusBarNotifier;
-            this.logger = logger;
-        }
-
-        public IAnalysisStatusNotifier Create(string analyzerName, string filePath, Guid? analysisId = null)
-        {
-            if (analyzerName == null)
-            {
-                throw new ArgumentNullException(nameof(analyzerName));
-            }
-
-            if (filePath == null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
-
-            return new AnalysisStatusNotifier(analyzerName, filePath, analysisId, statusBarNotifier, logger);
-        }
+        public IAnalysisStatusNotifier Create(params string[] filePaths) => new AnalysisStatusNotifier(filePaths, statusBarNotifier, logger);
     }
 }

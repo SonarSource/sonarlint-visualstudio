@@ -29,4 +29,15 @@ public interface IFileRpcSLCoreService : ISLCoreService
     Task<GetFilesStatusResponse> GetFilesStatusAsync(GetFilesStatusParams parameters);
 
     void DidUpdateFileSystem(DidUpdateFileSystemParams parameters);
+
+    /// <summary>
+    /// Should be called by clients when a file has been opened in the editor.
+    /// </summary>
+    void DidOpenFile(DidOpenFileParams parameters);
+
+    /// <summary>
+    /// Should be called by clients when a file has been closed in the editor.
+    /// </summary>
+    /// <param name="parameters"></param>
+    void DidCloseFile(DidCloseFileParams parameters);
 }

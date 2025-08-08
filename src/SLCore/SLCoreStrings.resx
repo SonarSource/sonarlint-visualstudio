@@ -123,6 +123,9 @@
   <data name="ServiceProviderNotInitialized" xml:space="preserve">
     <value>Service Provider is unavailable</value>
   </data>
+  <data name="BackendAlreadyInitialized" xml:space="preserve">
+    <value>SLCore Backend already initialized</value>
+  </data>
   <data name="SLCoreHandler_InstanceAlreadyRunning" xml:space="preserve">
     <value>Current instance is alive</value>
   </data>
@@ -189,6 +192,12 @@
   <data name="SLCoreName" xml:space="preserve">
     <value>SLCore</value>
   </data>
+  <data name="ConfigurationScope_LogContext" xml:space="preserve">
+    <value>Configuration Scope</value>
+  </data>
+  <data name="ConfigurationScopeChanged" xml:space="preserve">
+    <value>Configuration Scope changed {0}</value>
+  </data>
   <data name="ServerCertificateInfobar_CertificateInvalidMessage" xml:space="preserve">
     <value>The server certificate can not be verified. Please see the logs for more info.</value>
   </data>
@@ -251,5 +260,38 @@
   </data>
   <data name="SLCoreAnalysisConfigurationLogContext" xml:space="preserve">
     <value>Analysis Configuration</value>
+  </data>
+  <data name="AnalysisCancelled" xml:space="preserve">
+    <value>Analysis with id {0} has been cancelled.</value>
+  </data>
+  <data name="LongProductName" xml:space="preserve">
+    <value>SonarQube for Visual Studio</value>
+  </data>
+  <data name="EitherJsonConverter_EquivalentPropertiesExceptionMessage" xml:space="preserve">
+    <value>Types {0} and {1} have equivalent sets of properties and fields</value>
+  </data>
+  <data name="EitherJsonConverter_NoDefinitiveChoiceExceptionMessage" xml:space="preserve">
+    <value>Unable to make a definitive choice between Either options</value>
+  </data>  
+  <data name="DependencyRiskListener_NumberOfDependencyRisks" xml:space="preserve">
+    <value>Received update for dependency risks. {0} added, {1} updated, {2} closed</value>
+  </data>
+  <data name="ConfigScope_UpdatedBinding" xml:space="preserve">
+    <value>Updated binding for Configuration Scope {0}</value>
+  </data>
+  <data name="ConfigScope_Declared" xml:space="preserve">
+    <value>Declared Configuration Scope {0}</value>
+  </data>
+  <data name="ConfigScope_Reset" xml:space="preserve">
+    <value>Resetting active Configuration Scope</value>
+  </data>
+  <data name="ConfigScope_Removed" xml:space="preserve">
+    <value>Removed Configuration Scope {0}</value>
+  </data>
+  <data name="ConfigScope_UpdatedFileSystem" xml:space="preserve">
+    <value>Updated files system parameters for Configuration Scope {0}: Root={1}, Commands Directory={2}</value>
+  </data>
+  <data name="ConfigScope_UpdatedAnalysisReadiness" xml:space="preserve">
+    <value>Updated analysis readiness for Configuration Scope {0}: {1}</value>
   </data>
 </root>

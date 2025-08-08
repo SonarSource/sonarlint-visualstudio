@@ -40,4 +40,5 @@ public interface ITelemetrySLCoreService : ISLCoreService
     void AddedManualBindings();
     void AddedImportedBindings();
     void AddedAutomaticBindings();
+    void DependencyRiskInvestigatedLocally();
 }

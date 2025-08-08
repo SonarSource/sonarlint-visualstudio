@@ -22,9 +22,13 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    internal interface IIssueTracker
+    internal interface IIssueTracker : IDisposable
     {
         string LastAnalysisFilePath { get; }
-        void RequestAnalysis(IAnalyzerOptions options);
+        IEnumerable<AnalysisLanguage> DetectedLanguages { get; }
+
+        void UpdateAnalysisState();
+
+        string GetText();
     }
 }

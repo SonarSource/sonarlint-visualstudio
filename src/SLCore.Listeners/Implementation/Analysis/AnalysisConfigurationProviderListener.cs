@@ -19,6 +19,8 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
@@ -26,15 +28,29 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation.Analysis;
 
 [Export(typeof(ISLCoreListener))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class AnalysisConfigurationProviderListener : IAnalysisConfigurationProviderListener
+[method: ImportingConstructor]
+internal class AnalysisConfigurationProviderListener(IActiveConfigScopeTracker activeConfigScopeTracker, ILogger logger) : IAnalysisConfigurationProviderListener
 {
+    private readonly ILogger analysisConfigLogger = logger.ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.SLCoreAnalysisConfigurationLogContext);
+
     public Task<GetBaseDirResponse> GetBaseDirAsync(GetBaseDirParams parameters)
     {
-        return Task.FromResult(new GetBaseDirResponse(null));
+        string baseDir;
+        var currentConfigurationScope = activeConfigScopeTracker.Current;
+
+        if (currentConfigurationScope is not null && currentConfigurationScope.Id == parameters.configurationScopeId)
+        {
+            baseDir = currentConfigurationScope.CommandsBaseDir;
+        }
+        else
+        {
+            analysisConfigLogger.WriteLine(SLCoreStrings.ConfigurationScopeMismatch, parameters.configurationScopeId, currentConfigurationScope?.Id);
+            baseDir = null;
+        }
+
+        return Task.FromResult(new GetBaseDirResponse(baseDir));
     }
 
-    public Task<GetInferredAnalysisPropertiesResponse> GetInferredAnalysisPropertiesAsync(GetInferredAnalysisPropertiesParams parameters)
-    {
-        return Task.FromResult(new GetInferredAnalysisPropertiesResponse([]));
-    }
+    public Task<GetInferredAnalysisPropertiesResponse> GetInferredAnalysisPropertiesAsync(GetInferredAnalysisPropertiesParams parameters) =>
+        Task.FromResult(new GetInferredAnalysisPropertiesResponse([]));
 }

@@ -60,6 +60,15 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analysis with id {0} has been cancelled..
+        /// </summary>
+        public static string AnalysisCancelled {
+            get {
+                return ResourceManager.GetString("AnalysisCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Internal analysis failure. See logs above..
         /// </summary>
         public static string AnalysisFailedReason {
@@ -123,6 +132,15 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SLCore Backend already initialized.
+        /// </summary>
+        public static string BackendAlreadyInitialized {
+            get {
+                return ResourceManager.GetString("BackendAlreadyInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [CertificateChainValidator] Certificate validation failed for the following reason(s):.
         /// </summary>
         public static string CertificateValidator_Failed {
@@ -159,6 +177,60 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Declared Configuration Scope {0}.
+        /// </summary>
+        public static string ConfigScope_Declared {
+            get {
+                return ResourceManager.GetString("ConfigScope_Declared", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Removed Configuration Scope {0}.
+        /// </summary>
+        public static string ConfigScope_Removed {
+            get {
+                return ResourceManager.GetString("ConfigScope_Removed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resetting active Configuration Scope.
+        /// </summary>
+        public static string ConfigScope_Reset {
+            get {
+                return ResourceManager.GetString("ConfigScope_Reset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updated analysis readiness for Configuration Scope {0}: {1}.
+        /// </summary>
+        public static string ConfigScope_UpdatedAnalysisReadiness {
+            get {
+                return ResourceManager.GetString("ConfigScope_UpdatedAnalysisReadiness", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updated binding for Configuration Scope {0}.
+        /// </summary>
+        public static string ConfigScope_UpdatedBinding {
+            get {
+                return ResourceManager.GetString("ConfigScope_UpdatedBinding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updated files system parameters for Configuration Scope {0}: Root={1}, Commands Directory={2}.
+        /// </summary>
+        public static string ConfigScope_UpdatedFileSystem {
+            get {
+                return ResourceManager.GetString("ConfigScope_UpdatedFileSystem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Configuration scope conflict.
         /// </summary>
         public static string ConfigScopeConflict {
@@ -173,6 +245,24 @@ namespace SonarLint.VisualStudio.SLCore {
         public static string ConfigScopeNotInitialized {
             get {
                 return ResourceManager.GetString("ConfigScopeNotInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configuration Scope.
+        /// </summary>
+        public static string ConfigurationScope_LogContext {
+            get {
+                return ResourceManager.GetString("ConfigurationScope_LogContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configuration Scope changed {0}.
+        /// </summary>
+        public static string ConfigurationScopeChanged {
+            get {
+                return ResourceManager.GetString("ConfigurationScopeChanged", resourceCulture);
             }
         }
         
@@ -200,6 +290,33 @@ namespace SonarLint.VisualStudio.SLCore {
         public static string ConnectedModeSuggestion_LogContext {
             get {
                 return ResourceManager.GetString("ConnectedModeSuggestion_LogContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Received update for dependency risks. {0} added, {1} updated, {2} closed.
+        /// </summary>
+        public static string DependencyRiskListener_NumberOfDependencyRisks {
+            get {
+                return ResourceManager.GetString("DependencyRiskListener_NumberOfDependencyRisks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Types {0} and {1} have equivalent sets of properties and fields.
+        /// </summary>
+        public static string EitherJsonConverter_EquivalentPropertiesExceptionMessage {
+            get {
+                return ResourceManager.GetString("EitherJsonConverter_EquivalentPropertiesExceptionMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to make a definitive choice between Either options.
+        /// </summary>
+        public static string EitherJsonConverter_NoDefinitiveChoiceExceptionMessage {
+            get {
+                return ResourceManager.GetString("EitherJsonConverter_NoDefinitiveChoiceExceptionMessage", resourceCulture);
             }
         }
         
@@ -263,6 +380,15 @@ namespace SonarLint.VisualStudio.SLCore {
         public static string ListFiles_NoRoot {
             get {
                 return ResourceManager.GetString("ListFiles_NoRoot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube for Visual Studio.
+        /// </summary>
+        public static string LongProductName {
+            get {
+                return ResourceManager.GetString("LongProductName", resourceCulture);
             }
         }
         

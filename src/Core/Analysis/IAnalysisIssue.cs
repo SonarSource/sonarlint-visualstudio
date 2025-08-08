@@ -138,6 +138,39 @@ namespace SonarLint.VisualStudio.Core.Analysis
         Safe,
     }
 
+    public enum DependencyRiskImpactSeverity
+    {
+        Info,
+        Low,
+        Medium,
+        High,
+        Blocker
+    }
+
+    public enum DependencyRiskType
+    {
+        Vulnerability,
+        ProhibitedLicense
+    }
+
+    public enum DependencyRiskStatus
+    {
+        Fixed,
+        Open,
+        Confirmed,
+        Accepted,
+        Safe
+    }
+
+    public enum DependencyRiskTransition
+    {
+        Confirm,
+        Reopen,
+        Safe,
+        Fixed,
+        Accept
+    }
+
     public static class IAnalysisIssueExtensions
     {
         public static bool IsFileLevel(this IAnalysisIssueBase issue)

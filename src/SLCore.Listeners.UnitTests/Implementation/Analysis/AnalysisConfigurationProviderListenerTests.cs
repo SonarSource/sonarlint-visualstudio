@@ -18,6 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using NSubstitute.ReturnsExtensions;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
@@ -28,41 +31,75 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation.Analy
 [TestClass]
 public class AnalysisConfigurationProviderListenerTests
 {
-    [TestMethod]
-    public void MefCtor_CheckIsExported()
+    private IActiveConfigScopeTracker activeConfigScopeTracker;
+    private AnalysisConfigurationProviderListener testSubject;
+    private TestLogger logger;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
-        MefTestHelpers.CheckTypeCanBeImported<AnalysisConfigurationProviderListener, ISLCoreListener>();
+        activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
+        logger = Substitute.ForPartsOf<TestLogger>();
+
+        testSubject = new AnalysisConfigurationProviderListener(
+            activeConfigScopeTracker, logger);
     }
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton()
-    {
-        MefTestHelpers.CheckIsSingletonMefComponent<AnalysisConfigurationProviderListener>();
-    }
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<AnalysisConfigurationProviderListener, ISLCoreListener>(
+            MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
+            MefTestHelpers.CreateExport<ILogger>());
 
-    [DataRow(null)]
-    [DataRow("")]
-    [DataRow("configScopeId")]
-    [DataRow("configScopeId123")]
-    [DataTestMethod]
-    public void GetBaseDirAsync_AnyValue_ReturnsNull(string configScopeId)
-    {
-        var testSubject = new AnalysisConfigurationProviderListener();
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<AnalysisConfigurationProviderListener>();
 
-        var result = testSubject.GetBaseDirAsync(new GetBaseDirParams(configScopeId)).Result;
+    [TestMethod]
+    public void Ctor_InitializesLogContexts() =>
+        logger.Received(1).ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.SLCoreAnalysisConfigurationLogContext);
+
+    [TestMethod]
+    public void GetBaseDirAsync_NoConfigurationScope_ReturnsNull()
+    {
+        activeConfigScopeTracker.Current.ReturnsNull();
+
+        var result = testSubject.GetBaseDirAsync(new GetBaseDirParams("any")).Result;
 
         result.baseDir.Should().BeNull();
     }
 
+    [TestMethod]
+    public void GetBaseDirAsync_ConfigurationScopeIdDoesNotMatch_ReturnsNull()
+    {
+        var configScope = new ConfigurationScope("scope1", CommandsBaseDir: "C:\\workspace\\root");
+        activeConfigScopeTracker.Current.Returns(configScope);
+
+        var result = testSubject.GetBaseDirAsync(new GetBaseDirParams("different-scope")).Result;
+
+        result.baseDir.Should().BeNull();
+        logger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ConfigurationScopeMismatch, "different-scope", "scope1"));
+    }
+
+    [TestMethod]
+    public void GetBaseDirAsync_ConfigurationScopeIdMatches_ReturnsCommandsBaseDir()
+    {
+        const string scopeId = "scope1";
+        const string expectedBaseDir = "C:\\workspace\\root";
+        var configScope = new ConfigurationScope(scopeId, CommandsBaseDir: expectedBaseDir);
+        activeConfigScopeTracker.Current.Returns(configScope);
+
+        var result = testSubject.GetBaseDirAsync(new GetBaseDirParams(scopeId)).Result;
+
+        result.baseDir.Should().Be(expectedBaseDir);
+    }
+
     [DataRow(null, [new string[0]])]
     [DataRow("", [new string[0]])]
-    [DataRow("configScopeId", [new[]{@"C:\file1"}])]
-    [DataRow("configScopeId123", [new[]{@"C:\file1", @"D:\file"}])]
+    [DataRow("configScopeId", [new[] {@"C:\file1"}])]
+    [DataRow("configScopeId123", [new[] {@"C:\file1", @"D:\file"}])]
     [DataTestMethod]
     public void GetInferredAnalysisProperties_AnyValue_ReturnsEmptySet(string configScopeId, string[] files)
     {
-        var testSubject = new AnalysisConfigurationProviderListener();
-
         var result = testSubject.GetInferredAnalysisPropertiesAsync(new GetInferredAnalysisPropertiesParams(configScopeId,
                 files.Select(x => new FileUri(x)).ToList()))
             .Result;

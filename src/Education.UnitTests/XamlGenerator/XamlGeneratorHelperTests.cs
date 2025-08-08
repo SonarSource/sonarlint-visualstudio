@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
             testSubject.EndDocument();
 
             sb.ToString().Should().BeEquivalentTo(
-@"<FlowDocument xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
+                @"<FlowDocument xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
   <Paragraph Style=""{DynamicResource Title_Paragraph}"">Hi</Paragraph>
   <Paragraph Style=""{DynamicResource Subtitle_Paragraph}"">
     <Span Style=""{DynamicResource SubtitleElement_Span}"">
@@ -78,11 +78,12 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
             var sb = new StringBuilder();
             var xmlWriter = new XamlWriterFactory().Create(sb);
             var ruleInfo = new RuleInfo("cs:123", "<p>Hi</p>", "Hi", RuleIssueSeverity.Critical,
-                RuleIssueType.Vulnerability, null, CleanCodeAttribute.Formatted, new Dictionary<SoftwareQuality, SoftwareQualitySeverity>
+                RuleIssueType.Vulnerability, null, CleanCodeAttribute.Formatted,
+                new Dictionary<SoftwareQuality, SoftwareQualitySeverity>
                 {
-                    { SoftwareQuality.Maintainability, SoftwareQualitySeverity.High},
-                    { SoftwareQuality.Security, SoftwareQualitySeverity.Low},
-                    { SoftwareQuality.Reliability, SoftwareQualitySeverity.Medium},
+                    { SoftwareQuality.Maintainability, SoftwareQualitySeverity.High },
+                    { SoftwareQuality.Security, SoftwareQualitySeverity.Low },
+                    { SoftwareQuality.Reliability, SoftwareQualitySeverity.Medium },
                 }, null);
             IXamlGeneratorHelper testSubject = CreateTestSubject(xmlWriter);
 
@@ -128,9 +129,6 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
             </InlineUIContainer></Span>
         </TextBlock>
       </Border>
-      <TextBlock>
-        <Hyperlink NavigateUri=""https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/concepts/clean-code/introduction"">Learn more about Clean Code</Hyperlink>
-      </TextBlock>
     </WrapPanel>
   </BlockUIContainer>
   <Paragraph Style=""{DynamicResource Subtitle_Paragraph}"">

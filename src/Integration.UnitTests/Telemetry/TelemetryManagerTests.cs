@@ -232,6 +232,18 @@ public class TelemetryManagerTests
         });
     }
 
+    [TestMethod]
+    public void DependencyRiskInvestigatedLocally_CallsRpcService()
+    {
+        telemetryManager.DependencyRiskInvestigatedLocally();
+
+        Received.InOrder(() =>
+        {
+            telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
+            telemetryService.DependencyRiskInvestigatedLocally();
+        });
+    }
+
     private void MockTelemetryService()
     {
         telemetryService = Substitute.For<ITelemetrySLCoreService>();

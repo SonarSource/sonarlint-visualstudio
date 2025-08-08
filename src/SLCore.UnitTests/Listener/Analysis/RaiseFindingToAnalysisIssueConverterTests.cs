@@ -357,6 +357,35 @@ public class RaiseFindingToAnalysisIssueConverterTests
     }
 
     [TestMethod]
+    public void GetAnalysisIssues_IssueWithQuickFixSplitIntoTwoFileEdits_ReturnsIssueWithSingleQuickFix()
+    {
+        var issue = new RaisedIssueDto(Guid.NewGuid(),
+            "serverKey",
+            "ruleKey",
+            "PrimaryMessage",
+            DateTimeOffset.Now,
+            true,
+            false,
+            new TextRangeDto(1, 2, 3, 4),
+            [],
+            [
+                new QuickFixDto([
+                    new FileEditDto(new FileUri("C:\\IssueFile.cs"), [new TextEditDto(new TextRangeDto(5, 6, 7, 8), "new text")]),
+                    new FileEditDto(new FileUri("C:\\IssueFile.cs"), [new TextEditDto(new TextRangeDto(9, 10, 11, 12), "another text")]),
+                    new FileEditDto(new FileUri("C:\\AnotherFile.cs"), [new TextEditDto(new TextRangeDto(20, 10, 21, 12), "skip this fix")])
+                ], "QuickFix")],
+            "context",
+            new StandardModeDetails(IssueSeverity.MAJOR, RuleType.CODE_SMELL));
+
+        var analysisIssues = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedFindingDto> { issue }).ToList();
+
+        analysisIssues.Should().NotBeNull();
+        analysisIssues.Should().ContainSingle();
+        analysisIssues[0].Fixes.Should().ContainSingle();
+        analysisIssues[0].Fixes[0].Edits.Should().HaveCount(2);
+    }
+
+    [TestMethod]
     public void GetAnalysisIssues_TwoIssuesAndOneIsInvalidIssueDto_ReturnsOneIssueAndLogsTheInvalidOne()
     {
         var dateTimeOffset = DateTimeOffset.Now;

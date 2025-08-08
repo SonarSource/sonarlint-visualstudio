@@ -25,14 +25,16 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using SonarLint.VisualStudio.Integration.CSharpVB.Install;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 using SonarLint.VisualStudio.Integration.Vsix.Events;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.SLCore;
+using SonarLint.VisualStudio.SLCore.Analysis;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -65,10 +67,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public const string CommandSetGuidString = "1F83EA11-3B07-45B3-BF39-307FD4F42194";
 
         private ILogger logger;
-        private IVCXCompilationDatabaseStorage vcxCompilationDatabaseStorage;
+        private IActiveCompilationDatabaseTracker activeCompilationDatabaseTracker;
         private ISolutionRoslynAnalyzerManager solutionRoslynAnalyzerManager;
         private IProjectDocumentsEventsListener projectDocumentsEventsListener;
         private ISLCoreHandler slCoreHandler;
+        private IDocumentEventsHandler documentEventsHandler;
+        private ISlCoreUserAnalysisPropertiesSynchronizer slCoreUserAnalysisPropertiesSynchronizer;
+        private IAnalysisConfigMonitor analysisConfigMonitor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -100,9 +105,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 await MuteIssueCommand.InitializeAsync(this, logger);
                 await DisableRuleCommand.InitializeAsync(this, logger);
-                await CFamilyReproducerCommand.InitializeAsync(this, logger);
 
-                vcxCompilationDatabaseStorage = await this.GetMefServiceAsync<IVCXCompilationDatabaseStorage>();
+                activeCompilationDatabaseTracker = await this.GetMefServiceAsync<IActiveCompilationDatabaseTracker>();
+                await activeCompilationDatabaseTracker.InitializationProcessor.InitializeAsync();
+
+                slCoreUserAnalysisPropertiesSynchronizer = await this.GetMefServiceAsync<ISlCoreUserAnalysisPropertiesSynchronizer>();
+                await slCoreUserAnalysisPropertiesSynchronizer.InitializationProcessor.InitializeAsync();
+
+                analysisConfigMonitor = await this.GetMefServiceAsync<IAnalysisConfigMonitor>();
+                await analysisConfigMonitor.InitializationProcessor.InitializeAsync();
+
+                documentEventsHandler = await this.GetMefServiceAsync<IDocumentEventsHandler>();
 
                 projectDocumentsEventsListener = await this.GetMefServiceAsync<IProjectDocumentsEventsListener>();
                 projectDocumentsEventsListener.Initialize();
@@ -135,8 +148,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (disposing)
             {
-                vcxCompilationDatabaseStorage?.Dispose();
-                vcxCompilationDatabaseStorage = null;
+                analysisConfigMonitor?.Dispose();
+                analysisConfigMonitor = null;
+
+                slCoreUserAnalysisPropertiesSynchronizer?.Dispose();
+                slCoreUserAnalysisPropertiesSynchronizer = null;
+                activeCompilationDatabaseTracker?.Dispose();
+                activeCompilationDatabaseTracker = null;
+
+                documentEventsHandler?.Dispose();
+                documentEventsHandler = null;
+
                 projectDocumentsEventsListener?.Dispose();
                 projectDocumentsEventsListener = null;
                 solutionRoslynAnalyzerManager?.Dispose();

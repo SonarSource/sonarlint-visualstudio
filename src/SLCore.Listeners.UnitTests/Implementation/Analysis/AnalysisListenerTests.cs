@@ -36,7 +36,6 @@ public class AnalysisListenerTests
     {
         MefTestHelpers.CheckTypeCanBeImported<AnalysisListener, ISLCoreListener>(
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
-            MefTestHelpers.CreateExport<IAnalysisRequester>(),
             MefTestHelpers.CreateExport<IRaisedFindingProcessor>(),
             MefTestHelpers.CreateExport<IIssuePublisher>(),
             MefTestHelpers.CreateExport<IHotspotPublisher>(),
@@ -70,17 +69,12 @@ public class AnalysisListenerTests
     {
         var activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
         activeConfigScopeTracker.TryUpdateAnalysisReadinessOnCurrentConfigScope(Arg.Any<string>(), Arg.Any<bool>()).Returns(true);
-        var analysisRequester = Substitute.For<IAnalysisRequester>();
         var testLogger = new TestLogger();
-        var testSubject = CreateTestSubject(activeConfigScopeTracker, analysisRequester: analysisRequester, logger: testLogger);
+        var testSubject = CreateTestSubject(activeConfigScopeTracker, logger: testLogger);
 
         testSubject.DidChangeAnalysisReadiness(new DidChangeAnalysisReadinessParams(new List<string> { "id" }, isReady));
 
         activeConfigScopeTracker.Received().TryUpdateAnalysisReadinessOnCurrentConfigScope("id", isReady);
-        if (isReady)
-        {
-            analysisRequester.Received().RequestAnalysis(Arg.Is<IAnalyzerOptions>(o => o.IsOnOpen), Arg.Is<string[]>(s => !s.Any()));
-        }
 
         testLogger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.AnalysisReadinessUpdate, isReady));
     }
@@ -111,18 +105,15 @@ public class AnalysisListenerTests
         raisedFindingProcessor.Received().RaiseFinding(raiseIssueParams, hotspotPublisher);
     }
 
-    private AnalysisListener CreateTestSubject(IActiveConfigScopeTracker activeConfigScopeTracker = null,
-        IAnalysisRequester analysisRequester = null,
+    private AnalysisListener CreateTestSubject(
+        IActiveConfigScopeTracker activeConfigScopeTracker = null,
         IRaisedFindingProcessor raisedFindingProcessor = null,
         IIssuePublisher issuePublisher = null,
         IHotspotPublisher hotspotPublisher = null,
-        ILogger logger = null)
-        => new(activeConfigScopeTracker ?? Substitute.For<IActiveConfigScopeTracker>(),
-            analysisRequester ?? Substitute.For<IAnalysisRequester>(),
+        ILogger logger = null) =>
+        new(activeConfigScopeTracker ?? Substitute.For<IActiveConfigScopeTracker>(),
             raisedFindingProcessor ?? Substitute.For<IRaisedFindingProcessor>(),
             issuePublisher ?? Substitute.For<IIssuePublisher>(),
             hotspotPublisher ?? Substitute.For<IHotspotPublisher>(),
             logger ?? new TestLogger());
-
-
 }

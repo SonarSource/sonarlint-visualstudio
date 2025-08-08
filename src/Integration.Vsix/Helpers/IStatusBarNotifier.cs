@@ -20,16 +20,11 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
 {
-    internal interface IStatusBarNotifier
-    {
-        void Notify(string message, bool showSpinner);
-    }
-
     [Export(typeof(IStatusBarNotifier))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class StatusBarNotifier : IStatusBarNotifier

@@ -25,6 +25,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration.TestInfrastructure;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -76,7 +77,7 @@ public class SlCoreConnectionAdapterTests
 
         await slCoreConnectionAdapter.ValidateConnectionAsync(sonarQubeConnectionInfo, new TokenCredentialsModel("myToken".CreateSecureString()));
 
-        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatus>>>());
+        threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ResponseStatus>>>()).IgnoreAwaitForAssert();
     }
 
     [TestMethod]
@@ -486,19 +487,23 @@ public class SlCoreConnectionAdapterTests
 
         await testSubject.GenerateTokenAsync(connection.Info, CancellationToken.None);
 
+        var expectedUrl = sonarCloudConnection.ServerUri.ToString();
+        var expectedUtm = new Utm("create-edit-sqc-connection", "generate-token");
         await connectionConfigurationSlCoreService.Received(1).HelpGenerateUserTokenAsync(
-            Arg.Is<HelpGenerateUserTokenParams>(param => param.serverUrl == sonarCloudConnection.ServerUri.ToString()), Arg.Any<CancellationToken>());
+            Arg.Is<HelpGenerateUserTokenParams>(param => param.serverUrl == expectedUrl && param.utm == expectedUtm), Arg.Any<CancellationToken>());
     }
 
     [TestMethod]
-    public async Task GenerateTokenAsync_SonarQubeConnectionInfo__CallsSlCoreWithCorrectParams()
+    public async Task GenerateTokenAsync_SonarQubeConnectionInfo_CallsSlCoreWithCorrectParams()
     {
         var connection = sonarQubeConnection.ToConnection();
 
         await testSubject.GenerateTokenAsync(connection.Info, CancellationToken.None);
 
+        var expectedUrl = sonarQubeConnection.ServerUri.ToString();
+        var expectedUtm = new Utm("create-edit-sqs-connection", "generate-token");
         await connectionConfigurationSlCoreService.Received(1).HelpGenerateUserTokenAsync(
-            Arg.Is<HelpGenerateUserTokenParams>(param => param.serverUrl == sonarQubeConnection.ServerUri.ToString()), Arg.Any<CancellationToken>());
+            Arg.Is<HelpGenerateUserTokenParams>(param => param.serverUrl == expectedUrl && param.utm == expectedUtm), Arg.Any<CancellationToken>());
     }
 
     [TestMethod]
@@ -516,7 +521,7 @@ public class SlCoreConnectionAdapterTests
     [TestMethod]
     public async Task GenerateTokenAsync_ThrowsException_ReturnsFalse()
     {
-        var exception = "error";
+        const string exception = "error";
         connectionConfigurationSlCoreService
             .When(slCore => slCore.HelpGenerateUserTokenAsync(Arg.Any<HelpGenerateUserTokenParams>(), Arg.Any<CancellationToken>()))
             .Do(_ => throw new Exception(exception));

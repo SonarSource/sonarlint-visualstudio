@@ -169,10 +169,10 @@
     <value>Smart Notifications</value>
   </data>
   <data name="SonarCloudDescription" xml:space="preserve">
-    <value>A Software-as-a-Service (Saas) tool that easily integrates into the cloud DevOps platforms and extends the CI/CD workflow to systematically help developers and organizations deliver CleanCode.</value>
+    <value>A Software-as-a-Service (SaaS) tool that easily integrates into cloud DevOps platforms, extending the CI/CD workflow to systematically help you deliver good quality and secure code.</value>
   </data>
   <data name="SonarQubeDescription" xml:space="preserve">
-    <value>An open-source, self-managed tool that easily integrates into the developers' CI/CD pipeline and DevOps platform to systematically help developers and organizations deliver Clean Code.</value>
+    <value>A self-managed tool that easily integrates into your CI/CD pipelines and DevOps platforms to systematically help you deliver good quality and secure code.</value>
   </data>
   <data name="TokenLabel" xml:space="preserve">
     <value>Token</value>

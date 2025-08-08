@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-
 namespace SonarLint.VisualStudio.Core.Analysis
 {
     public interface IAnalysisRequester
@@ -33,36 +30,17 @@ namespace SonarLint.VisualStudio.Core.Analysis
         /// <summary>
         /// Called to request that analysis is performed
         /// </summary>
-        /// <param name="analyzerOptions">Any analyzer-specific options. Can be null.</param>
-        /// <param name="filePaths">List of specific files to analyze. Can be null, in which case all files will be analyzed.</param>
+        /// <param name="filePaths">List of specific files to analyze. Can be null, in which case all opened files will be analyzed.</param>
         /// <remarks>There are no guarantees about whether the analysis is performed before the method
         /// returns or not.</remarks>
-        void RequestAnalysis(IAnalyzerOptions analyzerOptions, params string[] filePaths);
+        void RequestAnalysis(params string[] filePaths);
     }
 
-    public class AnalysisRequestEventArgs : EventArgs
+    public class AnalysisRequestEventArgs(IEnumerable<string> filePaths) : EventArgs
     {
-        public AnalysisRequestEventArgs(IAnalyzerOptions analyzerOptions, IEnumerable<string> filePaths)
-        {
-            Options = analyzerOptions;
-            FilePaths = filePaths;
-        }
-
-        /// <summary>
-        /// Analyzer-specific options (optional)
-        /// </summary>
-        public IAnalyzerOptions Options { get; }
-
         /// <summary>
         /// The list of files to analyze. Null/empty = analyze all files
         /// </summary>
-        public IEnumerable<string> FilePaths { get; }
+        public IEnumerable<string> FilePaths { get; } = filePaths;
     }
-
-    public static class AnalysisRequesterExtensions
-    {
-        public static void RequestAnalysis(this IAnalysisRequester analysisRequester, params string[] filePaths)
-             => analysisRequester.RequestAnalysis(null, filePaths);
-    }
-
 }

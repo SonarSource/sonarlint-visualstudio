@@ -44,6 +44,7 @@ public class InitializeParamsTests
                 BackendCapability.FULL_SYNCHRONIZATION,
                 BackendCapability.TELEMETRY,
                 BackendCapability.MONITORING,
+                BackendCapability.ISSUE_STREAMING,
             ],
             "storageRoot",
             "workDir",
@@ -66,7 +67,8 @@ public class InitializeParamsTests
             false,
             new TelemetryClientConstantAttributesDto("TESTkey", "TESTname", "TESTversion", "TESTde", new Dictionary<string, object> { { "telemetryObj", new { field = 10 } } }),
             new TelemetryMigrationDto(true, new DateTimeOffset(2024, 07, 30, 14, 46, 28, TimeSpan.FromHours(1)), 123),
-            new LanguageSpecificRequirements(new JsTsRequirementsDto("node", "bundlePath"))
+            new LanguageSpecificRequirements(new JsTsRequirementsDto("node", "bundlePath")),
+            automaticAnalysisEnabled: true
         );
 
         const string expectedString = """
@@ -85,7 +87,8 @@ public class InitializeParamsTests
                                           "SERVER_SENT_EVENTS",
                                           "FULL_SYNCHRONIZATION",
                                           "TELEMETRY",
-                                          "MONITORING"
+                                          "MONITORING",
+                                          "ISSUE_STREAMING"
                                         ],
                                         "storageRoot": "storageRoot",
                                         "workDir": "workDir",
@@ -161,7 +164,8 @@ public class InitializeParamsTests
                                             "clientNodeJsPath": "node",
                                             "bundlePath": "bundlePath"
                                           }
-                                        }
+                                        },
+                                        "automaticAnalysisEnabled": true
                                       }
                                       """;
 

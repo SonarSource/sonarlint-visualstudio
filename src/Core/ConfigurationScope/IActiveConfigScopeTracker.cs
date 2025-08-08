@@ -30,11 +30,19 @@ public interface IActiveConfigScopeTracker : IDisposable
 
     void RemoveCurrentConfigScope();
 
-    bool TryUpdateRootOnCurrentConfigScope(string id, string root);
+    bool TryUpdateRootOnCurrentConfigScope(string id, string root, string commandsBaseDir);
 
     bool TryUpdateAnalysisReadinessOnCurrentConfigScope(string id, bool isReady);
 
-    event EventHandler CurrentConfigurationScopeChanged;
+    event EventHandler<ConfigurationScopeChangedEventArgs> CurrentConfigurationScopeChanged;
+}
+
+public class ConfigurationScopeChangedEventArgs(bool definitionChanged) : EventArgs
+{
+    /// <summary>
+    /// True if a new configuration scope was defined, false if the current scope was updated
+    /// </summary>
+    public bool DefinitionChanged { get; } = definitionChanged;
 }
 
 public record ConfigurationScope(
@@ -42,6 +50,7 @@ public record ConfigurationScope(
     string ConnectionId = null,
     string SonarProjectId = null,
     string RootPath = null,
+    string CommandsBaseDir = null,
     bool IsReadyForAnalysis = false)
 {
     public string Id { get; } = Id ?? throw new ArgumentNullException(nameof(Id));

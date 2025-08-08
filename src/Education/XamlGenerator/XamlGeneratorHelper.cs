@@ -18,11 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Xml;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Education.Rule;
 
@@ -126,15 +123,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 writer.WriteStartElement("WrapPanel");
                 WriteCleanCodeHeader_CleanCodeAttribute(ruleInfo);
                 WriteCleanCodeHeader_SoftwareQualities(ruleInfo);
-                WriteCleanCodeHeader_Url();
                 writer.WriteEndElement();
-                writer.WriteEndElement();
-            }
-
-            private void WriteCleanCodeHeader_Url()
-            {
-                writer.WriteStartElement("TextBlock");
-                WriteHyperLink(DocumentationLinks.CleanCode, Resources.CleanCodeHyperLink);
                 writer.WriteEndElement();
             }
 
@@ -257,16 +246,6 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 writer.WriteStartElement("Span");
                 writer.ApplyStyleToElement(style);
                 writeContent();
-                writer.WriteEndElement();
-            }
-
-            private void WriteHyperLink(string url, string text = null)
-            {
-                text = text ?? url;
-
-                writer.WriteStartElement("Hyperlink");
-                writer.WriteAttributeString("NavigateUri", url);
-                writer.WriteString(text);
                 writer.WriteEndElement();
             }
 

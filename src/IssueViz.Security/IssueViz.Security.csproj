@@ -53,12 +53,19 @@
   </ItemGroup>
   
   <ItemGroup>
+    <Page Include="DependencyRisks\DependencyRiskImpactSeverity.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Hotspots\HotspotsList\HotspotsControl.xaml">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
-    <Page Include="Hotspots\ReviewHotspot\ReviewHostpotWindow.xaml">
+    <Page Include="ReviewStatus\ChangeStatusWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ReportView\ReportViewControl.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
     <Page Include="SharedUI\SharedResources.xaml">
       <Generator>XamlIntelliSenseFileGenerator</Generator>

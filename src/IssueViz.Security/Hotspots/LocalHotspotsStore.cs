@@ -88,8 +88,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 
         public void UpdateForFile(string filePath, IEnumerable<IAnalysisIssueVisualization> hotspots)
         {
-            threadHandling.ThrowIfOnUIThread();
-
             lock (lockObject)
             {
                 List<IAnalysisIssueVisualization> oldIssueVisualizations;

@@ -23,64 +23,39 @@ using System.IO;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.CFamily.CompilationDatabase;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
-internal interface IVCXCompilationDatabaseStorage : IDisposable
+
+internal interface IVcxCompilationDatabaseStorage : IDisposable
 {
-    ICompilationDatabaseHandle CreateDatabase(
-        string file,
-        string directory,
-        string command,
-        IEnumerable<string> environment);
+    string CreateDatabase();
+    void DeleteDatabase(string databasePath);
+    void UpdateDatabaseEntry(string databasePath, CompilationDatabaseEntry updatedEntry);
+    void RemoveDatabaseEntry(string databasePath, string entryFilePath);
 }
 
-[Export(typeof(IVCXCompilationDatabaseStorage))]
+[Export(typeof(IVcxCompilationDatabaseStorage))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class VCXCompilationDatabaseStorage : IVCXCompilationDatabaseStorage
+[method: ImportingConstructor]
+internal sealed class VcxCompilationDatabaseStorage(IFileSystemService fileSystemService, ILogger logger) : IVcxCompilationDatabaseStorage
 {
     private readonly string compilationDatabaseDirectoryPath = PathHelper.GetTempDirForTask(true, "VCXCD");
-    private readonly IFileSystemService fileSystemService;
-    private readonly IThreadHandling threadHandling;
-    private readonly ILogger logger;
     private bool disposed;
 
-    [ImportingConstructor]
-    public VCXCompilationDatabaseStorage(IFileSystemService fileSystemService, IThreadHandling threadHandling, ILogger logger)
-    {
-        this.fileSystemService = fileSystemService;
-        this.threadHandling = threadHandling;
-        this.logger = logger;
-        }
-
-    public ICompilationDatabaseHandle CreateDatabase(
-        string file,
-        string directory,
-        string command,
-        IEnumerable<string> environment)
+    public string CreateDatabase()
     {
         ThrowIfDisposed();
-        threadHandling.ThrowIfOnUIThread();
-
-        var compilationDatabaseEntry = new CompilationDatabaseEntry
-        {
-            Directory = directory,
-            Command = command,
-            File = file,
-            Environment = environment
-        };
-        var compilationDatabase = new[] { compilationDatabaseEntry };
 
         var compilationDatabaseFullPath = GetCompilationDatabaseFullPath();
 
         try
         {
             fileSystemService.Directory.CreateDirectory(compilationDatabaseDirectoryPath);
-            fileSystemService.File.WriteAllText(compilationDatabaseFullPath, JsonConvert.SerializeObject(compilationDatabase));
-            return new TemporaryCompilationDatabaseHandle(compilationDatabaseFullPath, fileSystemService.File, logger);
+            WriteDatabaseContents(compilationDatabaseFullPath, []);
+            return compilationDatabaseFullPath;
         }
         catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
         {
@@ -89,11 +64,76 @@ internal sealed class VCXCompilationDatabaseStorage : IVCXCompilationDatabaseSto
         }
     }
 
+    public void DeleteDatabase(string databasePath)
+    {
+        ThrowIfDisposed();
+
+        try
+        {
+            fileSystemService.File.Delete(databasePath);
+        }
+        catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
+        {
+            logger.LogVerbose(e.ToString());
+        }
+    }
+
+    public void UpdateDatabaseEntry(string databasePath, CompilationDatabaseEntry updatedEntry)
+    {
+        ThrowIfDisposed();
+
+        try
+        {
+            var entries = JsonConvert.DeserializeObject<List<CompilationDatabaseEntry>>(fileSystemService.File.ReadAllText(databasePath));
+            AddOrReplaceEntry(updatedEntry, entries);
+            WriteDatabaseContents(databasePath, entries);
+        }
+        catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
+        {
+            logger.LogVerbose(e.ToString());
+        }
+    }
+
+    public void RemoveDatabaseEntry(string databasePath, string entryFilePath)
+    {
+        ThrowIfDisposed();
+
+        try
+        {
+            var entries = JsonConvert.DeserializeObject<List<CompilationDatabaseEntry>>(fileSystemService.File.ReadAllText(databasePath));
+            var removedCount = entries.RemoveAll(x => x.File == entryFilePath);
+            if (removedCount > 0)
+            {
+                WriteDatabaseContents(databasePath, entries);
+            }
+        }
+        catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
+        {
+            logger.LogVerbose(e.ToString());
+        }
+    }
+
+    private static void AddOrReplaceEntry(CompilationDatabaseEntry updatedEntry, List<CompilationDatabaseEntry> entries)
+    {
+        var existingEntryLocation = entries.FindIndex(x => x.File == updatedEntry.File);
+        if (existingEntryLocation == -1)
+        {
+            entries.Add(updatedEntry);
+        }
+        else
+        {
+            entries[existingEntryLocation] = updatedEntry;
+        }
+    }
+
+    private void WriteDatabaseContents(string databasePath, List<CompilationDatabaseEntry> entries) =>
+        fileSystemService.File.WriteAllText(databasePath, JsonConvert.SerializeObject(entries));
+
     private void ThrowIfDisposed()
     {
         if (disposed)
         {
-            throw new ObjectDisposedException(nameof(VCXCompilationDatabaseStorage));
+            throw new ObjectDisposedException(nameof(VcxCompilationDatabaseStorage));
         }
     }
 

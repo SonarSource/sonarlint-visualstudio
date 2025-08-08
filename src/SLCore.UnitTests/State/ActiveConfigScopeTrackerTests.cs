@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Synchronization;
@@ -40,7 +39,8 @@ public class ActiveConfigScopeTrackerTests
     private ISLCoreServiceProvider serviceProvider;
     private IAsyncLockFactory asyncLockFactory;
     private IThreadHandling threadHandling;
-    private EventHandler currentConfigScopeChangedEventHandler;
+    private TestLogger logger;
+    private EventHandler<ConfigurationScopeChangedEventArgs> currentConfigScopeChangedEventHandler;
 
     [TestInitialize]
     public void TestInitialize()
@@ -53,9 +53,9 @@ public class ActiveConfigScopeTrackerTests
         threadHandling = Substitute.For<IThreadHandling>();
         ConfigureServiceProvider(isServiceAvailable:true);
         ConfigureAsyncLockFactory();
-        currentConfigScopeChangedEventHandler = Substitute.For<EventHandler>();
-
-        testSubject = new ActiveConfigScopeTracker(serviceProvider, asyncLockFactory, threadHandling);
+        currentConfigScopeChangedEventHandler = Substitute.For<EventHandler<ConfigurationScopeChangedEventArgs>>();
+        logger = Substitute.ForPartsOf<TestLogger>();
+        testSubject = new ActiveConfigScopeTracker(serviceProvider, asyncLockFactory, threadHandling, logger);
         testSubject.CurrentConfigurationScopeChanged += currentConfigScopeChangedEventHandler;
     }
 
@@ -65,7 +65,8 @@ public class ActiveConfigScopeTrackerTests
         MefTestHelpers.CheckTypeCanBeImported<ActiveConfigScopeTracker, IActiveConfigScopeTracker>(
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
             MefTestHelpers.CreateExport<IAsyncLockFactory>(),
-            MefTestHelpers.CreateExport<IThreadHandling>());
+            MefTestHelpers.CreateExport<IThreadHandling>(),
+            MefTestHelpers.CreateExport<ILogger>());
     }
 
     [TestMethod]
@@ -75,17 +76,22 @@ public class ActiveConfigScopeTrackerTests
     }
 
     [TestMethod]
+    public void Ctor_InitializesLogContexts() =>
+        logger.Received(1).ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.ConfigurationScope_LogContext);
+
+    [TestMethod]
     public void SetCurrentConfigScope_SetsUnboundScope()
     {
         const string configScopeId = "myid";
 
         testSubject.SetCurrentConfigScope(configScopeId);
 
-        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId));
+        testSubject.CurrentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId));
         VerifyThreadHandling();
         VerifyServiceAddCall();
         VerifyLockTakenSynchronouslyAndReleased();
-        VerifyCurrentConfigurationScopeChangedRaised();
+        VerifyCurrentConfigurationScopeChangedRaised(true);
+        logger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ConfigScope_Declared, configScopeId));
     }
 
     [TestMethod]
@@ -95,13 +101,16 @@ public class ActiveConfigScopeTrackerTests
         const string connectionId = "connectionid";
         const string sonarProjectKey = "projectkey";
         const bool isReady = true;
-        testSubject.currentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, IsReadyForAnalysis: isReady);
+        testSubject.CurrentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, IsReadyForAnalysis: isReady);
+        const string root = "some root";
+        const string baseDir = "some base dir";
 
-        var result = testSubject.TryUpdateRootOnCurrentConfigScope(configScopeId, "some root");
+        var result = testSubject.TryUpdateRootOnCurrentConfigScope(configScopeId, root, baseDir);
 
         result.Should().BeTrue();
-        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, "some root", isReady));
-        VerifyCurrentConfigurationScopeChangedRaised();
+        testSubject.CurrentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root, baseDir, isReady));
+        VerifyCurrentConfigurationScopeChangedRaised(false);
+        logger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ConfigScope_UpdatedFileSystem, configScopeId, root, baseDir));
     }
 
     [TestMethod]
@@ -111,12 +120,12 @@ public class ActiveConfigScopeTrackerTests
         const string connectionId = "connectionid";
         const string sonarProjectKey = "projectkey";
         const bool isReady = true;
-        testSubject.currentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, IsReadyForAnalysis: isReady);
+        testSubject.CurrentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, IsReadyForAnalysis: isReady);
 
-        var result = testSubject.TryUpdateRootOnCurrentConfigScope("some other id", "some root");
+        var result = testSubject.TryUpdateRootOnCurrentConfigScope("some other id", "some root", "some base dir");
 
         result.Should().BeFalse();
-        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, IsReadyForAnalysis: isReady));
+        testSubject.CurrentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, IsReadyForAnalysis: isReady));
         VerifyCurrentConfigurationScopeChangedNotRaised();
     }
 
@@ -127,13 +136,15 @@ public class ActiveConfigScopeTrackerTests
         const string connectionId = "connectionid";
         const string sonarProjectKey = "projectkey";
         const string root = "root";
-        testSubject.currentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root);
+        const string baseDir = "basedir";
+        testSubject.CurrentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root, baseDir);
 
         var result = testSubject.TryUpdateAnalysisReadinessOnCurrentConfigScope(configScopeId, true);
 
         result.Should().BeTrue();
-        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root, true));
-        VerifyCurrentConfigurationScopeChangedRaised();
+        testSubject.CurrentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root, baseDir, true));
+        VerifyCurrentConfigurationScopeChangedRaised(false);
+        logger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ConfigScope_UpdatedAnalysisReadiness, configScopeId, true));
     }
 
     [TestMethod]
@@ -143,12 +154,12 @@ public class ActiveConfigScopeTrackerTests
         const string connectionId = "connectionid";
         const string sonarProjectKey = "projectkey";
         const string root = "root";
-        testSubject.currentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root);
+        testSubject.CurrentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root);
 
         var result = testSubject.TryUpdateAnalysisReadinessOnCurrentConfigScope("some other id", true);
 
         result.Should().BeFalse();
-        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root));
+        testSubject.CurrentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root));
         VerifyCurrentConfigurationScopeChangedNotRaised();
     }
 
@@ -161,11 +172,13 @@ public class ActiveConfigScopeTrackerTests
 
         testSubject.SetCurrentConfigScope(configScopeId, connectionId, sonarProjectKey);
 
-        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey));
+        testSubject.CurrentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey));
         VerifyThreadHandling();
         VerifyServiceAddCall();
         VerifyLockTakenSynchronouslyAndReleased();
-        VerifyCurrentConfigurationScopeChangedRaised();
+        VerifyCurrentConfigurationScopeChangedRaised(true);
+        logger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ConfigScope_Declared, configScopeId));
+
     }
 
     [TestMethod]
@@ -176,16 +189,17 @@ public class ActiveConfigScopeTrackerTests
         const string sonarProjectKey = "projectkey";
         const string rootPath = "somepath";
         var existingConfigScope = new ConfigurationScope(configScopeId, RootPath: rootPath);
-        testSubject.currentConfigScope = existingConfigScope;
+        testSubject.CurrentConfigScope = existingConfigScope;
 
         testSubject.SetCurrentConfigScope(configScopeId, connectionId, sonarProjectKey);
 
-        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, rootPath));
-        testSubject.currentConfigScope.Should().NotBeSameAs(existingConfigScope);
+        testSubject.CurrentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, rootPath));
+        testSubject.CurrentConfigScope.Should().NotBeSameAs(existingConfigScope);
         VerifyThreadHandling();
         VerifyServiceUpdateCall();
         VerifyLockTakenSynchronouslyAndReleased();
-        VerifyCurrentConfigurationScopeChangedRaised();
+        VerifyCurrentConfigurationScopeChangedRaised(false);
+        logger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ConfigScope_UpdatedBinding, configScopeId));
     }
 
     [TestMethod]
@@ -206,7 +220,7 @@ public class ActiveConfigScopeTrackerTests
         const string configScopeId = "myid";
         const string anotherConfigScopeId = "anotherid";
         var existingConfigScope = new ConfigurationScope(configScopeId);
-        testSubject.currentConfigScope = existingConfigScope;
+        testSubject.CurrentConfigScope = existingConfigScope;
 
         var act = () => testSubject.SetCurrentConfigScope(anotherConfigScopeId);
 
@@ -219,14 +233,15 @@ public class ActiveConfigScopeTrackerTests
     public void RemoveCurrentConfigScope_RemovesScope()
     {
         const string configScopeId = "myid";
-        testSubject.currentConfigScope = new ConfigurationScope(configScopeId);
+        testSubject.CurrentConfigScope = new ConfigurationScope(configScopeId);
 
         testSubject.RemoveCurrentConfigScope();
 
         configScopeService.Received().DidRemoveConfigurationScope(Arg.Is<DidRemoveConfigurationScopeParams>(p => p.removedId == configScopeId));
         VerifyThreadHandling();
         VerifyLockTakenSynchronouslyAndReleased();
-        VerifyCurrentConfigurationScopeChangedRaised();
+        VerifyCurrentConfigurationScopeChangedRaised(true);
+        logger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ConfigScope_Removed, configScopeId));
     }
 
     [TestMethod]
@@ -243,7 +258,7 @@ public class ActiveConfigScopeTrackerTests
     [TestMethod]
     public void RemoveCurrentConfigScope_ServiceUnavailable_Throws()
     {
-        testSubject.currentConfigScope = new ConfigurationScope("some Id", default, default, default);
+        testSubject.CurrentConfigScope = new ConfigurationScope("some Id", default, default, default);
         ConfigureServiceProvider(isServiceAvailable: false);
 
         var act = () => testSubject.RemoveCurrentConfigScope();
@@ -257,7 +272,7 @@ public class ActiveConfigScopeTrackerTests
     public void GetCurrent_ReturnsUnboundScope()
     {
         const string configScopeId = "myid";
-        testSubject.currentConfigScope = new ConfigurationScope(configScopeId);
+        testSubject.CurrentConfigScope = new ConfigurationScope(configScopeId);
 
         var currentScope = testSubject.Current;
 
@@ -272,7 +287,7 @@ public class ActiveConfigScopeTrackerTests
         const string configScopeId = "myid";
         const string connectionId = "myconid";
         const string sonarProjectKey = "projectkey";
-        testSubject.currentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey);
+        testSubject.CurrentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey);
 
         var currentScope = testSubject.Current;
 
@@ -288,15 +303,16 @@ public class ActiveConfigScopeTrackerTests
         const string configScopeId = "myid";
         const string connectionId = "myconid";
         const string sonarProjectKey = "projectkey";
-        testSubject.currentConfigScope = new ConfigurationScope(configScopeId, configScopeId, connectionId, sonarProjectKey);
+        testSubject.CurrentConfigScope = new ConfigurationScope(configScopeId, configScopeId, connectionId, sonarProjectKey);
 
         testSubject.Reset();
 
-        testSubject.currentConfigScope.Should().BeNull();
+        testSubject.CurrentConfigScope.Should().BeNull();
         serviceProvider.ReceivedCalls().Count().Should().Be(0);
         VerifyThreadHandling();
         VerifyLockTakenSynchronouslyAndReleased();
-        VerifyCurrentConfigurationScopeChangedRaised();
+        VerifyCurrentConfigurationScopeChangedRaised(true);
+        logger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ConfigScope_Reset));
     }
 
     [TestMethod]
@@ -315,10 +331,10 @@ public class ActiveConfigScopeTrackerTests
 
     private void VerifyServiceAddCall()
     {
-        var currentConfigScopeDto = new ConfigurationScopeDto(testSubject.currentConfigScope.Id,
-            testSubject.currentConfigScope.Id,
+        var currentConfigScopeDto = new ConfigurationScopeDto(testSubject.CurrentConfigScope.Id,
+            testSubject.CurrentConfigScope.Id,
             true,
-            testSubject.currentConfigScope.ConnectionId is not null ? new BindingConfigurationDto(testSubject.currentConfigScope.ConnectionId, testSubject.currentConfigScope.SonarProjectId) : null);
+            testSubject.CurrentConfigScope.ConnectionId is not null ? new BindingConfigurationDto(testSubject.CurrentConfigScope.ConnectionId, testSubject.CurrentConfigScope.SonarProjectId) : null);
         configScopeService.Received(1).DidAddConfigurationScopes(Arg.Is<DidAddConfigurationScopesParams>(p =>
                         p.addedScopes.SequenceEqual(new[] { currentConfigScopeDto }, new ConfigurationScopeDtoComparer())));
         configScopeService.ReceivedCalls().Count().Should().Be(1);
@@ -327,7 +343,7 @@ public class ActiveConfigScopeTrackerTests
     private void VerifyServiceUpdateCall()
     {
         configScopeService.Received(1).DidUpdateBinding(Arg.Is<DidUpdateBindingParams>(p =>
-                p.configScopeId == testSubject.currentConfigScope.Id && new BindingConfigurationDtoComparer().Equals(p.updatedBinding, new BindingConfigurationDto(testSubject.currentConfigScope.ConnectionId, testSubject.currentConfigScope.SonarProjectId, true))));
+                p.configScopeId == testSubject.CurrentConfigScope.Id && new BindingConfigurationDtoComparer().Equals(p.updatedBinding, new BindingConfigurationDto(testSubject.CurrentConfigScope.ConnectionId, testSubject.CurrentConfigScope.SonarProjectId, true))));
         configScopeService.ReceivedCalls().Count().Should().Be(1);
     }
 
@@ -353,14 +369,14 @@ public class ActiveConfigScopeTrackerTests
         });
     }
 
-    private void VerifyCurrentConfigurationScopeChangedRaised()
+    private void VerifyCurrentConfigurationScopeChangedRaised(bool definitionChanged)
     {
-        currentConfigScopeChangedEventHandler.Received(1).Invoke(testSubject, Arg.Any<EventArgs>());
+        currentConfigScopeChangedEventHandler.Received(1).Invoke(testSubject, Arg.Is<ConfigurationScopeChangedEventArgs>(x => x.DefinitionChanged == definitionChanged));
     }
 
     private void VerifyCurrentConfigurationScopeChangedNotRaised()
     {
-        currentConfigScopeChangedEventHandler.DidNotReceive().Invoke(testSubject, Arg.Any<EventArgs>());
+        currentConfigScopeChangedEventHandler.DidNotReceive().Invoke(testSubject, Arg.Any<ConfigurationScopeChangedEventArgs>());
     }
 
     private class ConfigurationScopeDtoComparer : IEqualityComparer<ConfigurationScopeDto>

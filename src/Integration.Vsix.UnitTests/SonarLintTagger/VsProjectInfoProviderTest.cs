@@ -68,30 +68,30 @@ public class VsProjectInfoProviderTest
     }
 
     [TestMethod]
-    public async Task GetDocumentProjectInfoAsync_RunsOnUIThread()
+    public void GetDocumentProjectInfoAsync_RunsOnUIThread()
     {
         var dte = SetUpCorrectDte(ProjectName);
         var vsSolution = SetUpProjectGuid(ProjectName, ProjectGuid);
         var testSubject = CreateTestSubject(vsSolution, dte);
 
-        await testSubject.GetDocumentProjectInfoAsync(FilePath);
+        testSubject.GetDocumentProjectInfo(FilePath);
 
         Received.InOrder(() =>
         {
-            threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
+            threadHandling.RunOnUIThread(Arg.Any<Action>());
             _ = dte.Solution;
             vsSolution.GetGuidOfProjectFile(Arg.Any<string>());
         });
     }
 
     [TestMethod]
-    public async Task GetDocumentProjectInfoAsync_NoProjectItem_ReturnsNone()
+    public void GetDocumentProjectInfoAsync_NoProjectItem_ReturnsNone()
     {
         var dte = SetUpDte(SetUpSolution(null));
         var vsSolution = Substitute.For<IVsSolution5>();
         var testSubject = CreateTestSubject(vsSolution, dte);
 
-        var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
+        var result = testSubject.GetDocumentProjectInfo(FilePath);
 
         result.Should().BeEquivalentTo(("{none}", Guid.Empty));
         logger.AssertNoOutputMessages();
@@ -99,13 +99,13 @@ public class VsProjectInfoProviderTest
     }
 
     [TestMethod]
-    public async Task GetDocumentProjectInfoAsync_NoProject_ReturnsNone()
+    public void GetDocumentProjectInfoAsync_NoProject_ReturnsNone()
     {
         var dte = SetUpDte(SetUpSolution(SetUpProjectItem(null)));
         var vsSolution = Substitute.For<IVsSolution5>();
         var testSubject = CreateTestSubject(vsSolution, dte);
 
-        var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
+        var result = testSubject.GetDocumentProjectInfo(FilePath);
 
         result.Should().BeEquivalentTo(("{none}", Guid.Empty));
         logger.AssertNoOutputMessages();
@@ -113,7 +113,7 @@ public class VsProjectInfoProviderTest
     }
 
     [TestMethod]
-    public async Task GetDocumentProjectInfoAsync_NoProjectNameAndGuid_ReturnsNone()
+    public void GetDocumentProjectInfoAsync_NoProjectNameAndGuid_ReturnsNone()
     {
         var project = Substitute.For<Project>();
         project.Name.Returns((string)null);
@@ -122,7 +122,7 @@ public class VsProjectInfoProviderTest
         var vsSolution = Substitute.For<IVsSolution5>();
         var testSubject = CreateTestSubject(vsSolution, dte);
 
-        var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
+        var result = testSubject.GetDocumentProjectInfo(FilePath);
 
         result.Should().BeEquivalentTo(("{none}", Guid.Empty));
         logger.AssertNoOutputMessages();
@@ -130,7 +130,7 @@ public class VsProjectInfoProviderTest
     }
 
     [TestMethod]
-    public async Task GetDocumentProjectInfoAsync_NoProjectNameAndGuid_ReturnsNoneWithGuid()
+    public void GetDocumentProjectInfoAsync_NoProjectNameAndGuid_ReturnsNoneWithGuid()
     {
         var project = Substitute.For<Project>();
         project.Name.Returns((string)null);
@@ -139,14 +139,14 @@ public class VsProjectInfoProviderTest
         var vsSolution = SetUpProjectGuid("someprojectfile", ProjectGuid);
         var testSubject = CreateTestSubject(vsSolution, dte);
 
-        var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
+        var result = testSubject.GetDocumentProjectInfo(FilePath);
 
         result.Should().BeEquivalentTo(("{none}", ProjectGuid));
         logger.AssertNoOutputMessages();
     }
 
     [TestMethod]
-    public async Task GetDocumentProjectInfoAsync_NoProjectFile_ReturnsNameOnly()
+    public void GetDocumentProjectInfoAsync_NoProjectFile_ReturnsNameOnly()
     {
         var project = Substitute.For<Project>();
         project.Name.Returns(ProjectName);
@@ -155,7 +155,7 @@ public class VsProjectInfoProviderTest
         var vsSolution = Substitute.For<IVsSolution5>();
         var testSubject = CreateTestSubject(vsSolution, dte);
 
-        var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
+        var result = testSubject.GetDocumentProjectInfo(FilePath);
 
         result.Should().BeEquivalentTo((ProjectName, Guid.Empty));
         logger.AssertNoOutputMessages();
@@ -163,20 +163,20 @@ public class VsProjectInfoProviderTest
     }
 
     [TestMethod]
-    public async Task GetDocumentProjectInfoAsync_CorrectProject_ReturnsNameAndGuid()
+    public void GetDocumentProjectInfoAsync_CorrectProject_ReturnsNameAndGuid()
     {
         var dte = SetUpCorrectDte(ProjectName);
         var vsSolution = SetUpProjectGuid(ProjectName, ProjectGuid);
         var testSubject = CreateTestSubject(vsSolution, dte);
 
-        var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
+        var result = testSubject.GetDocumentProjectInfo(FilePath);
 
         result.Should().BeEquivalentTo((ProjectName, ProjectGuid));
         logger.AssertNoOutputMessages();
     }
 
     [TestMethod]
-    public async Task GetDocumentProjectInfoAsync_ProjectGuidThrows_NonCriticalException_Logs()
+    public void GetDocumentProjectInfoAsync_ProjectGuidThrows_NonCriticalException_Logs()
     {
         var dte = SetUpCorrectDte(ProjectName);
         var vsSolution = Substitute.For<IVsSolution5>();
@@ -185,14 +185,14 @@ public class VsProjectInfoProviderTest
             .ThrowsForAnyArgs(new InvalidOperationException());
         var testSubject = CreateTestSubject(vsSolution, dte);
 
-        var act = async () => await testSubject.GetDocumentProjectInfoAsync(FilePath);
+        var act = () => testSubject.GetDocumentProjectInfo(FilePath);
 
-        await act.Should().NotThrowAsync();
+        act.Should().NotThrow();
         logger.AssertPartialOutputStringExists("Failed to calculate project guid of file");
     }
 
     [TestMethod]
-    public async Task GetDocumentProjectInfoAsync_ProjectGuidThrows_CriticalException_DoesNotCatch()
+    public void GetDocumentProjectInfoAsync_ProjectGuidThrows_CriticalException_DoesNotCatch()
     {
         var dte = SetUpCorrectDte(ProjectName);
         var vsSolution = Substitute.For<IVsSolution5>();
@@ -201,9 +201,9 @@ public class VsProjectInfoProviderTest
             .ThrowsForAnyArgs(new DivideByZeroException());
         var testSubject = CreateTestSubject(vsSolution, dte);
 
-        var act = async () => await testSubject.GetDocumentProjectInfoAsync(FilePath);
+        var act = () => testSubject.GetDocumentProjectInfo(FilePath);
 
-        await act.Should().ThrowAsync<DivideByZeroException>();
+        act.Should().Throw<DivideByZeroException>();
     }
 
     private IVsProjectInfoProvider CreateTestSubject(

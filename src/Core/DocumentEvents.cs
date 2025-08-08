@@ -18,31 +18,48 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.Core
+namespace SonarLint.VisualStudio.Core;
+
+public class DocumentEventArgs(Document document) : EventArgs
 {
-    public class DocumentClosedEventArgs : EventArgs
-    {
-        /// <summary>
-        /// Full file path to the document being closed
-        /// </summary>
-        public string FullPath { get; }
+    public Document Document { get; } = document;
+}
 
-        public DocumentClosedEventArgs(string fullPath)
-        {
-            FullPath = fullPath;
-        }
-    }
+public class DocumentSavedEventArgs(Document document, string newContent) : DocumentEventArgs(document)
+{
+    public string NewContent { get; } = newContent;
+}
 
+public class DocumentOpenedEventArgs(Document document, string content) : DocumentEventArgs(document)
+{
+    public string Content { get; } = content;
+}
+
+public class DocumentRenamedEventArgs(Document document, string oldFilePath) : DocumentEventArgs(document)
+{
+    public string OldFilePath { get; } = oldFilePath;
+}
+
+public class Document(string fullPath, IEnumerable<AnalysisLanguage> detectedLanguages)
+{
+    public string FullPath { get; } = fullPath;
+    public IEnumerable<AnalysisLanguage> DetectedLanguages { get; } = detectedLanguages;
+}
+
+/// <summary>
+/// Keeps track of open documents
+/// </summary>
+public interface IDocumentTracker
+{
+    event EventHandler<DocumentEventArgs> DocumentClosed;
+    event EventHandler<DocumentOpenedEventArgs> DocumentOpened;
+    event EventHandler<DocumentSavedEventArgs> DocumentSaved;
     /// <summary>
-    /// Raises notifications about document events
+    /// Raised when an opened document is renamed
     /// </summary>
-    public interface IDocumentEvents
-    {
-        /// <summary>
-        /// Notification that a document has closed
-        /// </summary>
-        event EventHandler<DocumentClosedEventArgs> DocumentClosed;
-    }
+    event EventHandler<DocumentRenamedEventArgs> OpenDocumentRenamed;
+
+    Document[] GetOpenDocuments();
 }

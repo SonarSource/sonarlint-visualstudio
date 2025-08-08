@@ -27,7 +27,12 @@ namespace SonarLint.VisualStudio.SLCore.Service.Analysis;
 public interface IAnalysisSLCoreService : ISLCoreService
 {
     /// <summary>
-    /// Analyze and track issues in the provided files.
+    /// Analyze all files in the provided list. User file exclusions and .gitignore will be respected.
     /// </summary>
-    Task<AnalyzeFilesResponse> AnalyzeFilesAndTrackAsync(AnalyzeFilesAndTrackParams parameters, CancellationToken token);
+    Task<ForceAnalyzeResponse> AnalyzeFileListAsync(AnalyzeFileListParams parameters);
+
+    /// <summary>
+    /// Analyze all files that were reported by the client as opened. User file exclusions and .gitignore will be respected.
+    /// </summary>
+    Task<ForceAnalyzeResponse> AnalyzeOpenFilesAsync(AnalyzeOpenFilesParams parameters);
 }

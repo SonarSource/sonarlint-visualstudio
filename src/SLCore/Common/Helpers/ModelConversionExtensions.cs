@@ -23,6 +23,14 @@ using SonarLint.VisualStudio.SLCore.Common.Models;
 using SoftwareQuality = SonarLint.VisualStudio.Core.Analysis.SoftwareQuality;
 using CleanCodeAttribute = SonarLint.VisualStudio.Core.Analysis.CleanCodeAttribute;
 using CoreHotspotStatus = SonarLint.VisualStudio.Core.Analysis.HotspotStatus;
+using SlCoreDependencyRiskSeverity = SonarLint.VisualStudio.SLCore.Common.Models.DependencyRiskSeverity;
+using CoreDependencyRiskSeverity = SonarLint.VisualStudio.Core.Analysis.DependencyRiskImpactSeverity;
+using SlCoreDependencyRiskStatus = SonarLint.VisualStudio.SLCore.Common.Models.DependencyRiskStatus;
+using CoreDependencyRiskStatus = SonarLint.VisualStudio.Core.Analysis.DependencyRiskStatus;
+using SlCoreDependencyRiskTransition = SonarLint.VisualStudio.SLCore.Common.Models.DependencyRiskTransition;
+using CoreDependencyRiskTransition = SonarLint.VisualStudio.Core.Analysis.DependencyRiskTransition;
+using SlCoreDependencyRiskType = SonarLint.VisualStudio.SLCore.Common.Models.DependencyRiskType;
+using CoreDependencyRiskType = SonarLint.VisualStudio.Core.Analysis.DependencyRiskType;
 using SlCoreHotspotStatus = SonarLint.VisualStudio.SLCore.Common.Models.HotspotStatus;
 
 namespace SonarLint.VisualStudio.SLCore.Common.Helpers;
@@ -111,5 +119,57 @@ public static class ModelConversionExtensions
             SlCoreHotspotStatus.FIXED => CoreHotspotStatus.Fixed,
             SlCoreHotspotStatus.SAFE => CoreHotspotStatus.Safe,
             _ => throw new ArgumentOutOfRangeException(nameof(hotspotStatus), hotspotStatus, SLCoreStrings.ModelExtensions_UnexpectedValue)
+        };
+
+    public static CoreDependencyRiskStatus ToDependencyRiskStatus(this SlCoreDependencyRiskStatus dependencyRiskStatus) =>
+        dependencyRiskStatus switch
+        {
+            SlCoreDependencyRiskStatus.FIXED => CoreDependencyRiskStatus.Fixed,
+            SlCoreDependencyRiskStatus.OPEN => CoreDependencyRiskStatus.Open,
+            SlCoreDependencyRiskStatus.CONFIRM => CoreDependencyRiskStatus.Confirmed,
+            SlCoreDependencyRiskStatus.ACCEPT => CoreDependencyRiskStatus.Accepted,
+            SlCoreDependencyRiskStatus.SAFE => CoreDependencyRiskStatus.Safe,
+            _ => throw new ArgumentOutOfRangeException(nameof(dependencyRiskStatus), dependencyRiskStatus, SLCoreStrings.ModelExtensions_UnexpectedValue)
+        };
+
+    public static CoreDependencyRiskType ToDependencyRiskType(this SlCoreDependencyRiskType dependencyRiskType) =>
+        dependencyRiskType switch
+        {
+            SlCoreDependencyRiskType.VULNERABILITY => CoreDependencyRiskType.Vulnerability,
+            SlCoreDependencyRiskType.PROHIBITED_LICENSE => CoreDependencyRiskType.ProhibitedLicense,
+            _ => throw new ArgumentOutOfRangeException(nameof(dependencyRiskType), dependencyRiskType, SLCoreStrings.ModelExtensions_UnexpectedValue)
+        };
+
+    public static CoreDependencyRiskSeverity ToDependencyRiskSeverity(this SlCoreDependencyRiskSeverity dependencyRiskSeverity) =>
+        dependencyRiskSeverity switch
+        {
+            SlCoreDependencyRiskSeverity.INFO => CoreDependencyRiskSeverity.Info,
+            SlCoreDependencyRiskSeverity.LOW => CoreDependencyRiskSeverity.Low,
+            SlCoreDependencyRiskSeverity.MEDIUM => CoreDependencyRiskSeverity.Medium,
+            SlCoreDependencyRiskSeverity.HIGH => CoreDependencyRiskSeverity.High,
+            SlCoreDependencyRiskSeverity.BLOCKER => CoreDependencyRiskSeverity.Blocker,
+            _ => throw new ArgumentOutOfRangeException(nameof(dependencyRiskSeverity), dependencyRiskSeverity, SLCoreStrings.ModelExtensions_UnexpectedValue)
+        };
+
+    public static CoreDependencyRiskTransition ToDependencyRiskTransition(this SlCoreDependencyRiskTransition dependencyRiskTransition) =>
+        dependencyRiskTransition switch
+        {
+            SlCoreDependencyRiskTransition.CONFIRM => CoreDependencyRiskTransition.Confirm,
+            SlCoreDependencyRiskTransition.REOPEN => CoreDependencyRiskTransition.Reopen,
+            SlCoreDependencyRiskTransition.SAFE => CoreDependencyRiskTransition.Safe,
+            SlCoreDependencyRiskTransition.FIXED => CoreDependencyRiskTransition.Fixed,
+            SlCoreDependencyRiskTransition.ACCEPT => CoreDependencyRiskTransition.Accept,
+            _ => throw new ArgumentOutOfRangeException(nameof(dependencyRiskTransition), dependencyRiskTransition, SLCoreStrings.ModelExtensions_UnexpectedValue)
+        };
+
+    public static SlCoreDependencyRiskTransition ToSlCoreDependencyRiskTransition(this CoreDependencyRiskTransition dependencyRiskTransition) =>
+        dependencyRiskTransition switch
+        {
+            CoreDependencyRiskTransition.Confirm => SlCoreDependencyRiskTransition.CONFIRM,
+            CoreDependencyRiskTransition.Reopen => SlCoreDependencyRiskTransition.REOPEN,
+            CoreDependencyRiskTransition.Safe => SlCoreDependencyRiskTransition.SAFE,
+            CoreDependencyRiskTransition.Fixed => SlCoreDependencyRiskTransition.FIXED,
+            CoreDependencyRiskTransition.Accept => SlCoreDependencyRiskTransition.ACCEPT,
+            _ => throw new ArgumentOutOfRangeException(nameof(dependencyRiskTransition), dependencyRiskTransition, SLCoreStrings.ModelExtensions_UnexpectedValue)
         };
 }

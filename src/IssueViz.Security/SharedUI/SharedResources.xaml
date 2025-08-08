@@ -4,7 +4,12 @@
                     xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
                     xmlns:core="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
                     xmlns:issueVisualizationControl="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;assembly=SonarLint.VisualStudio.IssueVisualization"
-                >
+                    xmlns:res="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security"
+                    xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary
+            Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Browse.xaml" />
+    </ResourceDictionary.MergedDictionaries>
 
     <vsTheming:BrushToColorConverter x:Key="BrushToColorConverter"/>
 
@@ -158,8 +163,17 @@
         <Setter Property="TextAlignment" Value="Left"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
- 
-    
+
+    <Style x:Key="OverlayTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource CellTextBlockStyle}">
+        <Setter Property="TextAlignment" Value="Center" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.InactiveCaptionTextKey}}" />
+    </Style>
+
+    <Style x:Key="OverlayTitleTextStyle" TargetType="TextBlock" BasedOn="{StaticResource OverlayTextBlockStyle}">
+        <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+
     <!-- Context menu styles-->
     <Style TargetType="ContextMenu">
         <Setter Property="MinWidth" Value="200"/>
@@ -201,7 +215,7 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <ContentPresenter Grid.Column="0" x:Name="Icon" Margin="5,0,10,0" VerticalAlignment="Center" ContentSource="Icon"/>
-                            <ContentPresenter Grid.Column="1" x:Name="Header" ContentSource="Header" />
+                            <ContentPresenter Grid.Column="1" x:Name="Header" ContentSource="Header" VerticalAlignment="Center" />
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -210,6 +224,28 @@
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="ViewIssueInBrowserMenuItemStyle" TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+        <Setter Property="Icon">
+            <Setter.Value>
+                <imaging:CrispImage Source="{StaticResource BrowserLinkDrawingImage}"  />
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Path=IsCloud}" Value="True">
+                <Setter Property="Header" Value="{x:Static res:Resources.ViewIssueInSonarQubeCloud}"/>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Path=IsCloud}" Value="False">
+                <Setter Property="Header" Value="{x:Static res:Resources.ViewIssueInSonarQubeServer}"/>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+    <Style x:Key="ChangeStatusMenuItemStyle" TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+        <Setter Property="Icon">
+            <Setter.Value>
+                <imaging:CrispImage Source="/SonarLint.VisualStudio.IssueVisualization.Security;component/SharedUI/sonarqube_for_ide_logo_16px.png"/>
             </Setter.Value>
         </Setter>
     </Style>

@@ -1,0 +1,302 @@
+﻿<UserControl x:Class="SonarLint.VisualStudio.IssueVisualization.Security.ReportView.ReportViewControl"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:dependencyRisks="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks"
+             xmlns:core="clr-namespace:SonarLint.VisualStudio.Core;assembly=SonarLint.VisualStudio.Core"
+             xmlns:reportView="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security.ReportView"
+             xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:res="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security"
+             xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
+             DataContext="{Binding RelativeSource={RelativeSource Mode=Self}, Path=ReportViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary
+                    Source="../DependencyRisks/DependencyRiskImpactSeverity.xaml" />
+                <ResourceDictionary Source="../SharedUI/SharedResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <dependencyRisks:DependencyRiskImpactSeverityToImageSourceConverter
+                x:Key="DependencyRiskImpactSeverityToImageSourceConverter" />
+            
+
+            <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
+            <wpf:BoolToVisibilityConverter x:Key="TrueToCollapsedConverter" FalseValue="Visible" TrueValue="Collapsed" />
+            <wpf:EnglishPluralizationConverter x:Key="EnglishPluralizationConverter" />
+            <wpf:PascalCaseEnumToSpacedStringConverter x:Key="PascalCaseEnumToSpacedStringConverter" />
+
+            <Style TargetType="TreeView">
+                <Style.Setters>
+                    <Setter Property="BorderThickness" Value="0" />
+                    <Setter Property="Background" Value="Transparent" />
+                </Style.Setters>
+            </Style>
+
+            <!-- Default ToggleButton template for Expander arrow -->
+            <ControlTemplate x:Key="ExpanderToggleButton" TargetType="ToggleButton">
+                <Grid Margin="10,0,0,0">
+                    <Path x:Name="Arrow" Fill="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}"
+                          Data="M 0 0 L 8 4 L 0 8 Z" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                        <Setter TargetName="Arrow" Property="Data" Value="M 0 0 L 8 0 L 4 6 Z" />
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+
+            <Style TargetType="TreeViewItem">
+                <Setter Property="IsExpanded" Value="True" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TreeViewItem">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Border Name="Bd" Grid.ColumnSpan="2"
+                                        Background="{TemplateBinding Background}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        SnapsToDevicePixels="true"
+                                        Margin="{TemplateBinding Margin}">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" >
+                                        <ToggleButton x:Name="ExpanderArrow" Width="16" Height="16" Margin="2,0,2,0"
+                                                      IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                                                      Visibility="{Binding HasItems, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource TrueToVisibleConverter}}"
+                                                      Template="{StaticResource ExpanderToggleButton}" Cursor="Hand"/>
+                                        <ContentPresenter x:Name="Header" ContentSource="Header" Margin="5,0,0,0"
+                                                          VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Border>
+                                <ItemsPresenter Grid.Row="1" Grid.Column="0" x:Name="ItemsHost" Margin="15,0,0,0" />
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Foreground"
+                                            Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveTextBrushKey}}" />
+                                    <Setter Property="Background"
+                                            Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveBrushKey}}" />
+                                </Trigger>
+                                <MultiTrigger>
+                                    <MultiTrigger.Conditions>
+                                        <Condition Property="IsSelected" Value="True" />
+                                        <Condition Property="Selector.IsSelectionActive" Value="False" />
+                                    </MultiTrigger.Conditions>
+                                    <MultiTrigger.Setters>
+                                        <Setter Property="Foreground"
+                                                Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveTextBrushKey}}" />
+                                        <Setter Property="Background"
+                                                Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveBrushKey}}" />
+                                    </MultiTrigger.Setters>
+                                </MultiTrigger>
+                                <Trigger Property="IsExpanded" Value="False">
+                                    <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="IssueTextBlockStyle" TargetType="TextBlock">
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+
+            <Style x:Key="GroupTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                <Setter Property="FontSize"
+                        Value="{DynamicResource {x:Static vsShell:VsFonts.Environment111PercentFontSizeKey}}" />
+            </Style>
+
+            <Style x:Key="TypeTextBoxStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="FontStyle" Value="Italic" />
+                <Setter Property="FontSize"
+                        Value="{DynamicResource {x:Static vsShell:VsFonts.Environment90PercentFontSizeKey}}" />
+            </Style>
+
+            <ContextMenu x:Key="DependencyRiskContextMenu" Loaded="DependencyRiskContextMenu_OnLoaded">
+                <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}" 
+                          Click="ChangeScaStatusMenuItem_OnClick" 
+                          IsEnabled="{Binding Path=GroupDependencyRisk.SelectedItem.IsTransitionAllowed}"
+                          Style="{StaticResource ChangeStatusMenuItemStyle}"/>
+                <MenuItem Click="ViewDependencyRiskInBrowser_OnClick" Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
+            </ContextMenu>
+            
+            <Style x:Key="ResolutionFilterBorderStyle" TargetType="Button">
+                <Setter Property="Margin" Value="5, 3"/>
+                <Setter Property="Padding" Value="2"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}"/>
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.AccentLightKey}}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverOverSelectedIconBorderKey}}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                                    BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Path=IsSelected}" Value="False">
+                        <Setter Property="BorderThickness" Value="0" />
+                        <Setter Property="Background" Value="Transparent" />
+                    </DataTrigger>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="BorderThickness" Value="1" />
+                        <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverKey}}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            
+            <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource {x:Static vsShell:VsResourceKeys.ComboBoxStyleKey}}" />
+
+            <reportView:ResolutionToCountConverter x:Key="ResolutionToCountConverter" />
+            <ControlTemplate x:Key="ResolutionFilterControlTemplate" TargetType="ContentControl">
+                <StackPanel Orientation="Horizontal">
+                    <Border Height="18" BorderThickness="1,0,0,0" 
+                            BorderBrush="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBorderKey}}"/>
+                    <Button Style="{StaticResource ResolutionFilterBorderStyle}" Click="ResolutionButton_OnClick" >
+                        <Button.Content>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Margin="5,0,2,0" VerticalAlignment="Center">
+                                    <TextBlock.Text>
+                                        <MultiBinding Converter="{StaticResource ResolutionToCountConverter}">
+                                            <Binding ElementName="GroupDependencyRiskTreeViewItem" Path="DataContext.Risks" />
+                                            <!-- we need an explicit binding to IsSelected property to make sure that the converter is triggered when its value changes -->
+                                            <Binding Path="IsResolved"/>
+                                            <!-- this is needed to make sure that the converter is triggered when the hotspots list changes -->
+                                            <Binding ElementName="GroupDependencyRiskTreeViewItem" Path="DataContext.Risks.Count" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                                <TextBlock Grid.Column="1" Text="{Binding Path=Title}" Margin="2,0" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Button.Content>
+                    </Button>
+                </StackPanel>
+            </ControlTemplate>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Name="Table" Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Row="0" Background="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarGradientBeginKey}}" Visibility="{Binding Path=GroupDependencyRisk.HasRisks, Converter={StaticResource TrueToVisibleConverter}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <ContentControl Grid.Column="0" DataContext="{Binding Path=ResolutionFilterOpen}" 
+                                Template="{StaticResource ResolutionFilterControlTemplate}" />
+
+                <ContentControl Grid.Column="1" DataContext="{Binding Path=ResolutionFilterResolved}" 
+                                Template="{StaticResource ResolutionFilterControlTemplate}" />
+            </Grid>
+        </Grid>
+
+        <TreeView Grid.Row="1" Grid.Column="0" Margin="0,5"  Visibility="{Binding Path=GroupDependencyRisk.HasRisks, Converter={StaticResource TrueToVisibleConverter}}" SelectedItemChanged="TreeView_OnSelectedItemChanged">
+            <TreeViewItem x:Name="GroupDependencyRiskTreeViewItem" DataContext="{Binding Path=GroupDependencyRisk}" 
+                          ItemsSource="{Binding Path=FilteredRisks}"
+                          PreviewMouseUp="TreeViewItem_OnPreviewMouseUp">
+                <TreeViewItem.Header>
+                    <Grid Cursor="Hand">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="{Binding Title}" Style="{StaticResource GroupTextBlockStyle}" />
+                        <TextBlock Grid.Column="1" Margin="3,0,0,0"
+                                   Text="{Binding Path=FilteredRisks.Count, Converter={StaticResource EnglishPluralizationConverter}, ConverterParameter={x:Static res:Resources.IssueText}, StringFormat={}({0})}"
+                                   Style="{StaticResource GroupTextBlockStyle}" />
+                    </Grid>
+                </TreeViewItem.Header>
+            </TreeViewItem>
+
+            <TreeView.Resources>
+                <DataTemplate DataType="{x:Type dependencyRisks:DependencyRiskViewModel}">
+                    <Grid Margin="2" ContextMenu="{StaticResource DependencyRiskContextMenu}" 
+                          MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Image Grid.Column="0" Height="17" VerticalAlignment="Center">
+                            <Image.Source>
+                                <MultiBinding
+                                    Converter="{StaticResource DependencyRiskImpactSeverityToImageSourceConverter}">
+                                    <Binding Path="DependencyRisk.Severity" />
+                                    <Binding RelativeSource="{RelativeSource Self}" />
+                                    <Binding Path="ResourceFinder"
+                                             RelativeSource="{RelativeSource FindAncestor, AncestorType=UserControl}" />
+                                </MultiBinding>
+                            </Image.Source>
+                            <Image.ToolTip>
+                                <StackPanel>
+                                    <TextBlock>
+                                        <Run Text="{x:Static res:Resources.DependencyRiskImpactSeverityTooltip}" />
+                                        <Run Text="{Binding DependencyRisk.Severity, Mode=OneWay}" />
+                                    </TextBlock>
+                                </StackPanel>
+                            </Image.ToolTip>
+                        </Image>
+                        <TextBlock Grid.Column="1" Text="{Binding DependencyRisk.PackageName, StringFormat={}{0}:}" Margin="2,0"
+                                   Style="{StaticResource IssueTextBlockStyle}" />
+                        <TextBlock Grid.Column="2" Text="{Binding DependencyRisk.PackageVersion}" Margin="1,0"
+                                   Style="{StaticResource IssueTextBlockStyle}" />
+                        <TextBlock Grid.Column="3"
+                                   Text="{Binding DependencyRisk.Status, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}"
+                                   Margin="3,0"
+                                   Style="{StaticResource TypeTextBoxStyle}" />
+                        <TextBlock Grid.Column="4"
+                                   Text="{Binding DependencyRisk.Type, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}"
+                                   Margin="3,0"
+                                   Style="{StaticResource TypeTextBoxStyle}" />
+                    </Grid>
+                </DataTemplate>
+            </TreeView.Resources>
+        </TreeView>
+
+        <Grid Grid.Row="1" Background="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBackgroundKey}}"
+              Panel.ZIndex="1000" Visibility="{Binding Path=GroupDependencyRisk.HasRisks, Converter={StaticResource TrueToCollapsedConverter}}">
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Style="{StaticResource OverlayTitleTextStyle}"
+                           Text="{x:Static res:Resources.NoDependencyRiskFoundTitle}" 
+                           Margin="0,10" />
+                <TextBlock Style="{StaticResource OverlayTextBlockStyle}">
+                    <Run Text="{x:Static res:Resources.NoDependencyRiskFoundText}" /><Run Text=" (see "></Run><Hyperlink NavigateUri="{x:Static core:DocumentationLinks.DependencyRisksUri}" RequestNavigate="Hyperlink_OnRequestNavigate">documentation</Hyperlink><Run Text="). " />
+                </TextBlock>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

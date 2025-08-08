@@ -141,9 +141,8 @@ public sealed class SLCoreTestRunner : IDisposable
                 slCoreRulesSettingsProvider,
                 Substitute.For<ISlCoreTelemetryMigrationProvider>(),
                 new NoOpThreadHandler());
-            slCoreInstanceHandle.Initialize();
 
-            await WaitForSloopLog(testLogger);
+            await InitializeAndWaitForSloopLog(testLogger);
         }
         finally
         {
@@ -151,11 +150,14 @@ public sealed class SLCoreTestRunner : IDisposable
         }
     }
 
-    private static async Task WaitForSloopLog(TestLogger slCoreLogger)
+    private async Task InitializeAndWaitForSloopLog(TestLogger slCoreLogger)
     {
         var tcs = new TaskCompletionSource<bool>();
         EventHandler eventHandler = (_, _) => tcs.TrySetResult(true);
         slCoreLogger.LogMessageAdded += eventHandler;
+
+        slCoreInstanceHandle.Initialize();
+
         try
         {
             await ConcurrencyTestHelper.WaitForTaskWithTimeout(tcs.Task, "sloop log", TimeSpan.FromSeconds(30));

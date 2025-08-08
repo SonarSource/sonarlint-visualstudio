@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Progress;
@@ -26,14 +25,14 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Progress;
 public interface IProgressListener : ISLCoreListener
 {
     /// <summary>
-    /// Stub method for compability with SLCore. We do not support progress
+    /// Requests the client to start showing progress to users.
+    /// If there is an error while creating the corresponding UI, clients can fail the returned future.
+    /// Tasks requesting the start of the progress should wait for the client to answer before continuing.
     /// </summary>
-    /// <param name="parameters">Parameter's here for compability we discard it</param>
-    Task StartProgressAsync(object parameters);
+    Task StartProgressAsync(StartProgressParams parameters);
 
     /// <summary>
-    /// Stub method for compability with SLCore. We do not support progress
+    /// Reports progress to the client.
     /// </summary>
-    /// <param name="parameters">Parameter's here for compability we discard it</param>
-    Task ReportProgressAsync(object parameters);
+    void ReportProgress(ReportProgressParams parameters);
 }

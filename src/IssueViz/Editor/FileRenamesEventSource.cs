@@ -18,17 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core.Initialization;
+using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor
 {
-    public interface IFileRenamesEventSource : IDisposable
+    public interface IFileRenamesEventSource : IRequireInitialization, IDisposable
     {
         event EventHandler<FilesRenamedEventArgs> FilesRenamed;
     }
@@ -49,18 +47,42 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
     {
         public event EventHandler<FilesRenamedEventArgs> FilesRenamed;
 
-        private readonly IVsTrackProjectDocuments2 trackProjectDocuments;
-        private readonly uint trackDocumentEventsCookie;
+        private uint trackDocumentEventsCookie;
+        private bool disposed;
+        private readonly IVsUIServiceOperation serviceOperation;
 
         [ImportingConstructor]
-        public FileRenamesEventSource([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public FileRenamesEventSource(
+            IInitializationProcessorFactory initializationProcessorFactory,
+            IVsUIServiceOperation serviceOperation)
         {
-            trackProjectDocuments = (IVsTrackProjectDocuments2)serviceProvider.GetService(typeof(SVsTrackProjectDocuments));
-            trackProjectDocuments.AdviseTrackProjectDocumentsEvents(this, out trackDocumentEventsCookie);
+            this.serviceOperation = serviceOperation;
+            InitializationProcessor = initializationProcessorFactory.CreateAndStart<FileRenamesEventSource>(
+                [],
+                async () =>
+                {
+                    if (disposed)
+                    {
+                        return;
+                    }
+
+                    await serviceOperation.ExecuteAsync<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(svc =>
+                    {
+                        svc.AdviseTrackProjectDocumentsEvents(this, out trackDocumentEventsCookie);
+                    });
+                });
         }
 
-        int IVsTrackProjectDocumentsEvents2.OnAfterRenameFiles(int cProjects, int cFiles, IVsProject[] rgpProjects, int[] rgFirstIndices,
-            string[] rgszMkOldNames, string[] rgszMkNewNames, VSRENAMEFILEFLAGS[] rgFlags)
+        public IInitializationProcessor InitializationProcessor { get; }
+
+        int IVsTrackProjectDocumentsEvents2.OnAfterRenameFiles(
+            int cProjects,
+            int cFiles,
+            IVsProject[] rgpProjects,
+            int[] rgFirstIndices,
+            string[] rgszMkOldNames,
+            string[] rgszMkNewNames,
+            VSRENAMEFILEFLAGS[] rgFlags)
         {
             var affectedFiles = new Dictionary<string, string>();
 
@@ -82,61 +104,132 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 
         public void Dispose()
         {
-            trackProjectDocuments.UnadviseTrackProjectDocumentsEvents(trackDocumentEventsCookie);
+            if (!disposed)
+            {
+                if (InitializationProcessor.IsFinalized)
+                {
+                    serviceOperation.Execute<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(svc =>
+                    {
+                        svc.UnadviseTrackProjectDocumentsEvents(trackDocumentEventsCookie);
+                    });
+                }
+
+                disposed = true;
+            }
         }
 
         #region IVsTrackProjectDocumentsEvents2
 
-        int IVsTrackProjectDocumentsEvents2.OnQueryAddFiles(IVsProject pProject, int cFiles, string[] rgpszMkDocuments, VSQUERYADDFILEFLAGS[] rgFlags,
-            VSQUERYADDFILERESULTS[] pSummaryResult, VSQUERYADDFILERESULTS[] rgResults)
-            => VSConstants.S_OK;
+        int IVsTrackProjectDocumentsEvents2.OnQueryAddFiles(
+            IVsProject pProject,
+            int cFiles,
+            string[] rgpszMkDocuments,
+            VSQUERYADDFILEFLAGS[] rgFlags,
+            VSQUERYADDFILERESULTS[] pSummaryResult,
+            VSQUERYADDFILERESULTS[] rgResults) =>
+            VSConstants.S_OK;
 
-        int IVsTrackProjectDocumentsEvents2.OnAfterAddFilesEx(int cProjects, int cFiles, IVsProject[] rgpProjects, int[] rgFirstIndices,
-            string[] rgpszMkDocuments, VSADDFILEFLAGS[] rgFlags)
-            => VSConstants.S_OK;
+        int IVsTrackProjectDocumentsEvents2.OnAfterAddFilesEx(
+            int cProjects,
+            int cFiles,
+            IVsProject[] rgpProjects,
+            int[] rgFirstIndices,
+            string[] rgpszMkDocuments,
+            VSADDFILEFLAGS[] rgFlags) =>
+            VSConstants.S_OK;
 
-        int IVsTrackProjectDocumentsEvents2.OnAfterAddDirectoriesEx(int cProjects, int cDirectories, IVsProject[] rgpProjects, int[] rgFirstIndices,
-            string[] rgpszMkDocuments, VSADDDIRECTORYFLAGS[] rgFlags)
-            => VSConstants.S_OK;
+        int IVsTrackProjectDocumentsEvents2.OnAfterAddDirectoriesEx(
+            int cProjects,
+            int cDirectories,
+            IVsProject[] rgpProjects,
+            int[] rgFirstIndices,
+            string[] rgpszMkDocuments,
+            VSADDDIRECTORYFLAGS[] rgFlags) =>
+            VSConstants.S_OK;
 
-        int IVsTrackProjectDocumentsEvents2.OnAfterRemoveFiles(int cProjects, int cFiles, IVsProject[] rgpProjects, int[] rgFirstIndices,
-            string[] rgpszMkDocuments, VSREMOVEFILEFLAGS[] rgFlags)
-            => VSConstants.S_OK;
+        int IVsTrackProjectDocumentsEvents2.OnAfterRemoveFiles(
+            int cProjects,
+            int cFiles,
+            IVsProject[] rgpProjects,
+            int[] rgFirstIndices,
+            string[] rgpszMkDocuments,
+            VSREMOVEFILEFLAGS[] rgFlags) =>
+            VSConstants.S_OK;
 
-        int IVsTrackProjectDocumentsEvents2.OnAfterRemoveDirectories(int cProjects, int cDirectories, IVsProject[] rgpProjects, int[] rgFirstIndices,
-            string[] rgpszMkDocuments, VSREMOVEDIRECTORYFLAGS[] rgFlags)
-            => VSConstants.S_OK;
+        int IVsTrackProjectDocumentsEvents2.OnAfterRemoveDirectories(
+            int cProjects,
+            int cDirectories,
+            IVsProject[] rgpProjects,
+            int[] rgFirstIndices,
+            string[] rgpszMkDocuments,
+            VSREMOVEDIRECTORYFLAGS[] rgFlags) =>
+            VSConstants.S_OK;
 
-        int IVsTrackProjectDocumentsEvents2.OnQueryRenameFiles(IVsProject pProject, int cFiles, string[] rgszMkOldNames, string[] rgszMkNewNames,
-            VSQUERYRENAMEFILEFLAGS[] rgFlags, VSQUERYRENAMEFILERESULTS[] pSummaryResult, VSQUERYRENAMEFILERESULTS[] rgResults)
-            => VSConstants.S_OK;
+        int IVsTrackProjectDocumentsEvents2.OnQueryRenameFiles(
+            IVsProject pProject,
+            int cFiles,
+            string[] rgszMkOldNames,
+            string[] rgszMkNewNames,
+            VSQUERYRENAMEFILEFLAGS[] rgFlags,
+            VSQUERYRENAMEFILERESULTS[] pSummaryResult,
+            VSQUERYRENAMEFILERESULTS[] rgResults) =>
+            VSConstants.S_OK;
 
-        int IVsTrackProjectDocumentsEvents2.OnQueryRenameDirectories(IVsProject pProject, int cDirs, string[] rgszMkOldNames, string[] rgszMkNewNames,
-            VSQUERYRENAMEDIRECTORYFLAGS[] rgFlags, VSQUERYRENAMEDIRECTORYRESULTS[] pSummaryResult,
-            VSQUERYRENAMEDIRECTORYRESULTS[] rgResults)
-            => VSConstants.S_OK;
+        int IVsTrackProjectDocumentsEvents2.OnQueryRenameDirectories(
+            IVsProject pProject,
+            int cDirs,
+            string[] rgszMkOldNames,
+            string[] rgszMkNewNames,
+            VSQUERYRENAMEDIRECTORYFLAGS[] rgFlags,
+            VSQUERYRENAMEDIRECTORYRESULTS[] pSummaryResult,
+            VSQUERYRENAMEDIRECTORYRESULTS[] rgResults) =>
+            VSConstants.S_OK;
 
-        int IVsTrackProjectDocumentsEvents2.OnAfterRenameDirectories(int cProjects, int cDirs, IVsProject[] rgpProjects, int[] rgFirstIndices,
-            string[] rgszMkOldNames, string[] rgszMkNewNames, VSRENAMEDIRECTORYFLAGS[] rgFlags)
-            => VSConstants.S_OK;
+        int IVsTrackProjectDocumentsEvents2.OnAfterRenameDirectories(
+            int cProjects,
+            int cDirs,
+            IVsProject[] rgpProjects,
+            int[] rgFirstIndices,
+            string[] rgszMkOldNames,
+            string[] rgszMkNewNames,
+            VSRENAMEDIRECTORYFLAGS[] rgFlags) =>
+            VSConstants.S_OK;
 
-        int IVsTrackProjectDocumentsEvents2.OnQueryAddDirectories(IVsProject pProject, int cDirectories, string[] rgpszMkDocuments,
-            VSQUERYADDDIRECTORYFLAGS[] rgFlags, VSQUERYADDDIRECTORYRESULTS[] pSummaryResult,
-            VSQUERYADDDIRECTORYRESULTS[] rgResults)
-            => VSConstants.S_OK;
+        int IVsTrackProjectDocumentsEvents2.OnQueryAddDirectories(
+            IVsProject pProject,
+            int cDirectories,
+            string[] rgpszMkDocuments,
+            VSQUERYADDDIRECTORYFLAGS[] rgFlags,
+            VSQUERYADDDIRECTORYRESULTS[] pSummaryResult,
+            VSQUERYADDDIRECTORYRESULTS[] rgResults) =>
+            VSConstants.S_OK;
 
-        int IVsTrackProjectDocumentsEvents2.OnQueryRemoveFiles(IVsProject pProject, int cFiles, string[] rgpszMkDocuments, VSQUERYREMOVEFILEFLAGS[] rgFlags,
-            VSQUERYREMOVEFILERESULTS[] pSummaryResult, VSQUERYREMOVEFILERESULTS[] rgResults)
-            => VSConstants.S_OK;
+        int IVsTrackProjectDocumentsEvents2.OnQueryRemoveFiles(
+            IVsProject pProject,
+            int cFiles,
+            string[] rgpszMkDocuments,
+            VSQUERYREMOVEFILEFLAGS[] rgFlags,
+            VSQUERYREMOVEFILERESULTS[] pSummaryResult,
+            VSQUERYREMOVEFILERESULTS[] rgResults) =>
+            VSConstants.S_OK;
 
-        int IVsTrackProjectDocumentsEvents2.OnQueryRemoveDirectories(IVsProject pProject, int cDirectories, string[] rgpszMkDocuments,
-            VSQUERYREMOVEDIRECTORYFLAGS[] rgFlags, VSQUERYREMOVEDIRECTORYRESULTS[] pSummaryResult,
-            VSQUERYREMOVEDIRECTORYRESULTS[] rgResults)
-            => VSConstants.S_OK;
+        int IVsTrackProjectDocumentsEvents2.OnQueryRemoveDirectories(
+            IVsProject pProject,
+            int cDirectories,
+            string[] rgpszMkDocuments,
+            VSQUERYREMOVEDIRECTORYFLAGS[] rgFlags,
+            VSQUERYREMOVEDIRECTORYRESULTS[] pSummaryResult,
+            VSQUERYREMOVEDIRECTORYRESULTS[] rgResults) =>
+            VSConstants.S_OK;
 
-        int IVsTrackProjectDocumentsEvents2.OnAfterSccStatusChanged(int cProjects, int cFiles, IVsProject[] rgpProjects, int[] rgFirstIndices,
-            string[] rgpszMkDocuments, uint[] rgdwSccStatus)
-            => VSConstants.S_OK;
+        int IVsTrackProjectDocumentsEvents2.OnAfterSccStatusChanged(
+            int cProjects,
+            int cFiles,
+            IVsProject[] rgpProjects,
+            int[] rgFirstIndices,
+            string[] rgpszMkDocuments,
+            uint[] rgdwSccStatus) =>
+            VSConstants.S_OK;
 
         #endregion
     }

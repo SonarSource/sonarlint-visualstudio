@@ -10,7 +10,6 @@
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              FocusManager.FocusedElement="{Binding ElementName=HotspotsDataGrid}"
-             xmlns:vsCatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              DataContext="{Binding ViewModel, RelativeSource={RelativeSource Mode=Self}}">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -21,35 +20,18 @@
 
             <hotspotsList:PriorityToBackgroundConverter x:Key="PriorityToBackgroundConverter" />
             <hotspotsList:PriorityToHotspotCountConverter x:Key="PriorityToHotspotCountConverter" />
-            <hotspotsList:HotspotStatusToLocalizedStatusConverter x:Key="HotspotStatusToLocalizedStatusConverter" />
+            <core:PascalCaseEnumToSpacedStringConverter x:Key="PascalCaseEnumToSpacedStringConverter" />
             <core:NullableSelectedItemConverter x:Key="NullableSelectedItemConverter"/>
             <commands:NavigateToRuleDescriptionCommandConverter x:Key="NavigateToRuleDescriptionCommandConverter" />
             <core:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
 
             <ContextMenu x:Key="RowContextMenu" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}" 
                          Visibility="{Binding Path=ExistsOnServer, Converter={StaticResource TrueToVisibleConverter}}">
-                <MenuItem Header="{x:Static res:Resources.HotspotsControl_ReviewHotspotTooltip}" Click="ReviewHotspotMenuItem_OnClick">
-                    <MenuItem.Icon>
-                        <imaging:CrispImage Source="/SonarLint.VisualStudio.IssueVisualization.Security;component/SharedUI/sonarqube_for_ide_logo_16px.png" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Click="ViewHotspotInBrowser_OnClick">
-                    <MenuItem.Style>
-                        <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=ViewModel.IsCloud}" Value="True">
-                                    <Setter Property="Header" Value="{x:Static res:Resources.HotspotsControl_ViewInSonarQubeCloud}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=ViewModel.IsCloud}" Value="False">
-                                    <Setter Property="Header" Value="{x:Static res:Resources.HotspotsControl_ViewInSonarQubeServer}"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </MenuItem.Style>
-                    <MenuItem.Icon>
-                        <imaging:CrispImage Moniker="{x:Static vsCatalog:KnownMonikers.BrowserLink}" />
-                    </MenuItem.Icon>
-                </MenuItem>
+                <MenuItem Header="{x:Static res:Resources.HotspotsControl_ReviewHotspotTooltip}" Click="ReviewHotspotMenuItem_OnClick" 
+                          Style="{StaticResource ChangeStatusMenuItemStyle}"/>
+                <MenuItem Click="ViewHotspotInBrowser_OnClick" 
+                          DataContext="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=ViewModel}"
+                          Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
             </ContextMenu>
 
             <!-- Extend the shared data grid row style to add the context menu and navigability data bindings -->
@@ -286,7 +268,7 @@
                 <DataGridTemplateColumn CanUserSort="True" SortMemberPath="HotspotStatus" Header="{x:Static res:Resources.HotspotsControl_StatusColumnHeader}" Width="95">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding HotspotStatus, Converter={StaticResource HotspotStatusToLocalizedStatusConverter}}">
+                            <TextBlock Text="{Binding HotspotStatus, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource CellTextBlockStyle}">
                                         <Style.Triggers>

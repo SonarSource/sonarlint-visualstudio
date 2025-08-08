@@ -41,7 +41,7 @@ internal interface ISLCoreInstanceFactory
 internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
 {
     private readonly ISLCoreRpcFactory slCoreRpcFactory;
-    private readonly ISLCoreServiceProvider slCoreServiceProvider;
+    private readonly ISLCoreRpcManager slCoreRpcManager;
     private readonly ISLCoreConstantsProvider constantsProvider;
     private readonly ISLCoreLanguageProvider slCoreLanguageProvider;
     private readonly ISLCoreFoldersProvider slCoreFoldersProvider;
@@ -58,7 +58,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
     [ImportingConstructor]
     public SLCoreInstanceFactory(
         ISLCoreRpcFactory slCoreRpcFactory,
-        ISLCoreServiceProvider slCoreServiceProvider,
+        ISLCoreRpcManager slCoreRpcManager,
         ISLCoreConstantsProvider constantsProvider,
         ISLCoreLanguageProvider slCoreLanguageProvider,
         ISLCoreFoldersProvider slCoreFoldersProvider,
@@ -73,7 +73,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
         IThreadHandling threadHandling)
     {
         this.slCoreRpcFactory = slCoreRpcFactory;
-        this.slCoreServiceProvider = slCoreServiceProvider;
+        this.slCoreRpcManager = slCoreRpcManager;
         this.constantsProvider = constantsProvider;
         this.slCoreLanguageProvider = slCoreLanguageProvider;
         this.slCoreFoldersProvider = slCoreFoldersProvider;
@@ -91,7 +91,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
     public ISLCoreInstanceHandle CreateInstance() =>
         new SLCoreInstanceHandle(
             slCoreRpcFactory,
-            slCoreServiceProvider,
+            slCoreRpcManager,
             constantsProvider,
             slCoreLanguageProvider,
             slCoreFoldersProvider,

@@ -61,6 +61,195 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error when changing dependency risk status: {0}.
+        /// </summary>
+        public static string ChangeDependencyRisk_Error_ChangingStatus {
+            get {
+                return ResourceManager.GetString("ChangeDependencyRisk_Error_ChangingStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This finding is valid, but it may not be fixed for a while..
+        /// </summary>
+        public static string ChangeDependencyRiskStatus_AcceptedDescription {
+            get {
+                return ResourceManager.GetString("ChangeDependencyRiskStatus_AcceptedDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Accept.
+        /// </summary>
+        public static string ChangeDependencyRiskStatus_AcceptTitle {
+            get {
+                return ResourceManager.GetString("ChangeDependencyRiskStatus_AcceptTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This finding has been reviewed and the risk is valid..
+        /// </summary>
+        public static string ChangeDependencyRiskStatus_ConfirmedDescription {
+            get {
+                return ResourceManager.GetString("ChangeDependencyRiskStatus_ConfirmedDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Confirm.
+        /// </summary>
+        public static string ChangeDependencyRiskStatus_ConfirmTitle {
+            get {
+                return ResourceManager.GetString("ChangeDependencyRiskStatus_ConfirmTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This finding has been fixed..
+        /// </summary>
+        public static string ChangeDependencyRiskStatus_FixedDescription {
+            get {
+                return ResourceManager.GetString("ChangeDependencyRiskStatus_FixedDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fixed.
+        /// </summary>
+        public static string ChangeDependencyRiskStatus_FixedTitle {
+            get {
+                return ResourceManager.GetString("ChangeDependencyRiskStatus_FixedTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This finding has not yet been reviewed..
+        /// </summary>
+        public static string ChangeDependencyRiskStatus_OpenDescription {
+            get {
+                return ResourceManager.GetString("ChangeDependencyRiskStatus_OpenDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reopen.
+        /// </summary>
+        public static string ChangeDependencyRiskStatus_ReopenTitle {
+            get {
+                return ResourceManager.GetString("ChangeDependencyRiskStatus_ReopenTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This finding does not pose a risk. No fix is needed..
+        /// </summary>
+        public static string ChangeDependencyRiskStatus_SafeDescription {
+            get {
+                return ResourceManager.GetString("ChangeDependencyRiskStatus_SafeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Safe.
+        /// </summary>
+        public static string ChangeDependencyRiskStatus_SafeTitle {
+            get {
+                return ResourceManager.GetString("ChangeDependencyRiskStatus_SafeTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Change Status.
+        /// </summary>
+        public static string ChangeStatusMenuItem {
+            get {
+                return ResourceManager.GetString("ChangeStatusMenuItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add a comment:.
+        /// </summary>
+        public static string ChangeStatusWindow_CommentLabel {
+            get {
+                return ResourceManager.GetString("ChangeStatusWindow_CommentLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to : *Bold*, ``Code``, * Bullet point.
+        /// </summary>
+        public static string ChangeStatusWindow_FormattingHelpExamples {
+            get {
+                return ResourceManager.GetString("ChangeStatusWindow_FormattingHelpExamples", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Formatting Help.
+        /// </summary>
+        public static string ChangeStatusWindow_FormattingHelpLink {
+            get {
+                return ResourceManager.GetString("ChangeStatusWindow_FormattingHelpLink", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Comment is required..
+        /// </summary>
+        public static string CommentRequiredErrorMessage {
+            get {
+                return ResourceManager.GetString("CommentRequiredErrorMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Severity impact:.
+        /// </summary>
+        public static string DependencyRiskImpactSeverityTooltip {
+            get {
+                return ResourceManager.GetString("DependencyRiskImpactSeverityTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot change status: transition is not specified.
+        /// </summary>
+        public static string DependencyRiskNullTransitionError {
+            get {
+                return ResourceManager.GetString("DependencyRiskNullTransitionError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Solution findings.
+        /// </summary>
+        public static string DependencyRisksGroupTitle {
+            get {
+                return ResourceManager.GetString("DependencyRisksGroupTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred when changing the status..
+        /// </summary>
+        public static string DependencyRiskStatusChangeError {
+            get {
+                return ResourceManager.GetString("DependencyRiskStatusChangeError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dependency Risk Status Change Failed.
+        /// </summary>
+        public static string DependencyRiskStatusChangeFailedTitle {
+            get {
+                return ResourceManager.GetString("DependencyRiskStatusChangeFailedTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error displaying tool window. Window id: {0}. Error: {1}.
         /// </summary>
         public static string ERR_ShowToolWindow_Exception {
@@ -232,38 +421,92 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to View in SonarQube Cloud.
-        /// </summary>
-        public static string HotspotsControl_ViewInSonarQubeCloud {
-            get {
-                return ResourceManager.GetString("HotspotsControl_ViewInSonarQubeCloud", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to View in SonarQube Server.
-        /// </summary>
-        public static string HotspotsControl_ViewInSonarQubeServer {
-            get {
-                return ResourceManager.GetString("HotspotsControl_ViewInSonarQubeServer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to To Review.
-        /// </summary>
-        public static string HotspotStatus_ToReview {
-            get {
-                return ResourceManager.GetString("HotspotStatus_ToReview", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SonarQube Security Hotspots.
         /// </summary>
         public static string HotspotsToolWindowCaption {
             get {
                 return ResourceManager.GetString("HotspotsToolWindowCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to issue.
+        /// </summary>
+        public static string IssueText {
+            get {
+                return ResourceManager.GetString("IssueText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Change Status.
+        /// </summary>
+        public static string LogContext_ChangeStatus {
+            get {
+                return ResourceManager.GetString("LogContext_ChangeStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dependency Risks.
+        /// </summary>
+        public static string LogContext_DependencyRisks {
+            get {
+                return ResourceManager.GetString("LogContext_DependencyRisks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show in Browser.
+        /// </summary>
+        public static string LogContext_ShowInBrowser {
+            get {
+                return ResourceManager.GetString("LogContext_ShowInBrowser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please ensure that your solution is bound to a SonarQube project that contains dependency risks.
+        /// </summary>
+        public static string NoDependencyRiskFoundText {
+            get {
+                return ResourceManager.GetString("NoDependencyRiskFoundText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No Dependency Risks were found..
+        /// </summary>
+        public static string NoDependencyRiskFoundTitle {
+            get {
+                return ResourceManager.GetString("NoDependencyRiskFoundTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube Dependency Risks.
+        /// </summary>
+        public static string ReportViewToolWindowCaption {
+            get {
+                return ResourceManager.GetString("ReportViewToolWindowCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Open.
+        /// </summary>
+        public static string ResolutionFilter_Open {
+            get {
+                return ResourceManager.GetString("ResolutionFilter_Open", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resolved.
+        /// </summary>
+        public static string ResolutionFilter_Resolved {
+            get {
+                return ResourceManager.GetString("ResolutionFilter_Resolved", resourceCulture);
             }
         }
         
@@ -350,6 +593,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No hotspot has been selected..
+        /// </summary>
+        public static string ReviewHotspotWindow_NoStatusSelectedFailureMessage {
+            get {
+                return ResourceManager.GetString("ReviewHotspotWindow_NoStatusSelectedFailureMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An error occurred while reviewing the hotspot. The status has not been changed.
         ///Please check the logs for more details..
         /// </summary>
@@ -414,6 +666,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error when showing dependency risk in browser: {0}.
+        /// </summary>
+        public static string ShowDependencyRisk_Error_ShowingInBrowser {
+            get {
+                return ResourceManager.GetString("ShowDependencyRisk_Error_ShowingInBrowser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Initializing security package....
         /// </summary>
         public static string StartedPackageInitialization {
@@ -423,11 +684,110 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to synchronize server issues: {0}..
+        /// </summary>
+        public static string Synchronizer_Failure {
+            get {
+                return ResourceManager.GetString("Synchronizer_Failure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server Issue Sync.
+        /// </summary>
+        public static string Synchronizer_LogContext_General {
+            get {
+                return ResourceManager.GetString("Synchronizer_LogContext_General", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Taint.
+        /// </summary>
+        public static string Synchronizer_LogContext_Taint {
+            get {
+                return ResourceManager.GetString("Synchronizer_LogContext_Taint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to fetch server issues: not in connected mode..
+        /// </summary>
+        public static string Synchronizer_NotInConnectedMode {
+            get {
+                return ResourceManager.GetString("Synchronizer_NotInConnectedMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fetched {0} dependency risks..
+        /// </summary>
+        public static string Synchronizer_NumberOfDependencyRisks {
+            get {
+                return ResourceManager.GetString("Synchronizer_NumberOfDependencyRisks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fetched {0} taint vulnerabilities..
+        /// </summary>
+        public static string Synchronizer_NumberOfTaintIssues {
+            get {
+                return ResourceManager.GetString("Synchronizer_NumberOfTaintIssues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to fetch server issues: SLCore backend is not available..
+        /// </summary>
+        public static string Synchronizer_SLCoreNotReady {
+            get {
+                return ResourceManager.GetString("Synchronizer_SLCoreNotReady", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Storage has already been initialized for current configuration scope.
+        /// </summary>
+        public static string Synchronizer_Verbose_AlreadyInitialized {
+            get {
+                return ResourceManager.GetString("Synchronizer_Verbose_AlreadyInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configuration scope root hasn&apos;t been initialized....
+        /// </summary>
+        public static string Synchronizer_Verbose_ConfigScopeNotReady {
+            get {
+                return ResourceManager.GetString("Synchronizer_Verbose_ConfigScopeNotReady", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarQube Taint Vulnerabilities.
         /// </summary>
         public static string TaintToolWindowCaption {
             get {
                 return ResourceManager.GetString("TaintToolWindowCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View in SonarQube Cloud.
+        /// </summary>
+        public static string ViewIssueInSonarQubeCloud {
+            get {
+                return ResourceManager.GetString("ViewIssueInSonarQubeCloud", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View in SonarQube Server.
+        /// </summary>
+        public static string ViewIssueInSonarQubeServer {
+            get {
+                return ResourceManager.GetString("ViewIssueInSonarQubeServer", resourceCulture);
             }
         }
     }

@@ -191,6 +191,9 @@ Please check the logs for more details.</value>
     <value>The hotspot can not be reviewed due to the following error: {0}
 Please check the logs for more details.</value>
   </data>
+  <data name="ReviewHotspotWindow_NoStatusSelectedFailureMessage" xml:space="preserve">
+    <value>No hotspot has been selected.</value>
+  </data>
   <data name="ReviewHotspotWindow_FailureTitle" xml:space="preserve">
     <value>Review Hotspot Failure</value>
   </data>
@@ -233,13 +236,130 @@ Please check the logs for more details.</value>
   <data name="HotspotControl_LocalHotspotStatusTooltip" xml:space="preserve">
     <value>The hotspots not yet present on the server need to be fixed locally.</value>
   </data>
-  <data name="HotspotStatus_ToReview" xml:space="preserve">
-    <value>To Review</value>
-  </data>
-  <data name="HotspotsControl_ViewInSonarQubeCloud" xml:space="preserve">
+  <data name="ViewIssueInSonarQubeCloud" xml:space="preserve">
     <value>View in SonarQube Cloud</value>
   </data>
-  <data name="HotspotsControl_ViewInSonarQubeServer" xml:space="preserve">
+  <data name="ViewIssueInSonarQubeServer" xml:space="preserve">
     <value>View in SonarQube Server</value>
+  </data>
+  <data name="ReportViewToolWindowCaption" xml:space="preserve">
+    <value>SonarQube Dependency Risks</value>
+  </data>
+  <data name="DependencyRisksGroupTitle" xml:space="preserve">
+    <value>Solution findings</value>
+  </data>
+  <data name="DependencyRiskImpactSeverityTooltip" xml:space="preserve">
+    <value>Severity impact:</value>
+  </data>
+  <data name="NoDependencyRiskFoundText" xml:space="preserve">
+    <value>Please ensure that your solution is bound to a SonarQube project that contains dependency risks</value>
+  </data>
+  <data name="NoDependencyRiskFoundTitle" xml:space="preserve">
+    <value>No Dependency Risks were found.</value>
+  </data>
+  <data name="IssueText" xml:space="preserve">
+    <value>issue</value>
+  </data>
+  <data name="ChangeStatusWindow_CommentLabel" xml:space="preserve">
+    <value>Add a comment:</value>
+  </data>
+  <data name="ChangeStatusWindow_FormattingHelpExamples" xml:space="preserve">
+    <value>: *Bold*, ``Code``, * Bullet point</value>
+  </data>
+  <data name="ChangeStatusWindow_FormattingHelpLink" xml:space="preserve">
+    <value>Formatting Help</value>
+  </data>
+  <data name="CommentRequiredErrorMessage" xml:space="preserve">
+    <value>Comment is required.</value>
+   </data>
+  <data name="ChangeStatusMenuItem" xml:space="preserve">
+    <value>Change Status</value>
+  </data>
+  <data name="ChangeDependencyRiskStatus_AcceptedDescription" xml:space="preserve">
+    <value>This finding is valid, but it may not be fixed for a while.</value>
+  </data>
+  <data name="ChangeDependencyRiskStatus_ConfirmedDescription" xml:space="preserve">
+    <value>This finding has been reviewed and the risk is valid.</value>
+  </data>
+  <data name="ChangeDependencyRiskStatus_OpenDescription" xml:space="preserve">
+    <value>This finding has not yet been reviewed.</value>
+  </data>
+  <data name="ChangeDependencyRiskStatus_SafeDescription" xml:space="preserve">
+    <value>This finding does not pose a risk. No fix is needed.</value>
+  </data>
+  <data name="ChangeDependencyRiskStatus_FixedDescription" xml:space="preserve">
+    <value>This finding has been fixed.</value>
+  </data>
+  <data name="ChangeDependencyRiskStatus_ReopenTitle" xml:space="preserve">
+    <value>Reopen</value>
+  </data>
+  <data name="ChangeDependencyRiskStatus_ConfirmTitle" xml:space="preserve">
+    <value>Confirm</value>
+  </data>
+  <data name="ChangeDependencyRiskStatus_AcceptTitle" xml:space="preserve">
+    <value>Accept</value>
+  </data>
+  <data name="ChangeDependencyRiskStatus_SafeTitle" xml:space="preserve">
+    <value>Safe</value>
+  </data>
+  <data name="ChangeDependencyRiskStatus_FixedTitle" xml:space="preserve">
+    <value>Fixed</value>
+  </data>
+  <data name="Synchronizer_Failure" xml:space="preserve">
+    <value>Failed to synchronize server issues: {0}.</value>
+  </data>
+  <data name="DependencyRiskStatusChangeFailedTitle" xml:space="preserve">
+    <value>Dependency Risk Status Change Failed</value>
+  </data>
+  <data name="DependencyRiskStatusChangeError" xml:space="preserve">
+    <value>An error occurred when changing the status.</value>
+  </data>
+  <data name="DependencyRiskNullTransitionError" xml:space="preserve">
+    <value>Cannot change status: transition is not specified</value>
+  </data>
+  <data name="Synchronizer_NotInConnectedMode" xml:space="preserve">
+    <value>Unable to fetch server issues: not in connected mode.</value>
+  </data>
+  <data name="Synchronizer_SLCoreNotReady" xml:space="preserve">
+    <value>Unable to fetch server issues: SLCore backend is not available.</value>
+  </data>
+  <data name="Synchronizer_NumberOfTaintIssues" xml:space="preserve">
+    <value>Fetched {0} taint vulnerabilities.</value>
+  </data>
+  <data name="Synchronizer_NumberOfDependencyRisks" xml:space="preserve">
+    <value>Fetched {0} dependency risks.</value>
+  </data>
+  <data name="Synchronizer_Verbose_ConfigScopeNotReady" xml:space="preserve">
+    <value>Configuration scope root hasn't been initialized...</value>
+  </data>
+  <data name="Synchronizer_Verbose_AlreadyInitialized" xml:space="preserve">
+    <value>Storage has already been initialized for current configuration scope</value>
+  </data>
+  <data name="Synchronizer_LogContext_General" xml:space="preserve">
+    <value>Server Issue Sync</value>
+  </data>
+  <data name="Synchronizer_LogContext_Taint" xml:space="preserve">
+    <value>Taint</value>
+  </data>
+  <data name="LogContext_DependencyRisks" xml:space="preserve">
+    <value>Dependency Risks</value>
+  </data>
+  <data name="LogContext_ShowInBrowser" xml:space="preserve">
+    <value>Show in Browser</value>
+  </data>
+  <data name="LogContext_ChangeStatus" xml:space="preserve">
+    <value>Change Status</value>
+  </data>
+  <data name="ShowDependencyRisk_Error_ShowingInBrowser" xml:space="preserve">
+    <value>Error when showing dependency risk in browser: {0}</value>
+  </data>
+  <data name="ChangeDependencyRisk_Error_ChangingStatus" xml:space="preserve">
+    <value>Error when changing dependency risk status: {0}</value>
+  </data>
+  <data name="ResolutionFilter_Resolved" xml:space="preserve">
+    <value>Resolved</value>
+  </data>
+  <data name="ResolutionFilter_Open" xml:space="preserve">
+    <value>Open</value>
   </data>
 </root>

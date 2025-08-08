@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel;
 using SonarLint.VisualStudio.Integration.Transition;
 using SonarQube.Client.Models;
 
@@ -38,19 +37,5 @@ public class StatusViewModelTests
         testSubject.Transition.Should().Be(transition);
         testSubject.Title.Should().Be(title);
         testSubject.Description.Should().Be(description);
-        testSubject.IsChecked.Should().BeFalse();
-    }
-
-    [TestMethod]
-    public void IsChecked_Set_RaisesEvents()
-    {
-        var testSubject = new StatusViewModel(SonarQubeIssueTransition.Accept, "title", "description");
-        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
-        testSubject.PropertyChanged += eventHandler;
-        eventHandler.ReceivedCalls().Should().BeEmpty();
-
-        testSubject.IsChecked = !testSubject.IsChecked;
-
-        eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsChecked)));
     }
 }
