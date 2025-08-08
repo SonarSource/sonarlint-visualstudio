@@ -14,6 +14,7 @@
     <AssemblyName>SonarLint.VisualStudio.Integration</AssemblyName>
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
     <RequiresSystemIOAbstractions>true</RequiresSystemIOAbstractions>
+    <RequiresLanguageServices>true</RequiresLanguageServices>
   </PropertyGroup>
 
   <ItemGroup Label="Framework references">

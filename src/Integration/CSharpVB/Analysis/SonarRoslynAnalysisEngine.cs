@@ -20,8 +20,6 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis;
@@ -61,6 +59,7 @@ internal class SequentialSonarRoslynAnalysisEngine(
                     if (!uniqueDiagnostics.Add(diagnostic))
                     {
                         // todo log issue merged
+                        // todo merged issues may have different secondary locations (due to conditional compilation, for example) -> need a smarter way to merge
                     }
                     else
                     {

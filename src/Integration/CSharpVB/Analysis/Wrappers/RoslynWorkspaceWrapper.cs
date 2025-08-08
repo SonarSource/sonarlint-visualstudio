@@ -18,12 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Integration.CSharpVB.Analysis.Wrappers;
+using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.LanguageServices;
 
-namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis;
+namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis.Wrappers;
 
-internal class SonarRoslynProjectAnalysisCommands(ISonarRoslynProjectWrapper project, IReadOnlyCollection<ISonarRoslynAnalysisCommand> analysisCommands)
+[Export(typeof(ISonarRoslynWorkspaceWrapper))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+internal class RoslynWorkspaceWrapper([Import(typeof(VisualStudioWorkspace))] Workspace workspace) : ISonarRoslynWorkspaceWrapper
 {
-    public ISonarRoslynProjectWrapper Project { get; } = project;
-    public IReadOnlyCollection<ISonarRoslynAnalysisCommand> AnalysisCommands { get; init; } = analysisCommands;
+    public ISonarRoslynSolutionWrapper CurrentSolution => new SonarRoslynSolutionWrapper(workspace.CurrentSolution);
 }

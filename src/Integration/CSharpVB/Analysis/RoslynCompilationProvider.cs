@@ -20,16 +20,18 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.CSharpVB.Analysis.Wrappers;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis;
 
 internal interface ISonarRoslynProjectCompilationProvider
 {
     Task<CompilationWithAnalyzers> GetProjectCompilationAsync(
-        Project project,
+        ISonarRoslynProjectWrapper project,
         ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token);
 }
@@ -40,7 +42,7 @@ internal interface ISonarRoslynProjectCompilationProvider
 internal class SonarRoslynProjectCompilationProvider(ILogger logger) : ISonarRoslynProjectCompilationProvider
 {
     public async Task<CompilationWithAnalyzers> GetProjectCompilationAsync(
-        Project project,
+        ISonarRoslynProjectWrapper project,
         ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token)
     {
@@ -51,39 +53,47 @@ internal class SonarRoslynProjectCompilationProvider(ILogger logger) : ISonarRos
             return null;
         }
 
-        var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation, project, sonarRoslynAnalysisConfigurations);
-        return compilationWithAnalyzers;
+        var analysisConfigurationForLanguage = sonarRoslynAnalysisConfigurations[compilation.Language];
+
+
+        return ApplyAnalyzersAndAdditionalFile(
+            ApplyDiagnosticOptions(compilation, analysisConfigurationForLanguage),
+            project,
+            analysisConfigurationForLanguage);
     }
 
-    private CompilationWithAnalyzers GetCompilationWithAnalyzers(
-        Compilation compilation,
-        Project project,
-        ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations)
+    private CompilationWithAnalyzers ApplyAnalyzersAndAdditionalFile(
+        ISonarRoslynCompilationWrapper compilation,
+        ISonarRoslynProjectWrapper project,
+        SonarRoslynAnalysisConfiguration analysisConfigurationForLanguage)
     {
-        var language = compilation.Language switch
-        {
-            LanguageNames.CSharp => Language.CSharp,
-            LanguageNames.VisualBasic => Language.VBNET,
-            _ => throw new ArgumentOutOfRangeException(nameof(compilation.Language)),
-        };
+        // todo IF NEEDED cleanup globalconfig from AnalyzerConfigDocuments, but check if that is not breaking/discarding the compilation
+        var additionalFiles = project.RoslynAnalyzerOptions.AdditionalFiles;
+        var sonarLintXmlName = Path.GetFileName(analysisConfigurationForLanguage.SonarLintXml.Path);
+        var analyzerOptions = project.RoslynAnalyzerOptions.WithAdditionalFiles(additionalFiles
+            .Where(x => Path.GetFileName(x.Path) != sonarLintXmlName)
+            .Concat([analysisConfigurationForLanguage.SonarLintXml])
+            .ToImmutableArray());
 
-        // todo cleanup globalconfig from AnalyzerConfigDocuments, but check if that is not breaking/discarding the compilation
-        // todo cleanup SonarLint.xml from AdditionalFiles, but check if that is not breaking/discarding the compilation
+        var compilationWithAnalyzersOptions = new CompilationWithAnalyzersOptions(
+            analyzerOptions,
+            OnAnalyzerException,
+            true,
+            false,
+            false);
 
-        var analysisConfigurationForLanguage = sonarRoslynAnalysisConfigurations[language];
+        return compilation
+            .WithAnalyzers(analysisConfigurationForLanguage.Analyzers, compilationWithAnalyzersOptions);
+    }
 
-        var compilationWithAnalyzers = compilation
-            .WithOptions(compilation.Options.WithSpecificDiagnosticOptions(analysisConfigurationForLanguage.DiagnosticOptions))
-            .WithAnalyzers(
-                analysisConfigurationForLanguage.Analyzers,
-                new CompilationWithAnalyzersOptions(
-                    project.AnalyzerOptions.WithAdditionalFiles(project.AnalyzerOptions.AdditionalFiles.Concat([analysisConfigurationForLanguage.SonarLintXml]).ToImmutableArray()),
-                    OnAnalyzerException,
-                    true,
-                    false,
-                    false));
-
-        return compilationWithAnalyzers;
+    private static ISonarRoslynCompilationWrapper ApplyDiagnosticOptions(
+        ISonarRoslynCompilationWrapper compilation,
+        SonarRoslynAnalysisConfiguration analysisConfigurationForLanguage)
+    {
+        var compilationOptions = compilation.RoslynCompilationOptions.WithSpecificDiagnosticOptions(analysisConfigurationForLanguage.DiagnosticOptions);
+        compilation = compilation
+            .WithOptions(compilationOptions);
+        return compilation;
     }
 
     private void OnAnalyzerException(Exception arg1, DiagnosticAnalyzer arg2, Diagnostic arg3) =>

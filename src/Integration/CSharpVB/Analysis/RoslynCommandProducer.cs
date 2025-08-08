@@ -21,10 +21,10 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
+using SonarLint.VisualStudio.Integration.CSharpVB.Analysis.Wrappers;
 using Document = Microsoft.CodeAnalysis.Document;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis;
-
 
 internal interface ISonarRoslynSolutionAnalysisCommandProvider
 {
@@ -35,40 +35,36 @@ internal interface ISonarRoslynSolutionAnalysisCommandProvider
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
 internal class SonarRoslynSolutionAnalysisCommandProvider(
-    IRoslynWorkspaceWrapper roslynWorkspaceWrapper,
+    ISonarRoslynWorkspaceWrapper roslynWorkspaceWrapper,
     ILogger logger) : ISonarRoslynSolutionAnalysisCommandProvider
 {
     public List<SonarRoslynProjectAnalysisCommands> GetAnalysisCommandsForCurrentSolution(string[] filePaths)
     {
         var result = new List<SonarRoslynProjectAnalysisCommands>();
-        foreach (string filePath in filePaths)
+
+        var solution = roslynWorkspaceWrapper.CurrentSolution;
+
+        // todo this will not find unloaded projects
+        foreach (var project in solution.Projects)
         {
-            var solution = roslynWorkspaceWrapper.CurrentSolution.RoslynSolution;
+            var commands = new List<ISonarRoslynAnalysisCommand>();
 
-            // todo this will not find unloaded projects
-            foreach (var project in solution.Projects)
+            foreach (string filePath in filePaths)
             {
-                var commands = new List<ISonarRoslynAnalysisCommand>();
-
-                foreach (var document in project.Documents)
+                if (project.ContainsDocument(filePath, out var analysisFilePath))
                 {
-                    if (!CompareFilePath(filePath, document, out var analysisFilePath))
-                    {
-                        continue;
-                    }
-
                     commands.Add(new SonarRoslynFileSyntaxAnalysis(analysisFilePath));
                     commands.Add(new SonarRoslynFileSemanticAnalysis(analysisFilePath));
                 }
+            }
 
-                if (commands.Any())
-                {
-                    result.Add(new SonarRoslynProjectAnalysisCommands(project, commands));
-                }
-                else
-                {
-                    logger.WriteLine($"No projects found containing file: {filePath}");
-                }
+            if (commands.Any())
+            {
+                result.Add(new SonarRoslynProjectAnalysisCommands(project, commands));
+            }
+            else
+            {
+                logger.LogVerbose("No files to analyze in project {0}", project.Name);
             }
         }
 
@@ -78,26 +74,5 @@ internal class SonarRoslynSolutionAnalysisCommandProvider(
         }
 
         return result;
-    }
-
-    private static bool CompareFilePath(
-        string filePath,
-        Document document,
-        out string analysisFilePath)
-    {
-        analysisFilePath = null;
-        if (document.FilePath is null)
-        {
-            return false;
-        }
-
-        if (!document.FilePath.Equals(filePath)
-            && (!document.FilePath.StartsWith(filePath) || !document.FilePath.EndsWith(".g.cs")))
-        {
-            return false;
-        }
-
-        analysisFilePath = document.FilePath;
-        return true;
     }
 }
