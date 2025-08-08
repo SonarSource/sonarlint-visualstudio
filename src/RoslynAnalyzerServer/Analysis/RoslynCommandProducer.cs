@@ -45,16 +45,13 @@ internal class SonarRoslynSolutionAnalysisCommandProvider(
         // todo this will not find unloaded projects
         foreach (var project in solution.Projects)
         {
-            var commands = new List<ISonarRoslynAnalysisCommand>();
-
-            foreach (string filePath in filePaths)
+            if (!project.SupportsCompilation)
             {
-                if (project.ContainsDocument(filePath, out var analysisFilePath))
-                {
-                    commands.Add(new SonarRoslynFileSyntaxAnalysis(analysisFilePath));
-                    commands.Add(new SonarRoslynFileSemanticAnalysis(analysisFilePath));
-                }
+                logger.WriteLine($"Failed to get compilation for project: {project.Name}");
+                continue;
             }
+
+            var commands = GetCompilationCommandsForProject(filePaths, project);
 
             if (commands.Any())
             {
@@ -72,5 +69,22 @@ internal class SonarRoslynSolutionAnalysisCommandProvider(
         }
 
         return result;
+    }
+
+    private static List<ISonarRoslynAnalysisCommand> GetCompilationCommandsForProject(string[] filePaths, ISonarRoslynProjectWrapper project)
+    {
+        var commands = new List<ISonarRoslynAnalysisCommand>();
+
+        foreach (var filePath in filePaths)
+        {
+            if (!project.ContainsDocument(filePath, out var analysisFilePath))
+            {
+                continue;
+            }
+
+            commands.Add(new SonarRoslynFileSyntaxAnalysis(analysisFilePath));
+            commands.Add(new SonarRoslynFileSemanticAnalysis(analysisFilePath));
+        }
+        return commands;
     }
 }

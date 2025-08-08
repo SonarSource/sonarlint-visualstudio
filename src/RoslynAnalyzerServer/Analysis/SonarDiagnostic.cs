@@ -79,8 +79,8 @@ public class SonarDiagnostic
         string ruleKey,
         bool isWarning, // todo
         SonarDiagnosticLocation primaryLocation,
-        IReadOnlyList<SonarDiagnosticFlow> flows,
-        IReadOnlyList<IQuickFix> fixes = null)
+        IReadOnlyList<SonarDiagnosticFlow>? flows = null,
+        IReadOnlyList<IQuickFix>? fixes = null)
     {
         RuleKey = ruleKey;
         IsWarning = isWarning;
@@ -113,11 +113,11 @@ public class SonarTextRange(
     int endLine,
     int startLineOffset,
     int endLineOffset,
-    string lineHash)
+    string? lineHash)
 {
     public int StartLine { get; } = startLine;
     public int EndLine { get; } = endLine;
     public int StartLineOffset { get; } = startLineOffset;
     public int EndLineOffset { get; } = endLineOffset;
-    public string LineHash { get; } = lineHash;
+    public string? LineHash { get; } = lineHash;
 }

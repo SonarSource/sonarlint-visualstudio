@@ -7,7 +7,6 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 internal class SonarRoslynCompilationWrapper(Compilation roslynCompilation) : ISonarRoslynCompilationWrapper
 {
-    public Compilation RoslynCompilation => roslynCompilation;
     public CompilationOptions RoslynCompilationOptions  => roslynCompilation.Options;
     public Language Language { get; } = roslynCompilation.Language switch
     {
