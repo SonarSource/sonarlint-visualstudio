@@ -20,19 +20,22 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
 internal class SonarRoslynFileSyntaxAnalysis(string analysisFilePath) : ISonarRoslynAnalysisCommand
 {
-    public async Task<IEnumerable<Diagnostic>> ExecuteAsync(CompilationWithAnalyzers compilation, CancellationToken token)
+    public async Task<IEnumerable<Diagnostic>> ExecuteAsync(ISonarRoslynCompilationWithAnalyzersWrapper compilation, CancellationToken token)
     {
-        var syntaxTree = compilation.Compilation.SyntaxTrees.SingleOrDefault(x => analysisFilePath.Equals(x.FilePath));
+        var roslynCompilation = compilation.RoslynCompilation;
+
+        var syntaxTree = roslynCompilation.Compilation.SyntaxTrees.SingleOrDefault(x => analysisFilePath.Equals(x.FilePath));
         if (syntaxTree == null)
         {
             return []; // todo log?
         }
 
-        return await compilation.GetAnalyzerSyntaxDiagnosticsAsync(syntaxTree, token);
+        return await roslynCompilation.GetAnalyzerSyntaxDiagnosticsAsync(syntaxTree, token);
     }
 }

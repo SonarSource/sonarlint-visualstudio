@@ -18,6 +18,6 @@ internal class SonarRoslynCompilationWrapper(Compilation roslynCompilation) : IS
     public ISonarRoslynCompilationWrapper WithOptions(CompilationOptions withSpecificDiagnosticOptions) =>
         new SonarRoslynCompilationWrapper(roslynCompilation.WithOptions(withSpecificDiagnosticOptions));
 
-    public CompilationWithAnalyzers WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersOptions compilationWithAnalyzersOptions) =>
-        roslynCompilation.WithAnalyzers(analyzers, compilationWithAnalyzersOptions);
+    public ISonarRoslynCompilationWithAnalyzersWrapper WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersOptions compilationWithAnalyzersOptions) =>
+        new SonarRoslynCompilationWithAnalyzersWrapper(roslynCompilation.WithAnalyzers(analyzers, compilationWithAnalyzersOptions));
 }
