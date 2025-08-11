@@ -22,78 +22,19 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-public class DiagnosticDuplicatesComparer : IEqualityComparer<SonarDiagnostic>
-{
-    public static DiagnosticDuplicatesComparer Instance { get; } = new();
-
-    private DiagnosticDuplicatesComparer()
-    {
-    }
-
-    public bool Equals(SonarDiagnostic x, SonarDiagnostic y)
-    {
-        if (ReferenceEquals(x, y))
-        {
-            return true;
-        }
-        if (x is null)
-        {
-            return false;
-        }
-        if (y is null)
-        {
-            return false;
-        }
-
-        return x.RuleKey == y.RuleKey && LocationEquals(x.PrimaryLocation, y.PrimaryLocation);
-    }
-
-    public int GetHashCode(SonarDiagnostic obj)
-    {
-        unchecked
-        {
-            var hc = obj.RuleKey.GetHashCode();
-            hc = (hc * 397) ^ obj.PrimaryLocation.FilePath.GetHashCode();
-            hc = (hc * 397) ^ obj.PrimaryLocation.TextRange.StartLine;
-            hc = (hc * 397) ^ obj.PrimaryLocation.TextRange.StartLineOffset;
-            hc = (hc * 397) ^ obj.PrimaryLocation.TextRange.EndLine;
-            hc = (hc * 397) ^ obj.PrimaryLocation.TextRange.EndLineOffset;
-            return hc;
-        }
-    }
-
-    private static bool LocationEquals(SonarDiagnosticLocation xPrimaryLocation, SonarDiagnosticLocation yPrimaryLocation) =>
-        xPrimaryLocation.FilePath == yPrimaryLocation.FilePath &&
-        xPrimaryLocation.TextRange.StartLine == yPrimaryLocation.TextRange.StartLine &&
-        xPrimaryLocation.TextRange.EndLine == yPrimaryLocation.TextRange.EndLine &&
-        xPrimaryLocation.TextRange.StartLineOffset == yPrimaryLocation.TextRange.StartLineOffset &&
-        xPrimaryLocation.TextRange.EndLineOffset == yPrimaryLocation.TextRange.EndLineOffset;
-}
-
-public class SonarDiagnostic
+public class SonarDiagnostic(
+    string ruleKey,
+    SonarDiagnosticLocation primaryLocation,
+    IReadOnlyList<SonarDiagnosticFlow>? flows = null,
+    IReadOnlyList<IQuickFix>? fixes = null)
 {
     private static readonly IReadOnlyList<SonarDiagnosticFlow> EmptyFlows = [];
     private static readonly IReadOnlyList<IQuickFix> EmptyFixes = [];
 
-    public SonarDiagnostic(
-        string ruleKey,
-        bool isWarning, // todo
-        SonarDiagnosticLocation primaryLocation,
-        IReadOnlyList<SonarDiagnosticFlow>? flows = null,
-        IReadOnlyList<IQuickFix>? fixes = null)
-    {
-        RuleKey = ruleKey;
-        IsWarning = isWarning;
-        PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
-        Flows = flows ?? EmptyFlows;
-        Fixes = fixes ?? EmptyFixes;
-    }
-
-    public string RuleKey { get; }
-    public bool IsWarning { get; }
-    public IReadOnlyList<SonarDiagnosticFlow> Flows { get; }
-    public SonarDiagnosticLocation PrimaryLocation { get; }
-    public IReadOnlyList<IQuickFix> Fixes { get; }
+    public string RuleKey { get; } = ruleKey;
+    public SonarDiagnosticLocation PrimaryLocation { get; } = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
+    public IReadOnlyList<SonarDiagnosticFlow> Flows { get; } = flows ?? EmptyFlows;
+    public IReadOnlyList<IQuickFix> Fixes { get; } = fixes ?? EmptyFixes;
 }
 
 public class SonarDiagnosticFlow(IReadOnlyList<SonarDiagnosticLocation> locations)

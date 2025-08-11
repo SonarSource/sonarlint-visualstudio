@@ -35,7 +35,6 @@ public class SonarRoslynDiagnosticsConverter : IRoslynDiagnosticsConverter
     public SonarDiagnostic ConvertToSonarDiagnostic(Diagnostic diagnostic)
     {
         var fileLinePositionSpan = diagnostic.Location.GetMappedLineSpan();
-        var isWarning = diagnostic.Severity is DiagnosticSeverity.Error or DiagnosticSeverity.Warning; // todo remove this
 
         var textRange = new SonarTextRange(
             fileLinePositionSpan.StartLinePosition.Line + 1,
@@ -51,7 +50,6 @@ public class SonarRoslynDiagnosticsConverter : IRoslynDiagnosticsConverter
 
         return new SonarDiagnostic(
             diagnostic.Id,
-            isWarning,
             location,
             []); // todo secondary locations and quick fixes
     }
