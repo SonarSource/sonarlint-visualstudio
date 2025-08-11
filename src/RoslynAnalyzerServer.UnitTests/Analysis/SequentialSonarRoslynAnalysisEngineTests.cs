@@ -257,6 +257,6 @@ public class SequentialSonarRoslynAnalysisEngineTests
     {
         var textRange = new SonarTextRange(1, 1, 0, 1, null);
         var location = new SonarDiagnosticLocation(message, "test.cs", textRange);
-        return new SonarDiagnostic(ruleId, true, location);
+        return new SonarDiagnostic(ruleId, location);
     }
 }
