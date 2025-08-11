@@ -18,11 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
+[ExcludeFromCodeCoverage] // todo add roslyn 'integration' tests using AdHocWorkspace
 public class SonarRoslynCompilationWithAnalyzersWrapper(CompilationWithAnalyzers compilation) : ISonarRoslynCompilationWithAnalyzersWrapper
 {
     public CompilationWithAnalyzers RoslynCompilation => compilation;
+
+    public SyntaxTree? GetSyntaxTree(string filePath) => compilation.Compilation.SyntaxTrees.SingleOrDefault(x => filePath.Equals(x.FilePath));
+
+    public SemanticModel? GetSemanticModel(string filePath) => GetSyntaxTree(filePath) is {} syntaxTree ? compilation.Compilation.GetSemanticModel(syntaxTree) : null;
+
+    public Task<ImmutableArray<Diagnostic>> GetAnalyzerSyntaxDiagnosticsAsync(SyntaxTree syntaxTree, CancellationToken token) =>
+        compilation.GetAnalyzerSyntaxDiagnosticsAsync(syntaxTree, token);
+
+    public Task<ImmutableArray<Diagnostic>> GetAnalyzerSemanticDiagnosticsAsync(SemanticModel semanticModel, CancellationToken token) =>
+        compilation.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, null, token);
 }

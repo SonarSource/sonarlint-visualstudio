@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
+[ExcludeFromCodeCoverage] // todo add roslyn 'integration' tests using AdHocWorkspace
 internal class SonarRoslynProjectWrapper(Project project) : ISonarRoslynProjectWrapper
 {
     public string Name => project.Name;

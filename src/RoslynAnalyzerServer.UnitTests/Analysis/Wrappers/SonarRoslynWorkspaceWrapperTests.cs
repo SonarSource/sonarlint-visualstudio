@@ -18,16 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.LanguageServices;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis.Wrappers;
 
-[Export(typeof(ISonarRoslynWorkspaceWrapper))]
-[PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-internal class RoslynWorkspaceWrapper([Import(typeof(VisualStudioWorkspace))] Workspace workspace) : ISonarRoslynWorkspaceWrapper
+[TestClass]
+public class SonarRoslynWorkspaceWrapperTests
 {
-    public ISonarRoslynSolutionWrapper CurrentSolution => new SonarRoslynSolutionWrapper(workspace.CurrentSolution);
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() =>
+        MefTestHelpers.CheckIsSingletonMefComponent<SonarRoslynWorkspaceWrapper>();
 }

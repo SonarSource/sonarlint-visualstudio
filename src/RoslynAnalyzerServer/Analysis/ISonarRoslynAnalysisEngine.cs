@@ -19,23 +19,14 @@
  */
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal class SonarRoslynFileSyntaxAnalysis(string analysisFilePath) : ISonarRoslynAnalysisCommand
+internal interface ISonarRoslynAnalysisEngine
 {
-    public string AnalysisFilePath { get; } = analysisFilePath;
-
-    public async Task<ImmutableArray<Diagnostic>> ExecuteAsync(ISonarRoslynCompilationWithAnalyzersWrapper compilation, CancellationToken token)
-    {
-        var syntaxTree = compilation.GetSyntaxTree(AnalysisFilePath);
-        if (syntaxTree == null)
-        {
-            return ImmutableArray<Diagnostic>.Empty; // todo log?
-        }
-
-        return await compilation.GetAnalyzerSyntaxDiagnosticsAsync(syntaxTree, token);
-    }
+    Task<IEnumerable<SonarDiagnostic>> AnalyzeAsync(
+        List<SonarRoslynProjectAnalysisCommands> analysisCommands,
+        ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
+        CancellationToken token);
 }
