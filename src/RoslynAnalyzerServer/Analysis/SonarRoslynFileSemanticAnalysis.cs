@@ -19,18 +19,19 @@
  */
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
 internal class SonarRoslynFileSemanticAnalysis(string analysisFilePath) : ISonarRoslynAnalysisCommand
 {
+    public string AnalysisFilePath { get; } = analysisFilePath;
+
     public async Task<IEnumerable<Diagnostic>> ExecuteAsync(ISonarRoslynCompilationWithAnalyzersWrapper compilation, CancellationToken token)
     {
         var roslynCompilation = compilation.RoslynCompilation;
 
-        var syntaxTree = roslynCompilation.Compilation.SyntaxTrees.SingleOrDefault(x => analysisFilePath.Equals(x.FilePath));
+        var syntaxTree = roslynCompilation.Compilation.SyntaxTrees.SingleOrDefault(x => AnalysisFilePath.Equals(x.FilePath));
 
         if (syntaxTree == null)
         {

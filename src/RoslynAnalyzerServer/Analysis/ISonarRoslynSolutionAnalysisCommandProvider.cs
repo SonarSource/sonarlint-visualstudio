@@ -18,25 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.CodeAnalysis;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
-
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal class SonarRoslynFileSyntaxAnalysis(string analysisFilePath) : ISonarRoslynAnalysisCommand
+internal interface ISonarRoslynSolutionAnalysisCommandProvider
 {
-    public string AnalysisFilePath { get; } = analysisFilePath;
-
-    public async Task<IEnumerable<Diagnostic>> ExecuteAsync(ISonarRoslynCompilationWithAnalyzersWrapper compilation, CancellationToken token)
-    {
-        var roslynCompilation = compilation.RoslynCompilation;
-
-        var syntaxTree = roslynCompilation.Compilation.SyntaxTrees.SingleOrDefault(x => AnalysisFilePath.Equals(x.FilePath));
-        if (syntaxTree == null)
-        {
-            return []; // todo log?
-        }
-
-        return await roslynCompilation.GetAnalyzerSyntaxDiagnosticsAsync(syntaxTree, token);
-    }
+    List<SonarRoslynProjectAnalysisCommands> GetAnalysisCommandsForCurrentSolution(string[] filePaths);
 }
