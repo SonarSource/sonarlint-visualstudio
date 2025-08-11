@@ -146,10 +146,7 @@ public class SequentialSonarRoslynAnalysisEngineTests
 
         var result = await testSubject.AnalyzeAsync([commands1, commands2], configurations, cancellationToken);
 
-        result.Should().NotBeNull();
-        result.Should().HaveCount(2);
-        result.Should().Contain(sonarDiagnostic1);
-        result.Should().Contain(sonarDiagnostic2);
+        result.Should().BeEquivalentTo([sonarDiagnostic1, sonarDiagnostic2]);
         VerifyAnalysisExecution(project1, compilation1, command1, diagnostic1);
         VerifyAnalysisExecution(project2, compilation2, command2, diagnostic2);
     }
@@ -159,37 +156,28 @@ public class SequentialSonarRoslynAnalysisEngineTests
     {
         var (project, commands, compilation) = SetupProjectAndCommands();
 
-        // First command with two diagnostics
         var command1 = Substitute.For<ISonarRoslynAnalysisCommand>();
         var diagnostic1A = CreateTestDiagnostic("rule1");
         var diagnostic1B = CreateTestDiagnostic("rule2");
         var sonarDiagnostic1A = CreateSonarDiagnostic("rule1", "message1");
         var sonarDiagnostic1B = CreateSonarDiagnostic("rule2", "message2");
-        command1.ExecuteAsync(compilation, cancellationToken).Returns([diagnostic1A, diagnostic1B]);
+        command1.ExecuteAsync(compilation, cancellationToken).Returns(ImmutableArray.Create(diagnostic1A, diagnostic1B));
         diagnosticsConverter.ConvertToSonarDiagnostic(diagnostic1A).Returns(sonarDiagnostic1A);
         diagnosticsConverter.ConvertToSonarDiagnostic(diagnostic1B).Returns(sonarDiagnostic1B);
         AddCommandToProject(command1, commands);
-
-        // Second command with two different diagnostics
         var command2 = Substitute.For<ISonarRoslynAnalysisCommand>();
         var diagnostic2A = CreateTestDiagnostic("rule3");
         var diagnostic2B = CreateTestDiagnostic("rule4");
         var sonarDiagnostic2A = CreateSonarDiagnostic("rule3", "message3");
         var sonarDiagnostic2B = CreateSonarDiagnostic("rule4", "message4");
-        command2.ExecuteAsync(compilation, cancellationToken).Returns([diagnostic2A, diagnostic2B]);
+        command2.ExecuteAsync(compilation, cancellationToken).Returns(ImmutableArray.Create(diagnostic2A, diagnostic2B));
         diagnosticsConverter.ConvertToSonarDiagnostic(diagnostic2A).Returns(sonarDiagnostic2A);
         diagnosticsConverter.ConvertToSonarDiagnostic(diagnostic2B).Returns(sonarDiagnostic2B);
         AddCommandToProject(command2, commands);
 
         var result = await testSubject.AnalyzeAsync([commands], configurations, cancellationToken);
 
-        result.Should().NotBeNull();
-        result.Should().HaveCount(4);
-        result.Should().Contain(sonarDiagnostic1A);
-        result.Should().Contain(sonarDiagnostic1B);
-        result.Should().Contain(sonarDiagnostic2A);
-        result.Should().Contain(sonarDiagnostic2B);
-
+        result.Should().BeEquivalentTo(sonarDiagnostic1A, sonarDiagnostic1B, sonarDiagnostic2A, sonarDiagnostic2B);
         await command1.Received(1).ExecuteAsync(compilation, cancellationToken);
         await command2.Received(1).ExecuteAsync(compilation, cancellationToken);
         diagnosticsConverter.Received(1).ConvertToSonarDiagnostic(diagnostic1A);
@@ -201,16 +189,14 @@ public class SequentialSonarRoslynAnalysisEngineTests
     private (ISonarRoslynProjectWrapper project, SonarRoslynProjectAnalysisCommands projectCommand, ISonarRoslynCompilationWithAnalyzersWrapper projectCompilation) SetupProjectAndCommands()
     {
         var project = Substitute.For<ISonarRoslynProjectWrapper>();
-        var commands = new List<ISonarRoslynAnalysisCommand>();
-        var projectCommands = new SonarRoslynProjectAnalysisCommands(project, commands);
+        var projectCommands = new SonarRoslynProjectAnalysisCommands(project, new List<ISonarRoslynAnalysisCommand>());
         var compilation = SetupCompilation(project);
 
         return (project, projectCommands, compilation);
     }
 
-    private void AddCommandToProject(ISonarRoslynAnalysisCommand command, SonarRoslynProjectAnalysisCommands projectCommands) =>
-    (
-        (List<ISonarRoslynAnalysisCommand>)projectCommands.AnalysisCommands).Add(command);
+    private static void AddCommandToProject(ISonarRoslynAnalysisCommand command, SonarRoslynProjectAnalysisCommands projectCommands) =>
+        ((List<ISonarRoslynAnalysisCommand>)projectCommands.AnalysisCommands).Add(command);
 
     private (ISonarRoslynAnalysisCommand command, Diagnostic diagnostic, SonarDiagnostic sonarDiagnostic) SetupCommandWithDiagnostic(
         ISonarRoslynCompilationWithAnalyzersWrapper compilationWithAnalyzers,
@@ -221,7 +207,7 @@ public class SequentialSonarRoslynAnalysisEngineTests
         var command = Substitute.For<ISonarRoslynAnalysisCommand>();
         var diagnostic = CreateTestDiagnostic(ruleId);
         command.ExecuteAsync(compilationWithAnalyzers, CancellationToken.None)
-            .Returns([diagnostic]);
+            .Returns(ImmutableArray.Create(diagnostic));
 
         var sonarDiagnostic = existingSonarDiagnostic ?? CreateSonarDiagnostic(ruleId, message);
         diagnosticsConverter.ConvertToSonarDiagnostic(diagnostic).Returns(sonarDiagnostic);

@@ -24,14 +24,6 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal interface ISonarRoslynAnalysisEngine
-{
-    Task<IEnumerable<SonarDiagnostic>> AnalyzeAsync(
-        List<SonarRoslynProjectAnalysisCommands> analysisCommands,
-        ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
-        CancellationToken token);
-}
-
 [Export(typeof(ISonarRoslynAnalysisEngine))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
@@ -56,10 +48,10 @@ internal class SequentialSonarRoslynAnalysisEngine(
 
                 foreach (var diagnostic in diagnostics.Select(diagnosticsConverter.ConvertToSonarDiagnostic))
                 {
+                    // todo merged issues may have different secondary locations (due to conditional compilation, for example) -> need a smarter way to merge
                     if (!uniqueDiagnostics.Add(diagnostic))
                     {
                         // todo log issue merged
-                        // todo merged issues may have different secondary locations (due to conditional compilation, for example) -> need a smarter way to merge
                     }
                     else
                     {

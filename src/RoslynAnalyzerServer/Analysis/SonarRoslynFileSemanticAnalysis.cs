@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
@@ -27,19 +28,14 @@ internal class SonarRoslynFileSemanticAnalysis(string analysisFilePath) : ISonar
 {
     public string AnalysisFilePath { get; } = analysisFilePath;
 
-    public async Task<IEnumerable<Diagnostic>> ExecuteAsync(ISonarRoslynCompilationWithAnalyzersWrapper compilation, CancellationToken token)
+    public async Task<ImmutableArray<Diagnostic>> ExecuteAsync(ISonarRoslynCompilationWithAnalyzersWrapper compilation, CancellationToken token)
     {
-        var roslynCompilation = compilation.RoslynCompilation;
-
-        var syntaxTree = roslynCompilation.Compilation.SyntaxTrees.SingleOrDefault(x => AnalysisFilePath.Equals(x.FilePath));
-
-        if (syntaxTree == null)
+        var semanticModel = compilation.GetSemanticModel(AnalysisFilePath);
+        if (semanticModel == null)
         {
-            return []; // todo log?
+            return ImmutableArray<Diagnostic>.Empty; // todo log?
         }
 
-        var semanticModel = roslynCompilation.Compilation.GetSemanticModel(syntaxTree);
-
-        return await roslynCompilation.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, null, token);
+        return await compilation.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, token);
     }
 }

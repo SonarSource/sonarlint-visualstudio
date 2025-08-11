@@ -18,24 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
+using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
+using Microsoft.VisualStudio.LanguageServices;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-internal class SonarRoslynFileSyntaxAnalysis(string analysisFilePath) : ISonarRoslynAnalysisCommand
+[Export(typeof(ISonarRoslynWorkspaceWrapper))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+internal class SonarRoslynWorkspaceWrapper([Import(typeof(VisualStudioWorkspace))] Workspace workspace) : ISonarRoslynWorkspaceWrapper
 {
-    public string AnalysisFilePath { get; } = analysisFilePath;
-
-    public async Task<ImmutableArray<Diagnostic>> ExecuteAsync(ISonarRoslynCompilationWithAnalyzersWrapper compilation, CancellationToken token)
-    {
-        var syntaxTree = compilation.GetSyntaxTree(AnalysisFilePath);
-        if (syntaxTree == null)
-        {
-            return ImmutableArray<Diagnostic>.Empty; // todo log?
-        }
-
-        return await compilation.GetAnalyzerSyntaxDiagnosticsAsync(syntaxTree, token);
-    }
+    [ExcludeFromCodeCoverage] // todo add roslyn 'integration' tests using AdHocWorkspace
+    public ISonarRoslynSolutionWrapper CurrentSolution => new SonarRoslynSolutionWrapper(workspace.CurrentSolution);
 }
