@@ -24,11 +24,6 @@ using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal interface ISonarRoslynSolutionAnalysisCommandProvider
-{
-    List<SonarRoslynProjectAnalysisCommands> GetAnalysisCommandsForCurrentSolution(string[] filePaths);
-}
-
 [Export(typeof(ISonarRoslynSolutionAnalysisCommandProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
@@ -40,9 +35,9 @@ internal class SonarRoslynSolutionAnalysisCommandProvider(
     {
         var result = new List<SonarRoslynProjectAnalysisCommands>();
 
-        var solution = roslynWorkspaceWrapper.CurrentSolution;
+        var solution = roslynWorkspaceWrapper.CurrentSolution; // todo this snapshot may be newer than what SLCore is aware of, issue location mapping may be incorrect. Is eventual consistency enough here?
 
-        // todo this will not find unloaded projects
+        // todo this will not find unloaded projects, so we need to implement project updates for SLCore
         foreach (var project in solution.Projects)
         {
             if (!project.SupportsCompilation)
