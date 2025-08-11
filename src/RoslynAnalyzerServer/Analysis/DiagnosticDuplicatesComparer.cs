@@ -28,7 +28,7 @@ public class DiagnosticDuplicatesComparer : IEqualityComparer<SonarDiagnostic>
     {
     }
 
-    public bool Equals(SonarDiagnostic x, SonarDiagnostic y)
+    public bool Equals(SonarDiagnostic? x, SonarDiagnostic? y)
     {
         if (ReferenceEquals(x, y))
         {
