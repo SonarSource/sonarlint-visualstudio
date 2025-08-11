@@ -33,10 +33,10 @@ public class SonarRoslynFileSyntaxAnalysisTests
 {
     private const string TestFilePath = "test.cs";
 
-    private TestLogger logger;
-    private ISonarRoslynCompilationWithAnalyzersWrapper compilationWrapper;
-    private SyntaxTree syntaxTree;
-    private SonarRoslynFileSyntaxAnalysis testSubject;
+    private TestLogger logger = null!;
+    private ISonarRoslynCompilationWithAnalyzersWrapper compilationWrapper = null!;
+    private SyntaxTree syntaxTree = null!;
+    private SonarRoslynFileSyntaxAnalysis testSubject = null!;
 
     [TestInitialize]
     public void TestInitialize()
