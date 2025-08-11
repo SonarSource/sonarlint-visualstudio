@@ -32,9 +32,9 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 public class SonarRoslynFileSemanticAnalysisTests
 {
     private const string TestFilePath = "c:\\test\\file.cs";
-    private ISonarRoslynCompilationWithAnalyzersWrapper compilationWrapper;
-    private TestLogger logger;
-    private SonarRoslynFileSemanticAnalysis testSubject;
+    private ISonarRoslynCompilationWithAnalyzersWrapper compilationWrapper = null!;
+    private TestLogger logger = null!;
+    private SonarRoslynFileSemanticAnalysis testSubject = null!;
 
     [TestInitialize]
     public void TestInitialize()
