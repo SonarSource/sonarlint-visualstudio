@@ -20,11 +20,13 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 public interface ISonarRoslynCompilationWithAnalyzersWrapper
 {
+    Language Language { get; }
     SyntaxTree? GetSyntaxTree(string filePath);
 
     SemanticModel? GetSemanticModel(string filePath);

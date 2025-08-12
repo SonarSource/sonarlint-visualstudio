@@ -20,6 +20,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -37,12 +38,18 @@ public class SonarRoslynDiagnosticsConverterTests
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SonarRoslynDiagnosticsConverter>();
 
+    public static object[][] TestData =>
+    [
+        [Language.CSharp, "S1234", "test message", "c:\\test\\file.cs", 0, 0, 3, 4],
+        [Language.CSharp, "S1234", "test message", "c:\\test\\file.cs", 1, 1, 3, 4],
+        [Language.CSharp, "S5678", "multi-line issue", "c:\\test\\file2.cs", 5, 10, 15, 20],
+        [Language.VBNET, "S1234", "test message", "c:\\test\\file.vb", 0, 0, 3, 4]
+    ];
+
     [DataTestMethod]
-    [DataRow("S1234", "test message", "c:\\test\\file.cs", 0, 0, 3, 4)]
-    [DataRow("S1234", "test message", "c:\\test\\file.cs", 1, 1, 3, 4)]
-    [DataRow("S5678", "multi-line issue", "c:\\test\\file2.cs", 5, 10, 15, 20)]
+    [DynamicData(nameof(TestData))]
     public void ConvertToSonarDiagnostic_ConvertsDiagnosticCorrectly(
-        string ruleId, string message, string filePath,
+        Language language, string ruleId, string message, string filePath,
         int startLine, int endLine, int startChar, int endChar)
     {
         var diagnostic = CreateDiagnostic(ruleId, message, filePath, startLine, endLine, startChar, endChar);
@@ -50,17 +57,17 @@ public class SonarRoslynDiagnosticsConverterTests
             startLine + 1,  // Convert to 1-based
             endLine + 1,    // Convert to 1-based
             startChar,
-            endChar,
-            null);
+            endChar);
         var expectedLocation = new SonarDiagnosticLocation(
             message,
             filePath,
             expectedTextRange);
+        var expectedRuleId = $"{language.RepoInfo.Key}:{ruleId}";
         var expectedDiagnostic = new SonarDiagnostic(
-            ruleId,
+            expectedRuleId,
             expectedLocation);
 
-        var result = testSubject.ConvertToSonarDiagnostic(diagnostic);
+        var result = testSubject.ConvertToSonarDiagnostic(diagnostic, language);
 
         result.Should().BeEquivalentTo(expectedDiagnostic);
     }

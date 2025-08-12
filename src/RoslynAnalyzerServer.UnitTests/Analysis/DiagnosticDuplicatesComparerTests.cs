@@ -111,7 +111,7 @@ public class DiagnosticDuplicatesComparerTests
 
     private static SonarDiagnostic CreateDiagnostic(string ruleKey, string filePath, int startLine, int startLineOffset, int endLine, int endLineOffset)
     {
-        var textRange = new SonarTextRange(startLine, endLine, startLineOffset, endLineOffset, null);
+        var textRange = new SonarTextRange(startLine, endLine, startLineOffset, endLineOffset);
         var location = new SonarDiagnosticLocation("message", filePath, textRange);
         return new SonarDiagnostic(ruleKey, location);
     }
