@@ -1,0 +1,88 @@
+﻿/*
+ * SonarLint for Visual Studio
+ * Copyright (C) 2016-2025 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
+using SonarLint.VisualStudio.SLCore.Common.Models;
+
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.IntegrationTests.Http.Helper;
+
+internal sealed class HttpServerStarter : IDisposable
+{
+    private const int WaitForServerMsTimeout = 1000;
+    internal readonly IHttpServerConfiguration ServerConfiguration;
+    internal RoslynAnalysisHttpServer RoslynAnalysisHttpServer { get; }
+    internal ILogger MockedLogger { get; } = CreateMockedLogger();
+    internal IAnalysisEngine MockedAnalysisEngine { get; } = CreateMockedAnalysisEngine();
+
+    public HttpServerStarter(bool useMockedServerConfiguration = false, int maxConcurrentRequests = 5)
+    {
+        ServerConfiguration = useMockedServerConfiguration ? CreateMockedServerConfiguration(maxConcurrentRequests) : new HttpServerConfiguration();
+        var analysisRequestHandler = new AnalysisRequestHandler(MockedLogger, ServerConfiguration);
+        RoslynAnalysisHttpServer = new RoslynAnalysisHttpServer(MockedLogger, ServerConfiguration, analysisRequestHandler, new HttpListenerFactory(), MockedAnalysisEngine);
+    }
+
+    public void StartListeningOnBackgroundThread()
+    {
+        var serverListeningEvent = new ManualResetEvent(false);
+        MockedLogger.When(x => x.LogVerbose(Arg.Is<string>(x => x == Resources.HttpServerStarted || x == Resources.HttpServerNotStarted))).Do(_ =>
+        {
+            serverListeningEvent.Set();
+        });
+        MockedLogger.When(x => x.LogVerbose(Resources.HttpServerFailedToStartAttempts, ServerConfiguration.MaxStartAttempts)).Do(_ =>
+        {
+            serverListeningEvent.Set();
+        });
+        var thread = new Thread(() => StartRoslynAnalysisHttpServer(RoslynAnalysisHttpServer).ConfigureAwait(false)) { IsBackground = true };
+        thread.Start();
+        serverListeningEvent.WaitOne(WaitForServerMsTimeout);
+    }
+
+    public void Dispose() => RoslynAnalysisHttpServer.Dispose();
+
+    private static async Task StartRoslynAnalysisHttpServer(RoslynAnalysisHttpServer httpServer) => await httpServer.StartListenAsync();
+
+    private static ILogger CreateMockedLogger()
+    {
+        var logger = Substitute.For<ILogger>();
+        logger.ForContext(Arg.Any<string>()).Returns(logger);
+        return logger;
+    }
+
+    private static IAnalysisEngine CreateMockedAnalysisEngine()
+    {
+        var analysisEngine = Substitute.For<IAnalysisEngine>();
+        analysisEngine.AnalyzeAsync(Arg.Any<List<FileUri>>(), Arg.Any<List<ActiveRuleDto>>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new List<DiagnosticDto>()));
+        return analysisEngine;
+    }
+
+    private static IHttpServerConfiguration CreateMockedServerConfiguration(int maxConcurrentRequests)
+    {
+        var config = Substitute.For<IHttpServerConfiguration>();
+        config.MaxConcurrentRequests.Returns(maxConcurrentRequests);
+        config.Port.Returns(new HttpServerConfiguration().Port);
+        config.MaxStartAttempts.Returns(3);
+        config.RequestMillisecondsTimeout.Returns(3000);
+        config.MaxRequestBodyBytes.Returns(1024);
+        config.Token.Returns(Guid.NewGuid().ToString().ToSecureString());
+        return config;
+    }
+}
