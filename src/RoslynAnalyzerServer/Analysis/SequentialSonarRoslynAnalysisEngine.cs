@@ -20,6 +20,7 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.IO;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
@@ -51,12 +52,9 @@ internal class SequentialSonarRoslynAnalysisEngine(
                     // todo merged issues may have different secondary locations (due to conditional compilation, for example) -> need a smarter way to merge
                     if (!uniqueDiagnostics.Add(diagnostic))
                     {
-                        // todo log issue merged
+                        logger.LogVerbose("Duplicate diagnostic discarded ID: {0}, File: {1}, Line: {2}", diagnostic.RuleKey, Path.GetFileName(diagnostic.PrimaryLocation.FilePath), diagnostic.PrimaryLocation.TextRange.StartLine);
                     }
-                    else
-                    {
-                        // todo issue streaming?
-                    }
+                    // todo issue streaming?
                 }
             }
         }
