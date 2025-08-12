@@ -31,6 +31,8 @@ internal class SonarRoslynSolutionAnalysisCommandProvider(
     ISonarRoslynWorkspaceWrapper roslynWorkspaceWrapper,
     ILogger logger) : ISonarRoslynSolutionAnalysisCommandProvider
 {
+    private readonly ILogger logger = logger.ForContext("Roslyn Analysis", "Configuration");
+
     public List<SonarRoslynProjectAnalysisCommands> GetAnalysisCommandsForCurrentSolution(string[] filePaths)
     {
         var result = new List<SonarRoslynProjectAnalysisCommands>();
@@ -42,7 +44,7 @@ internal class SonarRoslynSolutionAnalysisCommandProvider(
         {
             if (!project.SupportsCompilation)
             {
-                logger.WriteLine($"Failed to get compilation for project: {project.Name}");
+                logger.LogVerbose("Failed to get compilation for project: {0}", project.Name);
                 continue;
             }
 
@@ -63,10 +65,11 @@ internal class SonarRoslynSolutionAnalysisCommandProvider(
             logger.WriteLine("No projects to analyze");
         }
 
+        // todo nice to have: log file paths not found in ANY project
         return result;
     }
 
-    private static List<ISonarRoslynAnalysisCommand> GetCompilationCommandsForProject(string[] filePaths, ISonarRoslynProjectWrapper project)
+    private List<ISonarRoslynAnalysisCommand> GetCompilationCommandsForProject(string[] filePaths, ISonarRoslynProjectWrapper project)
     {
         var commands = new List<ISonarRoslynAnalysisCommand>();
 
@@ -77,8 +80,8 @@ internal class SonarRoslynSolutionAnalysisCommandProvider(
                 continue;
             }
 
-            commands.Add(new SonarRoslynFileSyntaxAnalysis(analysisFilePath));
-            commands.Add(new SonarRoslynFileSemanticAnalysis(analysisFilePath));
+            commands.Add(new SonarRoslynFileSyntaxAnalysis(analysisFilePath, logger));
+            commands.Add(new SonarRoslynFileSemanticAnalysis(analysisFilePath, logger));
         }
         return commands;
     }

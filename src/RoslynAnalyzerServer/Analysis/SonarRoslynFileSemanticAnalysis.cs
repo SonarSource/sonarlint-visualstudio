@@ -20,11 +20,12 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal class SonarRoslynFileSemanticAnalysis(string analysisFilePath) : ISonarRoslynAnalysisCommand
+internal class SonarRoslynFileSemanticAnalysis(string analysisFilePath, ILogger logger) : ISonarRoslynAnalysisCommand
 {
     public string AnalysisFilePath { get; } = analysisFilePath;
 
@@ -33,7 +34,8 @@ internal class SonarRoslynFileSemanticAnalysis(string analysisFilePath) : ISonar
         var semanticModel = compilation.GetSemanticModel(AnalysisFilePath);
         if (semanticModel == null)
         {
-            return ImmutableArray<Diagnostic>.Empty; // todo log?
+            logger.LogVerbose("No semantic model found for {0}", AnalysisFilePath);
+            return ImmutableArray<Diagnostic>.Empty;
         }
 
         return await compilation.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, token);
