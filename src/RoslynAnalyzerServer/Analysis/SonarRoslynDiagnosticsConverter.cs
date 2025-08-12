@@ -52,7 +52,6 @@ public class SonarRoslynDiagnosticsConverter : IRoslynDiagnosticsConverter
         // todo SLVS-2428 secondary locations
         return new SonarDiagnostic(
             new SonarCompositeRuleId(language.RepoInfo.Key, diagnostic.Id).ErrorListErrorCode,
-            location,
-            []);
+            location);
     }
 }
