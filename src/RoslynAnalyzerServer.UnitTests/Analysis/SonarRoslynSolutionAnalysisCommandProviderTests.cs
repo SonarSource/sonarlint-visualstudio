@@ -170,17 +170,17 @@ public class SonarRoslynSolutionAnalysisCommandProviderTests
         logger.AssertPartialOutputStringExists("No files to analyze in project project2");
     }
 
-    private void ValidateContainsAllTypesOfAnalysisForFile(SonarRoslynProjectAnalysisCommands command, string analysisFilePath)
+    private void ValidateContainsAllTypesOfAnalysisForFile(SonarRoslynProjectAnalysisSet set, string analysisFilePath)
     {
-        ValidateContainsSyntacticAnalysisForFile(command, analysisFilePath);
-        ValidateContainsSemanticAnalysisForFile(command, analysisFilePath);
+        ValidateContainsSyntacticAnalysisForFile(set, analysisFilePath);
+        ValidateContainsSemanticAnalysisForFile(set, analysisFilePath);
     }
 
-    private void ValidateContainsSyntacticAnalysisForFile(SonarRoslynProjectAnalysisCommands command, string analysisFilePath) =>
-        command.AnalysisCommands.Any(x => x is SonarRoslynFileSyntaxAnalysis semanticAnalysis && semanticAnalysis.AnalysisFilePath == analysisFilePath).Should().BeTrue();
+    private void ValidateContainsSyntacticAnalysisForFile(SonarRoslynProjectAnalysisSet set, string analysisFilePath) =>
+        set.AnalysisCommands.Any(x => x is SonarRoslynFileSyntaxAnalysis semanticAnalysis && semanticAnalysis.AnalysisFilePath == analysisFilePath).Should().BeTrue();
 
-    private void ValidateContainsSemanticAnalysisForFile(SonarRoslynProjectAnalysisCommands command, string analysisFilePath) =>
-        command.AnalysisCommands.Any(x => x is SonarRoslynFileSemanticAnalysis semanticAnalysis && semanticAnalysis.AnalysisFilePath == analysisFilePath).Should().BeTrue();
+    private void ValidateContainsSemanticAnalysisForFile(SonarRoslynProjectAnalysisSet set, string analysisFilePath) =>
+        set.AnalysisCommands.Any(x => x is SonarRoslynFileSemanticAnalysis semanticAnalysis && semanticAnalysis.AnalysisFilePath == analysisFilePath).Should().BeTrue();
 
 
     private static ISonarRoslynProjectWrapper CreateProject(string projectName, bool supportsCompilation = true)

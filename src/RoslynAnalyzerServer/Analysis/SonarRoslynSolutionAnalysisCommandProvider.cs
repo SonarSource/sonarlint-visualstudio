@@ -33,9 +33,9 @@ internal class SonarRoslynSolutionAnalysisCommandProvider(
 {
     private readonly ILogger logger = logger.ForContext("Roslyn Analysis", "Configuration");
 
-    public List<SonarRoslynProjectAnalysisCommands> GetAnalysisCommandsForCurrentSolution(string[] filePaths)
+    public List<SonarRoslynProjectAnalysisSet> GetAnalysisCommandsForCurrentSolution(string[] filePaths)
     {
-        var result = new List<SonarRoslynProjectAnalysisCommands>();
+        var result = new List<SonarRoslynProjectAnalysisSet>();
 
         var solution = roslynWorkspaceWrapper.CurrentSolution; // todo this snapshot may be newer than what SLCore is aware of, issue location mapping may be incorrect. Is eventual consistency enough here?
 
@@ -52,7 +52,7 @@ internal class SonarRoslynSolutionAnalysisCommandProvider(
 
             if (commands.Any())
             {
-                result.Add(new SonarRoslynProjectAnalysisCommands(project, commands));
+                result.Add(new SonarRoslynProjectAnalysisSet(project, commands));
             }
             else
             {

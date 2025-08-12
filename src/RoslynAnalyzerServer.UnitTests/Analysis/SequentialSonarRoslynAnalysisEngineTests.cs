@@ -197,17 +197,17 @@ public class SequentialSonarRoslynAnalysisEngineTests
         diagnosticsConverter.Received(1).ConvertToSonarDiagnostic(diagnostic2B, Arg.Any<Language>());
     }
 
-    private (ISonarRoslynProjectWrapper project, SonarRoslynProjectAnalysisCommands projectCommand, ISonarRoslynCompilationWithAnalyzersWrapper projectCompilation) SetupProjectAndCommands()
+    private (ISonarRoslynProjectWrapper project, SonarRoslynProjectAnalysisSet projectCommand, ISonarRoslynCompilationWithAnalyzersWrapper projectCompilation) SetupProjectAndCommands()
     {
         var project = Substitute.For<ISonarRoslynProjectWrapper>();
-        var projectCommands = new SonarRoslynProjectAnalysisCommands(project, new List<ISonarRoslynAnalysisCommand>());
+        var projectCommands = new SonarRoslynProjectAnalysisSet(project, new List<ISonarRoslynAnalysisCommand>());
         var compilation = SetupCompilation(project);
 
         return (project, projectCommands, compilation);
     }
 
-    private static void AddCommandToProject(ISonarRoslynAnalysisCommand command, SonarRoslynProjectAnalysisCommands projectCommands) =>
-        ((List<ISonarRoslynAnalysisCommand>)projectCommands.AnalysisCommands).Add(command);
+    private static void AddCommandToProject(ISonarRoslynAnalysisCommand command, SonarRoslynProjectAnalysisSet projectSet) =>
+        ((List<ISonarRoslynAnalysisCommand>)projectSet.AnalysisCommands).Add(command);
 
     private (ISonarRoslynAnalysisCommand command, Diagnostic diagnostic, SonarDiagnostic sonarDiagnostic) SetupCommandWithDiagnostic(
         ISonarRoslynCompilationWithAnalyzersWrapper compilationWithAnalyzers,

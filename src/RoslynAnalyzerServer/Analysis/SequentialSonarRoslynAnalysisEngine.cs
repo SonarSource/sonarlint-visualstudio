@@ -36,12 +36,12 @@ internal class SequentialSonarRoslynAnalysisEngine(
     private readonly ILogger logger = logger.ForContext("Roslyn Analysis", "Engine");
 
     public async Task<IEnumerable<SonarDiagnostic>> AnalyzeAsync(
-        List<SonarRoslynProjectAnalysisCommands> analysisCommands,
+        List<SonarRoslynProjectAnalysisSet> projectsAnalysis,
         ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token)
     {
         var uniqueDiagnostics = new HashSet<SonarDiagnostic>(DiagnosticDuplicatesComparer.Instance);
-        foreach (var projectAnalysisCommands in analysisCommands)
+        foreach (var projectAnalysisCommands in projectsAnalysis)
         {
             var compilationWithAnalyzers = await projectCompilationProvider.GetProjectCompilationAsync(projectAnalysisCommands.Project, sonarRoslynAnalysisConfigurations, token);
 
