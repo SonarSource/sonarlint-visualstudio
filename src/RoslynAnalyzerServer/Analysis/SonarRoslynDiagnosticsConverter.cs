@@ -45,7 +45,7 @@ public class SonarRoslynDiagnosticsConverter : IRoslynDiagnosticsConverter
 
         var location = new SonarDiagnosticLocation(
             diagnostic.GetMessage(),
-            diagnostic.Location.SourceTree!.FilePath,
+            fileLinePositionSpan.Path,
             textRange);
 
         return new SonarDiagnostic(

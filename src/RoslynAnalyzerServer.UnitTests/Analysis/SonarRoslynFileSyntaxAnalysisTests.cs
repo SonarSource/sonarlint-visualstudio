@@ -33,7 +33,6 @@ public class SonarRoslynFileSyntaxAnalysisTests
 {
     private const string TestFilePath = "test.cs";
 
-    private TestLogger logger = null!;
     private ISonarRoslynCompilationWithAnalyzersWrapper compilationWrapper = null!;
     private SyntaxTree syntaxTree = null!;
     private SonarRoslynFileSyntaxAnalysis testSubject = null!;
@@ -41,7 +40,6 @@ public class SonarRoslynFileSyntaxAnalysisTests
     [TestInitialize]
     public void TestInitialize()
     {
-        logger = Substitute.ForPartsOf<TestLogger>();
         compilationWrapper = Substitute.For<ISonarRoslynCompilationWithAnalyzersWrapper>();
         syntaxTree = Substitute.For<SyntaxTree>();
 
