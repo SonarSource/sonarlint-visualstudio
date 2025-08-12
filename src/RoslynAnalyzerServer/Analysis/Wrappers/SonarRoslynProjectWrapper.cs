@@ -18,22 +18,15 @@ internal class SonarRoslynProjectWrapper(Project project) : ISonarRoslynProjectW
         string filePath,
         [NotNullWhen(true)]out string? analysisFilePath)
     {
-        analysisFilePath = null;
-        foreach (var document in project.Documents)
-        {
-            if (document.FilePath is null)
-            {
-                continue;
-            }
+        analysisFilePath = project.Documents
+            .Select(document => document.FilePath)
+            .Where(path => path != null)
+            .FirstOrDefault(path =>
+                path!.Equals(filePath)
+                || (path.StartsWith(filePath)
+                    && path.EndsWith(".g.cs")));
 
-            if (document.FilePath.Equals(filePath)
-                || (document.FilePath.StartsWith(filePath) && document.FilePath.EndsWith(".g.cs")))
-            {
-                analysisFilePath = document.FilePath;
-                return true;
-            }
-        }
-        return false;
+        return analysisFilePath != null;
     }
 
 }
