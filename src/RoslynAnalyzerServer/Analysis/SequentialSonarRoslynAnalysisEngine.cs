@@ -45,6 +45,7 @@ internal class SequentialSonarRoslynAnalysisEngine(
         {
             var compilationWithAnalyzers = await projectCompilationProvider.GetProjectCompilationAsync(projectAnalysisCommands.Project, sonarRoslynAnalysisConfigurations, token);
 
+            // todo SLVS-2467 issue streaming
             foreach (var analysisCommand in projectAnalysisCommands.AnalysisCommands)
             {
                 var diagnostics = await analysisCommand.ExecuteAsync(compilationWithAnalyzers, token);
@@ -56,7 +57,6 @@ internal class SequentialSonarRoslynAnalysisEngine(
                     {
                         logger.LogVerbose("Duplicate diagnostic discarded ID: {0}, File: {1}, Line: {2}", diagnostic.RuleKey, Path.GetFileName(diagnostic.PrimaryLocation.FilePath), diagnostic.PrimaryLocation.TextRange.StartLine);
                     }
-                    // todo issue streaming?
                 }
             }
         }
