@@ -49,7 +49,7 @@ public class SonarRoslynDiagnosticsConverter : IRoslynDiagnosticsConverter
             textRange);
 
         return new SonarDiagnostic(
-            diagnostic.Id,
+            diagnostic.Id, // todo rulekey for c# vb
             location,
             []); // todo secondary locations and quick fixes
     }

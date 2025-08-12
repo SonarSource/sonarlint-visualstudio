@@ -25,7 +25,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-[ExcludeFromCodeCoverage] // todo add roslyn 'integration' tests using AdHocWorkspace
+[ExcludeFromCodeCoverage] // todo SLVS-2466 add roslyn 'integration' tests using AdHocWorkspace
 public class SonarRoslynCompilationWithAnalyzersWrapper(CompilationWithAnalyzers compilation) : ISonarRoslynCompilationWithAnalyzersWrapper
 {
     public CompilationWithAnalyzers RoslynCompilation => compilation;
