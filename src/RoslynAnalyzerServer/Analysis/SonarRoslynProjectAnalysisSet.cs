@@ -25,5 +25,5 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 internal class SonarRoslynProjectAnalysisSet(ISonarRoslynProjectWrapper project, IReadOnlyCollection<ISonarRoslynAnalysisCommand> analysisCommands)
 {
     public ISonarRoslynProjectWrapper Project { get; } = project;
-    public IReadOnlyCollection<ISonarRoslynAnalysisCommand> AnalysisCommands { get; init; } = analysisCommands;
+    public IReadOnlyCollection<ISonarRoslynAnalysisCommand> AnalysisCommands { get; } = analysisCommands;
 }
