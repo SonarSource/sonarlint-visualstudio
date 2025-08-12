@@ -34,7 +34,7 @@ public class SequentialSonarRoslynAnalysisEngineTests
 {
     private IRoslynDiagnosticsConverter diagnosticsConverter = null!;
     private ISonarRoslynProjectCompilationProvider projectCompilationProvider = null!;
-    private ILogger logger = null!;
+    private TestLogger logger = null!;
     private ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> configurations = null!;
     private CancellationToken cancellationToken;
     private SequentialSonarRoslynAnalysisEngine testSubject = null!;
@@ -126,6 +126,9 @@ public class SequentialSonarRoslynAnalysisEngineTests
 
         VerifyAnalysisExecution(project, compilation, command1, diagnostic1);
         VerifyAnalysisExecution(project, compilation, command2, diagnostic2);
+
+        // Verify that a log message is written when a duplicate diagnostic is discarded
+        logger.AssertPartialOutputStringExists($"Duplicate diagnostic discarded ID: {sonarDiagnostic1.RuleKey}, File: {sonarDiagnostic1.PrimaryLocation.FilePath}, Line: {sonarDiagnostic1.PrimaryLocation.TextRange.StartLine}");
     }
 
     [TestMethod]
