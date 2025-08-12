@@ -35,15 +35,17 @@ public class SonarRoslynFileSyntaxAnalysisTests
 
     private ISonarRoslynCompilationWithAnalyzersWrapper compilationWrapper = null!;
     private SyntaxTree syntaxTree = null!;
+    private TestLogger testLogger = null!;
     private SonarRoslynFileSyntaxAnalysis testSubject = null!;
 
     [TestInitialize]
     public void TestInitialize()
     {
+        testLogger = Substitute.ForPartsOf<TestLogger>();
         compilationWrapper = Substitute.For<ISonarRoslynCompilationWithAnalyzersWrapper>();
         syntaxTree = Substitute.For<SyntaxTree>();
 
-        testSubject = new SonarRoslynFileSyntaxAnalysis(TestFilePath);
+        testSubject = new SonarRoslynFileSyntaxAnalysis(TestFilePath, testLogger);
     }
 
     [TestMethod]

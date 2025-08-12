@@ -20,11 +20,12 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal class SonarRoslynFileSyntaxAnalysis(string analysisFilePath) : ISonarRoslynAnalysisCommand
+internal class SonarRoslynFileSyntaxAnalysis(string analysisFilePath, ILogger logger) : ISonarRoslynAnalysisCommand
 {
     public string AnalysisFilePath { get; } = analysisFilePath;
 
@@ -33,7 +34,8 @@ internal class SonarRoslynFileSyntaxAnalysis(string analysisFilePath) : ISonarRo
         var syntaxTree = compilation.GetSyntaxTree(AnalysisFilePath);
         if (syntaxTree == null)
         {
-            return ImmutableArray<Diagnostic>.Empty; // todo log?
+            logger.LogVerbose("No syntax tree found for {0}", AnalysisFilePath);
+            return ImmutableArray<Diagnostic>.Empty;
         }
 
         return await compilation.GetAnalyzerSyntaxDiagnosticsAsync(syntaxTree, token);
