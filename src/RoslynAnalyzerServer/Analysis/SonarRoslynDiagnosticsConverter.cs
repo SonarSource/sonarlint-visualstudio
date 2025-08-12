@@ -48,9 +48,11 @@ public class SonarRoslynDiagnosticsConverter : IRoslynDiagnosticsConverter
             fileLinePositionSpan.Path,
             textRange);
 
+        // todo SLVS-2427 quick fixes
+        // todo SLVS-2428 secondary locations
         return new SonarDiagnostic(
             new SonarCompositeRuleId(language.RepoInfo.Key, diagnostic.Id).ErrorListErrorCode,
             location,
-            []); // todo secondary locations and quick fixes
+            []);
     }
 }
