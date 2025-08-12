@@ -37,9 +37,8 @@ internal class SonarRoslynSolutionAnalysisCommandProvider(
     {
         var result = new List<SonarRoslynProjectAnalysisSet>();
 
-        var solution = roslynWorkspaceWrapper.CurrentSolution; // todo this snapshot may be newer than what SLCore is aware of, issue location mapping may be incorrect. Is eventual consistency enough here?
+        var solution = roslynWorkspaceWrapper.CurrentSolution;
 
-        // todo this will not find unloaded projects, so we need to implement project updates for SLCore
         foreach (var project in solution.Projects)
         {
             if (!project.SupportsCompilation)
@@ -65,7 +64,6 @@ internal class SonarRoslynSolutionAnalysisCommandProvider(
             logger.WriteLine("No projects to analyze");
         }
 
-        // todo nice to have: log file paths not found in ANY project
         return result;
     }
 

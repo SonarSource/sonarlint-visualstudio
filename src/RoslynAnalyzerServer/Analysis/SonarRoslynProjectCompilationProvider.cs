@@ -53,7 +53,6 @@ internal class SonarRoslynProjectCompilationProvider(ILogger logger) : ISonarRos
         ISonarRoslynProjectWrapper project,
         SonarRoslynAnalysisConfiguration analysisConfigurationForLanguage)
     {
-        // todo IF NEEDED cleanup globalconfig from AnalyzerConfigDocuments, but check if that is not breaking/discarding the compilation
         var additionalFiles = project.RoslynAnalyzerOptions.AdditionalFiles;
         var sonarLintXmlName = Path.GetFileName(analysisConfigurationForLanguage.SonarLintXml.Path);
         var analyzerOptions = project.RoslynAnalyzerOptions.WithAdditionalFiles(additionalFiles
