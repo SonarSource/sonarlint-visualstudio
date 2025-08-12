@@ -50,9 +50,9 @@ internal class SequentialSonarRoslynAnalysisEngine(
             {
                 var diagnostics = await analysisCommand.ExecuteAsync(compilationWithAnalyzers, token);
 
-                foreach (var diagnostic in diagnostics.Select(diagnosticsConverter.ConvertToSonarDiagnostic))
+                foreach (var diagnostic in diagnostics.Select(d => diagnosticsConverter.ConvertToSonarDiagnostic(d, compilationWithAnalyzers.Language)))
                 {
-                    // todo merged issues may have different secondary locations (due to conditional compilation, for example) -> need a smarter way to merge
+                    // todo SLVS-2468 improve issue merging
                     if (!uniqueDiagnostics.Add(diagnostic))
                     {
                         logger.LogVerbose("Duplicate diagnostic discarded ID: {0}, File: {1}, Line: {2}", diagnostic.RuleKey, Path.GetFileName(diagnostic.PrimaryLocation.FilePath), diagnostic.PrimaryLocation.TextRange.StartLine);

@@ -53,12 +53,10 @@ public class SonarTextRange(
     int startLine,
     int endLine,
     int startLineOffset,
-    int endLineOffset,
-    string? lineHash)
+    int endLineOffset)
 {
     public int StartLine { get; } = startLine;
     public int EndLine { get; } = endLine;
     public int StartLineOffset { get; } = startLineOffset;
     public int EndLineOffset { get; } = endLineOffset;
-    public string? LineHash { get; } = lineHash;
 }

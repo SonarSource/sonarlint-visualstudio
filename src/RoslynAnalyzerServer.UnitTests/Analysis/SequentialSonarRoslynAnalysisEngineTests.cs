@@ -83,10 +83,18 @@ public class SequentialSonarRoslynAnalysisEngineTests
         await projectCompilationProvider.Received(1).GetProjectCompilationAsync(project, configurations, cancellationToken);
     }
 
-    [TestMethod]
-    public async Task AnalyzeAsync_SingleProjectWithSingleAnalysisCommand_ReturnsDiagnostics()
+    public static object[][] TestData =>
+    [
+        [Language.CSharp],
+        [Language.VBNET]
+    ];
+
+    [DataTestMethod]
+    [DynamicData(nameof(TestData))]
+    public async Task AnalyzeAsync_SingleProjectWithSingleAnalysisCommand_ReturnsDiagnostics(Language language)
     {
         var (project, commands, compilation) = SetupProjectAndCommands();
+        compilation.Language.Returns(language);
         var (command, diagnostic, sonarDiagnostic) = SetupCommandWithDiagnostic(
             compilation,
             "test-rule",
@@ -99,7 +107,7 @@ public class SequentialSonarRoslynAnalysisEngineTests
         result.Should().ContainSingle();
         result.Single().Should().Be(sonarDiagnostic);
 
-        VerifyAnalysisExecution(project, compilation, command, diagnostic);
+        VerifyAnalysisExecution(project, compilation, command, diagnostic, language);
     }
 
     [TestMethod]
@@ -165,8 +173,8 @@ public class SequentialSonarRoslynAnalysisEngineTests
         var sonarDiagnostic1A = CreateSonarDiagnostic("rule1", "message1");
         var sonarDiagnostic1B = CreateSonarDiagnostic("rule2", "message2");
         command1.ExecuteAsync(compilation, cancellationToken).Returns(ImmutableArray.Create(diagnostic1A, diagnostic1B));
-        diagnosticsConverter.ConvertToSonarDiagnostic(diagnostic1A).Returns(sonarDiagnostic1A);
-        diagnosticsConverter.ConvertToSonarDiagnostic(diagnostic1B).Returns(sonarDiagnostic1B);
+        diagnosticsConverter.ConvertToSonarDiagnostic(diagnostic1A, Arg.Any<Language>()).Returns(sonarDiagnostic1A);
+        diagnosticsConverter.ConvertToSonarDiagnostic(diagnostic1B, Arg.Any<Language>()).Returns(sonarDiagnostic1B);
         AddCommandToProject(command1, commands);
         var command2 = Substitute.For<ISonarRoslynAnalysisCommand>();
         var diagnostic2A = CreateTestDiagnostic("rule3");
@@ -174,8 +182,8 @@ public class SequentialSonarRoslynAnalysisEngineTests
         var sonarDiagnostic2A = CreateSonarDiagnostic("rule3", "message3");
         var sonarDiagnostic2B = CreateSonarDiagnostic("rule4", "message4");
         command2.ExecuteAsync(compilation, cancellationToken).Returns(ImmutableArray.Create(diagnostic2A, diagnostic2B));
-        diagnosticsConverter.ConvertToSonarDiagnostic(diagnostic2A).Returns(sonarDiagnostic2A);
-        diagnosticsConverter.ConvertToSonarDiagnostic(diagnostic2B).Returns(sonarDiagnostic2B);
+        diagnosticsConverter.ConvertToSonarDiagnostic(diagnostic2A, Arg.Any<Language>()).Returns(sonarDiagnostic2A);
+        diagnosticsConverter.ConvertToSonarDiagnostic(diagnostic2B, Arg.Any<Language>()).Returns(sonarDiagnostic2B);
         AddCommandToProject(command2, commands);
 
         var result = await testSubject.AnalyzeAsync([commands], configurations, cancellationToken);
@@ -183,10 +191,10 @@ public class SequentialSonarRoslynAnalysisEngineTests
         result.Should().BeEquivalentTo(sonarDiagnostic1A, sonarDiagnostic1B, sonarDiagnostic2A, sonarDiagnostic2B);
         await command1.Received(1).ExecuteAsync(compilation, cancellationToken);
         await command2.Received(1).ExecuteAsync(compilation, cancellationToken);
-        diagnosticsConverter.Received(1).ConvertToSonarDiagnostic(diagnostic1A);
-        diagnosticsConverter.Received(1).ConvertToSonarDiagnostic(diagnostic1B);
-        diagnosticsConverter.Received(1).ConvertToSonarDiagnostic(diagnostic2A);
-        diagnosticsConverter.Received(1).ConvertToSonarDiagnostic(diagnostic2B);
+        diagnosticsConverter.Received(1).ConvertToSonarDiagnostic(diagnostic1A, Arg.Any<Language>());
+        diagnosticsConverter.Received(1).ConvertToSonarDiagnostic(diagnostic1B, Arg.Any<Language>());
+        diagnosticsConverter.Received(1).ConvertToSonarDiagnostic(diagnostic2A, Arg.Any<Language>());
+        diagnosticsConverter.Received(1).ConvertToSonarDiagnostic(diagnostic2B, Arg.Any<Language>());
     }
 
     private (ISonarRoslynProjectWrapper project, SonarRoslynProjectAnalysisCommands projectCommand, ISonarRoslynCompilationWithAnalyzersWrapper projectCompilation) SetupProjectAndCommands()
@@ -213,7 +221,7 @@ public class SequentialSonarRoslynAnalysisEngineTests
             .Returns(ImmutableArray.Create(diagnostic));
 
         var sonarDiagnostic = existingSonarDiagnostic ?? CreateSonarDiagnostic(ruleId, message);
-        diagnosticsConverter.ConvertToSonarDiagnostic(diagnostic).Returns(sonarDiagnostic);
+        diagnosticsConverter.ConvertToSonarDiagnostic(diagnostic, Arg.Any<Language>()).Returns(sonarDiagnostic);
 
         return (command, diagnostic, sonarDiagnostic);
     }
@@ -230,12 +238,13 @@ public class SequentialSonarRoslynAnalysisEngineTests
         ISonarRoslynProjectWrapper project,
         ISonarRoslynCompilationWithAnalyzersWrapper compilationWithAnalyzers,
         ISonarRoslynAnalysisCommand analysisCommand,
-        Diagnostic diagnostic)
+        Diagnostic diagnostic,
+        Language? language = null)
     {
         projectCompilationProvider.Received(1)
             .GetProjectCompilationAsync(project, configurations, cancellationToken);
         analysisCommand.Received(1).ExecuteAsync(compilationWithAnalyzers, cancellationToken);
-        diagnosticsConverter.Received(1).ConvertToSonarDiagnostic(diagnostic);
+        diagnosticsConverter.Received(1).ConvertToSonarDiagnostic(diagnostic, language ?? Arg.Any<Language>());
     }
 
     private static Diagnostic CreateTestDiagnostic(string id)
@@ -258,7 +267,7 @@ public class SequentialSonarRoslynAnalysisEngineTests
 
     private static SonarDiagnostic CreateSonarDiagnostic(string ruleId, string message)
     {
-        var textRange = new SonarTextRange(1, 1, 0, 1, null);
+        var textRange = new SonarTextRange(1, 1, 0, 1);
         var location = new SonarDiagnosticLocation(message, "test.cs", textRange);
         return new SonarDiagnostic(ruleId, location);
     }

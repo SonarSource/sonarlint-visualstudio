@@ -20,19 +20,20 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
 public interface IRoslynDiagnosticsConverter
 {
-    SonarDiagnostic ConvertToSonarDiagnostic(Diagnostic diagnostic);
+    SonarDiagnostic ConvertToSonarDiagnostic(Diagnostic diagnostic, Language language);
 }
 
 [Export(typeof(IRoslynDiagnosticsConverter))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class SonarRoslynDiagnosticsConverter : IRoslynDiagnosticsConverter
 {
-    public SonarDiagnostic ConvertToSonarDiagnostic(Diagnostic diagnostic)
+    public SonarDiagnostic ConvertToSonarDiagnostic(Diagnostic diagnostic, Language language)
     {
         var fileLinePositionSpan = diagnostic.Location.GetMappedLineSpan();
 
@@ -40,8 +41,7 @@ public class SonarRoslynDiagnosticsConverter : IRoslynDiagnosticsConverter
             fileLinePositionSpan.StartLinePosition.Line + 1,
             fileLinePositionSpan.EndLinePosition.Line + 1,
             fileLinePositionSpan.StartLinePosition.Character,
-            fileLinePositionSpan.EndLinePosition.Character,
-            null); // todo line hash calculation
+            fileLinePositionSpan.EndLinePosition.Character);
 
         var location = new SonarDiagnosticLocation(
             diagnostic.GetMessage(),
@@ -49,7 +49,7 @@ public class SonarRoslynDiagnosticsConverter : IRoslynDiagnosticsConverter
             textRange);
 
         return new SonarDiagnostic(
-            diagnostic.Id, // todo rulekey for c# vb
+            new SonarCompositeRuleId(language.RepoInfo.Key, diagnostic.Id).ErrorListErrorCode,
             location,
             []); // todo secondary locations and quick fixes
     }
