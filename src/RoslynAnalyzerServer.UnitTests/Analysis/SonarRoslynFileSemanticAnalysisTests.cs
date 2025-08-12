@@ -33,13 +33,11 @@ public class SonarRoslynFileSemanticAnalysisTests
 {
     private const string TestFilePath = "c:\\test\\file.cs";
     private ISonarRoslynCompilationWithAnalyzersWrapper compilationWrapper = null!;
-    private TestLogger logger = null!;
     private SonarRoslynFileSemanticAnalysis testSubject = null!;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        logger = Substitute.ForPartsOf<TestLogger>();
         compilationWrapper = Substitute.For<ISonarRoslynCompilationWithAnalyzersWrapper>();
 
         testSubject = new SonarRoslynFileSemanticAnalysis(TestFilePath);
