@@ -302,7 +302,7 @@ public class AnalysisRequestHandlerTest
         var result = await testSubject.GetAnalysisRequest(context);
 
         result.Should().NotBeNull();
-        result.FileNames.Should().HaveCount(1);
+        result!.FileNames.Should().HaveCount(1);
         result.FileNames[0].Should().Be(FileUri);
         result.ActiveRules.Should().HaveCount(1);
         result.ActiveRules[0].RuleKey.Should().Be(DiagnosticId);

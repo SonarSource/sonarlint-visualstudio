@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 var thread = await this.GetMefServiceAsync<IThreadHandling>();
                 roslynAnalysisHttpServer = await this.GetMefServiceAsync<IRoslynAnalysisHttpServer>();
-                thread.RunOnBackgroundThread(() => StartRoslynAnalysisHttpServer().ConfigureAwait(false)).Forget();
+                thread.RunOnBackgroundThread(() => StartRoslynAnalysisHttpServerAsync().ConfigureAwait(false)).Forget();
 
                 slCoreHandler = await this.GetMefServiceAsync<ISLCoreHandler>();
                 slCoreHandler.EnableSloop();
@@ -144,7 +144,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             await bindingToConnectionMigration.MigrateAllBindingsToServerConnectionsIfNeededAsync();
         }
 
-        private async Task StartRoslynAnalysisHttpServer() => await roslynAnalysisHttpServer.StartListenAsync();
+        private async Task StartRoslynAnalysisHttpServerAsync() => await roslynAnalysisHttpServer.StartListenAsync();
 
         protected override void Dispose(bool disposing)
         {
