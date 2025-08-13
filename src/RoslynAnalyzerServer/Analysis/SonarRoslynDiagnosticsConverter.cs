@@ -28,10 +28,40 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class DiagnosticToRoslynIssueConverter : IDiagnosticToRoslynIssueConverter
 {
-    public RoslynIssue ConvertToSonarDiagnostic(Diagnostic diagnostic, Language language)
-    {
-        var fileLinePositionSpan = diagnostic.Location.GetMappedLineSpan();
+    private const string DefaultSecondaryLocationTitleTemplate = "Location {0}";
 
+    public RoslynIssue ConvertToSonarDiagnostic(Diagnostic diagnostic, Language language) =>
+        // todo SLVS-2427 quick fixes
+        new(new SonarCompositeRuleId(language.RepoInfo.Key, diagnostic.Id).ErrorListErrorCode,
+            ConvertLocation(diagnostic.Location.GetMappedLineSpan(), diagnostic.GetMessage()),
+            ConvertSecondaryLocations(diagnostic));
+
+    private static IReadOnlyList<RoslynIssueFlow> ConvertSecondaryLocations(Diagnostic diagnostic)
+    {
+        if (diagnostic.AdditionalLocations.Count == 0)
+        {
+            return [];
+        }
+
+        return
+        [
+            // this will need to be modified once multi-flow locations are supported by the dotnet analyzer
+            new(diagnostic
+                .AdditionalLocations
+                .Select((location, index) =>
+                {
+                    if (!diagnostic.Properties.TryGetValue(index.ToString(), out var title) || title is null)
+                    {
+                        title = string.Format(DefaultSecondaryLocationTitleTemplate, index);
+                    }
+                    return ConvertLocation(location.GetMappedLineSpan(), title);
+                })
+                .ToList())
+        ];
+    }
+
+    private static RoslynIssueLocation ConvertLocation(FileLinePositionSpan fileLinePositionSpan, string message)
+    {
         var textRange = new RoslynIssueTextRange(
             fileLinePositionSpan.StartLinePosition.Line + 1, // roslyn lines are 0-based, while we use 1-based
             fileLinePositionSpan.EndLinePosition.Line + 1, // roslyn lines are 0-based, while we use 1-based
@@ -39,14 +69,10 @@ public class DiagnosticToRoslynIssueConverter : IDiagnosticToRoslynIssueConverte
             fileLinePositionSpan.EndLinePosition.Character);
 
         var location = new RoslynIssueLocation(
-            diagnostic.GetMessage(),
+            message,
             fileLinePositionSpan.Path,
             textRange);
 
-        // todo SLVS-2427 quick fixes
-        // todo SLVS-2428 secondary locations
-        return new RoslynIssue(
-            SonarCompositeRuleId.GetFullErrorCode(language.RepoInfo.Key, diagnostic.Id),
-            location);
+        return location;
     }
 }
