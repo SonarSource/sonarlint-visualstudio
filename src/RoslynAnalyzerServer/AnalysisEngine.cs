@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer;
 
+// TODO by https://sonarsource.atlassian.net/browse/SLVS-2473 replace with real analysis engine
 internal interface IAnalysisEngine
 {
     Task<List<DiagnosticDto>> AnalyzeAsync(List<FileUri> fileNames, List<ActiveRuleDto> activeRules, CancellationToken cancellationToken);

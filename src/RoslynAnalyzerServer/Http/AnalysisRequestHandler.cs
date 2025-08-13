@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 
 public interface IAnalysisRequestHandler : IHttpRequestHandler
 {
-    Task<AnalysisRequest?> GetAnalysisRequest(IHttpListenerContext context);
+    Task<AnalysisRequest?> ParseAnalysisRequestBody(IHttpListenerContext context);
 
     Task SendResponse(IHttpListenerContext context, List<DiagnosticDto> diagnostics);
 }
@@ -62,12 +62,12 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerConfiguration c
     public async Task SendResponse(IHttpListenerContext context, List<DiagnosticDto> diagnostics)
     {
         var responseString = CreateResponse(diagnostics);
-        await WriteResponse(responseString, context);
+        await WriteResponse(responseString, context, HttpStatusCode.OK);
     }
 
     public bool IsValidRequest(IHttpListenerContext context) => VerifyLocalRequest(context) && VerifyToken(context) && VerifyMethod(context) && VerifyContentLength(context);
 
-    public async Task<AnalysisRequest?> GetAnalysisRequest(IHttpListenerContext context)
+    public async Task<AnalysisRequest?> ParseAnalysisRequestBody(IHttpListenerContext context)
     {
         var body = await ReadBody(context);
         var requestDto = GetAnalysisRequestFromBody(body);
@@ -107,10 +107,11 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerConfiguration c
         return responseString;
     }
 
-    private static async Task WriteResponse(string responseString, IHttpListenerContext context)
+    private static async Task WriteResponse(string responseString, IHttpListenerContext context, HttpStatusCode statusCode)
     {
         var buffer = Encoding.UTF8.GetBytes(responseString);
         context.Response.ContentLength64 = buffer.Length;
+        context.Response.StatusCode = (int)statusCode;
         await context.Response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
         context.Response.OutputStream.Close();
     }

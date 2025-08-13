@@ -21,7 +21,6 @@
 using System.ComponentModel.Composition;
 using System.Net;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Adapters;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
@@ -154,7 +153,7 @@ internal sealed class RoslynAnalysisHttpServer(
 
     private async Task HandleRequest(IHttpListenerContext context, CancellationToken cancellationToken)
     {
-        if (!analysisRequestHandler.IsValidRequest(context) || await analysisRequestHandler.GetAnalysisRequest(context) is not { } analysisRequest)
+        if (!analysisRequestHandler.IsValidRequest(context) || await analysisRequestHandler.ParseAnalysisRequestBody(context) is not { } analysisRequest)
         {
             return;
         }

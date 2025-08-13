@@ -241,7 +241,7 @@ public class AnalysisRequestHandlerTest
     }
 
     [TestMethod]
-    public async Task GetAnalysisRequest_DeserializationFails_ReturnsNull()
+    public async Task ParseAnalysisRequestBody_DeserializationFails_ReturnsNull()
     {
         var unexpectedBodyContent = @"
 {
@@ -259,47 +259,47 @@ public class AnalysisRequestHandlerTest
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
 
-        var result = await testSubject.GetAnalysisRequest(context);
+        var result = await testSubject.ParseAnalysisRequestBody(context);
 
         result.Should().BeNull();
         response.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
     }
 
     [TestMethod]
-    public async Task GetAnalysisRequest_FileNamesMissing_ReturnsNull()
+    public async Task ParseAnalysisRequestBody_FileNamesMissing_ReturnsNull()
     {
         var stream = new MemoryStream("{\"ActiveRules\":[]}"u8.ToArray());
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
 
-        var result = await testSubject.GetAnalysisRequest(context);
+        var result = await testSubject.ParseAnalysisRequestBody(context);
 
         result.Should().BeNull();
         response.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
     }
 
     [TestMethod]
-    public async Task GetAnalysisRequest_FileNamesEmpty_ReturnsNull()
+    public async Task ParseAnalysisRequestBody_FileNamesEmpty_ReturnsNull()
     {
         var stream = new MemoryStream("{\"FileNames\":[],\"ActiveRules\":[]}"u8.ToArray());
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
 
-        var result = await testSubject.GetAnalysisRequest(context);
+        var result = await testSubject.ParseAnalysisRequestBody(context);
 
         result.Should().BeNull();
         response.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
     }
 
     [TestMethod]
-    public async Task GetAnalysisRequest_RequestBodyValid_ReturnsExpectedModel()
+    public async Task ParseAnalysisRequestBody_RequestBodyValid_ReturnsExpectedModel()
     {
         var validRequestJson = $"{{\"FileNames\":[\"{FileUri}\"],\"ActiveRules\":[{{\"RuleKey\":\"{DiagnosticId}\"}}]}}";
         var stream = new MemoryStream(Encoding.UTF8.GetBytes(validRequestJson));
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
 
-        var result = await testSubject.GetAnalysisRequest(context);
+        var result = await testSubject.ParseAnalysisRequestBody(context);
 
         result.Should().NotBeNull();
         result!.FileNames.Should().HaveCount(1);
@@ -317,6 +317,7 @@ public class AnalysisRequestHandlerTest
         await testSubject.SendResponse(context, [new DiagnosticDto("id1")]);
 
         response.Received().ContentLength64 = Encoding.UTF8.GetBytes(expectedString).Length;
+        response.Received().StatusCode = (int)HttpStatusCode.OK;
     }
 
     [TestMethod]
