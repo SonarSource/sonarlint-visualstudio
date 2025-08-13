@@ -32,6 +32,7 @@ using SonarLint.VisualStudio.Integration.CSharpVB.Install;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Events;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
+using SonarLint.VisualStudio.RoslynAnalyzerServer;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Analysis;
 using ErrorHandler = SonarLint.VisualStudio.Core.ErrorHandler;
