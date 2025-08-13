@@ -26,12 +26,14 @@ public class SonarDiagnostic(
     string ruleKey,
     SonarDiagnosticLocation primaryLocation,
     IReadOnlyList<SonarDiagnosticFlow>? flows = null,
-    IReadOnlyList<IQuickFix>? fixes = null)
+    IReadOnlyList<IQuickFix>? fixes = null,
+    bool isWarning = true)
 {
     private static readonly IReadOnlyList<SonarDiagnosticFlow> EmptyFlows = [];
     private static readonly IReadOnlyList<IQuickFix> EmptyFixes = [];
 
     public string RuleKey { get; } = ruleKey;
+    public bool IsWarning { get; } = isWarning;
     public SonarDiagnosticLocation PrimaryLocation { get; } = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
     public IReadOnlyList<SonarDiagnosticFlow> Flows { get; } = flows ?? EmptyFlows;
     public IReadOnlyList<IQuickFix> Fixes { get; } = fixes ?? EmptyFixes;

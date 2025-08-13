@@ -14,6 +14,7 @@
     <AssemblyName>SonarLint.VisualStudio.Integration</AssemblyName>
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
     <RequiresSystemIOAbstractions>true</RequiresSystemIOAbstractions>
+    <RequiresLanguageServices>true</RequiresLanguageServices>
   </PropertyGroup>
 
   <ItemGroup Label="Framework references">
@@ -30,6 +31,12 @@
     <!-- We use BouncyCastle nuget package for its MD5 implementation, since the Framework MD5 throws an exception on FIPS-enabled machines. -->
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.11.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="3.11.0" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -65,6 +72,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ConnectedMode\ConnectedMode.csproj" />
+    <ProjectReference Include="..\RoslynAnalyzerServer\RoslynAnalyzerServer.csproj" />
     <ProjectReference Include="..\SonarQube.Client\SonarQube.Client.csproj" />
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\Infrastructure.VS\Infrastructure.VS.csproj" />

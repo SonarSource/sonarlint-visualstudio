@@ -53,7 +53,15 @@ internal class AnalysisListener(
         }
     }
 
-    public void RaiseIssues(RaiseFindingParams<RaisedIssueDto> parameters) => raisedFindingProcessor.RaiseFinding(parameters, issuePublisher);
+    public void RaiseIssues(RaiseFindingParams<RaisedIssueDto> parameters)
+    {
+        return; // todo
+        raisedFindingProcessor.RaiseFinding(parameters, issuePublisher);
+    }
 
-    public void RaiseHotspots(RaiseHotspotParams parameters) => raisedFindingProcessor.RaiseFinding(parameters, hotspotPublisher);
+    public void RaiseHotspots(RaiseHotspotParams parameters)
+    {
+        return; // todo
+        raisedFindingProcessor.RaiseFinding(parameters, hotspotPublisher);
+    }
 }

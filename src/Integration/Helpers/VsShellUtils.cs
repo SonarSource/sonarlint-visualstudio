@@ -40,11 +40,12 @@ namespace SonarLint.VisualStudio.Integration
             Scope = "member",
             Target = "~F:SonarLint.VisualStudio.Integration.VsShellUtils.SonarLintOutputPaneGuid")]
         internal static Guid SonarLintOutputPaneGuid = new Guid("EB476B82-D73A-44A6-AFEF-830F7BBA73DB");
+        internal static Guid SonarLintPerformanceOutputPaneGuid = new Guid("981D2FE2-3AD4-43A3-8C0D-2194D18F9379");
 
         /// <summary>
         /// Writes a message to the SonarLint output pane. Will append a new line after the message.
         /// </summary>
-        public static void WriteToSonarLintOutputPane(IServiceProvider serviceProvider, string message)
+        public static void WriteToSonarLintOutputPane(IServiceProvider serviceProvider, string message, bool isPerformanceLogging)
         {
             if (serviceProvider == null)
             {
@@ -56,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(message));
             }
 
-            IVsOutputWindowPane sonarLintPane = GetOrCreateSonarLintOutputPane(serviceProvider);
+            IVsOutputWindowPane sonarLintPane = GetOrCreateSonarLintOutputPane(serviceProvider, isPerformanceLogging);
             if (sonarLintPane != null)
             {
                 WriteLineToPane(sonarLintPane, message);
@@ -138,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration
 
         #region Output pane helpers
 
-        public static IVsOutputWindowPane GetOrCreateSonarLintOutputPane(IServiceProvider serviceProvider)
+        public static IVsOutputWindowPane GetOrCreateSonarLintOutputPane(IServiceProvider serviceProvider, bool isPerformanceLogging)
         {
             IVsOutputWindow outputWindow = serviceProvider.GetService<SVsOutputWindow, IVsOutputWindow>();
             if (outputWindow == null)
@@ -152,15 +153,15 @@ namespace SonarLint.VisualStudio.Integration
 
             IVsOutputWindowPane pane;
 
-            int hrGetPane = outputWindow.GetPane(ref SonarLintOutputPaneGuid, out pane);
+            int hrGetPane = outputWindow.GetPane(isPerformanceLogging ? ref SonarLintPerformanceOutputPaneGuid : ref SonarLintOutputPaneGuid, out pane);
             if (ErrorHandler.Succeeded(hrGetPane))
             {
                 return pane;
             }
 
             int hrCreatePane = outputWindow.CreatePane(
-                ref SonarLintOutputPaneGuid,
-                Strings.SonarLintOutputPaneTitle,
+                isPerformanceLogging ? ref SonarLintPerformanceOutputPaneGuid : ref SonarLintOutputPaneGuid,
+                isPerformanceLogging ? Strings.SonarLintPerformanceOutputPaneTitle : Strings.SonarLintOutputPaneTitle,
                 Convert.ToInt32(makeVisible),
                 Convert.ToInt32(clearWithSolution));
             Debug.Assert(ErrorHandler.Succeeded(hrCreatePane), "Failed in outputWindow.CreatePane: " + hrCreatePane.ToString());

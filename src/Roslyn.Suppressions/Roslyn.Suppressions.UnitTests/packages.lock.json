@@ -1305,6 +1305,7 @@
           "SonarLint.VisualStudio.ConnectedMode": "[1.0.0, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
+          "SonarLint.VisualStudio.RoslynAnalyzerServer": "[1.0.0, )",
           "SonarQube.Client": "[1.0.0, )",
           "StrongNamer": "[0.0.8, )",
           "System.IO.Abstractions": "[9.0.4, )"
@@ -1353,6 +1354,12 @@
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
           "SonarQube.Client": "[1.0.0, )",
           "System.IO.Abstractions": "[9.0.4, )"
+        }
+      },
+      "SonarLint.VisualStudio.RoslynAnalyzerServer": {
+        "type": "Project",
+        "dependencies": {
+          "SonarLint.VisualStudio.Core": "[1.0.0, )"
         }
       },
       "SonarLint.VisualStudio.SLCore": {

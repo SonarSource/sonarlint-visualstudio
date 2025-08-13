@@ -77,6 +77,8 @@ internal class RoslynWorkspaceWrapper([Import(typeof(VisualStudioWorkspace))] Wo
 
     public async Task<IRoslynSolutionWrapper> TryApplyChangesAsync(IAnalyzerChange analyzerChange)
     {
+        return null;
+
         for (var attempt = 0; attempt < ApplyRetryCount; attempt++)
         {
             if (await TryApplyChangesInternalAsync(analyzerChange) is {} result)

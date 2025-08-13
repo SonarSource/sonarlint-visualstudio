@@ -23,7 +23,7 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal interface ISonarRoslynAnalysisEngine
+public interface ISonarRoslynAnalysisEngine
 {
     Task<IEnumerable<SonarDiagnostic>> AnalyzeAsync(
         List<SonarRoslynProjectAnalysisSet> projectsAnalysis,

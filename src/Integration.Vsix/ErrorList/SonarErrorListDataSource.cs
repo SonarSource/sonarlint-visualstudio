@@ -24,9 +24,11 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -47,13 +49,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
     {
         private readonly IFileRenamesEventSource fileRenamesEventSource;
         private readonly IIssueSelectionService issueSelectionService;
+        private readonly ILogger performanceLogger;
+        private readonly IThreadHandling threadHandling;
+        private readonly IAnalysisStopwatchService analysisStopwatchService;
         private readonly ISet<ITableDataSink> sinks = new HashSet<ITableDataSink>();
         private readonly ISet<IIssuesSnapshotFactory> factories = new HashSet<IIssuesSnapshotFactory>();
+        private readonly ITableManager errorTableManager;
+
+        private ITableDataSource globalErrorListDataSource;
+        private ITableDataSource sonarLintDataSource;
 
         [ImportingConstructor]
         internal SonarErrorListDataSource(ITableManagerProvider tableManagerProvider,
             IFileRenamesEventSource fileRenamesEventSource,
-            IIssueSelectionService issueSelectionService)
+            IIssueSelectionService issueSelectionService,
+            [Import("PerformanceLogger")]ILogger performanceLogger,
+            IThreadHandling threadHandling,
+            IAnalysisStopwatchService analysisStopwatchService)
         {
             if (tableManagerProvider == null)
             {
@@ -62,17 +74,48 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
 
             this.fileRenamesEventSource = fileRenamesEventSource ?? throw new ArgumentNullException(nameof(fileRenamesEventSource));
             this.issueSelectionService = issueSelectionService ?? throw new ArgumentNullException(nameof(issueSelectionService));
+            this.performanceLogger = performanceLogger;
+            this.threadHandling = threadHandling;
+            this.analysisStopwatchService = analysisStopwatchService;
             fileRenamesEventSource.FilesRenamed += OnFilesRenamed;
 
-            var errorTableManager = tableManagerProvider.GetTableManager(StandardTables.ErrorsTable);
+            errorTableManager = tableManagerProvider.GetTableManager(StandardTables.ErrorsTable);
+
+            errorTableManager.SourcesChanged += ErrorTableManagerOnSourcesChanged;
+
             errorTableManager.AddSource(this, StandardTableColumnDefinitions.DetailsExpander,
-                                                   StandardTableColumnDefinitions.ErrorSeverity, StandardTableColumnDefinitions.ErrorCode,
-                                                   StandardTableColumnDefinitions.ErrorSource, StandardTableColumnDefinitions.BuildTool,
-                                                   StandardTableColumnDefinitions.ErrorSource, StandardTableColumnDefinitions.ErrorCategory,
-                                                   StandardTableColumnDefinitions.Text, StandardTableColumnDefinitions.DocumentName,
-                                                   StandardTableColumnDefinitions.Line, StandardTableColumnDefinitions.Column,
-                                                   StandardTableColumnDefinitions.ProjectName,
-                                                   StandardTableKeyNames.SuppressionState);
+                StandardTableColumnDefinitions.ErrorSeverity, StandardTableColumnDefinitions.ErrorCode,
+                StandardTableColumnDefinitions.ErrorSource, StandardTableColumnDefinitions.BuildTool,
+                StandardTableColumnDefinitions.ErrorSource, StandardTableColumnDefinitions.ErrorCategory,
+                StandardTableColumnDefinitions.Text, StandardTableColumnDefinitions.DocumentName,
+                StandardTableColumnDefinitions.Line, StandardTableColumnDefinitions.Column,
+                StandardTableColumnDefinitions.ProjectName,
+                StandardTableKeyNames.SuppressionState);
+        }
+
+        private void ErrorTableManagerOnSourcesChanged(object sender, EventArgs e)
+        {
+            var tableDataSources = errorTableManager.Sources;
+
+            SubscribeToErrorListUpdates(tableDataSources, "ErrorListDataSource", "VS Sink", 550d, ref globalErrorListDataSource);
+            SubscribeToErrorListUpdates(tableDataSources, SonarLintTableControlConstants.ErrorListDataSourceIdentifier, "SL Sink", 500d, ref sonarLintDataSource);
+        }
+
+        private void SubscribeToErrorListUpdates(IReadOnlyList<ITableDataSource> tableDataSources, string sourceIdentifier, string logContext, double correctionInMs, ref ITableDataSource dataSourceCache)
+        {
+            if (dataSourceCache != null)
+            {
+                return;
+            }
+
+            var tableDataSource = tableDataSources.FirstOrDefault(x => x.Identifier == sourceIdentifier);
+            if (tableDataSource == null)
+            {
+                return;
+            }
+
+            dataSourceCache = tableDataSource;
+            dataSourceCache.Subscribe(new Sink(performanceLogger.ForContext(logContext), Identifier, correctionInMs, threadHandling, analysisStopwatchService));
         }
 
         #region ITableDataSource members

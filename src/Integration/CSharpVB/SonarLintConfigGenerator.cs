@@ -101,12 +101,10 @@ public class SonarLintConfigGenerator(ILanguageProvider languageProvider) : ISon
     private static bool IsSecuredServerProperty(string s) => s.EndsWith(SecuredPropertySuffix, StringComparison.OrdinalIgnoreCase);
 
     private static List<SonarLintRule> GetRulesForRepo(string sonarRepoKey, IEnumerable<IRuleParameters> sqRules) =>
-        sqRules.Where(ar => sonarRepoKey.Equals(ar.RepositoryKey) && HasParameters(ar))
+        sqRules.Where(ar => sonarRepoKey.Equals(ar.RepositoryKey))
             .Select(ToSonarLintRule)
             .OrderBy(slr => slr.Key)
             .ToList();
-
-    private static bool HasParameters(IRuleParameters sqRule) => sqRule.Parameters is {Count: > 0};
 
     private static SonarLintRule ToSonarLintRule(IRuleParameters sqRule)
     {
