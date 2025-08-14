@@ -61,7 +61,7 @@ public class DiagnosticDuplicatesComparer : IEqualityComparer<RoslynIssue>
         }
     }
 
-    private static bool LocationEquals(SonarDiagnosticLocation xPrimaryLocation, SonarDiagnosticLocation yPrimaryLocation) =>
+    private static bool LocationEquals(RoslynIssueLocation xPrimaryLocation, RoslynIssueLocation yPrimaryLocation) =>
         xPrimaryLocation.FilePath == yPrimaryLocation.FilePath &&
         xPrimaryLocation.TextRange.StartLine == yPrimaryLocation.TextRange.StartLine &&
         xPrimaryLocation.TextRange.EndLine == yPrimaryLocation.TextRange.EndLine &&

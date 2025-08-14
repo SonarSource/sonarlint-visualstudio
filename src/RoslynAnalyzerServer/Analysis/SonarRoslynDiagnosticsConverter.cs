@@ -32,13 +32,13 @@ public class DiagnosticToRoslynIssueConverter : IDiagnosticToRoslynIssueConverte
     {
         var fileLinePositionSpan = diagnostic.Location.GetMappedLineSpan();
 
-        var textRange = new SonarTextRange(
+        var textRange = new RoslynIssueTextRange(
             fileLinePositionSpan.StartLinePosition.Line + 1, // roslyn lines are 0-based, while we use 1-based
             fileLinePositionSpan.EndLinePosition.Line + 1, // roslyn lines are 0-based, while we use 1-based
             fileLinePositionSpan.StartLinePosition.Character,
             fileLinePositionSpan.EndLinePosition.Character);
 
-        var location = new SonarDiagnosticLocation(
+        var location = new RoslynIssueLocation(
             diagnostic.GetMessage(),
             fileLinePositionSpan.Path,
             textRange);

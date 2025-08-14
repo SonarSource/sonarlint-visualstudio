@@ -254,8 +254,8 @@ public class SequentialRoslynAnalysisEngineTests
 
     private static RoslynIssue CreateSonarIssue(string ruleId, string message)
     {
-        var textRange = new SonarTextRange(1, 1, 0, 1);
-        var location = new SonarDiagnosticLocation(message, "test.cs", textRange);
+        var textRange = new RoslynIssueTextRange(1, 1, 0, 1);
+        var location = new RoslynIssueLocation(message, "test.cs", textRange);
         return new RoslynIssue(ruleId, location);
     }
 }

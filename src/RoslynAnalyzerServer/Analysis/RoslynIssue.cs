@@ -22,29 +22,29 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
 public class RoslynIssue(
     string ruleKey,
-    SonarDiagnosticLocation primaryLocation,
-    IReadOnlyList<SonarDiagnosticFlow>? flows = null)
+    RoslynIssueLocation primaryLocation,
+    IReadOnlyList<RoslynIssueFlow>? flows = null)
 {
-    private static readonly IReadOnlyList<SonarDiagnosticFlow> EmptyFlows = [];
+    private static readonly IReadOnlyList<RoslynIssueFlow> EmptyFlows = [];
 
     public string RuleKey { get; } = ruleKey;
-    public SonarDiagnosticLocation PrimaryLocation { get; } = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
-    public IReadOnlyList<SonarDiagnosticFlow> Flows { get; } = flows ?? EmptyFlows;
+    public RoslynIssueLocation PrimaryLocation { get; } = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
+    public IReadOnlyList<RoslynIssueFlow> Flows { get; } = flows ?? EmptyFlows;
 }
 
-public class SonarDiagnosticFlow(IReadOnlyList<SonarDiagnosticLocation> locations)
+public class RoslynIssueFlow(IReadOnlyList<RoslynIssueLocation> locations)
 {
-    public IReadOnlyList<SonarDiagnosticLocation> Locations { get; } = locations ?? throw new ArgumentNullException(nameof(locations));
+    public IReadOnlyList<RoslynIssueLocation> Locations { get; } = locations ?? throw new ArgumentNullException(nameof(locations));
 }
 
-public class SonarDiagnosticLocation(string message, string filePath, SonarTextRange textRange)
+public class RoslynIssueLocation(string message, string filePath, RoslynIssueTextRange textRange)
 {
     public string FilePath { get; } = filePath;
     public string Message { get; } = message;
-    public SonarTextRange TextRange { get; } = textRange;
+    public RoslynIssueTextRange TextRange { get; } = textRange;
 }
 
-public class SonarTextRange(
+public class RoslynIssueTextRange(
     int startLine,
     int endLine,
     int startLineOffset,

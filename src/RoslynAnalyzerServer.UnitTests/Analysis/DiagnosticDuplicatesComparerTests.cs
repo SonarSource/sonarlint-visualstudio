@@ -122,8 +122,8 @@ public class DiagnosticDuplicatesComparerTests
 
     private static RoslynIssue CreateDiagnostic(string ruleKey, string filePath, int startLine, int startLineOffset, int endLine, int endLineOffset, string? message = null)
     {
-        var textRange = new SonarTextRange(startLine, endLine, startLineOffset, endLineOffset);
-        var location = new SonarDiagnosticLocation(message ?? "message", filePath, textRange);
+        var textRange = new RoslynIssueTextRange(startLine, endLine, startLineOffset, endLineOffset);
+        var location = new RoslynIssueLocation(message ?? "message", filePath, textRange);
         return new RoslynIssue(ruleKey, location);
     }
 }

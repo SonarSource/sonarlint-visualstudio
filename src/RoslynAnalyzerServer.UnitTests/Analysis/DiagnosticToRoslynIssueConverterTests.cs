@@ -53,12 +53,12 @@ public class DiagnosticToRoslynIssueConverterTests
         int startLine, int endLine, int startChar, int endChar)
     {
         var diagnostic = CreateDiagnostic(ruleId, message, filePath, startLine, endLine, startChar, endChar);
-        var expectedTextRange = new SonarTextRange(
+        var expectedTextRange = new RoslynIssueTextRange(
             startLine + 1,  // Convert to 1-based
             endLine + 1,    // Convert to 1-based
             startChar,
             endChar);
-        var expectedLocation = new SonarDiagnosticLocation(
+        var expectedLocation = new RoslynIssueLocation(
             message,
             filePath,
             expectedTextRange);
