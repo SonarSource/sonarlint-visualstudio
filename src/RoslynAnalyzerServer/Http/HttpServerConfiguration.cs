@@ -54,7 +54,7 @@ internal class HttpServerConfiguration() : IHttpServerConfiguration
     public int MaxStartAttempts => 10;
     public int RequestMillisecondsTimeout => ThirtySeconds;
     public long MaxRequestBodyBytes => OneMb;
-    public int MaxConcurrentRequests => 5;
+    public int MaxConcurrentRequests => 20;
 
     public void GenerateNewPort() => lazyPort = new Lazy<int>(GetAvailablePort);
 

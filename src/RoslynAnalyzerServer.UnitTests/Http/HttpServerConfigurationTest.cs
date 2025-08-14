@@ -89,7 +89,7 @@ public class HttpServerConfigurationTest
     public void MaxRequestBodyBytes_ReturnsOneMegabyte() => config.MaxRequestBodyBytes.Should().Be(1024 * 1024);
 
     [TestMethod]
-    public void MaxConcurrentRequests_ReturnsFive() => config.MaxConcurrentRequests.Should().Be(5);
+    public void MaxConcurrentRequests_ReturnsTwenty() => config.MaxConcurrentRequests.Should().Be(20);
 
     [TestMethod]
     public void GenerateNewPort_ChangesPort()
