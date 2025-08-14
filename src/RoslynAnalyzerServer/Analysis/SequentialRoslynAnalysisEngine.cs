@@ -48,9 +48,9 @@ internal class SequentialRoslynAnalysisEngine(
             // todo SLVS-2467 issue streaming
             foreach (var analysisCommand in projectAnalysisCommands.AnalysisCommands)
             {
-                var diagnostics = await analysisCommand.ExecuteAsync(compilationWithAnalyzers, token);
+                var issues = await analysisCommand.ExecuteAsync(compilationWithAnalyzers, token);
 
-                foreach (var diagnostic in diagnostics.Select(d => issueConverter.ConvertToSonarDiagnostic(d, compilationWithAnalyzers.Language)))
+                foreach (var diagnostic in issues.Select(d => issueConverter.ConvertToSonarDiagnostic(d, compilationWithAnalyzers.Language)))
                 {
                     // todo SLVS-2468 improve issue merging
                     if (!uniqueDiagnostics.Add(diagnostic))

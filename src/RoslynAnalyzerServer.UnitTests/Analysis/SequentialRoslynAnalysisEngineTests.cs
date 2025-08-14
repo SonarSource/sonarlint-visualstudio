@@ -22,6 +22,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.TestInfrastructure;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -73,9 +74,9 @@ public class SequentialRoslynAnalysisEngineTests
     [TestMethod]
     public async Task AnalyzeAsync_SingleProjectWithNoAnalysisCommands_ReturnsEmptyCollection()
     {
-        var (project, projectRequest, compilation) = SetupProjectAndAnalysisRequest();
+        var (project, _) = SetupProjectAnalysisRequestAndCompilation();
 
-        var result = await testSubject.AnalyzeAsync([projectRequest], configurations, cancellationToken);
+        var result = await testSubject.AnalyzeAsync([CreateProjectRequest(project)], configurations, cancellationToken);
 
         result.Should().BeEmpty();
         await projectCompilationProvider.Received(1).GetProjectCompilationAsync(project, configurations, cancellationToken);
@@ -91,36 +92,44 @@ public class SequentialRoslynAnalysisEngineTests
     [DynamicData(nameof(RoslynLanguages))]
     public async Task AnalyzeAsync_SingleProjectWithSingleAnalysisCommand_ReturnsDiagnostics(Language language)
     {
-        var (project, projectRequest, compilation) = SetupProjectAndAnalysisRequest();
-        compilation.Language.Returns(language);
         var (diagnostic, roslynIssue) = SetUpDiagnosticAndConvertedModel("test-rule", "test message");
-        var command = SetupCommandWithDiagnostic(
-            compilation,
-            diagnostic);
-        AddCommandToProjectRequest(command, projectRequest);
+        var (requestForProject, compilationForProject) = SetupProjectAnalysisRequestAndCompilation([[diagnostic]]);
+        compilationForProject.Language.Returns(language);
 
-        var result = await testSubject.AnalyzeAsync([projectRequest], configurations, cancellationToken);
+        var result = await testSubject.AnalyzeAsync([requestForProject], configurations, cancellationToken);
 
         result.Should().BeEquivalentTo(roslynIssue);
-        VerifyAnalysisExecution(project, compilation, command, diagnostic, language);
+        VerifyAnalysisExecution(requestForProject, compilationForProject, [diagnostic], language);
     }
 
     [TestMethod]
     public async Task AnalyzeAsync_DuplicateDiagnostics_ReturnsSingleDiagnostic()
     {
-        var (project, projectRequest, compilation) = SetupProjectAndAnalysisRequest();
-        var (diagnostic1, duplicateIssue) = SetUpDiagnosticAndConvertedModel("test-rule", "test message");
-        var command1 = SetupCommandWithDiagnostic(compilation, diagnostic1);
-        AddCommandToProjectRequest(command1, projectRequest);
-        var (diagnostic2, _) = SetUpDiagnosticAndConvertedModel("test-rule-duplicate", "test message duplicate", duplicateIssue);
-        var command2 = SetupCommandWithDiagnostic(compilation, diagnostic2);
-        AddCommandToProjectRequest(command2, projectRequest);
+        var (duplicateDiagnostic1, duplicateIssue1) = SetUpDiagnosticAndConvertedModel("test-rule", "test message");
+        var (duplicateDiagnostic2, duplicateIssue2) = SetUpDiagnosticAndConvertedModel("test-rule", "test message duplicate");
+        var (requestForProject, compilationForProject) = SetupProjectAnalysisRequestAndCompilation([[duplicateDiagnostic1], [duplicateDiagnostic2]]);
 
-        var result = await testSubject.AnalyzeAsync([projectRequest], configurations, cancellationToken);
+        var result = await testSubject.AnalyzeAsync([requestForProject], configurations, cancellationToken);
+
+        result.Should().BeEquivalentTo(duplicateIssue1);
+        VerifyAnalysisExecution(requestForProject, compilationForProject, [duplicateDiagnostic1, duplicateDiagnostic2]);
+        logger.AssertPartialOutputStringExists(
+            $"Duplicate diagnostic discarded ID: {duplicateIssue2.RuleKey}, File: {duplicateIssue2.PrimaryLocation.FilePath}, Line: {duplicateIssue2.PrimaryLocation.TextRange.StartLine}");
+    }
+
+    [TestMethod]
+    public async Task AnalyzeAsync_DuplicateDiagnosticsInDifferentProjects_ReturnsSingleDiagnostic()
+    {
+        var (diagnostic1, duplicateIssue) = SetUpDiagnosticAndConvertedModel("test-rule", "test message");
+        var (requestForProject1, compilationForProject1) = SetupProjectAnalysisRequestAndCompilation([[diagnostic1]]);
+        var (diagnostic2, _) = SetUpDiagnosticAndConvertedModel("test-rule-duplicate", "test message duplicate", duplicateIssue);
+        var (requestForProject2, compilationForProject2) = SetupProjectAnalysisRequestAndCompilation([[diagnostic2]]);
+
+        var result = await testSubject.AnalyzeAsync([requestForProject1, requestForProject2], configurations, cancellationToken);
 
         result.Should().BeEquivalentTo(duplicateIssue);
-        VerifyAnalysisExecution(project, compilation, command1, diagnostic1);
-        VerifyAnalysisExecution(project, compilation, command2, diagnostic2);
+        VerifyAnalysisExecution(requestForProject1, compilationForProject1, [diagnostic1]);
+        VerifyAnalysisExecution(requestForProject2, compilationForProject2, [diagnostic2]);
         logger.AssertPartialOutputStringExists(
             $"Duplicate diagnostic discarded ID: {duplicateIssue.RuleKey}, File: {duplicateIssue.PrimaryLocation.FilePath}, Line: {duplicateIssue.PrimaryLocation.TextRange.StartLine}");
     }
@@ -128,61 +137,54 @@ public class SequentialRoslynAnalysisEngineTests
     [TestMethod]
     public async Task AnalyzeAsync_MultipleProjects_ProcessesAllProjects()
     {
-        var (project1, projectRequest1, compilation1) = SetupProjectAndAnalysisRequest();
         var (diagnostic1, sonarIssue1) = SetUpDiagnosticAndConvertedModel("rule1", "message1");
-        var command1 = SetupCommandWithDiagnostic(compilation1, diagnostic1);
-        AddCommandToProjectRequest(command1, projectRequest1);
-        var (project2, projectRequest2, compilation2) = SetupProjectAndAnalysisRequest();
+        var (requestForProject1, compilationForProject1) = SetupProjectAnalysisRequestAndCompilation([[diagnostic1]]);
         var (diagnostic2, sonarIssue2) = SetUpDiagnosticAndConvertedModel("rule2", "message2");
-        var command2 = SetupCommandWithDiagnostic(compilation2, diagnostic2);
-        AddCommandToProjectRequest(command2, projectRequest2);
+        var (requestForProject2, compilationForProject2) = SetupProjectAnalysisRequestAndCompilation([[diagnostic2]]);
 
-        var result = await testSubject.AnalyzeAsync([projectRequest1, projectRequest2], configurations, cancellationToken);
+        var result = await testSubject.AnalyzeAsync([requestForProject1, requestForProject2], configurations, cancellationToken);
 
         result.Should().BeEquivalentTo([sonarIssue1, sonarIssue2]);
-        VerifyAnalysisExecution(project1, compilation1, command1, diagnostic1);
-        VerifyAnalysisExecution(project2, compilation2, command2, diagnostic2);
+        VerifyAnalysisExecution(requestForProject1, compilationForProject1, [diagnostic1]);
+        VerifyAnalysisExecution(requestForProject2, compilationForProject2, [diagnostic2]);
     }
 
     [TestMethod]
     public async Task AnalyzeAsync_SingleProjectWithMultipleCommands_ReturnsAllDiagnostics()
     {
-        var (project, projectRequest, compilation) = SetupProjectAndAnalysisRequest();
-        var command1With2Diagnostics = Substitute.For<IRoslynAnalysisCommand>();
         var (diagnostic1A, sonarIssue1A) = SetUpDiagnosticAndConvertedModel("rule1", "message1");
         var (diagnostic1B, sonarIssue1B) = SetUpDiagnosticAndConvertedModel("rule2", "message2");
-        command1With2Diagnostics.ExecuteAsync(compilation, cancellationToken).Returns(ImmutableArray.Create(diagnostic1A, diagnostic1B));
-        AddCommandToProjectRequest(command1With2Diagnostics, projectRequest);
-        var command2With2Diagnostics = Substitute.For<IRoslynAnalysisCommand>();
         var (diagnostic2A, sonarIssue2A) = SetUpDiagnosticAndConvertedModel("rule3", "message3");
         var (diagnostic2B, sonarIssue2B) = SetUpDiagnosticAndConvertedModel("rule4", "message4");
-        command2With2Diagnostics.ExecuteAsync(compilation, cancellationToken).Returns(ImmutableArray.Create(diagnostic2A, diagnostic2B));
-        AddCommandToProjectRequest(command2With2Diagnostics, projectRequest);
+        var (requestForProject, compilationForProject) = SetupProjectAnalysisRequestAndCompilation([[diagnostic1A, diagnostic1B], [diagnostic2A, diagnostic2B]]);
 
-        var result = await testSubject.AnalyzeAsync([projectRequest], configurations, cancellationToken);
+        var result = await testSubject.AnalyzeAsync([requestForProject], configurations, cancellationToken);
 
         result.Should().BeEquivalentTo(sonarIssue1A, sonarIssue1B, sonarIssue2A, sonarIssue2B);
-        await command1With2Diagnostics.Received(1).ExecuteAsync(compilation, cancellationToken);
-        await command2With2Diagnostics.Received(1).ExecuteAsync(compilation, cancellationToken);
-        issueConverter.Received(1).ConvertToSonarDiagnostic(diagnostic1A, Arg.Any<Language>());
-        issueConverter.Received(1).ConvertToSonarDiagnostic(diagnostic1B, Arg.Any<Language>());
-        issueConverter.Received(1).ConvertToSonarDiagnostic(diagnostic2A, Arg.Any<Language>());
-        issueConverter.Received(1).ConvertToSonarDiagnostic(diagnostic2B, Arg.Any<Language>());
+        VerifyAnalysisExecution(requestForProject, compilationForProject, [diagnostic1A, diagnostic1B, diagnostic2A, diagnostic2B]);
     }
 
-    private (IRoslynProjectWrapper project, RoslynProjectAnalysisRequest projectRequest, IRoslynCompilationWithAnalyzersWrapper projectCompilation) SetupProjectAndAnalysisRequest()
+    private (RoslynProjectAnalysisRequest request, IRoslynCompilationWithAnalyzersWrapper compilation) SetupProjectAnalysisRequestAndCompilation(
+        Diagnostic[][] diagnosticsPerCommand)
+    {
+        var (project, projectCompilation) = SetupProjectAnalysisRequestAndCompilation();
+        var analysisCommands = diagnosticsPerCommand.Select(x => SetupCommandWithDiagnostics(projectCompilation, x)).ToArray();
+
+        return (new RoslynProjectAnalysisRequest(project, analysisCommands), projectCompilation);
+    }
+
+    private RoslynProjectAnalysisRequest CreateProjectRequest(IRoslynProjectWrapper project, params IRoslynAnalysisCommand[] commands) =>
+        new(project, commands);
+
+    private (IRoslynProjectWrapper project, IRoslynCompilationWithAnalyzersWrapper projectCompilation) SetupProjectAnalysisRequestAndCompilation()
     {
         var project = Substitute.For<IRoslynProjectWrapper>();
-        var projectCommands = new RoslynProjectAnalysisRequest(project, new List<IRoslynAnalysisCommand>());
         var compilation = SetupCompilation(project);
 
-        return (project, projectCommands, compilation);
+        return (project, compilation);
     }
 
-    private static void AddCommandToProjectRequest(IRoslynAnalysisCommand command, RoslynProjectAnalysisRequest projectRequest) =>
-        ((List<IRoslynAnalysisCommand>)projectRequest.AnalysisCommands).Add(command);
-
-    private IRoslynAnalysisCommand SetupCommandWithDiagnostic(
+    private IRoslynAnalysisCommand SetupCommandWithDiagnostics(
         IRoslynCompilationWithAnalyzersWrapper compilationWithAnalyzers,
         params Diagnostic[] diagnostics)
     {
@@ -197,7 +199,7 @@ public class SequentialRoslynAnalysisEngineTests
         string message,
         RoslynIssue? existingSonarIssue = null)
     {
-        var diagnostic = CreateTestDiagnostic(ruleId);
+        var diagnostic = CreateTestDiagnostic(ruleId, message);
 
         var sonarIssue = existingSonarIssue ?? CreateSonarIssue(ruleId, message);
         issueConverter.ConvertToSonarDiagnostic(diagnostic, Arg.Any<Language>()).Returns(sonarIssue);
@@ -214,24 +216,30 @@ public class SequentialRoslynAnalysisEngineTests
     }
 
     private void VerifyAnalysisExecution(
-        IRoslynProjectWrapper project,
+        RoslynProjectAnalysisRequest projectRequest,
         IRoslynCompilationWithAnalyzersWrapper compilationWithAnalyzers,
-        IRoslynAnalysisCommand analysisCommand,
-        Diagnostic diagnostic,
+        Diagnostic[] diagnostics,
         Language? language = null)
+
     {
         projectCompilationProvider.Received(1)
-            .GetProjectCompilationAsync(project, configurations, cancellationToken);
-        analysisCommand.Received(1).ExecuteAsync(compilationWithAnalyzers, cancellationToken);
-        issueConverter.Received(1).ConvertToSonarDiagnostic(diagnostic, language ?? Arg.Any<Language>());
+            .GetProjectCompilationAsync(projectRequest.Project, configurations, cancellationToken).IgnoreAwaitForAssert();
+        foreach (var analysisCommand in projectRequest.AnalysisCommands)
+        {
+            analysisCommand.Received(1).ExecuteAsync(compilationWithAnalyzers, cancellationToken).IgnoreAwaitForAssert();
+        }
+        foreach (var diagnostic in diagnostics)
+        {
+            issueConverter.Received(1).ConvertToSonarDiagnostic(diagnostic, language ?? Arg.Any<Language>());
+        }
     }
 
-    private static Diagnostic CreateTestDiagnostic(string id)
+    private static Diagnostic CreateTestDiagnostic(string id, string message)
     {
         var descriptor = new DiagnosticDescriptor(
             id,
             "title",
-            "message",
+            message,
             "category",
             DiagnosticSeverity.Warning,
             true);
