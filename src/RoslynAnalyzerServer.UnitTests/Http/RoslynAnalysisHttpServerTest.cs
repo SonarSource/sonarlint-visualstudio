@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Http;
 [TestClass]
 public class RoslynAnalysisHttpServerTest
 {
-    private static IHttpRequestHandler _httpRequestHandler;
+    private static IHttpRequestHandler _httpRequestHandler = null!;
     private static ILogger _logger = null!;
     private static IHttpServerConfiguration _configuration = null!;
     private static IAnalysisRequestHandler _analysisRequestHandler = null!;
