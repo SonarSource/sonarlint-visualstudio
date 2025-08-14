@@ -53,45 +53,17 @@ public class RoslynProjectCompilationProviderTests
     {
         logger = Substitute.ForPartsOf<TestLogger>();
 
-        project = Substitute.For<IRoslynProjectWrapper>();
-
-        compilation = Substitute.For<IRoslynCompilationWrapper>();
-        compilationOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
-        compilation.RoslynCompilationOptions.Returns(compilationOptions);
-
-        compilationWithAnalyzers = Substitute.For<IRoslynCompilationWithAnalyzersWrapper>();
-
-        sonarLintXml = Substitute.For<AdditionalText>();
-        sonarLintXml.Path.Returns(@"c:\path\to\SonarLint.xml");
-
-        existingAdditionalFile = Substitute.For<AdditionalText>();
-        existingAdditionalFile.Path.Returns(@"c:\path\to\existing.txt");
-
-        analyzerOptions = new AnalyzerOptions(ImmutableArray.Create(existingAdditionalFile));
-        project.RoslynAnalyzerOptions.Returns(analyzerOptions);
-
-        analyzer1 = Substitute.For<DiagnosticAnalyzer>();
-        analyzer2 = Substitute.For<DiagnosticAnalyzer>();
-        analyzer3 = Substitute.For<DiagnosticAnalyzer>();
-        analyzers = ImmutableArray.Create(analyzer1, analyzer2, analyzer3);
-
+        SetUpCompilation();
+        SetUpAdditionalFiles();
+        SetUpProject();
+        SetUpAnalyzers();
         diagnosticOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty
             .Add("SomeId", ReportDiagnostic.Warn);
-
-        var configuration = new RoslynAnalysisConfiguration(
-            sonarLintXml,
-            diagnosticOptions,
-            analyzers);
-
         configurations = ImmutableDictionary<Language, RoslynAnalysisConfiguration>.Empty
-            .Add(Language.CSharp, configuration);
-
-        compilation.Language.Returns(Language.CSharp);
-        compilation.WithOptions(Arg.Any<CompilationOptions>()).Returns(compilation);
-        compilation.WithAnalyzers(Arg.Any<ImmutableArray<DiagnosticAnalyzer>>(), Arg.Any<CompilationWithAnalyzersOptions>())
-            .Returns(compilationWithAnalyzers);
-        project.GetCompilationAsync(Arg.Any<CancellationToken>()).Returns(compilation);
-
+            .Add(Language.CSharp, new RoslynAnalysisConfiguration(
+                sonarLintXml,
+                diagnosticOptions,
+                analyzers));
         testSubject = new RoslynProjectCompilationProvider(logger);
     }
 
@@ -164,5 +136,42 @@ public class RoslynProjectCompilationProviderTests
             analyzer1.GetType().Name,
             "TestId",
             "test exception");
+    }
+
+    private void SetUpAnalyzers()
+    {
+        analyzer1 = Substitute.For<DiagnosticAnalyzer>();
+        analyzer2 = Substitute.For<DiagnosticAnalyzer>();
+        analyzer3 = Substitute.For<DiagnosticAnalyzer>();
+        analyzers = ImmutableArray.Create(analyzer1, analyzer2, analyzer3);
+    }
+
+    private void SetUpProject()
+    {
+        project = Substitute.For<IRoslynProjectWrapper>();
+        analyzerOptions = new AnalyzerOptions(ImmutableArray.Create(existingAdditionalFile));
+        project.RoslynAnalyzerOptions.Returns(analyzerOptions);
+        project.GetCompilationAsync(Arg.Any<CancellationToken>()).Returns(compilation);
+    }
+
+    private void SetUpAdditionalFiles()
+    {
+        sonarLintXml = Substitute.For<AdditionalText>();
+        sonarLintXml.Path.Returns(@"c:\path\to\SonarLint.xml");
+
+        existingAdditionalFile = Substitute.For<AdditionalText>();
+        existingAdditionalFile.Path.Returns(@"c:\path\to\existing.txt");
+    }
+
+    private void SetUpCompilation()
+    {
+        compilation = Substitute.For<IRoslynCompilationWrapper>();
+        compilationOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+        compilation.RoslynCompilationOptions.Returns(compilationOptions);
+        compilationWithAnalyzers = Substitute.For<IRoslynCompilationWithAnalyzersWrapper>();
+        compilation.Language.Returns(Language.CSharp);
+        compilation.WithOptions(Arg.Any<CompilationOptions>()).Returns(compilation);
+        compilation.WithAnalyzers(Arg.Any<ImmutableArray<DiagnosticAnalyzer>>(), Arg.Any<CompilationWithAnalyzersOptions>())
+            .Returns(compilationWithAnalyzers);
     }
 }
