@@ -37,7 +37,7 @@ internal sealed class HttpServerStarter : IDisposable
     {
         ServerConfiguration = useMockedServerConfiguration ? CreateMockedServerConfiguration(maxConcurrentRequests) : new HttpServerConfiguration();
         var analysisRequestHandler = new AnalysisRequestHandler(MockedLogger, ServerConfiguration);
-        RoslynAnalysisHttpServer = new RoslynAnalysisHttpServer(MockedLogger, ServerConfiguration, analysisRequestHandler, new HttpListenerFactory(), MockedAnalysisEngine);
+        RoslynAnalysisHttpServer = new RoslynAnalysisHttpServer(MockedLogger, ServerConfiguration, analysisRequestHandler, new HttpRequestHandler(), new HttpListenerFactory(), MockedAnalysisEngine);
     }
 
     public void StartListeningOnBackgroundThread()

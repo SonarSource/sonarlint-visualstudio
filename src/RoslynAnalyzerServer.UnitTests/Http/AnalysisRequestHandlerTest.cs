@@ -24,7 +24,6 @@ using System.Text;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Adapters;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -44,10 +43,7 @@ public class AnalysisRequestHandlerTest
     private static readonly FileUri FileUri = new("C:\\File.cs");
     private IHttpServerConfiguration configuration = null!;
     private IHttpListenerContext context = null!;
-
     private ILogger logger = null!;
-
-    // Substitute fields for test doubles
     private IHttpListenerRequest request = null!;
     private IHttpListenerResponse response = null!;
     private AnalysisRequestHandler testSubject = null!;
@@ -81,99 +77,94 @@ public class AnalysisRequestHandlerTest
     public void Ctor_LoggerSetsContext() => logger.Received(1).ForContext(Resources.HttpServerLogContext).ForContext(nameof(RoslynAnalysisHttpServer));
 
     [TestMethod]
-    public void IsValidRequest_RemoteEndpointNull_ReturnsFalse()
+    public void ValidateRequest_RemoteEndpointNull_ReturnsForbidden()
     {
         request.RemoteEndPoint.Returns((IPEndPoint?)null);
 
-        var isValid = testSubject.IsValidRequest(context);
+        var result = testSubject.ValidateRequest(context);
 
-        isValid.Should().BeFalse();
-        response.Received().StatusCode = (int)HttpStatusCode.Forbidden;
+        result.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [TestMethod]
-    public void IsValidRequest_NotLocalRequest_ReturnsFalse()
+    public void ValidateRequest_NotLocalRequest_ReturnsForbidden()
     {
         request.RemoteEndPoint.Returns(new IPEndPoint(IPAddress.Parse("8.8.8.8"), DefaultPort));
 
-        var isValid = testSubject.IsValidRequest(context);
+        var result = testSubject.ValidateRequest(context);
 
-        isValid.Should().BeFalse();
-        response.Received().StatusCode = (int)HttpStatusCode.Forbidden;
+        result.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [TestMethod]
-    public void IsValidRequest_Loopback_ReturnsTrue()
+    public void ValidateRequest_Loopback_ReturnsOK()
     {
         MockValidRequest();
         request.RemoteEndPoint.Returns(new IPEndPoint(IPAddress.Loopback, DefaultPort));
 
-        var isValid = testSubject.IsValidRequest(context);
+        var result = testSubject.ValidateRequest(context);
 
-        isValid.Should().BeTrue();
+        result.Should().Be(HttpStatusCode.OK);
     }
 
     [TestMethod]
-    public void IsValidRequest_IPv6Loopback_ReturnsTrue()
+    public void ValidateRequest_IPv6Loopback_ReturnsOK()
     {
         MockValidRequest();
         request.RemoteEndPoint.Returns(new IPEndPoint(IPAddress.IPv6Loopback, DefaultPort));
 
-        var isValid = testSubject.IsValidRequest(context);
+        var result = testSubject.ValidateRequest(context);
 
-        isValid.Should().BeTrue();
+        result.Should().Be(HttpStatusCode.OK);
     }
 
     [TestMethod]
-    public void IsValidRequest_TokenInvalid_ReturnsFalse()
+    public void ValidateRequest_TokenInvalid_ReturnsUnauthorized()
     {
         MockValidRequest();
         request.Headers.Returns(new WebHeaderCollection { [AuthTokenHeader] = InvalidToken });
 
-        var isValid = testSubject.IsValidRequest(context);
+        var result = testSubject.ValidateRequest(context);
 
-        isValid.Should().BeFalse();
-        response.Received().StatusCode = (int)HttpStatusCode.Unauthorized;
+        result.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [TestMethod]
     [DataRow("Bearer")]
     [DataRow("X-Authorization")]
     [DataRow("X-Api-Key")]
-    public void IsValidRequest_TokenInInvalidHeader_ReturnsFalse(string wrongAuthenticationHeader)
+    public void ValidateRequest_TokenInInvalidHeader_ReturnsUnauthorized(string wrongAuthenticationHeader)
     {
         MockValidRequest();
         request.Headers.Returns(new WebHeaderCollection { [wrongAuthenticationHeader] = InvalidToken });
 
-        var isValid = testSubject.IsValidRequest(context);
+        var result = testSubject.ValidateRequest(context);
 
-        isValid.Should().BeFalse();
-        response.Received().StatusCode = (int)HttpStatusCode.Unauthorized;
+        result.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [TestMethod]
-    public void IsValidRequest_ValidInValidHeader_ReturnsTrue()
+    public void ValidateRequest_ValidInValidHeader_ReturnsOK()
     {
         MockValidRequest();
         request.Headers.Returns(new WebHeaderCollection { [AuthTokenHeader] = ValidToken });
 
-        var isValid = testSubject.IsValidRequest(context);
+        var result = testSubject.ValidateRequest(context);
 
-        isValid.Should().BeTrue();
+        result.Should().Be(HttpStatusCode.OK);
     }
 
     [TestMethod]
     [DataRow("http://localhost/invalid")]
     [DataRow("http://localhost/analyze/abc")]
-    public void IsValidRequest_UrlInvalid_ReturnsFalse(string invalidUrl)
+    public void ValidateRequest_UrlInvalid_ReturnsNotFound(string invalidUrl)
     {
         MockValidRequest();
         request.Url.Returns(new Uri(invalidUrl));
 
-        var isValid = testSubject.IsValidRequest(context);
+        var result = testSubject.ValidateRequest(context);
 
-        isValid.Should().BeFalse();
-        response.Received().StatusCode = (int)HttpStatusCode.NotFound;
+        result.Should().Be(HttpStatusCode.NotFound);
     }
 
     [TestMethod]
@@ -181,63 +172,47 @@ public class AnalysisRequestHandlerTest
     [DataRow("PUT")]
     [DataRow("PATCH")]
     [DataRow("DELETE")]
-    public void IsValidRequest_MethodInvalid_ReturnsFalse(string httpMethod)
+    public void ValidateRequest_MethodInvalid_ReturnsNotFound(string httpMethod)
     {
         MockValidRequest();
         request.HttpMethod.Returns(httpMethod);
 
-        var isValid = testSubject.IsValidRequest(context);
+        var result = testSubject.ValidateRequest(context);
 
-        isValid.Should().BeFalse();
-        response.Received().StatusCode = (int)HttpStatusCode.NotFound;
+        result.Should().Be(HttpStatusCode.NotFound);
     }
 
     [TestMethod]
-    public void IsValidRequest_ContentLengthExceeded_ReturnsFalse()
+    public void ValidateRequest_ContentLengthExceeded_ReturnsRequestEntityTooLarge()
     {
         MockValidRequest();
         request.ContentLength64.Returns(MaxRequestBodyBytes + 1);
 
-        var isValid = testSubject.IsValidRequest(context);
+        var result = testSubject.ValidateRequest(context);
 
-        isValid.Should().BeFalse();
-        response.Received().StatusCode = (int)HttpStatusCode.RequestEntityTooLarge;
+        result.Should().Be(HttpStatusCode.RequestEntityTooLarge);
         logger.Received().LogVerbose(Resources.BodyLengthExceeded, context.Request.ContentLength64, configuration.MaxRequestBodyBytes);
     }
 
     [TestMethod]
-    public void IsValidRequest_ContentLengthNotExceeded_ReturnsTrue()
+    public void ValidateRequest_ContentLengthNotExceeded_ReturnsOK()
     {
         MockValidRequest();
         request.ContentLength64.Returns(MaxRequestBodyBytes);
 
-        var isValid = testSubject.IsValidRequest(context);
+        var result = testSubject.ValidateRequest(context);
 
-        isValid.Should().BeTrue();
+        result.Should().Be(HttpStatusCode.OK);
     }
 
     [TestMethod]
-    public void IsValidRequest_AllValid_ReturnsTrue()
+    public void ValidateRequest_AllValid_ReturnsOK()
     {
         MockValidRequest();
 
-        var isValid = testSubject.IsValidRequest(context);
+        var result = testSubject.ValidateRequest(context);
 
-        isValid.Should().BeTrue();
-    }
-
-    [TestMethod]
-    [DataRow(HttpStatusCode.BadRequest)]
-    [DataRow(HttpStatusCode.ServiceUnavailable)]
-    [DataRow(HttpStatusCode.RequestEntityTooLarge)]
-    [DataRow(HttpStatusCode.RequestTimeout)]
-    [DataRow(HttpStatusCode.LengthRequired)]
-    public void CloseRequest_SetsStatusCodeAndCloses_ReturnsVoid(HttpStatusCode statusCode)
-    {
-        testSubject.CloseRequest(context, statusCode);
-
-        response.Received().StatusCode = (int)statusCode;
-        response.Received().Close();
+        result.Should().Be(HttpStatusCode.OK);
     }
 
     [TestMethod]
@@ -262,7 +237,6 @@ public class AnalysisRequestHandlerTest
         var result = await testSubject.ParseAnalysisRequestBody(context);
 
         result.Should().BeNull();
-        response.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
     }
 
     [TestMethod]
@@ -275,7 +249,6 @@ public class AnalysisRequestHandlerTest
         var result = await testSubject.ParseAnalysisRequestBody(context);
 
         result.Should().BeNull();
-        response.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
     }
 
     [TestMethod]
@@ -288,7 +261,6 @@ public class AnalysisRequestHandlerTest
         var result = await testSubject.ParseAnalysisRequestBody(context);
 
         result.Should().BeNull();
-        response.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
     }
 
     [TestMethod]
@@ -306,30 +278,6 @@ public class AnalysisRequestHandlerTest
         result.FileNames[0].Should().Be(FileUri);
         result.ActiveRules.Should().HaveCount(1);
         result.ActiveRules[0].RuleKey.Should().Be(DiagnosticId);
-    }
-
-    [TestMethod]
-    public async Task SendResponse_WritesCorrectlySerializedDiagnostics()
-    {
-        response.OutputStream.Returns(new MemoryStream());
-        var expectedString = "{\"Diagnostics\":[{\"Id\":\"id1\"}]}";
-
-        await testSubject.SendResponse(context, [new DiagnosticDto("id1")]);
-
-        response.Received().ContentLength64 = Encoding.UTF8.GetBytes(expectedString).Length;
-        response.Received().StatusCode = (int)HttpStatusCode.OK;
-    }
-
-    [TestMethod]
-    public async Task SendResponse_ClosesOutputStream()
-    {
-        var outputStream = new MemoryStream();
-        response.OutputStream.Returns(outputStream);
-        var diagnostics = new List<DiagnosticDto> { new(DiagnosticId) };
-
-        await testSubject.SendResponse(context, diagnostics);
-
-        outputStream.CanRead.Should().BeFalse();
     }
 
     private void MockValidRequest()

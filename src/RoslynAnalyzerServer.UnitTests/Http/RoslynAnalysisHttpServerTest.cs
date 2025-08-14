@@ -19,7 +19,6 @@
  */
 
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -28,6 +27,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Http;
 [TestClass]
 public class RoslynAnalysisHttpServerTest
 {
+    private static IHttpRequestHandler _httpRequestHandler;
     private static ILogger _logger = null!;
     private static IHttpServerConfiguration _configuration = null!;
     private static IAnalysisRequestHandler _analysisRequestHandler = null!;
@@ -41,8 +41,9 @@ public class RoslynAnalysisHttpServerTest
         _logger.ForContext(Arg.Any<string[]>()).Returns(_logger);
         _configuration = Substitute.For<IHttpServerConfiguration>();
         _analysisRequestHandler = Substitute.For<IAnalysisRequestHandler>();
+        _httpRequestHandler = Substitute.For<IHttpRequestHandler>();
         _analysisEngine = Substitute.For<IAnalysisEngine>();
-        _testSubject = new RoslynAnalysisHttpServer(_logger, _configuration, _analysisRequestHandler, new HttpListenerFactory(), _analysisEngine);
+        _testSubject = new RoslynAnalysisHttpServer(_logger, _configuration, _analysisRequestHandler, _httpRequestHandler, new HttpListenerFactory(), _analysisEngine);
     }
 
     [ClassCleanup]
@@ -54,6 +55,7 @@ public class RoslynAnalysisHttpServerTest
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IHttpServerConfiguration>(),
             MefTestHelpers.CreateExport<IAnalysisRequestHandler>(),
+            MefTestHelpers.CreateExport<IHttpRequestHandler>(),
             MefTestHelpers.CreateExport<IHttpListenerFactory>(),
             MefTestHelpers.CreateExport<IAnalysisEngine>());
 

@@ -22,7 +22,6 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Adapters;
@@ -30,18 +29,13 @@ using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 
-public interface IAnalysisRequestHandler : IHttpRequestHandler
+public interface IAnalysisRequestHandler
 {
     Task<AnalysisRequest?> ParseAnalysisRequestBody(IHttpListenerContext context);
 
-    Task SendResponse(IHttpListenerContext context, List<DiagnosticDto> diagnostics);
-}
+    string ParseAnalysisRequestResponse(List<DiagnosticDto> diagnostics);
 
-public interface IHttpRequestHandler
-{
-    bool IsValidRequest(IHttpListenerContext context);
-
-    void CloseRequest(IHttpListenerContext context, HttpStatusCode statusCode);
+    HttpStatusCode ValidateRequest(IHttpListenerContext context);
 }
 
 [Export(typeof(IAnalysisRequestHandler))]
@@ -53,19 +47,26 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerConfiguration c
     private const string AnalyzeRequestUrl = "/analyze";
     private readonly ILogger logger = logger.ForContext(Resources.HttpServerLogContext).ForContext(nameof(AnalysisRequestHandler));
 
-    public void CloseRequest(IHttpListenerContext context, HttpStatusCode statusCode)
+    public HttpStatusCode ValidateRequest(IHttpListenerContext context)
     {
-        context.Response.StatusCode = (int)statusCode;
-        context.Response.Close();
+        if (VerifyLocalRequest(context) is var localRequestStatusCode && localRequestStatusCode != HttpStatusCode.OK)
+        {
+            return localRequestStatusCode;
+        }
+        if (VerifyToken(context) is var tokenStatusCode && tokenStatusCode != HttpStatusCode.OK)
+        {
+            return tokenStatusCode;
+        }
+        if (VerifyMethod(context) is var methodStatusCode && methodStatusCode != HttpStatusCode.OK)
+        {
+            return methodStatusCode;
+        }
+        if (VerifyContentLength(context) is var contentLengthStatusCode && contentLengthStatusCode != HttpStatusCode.OK)
+        {
+            return contentLengthStatusCode;
+        }
+        return HttpStatusCode.OK;
     }
-
-    public async Task SendResponse(IHttpListenerContext context, List<DiagnosticDto> diagnostics)
-    {
-        var responseString = CreateResponse(diagnostics);
-        await WriteResponse(responseString, context, HttpStatusCode.OK);
-    }
-
-    public bool IsValidRequest(IHttpListenerContext context) => VerifyLocalRequest(context) && VerifyToken(context) && VerifyMethod(context) && VerifyContentLength(context);
 
     public async Task<AnalysisRequest?> ParseAnalysisRequestBody(IHttpListenerContext context)
     {
@@ -76,8 +77,14 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerConfiguration c
             return requestDto;
         }
 
-        CloseRequest(context, HttpStatusCode.BadRequest);
         return null;
+    }
+
+    public string ParseAnalysisRequestResponse(List<DiagnosticDto> diagnostics)
+    {
+        var responseObj = new AnalysisResponse { Diagnostics = diagnostics };
+        var responseString = JsonConvert.SerializeObject(responseObj);
+        return responseString;
     }
 
     private static async Task<string> ReadBody(IHttpListenerContext context)
@@ -100,31 +107,7 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerConfiguration c
         return requestDto;
     }
 
-    private static string CreateResponse(List<DiagnosticDto> diagnostics)
-    {
-        var responseObj = new AnalysisResponse { Diagnostics = diagnostics };
-        var responseString = JsonConvert.SerializeObject(responseObj);
-        return responseString;
-    }
-
-    private static async Task WriteResponse(string responseString, IHttpListenerContext context, HttpStatusCode statusCode)
-    {
-        var buffer = Encoding.UTF8.GetBytes(responseString);
-        context.Response.ContentLength64 = buffer.Length;
-        context.Response.StatusCode = (int)statusCode;
-        await context.Response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
-        context.Response.OutputStream.Close();
-    }
-
-    private bool VerifyLocalRequest(IHttpListenerContext context)
-    {
-        if (IsLocalRequest(context.Request))
-        {
-            return true;
-        }
-        CloseRequest(context, HttpStatusCode.Forbidden);
-        return false;
-    }
+    private static HttpStatusCode VerifyLocalRequest(IHttpListenerContext context) => IsLocalRequest(context.Request) ? HttpStatusCode.OK : HttpStatusCode.Forbidden;
 
     private static bool IsLocalRequest(IHttpListenerRequest request)
     {
@@ -132,35 +115,28 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerConfiguration c
         return remote != null && (remote.Address.Equals(IPAddress.Loopback) || remote.Address.Equals(IPAddress.IPv6Loopback));
     }
 
-    private bool VerifyToken(IHttpListenerContext context)
+    private HttpStatusCode VerifyToken(IHttpListenerContext context)
     {
         var token = context.Request.Headers[XAuthTokenHeader];
-        if (token == configuration.Token.ToUnsecureString())
-        {
-            return true;
-        }
-        CloseRequest(context, HttpStatusCode.Unauthorized);
-        return false;
+        return token == configuration.Token.ToUnsecureString() ? HttpStatusCode.OK : HttpStatusCode.Unauthorized;
     }
 
-    private bool VerifyMethod(IHttpListenerContext context)
+    private static HttpStatusCode VerifyMethod(IHttpListenerContext context)
     {
         if (context.Request.HttpMethod == HttpMethod.Post.Method && context.Request.Url.AbsolutePath == AnalyzeRequestUrl)
         {
-            return true;
+            return HttpStatusCode.OK;
         }
-        CloseRequest(context, HttpStatusCode.NotFound);
-        return false;
+        return HttpStatusCode.NotFound;
     }
 
-    private bool VerifyContentLength(IHttpListenerContext context)
+    private HttpStatusCode VerifyContentLength(IHttpListenerContext context)
     {
         if (context.Request.ContentLength64 <= configuration.MaxRequestBodyBytes)
         {
-            return true;
+            return HttpStatusCode.OK;
         }
         logger.LogVerbose(Resources.BodyLengthExceeded, context.Request.ContentLength64, configuration.MaxRequestBodyBytes);
-        CloseRequest(context, HttpStatusCode.RequestEntityTooLarge);
-        return false;
+        return HttpStatusCode.RequestEntityTooLarge;
     }
 }

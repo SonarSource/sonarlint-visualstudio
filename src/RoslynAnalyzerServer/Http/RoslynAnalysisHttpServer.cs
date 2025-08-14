@@ -32,6 +32,7 @@ internal sealed class RoslynAnalysisHttpServer(
     ILogger logger,
     IHttpServerConfiguration configuration,
     IAnalysisRequestHandler analysisRequestHandler,
+    IHttpRequestHandler httpRequestHandler,
     IHttpListenerFactory httpListenerFactory,
     IAnalysisEngine analysisEngine) : IRoslynAnalysisHttpServer
 {
@@ -114,7 +115,7 @@ internal sealed class RoslynAnalysisHttpServer(
                 context = new HttpListenerContextAdapter(await getRequestTask);
                 if (!await requestSemaphore.WaitAsync(0, cancellationToken))
                 {
-                    analysisRequestHandler.CloseRequest(context, HttpStatusCode.ServiceUnavailable);
+                    httpRequestHandler.CloseRequest(context, HttpStatusCode.ServiceUnavailable);
                     logger.LogVerbose(Resources.ConcurrentRequestsExceeded, configuration.MaxConcurrentRequests);
                     continue;
                 }
@@ -126,7 +127,7 @@ internal sealed class RoslynAnalysisHttpServer(
                 logger.WriteLine(Resources.HttpServerAttemptFailed, ex);
                 if (context != null)
                 {
-                    analysisRequestHandler.CloseRequest(context, HttpStatusCode.InternalServerError);
+                    httpRequestHandler.CloseRequest(context, HttpStatusCode.InternalServerError);
                 }
             }
         }
@@ -143,7 +144,7 @@ internal sealed class RoslynAnalysisHttpServer(
         catch (OperationCanceledException)
         {
             logger.LogVerbose(Resources.HttpRequestTimedOut, configuration.RequestMillisecondsTimeout);
-            analysisRequestHandler.CloseRequest(context, HttpStatusCode.RequestTimeout);
+            httpRequestHandler.CloseRequest(context, HttpStatusCode.RequestTimeout);
         }
         finally
         {
@@ -153,12 +154,19 @@ internal sealed class RoslynAnalysisHttpServer(
 
     private async Task HandleRequest(IHttpListenerContext context, CancellationToken cancellationToken)
     {
-        if (!analysisRequestHandler.IsValidRequest(context) || await analysisRequestHandler.ParseAnalysisRequestBody(context) is not { } analysisRequest)
+        if (analysisRequestHandler.ValidateRequest(context) is var validationStatusCode && validationStatusCode != HttpStatusCode.OK)
         {
+            httpRequestHandler.CloseRequest(context, validationStatusCode);
             return;
         }
+        if (await analysisRequestHandler.ParseAnalysisRequestBody(context) is not { } analysisRequest)
+        {
+            httpRequestHandler.CloseRequest(context, HttpStatusCode.BadRequest);
+            return;
+        }
+
         var diagnostics = await analysisEngine.AnalyzeAsync(analysisRequest.FileNames, analysisRequest.ActiveRules, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
-        await analysisRequestHandler.SendResponse(context, diagnostics);
+        await httpRequestHandler.SendResponse(context, analysisRequestHandler.ParseAnalysisRequestResponse(diagnostics));
     }
 }
