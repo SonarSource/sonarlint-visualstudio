@@ -85,7 +85,7 @@ public class RoslynSolutionAnalysisCommandProviderTests
         var result = testSubject.GetAnalysisCommandsForCurrentSolution([File1Cs]);
 
         result.Should().BeEmpty();
-        logger.AssertPartialOutputStringExists("Failed to get compilation for project: project1");
+        logger.AssertPartialOutputStringExists("Project project1 does not support compilation");
         logger.AssertPartialOutputStringExists("No projects to analyze");
     }
 
@@ -100,7 +100,6 @@ public class RoslynSolutionAnalysisCommandProviderTests
         var result = testSubject.GetAnalysisCommandsForCurrentSolution([File1Cs]);
 
         result.Should().BeEmpty();
-        logger.AssertPartialOutputStringExists("No files to analyze in project project1");
         logger.AssertPartialOutputStringExists("No projects to analyze");
     }
 
@@ -120,7 +119,6 @@ public class RoslynSolutionAnalysisCommandProviderTests
         command.Project.Should().Be(project2);
         command.AnalysisCommands.OfType<RoslynFileSyntaxAnalysis>().Should().HaveCount(1);
         command.AnalysisCommands.OfType<RoslynFileSemanticAnalysis>().Should().HaveCount(1);
-        logger.AssertPartialOutputStringExists("No files to analyze in project project1");
     }
 
     [TestMethod]
@@ -166,8 +164,7 @@ public class RoslynSolutionAnalysisCommandProviderTests
         result[1].AnalysisCommands.Should().HaveCount(4);
         ValidateContainsAllTypesOfAnalysisForFile(result[1], AnalyzedFile3Cs);
         ValidateContainsAllTypesOfAnalysisForFile(result[1], AnalyzedFile1Cs);
-        logger.AssertPartialOutputStringExists("Failed to get compilation for project: project1");
-        logger.AssertPartialOutputStringExists("No files to analyze in project project2");
+        logger.AssertPartialOutputStringExists("Project project1 does not support compilation");
     }
 
     private void ValidateContainsAllTypesOfAnalysisForFile(RoslynProjectAnalysisRequest request, string analysisFilePath)

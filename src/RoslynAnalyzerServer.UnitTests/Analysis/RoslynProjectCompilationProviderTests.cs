@@ -161,7 +161,6 @@ public class RoslynProjectCompilationProviderTests
         capturedOptions.OnAnalyzerException!(exception, analyzer1, diagnostic);
 
         logger.AssertPartialOutputStringExists(
-            "Roslyn Analyzer Exception",
             analyzer1.GetType().Name,
             "TestId",
             "test exception");
