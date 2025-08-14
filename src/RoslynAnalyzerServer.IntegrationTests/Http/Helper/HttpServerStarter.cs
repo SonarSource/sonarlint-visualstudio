@@ -28,16 +28,21 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.IntegrationTests.Http.Help
 internal sealed class HttpServerStarter : IDisposable
 {
     private const int WaitForServerMsTimeout = 1000;
-    internal readonly IHttpServerConfiguration ServerConfiguration;
+    internal readonly IHttpServerSettings ServerSettings;
+    internal IHttpServerConfigurationProvider HttpServerConfigurationProvider { get; }
     internal RoslynAnalysisHttpServer RoslynAnalysisHttpServer { get; }
     internal ILogger MockedLogger { get; } = CreateMockedLogger();
     internal IAnalysisEngine MockedAnalysisEngine { get; } = CreateMockedAnalysisEngine();
 
-    public HttpServerStarter(bool useMockedServerConfiguration = false, int maxConcurrentRequests = 5)
+    public HttpServerStarter(bool useMockedServerSettings = false, int maxConcurrentRequests = 5, bool useMockedServerConfiguration = false)
     {
-        ServerConfiguration = useMockedServerConfiguration ? CreateMockedServerConfiguration(maxConcurrentRequests) : new HttpServerConfiguration();
-        var analysisRequestHandler = new AnalysisRequestHandler(MockedLogger, ServerConfiguration);
-        RoslynAnalysisHttpServer = new RoslynAnalysisHttpServer(MockedLogger, ServerConfiguration, analysisRequestHandler, new HttpRequestHandler(), new HttpListenerFactory(), MockedAnalysisEngine);
+        ServerSettings = useMockedServerSettings ? CreateMockedServerConfiguration(maxConcurrentRequests) : new HttpServerSettings();
+        var httpServerConfigurationProvider = new HttpServerConfigurationProvider();
+        HttpServerConfigurationProvider = useMockedServerConfiguration ? CreateMockedServerConfigurationProvider() : httpServerConfigurationProvider;
+        var httpServerConfigurationFactory = useMockedServerConfiguration ? CreateHttpServerConfigurationFactory() : httpServerConfigurationProvider;
+        var analysisRequestHandler = new AnalysisRequestHandler(MockedLogger, ServerSettings, HttpServerConfigurationProvider);
+        RoslynAnalysisHttpServer = new RoslynAnalysisHttpServer(MockedLogger, ServerSettings, analysisRequestHandler, new HttpRequestHandler(),
+            new HttpListenerFactory(), httpServerConfigurationFactory, MockedAnalysisEngine);
     }
 
     public void StartListeningOnBackgroundThread()
@@ -47,7 +52,7 @@ internal sealed class HttpServerStarter : IDisposable
         {
             serverListeningEvent.Set();
         });
-        MockedLogger.When(x => x.LogVerbose(Resources.HttpServerFailedToStartAttempts, ServerConfiguration.MaxStartAttempts)).Do(_ =>
+        MockedLogger.When(x => x.LogVerbose(Resources.HttpServerFailedToStartAttempts, ServerSettings.MaxStartAttempts)).Do(_ =>
         {
             serverListeningEvent.Set();
         });
@@ -74,15 +79,30 @@ internal sealed class HttpServerStarter : IDisposable
         return analysisEngine;
     }
 
-    private static IHttpServerConfiguration CreateMockedServerConfiguration(int maxConcurrentRequests)
+    private static IHttpServerSettings CreateMockedServerConfiguration(int maxConcurrentRequests)
     {
-        var config = Substitute.For<IHttpServerConfiguration>();
+        var config = Substitute.For<IHttpServerSettings>();
         config.MaxConcurrentRequests.Returns(maxConcurrentRequests);
-        config.Port.Returns(new HttpServerConfiguration().Port);
         config.MaxStartAttempts.Returns(3);
         config.RequestMillisecondsTimeout.Returns(3000);
         config.MaxRequestBodyBytes.Returns(1024);
-        config.Token.Returns(Guid.NewGuid().ToString().ToSecureString());
+        return config;
+    }
+
+    private static IHttpServerConfigurationProvider CreateMockedServerConfigurationProvider()
+    {
+        var config = Substitute.For<IHttpServerConfigurationProvider>();
+        config.CurrentConfiguration.Returns(Substitute.For<IHttpServerConfiguration>());
+        return config;
+    }
+
+    private IHttpServerConfigurationFactory CreateHttpServerConfigurationFactory()
+    {
+        var config = Substitute.For<IHttpServerConfigurationFactory>();
+        var configuration = Substitute.For<IHttpServerConfiguration>();
+        config.Create().Returns(configuration);
+        HttpServerConfigurationProvider.CurrentConfiguration.Returns(configuration);
+
         return config;
     }
 }

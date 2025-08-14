@@ -30,10 +30,11 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 [method: ImportingConstructor]
 internal sealed class RoslynAnalysisHttpServer(
     ILogger logger,
-    IHttpServerConfiguration configuration,
+    IHttpServerSettings settings,
     IAnalysisRequestHandler analysisRequestHandler,
     IHttpRequestHandler httpRequestHandler,
     IHttpListenerFactory httpListenerFactory,
+    IHttpServerConfigurationFactory httpServerConfigurationFactory,
     IAnalysisEngine analysisEngine) : IRoslynAnalysisHttpServer
 {
     private readonly CancellationTokenSource cancellationTokenSource = new();
@@ -52,16 +53,17 @@ internal sealed class RoslynAnalysisHttpServer(
             }
 
             logger.LogVerbose(Resources.HttpServerStarting);
-            for (var attempt = 1; attempt <= configuration.MaxStartAttempts; attempt++)
+            for (var attempt = 1; attempt <= settings.MaxStartAttempts; attempt++)
             {
-                httpListener = httpListenerFactory.Create(configuration.Port);
+                var currentConfiguration = httpServerConfigurationFactory.Create();
+                httpListener = httpListenerFactory.Create(currentConfiguration.Port);
                 if (cancellationTokenSource.IsCancellationRequested)
                 {
                     return;
                 }
-                await StartListenAsync(attempt);
+                await StartListenAsync(attempt, currentConfiguration.Port);
             }
-            logger.LogVerbose(Resources.HttpServerFailedToStartAttempts, configuration.MaxStartAttempts);
+            logger.LogVerbose(Resources.HttpServerFailedToStartAttempts, settings.MaxStartAttempts);
         }
         catch (Exception ex)
         {
@@ -82,7 +84,7 @@ internal sealed class RoslynAnalysisHttpServer(
         logger.LogVerbose(Resources.HttpServerDisposed);
     }
 
-    private async Task StartListenAsync(int attempt)
+    private async Task StartListenAsync(int attempt, int port)
     {
         try
         {
@@ -92,8 +94,7 @@ internal sealed class RoslynAnalysisHttpServer(
         }
         catch (HttpListenerException ex)
         {
-            logger.LogVerbose(Resources.HttpServerAttemptFailed, attempt, configuration.Port, ex.Message);
-            configuration.GenerateNewPort();
+            logger.LogVerbose(Resources.HttpServerAttemptFailed, attempt, port, ex.Message);
         }
     }
 
@@ -126,7 +127,7 @@ internal sealed class RoslynAnalysisHttpServer(
 
     private async Task HandleRequestWithTimeout(IHttpListenerContext context, CancellationToken serverCancellationToken)
     {
-        using var requestCancellationToken = new CancellationTokenSource(configuration.RequestMillisecondsTimeout);
+        using var requestCancellationToken = new CancellationTokenSource(settings.RequestMillisecondsTimeout);
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(serverCancellationToken, requestCancellationToken.Token);
         try
         {
@@ -134,7 +135,7 @@ internal sealed class RoslynAnalysisHttpServer(
         }
         catch (OperationCanceledException)
         {
-            logger.LogVerbose(Resources.HttpRequestTimedOut, configuration.RequestMillisecondsTimeout);
+            logger.LogVerbose(Resources.HttpRequestTimedOut, settings.RequestMillisecondsTimeout);
             httpRequestHandler.CloseRequest(context, HttpStatusCode.RequestTimeout);
         }
     }

@@ -41,7 +41,8 @@ public class AnalysisRequestHandlerTest
     private const string HttpMethodPost = "POST";
     private const string DiagnosticId = "S100";
     private static readonly FileUri FileUri = new("C:\\File.cs");
-    private IHttpServerConfiguration configuration = null!;
+    private IHttpServerSettings settings = null!;
+    private IHttpServerConfigurationProvider configurationProvider = null!;
     private IHttpListenerContext context = null!;
     private ILogger logger = null!;
     private IHttpListenerRequest request = null!;
@@ -53,10 +54,10 @@ public class AnalysisRequestHandlerTest
     {
         logger = Substitute.For<ILogger>();
         logger.ForContext(Arg.Any<string[]>()).Returns(logger);
-        configuration = Substitute.For<IHttpServerConfiguration>();
-        configuration.Token.Returns(ValidToken.ToSecureString());
-        configuration.MaxRequestBodyBytes.Returns(MaxRequestBodyBytes);
-        testSubject = new AnalysisRequestHandler(logger, configuration);
+        settings = Substitute.For<IHttpServerSettings>();
+        settings.MaxRequestBodyBytes.Returns(MaxRequestBodyBytes);
+        MockConfigurationProvider();
+        testSubject = new AnalysisRequestHandler(logger, settings, configurationProvider);
         request = Substitute.For<IHttpListenerRequest>();
         response = Substitute.For<IHttpListenerResponse>();
         context = Substitute.For<IHttpListenerContext>();
@@ -68,7 +69,9 @@ public class AnalysisRequestHandlerTest
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<AnalysisRequestHandler, IAnalysisRequestHandler>(
             MefTestHelpers.CreateExport<ILogger>(),
-            MefTestHelpers.CreateExport<IHttpServerConfiguration>());
+            MefTestHelpers.CreateExport<IHttpServerSettings>(),
+            MefTestHelpers.CreateExport<IHttpServerConfigurationProvider>()
+        );
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<AnalysisRequestHandler>();
@@ -191,7 +194,7 @@ public class AnalysisRequestHandlerTest
         var result = testSubject.ValidateRequest(context);
 
         result.Should().Be(HttpStatusCode.RequestEntityTooLarge);
-        logger.Received().LogVerbose(Resources.BodyLengthExceeded, context.Request.ContentLength64, configuration.MaxRequestBodyBytes);
+        logger.Received().LogVerbose(Resources.BodyLengthExceeded, context.Request.ContentLength64, settings.MaxRequestBodyBytes);
     }
 
     [TestMethod]
@@ -287,5 +290,13 @@ public class AnalysisRequestHandlerTest
         request.HttpMethod.Returns(HttpMethodPost);
         request.Url.Returns(new Uri(AnalyzeUrl));
         request.ContentLength64.Returns(MaxRequestBodyBytes);
+    }
+
+    private void MockConfigurationProvider()
+    {
+        var configuration = Substitute.For<IHttpServerConfiguration>();
+        configurationProvider = Substitute.For<IHttpServerConfigurationProvider>();
+        configurationProvider.CurrentConfiguration.Returns(configuration);
+        configuration.Token.Returns(ValidToken.ToSecureString());
     }
 }

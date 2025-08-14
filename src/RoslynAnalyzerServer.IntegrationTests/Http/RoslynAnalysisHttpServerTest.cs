@@ -50,13 +50,13 @@ public class RoslynAnalysisHttpServerTest
     [TestMethod]
     public async Task StartListenAsync_CallsMultipleTimes_DoesNotStartIfAlreadyStarted()
     {
-        var port = ServerStarter.ServerConfiguration.Port;
+        var port = ServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Port;
         await VerifyServerReachable(CreateClientRequestConfig());
 
         await ServerStarter.RoslynAnalysisHttpServer.StartListenAsync();
         await ServerStarter.RoslynAnalysisHttpServer.StartListenAsync();
 
-        ServerStarter.ServerConfiguration.Port.Should().Be(port);
+        ServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Port.Should().Be(port);
         ServerStarter.MockedLogger.Received(1).LogVerbose(Resources.HttpServerStarted);
         await VerifyServerReachable(CreateClientRequestConfig());
     }
@@ -79,9 +79,8 @@ public class RoslynAnalysisHttpServerTest
     public async Task StartListenAsync_PortAlreadyInUse_TriesAgain()
     {
         using var serverStarter2 = new HttpServerStarter(useMockedServerConfiguration: true);
-        var busyPort = ServerStarter.ServerConfiguration.Port;
-        MockServerConfiguration(serverStarter2.ServerConfiguration, busyPort);
-        serverStarter2.ServerConfiguration.When(x => x.GenerateNewPort()).Do(_ => serverStarter2.ServerConfiguration.Port.Returns(GetAvailablePort()));
+        var busyPort = ServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Port;
+        MockServerConfiguration(serverStarter2.HttpServerConfigurationProvider, busyPort);
 
         serverStarter2.StartListeningOnBackgroundThread();
 
@@ -93,9 +92,9 @@ public class RoslynAnalysisHttpServerTest
     public void StartListenAsync_PortAlreadyInUse_TriesMaxAttempts()
     {
         using var serverStarter2 = new HttpServerStarter(useMockedServerConfiguration: true);
-        var busyPort = ServerStarter.ServerConfiguration.Port;
-        MockServerConfiguration(serverStarter2.ServerConfiguration, busyPort);
-        var maxAttempts = serverStarter2.ServerConfiguration.MaxStartAttempts;
+        var busyPort = ServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Port;
+        MockServerConfiguration(serverStarter2.HttpServerConfigurationProvider, busyPort);
+        var maxAttempts = serverStarter2.ServerSettings.MaxStartAttempts;
 
         serverStarter2.StartListeningOnBackgroundThread();
 
@@ -108,8 +107,8 @@ public class RoslynAnalysisHttpServerTest
     public async Task StartListenAsync_AnalysisRequestTakesLongerThanTimeout_ClosesRequestAfterTimeout()
     {
         var millisecondTimeout = 5;
-        using var serverStarter2 = new HttpServerStarter(useMockedServerConfiguration: true);
-        MockServerConfiguration(serverStarter2.ServerConfiguration, GetAvailablePort(), requestTimeout: millisecondTimeout);
+        using var serverStarter2 = new HttpServerStarter(useMockedServerSettings: true);
+        MockServerSettings(serverStarter2.ServerSettings, requestTimeout: millisecondTimeout);
         SimulateLongAnalysis(serverStarter2.MockedAnalysisEngine, millisecondTimeout * 2);
         serverStarter2.StartListeningOnBackgroundThread();
 
@@ -124,11 +123,13 @@ public class RoslynAnalysisHttpServerTest
     {
         var bodyLength = 1;
         var largeBody = "{}";
-        using var serverStarter2 = new HttpServerStarter(useMockedServerConfiguration: true);
-        MockServerConfiguration(serverStarter2.ServerConfiguration, GetAvailablePort(), maxBodyLength: bodyLength);
+        using var serverStarter2 = new HttpServerStarter(useMockedServerSettings: true);
+        MockServerSettings(serverStarter2.ServerSettings, maxBodyLength: bodyLength);
         serverStarter2.StartListeningOnBackgroundThread();
 
-        var response = await HttpRequester.SendRequest(serverStarter2.ServerConfiguration.Token.ToUnsecureString(), GetRequestUrl(serverStarter2.ServerConfiguration.Port), largeBody);
+        var response = await HttpRequester.SendRequest(serverStarter2.HttpServerConfigurationProvider.CurrentConfiguration.Token.ToUnsecureString(),
+            GetRequestUrl(serverStarter2.HttpServerConfigurationProvider.CurrentConfiguration.Port),
+            largeBody);
 
         serverStarter2.MockedLogger.Received(1).LogVerbose(Resources.BodyLengthExceeded, (long)Encoding.UTF8.GetByteCount(largeBody), (long)bodyLength);
         response.StatusCode.Should().Be(HttpStatusCode.RequestEntityTooLarge);
@@ -150,7 +151,8 @@ public class RoslynAnalysisHttpServerTest
   }
 }";
 
-        var response = await HttpRequester.SendRequest(ServerStarter.ServerConfiguration.Token.ToUnsecureString(), GetRequestUrl(ServerStarter.ServerConfiguration.Port), unexpectedBodyContent);
+        var response = await HttpRequester.SendRequest(ServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Token.ToUnsecureString(),
+            GetRequestUrl(ServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Port), unexpectedBodyContent);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -174,7 +176,7 @@ public class RoslynAnalysisHttpServerTest
     [TestMethod]
     public async Task StartListenAsync_InvalidRequestUri_ReturnsNotFound()
     {
-        var invalidRequestUrl = GetRequestUrl(ServerStarter.ServerConfiguration.Port, "wrongPath");
+        var invalidRequestUrl = GetRequestUrl(ServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Port, "wrongPath");
 
         var response = await HttpRequester.SendRequest(CreateClientRequestConfig(requestUri: invalidRequestUrl));
 
@@ -215,14 +217,15 @@ public class RoslynAnalysisHttpServerTest
     }
 
     private static AnalysisRequestConfig CreateClientRequestConfig(HttpServerStarter httpServerStarter) =>
-        CreateClientRequestConfig([CsharpFileName], GetRequestUrl(httpServerStarter.ServerConfiguration.Port), httpServerStarter.ServerConfiguration.Token);
+        CreateClientRequestConfig([CsharpFileName], GetRequestUrl(httpServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Port),
+            httpServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Token);
 
     private static AnalysisRequestConfig CreateClientRequestConfig(SecureString? token = null, string? requestUri = null) => CreateClientRequestConfig([CsharpFileName], requestUri, token);
 
     private static AnalysisRequestConfig CreateClientRequestConfig(string[] fileNames, string? requestUri = null, SecureString? token = null)
     {
-        token ??= ServerStarter.ServerConfiguration.Token;
-        requestUri ??= GetRequestUrl(ServerStarter.ServerConfiguration.Port);
+        token ??= ServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Token;
+        requestUri ??= GetRequestUrl(ServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Port);
         return new AnalysisRequestConfig(token, requestUri, fileNames);
     }
 
@@ -255,19 +258,17 @@ public class RoslynAnalysisHttpServerTest
         return analysisResponse;
     }
 
-    private static void MockServerConfiguration(
-        IHttpServerConfiguration serverConfiguration,
-        int port,
+    private static void MockServerSettings(
+        IHttpServerSettings serverConfiguration,
         int requestTimeout = 50,
         int maxBodyLength = 100)
     {
-        serverConfiguration.Port.Returns(port);
         serverConfiguration.MaxStartAttempts.Returns(3);
         serverConfiguration.RequestMillisecondsTimeout.Returns(requestTimeout);
         serverConfiguration.MaxRequestBodyBytes.Returns(maxBodyLength);
     }
 
-    private static int GetAvailablePort() => new HttpServerConfiguration().Port;
+    private static void MockServerConfiguration(IHttpServerConfigurationProvider serverConfigurationProvider, int port) => serverConfigurationProvider.CurrentConfiguration.Port.Returns(port);
 
     private static void SimulateLongAnalysis(IAnalysisEngine analysisEngine, int milliseconds) =>
         analysisEngine

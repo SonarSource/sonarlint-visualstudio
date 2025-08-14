@@ -41,7 +41,7 @@ public interface IAnalysisRequestHandler
 [Export(typeof(IAnalysisRequestHandler))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class AnalysisRequestHandler(ILogger logger, IHttpServerConfiguration configuration) : IAnalysisRequestHandler
+internal class AnalysisRequestHandler(ILogger logger, IHttpServerSettings serverSettings, IHttpServerConfigurationProvider serverConfigurationProvider) : IAnalysisRequestHandler
 {
     private const string XAuthTokenHeader = "X-Auth-Token";
     private const string AnalyzeRequestUrl = "/analyze";
@@ -118,7 +118,8 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerConfiguration c
     private HttpStatusCode VerifyToken(IHttpListenerContext context)
     {
         var token = context.Request.Headers[XAuthTokenHeader];
-        return token == configuration.Token.ToUnsecureString() ? HttpStatusCode.OK : HttpStatusCode.Unauthorized;
+
+        return token == serverConfigurationProvider.CurrentConfiguration.Token.ToUnsecureString() ? HttpStatusCode.OK : HttpStatusCode.Unauthorized;
     }
 
     private static HttpStatusCode VerifyMethod(IHttpListenerContext context)
@@ -132,11 +133,11 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerConfiguration c
 
     private HttpStatusCode VerifyContentLength(IHttpListenerContext context)
     {
-        if (context.Request.ContentLength64 <= configuration.MaxRequestBodyBytes)
+        if (context.Request.ContentLength64 <= serverSettings.MaxRequestBodyBytes)
         {
             return HttpStatusCode.OK;
         }
-        logger.LogVerbose(Resources.BodyLengthExceeded, context.Request.ContentLength64, configuration.MaxRequestBodyBytes);
+        logger.LogVerbose(Resources.BodyLengthExceeded, context.Request.ContentLength64, serverSettings.MaxRequestBodyBytes);
         return HttpStatusCode.RequestEntityTooLarge;
     }
 }

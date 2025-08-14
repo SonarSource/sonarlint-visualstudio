@@ -27,9 +27,10 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Http;
 [TestClass]
 public class RoslynAnalysisHttpServerTest
 {
+    private static IHttpServerConfigurationFactory _serverConfigurationFactory = null!;
     private static IHttpRequestHandler _httpRequestHandler = null!;
     private static ILogger _logger = null!;
-    private static IHttpServerConfiguration _configuration = null!;
+    private static IHttpServerSettings _configuration = null!;
     private static IAnalysisRequestHandler _analysisRequestHandler = null!;
     private static IAnalysisEngine _analysisEngine = null!;
     private static RoslynAnalysisHttpServer _testSubject = null!;
@@ -39,11 +40,13 @@ public class RoslynAnalysisHttpServerTest
     {
         _logger = Substitute.For<ILogger>();
         _logger.ForContext(Arg.Any<string[]>()).Returns(_logger);
-        _configuration = Substitute.For<IHttpServerConfiguration>();
+        _configuration = Substitute.For<IHttpServerSettings>();
         _analysisRequestHandler = Substitute.For<IAnalysisRequestHandler>();
         _httpRequestHandler = Substitute.For<IHttpRequestHandler>();
         _analysisEngine = Substitute.For<IAnalysisEngine>();
-        _testSubject = new RoslynAnalysisHttpServer(_logger, _configuration, _analysisRequestHandler, _httpRequestHandler, new HttpListenerFactory(), _analysisEngine);
+        _serverConfigurationFactory = Substitute.For<IHttpServerConfigurationFactory>();
+        _testSubject = new RoslynAnalysisHttpServer(_logger, _configuration, _analysisRequestHandler, _httpRequestHandler, new HttpListenerFactory(),
+            _serverConfigurationFactory, _analysisEngine);
     }
 
     [ClassCleanup]
@@ -53,10 +56,11 @@ public class RoslynAnalysisHttpServerTest
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<RoslynAnalysisHttpServer, IRoslynAnalysisHttpServer>(
             MefTestHelpers.CreateExport<ILogger>(),
-            MefTestHelpers.CreateExport<IHttpServerConfiguration>(),
+            MefTestHelpers.CreateExport<IHttpServerSettings>(),
             MefTestHelpers.CreateExport<IAnalysisRequestHandler>(),
             MefTestHelpers.CreateExport<IHttpRequestHandler>(),
             MefTestHelpers.CreateExport<IHttpListenerFactory>(),
+            MefTestHelpers.CreateExport<IHttpServerConfigurationFactory>(),
             MefTestHelpers.CreateExport<IAnalysisEngine>());
 
     [TestMethod]

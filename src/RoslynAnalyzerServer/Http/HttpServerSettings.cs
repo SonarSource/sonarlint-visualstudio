@@ -19,61 +19,27 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Net;
-using System.Net.Sockets;
-using System.Security;
-using System.Security.Cryptography;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 
-public interface IHttpServerConfiguration
+internal interface IHttpServerSettings
 {
-    int Port { get; }
-    SecureString Token { get; }
     int MaxStartAttempts { get; }
     int RequestMillisecondsTimeout { get; }
     long MaxRequestBodyBytes { get; }
     int MaxConcurrentRequests { get; }
-
-    void GenerateNewPort();
 }
 
-[Export(typeof(IHttpServerConfiguration))]
+[Export(typeof(IHttpServerSettings))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class HttpServerConfiguration() : IHttpServerConfiguration
+internal class HttpServerSettings() : IHttpServerSettings
 {
-    private const int TokenByteLength = 32;
     private const long OneMb = 1024 * 1024;
     private const int ThirtySeconds = 30000;
-    private readonly Lazy<SecureString> lazyToken = new(GenerateSecureToken);
-    private Lazy<int> lazyPort = new(GetAvailablePort);
 
-    public int Port => lazyPort.Value;
-    public SecureString Token => lazyToken.Value;
     public int MaxStartAttempts => 10;
     public int RequestMillisecondsTimeout => ThirtySeconds;
     public long MaxRequestBodyBytes => OneMb;
     public int MaxConcurrentRequests => 20;
-
-    public void GenerateNewPort() => lazyPort = new Lazy<int>(GetAvailablePort);
-
-    private static int GetAvailablePort()
-    {
-        var listener = new TcpListener(IPAddress.Loopback, 0);
-        listener.Start();
-        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
-        listener.Stop();
-        return port;
-    }
-
-    private static SecureString GenerateSecureToken()
-    {
-        var bytes = new byte[TokenByteLength];
-        using (var rng = new RNGCryptoServiceProvider())
-        {
-            rng.GetBytes(bytes);
-        }
-        return Convert.ToBase64String(bytes).ToSecureString();
-    }
 }
