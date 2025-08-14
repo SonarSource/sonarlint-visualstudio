@@ -47,6 +47,6 @@ internal class RoslynProjectWrapper(Project project) : IRoslynProjectWrapper
         return analysisFilePath != null;
     }
 
-    private bool IsCodeBehindRazor(string razorFilePath, string candidateDocumentPath) =>
-        candidateDocumentPath.StartsWith(razorFilePath) && candidateDocumentPath.EndsWith(".g.cs");
+    private static bool IsCodeBehindRazor(string razorFilePath, string candidateDocumentPath) =>
+        candidateDocumentPath.StartsWith(razorFilePath) && candidateDocumentPath.EndsWith(".g.cs"); // cshtml razor files are converted into .\file.cshtml.<random chars>.g.cs files when included in the compilation
 }
