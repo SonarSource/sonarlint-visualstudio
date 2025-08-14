@@ -156,21 +156,6 @@ public class RoslynAnalysisHttpServerTest
     }
 
     [TestMethod]
-    public async Task StartListenAsync_Dos_LimitsRequests()
-    {
-        var analysisDurationMs = 500;
-        using var serverStarter2 = new HttpServerStarter(useMockedServerConfiguration: true, maxConcurrentRequests: 1);
-        MockServerConfiguration(serverStarter2.ServerConfiguration, GetAvailablePort(), requestTimeout: analysisDurationMs);
-        SimulateLongAnalysis(serverStarter2.MockedAnalysisEngine, analysisDurationMs);
-        serverStarter2.StartListeningOnBackgroundThread();
-
-        var responses = await SendMultipleRequests(serverStarter2, analysisDurationMs * 2);
-
-        responses.Where(r => r.StatusCode == HttpStatusCode.ServiceUnavailable).Should().HaveCountGreaterThan(0);
-        serverStarter2.MockedLogger.Received().LogVerbose(Resources.ConcurrentRequestsExceeded, serverStarter2.ServerConfiguration.MaxConcurrentRequests);
-    }
-
-    [TestMethod]
     public async Task StartListenAsync_ValidRequest_ReturnsEmptyDiagnostics()
     {
         var response = await HttpRequester.SendRequest(CreateClientRequestConfig());
@@ -288,17 +273,4 @@ public class RoslynAnalysisHttpServerTest
         analysisEngine
             .When(x => x.AnalyzeAsync(Arg.Any<List<FileUri>>(), Arg.Any<List<ActiveRuleDto>>(), Arg.Any<CancellationToken>()))
             .Do(_ => Task.Delay(milliseconds).GetAwaiter().GetResult());
-
-    private static async Task<HttpResponseMessage[]> SendMultipleRequests(HttpServerStarter serverStarter, int requestTimeout)
-    {
-        var requestConfig = CreateClientRequestConfig(serverStarter);
-        var tasks = new List<Task<HttpResponseMessage>>();
-        for (var i = 0; i < serverStarter.ServerConfiguration.MaxConcurrentRequests * 5; i++)
-        {
-            var httpRequester = new HttpRequester(requestTimeout);
-            tasks.Add(httpRequester.SendRequest(requestConfig));
-        }
-        var responses = await Task.WhenAll(tasks);
-        return responses;
-    }
 }

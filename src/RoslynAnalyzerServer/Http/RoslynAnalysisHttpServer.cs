@@ -38,7 +38,6 @@ internal sealed class RoslynAnalysisHttpServer(
 {
     private readonly CancellationTokenSource cancellationTokenSource = new();
     private readonly ILogger logger = logger.ForContext(Resources.HttpServerLogContext).ForContext(nameof(RoslynAnalysisHttpServer));
-    private readonly SemaphoreSlim requestSemaphore = new(configuration.MaxConcurrentRequests);
     private HttpListener? httpListener;
     private bool isDisposed;
 
@@ -79,7 +78,6 @@ internal sealed class RoslynAnalysisHttpServer(
         cancellationTokenSource.Cancel();
         cancellationTokenSource.Dispose();
         httpListener?.Close();
-        requestSemaphore.Dispose();
         isDisposed = true;
         logger.LogVerbose(Resources.HttpServerDisposed);
     }
@@ -113,13 +111,6 @@ internal sealed class RoslynAnalysisHttpServer(
                     break;
                 }
                 context = new HttpListenerContextAdapter(await getRequestTask);
-                if (!await requestSemaphore.WaitAsync(0, cancellationToken))
-                {
-                    httpRequestHandler.CloseRequest(context, HttpStatusCode.ServiceUnavailable);
-                    logger.LogVerbose(Resources.ConcurrentRequestsExceeded, configuration.MaxConcurrentRequests);
-                    continue;
-                }
-
                 _ = HandleRequestWithTimeout(context, cancellationToken);
             }
             catch (Exception ex)
@@ -145,10 +136,6 @@ internal sealed class RoslynAnalysisHttpServer(
         {
             logger.LogVerbose(Resources.HttpRequestTimedOut, configuration.RequestMillisecondsTimeout);
             httpRequestHandler.CloseRequest(context, HttpStatusCode.RequestTimeout);
-        }
-        finally
-        {
-            requestSemaphore.Release();
         }
     }
 
