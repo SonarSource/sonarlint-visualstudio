@@ -18,9 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using SonarLint.VisualStudio.Core;
+
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-internal interface ISonarRoslynSolutionWrapper
+public interface IRoslynCompilationWithAnalyzersWrapper
 {
-    public IEnumerable<ISonarRoslynProjectWrapper> Projects { get; }
+    Language Language { get; }
+    SyntaxTree? GetSyntaxTree(string filePath);
+
+    SemanticModel? GetSemanticModel(string filePath);
+
+    Task<ImmutableArray<Diagnostic>> GetAnalyzerSyntaxDiagnosticsAsync(SyntaxTree syntaxTree, CancellationToken token);
+    Task<ImmutableArray<Diagnostic>> GetAnalyzerSemanticDiagnosticsAsync(SemanticModel semanticModel, CancellationToken token);
 }

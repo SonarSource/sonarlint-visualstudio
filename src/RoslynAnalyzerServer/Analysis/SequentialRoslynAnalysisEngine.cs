@@ -25,22 +25,22 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-[Export(typeof(ISonarRoslynAnalysisEngine))]
+[Export(typeof(IRoslynAnalysisEngine))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class SequentialSonarRoslynAnalysisEngine(
-    IRoslynDiagnosticsConverter diagnosticsConverter,
-    ISonarRoslynProjectCompilationProvider projectCompilationProvider,
-    ILogger logger) : ISonarRoslynAnalysisEngine
+internal class SequentialRoslynAnalysisEngine(
+    IDiagnosticToRoslynIssueConverter issueConverter,
+    IRoslynProjectCompilationProvider projectCompilationProvider,
+    ILogger logger) : IRoslynAnalysisEngine
 {
     private readonly ILogger logger = logger.ForContext("Roslyn Analysis", "Engine");
 
-    public async Task<IEnumerable<SonarDiagnostic>> AnalyzeAsync(
-        List<SonarRoslynProjectAnalysisRequest> projectsAnalysis,
-        ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
+    public async Task<IEnumerable<RoslynIssue>> AnalyzeAsync(
+        List<RoslynProjectAnalysisRequest> projectsAnalysis,
+        ImmutableDictionary<Language, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token)
     {
-        var uniqueDiagnostics = new HashSet<SonarDiagnostic>(DiagnosticDuplicatesComparer.Instance);
+        var uniqueDiagnostics = new HashSet<RoslynIssue>(DiagnosticDuplicatesComparer.Instance);
         foreach (var projectAnalysisCommands in projectsAnalysis)
         {
             var compilationWithAnalyzers = await projectCompilationProvider.GetProjectCompilationAsync(projectAnalysisCommands.Project, sonarRoslynAnalysisConfigurations, token);
@@ -50,7 +50,7 @@ internal class SequentialSonarRoslynAnalysisEngine(
             {
                 var diagnostics = await analysisCommand.ExecuteAsync(compilationWithAnalyzers, token);
 
-                foreach (var diagnostic in diagnostics.Select(d => diagnosticsConverter.ConvertToSonarDiagnostic(d, compilationWithAnalyzers.Language)))
+                foreach (var diagnostic in diagnostics.Select(d => issueConverter.ConvertToSonarDiagnostic(d, compilationWithAnalyzers.Language)))
                 {
                     // todo SLVS-2468 improve issue merging
                     if (!uniqueDiagnostics.Add(diagnostic))

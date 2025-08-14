@@ -18,26 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis.Wrappers;
 
-internal class SonarRoslynFileSyntaxAnalysis(string analysisFilePath, ILogger logger) : ISonarRoslynAnalysisCommand
+[TestClass]
+public class RoslynWorkspaceWrapperTests
 {
-    public string AnalysisFilePath { get; } = analysisFilePath;
-
-    public async Task<ImmutableArray<Diagnostic>> ExecuteAsync(ISonarRoslynCompilationWithAnalyzersWrapper compilation, CancellationToken token)
-    {
-        var syntaxTree = compilation.GetSyntaxTree(AnalysisFilePath);
-        if (syntaxTree == null)
-        {
-            logger.LogVerbose("No syntax tree found for {0}", AnalysisFilePath);
-            return ImmutableArray<Diagnostic>.Empty;
-        }
-
-        return await compilation.GetAnalyzerSyntaxDiagnosticsAsync(syntaxTree, token);
-    }
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() =>
+        MefTestHelpers.CheckIsSingletonMefComponent<RoslynWorkspaceWrapper>();
 }

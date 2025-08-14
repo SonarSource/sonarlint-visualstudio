@@ -29,45 +29,35 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 
 [TestClass]
-public class SonarRoslynFileSemanticAnalysisTests
+public class RoslynFileSyntaxAnalysisTests
 {
-    private const string TestFilePath = "c:\\test\\file.cs";
-    private ISonarRoslynCompilationWithAnalyzersWrapper compilationWrapper = null!;
+    private const string TestFilePath = "test.cs";
+
+    private IRoslynCompilationWithAnalyzersWrapper compilationWrapper = null!;
+    private SyntaxTree syntaxTree = null!;
     private TestLogger testLogger = null!;
-    private SonarRoslynFileSemanticAnalysis testSubject = null!;
+    private RoslynFileSyntaxAnalysis testSubject = null!;
 
     [TestInitialize]
     public void TestInitialize()
     {
         testLogger = Substitute.ForPartsOf<TestLogger>();
-        compilationWrapper = Substitute.For<ISonarRoslynCompilationWithAnalyzersWrapper>();
+        compilationWrapper = Substitute.For<IRoslynCompilationWithAnalyzersWrapper>();
+        syntaxTree = Substitute.For<SyntaxTree>();
 
-        testSubject = new SonarRoslynFileSemanticAnalysis(TestFilePath, testLogger);
+        testSubject = new RoslynFileSyntaxAnalysis(TestFilePath, testLogger);
     }
 
     [TestMethod]
-    public void MefCtor() =>
+    public void Constructor_SetsProperties() =>
         testSubject.AnalysisFilePath.Should().Be(TestFilePath);
 
     [TestMethod]
-    public async Task ExecuteAsync_SemanticModelIsNull_ReturnsEmptyCollection()
+    public async Task ExecuteAsync_SyntaxTreeExists_ReturnsSyntaxDiagnostics()
     {
-        compilationWrapper.GetSemanticModel(TestFilePath).ReturnsNull();
-
-        var result = await testSubject.ExecuteAsync(compilationWrapper, CancellationToken.None);
-
-        result.Should().NotBeNull();
-        result.Should().BeEmpty();
-    }
-
-    [TestMethod]
-    public async Task ExecuteAsync_SemanticModelExists_ReturnsAnalyzerDiagnostics()
-    {
-        var semanticModel = Substitute.For<SemanticModel>();
-        var expectedDiagnostics = ImmutableArray.Create(CreateTestDiagnostic("id1"),  CreateTestDiagnostic("id2"), CreateTestDiagnostic("id3"));
-        compilationWrapper.GetSemanticModel(TestFilePath).Returns(semanticModel);
-        compilationWrapper.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, CancellationToken.None)
-            .Returns(expectedDiagnostics);
+        var expectedDiagnostics = ImmutableArray.Create(CreateTestDiagnostic("id1"), CreateTestDiagnostic("id2"));
+        compilationWrapper.GetSyntaxTree(TestFilePath).Returns(syntaxTree);
+        compilationWrapper.GetAnalyzerSyntaxDiagnosticsAsync(syntaxTree, Arg.Any<CancellationToken>()).Returns(expectedDiagnostics);
 
         var result = await testSubject.ExecuteAsync(compilationWrapper, CancellationToken.None);
 
@@ -75,15 +65,26 @@ public class SonarRoslynFileSemanticAnalysisTests
     }
 
     [TestMethod]
+    public async Task ExecuteAsync_NoSyntaxTree_ReturnsEmptyArray()
+    {
+        compilationWrapper.GetSyntaxTree(TestFilePath).ReturnsNull();
+
+        var result = await testSubject.ExecuteAsync(compilationWrapper, CancellationToken.None);
+
+        result.Should().BeEmpty();
+    }
+
+    [TestMethod]
     public async Task ExecuteAsync_CancellationTokenPassed_UsesTokenForDiagnostics()
     {
-        var semanticModel = Substitute.For<SemanticModel>();
-        var cancellationToken = new CancellationToken(true);
-        compilationWrapper.GetSemanticModel(TestFilePath).Returns(semanticModel);
+        var expectedToken = new CancellationToken(true);
+        compilationWrapper.GetSyntaxTree(TestFilePath).Returns(syntaxTree);
 
-        await testSubject.ExecuteAsync(compilationWrapper, cancellationToken);
+        await testSubject.ExecuteAsync(compilationWrapper, expectedToken);
 
-        await compilationWrapper.Received(1).GetAnalyzerSemanticDiagnosticsAsync(semanticModel, cancellationToken);
+        await compilationWrapper.Received(1).GetAnalyzerSyntaxDiagnosticsAsync(
+            syntaxTree,
+            Arg.Is<CancellationToken>(token => token.Equals(expectedToken)));
     }
 
     private static Diagnostic CreateTestDiagnostic(string id)

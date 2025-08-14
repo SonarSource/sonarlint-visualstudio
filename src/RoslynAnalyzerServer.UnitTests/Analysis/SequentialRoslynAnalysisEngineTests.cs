@@ -30,37 +30,37 @@ using Language = SonarLint.VisualStudio.Core.Language;
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 
 [TestClass]
-public class SequentialSonarRoslynAnalysisEngineTests
+public class SequentialRoslynAnalysisEngineTests
 {
-    private IRoslynDiagnosticsConverter diagnosticsConverter = null!;
-    private ISonarRoslynProjectCompilationProvider projectCompilationProvider = null!;
+    private IDiagnosticToRoslynIssueConverter issueConverter = null!;
+    private IRoslynProjectCompilationProvider projectCompilationProvider = null!;
     private TestLogger logger = null!;
-    private ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> configurations = null!;
+    private ImmutableDictionary<Language, RoslynAnalysisConfiguration> configurations = null!;
     private CancellationToken cancellationToken;
-    private SequentialSonarRoslynAnalysisEngine testSubject = null!;
+    private SequentialRoslynAnalysisEngine testSubject = null!;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        diagnosticsConverter = Substitute.For<IRoslynDiagnosticsConverter>();
-        projectCompilationProvider = Substitute.For<ISonarRoslynProjectCompilationProvider>();
+        issueConverter = Substitute.For<IDiagnosticToRoslynIssueConverter>();
+        projectCompilationProvider = Substitute.For<IRoslynProjectCompilationProvider>();
         logger = Substitute.ForPartsOf<TestLogger>();
 
-        testSubject = new SequentialSonarRoslynAnalysisEngine(diagnosticsConverter, projectCompilationProvider, logger);
+        testSubject = new SequentialRoslynAnalysisEngine(issueConverter, projectCompilationProvider, logger);
 
-        configurations = ImmutableDictionary.Create<Language, SonarRoslynAnalysisConfiguration>();
+        configurations = ImmutableDictionary.Create<Language, RoslynAnalysisConfiguration>();
         cancellationToken = new CancellationToken();
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<SequentialSonarRoslynAnalysisEngine, ISonarRoslynAnalysisEngine>(
-            MefTestHelpers.CreateExport<IRoslynDiagnosticsConverter>(),
-            MefTestHelpers.CreateExport<ISonarRoslynProjectCompilationProvider>(),
+        MefTestHelpers.CheckTypeCanBeImported<SequentialRoslynAnalysisEngine, IRoslynAnalysisEngine>(
+            MefTestHelpers.CreateExport<IDiagnosticToRoslynIssueConverter>(),
+            MefTestHelpers.CreateExport<IRoslynProjectCompilationProvider>(),
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SequentialSonarRoslynAnalysisEngine>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SequentialRoslynAnalysisEngine>();
 
     [TestMethod]
     public async Task AnalyzeAsync_EmptyAnalysisCommands_ReturnsEmptyCollection()
@@ -164,23 +164,23 @@ public class SequentialSonarRoslynAnalysisEngineTests
     {
         var (project, commands, compilation) = SetupProjectAndCommands();
 
-        var command1 = Substitute.For<ISonarRoslynAnalysisCommand>();
+        var command1 = Substitute.For<IRoslynAnalysisCommand>();
         var diagnostic1A = CreateTestDiagnostic("rule1");
         var diagnostic1B = CreateTestDiagnostic("rule2");
         var sonarDiagnostic1A = CreateSonarDiagnostic("rule1", "message1");
         var sonarDiagnostic1B = CreateSonarDiagnostic("rule2", "message2");
         command1.ExecuteAsync(compilation, cancellationToken).Returns(ImmutableArray.Create(diagnostic1A, diagnostic1B));
-        diagnosticsConverter.ConvertToSonarDiagnostic(diagnostic1A, Arg.Any<Language>()).Returns(sonarDiagnostic1A);
-        diagnosticsConverter.ConvertToSonarDiagnostic(diagnostic1B, Arg.Any<Language>()).Returns(sonarDiagnostic1B);
+        issueConverter.ConvertToSonarDiagnostic(diagnostic1A, Arg.Any<Language>()).Returns(sonarDiagnostic1A);
+        issueConverter.ConvertToSonarDiagnostic(diagnostic1B, Arg.Any<Language>()).Returns(sonarDiagnostic1B);
         AddCommandToProject(command1, commands);
-        var command2 = Substitute.For<ISonarRoslynAnalysisCommand>();
+        var command2 = Substitute.For<IRoslynAnalysisCommand>();
         var diagnostic2A = CreateTestDiagnostic("rule3");
         var diagnostic2B = CreateTestDiagnostic("rule4");
         var sonarDiagnostic2A = CreateSonarDiagnostic("rule3", "message3");
         var sonarDiagnostic2B = CreateSonarDiagnostic("rule4", "message4");
         command2.ExecuteAsync(compilation, cancellationToken).Returns(ImmutableArray.Create(diagnostic2A, diagnostic2B));
-        diagnosticsConverter.ConvertToSonarDiagnostic(diagnostic2A, Arg.Any<Language>()).Returns(sonarDiagnostic2A);
-        diagnosticsConverter.ConvertToSonarDiagnostic(diagnostic2B, Arg.Any<Language>()).Returns(sonarDiagnostic2B);
+        issueConverter.ConvertToSonarDiagnostic(diagnostic2A, Arg.Any<Language>()).Returns(sonarDiagnostic2A);
+        issueConverter.ConvertToSonarDiagnostic(diagnostic2B, Arg.Any<Language>()).Returns(sonarDiagnostic2B);
         AddCommandToProject(command2, commands);
 
         var result = await testSubject.AnalyzeAsync([commands], configurations, cancellationToken);
@@ -188,60 +188,60 @@ public class SequentialSonarRoslynAnalysisEngineTests
         result.Should().BeEquivalentTo(sonarDiagnostic1A, sonarDiagnostic1B, sonarDiagnostic2A, sonarDiagnostic2B);
         await command1.Received(1).ExecuteAsync(compilation, cancellationToken);
         await command2.Received(1).ExecuteAsync(compilation, cancellationToken);
-        diagnosticsConverter.Received(1).ConvertToSonarDiagnostic(diagnostic1A, Arg.Any<Language>());
-        diagnosticsConverter.Received(1).ConvertToSonarDiagnostic(diagnostic1B, Arg.Any<Language>());
-        diagnosticsConverter.Received(1).ConvertToSonarDiagnostic(diagnostic2A, Arg.Any<Language>());
-        diagnosticsConverter.Received(1).ConvertToSonarDiagnostic(diagnostic2B, Arg.Any<Language>());
+        issueConverter.Received(1).ConvertToSonarDiagnostic(diagnostic1A, Arg.Any<Language>());
+        issueConverter.Received(1).ConvertToSonarDiagnostic(diagnostic1B, Arg.Any<Language>());
+        issueConverter.Received(1).ConvertToSonarDiagnostic(diagnostic2A, Arg.Any<Language>());
+        issueConverter.Received(1).ConvertToSonarDiagnostic(diagnostic2B, Arg.Any<Language>());
     }
 
-    private (ISonarRoslynProjectWrapper project, SonarRoslynProjectAnalysisRequest projectCommand, ISonarRoslynCompilationWithAnalyzersWrapper projectCompilation) SetupProjectAndCommands()
+    private (IRoslynProjectWrapper project, RoslynProjectAnalysisRequest projectCommand, IRoslynCompilationWithAnalyzersWrapper projectCompilation) SetupProjectAndCommands()
     {
-        var project = Substitute.For<ISonarRoslynProjectWrapper>();
-        var projectCommands = new SonarRoslynProjectAnalysisRequest(project, new List<ISonarRoslynAnalysisCommand>());
+        var project = Substitute.For<IRoslynProjectWrapper>();
+        var projectCommands = new RoslynProjectAnalysisRequest(project, new List<IRoslynAnalysisCommand>());
         var compilation = SetupCompilation(project);
 
         return (project, projectCommands, compilation);
     }
 
-    private static void AddCommandToProject(ISonarRoslynAnalysisCommand command, SonarRoslynProjectAnalysisRequest projectRequest) =>
-        ((List<ISonarRoslynAnalysisCommand>)projectRequest.AnalysisCommands).Add(command);
+    private static void AddCommandToProject(IRoslynAnalysisCommand command, RoslynProjectAnalysisRequest projectRequest) =>
+        ((List<IRoslynAnalysisCommand>)projectRequest.AnalysisCommands).Add(command);
 
-    private (ISonarRoslynAnalysisCommand command, Diagnostic diagnostic, SonarDiagnostic sonarDiagnostic) SetupCommandWithDiagnostic(
-        ISonarRoslynCompilationWithAnalyzersWrapper compilationWithAnalyzers,
+    private (IRoslynAnalysisCommand command, Diagnostic diagnostic, RoslynIssue sonarDiagnostic) SetupCommandWithDiagnostic(
+        IRoslynCompilationWithAnalyzersWrapper compilationWithAnalyzers,
         string ruleId,
         string message,
-        SonarDiagnostic? existingSonarDiagnostic = null)
+        RoslynIssue? existingSonarDiagnostic = null)
     {
-        var command = Substitute.For<ISonarRoslynAnalysisCommand>();
+        var command = Substitute.For<IRoslynAnalysisCommand>();
         var diagnostic = CreateTestDiagnostic(ruleId);
         command.ExecuteAsync(compilationWithAnalyzers, CancellationToken.None)
             .Returns(ImmutableArray.Create(diagnostic));
 
         var sonarDiagnostic = existingSonarDiagnostic ?? CreateSonarDiagnostic(ruleId, message);
-        diagnosticsConverter.ConvertToSonarDiagnostic(diagnostic, Arg.Any<Language>()).Returns(sonarDiagnostic);
+        issueConverter.ConvertToSonarDiagnostic(diagnostic, Arg.Any<Language>()).Returns(sonarDiagnostic);
 
         return (command, diagnostic, sonarDiagnostic);
     }
 
-    private ISonarRoslynCompilationWithAnalyzersWrapper SetupCompilation(ISonarRoslynProjectWrapper project)
+    private IRoslynCompilationWithAnalyzersWrapper SetupCompilation(IRoslynProjectWrapper project)
     {
-        var compilationWithAnalyzers = Substitute.For<ISonarRoslynCompilationWithAnalyzersWrapper>();
+        var compilationWithAnalyzers = Substitute.For<IRoslynCompilationWithAnalyzersWrapper>();
         projectCompilationProvider.GetProjectCompilationAsync(project, configurations, cancellationToken)
             .Returns(compilationWithAnalyzers);
         return compilationWithAnalyzers;
     }
 
     private void VerifyAnalysisExecution(
-        ISonarRoslynProjectWrapper project,
-        ISonarRoslynCompilationWithAnalyzersWrapper compilationWithAnalyzers,
-        ISonarRoslynAnalysisCommand analysisCommand,
+        IRoslynProjectWrapper project,
+        IRoslynCompilationWithAnalyzersWrapper compilationWithAnalyzers,
+        IRoslynAnalysisCommand analysisCommand,
         Diagnostic diagnostic,
         Language? language = null)
     {
         projectCompilationProvider.Received(1)
             .GetProjectCompilationAsync(project, configurations, cancellationToken);
         analysisCommand.Received(1).ExecuteAsync(compilationWithAnalyzers, cancellationToken);
-        diagnosticsConverter.Received(1).ConvertToSonarDiagnostic(diagnostic, language ?? Arg.Any<Language>());
+        issueConverter.Received(1).ConvertToSonarDiagnostic(diagnostic, language ?? Arg.Any<Language>());
     }
 
     private static Diagnostic CreateTestDiagnostic(string id)
@@ -262,10 +262,10 @@ public class SequentialSonarRoslynAnalysisEngineTests
         return Diagnostic.Create(descriptor, location);
     }
 
-    private static SonarDiagnostic CreateSonarDiagnostic(string ruleId, string message)
+    private static RoslynIssue CreateSonarDiagnostic(string ruleId, string message)
     {
         var textRange = new SonarTextRange(1, 1, 0, 1);
         var location = new SonarDiagnosticLocation(message, "test.cs", textRange);
-        return new SonarDiagnostic(ruleId, location);
+        return new RoslynIssue(ruleId, location);
     }
 }

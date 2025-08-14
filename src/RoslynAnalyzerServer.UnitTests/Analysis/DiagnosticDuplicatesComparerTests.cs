@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 public class DiagnosticDuplicatesComparerTests
 {
     private readonly DiagnosticDuplicatesComparer testSubject = DiagnosticDuplicatesComparer.Instance;
-    private readonly SonarDiagnostic diagnostic1 = CreateDiagnostic("rule1", "file1.cs", 1, 1, 1, 10);
+    private readonly RoslynIssue diagnostic1 = CreateDiagnostic("rule1", "file1.cs", 1, 1, 1, 10);
 
     [TestMethod]
     public void Equals_SameReference_ReturnsTrue()
@@ -120,10 +120,10 @@ public class DiagnosticDuplicatesComparerTests
         instance1.Should().BeSameAs(instance2);
     }
 
-    private static SonarDiagnostic CreateDiagnostic(string ruleKey, string filePath, int startLine, int startLineOffset, int endLine, int endLineOffset, string? message = null)
+    private static RoslynIssue CreateDiagnostic(string ruleKey, string filePath, int startLine, int startLineOffset, int endLine, int endLineOffset, string? message = null)
     {
         var textRange = new SonarTextRange(startLine, endLine, startLineOffset, endLineOffset);
         var location = new SonarDiagnosticLocation(message ?? "message", filePath, textRange);
-        return new SonarDiagnostic(ruleKey, location);
+        return new RoslynIssue(ruleKey, location);
     }
 }

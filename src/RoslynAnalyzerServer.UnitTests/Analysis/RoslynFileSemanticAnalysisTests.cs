@@ -29,35 +29,45 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 
 [TestClass]
-public class SonarRoslynFileSyntaxAnalysisTests
+public class RoslynFileSemanticAnalysisTests
 {
-    private const string TestFilePath = "test.cs";
-
-    private ISonarRoslynCompilationWithAnalyzersWrapper compilationWrapper = null!;
-    private SyntaxTree syntaxTree = null!;
+    private const string TestFilePath = "c:\\test\\file.cs";
+    private IRoslynCompilationWithAnalyzersWrapper compilationWrapper = null!;
     private TestLogger testLogger = null!;
-    private SonarRoslynFileSyntaxAnalysis testSubject = null!;
+    private RoslynFileSemanticAnalysis testSubject = null!;
 
     [TestInitialize]
     public void TestInitialize()
     {
         testLogger = Substitute.ForPartsOf<TestLogger>();
-        compilationWrapper = Substitute.For<ISonarRoslynCompilationWithAnalyzersWrapper>();
-        syntaxTree = Substitute.For<SyntaxTree>();
+        compilationWrapper = Substitute.For<IRoslynCompilationWithAnalyzersWrapper>();
 
-        testSubject = new SonarRoslynFileSyntaxAnalysis(TestFilePath, testLogger);
+        testSubject = new RoslynFileSemanticAnalysis(TestFilePath, testLogger);
     }
 
     [TestMethod]
-    public void Constructor_SetsProperties() =>
+    public void MefCtor() =>
         testSubject.AnalysisFilePath.Should().Be(TestFilePath);
 
     [TestMethod]
-    public async Task ExecuteAsync_SyntaxTreeExists_ReturnsSyntaxDiagnostics()
+    public async Task ExecuteAsync_SemanticModelIsNull_ReturnsEmptyCollection()
     {
-        var expectedDiagnostics = ImmutableArray.Create(CreateTestDiagnostic("id1"), CreateTestDiagnostic("id2"));
-        compilationWrapper.GetSyntaxTree(TestFilePath).Returns(syntaxTree);
-        compilationWrapper.GetAnalyzerSyntaxDiagnosticsAsync(syntaxTree, Arg.Any<CancellationToken>()).Returns(expectedDiagnostics);
+        compilationWrapper.GetSemanticModel(TestFilePath).ReturnsNull();
+
+        var result = await testSubject.ExecuteAsync(compilationWrapper, CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public async Task ExecuteAsync_SemanticModelExists_ReturnsAnalyzerDiagnostics()
+    {
+        var semanticModel = Substitute.For<SemanticModel>();
+        var expectedDiagnostics = ImmutableArray.Create(CreateTestDiagnostic("id1"),  CreateTestDiagnostic("id2"), CreateTestDiagnostic("id3"));
+        compilationWrapper.GetSemanticModel(TestFilePath).Returns(semanticModel);
+        compilationWrapper.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, CancellationToken.None)
+            .Returns(expectedDiagnostics);
 
         var result = await testSubject.ExecuteAsync(compilationWrapper, CancellationToken.None);
 
@@ -65,26 +75,15 @@ public class SonarRoslynFileSyntaxAnalysisTests
     }
 
     [TestMethod]
-    public async Task ExecuteAsync_NoSyntaxTree_ReturnsEmptyArray()
-    {
-        compilationWrapper.GetSyntaxTree(TestFilePath).ReturnsNull();
-
-        var result = await testSubject.ExecuteAsync(compilationWrapper, CancellationToken.None);
-
-        result.Should().BeEmpty();
-    }
-
-    [TestMethod]
     public async Task ExecuteAsync_CancellationTokenPassed_UsesTokenForDiagnostics()
     {
-        var expectedToken = new CancellationToken(true);
-        compilationWrapper.GetSyntaxTree(TestFilePath).Returns(syntaxTree);
+        var semanticModel = Substitute.For<SemanticModel>();
+        var cancellationToken = new CancellationToken(true);
+        compilationWrapper.GetSemanticModel(TestFilePath).Returns(semanticModel);
 
-        await testSubject.ExecuteAsync(compilationWrapper, expectedToken);
+        await testSubject.ExecuteAsync(compilationWrapper, cancellationToken);
 
-        await compilationWrapper.Received(1).GetAnalyzerSyntaxDiagnosticsAsync(
-            syntaxTree,
-            Arg.Is<CancellationToken>(token => token.Equals(expectedToken)));
+        await compilationWrapper.Received(1).GetAnalyzerSemanticDiagnosticsAsync(semanticModel, cancellationToken);
     }
 
     private static Diagnostic CreateTestDiagnostic(string id)

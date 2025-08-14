@@ -27,7 +27,7 @@ using SonarLint.VisualStudio.Core;
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 [ExcludeFromCodeCoverage] // todo SLVS-2466 add roslyn 'integration' tests using AdHocWorkspace
-internal class SonarRoslynCompilationWrapper(Compilation roslynCompilation) : ISonarRoslynCompilationWrapper
+internal class RoslynCompilationWrapper(Compilation roslynCompilation) : IRoslynCompilationWrapper
 {
     public CompilationOptions RoslynCompilationOptions => roslynCompilation.Options;
     public Language Language { get; } = roslynCompilation.Language switch
@@ -37,9 +37,9 @@ internal class SonarRoslynCompilationWrapper(Compilation roslynCompilation) : IS
         _ => throw new ArgumentOutOfRangeException(nameof(roslynCompilation)),
     };
 
-    public ISonarRoslynCompilationWrapper WithOptions(CompilationOptions withSpecificDiagnosticOptions) =>
-        new SonarRoslynCompilationWrapper(roslynCompilation.WithOptions(withSpecificDiagnosticOptions));
+    public IRoslynCompilationWrapper WithOptions(CompilationOptions withSpecificDiagnosticOptions) =>
+        new RoslynCompilationWrapper(roslynCompilation.WithOptions(withSpecificDiagnosticOptions));
 
-    public ISonarRoslynCompilationWithAnalyzersWrapper WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersOptions compilationWithAnalyzersOptions) =>
-        new SonarRoslynCompilationWithAnalyzersWrapper(roslynCompilation.WithAnalyzers(analyzers, compilationWithAnalyzersOptions), Language);
+    public IRoslynCompilationWithAnalyzersWrapper WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersOptions compilationWithAnalyzersOptions) =>
+        new RoslynCompilationWithAnalyzersWrapper(roslynCompilation.WithAnalyzers(analyzers, compilationWithAnalyzersOptions), Language);
 }

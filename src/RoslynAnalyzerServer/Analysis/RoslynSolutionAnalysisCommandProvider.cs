@@ -24,18 +24,18 @@ using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-[Export(typeof(ISonarRoslynSolutionAnalysisCommandProvider))]
+[Export(typeof(IRoslynSolutionAnalysisCommandProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class SonarRoslynSolutionAnalysisCommandProvider(
-    ISonarRoslynWorkspaceWrapper roslynWorkspaceWrapper,
-    ILogger logger) : ISonarRoslynSolutionAnalysisCommandProvider
+internal class RoslynSolutionAnalysisCommandProvider(
+    IRoslynWorkspaceWrapper roslynWorkspaceWrapper,
+    ILogger logger) : IRoslynSolutionAnalysisCommandProvider
 {
     private readonly ILogger logger = logger.ForContext("Roslyn Analysis", "Configuration");
 
-    public List<SonarRoslynProjectAnalysisRequest> GetAnalysisCommandsForCurrentSolution(string[] filePaths)
+    public List<RoslynProjectAnalysisRequest> GetAnalysisCommandsForCurrentSolution(string[] filePaths)
     {
-        var result = new List<SonarRoslynProjectAnalysisRequest>();
+        var result = new List<RoslynProjectAnalysisRequest>();
 
         var solution = roslynWorkspaceWrapper.GetCurrentSolution();
 
@@ -51,7 +51,7 @@ internal class SonarRoslynSolutionAnalysisCommandProvider(
 
             if (commands.Any())
             {
-                result.Add(new SonarRoslynProjectAnalysisRequest(project, commands));
+                result.Add(new RoslynProjectAnalysisRequest(project, commands));
             }
         }
 
@@ -63,9 +63,9 @@ internal class SonarRoslynSolutionAnalysisCommandProvider(
         return result;
     }
 
-    private List<ISonarRoslynAnalysisCommand> GetCompilationCommandsForProject(string[] filePaths, ISonarRoslynProjectWrapper project)
+    private List<IRoslynAnalysisCommand> GetCompilationCommandsForProject(string[] filePaths, IRoslynProjectWrapper project)
     {
-        var commands = new List<ISonarRoslynAnalysisCommand>();
+        var commands = new List<IRoslynAnalysisCommand>();
 
         foreach (var filePath in filePaths)
         {
@@ -74,8 +74,8 @@ internal class SonarRoslynSolutionAnalysisCommandProvider(
                 continue;
             }
 
-            commands.Add(new SonarRoslynFileSyntaxAnalysis(analysisFilePath, logger));
-            commands.Add(new SonarRoslynFileSemanticAnalysis(analysisFilePath, logger));
+            commands.Add(new RoslynFileSyntaxAnalysis(analysisFilePath, logger));
+            commands.Add(new RoslynFileSemanticAnalysis(analysisFilePath, logger));
         }
         return commands;
     }

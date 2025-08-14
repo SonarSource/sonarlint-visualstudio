@@ -18,22 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal interface ISonarRoslynProjectWrapper
+internal interface IRoslynAnalysisCommand
 {
-    string Name { get; }
-
-    bool SupportsCompilation { get; }
-
-    AnalyzerOptions RoslynAnalyzerOptions { get; }
-
-    bool ContainsDocument(
-        string filePath,
-        [NotNullWhen(true)]out string? analysisFilePath);
-
-    Task<ISonarRoslynCompilationWrapper> GetCompilationAsync(CancellationToken token);
+    Task<ImmutableArray<Diagnostic>> ExecuteAsync(IRoslynCompilationWithAnalyzersWrapper compilation, CancellationToken token);
 }

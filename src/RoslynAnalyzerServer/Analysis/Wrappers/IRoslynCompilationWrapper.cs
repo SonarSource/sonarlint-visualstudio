@@ -19,15 +19,18 @@
  */
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-internal interface ISonarRoslynProjectCompilationProvider
+internal interface IRoslynCompilationWrapper
 {
-    Task<ISonarRoslynCompilationWithAnalyzersWrapper> GetProjectCompilationAsync(
-        ISonarRoslynProjectWrapper project,
-        ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
-        CancellationToken token);
+    CompilationOptions RoslynCompilationOptions { get; }
+    Language Language { get; }
+
+    IRoslynCompilationWrapper WithOptions(CompilationOptions withSpecificDiagnosticOptions);
+
+    IRoslynCompilationWithAnalyzersWrapper WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersOptions compilationWithAnalyzersOptions);
 }

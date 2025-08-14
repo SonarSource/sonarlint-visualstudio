@@ -18,18 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.LanguageServices;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
-
-[ExcludeFromCodeCoverage] // todo SLVS-2466 add roslyn 'integration' tests using AdHocWorkspace
-[Export(typeof(ISonarRoslynWorkspaceWrapper))]
-[PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-internal class SonarRoslynWorkspaceWrapper([Import(typeof(VisualStudioWorkspace))] Workspace workspace) : ISonarRoslynWorkspaceWrapper
+internal interface IRoslynSolutionAnalysisCommandProvider
 {
-    public ISonarRoslynSolutionWrapper GetCurrentSolution() => new SonarRoslynSolutionWrapper(workspace.CurrentSolution);
+    List<RoslynProjectAnalysisRequest> GetAnalysisCommandsForCurrentSolution(string[] filePaths);
 }

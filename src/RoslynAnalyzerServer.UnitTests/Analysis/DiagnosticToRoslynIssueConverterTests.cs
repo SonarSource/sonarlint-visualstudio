@@ -27,16 +27,16 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 
 [TestClass]
-public class SonarRoslynDiagnosticsConverterTests
+public class DiagnosticToRoslynIssueConverterTests
 {
-    private readonly SonarRoslynDiagnosticsConverter testSubject = new();
+    private readonly DiagnosticToRoslynIssueConverter testSubject = new();
 
     [TestMethod]
     public void MefCtor_CheckExports() =>
-        MefTestHelpers.CheckTypeCanBeImported<SonarRoslynDiagnosticsConverter, IRoslynDiagnosticsConverter>();
+        MefTestHelpers.CheckTypeCanBeImported<DiagnosticToRoslynIssueConverter, IDiagnosticToRoslynIssueConverter>();
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SonarRoslynDiagnosticsConverter>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<DiagnosticToRoslynIssueConverter>();
 
     public static object[][] TestData =>
     [
@@ -63,7 +63,7 @@ public class SonarRoslynDiagnosticsConverterTests
             filePath,
             expectedTextRange);
         var expectedRuleId = $"{language.RepoInfo.Key}:{ruleId}";
-        var expectedDiagnostic = new SonarDiagnostic(
+        var expectedDiagnostic = new RoslynIssue(
             expectedRuleId,
             expectedLocation);
 

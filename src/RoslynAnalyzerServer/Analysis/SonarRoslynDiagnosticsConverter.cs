@@ -24,16 +24,11 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-public interface IRoslynDiagnosticsConverter
-{
-    SonarDiagnostic ConvertToSonarDiagnostic(Diagnostic diagnostic, Language language);
-}
-
-[Export(typeof(IRoslynDiagnosticsConverter))]
+[Export(typeof(IDiagnosticToRoslynIssueConverter))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class SonarRoslynDiagnosticsConverter : IRoslynDiagnosticsConverter
+public class DiagnosticToRoslynIssueConverter : IDiagnosticToRoslynIssueConverter
 {
-    public SonarDiagnostic ConvertToSonarDiagnostic(Diagnostic diagnostic, Language language)
+    public RoslynIssue ConvertToSonarDiagnostic(Diagnostic diagnostic, Language language)
     {
         var fileLinePositionSpan = diagnostic.Location.GetMappedLineSpan();
 
@@ -50,7 +45,7 @@ public class SonarRoslynDiagnosticsConverter : IRoslynDiagnosticsConverter
 
         // todo SLVS-2427 quick fixes
         // todo SLVS-2428 secondary locations
-        return new SonarDiagnostic(
+        return new RoslynIssue(
             SonarCompositeRuleId.GetFullErrorCode(language.RepoInfo.Key, diagnostic.Id),
             location);
     }

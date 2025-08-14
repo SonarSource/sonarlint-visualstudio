@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-public class DiagnosticDuplicatesComparer : IEqualityComparer<SonarDiagnostic>
+public class DiagnosticDuplicatesComparer : IEqualityComparer<RoslynIssue>
 {
     public static DiagnosticDuplicatesComparer Instance { get; } = new();
 
@@ -28,7 +28,7 @@ public class DiagnosticDuplicatesComparer : IEqualityComparer<SonarDiagnostic>
     {
     }
 
-    public bool Equals(SonarDiagnostic? x, SonarDiagnostic? y)
+    public bool Equals(RoslynIssue? x, RoslynIssue? y)
     {
         if (ReferenceEquals(x, y))
         {
@@ -46,7 +46,7 @@ public class DiagnosticDuplicatesComparer : IEqualityComparer<SonarDiagnostic>
         return x.RuleKey == y.RuleKey && LocationEquals(x.PrimaryLocation, y.PrimaryLocation);
     }
 
-    public int GetHashCode(SonarDiagnostic obj)
+    public int GetHashCode(RoslynIssue obj)
     {
         unchecked
         {

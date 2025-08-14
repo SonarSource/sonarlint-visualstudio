@@ -18,13 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-[ExcludeFromCodeCoverage] // todo SLVS-2466 add roslyn 'integration' tests using AdHocWorkspace
-internal class SonarRoslynSolutionWrapper(Solution workspaceCurrentSolution) : ISonarRoslynSolutionWrapper
+internal class RoslynFileSyntaxAnalysis(string analysisFilePath, ILogger logger) : IRoslynAnalysisCommand
 {
-    public IEnumerable<ISonarRoslynProjectWrapper> Projects { get; } = workspaceCurrentSolution.Projects.Select(x => new SonarRoslynProjectWrapper(x));
+    public string AnalysisFilePath { get; } = analysisFilePath;
+
+    public async Task<ImmutableArray<Diagnostic>> ExecuteAsync(IRoslynCompilationWithAnalyzersWrapper compilation, CancellationToken token)
+    {
+        var syntaxTree = compilation.GetSyntaxTree(AnalysisFilePath);
+        if (syntaxTree == null)
+        {
+            logger.LogVerbose("No syntax tree found for {0}", AnalysisFilePath);
+            return ImmutableArray<Diagnostic>.Empty;
+        }
+
+        return await compilation.GetAnalyzerSyntaxDiagnosticsAsync(syntaxTree, token);
+    }
 }

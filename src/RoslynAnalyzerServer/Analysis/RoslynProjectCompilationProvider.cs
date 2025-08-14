@@ -28,16 +28,16 @@ using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-[Export(typeof(ISonarRoslynProjectCompilationProvider))]
+[Export(typeof(IRoslynProjectCompilationProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class SonarRoslynProjectCompilationProvider(ILogger logger) : ISonarRoslynProjectCompilationProvider
+internal class RoslynProjectCompilationProvider(ILogger logger) : IRoslynProjectCompilationProvider
 {
     private readonly ILogger logger = logger.ForContext("Roslyn Analysis", "Analyzer Exception");
 
-    public async Task<ISonarRoslynCompilationWithAnalyzersWrapper> GetProjectCompilationAsync(
-        ISonarRoslynProjectWrapper project,
-        ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
+    public async Task<IRoslynCompilationWithAnalyzersWrapper> GetProjectCompilationAsync(
+        IRoslynProjectWrapper project,
+        ImmutableDictionary<Language, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token)
     {
         var compilation = await project.GetCompilationAsync(token);
@@ -50,10 +50,10 @@ internal class SonarRoslynProjectCompilationProvider(ILogger logger) : ISonarRos
             analysisConfigurationForLanguage);
     }
 
-    private ISonarRoslynCompilationWithAnalyzersWrapper ApplyAnalyzersAndAdditionalFile(
-        ISonarRoslynCompilationWrapper compilation,
-        ISonarRoslynProjectWrapper project,
-        SonarRoslynAnalysisConfiguration analysisConfigurationForLanguage)
+    private IRoslynCompilationWithAnalyzersWrapper ApplyAnalyzersAndAdditionalFile(
+        IRoslynCompilationWrapper compilation,
+        IRoslynProjectWrapper project,
+        RoslynAnalysisConfiguration analysisConfigurationForLanguage)
     {
         var additionalFiles = project.RoslynAnalyzerOptions.AdditionalFiles;
         var sonarLintXmlName = Path.GetFileName(analysisConfigurationForLanguage.SonarLintXml.Path);
@@ -73,9 +73,9 @@ internal class SonarRoslynProjectCompilationProvider(ILogger logger) : ISonarRos
             .WithAnalyzers(analysisConfigurationForLanguage.Analyzers, compilationWithAnalyzersOptions);
     }
 
-    private static ISonarRoslynCompilationWrapper ApplyDiagnosticOptions(
-        ISonarRoslynCompilationWrapper compilation,
-        SonarRoslynAnalysisConfiguration analysisConfigurationForLanguage)
+    private static IRoslynCompilationWrapper ApplyDiagnosticOptions(
+        IRoslynCompilationWrapper compilation,
+        RoslynAnalysisConfiguration analysisConfigurationForLanguage)
     {
         var compilationOptions = compilation.RoslynCompilationOptions.WithSpecificDiagnosticOptions(analysisConfigurationForLanguage.DiagnosticOptions);
         return compilation.WithOptions(compilationOptions);

@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 
 [TestClass]
-public class SonarRoslynSolutionAnalysisCommandProviderTests
+public class RoslynSolutionAnalysisCommandProviderTests
 {
     private const string File1Cs = "file1.cs";
     private const string File2Cs = "file2.cs";
@@ -40,35 +40,35 @@ public class SonarRoslynSolutionAnalysisCommandProviderTests
     private const string Project3 = "project3";
     private const string Project4 = "project4";
 
-    private ISonarRoslynWorkspaceWrapper workspaceWrapper = null!;
+    private IRoslynWorkspaceWrapper workspaceWrapper = null!;
     private TestLogger logger = null!;
-    private ISonarRoslynSolutionWrapper solutionWrapper = null!;
-    private SonarRoslynSolutionAnalysisCommandProvider testSubject = null!;
+    private IRoslynSolutionWrapper solutionWrapper = null!;
+    private RoslynSolutionAnalysisCommandProvider testSubject = null!;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        workspaceWrapper = Substitute.For<ISonarRoslynWorkspaceWrapper>();
+        workspaceWrapper = Substitute.For<IRoslynWorkspaceWrapper>();
         logger = new TestLogger();
-        solutionWrapper = Substitute.For<ISonarRoslynSolutionWrapper>();
+        solutionWrapper = Substitute.For<IRoslynSolutionWrapper>();
         workspaceWrapper.GetCurrentSolution().Returns(solutionWrapper);
-        testSubject = new SonarRoslynSolutionAnalysisCommandProvider(workspaceWrapper, logger);
+        testSubject = new RoslynSolutionAnalysisCommandProvider(workspaceWrapper, logger);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<SonarRoslynSolutionAnalysisCommandProvider, ISonarRoslynSolutionAnalysisCommandProvider>(
-            MefTestHelpers.CreateExport<ISonarRoslynWorkspaceWrapper>(),
+        MefTestHelpers.CheckTypeCanBeImported<RoslynSolutionAnalysisCommandProvider, IRoslynSolutionAnalysisCommandProvider>(
+            MefTestHelpers.CreateExport<IRoslynWorkspaceWrapper>(),
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() =>
-        MefTestHelpers.CheckIsSingletonMefComponent<SonarRoslynSolutionAnalysisCommandProvider>();
+        MefTestHelpers.CheckIsSingletonMefComponent<RoslynSolutionAnalysisCommandProvider>();
 
     [TestMethod]
     public void GetAnalysisCommandsForCurrentSolution_NoProjects_ReturnsEmptyList()
     {
-        solutionWrapper.Projects.Returns(new List<ISonarRoslynProjectWrapper>());
+        solutionWrapper.Projects.Returns(new List<IRoslynProjectWrapper>());
 
         var result = testSubject.GetAnalysisCommandsForCurrentSolution([File1Cs]);
 
@@ -118,8 +118,8 @@ public class SonarRoslynSolutionAnalysisCommandProviderTests
         result.Should().ContainSingle();
         var command = result.Single();
         command.Project.Should().Be(project2);
-        command.AnalysisCommands.OfType<SonarRoslynFileSyntaxAnalysis>().Should().HaveCount(1);
-        command.AnalysisCommands.OfType<SonarRoslynFileSemanticAnalysis>().Should().HaveCount(1);
+        command.AnalysisCommands.OfType<RoslynFileSyntaxAnalysis>().Should().HaveCount(1);
+        command.AnalysisCommands.OfType<RoslynFileSemanticAnalysis>().Should().HaveCount(1);
         logger.AssertPartialOutputStringExists("No files to analyze in project project1");
     }
 
@@ -170,28 +170,28 @@ public class SonarRoslynSolutionAnalysisCommandProviderTests
         logger.AssertPartialOutputStringExists("No files to analyze in project project2");
     }
 
-    private void ValidateContainsAllTypesOfAnalysisForFile(SonarRoslynProjectAnalysisRequest request, string analysisFilePath)
+    private void ValidateContainsAllTypesOfAnalysisForFile(RoslynProjectAnalysisRequest request, string analysisFilePath)
     {
         ValidateContainsSyntacticAnalysisForFile(request, analysisFilePath);
         ValidateContainsSemanticAnalysisForFile(request, analysisFilePath);
     }
 
-    private void ValidateContainsSyntacticAnalysisForFile(SonarRoslynProjectAnalysisRequest request, string analysisFilePath) =>
-        request.AnalysisCommands.Any(x => x is SonarRoslynFileSyntaxAnalysis semanticAnalysis && semanticAnalysis.AnalysisFilePath == analysisFilePath).Should().BeTrue();
+    private void ValidateContainsSyntacticAnalysisForFile(RoslynProjectAnalysisRequest request, string analysisFilePath) =>
+        request.AnalysisCommands.Any(x => x is RoslynFileSyntaxAnalysis semanticAnalysis && semanticAnalysis.AnalysisFilePath == analysisFilePath).Should().BeTrue();
 
-    private void ValidateContainsSemanticAnalysisForFile(SonarRoslynProjectAnalysisRequest request, string analysisFilePath) =>
-        request.AnalysisCommands.Any(x => x is SonarRoslynFileSemanticAnalysis semanticAnalysis && semanticAnalysis.AnalysisFilePath == analysisFilePath).Should().BeTrue();
+    private void ValidateContainsSemanticAnalysisForFile(RoslynProjectAnalysisRequest request, string analysisFilePath) =>
+        request.AnalysisCommands.Any(x => x is RoslynFileSemanticAnalysis semanticAnalysis && semanticAnalysis.AnalysisFilePath == analysisFilePath).Should().BeTrue();
 
 
-    private static ISonarRoslynProjectWrapper CreateProject(string projectName, bool supportsCompilation = true)
+    private static IRoslynProjectWrapper CreateProject(string projectName, bool supportsCompilation = true)
     {
-        var project = Substitute.For<ISonarRoslynProjectWrapper>();
+        var project = Substitute.For<IRoslynProjectWrapper>();
         project.Name.Returns(projectName);
         project.SupportsCompilation.Returns(supportsCompilation);
         return project;
     }
 
-    private static void SetupContainsDocument(ISonarRoslynProjectWrapper project, string file, string analyzedFile) =>
+    private static void SetupContainsDocument(IRoslynProjectWrapper project, string file, string analyzedFile) =>
         project.ContainsDocument(file, out Arg.Any<string?>()).Returns(x =>
         {
             x[1] = analyzedFile;

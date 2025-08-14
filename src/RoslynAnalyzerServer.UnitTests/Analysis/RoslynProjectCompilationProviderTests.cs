@@ -30,36 +30,36 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 
 [TestClass]
-public class SonarRoslynProjectCompilationProviderTests
+public class RoslynProjectCompilationProviderTests
 {
     private DiagnosticAnalyzer analyzer1 = null!;
     private DiagnosticAnalyzer analyzer2 = null!;
     private DiagnosticAnalyzer analyzer3 = null!;
     private AnalyzerOptions analyzerOptions = null!;
     private ImmutableArray<DiagnosticAnalyzer> analyzers;
-    private ISonarRoslynCompilationWrapper compilation = null!;
+    private IRoslynCompilationWrapper compilation = null!;
     private CompilationOptions compilationOptions = null!;
-    private ISonarRoslynCompilationWithAnalyzersWrapper compilationWithAnalyzers = null!;
-    private ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> configurations = null!;
+    private IRoslynCompilationWithAnalyzersWrapper compilationWithAnalyzers = null!;
+    private ImmutableDictionary<Language, RoslynAnalysisConfiguration> configurations = null!;
     private ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null!;
     private AdditionalText existingAdditionalFile = null!;
     private TestLogger logger = null!;
-    private ISonarRoslynProjectWrapper project = null!;
+    private IRoslynProjectWrapper project = null!;
     private AdditionalText sonarLintXml = null!;
-    private SonarRoslynProjectCompilationProvider testSubject = null!;
+    private RoslynProjectCompilationProvider testSubject = null!;
 
     [TestInitialize]
     public void TestInitialize()
     {
         logger = Substitute.ForPartsOf<TestLogger>();
 
-        project = Substitute.For<ISonarRoslynProjectWrapper>();
+        project = Substitute.For<IRoslynProjectWrapper>();
 
-        compilation = Substitute.For<ISonarRoslynCompilationWrapper>();
+        compilation = Substitute.For<IRoslynCompilationWrapper>();
         compilationOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
         compilation.RoslynCompilationOptions.Returns(compilationOptions);
 
-        compilationWithAnalyzers = Substitute.For<ISonarRoslynCompilationWithAnalyzersWrapper>();
+        compilationWithAnalyzers = Substitute.For<IRoslynCompilationWithAnalyzersWrapper>();
 
         sonarLintXml = Substitute.For<AdditionalText>();
         sonarLintXml.Path.Returns(@"c:\path\to\SonarLint.xml");
@@ -78,12 +78,12 @@ public class SonarRoslynProjectCompilationProviderTests
         diagnosticOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty
             .Add("SomeId", ReportDiagnostic.Warn);
 
-        var configuration = new SonarRoslynAnalysisConfiguration(
+        var configuration = new RoslynAnalysisConfiguration(
             sonarLintXml,
             diagnosticOptions,
             analyzers);
 
-        configurations = ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration>.Empty
+        configurations = ImmutableDictionary<Language, RoslynAnalysisConfiguration>.Empty
             .Add(Language.CSharp, configuration);
 
         compilation.Language.Returns(Language.CSharp);
@@ -92,16 +92,16 @@ public class SonarRoslynProjectCompilationProviderTests
             .Returns(compilationWithAnalyzers);
         project.GetCompilationAsync(Arg.Any<CancellationToken>()).Returns(compilation);
 
-        testSubject = new SonarRoslynProjectCompilationProvider(logger);
+        testSubject = new RoslynProjectCompilationProvider(logger);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<SonarRoslynProjectCompilationProvider, ISonarRoslynProjectCompilationProvider>(
+        MefTestHelpers.CheckTypeCanBeImported<RoslynProjectCompilationProvider, IRoslynProjectCompilationProvider>(
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SonarRoslynProjectCompilationProvider>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<RoslynProjectCompilationProvider>();
 
     [TestMethod]
     public async Task GetProjectCompilationAsync_ConfiguresCompilationWithCorrectOptions()

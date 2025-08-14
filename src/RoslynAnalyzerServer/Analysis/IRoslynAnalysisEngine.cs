@@ -23,10 +23,10 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal interface ISonarRoslynAnalysisEngine
+internal interface IRoslynAnalysisEngine
 {
-    Task<IEnumerable<SonarDiagnostic>> AnalyzeAsync(
-        List<SonarRoslynProjectAnalysisRequest> projectsAnalysis,
-        ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
+    Task<IEnumerable<RoslynIssue>> AnalyzeAsync(
+        List<RoslynProjectAnalysisRequest> projectsAnalysis,
+        ImmutableDictionary<Language, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token);
 }

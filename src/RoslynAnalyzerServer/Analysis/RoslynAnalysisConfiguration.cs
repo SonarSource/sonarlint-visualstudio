@@ -24,7 +24,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-public record SonarRoslynAnalysisConfiguration(
+public record RoslynAnalysisConfiguration(
     AdditionalText SonarLintXml,
     ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions,
     ImmutableArray<DiagnosticAnalyzer> Analyzers);

@@ -19,18 +19,25 @@
  */
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-internal interface ISonarRoslynCompilationWrapper
+[ExcludeFromCodeCoverage] // todo SLVS-2466 add roslyn 'integration' tests using AdHocWorkspace
+public class RoslynCompilationWithAnalyzersWrapper(CompilationWithAnalyzers compilation, Language language) : IRoslynCompilationWithAnalyzersWrapper
 {
-    CompilationOptions RoslynCompilationOptions { get; }
-    Language Language { get; }
+    public Language Language { get; } = language;
 
-    ISonarRoslynCompilationWrapper WithOptions(CompilationOptions withSpecificDiagnosticOptions);
+    public SyntaxTree? GetSyntaxTree(string filePath) => compilation.Compilation.SyntaxTrees.SingleOrDefault(x => filePath.Equals(x.FilePath));
 
-    ISonarRoslynCompilationWithAnalyzersWrapper WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersOptions compilationWithAnalyzersOptions);
+    public SemanticModel? GetSemanticModel(string filePath) => GetSyntaxTree(filePath) is {} syntaxTree ? compilation.Compilation.GetSemanticModel(syntaxTree) : null;
+
+    public Task<ImmutableArray<Diagnostic>> GetAnalyzerSyntaxDiagnosticsAsync(SyntaxTree syntaxTree, CancellationToken token) =>
+        compilation.GetAnalyzerSyntaxDiagnosticsAsync(syntaxTree, token);
+
+    public Task<ImmutableArray<Diagnostic>> GetAnalyzerSemanticDiagnosticsAsync(SemanticModel semanticModel, CancellationToken token) =>
+        compilation.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, null, token);
 }

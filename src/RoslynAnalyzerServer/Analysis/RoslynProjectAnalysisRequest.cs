@@ -18,26 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal class SonarRoslynFileSemanticAnalysis(string analysisFilePath, ILogger logger) : ISonarRoslynAnalysisCommand
+internal class RoslynProjectAnalysisRequest(IRoslynProjectWrapper project, IReadOnlyCollection<IRoslynAnalysisCommand> analysisCommands)
 {
-    public string AnalysisFilePath { get; } = analysisFilePath;
-
-    public async Task<ImmutableArray<Diagnostic>> ExecuteAsync(ISonarRoslynCompilationWithAnalyzersWrapper compilation, CancellationToken token)
-    {
-        var semanticModel = compilation.GetSemanticModel(AnalysisFilePath);
-        if (semanticModel == null)
-        {
-            logger.LogVerbose("No semantic model found for {0}", AnalysisFilePath);
-            return ImmutableArray<Diagnostic>.Empty;
-        }
-
-        return await compilation.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, token);
-    }
+    public IRoslynProjectWrapper Project { get; } = project;
+    public IReadOnlyCollection<IRoslynAnalysisCommand> AnalysisCommands { get; } = analysisCommands;
 }

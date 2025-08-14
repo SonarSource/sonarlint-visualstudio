@@ -25,14 +25,14 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 [ExcludeFromCodeCoverage] // todo SLVS-2466 add roslyn 'integration' tests using AdHocWorkspace
-internal class SonarRoslynProjectWrapper(Project project) : ISonarRoslynProjectWrapper
+internal class RoslynProjectWrapper(Project project) : IRoslynProjectWrapper
 {
     public string Name => project.Name;
     public bool SupportsCompilation => project.SupportsCompilation;
     public AnalyzerOptions RoslynAnalyzerOptions  => project.AnalyzerOptions;
 
-    public async Task<ISonarRoslynCompilationWrapper> GetCompilationAsync(CancellationToken token) =>
-        new SonarRoslynCompilationWrapper((await project.GetCompilationAsync(token))!);
+    public async Task<IRoslynCompilationWrapper> GetCompilationAsync(CancellationToken token) =>
+        new RoslynCompilationWrapper((await project.GetCompilationAsync(token))!);
 
     public bool ContainsDocument(
         string filePath,
