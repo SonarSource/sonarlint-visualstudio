@@ -31,5 +31,5 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 [method: ImportingConstructor]
 internal class SonarRoslynWorkspaceWrapper([Import(typeof(VisualStudioWorkspace))] Workspace workspace) : ISonarRoslynWorkspaceWrapper
 {
-    public ISonarRoslynSolutionWrapper CurrentSolution => new SonarRoslynSolutionWrapper(workspace.CurrentSolution);
+    public ISonarRoslynSolutionWrapper GetCurrentSolution() => new SonarRoslynSolutionWrapper(workspace.CurrentSolution);
 }

@@ -22,5 +22,5 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
 internal interface ISonarRoslynSolutionAnalysisCommandProvider
 {
-    List<SonarRoslynProjectAnalysisSet> GetAnalysisCommandsForCurrentSolution(string[] filePaths);
+    List<SonarRoslynProjectAnalysisRequest> GetAnalysisCommandsForCurrentSolution(string[] filePaths);
 }

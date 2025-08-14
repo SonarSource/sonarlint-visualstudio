@@ -33,6 +33,8 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 [method: ImportingConstructor]
 internal class SonarRoslynProjectCompilationProvider(ILogger logger) : ISonarRoslynProjectCompilationProvider
 {
+    private readonly ILogger logger = logger.ForContext("Roslyn Analysis", "Analyzer Exception");
+
     public async Task<ISonarRoslynCompilationWithAnalyzersWrapper> GetProjectCompilationAsync(
         ISonarRoslynProjectWrapper project,
         ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
@@ -76,13 +78,11 @@ internal class SonarRoslynProjectCompilationProvider(ILogger logger) : ISonarRos
         SonarRoslynAnalysisConfiguration analysisConfigurationForLanguage)
     {
         var compilationOptions = compilation.RoslynCompilationOptions.WithSpecificDiagnosticOptions(analysisConfigurationForLanguage.DiagnosticOptions);
-        compilation = compilation
-            .WithOptions(compilationOptions);
-        return compilation;
+        return compilation.WithOptions(compilationOptions);
     }
 
     private void OnAnalyzerException(Exception arg1, DiagnosticAnalyzer arg2, Diagnostic arg3) =>
         logger.LogVerbose(
-            new MessageLevelContext { Context = ["Roslyn Analyzer Exception", arg2.GetType().Name, arg3.Id] },
+            new MessageLevelContext { VerboseContext = [arg2.GetType().Name, arg3.Id] },
             arg1.ToString());
 }

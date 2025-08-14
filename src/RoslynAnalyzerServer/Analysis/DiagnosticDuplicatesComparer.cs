@@ -51,11 +51,12 @@ public class DiagnosticDuplicatesComparer : IEqualityComparer<SonarDiagnostic>
         unchecked
         {
             var hc = obj.RuleKey.GetHashCode();
-            hc = (hc * 397) ^ obj.PrimaryLocation.FilePath.GetHashCode();
-            hc = (hc * 397) ^ obj.PrimaryLocation.TextRange.StartLine;
-            hc = (hc * 397) ^ obj.PrimaryLocation.TextRange.StartLineOffset;
-            hc = (hc * 397) ^ obj.PrimaryLocation.TextRange.EndLine;
-            hc = (hc * 397) ^ obj.PrimaryLocation.TextRange.EndLineOffset;
+            const int prime = 397;
+            hc = (hc * prime) ^ obj.PrimaryLocation.FilePath.GetHashCode();
+            hc = (hc * prime) ^ obj.PrimaryLocation.TextRange.StartLine;
+            hc = (hc * prime) ^ obj.PrimaryLocation.TextRange.StartLineOffset;
+            hc = (hc * prime) ^ obj.PrimaryLocation.TextRange.EndLine;
+            hc = (hc * prime) ^ obj.PrimaryLocation.TextRange.EndLineOffset;
             return hc;
         }
     }

@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 internal interface ISonarRoslynAnalysisEngine
 {
     Task<IEnumerable<SonarDiagnostic>> AnalyzeAsync(
-        List<SonarRoslynProjectAnalysisSet> projectsAnalysis,
+        List<SonarRoslynProjectAnalysisRequest> projectsAnalysis,
         ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token);
 }

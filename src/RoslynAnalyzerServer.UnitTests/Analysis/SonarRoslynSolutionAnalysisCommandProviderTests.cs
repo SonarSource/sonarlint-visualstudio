@@ -51,7 +51,7 @@ public class SonarRoslynSolutionAnalysisCommandProviderTests
         workspaceWrapper = Substitute.For<ISonarRoslynWorkspaceWrapper>();
         logger = new TestLogger();
         solutionWrapper = Substitute.For<ISonarRoslynSolutionWrapper>();
-        workspaceWrapper.CurrentSolution.Returns(solutionWrapper);
+        workspaceWrapper.GetCurrentSolution().Returns(solutionWrapper);
         testSubject = new SonarRoslynSolutionAnalysisCommandProvider(workspaceWrapper, logger);
     }
 
@@ -144,16 +144,16 @@ public class SonarRoslynSolutionAnalysisCommandProviderTests
     [TestMethod]
     public void GetAnalysisCommandsForCurrentSolution_MixedProjectResults_ReturnsCorrectProjects()
     {
-        var project1 = CreateProject(Project1, false);
-        var project2 = CreateProject(Project2);
-        project2.ContainsDocument(Arg.Any<string>(), out _).Returns(false);
+        var projectWithNoCompilation = CreateProject(Project1, false);
+        var projectWithNofiles = CreateProject(Project2);
+        projectWithNofiles.ContainsDocument(Arg.Any<string>(), out _).Returns(false);
         var project3 = CreateProject(Project3);
         SetupContainsDocument(project3, File1Cs, AnalyzedFile1Cs);
         SetupContainsDocument(project3, File2Cs, AnalyzedFile2Cs);
         var project4 = CreateProject(Project4);
         SetupContainsDocument(project4, File3Cs, AnalyzedFile3Cs);
         SetupContainsDocument(project4, File1Cs, AnalyzedFile1Cs);
-        solutionWrapper.Projects.Returns([project1, project2, project3, project4]);
+        solutionWrapper.Projects.Returns([projectWithNoCompilation, projectWithNofiles, project3, project4]);
 
         var result = testSubject.GetAnalysisCommandsForCurrentSolution([File1Cs, File2Cs, File3Cs, File4Cs]);
 
@@ -170,17 +170,17 @@ public class SonarRoslynSolutionAnalysisCommandProviderTests
         logger.AssertPartialOutputStringExists("No files to analyze in project project2");
     }
 
-    private void ValidateContainsAllTypesOfAnalysisForFile(SonarRoslynProjectAnalysisSet set, string analysisFilePath)
+    private void ValidateContainsAllTypesOfAnalysisForFile(SonarRoslynProjectAnalysisRequest request, string analysisFilePath)
     {
-        ValidateContainsSyntacticAnalysisForFile(set, analysisFilePath);
-        ValidateContainsSemanticAnalysisForFile(set, analysisFilePath);
+        ValidateContainsSyntacticAnalysisForFile(request, analysisFilePath);
+        ValidateContainsSemanticAnalysisForFile(request, analysisFilePath);
     }
 
-    private void ValidateContainsSyntacticAnalysisForFile(SonarRoslynProjectAnalysisSet set, string analysisFilePath) =>
-        set.AnalysisCommands.Any(x => x is SonarRoslynFileSyntaxAnalysis semanticAnalysis && semanticAnalysis.AnalysisFilePath == analysisFilePath).Should().BeTrue();
+    private void ValidateContainsSyntacticAnalysisForFile(SonarRoslynProjectAnalysisRequest request, string analysisFilePath) =>
+        request.AnalysisCommands.Any(x => x is SonarRoslynFileSyntaxAnalysis semanticAnalysis && semanticAnalysis.AnalysisFilePath == analysisFilePath).Should().BeTrue();
 
-    private void ValidateContainsSemanticAnalysisForFile(SonarRoslynProjectAnalysisSet set, string analysisFilePath) =>
-        set.AnalysisCommands.Any(x => x is SonarRoslynFileSemanticAnalysis semanticAnalysis && semanticAnalysis.AnalysisFilePath == analysisFilePath).Should().BeTrue();
+    private void ValidateContainsSemanticAnalysisForFile(SonarRoslynProjectAnalysisRequest request, string analysisFilePath) =>
+        request.AnalysisCommands.Any(x => x is SonarRoslynFileSemanticAnalysis semanticAnalysis && semanticAnalysis.AnalysisFilePath == analysisFilePath).Should().BeTrue();
 
 
     private static ISonarRoslynProjectWrapper CreateProject(string projectName, bool supportsCompilation = true)

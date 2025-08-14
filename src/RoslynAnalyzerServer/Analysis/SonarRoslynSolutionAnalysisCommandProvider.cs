@@ -33,17 +33,17 @@ internal class SonarRoslynSolutionAnalysisCommandProvider(
 {
     private readonly ILogger logger = logger.ForContext("Roslyn Analysis", "Configuration");
 
-    public List<SonarRoslynProjectAnalysisSet> GetAnalysisCommandsForCurrentSolution(string[] filePaths)
+    public List<SonarRoslynProjectAnalysisRequest> GetAnalysisCommandsForCurrentSolution(string[] filePaths)
     {
-        var result = new List<SonarRoslynProjectAnalysisSet>();
+        var result = new List<SonarRoslynProjectAnalysisRequest>();
 
-        var solution = roslynWorkspaceWrapper.CurrentSolution;
+        var solution = roslynWorkspaceWrapper.GetCurrentSolution();
 
         foreach (var project in solution.Projects)
         {
             if (!project.SupportsCompilation)
             {
-                logger.LogVerbose("Failed to get compilation for project: {0}", project.Name);
+                logger.LogVerbose("Project {0} does not support compilation", project.Name);
                 continue;
             }
 
@@ -51,11 +51,7 @@ internal class SonarRoslynSolutionAnalysisCommandProvider(
 
             if (commands.Any())
             {
-                result.Add(new SonarRoslynProjectAnalysisSet(project, commands));
-            }
-            else
-            {
-                logger.LogVerbose("No files to analyze in project {0}", project.Name);
+                result.Add(new SonarRoslynProjectAnalysisRequest(project, commands));
             }
         }
 

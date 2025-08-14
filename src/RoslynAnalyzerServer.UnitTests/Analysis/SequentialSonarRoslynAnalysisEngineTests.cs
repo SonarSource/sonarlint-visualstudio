@@ -131,11 +131,8 @@ public class SequentialSonarRoslynAnalysisEngineTests
         result.Should().NotBeNull();
         result.Should().ContainSingle();
         result.Single().Should().Be(sonarDiagnostic1);
-
         VerifyAnalysisExecution(project, compilation, command1, diagnostic1);
         VerifyAnalysisExecution(project, compilation, command2, diagnostic2);
-
-        // Verify that a log message is written when a duplicate diagnostic is discarded
         logger.AssertPartialOutputStringExists($"Duplicate diagnostic discarded ID: {sonarDiagnostic1.RuleKey}, File: {sonarDiagnostic1.PrimaryLocation.FilePath}, Line: {sonarDiagnostic1.PrimaryLocation.TextRange.StartLine}");
     }
 
@@ -197,17 +194,17 @@ public class SequentialSonarRoslynAnalysisEngineTests
         diagnosticsConverter.Received(1).ConvertToSonarDiagnostic(diagnostic2B, Arg.Any<Language>());
     }
 
-    private (ISonarRoslynProjectWrapper project, SonarRoslynProjectAnalysisSet projectCommand, ISonarRoslynCompilationWithAnalyzersWrapper projectCompilation) SetupProjectAndCommands()
+    private (ISonarRoslynProjectWrapper project, SonarRoslynProjectAnalysisRequest projectCommand, ISonarRoslynCompilationWithAnalyzersWrapper projectCompilation) SetupProjectAndCommands()
     {
         var project = Substitute.For<ISonarRoslynProjectWrapper>();
-        var projectCommands = new SonarRoslynProjectAnalysisSet(project, new List<ISonarRoslynAnalysisCommand>());
+        var projectCommands = new SonarRoslynProjectAnalysisRequest(project, new List<ISonarRoslynAnalysisCommand>());
         var compilation = SetupCompilation(project);
 
         return (project, projectCommands, compilation);
     }
 
-    private static void AddCommandToProject(ISonarRoslynAnalysisCommand command, SonarRoslynProjectAnalysisSet projectSet) =>
-        ((List<ISonarRoslynAnalysisCommand>)projectSet.AnalysisCommands).Add(command);
+    private static void AddCommandToProject(ISonarRoslynAnalysisCommand command, SonarRoslynProjectAnalysisRequest projectRequest) =>
+        ((List<ISonarRoslynAnalysisCommand>)projectRequest.AnalysisCommands).Add(command);
 
     private (ISonarRoslynAnalysisCommand command, Diagnostic diagnostic, SonarDiagnostic sonarDiagnostic) SetupCommandWithDiagnostic(
         ISonarRoslynCompilationWithAnalyzersWrapper compilationWithAnalyzers,

@@ -41,12 +41,12 @@ internal class SonarRoslynProjectWrapper(Project project) : ISonarRoslynProjectW
         analysisFilePath = project.Documents
             .Select(document => document.FilePath)
             .Where(path => path != null)
-            .FirstOrDefault(path =>
-                path!.Equals(filePath)
-                || (path.StartsWith(filePath)
-                    && path.EndsWith(".g.cs")));
+            .FirstOrDefault(candidatePath =>
+                candidatePath!.Equals(filePath) || IsCodeBehindRazor(filePath, candidatePath));
 
         return analysisFilePath != null;
     }
 
+    private bool IsCodeBehindRazor(string razorFilePath, string candidateDocumentPath) =>
+        candidateDocumentPath.StartsWith(razorFilePath) && candidateDocumentPath.EndsWith(".g.cs");
 }

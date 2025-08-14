@@ -38,8 +38,8 @@ public class SonarRoslynDiagnosticsConverter : IRoslynDiagnosticsConverter
         var fileLinePositionSpan = diagnostic.Location.GetMappedLineSpan();
 
         var textRange = new SonarTextRange(
-            fileLinePositionSpan.StartLinePosition.Line + 1,
-            fileLinePositionSpan.EndLinePosition.Line + 1,
+            fileLinePositionSpan.StartLinePosition.Line + 1, // roslyn lines are 0-based, while we use 1-based
+            fileLinePositionSpan.EndLinePosition.Line + 1, // roslyn lines are 0-based, while we use 1-based
             fileLinePositionSpan.StartLinePosition.Character,
             fileLinePositionSpan.EndLinePosition.Character);
 
@@ -51,7 +51,7 @@ public class SonarRoslynDiagnosticsConverter : IRoslynDiagnosticsConverter
         // todo SLVS-2427 quick fixes
         // todo SLVS-2428 secondary locations
         return new SonarDiagnostic(
-            new SonarCompositeRuleId(language.RepoInfo.Key, diagnostic.Id).ErrorListErrorCode,
+            SonarCompositeRuleId.GetFullErrorCode(language.RepoInfo.Key, diagnostic.Id),
             location);
     }
 }

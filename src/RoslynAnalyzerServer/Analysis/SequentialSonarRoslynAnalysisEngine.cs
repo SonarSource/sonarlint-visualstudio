@@ -36,7 +36,7 @@ internal class SequentialSonarRoslynAnalysisEngine(
     private readonly ILogger logger = logger.ForContext("Roslyn Analysis", "Engine");
 
     public async Task<IEnumerable<SonarDiagnostic>> AnalyzeAsync(
-        List<SonarRoslynProjectAnalysisSet> projectsAnalysis,
+        List<SonarRoslynProjectAnalysisRequest> projectsAnalysis,
         ImmutableDictionary<Language, SonarRoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token)
     {
