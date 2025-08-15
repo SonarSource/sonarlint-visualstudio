@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -77,8 +77,7 @@ public class ServerIssuesSynchronizerTests
             MefTestHelpers.CreateExport<IScaIssueDtoToDependencyRiskConverter>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() =>
-        MefTestHelpers.CheckIsSingletonMefComponent<ServerIssuesSynchronizer>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ServerIssuesSynchronizer>();
 
     [TestMethod]
     public void Ctor_DoesNotCallAnyServices()
@@ -127,8 +126,7 @@ public class ServerIssuesSynchronizerTests
     }
 
     [TestMethod]
-    public void Ctor_SetsBaseLogContext() =>
-        logger.Received(1).ForContext(Resources.Synchronizer_LogContext_General);
+    public void Ctor_SetsBaseLogContext() => logger.Received(1).ForContext(Resources.Synchronizer_LogContext_General);
 
     [TestMethod]
     public async Task UpdateServerIssuesAsyncNoConfigurationScope_StoreAndUIContextCleared()
@@ -234,7 +232,8 @@ public class ServerIssuesSynchronizerTests
         const uint cookie = 123;
         SetUpMonitorSelectionMock(cookie);
         List<TaintVulnerabilityDto> taints = [CreateDefaultTaintDto(), CreateDefaultTaintDto(), CreateDefaultTaintDto()];
-        List<IAnalysisIssueVisualization> taintVisualizations = [Substitute.For<IAnalysisIssueVisualization>(), Substitute.For<IAnalysisIssueVisualization>(), Substitute.For<IAnalysisIssueVisualization>()];
+        List<IAnalysisIssueVisualization> taintVisualizations =
+            [Substitute.For<IAnalysisIssueVisualization>(), Substitute.For<IAnalysisIssueVisualization>(), Substitute.For<IAnalysisIssueVisualization>()];
         ConfigureTaintService(ConnectedReady.Id, taints);
 
         for (var i = 0; i < taints.Count; i++)
@@ -332,7 +331,8 @@ public class ServerIssuesSynchronizerTests
     public async Task UpdateServerIssuesAsync_Sca_MultipleIssues_SetsStoreDependencyRisks()
     {
         List<DependencyRiskDto> scaIssues = [CreateDefaultDependencyRiskDto(), CreateDefaultDependencyRiskDto(), CreateDefaultDependencyRiskDto()];
-        List<IDependencyRisk> dependencyRisks = [
+        List<IDependencyRisk> dependencyRisks =
+        [
             Substitute.For<IDependencyRisk>(),
             Substitute.For<IDependencyRisk>(),
             Substitute.For<IDependencyRisk>()
@@ -444,18 +444,15 @@ public class ServerIssuesSynchronizerTests
             "rulecontext",
             false);
 
-    private static DependencyRiskDto CreateDefaultDependencyRiskDto() =>
-        new(Guid.NewGuid(), default, default, default, default, default, default);
+    private static DependencyRiskDto CreateDefaultDependencyRiskDto() => new(Guid.NewGuid(), default, default, default, default, default, default, default, default);
 
     private void CheckUIContextIsCleared(uint expectedCookie) => CheckUIContextUpdated(expectedCookie, 0);
 
     private void CheckUIContextIsSet(uint expectedCookie) => CheckUIContextUpdated(expectedCookie, 1);
 
-    private void CheckUIContextUpdated(uint expectedCookie, int expectedState) =>
-        vsMonitorSelection.Received(1).SetCmdUIContext(expectedCookie, expectedState);
+    private void CheckUIContextUpdated(uint expectedCookie, int expectedState) => vsMonitorSelection.Received(1).SetCmdUIContext(expectedCookie, expectedState);
 
-    private void CheckToolWindowServiceIsCalled() =>
-        toolWindowService.Received().EnsureToolWindowExists(TaintToolWindow.ToolWindowId);
+    private void CheckToolWindowServiceIsCalled() => toolWindowService.Received().EnsureToolWindowExists(TaintToolWindow.ToolWindowId);
 
     private void CheckTaintStoreIsCleared() => taintStore.Received(1).Reset();
 

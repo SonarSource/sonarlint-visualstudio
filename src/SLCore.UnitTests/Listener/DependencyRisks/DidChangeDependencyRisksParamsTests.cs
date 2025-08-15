@@ -45,6 +45,8 @@ public class DidChangeDependencyRisksParamsTests
                         "severity": "HIGH",
                         "status": "OPEN",
                         "packageName": "vulnerable-package",
+                        "vulnerabilityId": "CVE-2023-12345",
+                        "cvssScore": "8.5",
                         "packageVersion": "1.0.0",
                         "transitions": ["CONFIRM", "SAFE"]
                     }
@@ -57,6 +59,8 @@ public class DidChangeDependencyRisksParamsTests
                         "status": "CONFIRM",
                         "packageName": "license-issue-package",
                         "packageVersion": "2.1.0",
+                        "vulnerabilityId": null,
+                        "cvssScore": null,
                         "transitions": ["REOPEN", "ACCEPT"]
                     },
                     {
@@ -66,6 +70,8 @@ public class DidChangeDependencyRisksParamsTests
                         "status": "ACCEPT",
                         "packageName": "critical-package",
                         "packageVersion": "0.9.2",
+                        "vulnerabilityId": "CVE-2023-67890",
+                        "cvssScore": "9.8",
                         "transitions": ["REOPEN", "FIXED"]
                     }
                 ]
@@ -85,6 +91,8 @@ public class DidChangeDependencyRisksParamsTests
                     DependencyRiskStatus.OPEN,
                     "vulnerable-package",
                     "1.0.0",
+                    "CVE-2023-12345",
+                    "8.5",
                     [DependencyRiskTransition.CONFIRM, DependencyRiskTransition.SAFE])
             ],
             [
@@ -95,6 +103,8 @@ public class DidChangeDependencyRisksParamsTests
                     DependencyRiskStatus.CONFIRM,
                     "license-issue-package",
                     "2.1.0",
+                    null,
+                    null,
                     [DependencyRiskTransition.REOPEN, DependencyRiskTransition.ACCEPT]),
 
                 new(
@@ -104,6 +114,8 @@ public class DidChangeDependencyRisksParamsTests
                     DependencyRiskStatus.ACCEPT,
                     "critical-package",
                     "0.9.2",
+                    "CVE-2023-67890",
+                    "9.8",
                     [DependencyRiskTransition.REOPEN, DependencyRiskTransition.FIXED])
             ]);
 

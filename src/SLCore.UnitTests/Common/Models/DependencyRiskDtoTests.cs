@@ -38,6 +38,8 @@ public class DependencyRiskDtoTests
               "status": "OPEN",
               "packageName": "testPackage",
               "packageVersion": "1.0.0",
+              "vulnerabilityId": "CVE-2023-12345",
+              "cvssScore": "8.5",
               "transitions": ["CONFIRM", "SAFE"]
             }
             """;
@@ -51,6 +53,8 @@ public class DependencyRiskDtoTests
             DependencyRiskStatus.OPEN,
             "testPackage",
             "1.0.0",
+            "CVE-2023-12345",
+            "8.5",
             [DependencyRiskTransition.CONFIRM, DependencyRiskTransition.SAFE]
         );
 

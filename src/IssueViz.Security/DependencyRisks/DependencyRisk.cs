@@ -30,6 +30,8 @@ public interface IDependencyRisk
     DependencyRiskStatus Status { get; }
     string PackageName { get; }
     string PackageVersion { get; }
+    string VulnerabilityId { get; }
+    string CvssScore { get; }
     List<DependencyRiskTransition> Transitions { get; }
 }
 
@@ -40,6 +42,8 @@ internal class DependencyRisk(
     DependencyRiskStatus status,
     string packageName,
     string packageVersion,
+    string vulnerabilityId,
+    string cvssScore,
     List<DependencyRiskTransition> transitions) : IDependencyRisk
 {
     public Guid Id { get; } = id;
@@ -47,6 +51,8 @@ internal class DependencyRisk(
     public DependencyRiskImpactSeverity Severity { get; } = severity;
     public DependencyRiskStatus Status { get; } = status;
     public string PackageName { get; } = packageName;
+    public string VulnerabilityId { get; } = vulnerabilityId;
+    public string CvssScore { get; } = cvssScore;
     public string PackageVersion { get; } = packageVersion;
     public List<DependencyRiskTransition> Transitions { get; } = transitions;
 }
