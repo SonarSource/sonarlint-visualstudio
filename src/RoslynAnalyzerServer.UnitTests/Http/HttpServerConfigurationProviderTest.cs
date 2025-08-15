@@ -78,11 +78,11 @@ public class HttpServerConfigurationProviderTest
     }
 
     [TestMethod]
-    public void Create_UpdatesCurrentConfiguration()
+    public void SetNewConfiguration_UpdatesCurrentConfiguration()
     {
         var initialInstance = testSubject.CurrentConfiguration;
 
-        var result = testSubject.Create();
+        var result = testSubject.SetNewConfiguration();
 
         result.Should().NotBeNull();
         result.Should().NotBeSameAs(initialInstance);
@@ -90,11 +90,11 @@ public class HttpServerConfigurationProviderTest
     }
 
     [TestMethod]
-    public void Create_GeneratesDifferentProperties()
+    public void SetNewConfiguration_GeneratesDifferentProperties()
     {
         var originalConfiguration = testSubject.CurrentConfiguration;
 
-        var newConfig = testSubject.Create();
+        var newConfig = testSubject.SetNewConfiguration();
 
         newConfig.Port.Should().NotBe(originalConfiguration.Port);
         VerifyValidPort(newConfig.Port);

@@ -100,7 +100,7 @@ internal sealed class HttpServerStarter : IDisposable
     {
         var config = Substitute.For<IHttpServerConfigurationFactory>();
         var configuration = Substitute.For<IHttpServerConfiguration>();
-        config.Create().Returns(configuration);
+        config.SetNewConfiguration().Returns(configuration);
         HttpServerConfigurationProvider.CurrentConfiguration.Returns(configuration);
 
         return config;

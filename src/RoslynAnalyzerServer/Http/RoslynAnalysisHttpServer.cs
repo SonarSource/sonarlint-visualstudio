@@ -55,7 +55,7 @@ internal sealed class RoslynAnalysisHttpServer(
             logger.LogVerbose(Resources.HttpServerStarting);
             for (var attempt = 1; attempt <= settings.MaxStartAttempts; attempt++)
             {
-                var currentConfiguration = httpServerConfigurationFactory.Create();
+                var currentConfiguration = httpServerConfigurationFactory.SetNewConfiguration();
                 httpListener = httpListenerFactory.Create(currentConfiguration.Port);
                 if (cancellationTokenSource.IsCancellationRequested)
                 {

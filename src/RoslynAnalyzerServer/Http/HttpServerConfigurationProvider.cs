@@ -33,7 +33,7 @@ public interface IHttpServerConfigurationProvider
 
 internal interface IHttpServerConfigurationFactory
 {
-    IHttpServerConfiguration Create();
+    IHttpServerConfiguration SetNewConfiguration();
 }
 
 [Export(typeof(IHttpServerConfigurationProvider))]
@@ -44,7 +44,7 @@ internal class HttpServerConfigurationProvider() : IHttpServerConfigurationProvi
 {
     public IHttpServerConfiguration CurrentConfiguration { get; private set; } = new HttpServerConfiguration();
 
-    public IHttpServerConfiguration Create()
+    public IHttpServerConfiguration SetNewConfiguration()
     {
         CurrentConfiguration = new HttpServerConfiguration();
         return CurrentConfiguration;
