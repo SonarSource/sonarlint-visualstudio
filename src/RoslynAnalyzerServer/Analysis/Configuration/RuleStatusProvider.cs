@@ -28,14 +28,15 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class RuleStatusProvider : IRuleStatusProvider
 {
-    public ImmutableDictionary<string, ReportDiagnostic> GetDiagnosticOptions(IEnumerable<string> diagnosticIds, HashSet<string> activeDiagnosticIds)
+    public ImmutableDictionary<string, ReportDiagnostic> GetDiagnosticOptions(IEnumerable<string> diagnosticIds, Dictionary<string, ActiveRoslynRule> activeDiagnosticIds)
     {
         var resultBuilder = ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>();
         foreach (var analyzerDiagnosticId in diagnosticIds)
         {
-            resultBuilder.Add(analyzerDiagnosticId, activeDiagnosticIds.Contains(analyzerDiagnosticId) ? ReportDiagnostic.Warn : ReportDiagnostic.Suppress);
+            resultBuilder.Add(analyzerDiagnosticId, activeDiagnosticIds.ContainsKey(analyzerDiagnosticId) ? ReportDiagnostic.Warn : ReportDiagnostic.Suppress);
         }
 
         return resultBuilder.ToImmutable();
     }
+
 }

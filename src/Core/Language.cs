@@ -62,8 +62,8 @@ namespace SonarLint.VisualStudio.Core
 
         public static readonly Language Unknown = new();
         public static readonly Language CSharp = new("CSharp", CoreStrings.CSharpLanguageName, "cs", CSharpPlugin, CSharpRepo, CSharpSecurityRepo,
-            settingsFileName: "sonarlint_csharp.globalconfig");
-        public static readonly Language VBNET = new("VB", CoreStrings.VBNetLanguageName, "vbnet", VbNetPlugin, VbNetRepo, settingsFileName: "sonarlint_vb.globalconfig");
+            settingsFileName: "sonarlint_csharp.globalconfig", roslynDllIdentifier: ".CSharp.");
+        public static readonly Language VBNET = new("VB", CoreStrings.VBNetLanguageName, "vbnet", VbNetPlugin, VbNetRepo, settingsFileName: "sonarlint_vb.globalconfig", roslynDllIdentifier:".VisualBasic.");
         public static readonly Language Cpp = new("C++", CoreStrings.CppLanguageName, "cpp", CFamilyPlugin, CppRepo);
         public static readonly Language C = new("C", "C", "c", CFamilyPlugin, CRepo);
         public static readonly Language Js = new("Js", "JavaScript", "js", JavascriptPlugin, JsRepo, JsSecurityRepo);
@@ -99,6 +99,11 @@ namespace SonarLint.VisualStudio.Core
         /// <remarks>e.g. for ruleset-based languages this will be a language identifier + ".globalconfig"</remarks>
         public string SettingsFileNameAndExtension { get; }
 
+        /// <summary>
+        /// A substring that is contained in the name of the analyzer files for specific roslyn language. Null for non-roslyn languages.
+        /// </summary>
+        public string RoslynDllIdentifier { get; }
+
         public RepoInfo RepoInfo { get; }
 
         /// <summary>
@@ -123,7 +128,8 @@ namespace SonarLint.VisualStudio.Core
             PluginInfo pluginInfo,
             RepoInfo repoInfo,
             RepoInfo securityRepoInfo = null,
-            string settingsFileName = null)
+            string settingsFileName = null,
+            string roslynDllIdentifier = null)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -138,6 +144,7 @@ namespace SonarLint.VisualStudio.Core
             Id = id;
             Name = name;
             SettingsFileNameAndExtension = settingsFileName;
+            RoslynDllIdentifier = roslynDllIdentifier;
             ServerLanguageKey = serverLanguageKey ?? throw new ArgumentNullException(nameof(serverLanguageKey));
             PluginInfo = pluginInfo ?? throw new ArgumentNullException(nameof(pluginInfo));
             RepoInfo = repoInfo ?? throw new ArgumentNullException(nameof(repoInfo));

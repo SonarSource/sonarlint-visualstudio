@@ -25,5 +25,5 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
 internal interface IRuleStatusProvider
 {
-    ImmutableDictionary<string, ReportDiagnostic> GetDiagnosticOptions(IEnumerable<string> diagnosticIds, HashSet<string> activeDiagnosticIds);
+    ImmutableDictionary<string, ReportDiagnostic> GetDiagnosticOptions(IEnumerable<string> diagnosticIds, Dictionary<string, ActiveRoslynRule> activeDiagnosticIds);
 }

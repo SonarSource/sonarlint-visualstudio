@@ -18,7 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
+namespace SonarLint.VisualStudio.Core.CSharpVB;
 
-// TODO by https://sonarsource.atlassian.net/browse/SLVS-2473 update DTO to match the one from plugin side
-public record ActiveRuleDto(string RuleKey, Dictionary<string, string> RuleParameters);
+public interface IEmbeddedDotnetAnalyzersLocator
+{
+    List<string> GetBasicAnalyzerFullPaths();
+    Dictionary<Language, List<string>> GetBasicAnalyzerFullPathsByLanguage();
+    List<string> GetEnterpriseAnalyzerFullPaths();
+    Dictionary<Language, List<string>> GetEnterpriseAnalyzerFullPathsByLanguage();
+}

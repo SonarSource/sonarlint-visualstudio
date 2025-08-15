@@ -50,7 +50,7 @@ public class RuleStatusProviderTests
     public void GetDiagnosticOptions_EmptyActiveDiagnosticIds_SuppressesAllDiagnostics()
     {
         var diagnosticIds = new[] { "Rule1", "Rule2", "Rule3" };
-        var activeDiagnosticIds = new HashSet<string>();
+        var activeDiagnosticIds = new Dictionary<string, ActiveRoslynRule>();
 
         var result = testSubject.GetDiagnosticOptions(diagnosticIds, activeDiagnosticIds);
 
@@ -64,7 +64,7 @@ public class RuleStatusProviderTests
     public void GetDiagnosticOptions_SomeActiveDiagnosticIds_ConfiguresCorrectly()
     {
         var diagnosticIds = new[] { "Rule1", "Rule2", "Rule3", "Rule4" };
-        var activeDiagnosticIds = new HashSet<string> { "Rule1", "Rule3" };
+        var activeDiagnosticIds = new Dictionary<string, ActiveRoslynRule> {{ "Rule1", default}, {"Rule3", default} };
 
         var result = testSubject.GetDiagnosticOptions(diagnosticIds, activeDiagnosticIds);
 
@@ -79,7 +79,7 @@ public class RuleStatusProviderTests
     public void GetDiagnosticOptions_AllActiveDiagnosticIds_EnablesAllRules()
     {
         var diagnosticIds = new[] { "Rule1", "Rule2" };
-        var activeDiagnosticIds = new HashSet<string> { "Rule1", "Rule2" };
+        var activeDiagnosticIds = new Dictionary<string, ActiveRoslynRule> { { "Rule1", default }, { "Rule2", default } };
 
         var result = testSubject.GetDiagnosticOptions(diagnosticIds, activeDiagnosticIds);
 
@@ -92,7 +92,7 @@ public class RuleStatusProviderTests
     public void GetDiagnosticOptions_ActiveIdsContainNonExistentRules_OnlyConfiguresExistingRules()
     {
         var diagnosticIds = new[] { "Rule1", "Rule2" };
-        var activeDiagnosticIds = new HashSet<string> { "Rule1", "NonExistentRule" };
+        var activeDiagnosticIds = new Dictionary<string, ActiveRoslynRule> { { "Rule1", default }, { "NonExistentRule", default } };
 
         var result = testSubject.GetDiagnosticOptions(diagnosticIds, activeDiagnosticIds);
 
@@ -106,11 +106,10 @@ public class RuleStatusProviderTests
     public void GetDiagnosticOptions_ReturnsDictionaryType_IsImmutable()
     {
         var diagnosticIds = new[] { "Rule1" };
-        var activeDiagnosticIds = new HashSet<string>();
+        var activeDiagnosticIds = new Dictionary<string, ActiveRoslynRule>();
 
         var result = testSubject.GetDiagnosticOptions(diagnosticIds, activeDiagnosticIds);
 
         result.Should().BeOfType<ImmutableDictionary<string, ReportDiagnostic>>();
     }
 }
-

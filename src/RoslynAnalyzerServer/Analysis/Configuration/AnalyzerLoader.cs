@@ -18,7 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using Microsoft.CodeAnalysis.Diagnostics;
 
-// TODO by https://sonarsource.atlassian.net/browse/SLVS-2473 update DTO to match the one from plugin side
-public record ActiveRuleDto(string RuleKey, Dictionary<string, string> RuleParameters);
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
+
+internal class AnalyzerLoader : IAnalyzerLoader
+{
+    [ExcludeFromCodeCoverage]
+    public IReadOnlyCollection<DiagnosticAnalyzer> LoadAnalyzers(string filePath)
+    {
+        try
+        {
+            return Assembly.LoadFrom(filePath)
+                .GetTypes()
+                .Where(t => typeof(DiagnosticAnalyzer).IsAssignableFrom(t) && !t.IsAbstract)
+                .Select(t => (DiagnosticAnalyzer)Activator.CreateInstance(t))
+                .ToList();
+        }
+        catch (Exception)
+        {
+            return [];
+        }
+    }
+}

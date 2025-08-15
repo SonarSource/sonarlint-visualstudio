@@ -18,11 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
+using Microsoft.CodeAnalysis.Diagnostics;
 
-public interface IEmbeddedDotnetAnalyzersLocator
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
+
+internal interface IAnalyzerLoader
 {
-    List<string> GetBasicAnalyzerFullPaths();
-
-    List<string> GetEnterpriseAnalyzerFullPaths();
+    IReadOnlyCollection<DiagnosticAnalyzer> LoadAnalyzers(string filePath);
 }

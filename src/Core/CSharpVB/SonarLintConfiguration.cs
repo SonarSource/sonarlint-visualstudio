@@ -69,8 +69,7 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
 
     public class SonarLintRule
     {
-        private List<SonarLintKeyValuePair> parameters =
-            [];
+        private List<SonarLintKeyValuePair> parameters = [];
         [XmlElement]
         public string Key { get; set; }
 
