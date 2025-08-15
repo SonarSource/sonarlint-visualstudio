@@ -32,12 +32,12 @@ using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using SonarLint.VisualStudio.Integration.CSharpVB.Install;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.Events;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
+using SonarLint.VisualStudio.RoslynAnalyzerServer;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Analysis;
-using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
+using ErrorHandler = SonarLint.VisualStudio.Core.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -76,6 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private IDocumentEventsHandler documentEventsHandler;
         private ISlCoreUserAnalysisPropertiesSynchronizer slCoreUserAnalysisPropertiesSynchronizer;
         private IAnalysisConfigMonitor analysisConfigMonitor;
+        private IRoslynAnalysisHttpServer roslynAnalysisHttpServer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -127,7 +128,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 var importBeforeFileGenerator = await this.GetMefServiceAsync<IImportBeforeFileGenerator>();
                 importBeforeFileGenerator.UpdateOrCreateTargetsFileAsync().Forget();
 
-                LegacyInstallationCleanup.CleanupDaemonFiles(logger);
+                var thread = await this.GetMefServiceAsync<IThreadHandling>();
+                roslynAnalysisHttpServer = await this.GetMefServiceAsync<IRoslynAnalysisHttpServer>();
+                thread.RunOnBackgroundThread(() => StartRoslynAnalysisHttpServerAsync().ConfigureAwait(false)).Forget();
 
                 slCoreHandler = await this.GetMefServiceAsync<ISLCoreHandler>();
                 slCoreHandler.EnableSloop();
@@ -144,6 +147,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var bindingToConnectionMigration = await this.GetMefServiceAsync<IBindingToConnectionMigration>();
             await bindingToConnectionMigration.MigrateAllBindingsToServerConnectionsIfNeededAsync();
         }
+
+        private async Task StartRoslynAnalysisHttpServerAsync() => await roslynAnalysisHttpServer.StartListenAsync();
 
         protected override void Dispose(bool disposing)
         {
@@ -168,6 +173,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 solutionRoslynAnalyzerManager = null;
                 slCoreHandler?.Dispose();
                 slCoreHandler = null;
+
+                roslynAnalysisHttpServer.Dispose();
+                roslynAnalysisHttpServer = null;
             }
         }
 
