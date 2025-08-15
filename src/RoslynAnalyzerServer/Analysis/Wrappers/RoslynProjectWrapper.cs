@@ -42,11 +42,12 @@ internal class RoslynProjectWrapper(Project project) : IRoslynProjectWrapper
             .Select(document => document.FilePath)
             .Where(path => path != null)
             .FirstOrDefault(candidatePath =>
-                candidatePath!.Equals(filePath) || IsCodeBehindRazor(filePath, candidatePath));
+                candidatePath!.Equals(filePath) || IsAssociatedGeneratedFile(filePath, candidatePath));
 
         return analysisFilePath != null;
     }
 
-    private static bool IsCodeBehindRazor(string razorFilePath, string candidateDocumentPath) =>
-        candidateDocumentPath.StartsWith(razorFilePath) && candidateDocumentPath.EndsWith(".g.cs"); // cshtml razor files are converted into .\file.cshtml.<random chars>.g.cs files when included in the compilation
+    // cshtml razor files are converted into .\file.cshtml.<random chars>.g.cs files when included in the compilation
+    private static bool IsAssociatedGeneratedFile(string razorFilePath, string candidateDocumentPath) =>
+        candidateDocumentPath.StartsWith(razorFilePath) && candidateDocumentPath.EndsWith(".g.cs");
 }
