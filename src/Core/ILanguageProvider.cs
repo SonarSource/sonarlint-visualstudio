@@ -55,11 +55,11 @@ public class LanguageProvider : ILanguageProvider
         LanguagesInStandaloneMode = AllKnownLanguages.Except(ExtraLanguagesInConnectedMode).ToList();
     }
 
-    public IReadOnlyList<Language> NonRoslynLanguages { get; } = [Language.C, Language.Cpp, Language.Js, Language.Ts, Language.Css, Language.Secrets, Language.Html, Language.TSql];
+    public IReadOnlyList<Language> NonRoslynLanguages { get; } = [Language.C, Language.Cpp, Language.Js, Language.Ts, Language.Css, Language.Secrets, Language.Html, Language.TSql, Language.Text];
     public IReadOnlyList<Language> RoslynLanguages { get; } = [Language.CSharp, Language.VBNET];
     public IReadOnlyList<Language> AllKnownLanguages { get; }
     public IReadOnlyList<Language> LanguagesInStandaloneMode { get; }
-    public IReadOnlyList<Language> ExtraLanguagesInConnectedMode { get; } = [Language.TSql];
+    public IReadOnlyList<Language> ExtraLanguagesInConnectedMode { get; } = [Language.TSql, Language.Text];
 
     public Language GetLanguageFromLanguageKey(string languageKey) => AllKnownLanguages.FirstOrDefault(l => languageKey.Equals(l.ServerLanguageKey, StringComparison.OrdinalIgnoreCase));
 }

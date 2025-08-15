@@ -31,6 +31,7 @@ namespace SonarLint.VisualStudio.SLCore.Common.Models;
 public enum Language
 {
     ABAP,
+    ANSIBLE,
     APEX,
     AZURERESOURCEMANAGER,
     C,
@@ -44,6 +45,7 @@ public enum Language
     HTML,
     IPYTHON,
     JAVA,
+    JCL,
     JS,
     JSON,
     JSP,
@@ -58,6 +60,7 @@ public enum Language
     RUBY,
     SCALA,
     SECRETS,
+    TEXT,
     SWIFT,
     TERRAFORM,
     TS,

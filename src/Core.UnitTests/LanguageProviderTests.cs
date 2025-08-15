@@ -39,7 +39,7 @@ public class LanguageProviderTests
     [TestMethod]
     public void AllKnownLanguages_ShouldBeExpected()
     {
-        var expected = new[] { Language.CSharp, Language.VBNET, Language.C, Language.Cpp, Language.Js, Language.Ts, Language.Css, Language.Secrets, Language.Html, Language.TSql };
+        var expected = new[] { Language.CSharp, Language.VBNET, Language.C, Language.Cpp, Language.Js, Language.Ts, Language.Css, Language.Secrets, Language.Html, Language.TSql, Language.Text };
 
         testSubject.AllKnownLanguages.Should().BeEquivalentTo(expected);
     }
@@ -55,7 +55,7 @@ public class LanguageProviderTests
     [TestMethod]
     public void NonRoslynLanguages_ShouldBeExpected()
     {
-        var expected = new[] { Language.C, Language.Cpp, Language.Js, Language.Ts, Language.Css, Language.Secrets, Language.Html, Language.TSql };
+        var expected = new[] { Language.C, Language.Cpp, Language.Js, Language.Ts, Language.Css, Language.Secrets, Language.Html, Language.TSql, Language.Text };
 
         testSubject.NonRoslynLanguages.Should().BeEquivalentTo(expected);
     }
@@ -71,7 +71,7 @@ public class LanguageProviderTests
     [TestMethod]
     public void ExtraLanguagesInConnectedMode_ShouldBeExpected()
     {
-        var expected = new[] { Language.TSql };
+        var expected = new[] { Language.TSql, Language.Text };
 
         testSubject.ExtraLanguagesInConnectedMode.Should().BeEquivalentTo(expected);
     }
@@ -88,6 +88,7 @@ public class LanguageProviderTests
         var css = testSubject.GetLanguageFromLanguageKey("css");
         var html = testSubject.GetLanguageFromLanguageKey("Web");
         var tsql = testSubject.GetLanguageFromLanguageKey("tsql");
+        var text = testSubject.GetLanguageFromLanguageKey("text");
         var unknown = testSubject.GetLanguageFromLanguageKey("unknown");
 
         cs.Should().Be(Language.CSharp);
@@ -99,6 +100,7 @@ public class LanguageProviderTests
         css.Should().Be(Language.Css);
         html.Should().Be(Language.Html);
         tsql.Should().Be(Language.TSql);
+        text.Should().Be(Language.Text);
         unknown.Should().Be(null);
     }
 
