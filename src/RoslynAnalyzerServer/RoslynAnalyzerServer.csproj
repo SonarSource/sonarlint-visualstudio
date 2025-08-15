@@ -1,6 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="..\SonarLint.Product.props" />
+  <Import Project="..\SonarLint.Product.props" />  
+  <!-- This project references the Microsoft.VisualStudio.Shell assembly which is VS-version specific -->
+  <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
   <PropertyGroup>
     <RootNamespace>SonarLint.VisualStudio.RoslynAnalyzerServer</RootNamespace>
