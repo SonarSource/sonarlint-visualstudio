@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace SonarLint.VisualStudio.Core.UnitTests
 {
     [TestClass]
@@ -85,7 +81,20 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             output.ToString().Should().Be(input);
         }
 
+        [TestMethod]
+        [DataRow("repo1", "rule1", "repo1:rule1")]
+        [DataRow("csharpsquid", "S1234", "csharpsquid:S1234")]
+        [DataRow("javascript", "S5678", "javascript:S5678")]
+        [DataRow("my repo", "my rule", "my repo:my rule")]
+        public void GetFullErrorCode_ConcatenatesWithColon(string repoKey, string ruleKey, string expected)
+        {
+            var result = SonarCompositeRuleId.GetFullErrorCode(repoKey, ruleKey);
+
+            result.Should().Be(expected);
+        }
+
         public static object[][] ReposAndLanguages => LanguageProvider.Instance.AllKnownLanguages.Select(x => new object[] { x.RepoInfo.Key, x }).ToArray();
+
         [DataTestMethod]
         [DynamicData(nameof(ReposAndLanguages))]
         public void Language_MatchesBasedOnRepoKey(string repoKey, Language language)
