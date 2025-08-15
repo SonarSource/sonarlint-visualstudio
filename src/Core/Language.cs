@@ -58,6 +58,7 @@ namespace SonarLint.VisualStudio.Core
         private static readonly RepoInfo CssRepo = new("css");
         private static readonly RepoInfo HtmlRepo = new("Web", "html"); //See https://github.com/SonarSource/sonarlint-visualstudio/issues/4586.
         private static readonly RepoInfo SecretsRepo = new("secrets");
+        private static readonly RepoInfo TextRepo = new("text");
         private static readonly RepoInfo TsqlRepo = new("tsql");
 
         public static readonly Language Unknown = new();
@@ -71,6 +72,7 @@ namespace SonarLint.VisualStudio.Core
         public static readonly Language Css = new("Css", "CSS", "css", JavascriptPlugin, CssRepo);
         public static readonly Language Html = new("Html", "HTML", "web", HtmlPlugin, HtmlRepo);
         public static readonly Language Secrets = new("Secrets", "Secrets", "secrets", SecretsPlugin, SecretsRepo);
+        public static readonly Language Text = new("Text", "Text", "text", SecretsPlugin, TextRepo);
         public static readonly Language TSql = new("TSql", "T-SQL", "tsql", TsqlPlugin, TsqlRepo);
 
         /// <summary>

@@ -65,6 +65,6 @@ public class LanguageExtensionsTests
     [
         [CoreLanguage.CSharp, SlCoreLanguage.CS], [CoreLanguage.VBNET, SlCoreLanguage.VBNET], [CoreLanguage.C, SlCoreLanguage.C], [CoreLanguage.Cpp, SlCoreLanguage.CPP],
         [CoreLanguage.Css, SlCoreLanguage.CSS], [CoreLanguage.Html, SlCoreLanguage.HTML], [CoreLanguage.Js, SlCoreLanguage.JS], [CoreLanguage.Secrets, SlCoreLanguage.SECRETS],
-        [CoreLanguage.Ts, SlCoreLanguage.TS], [CoreLanguage.TSql, SlCoreLanguage.TSQL]
+        [CoreLanguage.Ts, SlCoreLanguage.TS], [CoreLanguage.TSql, SlCoreLanguage.TSQL], [CoreLanguage.Text, SlCoreLanguage.TEXT]
     ];
 }

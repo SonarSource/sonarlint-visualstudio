@@ -37,6 +37,7 @@ internal static class LanguageExtensions
         { Secrets, Language.SECRETS },
         { Ts, Language.TS },
         { TSql, Language.TSQL },
+        { Text, Language.TEXT },
     };
 
     public static VisualStudio.Core.Language ConvertToCoreLanguage(this Language language)

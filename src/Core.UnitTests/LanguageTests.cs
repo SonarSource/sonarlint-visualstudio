@@ -88,6 +88,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             LanguageHasExpectedRepoInfo(Language.Css, "css", "css");
             LanguageHasExpectedRepoInfo(Language.Html, "Web", "html");
             LanguageHasExpectedRepoInfo(Language.Secrets, "secrets", "secrets");
+            LanguageHasExpectedRepoInfo(Language.Text, "text", "text");
             LanguageHasExpectedRepoInfo(Language.TSql, "tsql", "tsql");
 
             DoesNotHaveRepoInfo(Language.Unknown.RepoInfo);
@@ -106,6 +107,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             DoesNotHaveRepoInfo(Language.Css.SecurityRepoInfo);
             DoesNotHaveRepoInfo(Language.Html.SecurityRepoInfo);
             DoesNotHaveRepoInfo(Language.Secrets.SecurityRepoInfo);
+            DoesNotHaveRepoInfo(Language.Text.SecurityRepoInfo);
             DoesNotHaveRepoInfo(Language.TSql.SecurityRepoInfo);
             DoesNotHaveRepoInfo(Language.Unknown.SecurityRepoInfo);
         }
@@ -142,6 +144,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             LanguageHasExpectedPlugin(Language.Css, "javascript", "sonar-javascript-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar");
 
             LanguageHasExpectedPlugin(Language.Secrets, "text", "sonar-text-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar");
+            LanguageHasExpectedPlugin(Language.Text, "text", "sonar-text-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar");
 
             LanguageHasExpectedPlugin(Language.Html, "web", "sonar-html-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar");
 
@@ -160,6 +163,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             LanguageHasExpectedServerLanguageKey(Language.Css, "css");
             LanguageHasExpectedServerLanguageKey(Language.Html, "web");
             LanguageHasExpectedServerLanguageKey(Language.Secrets, "secrets");
+            LanguageHasExpectedServerLanguageKey(Language.Text, "text");
             LanguageHasExpectedServerLanguageKey(Language.TSql, "tsql");
         }
 
