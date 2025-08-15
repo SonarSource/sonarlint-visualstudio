@@ -28,8 +28,6 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class DiagnosticToRoslynIssueConverter : IDiagnosticToRoslynIssueConverter
 {
-    private const string DefaultSecondaryLocationTitleTemplate = "Location {0}";
-
     public RoslynIssue ConvertToSonarDiagnostic(Diagnostic diagnostic, Language language) =>
         // todo SLVS-2427 quick fixes
         new(new SonarCompositeRuleId(language.RepoInfo.Key, diagnostic.Id).ErrorListErrorCode,
@@ -52,7 +50,7 @@ public class DiagnosticToRoslynIssueConverter : IDiagnosticToRoslynIssueConverte
                 {
                     if (!diagnostic.Properties.TryGetValue(index.ToString(), out var title) || title is null)
                     {
-                        title = string.Format(DefaultSecondaryLocationTitleTemplate, index);
+                        title = string.Format(Resources.DefaultSecondaryLocationTitleTemplate, index);
                     }
                     return ConvertLocation(location.GetMappedLineSpan(), title);
                 })
