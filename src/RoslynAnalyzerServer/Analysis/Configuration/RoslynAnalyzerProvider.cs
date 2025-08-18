@@ -31,13 +31,15 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 [method: ImportingConstructor]
 internal class RoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersLocator, IRoslynAnalyzerLoader roslynAnalyzerLoader) : IRoslynAnalyzerProvider
 {
-    public ImmutableDictionary<Language, AnalyzersAndSupportedDiagnostics> GetAnalyzersByLanguage()
-    {
-        // todo repackaging
-        var builder = ImmutableDictionary.CreateBuilder<Language, AnalyzersAndSupportedDiagnostics>();
+    public ImmutableDictionary<Language, AnalyzersAndSupportedRules> GetAnalyzersByLanguage() =>
+        // todo SLVS-2410 Respect NET repackaging
+        LoadAnalyzersAndRules(analyzersLocator.GetBasicAnalyzerFullPathsByLanguage());
 
-        foreach (var languageAndAnalyzers in analyzersLocator
-                     .GetBasicAnalyzerFullPathsByLanguage())
+    private ImmutableDictionary<Language, AnalyzersAndSupportedRules> LoadAnalyzersAndRules(Dictionary<Language, List<string>> analyzerFullPathsByLanguage)
+    {
+        var builder = ImmutableDictionary.CreateBuilder<Language, AnalyzersAndSupportedRules>();
+
+        foreach (var languageAndAnalyzers in analyzerFullPathsByLanguage)
         {
             var supportedDiagnostics = ImmutableHashSet.CreateBuilder<string>();
             var analyzers = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
@@ -48,7 +50,7 @@ internal class RoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersL
                 supportedDiagnostics.UnionWith(diagnosticAnalyzer.SupportedDiagnostics.Select(x => x.Id));
             }
 
-            builder.Add(languageAndAnalyzers.Key, new AnalyzersAndSupportedDiagnostics(analyzers.ToImmutable(), supportedDiagnostics.ToImmutable()));
+            builder.Add(languageAndAnalyzers.Key, new AnalyzersAndSupportedRules(analyzers.ToImmutable(), supportedDiagnostics.ToImmutable()));
         }
 
         return builder.ToImmutable();

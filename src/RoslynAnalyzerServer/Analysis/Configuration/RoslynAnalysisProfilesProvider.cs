@@ -19,15 +19,18 @@
  */
 
 using System.Collections.Immutable;
+using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
+[Export(typeof(IRoslynAnalysisProfilesProvider))]
+[PartCreationPolicy(CreationPolicy.Shared)]
 internal class RoslynAnalysisProfilesProvider : IRoslynAnalysisProfilesProvider
 {
     public Dictionary<Language, RoslynAnalysisProfile> GetAnalysisProfilesByLanguage(
-        ImmutableDictionary<Language, AnalyzersAndSupportedDiagnostics> supportedDiagnosticsByLanguage,
+        ImmutableDictionary<Language, AnalyzersAndSupportedRules> supportedDiagnosticsByLanguage,
         List<ActiveRuleDto> activeRules,
         Dictionary<string, string>? analysisProperties)
     {
@@ -38,7 +41,7 @@ internal class RoslynAnalysisProfilesProvider : IRoslynAnalysisProfilesProvider
         return roslynAnalysisProfiles;
     }
 
-    private static Dictionary<Language, RoslynAnalysisProfile> InitializeProfilesForEachLanguage(ImmutableDictionary<Language, AnalyzersAndSupportedDiagnostics> supportedDiagnosticsByLanguage)
+    private static Dictionary<Language, RoslynAnalysisProfile> InitializeProfilesForEachLanguage(ImmutableDictionary<Language, AnalyzersAndSupportedRules> supportedDiagnosticsByLanguage)
     {
         var roslynAnalysisProfiles = supportedDiagnosticsByLanguage.Keys.ToDictionary(x => x, _ => new RoslynAnalysisProfile([], []));
         return roslynAnalysisProfiles;
@@ -67,7 +70,7 @@ internal class RoslynAnalysisProfilesProvider : IRoslynAnalysisProfilesProvider
 
     private static void AddRules(
         List<ActiveRuleDto> activeRules,
-        ImmutableDictionary<Language, AnalyzersAndSupportedDiagnostics> supportedDiagnosticsByLanguage,
+        ImmutableDictionary<Language, AnalyzersAndSupportedRules> supportedDiagnosticsByLanguage,
         Dictionary<Language, RoslynAnalysisProfile> roslynAnalysisProfiles)
     {
         foreach (var activeRule in activeRules)
@@ -85,7 +88,7 @@ internal class RoslynAnalysisProfilesProvider : IRoslynAnalysisProfilesProvider
             analysisProfile.Rules.Add(
                 new RoslynRuleConfiguration(
                     ruleId,
-                    supportedDiagnosticsByLanguage[ruleId.Language].SupportedDiagnosticIds.Contains(ruleId.RuleKey),
+                    supportedDiagnosticsByLanguage[ruleId.Language].SupportedRuleKeys.Contains(ruleId.RuleKey),
                     activeRule.RuleParameters));
         }
     }
