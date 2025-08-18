@@ -18,25 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
-using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
-[Export(typeof(IRuleStatusProvider))]
-[PartCreationPolicy(CreationPolicy.Shared)]
-internal class RuleStatusProvider : IRuleStatusProvider
+internal interface IRoslynAnalyzerLoader
 {
-    public ImmutableDictionary<string, ReportDiagnostic> GetDiagnosticOptions(IEnumerable<string> diagnosticIds, Dictionary<string, ActiveRoslynRule> activeDiagnosticIds)
-    {
-        var resultBuilder = ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>();
-        foreach (var analyzerDiagnosticId in diagnosticIds)
-        {
-            resultBuilder.Add(analyzerDiagnosticId, activeDiagnosticIds.ContainsKey(analyzerDiagnosticId) ? ReportDiagnostic.Warn : ReportDiagnostic.Suppress);
-        }
-
-        return resultBuilder.ToImmutable();
-    }
-
+    IReadOnlyCollection<DiagnosticAnalyzer> LoadAnalyzers(string filePath);
 }

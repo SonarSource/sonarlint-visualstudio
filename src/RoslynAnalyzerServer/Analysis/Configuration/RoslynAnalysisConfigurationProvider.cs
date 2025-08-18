@@ -18,38 +18,42 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
-internal record struct ActiveRoslynRule(string RuleId, Dictionary<string, string>? Parameters);
-
-internal class RoslynAnalysisConfigurationProvider
+internal interface IRoslynAnalysisConfigurationProvider
 {
-    private IRuleStatusProvider ruleStatusProvider;
-    private ISonarLintXmlProvider sonarLintXmlProvider;
-    private IAnalyzerProvider analyzerProvider;
-    private ILanguageProvider languageProvider;
+    Dictionary<Language, RoslynAnalysisConfiguration> GetConfiguration(List<ActiveRuleDto> activeRules, Dictionary<string, string>? analysisProperties);
+}
 
-    Dictionary<Language, RoslynAnalysisConfiguration> GetConfiguration(List<ActiveRuleDto> activeRules, Dictionary<string, string>? analysisProperties)
+[method: ImportingConstructor]
+internal class RoslynAnalysisConfigurationProvider(
+    IRoslynRuleStatusConverter roslynRuleStatusConverter,
+    ISonarLintXmlProvider sonarLintXmlProvider,
+    IRoslynAnalyzerProvider roslynAnalyzerProvider,
+    ILanguageProvider languageProvider) : IRoslynAnalysisConfigurationProvider
+{
+    public Dictionary<Language, RoslynAnalysisConfiguration> GetConfiguration(List<ActiveRuleDto> activeRules, Dictionary<string, string>? analysisProperties)
     {
-        var analyzersByLanguage = analyzerProvider.GetAnalyzersByLanguage();
-        var ruleConfiguration = GetRuleConfiguration(activeRules);
+        var analyzersByLanguage = roslynAnalyzerProvider.GetAnalyzersByLanguage();
+        var ruleConfigurationByLanguage = GetRuleConfigurationByLanguage(activeRules);
 
-        return languageProvider.RoslynLanguages.ToDictionary(x => x, y =>
+        return languageProvider.RoslynLanguages.ToDictionary(x => x, language =>
         {
-            var analyzersCollection = analyzersByLanguage[y];
-            var activeRulesConfiguration = ruleConfiguration[y];
+            var analyzersCollection = analyzersByLanguage[language];
+            var activeRulesConfiguration = ruleConfigurationByLanguage[language];
 
             return new RoslynAnalysisConfiguration(
                 sonarLintXmlProvider.Create(activeRulesConfiguration.Values, analysisProperties),
-                ruleStatusProvider.GetDiagnosticOptions(analyzersCollection.SupportedDiagnosticIds, activeRulesConfiguration),
+                roslynRuleStatusConverter.GetDiagnosticOptions(analyzersCollection.SupportedDiagnosticIds, activeRulesConfiguration),
                 analyzersCollection.Analyzers);
         });
     }
 
-    private IReadOnlyDictionary<Language, Dictionary<string, ActiveRoslynRule>> GetRuleConfiguration(List<ActiveRuleDto> activeRules)
+    private IReadOnlyDictionary<Language, Dictionary<string, ActiveRoslynRule>> GetRuleConfigurationByLanguage(List<ActiveRuleDto> activeRules)
     {
         var dictionary = languageProvider.RoslynLanguages.ToDictionary(x => x, y => new Dictionary<string, ActiveRoslynRule>());
 
@@ -65,7 +69,7 @@ internal class RoslynAnalysisConfigurationProvider
                 continue;
             }
 
-            value.Add(ruleId.RuleKey, new ActiveRoslynRule(ruleId.RuleKey, activeRule.RuleParameters));
+            value.Add(ruleId.RuleKey, new ActiveRoslynRule(ruleId, activeRule.RuleParameters));
         }
 
         return dictionary;

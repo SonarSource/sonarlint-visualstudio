@@ -26,17 +26,17 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis.Configuration;
 
 [TestClass]
-public class RuleStatusProviderTests
+public class RoslynRuleStatusConverterTests
 {
-    private readonly RuleStatusProvider testSubject = new();
+    private readonly RoslynRuleStatusConverter testSubject = new();
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<RuleStatusProvider, IRuleStatusProvider>();
+        MefTestHelpers.CheckTypeCanBeImported<RoslynRuleStatusConverter, IRoslynRuleStatusConverter>();
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() =>
-        MefTestHelpers.CheckIsSingletonMefComponent<RuleStatusProvider>();
+        MefTestHelpers.CheckIsSingletonMefComponent<RoslynRuleStatusConverter>();
 
     [TestMethod]
     public void GetDiagnosticOptions_EmptyDiagnosticIds_ReturnsEmptyDictionary()

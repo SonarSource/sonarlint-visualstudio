@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.Core.CSharpVB;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
-internal class AnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersLocator, IAnalyzerLoader analyzerLoader) : IAnalyzerProvider
+internal class RoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersLocator, IRoslynAnalyzerLoader roslynAnalyzerLoader) : IRoslynAnalyzerProvider
 {
     public ImmutableDictionary<Language, AnalyzersAndSupportedDiagnostics> GetAnalyzersByLanguage()
     {
@@ -38,7 +38,7 @@ internal class AnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersLocator
             var supportedDiagnostics = ImmutableArray.CreateBuilder<string>();
             var analyzers = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
 
-            foreach (var diagnosticAnalyzer in languageAndAnalyzers.Value.SelectMany(analyzerLoader.LoadAnalyzers))
+            foreach (var diagnosticAnalyzer in languageAndAnalyzers.Value.SelectMany(roslynAnalyzerLoader.LoadAnalyzers))
             {
                 analyzers.Add(diagnosticAnalyzer);
                 supportedDiagnostics.AddRange(diagnosticAnalyzer.SupportedDiagnostics.Select(x => x.Id));

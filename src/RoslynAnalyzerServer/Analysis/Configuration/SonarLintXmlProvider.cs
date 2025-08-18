@@ -31,7 +31,7 @@ internal class SonarLintXmlProvider(ISonarLintConfigurationXmlSerializer sonarLi
         {
             Settings = ConvertDictionary(analysisProperties),
             Rules = activeRules
-                .Select(x => new SonarLintRule { Key = x.RuleId, Parameters = ConvertDictionary(x.Parameters) })
+                .Select(x => new SonarLintRule { Key = x.RuleId.RuleKey, Parameters = ConvertDictionary(x.Parameters) })
                 .ToList()
         };
 

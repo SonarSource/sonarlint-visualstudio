@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
-internal interface IRuleStatusProvider
+internal interface IRoslynRuleStatusConverter
 {
     ImmutableDictionary<string, ReportDiagnostic> GetDiagnosticOptions(IEnumerable<string> diagnosticIds, Dictionary<string, ActiveRoslynRule> activeDiagnosticIds);
 }

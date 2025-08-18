@@ -18,15 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
-internal interface IAnalyzerProvider
-{
-    ImmutableDictionary<Language, AnalyzersAndSupportedDiagnostics> GetAnalyzersByLanguage();
-}
-
-internal record struct AnalyzersAndSupportedDiagnostics(ImmutableArray<DiagnosticAnalyzer> Analyzers, ImmutableArray<string> SupportedDiagnosticIds);
+internal record struct ActiveRoslynRule(SonarCompositeRuleId RuleId, Dictionary<string, string>? Parameters);
