@@ -26,17 +26,21 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
 internal class RoslynAnalysisProfilesProvider : IRoslynAnalysisProfilesProvider
 {
-    private readonly ILanguageProvider languageProvider;
-
     public Dictionary<Language, RoslynAnalysisProfile> GetAnalysisProfilesByLanguage(
+        ImmutableDictionary<Language, AnalyzersAndSupportedDiagnostics> supportedDiagnosticsByLanguage,
         List<ActiveRuleDto> activeRules,
-        Dictionary<string, string>? analysisProperties,
-        ImmutableDictionary<Language, AnalyzersAndSupportedDiagnostics> supportedDiagnosticsByLanguage)
+        Dictionary<string, string>? analysisProperties)
     {
-        var roslynAnalysisProfiles = languageProvider.RoslynLanguages.ToDictionary(x => x, _ => new RoslynAnalysisProfile([], []));
+        var roslynAnalysisProfiles = InitializeProfilesForEachLanguage(supportedDiagnosticsByLanguage);
         AddRules(activeRules, supportedDiagnosticsByLanguage, roslynAnalysisProfiles);
         AddProperties(analysisProperties, roslynAnalysisProfiles);
 
+        return roslynAnalysisProfiles;
+    }
+
+    private static Dictionary<Language, RoslynAnalysisProfile> InitializeProfilesForEachLanguage(ImmutableDictionary<Language, AnalyzersAndSupportedDiagnostics> supportedDiagnosticsByLanguage)
+    {
+        var roslynAnalysisProfiles = supportedDiagnosticsByLanguage.Keys.ToDictionary(x => x, _ => new RoslynAnalysisProfile([], []));
         return roslynAnalysisProfiles;
     }
 

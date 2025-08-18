@@ -18,12 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
+[Export(typeof(IRoslynAnalyzerLoader))]
+[PartCreationPolicy(CreationPolicy.Shared)]
 internal class RoslynAnalyzerLoader : IRoslynAnalyzerLoader
 {
     [ExcludeFromCodeCoverage]

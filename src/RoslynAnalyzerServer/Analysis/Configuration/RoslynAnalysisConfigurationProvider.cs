@@ -37,7 +37,7 @@ internal class RoslynAnalysisConfigurationProvider(
     public Dictionary<Language, RoslynAnalysisConfiguration> GetConfiguration(List<ActiveRuleDto> activeRules, Dictionary<string, string>? analysisProperties)
     {
         var analyzersByLanguage = roslynAnalyzerProvider.GetAnalyzersByLanguage();
-        var analysisProfilesByLanguage = analyzerProfilesProvider.GetAnalysisProfilesByLanguage(activeRules, analysisProperties, analyzersByLanguage);
+        var analysisProfilesByLanguage = analyzerProfilesProvider.GetAnalysisProfilesByLanguage(analyzersByLanguage, activeRules, analysisProperties);
 
         return languageProvider.RoslynLanguages.ToDictionary(x => x, language =>
         {

@@ -27,9 +27,9 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 internal interface IRoslynAnalysisProfilesProvider
 {
     Dictionary<Language, RoslynAnalysisProfile> GetAnalysisProfilesByLanguage(
+        ImmutableDictionary<Language, AnalyzersAndSupportedDiagnostics> supportedDiagnosticsByLanguage,
         List<ActiveRuleDto> activeRules,
-        Dictionary<string, string>? analysisProperties,
-        ImmutableDictionary<Language, AnalyzersAndSupportedDiagnostics> supportedDiagnosticsByLanguage);
+        Dictionary<string, string>? analysisProperties);
 }
 
 internal record struct RoslynAnalysisProfile(List<RoslynRuleConfiguration> Rules, Dictionary<string, string> AnalysisProperties);

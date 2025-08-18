@@ -19,12 +19,16 @@
  */
 
 using System.Collections.Immutable;
+using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CSharpVB;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
+[Export(typeof(IRoslynAnalyzerProvider))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
 internal class RoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersLocator, IRoslynAnalyzerLoader roslynAnalyzerLoader) : IRoslynAnalyzerProvider
 {
     public ImmutableDictionary<Language, AnalyzersAndSupportedDiagnostics> GetAnalyzersByLanguage()
