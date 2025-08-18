@@ -21,9 +21,7 @@
 using System.IO;
 using System.Text;
 using NSubstitute.ClearExtensions;
-using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
@@ -237,7 +235,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
             .Do(info =>
             {
                 var raiseIssuesParams = info.Arg<RaiseFindingParams<RaisedIssueDto>>();
-                if (!raiseIssuesParams.isIntermediatePublication)
+                if (!raiseIssuesParams.isIntermediatePublication && raiseIssuesParams.issuesByFileUri.Any())
                 {
                     analysisRaisedIssues.SetResult(raiseIssuesParams);
                 }
