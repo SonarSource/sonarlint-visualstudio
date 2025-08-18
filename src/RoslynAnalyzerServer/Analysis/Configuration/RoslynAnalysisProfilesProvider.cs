@@ -30,21 +30,47 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 internal class RoslynAnalysisProfilesProvider : IRoslynAnalysisProfilesProvider
 {
     public Dictionary<Language, RoslynAnalysisProfile> GetAnalysisProfilesByLanguage(
-        ImmutableDictionary<Language, AnalyzersAndSupportedRules> supportedDiagnosticsByLanguage,
+        ImmutableDictionary<Language, AnalyzersAndSupportedRules> supportedRulesByLanguage,
         List<ActiveRuleDto> activeRules,
         Dictionary<string, string>? analysisProperties)
     {
-        var roslynAnalysisProfiles = InitializeProfilesForEachLanguage(supportedDiagnosticsByLanguage);
-        AddRules(activeRules, supportedDiagnosticsByLanguage, roslynAnalysisProfiles);
+        var roslynAnalysisProfiles = InitializeProfilesForEachLanguage(supportedRulesByLanguage);
+        AddRules(activeRules, supportedRulesByLanguage, roslynAnalysisProfiles);
         AddProperties(analysisProperties, roslynAnalysisProfiles);
 
         return roslynAnalysisProfiles;
     }
 
-    private static Dictionary<Language, RoslynAnalysisProfile> InitializeProfilesForEachLanguage(ImmutableDictionary<Language, AnalyzersAndSupportedRules> supportedDiagnosticsByLanguage)
+    private static Dictionary<Language, RoslynAnalysisProfile> InitializeProfilesForEachLanguage(ImmutableDictionary<Language, AnalyzersAndSupportedRules> supportedRulesByLanguage)
     {
-        var roslynAnalysisProfiles = supportedDiagnosticsByLanguage.Keys.ToDictionary(x => x, _ => new RoslynAnalysisProfile([], []));
+        var roslynAnalysisProfiles = supportedRulesByLanguage.Keys.ToDictionary(x => x, _ => new RoslynAnalysisProfile([], []));
         return roslynAnalysisProfiles;
+    }
+
+    private static void AddRules(
+        List<ActiveRuleDto> activeRules,
+        ImmutableDictionary<Language, AnalyzersAndSupportedRules> supportedRulesByLanguage,
+        Dictionary<Language, RoslynAnalysisProfile> roslynAnalysisProfiles)
+    {
+        var activeRulesById = activeRules.ToDictionary(x => x.RuleId, y => y);
+
+        foreach (var kvp in supportedRulesByLanguage)
+        {
+            var language = kvp.Key;
+
+            if (!roslynAnalysisProfiles.TryGetValue(language, out var analysisProfile))
+            {
+                continue;
+            }
+
+            foreach (var ruleKey in kvp.Value.SupportedRuleKeys)
+            {
+                var ruleId = new SonarCompositeRuleId(language.RepoInfo.Key, ruleKey);
+                analysisProfile.Rules.Add(activeRulesById.TryGetValue(ruleId.ErrorListErrorCode, out var activeRule)
+                    ? new RoslynRuleConfiguration(ruleId, true, activeRule.Parameters)
+                    : new RoslynRuleConfiguration(ruleId, false, null));
+            }
+        }
     }
 
     private static void AddProperties(Dictionary<string, string>? analysisProperties, Dictionary<Language, RoslynAnalysisProfile> roslynAnalysisProfiles)
@@ -58,38 +84,14 @@ internal class RoslynAnalysisProfilesProvider : IRoslynAnalysisProfilesProvider
         {
             var prefix = $"sonar.{languageAndProfile.Key.ServerLanguageKey}.";
 
-            foreach (var analysisProperty in analysisProperties.Where(analysisProperty => IsSettingForLanguage(prefix, analysisProperty.Key)))
+            foreach (var analysisProperty in analysisProperties.Where(analysisProperty => IsPropertyForLanguage(prefix, analysisProperty.Key)))
             {
                 languageAndProfile.Value.AnalysisProperties.Add(analysisProperty.Key, analysisProperty.Value);
             }
         }
     }
 
-    private static bool IsSettingForLanguage(string prefix, string propertyKey) =>
+    private static bool IsPropertyForLanguage(string prefix, string propertyKey) =>
         propertyKey.StartsWith(prefix) && propertyKey.Length > prefix.Length;
 
-    private static void AddRules(
-        List<ActiveRuleDto> activeRules,
-        ImmutableDictionary<Language, AnalyzersAndSupportedRules> supportedDiagnosticsByLanguage,
-        Dictionary<Language, RoslynAnalysisProfile> roslynAnalysisProfiles)
-    {
-        foreach (var activeRule in activeRules)
-        {
-            if (!SonarCompositeRuleId.TryParse(activeRule.RuleKey, out var ruleId))
-            {
-                continue;
-            }
-
-            if (!roslynAnalysisProfiles.TryGetValue(ruleId.Language, out var analysisProfile))
-            {
-                continue;
-            }
-
-            analysisProfile.Rules.Add(
-                new RoslynRuleConfiguration(
-                    ruleId,
-                    supportedDiagnosticsByLanguage[ruleId.Language].SupportedRuleKeys.Contains(ruleId.RuleKey),
-                    activeRule.RuleParameters));
-        }
-    }
 }

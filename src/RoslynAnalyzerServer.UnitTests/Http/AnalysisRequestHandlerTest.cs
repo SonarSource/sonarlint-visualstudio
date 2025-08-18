@@ -280,7 +280,7 @@ public class AnalysisRequestHandlerTest
         result!.FileNames.Should().HaveCount(1);
         result.FileNames[0].Should().Be(FileUri);
         result.ActiveRules.Should().HaveCount(1);
-        result.ActiveRules[0].RuleKey.Should().Be(DiagnosticId);
+        result.ActiveRules[0].RuleId.Should().Be(DiagnosticId);
     }
 
     private void MockValidRequest()

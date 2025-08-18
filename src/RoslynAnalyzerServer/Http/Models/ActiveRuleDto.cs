@@ -18,13 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Newtonsoft.Json;
-
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
-// TODO by https://sonarsource.atlassian.net/browse/SLVS-2473 update DTO to match the one from plugin side
 public record ActiveRuleDto(
-    [property: JsonProperty(PropertyName = "ruleId")]
-    string RuleKey,
-    [property: JsonProperty(PropertyName = "params")]
-    Dictionary<string, string> RuleParameters);
+    string RuleId,
+    Dictionary<string, string> Parameters);
