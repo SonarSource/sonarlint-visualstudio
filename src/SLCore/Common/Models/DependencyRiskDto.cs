@@ -30,6 +30,8 @@ public record DependencyRiskDto(
     DependencyRiskStatus status,
     string packageName,
     string packageVersion,
+    string? vulnerabilityId,
+    string? cvssScore,
     List<DependencyRiskTransition> transitions);
 
 public enum DependencyRiskSeverity

@@ -51,6 +51,8 @@ public class ScaIssueDtoToDependencyRiskConverterTests
         var testId = Guid.NewGuid();
         const string packageName = "TestPackage";
         const string packageVersion = "1.2.4";
+        const string vulnerabilityId = "CVE-2023-12345";
+        const string cvssScore = "7.5";
         var dto = new DependencyRiskDto(
             testId,
             DependencyRiskType.VULNERABILITY,
@@ -58,6 +60,8 @@ public class ScaIssueDtoToDependencyRiskConverterTests
             DependencyRiskStatus.CONFIRM,
             packageName,
             packageVersion,
+            vulnerabilityId,
+            cvssScore,
             [DependencyRiskTransition.CONFIRM, DependencyRiskTransition.REOPEN]);
 
         var result = testSubject.Convert(dto);
@@ -70,6 +74,8 @@ public class ScaIssueDtoToDependencyRiskConverterTests
                 Core.Analysis.DependencyRiskStatus.Confirmed,
                 packageName,
                 packageVersion,
+                vulnerabilityId,
+                cvssScore,
                 [Core.Analysis.DependencyRiskTransition.Confirm, Core.Analysis.DependencyRiskTransition.Reopen]
             ));
     }

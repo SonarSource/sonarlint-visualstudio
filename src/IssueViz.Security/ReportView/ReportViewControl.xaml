@@ -121,6 +121,7 @@
                 <Setter Property="FontStyle" Value="Italic" />
                 <Setter Property="FontSize"
                         Value="{DynamicResource {x:Static vsShell:VsFonts.Environment90PercentFontSizeKey}}" />
+                <Setter Property="Margin" Value="1,0" />
             </Style>
 
             <ContextMenu x:Key="DependencyRiskContextMenu" Loaded="DependencyRiskContextMenu_OnLoaded">
@@ -157,6 +158,14 @@
                         <Setter Property="BorderThickness" Value="1" />
                         <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverKey}}" />
                     </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="VulnerabilityOnlyTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource TypeTextBoxStyle}">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding}" Value="{x:Null}">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </DataTrigger>
                 </Style.Triggers>
             </Style>
             
@@ -250,6 +259,8 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <Image Grid.Column="0" Height="17" VerticalAlignment="Center">
                             <Image.Source>
@@ -270,18 +281,46 @@
                                 </StackPanel>
                             </Image.ToolTip>
                         </Image>
-                        <TextBlock Grid.Column="1" Text="{Binding DependencyRisk.PackageName, StringFormat={}{0}:}" Margin="2,0"
+                        <TextBlock Grid.Column="1" Text="{Binding DependencyRisk.PackageName, StringFormat={}{0}:}" Margin="2,0,0,0"
                                    Style="{StaticResource IssueTextBlockStyle}" />
-                        <TextBlock Grid.Column="2" Text="{Binding DependencyRisk.PackageVersion}" Margin="1,0"
-                                   Style="{StaticResource IssueTextBlockStyle}" />
-                        <TextBlock Grid.Column="3"
-                                   Text="{Binding DependencyRisk.Status, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}"
-                                   Margin="3,0"
-                                   Style="{StaticResource TypeTextBoxStyle}" />
-                        <TextBlock Grid.Column="4"
-                                   Text="{Binding DependencyRisk.Type, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}"
-                                   Margin="3,0"
-                                   Style="{StaticResource TypeTextBoxStyle}" />
+                        <TextBlock Grid.Column="2" Text="{Binding DependencyRisk.PackageVersion}" Margin="0,0,1,0"
+                                   Style="{StaticResource IssueTextBlockStyle}"/>
+
+                        <Grid Grid.Column="3" VerticalAlignment="Center">
+                             <Grid.ColumnDefinitions>
+                             <ColumnDefinition Width="Auto" />
+                             <ColumnDefinition Width="Auto" />
+                             <ColumnDefinition Width="Auto" />
+                             <ColumnDefinition Width="Auto" />
+                             <ColumnDefinition Width="Auto" />
+                             <ColumnDefinition Width="Auto" />
+                         </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       Style="{StaticResource TypeTextBoxStyle}">
+                                <Run Text="("/><Run Text="{Binding DependencyRisk.Type, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}, Mode=OneWay}"/><Run Text=")"/>
+                            </TextBlock>
+                            <TextBlock Grid.Column="1"
+                                       Style="{StaticResource TypeTextBoxStyle}"
+                                       Margin="2,0"
+                                       FontStyle="Oblique">
+                                <Run Text="{Binding DependencyRisk.Status, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}, Mode=OneWay}"/>
+                            </TextBlock>
+                            <TextBlock Grid.Column="2" 
+                                       DataContext="{Binding DependencyRisk.CvssScore, Mode=OneWay}"
+                                       Text="-" 
+                                       Margin="4,0,3,0"
+                                       Style="{StaticResource VulnerabilityOnlyTextBlockStyle}"/>
+                            <TextBlock Grid.Column="3"
+                                       Margin="4,0,0,0"
+                                       DataContext="{Binding DependencyRisk.CvssScore, Mode=OneWay}"
+                                       Style="{StaticResource VulnerabilityOnlyTextBlockStyle}">
+                                <Run Text="[" /><Run Text="{Binding ., Mode=OneWay}"/><Run Text="]"/>
+                            </TextBlock>
+                            <TextBlock Grid.Column="4"
+                                       Text="{Binding DependencyRisk.VulnerabilityId}"
+                                       Style="{StaticResource VulnerabilityOnlyTextBlockStyle}" />
+                        </Grid>
+                        
                     </Grid>
                 </DataTemplate>
             </TreeView.Resources>

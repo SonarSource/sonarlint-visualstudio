@@ -122,6 +122,8 @@ public class DependencyRisksListenerTests
             default,
             string.Empty,
             string.Empty,
+            default,
+            default,
             []);
         var dependencyRisk = Substitute.For<IDependencyRisk>();
         converter.Convert(riskDto).Returns(dependencyRisk);

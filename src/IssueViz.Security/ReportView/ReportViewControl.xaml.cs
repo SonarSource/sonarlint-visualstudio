@@ -39,7 +39,6 @@ internal sealed partial class ReportViewControl : UserControl
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly IBrowserService browserService;
 
-
     public ReportViewModel ReportViewModel { get; }
     public IResourceFinder ResourceFinder { get; } = new ResourceFinder();
 
@@ -81,6 +80,10 @@ internal sealed partial class ReportViewControl : UserControl
 
     private static T FindParentOfType<T>(FrameworkElement element) where T : FrameworkElement
     {
+        if (element == null)
+        {
+            return null;
+        }
         var parent = VisualTreeHelper.GetParent(element);
         while (parent != null)
         {

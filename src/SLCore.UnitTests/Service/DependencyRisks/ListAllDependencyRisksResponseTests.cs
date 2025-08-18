@@ -41,6 +41,8 @@ public class ListAllDependencyRisksResponseTests
                         "status": "OPEN",
                         "packageName": "vulnerable-package",
                         "packageVersion": "1.0.0",
+                        "vulnerabilityId": "CVE-2023-12345",
+                        "cvssScore": "6.0",
                         "transitions": ["CONFIRM", "SAFE"]
                     },
                     {
@@ -50,6 +52,8 @@ public class ListAllDependencyRisksResponseTests
                         "status": "CONFIRM",
                         "packageName": "license-issue-package",
                         "packageVersion": "2.1.0",
+                        "vulnerabilityId": "CVE-2020-12345",
+                        "cvssScore": "9.0",
                         "transitions": ["REOPEN", "ACCEPT"]
                     }
                 ]
@@ -59,24 +63,28 @@ public class ListAllDependencyRisksResponseTests
         var result = JsonConvert.DeserializeObject<ListAllDependencyRisksResponse>(json);
 
         var expected = new ListAllDependencyRisksResponse(
-            [
-                new(
-                    Guid.Parse("71814600-2924-4B88-9E1A-1AF0B46F8D48"),
-                    DependencyRiskType.VULNERABILITY,
-                    DependencyRiskSeverity.HIGH,
-                    DependencyRiskStatus.OPEN,
-                    "vulnerable-package",
-                    "1.0.0",
-                    [DependencyRiskTransition.CONFIRM, DependencyRiskTransition.SAFE]),
-                new(
-                    Guid.Parse("EA425B61-AF22-48AC-98E1-78B644D34876"),
-                    DependencyRiskType.PROHIBITED_LICENSE,
-                    DependencyRiskSeverity.MEDIUM,
-                    DependencyRiskStatus.CONFIRM,
-                    "license-issue-package",
-                    "2.1.0",
-                    [DependencyRiskTransition.REOPEN, DependencyRiskTransition.ACCEPT])
-            ]);
+        [
+            new(
+                Guid.Parse("71814600-2924-4B88-9E1A-1AF0B46F8D48"),
+                DependencyRiskType.VULNERABILITY,
+                DependencyRiskSeverity.HIGH,
+                DependencyRiskStatus.OPEN,
+                "vulnerable-package",
+                "1.0.0",
+                "CVE-2023-12345",
+                "6.0",
+                [DependencyRiskTransition.CONFIRM, DependencyRiskTransition.SAFE]),
+            new(
+                Guid.Parse("EA425B61-AF22-48AC-98E1-78B644D34876"),
+                DependencyRiskType.PROHIBITED_LICENSE,
+                DependencyRiskSeverity.MEDIUM,
+                DependencyRiskStatus.CONFIRM,
+                "license-issue-package",
+                "2.1.0",
+                "CVE-2020-12345",
+                "9.0",
+                [DependencyRiskTransition.REOPEN, DependencyRiskTransition.ACCEPT])
+        ]);
 
         result.Should().BeEquivalentTo(expected, options => options.ComparingByMembers<ListAllDependencyRisksResponse>().ComparingByMembers<DependencyRiskDto>());
     }

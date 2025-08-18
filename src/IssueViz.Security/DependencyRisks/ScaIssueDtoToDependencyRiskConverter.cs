@@ -40,6 +40,8 @@ internal class ScaIssueDtoToDependencyRiskConverter : IScaIssueDtoToDependencyRi
             dto.status.ToDependencyRiskStatus(),
             dto.packageName,
             dto.packageVersion,
+            dto.vulnerabilityId,
+            dto.cvssScore,
             dto.transitions.Select(x => x.ToDependencyRiskTransition())
                 .ToList());
 }
