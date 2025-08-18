@@ -18,8 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.CodeAnalysis;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
-internal record struct ActiveRoslynRule(SonarCompositeRuleId RuleId, Dictionary<string, string>? Parameters);
+internal readonly record struct RoslynRuleConfiguration(SonarCompositeRuleId RuleId, bool IsActive, Dictionary<string, string>? Parameters)
+{
+    public ReportDiagnostic ReportDiagnostic => IsActive ? ReportDiagnostic.Warn : ReportDiagnostic.Suppress;
+}

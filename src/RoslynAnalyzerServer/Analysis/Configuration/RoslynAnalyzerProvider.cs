@@ -35,13 +35,13 @@ internal class RoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersL
         foreach (var languageAndAnalyzers in analyzersLocator
                      .GetBasicAnalyzerFullPathsByLanguage())
         {
-            var supportedDiagnostics = ImmutableArray.CreateBuilder<string>();
+            var supportedDiagnostics = ImmutableHashSet.CreateBuilder<string>();
             var analyzers = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
 
             foreach (var diagnosticAnalyzer in languageAndAnalyzers.Value.SelectMany(roslynAnalyzerLoader.LoadAnalyzers))
             {
                 analyzers.Add(diagnosticAnalyzer);
-                supportedDiagnostics.AddRange(diagnosticAnalyzer.SupportedDiagnostics.Select(x => x.Id));
+                supportedDiagnostics.UnionWith(diagnosticAnalyzer.SupportedDiagnostics.Select(x => x.Id));
             }
 
             builder.Add(languageAndAnalyzers.Key, new AnalyzersAndSupportedDiagnostics(analyzers.ToImmutable(), supportedDiagnostics.ToImmutable()));

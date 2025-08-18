@@ -22,5 +22,5 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
 internal interface ISonarLintXmlProvider
 {
-    SonarLintXmlConfiguration Create(IEnumerable<ActiveRoslynRule> activeRules, Dictionary<string, string>? analysisProperties);
+    SonarLintXmlConfigurationFile Create(RoslynAnalysisProfile analysisProfile);
 }

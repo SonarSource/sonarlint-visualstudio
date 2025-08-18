@@ -18,24 +18,30 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using System.IO;
 using SonarLint.VisualStudio.Core.CSharpVB;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
+[Export(typeof(ISonarLintXmlProvider))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
 internal class SonarLintXmlProvider(ISonarLintConfigurationXmlSerializer sonarLintConfigurationXmlSerializer) : ISonarLintXmlProvider
 {
-    public SonarLintXmlConfiguration Create(IEnumerable<ActiveRoslynRule> activeRules, Dictionary<string, string>? analysisProperties)
+    public SonarLintXmlConfigurationFile Create(RoslynAnalysisProfile languageProfile)
     {
         var sonarLintConfiguration = new SonarLintConfiguration
         {
-            Settings = ConvertDictionary(analysisProperties),
-            Rules = activeRules
+            Settings = ConvertDictionary(languageProfile.AnalysisProperties),
+            Rules = languageProfile
+                .Rules
+                .Where(x => x.IsActive)
                 .Select(x => new SonarLintRule { Key = x.RuleId.RuleKey, Parameters = ConvertDictionary(x.Parameters) })
                 .ToList()
         };
 
-        return new SonarLintXmlConfiguration(Path.GetTempPath(), sonarLintConfigurationXmlSerializer.Serialize(sonarLintConfiguration));
+        return new SonarLintXmlConfigurationFile(Path.GetTempPath(), sonarLintConfigurationXmlSerializer.Serialize(sonarLintConfiguration));
     }
 
     private static List<SonarLintKeyValuePair>? ConvertDictionary(Dictionary<string, string>? dictionary) => dictionary?.Select(ConvertKeyValuePair).ToList();

@@ -29,4 +29,4 @@ internal interface IRoslynAnalyzerProvider
     ImmutableDictionary<Language, AnalyzersAndSupportedDiagnostics> GetAnalyzersByLanguage();
 }
 
-internal record struct AnalyzersAndSupportedDiagnostics(ImmutableArray<DiagnosticAnalyzer> Analyzers, ImmutableArray<string> SupportedDiagnosticIds);
+internal record struct AnalyzersAndSupportedDiagnostics(ImmutableArray<DiagnosticAnalyzer> Analyzers, ImmutableHashSet<string> SupportedDiagnosticIds);

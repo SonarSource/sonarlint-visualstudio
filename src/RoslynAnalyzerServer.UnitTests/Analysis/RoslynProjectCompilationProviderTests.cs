@@ -46,7 +46,7 @@ public class RoslynProjectCompilationProviderTests
     private AdditionalText existingAdditionalFile = null!;
     private TestLogger logger = null!;
     private IRoslynProjectWrapper project = null!;
-    private SonarLintXmlConfiguration sonarLintXml = null!;
+    private SonarLintXmlConfigurationFile sonarLintXml = null!;
     private RoslynProjectCompilationProvider testSubject = null!;
 
     [TestInitialize]
@@ -157,7 +157,7 @@ public class RoslynProjectCompilationProviderTests
 
     private void SetUpAdditionalFiles()
     {
-        sonarLintXml = new SonarLintXmlConfiguration(@"C:\B\A", "content");
+        sonarLintXml = new SonarLintXmlConfigurationFile(@"C:\B\A", "content");
 
         existingAdditionalFile = Substitute.For<AdditionalText>();
         existingAdditionalFile.Path.Returns(@"c:\path\to\existing.txt");
