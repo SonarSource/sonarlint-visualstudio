@@ -32,10 +32,10 @@ public class EmbeddedDotnetAnalyzersLocatorTests
 {
     private const string PathInsideVsix = "C:\\somePath";
 
-    private readonly string CSharpRegularAnalyzer = GetAnalyzerFullPath(PathInsideVsix, "SonarAnalyzer.CSharp.dll");
-    private readonly string VbRegularAnalyzer = GetAnalyzerFullPath(PathInsideVsix, "SonarAnalyzer.VisualBasic.dll");
-    private readonly string CSharpEnterpriseAnalyzer = GetAnalyzerFullPath(PathInsideVsix, "SonarAnalyzer.Enterprise.CSharp.dll");
-    private readonly string VbEnterpriseAnalyzer = GetAnalyzerFullPath(PathInsideVsix, "SonarAnalyzer.Enterprise.VisualBasic.dll");
+    private static readonly string CSharpRegularAnalyzer = GetAnalyzerFullPath(PathInsideVsix, "SonarAnalyzer.CSharp.dll");
+    private static readonly string VbRegularAnalyzer = GetAnalyzerFullPath(PathInsideVsix, "SonarAnalyzer.VisualBasic.dll");
+    private static readonly string CSharpEnterpriseAnalyzer = GetAnalyzerFullPath(PathInsideVsix, "SonarAnalyzer.Enterprise.CSharp.dll");
+    private static readonly string VbEnterpriseAnalyzer = GetAnalyzerFullPath(PathInsideVsix, "SonarAnalyzer.Enterprise.VisualBasic.dll");
 
     private EmbeddedDotnetAnalyzersLocator testSubject;
     private IVsixRootLocator vsixRootLocator;
