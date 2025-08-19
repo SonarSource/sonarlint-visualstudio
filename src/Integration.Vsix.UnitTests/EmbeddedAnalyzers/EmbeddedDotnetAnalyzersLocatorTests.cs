@@ -20,6 +20,9 @@
 
 using System.IO;
 using System.IO.Abstractions;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.CSharpVB;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using SonarLint.VisualStudio.Integration.Vsix.EmbeddedAnalyzers;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
@@ -33,14 +36,16 @@ public class EmbeddedDotnetAnalyzersLocatorTests
 
     private EmbeddedDotnetAnalyzersLocator testSubject;
     private IVsixRootLocator vsixRootLocator;
-    private IFileSystem fileSystem;
+    private IFileSystemService fileSystem;
+    private ILanguageProvider languageProvider;
 
     [TestInitialize]
     public void TestInitialize()
     {
         vsixRootLocator = Substitute.For<IVsixRootLocator>();
-        fileSystem = Substitute.For<IFileSystem>();
-        testSubject = new EmbeddedDotnetAnalyzersLocator(vsixRootLocator, fileSystem);
+        languageProvider = Substitute.For<ILanguageProvider>();
+        fileSystem = Substitute.For<IFileSystemService>();
+        testSubject = new EmbeddedDotnetAnalyzersLocator(vsixRootLocator, languageProvider, fileSystem);
     }
 
     [TestMethod]
