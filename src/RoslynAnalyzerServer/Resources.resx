@@ -155,6 +155,7 @@
   </data>
   <data name="DefaultSecondaryLocationTitleTemplate" xml:space="preserve">
     <value>Location {0}</value>
+   </data>
   <data name="RoslynAnalysisLogContext" xml:space="preserve">
     <value>Roslyn Analysis</value>
   </data>
