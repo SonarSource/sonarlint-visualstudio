@@ -21,38 +21,52 @@
 using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
-using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.CSharpVB;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.EmbeddedAnalyzers;
 
 [Export(typeof(IEmbeddedDotnetAnalyzersLocator))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class EmbeddedDotnetAnalyzersLocator : IEmbeddedDotnetAnalyzersLocator
+[method: ImportingConstructor]
+internal class EmbeddedDotnetAnalyzersLocator(IVsixRootLocator vsixRootLocator, ILanguageProvider languageProvider, IFileSystemService fileSystem) : IEmbeddedDotnetAnalyzersLocator
 {
     private const string PathInsideVsix = "EmbeddedDotnetAnalyzerDLLs";
     private const string DllsSearchPattern = "SonarAnalyzer.*.dll"; // starting from 10.0, the analyzer assemblies are merged and all of the dll names start with SonarAnalyzer
     private const string EnterpriseInfix = ".Enterprise."; // enterprise analyzer assemblies are included in the same folder and need to be filtered out
 
-    private readonly IFileSystem fileSystem;
-    private readonly IVsixRootLocator vsixRootLocator;
+    private readonly IFileSystem fileSystem = fileSystem;
 
-    [ImportingConstructor]
-    public EmbeddedDotnetAnalyzersLocator(IVsixRootLocator vsixRootLocator) : this(vsixRootLocator, new FileSystem())
-    {
-    }
+    public List<string> GetBasicAnalyzerFullPaths() => GetBasicAnalyzerDlls().ToList();
 
-    internal EmbeddedDotnetAnalyzersLocator(IVsixRootLocator vsixRootLocator, IFileSystem fileSystem)
-    {
-        this.vsixRootLocator = vsixRootLocator;
-        this.fileSystem = fileSystem;
-    }
+    public Dictionary<Language, List<string>> GetBasicAnalyzerFullPathsByLanguage() => GroupByLanguage(GetBasicAnalyzerDlls());
 
-    public List<string> GetBasicAnalyzerFullPaths() => GetAnalyzerDlls().Where(x => !x.Contains(EnterpriseInfix)).ToList();
+    private IEnumerable<string> GetBasicAnalyzerDlls() => GetAllAnalyzerDlls().Where(x => !x.Contains(EnterpriseInfix));
 
-    public List<string> GetEnterpriseAnalyzerFullPaths() => GetAnalyzerDlls().ToList();
+    public List<string> GetEnterpriseAnalyzerFullPaths() => GetAllAnalyzerDlls().ToList();
 
-    private string[] GetAnalyzerDlls() => fileSystem.Directory.GetFiles(GetPathToParentFolder(), DllsSearchPattern);
+    public Dictionary<Language, List<string>> GetEnterpriseAnalyzerFullPathsByLanguage() => GroupByLanguage(GetAllAnalyzerDlls());
+
+    private string[] GetAllAnalyzerDlls() => fileSystem.Directory.GetFiles(GetPathToParentFolder(), DllsSearchPattern);
 
     private string GetPathToParentFolder() => Path.Combine(vsixRootLocator.GetVsixRoot(), PathInsideVsix);
+
+
+    private Dictionary<Language, List<string>> GroupByLanguage(IEnumerable<string> analyzerDlls)
+    {
+        var result = languageProvider.RoslynLanguages.ToDictionary(x => x, _ => new List<string>());
+
+        foreach (var analyzerDll in analyzerDlls)
+        {
+            var dllLanguage = result.Keys.FirstOrDefault(x => analyzerDll.Contains(x.RoslynDllIdentifier));
+            if (dllLanguage != null)
+            {
+                result[dllLanguage].Add(analyzerDll);
+            }
+        }
+
+        return result;
+    }
 }

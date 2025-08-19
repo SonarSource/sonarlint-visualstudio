@@ -18,11 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-public interface IEmbeddedDotnetAnalyzersLocator
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis.Configuration;
+
+[TestClass]
+public class RoslynAnalyzerLoaderTests
 {
-    List<string> GetBasicAnalyzerFullPaths();
+    [TestMethod]
+    public void MefCtor_CheckIsExported() => MefTestHelpers.CheckTypeCanBeImported<RoslynAnalyzerLoader, IRoslynAnalyzerLoader>();
 
-    List<string> GetEnterpriseAnalyzerFullPaths();
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<RoslynAnalyzerLoader>();
 }
