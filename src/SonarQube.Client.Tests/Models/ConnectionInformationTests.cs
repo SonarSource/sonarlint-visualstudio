@@ -20,7 +20,7 @@
 
 using System.Security;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarQube.Client.Helpers;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Tests.Models

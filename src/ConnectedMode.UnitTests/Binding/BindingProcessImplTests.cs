@@ -18,19 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Security;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
-using SonarQube.Client.Helpers;
-using System.Security;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 {
@@ -116,7 +111,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 
         #region Helpers
 
-        private BindingProcessImpl CreateTestSubject(BindCommandArgs bindingArgs = null,
+        private BindingProcessImpl CreateTestSubject(
+            BindCommandArgs bindingArgs = null,
             IQualityProfileDownloader qpDownloader = null,
             ILogger logger = null)
         {
@@ -147,6 +143,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
                 actualPassword.ToUnsecureString().Should().Be(expectedRawPassword);
             }
         }
+
         #endregion Helpers
     }
 }

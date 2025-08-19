@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Common.Models;
@@ -33,7 +34,6 @@ using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Connection;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
-using SonarQube.Client.Helpers;
 using IConnectionCredentials = SonarLint.VisualStudio.Core.Binding.IConnectionCredentials;
 
 namespace SonarLint.VisualStudio.ConnectedMode;
@@ -43,7 +43,6 @@ public interface ISlCoreConnectionAdapter
     Task<ResponseStatus> ValidateConnectionAsync(ConnectionInfo connectionInfo, ICredentialsModel credentialsModel);
 
     Task<ResponseStatusWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel, CloudServerRegion cloudServerRegion);
-
 
     Task<ResponseStatusWithData<ServerProject>> GetServerProjectByKeyAsync(ServerConnection serverConnection, string serverProjectKey);
 

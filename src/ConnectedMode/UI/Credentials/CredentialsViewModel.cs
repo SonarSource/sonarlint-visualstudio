@@ -21,8 +21,8 @@
 using System.IO;
 using System.Security;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.WPF;
-using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 

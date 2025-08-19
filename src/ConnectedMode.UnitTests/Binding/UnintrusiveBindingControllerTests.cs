@@ -22,9 +22,9 @@ using System.Security;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
-using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 using Task = System.Threading.Tasks.Task;
 

@@ -5,6 +5,24 @@ namespace SonarLint.VisualStudio.Core.Helpers;
 
 public static class SecureStringExtensions
 {
+    /// <summary>
+    /// Create a read-only copy of a <see cref="SecureString"/>.
+    /// </summary>
+    /// <remarks>
+    /// Equivalent to calling <see cref="SecureString.Copy"/> followed by <see cref="SecureString.MakeReadOnly"/>.
+    /// </remarks>
+    /// <returns>Read-only copy of <see cref="SecureString"/></returns>
+    public static SecureString CopyAsReadOnly(this SecureString secureString)
+    {
+        SecureString copy = secureString.Copy();
+        copy.MakeReadOnly();
+        return copy;
+    }
+
+    public static bool IsEmpty(this SecureString secureString) => secureString.Length == 0;
+
+    public static bool IsNullOrEmpty(this SecureString secureString) => secureString == null || secureString.IsEmpty();
+
     public static SecureString ToSecureString(this string str)
     {
         if (str == null)

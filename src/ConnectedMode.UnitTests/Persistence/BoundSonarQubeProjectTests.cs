@@ -18,12 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarQube.Client.Helpers;
+using SonarLint.VisualStudio.Core.Helpers;
+using JsonHelper = SonarQube.Client.Helpers.JsonHelper;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
