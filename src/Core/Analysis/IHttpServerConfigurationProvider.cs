@@ -20,7 +20,12 @@
 
 using System.Security;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
+namespace SonarLint.VisualStudio.Core.Analysis;
+
+public interface IHttpServerConfigurationProvider
+{
+    IHttpServerConfiguration CurrentConfiguration { get; }
+}
 
 public interface IHttpServerConfiguration
 {

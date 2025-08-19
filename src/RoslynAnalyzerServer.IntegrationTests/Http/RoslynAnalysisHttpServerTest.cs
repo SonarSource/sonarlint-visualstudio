@@ -23,6 +23,8 @@ using System.Net.Http;
 using System.Security;
 using System.Text;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.IntegrationTests.Http.Helper;
@@ -168,7 +170,7 @@ public class RoslynAnalysisHttpServerTest
     [TestMethod]
     public async Task StartListenAsync_InvalidToken_ReturnsUnauthorized()
     {
-        var response = await HttpRequester.SendRequest(CreateClientRequestConfig(token: "wrongToken".ToSecureString()));
+        var response = await HttpRequester.SendRequest(CreateClientRequestConfig(token: SecureStringExtensions.ToSecureString("wrongToken")));
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }

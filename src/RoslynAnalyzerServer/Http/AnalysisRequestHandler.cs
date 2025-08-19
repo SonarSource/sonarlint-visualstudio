@@ -24,6 +24,8 @@ using System.Net;
 using System.Net.Http;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Adapters;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 

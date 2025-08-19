@@ -1,11 +1,11 @@
 ﻿using System.Runtime.InteropServices;
 using System.Security;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
+namespace SonarLint.VisualStudio.Core.Helpers;
 
-internal static class SecureStringExtensions
+public static class SecureStringExtensions
 {
-    internal static SecureString ToSecureString(this string str)
+    public static SecureString ToSecureString(this string str)
     {
         if (str == null)
         {

@@ -23,13 +23,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Security;
 using System.Security.Cryptography;
+using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Helpers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
-
-public interface IHttpServerConfigurationProvider
-{
-    IHttpServerConfiguration CurrentConfiguration { get; }
-}
 
 internal interface IHttpServerConfigurationFactory
 {

@@ -19,6 +19,8 @@
  */
 
 using System.Net;
+using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 using SonarLint.VisualStudio.TestInfrastructure;
 
