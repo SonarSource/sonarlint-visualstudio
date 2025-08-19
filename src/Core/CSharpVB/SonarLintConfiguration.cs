@@ -63,17 +63,28 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
         [XmlArrayItem(ElementName = "Setting")]
         public List<SonarLintKeyValuePair> Settings { get; set; } = new List<SonarLintKeyValuePair>();
 
-        [ XmlArrayItem(ElementName = "Rule")]
+        [XmlArrayItem(ElementName = "Rule")]
         public List<SonarLintRule> Rules { get; set; } = new List<SonarLintRule>();
     }
 
     public class SonarLintRule
     {
+        private List<SonarLintKeyValuePair> parameters = [];
         [XmlElement]
         public string Key { get; set; }
 
         [XmlArrayItem(ElementName = "Parameter")]
-        public List<SonarLintKeyValuePair> Parameters { get; set; } = new List<SonarLintKeyValuePair>();
+        public List<SonarLintKeyValuePair> Parameters
+        {
+            get => parameters;
+            set
+            {
+                if (value != null)
+                {
+                    parameters = value;
+                }
+            }
+        }
     }
 
     // The SonarLint.xml file has Settings elements and
