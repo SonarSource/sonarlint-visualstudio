@@ -30,7 +30,7 @@ public class DiagnosticToRoslynIssueConverter : IDiagnosticToRoslynIssueConverte
 {
     public RoslynIssue ConvertToSonarDiagnostic(Diagnostic diagnostic, Language language) =>
         // todo SLVS-2427 quick fixes
-        new(new SonarCompositeRuleId(language.RepoInfo.Key, diagnostic.Id).ErrorListErrorCode,
+        new(SonarCompositeRuleId.GetFullErrorCode(language.RepoInfo.Key, diagnostic.Id),
             ConvertLocation(diagnostic.Location.GetMappedLineSpan(), diagnostic.GetMessage()),
             ConvertSecondaryLocations(diagnostic));
 

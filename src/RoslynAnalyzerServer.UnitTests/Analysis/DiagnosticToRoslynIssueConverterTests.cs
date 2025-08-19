@@ -30,11 +30,14 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 [TestClass]
 public class DiagnosticToRoslynIssueConverterTests
 {
+    private static readonly ImmutableDictionary<string, string?> SecondaryLocationMessages =
+        new Dictionary<string, string?> { { "0", "First secondary message" }, { "1", "Second secondary message" } }.ToImmutableDictionary();
+    private static readonly ImmutableDictionary<string, string?> NoSecondaryLocationMessages = null;
+
     private readonly DiagnosticToRoslynIssueConverter testSubject = new();
 
     [TestMethod]
-    public void MefCtor_CheckExports() =>
-        MefTestHelpers.CheckTypeCanBeImported<DiagnosticToRoslynIssueConverter, IDiagnosticToRoslynIssueConverter>();
+    public void MefCtor_CheckExports() => MefTestHelpers.CheckTypeCanBeImported<DiagnosticToRoslynIssueConverter, IDiagnosticToRoslynIssueConverter>();
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<DiagnosticToRoslynIssueConverter>();
@@ -50,14 +53,20 @@ public class DiagnosticToRoslynIssueConverterTests
     [DataTestMethod]
     [DynamicData(nameof(TestData))]
     public void ConvertToSonarDiagnostic_ConvertsDiagnosticCorrectly(
-        Language language, string ruleId, string message, string filePath,
-        int startLine, int endLine, int startChar, int endChar)
+        Language language,
+        string ruleId,
+        string message,
+        string filePath,
+        int startLine,
+        int endLine,
+        int startChar,
+        int endChar)
     {
         var location = CreateLocation(filePath, startLine, endLine, startChar, endChar);
         var diagnostic = CreateDiagnostic(ruleId, message, location);
         var expectedTextRange = new RoslynIssueTextRange(
-            startLine + 1,  // Convert to 1-based
-            endLine + 1,    // Convert to 1-based
+            startLine + 1, // Convert to 1-based
+            endLine + 1, // Convert to 1-based
             startChar,
             endChar);
         var expectedLocation = new RoslynIssueLocation(
@@ -77,40 +86,25 @@ public class DiagnosticToRoslynIssueConverterTests
     public static object?[][] SecondaryLocationTestData =>
     [
         [
-            new Dictionary<string, string?>
-            {
-                {"0", "First secondary message"},
-                {"1", "Second secondary message"}
-            }.ToImmutableDictionary(),
-            new[]
-            {
-                "First secondary message",
-                "Second secondary message"
-            }
+            SecondaryLocationMessages,
+            SecondaryLocationMessages.OrderBy(x => x.Key).Select(x => x.Value).ToArray()
         ],
         [
-            null,
-            new[]
-            {
-                "Location 0",
-                "Location 1"
-            }
+            NoSecondaryLocationMessages,
+            new[] { "Location 0", "Location 1" }
         ]
     ];
 
     [DataTestMethod]
     [DynamicData(nameof(SecondaryLocationTestData))]
     public void ConvertToSonarDiagnostic_WithSecondaryLocations_ConvertsCorrectly(
-        ImmutableDictionary<string, string?>? properties, string[] expectedMessages)
+        ImmutableDictionary<string, string?>? properties,
+        string[] expectedMessages)
     {
         const string fileCs = "c:\\test\\file.cs";
         const string file2Cs = "c:\\test\\file2.cs";
         var primaryLocation = CreateLocation(fileCs, 5, 5, 10, 15);
-        var additionalLocations = new[]
-        {
-            CreateLocation(fileCs, 10, 10, 20, 25),
-            CreateLocation(file2Cs, 15, 15, 30, 35)
-        };
+        var additionalLocations = new[] { CreateLocation(fileCs, 10, 10, 20, 25), CreateLocation(file2Cs, 15, 15, 30, 35) };
         var diagnostic = CreateDiagnostic("any", "any", primaryLocation, additionalLocations, properties);
         var expectedFlows = new[]
         {
@@ -132,7 +126,12 @@ public class DiagnosticToRoslynIssueConverterTests
         result.Flows.Should().BeEquivalentTo(expectedFlows);
     }
 
-    private static Location CreateLocation(string filePath, int startLine, int endLine, int startChar, int endChar)
+    private static Location CreateLocation(
+        string filePath,
+        int startLine,
+        int endLine,
+        int startChar,
+        int endChar)
     {
         var textSpan = new TextSpan(12, 34);
         var syntaxTree = Substitute.For<SyntaxTree>();
@@ -144,8 +143,12 @@ public class DiagnosticToRoslynIssueConverterTests
         return Location.Create(syntaxTree, textSpan);
     }
 
-    private static Diagnostic CreateDiagnostic(string id, string message, Location location,
-        Location[]? additionalLocations = null, ImmutableDictionary<string, string?>? properties = null)
+    private static Diagnostic CreateDiagnostic(
+        string id,
+        string message,
+        Location location,
+        Location[]? additionalLocations = null,
+        ImmutableDictionary<string, string?>? properties = null)
     {
         var descriptor = new DiagnosticDescriptor(
             id,
