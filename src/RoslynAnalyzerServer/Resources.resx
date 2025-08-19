@@ -153,4 +153,7 @@
   <data name="HttpServerStarting" xml:space="preserve">
     <value>Staring http server for roslyn analysis...</value>
   </data>
+  <data name="DefaultSecondaryLocationTitleTemplate" xml:space="preserve">
+    <value>Location {0}</value>
+  </data>
 </root>
