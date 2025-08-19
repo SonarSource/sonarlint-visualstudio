@@ -19,21 +19,31 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer;
 
 // TODO by https://sonarsource.atlassian.net/browse/SLVS-2473 replace with real analysis engine
-internal interface IAnalysisEngine
+internal interface IRoslynAnalysisService
 {
-    Task<List<DiagnosticDto>> AnalyzeAsync(List<FileUri> fileNames, List<ActiveRuleDto> activeRules, CancellationToken cancellationToken);
+    Task<IEnumerable<RoslynIssue>> AnalyzeAsync(List<FileUri> files, List<ActiveRuleDto> activeRules, Dictionary<string, string> analysisProperties, CancellationToken cancellationToken);
 }
 
-[Export(typeof(IAnalysisEngine))]
+[Export(typeof(IRoslynAnalysisService))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class AnalysisEngine() : IAnalysisEngine
+internal class RoslynAnalysisService(IRoslynAnalysisEngine analysisEngine, IRoslynAnalysisConfigurationProvider analysisConfigurationProvider, IRoslynSolutionAnalysisCommandProvider analysisCommandProvider) : IRoslynAnalysisService
 {
-    public Task<List<DiagnosticDto>> AnalyzeAsync(List<FileUri> fileNames, List<ActiveRuleDto> activeRules, CancellationToken cancellationToken) => Task.FromResult(new List<DiagnosticDto>());
+    public Task<IEnumerable<RoslynIssue>> AnalyzeAsync(
+        List<FileUri> files,
+        List<ActiveRuleDto> activeRules,
+        Dictionary<string, string> analysisProperties,
+        CancellationToken cancellationToken) =>
+        analysisEngine.AnalyzeAsync(
+            analysisCommandProvider.GetAnalysisCommandsForCurrentSolution(files.Select(x => x.LocalPath).ToArray()),
+            analysisConfigurationProvider.GetConfiguration(activeRules, analysisProperties),
+            cancellationToken);
 }
