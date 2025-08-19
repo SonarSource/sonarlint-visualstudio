@@ -75,6 +75,7 @@ public class RoslynAnalysisProfilesProviderTests
         result.Keys.Should().BeEquivalentTo(Language.CSharp, Language.VBNET);
         ValidateProfile(
             result[Language.CSharp],
+            supportedDiagnostics[Language.CSharp].Analyzers,
             [
                 CreateRuleConfiguration(Language.CSharp, "S001", new() { { "param1", "value1" } }),
                 CreateRuleConfiguration(Language.CSharp, "S002", isActive: false),
@@ -83,6 +84,7 @@ public class RoslynAnalysisProfilesProviderTests
             new() { { "sonar.cs.property1", "value1" } });
         ValidateProfile(
             result[Language.VBNET],
+            supportedDiagnostics[Language.VBNET].Analyzers,
             [
                 CreateRuleConfiguration(Language.VBNET, "S001", isActive: false),
                 CreateRuleConfiguration(Language.VBNET, "S002", parameters: new() { { "param2", "value2" } }),
@@ -91,8 +93,8 @@ public class RoslynAnalysisProfilesProviderTests
             new Dictionary<string, string> { { "sonar.vbnet.property2", "value2" } });
     }
 
-    private static void ValidateProfile(RoslynAnalysisProfile profile, List<RoslynRuleConfiguration> rules, Dictionary<string, string> analysisProperties) =>
-        profile.Should().BeEquivalentTo(new RoslynAnalysisProfile(rules, analysisProperties), options => options.ComparingByMembers<RoslynRuleConfiguration>().ComparingByMembers<RoslynAnalysisProfile>());
+    private static void ValidateProfile(RoslynAnalysisProfile profile, IEnumerable<DiagnosticAnalyzer> diagnosticAnalyzers, List<RoslynRuleConfiguration> rules, Dictionary<string, string> analysisProperties) =>
+        profile.Should().BeEquivalentTo(new RoslynAnalysisProfile(diagnosticAnalyzers.ToImmutableArray(), rules, analysisProperties), options => options.ComparingByMembers<RoslynRuleConfiguration>().ComparingByMembers<RoslynAnalysisProfile>());
 
     private static RoslynRuleConfiguration CreateRuleConfiguration(
         Language language,

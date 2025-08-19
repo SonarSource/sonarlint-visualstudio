@@ -43,7 +43,7 @@ internal class RoslynAnalysisProfilesProvider : IRoslynAnalysisProfilesProvider
 
     private static Dictionary<Language, RoslynAnalysisProfile> InitializeProfilesForEachLanguage(ImmutableDictionary<Language, AnalyzersAndSupportedRules> supportedRulesByLanguage)
     {
-        var roslynAnalysisProfiles = supportedRulesByLanguage.Keys.ToDictionary(x => x, _ => new RoslynAnalysisProfile([], []));
+        var roslynAnalysisProfiles = supportedRulesByLanguage.ToDictionary(x => x.Key, x => new RoslynAnalysisProfile(x.Value.Analyzers, [], []));
         return roslynAnalysisProfiles;
     }
 

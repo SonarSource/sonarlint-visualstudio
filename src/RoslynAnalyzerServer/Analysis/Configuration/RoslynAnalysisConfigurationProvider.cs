@@ -31,25 +31,32 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 internal class RoslynAnalysisConfigurationProvider(
     ISonarLintXmlProvider sonarLintXmlProvider,
     IRoslynAnalyzerProvider roslynAnalyzerProvider,
-    IRoslynAnalysisProfilesProvider analyzerProfilesProvider,
-    ILanguageProvider languageProvider) : IRoslynAnalysisConfigurationProvider
+    IRoslynAnalysisProfilesProvider analyzerProfilesProvider) : IRoslynAnalysisConfigurationProvider
 {
-    public Dictionary<Language, RoslynAnalysisConfiguration> GetConfiguration(List<ActiveRuleDto> activeRules, Dictionary<string, string>? analysisProperties)
+    public IReadOnlyDictionary<Language, RoslynAnalysisConfiguration> GetConfiguration(List<ActiveRuleDto> activeRules, Dictionary<string, string>? analysisProperties)
     {
-        var analyzersByLanguage = roslynAnalyzerProvider.GetAnalyzersByLanguage();
-        var analysisProfilesByLanguage = analyzerProfilesProvider.GetAnalysisProfilesByLanguage(analyzersByLanguage, activeRules, analysisProperties);
+        var analysisProfilesByLanguage = analyzerProfilesProvider.GetAnalysisProfilesByLanguage(roslynAnalyzerProvider.GetAnalyzersByLanguage(), activeRules, analysisProperties);
 
-        return languageProvider.RoslynLanguages.ToDictionary(x => x, language =>
+        var configurations = new Dictionary<Language, RoslynAnalysisConfiguration>();
+        foreach (var analyzerAndLanguage in analysisProfilesByLanguage)
         {
-            var analyzersCollection = analyzersByLanguage[language];
-            var analysisProfile = analysisProfilesByLanguage[language];
+            var language = analyzerAndLanguage.Key;
+            var analysisProfile = analyzerAndLanguage.Value;
 
-            return new RoslynAnalysisConfiguration(
-                sonarLintXmlProvider.Create(analysisProfile),
-                analysisProfile.Rules.ToImmutableDictionary(x => x.RuleId.RuleKey, y => y.ReportDiagnostic),
-                analyzersCollection.Analyzers);
-        });
+            if (analysisProfile is not { Analyzers.Length: > 0 } || !analysisProfile.Rules.Any(r => r.IsActive))
+            {
+                // todo log?
+                continue;
+            }
+
+            configurations.Add(
+                language,
+                new RoslynAnalysisConfiguration(
+                    sonarLintXmlProvider.Create(analysisProfile),
+                    analysisProfile.Rules.ToImmutableDictionary(x => x.RuleId.RuleKey, y => y.ReportDiagnostic),
+                    analysisProfile.Analyzers));
+        }
+
+        return configurations;
     }
-
-
 }

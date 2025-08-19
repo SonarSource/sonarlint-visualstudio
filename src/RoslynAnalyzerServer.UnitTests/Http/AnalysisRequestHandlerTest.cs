@@ -269,7 +269,7 @@ public class AnalysisRequestHandlerTest
     [TestMethod]
     public async Task ParseAnalysisRequestBody_RequestBodyValid_ReturnsExpectedModel()
     {
-        var validRequestJson = $"{{\"FileNames\":[\"{FileUri}\"],\"ActiveRules\":[{{\"RuleKey\":\"{DiagnosticId}\"}}]}}";
+        var validRequestJson = $"{{\"FileNames\":[\"{FileUri}\"],\"ActiveRules\":[{{\"RuleId\":\"{DiagnosticId}\"}}]}}";
         var stream = new MemoryStream(Encoding.UTF8.GetBytes(validRequestJson));
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
