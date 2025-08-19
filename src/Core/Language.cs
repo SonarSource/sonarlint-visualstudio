@@ -64,8 +64,8 @@ namespace SonarLint.VisualStudio.Core
 
         public static readonly Language Unknown = new();
         public static readonly Language CSharp = new("CSharp", CoreStrings.CSharpLanguageName, "cs", SqvsRoslynPlugin, CSharpRepo, CSharpSecurityRepo,
-            settingsFileName: "sonarlint_csharp.globalconfig", additionalPlugins: [CSharpPlugin]);
-        public static readonly Language VBNET = new("VB", CoreStrings.VBNetLanguageName, "vbnet", SqvsRoslynPlugin, VbNetRepo, settingsFileName: "sonarlint_vb.globalconfig",
+            settingsFileName: "sonarlint_csharp.globalconfig", roslynDllIdentifier: ".CSharp.", additionalPlugins: [CSharpPlugin]);
+        public static readonly Language VBNET = new("VB", CoreStrings.VBNetLanguageName, "vbnet", SqvsRoslynPlugin, VbNetRepo, settingsFileName: "sonarlint_vb.globalconfig", roslynDllIdentifier: ".CSharp.",
             additionalPlugins: [VbNetPlugin]);
         public static readonly Language Cpp = new("C++", CoreStrings.CppLanguageName, "cpp", CFamilyPlugin, CppRepo);
         public static readonly Language C = new("C", "C", "c", CFamilyPlugin, CRepo);
@@ -108,6 +108,11 @@ namespace SonarLint.VisualStudio.Core
         /// </summary>
         public PluginInfo[] AdditionalPlugins { get; }
 
+        /// <summary>
+        /// A substring that is contained in the name of the analyzer files for specific roslyn language. Null for non-roslyn languages.
+        /// </summary>
+        public string RoslynDllIdentifier { get; }
+
         public RepoInfo RepoInfo { get; }
 
         /// <summary>
@@ -133,7 +138,8 @@ namespace SonarLint.VisualStudio.Core
             RepoInfo repoInfo,
             RepoInfo securityRepoInfo = null,
             string settingsFileName = null,
-            PluginInfo[] additionalPlugins = null)
+            PluginInfo[] additionalPlugins = null,
+            string roslynDllIdentifier = null)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -149,6 +155,7 @@ namespace SonarLint.VisualStudio.Core
             Name = name;
             SettingsFileNameAndExtension = settingsFileName;
             AdditionalPlugins = additionalPlugins;
+            RoslynDllIdentifier = roslynDllIdentifier;
             ServerLanguageKey = serverLanguageKey ?? throw new ArgumentNullException(nameof(serverLanguageKey));
             PluginInfo = pluginInfo ?? throw new ArgumentNullException(nameof(pluginInfo));
             RepoInfo = repoInfo ?? throw new ArgumentNullException(nameof(repoInfo));
