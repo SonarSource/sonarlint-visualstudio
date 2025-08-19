@@ -32,7 +32,7 @@ public class DiagnosticToRoslynIssueConverterTests
 {
     private static readonly ImmutableDictionary<string, string?> SecondaryLocationMessages =
         new Dictionary<string, string?> { { "0", "First secondary message" }, { "1", "Second secondary message" } }.ToImmutableDictionary();
-    private static readonly ImmutableDictionary<string, string?> NoSecondaryLocationMessages = null;
+    private static readonly ImmutableDictionary<string, string?>? NoSecondaryLocationMessages = null;
 
     private readonly DiagnosticToRoslynIssueConverter testSubject = new();
 
