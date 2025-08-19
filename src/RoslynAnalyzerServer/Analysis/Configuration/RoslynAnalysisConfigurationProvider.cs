@@ -31,10 +31,15 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 internal class RoslynAnalysisConfigurationProvider(
     ISonarLintXmlProvider sonarLintXmlProvider,
     IRoslynAnalyzerProvider roslynAnalyzerProvider,
-    IRoslynAnalysisProfilesProvider analyzerProfilesProvider) : IRoslynAnalysisConfigurationProvider
+    IRoslynAnalysisProfilesProvider analyzerProfilesProvider,
+    ILogger logger) : IRoslynAnalysisConfigurationProvider
 {
+    private readonly ILogger logger = logger.ForContext(Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisConfigurationLogContext);
+
     public IReadOnlyDictionary<Language, RoslynAnalysisConfiguration> GetConfiguration(List<ActiveRuleDto> activeRules, Dictionary<string, string>? analysisProperties)
     {
+        // todo add caching here?
+
         var analysisProfilesByLanguage = analyzerProfilesProvider.GetAnalysisProfilesByLanguage(roslynAnalyzerProvider.GetAnalyzersByLanguage(), activeRules, analysisProperties);
 
         var configurations = new Dictionary<Language, RoslynAnalysisConfiguration>();
@@ -43,9 +48,17 @@ internal class RoslynAnalysisConfigurationProvider(
             var language = analyzerAndLanguage.Key;
             var analysisProfile = analyzerAndLanguage.Value;
 
-            if (analysisProfile is not { Analyzers.Length: > 0 } || !analysisProfile.Rules.Any(r => r.IsActive))
+            var languageLogContext = new MessageLevelContext { VerboseContext = [language.Id] };
+
+            if (analysisProfile is not { Analyzers.Length: > 0 })
             {
-                // todo log?
+                logger.LogVerbose(languageLogContext, Resources.RoslynAnalysisConfigurationNoAnalyzers, language.Name);
+                continue;
+            }
+
+            if (!analysisProfile.Rules.Any(r => r.IsActive))
+            {
+                logger.LogVerbose(languageLogContext, Resources.RoslynAnalysisConfigurationNoActiveRules, language.Name);
                 continue;
             }
 

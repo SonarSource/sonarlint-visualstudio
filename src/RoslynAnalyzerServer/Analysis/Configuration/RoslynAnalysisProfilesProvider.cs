@@ -93,5 +93,4 @@ internal class RoslynAnalysisProfilesProvider : IRoslynAnalysisProfilesProvider
 
     private static bool IsPropertyForLanguage(string prefix, string propertyKey) =>
         propertyKey.StartsWith(prefix) && propertyKey.Length > prefix.Length;
-
 }
