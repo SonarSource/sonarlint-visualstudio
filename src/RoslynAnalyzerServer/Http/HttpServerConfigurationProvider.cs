@@ -37,16 +37,33 @@ internal interface IHttpServerConfigurationFactory
 [Export(typeof(IHttpServerConfigurationProvider))]
 [Export(typeof(IHttpServerConfigurationFactory))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-internal class HttpServerConfigurationProvider() : IHttpServerConfigurationProvider, IHttpServerConfigurationFactory
+internal class HttpServerConfigurationProvider : IHttpServerConfigurationProvider, IHttpServerConfigurationFactory
 {
+    private readonly object lockObj = new();
+    private IHttpServerConfiguration currentConfiguration = null!;
+
+    [ImportingConstructor]
+    public HttpServerConfigurationProvider() => SetNewConfiguration();
+
     public IHttpServerConfiguration SetNewConfiguration()
     {
-        CurrentConfiguration = new HttpServerConfiguration();
-        return CurrentConfiguration;
+        lock (lockObj)
+        {
+            currentConfiguration = new HttpServerConfiguration();
+            return currentConfiguration;
+        }
     }
 
-    public IHttpServerConfiguration CurrentConfiguration { get; private set; } = new HttpServerConfiguration();
+    public IHttpServerConfiguration CurrentConfiguration
+    {
+        get
+        {
+            lock (lockObj)
+            {
+                return currentConfiguration;
+            }
+        }
+    }
 
     private sealed class HttpServerConfiguration : IHttpServerConfiguration
     {
