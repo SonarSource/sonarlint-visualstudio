@@ -175,5 +175,41 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
                 return ResourceManager.GetString("HttpServerStarting", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configuration.
+        /// </summary>
+        internal static string RoslynAnalysisConfigurationLogContext {
+            get {
+                return ResourceManager.GetString("RoslynAnalysisConfigurationLogContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No active rules loaded for language {0}.
+        /// </summary>
+        internal static string RoslynAnalysisConfigurationNoActiveRules {
+            get {
+                return ResourceManager.GetString("RoslynAnalysisConfigurationNoActiveRules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No analyzers loaded for language {0}.
+        /// </summary>
+        internal static string RoslynAnalysisConfigurationNoAnalyzers {
+            get {
+                return ResourceManager.GetString("RoslynAnalysisConfigurationNoAnalyzers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Roslyn Analysis.
+        /// </summary>
+        internal static string RoslynAnalysisLogContext {
+            get {
+                return ResourceManager.GetString("RoslynAnalysisLogContext", resourceCulture);
+            }
+        }
     }
 }
