@@ -18,9 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 public record AnalysisResponse
 {
-    public List<DiagnosticDto> Diagnostics { get; set; } = [];
+    public List<RoslynIssue> Diagnostics { get; set; } = [];
 }

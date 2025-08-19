@@ -35,7 +35,7 @@ internal sealed class RoslynAnalysisHttpServer(
     IHttpRequestHandler httpRequestHandler,
     IHttpListenerFactory httpListenerFactory,
     IHttpServerConfigurationFactory httpServerConfigurationFactory,
-    IAnalysisEngine analysisEngine) : IRoslynAnalysisHttpServer
+    IRoslynAnalysisService roslynAnalysisService) : IRoslynAnalysisHttpServer
 {
     private readonly CancellationTokenSource cancellationTokenSource = new();
     private readonly ILogger logger = logger.ForContext(Resources.HttpServerLogContext).ForContext(nameof(RoslynAnalysisHttpServer));
@@ -153,8 +153,8 @@ internal sealed class RoslynAnalysisHttpServer(
             return;
         }
 
-        var diagnostics = await analysisEngine.AnalyzeAsync(analysisRequest.FileNames, analysisRequest.ActiveRules, cancellationToken);
+        var diagnostics = await roslynAnalysisService.AnalyzeAsync(analysisRequest.FileNames, analysisRequest.ActiveRules, analysisRequest.AnalysisProperties, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
-        await httpRequestHandler.SendResponse(context, analysisRequestHandler.ParseAnalysisRequestResponse(diagnostics));
+        await httpRequestHandler.SendResponse(context, analysisRequestHandler.ParseAnalysisRequestResponse(diagnostics.ToList()));
     }
 }

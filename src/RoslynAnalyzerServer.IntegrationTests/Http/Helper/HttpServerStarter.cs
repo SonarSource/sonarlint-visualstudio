@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 using SonarLint.VisualStudio.SLCore.Common.Models;
@@ -32,7 +33,7 @@ internal sealed class HttpServerStarter : IDisposable
     internal IHttpServerConfigurationProvider HttpServerConfigurationProvider { get; }
     internal RoslynAnalysisHttpServer RoslynAnalysisHttpServer { get; }
     internal ILogger MockedLogger { get; } = CreateMockedLogger();
-    internal IAnalysisEngine MockedAnalysisEngine { get; } = CreateMockedAnalysisEngine();
+    internal IRoslynAnalysisService MockedRoslynAnalysisService { get; } = CreateMockedAnalysisEngine();
 
     public HttpServerStarter(bool useMockedServerSettings = false, int maxConcurrentRequests = 5, bool useMockedServerConfiguration = false)
     {
@@ -42,7 +43,7 @@ internal sealed class HttpServerStarter : IDisposable
         var httpServerConfigurationFactory = useMockedServerConfiguration ? CreateHttpServerConfigurationFactory() : httpServerConfigurationProvider;
         var analysisRequestHandler = new AnalysisRequestHandler(MockedLogger, ServerSettings, HttpServerConfigurationProvider);
         RoslynAnalysisHttpServer = new RoslynAnalysisHttpServer(MockedLogger, ServerSettings, analysisRequestHandler, new HttpRequestHandler(),
-            new HttpListenerFactory(), httpServerConfigurationFactory, MockedAnalysisEngine);
+            new HttpListenerFactory(), httpServerConfigurationFactory, MockedRoslynAnalysisService);
     }
 
     public void StartListeningOnBackgroundThread()
@@ -72,10 +73,10 @@ internal sealed class HttpServerStarter : IDisposable
         return logger;
     }
 
-    private static IAnalysisEngine CreateMockedAnalysisEngine()
+    private static IRoslynAnalysisService CreateMockedAnalysisEngine()
     {
-        var analysisEngine = Substitute.For<IAnalysisEngine>();
-        analysisEngine.AnalyzeAsync(Arg.Any<List<FileUri>>(), Arg.Any<List<ActiveRuleDto>>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new List<DiagnosticDto>()));
+        var analysisEngine = Substitute.For<IRoslynAnalysisService>();
+        analysisEngine.AnalyzeAsync(Arg.Any<List<FileUri>>(), Arg.Any<List<ActiveRuleDto>>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(Enumerable.Empty<RoslynIssue>()));
         return analysisEngine;
     }
 
