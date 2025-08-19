@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
@@ -38,6 +39,7 @@ public sealed class SlCoreUserAnalysisPropertiesSynchronizer : ISlCoreUserAnalys
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly IUserSettingsProvider userSettingsProvider;
     private readonly ISLCoreServiceProvider serviceProvider;
+    private readonly IHttpServerConfigurationProvider httpServerConfigurationProvider;
     private readonly IThreadHandling threadHandling;
     private bool isDisposed;
     public IInitializationProcessor InitializationProcessor { get; }
@@ -48,11 +50,13 @@ public sealed class SlCoreUserAnalysisPropertiesSynchronizer : ISlCoreUserAnalys
         IUserSettingsProvider userSettingsProvider,
         IInitializationProcessorFactory initializationProcessorFactory,
         ISLCoreServiceProvider serviceProvider,
+        IHttpServerConfigurationProvider httpServerConfigurationProvider,
         IThreadHandling threadHandling)
     {
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.userSettingsProvider = userSettingsProvider;
         this.serviceProvider = serviceProvider;
+        this.httpServerConfigurationProvider = httpServerConfigurationProvider;
         this.threadHandling = threadHandling;
         InitializationProcessor = initializationProcessorFactory.CreateAndStart<SlCoreUserAnalysisPropertiesSynchronizer>(
             [userSettingsProvider],
@@ -68,8 +72,7 @@ public sealed class SlCoreUserAnalysisPropertiesSynchronizer : ISlCoreUserAnalys
             });
     }
 
-    private void UserSettingsProvider_SettingsChanged(object sender, EventArgs e) =>
-        threadHandling.RunOnBackgroundThread(HandleSettingsChange).Forget();
+    private void UserSettingsProvider_SettingsChanged(object sender, EventArgs e) => threadHandling.RunOnBackgroundThread(HandleSettingsChange).Forget();
 
     private void ActiveConfigScopeTracker_CurrentConfigurationScopeChanged(object sender, ConfigurationScopeChangedEventArgs e)
     {
@@ -83,7 +86,8 @@ public sealed class SlCoreUserAnalysisPropertiesSynchronizer : ISlCoreUserAnalys
     {
         if (activeConfigScopeTracker.Current is { Id: { } currentConfigScopeId } && serviceProvider.TryGetTransientService(out IUserAnalysisPropertiesService? userAnalysisPropertiesService))
         {
-            userAnalysisPropertiesService.DidSetUserAnalysisProperties(new(currentConfigScopeId, userSettingsProvider.UserSettings.AnalysisSettings.AnalysisProperties));
+            var props = userSettingsProvider.UserSettings.AnalysisSettings.AnalysisProperties.AddRange(httpServerConfigurationProvider.CurrentConfiguration.AsAnalysisProperties());
+            userAnalysisPropertiesService.DidSetUserAnalysisProperties(new(currentConfigScopeId, props));
         }
     }
 

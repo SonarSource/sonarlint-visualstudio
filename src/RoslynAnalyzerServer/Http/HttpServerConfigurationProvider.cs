@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Net;
 using System.Net.Sockets;
@@ -39,20 +40,25 @@ internal interface IHttpServerConfigurationFactory
 [method: ImportingConstructor]
 internal class HttpServerConfigurationProvider() : IHttpServerConfigurationProvider, IHttpServerConfigurationFactory
 {
-    public IHttpServerConfiguration CurrentConfiguration { get; private set; } = new HttpServerConfiguration();
-
     public IHttpServerConfiguration SetNewConfiguration()
     {
         CurrentConfiguration = new HttpServerConfiguration();
         return CurrentConfiguration;
     }
 
+    public IHttpServerConfiguration CurrentConfiguration { get; private set; } = new HttpServerConfiguration();
+
     private sealed class HttpServerConfiguration : IHttpServerConfiguration
     {
         private const int TokenByteLength = 32;
+        private const string PortAnalysisPropertyKey = "sonar.cs.internal.roslynAnalyzerServerPort";
+        private const string TokenAnalysisPropertyKey = "sonar.cs.internal.roslynAnalyzerServerToken";
 
         public int Port { get; } = GetAvailablePort();
         public SecureString Token { get; } = GenerateSecureToken();
+
+        public ImmutableDictionary<string, string> AsAnalysisProperties() =>
+            ImmutableDictionary.CreateRange(new KeyValuePair<string, string>[] { new(PortAnalysisPropertyKey, Port.ToString()), new(TokenAnalysisPropertyKey, Token.ToUnsecureString()) });
 
         private static int GetAvailablePort()
         {

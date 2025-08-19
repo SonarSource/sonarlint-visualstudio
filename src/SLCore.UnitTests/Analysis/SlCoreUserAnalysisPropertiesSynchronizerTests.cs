@@ -20,6 +20,7 @@
 
 using System.Collections.Immutable;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
@@ -34,15 +35,18 @@ public class SlCoreUserAnalysisPropertiesSynchronizerTests
 {
     private const string DefaultConfigScope = "scope1";
     private readonly ImmutableDictionary<string, string> defaultAnalysisProperties = ImmutableDictionary.Create<string, string>().Add("prop1", "value1");
+    private readonly ImmutableDictionary<string, string> httpServerAnalysisProperties = ImmutableDictionary.Create<string, string>().Add("port", "60000");
     private IActiveConfigScopeTracker activeConfigScopeTracker;
     private IUserSettingsProvider userSettingsProvider;
     private IInitializationProcessorFactory initializationProcessorFactory;
     private ISLCoreServiceProvider serviceProvider;
     private IUserAnalysisPropertiesService userAnalysisPropertiesService;
+    private IHttpServerConfigurationProvider httpServerConfigurationProvider;
     private IThreadHandling threadHandling;
     private TestLogger testLogger;
 
     private IRequireInitialization[] initializationDependencies;
+    private IHttpServerConfiguration httpServerConfiguration;
 
     [TestInitialize]
     public void TestInitialize()
@@ -54,6 +58,7 @@ public class SlCoreUserAnalysisPropertiesSynchronizerTests
         userAnalysisPropertiesService = Substitute.For<IUserAnalysisPropertiesService>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         testLogger = Substitute.ForPartsOf<TestLogger>();
+        MockServerConfiguration();
 
         initializationDependencies = [userSettingsProvider];
         SetUpServiceProvider();
@@ -66,11 +71,11 @@ public class SlCoreUserAnalysisPropertiesSynchronizerTests
             MefTestHelpers.CreateExport<IUserSettingsProvider>(),
             MefTestHelpers.CreateExport<IInitializationProcessorFactory>(),
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
+            MefTestHelpers.CreateExport<IHttpServerConfigurationProvider>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() =>
-        MefTestHelpers.CheckIsSingletonMefComponent<SlCoreUserAnalysisPropertiesSynchronizer>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SlCoreUserAnalysisPropertiesSynchronizer>();
 
     [TestMethod]
     public void Ctor_NoActiveConfigScope_RunsInitialization()
@@ -106,7 +111,8 @@ public class SlCoreUserAnalysisPropertiesSynchronizerTests
             activeConfigScopeTracker.CurrentConfigurationScopeChanged += Arg.Any<EventHandler<ConfigurationScopeChangedEventArgs>>();
             userSettingsProvider.SettingsChanged += Arg.Any<EventHandler>();
             serviceProvider.TryGetTransientService(out Arg.Any<IUserAnalysisPropertiesService>());
-            userAnalysisPropertiesService.DidSetUserAnalysisProperties(Arg.Is<DidChangeAnalysisPropertiesParams>(x => x.configurationScopeId == DefaultConfigScope && x.properties == defaultAnalysisProperties));
+            userAnalysisPropertiesService.DidSetUserAnalysisProperties(Arg.Is<DidChangeAnalysisPropertiesParams>(x =>
+                x.configurationScopeId == DefaultConfigScope && x.properties.SequenceEqual(defaultAnalysisProperties.AddRange(httpServerAnalysisProperties))));
             testSubject.InitializationProcessor.InitializeAsync();
         });
     }
@@ -180,7 +186,7 @@ public class SlCoreUserAnalysisPropertiesSynchronizerTests
         RaiseConfigScopeChanged(true);
 
         threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
-        userAnalysisPropertiesService.Received(1).DidSetUserAnalysisProperties(Arg.Is<DidChangeAnalysisPropertiesParams>(x => x.configurationScopeId == DefaultConfigScope && x.properties == defaultAnalysisProperties));
+        VerifyNotifiedExpectedAnalysisProperties(1);
     }
 
     [TestMethod]
@@ -192,7 +198,7 @@ public class SlCoreUserAnalysisPropertiesSynchronizerTests
         RaiseConfigScopeChanged(true);
 
         threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
-        userAnalysisPropertiesService.Received(2).DidSetUserAnalysisProperties(Arg.Is<DidChangeAnalysisPropertiesParams>(x => x.configurationScopeId == DefaultConfigScope && x.properties == defaultAnalysisProperties));
+        VerifyNotifiedExpectedAnalysisProperties(2);
     }
 
     [TestMethod]
@@ -206,7 +212,7 @@ public class SlCoreUserAnalysisPropertiesSynchronizerTests
         RaiseConfigScopeChanged(true);
 
         threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
-        userAnalysisPropertiesService.Received(1).DidSetUserAnalysisProperties(Arg.Is<DidChangeAnalysisPropertiesParams>(x => x.configurationScopeId == scope2 && x.properties == defaultAnalysisProperties));
+        VerifyNotifiedExpectedAnalysisProperties(1);
     }
 
     [TestMethod]
@@ -233,8 +239,10 @@ public class SlCoreUserAnalysisPropertiesSynchronizerTests
         SetCurrentConfiguration(DefaultConfigScope, newProperties);
         RaiseSettingsChanged();
 
+        var expectedProperties = newProperties.AddRange(httpServerAnalysisProperties);
         threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
-        userAnalysisPropertiesService.Received(1).DidSetUserAnalysisProperties(Arg.Is<DidChangeAnalysisPropertiesParams>(x =>  x.configurationScopeId == DefaultConfigScope && x.properties == newProperties));
+        userAnalysisPropertiesService.Received(1)
+            .DidSetUserAnalysisProperties(Arg.Is<DidChangeAnalysisPropertiesParams>(x => x.configurationScopeId == DefaultConfigScope && x.properties.SequenceEqual(expectedProperties)));
     }
 
     [TestMethod]
@@ -266,8 +274,7 @@ public class SlCoreUserAnalysisPropertiesSynchronizerTests
     private void RaiseConfigScopeChanged(bool definitionChanged) =>
         activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith<ConfigurationScopeChangedEventArgs>(new(definitionChanged));
 
-    private void RaiseSettingsChanged() =>
-        userSettingsProvider.SettingsChanged += Raise.EventWith(EventArgs.Empty);
+    private void RaiseSettingsChanged() => userSettingsProvider.SettingsChanged += Raise.EventWith(EventArgs.Empty);
 
     private void SetCurrentConfiguration(string configurationScopeId, ImmutableDictionary<string, string> properties)
     {
@@ -287,12 +294,15 @@ public class SlCoreUserAnalysisPropertiesSynchronizerTests
     private SlCoreUserAnalysisPropertiesSynchronizer CreateUninitializedTestSubject(out TaskCompletionSource<byte> barrier)
     {
         var tcs = barrier = new TaskCompletionSource<byte>();
-        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<SlCoreUserAnalysisPropertiesSynchronizer>(threadHandling, testLogger, processor => MockableInitializationProcessor.ConfigureWithWait(processor, tcs));
+        initializationProcessorFactory
+            = MockableInitializationProcessor.CreateFactory<SlCoreUserAnalysisPropertiesSynchronizer>(threadHandling, testLogger,
+                processor => MockableInitializationProcessor.ConfigureWithWait(processor, tcs));
         return new SlCoreUserAnalysisPropertiesSynchronizer(
             activeConfigScopeTracker,
             userSettingsProvider,
             initializationProcessorFactory,
             serviceProvider,
+            httpServerConfigurationProvider,
             threadHandling);
     }
 
@@ -304,6 +314,7 @@ public class SlCoreUserAnalysisPropertiesSynchronizerTests
             userSettingsProvider,
             initializationProcessorFactory,
             serviceProvider,
+            httpServerConfigurationProvider,
             threadHandling);
         testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
         activeConfigScopeTracker.ClearReceivedCalls();
@@ -322,8 +333,25 @@ public class SlCoreUserAnalysisPropertiesSynchronizerTests
             userSettingsProvider,
             initializationProcessorFactory,
             serviceProvider,
+            httpServerConfigurationProvider,
             threadHandling);
         testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
         return testSubject;
+    }
+
+    private void MockServerConfiguration()
+    {
+        httpServerConfigurationProvider = Substitute.For<IHttpServerConfigurationProvider>();
+        httpServerConfiguration = Substitute.For<IHttpServerConfiguration>();
+        httpServerConfiguration.AsAnalysisProperties().Returns(httpServerAnalysisProperties);
+        httpServerConfigurationProvider.CurrentConfiguration.Returns(httpServerConfiguration);
+    }
+
+    private void VerifyNotifiedExpectedAnalysisProperties(int numberOfReceivedCalls)
+    {
+        userAnalysisPropertiesService.Received(numberOfReceivedCalls)
+            .DidSetUserAnalysisProperties(Arg.Is<DidChangeAnalysisPropertiesParams>(x => x.configurationScopeId == DefaultConfigScope &&
+                                                                                         x.properties.SequenceEqual(defaultAnalysisProperties.AddRange(httpServerAnalysisProperties))));
+        _ = httpServerConfigurationProvider.Received().CurrentConfiguration.AsAnalysisProperties();
     }
 }
