@@ -29,12 +29,12 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 [method: ImportingConstructor]
 internal class SonarLintXmlProvider(ISonarLintConfigurationXmlSerializer sonarLintConfigurationXmlSerializer) : ISonarLintXmlProvider
 {
-    public SonarLintXmlConfigurationFile Create(RoslynAnalysisProfile languageProfile)
+    public SonarLintXmlConfigurationFile Create(RoslynAnalysisProfile analysisProfile)
     {
         var sonarLintConfiguration = new SonarLintConfiguration
         {
-            Settings = ConvertDictionary(languageProfile.AnalysisProperties),
-            Rules = languageProfile
+            Settings = ConvertDictionary(analysisProfile.AnalysisProperties),
+            Rules = analysisProfile
                 .Rules
                 .Where(x => x.IsActive)
                 .Select(x => new SonarLintRule { Key = x.RuleId.RuleKey, Parameters = ConvertDictionary(x.Parameters) })
