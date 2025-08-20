@@ -18,14 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer;
 
-internal record struct RoslynAnalysisConfiguration(
-    SonarLintXmlConfigurationFile SonarLintXml,
-    ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions,
-    ImmutableArray<DiagnosticAnalyzer> Analyzers);
+// TODO by https://sonarsource.atlassian.net/browse/SLVS-2473 replace with real analysis engine
+internal interface IRoslynAnalysisService
+{
+    Task<IEnumerable<RoslynIssue>> AnalyzeAsync(List<FileUri> files, List<ActiveRuleDto> activeRules, Dictionary<string, string> analysisProperties, CancellationToken cancellationToken);
+}
