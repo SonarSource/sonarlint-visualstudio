@@ -20,5 +20,6 @@
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
-// TODO by https://sonarsource.atlassian.net/browse/SLVS-2473 update DTO to match the one from plugin side
-public record ActiveRuleDto(string RuleKey);
+public record ActiveRuleDto(
+    string RuleId,
+    Dictionary<string, string> Parameters);
