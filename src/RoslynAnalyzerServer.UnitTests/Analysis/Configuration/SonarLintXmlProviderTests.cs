@@ -70,8 +70,8 @@ public class SonarLintXmlProviderTests
         result.Should().NotBeNull();
 
         var sonarLintConfiguration = sonarLintConfigurationXmlSerializer.ReceivedCalls().Single().GetArguments()[0] as SonarLintConfiguration;
-        sonarLintConfiguration.Rules.Count.Should().Be(2);
-        sonarLintConfiguration.Settings.Should().BeEquivalentTo([
+        sonarLintConfiguration!.Rules.Count.Should().Be(2);
+        sonarLintConfiguration!.Settings.Should().BeEquivalentTo([
             new SonarLintKeyValuePair { Key = "prop1", Value = "value1" },
             new SonarLintKeyValuePair { Key = "prop2", Value = "value2" }
         ]);
