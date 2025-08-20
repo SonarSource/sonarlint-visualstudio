@@ -155,5 +155,17 @@
   </data>
   <data name="DefaultSecondaryLocationTitleTemplate" xml:space="preserve">
     <value>Location {0}</value>
+   </data>
+  <data name="RoslynAnalysisLogContext" xml:space="preserve">
+    <value>Roslyn Analysis</value>
+  </data>
+  <data name="RoslynAnalysisConfigurationLogContext" xml:space="preserve">
+    <value>Configuration</value>
+  </data>
+  <data name="RoslynAnalysisConfigurationNoAnalyzers" xml:space="preserve">
+    <value>No analyzers loaded for language {0}</value>
+  </data>
+  <data name="RoslynAnalysisConfigurationNoActiveRules" xml:space="preserve">
+    <value>No active rules loaded for language {0}</value>
   </data>
 </root>
