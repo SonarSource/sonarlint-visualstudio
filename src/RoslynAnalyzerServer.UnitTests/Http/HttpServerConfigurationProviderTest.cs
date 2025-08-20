@@ -101,6 +101,21 @@ public class HttpServerConfigurationProviderTest
         newConfig.Token.Should().NotBe(originalConfiguration.Token);
     }
 
+    [TestMethod]
+    public void MapToInferredProperties_ReturnsExpectedProperties()
+    {
+        var portKey = "sonar.cs.internal.roslynAnalyzerServerPort";
+        var tokenKey = "sonar.cs.internal.roslynAnalyzerServerToken";
+
+        var analysisProperties = testSubject.CurrentConfiguration.MapToInferredProperties();
+
+        analysisProperties.Count.Should().Be(2);
+        analysisProperties.Should().ContainKey(portKey);
+        analysisProperties.Should().ContainKey(tokenKey);
+        analysisProperties[portKey].Should().Be(testSubject.CurrentConfiguration.Port.ToString());
+        analysisProperties[tokenKey].Should().Be(testSubject.CurrentConfiguration.Token.ToUnsecureString());
+    }
+
     private static void VerifyValidPort(int port)
     {
         port.Should().BeGreaterThan(IPEndPoint.MinPort);
