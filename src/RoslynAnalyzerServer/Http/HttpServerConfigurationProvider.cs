@@ -70,9 +70,13 @@ internal class HttpServerConfigurationProvider : IHttpServerConfigurationProvide
     private sealed class HttpServerConfiguration : IHttpServerConfiguration
     {
         private const int TokenByteLength = 32;
+        private const string PortAnalysisPropertyKey = "sonar.cs.internal.roslynAnalyzerServerPort";
+        private const string TokenAnalysisPropertyKey = "sonar.cs.internal.roslynAnalyzerServerToken";
 
         public int Port { get; } = GetAvailablePort();
         public SecureString Token { get; } = GenerateSecureToken();
+
+        public Dictionary<string, string> MapToInferredProperties() => new() { { PortAnalysisPropertyKey, Port.ToString() }, { TokenAnalysisPropertyKey, Token.ToUnsecureString() } };
 
         private static int GetAvailablePort()
         {
