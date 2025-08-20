@@ -157,7 +157,7 @@ public class RoslynAnalysisConfigurationProviderTests
     }
 
     [TestMethod]
-    public void GetConfiguration_EmptyInput_ReturnsEmptyDictionary()
+    public void GetConfiguration_NoAnalysisProfiles_ReturnsEmptyDictionary()
     {
         analyzerProfilesProvider.GetAnalysisProfilesByLanguage(DefaultAnalyzers, DefaultActiveRules, DefaultAnalysisProperties)
             .Returns(new Dictionary<Language, RoslynAnalysisProfile>());
