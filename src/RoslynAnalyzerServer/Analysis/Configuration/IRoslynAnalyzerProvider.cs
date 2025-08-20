@@ -19,13 +19,14 @@
  */
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
+using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
-internal record RoslynAnalysisConfiguration(
-    SonarLintXmlConfigurationFile SonarLintXml,
-    ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions,
-    ImmutableArray<DiagnosticAnalyzer> Analyzers);
+internal interface IRoslynAnalyzerProvider
+{
+    ImmutableDictionary<Language, AnalyzersAndSupportedRules> GetAnalyzersByLanguage();
+}
+
+internal record struct AnalyzersAndSupportedRules(ImmutableArray<DiagnosticAnalyzer> Analyzers, ImmutableArray<string> SupportedRuleKeys);
