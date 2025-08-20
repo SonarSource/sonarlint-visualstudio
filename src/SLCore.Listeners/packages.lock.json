@@ -1197,6 +1197,12 @@
           "SonarLint.VisualStudio.IssueVisualization": "[1.0.0, )"
         }
       },
+      "SonarLint.VisualStudio.RoslynAnalyzerServer": {
+        "type": "Project",
+        "dependencies": {
+          "SonarLint.VisualStudio.Core": "[1.0.0, )"
+        }
+      },
       "SonarLint.VisualStudio.SLCore": {
         "type": "Project",
         "dependencies": {
