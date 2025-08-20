@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.CSharpVB;
 [Export(typeof(IRoslynConfigGenerator))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-[ExcludeFromCodeCoverage]
+[ExcludeFromCodeCoverage] // todo https://sonarsource.atlassian.net/browse/SLVS-2420
 internal class RoslynConfigGenerator(
     IFileSystemService fileSystem,
     IGlobalConfigGenerator globalConfigGenerator,
