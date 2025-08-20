@@ -18,14 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
+using Microsoft.CodeAnalysis.Text;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
-internal record RoslynAnalysisConfiguration(
-    SonarLintXmlConfigurationFile SonarLintXml,
-    ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions,
-    ImmutableArray<DiagnosticAnalyzer> Analyzers);
+internal class SonarLintXmlConfigurationFile : AdditionalText
+{
+    private readonly SourceText sourceText;
+
+    public override string Path { get; }
+
+    public string FileName { get; } = "SonarLint.xml";
+
+    public SonarLintXmlConfigurationFile(string baseDirectory, string content)
+    {
+        Path = System.IO.Path.Combine(baseDirectory, FileName);
+        sourceText = SourceText.From(content);
+    }
+
+    public override SourceText GetText(CancellationToken cancellationToken = default) => sourceText;
+}
