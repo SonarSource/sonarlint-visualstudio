@@ -26,4 +26,6 @@ public interface IHttpServerConfiguration
 {
     int Port { get; }
     SecureString Token { get; }
+
+    Dictionary<string, string> MapToInferredProperties();
 }
