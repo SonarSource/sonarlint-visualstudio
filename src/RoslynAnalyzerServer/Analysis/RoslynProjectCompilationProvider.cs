@@ -56,9 +56,8 @@ internal class RoslynProjectCompilationProvider(ILogger logger) : IRoslynProject
         RoslynAnalysisConfiguration analysisConfigurationForLanguage)
     {
         var additionalFiles = project.RoslynAnalyzerOptions.AdditionalFiles;
-        var sonarLintXmlName = Path.GetFileName(analysisConfigurationForLanguage.SonarLintXml.Path);
         var analyzerOptions = project.RoslynAnalyzerOptions.WithAdditionalFiles(additionalFiles
-            .Where(x => Path.GetFileName(x.Path) != sonarLintXmlName)
+            .Where(x => Path.GetFileName(x.Path) != analysisConfigurationForLanguage.SonarLintXml.FileName)
             .Concat([analysisConfigurationForLanguage.SonarLintXml])
             .ToImmutableArray());
 

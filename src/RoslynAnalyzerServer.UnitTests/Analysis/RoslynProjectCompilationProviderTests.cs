@@ -24,6 +24,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -45,7 +46,7 @@ public class RoslynProjectCompilationProviderTests
     private AdditionalText existingAdditionalFile = null!;
     private TestLogger logger = null!;
     private IRoslynProjectWrapper project = null!;
-    private AdditionalText sonarLintXml = null!;
+    private SonarLintXmlConfigurationFile sonarLintXml = null!;
     private RoslynProjectCompilationProvider testSubject = null!;
 
     [TestInitialize]
@@ -156,8 +157,7 @@ public class RoslynProjectCompilationProviderTests
 
     private void SetUpAdditionalFiles()
     {
-        sonarLintXml = Substitute.For<AdditionalText>();
-        sonarLintXml.Path.Returns(@"c:\path\to\SonarLint.xml");
+        sonarLintXml = new SonarLintXmlConfigurationFile(@"C:\B\A", "content");
 
         existingAdditionalFile = Substitute.For<AdditionalText>();
         existingAdditionalFile.Path.Returns(@"c:\path\to\existing.txt");
