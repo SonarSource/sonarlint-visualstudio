@@ -57,14 +57,6 @@ public class SlCoreLanguageProviderTests
         testSubject.ExtraLanguagesInConnectedMode.Should().BeEquivalentTo(languageProvider.ExtraLanguagesInConnectedMode.Select(x => x.ConvertToSlCoreLanguage()));
     }
 
-    [TestMethod]
-    public void AllAnalyzableLanguages_ShouldBeExpected()
-    {
-        var expected = testSubject.LanguagesInStandaloneMode.Concat(testSubject.ExtraLanguagesInConnectedMode);
-
-        testSubject.AllAnalyzableLanguages.Should().BeEquivalentTo(expected);
-    }
-
     private void MockLanguageProvider()
     {
         languageProvider = Substitute.For<ILanguageProvider>();
