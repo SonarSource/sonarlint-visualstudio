@@ -83,6 +83,25 @@ public class RoslynAnalyzerProviderTests
     }
 
     [TestMethod]
+    public void GetAnalyzersByLanguage_IgnoresDuplicateIdsForTheSameLanguage()
+    {
+        const string csharpAnalyzerPath = "c:\\analyzers\\csharp.dll";
+        const string vbAnalyzerPath = "c:\\analyzers\\vb.dll";
+        analyzersLocator.GetBasicAnalyzerFullPathsByLanguage().Returns(new Dictionary<Language, List<string>> { { Language.CSharp, [csharpAnalyzerPath] }, { Language.VBNET, [vbAnalyzerPath] } });
+        var csharpAnalyzer1 = CreateAnalyzerWithDiagnostic("S001", "SDUPLICATE");
+        var csharpAnalyzer2 = CreateAnalyzerWithDiagnostic("S002", "SDUPLICATE");
+        var vbAnalyzer = CreateAnalyzerWithDiagnostic("S001", "S002");
+        roslynAnalyzerLoader.LoadAnalyzers(csharpAnalyzerPath).Returns([csharpAnalyzer1, csharpAnalyzer2]);
+        roslynAnalyzerLoader.LoadAnalyzers(vbAnalyzerPath).Returns([vbAnalyzer]);
+
+        var result = testSubject.GetAnalyzersByLanguage();
+
+        result.Keys.Should().BeEquivalentTo(Language.CSharp, Language.VBNET);
+        result[Language.CSharp].SupportedRuleKeys.Should().BeEquivalentTo("S001", "SDUPLICATE", "S002");
+        result[Language.VBNET].SupportedRuleKeys.Should().BeEquivalentTo("S001", "S002");
+    }
+
+    [TestMethod]
     public void GetAnalyzersByLanguage_MultipleAnalyzersPerLanguage_CombinesAllRules()
     {
         const string csharpAnalyzerPath1 = "c:\\analyzers\\csharp1.dll";
