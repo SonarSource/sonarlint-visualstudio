@@ -23,7 +23,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Analysis;
-using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.EsLintBridge;
@@ -99,8 +98,6 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
 
         SLCoreRpc = slCoreRpcFactory.StartNewRpcInstance();
 
-
-
         var serverConnectionConfigurations = serverConnectionConfigurationProvider.GetServerConnections();
         var (storageRoot, workDir, sonarlintUserHome) = slCoreFoldersProvider.GetWorkFolders();
 
@@ -114,7 +111,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             connectedModeEmbeddedPluginPathsByKey: slCoreEmbeddedPluginJarProvider.ListConnectedModeEmbeddedPluginPathsByKey(),
             enabledLanguagesInStandaloneMode: slCoreLanguageProvider.LanguagesInStandaloneMode,
             extraEnabledLanguagesInConnectedMode: slCoreLanguageProvider.ExtraLanguagesInConnectedMode,
-            disabledPluginKeysForAnalysis: slCoreLanguageProvider.LanguagesWithDisabledAnalysis.Select(l => l.GetPluginKey()).ToList(),
+            disabledPluginKeysForAnalysis: slCoreEmbeddedPluginJarProvider.ListDisabledPluginKeysForAnalysis(),
             serverConnectionConfigurations.Values.OfType<SonarQubeConnectionConfigurationDto>().ToList(),
             serverConnectionConfigurations.Values.OfType<SonarCloudConnectionConfigurationDto>().ToList(),
             sonarlintUserHome,

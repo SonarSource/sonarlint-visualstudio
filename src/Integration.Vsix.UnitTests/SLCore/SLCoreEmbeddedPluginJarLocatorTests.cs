@@ -170,6 +170,16 @@ public class SLCoreEmbeddedPluginJarLocatorTests
         testSubject.StandalonePlugins.Should().BeEquivalentTo(expectedPlugins);
     }
 
+    [TestMethod]
+    public void ListDisabledPluginKeysForAnalysis_ReturnsCsharpAndVbNetPluginKeys()
+    {
+        List<string> expectedPluginKeys = [Language.CSharp.PluginInfo.Key, Language.VBNET.PluginInfo.Key];
+
+        var result = testSubject.ListDisabledPluginKeysForAnalysis();
+
+        result.Should().BeEquivalentTo(expectedPluginKeys);
+    }
+
     private void MockFileSystem(bool directoryExists, params string[] files)
     {
         directory.Exists(default).ReturnsForAnyArgs(false);

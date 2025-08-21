@@ -172,7 +172,6 @@ public sealed class SLCoreTestRunner : IDisposable
     {
         var defaultLanguageProvider = new SLCoreLanguageProvider(LanguageProvider.Instance);
         languageProvider.LanguagesInStandaloneMode.Returns(defaultLanguageProvider.LanguagesInStandaloneMode);
-        languageProvider.LanguagesWithDisabledAnalysis.Returns(defaultLanguageProvider.LanguagesWithDisabledAnalysis);
     }
 
     public void Dispose()

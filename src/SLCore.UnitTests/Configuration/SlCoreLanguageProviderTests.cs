@@ -58,16 +58,9 @@ public class SlCoreLanguageProviderTests
     }
 
     [TestMethod]
-    public void LanguagesWithDisabledAnalysis_ShouldBeExpected()
-    {
-        _ = languageProvider.Received(1).RoslynLanguages;
-        testSubject.LanguagesWithDisabledAnalysis.Should().BeEquivalentTo(languageProvider.RoslynLanguages.Select(x => x.ConvertToSlCoreLanguage()));
-    }
-
-    [TestMethod]
     public void AllAnalyzableLanguages_ShouldBeExpected()
     {
-        var expected = testSubject.LanguagesInStandaloneMode.Concat(testSubject.ExtraLanguagesInConnectedMode).Except(testSubject.LanguagesWithDisabledAnalysis);
+        var expected = testSubject.LanguagesInStandaloneMode.Concat(testSubject.ExtraLanguagesInConnectedMode);
 
         testSubject.AllAnalyzableLanguages.Should().BeEquivalentTo(expected);
     }

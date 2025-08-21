@@ -56,6 +56,7 @@ public class SLCoreInstanceHandleTests
 
     private static readonly List<string> JarList = new() { "jar1" };
     private static readonly Dictionary<string, string> ConnectedModeJarList = new() { { "key", "jar1" } };
+    private static readonly List<string> DisabledAnalysisPluginKeys = [Language.CS.GetPluginKey()];
     private ISLCoreRpcFactory slCoreRpcFactory;
     private ISLCoreRpcManager rpcManager;
     private ISLCoreConstantsProvider constantsProvider;
@@ -125,7 +126,7 @@ public class SLCoreInstanceHandleTests
     [DataRow(null, null)]
     public void Initialize_SuccessfullyInitializesInCorrectOrder(string nodeJsPath, string esLintBridgePath)
     {
-        SetUpLanguages([], [], []);
+        SetUpLanguages([], []);
         SetUpFullConfiguration(out _);
         nodeLocator.Get().Returns(nodeJsPath);
         esLintBridgeLocator.Get().Returns(esLintBridgePath);
@@ -145,6 +146,7 @@ public class SLCoreInstanceHandleTests
                 && parameters.workDir == WorkDir
                 && parameters.embeddedPluginPaths == JarList
                 && parameters.connectedModeEmbeddedPluginPathsByKey.Count == ConnectedModeJarList.Count
+                && parameters.disabledPluginKeysForAnalysis.SequenceEqual(DisabledAnalysisPluginKeys)
                 && parameters.sonarQubeConnections.SequenceEqual(new[] { SonarQubeConnection1, SonarQubeConnection2 })
                 && parameters.sonarCloudConnections.SequenceEqual(new[] { SonarCloudConnection })
                 && parameters.sonarlintUserHome == UserHome
@@ -165,8 +167,7 @@ public class SLCoreInstanceHandleTests
     {
         List<Language> standalone = [Language.CS, Language.HTML];
         List<Language> connected = [Language.VBNET, Language.TSQL];
-        List<Language> disabledAnalysis = [Language.CPP, Language.JS];
-        SetUpLanguages(standalone, connected, disabledAnalysis);
+        SetUpLanguages(standalone, connected);
         SetUpFullConfiguration(out _);
 
         testSubject.Initialize();
@@ -174,7 +175,6 @@ public class SLCoreInstanceHandleTests
         var initializeParams = (InitializeParams)rpcManager.ReceivedCalls().Single().GetArguments().Single()!;
         initializeParams.enabledLanguagesInStandaloneMode.Should().BeSameAs(standalone);
         initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeSameAs(connected);
-        initializeParams.disabledPluginKeysForAnalysis.Should().BeEquivalentTo(disabledAnalysis.Select(l => l.GetPluginKey()));
     }
 
     [TestMethod]
@@ -191,7 +191,7 @@ public class SLCoreInstanceHandleTests
     [TestMethod]
     public void Dispose_Initialized_ShutsDownAndDisposesRpc()
     {
-        SetUpLanguages([], [], []);
+        SetUpLanguages([], []);
 
         SetUpFullConfiguration(out var rpc);
         testSubject.Initialize();
@@ -211,7 +211,7 @@ public class SLCoreInstanceHandleTests
     [TestMethod]
     public void Dispose_IgnoresShutdownException()
     {
-        SetUpLanguages([], [], []);
+        SetUpLanguages([], []);
 
         SetUpFullConfiguration(out var rpc);
         rpcManager.When(x => x.Shutdown()).Do(_ => throw new Exception());
@@ -226,7 +226,7 @@ public class SLCoreInstanceHandleTests
     [TestMethod]
     public void Dispose_ConnectionDied_DisposesRpc()
     {
-        SetUpLanguages([], [], []);
+        SetUpLanguages([], []);
 
         SetUpFullConfiguration(out var rpc);
         testSubject.Initialize();
@@ -266,18 +266,17 @@ public class SLCoreInstanceHandleTests
         });
         jarLocator.ListJarFiles().Returns(JarList);
         jarLocator.ListConnectedModeEmbeddedPluginPathsByKey().Returns(ConnectedModeJarList);
+        jarLocator.ListDisabledPluginKeysForAnalysis().Returns(DisabledAnalysisPluginKeys);
         activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration(Binding, SonarLintMode.Connected, "dir"));
         slCoreRuleSettingsProvider.GetSLCoreRuleSettings().Returns(new Dictionary<string, StandaloneRuleConfigDto>());
     }
 
     private void SetUpLanguages(
         List<Language> standalone,
-        List<Language> connected,
-        List<Language> disabledAnalysis)
+        List<Language> connected)
     {
         slCoreLanguageProvider.LanguagesInStandaloneMode.Returns(standalone);
         slCoreLanguageProvider.ExtraLanguagesInConnectedMode.Returns(connected);
-        slCoreLanguageProvider.LanguagesWithDisabledAnalysis.Returns(disabledAnalysis);
     }
 
     #region RpcSetUp

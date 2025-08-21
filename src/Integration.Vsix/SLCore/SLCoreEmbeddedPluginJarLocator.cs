@@ -83,6 +83,8 @@ public class SLCoreEmbeddedPluginJarLocator : ISLCoreEmbeddedPluginJarLocator
         return connectedModeEmbeddedPluginPathsByKey;
     }
 
+    public List<string> ListDisabledPluginKeysForAnalysis() => [Language.CSharp.PluginInfo.Key, Language.VBNET.PluginInfo.Key];
+
     private string GetPathByPluginKey(List<string> pluginFilePaths, string pluginKey, string pluginNameRegexPattern)
     {
         var regex = new Regex(pluginNameRegexPattern);

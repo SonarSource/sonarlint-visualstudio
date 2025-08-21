@@ -308,7 +308,6 @@ public class RaisedFindingProcessorTests
     {
         _ = languageProvider.DidNotReceive().LanguagesInStandaloneMode;
         _ = languageProvider.DidNotReceive().ExtraLanguagesInConnectedMode;
-        _ = languageProvider.DidNotReceive().LanguagesWithDisabledAnalysis;
         _ = languageProvider.Received().AllAnalyzableLanguages;
     }
 
