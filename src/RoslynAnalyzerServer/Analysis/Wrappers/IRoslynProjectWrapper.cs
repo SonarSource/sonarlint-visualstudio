@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-internal interface IRoslynProjectWrapper
+public interface IRoslynProjectWrapper
 {
     string Name { get; }
 

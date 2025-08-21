@@ -30,7 +30,7 @@ using SonarLint.VisualStudio.Core;
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 {
     [TestClass]
-    public class SonarDiagnosticSuppressorTests
+    public class RoslynIssueSuppressorTests
     {
         [TestMethod]
         public void Suppressor_ReturnsExpectedSuppressions()

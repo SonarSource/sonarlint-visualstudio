@@ -384,11 +384,20 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube for Visual Studio.
+        ///   Looks up a localized string similar to SonarQube.
         /// </summary>
         public static string SonarLintOutputPaneTitle {
             get {
                 return ResourceManager.GetString("SonarLintOutputPaneTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube Performance.
+        /// </summary>
+        public static string SonarLintPerformanceOutputPaneTitle {
+            get {
+                return ResourceManager.GetString("SonarLintPerformanceOutputPaneTitle", resourceCulture);
             }
         }
     }

@@ -109,5 +109,5 @@ public class RoslynAnalysisProfilesProviderTests
         Dictionary<Language, (DiagnosticAnalyzer[] analyzers, string[] RuleKeys)> analyzers) =>
         analyzers.ToImmutableDictionary(
             x => x.Key,
-            y => new AnalyzersAndSupportedRules(y.Value.analyzers.ToImmutableArray(), y.Value.RuleKeys.ToImmutableArray()));
+            y => new AnalyzersAndSupportedRules(y.Value.analyzers.ToImmutableArray(), y.Value.RuleKeys.ToImmutableHashSet()));
 }

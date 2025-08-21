@@ -50,7 +50,8 @@ internal class RoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersL
                 supportedDiagnostics.UnionWith(diagnosticAnalyzer.SupportedDiagnostics.Select(x => x.Id));
             }
 
-            builder.Add(languageAndAnalyzers.Key, new AnalyzersAndSupportedRules(analyzers.ToImmutable(), supportedDiagnostics.ToImmutable()));
+            var immutableArray = supportedDiagnostics.ToImmutable();
+            builder.Add(languageAndAnalyzers.Key, new AnalyzersAndSupportedRules(analyzers.ToImmutable(), immutableArray.ToImmutableHashSet()));
         }
 
         return builder.ToImmutable();

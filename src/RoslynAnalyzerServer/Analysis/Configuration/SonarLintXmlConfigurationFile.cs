@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
-internal class SonarLintXmlConfigurationFile : AdditionalText
+public class SonarLintXmlConfigurationFile : AdditionalText
 {
     private readonly SourceText sourceText;
 
