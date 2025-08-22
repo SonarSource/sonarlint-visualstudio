@@ -32,7 +32,7 @@ public class RoslynAnalysisHttpServerTest
     private static ILogger _logger = null!;
     private static IHttpServerSettings _configuration = null!;
     private static IAnalysisRequestHandler _analysisRequestHandler = null!;
-    private static IAnalysisEngine _analysisEngine = null!;
+    private static IRoslynAnalysisService _roslynAnalysisService = null!;
     private static RoslynAnalysisHttpServer _testSubject = null!;
 
     [ClassInitialize]
@@ -43,10 +43,10 @@ public class RoslynAnalysisHttpServerTest
         _configuration = Substitute.For<IHttpServerSettings>();
         _analysisRequestHandler = Substitute.For<IAnalysisRequestHandler>();
         _httpRequestHandler = Substitute.For<IHttpRequestHandler>();
-        _analysisEngine = Substitute.For<IAnalysisEngine>();
+        _roslynAnalysisService = Substitute.For<IRoslynAnalysisService>();
         _serverConfigurationFactory = Substitute.For<IHttpServerConfigurationFactory>();
         _testSubject = new RoslynAnalysisHttpServer(_logger, _configuration, _analysisRequestHandler, _httpRequestHandler, new HttpListenerFactory(),
-            _serverConfigurationFactory, _analysisEngine);
+            _serverConfigurationFactory, _roslynAnalysisService);
     }
 
     [ClassCleanup]
@@ -61,7 +61,7 @@ public class RoslynAnalysisHttpServerTest
             MefTestHelpers.CreateExport<IHttpRequestHandler>(),
             MefTestHelpers.CreateExport<IHttpListenerFactory>(),
             MefTestHelpers.CreateExport<IHttpServerConfigurationFactory>(),
-            MefTestHelpers.CreateExport<IAnalysisEngine>());
+            MefTestHelpers.CreateExport<IRoslynAnalysisService>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<RoslynAnalysisHttpServer>();
