@@ -59,13 +59,12 @@ public class StandaloneRoslynSettingsUpdaterTests
             MefTestHelpers.CreateExport<IThreadHandling>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() =>
-        MefTestHelpers.CheckIsSingletonMefComponent<StandaloneRoslynSettingsUpdater>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<StandaloneRoslynSettingsUpdater>();
 
     [TestMethod]
     public void Update_CallsGeneratorWithCorrectLanguageAndDirectory()
     {
-        IReadOnlyList<RoslynLanguage> fakeRoslynLanguages = [Language.VBNET, Language.CSharp, new FakeRoslynLanguage()];
+        IReadOnlyList<RoslynLanguage> fakeRoslynLanguages = [Language.VBNET, Language.CSharp, FakeRoslynLanguage.Instance];
         languageProvider.RoslynLanguages.Returns(fakeRoslynLanguages);
         var userSettings = new UserSettings(new AnalysisSettings(), @"APPDATA\SonarLint for Visual Studio\.global");
 
@@ -92,7 +91,7 @@ public class StandaloneRoslynSettingsUpdaterTests
         IReadOnlyList<RoslynLanguage> fakeRoslynLanguages = [Language.VBNET, Language.CSharp];
         languageProvider.RoslynLanguages.Returns(fakeRoslynLanguages);
         var properties = ImmutableDictionary.Create<string, string>().SetItem("key", "value");
-        var userSettings = new UserSettings(new AnalysisSettings(analysisProperties:  properties), "any");
+        var userSettings = new UserSettings(new AnalysisSettings(analysisProperties: properties), "any");
 
         testSubject.Update(userSettings);
 
@@ -179,11 +178,14 @@ public class StandaloneRoslynSettingsUpdaterTests
     [TestMethod]
     public void Update_GroupsRulesByLanguage()
     {
-        IReadOnlyList<RoslynLanguage> fakeRoslynLanguages = [Language.VBNET, Language.CSharp, FakeRoslynLanguage.Instance];
+        IReadOnlyList<RoslynLanguage> fakeRoslynLanguages = [Language.VBNET, Language.CSharp];
         languageProvider.RoslynLanguages.Returns(fakeRoslynLanguages);
         var rules = new Dictionary<string, RuleConfig>()
         {
-            { "vbnet:S1", new RuleConfig(default) }, { "vbnet:S2", new RuleConfig(default) }, { "csharpsquid:S3", new RuleConfig(default) }, { "cpp:S4", new RuleConfig(default) },
+            { "vbnet:S1", new RuleConfig(default) },
+            { "vbnet:S2", new RuleConfig(default) },
+            { "csharpsquid:S3", new RuleConfig(default) },
+            { $"{FakeRoslynLanguage.Instance.RepoInfo.Key}:S4", new RuleConfig(default) },
         };
 
         testSubject.Update(new UserSettings(new AnalysisSettings(rules, [], []), "any"));
@@ -210,7 +212,7 @@ public class StandaloneRoslynSettingsUpdaterTests
         roslynConfigGenerator
             .DidNotReceive()
             .GenerateAndSaveConfiguration(
-                Arg.Is<RoslynLanguage>(x => x != Language.CSharp && x != Language.VBNET),
+                FakeRoslynLanguage.Instance,
                 Arg.Any<string>(),
                 Arg.Any<IDictionary<string, string>>(),
                 Arg.Any<IFileExclusions>(),

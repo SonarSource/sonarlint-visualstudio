@@ -22,7 +22,7 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.TestInfrastructure.Helpers;
 
-public class FakeRoslynLanguage() : RoslynLanguage("any", "any", "any", new PluginInfo("any", "any"), new RepoInfo("any"), "any", "any", new RepoInfo("any", "any"))
+public class FakeRoslynLanguage(string key) : RoslynLanguage(key, key, key, new PluginInfo(key, key), new RepoInfo(key), key, key, new RepoInfo(key, key))
 {
-    public static RoslynLanguage Instance = new FakeRoslynLanguage();
+    public static RoslynLanguage Instance = new FakeRoslynLanguage("fakeroslyn");
 }

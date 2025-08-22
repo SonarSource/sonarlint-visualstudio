@@ -28,6 +28,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
 [Export(typeof(IRoslynAnalyzerLoader))]
 [PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
 internal class RoslynAnalyzerLoader(ILogger logger) : IRoslynAnalyzerLoader
 {
     private readonly ILogger logger = logger.ForContext(Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisAnalyzerLoaderLogContext);
