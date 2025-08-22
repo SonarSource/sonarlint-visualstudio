@@ -21,8 +21,6 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.SLCore.Common.Helpers;
-using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
@@ -37,14 +35,11 @@ internal interface IRaisedFindingProcessor
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
 internal class RaisedFindingProcessor(
-    ISLCoreLanguageProvider slCoreLanguageProvider,
     IRaiseFindingToAnalysisIssueConverter raiseFindingToAnalysisIssueConverter,
     IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
     ILogger logger)
     : IRaisedFindingProcessor
 {
-    private readonly List<string> analyzableLanguagesRuleKeyPrefixes = CalculateAnalyzableRulePrefixes(slCoreLanguageProvider);
-
     public void RaiseFinding<T>(RaiseFindingParams<T> parameters, IFindingsPublisher findingsPublisher) where T : RaisedFindingDto
     {
         if (!IsValid(parameters))
@@ -74,20 +69,10 @@ internal class RaisedFindingProcessor(
             var fileUri = fileAndIssues.Key;
             var localPath = fileUri.LocalPath;
             var analysisStatusNotifier = analysisStatusNotifierFactory.Create([localPath]);
-            var supportedRaisedIssues = GetSupportedLanguageFindings(fileAndIssues.Value ?? []);
+            var raisedIssues = fileAndIssues.Value ?? [];
             findingsPublisher.Publish(localPath,
-                raiseFindingToAnalysisIssueConverter.GetAnalysisIssues(fileUri, supportedRaisedIssues));
-            analysisStatusNotifier.AnalysisProgressed(parameters.analysisId, supportedRaisedIssues.Length, findingsPublisher.FindingsType, parameters.isIntermediatePublication);
+                raiseFindingToAnalysisIssueConverter.GetAnalysisIssues(fileUri, raisedIssues));
+            analysisStatusNotifier.AnalysisProgressed(parameters.analysisId, raisedIssues.Count, findingsPublisher.FindingsType, parameters.isIntermediatePublication);
         }
     }
-
-    private T[] GetSupportedLanguageFindings<T>(IEnumerable<T> findings) where T : RaisedFindingDto =>
-        findings.Where(i => analyzableLanguagesRuleKeyPrefixes.Exists(languageRepo => i.ruleKey.StartsWith(languageRepo))).ToArray();
-
-    private static List<string> CalculateAnalyzableRulePrefixes(ISLCoreLanguageProvider slCoreConstantsProvider) =>
-        slCoreConstantsProvider.AllAnalyzableLanguages?
-            .Select(x => x.ConvertToCoreLanguage())
-            .Select(x => x.RepoInfo?.Key)
-            .Where(r => r is not null)
-            .ToList() ?? [];
 }
