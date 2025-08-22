@@ -114,7 +114,7 @@ public class SequentialRoslynAnalysisEngineTests
         result.Should().BeEquivalentTo(duplicateIssue1);
         VerifyAnalysisExecution(requestForProject, compilationForProject, [duplicateDiagnostic1, duplicateDiagnostic2]);
         logger.AssertPartialOutputStringExists(
-            $"Duplicate diagnostic discarded ID: {duplicateIssue2.RuleKey}, File: {duplicateIssue2.PrimaryLocation.FilePath}, Line: {duplicateIssue2.PrimaryLocation.TextRange.StartLine}");
+            $"Duplicate diagnostic discarded ID: {duplicateIssue2.RuleId}, File: {duplicateIssue2.PrimaryLocation.FilePath}, Line: {duplicateIssue2.PrimaryLocation.TextRange.StartLine}");
     }
 
     [TestMethod]
@@ -131,7 +131,7 @@ public class SequentialRoslynAnalysisEngineTests
         VerifyAnalysisExecution(requestForProject1, compilationForProject1, [diagnostic1]);
         VerifyAnalysisExecution(requestForProject2, compilationForProject2, [diagnostic2]);
         logger.AssertPartialOutputStringExists(
-            $"Duplicate diagnostic discarded ID: {duplicateIssue.RuleKey}, File: {duplicateIssue.PrimaryLocation.FilePath}, Line: {duplicateIssue.PrimaryLocation.TextRange.StartLine}");
+            $"Duplicate diagnostic discarded ID: {duplicateIssue.RuleId}, File: {duplicateIssue.PrimaryLocation.FilePath}, Line: {duplicateIssue.PrimaryLocation.TextRange.StartLine}");
     }
 
     [TestMethod]
