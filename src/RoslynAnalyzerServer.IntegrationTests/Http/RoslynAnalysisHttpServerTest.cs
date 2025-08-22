@@ -192,6 +192,22 @@ public class RoslynAnalysisHttpServerTest
     }
 
     [TestMethod]
+    public async Task StartListenAsync_AnalysisThrowsException_ReturnsInternalServerError()
+    {
+        var exceptionMessage = "Simulated exception";
+        using var serverStarter2 = new HttpServerStarter();
+        serverStarter2.MockedRoslynAnalysisService
+            .When(x => x.AnalyzeAsync(Arg.Any<List<FileUri>>(), Arg.Any<List<ActiveRuleDto>>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>()))
+            .Do(_ => throw new InvalidOperationException(exceptionMessage));
+        serverStarter2.StartListeningOnBackgroundThread();
+
+        var response = await HttpRequester.SendRequest(CreateClientRequestConfig(serverStarter2));
+
+        response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
+        serverStarter2.MockedLogger.Received(1).LogVerbose(Resources.HttpRequestFailed, Arg.Is<string>(x => x.Contains(exceptionMessage)));
+    }
+
+    [TestMethod]
     public async Task Dispose_StopsServer()
     {
         var testServerStarter = new HttpServerStarter();
