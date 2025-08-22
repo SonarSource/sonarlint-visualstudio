@@ -109,7 +109,7 @@ public class RoslynAnalysisHttpServerTest
         var millisecondTimeout = 5;
         using var serverStarter2 = new HttpServerStarter(useMockedServerSettings: true);
         MockServerSettings(serverStarter2.ServerSettings, requestTimeout: millisecondTimeout);
-        SimulateLongAnalysis(serverStarter2.MockedAnalysisEngine, millisecondTimeout * 2);
+        SimulateLongAnalysis(serverStarter2.MockedRoslynAnalysisService, millisecondTimeout * 2);
         serverStarter2.StartListeningOnBackgroundThread();
 
         var response = await HttpRequester.SendRequest(CreateClientRequestConfig(serverStarter2));
@@ -242,7 +242,7 @@ public class RoslynAnalysisHttpServerTest
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var analysisResponse = await GetAnalysisResponse(response);
         analysisResponse.Should().NotBeNull();
-        analysisResponse!.Diagnostics.Should().BeEmpty();
+        analysisResponse!.RoslynIssues.Should().BeEmpty();
     }
 
     private static async Task VerifyServerNotReachable<T>(AnalysisRequestConfig analysisRequestConfig) where T : Exception
@@ -270,8 +270,8 @@ public class RoslynAnalysisHttpServerTest
 
     private static void MockServerConfiguration(IHttpServerConfigurationProvider serverConfigurationProvider, int port) => serverConfigurationProvider.CurrentConfiguration.Port.Returns(port);
 
-    private static void SimulateLongAnalysis(IAnalysisEngine analysisEngine, int milliseconds) =>
-        analysisEngine
-            .When(x => x.AnalyzeAsync(Arg.Any<List<FileUri>>(), Arg.Any<List<ActiveRuleDto>>(), Arg.Any<CancellationToken>()))
+    private static void SimulateLongAnalysis(IRoslynAnalysisService roslynAnalysisService, int milliseconds) =>
+        roslynAnalysisService
+            .When(x => x.AnalyzeAsync(Arg.Any<List<FileUri>>(), Arg.Any<List<ActiveRuleDto>>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>()))
             .Do(_ => Task.Delay(milliseconds).GetAwaiter().GetResult());
 }
