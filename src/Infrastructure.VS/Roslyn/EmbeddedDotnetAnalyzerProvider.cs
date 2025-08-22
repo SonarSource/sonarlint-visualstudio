@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
 public class EmbeddedDotnetAnalyzerProvider(
-    IEmbeddedDotnetAnalyzersLocator locator,
+    IObsoleteDotnetAnalyzersLocator locator,
     IAnalyzerAssemblyLoaderFactory analyzerAssemblyLoaderFactory,
     IConfigurationScopeDotnetAnalyzerIndicator indicator,
     ILogger logger,

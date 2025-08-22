@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -31,4 +32,14 @@ public class RoslynAnalyzerLoaderTests
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<RoslynAnalyzerLoader>();
+
+    [TestMethod]
+    public void Ctor_SetsLogContext()
+    {
+        var logger = Substitute.For<ILogger>();
+
+        _ = new RoslynAnalyzerLoader(logger);
+
+        logger.Received().ForContext(Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisAnalyzerLoaderLogContext);
+    }
 }

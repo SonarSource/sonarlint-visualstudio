@@ -24,14 +24,17 @@ using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.EmbeddedAnalyzers;
 
 [Export(typeof(IEmbeddedDotnetAnalyzersLocator))]
+[Export(typeof(IObsoleteDotnetAnalyzersLocator))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class EmbeddedDotnetAnalyzersLocator(IVsixRootLocator vsixRootLocator, ILanguageProvider languageProvider, IFileSystemService fileSystem) : IEmbeddedDotnetAnalyzersLocator
+internal class EmbeddedDotnetAnalyzersLocator(IVsixRootLocator vsixRootLocator, ILanguageProvider languageProvider, IFileSystemService fileSystem) : IEmbeddedDotnetAnalyzersLocator, IObsoleteDotnetAnalyzersLocator
 {
     private const string PathInsideVsix = "EmbeddedDotnetAnalyzerDLLs";
     private const string DllsSearchPattern = "SonarAnalyzer.*.dll"; // starting from 10.0, the analyzer assemblies are merged and all of the dll names start with SonarAnalyzer
@@ -56,17 +59,17 @@ internal class EmbeddedDotnetAnalyzersLocator(IVsixRootLocator vsixRootLocator, 
 
     private Dictionary<Language, List<string>> GroupByLanguage(IEnumerable<string> analyzerDlls)
     {
-        var result = languageProvider.RoslynLanguages.ToDictionary(x => x, _ => new List<string>());
+        var languageToAnalyzerLocations = languageProvider.RoslynLanguages.ToDictionary(x => x, _ => new List<string>());
 
         foreach (var analyzerDll in analyzerDlls)
         {
-            var dllLanguage = result.Keys.FirstOrDefault(x => analyzerDll.Contains(x.RoslynDllIdentifier));
+            var dllLanguage = languageToAnalyzerLocations.Keys.FirstOrDefault(x => analyzerDll.Contains(x.RoslynDllIdentifier));
             if (dllLanguage != null)
             {
-                result[dllLanguage].Add(analyzerDll);
+                languageToAnalyzerLocations[dllLanguage].Add(analyzerDll);
             }
         }
 
-        return result;
+        return languageToAnalyzerLocations;
     }
 }

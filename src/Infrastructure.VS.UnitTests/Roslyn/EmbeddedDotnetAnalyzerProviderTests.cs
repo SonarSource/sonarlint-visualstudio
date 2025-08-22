@@ -35,7 +35,7 @@ public class EmbeddedDotnetAnalyzerProviderTests
     private const string AnalyzersPath = "C:\\somepath";
     private readonly IAnalyzerAssemblyLoader analyzerAssemblyLoader = Substitute.For<IAnalyzerAssemblyLoader>();
     private EmbeddedDotnetAnalyzerProvider testSubject;
-    private IEmbeddedDotnetAnalyzersLocator locator;
+    private IObsoleteDotnetAnalyzersLocator locator;
     private IAnalyzerAssemblyLoaderFactory loaderFactory;
     private IConfigurationScopeDotnetAnalyzerIndicator indicator;
     private ILogger logger;
@@ -44,7 +44,7 @@ public class EmbeddedDotnetAnalyzerProviderTests
     [TestInitialize]
     public void TestInitialize()
     {
-        locator = Substitute.For<IEmbeddedDotnetAnalyzersLocator>();
+        locator = Substitute.For<IObsoleteDotnetAnalyzersLocator>();
         loaderFactory = Substitute.For<IAnalyzerAssemblyLoaderFactory>();
         loaderFactory.Create().Returns(analyzerAssemblyLoader);
         logger = Substitute.For<ILogger>();
@@ -59,13 +59,13 @@ public class EmbeddedDotnetAnalyzerProviderTests
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<EmbeddedDotnetAnalyzerProvider, IBasicRoslynAnalyzerProvider>(
-            MefTestHelpers.CreateExport<IEmbeddedDotnetAnalyzersLocator>(),
+            MefTestHelpers.CreateExport<IObsoleteDotnetAnalyzersLocator>(),
             MefTestHelpers.CreateExport<IAnalyzerAssemblyLoaderFactory>(),
             MefTestHelpers.CreateExport<IConfigurationScopeDotnetAnalyzerIndicator>(),
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
         MefTestHelpers.CheckTypeCanBeImported<EmbeddedDotnetAnalyzerProvider, IEnterpriseRoslynAnalyzerProvider>(
-            MefTestHelpers.CreateExport<IEmbeddedDotnetAnalyzersLocator>(),
+            MefTestHelpers.CreateExport<IObsoleteDotnetAnalyzersLocator>(),
             MefTestHelpers.CreateExport<IAnalyzerAssemblyLoaderFactory>(),
             MefTestHelpers.CreateExport<IConfigurationScopeDotnetAnalyzerIndicator>(),
             MefTestHelpers.CreateExport<ILogger>(),

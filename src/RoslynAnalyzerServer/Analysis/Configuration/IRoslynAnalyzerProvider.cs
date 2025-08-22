@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
 internal interface IRoslynAnalyzerProvider
 {
-    ImmutableDictionary<Language, AnalyzersAndSupportedRules> GetAnalyzersByLanguage();
+    ImmutableDictionary<Language, AnalyzerAssemblyContents> LoadAnalyzerAssemblies();
 }
 
-internal record struct AnalyzersAndSupportedRules(ImmutableArray<DiagnosticAnalyzer> Analyzers, ImmutableHashSet<string> SupportedRuleKeys);
+internal record struct AnalyzerAssemblyContents(ImmutableArray<DiagnosticAnalyzer> Analyzers, ImmutableHashSet<string> SupportedRuleKeys);

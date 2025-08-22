@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Vsix.EmbeddedAnalyzers;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.EmbeddedAnalyzers;
 

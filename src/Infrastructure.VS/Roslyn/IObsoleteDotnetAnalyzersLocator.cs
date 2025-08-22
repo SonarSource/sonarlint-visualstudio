@@ -18,12 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.CSharpVB;
+namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
-public interface IEmbeddedDotnetAnalyzersLocator
+public interface IObsoleteDotnetAnalyzersLocator
 {
     List<string> GetBasicAnalyzerFullPaths();
-    Dictionary<Language, List<string>> GetBasicAnalyzerFullPathsByLanguage();
     List<string> GetEnterpriseAnalyzerFullPaths();
-    Dictionary<Language, List<string>> GetEnterpriseAnalyzerFullPathsByLanguage();
 }

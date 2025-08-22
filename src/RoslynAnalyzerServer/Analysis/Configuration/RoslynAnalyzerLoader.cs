@@ -22,13 +22,16 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
 [Export(typeof(IRoslynAnalyzerLoader))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class RoslynAnalyzerLoader : IRoslynAnalyzerLoader
+internal class RoslynAnalyzerLoader(ILogger logger) : IRoslynAnalyzerLoader
 {
+    private readonly ILogger logger = logger.ForContext(Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisAnalyzerLoaderLogContext);
+
     [ExcludeFromCodeCoverage]
     public IReadOnlyCollection<DiagnosticAnalyzer> LoadAnalyzers(string filePath)
     {
@@ -40,8 +43,9 @@ internal class RoslynAnalyzerLoader : IRoslynAnalyzerLoader
                 .Select(t => (DiagnosticAnalyzer)Activator.CreateInstance(t))
                 .ToList();
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            logger.WriteLine(Resources.RoslynAnalysisAnalyzerLoaderFailedToLoad, filePath, e);
             return [];
         }
     }

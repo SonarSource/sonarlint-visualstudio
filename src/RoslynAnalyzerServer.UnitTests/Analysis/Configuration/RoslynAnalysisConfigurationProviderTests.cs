@@ -30,8 +30,8 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis.Configu
 [TestClass]
 public class RoslynAnalysisConfigurationProviderTests
 {
-    private static readonly ImmutableDictionary<Language, AnalyzersAndSupportedRules> DefaultAnalyzers
-        = new Dictionary<Language, AnalyzersAndSupportedRules> { { Language.CSharp, new AnalyzersAndSupportedRules() } }.ToImmutableDictionary();
+    private static readonly ImmutableDictionary<Language, AnalyzerAssemblyContents> DefaultAnalyzers
+        = new Dictionary<Language, AnalyzerAssemblyContents> { { Language.CSharp, new AnalyzerAssemblyContents() } }.ToImmutableDictionary();
     private static readonly List<ActiveRuleDto> DefaultActiveRules = new();
     private static readonly Dictionary<string, string> DefaultAnalysisProperties = new();
 
@@ -46,7 +46,7 @@ public class RoslynAnalysisConfigurationProviderTests
     {
         sonarLintXmlProvider = Substitute.For<ISonarLintXmlProvider>();
         roslynAnalyzerProvider = Substitute.For<IRoslynAnalyzerProvider>();
-        roslynAnalyzerProvider.GetAnalyzersByLanguage().Returns(DefaultAnalyzers);
+        roslynAnalyzerProvider.LoadAnalyzerAssemblies().Returns(DefaultAnalyzers);
 
         analyzerProfilesProvider = Substitute.For<IRoslynAnalysisProfilesProvider>();
         testLogger = Substitute.ForPartsOf<TestLogger>();
