@@ -168,4 +168,10 @@
   <data name="RoslynAnalysisConfigurationNoActiveRules" xml:space="preserve">
     <value>No active rules loaded for language {0}</value>
   </data>
+  <data name="RoslynAnalysisAnalyzerLoaderLogContext" xml:space="preserve">
+    <value>Analyzer Loader</value>
+  </data>
+  <data name="RoslynAnalysisAnalyzerLoaderFailedToLoad" xml:space="preserve">
+    <value>Failed to load analyzer {0}: {1}</value>
+  </data>
 </root>

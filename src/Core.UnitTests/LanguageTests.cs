@@ -37,22 +37,22 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 
             // Act + Assert
             // Nulls
-            Action act = () => new Language(name, null, serverLanguageKey, pluginInfo, repoInfo, settingsFileName: fileSuffix);
+            Action act = () => new Language(name, null, serverLanguageKey, pluginInfo, repoInfo);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("name");
 
-            act = () => new Language(null, key, serverLanguageKey, pluginInfo, repoInfo, settingsFileName: fileSuffix);
+            act = () => new Language(null, key, serverLanguageKey, pluginInfo, repoInfo);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
 
-            act = () => new Language(name, key, null, pluginInfo, repoInfo, settingsFileName: fileSuffix);
+            act = () => new Language(name, key, null, pluginInfo, repoInfo);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverLanguageKey");
 
             act = () => new Language(name, key, serverLanguageKey, null, repoInfo, repoInfo);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("pluginInfo");
 
-            act = () => new Language(name, key, serverLanguageKey, pluginInfo, null, settingsFileName: fileSuffix);
+            act = () => new Language(name, key, serverLanguageKey, pluginInfo, null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("repoInfo");
 
-            act = () => new Language(name, key, serverLanguageKey, pluginInfo, repoInfo, securityRepoInfo: null, settingsFileName: fileSuffix);
+            act = () => new Language(name, key, serverLanguageKey, pluginInfo, repoInfo, securityRepoInfo: null);
             act.Should().NotThrow<ArgumentNullException>();
 
             act = () => new Language(name, key, serverLanguageKey, pluginInfo, repoInfo, additionalPlugins: null);
