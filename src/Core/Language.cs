@@ -38,8 +38,9 @@ namespace SonarLint.VisualStudio.Core
     public sealed class Language : IEquatable<Language>
     {
         private const string VersionNumberPattern = "(\\d+\\.\\d+\\.\\d+\\.\\d+)\\";
-        private static readonly PluginInfo CSharpPlugin = new("csharpenterprise", $"sonar-csharp-enterprise-plugin-{VersionNumberPattern}.jar");
-        private static readonly PluginInfo VbNetPlugin = new("vbnetenterprise", $"sonar-vbnet-enterprise-plugin-{VersionNumberPattern}.jar");
+        private static readonly PluginInfo SqvsRoslynPlugin = new("sqvsroslyn", $"sonarqube-ide-visualstudio-roslyn-plugin-{VersionNumberPattern}.jar");
+        private static readonly PluginInfo CSharpPlugin = new("csharpenterprise", $"sonar-csharp-enterprise-plugin-{VersionNumberPattern}.jar", isEnabledForAnalysis: false);
+        private static readonly PluginInfo VbNetPlugin = new("vbnetenterprise", $"sonar-vbnet-enterprise-plugin-{VersionNumberPattern}.jar", isEnabledForAnalysis: false);
         private static readonly PluginInfo SecretsPlugin = new("text", $"sonar-text-plugin-{VersionNumberPattern}.jar");
         private static readonly PluginInfo CFamilyPlugin = new("cpp", $"sonar-cfamily-plugin-{VersionNumberPattern}.jar");
         private static readonly PluginInfo JavascriptPlugin = new("javascript", $"sonar-javascript-plugin-{VersionNumberPattern}.jar");
@@ -62,9 +63,10 @@ namespace SonarLint.VisualStudio.Core
         private static readonly RepoInfo TsqlRepo = new("tsql");
 
         public static readonly Language Unknown = new();
-        public static readonly Language CSharp = new("CSharp", CoreStrings.CSharpLanguageName, "cs", CSharpPlugin, CSharpRepo, CSharpSecurityRepo,
-            settingsFileName: "sonarlint_csharp.globalconfig");
-        public static readonly Language VBNET = new("VB", CoreStrings.VBNetLanguageName, "vbnet", VbNetPlugin, VbNetRepo, settingsFileName: "sonarlint_vb.globalconfig");
+        public static readonly Language CSharp = new("CSharp", CoreStrings.CSharpLanguageName, "cs", SqvsRoslynPlugin, CSharpRepo, CSharpSecurityRepo,
+            settingsFileName: "sonarlint_csharp.globalconfig", additionalPlugins: [CSharpPlugin]);
+        public static readonly Language VBNET = new("VB", CoreStrings.VBNetLanguageName, "vbnet", SqvsRoslynPlugin, VbNetRepo, settingsFileName: "sonarlint_vb.globalconfig",
+            additionalPlugins: [VbNetPlugin]);
         public static readonly Language Cpp = new("C++", CoreStrings.CppLanguageName, "cpp", CFamilyPlugin, CppRepo);
         public static readonly Language C = new("C", "C", "c", CFamilyPlugin, CRepo);
         public static readonly Language Js = new("Js", "JavaScript", "js", JavascriptPlugin, JsRepo, JsSecurityRepo);
@@ -101,6 +103,11 @@ namespace SonarLint.VisualStudio.Core
         /// <remarks>e.g. for ruleset-based languages this will be a language identifier + ".globalconfig"</remarks>
         public string SettingsFileNameAndExtension { get; }
 
+        /// <summary>
+        /// Additional plugins that should be installed for a language
+        /// </summary>
+        public PluginInfo[] AdditionalPlugins { get; }
+
         public RepoInfo RepoInfo { get; }
 
         /// <summary>
@@ -125,7 +132,8 @@ namespace SonarLint.VisualStudio.Core
             PluginInfo pluginInfo,
             RepoInfo repoInfo,
             RepoInfo securityRepoInfo = null,
-            string settingsFileName = null)
+            string settingsFileName = null,
+            PluginInfo[] additionalPlugins = null)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -140,6 +148,7 @@ namespace SonarLint.VisualStudio.Core
             Id = id;
             Name = name;
             SettingsFileNameAndExtension = settingsFileName;
+            AdditionalPlugins = additionalPlugins;
             ServerLanguageKey = serverLanguageKey ?? throw new ArgumentNullException(nameof(serverLanguageKey));
             PluginInfo = pluginInfo ?? throw new ArgumentNullException(nameof(pluginInfo));
             RepoInfo = repoInfo ?? throw new ArgumentNullException(nameof(repoInfo));
