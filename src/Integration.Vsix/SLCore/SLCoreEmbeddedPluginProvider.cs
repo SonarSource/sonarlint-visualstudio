@@ -26,6 +26,8 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.SLCore.Configuration;
+using IFileSystem = System.IO.Abstractions.IFileSystem;
+using ILogger = SonarLint.VisualStudio.Core.ILogger;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SLCore;
 
@@ -37,6 +39,7 @@ public class SLCoreEmbeddedPluginProvider : ISLCoreEmbeddedPluginProvider
 
     private readonly IFileSystem fileSystem;
     private readonly ILogger logger;
+    private readonly ILanguageProvider languageProvider;
     private readonly IVsixRootLocator vsixRootLocator;
 
     internal HashSet<PluginInfo> StandalonePlugins { get; }
@@ -53,7 +56,8 @@ public class SLCoreEmbeddedPluginProvider : ISLCoreEmbeddedPluginProvider
         this.vsixRootLocator = vsixRootLocator;
         this.fileSystem = fileSystem;
         this.logger = logger;
-        StandalonePlugins = languageProvider.LanguagesInStandaloneMode.Except(languageProvider.RoslynLanguages).Select(x => x.PluginInfo).ToHashSet();
+        this.languageProvider = languageProvider;
+        StandalonePlugins = languageProvider.LanguagesInStandaloneMode.Select(x => x.PluginInfo).ToHashSet();
     }
 
     public List<string> ListJarFiles()
@@ -83,7 +87,12 @@ public class SLCoreEmbeddedPluginProvider : ISLCoreEmbeddedPluginProvider
         return connectedModeEmbeddedPluginPathsByKey;
     }
 
-    public List<string> ListDisabledPluginKeysForAnalysis() => [Language.CSharp.PluginInfo.Key, Language.VBNET.PluginInfo.Key];
+    public List<string> ListDisabledPluginKeysForAnalysis()
+    {
+        var allPlugins = languageProvider.LanguagesInStandaloneMode.Where(x => x.AdditionalPlugins != null).SelectMany(x => x.AdditionalPlugins).ToHashSet();
+        allPlugins.UnionWith(StandalonePlugins);
+        return allPlugins.Where(p => !p.IsEnabledForAnalysis).Select(p => p.Key).ToList();
+    }
 
     private string GetPathByPluginKey(List<string> pluginFilePaths, string pluginKey, string pluginNameRegexPattern)
     {

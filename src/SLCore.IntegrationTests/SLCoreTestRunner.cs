@@ -112,7 +112,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
             var jarProvider = Substitute.For<ISLCoreEmbeddedPluginProvider>();
             jarProvider.ListJarFiles().Returns(DependencyLocator.AnalyzerPlugins);
-            jarProvider.ListDisabledPluginKeysForAnalysis().Returns([Language.CSharp.PluginInfo.Key, Language.VBNET.PluginInfo.Key]);
+            jarProvider.ListDisabledPluginKeysForAnalysis().Returns([Language.CSharp.AdditionalPlugins.Single().Key, Language.VBNET.AdditionalPlugins.Single().Key]);
 
             var compatibleNodeLocator = Substitute.For<INodeLocationProvider>();
             compatibleNodeLocator.Get().Returns((string)null);

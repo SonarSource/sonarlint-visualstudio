@@ -157,23 +157,23 @@ public class SLCoreEmbeddedPluginJarProviderTests
         var result = testSubject.ListConnectedModeEmbeddedPluginPathsByKey();
 
         result.Should().BeEmpty();
-        logger.Received(4).LogVerbose(Strings.ConnectedModeEmbeddedPluginJarLocator_JarsNotFound);
+        logger.Received(testSubject.StandalonePlugins.Count).LogVerbose(Strings.ConnectedModeEmbeddedPluginJarLocator_JarsNotFound);
     }
 
     [TestMethod]
-    public void StandalonePlugins_ReturnsStandalonePluginsExceptRoslyn()
+    public void StandalonePlugins_ReturnsStandalonePluginsIncludingRoslyn()
     {
         _ = languageProvider.Received(1).LanguagesInStandaloneMode;
-        _ = languageProvider.Received(1).RoslynLanguages;
+        _ = languageProvider.DidNotReceive().RoslynLanguages;
 
-        var expectedPlugins = languageProvider.LanguagesInStandaloneMode.Except(languageProvider.RoslynLanguages).Select(x => x.PluginInfo).ToHashSet();
+        var expectedPlugins = languageProvider.LanguagesInStandaloneMode.Select(x => x.PluginInfo).ToHashSet();
         testSubject.StandalonePlugins.Should().BeEquivalentTo(expectedPlugins);
     }
 
     [TestMethod]
     public void ListDisabledPluginKeysForAnalysis_ReturnsCsharpAndVbNetPluginKeys()
     {
-        List<string> expectedPluginKeys = [Language.CSharp.PluginInfo.Key, Language.VBNET.PluginInfo.Key];
+        List<string> expectedPluginKeys = ["csharpenterprise", "vbnetenterprise"];
 
         var result = testSubject.ListDisabledPluginKeysForAnalysis();
 
@@ -208,8 +208,8 @@ public class SLCoreEmbeddedPluginJarProviderTests
         languageProvider = Substitute.For<ILanguageProvider>();
         // doesn't have to be the complete list for testing purposes
         languageProvider.LanguagesInStandaloneMode.Returns([
-            Language.CSharp, Language.C, Language.Js, Language.Css, Language.Html, Language.Secrets
+            Language.CSharp, Language.VBNET, Language.C, Language.Js, Language.Css, Language.Html, Language.Secrets
         ]);
-        languageProvider.RoslynLanguages.Returns([Language.CSharp]);
+        languageProvider.RoslynLanguages.Returns([Language.CSharp, Language.VBNET,]);
     }
 }
