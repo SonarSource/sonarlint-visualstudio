@@ -30,7 +30,7 @@ namespace SonarQube.Client.Tests;
 [TestClass]
 public class SonarQubeService_GetSuppressedRoslynIssuesAsync : SonarQubeService_GetIssuesBase
 {
-    protected override Language[] MockRoslynLanguages => [Language.CSharp, Language.VBNET, Language.Cpp];
+    protected override RoslynLanguage[] MockRoslynLanguages => [Language.CSharp, Language.VBNET];
     private string[] MockRoslynServerLanguageKeys => MockRoslynLanguages.Select(x => x.ServerLanguageKey).ToArray();
 
     [TestMethod]
@@ -38,7 +38,7 @@ public class SonarQubeService_GetSuppressedRoslynIssuesAsync : SonarQubeService_
     {
         await ConnectToSonarQube("7.2.0.0");
 
-        SetupRequest("api/issues/search?projects=shared&statuses=RESOLVED&types=CODE_SMELL&languages=cs%2Cvbnet%2Ccpp&p=1&ps=500", @"
+        SetupRequest("api/issues/search?projects=shared&statuses=RESOLVED&types=CODE_SMELL&languages=cs%2Cvbnet&p=1&ps=500", @"
 {
   ""total"": 5,
   ""p"": 1,
@@ -74,7 +74,7 @@ public class SonarQubeService_GetSuppressedRoslynIssuesAsync : SonarQubeService_
   ""components"": [ ]
 }
 ");
-        SetupRequest("api/issues/search?projects=shared&statuses=RESOLVED&types=BUG&languages=cs%2Cvbnet%2Ccpp&p=1&ps=500", @"
+        SetupRequest("api/issues/search?projects=shared&statuses=RESOLVED&types=BUG&languages=cs%2Cvbnet&p=1&ps=500", @"
 {
   ""total"": 5,
   ""p"": 1,
@@ -162,7 +162,7 @@ public class SonarQubeService_GetSuppressedRoslynIssuesAsync : SonarQubeService_
     {
         await ConnectToSonarQube("7.2.0.0");
 
-        SetupRequest("api/issues/search?projects=project1&statuses=RESOLVED&types=CODE_SMELL&languages=cs%2Cvbnet%2Ccpp&p=1&ps=500", "", HttpStatusCode.NotFound);
+        SetupRequest("api/issues/search?projects=project1&statuses=RESOLVED&types=CODE_SMELL&languages=cs%2Cvbnet&p=1&ps=500", "", HttpStatusCode.NotFound);
 
         Func<Task<IList<SonarQubeIssue>>> func = async () =>
             await service.GetSuppressedRoslynIssuesAsync("project1", null, null, CancellationToken.None);

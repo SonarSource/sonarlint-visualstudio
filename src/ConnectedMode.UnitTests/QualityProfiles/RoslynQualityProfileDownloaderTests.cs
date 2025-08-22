@@ -22,6 +22,7 @@ using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration.TestInfrastructure.Helpers;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 
@@ -154,12 +155,12 @@ public class RoslynQualityProfileDownloaderTests
         // Configure available languages on the server
         SetupLanguagesToUpdate(out var outOfDateQualityProfileFinderMock,
             boundProject,
-            Language.CSharp, Language.VBNET, Language.Cpp);
+            Language.CSharp, Language.VBNET, FakeRoslynLanguage.Instance);
 
         var configProvider = new Mock<IBindingConfigProvider>(MockBehavior.Strict);
         SetupConfigSave(configProvider, Language.CSharp);
         SetupConfigSave(configProvider, Language.VBNET);
-        SetupConfigSave(configProvider, Language.Cpp);
+        SetupConfigSave(configProvider, FakeRoslynLanguage.Instance);
 
         var configPersister = new DummyConfigPersister();
 
@@ -178,7 +179,7 @@ public class RoslynQualityProfileDownloaderTests
 
         CheckRuleConfigSaved(configProvider, Language.CSharp);
         CheckRuleConfigSaved(configProvider, Language.VBNET);
-        CheckRuleConfigNotSaved(configProvider, Language.Cpp);
+        CheckRuleConfigNotSaved(configProvider, FakeRoslynLanguage.Instance);
 
         boundProject.Profiles.Count.Should().Be(2);
         boundProject.Profiles[Language.VBNET].ProfileKey.Should().NotBeNull();
@@ -195,9 +196,8 @@ public class RoslynQualityProfileDownloaderTests
         var logger = new TestLogger(logToConsole: true);
         var languagesToBind = new[]
         {
-            Language.Cpp, // unavailable
+            FakeRoslynLanguage.Instance, // unavailable
             Language.CSharp,
-            Language.Secrets, // unavailable
             Language.VBNET
         };
 
@@ -208,9 +208,8 @@ public class RoslynQualityProfileDownloaderTests
             Language.VBNET);
 
         var configProvider = new Mock<IBindingConfigProvider>(MockBehavior.Strict);
-        SetupConfigSave(configProvider, Language.Cpp);
+        SetupConfigSave(configProvider, FakeRoslynLanguage.Instance);
         SetupConfigSave(configProvider, Language.CSharp);
-        SetupConfigSave(configProvider, Language.Secrets);
         SetupConfigSave(configProvider, Language.VBNET);
 
         var configPersister = new DummyConfigPersister();
@@ -230,14 +229,12 @@ public class RoslynQualityProfileDownloaderTests
 
         CheckRuleConfigSaved(configProvider, Language.CSharp);
         CheckRuleConfigSaved(configProvider, Language.VBNET);
-        CheckRuleConfigNotSaved(configProvider, Language.Cpp);
-        CheckRuleConfigNotSaved(configProvider, Language.Secrets);
+        CheckRuleConfigNotSaved(configProvider, FakeRoslynLanguage.Instance);
 
-        boundProject.Profiles.Count.Should().Be(4);
+        boundProject.Profiles.Count.Should().Be(3);
         boundProject.Profiles[Language.VBNET].ProfileKey.Should().NotBeNull();
         boundProject.Profiles[Language.CSharp].ProfileKey.Should().NotBeNull();
-        boundProject.Profiles[Language.Cpp].ProfileKey.Should().BeNull();
-        boundProject.Profiles[Language.Secrets].ProfileKey.Should().BeNull();
+        boundProject.Profiles[FakeRoslynLanguage.Instance].ProfileKey.Should().BeNull();
     }
 
     [TestMethod]
@@ -320,7 +317,7 @@ public class RoslynQualityProfileDownloaderTests
 
     private static void SetupConfigSave(
         Mock<IBindingConfigProvider> bindingConfigProvider,
-        Language language)
+        RoslynLanguage language)
     {
         bindingConfigProvider.Setup(x => x.SaveConfigurationAsync(
                 It.IsAny<SonarQubeQualityProfile>(),
@@ -338,7 +335,7 @@ public class RoslynQualityProfileDownloaderTests
             projectKey,
             new ServerConnection.SonarQube(uri ?? new Uri("http://localhost/")));
 
-    private static void CheckRuleConfigSaved(Mock<IBindingConfigProvider> bindingConfig, Language language) =>
+    private static void CheckRuleConfigSaved(Mock<IBindingConfigProvider> bindingConfig, RoslynLanguage language) =>
         bindingConfig.Verify(
             x =>
                 x.SaveConfigurationAsync(
@@ -348,7 +345,7 @@ public class RoslynQualityProfileDownloaderTests
                     It.IsAny<CancellationToken>()),
             Times.Once);
 
-    private static void CheckRuleConfigNotSaved(Mock<IBindingConfigProvider> bindingConfig, Language language) =>
+    private static void CheckRuleConfigNotSaved(Mock<IBindingConfigProvider> bindingConfig, RoslynLanguage language) =>
         bindingConfig.Verify(
             x =>
                 x.SaveConfigurationAsync(
@@ -369,7 +366,7 @@ public class RoslynQualityProfileDownloaderTests
         }
     }
 
-    private static Mock<ILanguageProvider> CreateLanguageProvider(Language[] languagesToBind = null)
+    private static Mock<ILanguageProvider> CreateLanguageProvider(RoslynLanguage[] languagesToBind = null)
     {
         var mockLanguageProvider = new Mock<ILanguageProvider>();
         mockLanguageProvider.Setup(x => x.RoslynLanguages)
