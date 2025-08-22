@@ -26,4 +26,5 @@ public record AnalysisRequest
 {
     public List<FileUri> FileNames { get; set; } = [];
     public List<ActiveRuleDto> ActiveRules { get; set; } = [];
+    public Dictionary<string, string> AnalysisProperties { get; set; } = [];
 }

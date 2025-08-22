@@ -18,7 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 
-// TODO by https://sonarsource.atlassian.net/browse/SLVS-2473 update DTO to match the one from plugin side
-public record DiagnosticDto(string Id);
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer;
+internal interface IRoslynAnalysisService
+{
+    Task<IEnumerable<RoslynIssue>> AnalyzeAsync(List<FileUri> files, List<ActiveRuleDto> activeRules, Dictionary<string, string> analysisProperties, CancellationToken cancellationToken);
+}
