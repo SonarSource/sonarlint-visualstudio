@@ -18,15 +18,29 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis.Configuration;
 
-internal interface IRoslynAnalyzerProvider
+[TestClass]
+public class RoslynAnalyzerLoaderTests
 {
-    ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadAnalyzerAssemblies();
-}
+    [TestMethod]
+    public void MefCtor_CheckIsExported() => MefTestHelpers.CheckTypeCanBeImported<RoslynAnalyzerLoader, IRoslynAnalyzerLoader>(
+        MefTestHelpers.CreateExport<ILogger>());
 
-internal record struct AnalyzerAssemblyContents(ImmutableArray<DiagnosticAnalyzer> Analyzers, ImmutableHashSet<string> SupportedRuleKeys);
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<RoslynAnalyzerLoader>();
+
+    [TestMethod]
+    public void Ctor_SetsLogContext()
+    {
+        var logger = Substitute.For<ILogger>();
+
+        _ = new RoslynAnalyzerLoader(logger);
+
+        logger.Received().ForContext(Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisAnalyzerLoaderLogContext);
+    }
+}
