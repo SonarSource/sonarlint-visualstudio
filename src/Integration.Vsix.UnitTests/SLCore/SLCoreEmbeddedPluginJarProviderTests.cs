@@ -29,13 +29,13 @@ using SonarLint.VisualStudio.SLCore.Configuration;
 namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore;
 
 [TestClass]
-public class SLCoreEmbeddedPluginJarLocatorTests
+public class SLCoreEmbeddedPluginJarProviderTests
 {
     private IDirectory directory;
     private IFileSystem fileSystem;
     private ILanguageProvider languageProvider;
     private ILogger logger;
-    private SLCoreEmbeddedPluginJarLocator testSubject;
+    private SLCoreEmbeddedPluginProvider testSubject;
     private IVsixRootLocator vsixRootLocator;
 
     [TestInitialize]
@@ -46,7 +46,7 @@ public class SLCoreEmbeddedPluginJarLocatorTests
         logger = Substitute.For<ILogger>();
         directory = Substitute.For<IDirectory>();
         MockLanguageProvider();
-        testSubject = new SLCoreEmbeddedPluginJarLocator(vsixRootLocator, fileSystem, logger, languageProvider);
+        testSubject = new SLCoreEmbeddedPluginProvider(vsixRootLocator, fileSystem, logger, languageProvider);
 
         MockVsixLocator();
         MockFileSystem();
@@ -54,13 +54,13 @@ public class SLCoreEmbeddedPluginJarLocatorTests
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<SLCoreEmbeddedPluginJarLocator, ISLCoreEmbeddedPluginJarLocator>(
+        MefTestHelpers.CheckTypeCanBeImported<SLCoreEmbeddedPluginProvider, ISLCoreEmbeddedPluginProvider>(
             MefTestHelpers.CreateExport<IVsixRootLocator>(),
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<ILanguageProvider>(languageProvider));
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SLCoreEmbeddedPluginJarLocator>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SLCoreEmbeddedPluginProvider>();
 
     [TestMethod]
     public void ListJarFiles_DirectoryNotExists_ReturnsEmpty()
@@ -157,17 +157,27 @@ public class SLCoreEmbeddedPluginJarLocatorTests
         var result = testSubject.ListConnectedModeEmbeddedPluginPathsByKey();
 
         result.Should().BeEmpty();
-        logger.Received(4).LogVerbose(Strings.ConnectedModeEmbeddedPluginJarLocator_JarsNotFound);
+        logger.Received(testSubject.StandalonePlugins.Count).LogVerbose(Strings.ConnectedModeEmbeddedPluginJarLocator_JarsNotFound);
     }
 
     [TestMethod]
-    public void StandalonePlugins_ReturnsStandalonePluginsExceptRoslyn()
+    public void StandalonePlugins_ReturnsStandalonePluginsIncludingRoslyn()
     {
         _ = languageProvider.Received(1).LanguagesInStandaloneMode;
-        _ = languageProvider.Received(1).RoslynLanguages;
+        _ = languageProvider.DidNotReceive().RoslynLanguages;
 
-        var expectedPlugins = languageProvider.LanguagesInStandaloneMode.Except(languageProvider.RoslynLanguages).Select(x => x.PluginInfo).ToHashSet();
+        var expectedPlugins = languageProvider.LanguagesInStandaloneMode.Select(x => x.PluginInfo).ToHashSet();
         testSubject.StandalonePlugins.Should().BeEquivalentTo(expectedPlugins);
+    }
+
+    [TestMethod]
+    public void ListDisabledPluginKeysForAnalysis_ReturnsCsharpAndVbNetPluginKeys()
+    {
+        List<string> expectedPluginKeys = ["csharpenterprise", "vbnetenterprise"];
+
+        var result = testSubject.ListDisabledPluginKeysForAnalysis();
+
+        result.Should().BeEquivalentTo(expectedPluginKeys);
     }
 
     private void MockFileSystem(bool directoryExists, params string[] files)
@@ -198,8 +208,8 @@ public class SLCoreEmbeddedPluginJarLocatorTests
         languageProvider = Substitute.For<ILanguageProvider>();
         // doesn't have to be the complete list for testing purposes
         languageProvider.LanguagesInStandaloneMode.Returns([
-            Language.CSharp, Language.C, Language.Js, Language.Css, Language.Html, Language.Secrets
+            Language.CSharp, Language.VBNET, Language.C, Language.Js, Language.Css, Language.Html, Language.Secrets
         ]);
-        languageProvider.RoslynLanguages.Returns([Language.CSharp]);
+        languageProvider.RoslynLanguages.Returns([Language.CSharp, Language.VBNET,]);
     }
 }
