@@ -43,14 +43,14 @@ public class DiagnosticDuplicatesComparer : IEqualityComparer<RoslynIssue>
             return false;
         }
 
-        return x.RuleKey == y.RuleKey && LocationEquals(x.PrimaryLocation, y.PrimaryLocation);
+        return x.RuleId == y.RuleId && LocationEquals(x.PrimaryLocation, y.PrimaryLocation);
     }
 
     public int GetHashCode(RoslynIssue obj)
     {
         unchecked
         {
-            var hc = obj.RuleKey.GetHashCode();
+            var hc = obj.RuleId.GetHashCode();
             const int prime = 397;
             hc = (hc * prime) ^ obj.PrimaryLocation.FilePath.GetHashCode();
             hc = (hc * prime) ^ obj.PrimaryLocation.TextRange.StartLine;
