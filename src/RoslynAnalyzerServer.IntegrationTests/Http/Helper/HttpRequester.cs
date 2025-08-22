@@ -12,7 +12,7 @@ internal record AnalysisRequestConfig(SecureString Token, string RequestUri, par
 
 internal sealed class HttpRequester : IDisposable
 {
-    private const int WaitForServerMsTimeout = 500;
+    private const int WaitForServerMsTimeout = 2000;
     private const string JsonMediaType = "application/json";
     private const string XAuthTokenHeader = "X-Auth-Token";
     private readonly HttpClient httpClient;
