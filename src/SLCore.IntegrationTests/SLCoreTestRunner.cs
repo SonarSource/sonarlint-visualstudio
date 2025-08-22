@@ -110,8 +110,9 @@ public sealed class SLCoreTestRunner : IDisposable
             var connectionProvider = Substitute.For<IServerConnectionsProvider>();
             connectionProvider.GetServerConnections().Returns(new Dictionary<string, ServerConnectionConfigurationDtoBase>());
 
-            var jarProvider = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
+            var jarProvider = Substitute.For<ISLCoreEmbeddedPluginProvider>();
             jarProvider.ListJarFiles().Returns(DependencyLocator.AnalyzerPlugins);
+            jarProvider.ListDisabledPluginKeysForAnalysis().Returns([Language.CSharp.AdditionalPlugins.Single().Key, Language.VBNET.AdditionalPlugins.Single().Key]);
 
             var compatibleNodeLocator = Substitute.For<INodeLocationProvider>();
             compatibleNodeLocator.Get().Returns((string)null);
@@ -172,7 +173,6 @@ public sealed class SLCoreTestRunner : IDisposable
     {
         var defaultLanguageProvider = new SLCoreLanguageProvider(LanguageProvider.Instance);
         languageProvider.LanguagesInStandaloneMode.Returns(defaultLanguageProvider.LanguagesInStandaloneMode);
-        languageProvider.LanguagesWithDisabledAnalysis.Returns(defaultLanguageProvider.LanguagesWithDisabledAnalysis);
     }
 
     public void Dispose()
