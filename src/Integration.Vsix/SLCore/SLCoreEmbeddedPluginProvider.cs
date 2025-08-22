@@ -96,7 +96,7 @@ public class SLCoreEmbeddedPluginProvider : ISLCoreEmbeddedPluginProvider
 
     private string GetPathByPluginKey(List<string> pluginFilePaths, string pluginKey, string pluginNameRegexPattern)
     {
-        var regex = new Regex(pluginNameRegexPattern);
+        var regex = new Regex(pluginNameRegexPattern, RegexOptions.Compiled, RegexConstants.DefaultTimeout);
         var matchedFilePaths = pluginFilePaths.Where(jar => regex.IsMatch(jar)).ToList();
         switch (matchedFilePaths.Count)
         {
