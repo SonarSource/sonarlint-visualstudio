@@ -125,7 +125,6 @@ public class SonarLintConfigurationXmlSerializerTests
                 </Rule>
                 <Rule>
                   <Key>s888</Key>
-                  <Parameters />
                 </Rule>
               </Rules>
             </AnalysisInput>

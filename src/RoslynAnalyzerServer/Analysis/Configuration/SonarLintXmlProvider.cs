@@ -44,7 +44,7 @@ internal class SonarLintXmlProvider(ISonarLintConfigurationXmlSerializer sonarLi
         return new SonarLintXmlConfigurationFile(Path.GetTempPath(), sonarLintConfigurationXmlSerializer.Serialize(sonarLintConfiguration));
     }
 
-    private static List<SonarLintKeyValuePair>? ConvertDictionary(Dictionary<string, string>? dictionary) => dictionary?.Select(ConvertKeyValuePair).ToList();
+    private static List<SonarLintKeyValuePair>? ConvertDictionary(Dictionary<string, string>? dictionary) => dictionary?.Select(ConvertKeyValuePair).ToList() ?? [];
 
     private static SonarLintKeyValuePair ConvertKeyValuePair(KeyValuePair<string, string> x) => new() { Key = x.Key, Value = x.Value };
 }
