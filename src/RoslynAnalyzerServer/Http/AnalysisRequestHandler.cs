@@ -83,7 +83,7 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerSettings server
 
     public string ParseAnalysisRequestResponse(List<RoslynIssue> diagnostics)
     {
-        var responseObj = new AnalysisResponse { Diagnostics = diagnostics };
+        var responseObj = new AnalysisResponse { RoslynIssues = diagnostics };
         var responseString = JsonConvert.SerializeObject(responseObj);
         return responseString;
     }

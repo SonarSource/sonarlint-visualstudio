@@ -153,8 +153,8 @@ internal sealed class RoslynAnalysisHttpServer(
             return;
         }
 
-        var diagnostics = await roslynAnalysisService.AnalyzeAsync(analysisRequest.FileNames, analysisRequest.ActiveRules, analysisRequest.AnalysisProperties, cancellationToken);
+        var issues = await roslynAnalysisService.AnalyzeAsync(analysisRequest.FileNames, analysisRequest.ActiveRules, analysisRequest.AnalysisProperties, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
-        await httpRequestHandler.SendResponse(context, analysisRequestHandler.ParseAnalysisRequestResponse(diagnostics.ToList()));
+        await httpRequestHandler.SendResponse(context, analysisRequestHandler.ParseAnalysisRequestResponse(issues.ToList()));
     }
 }

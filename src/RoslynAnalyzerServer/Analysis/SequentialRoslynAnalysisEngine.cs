@@ -55,7 +55,7 @@ internal class SequentialRoslynAnalysisEngine(
                     // todo SLVS-2468 improve issue merging
                     if (!uniqueDiagnostics.Add(diagnostic))
                     {
-                        logger.LogVerbose("Duplicate diagnostic discarded ID: {0}, File: {1}, Line: {2}", diagnostic.RuleKey, Path.GetFileName(diagnostic.PrimaryLocation.FilePath), diagnostic.PrimaryLocation.TextRange.StartLine);
+                        logger.LogVerbose("Duplicate diagnostic discarded ID: {0}, File: {1}, Line: {2}", diagnostic.RuleId, Path.GetFileName(diagnostic.PrimaryLocation.FilePath), diagnostic.PrimaryLocation.TextRange.StartLine);
                     }
                 }
             }

@@ -24,5 +24,5 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 public record AnalysisResponse
 {
-    public List<RoslynIssue> Diagnostics { get; set; } = [];
+    public List<RoslynIssue> RoslynIssues { get; set; } = [];
 }

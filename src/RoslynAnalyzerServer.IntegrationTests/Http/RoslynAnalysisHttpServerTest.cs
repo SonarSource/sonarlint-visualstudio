@@ -242,7 +242,7 @@ public class RoslynAnalysisHttpServerTest
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var analysisResponse = await GetAnalysisResponse(response);
         analysisResponse.Should().NotBeNull();
-        analysisResponse!.Diagnostics.Should().BeEmpty();
+        analysisResponse!.RoslynIssues.Should().BeEmpty();
     }
 
     private static async Task VerifyServerNotReachable<T>(AnalysisRequestConfig analysisRequestConfig) where T : Exception
