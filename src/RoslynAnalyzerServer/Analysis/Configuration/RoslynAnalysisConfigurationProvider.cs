@@ -40,7 +40,7 @@ internal class RoslynAnalysisConfigurationProvider(
     {
         // todo add caching https://sonarsource.atlassian.net/browse/SLVS-2481
 
-        var analysisProfilesByLanguage = analyzerProfilesProvider.GetAnalysisProfilesByLanguage(roslynAnalyzerProvider.GetAnalyzersByLanguage(), activeRules, analysisProperties);
+        var analysisProfilesByLanguage = analyzerProfilesProvider.GetAnalysisProfilesByLanguage(roslynAnalyzerProvider.LoadAnalyzerAssemblies(), activeRules, analysisProperties);
 
         var configurations = new Dictionary<Language, RoslynAnalysisConfiguration>();
         foreach (var analyzerAndLanguage in analysisProfilesByLanguage)

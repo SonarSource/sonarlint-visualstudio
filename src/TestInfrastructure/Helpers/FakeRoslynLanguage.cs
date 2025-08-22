@@ -18,15 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
+namespace SonarLint.VisualStudio.Integration.TestInfrastructure.Helpers;
 
-internal interface IRoslynAnalyzerProvider
+public class FakeRoslynLanguage(string key) : RoslynLanguage(key, key, key, new PluginInfo(key, key), new RepoInfo(key), key, key, new RepoInfo(key, key))
 {
-    ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadAnalyzerAssemblies();
+    public static RoslynLanguage Instance = new FakeRoslynLanguage("fakeroslyn");
 }
-
-internal record struct AnalyzerAssemblyContents(ImmutableArray<DiagnosticAnalyzer> Analyzers, ImmutableHashSet<string> SupportedRuleKeys);

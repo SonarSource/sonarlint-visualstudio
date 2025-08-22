@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CSharpVB;
+using SonarLint.VisualStudio.Integration.TestInfrastructure.Helpers;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
@@ -78,7 +79,7 @@ public class RoslynBindingConfigProviderTests
         var testSubject = builder.CreateTestSubject();
 
         // Act
-        Action act = () => testSubject.SaveConfigurationAsync(validQualityProfile, Language.Cpp, BindingConfiguration.Standalone, CancellationToken.None).Wait();
+        Action act = () => testSubject.SaveConfigurationAsync(validQualityProfile, FakeRoslynLanguage.Instance, BindingConfiguration.Standalone, CancellationToken.None).Wait();
 
         // Assert
         act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("language");
@@ -122,7 +123,7 @@ public class RoslynBindingConfigProviderTests
         var expectedOutput = string.Format(BindingStrings.SubTextPaddingFormat,
             string.Format(BindingStrings.NoSonarAnalyzerActiveRulesForQualityProfile, validQualityProfile.Name, Language.VBNET.Name));
         builder.Logger.AssertOutputStrings(expectedOutput);
-        builder.RoslynConfigGenerator.DidNotReceiveWithAnyArgs().GenerateAndSaveConfiguration(Arg.Any<Language>(), Arg.Any<string>(), Arg.Any<IDictionary<string, string>>(), Arg.Any<IFileExclusions>(), Arg.Any<IReadOnlyCollection<IRoslynRuleStatus>>(), Arg.Any<IReadOnlyCollection<IRuleParameters>>());
+        builder.RoslynConfigGenerator.DidNotReceiveWithAnyArgs().GenerateAndSaveConfiguration(Arg.Any<RoslynLanguage>(), Arg.Any<string>(), Arg.Any<IDictionary<string, string>>(), Arg.Any<IFileExclusions>(), Arg.Any<IReadOnlyCollection<IRoslynRuleStatus>>(), Arg.Any<IReadOnlyCollection<IRuleParameters>>());
     }
 
     [TestMethod]
