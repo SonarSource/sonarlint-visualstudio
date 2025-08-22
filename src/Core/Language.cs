@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Core
         public static readonly Language Unknown = new();
         public static readonly RoslynLanguage CSharp = new("CSharp", CoreStrings.CSharpLanguageName, "cs", SqvsRoslynPlugin, CSharpRepo,
             settingsFileName: "sonarlint_csharp.globalconfig", roslynDllIdentifier: ".CSharp.", CSharpSecurityRepo, additionalPlugins: [CSharpPlugin]);
-        public static readonly RoslynLanguage VBNET = new("VB", CoreStrings.VBNetLanguageName, "vbnet", SqvsRoslynPlugin, VbNetRepo, settingsFileName: "sonarlint_vb.globalconfig", roslynDllIdentifier: ".CSharp.",
+        public static readonly RoslynLanguage VBNET = new("VB", CoreStrings.VBNetLanguageName, "vbnet", SqvsRoslynPlugin, VbNetRepo, settingsFileName: "sonarlint_vb.globalconfig", roslynDllIdentifier: ".VisualBasic.",
             additionalPlugins: [VbNetPlugin]);
         public static readonly Language Cpp = new("C++", CoreStrings.CppLanguageName, "cpp", CFamilyPlugin, CppRepo);
         public static readonly Language C = new("C", "C", "c", CFamilyPlugin, CRepo);
