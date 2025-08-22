@@ -43,7 +43,7 @@ public class SLCoreInstanceFactoryTests
             MefTestHelpers.CreateExport<ISLCoreLanguageProvider>(),
             MefTestHelpers.CreateExport<ISLCoreFoldersProvider>(),
             MefTestHelpers.CreateExport<IServerConnectionsProvider>(),
-            MefTestHelpers.CreateExport<ISLCoreEmbeddedPluginJarLocator>(),
+            MefTestHelpers.CreateExport<ISLCoreEmbeddedPluginProvider>(),
             MefTestHelpers.CreateExport<INodeLocationProvider>(),
             MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
             MefTestHelpers.CreateExport<IConfigScopeUpdater>(),
@@ -68,7 +68,7 @@ public class SLCoreInstanceFactoryTests
         var slCoreLanguageProvider = Substitute.For<ISLCoreLanguageProvider>();
         var islCoreFoldersProvider = Substitute.For<ISLCoreFoldersProvider>();
         var serverConnectionsProvider = Substitute.For<IServerConnectionsProvider>();
-        var islCoreEmbeddedPluginJarLocator = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
+        var slCoreEmbeddedPluginProvider = Substitute.For<ISLCoreEmbeddedPluginProvider>();
         var compatibleNodeLocator = Substitute.For<INodeLocationProvider>();
         var esLintBridgeLocator = Substitute.For<IEsLintBridgeLocator>();
         var activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
@@ -84,7 +84,7 @@ public class SLCoreInstanceFactoryTests
             slCoreLanguageProvider,
             islCoreFoldersProvider,
             serverConnectionsProvider,
-            islCoreEmbeddedPluginJarLocator,
+            slCoreEmbeddedPluginProvider,
             compatibleNodeLocator,
             activeSolutionBoundTracker,
             configScopeUpdater,
