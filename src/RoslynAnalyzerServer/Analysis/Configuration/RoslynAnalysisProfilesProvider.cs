@@ -29,8 +29,8 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class RoslynAnalysisProfilesProvider : IRoslynAnalysisProfilesProvider
 {
-    public Dictionary<Language, RoslynAnalysisProfile> GetAnalysisProfilesByLanguage(
-        ImmutableDictionary<Language, AnalyzersAndSupportedRules> supportedRulesByLanguage,
+    public Dictionary<RoslynLanguage, RoslynAnalysisProfile> GetAnalysisProfilesByLanguage(
+        ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> supportedRulesByLanguage,
         List<ActiveRuleDto> activeRules,
         Dictionary<string, string>? analysisProperties)
     {
@@ -41,7 +41,7 @@ internal class RoslynAnalysisProfilesProvider : IRoslynAnalysisProfilesProvider
         return roslynAnalysisProfiles;
     }
 
-    private static Dictionary<Language, RoslynAnalysisProfile> InitializeProfilesForEachLanguage(ImmutableDictionary<Language, AnalyzersAndSupportedRules> supportedRulesByLanguage)
+    private static Dictionary<RoslynLanguage, RoslynAnalysisProfile> InitializeProfilesForEachLanguage(ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> supportedRulesByLanguage)
     {
         var roslynAnalysisProfiles = supportedRulesByLanguage.ToDictionary(x => x.Key, x => new RoslynAnalysisProfile(x.Value.Analyzers, [], []));
         return roslynAnalysisProfiles;
@@ -49,8 +49,8 @@ internal class RoslynAnalysisProfilesProvider : IRoslynAnalysisProfilesProvider
 
     private static void AddRules(
         List<ActiveRuleDto> activeRules,
-        ImmutableDictionary<Language, AnalyzersAndSupportedRules> supportedRulesByLanguage,
-        Dictionary<Language, RoslynAnalysisProfile> roslynAnalysisProfiles)
+        ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> supportedRulesByLanguage,
+        Dictionary<RoslynLanguage, RoslynAnalysisProfile> roslynAnalysisProfiles)
     {
         var activeRulesById = activeRules.ToDictionary(x => x.RuleId, y => y);
 
@@ -73,7 +73,7 @@ internal class RoslynAnalysisProfilesProvider : IRoslynAnalysisProfilesProvider
         }
     }
 
-    private static void AddProperties(Dictionary<string, string>? analysisProperties, Dictionary<Language, RoslynAnalysisProfile> roslynAnalysisProfiles)
+    private static void AddProperties(Dictionary<string, string>? analysisProperties, Dictionary<RoslynLanguage, RoslynAnalysisProfile> roslynAnalysisProfiles)
     {
         if (analysisProperties == null)
         {

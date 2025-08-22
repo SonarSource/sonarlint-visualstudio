@@ -44,7 +44,7 @@ public class RoslynAnalysisProfilesProviderTests
     [TestMethod]
     public void GetAnalysisProfilesByLanguage_EmptyInputs_ReturnsEmptyDictionary()
     {
-        var supportedDiagnostics = ImmutableDictionary<Language, AnalyzersAndSupportedRules>.Empty;
+        var supportedDiagnostics = ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>.Empty;
         var activeRules = new List<ActiveRuleDto>();
         Dictionary<string, string> analysisProperties = [];
 
@@ -105,9 +105,9 @@ public class RoslynAnalysisProfilesProviderTests
             isActive,
             parameters);
 
-    private static ImmutableDictionary<Language, AnalyzersAndSupportedRules> CreateSupportedDiagnosticsForLanguages(
-        Dictionary<Language, (DiagnosticAnalyzer[] analyzers, string[] RuleKeys)> analyzers) =>
+    private static ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> CreateSupportedDiagnosticsForLanguages(
+        Dictionary<RoslynLanguage, (DiagnosticAnalyzer[] analyzers, string[] RuleKeys)> analyzers) =>
         analyzers.ToImmutableDictionary(
             x => x.Key,
-            y => new AnalyzersAndSupportedRules(y.Value.analyzers.ToImmutableArray(), y.Value.RuleKeys.ToImmutableArray()));
+            y => new AnalyzerAssemblyContents(y.Value.analyzers.ToImmutableArray(), y.Value.RuleKeys.ToImmutableHashSet()));
 }
