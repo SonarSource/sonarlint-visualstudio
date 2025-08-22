@@ -54,6 +54,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 
             act = () => new Language(name, key, serverLanguageKey, pluginInfo, repoInfo, securityRepoInfo: null, settingsFileName: fileSuffix);
             act.Should().NotThrow<ArgumentNullException>();
+
+            act = () => new Language(name, key, serverLanguageKey, pluginInfo, repoInfo, additionalPlugins: null);
+            act.Should().NotThrow<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -133,8 +136,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [TestMethod]
         public void Language_HasCorrectPlugin()
         {
-            LanguageHasExpectedPlugin(Language.CSharp, "csharpenterprise", "sonar-csharp-enterprise-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar");
-            LanguageHasExpectedPlugin(Language.VBNET, "vbnetenterprise", "sonar-vbnet-enterprise-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar");
+            LanguageHasExpectedPlugin(Language.CSharp, "sqvsroslyn", "sonarqube-ide-visualstudio-roslyn-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar");
+            LanguageHasExpectedAdditionalPlugins(Language.CSharp, [new("csharpenterprise", "sonar-csharp-enterprise-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar", isEnabledForAnalysis: false)]);
+            LanguageHasExpectedPlugin(Language.VBNET, "sqvsroslyn", "sonarqube-ide-visualstudio-roslyn-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar");
+            LanguageHasExpectedAdditionalPlugins(Language.VBNET, [new("vbnetenterprise", "sonar-vbnet-enterprise-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar", isEnabledForAnalysis: false)]);
 
             LanguageHasExpectedPlugin(Language.Cpp, "cpp", "sonar-cfamily-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar");
             LanguageHasExpectedPlugin(Language.C, "cpp", "sonar-cfamily-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar");
@@ -171,6 +176,17 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         {
             language.PluginInfo.Key.Should().Be(pluginKey);
             language.PluginInfo.FilePattern.Should().Be(filePattern);
+            language.PluginInfo.IsEnabledForAnalysis.Should().Be(true);
+        }
+
+        private static void LanguageHasExpectedAdditionalPlugins(Language language, List<PluginInfo> expectedPlugins)
+        {
+            foreach (var expectedPlugin in expectedPlugins)
+            {
+                language.AdditionalPlugins.Should().Contain(x => x.Key == expectedPlugin.Key &&
+                                                                 x.FilePattern == expectedPlugin.FilePattern &&
+                                                                 x.IsEnabledForAnalysis == expectedPlugin.IsEnabledForAnalysis);
+            }
         }
 
         private static void LanguageHasExpectedRepoInfo(Language language, string repoKey, string folderName) => HasExpectedRepoInfo(language.RepoInfo, repoKey, folderName);
