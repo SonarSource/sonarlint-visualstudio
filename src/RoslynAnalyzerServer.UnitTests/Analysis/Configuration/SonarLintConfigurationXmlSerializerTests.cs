@@ -19,15 +19,15 @@
  */
 
 using SonarLint.VisualStudio.Core.CSharpVB;
-using SonarLint.VisualStudio.Integration.CSharpVB;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.CSharpVB;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis.Configuration;
 
 [TestClass]
 public class SonarLintConfigurationXmlSerializerTests
 {
-    private SonarLintConfigurationXmlSerializer testSubject;
+    private SonarLintConfigurationXmlSerializer testSubject = null!;
 
     [TestInitialize]
     public void TestInitialize() => testSubject = new SonarLintConfigurationXmlSerializer();
@@ -46,10 +46,7 @@ public class SonarLintConfigurationXmlSerializerTests
             Settings =
             [
                 new SonarLintKeyValuePair { Key = "sonar.cs.prop1", Value = "value 1" },
-                new SonarLintKeyValuePair { Key = "sonar.cs.prop2", Value = "value 2" },
-                new SonarLintKeyValuePair { Key = "sonar.exclusions", Value = "**/path1" },
-                new SonarLintKeyValuePair { Key = "sonar.global.exclusions", Value = "**/path2" },
-                new SonarLintKeyValuePair { Key = "sonar.inclusions", Value = "**/path3" },
+                new SonarLintKeyValuePair { Key = "sonar.cs.prop2", Value = "value 2" }
             ],
             Rules =
             [
@@ -69,6 +66,16 @@ public class SonarLintConfigurationXmlSerializerTests
                     [
                         new SonarLintKeyValuePair { Key = "x", Value = "y y" }
                     ]
+                },
+                new SonarLintRule
+                {
+                    Key = "s777",
+                    Parameters = []
+                },
+                new SonarLintRule
+                {
+                    Key = "s888",
+                    Parameters = null
                 }
             ]
         };
@@ -87,18 +94,6 @@ public class SonarLintConfigurationXmlSerializerTests
                 <Setting>
                   <Key>sonar.cs.prop2</Key>
                   <Value>value 2</Value>
-                </Setting>
-                <Setting>
-                  <Key>sonar.exclusions</Key>
-                  <Value>**/path1</Value>
-                </Setting>
-                <Setting>
-                  <Key>sonar.global.exclusions</Key>
-                  <Value>**/path2</Value>
-                </Setting>
-                <Setting>
-                  <Key>sonar.inclusions</Key>
-                  <Value>**/path3</Value>
                 </Setting>
               </Settings>
               <Rules>
@@ -123,6 +118,13 @@ public class SonarLintConfigurationXmlSerializerTests
                       <Value>y y</Value>
                     </Parameter>
                   </Parameters>
+                </Rule>
+                <Rule>
+                  <Key>s777</Key>
+                  <Parameters />
+                </Rule>
+                <Rule>
+                  <Key>s888</Key>
                 </Rule>
               </Rules>
             </AnalysisInput>

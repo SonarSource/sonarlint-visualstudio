@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CSharpVB;
@@ -29,11 +30,11 @@ namespace SonarLint.VisualStudio.Integration.CSharpVB;
 [Export(typeof(IRoslynConfigGenerator))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
+[ExcludeFromCodeCoverage] // todo https://sonarsource.atlassian.net/browse/SLVS-2420
 internal class RoslynConfigGenerator(
     IFileSystemService fileSystem,
     IGlobalConfigGenerator globalConfigGenerator,
-    ISonarLintConfigGenerator sonarLintConfigGenerator,
-    ISonarLintConfigurationXmlSerializer  sonarLintConfigurationXmlSerializer)
+    ISonarLintConfigGenerator sonarLintConfigGenerator)
     : IRoslynConfigGenerator
 {
     /// <summary>
@@ -51,8 +52,6 @@ internal class RoslynConfigGenerator(
     {
         var roslynGlobalConfig = globalConfigGenerator.Generate(ruleStatuses);
         Save(roslynGlobalConfig, Path.Combine(baseDirectory, language.SettingsFileNameAndExtension));
-        var sonarLintConfiguration = sonarLintConfigGenerator.Generate(ruleParameters, properties, fileExclusions, language);
-        Save(sonarLintConfigurationXmlSerializer.Serialize(sonarLintConfiguration), Path.Combine(baseDirectory, language.Id, SonarlintConfigFileName));
     }
 
     private void Save(string config, string filePath)
