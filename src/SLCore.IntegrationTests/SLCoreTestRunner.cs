@@ -110,7 +110,7 @@ public sealed class SLCoreTestRunner : IDisposable
             var connectionProvider = Substitute.For<IServerConnectionsProvider>();
             connectionProvider.GetServerConnections().Returns(new Dictionary<string, ServerConnectionConfigurationDtoBase>());
 
-            var jarProvider = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
+            var jarProvider = Substitute.For<ISLCoreEmbeddedPluginProvider>();
             jarProvider.ListJarFiles().Returns(DependencyLocator.AnalyzerPlugins);
             jarProvider.ListDisabledPluginKeysForAnalysis().Returns([Language.CSharp.PluginInfo.Key, Language.VBNET.PluginInfo.Key]);
 

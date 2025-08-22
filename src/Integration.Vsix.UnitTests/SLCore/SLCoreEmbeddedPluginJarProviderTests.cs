@@ -29,13 +29,13 @@ using SonarLint.VisualStudio.SLCore.Configuration;
 namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore;
 
 [TestClass]
-public class SLCoreEmbeddedPluginJarLocatorTests
+public class SLCoreEmbeddedPluginJarProviderTests
 {
     private IDirectory directory;
     private IFileSystem fileSystem;
     private ILanguageProvider languageProvider;
     private ILogger logger;
-    private SLCoreEmbeddedPluginJarLocator testSubject;
+    private SLCoreEmbeddedPluginProvider testSubject;
     private IVsixRootLocator vsixRootLocator;
 
     [TestInitialize]
@@ -46,7 +46,7 @@ public class SLCoreEmbeddedPluginJarLocatorTests
         logger = Substitute.For<ILogger>();
         directory = Substitute.For<IDirectory>();
         MockLanguageProvider();
-        testSubject = new SLCoreEmbeddedPluginJarLocator(vsixRootLocator, fileSystem, logger, languageProvider);
+        testSubject = new SLCoreEmbeddedPluginProvider(vsixRootLocator, fileSystem, logger, languageProvider);
 
         MockVsixLocator();
         MockFileSystem();
@@ -54,13 +54,13 @@ public class SLCoreEmbeddedPluginJarLocatorTests
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<SLCoreEmbeddedPluginJarLocator, ISLCoreEmbeddedPluginJarLocator>(
+        MefTestHelpers.CheckTypeCanBeImported<SLCoreEmbeddedPluginProvider, ISLCoreEmbeddedPluginProvider>(
             MefTestHelpers.CreateExport<IVsixRootLocator>(),
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<ILanguageProvider>(languageProvider));
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SLCoreEmbeddedPluginJarLocator>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SLCoreEmbeddedPluginProvider>();
 
     [TestMethod]
     public void ListJarFiles_DirectoryNotExists_ReturnsEmpty()

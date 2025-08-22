@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.SLCore.Configuration;
 
-public interface ISLCoreEmbeddedPluginJarLocator
+public interface ISLCoreEmbeddedPluginProvider
 {
     List<string> ListJarFiles();
 

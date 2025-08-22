@@ -29,9 +29,9 @@ using SonarLint.VisualStudio.SLCore.Configuration;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SLCore;
 
-[Export(typeof(ISLCoreEmbeddedPluginJarLocator))]
+[Export(typeof(ISLCoreEmbeddedPluginProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class SLCoreEmbeddedPluginJarLocator : ISLCoreEmbeddedPluginJarLocator
+public class SLCoreEmbeddedPluginProvider : ISLCoreEmbeddedPluginProvider
 {
     private const string JarFolderName = "DownloadedJars";
 
@@ -42,9 +42,9 @@ public class SLCoreEmbeddedPluginJarLocator : ISLCoreEmbeddedPluginJarLocator
     internal HashSet<PluginInfo> StandalonePlugins { get; }
 
     [ImportingConstructor]
-    public SLCoreEmbeddedPluginJarLocator(IVsixRootLocator vsixRootLocator, ILogger logger, ILanguageProvider languageProvider) : this(vsixRootLocator, new FileSystem(), logger, languageProvider) { }
+    public SLCoreEmbeddedPluginProvider(IVsixRootLocator vsixRootLocator, ILogger logger, ILanguageProvider languageProvider) : this(vsixRootLocator, new FileSystem(), logger, languageProvider) { }
 
-    internal SLCoreEmbeddedPluginJarLocator(
+    internal SLCoreEmbeddedPluginProvider(
         IVsixRootLocator vsixRootLocator,
         IFileSystem fileSystem,
         ILogger logger,

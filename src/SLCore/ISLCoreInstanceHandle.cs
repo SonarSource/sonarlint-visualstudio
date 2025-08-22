@@ -51,7 +51,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
     private readonly ISLCoreConstantsProvider constantsProvider;
     private readonly ISLCoreLanguageProvider slCoreLanguageProvider;
     private readonly ISLCoreFoldersProvider slCoreFoldersProvider;
-    private readonly ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider;
+    private readonly ISLCoreEmbeddedPluginProvider slCoreEmbeddedPluginJarProvider;
     private readonly ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider;
     private readonly ISlCoreTelemetryMigrationProvider telemetryMigrationProvider;
     private readonly IEsLintBridgeLocator esLintBridgeLocator;
@@ -67,7 +67,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         ISLCoreLanguageProvider slCoreLanguageProvider,
         ISLCoreFoldersProvider slCoreFoldersProvider,
         IServerConnectionsProvider serverConnectionConfigurationProvider,
-        ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider,
+        ISLCoreEmbeddedPluginProvider slCoreEmbeddedPluginJarProvider,
         INodeLocationProvider nodeLocator,
         IEsLintBridgeLocator esLintBridgeLocator,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,

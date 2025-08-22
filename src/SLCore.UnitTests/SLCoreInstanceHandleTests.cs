@@ -63,7 +63,7 @@ public class SLCoreInstanceHandleTests
     private ISLCoreLanguageProvider slCoreLanguageProvider;
     private ISLCoreFoldersProvider foldersProvider;
     private IServerConnectionsProvider connectionsProvider;
-    private ISLCoreEmbeddedPluginJarLocator jarLocator;
+    private ISLCoreEmbeddedPluginProvider jarProvider;
     private INodeLocationProvider nodeLocator;
     private IEsLintBridgeLocator esLintBridgeLocator;
     private IActiveSolutionBoundTracker activeSolutionBoundTracker;
@@ -82,7 +82,7 @@ public class SLCoreInstanceHandleTests
         slCoreLanguageProvider = Substitute.For<ISLCoreLanguageProvider>();
         foldersProvider = Substitute.For<ISLCoreFoldersProvider>();
         connectionsProvider = Substitute.For<IServerConnectionsProvider>();
-        jarLocator = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
+        jarProvider = Substitute.For<ISLCoreEmbeddedPluginProvider>();
         nodeLocator = Substitute.For<INodeLocationProvider>();
         esLintBridgeLocator = Substitute.For<IEsLintBridgeLocator>();
         activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
@@ -98,7 +98,7 @@ public class SLCoreInstanceHandleTests
             slCoreLanguageProvider,
             foldersProvider,
             connectionsProvider,
-            jarLocator,
+            jarProvider,
             nodeLocator,
             esLintBridgeLocator,
             activeSolutionBoundTracker,
@@ -264,9 +264,9 @@ public class SLCoreInstanceHandleTests
         {
             { SonarQubeConnection1.connectionId, SonarQubeConnection1 }, { SonarQubeConnection2.connectionId, SonarQubeConnection2 }, { SonarCloudConnection.connectionId, SonarCloudConnection }
         });
-        jarLocator.ListJarFiles().Returns(JarList);
-        jarLocator.ListConnectedModeEmbeddedPluginPathsByKey().Returns(ConnectedModeJarList);
-        jarLocator.ListDisabledPluginKeysForAnalysis().Returns(DisabledAnalysisPluginKeys);
+        jarProvider.ListJarFiles().Returns(JarList);
+        jarProvider.ListConnectedModeEmbeddedPluginPathsByKey().Returns(ConnectedModeJarList);
+        jarProvider.ListDisabledPluginKeysForAnalysis().Returns(DisabledAnalysisPluginKeys);
         activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration(Binding, SonarLintMode.Connected, "dir"));
         slCoreRuleSettingsProvider.GetSLCoreRuleSettings().Returns(new Dictionary<string, StandaloneRuleConfigDto>());
     }
