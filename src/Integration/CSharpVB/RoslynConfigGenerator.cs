@@ -43,7 +43,7 @@ internal class RoslynConfigGenerator(
     private const string SonarlintConfigFileName = "SonarLint.xml";
 
     public void GenerateAndSaveConfiguration(
-        Language language,
+        RoslynLanguage language,
         string baseDirectory,
         IDictionary<string, string> properties,
         IFileExclusions fileExclusions,

@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
+using SonarLint.VisualStudio.Integration.TestInfrastructure.Helpers;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CSharpVB.StandaloneMode;
@@ -64,7 +65,7 @@ public class StandaloneRoslynSettingsUpdaterTests
     [TestMethod]
     public void Update_CallsGeneratorWithCorrectLanguageAndDirectory()
     {
-        IReadOnlyList<Language> fakeRoslynLanguages = [Language.VBNET, Language.TSql, Language.C];
+        IReadOnlyList<RoslynLanguage> fakeRoslynLanguages = [Language.VBNET, Language.CSharp, new FakeRoslynLanguage()];
         languageProvider.RoslynLanguages.Returns(fakeRoslynLanguages);
         var userSettings = new UserSettings(new AnalysisSettings(), @"APPDATA\SonarLint for Visual Studio\.global");
 
@@ -88,7 +89,7 @@ public class StandaloneRoslynSettingsUpdaterTests
     [TestMethod]
     public void Update_CallsGeneratorWithCorrectProperties()
     {
-        IReadOnlyList<Language> fakeRoslynLanguages = [Language.VBNET, Language.TSql, Language.C];
+        IReadOnlyList<RoslynLanguage> fakeRoslynLanguages = [Language.VBNET, Language.CSharp];
         languageProvider.RoslynLanguages.Returns(fakeRoslynLanguages);
         var properties = ImmutableDictionary.Create<string, string>().SetItem("key", "value");
         var userSettings = new UserSettings(new AnalysisSettings(analysisProperties:  properties), "any");
@@ -97,7 +98,7 @@ public class StandaloneRoslynSettingsUpdaterTests
 
         Received.InOrder(() =>
         {
-            foreach (var language in fakeRoslynLanguages)
+            foreach (RoslynLanguage language in fakeRoslynLanguages)
             {
                 roslynConfigGenerator.GenerateAndSaveConfiguration(
                     language,
@@ -113,7 +114,7 @@ public class StandaloneRoslynSettingsUpdaterTests
     [TestMethod]
     public void Update_ConvertsExclusionsCorrectly()
     {
-        IReadOnlyList<Language> fakeRoslynLanguages = [Language.VBNET, Language.TSql, Language.C];
+        IReadOnlyList<RoslynLanguage> fakeRoslynLanguages = [Language.VBNET, FakeRoslynLanguage.Instance];
         languageProvider.RoslynLanguages.Returns(fakeRoslynLanguages);
 
         testSubject.Update(new UserSettings(new AnalysisSettings([], ["one", "two"], []), "any"));
@@ -136,7 +137,7 @@ public class StandaloneRoslynSettingsUpdaterTests
     [TestMethod]
     public void Update_ConvertsRulesCorrectly()
     {
-        IReadOnlyList<Language> fakeRoslynLanguages = [Language.VBNET];
+        IReadOnlyList<RoslynLanguage> fakeRoslynLanguages = [Language.VBNET];
         languageProvider.RoslynLanguages.Returns(fakeRoslynLanguages);
         var rules = new Dictionary<string, RuleConfig>()
         {
@@ -178,7 +179,7 @@ public class StandaloneRoslynSettingsUpdaterTests
     [TestMethod]
     public void Update_GroupsRulesByLanguage()
     {
-        IReadOnlyList<Language> fakeRoslynLanguages = [Language.VBNET, Language.CSharp];
+        IReadOnlyList<RoslynLanguage> fakeRoslynLanguages = [Language.VBNET, Language.CSharp, FakeRoslynLanguage.Instance];
         languageProvider.RoslynLanguages.Returns(fakeRoslynLanguages);
         var rules = new Dictionary<string, RuleConfig>()
         {
@@ -209,7 +210,7 @@ public class StandaloneRoslynSettingsUpdaterTests
         roslynConfigGenerator
             .DidNotReceive()
             .GenerateAndSaveConfiguration(
-                Language.Cpp,
+                Arg.Is<RoslynLanguage>(x => x != Language.CSharp && x != Language.VBNET),
                 Arg.Any<string>(),
                 Arg.Any<IDictionary<string, string>>(),
                 Arg.Any<IFileExclusions>(),

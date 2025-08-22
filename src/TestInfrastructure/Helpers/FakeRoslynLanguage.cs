@@ -19,28 +19,10 @@
  */
 
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
-using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis.Configuration;
+namespace SonarLint.VisualStudio.Integration.TestInfrastructure.Helpers;
 
-[TestClass]
-public class RoslynAnalyzerLoaderTests
+public class FakeRoslynLanguage() : RoslynLanguage("any", "any", "any", new PluginInfo("any", "any"), new RepoInfo("any"), "any", "any", new RepoInfo("any", "any"))
 {
-    [TestMethod]
-    public void MefCtor_CheckIsExported() => MefTestHelpers.CheckTypeCanBeImported<RoslynAnalyzerLoader, IRoslynAnalyzerLoader>(
-        MefTestHelpers.CreateExport<ILogger>());
-
-    [TestMethod]
-    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<RoslynAnalyzerLoader>();
-
-    [TestMethod]
-    public void Ctor_SetsLogContext()
-    {
-        var logger = Substitute.For<ILogger>();
-
-        _ = new RoslynAnalyzerLoader(logger);
-
-        logger.Received().ForContext(Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisAnalyzerLoaderLogContext);
-    }
+    public static RoslynLanguage Instance = new FakeRoslynLanguage();
 }

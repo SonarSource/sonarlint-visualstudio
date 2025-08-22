@@ -44,20 +44,20 @@ internal class EmbeddedDotnetAnalyzersLocator(IVsixRootLocator vsixRootLocator, 
 
     public List<string> GetBasicAnalyzerFullPaths() => GetBasicAnalyzerDlls().ToList();
 
-    public Dictionary<Language, List<string>> GetBasicAnalyzerFullPathsByLanguage() => GroupByLanguage(GetBasicAnalyzerDlls());
+    public Dictionary<RoslynLanguage, List<string>> GetBasicAnalyzerFullPathsByLanguage() => GroupByLanguage(GetBasicAnalyzerDlls());
 
     private IEnumerable<string> GetBasicAnalyzerDlls() => GetAllAnalyzerDlls().Where(x => !x.Contains(EnterpriseInfix));
 
     public List<string> GetEnterpriseAnalyzerFullPaths() => GetAllAnalyzerDlls().ToList();
 
-    public Dictionary<Language, List<string>> GetEnterpriseAnalyzerFullPathsByLanguage() => GroupByLanguage(GetAllAnalyzerDlls());
+    public Dictionary<RoslynLanguage, List<string>> GetEnterpriseAnalyzerFullPathsByLanguage() => GroupByLanguage(GetAllAnalyzerDlls());
 
     private string[] GetAllAnalyzerDlls() => fileSystem.Directory.GetFiles(GetPathToParentFolder(), DllsSearchPattern);
 
     private string GetPathToParentFolder() => Path.Combine(vsixRootLocator.GetVsixRoot(), PathInsideVsix);
 
 
-    private Dictionary<Language, List<string>> GroupByLanguage(IEnumerable<string> analyzerDlls)
+    private Dictionary<RoslynLanguage, List<string>> GroupByLanguage(IEnumerable<string> analyzerDlls)
     {
         var languageToAnalyzerLocations = languageProvider.RoslynLanguages.ToDictionary(x => x, _ => new List<string>());
 

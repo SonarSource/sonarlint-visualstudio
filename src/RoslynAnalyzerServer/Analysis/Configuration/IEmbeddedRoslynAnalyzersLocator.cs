@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
 public interface IEmbeddedDotnetAnalyzersLocator
 {
-    Dictionary<Language, List<string>> GetBasicAnalyzerFullPathsByLanguage();
+    Dictionary<RoslynLanguage, List<string>> GetBasicAnalyzerFullPathsByLanguage();
 
-    Dictionary<Language, List<string>> GetEnterpriseAnalyzerFullPathsByLanguage();
+    Dictionary<RoslynLanguage, List<string>> GetEnterpriseAnalyzerFullPathsByLanguage();
 }

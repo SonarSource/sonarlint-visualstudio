@@ -58,7 +58,7 @@ public class RoslynAnalyzerProviderTests
     [TestMethod]
     public void GetAnalyzersByLanguage_NoAnalyzers_ReturnsEmptyDictionary()
     {
-        analyzersLocator.GetBasicAnalyzerFullPathsByLanguage().Returns(new Dictionary<Language, List<string>>());
+        analyzersLocator.GetBasicAnalyzerFullPathsByLanguage().Returns(new Dictionary<RoslynLanguage, List<string>>());
 
         var result = testSubject.LoadAnalyzerAssemblies();
 
@@ -68,7 +68,7 @@ public class RoslynAnalyzerProviderTests
     [TestMethod]
     public void GetAnalyzersByLanguage_WithAnalyzers_LoadsAnalyzersAndReturnsCorrectDictionary()
     {
-        analyzersLocator.GetBasicAnalyzerFullPathsByLanguage().Returns(new Dictionary<Language, List<string>> { { Language.CSharp, [CsharpAnalyzerPath] }, { Language.VBNET, [VbAnalyzerPath] } });
+        analyzersLocator.GetBasicAnalyzerFullPathsByLanguage().Returns(new Dictionary<RoslynLanguage, List<string>> { { Language.CSharp, [CsharpAnalyzerPath] }, { Language.VBNET, [VbAnalyzerPath] } });
         var csharpAnalyzer = CreateAnalyzerWithDiagnostic("CS0001");
         var vbAnalyzer = CreateAnalyzerWithDiagnostic("VB0001");
         roslynAnalyzerLoader.LoadAnalyzers(CsharpAnalyzerPath).Returns([csharpAnalyzer]);
@@ -86,7 +86,7 @@ public class RoslynAnalyzerProviderTests
     [TestMethod]
     public void GetAnalyzersByLanguage_IgnoresDuplicateIdsForTheSameLanguage()
     {
-        analyzersLocator.GetBasicAnalyzerFullPathsByLanguage().Returns(new Dictionary<Language, List<string>> { { Language.CSharp, [CsharpAnalyzerPath] }, { Language.VBNET, [VbAnalyzerPath] } });
+        analyzersLocator.GetBasicAnalyzerFullPathsByLanguage().Returns(new Dictionary<RoslynLanguage, List<string>> { { Language.CSharp, [CsharpAnalyzerPath] }, { Language.VBNET, [VbAnalyzerPath] } });
         var csharpAnalyzer1 = CreateAnalyzerWithDiagnostic("S001", "SDUPLICATE");
         var csharpAnalyzer2 = CreateAnalyzerWithDiagnostic("S002", "SDUPLICATE");
         var vbAnalyzer = CreateAnalyzerWithDiagnostic("S001", "S002");
@@ -104,7 +104,7 @@ public class RoslynAnalyzerProviderTests
     public void GetAnalyzersByLanguage_MultipleAnalyzersPerLanguage_CombinesAllRules()
     {
         const string csharpAnalyzerPath2 = "c:\\analyzers\\csharp2.dll";
-        analyzersLocator.GetBasicAnalyzerFullPathsByLanguage().Returns(new Dictionary<Language, List<string>> { { Language.CSharp, [CsharpAnalyzerPath, csharpAnalyzerPath2] } });
+        analyzersLocator.GetBasicAnalyzerFullPathsByLanguage().Returns(new Dictionary<RoslynLanguage, List<string>> { { Language.CSharp, [CsharpAnalyzerPath, csharpAnalyzerPath2] } });
         var csharpAnalyzer1 = CreateAnalyzerWithDiagnostic("S001");
         var csharpAnalyzer2 = CreateAnalyzerWithDiagnostic("S002", "S003");
         var csharpAnalyzer3 = CreateAnalyzerWithDiagnostic("S004");

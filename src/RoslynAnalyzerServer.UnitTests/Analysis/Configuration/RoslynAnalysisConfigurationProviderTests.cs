@@ -30,8 +30,8 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis.Configu
 [TestClass]
 public class RoslynAnalysisConfigurationProviderTests
 {
-    private static readonly ImmutableDictionary<Language, AnalyzerAssemblyContents> DefaultAnalyzers
-        = new Dictionary<Language, AnalyzerAssemblyContents> { { Language.CSharp, new AnalyzerAssemblyContents() } }.ToImmutableDictionary();
+    private static readonly ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> DefaultAnalyzers
+        = new Dictionary<RoslynLanguage, AnalyzerAssemblyContents> { { Language.CSharp, new AnalyzerAssemblyContents() } }.ToImmutableDictionary();
     private static readonly List<ActiveRuleDto> DefaultActiveRules = new();
     private static readonly Dictionary<string, string> DefaultAnalysisProperties = new();
 
@@ -78,7 +78,7 @@ public class RoslynAnalysisConfigurationProviderTests
     [TestMethod]
     public void GetConfiguration_CreatesConfigurationForEachLanguage()
     {
-        var roslynAnalysisProfiles = new Dictionary<Language, RoslynAnalysisProfile>
+        var roslynAnalysisProfiles = new Dictionary<RoslynLanguage, RoslynAnalysisProfile>
         {
             {
                 Language.CSharp, new RoslynAnalysisProfile(
@@ -114,7 +114,7 @@ public class RoslynAnalysisConfigurationProviderTests
     public void GetConfiguration_NoAnalyzers_LogsAndExcludesLanguage()
     {
         var language = Language.CSharp;
-        var roslynAnalysisProfiles = new Dictionary<Language, RoslynAnalysisProfile>
+        var roslynAnalysisProfiles = new Dictionary<RoslynLanguage, RoslynAnalysisProfile>
         {
             {
                 language, new RoslynAnalysisProfile(
@@ -137,7 +137,7 @@ public class RoslynAnalysisConfigurationProviderTests
     public void GetConfiguration_NoActiveRules_LogsAndExcludesLanguage()
     {
         var language = Language.CSharp;
-        var roslynAnalysisProfiles = new Dictionary<Language, RoslynAnalysisProfile>
+        var roslynAnalysisProfiles = new Dictionary<RoslynLanguage, RoslynAnalysisProfile>
         {
             {
                 language, new RoslynAnalysisProfile(
@@ -160,16 +160,16 @@ public class RoslynAnalysisConfigurationProviderTests
     public void GetConfiguration_NoAnalysisProfiles_ReturnsEmptyDictionary()
     {
         analyzerProfilesProvider.GetAnalysisProfilesByLanguage(DefaultAnalyzers, DefaultActiveRules, DefaultAnalysisProperties)
-            .Returns(new Dictionary<Language, RoslynAnalysisProfile>());
+            .Returns(new Dictionary<RoslynLanguage, RoslynAnalysisProfile>());
 
         var result = testSubject.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties);
 
         result.Should().BeEmpty();
     }
 
-    private Dictionary<Language, SonarLintXmlConfigurationFile> SetUpXmlConfigurations(Dictionary<Language, RoslynAnalysisProfile> profiles)
+    private Dictionary<RoslynLanguage, SonarLintXmlConfigurationFile> SetUpXmlConfigurations(Dictionary<RoslynLanguage, RoslynAnalysisProfile> profiles)
     {
-        var xmlConfigurations = new Dictionary<Language, SonarLintXmlConfigurationFile>();
+        var xmlConfigurations = new Dictionary<RoslynLanguage, SonarLintXmlConfigurationFile>();
         foreach (var profile in profiles)
         {
             var xml = SetUpXmlProvider(profile.Value);

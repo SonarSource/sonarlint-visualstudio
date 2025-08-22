@@ -23,7 +23,7 @@ namespace SonarLint.VisualStudio.Core.CSharpVB;
 public interface IRoslynConfigGenerator
 {
     void GenerateAndSaveConfiguration(
-        Language language,
+        RoslynLanguage language,
         string baseDirectory,
         IDictionary<string, string> properties,
         IFileExclusions fileExclusions,

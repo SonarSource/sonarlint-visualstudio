@@ -157,7 +157,7 @@ public class EmbeddedDotnetAnalyzersLocatorTests
             CSharpEnterpriseAnalyzer
         ]);
 
-        testSubject.GetBasicAnalyzerFullPathsByLanguage().Should().BeEquivalentTo(new Dictionary<Language, List<string>>
+        testSubject.GetBasicAnalyzerFullPathsByLanguage().Should().BeEquivalentTo(new Dictionary<RoslynLanguage, List<string>>
         {
             [Language.CSharp] = [CSharpRegularAnalyzer], [Language.VBNET] = [VbRegularAnalyzer]
         });
@@ -168,7 +168,7 @@ public class EmbeddedDotnetAnalyzersLocatorTests
     {
         fileSystem.Directory.GetFiles(Arg.Any<string>(), Arg.Any<string>()).Returns([CSharpRegularAnalyzer]);
 
-        testSubject.GetBasicAnalyzerFullPathsByLanguage().Should().BeEquivalentTo(new Dictionary<Language, List<string>> { [Language.CSharp] = [CSharpRegularAnalyzer], [Language.VBNET] = [] });
+        testSubject.GetBasicAnalyzerFullPathsByLanguage().Should().BeEquivalentTo(new Dictionary<RoslynLanguage, List<string>> { [Language.CSharp] = [CSharpRegularAnalyzer], [Language.VBNET] = [] });
     }
 
     [TestMethod]
@@ -181,7 +181,7 @@ public class EmbeddedDotnetAnalyzersLocatorTests
             VbEnterpriseAnalyzer
         ]);
 
-        testSubject.GetEnterpriseAnalyzerFullPathsByLanguage().Should().BeEquivalentTo(new Dictionary<Language, List<string>>
+        testSubject.GetEnterpriseAnalyzerFullPathsByLanguage().Should().BeEquivalentTo(new Dictionary<RoslynLanguage, List<string>>
         {
             [Language.CSharp] = [CSharpRegularAnalyzer, CSharpEnterpriseAnalyzer], [Language.VBNET] = [VbRegularAnalyzer, VbEnterpriseAnalyzer]
         });
@@ -192,7 +192,7 @@ public class EmbeddedDotnetAnalyzersLocatorTests
     {
         fileSystem.Directory.GetFiles(Arg.Any<string>(), Arg.Any<string>()).Returns([VbEnterpriseAnalyzer]);
 
-        testSubject.GetEnterpriseAnalyzerFullPathsByLanguage().Should().BeEquivalentTo(new Dictionary<Language, List<string>> { [Language.CSharp] = [], [Language.VBNET] = [VbEnterpriseAnalyzer] });
+        testSubject.GetEnterpriseAnalyzerFullPathsByLanguage().Should().BeEquivalentTo(new Dictionary<RoslynLanguage, List<string>> { [Language.CSharp] = [], [Language.VBNET] = [VbEnterpriseAnalyzer] });
     }
 
     [TestMethod]
@@ -207,7 +207,7 @@ public class EmbeddedDotnetAnalyzersLocatorTests
         // Only C# is in the Roslyn languages, VB.NET is not
         languageProvider.RoslynLanguages.Returns([Language.CSharp]);
 
-        testSubject.GetEnterpriseAnalyzerFullPathsByLanguage().Should().BeEquivalentTo(new Dictionary<Language, List<string>>
+        testSubject.GetEnterpriseAnalyzerFullPathsByLanguage().Should().BeEquivalentTo(new Dictionary<RoslynLanguage, List<string>>
         {
             [Language.CSharp] = [CSharpRegularAnalyzer, CSharpEnterpriseAnalyzer]
         });
