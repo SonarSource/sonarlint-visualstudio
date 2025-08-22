@@ -181,6 +181,68 @@ sonarcloud_us_build_task:
   sonarcloud_analysis_script: |
     dotnet sonarscanner end -d:sonar.token="${SONAR_US_TOKEN}"
 
+sonarqube_next_build_task:
+  ec2_instance: *INSTANCE_DEFINITION
+  only_if: *ONLY_SONARSOURCE_QA
+  env:
+    ARTIFACTORY_DEPLOY_TOKEN: VAULT[development/artifactory/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-qa-deployer access_token]
+    COVERAGE_FILE: coverage.xml
+    LOCALAPPDATA: C:\sonar-ci\AppData\Local # Fixes unit test error
+    SIGN_KEY: VAULT[development/kv/data/sign data.key]
+    SIGN_PASSPHRASE: VAULT[development/kv/data/sign data.passphrase]
+    SM_API_KEY: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.apikey]
+    SM_CERT_FP: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.cert_fp]
+    SM_CERT: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.cert]
+    SM_CLIENT_CERT_FILE_BASE64: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.client_cert_file_base64]
+    SM_CLIENT_CERT_FILE: ${TMP_DIR}\digicert_signing_certificate.p12
+    SM_CLIENT_CERT_PASSWORD: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.client_cert_password]
+    SM_CLIENT_CRT_FILE: ${TMP_DIR}\digicert_signing_certificate.crt
+    SM_CLIENT_CRT: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.cert]
+    SM_HOST: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.host]
+    SM_KP: key_525594307
+    SOLUTION_PATH: SonarQube.VisualStudio.sln
+    SONAR_NEXT_TOKEN: VAULT[development/kv/data/next data.token]
+    SONAR_HOST_URL: https://next.sonarqube.com/sonarqube
+    SONARSOURCE_SNK_FILE: ${TMP_DIR}\SonarSource.snk
+    SONARSOURCE_SNK: VAULT[development/team/languages/kv/data/strong_named_key data.SonarSourceSecret_snk]
+  clone_script: |
+    git config --global core.autocrlf true
+    if [ -z "$CIRRUS_PR" ]; then
+      git clone --recursive --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+      git reset --hard $CIRRUS_CHANGE_IN_REPO
+    else
+      git clone --recursive https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+      git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR
+      git checkout pull/$CIRRUS_PR
+      git reset --hard $CIRRUS_CHANGE_IN_REPO
+    fi
+  calculate_version_script: *CALCULATE_VERSION_SCRIPT_DEFINITION
+  set_project_version_script: |
+    msbuild.exe build/ChangeVersion.proj -p:Sha1=${CIRRUS_CHANGE_IN_REPO} -p:BranchName=${CIRRUS_BRANCH} -p:BuildNumber=${CI_BUILD_NUMBER} -p:BuildConfiguration=Release
+  download_jar_dependencies_script: |
+    msbuild.exe build/DownloadDependencies -p:VsVersion=17.0 -p:VsTargetVersion=2022
+  dotnet_restore_script: |
+    dotnet restore "${SOLUTION_PATH}" --locked-mode
+  prepare_sonarqube_analysis_script: |
+    dotnet sonarscanner begin \
+      -d:sonar.token=${SONAR_NEXT_TOKEN} \
+      -d:sonar.host.url=${SONAR_HOST_URL} \
+      -k:"SonarSource_sonarlint-visualstudio_b822e41c-dcc7-40ab-a423-2d1dfbb1e248" \
+      -v:$(grep -oP '<MainVersion>\K[^<]+' ./build/Version.props) \
+      -d:sonar.cs.opencover.reportsPaths="${CIRRUS_WORKING_DIR}/**/TestResults/coveyage.**.xml" \
+      -d:sonar.branch.name="master"
+  build_solution_script: |
+    msbuild.exe "${SOLUTION_PATH}" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=${SHOULD_SIGN} -p:AssemblyOriginatorKeyFile="${SONARSOURCE_SNK_FILE}" -p:DeployExtension=false -p:Sha1="${CIRRUS_CHANGE_IN_REPO}" -p:BuildNumber="${CI_BUILD_NUMBER}" -p:Configuration=Release
+  binaries_artifacts:
+    path: "binaries/*"
+  tests_script: |
+    vstest.console.exe --EnableCodeCoverage --Logger:trx --ResultsDirectory:"TestResults" src/**/bin/**/Sonar*.*Tests.dll
+  collect_coverage_script: |
+    dotnet-coverage merge -o "${COVERAGE_FILE}" -f xml "**\*.coverage"
+  sonarqube_next_analysis_script: |
+    dotnet sonarscanner end \
+      -d:sonar.token=${SONAR_NEXT_TOKEN}
+
 dogfood_task:
   depends_on:
     - build
