@@ -24,6 +24,7 @@ using System.Net;
 using System.Net.Http;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Adapters;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
@@ -33,7 +34,7 @@ public interface IAnalysisRequestHandler
 {
     Task<AnalysisRequest?> ParseAnalysisRequestBody(IHttpListenerContext context);
 
-    string ParseAnalysisRequestResponse(List<DiagnosticDto> diagnostics);
+    string ParseAnalysisRequestResponse(List<RoslynIssue> diagnostics);
 
     HttpStatusCode ValidateRequest(IHttpListenerContext context);
 }
@@ -80,9 +81,9 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerSettings server
         return null;
     }
 
-    public string ParseAnalysisRequestResponse(List<DiagnosticDto> diagnostics)
+    public string ParseAnalysisRequestResponse(List<RoslynIssue> diagnostics)
     {
-        var responseObj = new AnalysisResponse { Diagnostics = diagnostics };
+        var responseObj = new AnalysisResponse { RoslynIssues = diagnostics };
         var responseString = JsonConvert.SerializeObject(responseObj);
         return responseString;
     }
