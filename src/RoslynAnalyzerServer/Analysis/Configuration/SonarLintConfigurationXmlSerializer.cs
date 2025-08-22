@@ -25,12 +25,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using SonarLint.VisualStudio.Core.CSharpVB;
 
-namespace SonarLint.VisualStudio.Integration.CSharpVB;
-
-internal interface ISonarLintConfigurationXmlSerializer
-{
-    string Serialize(SonarLintConfiguration configuration);
-}
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
 [Export(typeof(ISonarLintConfigurationXmlSerializer))]
 [PartCreationPolicy(CreationPolicy.Shared)]
