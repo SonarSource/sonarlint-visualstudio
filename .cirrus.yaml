@@ -126,7 +126,7 @@ build_task:
 
 sonarcloud_us_build_task:
   ec2_instance: *INSTANCE_DEFINITION
-  only_if: *ONLY_SONARSOURCE_QA
+  only_if: $CIRRUS_CRON == "twice-daily"
   env:
     ARTIFACTORY_DEPLOY_TOKEN: VAULT[development/artifactory/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-qa-deployer access_token]
     COVERAGE_FILE: coverage.xml
@@ -183,7 +183,7 @@ sonarcloud_us_build_task:
 
 sonarqube_next_build_task:
   ec2_instance: *INSTANCE_DEFINITION
-  only_if: *ONLY_SONARSOURCE_QA
+  only_if: $CIRRUS_CRON == "twice-daily"
   env:
     ARTIFACTORY_DEPLOY_TOKEN: VAULT[development/artifactory/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-qa-deployer access_token]
     COVERAGE_FILE: coverage.xml
@@ -249,6 +249,7 @@ run_iris_task:
     - sonarcloud_us_build
     - sonarqube_next_build
   ec2_instance: *INSTANCE_DEFINITION
+  only_if: $CIRRUS_CRON == "twice-daily"
   env:
     SONAR_SQC_EU_URL: "https://sonarcloud.io"
     SONAR_SQC_US_URL: "https://sonarqube.us"
