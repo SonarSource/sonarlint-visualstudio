@@ -28,11 +28,12 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class DiagnosticToRoslynIssueConverter : IDiagnosticToRoslynIssueConverter
 {
-    public RoslynIssue ConvertToSonarDiagnostic(Diagnostic diagnostic, Language language) =>
+    public RoslynIssue ConvertToSonarDiagnostic(Diagnostic diagnostic, List<Guid> fakeQuickFixes, Language language) =>
         // todo SLVS-2427 quick fixes
         new(SonarCompositeRuleId.GetFullErrorCode(language.RepoInfo.Key, diagnostic.Id),
             ConvertLocation(diagnostic.Location.GetMappedLineSpan(), diagnostic.GetMessage()),
-            ConvertSecondaryLocations(diagnostic));
+            ConvertSecondaryLocations(diagnostic),
+            fakeQuickFixes);
 
     private static IReadOnlyList<RoslynIssueFlow> ConvertSecondaryLocations(Diagnostic diagnostic)
     {

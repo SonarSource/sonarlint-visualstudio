@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
 
@@ -29,4 +30,4 @@ public interface IRoslynAnalyzerProvider
     ImmutableDictionary<Language, AnalyzersAndSupportedRules> GetAnalyzersByLanguage();
 }
 
-public record struct AnalyzersAndSupportedRules(ImmutableArray<DiagnosticAnalyzer> Analyzers, ImmutableHashSet<string> SupportedRuleKeys);
+public readonly record struct AnalyzersAndSupportedRules(ImmutableArray<DiagnosticAnalyzer> Analyzers, ImmutableHashSet<string> SupportedRuleKeys, ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> SupportedRulesCodeFixProviders);

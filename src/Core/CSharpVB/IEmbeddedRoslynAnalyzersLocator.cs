@@ -18,7 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Analysis;
+
 namespace SonarLint.VisualStudio.Core.CSharpVB;
+
+
+public interface ICodeActionStorage
+{
+    void Clear(string filePath);
+
+    IRoslynQuickFix GetCodeActionOrNull(string filePath, Guid id);
+
+}
+
 
 public interface IEmbeddedDotnetAnalyzersLocator
 {

@@ -20,6 +20,7 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CSharpVB;
@@ -43,17 +44,34 @@ internal class RoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersL
         {
             var supportedDiagnostics = ImmutableHashSet.CreateBuilder<string>();
             var analyzers = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            var codeFixProviders = ImmutableDictionary.CreateBuilder<string, IReadOnlyCollection<CodeFixProvider>>();
 
-            foreach (var diagnosticAnalyzer in languageAndAnalyzers.Value.SelectMany(roslynAnalyzerLoader.LoadAnalyzers))
+            foreach (var assemblyContents in languageAndAnalyzers.Value.Select(roslynAnalyzerLoader.LoadAnalyzerAssembly))
             {
-                analyzers.Add(diagnosticAnalyzer);
-                supportedDiagnostics.UnionWith(diagnosticAnalyzer.SupportedDiagnostics.Select(x => x.Id));
+                analyzers.AddRange(assemblyContents.Analyzers);
+                supportedDiagnostics.UnionWith(assemblyContents.Analyzers.SelectMany(x => x.SupportedDiagnostics.Select(y => y.Id)));
+                AddCodeFixProviders(assemblyContents, codeFixProviders);
             }
 
             var immutableArray = supportedDiagnostics.ToImmutable();
-            builder.Add(languageAndAnalyzers.Key, new AnalyzersAndSupportedRules(analyzers.ToImmutable(), immutableArray.ToImmutableHashSet()));
+            builder.Add(languageAndAnalyzers.Key, new AnalyzersAndSupportedRules(analyzers.ToImmutable(), immutableArray.ToImmutableHashSet(), codeFixProviders.ToImmutable()));
         }
 
         return builder.ToImmutable();
+    }
+
+    private static void AddCodeFixProviders(AnalyzerAssemblyContents assemblyContents, ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>>.Builder codeFixProviders)
+    {
+        foreach (var codeFixProvider in assemblyContents.CodeFixProviders)
+        {
+            foreach (var fixableDiagnosticId in codeFixProvider.FixableDiagnosticIds)
+            {
+                if (!codeFixProviders.ContainsKey(fixableDiagnosticId))
+                {
+                    codeFixProviders[fixableDiagnosticId] = new List<CodeFixProvider>();
+                }
+                ((List<CodeFixProvider>)codeFixProviders[fixableDiagnosticId]).Add(codeFixProvider);
+            }
+        }
     }
 }

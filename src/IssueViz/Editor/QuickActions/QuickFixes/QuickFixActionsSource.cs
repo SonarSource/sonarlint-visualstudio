@@ -74,7 +74,8 @@ internal sealed class QuickFixActionsSource : ISuggestedActionsSource
             {
                 foreach (var issueViz in issuesWithFixes)
                 {
-                    var applicableFixes = issueViz.QuickFixes.Where(x => x.CanBeApplied(textBuffer.CurrentSnapshot));
+                    // todo
+                    var applicableFixes = issueViz.QuickFixes;
 
                     allActions.AddRange(applicableFixes.Select(fix => new QuickFixSuggestedAction(fix, textBuffer, issueViz, quickFixesTelemetryManager, logger)));
                 }
@@ -112,7 +113,7 @@ internal sealed class QuickFixActionsSource : ISuggestedActionsSource
             .Select(x => x.Tag.Location)
             .OfType<IAnalysisIssueVisualization>()
             .Where(x =>
-                x.QuickFixes.Any(fix => fix.CanBeApplied(textBuffer.CurrentSnapshot)));
+                x.QuickFixes.Any(fix => fix is not IQuickFixVisualization v || v.CanBeApplied(textBuffer.CurrentSnapshot)));
 
         return issuesWithFixes.Any();
     }

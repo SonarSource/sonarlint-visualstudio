@@ -22,7 +22,19 @@ using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Core.Analysis
 {
-    public interface IQuickFix
+    public interface IQuickFixBase
+    {
+
+    }
+
+    public interface IRoslynQuickFix : IQuickFixBase
+    {
+        Task Apply();
+
+        string Title { get; }
+    }
+
+    public interface IQuickFix : IQuickFixBase
     {
         string Message { get; }
         IReadOnlyList<IEdit> Edits { get; }

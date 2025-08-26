@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
@@ -30,19 +31,39 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 internal class RoslynAnalyzerLoader : IRoslynAnalyzerLoader
 {
     [ExcludeFromCodeCoverage]
-    public IReadOnlyCollection<DiagnosticAnalyzer> LoadAnalyzers(string filePath)
+    public AnalyzerAssemblyContents LoadAnalyzerAssembly(string filePath)
     {
         try
         {
-            return Assembly.LoadFrom(filePath)
-                .GetTypes()
+            var types = Assembly.LoadFrom(filePath)
+                .GetTypes();
+
+            var codeFixProviders = types.Where(t => typeof(CodeFixProvider).IsAssignableFrom(t) && !t.IsAbstract)
+                .Select(t => (CodeFixProvider)Activator.CreateInstance(t));
+            // var diagnosticFixes = new Dictionary<string, List<CodeFixProvider>>();
+            // foreach (var codeFixProvider in codeFixProviders)
+            // {
+            //     foreach (var fixableDiagnosticId in codeFixProvider.FixableDiagnosticIds)
+            //     {
+            //         if (!diagnosticFixes.TryGetValue(fixableDiagnosticId, out List<CodeFixProvider> fixableFixes))
+            //         {
+            //             diagnosticFixes[fixableDiagnosticId] = fixableFixes = new List<CodeFixProvider>();
+            //         }
+            //
+            //         fixableFixes.Add(codeFixProvider);
+            //     }
+            // }
+            //
+            // var m = diagnosticFixes.Where(x => x.Value.Count > 1).TD();
+
+            return new(types
                 .Where(t => typeof(DiagnosticAnalyzer).IsAssignableFrom(t) && !t.IsAbstract)
                 .Select(t => (DiagnosticAnalyzer)Activator.CreateInstance(t))
-                .ToList();
+                .ToList(), codeFixProviders.ToList());
         }
         catch (Exception)
         {
-            return [];
+            return new AnalyzerAssemblyContents([], []);
         }
     }
 }

@@ -23,7 +23,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
     public class AnalysisIssue : IAnalysisIssue
     {
         private static readonly IReadOnlyList<IAnalysisIssueFlow> EmptyFlows = [];
-        private static readonly IReadOnlyList<IQuickFix> EmptyFixes = [];
+        private static readonly IReadOnlyList<IQuickFixBase> EmptyFixes = [];
 
         public AnalysisIssue(
             Guid? id,
@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             Impact highestImpact,
             IAnalysisIssueLocation primaryLocation,
             IReadOnlyList<IAnalysisIssueFlow> flows,
-            IReadOnlyList<IQuickFix> fixes = null)
+            IReadOnlyList<IQuickFixBase> fixes = null)
         {
             Id = id;
             RuleKey = ruleKey;
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
         public bool IsResolved { get; }
         public string IssueServerKey { get; }
 
-        public IReadOnlyList<IQuickFix> Fixes { get; }
+        public IReadOnlyList<IQuickFixBase> Fixes { get; }
         public Impact HighestImpact { get; }
     }
 

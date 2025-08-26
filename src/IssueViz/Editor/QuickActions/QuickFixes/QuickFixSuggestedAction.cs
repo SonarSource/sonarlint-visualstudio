@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
 {
     internal class QuickFixSuggestedAction : BaseSuggestedAction
     {
-        private readonly IQuickFixVisualization quickFixVisualization;
+        private readonly IQuickFixVizBase quickFixVisualization;
         private readonly ITextBuffer textBuffer;
         private readonly ISpanTranslator spanTranslator;
         private readonly IAnalysisIssueVisualization issueViz;
@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
         private readonly ILogger logger;
 
         public QuickFixSuggestedAction(
-            IQuickFixVisualization quickFixVisualization,
+            IQuickFixVizBase quickFixVisualization,
             ITextBuffer textBuffer,
             IAnalysisIssueVisualization issueViz,
             IQuickFixesTelemetryManager quickFixesTelemetryManager,
@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
         }
 
         internal QuickFixSuggestedAction(
-            IQuickFixVisualization quickFixVisualization,
+            IQuickFixVizBase quickFixVisualization,
             ITextBuffer textBuffer,
             IAnalysisIssueVisualization issueViz,
             IQuickFixesTelemetryManager quickFixesTelemetryManager,
@@ -61,34 +61,47 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
             this.spanTranslator = spanTranslator;
         }
 
-        public override string DisplayText => Resources.ProductNameCommandPrefix + quickFixVisualization.Fix.Message;
+        public override string DisplayText => Resources.ProductNameCommandPrefix + quickFixVisualization.Title;
 
-        public override void Invoke(CancellationToken cancellationToken)
+        public override async void Invoke(CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested)
+            try
             {
-                return;
-            }
 
-            if (!quickFixVisualization.CanBeApplied(textBuffer.CurrentSnapshot))
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+                if (quickFixVisualization is IQuickFixVisualization quickFixVisualization1)
+                {
+                    if (!quickFixVisualization1.CanBeApplied(textBuffer.CurrentSnapshot))
+                    {
+                        logger.LogVerbose("[Quick Fixes] Quick fix cannot be applied as the text has changed. Issue: " + issueViz.RuleId);
+                        return;
+                    }
+
+                    var textEdit = textBuffer.CreateEdit();
+
+                    foreach (var edit in quickFixVisualization1.EditVisualizations)
+                    {
+                        var updatedSpan = spanTranslator.TranslateTo(edit.Span, textBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive);
+
+                        textEdit.Replace(updatedSpan, edit.Edit.NewText);
+                    }
+
+                    issueViz.InvalidateSpan();
+                    textEdit.Apply();
+
+                    quickFixesTelemetryManager.QuickFixApplied(issueViz.RuleId);
+                }
+                else if (quickFixVisualization is IRoslynQuickFixVis rqf)
+                {
+                    await rqf.QuickFix.Apply();
+                }
+            }
+            catch (Exception e)
             {
-                logger.LogVerbose("[Quick Fixes] Quick fix cannot be applied as the text has changed. Issue: " + issueViz.RuleId);
-                return;
             }
-
-            var textEdit = textBuffer.CreateEdit();
-
-            foreach (var edit in quickFixVisualization.EditVisualizations)
-            {
-                var updatedSpan = spanTranslator.TranslateTo(edit.Span, textBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive);
-
-                textEdit.Replace(updatedSpan, edit.Edit.NewText);
-            }
-
-            issueViz.InvalidateSpan();
-            textEdit.Apply();
-
-            quickFixesTelemetryManager.QuickFixApplied(issueViz.RuleId);
         }
     }
 }

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB.Analysis.PoC;
@@ -31,7 +32,8 @@ public interface ISonarDiagnosticsConverterPoC
 
 [Export(typeof(ISonarDiagnosticsConverterPoC))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class SonarDiagnosticsConverterPoC : ISonarDiagnosticsConverterPoC
+[method: ImportingConstructor]
+public class SonarDiagnosticsConverterPoC(ICodeActionStorage storage) : ISonarDiagnosticsConverterPoC
 {
     public IAnalysisIssue ConvertToAnalysisIssue(RoslynIssue diagnostic)
     {
@@ -63,6 +65,8 @@ public class SonarDiagnosticsConverterPoC : ISonarDiagnosticsConverterPoC
                 null)
         );
 
+
+
         return new AnalysisIssue(
             null,
             diagnostic.RuleKey,
@@ -74,6 +78,6 @@ public class SonarDiagnosticsConverterPoC : ISonarDiagnosticsConverterPoC
                 SoftwareQualitySeverity.High),
             primaryLocation,
             analysisIssueFlows,
-            [/*todo*/]);
+                diagnostic.QuickFixes.Select( x => storage.GetCodeActionOrNull(primaryLocation.FilePath, x)).Where(x => x is not null).ToList());
     }
 }

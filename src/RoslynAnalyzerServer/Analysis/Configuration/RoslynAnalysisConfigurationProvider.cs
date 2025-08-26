@@ -67,7 +67,8 @@ internal class RoslynAnalysisConfigurationProvider(
                 new RoslynAnalysisConfiguration(
                     sonarLintXmlProvider.Create(analysisProfile),
                     analysisProfile.Rules.ToImmutableDictionary(x => x.RuleId.RuleKey, y => y.ReportDiagnostic),
-                    analysisProfile.Analyzers));
+                    analysisProfile.Analyzers,
+                    analysisProfile.CodeFixProviders));
         }
 
         return configurations;

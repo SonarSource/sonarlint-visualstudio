@@ -23,14 +23,18 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 public class RoslynIssue(
     string ruleKey,
     RoslynIssueLocation primaryLocation,
-    IReadOnlyList<RoslynIssueFlow>? flows = null)
+    IReadOnlyList<RoslynIssueFlow>? flows = null,
+    List<Guid>? quickFixes = null)
 {
     private static readonly IReadOnlyList<RoslynIssueFlow> EmptyFlows = [];
 
     public string RuleKey { get; } = ruleKey;
     public RoslynIssueLocation PrimaryLocation { get; } = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
     public IReadOnlyList<RoslynIssueFlow> Flows { get; } = flows ?? EmptyFlows;
+
+    public IReadOnlyList<Guid> QuickFixes { get; } = quickFixes ?? new List<Guid>();
 }
+
 
 public class RoslynIssueFlow(IReadOnlyList<RoslynIssueLocation> locations)
 {

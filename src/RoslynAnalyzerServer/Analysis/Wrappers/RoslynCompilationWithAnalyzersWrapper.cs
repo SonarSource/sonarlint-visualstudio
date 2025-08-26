@@ -29,15 +29,16 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 [ExcludeFromCodeCoverage] // todo SLVS-2466 add roslyn 'integration' tests using AdHocWorkspace
 public class RoslynCompilationWithAnalyzersWrapper(CompilationWithAnalyzers compilation, Language language) : IRoslynCompilationWithAnalyzersWrapper
 {
+    public CompilationWithAnalyzers Compilation1 { get; } = compilation;
     public Language Language { get; } = language;
 
-    public SyntaxTree? GetSyntaxTree(string filePath) => compilation.Compilation.SyntaxTrees.SingleOrDefault(x => filePath.Equals(x.FilePath));
+    public SyntaxTree? GetSyntaxTree(string filePath) => Compilation1.Compilation.SyntaxTrees.SingleOrDefault(x => filePath.Equals(x.FilePath));
 
-    public SemanticModel? GetSemanticModel(string filePath) => GetSyntaxTree(filePath) is {} syntaxTree ? compilation.Compilation.GetSemanticModel(syntaxTree) : null;
+    public SemanticModel? GetSemanticModel(string filePath) => GetSyntaxTree(filePath) is {} syntaxTree ? Compilation1.Compilation.GetSemanticModel(syntaxTree) : null;
 
     public Task<ImmutableArray<Diagnostic>> GetAnalyzerSyntaxDiagnosticsAsync(SyntaxTree syntaxTree, CancellationToken token) =>
-        compilation.GetAnalyzerSyntaxDiagnosticsAsync(syntaxTree, token);
+        Compilation1.GetAnalyzerSyntaxDiagnosticsAsync(syntaxTree, token);
 
     public Task<ImmutableArray<Diagnostic>> GetAnalyzerSemanticDiagnosticsAsync(SemanticModel semanticModel, CancellationToken token) =>
-        compilation.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, null, token);
+        Compilation1.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, null, token);
 }

@@ -17,29 +17,14 @@
 //  * along with this program; if not, write to the Free Software Foundation,
 //  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //  */
-//
-// using SonarLint.VisualStudio.Core.Analysis;
-//
-// namespace SonarLint.VisualStudio.TestInfrastructure;
-//
-// // Properties are settable to simplify creating test instances
-// public class DummyAnalysisIssue : IAnalysisIssue
-// {
-//     public Guid? Id { get; set; }
-//
-//     public string RuleKey { get; set; }
-//
-//     public AnalysisIssueSeverity? Severity { get; set; }
-//
-//     public Impact HighestImpact { get; set; }
-//
-//     public AnalysisIssueType? Type { get; set; }
-//
-//     public IReadOnlyList<IAnalysisIssueFlow> Flows { get; } = Array.Empty<IAnalysisIssueFlow>();
-//
-//     public IAnalysisIssueLocation PrimaryLocation { get; set; } = new DummyAnalysisIssueLocation();
-//     public bool IsResolved { get; set; }
-//     public string IssueServerKey { get; set; }
-//
-//     public IReadOnlyList<IQuickFix> Fixes { get; } = Array.Empty<IQuickFix>();
-// }
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
+using SonarLint.VisualStudio.Core.CSharpVB;
+
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+
+public interface ICodeActionStorageWriter : ICodeActionStorage
+{
+    void Add(string filePath, Guid id, CodeAction action, Solution solution);
+}

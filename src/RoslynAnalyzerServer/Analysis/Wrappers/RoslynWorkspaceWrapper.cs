@@ -28,8 +28,23 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 [ExcludeFromCodeCoverage] // todo SLVS-2466 add roslyn 'integration' tests using AdHocWorkspace
 [Export(typeof(IRoslynWorkspaceWrapper))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-internal class RoslynWorkspaceWrapper([Import(typeof(VisualStudioWorkspace))] Workspace workspace) : IRoslynWorkspaceWrapper
+internal class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
 {
+    private readonly Workspace workspace;
+
+    [method: ImportingConstructor]
+    public RoslynWorkspaceWrapper([Import(typeof(VisualStudioWorkspace))] Workspace workspace)
+    {
+        this.workspace = workspace;
+        workspace.WorkspaceChanged += WorkspaceOnWorkspaceChanged;
+    }
+
+    private void WorkspaceOnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    {
+        // do nothing
+    }
+
     public IRoslynSolutionWrapper GetCurrentSolution() => new RoslynSolutionWrapper(workspace.CurrentSolution);
+
+    public Workspace Workspace => workspace;
 }

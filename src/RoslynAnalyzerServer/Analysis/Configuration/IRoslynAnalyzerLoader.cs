@@ -18,11 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
 internal interface IRoslynAnalyzerLoader
 {
-    IReadOnlyCollection<DiagnosticAnalyzer> LoadAnalyzers(string filePath);
+    AnalyzerAssemblyContents LoadAnalyzerAssembly(string filePath);
 }
+
+internal readonly record struct AnalyzerAssemblyContents(IReadOnlyCollection<DiagnosticAnalyzer> Analyzers, IReadOnlyCollection<CodeFixProvider> CodeFixProviders);

@@ -25,5 +25,5 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
 public interface IDiagnosticToRoslynIssueConverter
 {
-    RoslynIssue ConvertToSonarDiagnostic(Diagnostic diagnostic, Language language);
+    RoslynIssue ConvertToSonarDiagnostic(Diagnostic diagnostic, List<Guid> fakeQuickFixes, Language language);
 }

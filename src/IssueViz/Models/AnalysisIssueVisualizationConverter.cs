@@ -108,28 +108,40 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             return convertedLocations;
         }
 
-        private IReadOnlyList<IQuickFixVisualization> GetQuickFixVisualizations(IAnalysisIssueBase issue, ITextSnapshot textSnapshot)
+        private IReadOnlyList<IQuickFixVizBase> GetQuickFixVisualizations(IAnalysisIssueBase issue, ITextSnapshot textSnapshot)
         {
             if (!(issue is IAnalysisIssue analysisIssue) || textSnapshot == null)
             {
                 return EmptyConvertedFixes;
             }
 
-            var convertedQuickFixes = analysisIssue.Fixes.Select(fix =>
+            var convertedQuickFixes = analysisIssue.Fixes.Select<IQuickFixBase, IQuickFixVizBase>(fix =>
             {
-                var editVisualizations = fix.Edits.Select(edit =>
+                if (fix is IQuickFix nonRoslynFix)
                 {
-                    var editSpan = issueSpanCalculator.CalculateSpan(edit.RangeToReplace, textSnapshot) ?? new SnapshotSpan();
 
-                    return new QuickFixEditVisualization(edit, editSpan);
-                });
+                    var editVisualizations = nonRoslynFix.Edits.Select(edit =>
+                    {
+                        var editSpan = issueSpanCalculator.CalculateSpan(edit.RangeToReplace, textSnapshot) ?? new SnapshotSpan();
 
-                var fixVisualization = new QuickFixVisualization(fix, editVisualizations.ToArray());
+                        return new QuickFixEditVisualization(edit, editSpan);
+                    });
 
-                return fixVisualization;
+                    var fixVisualization = new QuickFixVisualization(nonRoslynFix, editVisualizations.ToArray());
+
+                    return fixVisualization;
+                }
+                if (fix is IRoslynQuickFix roslynQuickFix)
+                {
+                    return new RoslynQuickFixVis(roslynQuickFix);
+                }
+
+                throw new NotImplementedException();
             }).ToArray();
 
             return convertedQuickFixes;
         }
     }
+
+
 }

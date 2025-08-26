@@ -25,74 +25,99 @@ using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Models
+namespace SonarLint.VisualStudio.IssueVisualization.Models;
+
+public interface IQuickFixVizBase
 {
-    public interface IQuickFixVisualization
+    string Title { get; }
+}
+
+public interface IRoslynQuickFixVis : IQuickFixVizBase
+{
+    IRoslynQuickFix QuickFix
     {
-        IQuickFix Fix { get; }
+        get;
+    }
+}
 
-        IReadOnlyList<IQuickFixEditVisualization> EditVisualizations { get; }
-
-        /// <summary>
-        /// Returns false if the snapshot has been edited so the fix can no longer be applied, otherwise true.
-        /// </summary>
-        bool CanBeApplied(ITextSnapshot currentSnapshot);
+public class RoslynQuickFixVis : IRoslynQuickFixVis
+{
+    public RoslynQuickFixVis(IRoslynQuickFix quickFix)
+    {
+        QuickFix = quickFix;
     }
 
-    internal class QuickFixVisualization : IQuickFixVisualization
+    public IRoslynQuickFix QuickFix { get; }
+    public string Title => QuickFix.Title;
+}
+
+public interface IQuickFixVisualization : IQuickFixVizBase
+{
+    IQuickFix Fix { get; }
+
+    IReadOnlyList<IQuickFixEditVisualization> EditVisualizations { get; }
+
+    /// <summary>
+    /// Returns false if the snapshot has been edited so the fix can no longer be applied, otherwise true.
+    /// </summary>
+    bool CanBeApplied(ITextSnapshot currentSnapshot);
+}
+
+internal class QuickFixVisualization : IQuickFixVisualization
+{
+    private readonly ISpanTranslator spanTranslator;
+
+    public QuickFixVisualization(IQuickFix fix, IReadOnlyList<IQuickFixEditVisualization> editVisualizations)
+        : this(fix, editVisualizations, new SpanTranslator())
     {
-        private readonly ISpanTranslator spanTranslator;
-
-        public QuickFixVisualization(IQuickFix fix, IReadOnlyList<IQuickFixEditVisualization> editVisualizations)
-            : this(fix, editVisualizations, new SpanTranslator())
-        {
-            Fix = fix;
-            EditVisualizations = editVisualizations;
-        }
-
-        internal QuickFixVisualization(IQuickFix fix,
-            IReadOnlyList<IQuickFixEditVisualization> editVisualizations,
-            ISpanTranslator spanTranslator)
-        {
-            this.spanTranslator = spanTranslator;
-            Fix = fix;
-            EditVisualizations = editVisualizations;
-        }
-
-        public IQuickFix Fix { get; }
-
-        public IReadOnlyList<IQuickFixEditVisualization> EditVisualizations { get; }
-
-        public bool CanBeApplied(ITextSnapshot currentSnapshot) =>
-            EditVisualizations.All(x => IsTextUnchanged(x, currentSnapshot));
-
-        private bool IsTextUnchanged(IQuickFixEditVisualization editViz, ITextSnapshot currentSnapshot)
-        {
-            var originalText = editViz.Span.GetText();
-            var updatedSpan = spanTranslator.TranslateTo(editViz.Span, currentSnapshot, SpanTrackingMode.EdgeExclusive);
-            var currentText = currentSnapshot.GetText(updatedSpan);
-
-            return string.Equals(currentText, originalText, StringComparison.InvariantCulture);
-        }
+        Fix = fix;
+        EditVisualizations = editVisualizations;
     }
 
-    public interface IQuickFixEditVisualization
+    internal QuickFixVisualization(
+        IQuickFix fix,
+        IReadOnlyList<IQuickFixEditVisualization> editVisualizations,
+        ISpanTranslator spanTranslator)
     {
-        IEdit Edit { get; }
-
-        SnapshotSpan Span { get; }
+        this.spanTranslator = spanTranslator;
+        Fix = fix;
+        EditVisualizations = editVisualizations;
     }
 
-    internal class QuickFixEditVisualization : IQuickFixEditVisualization
+    public IQuickFix Fix { get; }
+
+    public IReadOnlyList<IQuickFixEditVisualization> EditVisualizations { get; }
+
+    public bool CanBeApplied(ITextSnapshot currentSnapshot) => EditVisualizations.All(x => IsTextUnchanged(x, currentSnapshot));
+
+    private bool IsTextUnchanged(IQuickFixEditVisualization editViz, ITextSnapshot currentSnapshot)
     {
-        public QuickFixEditVisualization(IEdit edit, SnapshotSpan span)
-        {
-            Edit = edit;
-            Span = span;
-        }
+        var originalText = editViz.Span.GetText();
+        var updatedSpan = spanTranslator.TranslateTo(editViz.Span, currentSnapshot, SpanTrackingMode.EdgeExclusive);
+        var currentText = currentSnapshot.GetText(updatedSpan);
 
-        public IEdit Edit { get; }
-
-        public SnapshotSpan Span { get; }
+        return string.Equals(currentText, originalText, StringComparison.InvariantCulture);
     }
+
+    public string Title => Fix.Message;
+}
+
+public interface IQuickFixEditVisualization
+{
+    IEdit Edit { get; }
+
+    SnapshotSpan Span { get; }
+}
+
+internal class QuickFixEditVisualization : IQuickFixEditVisualization
+{
+    public QuickFixEditVisualization(IEdit edit, SnapshotSpan span)
+    {
+        Edit = edit;
+        Span = span;
+    }
+
+    public IEdit Edit { get; }
+
+    public SnapshotSpan Span { get; }
 }

@@ -19,12 +19,15 @@
  */
 
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 public interface IRoslynProjectWrapper
 {
+    Project RoslynProject { get; }
+
     string Name { get; }
 
     bool SupportsCompilation { get; }
@@ -33,7 +36,7 @@ public interface IRoslynProjectWrapper
 
     bool ContainsDocument(
         string filePath,
-        [NotNullWhen(true)]out string? analysisFilePath);
+        [NotNullWhen(true)]out Document? analysisFilePath);
 
     Task<IRoslynCompilationWrapper> GetCompilationAsync(CancellationToken token);
 }
