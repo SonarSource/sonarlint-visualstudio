@@ -212,8 +212,8 @@ run_iris_task:
   only_if: $CIRRUS_CRON == "secondary-platform"
   depends_on:
     - build
-    - sonarcloud_us_build
-    - sonarqube_next_build
+    - sonarqube_us_analysis
+    - sonarqube_next_analysis
   ec2_instance: *INSTANCE_DEFINITION
   env:
     SONAR_SQC_EU_URL: VAULT[development/kv/data/sonarcloud data.url]
