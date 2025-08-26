@@ -138,6 +138,11 @@ internal sealed class RoslynAnalysisHttpServer(
             logger.LogVerbose(Resources.HttpRequestTimedOut, settings.RequestMillisecondsTimeout);
             httpRequestHandler.CloseRequest(context, HttpStatusCode.RequestTimeout);
         }
+        catch (Exception exception)
+        {
+            logger.LogVerbose(Resources.HttpRequestFailed, exception.Message + exception.StackTrace);
+            httpRequestHandler.CloseRequest(context, HttpStatusCode.InternalServerError);
+        }
     }
 
     private async Task HandleRequest(IHttpListenerContext context, CancellationToken cancellationToken)
