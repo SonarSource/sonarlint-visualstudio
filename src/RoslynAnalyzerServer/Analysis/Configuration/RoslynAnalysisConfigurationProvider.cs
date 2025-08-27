@@ -40,7 +40,7 @@ internal class RoslynAnalysisConfigurationProvider(
     {
         // todo add caching https://sonarsource.atlassian.net/browse/SLVS-2481
 
-        var analysisProfilesByLanguage = analyzerProfilesProvider.GetAnalysisProfilesByLanguage(roslynAnalyzerProvider.LoadAnalyzerAssemblies(), activeRules, analysisProperties);
+        var analysisProfilesByLanguage = analyzerProfilesProvider.GetAnalysisProfilesByLanguage(roslynAnalyzerProvider.LoadAndProcessAnalyzerAssemblies(), activeRules, analysisProperties);
 
         var configurations = new Dictionary<Language, RoslynAnalysisConfiguration>();
         foreach (var analyzerAndLanguage in analysisProfilesByLanguage)
@@ -67,7 +67,8 @@ internal class RoslynAnalysisConfigurationProvider(
                 new RoslynAnalysisConfiguration(
                     sonarLintXmlProvider.Create(analysisProfile),
                     analysisProfile.Rules.ToImmutableDictionary(x => x.RuleId.RuleKey, y => y.ReportDiagnostic),
-                    analysisProfile.Analyzers));
+                    analysisProfile.Analyzers,
+                    analysisProfile.CodeFixProvidersByRuleKey));
         }
 
         return configurations;
