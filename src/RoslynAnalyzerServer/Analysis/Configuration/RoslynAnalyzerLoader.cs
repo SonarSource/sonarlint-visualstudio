@@ -63,6 +63,7 @@ internal class RoslynAnalyzerLoader(ILogger logger) : IRoslynAnalyzerLoader
         }
     }
 
+    [ExcludeFromCodeCoverage]
     private bool TryLoadType<T>(Type type, [NotNullWhen(true)] out T? value) where T : class
     {
         value = null;
