@@ -23,7 +23,7 @@ jobs:
     permissions:
       id-token: write
       contents: write
-    runs-on: windows-latest-large
+    runs-on: github-windows-latest-s
     name: Deploy to Visual Studio marketplace
     needs: release
     env:
