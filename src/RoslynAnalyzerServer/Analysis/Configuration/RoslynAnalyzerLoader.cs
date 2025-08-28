@@ -30,11 +30,11 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 [Export(typeof(IRoslynAnalyzerLoader))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
+[ExcludeFromCodeCoverage]
 internal class RoslynAnalyzerLoader(ILogger logger) : IRoslynAnalyzerLoader
 {
     private readonly ILogger logger = logger.ForContext(Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisAnalyzerLoaderLogContext);
 
-    [ExcludeFromCodeCoverage]
     public LoadedAnalyzerClasses LoadAnalyzerAssembly(string filePath)
     {
         try
@@ -44,11 +44,11 @@ internal class RoslynAnalyzerLoader(ILogger logger) : IRoslynAnalyzerLoader
 
             foreach (var type in Assembly.LoadFrom(filePath).GetTypes().Where(t => t is { IsAbstract: false, IsInterface: false, IsGenericType: false }))
             {
-                if (TryLoadType(type, out CodeFixProvider? codeFixProvider))
+                if (TryLoadType(type, out CodeFixProvider? codeFixProvider, filePath))
                 {
                     codeFixProviders.Add(codeFixProvider);
                 }
-                else if (TryLoadType(type, out DiagnosticAnalyzer? analyzer))
+                else if (TryLoadType(type, out DiagnosticAnalyzer? analyzer, filePath))
                 {
                     analyzers.Add(analyzer);
                 }
@@ -63,8 +63,7 @@ internal class RoslynAnalyzerLoader(ILogger logger) : IRoslynAnalyzerLoader
         }
     }
 
-    [ExcludeFromCodeCoverage]
-    private bool TryLoadType<T>(Type type, [NotNullWhen(true)] out T? value) where T : class
+    private bool TryLoadType<T>(Type type, [NotNullWhen(true)] out T? value, string originAssembly) where T : class
     {
         value = null;
         try
@@ -77,7 +76,7 @@ internal class RoslynAnalyzerLoader(ILogger logger) : IRoslynAnalyzerLoader
         }
         catch (Exception e)
         {
-            logger.LogVerbose(Resources.RoslynAnalysisAnalyzerLoaderFailedToLoad, type, e);
+            logger.LogVerbose(Resources.RoslynAnalysisAnalyzerClassLoaderFailedToLoad, type, originAssembly, e);
         }
         return false;
     }
