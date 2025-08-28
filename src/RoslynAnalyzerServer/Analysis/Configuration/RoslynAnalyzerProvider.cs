@@ -33,8 +33,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 internal class RoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersLocator, IRoslynAnalyzerLoader roslynAnalyzerLoader) : IRoslynAnalyzerProvider
 {
     public ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadAndProcessAnalyzerAssemblies(AnalyzerInfoDto analyzerInfo) =>
-        // todo SLVS-2410 Respect NET repackaging
-        LoadFromAssemblies(analyzersLocator.GetBasicAnalyzerFullPathsByLanguage());
+        LoadFromAssemblies(analyzersLocator.GetAnalyzerFullPathsByLanguage(analyzerInfo));
 
     private ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadFromAssemblies(Dictionary<RoslynLanguage, List<string>> analyzerFullPathsByLanguage)
     {

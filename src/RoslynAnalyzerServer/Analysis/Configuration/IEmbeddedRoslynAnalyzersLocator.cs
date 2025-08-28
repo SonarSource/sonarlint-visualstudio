@@ -19,12 +19,11 @@
  */
 
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
 public interface IEmbeddedDotnetAnalyzersLocator
 {
-    Dictionary<RoslynLanguage, List<string>> GetBasicAnalyzerFullPathsByLanguage();
-
-    Dictionary<RoslynLanguage, List<string>> GetEnterpriseAnalyzerFullPathsByLanguage();
+    Dictionary<RoslynLanguage, List<string>> GetAnalyzerFullPathsByLanguage(AnalyzerInfoDto analyzerInfoDto);
 }
