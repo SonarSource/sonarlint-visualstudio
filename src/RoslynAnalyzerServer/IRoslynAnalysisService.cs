@@ -20,10 +20,10 @@
 
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
-using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer;
+
 internal interface IRoslynAnalysisService
 {
-    Task<IEnumerable<RoslynIssue>> AnalyzeAsync(List<FileUri> files, List<ActiveRuleDto> activeRules, Dictionary<string, string> analysisProperties, CancellationToken cancellationToken);
+    Task<IEnumerable<RoslynIssue>> AnalyzeAsync(AnalysisRequest analysisRequest, CancellationToken cancellationToken);
 }

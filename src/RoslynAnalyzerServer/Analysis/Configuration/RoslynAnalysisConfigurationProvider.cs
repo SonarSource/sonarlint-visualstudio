@@ -36,11 +36,11 @@ internal class RoslynAnalysisConfigurationProvider(
 {
     private readonly ILogger logger = logger.ForContext(Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisConfigurationLogContext);
 
-    public IReadOnlyDictionary<Language, RoslynAnalysisConfiguration> GetConfiguration(List<ActiveRuleDto> activeRules, Dictionary<string, string>? analysisProperties)
+    public IReadOnlyDictionary<Language, RoslynAnalysisConfiguration> GetConfiguration(List<ActiveRuleDto> activeRules, Dictionary<string, string>? analysisProperties, AnalyzerInfoDto analyzerInfo)
     {
         // todo add caching https://sonarsource.atlassian.net/browse/SLVS-2481
 
-        var analysisProfilesByLanguage = analyzerProfilesProvider.GetAnalysisProfilesByLanguage(roslynAnalyzerProvider.LoadAndProcessAnalyzerAssemblies(), activeRules, analysisProperties);
+        var analysisProfilesByLanguage = analyzerProfilesProvider.GetAnalysisProfilesByLanguage(roslynAnalyzerProvider.LoadAndProcessAnalyzerAssemblies(analyzerInfo), activeRules, analysisProperties);
 
         var configurations = new Dictionary<Language, RoslynAnalysisConfiguration>();
         foreach (var analyzerAndLanguage in analysisProfilesByLanguage)
