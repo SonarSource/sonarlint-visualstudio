@@ -69,8 +69,9 @@ public class RoslynAnalysisServiceTests
         analysisConfigurationProvider.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties).Returns(DefaultAnalysisConfigurations);
         analysisCommandProvider.GetAnalysisCommandsForCurrentSolution(Arg.Is<string[]>(x => x.SequenceEqual(filePaths))).Returns(DefaultProjectAnalysisRequests);
         analysisEngine.AnalyzeAsync(DefaultProjectAnalysisRequests, DefaultAnalysisConfigurations, Arg.Any<CancellationToken>()).Returns(DefaultIssues);
+        var analysisRequest = new AnalysisRequest { FileNames = filePaths.Select(x => new FileUri(x)).ToList(), ActiveRules = DefaultActiveRules, AnalysisProperties = DefaultAnalysisProperties };
 
-        var issues = await testSubject.AnalyzeAsync(filePaths.Select(x => new FileUri(x)).ToList(), DefaultActiveRules, DefaultAnalysisProperties, CancellationToken.None);
+        var issues = await testSubject.AnalyzeAsync(analysisRequest, CancellationToken.None);
 
         issues.Should().BeSameAs(DefaultIssues);
     }

@@ -22,7 +22,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
-using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.IntegrationTests.Http.Helper;
 
@@ -76,7 +75,7 @@ internal sealed class HttpServerStarter : IDisposable
     private static IRoslynAnalysisService CreateMockedAnalysisEngine()
     {
         var analysisEngine = Substitute.For<IRoslynAnalysisService>();
-        analysisEngine.AnalyzeAsync(Arg.Any<List<FileUri>>(), Arg.Any<List<ActiveRuleDto>>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(Enumerable.Empty<RoslynIssue>()));
+        analysisEngine.AnalyzeAsync(Arg.Any<AnalysisRequest>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(Enumerable.Empty<RoslynIssue>()));
         return analysisEngine;
     }
 
