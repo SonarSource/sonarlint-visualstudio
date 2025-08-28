@@ -20,6 +20,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
@@ -38,6 +39,7 @@ public class RoslynProjectCompilationProviderTests
     private DiagnosticAnalyzer analyzer3 = null!;
     private AnalyzerOptions analyzerOptions = null!;
     private ImmutableArray<DiagnosticAnalyzer> analyzers;
+    private ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> codeFixProviders = null!;
     private IRoslynCompilationWrapper compilation = null!;
     private CompilationOptions compilationOptions = null!;
     private IRoslynCompilationWithAnalyzersWrapper compilationWithAnalyzers = null!;
@@ -58,13 +60,15 @@ public class RoslynProjectCompilationProviderTests
         SetUpAdditionalFiles();
         SetUpProject();
         SetUpAnalyzers();
+        SetUpCodeFixProviders();
         diagnosticOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty
             .Add("SomeId", ReportDiagnostic.Warn);
         configurations = ImmutableDictionary<Language, RoslynAnalysisConfiguration>.Empty
             .Add(Language.CSharp, new RoslynAnalysisConfiguration(
                 sonarLintXml,
                 diagnosticOptions,
-                analyzers));
+                analyzers,
+                codeFixProviders));
         testSubject = new RoslynProjectCompilationProvider(logger);
     }
 
@@ -145,6 +149,11 @@ public class RoslynProjectCompilationProviderTests
         analyzer2 = Substitute.For<DiagnosticAnalyzer>();
         analyzer3 = Substitute.For<DiagnosticAnalyzer>();
         analyzers = ImmutableArray.Create(analyzer1, analyzer2, analyzer3);
+    }
+
+    private void SetUpCodeFixProviders()
+    {
+        codeFixProviders = ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>>.Empty.Add("1", [Substitute.For<CodeFixProvider>()]);
     }
 
     private void SetUpProject()

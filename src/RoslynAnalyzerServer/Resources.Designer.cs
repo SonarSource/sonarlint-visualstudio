@@ -177,6 +177,15 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to load class {0} from {1}: {2}.
+        /// </summary>
+        internal static string RoslynAnalysisAnalyzerClassLoaderFailedToLoad {
+            get {
+                return ResourceManager.GetString("RoslynAnalysisAnalyzerClassLoaderFailedToLoad", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to load analyzer {0}: {1}.
         /// </summary>
         internal static string RoslynAnalysisAnalyzerLoaderFailedToLoad {

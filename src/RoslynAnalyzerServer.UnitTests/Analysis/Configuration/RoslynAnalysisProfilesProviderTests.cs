@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
@@ -56,10 +57,10 @@ public class RoslynAnalysisProfilesProviderTests
     [TestMethod]
     public void GetAnalysisProfilesByLanguage_ReturnsFilteredRulesAndParameters()
     {
-        var supportedDiagnostics = CreateSupportedDiagnosticsForLanguages(new()
+        var analyzerAssemblyContents = CreateSupportedDiagnosticsForLanguages(new()
         {
-            { Language.CSharp, ([Substitute.For<DiagnosticAnalyzer>(), Substitute.For<DiagnosticAnalyzer>()], ["S001", "S002", "S003"]) },
-            { Language.VBNET, ([Substitute.For<DiagnosticAnalyzer>(), Substitute.For<DiagnosticAnalyzer>()], ["S001", "S002", "S003"]) }
+            { Language.CSharp, ([Substitute.For<DiagnosticAnalyzer>(), Substitute.For<DiagnosticAnalyzer>()], ["S001", "S002", "S003"], new(){{"S002", [Substitute.For<CodeFixProvider>()]}}) },
+            { Language.VBNET, ([Substitute.For<DiagnosticAnalyzer>(), Substitute.For<DiagnosticAnalyzer>()], ["S001", "S002", "S003"], new (){{"S003", [Substitute.For<CodeFixProvider>()]}}) },
         });
         List<ActiveRuleDto> activeRules =
         [
@@ -70,12 +71,13 @@ public class RoslynAnalysisProfilesProviderTests
         ];
         var analysisProperties = new Dictionary<string, string> { { "sonar.cs.property1", "value1" }, { "sonar.vbnet.property2", "value2" }, { "someotherkey", "value" } };
 
-        var result = testSubject.GetAnalysisProfilesByLanguage(supportedDiagnostics, activeRules, analysisProperties);
+        var result = testSubject.GetAnalysisProfilesByLanguage(analyzerAssemblyContents, activeRules, analysisProperties);
 
         result.Keys.Should().BeEquivalentTo(Language.CSharp, Language.VBNET);
         ValidateProfile(
             result[Language.CSharp],
-            supportedDiagnostics[Language.CSharp].Analyzers,
+            analyzerAssemblyContents[Language.CSharp].Analyzers,
+            analyzerAssemblyContents[Language.CSharp].CodeFixProvidersByRuleKey,
             [
                 CreateRuleConfiguration(Language.CSharp, "S001", new() { { "param1", "value1" } }),
                 CreateRuleConfiguration(Language.CSharp, "S002", isActive: false),
@@ -84,7 +86,8 @@ public class RoslynAnalysisProfilesProviderTests
             new() { { "sonar.cs.property1", "value1" } });
         ValidateProfile(
             result[Language.VBNET],
-            supportedDiagnostics[Language.VBNET].Analyzers,
+            analyzerAssemblyContents[Language.VBNET].Analyzers,
+            analyzerAssemblyContents[Language.VBNET].CodeFixProvidersByRuleKey,
             [
                 CreateRuleConfiguration(Language.VBNET, "S001", isActive: false),
                 CreateRuleConfiguration(Language.VBNET, "S002", parameters: new() { { "param2", "value2" } }),
@@ -93,8 +96,8 @@ public class RoslynAnalysisProfilesProviderTests
             new Dictionary<string, string> { { "sonar.vbnet.property2", "value2" } });
     }
 
-    private static void ValidateProfile(RoslynAnalysisProfile profile, IEnumerable<DiagnosticAnalyzer> diagnosticAnalyzers, List<RoslynRuleConfiguration> rules, Dictionary<string, string> analysisProperties) =>
-        profile.Should().BeEquivalentTo(new RoslynAnalysisProfile(diagnosticAnalyzers.ToImmutableArray(), rules, analysisProperties), options => options.ComparingByMembers<RoslynRuleConfiguration>().ComparingByMembers<RoslynAnalysisProfile>());
+    private static void ValidateProfile(RoslynAnalysisProfile profile, IEnumerable<DiagnosticAnalyzer> diagnosticAnalyzers, ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> codeFixProviders, List<RoslynRuleConfiguration> rules, Dictionary<string, string> analysisProperties) =>
+        profile.Should().BeEquivalentTo(new RoslynAnalysisProfile(diagnosticAnalyzers.ToImmutableArray(), codeFixProviders, rules, analysisProperties), options => options.ComparingByMembers<RoslynRuleConfiguration>().ComparingByMembers<RoslynAnalysisProfile>());
 
     private static RoslynRuleConfiguration CreateRuleConfiguration(
         Language language,
@@ -106,8 +109,8 @@ public class RoslynAnalysisProfilesProviderTests
             parameters);
 
     private static ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> CreateSupportedDiagnosticsForLanguages(
-        Dictionary<RoslynLanguage, (DiagnosticAnalyzer[] analyzers, string[] RuleKeys)> analyzers) =>
-        analyzers.ToImmutableDictionary(
+        Dictionary<RoslynLanguage, (DiagnosticAnalyzer[] analyzers, string[] RuleKeys, Dictionary<string, IReadOnlyCollection<CodeFixProvider>> CodeFixProviders)> contents) =>
+        contents.ToImmutableDictionary(
             x => x.Key,
-            y => new AnalyzerAssemblyContents(y.Value.analyzers.ToImmutableArray(), y.Value.RuleKeys.ToImmutableHashSet()));
+            y => new AnalyzerAssemblyContents(y.Value.analyzers.ToImmutableArray(), y.Value.RuleKeys.ToImmutableHashSet(), y.Value.CodeFixProviders.ToImmutableDictionary()));
 }
