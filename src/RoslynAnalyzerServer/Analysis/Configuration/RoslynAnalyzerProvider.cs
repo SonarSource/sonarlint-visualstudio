@@ -20,6 +20,7 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CSharpVB;
@@ -31,11 +32,11 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 [method: ImportingConstructor]
 internal class RoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersLocator, IRoslynAnalyzerLoader roslynAnalyzerLoader) : IRoslynAnalyzerProvider
 {
-    public ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadAnalyzerAssemblies() =>
+    public ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadAndProcessAnalyzerAssemblies() =>
         // todo SLVS-2410 Respect NET repackaging
-        LoadAnalyzersAndRules(analyzersLocator.GetBasicAnalyzerFullPathsByLanguage());
+        LoadFromAssemblies(analyzersLocator.GetBasicAnalyzerFullPathsByLanguage());
 
-    private ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadAnalyzersAndRules(Dictionary<RoslynLanguage, List<string>> analyzerFullPathsByLanguage)
+    private ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadFromAssemblies(Dictionary<RoslynLanguage, List<string>> analyzerFullPathsByLanguage)
     {
         var builder = ImmutableDictionary.CreateBuilder<RoslynLanguage, AnalyzerAssemblyContents>();
 
@@ -43,16 +44,34 @@ internal class RoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersL
         {
             var supportedDiagnostics = ImmutableHashSet.CreateBuilder<string>();
             var analyzers = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            var codeFixProviders = ImmutableDictionary.CreateBuilder<string, IReadOnlyCollection<CodeFixProvider>>();
 
-            foreach (var diagnosticAnalyzer in languageAndAnalyzers.Value.SelectMany(roslynAnalyzerLoader.LoadAnalyzers))
+            foreach (var assemblyContents in languageAndAnalyzers.Value.Select(roslynAnalyzerLoader.LoadAnalyzerAssembly))
             {
-                analyzers.Add(diagnosticAnalyzer);
-                supportedDiagnostics.UnionWith(diagnosticAnalyzer.SupportedDiagnostics.Select(x => x.Id));
+                analyzers.AddRange(assemblyContents.Analyzers);
+                supportedDiagnostics.UnionWith(assemblyContents.Analyzers.SelectMany(x => x.SupportedDiagnostics.Select(y => y.Id)));
+                AddCodeFixProviders(assemblyContents, codeFixProviders);
             }
 
-            builder.Add(languageAndAnalyzers.Key, new AnalyzerAssemblyContents(analyzers.ToImmutable(), supportedDiagnostics.ToImmutable()));
+            var immutableArray = supportedDiagnostics.ToImmutable();
+            builder.Add(languageAndAnalyzers.Key, new AnalyzerAssemblyContents(analyzers.ToImmutable(), immutableArray.ToImmutableHashSet(), codeFixProviders.ToImmutable()));
         }
 
         return builder.ToImmutable();
+    }
+
+    private static void AddCodeFixProviders(LoadedAnalyzerClasses classes, ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>>.Builder codeFixProviders)
+    {
+        foreach (var codeFixProvider in classes.CodeFixProviders)
+        {
+            foreach (var fixableDiagnosticId in codeFixProvider.FixableDiagnosticIds)
+            {
+                if (!codeFixProviders.ContainsKey(fixableDiagnosticId))
+                {
+                    codeFixProviders[fixableDiagnosticId] = new List<CodeFixProvider>();
+                }
+                ((List<CodeFixProvider>)codeFixProviders[fixableDiagnosticId]).Add(codeFixProvider);
+            }
+        }
     }
 }

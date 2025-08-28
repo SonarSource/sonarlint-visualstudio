@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
 
@@ -29,25 +30,54 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 [Export(typeof(IRoslynAnalyzerLoader))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
+[ExcludeFromCodeCoverage]
 internal class RoslynAnalyzerLoader(ILogger logger) : IRoslynAnalyzerLoader
 {
     private readonly ILogger logger = logger.ForContext(Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisAnalyzerLoaderLogContext);
 
-    [ExcludeFromCodeCoverage]
-    public IReadOnlyCollection<DiagnosticAnalyzer> LoadAnalyzers(string filePath)
+    public LoadedAnalyzerClasses LoadAnalyzerAssembly(string filePath)
     {
         try
         {
-            return Assembly.LoadFrom(filePath)
-                .GetTypes()
-                .Where(t => typeof(DiagnosticAnalyzer).IsAssignableFrom(t) && !t.IsAbstract)
-                .Select(t => (DiagnosticAnalyzer)Activator.CreateInstance(t))
-                .ToList();
+            var analyzers = new List<DiagnosticAnalyzer>();
+            var codeFixProviders = new List<CodeFixProvider>();
+
+            foreach (var type in Assembly.LoadFrom(filePath).GetTypes().Where(t => t is { IsAbstract: false, IsInterface: false, IsGenericType: false }))
+            {
+                if (TryLoadType(type, out CodeFixProvider? codeFixProvider, filePath))
+                {
+                    codeFixProviders.Add(codeFixProvider);
+                }
+                else if (TryLoadType(type, out DiagnosticAnalyzer? analyzer, filePath))
+                {
+                    analyzers.Add(analyzer);
+                }
+            }
+
+            return new LoadedAnalyzerClasses(analyzers, codeFixProviders);
         }
         catch (Exception e)
         {
             logger.WriteLine(Resources.RoslynAnalysisAnalyzerLoaderFailedToLoad, filePath, e);
-            return [];
+            return new LoadedAnalyzerClasses([], []);
         }
+    }
+
+    private bool TryLoadType<T>(Type type, [NotNullWhen(true)] out T? value, string originAssembly) where T : class
+    {
+        value = null;
+        try
+        {
+            if (typeof(T).IsAssignableFrom(type))
+            {
+                value = (T)Activator.CreateInstance(type);
+                return true;
+            }
+        }
+        catch (Exception e)
+        {
+            logger.LogVerbose(Resources.RoslynAnalysisAnalyzerClassLoaderFailedToLoad, type, originAssembly, e);
+        }
+        return false;
     }
 }
