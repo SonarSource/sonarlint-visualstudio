@@ -51,7 +51,7 @@ public class SonarLintXmlProviderTests
     [TestMethod]
     public void Create_ReturnsExpectedXml()
     {
-        var profile = new RoslynAnalysisProfile(default, [], []);
+        var profile = new RoslynAnalysisProfile(default, null!, [], []);
 
         var result = testSubject.Create(profile);
 
@@ -65,7 +65,7 @@ public class SonarLintXmlProviderTests
     public void Create_WithMultipleRulesAndProperties_ExpectedConfigurationSerialized()
     {
         var analysisProperties = new Dictionary<string, string> { { "prop1", "value1" }, { "prop2", "value2" } };
-        var result = testSubject.Create(new RoslynAnalysisProfile(default, [RuleWithoutParameters, RuleWithParameters], analysisProperties));
+        var result = testSubject.Create(new RoslynAnalysisProfile(default, null!, [RuleWithoutParameters, RuleWithParameters], analysisProperties));
 
         result.Should().NotBeNull();
 
@@ -80,7 +80,7 @@ public class SonarLintXmlProviderTests
     [TestMethod]
     public void Create_WithRuleNoParametersNoProperties_SerializesCorrectRules()
     {
-        var profile = new RoslynAnalysisProfile(default, [RuleWithoutParameters], []);
+        var profile = new RoslynAnalysisProfile(default, null!, [RuleWithoutParameters], []);
 
         var result = testSubject.Create(profile);
 
@@ -92,7 +92,7 @@ public class SonarLintXmlProviderTests
     [TestMethod]
     public void Create_WithRuleWithParameters_SerializesCorrectRules()
     {
-        var profile = new RoslynAnalysisProfile(default, [RuleWithParameters], []);
+        var profile = new RoslynAnalysisProfile(default, null!, [RuleWithParameters], []);
 
         var result = testSubject.Create(profile);
 
@@ -116,7 +116,7 @@ public class SonarLintXmlProviderTests
     {
         const string inactiveRuleKey = "inactiveRule";
         var rules = new List<RoslynRuleConfiguration> { RuleWithoutParameters, CreateRuleConfig(inactiveRuleKey, false), RuleWithParameters };
-        var profile = new RoslynAnalysisProfile(default, rules, []);
+        var profile = new RoslynAnalysisProfile(default, null!, rules, []);
 
         var result = testSubject.Create(profile);
 
