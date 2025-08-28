@@ -26,7 +26,6 @@ using Newtonsoft.Json;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.IntegrationTests.Http.Helper;
-using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.IntegrationTests.Http;
 
@@ -197,7 +196,7 @@ public class RoslynAnalysisHttpServerTest
         var exceptionMessage = "Simulated exception";
         using var serverStarter2 = new HttpServerStarter();
         serverStarter2.MockedRoslynAnalysisService
-            .When(x => x.AnalyzeAsync(Arg.Any<List<FileUri>>(), Arg.Any<List<ActiveRuleDto>>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>()))
+            .When(x => x.AnalyzeAsync(Arg.Any<AnalysisRequest>(), Arg.Any<CancellationToken>()))
             .Do(_ => throw new InvalidOperationException(exceptionMessage));
         serverStarter2.StartListeningOnBackgroundThread();
 
@@ -288,6 +287,6 @@ public class RoslynAnalysisHttpServerTest
 
     private static void SimulateLongAnalysis(IRoslynAnalysisService roslynAnalysisService, int milliseconds) =>
         roslynAnalysisService
-            .When(x => x.AnalyzeAsync(Arg.Any<List<FileUri>>(), Arg.Any<List<ActiveRuleDto>>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>()))
+            .When(x => x.AnalyzeAsync(Arg.Any<AnalysisRequest>(), Arg.Any<CancellationToken>()))
             .Do(_ => Task.Delay(milliseconds).GetAwaiter().GetResult());
 }
