@@ -27,6 +27,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 [ExcludeFromCodeCoverage] // todo SLVS-2466 add roslyn 'integration' tests using AdHocWorkspace
 internal class RoslynProjectWrapper(Project project) : IRoslynProjectWrapper
 {
+    public Project RoslynProject => project;
     public string Name => project.Name;
     public bool SupportsCompilation => project.SupportsCompilation;
     public AnalyzerOptions RoslynAnalyzerOptions  => project.AnalyzerOptions;
@@ -36,13 +37,12 @@ internal class RoslynProjectWrapper(Project project) : IRoslynProjectWrapper
 
     public bool ContainsDocument(
         string filePath,
-        [NotNullWhen(true)]out string? analysisFilePath)
+        [NotNullWhen(true)]out Document? analysisFilePath)
     {
         analysisFilePath = project.Documents
-            .Select(document => document.FilePath)
-            .Where(path => path != null)
-            .FirstOrDefault(candidatePath =>
-                candidatePath!.Equals(filePath) || IsAssociatedGeneratedFile(filePath, candidatePath));
+            .Where(document => document?.FilePath != null)
+            .FirstOrDefault(candidateDocument =>
+                candidateDocument.FilePath!.Equals(filePath) || IsAssociatedGeneratedFile(filePath, candidateDocument.FilePath));
 
         return analysisFilePath != null;
     }

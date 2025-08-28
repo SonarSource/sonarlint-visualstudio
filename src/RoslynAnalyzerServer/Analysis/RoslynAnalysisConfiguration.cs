@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal record struct RoslynAnalysisConfiguration(
+public record struct RoslynAnalysisConfiguration(
     SonarLintXmlConfigurationFile SonarLintXml,
     ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions,
     ImmutableArray<DiagnosticAnalyzer> Analyzers,

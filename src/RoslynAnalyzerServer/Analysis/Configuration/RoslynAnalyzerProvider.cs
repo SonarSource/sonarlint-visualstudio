@@ -34,7 +34,7 @@ internal class RoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersL
 {
     public ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadAndProcessAnalyzerAssemblies() =>
         // todo SLVS-2410 Respect NET repackaging
-        LoadFromAssemblies(analyzersLocator.GetBasicAnalyzerFullPathsByLanguage());
+        LoadFromAssemblies(analyzersLocator.GetEnterpriseAnalyzerFullPathsByLanguage());
 
     private ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadFromAssemblies(Dictionary<RoslynLanguage, List<string>> analyzerFullPathsByLanguage)
     {

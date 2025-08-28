@@ -136,7 +136,12 @@
   <data name="SonarLintOutputPaneTitle" xml:space="preserve">
     <value>SonarQube</value>
     <comment>Output pane title</comment>
+  </data>  
+  <data name="SonarLintPerformanceOutputPaneTitle" xml:space="preserve">
+    <value>SonarQube Performance</value>
+    <comment>Output pane title</comment>
   </data>
+  
   <data name="Notifications_NotSupported" xml:space="preserve">
     <value>Notifications are not supported on this version of SonarQube (Server, Cloud)</value>
     <comment>Output window message</comment>

@@ -23,6 +23,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 public class RoslynIssue(
     string ruleId,
     RoslynIssueLocation primaryLocation,
+    IReadOnlyList<RoslynIssueQuickFix> quickFixes,
     IReadOnlyList<RoslynIssueFlow>? flows = null)
 {
     private static readonly IReadOnlyList<RoslynIssueFlow> EmptyFlows = [];
@@ -30,6 +31,8 @@ public class RoslynIssue(
     public string RuleId { get; } = ruleId;
     public RoslynIssueLocation PrimaryLocation { get; } = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
     public IReadOnlyList<RoslynIssueFlow> Flows { get; } = flows ?? EmptyFlows;
+
+    public IReadOnlyList<RoslynIssueQuickFix> QuickFixes { get; } = quickFixes;
 }
 
 public class RoslynIssueFlow(IReadOnlyList<RoslynIssueLocation> locations)
@@ -54,4 +57,16 @@ public class RoslynIssueTextRange(
     public int EndLine { get; } = endLine;
     public int StartLineOffset { get; } = startLineOffset;
     public int EndLineOffset { get; } = endLineOffset;
+}
+
+public class RoslynIssueQuickFix(string message, IReadOnlyList<RoslynIssueQuickFixEdit> edits)
+{
+    public string Message { get; } = message;
+    public IReadOnlyList<RoslynIssueQuickFixEdit> Edits { get; } = edits;
+}
+
+public class RoslynIssueQuickFixEdit(string newText, RoslynIssueTextRange rangeToReplace)
+{
+    public string NewText { get; } = newText;
+    public RoslynIssueTextRange RangeToReplace { get; } = rangeToReplace;
 }

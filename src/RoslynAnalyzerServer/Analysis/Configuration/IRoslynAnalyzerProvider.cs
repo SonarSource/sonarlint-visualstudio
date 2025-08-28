@@ -25,12 +25,12 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
-internal interface IRoslynAnalyzerProvider
+public interface IRoslynAnalyzerProvider
 {
     ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadAndProcessAnalyzerAssemblies();
 }
 
-internal readonly record struct AnalyzerAssemblyContents(
+public readonly record struct AnalyzerAssemblyContents(
     ImmutableArray<DiagnosticAnalyzer> Analyzers,
     ImmutableHashSet<string> SupportedRuleKeys,
     ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> CodeFixProvidersByRuleKey);

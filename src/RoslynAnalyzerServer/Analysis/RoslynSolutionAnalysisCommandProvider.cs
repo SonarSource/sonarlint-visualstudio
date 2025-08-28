@@ -74,8 +74,8 @@ internal class RoslynSolutionAnalysisCommandProvider(
                 continue;
             }
 
-            commands.Add(new RoslynFileSyntaxAnalysis(analysisFilePath, logger));
-            commands.Add(new RoslynFileSemanticAnalysis(analysisFilePath, logger));
+            commands.Add(new RoslynFileSyntaxAnalysis(analysisFilePath.FilePath, logger));
+            commands.Add(new RoslynFileSemanticAnalysis(analysisFilePath.FilePath, logger));
         }
         return commands;
     }

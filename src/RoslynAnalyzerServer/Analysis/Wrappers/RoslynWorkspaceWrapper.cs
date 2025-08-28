@@ -29,7 +29,9 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 [Export(typeof(IRoslynWorkspaceWrapper))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class RoslynWorkspaceWrapper([Import(typeof(VisualStudioWorkspace))] Workspace workspace) : IRoslynWorkspaceWrapper
+internal class RoslynWorkspaceWrapper([Import(typeof(VisualStudioWorkspace))] Workspace roslynWorkspace) : IRoslynWorkspaceWrapper
 {
-    public IRoslynSolutionWrapper GetCurrentSolution() => new RoslynSolutionWrapper(workspace.CurrentSolution);
+    public Workspace RoslynWorkspace { get; } = roslynWorkspace;
+
+    public IRoslynSolutionWrapper GetCurrentSolution() => new RoslynSolutionWrapper(RoslynWorkspace.CurrentSolution);
 }

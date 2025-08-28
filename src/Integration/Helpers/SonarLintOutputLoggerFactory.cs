@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Logging;
 
@@ -27,7 +28,15 @@ namespace SonarLint.VisualStudio.Integration.Helpers;
 
 internal class SonarLintOutputWindowLoggerWriter(IServiceProvider serviceProvider) : ILoggerWriter
 {
-    public void WriteLine(string message) => VsShellUtils.WriteToSonarLintOutputPane(serviceProvider, message);
+    public void WriteLine(string message) => VsShellUtils.WriteToSonarLintOutputPane(serviceProvider, message, false);
+}
+
+internal class SonarLintPerformanceOutputWindowAsyncLoggerWriter(IServiceProvider serviceProvider, IThreadHandling threadHandling) : ILoggerWriter
+{
+    public void WriteLine(string message) =>
+        threadHandling
+            .RunOnBackgroundThread(() => VsShellUtils.WriteToSonarLintOutputPane(serviceProvider, message, true))
+            .Forget();
 }
 
 internal class SonarLintSettingsLoggerSettingsProvider(ISonarLintSettings sonarLintSettings) : ILoggerSettingsProvider
@@ -41,11 +50,18 @@ internal class SonarLintSettingsLoggerSettingsProvider(ISonarLintSettings sonarL
 internal class SonarLintOutputLoggerFactory(
     ILoggerFactory logFactory,
     [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+    IThreadHandling threadHandling,
     ISonarLintSettings sonarLintSettings)
 {
     [Export(typeof(ILogger))]
     public ILogger Instance { get; } =
         logFactory.Create(
             new SonarLintOutputWindowLoggerWriter(serviceProvider),
+            new SonarLintSettingsLoggerSettingsProvider(sonarLintSettings));
+
+    [Export("PerformanceLogger")]
+    public ILogger PerformanceLoggerInstance { get; } =
+        logFactory.Create(
+            new SonarLintPerformanceOutputWindowAsyncLoggerWriter(serviceProvider, threadHandling),
             new SonarLintSettingsLoggerSettingsProvider(sonarLintSettings));
 }
