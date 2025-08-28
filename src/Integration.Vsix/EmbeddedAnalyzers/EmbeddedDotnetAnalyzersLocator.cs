@@ -56,7 +56,7 @@ internal class EmbeddedDotnetAnalyzersLocator(IVsixRootLocator vsixRootLocator, 
         return languageToDllsMap;
     }
 
-    private List<string> GetAnalyzerFullPathsByLanguage(RoslynLanguage language, bool shouldUseEnterprise, IEnumerable<string> allAnalyzers)
+    private static List<string> GetAnalyzerFullPathsByLanguage(RoslynLanguage language, bool shouldUseEnterprise, IEnumerable<string> allAnalyzers)
     {
         var dlls = shouldUseEnterprise ? allAnalyzers : allAnalyzers.Where(x => !x.Contains(EnterpriseInfix));
 
