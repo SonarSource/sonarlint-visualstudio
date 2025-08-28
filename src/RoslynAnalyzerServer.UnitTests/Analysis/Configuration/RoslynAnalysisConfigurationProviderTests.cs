@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
@@ -46,7 +47,7 @@ public class RoslynAnalysisConfigurationProviderTests
     {
         sonarLintXmlProvider = Substitute.For<ISonarLintXmlProvider>();
         roslynAnalyzerProvider = Substitute.For<IRoslynAnalyzerProvider>();
-        roslynAnalyzerProvider.LoadAnalyzerAssemblies().Returns(DefaultAnalyzers);
+        roslynAnalyzerProvider.LoadAndProcessAnalyzerAssemblies().Returns(DefaultAnalyzers);
 
         analyzerProfilesProvider = Substitute.For<IRoslynAnalysisProfilesProvider>();
         testLogger = Substitute.ForPartsOf<TestLogger>();
@@ -83,12 +84,14 @@ public class RoslynAnalysisConfigurationProviderTests
             {
                 Language.CSharp, new RoslynAnalysisProfile(
                     CreateTestAnalyzers(1),
+                    CreateTestCodeFixProviders(),
                     [CreateRuleConfiguration(Language.CSharp, "S001"), CreateRuleConfiguration(Language.CSharp, "S002", false)],
                     new() { { "sonar.cs.property", "value" } })
             },
             {
                 Language.VBNET, new RoslynAnalysisProfile(
                     CreateTestAnalyzers(2),
+                    CreateTestCodeFixProviders(),
                     [CreateRuleConfiguration(Language.VBNET, "S001", false), CreateRuleConfiguration(Language.VBNET, "S002")],
                     new() { { "sonar.vbnet.property", "value" } })
             }
@@ -105,6 +108,7 @@ public class RoslynAnalysisConfigurationProviderTests
         {
             result.ContainsKey(language).Should().BeTrue();
             result[language].Analyzers.Should().BeEquivalentTo(roslynAnalysisProfiles[language].Analyzers);
+            result[language].CodeFixProvidersByRuleKey.Should().BeSameAs(roslynAnalysisProfiles[language].CodeFixProvidersByRuleKey);
             result[language].DiagnosticOptions.Should().BeEquivalentTo(roslynAnalysisProfiles[language].Rules.ToDictionary(x => x.RuleId.RuleKey, x => x.ReportDiagnostic));
             result[language].SonarLintXml.Should().BeEquivalentTo(xmlConfigurations[language]);
         }
@@ -119,6 +123,7 @@ public class RoslynAnalysisConfigurationProviderTests
             {
                 language, new RoslynAnalysisProfile(
                     ImmutableArray<DiagnosticAnalyzer>.Empty,
+                    CreateTestCodeFixProviders(),
                     [CreateRuleConfiguration(language, "S001")],
                     new Dictionary<string, string>())
             }
@@ -142,6 +147,7 @@ public class RoslynAnalysisConfigurationProviderTests
             {
                 language, new RoslynAnalysisProfile(
                     CreateTestAnalyzers(1),
+                    CreateTestCodeFixProviders(),
                     [CreateRuleConfiguration(language, "S001", false), CreateRuleConfiguration(language, "S002", false)],
                     new Dictionary<string, string>())
             }
@@ -187,6 +193,8 @@ public class RoslynAnalysisConfigurationProviderTests
             []);
 
     private ImmutableArray<DiagnosticAnalyzer> CreateTestAnalyzers(int count) => Enumerable.Range(0, count).Select(_ => Substitute.For<DiagnosticAnalyzer>()).ToImmutableArray();
+
+    private ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> CreateTestCodeFixProviders() => ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>>.Empty.Add("any", [Substitute.For<CodeFixProvider>()]);
 
     private SonarLintXmlConfigurationFile SetUpXmlProvider(RoslynAnalysisProfile profile)
     {

@@ -30,22 +30,21 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 internal class RoslynAnalysisProfilesProvider : IRoslynAnalysisProfilesProvider
 {
     public Dictionary<RoslynLanguage, RoslynAnalysisProfile> GetAnalysisProfilesByLanguage(
-        ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> supportedRulesByLanguage,
+        ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> analyzerAssemblyContents,
         List<ActiveRuleDto> activeRules,
         Dictionary<string, string>? analysisProperties)
     {
-        var roslynAnalysisProfiles = InitializeProfilesForEachLanguage(supportedRulesByLanguage);
-        AddRules(activeRules, supportedRulesByLanguage, roslynAnalysisProfiles);
+        var roslynAnalysisProfiles = InitializeProfilesForEachLanguage(analyzerAssemblyContents);
+        AddRules(activeRules, analyzerAssemblyContents, roslynAnalysisProfiles);
         AddProperties(analysisProperties, roslynAnalysisProfiles);
 
         return roslynAnalysisProfiles;
     }
 
-    private static Dictionary<RoslynLanguage, RoslynAnalysisProfile> InitializeProfilesForEachLanguage(ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> supportedRulesByLanguage)
-    {
-        var roslynAnalysisProfiles = supportedRulesByLanguage.ToDictionary(x => x.Key, x => new RoslynAnalysisProfile(x.Value.Analyzers, [], []));
-        return roslynAnalysisProfiles;
-    }
+    private static Dictionary<RoslynLanguage, RoslynAnalysisProfile> InitializeProfilesForEachLanguage(ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> analyzerAssemblyContents) =>
+        analyzerAssemblyContents.ToDictionary(
+            x => x.Key,
+            x => new RoslynAnalysisProfile(x.Value.Analyzers, x.Value.CodeFixProvidersByRuleKey, [], []));
 
     private static void AddRules(
         List<ActiveRuleDto> activeRules,
@@ -63,9 +62,8 @@ internal class RoslynAnalysisProfilesProvider : IRoslynAnalysisProfilesProvider
                 continue;
             }
 
-            foreach (var ruleKey in kvp.Value.SupportedRuleKeys)
+            foreach (var ruleId in kvp.Value.SupportedRuleKeys.Select(ruleKey => new SonarCompositeRuleId(language.RepoInfo.Key, ruleKey)))
             {
-                var ruleId = new SonarCompositeRuleId(language.RepoInfo.Key, ruleKey);
                 analysisProfile.Rules.Add(activeRulesById.TryGetValue(ruleId.ErrorListErrorCode, out var activeRule)
                     ? new RoslynRuleConfiguration(ruleId, true, activeRule.Parameters)
                     : new RoslynRuleConfiguration(ruleId, false, null));
