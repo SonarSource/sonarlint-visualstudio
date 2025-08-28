@@ -18,14 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Common.Models;
-
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
-public record AnalysisRequest
-{
-    public List<FileUri> FileNames { get; set; } = [];
-    public List<ActiveRuleDto> ActiveRules { get; set; } = [];
-    public Dictionary<string, string> AnalysisProperties { get; set; } = [];
-    public AnalyzerInfoDto AnalyzerInfo { get; set; } = null!;
-}
+public record AnalyzerInfoDto(bool ShouldUseCsharpEnterprise, bool ShouldUseVbEnterprise);
