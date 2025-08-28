@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.EmbeddedAnalyzers;
 [Export(typeof(IObsoleteDotnetAnalyzersLocator))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class EmbeddedDotnetAnalyzersLocator(IVsixRootLocator vsixRootLocator, ILanguageProvider languageProvider, IFileSystemService fileSystem)
+internal class EmbeddedDotnetAnalyzersLocator(IVsixRootLocator vsixRootLocator, IFileSystemService fileSystem)
     : IEmbeddedDotnetAnalyzersLocator, IObsoleteDotnetAnalyzersLocator
 {
     private const string PathInsideVsix = "EmbeddedDotnetAnalyzerDLLs";

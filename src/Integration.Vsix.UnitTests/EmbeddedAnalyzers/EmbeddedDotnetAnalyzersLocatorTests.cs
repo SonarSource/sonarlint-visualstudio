@@ -38,7 +38,6 @@ public class EmbeddedDotnetAnalyzersLocatorTests
     private static readonly string CSharpEnterpriseAnalyzer = GetAnalyzerFullPath(PathInsideVsix, "SonarAnalyzer.Enterprise.CSharp.dll");
     private static readonly string VbEnterpriseAnalyzer = GetAnalyzerFullPath(PathInsideVsix, "SonarAnalyzer.Enterprise.VisualBasic.dll");
     private IFileSystemService fileSystem;
-    private ILanguageProvider languageProvider;
 
     private EmbeddedDotnetAnalyzersLocator testSubject;
     private IVsixRootLocator vsixRootLocator;
@@ -47,17 +46,14 @@ public class EmbeddedDotnetAnalyzersLocatorTests
     public void TestInitialize()
     {
         vsixRootLocator = Substitute.For<IVsixRootLocator>();
-        languageProvider = Substitute.For<ILanguageProvider>();
-        languageProvider.RoslynLanguages.Returns([Language.CSharp, Language.VBNET]);
         fileSystem = Substitute.For<IFileSystemService>();
-        testSubject = new EmbeddedDotnetAnalyzersLocator(vsixRootLocator, languageProvider, fileSystem);
+        testSubject = new EmbeddedDotnetAnalyzersLocator(vsixRootLocator, fileSystem);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<EmbeddedDotnetAnalyzersLocator, IEmbeddedDotnetAnalyzersLocator>(
             MefTestHelpers.CreateExport<IVsixRootLocator>(),
-            MefTestHelpers.CreateExport<ILanguageProvider>(),
             MefTestHelpers.CreateExport<IFileSystemService>());
 
     [TestMethod]
