@@ -23,7 +23,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.CSharpVB;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
@@ -32,9 +32,8 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 [method: ImportingConstructor]
 internal class RoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersLocator, IRoslynAnalyzerLoader roslynAnalyzerLoader) : IRoslynAnalyzerProvider
 {
-    public ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadAndProcessAnalyzerAssemblies() =>
-        // todo SLVS-2410 Respect NET repackaging
-        LoadFromAssemblies(analyzersLocator.GetBasicAnalyzerFullPathsByLanguage());
+    public ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadAndProcessAnalyzerAssemblies(AnalyzerInfoDto analyzerInfo) =>
+        LoadFromAssemblies(analyzersLocator.GetAnalyzerFullPathsByLanguage(analyzerInfo));
 
     private ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadFromAssemblies(Dictionary<RoslynLanguage, List<string>> analyzerFullPathsByLanguage)
     {

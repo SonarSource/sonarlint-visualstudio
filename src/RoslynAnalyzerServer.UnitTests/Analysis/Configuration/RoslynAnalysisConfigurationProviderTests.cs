@@ -35,6 +35,7 @@ public class RoslynAnalysisConfigurationProviderTests
         = new Dictionary<RoslynLanguage, AnalyzerAssemblyContents> { { Language.CSharp, new AnalyzerAssemblyContents() } }.ToImmutableDictionary();
     private static readonly List<ActiveRuleDto> DefaultActiveRules = new();
     private static readonly Dictionary<string, string> DefaultAnalysisProperties = new();
+    private static readonly AnalyzerInfoDto DefaultAnalyzerInfoDto = new(false, false);
 
     private ISonarLintXmlProvider sonarLintXmlProvider = null!;
     private IRoslynAnalyzerProvider roslynAnalyzerProvider = null!;
@@ -47,7 +48,7 @@ public class RoslynAnalysisConfigurationProviderTests
     {
         sonarLintXmlProvider = Substitute.For<ISonarLintXmlProvider>();
         roslynAnalyzerProvider = Substitute.For<IRoslynAnalyzerProvider>();
-        roslynAnalyzerProvider.LoadAndProcessAnalyzerAssemblies().Returns(DefaultAnalyzers);
+        roslynAnalyzerProvider.LoadAndProcessAnalyzerAssemblies(DefaultAnalyzerInfoDto).Returns(DefaultAnalyzers);
 
         analyzerProfilesProvider = Substitute.For<IRoslynAnalysisProfilesProvider>();
         testLogger = Substitute.ForPartsOf<TestLogger>();
@@ -101,7 +102,7 @@ public class RoslynAnalysisConfigurationProviderTests
         analyzerProfilesProvider.GetAnalysisProfilesByLanguage(DefaultAnalyzers, DefaultActiveRules, DefaultAnalysisProperties)
             .Returns(roslynAnalysisProfiles);
 
-        var result = testSubject.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties);
+        var result = testSubject.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
 
         result.Keys.Should().BeEquivalentTo(roslynAnalysisProfiles.Keys);
         foreach (var language in roslynAnalysisProfiles.Keys)
@@ -132,7 +133,7 @@ public class RoslynAnalysisConfigurationProviderTests
         analyzerProfilesProvider.GetAnalysisProfilesByLanguage(DefaultAnalyzers, DefaultActiveRules, DefaultAnalysisProperties)
             .Returns(roslynAnalysisProfiles);
 
-        var result = testSubject.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties);
+        var result = testSubject.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
 
         result.Should().BeEmpty();
         testLogger.AssertPartialOutputStringExists(string.Format(Resources.RoslynAnalysisConfigurationNoAnalyzers, language.Name));
@@ -156,7 +157,7 @@ public class RoslynAnalysisConfigurationProviderTests
         analyzerProfilesProvider.GetAnalysisProfilesByLanguage(DefaultAnalyzers, DefaultActiveRules, DefaultAnalysisProperties)
             .Returns(roslynAnalysisProfiles);
 
-        var result = testSubject.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties);
+        var result = testSubject.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
 
         result.Should().BeEmpty();
         testLogger.AssertPartialOutputStringExists(string.Format(Resources.RoslynAnalysisConfigurationNoActiveRules, language.Name));
@@ -168,7 +169,7 @@ public class RoslynAnalysisConfigurationProviderTests
         analyzerProfilesProvider.GetAnalysisProfilesByLanguage(DefaultAnalyzers, DefaultActiveRules, DefaultAnalysisProperties)
             .Returns(new Dictionary<RoslynLanguage, RoslynAnalysisProfile>());
 
-        var result = testSubject.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties);
+        var result = testSubject.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
 
         result.Should().BeEmpty();
     }

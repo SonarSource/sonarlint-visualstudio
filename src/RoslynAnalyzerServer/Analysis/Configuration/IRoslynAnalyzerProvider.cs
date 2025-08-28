@@ -22,12 +22,13 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
 internal interface IRoslynAnalyzerProvider
 {
-    ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadAndProcessAnalyzerAssemblies();
+    ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadAndProcessAnalyzerAssemblies(AnalyzerInfoDto analyzerInfo);
 }
 
 internal readonly record struct AnalyzerAssemblyContents(
