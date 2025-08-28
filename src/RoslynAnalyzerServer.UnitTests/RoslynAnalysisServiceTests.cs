@@ -31,15 +31,16 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests;
 [TestClass]
 public class RoslynAnalysisServiceTests
 {
-    private static readonly List<ActiveRuleDto> DefaultActiveRules = new() { new("sample-rule-id", new() { { "paramKey", "paramValue" } }) };
-    private static readonly Dictionary<string, string> DefaultAnalysisProperties = new() { { "sonar.cs.any", "any" }, };
+    private static readonly List<ActiveRuleDto> DefaultActiveRules = new() { new ActiveRuleDto("sample-rule-id", new Dictionary<string, string> { { "paramKey", "paramValue" } }) };
+    private static readonly Dictionary<string, string> DefaultAnalysisProperties = new() { { "sonar.cs.any", "any" } };
     private static readonly Dictionary<Language, RoslynAnalysisConfiguration> DefaultAnalysisConfigurations = new() { { Language.CSharp, new RoslynAnalysisConfiguration() } };
-    private static readonly List<RoslynProjectAnalysisRequest> DefaultProjectAnalysisRequests = new() { new(Substitute.For<IRoslynProjectWrapper>(), []) };
-    private static readonly List<RoslynIssue> DefaultIssues = new() { new RoslynIssue("sample-rule-id", new("any", "any", new(1, 1, 1, 1))) };
+    private static readonly List<RoslynProjectAnalysisRequest> DefaultProjectAnalysisRequests = new() { new RoslynProjectAnalysisRequest(Substitute.For<IRoslynProjectWrapper>(), []) };
+    private static readonly List<RoslynIssue> DefaultIssues = new() { new RoslynIssue("sample-rule-id", new RoslynIssueLocation("any", "any", new RoslynIssueTextRange(1, 1, 1, 1))) };
+    private static readonly AnalyzerInfoDto DefaultAnalyzerInfoDto = new(false, false);
+    private IRoslynSolutionAnalysisCommandProvider analysisCommandProvider = null!;
+    private IRoslynAnalysisConfigurationProvider analysisConfigurationProvider = null!;
 
     private IRoslynAnalysisEngine analysisEngine = null!;
-    private IRoslynAnalysisConfigurationProvider analysisConfigurationProvider = null!;
-    private IRoslynSolutionAnalysisCommandProvider analysisCommandProvider = null!;
     private RoslynAnalysisService testSubject = null!;
 
     [TestInitialize]
@@ -66,10 +67,13 @@ public class RoslynAnalysisServiceTests
     public async Task AnalyzeAsync_PassesCorrectArgumentsToEngine()
     {
         string[] filePaths = [@"C:\file1.cs", @"C:\folder\file2.cs"];
-        analysisConfigurationProvider.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties).Returns(DefaultAnalysisConfigurations);
+        analysisConfigurationProvider.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto).Returns(DefaultAnalysisConfigurations);
         analysisCommandProvider.GetAnalysisCommandsForCurrentSolution(Arg.Is<string[]>(x => x.SequenceEqual(filePaths))).Returns(DefaultProjectAnalysisRequests);
         analysisEngine.AnalyzeAsync(DefaultProjectAnalysisRequests, DefaultAnalysisConfigurations, Arg.Any<CancellationToken>()).Returns(DefaultIssues);
-        var analysisRequest = new AnalysisRequest { FileNames = filePaths.Select(x => new FileUri(x)).ToList(), ActiveRules = DefaultActiveRules, AnalysisProperties = DefaultAnalysisProperties };
+        var analysisRequest = new AnalysisRequest
+        {
+            FileNames = filePaths.Select(x => new FileUri(x)).ToList(), ActiveRules = DefaultActiveRules, AnalysisProperties = DefaultAnalysisProperties, AnalyzerInfo = DefaultAnalyzerInfoDto
+        };
 
         var issues = await testSubject.AnalyzeAsync(analysisRequest, CancellationToken.None);
 
