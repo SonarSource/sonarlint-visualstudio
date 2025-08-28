@@ -47,17 +47,18 @@ internal class EmbeddedDotnetAnalyzersLocator(IVsixRootLocator vsixRootLocator, 
 
     public Dictionary<RoslynLanguage, List<string>> GetAnalyzerFullPathsByLanguage(AnalyzerInfoDto analyzerInfoDto)
     {
+        var allAnalyzers = GetAllAnalyzerDlls();
         var languageToDllsMap = new Dictionary<RoslynLanguage, List<string>>
         {
-            { RoslynLanguage.CSharp, GetAnalyzerFullPathsByLanguage(RoslynLanguage.CSharp, analyzerInfoDto.ShouldUseCsharpEnterprise) },
-            { RoslynLanguage.VBNET, GetAnalyzerFullPathsByLanguage(RoslynLanguage.VBNET, analyzerInfoDto.ShouldUseVbEnterprise) }
+            { RoslynLanguage.CSharp, GetAnalyzerFullPathsByLanguage(RoslynLanguage.CSharp, analyzerInfoDto.ShouldUseCsharpEnterprise, allAnalyzers) },
+            { RoslynLanguage.VBNET, GetAnalyzerFullPathsByLanguage(RoslynLanguage.VBNET, analyzerInfoDto.ShouldUseVbEnterprise, allAnalyzers) }
         };
         return languageToDllsMap;
     }
 
-    private List<string> GetAnalyzerFullPathsByLanguage(RoslynLanguage language, bool shouldUseEnterprise)
+    private List<string> GetAnalyzerFullPathsByLanguage(RoslynLanguage language, bool shouldUseEnterprise, IEnumerable<string> allAnalyzers)
     {
-        var dlls = shouldUseEnterprise ? GetEnterpriseAnalyzerFullPaths() : GetBasicAnalyzerDlls();
+        var dlls = shouldUseEnterprise ? allAnalyzers : allAnalyzers.Where(x => !x.Contains(EnterpriseInfix));
 
         return dlls.Where(dll => dll.Contains(language.RoslynDllIdentifier)).ToList();
     }
