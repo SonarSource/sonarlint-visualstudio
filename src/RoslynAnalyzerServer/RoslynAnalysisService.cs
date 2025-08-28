@@ -22,22 +22,22 @@ using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
-using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer;
 
 [Export(typeof(IRoslynAnalysisService))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class RoslynAnalysisService(IRoslynAnalysisEngine analysisEngine, IRoslynAnalysisConfigurationProvider analysisConfigurationProvider, IRoslynSolutionAnalysisCommandProvider analysisCommandProvider) : IRoslynAnalysisService
+internal class RoslynAnalysisService(
+    IRoslynAnalysisEngine analysisEngine,
+    IRoslynAnalysisConfigurationProvider analysisConfigurationProvider,
+    IRoslynSolutionAnalysisCommandProvider analysisCommandProvider) : IRoslynAnalysisService
 {
     public Task<IEnumerable<RoslynIssue>> AnalyzeAsync(
-        List<FileUri> files,
-        List<ActiveRuleDto> activeRules,
-        Dictionary<string, string> analysisProperties,
+        AnalysisRequest analysisRequest,
         CancellationToken cancellationToken) =>
         analysisEngine.AnalyzeAsync(
-            analysisCommandProvider.GetAnalysisCommandsForCurrentSolution(files.Select(x => x.LocalPath).ToArray()),
-            analysisConfigurationProvider.GetConfiguration(activeRules, analysisProperties),
+            analysisCommandProvider.GetAnalysisCommandsForCurrentSolution(analysisRequest.FileNames.Select(x => x.LocalPath).ToArray()),
+            analysisConfigurationProvider.GetConfiguration(analysisRequest.ActiveRules, analysisRequest.AnalysisProperties, analysisRequest.AnalyzerInfo),
             cancellationToken);
 }
