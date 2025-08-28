@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
@@ -28,9 +29,13 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 internal interface IRoslynAnalysisProfilesProvider
 {
     Dictionary<RoslynLanguage, RoslynAnalysisProfile> GetAnalysisProfilesByLanguage(
-        ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> supportedRulesByLanguage,
+        ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> analyzerAssemblyContents,
         List<ActiveRuleDto> activeRules,
         Dictionary<string, string>? analysisProperties);
 }
 
-internal record struct RoslynAnalysisProfile(ImmutableArray<DiagnosticAnalyzer> Analyzers, List<RoslynRuleConfiguration> Rules, Dictionary<string, string> AnalysisProperties);
+internal record struct RoslynAnalysisProfile(
+    ImmutableArray<DiagnosticAnalyzer> Analyzers,
+    ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> CodeFixProvidersByRuleKey,
+    List<RoslynRuleConfiguration> Rules,
+    Dictionary<string, string> AnalysisProperties);
