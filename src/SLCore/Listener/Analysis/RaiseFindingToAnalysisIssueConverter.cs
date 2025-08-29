@@ -134,11 +134,6 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
 
         private static IQuickFixBase? GetQuickFix(FileUri fileURi, QuickFixDto quickFixDto)
         {
-            if (quickFixDto.message.StartsWith(RoslynQuickFix.StoragePrefix))
-            {
-                return HandleRoslynQuickFix(quickFixDto);
-            }
-
             var fileEdits = quickFixDto.inputFileEdits.FindAll(e => e.target == fileURi);
             if (fileEdits.Count == 0)
             {
@@ -148,11 +143,6 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
             var textEdits = fileEdits.SelectMany(x => x.textEdits).Select(GetEdit).ToList();
             return new TextBasedQuickFix(quickFixDto.message, textEdits);
         }
-
-        private static IQuickFixBase? HandleRoslynQuickFix(QuickFixDto quickFixDto) =>
-            Guid.TryParse(quickFixDto.message.Substring(RoslynQuickFix.StoragePrefix.Length), out var quickFixId)
-                ? new RoslynQuickFix(quickFixId)
-                : null;
 
         private static IEdit GetEdit(TextEditDto textEdit) =>
             new Edit(textEdit.newText,
