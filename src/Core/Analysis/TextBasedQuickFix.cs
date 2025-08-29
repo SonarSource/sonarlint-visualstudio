@@ -18,32 +18,37 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
+
 namespace SonarLint.VisualStudio.Core.Analysis
 {
-    public interface IQuickFixBase;
-
-    public interface IRoslynQuickFix : IQuickFixBase
+    public class TextBasedQuickFix : ITextBasedQuickFix
     {
-        Guid Id { get; }
+        public TextBasedQuickFix(string message, IReadOnlyList<IEdit> edits)
+        {
+            if (edits == null || edits.Count == 0)
+            {
+                throw new ArgumentException("A fix should have at least one edit.", nameof(edits));
+            }
+            Message = message;
+            Edits = edits;
+        }
+
+        public string Message { get; }
+
+        public IReadOnlyList<IEdit> Edits { get; }
     }
 
-    public interface ITextBasedQuickFix : IQuickFixBase
+    public class Edit : IEdit
     {
-        string Message { get; }
-        IReadOnlyList<IEdit> Edits { get; }
-    }
+        public Edit(string text, ITextRange textRange)
+        {
+            NewText = text;
+            RangeToReplace = textRange;
+        }
 
-    public interface IEdit
-    {
-        /// <summary>
-        /// The new text to insert. Can be empty if the edit is a deletion.
-        /// </summary>
-        string NewText { get; }
-
-        /// <summary>
-        /// The range of existing text to be replaced.
-        /// The range can have a zero-length if no existing text is being removed i.e. the range will indicate the insertion point.
-        /// </summary>
-        ITextRange RangeToReplace { get; }
+        public string NewText { get; }
+        public ITextRange RangeToReplace { get; }
     }
 }

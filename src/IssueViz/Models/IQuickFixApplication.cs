@@ -18,37 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
+using Microsoft.VisualStudio.Text;
 
-namespace SonarLint.VisualStudio.Core.Analysis
+namespace SonarLint.VisualStudio.IssueVisualization.Models;
+
+public interface IQuickFixApplication
 {
-    public class QuickFix : IQuickFix
-    {
-        public QuickFix(string message, IReadOnlyList<IEdit> edits)
-        {
-            if (edits == null || edits.Count == 0)
-            {
-                throw new ArgumentException("A fix should have at least one edit.", nameof(edits));
-            }
-            Message = message;
-            Edits = edits;
-        }
-
-        public string Message { get; }
-
-        public IReadOnlyList<IEdit> Edits { get; }
-    }
-
-    public class Edit : IEdit
-    {
-        public Edit(string text, ITextRange textRange)
-        {
-            NewText = text;
-            RangeToReplace = textRange;
-        }
-
-        public string NewText { get; }
-        public ITextRange RangeToReplace { get; }
-    }
+    string Message { get; }
+    bool CanBeApplied(ITextSnapshot currentSnapshot);
+    Task ApplyAsync(ITextSnapshot currentSnapshot, CancellationToken cancellationToken);
 }

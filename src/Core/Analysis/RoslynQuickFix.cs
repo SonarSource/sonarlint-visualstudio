@@ -18,32 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Analysis
+namespace SonarLint.VisualStudio.Core.Analysis;
+
+public class RoslynQuickFix(Guid id) : IRoslynQuickFix
 {
-    public interface IQuickFixBase;
-
-    public interface IRoslynQuickFix : IQuickFixBase
-    {
-        Guid Id { get; }
-    }
-
-    public interface ITextBasedQuickFix : IQuickFixBase
-    {
-        string Message { get; }
-        IReadOnlyList<IEdit> Edits { get; }
-    }
-
-    public interface IEdit
-    {
-        /// <summary>
-        /// The new text to insert. Can be empty if the edit is a deletion.
-        /// </summary>
-        string NewText { get; }
-
-        /// <summary>
-        /// The range of existing text to be replaced.
-        /// The range can have a zero-length if no existing text is being removed i.e. the range will indicate the insertion point.
-        /// </summary>
-        ITextRange RangeToReplace { get; }
-    }
+    public const string StoragePrefix = "#!#SQVS#!#ROSLYN|QUICKFIX|";
+    public Guid Id { get; } = id;
 }

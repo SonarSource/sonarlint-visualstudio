@@ -366,7 +366,7 @@ public class QuickFixActionsSourceTests
             threadHandling);
     }
 
-    private IAnalysisIssueVisualization CreateIssueViz(params IQuickFixVisualization[] fixes)
+    private IAnalysisIssueVisualization CreateIssueViz(params IQuickFixApplication[] fixes)
     {
         var issueViz = new Mock<IAnalysisIssueVisualization>();
         issueViz.Setup(x => x.QuickFixes).Returns(fixes);
@@ -387,13 +387,13 @@ public class QuickFixActionsSourceTests
         return issueLocationsTagAggregator;
     }
 
-    private IQuickFixVisualization CreateQuickFixViz(bool canBeApplied, string message = null)
+    private IQuickFixApplication CreateQuickFixViz(bool canBeApplied, string message = null)
     {
-        var quickFixViz = new Mock<IQuickFixVisualization>();
-        quickFixViz.Setup(x => x.CanBeApplied(textBuffer.CurrentSnapshot)).Returns(canBeApplied);
-        quickFixViz.Setup(x => x.Fix.Message).Returns(message);
+        var quickFixApplication = Substitute.For<IQuickFixApplication>();
+        quickFixApplication.Message.Returns(message);
+        quickFixApplication.CanBeApplied(textBuffer.CurrentSnapshot).Returns(canBeApplied);
 
-        return quickFixViz.Object;
+        return quickFixApplication;
     }
 
     private static Mock<ITagAggregator<IIssueLocationTag>> CreateThrowingAggregator(Exception ex)
