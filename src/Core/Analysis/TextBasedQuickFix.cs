@@ -18,28 +18,37 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Analysis;
+using System;
+using System.Collections.Generic;
 
-namespace SonarLint.VisualStudio.TestInfrastructure;
-
-// Properties are settable to simplify creating test instances
-public class DummyAnalysisIssue : IAnalysisIssue
+namespace SonarLint.VisualStudio.Core.Analysis
 {
-    public Guid? Id { get; set; }
+    public class TextBasedQuickFix : ITextBasedQuickFix
+    {
+        public TextBasedQuickFix(string message, IReadOnlyList<IEdit> edits)
+        {
+            if (edits == null || edits.Count == 0)
+            {
+                throw new ArgumentException("A fix should have at least one edit.", nameof(edits));
+            }
+            Message = message;
+            Edits = edits;
+        }
 
-    public string RuleKey { get; set; }
+        public string Message { get; }
 
-    public AnalysisIssueSeverity? Severity { get; set; }
+        public IReadOnlyList<IEdit> Edits { get; }
+    }
 
-    public Impact HighestImpact { get; set; }
+    public class Edit : IEdit
+    {
+        public Edit(string text, ITextRange textRange)
+        {
+            NewText = text;
+            RangeToReplace = textRange;
+        }
 
-    public AnalysisIssueType? Type { get; set; }
-
-    public IReadOnlyList<IAnalysisIssueFlow> Flows { get; } = Array.Empty<IAnalysisIssueFlow>();
-
-    public IAnalysisIssueLocation PrimaryLocation { get; set; } = new DummyAnalysisIssueLocation();
-    public bool IsResolved { get; set; }
-    public string IssueServerKey { get; set; }
-
-    public IReadOnlyList<IQuickFixBase> Fixes { get; } = [];
+        public string NewText { get; }
+        public ITextRange RangeToReplace { get; }
+    }
 }

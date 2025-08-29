@@ -21,7 +21,9 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Models
@@ -33,18 +35,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
 
     [Export(typeof(IAnalysisIssueVisualizationConverter))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class AnalysisIssueVisualizationConverter : IAnalysisIssueVisualizationConverter
+    [method: ImportingConstructor]
+    internal class AnalysisIssueVisualizationConverter(IIssueSpanCalculator issueSpanCalculator, ISpanTranslator spanTranslator) : IAnalysisIssueVisualizationConverter
     {
-        private static readonly IReadOnlyList<IAnalysisIssueFlowVisualization> EmptyConvertedFlows = Array.Empty<IAnalysisIssueFlowVisualization>();
-        private static readonly IReadOnlyList<IQuickFixVisualization> EmptyConvertedFixes = Array.Empty<IQuickFixVisualization>();
-
-        private readonly IIssueSpanCalculator issueSpanCalculator;
-
-        [ImportingConstructor]
-        public AnalysisIssueVisualizationConverter(IIssueSpanCalculator issueSpanCalculator)
-        {
-            this.issueSpanCalculator = issueSpanCalculator;
-        }
+        private static readonly IReadOnlyList<IAnalysisIssueFlowVisualization> EmptyConvertedFlows = [];
+        private static readonly IReadOnlyList<IQuickFixApplication> EmptyConvertedFixes = [];
 
         public IAnalysisIssueVisualization Convert(IAnalysisIssueBase issue, ITextSnapshot textSnapshot = null)
         {
@@ -108,28 +103,40 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             return convertedLocations;
         }
 
-        private IReadOnlyList<IQuickFixVisualization> GetQuickFixVisualizations(IAnalysisIssueBase issue, ITextSnapshot textSnapshot)
+        private IReadOnlyList<IQuickFixApplication> GetQuickFixVisualizations(IAnalysisIssueBase issue, ITextSnapshot textSnapshot)
         {
             if (!(issue is IAnalysisIssue analysisIssue) || textSnapshot == null)
             {
                 return EmptyConvertedFixes;
             }
 
-            var convertedQuickFixes = analysisIssue.Fixes.Select(fix =>
-            {
-                var editVisualizations = fix.Edits.Select(edit =>
+            return analysisIssue
+                .Fixes
+                .Select(fix =>
                 {
-                    var editSpan = issueSpanCalculator.CalculateSpan(edit.RangeToReplace, textSnapshot) ?? new SnapshotSpan();
+                    if (fix is ITextBasedQuickFix textBasedQuickFix)
+                    {
+                        return HandleTextBasedQuickFix(textSnapshot, textBasedQuickFix);
+                    }
+                    return null;
+                })
+                .Where(x => x is not null).ToArray();
+        }
 
-                    return new QuickFixEditVisualization(edit, editSpan);
-                });
+        private TextBasedQuickFixApplication HandleTextBasedQuickFix(
+            ITextSnapshot textSnapshot,
+            ITextBasedQuickFix textBasedQuickFix)
+        {
+            var editVisualizations = textBasedQuickFix.Edits.Select(edit =>
+            {
+                var editSpan = issueSpanCalculator.CalculateSpan(edit.RangeToReplace, textSnapshot) ?? new SnapshotSpan();
 
-                var fixVisualization = new QuickFixVisualization(fix, editVisualizations.ToArray());
+                return new TextBasedQuickFixEditVisualization(edit, editSpan);
+            });
 
-                return fixVisualization;
-            }).ToArray();
+            var fixVisualization = new TextBasedQuickFixVisualization(textBasedQuickFix, editVisualizations.ToArray());
 
-            return convertedQuickFixes;
+            return new TextBasedQuickFixApplication(fixVisualization, spanTranslator);
         }
     }
 }
