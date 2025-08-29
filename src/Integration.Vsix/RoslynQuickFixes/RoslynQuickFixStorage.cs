@@ -19,21 +19,32 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.VisualStudio.LanguageServices;
+using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.RoslynAnalyzerServer;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
+namespace SonarLint.VisualStudio.Integration.Vsix.RoslynQuickFixes;
 
-[ExcludeFromCodeCoverage] // todo SLVS-2466 add roslyn 'integration' tests using AdHocWorkspace
-[Export(typeof(IRoslynWorkspaceWrapper))]
+[Export(typeof(IRoslynQuickFixStorageWriter))]
+[Export(typeof(IRoslynQuickFixProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-internal class RoslynWorkspaceWrapper([Import(typeof(VisualStudioWorkspace))] Workspace workspace) : IRoslynWorkspaceWrapper
+public class RoslynQuickFixStorage : IRoslynQuickFixStorageWriter, IRoslynQuickFixProvider
 {
-    public IRoslynSolutionWrapper GetCurrentSolution() => new RoslynSolutionWrapper(workspace.CurrentSolution);
+    private readonly Dictionary<Guid, RoslynQuickFixApplicationImpl> cache = new(); // todo clear the cache
 
-    public Task<bool> ApplyOrMergeChangesAsync(IRoslynSolutionWrapper originalSolution, ApplyChangesOperation operation, CancellationToken cancellationToken) =>
-        CodeActionCopyPaste.ApplyOrMergeChangesAsync(workspace, originalSolution.RoslynSolution, operation.ChangedSolution, cancellationToken);
+    public void Add(
+        Guid id,
+        RoslynQuickFixApplicationImpl impl) =>
+        cache[id] = impl;
+
+    public bool TryGet(Guid id, out IQuickFixApplication roslynQuickFix)
+    {
+        if (cache.TryGetValue(id, out var quickFixImplementation))
+        {
+            roslynQuickFix = new RoslynQuickFixApplication(quickFixImplementation);
+            return true;
+        }
+
+        roslynQuickFix = null;
+        return false;
+    }
 }

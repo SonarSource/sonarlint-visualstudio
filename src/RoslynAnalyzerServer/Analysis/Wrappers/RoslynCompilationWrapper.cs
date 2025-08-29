@@ -23,6 +23,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
+using Languages = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
@@ -30,16 +31,19 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 internal class RoslynCompilationWrapper(Compilation roslynCompilation) : IRoslynCompilationWrapper
 {
     public CompilationOptions RoslynCompilationOptions => roslynCompilation.Options;
-    public Language Language { get; } = roslynCompilation.Language switch
+    public RoslynLanguage Language { get; } = roslynCompilation.Language switch
     {
-        LanguageNames.CSharp => Language.CSharp,
-        LanguageNames.VisualBasic => Language.VBNET,
+        LanguageNames.CSharp => Languages.CSharp,
+        LanguageNames.VisualBasic => Languages.VBNET,
         _ => throw new ArgumentOutOfRangeException(nameof(roslynCompilation)),
     };
 
     public IRoslynCompilationWrapper WithOptions(CompilationOptions withSpecificDiagnosticOptions) =>
         new RoslynCompilationWrapper(roslynCompilation.WithOptions(withSpecificDiagnosticOptions));
 
-    public IRoslynCompilationWithAnalyzersWrapper WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersOptions compilationWithAnalyzersOptions) =>
-        new RoslynCompilationWithAnalyzersWrapper(roslynCompilation.WithAnalyzers(analyzers, compilationWithAnalyzersOptions), Language);
+    public IRoslynCompilationWithAnalyzersWrapper WithAnalyzers(
+        ImmutableArray<DiagnosticAnalyzer> analyzers,
+        CompilationWithAnalyzersOptions compilationWithAnalyzersOptions,
+        RoslynAnalysisConfiguration analysisConfiguration) =>
+        new RoslynCompilationWithAnalyzersWrapper(roslynCompilation.WithAnalyzers(analyzers, compilationWithAnalyzersOptions), analysisConfiguration, Language);
 }

@@ -43,7 +43,7 @@ public class AnalysisIssueVisualizationConverterTests
         issueSpanCalculatorMock = new Mock<IIssueSpanCalculator>();
         textSnapshotMock = Mock.Of<ITextSnapshot>();
 
-        testSubject = new AnalysisIssueVisualizationConverter(issueSpanCalculatorMock.Object, Substitute.For<ISpanTranslator>());
+        testSubject = new AnalysisIssueVisualizationConverter(issueSpanCalculatorMock.Object, Substitute.For<ISpanTranslator>(), Substitute.For<IRoslynQuickFixProvider>());
     }
 
     [TestMethod]

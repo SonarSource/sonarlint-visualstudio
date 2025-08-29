@@ -43,7 +43,7 @@ public class RoslynProjectCompilationProviderTests
     private IRoslynCompilationWrapper compilation = null!;
     private CompilationOptions compilationOptions = null!;
     private IRoslynCompilationWithAnalyzersWrapper compilationWithAnalyzers = null!;
-    private ImmutableDictionary<Language, RoslynAnalysisConfiguration> configurations = null!;
+    private ImmutableDictionary<RoslynLanguage, RoslynAnalysisConfiguration> configurations = null!;
     private ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null!;
     private AdditionalText existingAdditionalFile = null!;
     private TestLogger logger = null!;
@@ -63,7 +63,7 @@ public class RoslynProjectCompilationProviderTests
         SetUpCodeFixProviders();
         diagnosticOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty
             .Add("SomeId", ReportDiagnostic.Warn);
-        configurations = ImmutableDictionary<Language, RoslynAnalysisConfiguration>.Empty
+        configurations = ImmutableDictionary<RoslynLanguage, RoslynAnalysisConfiguration>.Empty
             .Add(Language.CSharp, new RoslynAnalysisConfiguration(
                 sonarLintXml,
                 diagnosticOptions,
@@ -96,7 +96,8 @@ public class RoslynProjectCompilationProviderTests
                 && options.Options.AdditionalFiles.SequenceEqual(ImmutableArray.Create(existingAdditionalFile, sonarLintXml), null as IEqualityComparer<AdditionalText>)
                 && options.ConcurrentAnalysis == true
                 && options.ReportSuppressedDiagnostics == false
-                && options.LogAnalyzerExecutionTime == false));
+                && options.LogAnalyzerExecutionTime == false),
+            configurations[Language.CSharp]);
     }
 
     [TestMethod]
@@ -107,7 +108,7 @@ public class RoslynProjectCompilationProviderTests
         var analyzerOptionsWithSonarLintXml = new AnalyzerOptions(
             ImmutableArray.Create(existingAdditionalFile, existingSonarLintXml));
         project.RoslynAnalyzerOptions.Returns(analyzerOptionsWithSonarLintXml);
-        compilation.WithAnalyzers(Arg.Any<ImmutableArray<DiagnosticAnalyzer>>(), Arg.Any<CompilationWithAnalyzersOptions>())
+        compilation.WithAnalyzers(Arg.Any<ImmutableArray<DiagnosticAnalyzer>>(), Arg.Any<CompilationWithAnalyzersOptions>(), configurations[Language.CSharp])
             .Returns(compilationWithAnalyzers);
 
         await testSubject.GetProjectCompilationAsync(project, configurations, CancellationToken.None);
@@ -119,7 +120,8 @@ public class RoslynProjectCompilationProviderTests
                 && options.Options.AdditionalFiles.SequenceEqual(ImmutableArray.Create(existingAdditionalFile, sonarLintXml), null as IEqualityComparer<AdditionalText>)
                 && options.ConcurrentAnalysis == true
                 && options.ReportSuppressedDiagnostics == false
-                && options.LogAnalyzerExecutionTime == false));
+                && options.LogAnalyzerExecutionTime == false),
+            configurations[Language.CSharp]);
     }
 
     [TestMethod]
@@ -128,7 +130,7 @@ public class RoslynProjectCompilationProviderTests
         CompilationWithAnalyzersOptions capturedOptions = null!;
         compilation.WithAnalyzers(
                 Arg.Any<ImmutableArray<DiagnosticAnalyzer>>(),
-                Arg.Do<CompilationWithAnalyzersOptions>(x => capturedOptions = x))
+                Arg.Do<CompilationWithAnalyzersOptions>(x => capturedOptions = x), configurations[Language.CSharp])
             .Returns(compilationWithAnalyzers);
         await testSubject.GetProjectCompilationAsync(project, configurations, CancellationToken.None);
         capturedOptions.Should().NotBeNull();
@@ -180,7 +182,7 @@ public class RoslynProjectCompilationProviderTests
         compilationWithAnalyzers = Substitute.For<IRoslynCompilationWithAnalyzersWrapper>();
         compilation.Language.Returns(Language.CSharp);
         compilation.WithOptions(Arg.Any<CompilationOptions>()).Returns(compilation);
-        compilation.WithAnalyzers(Arg.Any<ImmutableArray<DiagnosticAnalyzer>>(), Arg.Any<CompilationWithAnalyzersOptions>())
+        compilation.WithAnalyzers(Arg.Any<ImmutableArray<DiagnosticAnalyzer>>(), Arg.Any<CompilationWithAnalyzersOptions>(), configurations[Language.CSharp])
             .Returns(compilationWithAnalyzers);
     }
 }

@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
 internal interface IRoslynAnalysisConfigurationProvider
 {
-    Task<IReadOnlyDictionary<Language, RoslynAnalysisConfiguration>> GetConfigurationAsync(
+    Task<IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration>> GetConfigurationAsync(
         List<ActiveRuleDto> activeRules,
         Dictionary<string, string> analysisProperties,
         AnalyzerInfoDto analyzerInfo);

@@ -81,9 +81,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 quickFixApplication.CanBeApplied(snapshot);
                 threadHandling.Run(Arg.Any<Func<Task<int>>>());
                 threadHandling.SwitchToMainThreadAsync();
-                quickFixApplication.ApplyAsync(snapshot, issueViz, Arg.Any<CancellationToken>());
+                quickFixApplication.ApplyAsync(snapshot, Arg.Any<CancellationToken>());
                 telemetryManager.QuickFixApplied(RuleId);
             });
+
+            // todo validate span invalidated
+            // todo add test when application failed
         }
 
         [TestMethod]
@@ -91,7 +94,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         {
             testSubject.Invoke(new CancellationToken(canceled: true));
 
-            quickFixApplication.DidNotReceiveWithAnyArgs().ApplyAsync(default, default, default);
+            quickFixApplication.DidNotReceiveWithAnyArgs().ApplyAsync(default, default);
             issueViz.DidNotReceiveWithAnyArgs().Span = Arg.Any<SnapshotSpan>();
             telemetryManager.DidNotReceiveWithAnyArgs().QuickFixApplied(Arg.Any<string>());
         }
@@ -104,7 +107,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             testSubject.Invoke(CancellationToken.None);
 
             quickFixApplication.Received(1).CanBeApplied(snapshot);
-            quickFixApplication.DidNotReceiveWithAnyArgs().ApplyAsync(default, default, default);
+            quickFixApplication.DidNotReceiveWithAnyArgs().ApplyAsync(default, default);
             issueViz.DidNotReceiveWithAnyArgs().Span = Arg.Any<SnapshotSpan>();
             telemetryManager.DidNotReceiveWithAnyArgs().QuickFixApplied(Arg.Any<string>());
         }

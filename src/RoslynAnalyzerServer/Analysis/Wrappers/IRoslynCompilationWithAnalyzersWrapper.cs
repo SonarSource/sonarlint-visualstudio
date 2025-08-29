@@ -24,9 +24,10 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-public interface IRoslynCompilationWithAnalyzersWrapper
+internal interface IRoslynCompilationWithAnalyzersWrapper
 {
-    Language Language { get; }
+    RoslynLanguage Language { get; }
+    RoslynAnalysisConfiguration AnalysisConfiguration { get; }
     SyntaxTree? GetSyntaxTree(string filePath);
 
     SemanticModel? GetSemanticModel(string filePath);
