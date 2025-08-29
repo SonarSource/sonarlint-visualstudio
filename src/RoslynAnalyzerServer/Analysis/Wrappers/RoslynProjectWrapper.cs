@@ -29,14 +29,13 @@ internal class RoslynProjectWrapper(Project project) : IRoslynProjectWrapper
 {
     public string Name => project.Name;
     public bool SupportsCompilation => project.SupportsCompilation;
-    public AnalyzerOptions RoslynAnalyzerOptions  => project.AnalyzerOptions;
+    public AnalyzerOptions RoslynAnalyzerOptions => project.AnalyzerOptions;
 
-    public async Task<IRoslynCompilationWrapper> GetCompilationAsync(CancellationToken token) =>
-        new RoslynCompilationWrapper((await project.GetCompilationAsync(token))!);
+    public async Task<IRoslynCompilationWrapper> GetCompilationAsync(CancellationToken token) => new RoslynCompilationWrapper((await project.GetCompilationAsync(token))!);
 
     public bool ContainsDocument(
         string filePath,
-        [NotNullWhen(true)]out string? analysisFilePath)
+        [NotNullWhen(true)] out string? analysisFilePath)
     {
         analysisFilePath = project.Documents
             .Select(document => document.FilePath)
@@ -47,7 +46,7 @@ internal class RoslynProjectWrapper(Project project) : IRoslynProjectWrapper
         return analysisFilePath != null;
     }
 
-    // cshtml razor files are converted into .\file.cshtml.<random chars>.g.cs files when included in the compilation
+    // cshtml razor files are converted into .\file.cshtml.<random chars>.g.cs OR .\file.vbhtml.<random chars>.g.vb files when included in the compilation
     private static bool IsAssociatedGeneratedFile(string razorFilePath, string candidateDocumentPath) =>
-        candidateDocumentPath.StartsWith(razorFilePath) && candidateDocumentPath.EndsWith(".g.cs");
+        candidateDocumentPath.StartsWith(razorFilePath) && (candidateDocumentPath.EndsWith(".g.cs") || candidateDocumentPath.EndsWith(".g.vb"));
 }
