@@ -48,5 +48,5 @@ internal class RoslynProjectWrapper(Project project) : IRoslynProjectWrapper
 
     // cshtml razor files are converted into .\file.cshtml.<random chars>.g.cs OR .\file.vbhtml.<random chars>.g.vb files when included in the compilation
     private static bool IsAssociatedGeneratedFile(string razorFilePath, string candidateDocumentPath) =>
-        candidateDocumentPath.StartsWith(razorFilePath) && (candidateDocumentPath.EndsWith(".g.cs") || candidateDocumentPath.EndsWith("g.vb"));
+        candidateDocumentPath.StartsWith(razorFilePath) && (candidateDocumentPath.EndsWith(".g.cs") || candidateDocumentPath.EndsWith(".g.vb"));
 }
