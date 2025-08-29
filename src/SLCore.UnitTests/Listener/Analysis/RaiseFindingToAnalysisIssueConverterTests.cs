@@ -382,7 +382,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
         analysisIssues.Should().NotBeNull();
         analysisIssues.Should().ContainSingle();
         analysisIssues[0].Fixes.Should().ContainSingle();
-        analysisIssues[0].Fixes[0].Should().BeOfType<ITextBasedQuickFix>().Which.Edits.Should().HaveCount(2);
+        analysisIssues[0].Fixes[0].Should().BeAssignableTo<ITextBasedQuickFix>().Which.Edits.Should().HaveCount(2);
     }
 
     [TestMethod]
@@ -622,7 +622,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
             result[1].Flows[1].Locations[1].TextRange.LineHash.Should().BeNull();
 
             result[1].Fixes.Should().HaveCount(1);
-            var quickFix = result[1].Fixes[0].Should().BeOfType<ITextBasedQuickFix>().Subject;
+            var quickFix = result[1].Fixes[0].Should().BeAssignableTo<ITextBasedQuickFix>().Subject;
             quickFix.Message.Should().Be("issue 2 fix 2");
             quickFix.Edits.Should().HaveCount(1);
             quickFix.Edits[0].RangeToReplace.StartLine.Should().Be(51);
