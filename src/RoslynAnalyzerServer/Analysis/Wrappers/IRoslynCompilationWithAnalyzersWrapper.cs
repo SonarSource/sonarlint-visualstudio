@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 public interface IRoslynCompilationWithAnalyzersWrapper
 {
-    Language Language { get; }
+    RoslynLanguage Language { get; }
     SyntaxTree? GetSyntaxTree(string filePath);
 
     SemanticModel? GetSemanticModel(string filePath);

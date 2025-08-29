@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
@@ -28,7 +29,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class DiagnosticToRoslynIssueConverter : IDiagnosticToRoslynIssueConverter
 {
-    public RoslynIssue ConvertToSonarDiagnostic(Diagnostic diagnostic, Language language) =>
+    public RoslynIssue ConvertToSonarDiagnostic(Diagnostic diagnostic, List<RoslynQuickFix> quickFixes, Language language) =>
         // todo SLVS-2427 quick fixes
         new(SonarCompositeRuleId.GetFullErrorCode(language.RepoInfo.Key, diagnostic.Id),
             ConvertLocation(diagnostic.Location.GetMappedLineSpan(), diagnostic.GetMessage()),

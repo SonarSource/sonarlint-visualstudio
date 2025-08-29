@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
@@ -33,7 +34,7 @@ public class RoslynAnalysisServiceTests
 {
     private static readonly List<ActiveRuleDto> DefaultActiveRules = new() { new ActiveRuleDto("sample-rule-id", new Dictionary<string, string> { { "paramKey", "paramValue" } }) };
     private static readonly Dictionary<string, string> DefaultAnalysisProperties = new() { { "sonar.cs.any", "any" } };
-    private static readonly Dictionary<Language, RoslynAnalysisConfiguration> DefaultAnalysisConfigurations = new() { { Language.CSharp, new RoslynAnalysisConfiguration() } };
+    private static readonly Dictionary<RoslynLanguage, RoslynAnalysisConfiguration> DefaultAnalysisConfigurations = new() { { Language.CSharp, new RoslynAnalysisConfiguration() } };
     private static readonly List<RoslynProjectAnalysisRequest> DefaultProjectAnalysisRequests = new() { new RoslynProjectAnalysisRequest(Substitute.For<IRoslynProjectWrapper>(), []) };
     private static readonly List<RoslynIssue> DefaultIssues = new() { new RoslynIssue("sample-rule-id", new RoslynIssueLocation("any", "any", new RoslynIssueTextRange(1, 1, 1, 1))) };
     private static readonly AnalyzerInfoDto DefaultAnalyzerInfoDto = new(false, false);

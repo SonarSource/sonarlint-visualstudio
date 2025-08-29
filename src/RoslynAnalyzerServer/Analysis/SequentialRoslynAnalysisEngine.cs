@@ -21,7 +21,11 @@
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
@@ -30,6 +34,8 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 [method: ImportingConstructor]
 internal class SequentialRoslynAnalysisEngine(
     IDiagnosticToRoslynIssueConverter issueConverter,
+    IRoslynWorkspaceWrapper workspace,
+    IRoslynQuickFixStorageWriter quickFixStorage,
     IRoslynProjectCompilationProvider projectCompilationProvider,
     ILogger logger) : IRoslynAnalysisEngine
 {
@@ -37,7 +43,7 @@ internal class SequentialRoslynAnalysisEngine(
 
     public async Task<IEnumerable<RoslynIssue>> AnalyzeAsync(
         List<RoslynProjectAnalysisRequest> projectsAnalysis,
-        IReadOnlyDictionary<Language, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
+        IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token)
     {
         var uniqueDiagnostics = new HashSet<RoslynIssue>(DiagnosticDuplicatesComparer.Instance);
@@ -48,14 +54,36 @@ internal class SequentialRoslynAnalysisEngine(
             // todo SLVS-2467 issue streaming
             foreach (var analysisCommand in projectAnalysisCommands.AnalysisCommands)
             {
-                var issues = await analysisCommand.ExecuteAsync(compilationWithAnalyzers, token);
+                var diagnostics = await analysisCommand.ExecuteAsync(compilationWithAnalyzers, token);
 
-                foreach (var diagnostic in issues.Select(d => issueConverter.ConvertToSonarDiagnostic(d, compilationWithAnalyzers.Language)))
+                foreach (var diagnostic in diagnostics)
                 {
-                    // todo SLVS-2468 improve issue merging
-                    if (!uniqueDiagnostics.Add(diagnostic))
+                    var configuration = sonarRoslynAnalysisConfigurations[compilationWithAnalyzers.Language];
+                    var codeActions = new List<CodeAction>();
+
+                    if (configuration.CodeFixProvidersByRuleKey.TryGetValue(diagnostic.Id, out var availableCodeFixProviders))
                     {
-                        logger.LogVerbose("Duplicate diagnostic discarded ID: {0}, File: {1}, Line: {2}", diagnostic.RuleId, Path.GetFileName(diagnostic.PrimaryLocation.FilePath), diagnostic.PrimaryLocation.TextRange.StartLine);
+                        foreach (var codeFixProvider in availableCodeFixProviders)
+                        {
+                            Document document; // todo
+
+                            await codeFixProvider.RegisterCodeFixesAsync(new CodeFixContext(document, diagnostic, (c, ds) => codeActions.Add(c), token));
+                        }
+                    }
+
+                    var quickFixes = new List<RoslynQuickFix>();
+                    foreach (var codeAction in codeActions)
+                    {
+                        var id = Guid.NewGuid();
+                        quickFixStorage.Add(id, new RoslynQuickFixApplicationImpl(workspace, projectAnalysisCommands.Project.Solution, codeAction));
+                        quickFixes.Add(new RoslynQuickFix(id));
+                    }
+
+                    var roslynIssue = issueConverter.ConvertToSonarDiagnostic(diagnostic, quickFixes, compilationWithAnalyzers.Language);
+                    // todo SLVS-2468 improve issue merging
+                    if (!uniqueDiagnostics.Add(roslynIssue))
+                    {
+                        logger.LogVerbose("Duplicate diagnostic discarded ID: {0}, File: {1}, Line: {2}", roslynIssue.RuleId, Path.GetFileName(roslynIssue.PrimaryLocation.FilePath), roslynIssue.PrimaryLocation.TextRange.StartLine);
                     }
                 }
             }

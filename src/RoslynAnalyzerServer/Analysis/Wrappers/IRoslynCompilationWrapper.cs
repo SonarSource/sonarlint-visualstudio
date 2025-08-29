@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 internal interface IRoslynCompilationWrapper
 {
     CompilationOptions RoslynCompilationOptions { get; }
-    Language Language { get; }
+    RoslynLanguage Language { get; }
 
     IRoslynCompilationWrapper WithOptions(CompilationOptions withSpecificDiagnosticOptions);
 

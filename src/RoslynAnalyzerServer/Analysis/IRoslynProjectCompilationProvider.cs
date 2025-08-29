@@ -28,6 +28,6 @@ internal interface IRoslynProjectCompilationProvider
 {
     Task<IRoslynCompilationWithAnalyzersWrapper> GetProjectCompilationAsync(
         IRoslynProjectWrapper project,
-        IReadOnlyDictionary<Language, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
+        IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token);
 }

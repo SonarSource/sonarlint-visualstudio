@@ -43,7 +43,7 @@ public class RoslynProjectCompilationProviderTests
     private IRoslynCompilationWrapper compilation = null!;
     private CompilationOptions compilationOptions = null!;
     private IRoslynCompilationWithAnalyzersWrapper compilationWithAnalyzers = null!;
-    private ImmutableDictionary<Language, RoslynAnalysisConfiguration> configurations = null!;
+    private ImmutableDictionary<RoslynLanguage, RoslynAnalysisConfiguration> configurations = null!;
     private ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null!;
     private AdditionalText existingAdditionalFile = null!;
     private TestLogger logger = null!;
@@ -63,7 +63,7 @@ public class RoslynProjectCompilationProviderTests
         SetUpCodeFixProviders();
         diagnosticOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty
             .Add("SomeId", ReportDiagnostic.Warn);
-        configurations = ImmutableDictionary<Language, RoslynAnalysisConfiguration>.Empty
+        configurations = ImmutableDictionary<RoslynLanguage, RoslynAnalysisConfiguration>.Empty
             .Add(Language.CSharp, new RoslynAnalysisConfiguration(
                 sonarLintXml,
                 diagnosticOptions,
