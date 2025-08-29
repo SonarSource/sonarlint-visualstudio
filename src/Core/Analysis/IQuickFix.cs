@@ -22,11 +22,6 @@ namespace SonarLint.VisualStudio.Core.Analysis
 {
     public interface IQuickFixBase;
 
-    public interface IRoslynQuickFix : IQuickFixBase
-    {
-        Guid Id { get; }
-    }
-
     public interface ITextBasedQuickFix : IQuickFixBase
     {
         string Message { get; }
