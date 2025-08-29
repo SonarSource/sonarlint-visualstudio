@@ -62,8 +62,7 @@
   <PropertyGroup>
     <SonarSqvsRoslynPluginFileName>sonarqube-ide-visualstudio-roslyn-plugin-$(EmbeddedSonarSqvsRoslynJarVersion).jar</SonarSqvsRoslynPluginFileName>
     <SonarSqvsRoslynPluginDownloadPath>$(JarDownloadDir)\$(SonarSqvsRoslynPluginFileName)</SonarSqvsRoslynPluginDownloadPath>
-    <!-- TODO by https://sonarsource.atlassian.net/browse/SLVS-2403 adapt [pathToPlugin] and make sure SqvsRoslyn plugin is downloaded from repox -->
-    <SonarSqvsRoslynPluginRemoteUrl>https://repox.jfrog.io/pathToPlugin/$(EmbeddedSonarSqvsRoslynJarVersion)/$(SonarSqvsRoslynPluginFileName)</SonarSqvsRoslynPluginRemoteUrl>
+    <SonarSqvsRoslynPluginRemoteUrl>https://repox.jfrog.io/artifactory/sonarsource/org/sonarsource/sonarlint/visualstudio/roslyn/sonarqube-ide-visualstudio-roslyn-plugin/$(EmbeddedSonarSqvsRoslynJarVersion)/$(SonarSqvsRoslynPluginFileName)</SonarSqvsRoslynPluginRemoteUrl>
   </PropertyGroup>
   
   <PropertyGroup>
