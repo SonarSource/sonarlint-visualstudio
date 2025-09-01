@@ -31,7 +31,7 @@ internal class TextBasedQuickFixApplication(ITextBasedQuickFixVisualization text
 
     public bool CanBeApplied(ITextSnapshot currentSnapshot) => QuickFixVisualization.CanBeApplied(currentSnapshot);
 
-    public Task ApplyAsync(ITextSnapshot currentSnapshot, CancellationToken cancellationToken)
+    public Task ApplyAsync(ITextSnapshot currentSnapshot, IAnalysisIssueVisualization issueViz, CancellationToken cancellationToken)
     {
         var textBuffer = currentSnapshot.TextBuffer;
         var textEdit = textBuffer.CreateEdit();
@@ -45,6 +45,7 @@ internal class TextBasedQuickFixApplication(ITextBasedQuickFixVisualization text
 
         cancellationToken.ThrowIfCancellationRequested();
 
+        issueViz.InvalidateSpan();
         textEdit.Apply();
         return Task.CompletedTask;
     }

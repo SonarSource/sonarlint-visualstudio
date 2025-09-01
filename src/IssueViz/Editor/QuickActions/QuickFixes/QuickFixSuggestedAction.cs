@@ -53,9 +53,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
             threadHandling.Run(async () =>
             {
                 await threadHandling.SwitchToMainThreadAsync();
-                await quickFixApplication.ApplyAsync(textBuffer.CurrentSnapshot, cancellationToken);
+                await quickFixApplication.ApplyAsync(textBuffer.CurrentSnapshot, issueViz, cancellationToken);
 
-                issueViz.InvalidateSpan();
                 quickFixesTelemetryManager.QuickFixApplied(issueViz.RuleId);
 
                 return 0;

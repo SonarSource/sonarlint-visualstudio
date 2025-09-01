@@ -26,5 +26,5 @@ public interface IQuickFixApplication
 {
     string Message { get; }
     bool CanBeApplied(ITextSnapshot currentSnapshot);
-    Task ApplyAsync(ITextSnapshot currentSnapshot, CancellationToken cancellationToken);
+    Task ApplyAsync(ITextSnapshot currentSnapshot, IAnalysisIssueVisualization issueViz, CancellationToken cancellationToken);
 }
