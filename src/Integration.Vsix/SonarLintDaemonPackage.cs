@@ -33,6 +33,7 @@ using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Events;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.RoslynAnalyzerServer;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Analysis;
 using ErrorHandler = SonarLint.VisualStudio.Core.ErrorHandler;
@@ -126,7 +127,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 importBeforeFileGenerator.UpdateOrCreateTargetsFileAsync().Forget();
 
                 var thread = await this.GetMefServiceAsync<IThreadHandling>();
+                var roslynAnalyzerAssemblyLoader = await this.GetMefServiceAsync<IRoslynAnalyzerAssemblyContentsLoader>();
                 roslynAnalysisHttpServer = await this.GetMefServiceAsync<IRoslynAnalysisHttpServer>();
+                thread.RunOnBackgroundThread(() => roslynAnalyzerAssemblyLoader.LoadRoslynAnalyzerAssemblyContentsIfNeeded()).Forget();
                 thread.RunOnBackgroundThread(() => StartRoslynAnalysisHttpServerAsync().ConfigureAwait(false)).Forget();
 
                 slCoreHandler = await this.GetMefServiceAsync<ISLCoreHandler>();

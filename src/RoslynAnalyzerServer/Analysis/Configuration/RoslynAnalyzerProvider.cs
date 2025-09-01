@@ -28,25 +28,35 @@ using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
 [Export(typeof(IRoslynAnalyzerProvider))]
+[Export(typeof(IRoslynAnalyzerAssemblyContentsLoader))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class RoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersLocator, IRoslynAnalyzerLoader roslynAnalyzerLoader) : IRoslynAnalyzerProvider
+internal class RoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersLocator, IRoslynAnalyzerLoader roslynAnalyzerLoader) : IRoslynAnalyzerProvider, IRoslynAnalyzerAssemblyContentsLoader
 {
     private ImmutableDictionary<LicensedRoslynLanguage, AnalyzerAssemblyContents>? cachedAnalyzerAssemblyContents;
+    private static readonly object LockObj = new();
 
     public ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadAndProcessAnalyzerAssemblies(AnalyzerInfoDto analyzerInfo)
     {
-        if (cachedAnalyzerAssemblyContents == null)
-        {
-            var analyzerFullPathsByLanguage = analyzersLocator.GetAnalyzerFullPathsByLicensedLanguage();
-            cachedAnalyzerAssemblyContents = LoadFromAssemblies(analyzerFullPathsByLanguage);
-        }
+        LoadRoslynAnalyzerAssemblyContentsIfNeeded();
 
-        return cachedAnalyzerAssemblyContents
+        return cachedAnalyzerAssemblyContents!
             .Where(kvp => FilterByLicense(kvp, analyzerInfo))
             .ToDictionary(kvp => kvp.Key.RoslynLanguage, kvp => kvp.Value)
             .ToImmutableDictionary();
-        ;
+    }
+
+    public void LoadRoslynAnalyzerAssemblyContentsIfNeeded()
+    {
+        lock (LockObj)
+        {
+            if (cachedAnalyzerAssemblyContents != null)
+            {
+                return;
+            }
+            var analyzerFullPathsByLanguage = analyzersLocator.GetAnalyzerFullPathsByLicensedLanguage();
+            cachedAnalyzerAssemblyContents = LoadFromAssemblies(analyzerFullPathsByLanguage);
+        }
     }
 
     private static bool FilterByLicense(KeyValuePair<LicensedRoslynLanguage, AnalyzerAssemblyContents> kvp, AnalyzerInfoDto analyzerInfo)

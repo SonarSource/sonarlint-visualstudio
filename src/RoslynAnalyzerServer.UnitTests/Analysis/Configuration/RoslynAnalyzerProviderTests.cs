@@ -55,8 +55,14 @@ public class RoslynAnalyzerProviderTests
     }
 
     [TestMethod]
-    public void MefCtor_CheckIsExported() =>
+    public void MefCtor_IRoslynAnalyzerProvider_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<RoslynAnalyzerProvider, IRoslynAnalyzerProvider>(
+            MefTestHelpers.CreateExport<IEmbeddedDotnetAnalyzersLocator>(),
+            MefTestHelpers.CreateExport<IRoslynAnalyzerLoader>());
+
+    [TestMethod]
+    public void MefCtor_IRoslynAnalyzerAssemblyContentsLoader_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<RoslynAnalyzerProvider, IRoslynAnalyzerAssemblyContentsLoader>(
             MefTestHelpers.CreateExport<IEmbeddedDotnetAnalyzersLocator>(),
             MefTestHelpers.CreateExport<IRoslynAnalyzerLoader>());
 
@@ -230,6 +236,19 @@ public class RoslynAnalyzerProviderTests
         testSubject.LoadAndProcessAnalyzerAssemblies(DefaultAnalyzerInfoDto);
         testSubject.LoadAndProcessAnalyzerAssemblies(DefaultAnalyzerInfoDto);
         testSubject.LoadAndProcessAnalyzerAssemblies(DefaultAnalyzerInfoDto);
+
+        analyzersLocator.Received(1).GetAnalyzerFullPathsByLicensedLanguage();
+        roslynAnalyzerLoader.Received(1).LoadAnalyzerAssembly(Arg.Any<string>());
+    }
+
+    [TestMethod]
+    public void LoadRoslynAnalyzerAssemblyContentsIfNeeded_MultipleCalls_AnalyzerAssemblyContentsAreCached()
+    {
+        MockCodeProvidersForCsharp(CsharpAnalyzer);
+
+        testSubject.LoadRoslynAnalyzerAssemblyContentsIfNeeded();
+        testSubject.LoadRoslynAnalyzerAssemblyContentsIfNeeded();
+        testSubject.LoadRoslynAnalyzerAssemblyContentsIfNeeded();
 
         analyzersLocator.Received(1).GetAnalyzerFullPathsByLicensedLanguage();
         roslynAnalyzerLoader.Received(1).LoadAnalyzerAssembly(Arg.Any<string>());
