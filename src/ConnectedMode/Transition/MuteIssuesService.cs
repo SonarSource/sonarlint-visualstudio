@@ -54,11 +54,11 @@ internal class MuteIssuesService(
 
         var allowedStatuses = await GetAllowedStatusesAsync(currentConfigScope.ConnectionId, issueServerKey);
         var windowResponse = await PromptMuteIssueResolutionAsync(allowedStatuses);
-        await MuteIssueAsync(currentConfigScope.Id, issueServerKey, issue, windowResponse.IssueTransition.Value);
+        await MuteIssueAsync(currentConfigScope.Id, issueServerKey, windowResponse.IssueTransition.Value);
         await AddCommentAsync(currentConfigScope.Id, issueServerKey, windowResponse.Comment);
     }
 
-    private string GetIssueServerKey(IFilterableIssue issue) =>
+    private static string GetIssueServerKey(IFilterableIssue issue) =>
         // TODO by https://sonarsource.atlassian.net/browse/SLVS-2419 remove handling of different type of issues
         ((IAnalysisIssueVisualization)issue).Issue.IssueServerKey;
 
@@ -136,7 +136,6 @@ internal class MuteIssuesService(
     private async Task MuteIssueAsync(
         string configurationScopeId,
         string issueServerKey,
-        IFilterableIssue issue,
         SonarQubeIssueTransition transition)
     {
         try
