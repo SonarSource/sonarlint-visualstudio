@@ -21,7 +21,6 @@
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
@@ -40,7 +39,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
     [PartCreationPolicy(CreationPolicy.Shared)]
     [method: ImportingConstructor]
     [ExcludeFromCodeCoverage] // todo https://sonarsource.atlassian.net/browse/SLVS-2420
-    internal class RoslynQualityProfileDownloader(ILanguageProvider languageProvider)
+    internal class RoslynQualityProfileDownloader()
         : IQualityProfileDownloader
     {
         public async Task<bool> UpdateAsync(

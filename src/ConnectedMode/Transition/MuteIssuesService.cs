@@ -47,7 +47,7 @@ internal class MuteIssuesService(
     public async Task ResolveIssueWithDialogAsync(IFilterableIssue issue)
     {
         threadHandling.ThrowIfOnUIThread();
-        var issueServerKey = await GetIssueServerKeyAsync(issue);
+        var issueServerKey = GetIssueServerKey(issue);
         var currentConfigScope = activeConfigScopeTracker.Current;
         CheckIsInConnectedMode(currentConfigScope);
         CheckIssueServerKeyNotNullOrEmpty(issueServerKey);
@@ -58,17 +58,9 @@ internal class MuteIssuesService(
         await AddCommentAsync(currentConfigScope.Id, issueServerKey, windowResponse.Comment);
     }
 
-    private async Task<string> GetIssueServerKeyAsync(IFilterableIssue issue)
-    {
-        // Non-Roslyn issues already have the issue server key
-        if (issue is IAnalysisIssueVisualization issueViz)
-        {
-            return issueViz.Issue.IssueServerKey;
-        }
-
+    private string GetIssueServerKey(IFilterableIssue issue) =>
         // TODO by https://sonarsource.atlassian.net/browse/SLVS-2419 remove handling of different type of issues
-        return null;
-    }
+        ((IAnalysisIssueVisualization)issue).Issue.IssueServerKey;
 
     private async Task<MuteIssuesWindowResponse> PromptMuteIssueResolutionAsync(IEnumerable<ResolutionStatus> allowedStatuses)
     {
