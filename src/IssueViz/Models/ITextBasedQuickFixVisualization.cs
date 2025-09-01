@@ -36,29 +36,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         bool CanBeApplied(ITextSnapshot currentSnapshot);
     }
 
-    internal class TextBasedQuickFixVisualization : ITextBasedQuickFixVisualization
+    internal class TextBasedQuickFixVisualization(
+        ITextBasedQuickFix fix,
+        IReadOnlyList<ITextBasedQuickFixEditVisualization> editVisualizations,
+        ISpanTranslator spanTranslator)
+        : ITextBasedQuickFixVisualization
     {
-        private readonly ISpanTranslator spanTranslator;
+        public ITextBasedQuickFix Fix { get; } = fix;
 
-        public TextBasedQuickFixVisualization(ITextBasedQuickFix fix, IReadOnlyList<ITextBasedQuickFixEditVisualization> editVisualizations)
-            : this(fix, editVisualizations, new SpanTranslator())
-        {
-            Fix = fix;
-            EditVisualizations = editVisualizations;
-        }
-
-        internal TextBasedQuickFixVisualization(ITextBasedQuickFix fix,
-            IReadOnlyList<ITextBasedQuickFixEditVisualization> editVisualizations,
-            ISpanTranslator spanTranslator)
-        {
-            this.spanTranslator = spanTranslator;
-            Fix = fix;
-            EditVisualizations = editVisualizations;
-        }
-
-        public ITextBasedQuickFix Fix { get; }
-
-        public IReadOnlyList<ITextBasedQuickFixEditVisualization> EditVisualizations { get; }
+        public IReadOnlyList<ITextBasedQuickFixEditVisualization> EditVisualizations { get; } = editVisualizations;
 
         public bool CanBeApplied(ITextSnapshot currentSnapshot) =>
             EditVisualizations.All(x => IsTextUnchanged(x, currentSnapshot));

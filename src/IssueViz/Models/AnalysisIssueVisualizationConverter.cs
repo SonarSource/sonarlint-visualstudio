@@ -134,7 +134,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
                 return new TextBasedQuickFixEditVisualization(edit, editSpan);
             });
 
-            var fixVisualization = new TextBasedQuickFixVisualization(textBasedQuickFix, editVisualizations.ToArray());
+            var fixVisualization = new TextBasedQuickFixVisualization(textBasedQuickFix, editVisualizations.ToArray(), spanTranslator);
 
             return new TextBasedQuickFixApplication(fixVisualization, spanTranslator);
         }
