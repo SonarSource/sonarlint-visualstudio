@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 internal interface IRoslynSolutionWrapper
 {
-    public IEnumerable<IRoslynProjectWrapper> Projects { get; }
+    IEnumerable<IRoslynProjectWrapper> Projects { get; }
     Solution RoslynSolution { get; }
 
     Document? GetDocument(SyntaxTree? tree);

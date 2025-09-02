@@ -69,6 +69,7 @@ public class RoslynProjectCompilationProviderTests
                 diagnosticOptions,
                 analyzers,
                 codeFixProviders));
+        SetUpCompilationWithAnalyzers();
         testSubject = new RoslynProjectCompilationProvider(logger);
     }
 
@@ -182,7 +183,9 @@ public class RoslynProjectCompilationProviderTests
         compilationWithAnalyzers = Substitute.For<IRoslynCompilationWithAnalyzersWrapper>();
         compilation.Language.Returns(Language.CSharp);
         compilation.WithOptions(Arg.Any<CompilationOptions>()).Returns(compilation);
+    }
+
+    private void SetUpCompilationWithAnalyzers() =>
         compilation.WithAnalyzers(Arg.Any<ImmutableArray<DiagnosticAnalyzer>>(), Arg.Any<CompilationWithAnalyzersOptions>(), configurations[Language.CSharp])
             .Returns(compilationWithAnalyzers);
-    }
 }

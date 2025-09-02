@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         [TestMethod]
         public void Invoke_AppliesFixOnUiThreadWithTelemetry()
         {
-            ConfigureQuickFixApplication();
+            ConfigureQuickFixApplicationCanBeApplied(true, true);
 
             testSubject.Invoke(CancellationToken.None);
 
@@ -102,7 +102,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         [TestMethod]
         public void Invoke_QuickFixIsNotApplicable_NoChanges()
         {
-            ConfigureNonApplicableQuickFixApplication();
+            ConfigureQuickFixApplicationCanBeApplied(false, false);
 
             testSubject.Invoke(CancellationToken.None);
 
@@ -119,13 +119,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             return snapshot;
         }
 
-        private void ConfigureQuickFixApplication() => ConfigureQuickFixApplication(true);
-
-        private void ConfigureNonApplicableQuickFixApplication() => ConfigureQuickFixApplication(false);
-
-        private void ConfigureQuickFixApplication(bool canBeApplied) =>
+        private void ConfigureQuickFixApplicationCanBeApplied(bool canBeApplied, bool willBeApplied)
+        {
             quickFixApplication.CanBeApplied(snapshot)
                 .Returns(canBeApplied);
+            quickFixApplication.ApplyAsync(snapshot, Arg.Any<CancellationToken>())
+                .Returns(willBeApplied);
+        }
 
         private static ITextBuffer CreateTextBuffer(ITextSnapshot snapShot)
         {

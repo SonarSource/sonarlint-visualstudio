@@ -50,7 +50,8 @@ public class AnalysisIssueVisualizationConverterTests
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<AnalysisIssueVisualizationConverter, IAnalysisIssueVisualizationConverter>(
             MefTestHelpers.CreateExport<IIssueSpanCalculator>(),
-            MefTestHelpers.CreateExport<ISpanTranslator>());
+            MefTestHelpers.CreateExport<ISpanTranslator>(),
+            MefTestHelpers.CreateExport<IRoslynQuickFixProvider>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<AnalysisIssueVisualizationConverter>();
