@@ -18,20 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Models
 {
-    public interface IQuickFixVisualization
+    public interface ITextBasedQuickFixVisualization
     {
-        IQuickFix Fix { get; }
+        ITextBasedQuickFix Fix { get; }
 
-        IReadOnlyList<IQuickFixEditVisualization> EditVisualizations { get; }
+        IReadOnlyList<ITextBasedQuickFixEditVisualization> EditVisualizations { get; }
 
         /// <summary>
         /// Returns false if the snapshot has been edited so the fix can no longer be applied, otherwise true.
@@ -39,34 +36,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         bool CanBeApplied(ITextSnapshot currentSnapshot);
     }
 
-    internal class QuickFixVisualization : IQuickFixVisualization
+    internal class TextBasedQuickFixVisualization(
+        ITextBasedQuickFix fix,
+        IReadOnlyList<ITextBasedQuickFixEditVisualization> editVisualizations,
+        ISpanTranslator spanTranslator)
+        : ITextBasedQuickFixVisualization
     {
-        private readonly ISpanTranslator spanTranslator;
+        public ITextBasedQuickFix Fix { get; } = fix;
 
-        public QuickFixVisualization(IQuickFix fix, IReadOnlyList<IQuickFixEditVisualization> editVisualizations)
-            : this(fix, editVisualizations, new SpanTranslator())
-        {
-            Fix = fix;
-            EditVisualizations = editVisualizations;
-        }
-
-        internal QuickFixVisualization(IQuickFix fix,
-            IReadOnlyList<IQuickFixEditVisualization> editVisualizations,
-            ISpanTranslator spanTranslator)
-        {
-            this.spanTranslator = spanTranslator;
-            Fix = fix;
-            EditVisualizations = editVisualizations;
-        }
-
-        public IQuickFix Fix { get; }
-
-        public IReadOnlyList<IQuickFixEditVisualization> EditVisualizations { get; }
+        public IReadOnlyList<ITextBasedQuickFixEditVisualization> EditVisualizations { get; } = editVisualizations;
 
         public bool CanBeApplied(ITextSnapshot currentSnapshot) =>
             EditVisualizations.All(x => IsTextUnchanged(x, currentSnapshot));
 
-        private bool IsTextUnchanged(IQuickFixEditVisualization editViz, ITextSnapshot currentSnapshot)
+        private bool IsTextUnchanged(ITextBasedQuickFixEditVisualization editViz, ITextSnapshot currentSnapshot)
         {
             var originalText = editViz.Span.GetText();
             var updatedSpan = spanTranslator.TranslateTo(editViz.Span, currentSnapshot, SpanTrackingMode.EdgeExclusive);
@@ -76,16 +59,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         }
     }
 
-    public interface IQuickFixEditVisualization
+    public interface ITextBasedQuickFixEditVisualization
     {
         IEdit Edit { get; }
 
         SnapshotSpan Span { get; }
     }
 
-    internal class QuickFixEditVisualization : IQuickFixEditVisualization
+    internal class TextBasedQuickFixEditVisualization : ITextBasedQuickFixEditVisualization
     {
-        public QuickFixEditVisualization(IEdit edit, SnapshotSpan span)
+        public TextBasedQuickFixEditVisualization(IEdit edit, SnapshotSpan span)
         {
             Edit = edit;
             Span = span;
