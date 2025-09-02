@@ -23,9 +23,9 @@ using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Core.Analysis
 {
-    public class QuickFix : IQuickFix
+    public class TextBasedQuickFix : ITextBasedQuickFix
     {
-        public QuickFix(string message, IReadOnlyList<IEdit> edits)
+        public TextBasedQuickFix(string message, IReadOnlyList<IEdit> edits)
         {
             if (edits == null || edits.Count == 0)
             {
