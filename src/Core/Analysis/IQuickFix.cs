@@ -18,11 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-
 namespace SonarLint.VisualStudio.Core.Analysis
 {
-    public interface IQuickFix
+    public interface IQuickFixBase;
+
+    public interface ITextBasedQuickFix : IQuickFixBase
     {
         string Message { get; }
         IReadOnlyList<IEdit> Edits { get; }
