@@ -31,11 +31,11 @@ namespace SonarLint.VisualStudio.Core.Analysis
         Impact highestImpact,
         IAnalysisIssueLocation primaryLocation,
         IReadOnlyList<IAnalysisIssueFlow> flows,
-        IReadOnlyList<IQuickFix> fixes = null)
+        IReadOnlyList<IQuickFixBase> fixes = null)
         : IAnalysisIssue
     {
         private static readonly IReadOnlyList<IAnalysisIssueFlow> EmptyFlows = [];
-        private static readonly IReadOnlyList<IQuickFix> EmptyFixes = [];
+        private static readonly IReadOnlyList<IQuickFixBase> EmptyFixes = [];
 
         public Guid? Id { get; } = id;
 
@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
         public bool IsOnNewCode { get; } = isOnNewCode;
         public string IssueServerKey { get; } = issueServerKey;
 
-        public IReadOnlyList<IQuickFix> Fixes { get; } = fixes ?? EmptyFixes;
+        public IReadOnlyList<IQuickFixBase> Fixes { get; } = fixes ?? EmptyFixes;
         public Impact HighestImpact { get; } = highestImpact;
     }
 
@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
         IAnalysisIssueLocation primaryLocation,
         IReadOnlyList<IAnalysisIssueFlow> flows,
         HotspotStatus hotspotStatus,
-        IReadOnlyList<IQuickFix> fixes = null,
+        IReadOnlyList<IQuickFixBase> fixes = null,
         HotspotPriority? hotspotPriority = null)
         : AnalysisIssue(id, ruleKey, issueServerKey, isResolved, isOnNewCode, severity, type, highestImpact, primaryLocation, flows, fixes), IAnalysisHotspotIssue
     {

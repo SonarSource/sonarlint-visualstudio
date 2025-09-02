@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
         AnalysisIssueType? Type { get; }
 
-        IReadOnlyList<IQuickFix> Fixes { get; }
+        IReadOnlyList<IQuickFixBase> Fixes { get; }
 
         Impact HighestImpact { get; }
     }

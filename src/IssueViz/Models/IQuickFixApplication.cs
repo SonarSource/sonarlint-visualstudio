@@ -18,29 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Analysis;
+using Microsoft.VisualStudio.Text;
 
-namespace SonarLint.VisualStudio.TestInfrastructure;
+namespace SonarLint.VisualStudio.IssueVisualization.Models;
 
-// Properties are settable to simplify creating test instances
-public class DummyAnalysisIssue : IAnalysisIssue
+public interface IQuickFixApplication
 {
-    public Guid? Id { get; set; }
-
-    public string RuleKey { get; set; }
-
-    public AnalysisIssueSeverity? Severity { get; set; }
-
-    public Impact HighestImpact { get; set; }
-
-    public AnalysisIssueType? Type { get; set; }
-
-    public IReadOnlyList<IAnalysisIssueFlow> Flows { get; } = Array.Empty<IAnalysisIssueFlow>();
-
-    public IAnalysisIssueLocation PrimaryLocation { get; set; } = new DummyAnalysisIssueLocation();
-    public bool IsResolved { get; set; }
-    public bool IsOnNewCode { get; set; }
-    public string IssueServerKey { get; set; }
-
-    public IReadOnlyList<IQuickFixBase> Fixes { get; } = [];
+    string Message { get; }
+    bool CanBeApplied(ITextSnapshot currentSnapshot);
+    Task ApplyAsync(ITextSnapshot currentSnapshot, IAnalysisIssueVisualization issueViz, CancellationToken cancellationToken);
 }

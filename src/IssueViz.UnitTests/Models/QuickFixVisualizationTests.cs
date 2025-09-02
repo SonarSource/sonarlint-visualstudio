@@ -95,13 +95,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
             testSubject.CanBeApplied(snapshot.Object).Should().BeFalse();
         }
 
-        private IQuickFixEditVisualization SetupEditVisualization(Mock<ITextSnapshot> snapshot,
+        private ITextBasedQuickFixEditVisualization SetupEditVisualization(Mock<ITextSnapshot> snapshot,
             Mock<ISpanTranslator> spanTranslator,
             string originalText,
             string updatedText) =>
             SetupEditVisualization(snapshot, spanTranslator, new Span(1, 2), originalText, updatedText);
 
-        private IQuickFixEditVisualization SetupEditVisualization(Mock<ITextSnapshot> snapshot,
+        private ITextBasedQuickFixEditVisualization SetupEditVisualization(Mock<ITextSnapshot> snapshot,
             Mock<ISpanTranslator> spanTranslator,
             Span originalSpan,
             bool isSameText)
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
             return SetupEditVisualization(snapshot, spanTranslator, originalSpan, originalText, updatedText);
         }
 
-        private IQuickFixEditVisualization SetupEditVisualization(Mock<ITextSnapshot> snapshot,
+        private ITextBasedQuickFixEditVisualization SetupEditVisualization(Mock<ITextSnapshot> snapshot,
             Mock<ISpanTranslator> spanTranslator,
             Span originalSpan,
             string originalText,
@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
         {
             var originalSnapshotSpan = new SnapshotSpan(snapshot.Object, originalSpan);
 
-            var editViz = new Mock<IQuickFixEditVisualization>();
+            var editViz = new Mock<ITextBasedQuickFixEditVisualization>();
             editViz.Setup(x => x.Span).Returns(originalSnapshotSpan);
 
             var updatedSnapshotSpan = new SnapshotSpan(snapshot.Object, new Span(originalSpan.Start + 1, originalSpan.Length));
@@ -143,7 +143,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
             return snapshot;
         }
 
-        private IQuickFixVisualization CreateTestSubject(ISpanTranslator spanTranslator, params IQuickFixEditVisualization[] editVisualizations) =>
-            new QuickFixVisualization(Mock.Of<IQuickFix>(), editVisualizations, spanTranslator);
+        private ITextBasedQuickFixVisualization CreateTestSubject(ISpanTranslator spanTranslator, params ITextBasedQuickFixEditVisualization[] editVisualizations) =>
+            new TextBasedQuickFixVisualization(Mock.Of<ITextBasedQuickFix>(), editVisualizations, spanTranslator);
     }
 }

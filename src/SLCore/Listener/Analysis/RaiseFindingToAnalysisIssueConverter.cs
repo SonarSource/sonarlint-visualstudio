@@ -38,9 +38,9 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
             raisedFindings
                 .Select(item => TryCreateAnalysisIssue(fileUri, item))
                 .Where(x => x != null)
-                .ToList();
+                .ToList()!;
 
-        private AnalysisIssue TryCreateAnalysisIssue<T>(FileUri fileUri, T item) where T : RaisedFindingDto
+        private AnalysisIssue? TryCreateAnalysisIssue<T>(FileUri fileUri, T item) where T : RaisedFindingDto
         {
             try
             {
@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
             }
         }
 
-        private static Impact GetHighestImpact(List<ImpactDto> impacts)
+        private static Impact? GetHighestImpact(List<ImpactDto>? impacts)
         {
             if (impacts is null || impacts.Count == 0)
             {
@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
         private static IAnalysisIssueLocation GetAnalysisIssueLocation(string filePath, string message, TextRangeDto textRangeDto) =>
             new AnalysisIssueLocation(message, filePath, CopyTextRange(textRangeDto));
 
-        private static TextRange CopyTextRange(TextRangeDto textRangeDto)
+        private static TextRange? CopyTextRange(TextRangeDto? textRangeDto)
         {
             if (textRangeDto is null)
             {
@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
                 null);
         }
 
-        private static IAnalysisIssueFlow[] GetFlows(List<IssueFlowDto> issueFlows)
+        private static IAnalysisIssueFlow[] GetFlows(List<IssueFlowDto>? issueFlows)
         {
             if (issueFlows is null || issueFlows.Count == 0)
             {
@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
         private static IAnalysisIssueFlow GetAnalysisIssueFlow(IEnumerable<IssueLocationDto> flowLocations) =>
             new AnalysisIssueFlow(flowLocations.Select(l => GetAnalysisIssueLocation(l.fileUri.LocalPath, l.message, l.textRange)).ToList());
 
-        private static IQuickFix? GetQuickFix(FileUri fileURi, QuickFixDto quickFixDto)
+        private static IQuickFixBase? GetQuickFix(FileUri fileURi, QuickFixDto quickFixDto)
         {
             var fileEdits = quickFixDto.inputFileEdits.FindAll(e => e.target == fileURi);
             if (fileEdits.Count == 0)
@@ -144,7 +144,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
             }
 
             var textEdits = fileEdits.SelectMany(x => x.textEdits).Select(GetEdit).ToList();
-            return new QuickFix(quickFixDto.message, textEdits);
+            return new TextBasedQuickFix(quickFixDto.message, textEdits);
         }
 
         private static IEdit GetEdit(TextEditDto textEdit) =>
