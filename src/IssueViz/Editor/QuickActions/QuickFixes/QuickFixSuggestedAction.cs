@@ -21,47 +21,21 @@
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes
 {
-    internal class QuickFixSuggestedAction : BaseSuggestedAction
+    internal class QuickFixSuggestedAction(
+        IQuickFixApplication quickFixApplication,
+        ITextBuffer textBuffer,
+        IAnalysisIssueVisualization issueViz,
+        IQuickFixesTelemetryManager quickFixesTelemetryManager,
+        ILogger logger,
+        IThreadHandling threadHandling)
+        : BaseSuggestedAction
     {
-        private readonly IQuickFixVisualization quickFixVisualization;
-        private readonly ITextBuffer textBuffer;
-        private readonly ISpanTranslator spanTranslator;
-        private readonly IAnalysisIssueVisualization issueViz;
-        private readonly IQuickFixesTelemetryManager quickFixesTelemetryManager;
-        private readonly ILogger logger;
 
-        public QuickFixSuggestedAction(
-            IQuickFixVisualization quickFixVisualization,
-            ITextBuffer textBuffer,
-            IAnalysisIssueVisualization issueViz,
-            IQuickFixesTelemetryManager quickFixesTelemetryManager,
-            ILogger logger)
-            : this(quickFixVisualization, textBuffer, issueViz, quickFixesTelemetryManager, logger, new SpanTranslator())
-        {
-        }
-
-        internal QuickFixSuggestedAction(
-            IQuickFixVisualization quickFixVisualization,
-            ITextBuffer textBuffer,
-            IAnalysisIssueVisualization issueViz,
-            IQuickFixesTelemetryManager quickFixesTelemetryManager,
-            ILogger logger,
-            ISpanTranslator spanTranslator)
-        {
-            this.quickFixVisualization = quickFixVisualization;
-            this.textBuffer = textBuffer;
-            this.issueViz = issueViz;
-            this.quickFixesTelemetryManager = quickFixesTelemetryManager;
-            this.logger = logger;
-            this.spanTranslator = spanTranslator;
-        }
-
-        public override string DisplayText => Resources.ProductNameCommandPrefix + quickFixVisualization.Fix.Message;
+        public override string DisplayText => Resources.ProductNameCommandPrefix + quickFixApplication.Message;
 
         public override void Invoke(CancellationToken cancellationToken)
         {
@@ -70,25 +44,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
                 return;
             }
 
-            if (!quickFixVisualization.CanBeApplied(textBuffer.CurrentSnapshot))
+            if (!quickFixApplication.CanBeApplied(textBuffer.CurrentSnapshot))
             {
                 logger.LogVerbose("[Quick Fixes] Quick fix cannot be applied as the text has changed. Issue: " + issueViz.RuleId);
                 return;
             }
 
-            var textEdit = textBuffer.CreateEdit();
-
-            foreach (var edit in quickFixVisualization.EditVisualizations)
+            threadHandling.Run(async () =>
             {
-                var updatedSpan = spanTranslator.TranslateTo(edit.Span, textBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive);
+                await threadHandling.SwitchToMainThreadAsync();
+                await quickFixApplication.ApplyAsync(textBuffer.CurrentSnapshot, issueViz, cancellationToken);
 
-                textEdit.Replace(updatedSpan, edit.Edit.NewText);
-            }
+                quickFixesTelemetryManager.QuickFixApplied(issueViz.RuleId);
 
-            issueViz.InvalidateSpan();
-            textEdit.Apply();
-
-            quickFixesTelemetryManager.QuickFixApplied(issueViz.RuleId);
+                return 0;
+            });
         }
     }
 }
