@@ -33,9 +33,10 @@ public class RoslynAnalysisConfigurationProviderTests
 {
     private static readonly ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> DefaultAnalyzers
         = new Dictionary<RoslynLanguage, AnalyzerAssemblyContents> { { Language.CSharp, new AnalyzerAssemblyContents() } }.ToImmutableDictionary();
-    private static readonly List<ActiveRuleDto> DefaultActiveRules = new();
-    private static readonly Dictionary<string, string> DefaultAnalysisProperties = new();
+    private static readonly List<ActiveRuleDto> DefaultActiveRules = [];
+    private static readonly Dictionary<string, string> DefaultAnalysisProperties = [];
     private static readonly AnalyzerInfoDto DefaultAnalyzerInfoDto = new(false, false);
+    private static readonly Dictionary<RoslynLanguage, RoslynAnalysisProfile> DefaultRoslynAnalysisProfile = [];
 
     private ISonarLintXmlProvider sonarLintXmlProvider = null!;
     private IRoslynAnalyzerProvider roslynAnalyzerProvider = null!;
@@ -51,6 +52,9 @@ public class RoslynAnalysisConfigurationProviderTests
         roslynAnalyzerProvider.LoadAndProcessAnalyzerAssemblies(DefaultAnalyzerInfoDto).Returns(DefaultAnalyzers);
 
         analyzerProfilesProvider = Substitute.For<IRoslynAnalysisProfilesProvider>();
+        analyzerProfilesProvider
+            .GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), Arg.Any<List<ActiveRuleDto>>(), Arg.Any<Dictionary<string, string>>())
+            .Returns(DefaultRoslynAnalysisProfile);
         testLogger = Substitute.ForPartsOf<TestLogger>();
 
         testSubject = new RoslynAnalysisConfigurationProvider(
@@ -126,7 +130,7 @@ public class RoslynAnalysisConfigurationProviderTests
                     ImmutableArray<DiagnosticAnalyzer>.Empty,
                     CreateTestCodeFixProviders(),
                     [CreateRuleConfiguration(language, "S001")],
-                    new Dictionary<string, string>())
+                    [])
             }
         };
 
@@ -150,7 +154,7 @@ public class RoslynAnalysisConfigurationProviderTests
                     CreateTestAnalyzers(1),
                     CreateTestCodeFixProviders(),
                     [CreateRuleConfiguration(language, "S001", false), CreateRuleConfiguration(language, "S002", false)],
-                    new Dictionary<string, string>())
+                    [])
             }
         };
 
@@ -166,12 +170,119 @@ public class RoslynAnalysisConfigurationProviderTests
     [TestMethod]
     public void GetConfiguration_NoAnalysisProfiles_ReturnsEmptyDictionary()
     {
-        analyzerProfilesProvider.GetAnalysisProfilesByLanguage(DefaultAnalyzers, DefaultActiveRules, DefaultAnalysisProperties)
-            .Returns(new Dictionary<RoslynLanguage, RoslynAnalysisProfile>());
-
         var result = testSubject.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
 
         result.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void GetConfiguration_MultipleCalls_SameActiveRules_Caches()
+    {
+        var activeRules = new List<ActiveRuleDto> { new("S101", new Dictionary<string, string> { { "threshold", "3" } }) };
+        var sameActiveRules = new List<ActiveRuleDto> { new("S101", new Dictionary<string, string> { { "threshold", "3" } }) };
+
+        testSubject.GetConfiguration(activeRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        testSubject.GetConfiguration(sameActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        testSubject.GetConfiguration(sameActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+
+        analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), activeRules, DefaultAnalysisProperties);
+    }
+
+    [TestMethod]
+    public void GetConfiguration_MultipleCalls_DifferentActiveRules_InvalidatesCache()
+    {
+        var activeRules = new List<ActiveRuleDto> { new("S101", new Dictionary<string, string> { { "threshold", "3" } }) };
+        var newActiveRules = new List<ActiveRuleDto> { new("S102", new Dictionary<string, string> { { "threshold", "3" } }) };
+
+        testSubject.GetConfiguration(activeRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        testSubject.GetConfiguration(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        testSubject.GetConfiguration(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+
+        analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), activeRules, DefaultAnalysisProperties);
+        analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), newActiveRules, DefaultAnalysisProperties);
+    }
+
+    [TestMethod]
+    public void GetConfiguration_MultipleCalls_SameRuleWithDifferentParameter_InvalidatesCache()
+    {
+        var activeRules = new List<ActiveRuleDto> { new("S101", new Dictionary<string, string> { { "threshold", "3" } }) };
+        var newActiveRules = new List<ActiveRuleDto> { new("S101", new Dictionary<string, string> { { "timeout", "60" } }) };
+
+        testSubject.GetConfiguration(activeRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        testSubject.GetConfiguration(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        testSubject.GetConfiguration(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+
+        analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), activeRules, DefaultAnalysisProperties);
+        analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), newActiveRules, DefaultAnalysisProperties);
+    }
+
+    [TestMethod]
+    public void GetConfiguration_MultipleCalls_SameRuleWithDifferentParameters_InvalidatesCache()
+    {
+        var activeRules = new List<ActiveRuleDto> { new("S101", new Dictionary<string, string> { { "threshold", "3" } }) };
+        var newActiveRules = new List<ActiveRuleDto> { new("S101", []) };
+
+        testSubject.GetConfiguration(activeRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        testSubject.GetConfiguration(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        testSubject.GetConfiguration(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+
+        analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), activeRules, DefaultAnalysisProperties);
+        analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), newActiveRules, DefaultAnalysisProperties);
+    }
+
+    [TestMethod]
+    public void GetConfiguration_MultipleCalls_SameRuleWithDifferentParameterValue_InvalidatesCache()
+    {
+        var activeRules = new List<ActiveRuleDto> { new("S101", new Dictionary<string, string> { { "threshold", "3" } }) };
+        var newActiveRules = new List<ActiveRuleDto> { new("S101", new Dictionary<string, string> { { "threshold", "5" } }) };
+
+        testSubject.GetConfiguration(activeRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        testSubject.GetConfiguration(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        testSubject.GetConfiguration(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+
+        analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), activeRules, DefaultAnalysisProperties);
+        analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), newActiveRules, DefaultAnalysisProperties);
+    }
+
+    [TestMethod]
+    public void GetConfiguration_MultipleCalls_SameAnalysisProperties_Caches()
+    {
+        var analysisProperties = new Dictionary<string, string> { { "sonar.cs.internal.disableRazor", "true" } };
+        var sameAnalysisProperties = new Dictionary<string, string> { { "sonar.cs.internal.disableRazor", "true" } };
+
+        testSubject.GetConfiguration(DefaultActiveRules, analysisProperties, DefaultAnalyzerInfoDto);
+        testSubject.GetConfiguration(DefaultActiveRules, sameAnalysisProperties, DefaultAnalyzerInfoDto);
+        testSubject.GetConfiguration(DefaultActiveRules, sameAnalysisProperties, DefaultAnalyzerInfoDto);
+
+        analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), DefaultActiveRules, analysisProperties);
+    }
+
+    [TestMethod]
+    public void GetConfiguration_MultipleCalls_SameAnalysisPropertyWithDifferentValue_InvalidatesCache()
+    {
+        var analysisProperties = new Dictionary<string, string> { { "sonar.cs.internal.disableRazor", "true" } };
+        var newAnalysisProperties = new Dictionary<string, string> { { "sonar.cs.internal.disableRazor", "false" } };
+
+        testSubject.GetConfiguration(DefaultActiveRules, analysisProperties, DefaultAnalyzerInfoDto);
+        testSubject.GetConfiguration(DefaultActiveRules, newAnalysisProperties, DefaultAnalyzerInfoDto);
+        testSubject.GetConfiguration(DefaultActiveRules, newAnalysisProperties, DefaultAnalyzerInfoDto);
+
+        analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), DefaultActiveRules, analysisProperties);
+        analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), DefaultActiveRules, newAnalysisProperties);
+    }
+
+    [TestMethod]
+    public void GetConfiguration_MultipleCalls_DifferentAnalysisProperties_InvalidatesCache()
+    {
+        var analysisProperties = new Dictionary<string, string> { { "sonar.cs.internal.disableRazor", "true" } };
+        var newAnalysisProperties = new Dictionary<string, string>();
+
+        testSubject.GetConfiguration(DefaultActiveRules, analysisProperties, DefaultAnalyzerInfoDto);
+        testSubject.GetConfiguration(DefaultActiveRules, newAnalysisProperties, DefaultAnalyzerInfoDto);
+        testSubject.GetConfiguration(DefaultActiveRules, newAnalysisProperties, DefaultAnalyzerInfoDto);
+
+        analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), DefaultActiveRules, analysisProperties);
+        analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), DefaultActiveRules, newAnalysisProperties);
     }
 
     private Dictionary<RoslynLanguage, SonarLintXmlConfigurationFile> SetUpXmlConfigurations(Dictionary<RoslynLanguage, RoslynAnalysisProfile> profiles)
@@ -185,7 +296,7 @@ public class RoslynAnalysisConfigurationProviderTests
         return xmlConfigurations;
     }
 
-    private RoslynRuleConfiguration CreateRuleConfiguration(
+    private static RoslynRuleConfiguration CreateRuleConfiguration(
         Language language,
         string ruleKey,
         bool isActive = true) =>
@@ -193,9 +304,10 @@ public class RoslynAnalysisConfigurationProviderTests
             isActive,
             []);
 
-    private ImmutableArray<DiagnosticAnalyzer> CreateTestAnalyzers(int count) => Enumerable.Range(0, count).Select(_ => Substitute.For<DiagnosticAnalyzer>()).ToImmutableArray();
+    private static ImmutableArray<DiagnosticAnalyzer> CreateTestAnalyzers(int count) => Enumerable.Range(0, count).Select(_ => Substitute.For<DiagnosticAnalyzer>()).ToImmutableArray();
 
-    private ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> CreateTestCodeFixProviders() => ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>>.Empty.Add("any", [Substitute.For<CodeFixProvider>()]);
+    private static ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> CreateTestCodeFixProviders() =>
+        ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>>.Empty.Add("any", [Substitute.For<CodeFixProvider>()]);
 
     private SonarLintXmlConfigurationFile SetUpXmlProvider(RoslynAnalysisProfile profile)
     {
