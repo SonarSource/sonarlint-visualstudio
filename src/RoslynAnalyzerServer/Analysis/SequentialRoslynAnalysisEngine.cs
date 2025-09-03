@@ -36,9 +36,8 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 [method: ImportingConstructor]
 internal class SequentialRoslynAnalysisEngine(
     IDiagnosticToRoslynIssueConverter issueConverter,
-    IRoslynWorkspaceWrapper workspace,
-    IRoslynQuickFixStorageWriter quickFixStorage,
     IRoslynProjectCompilationProvider projectCompilationProvider,
+    IRoslynQuickFixFactory quickFixFactory,
     ILogger logger) : IRoslynAnalysisEngine
 {
     private readonly ILogger logger = logger.ForContext("Roslyn Analysis", "Engine");
@@ -61,7 +60,11 @@ internal class SequentialRoslynAnalysisEngine(
 
                 foreach (var diagnostic in diagnostics)
                 {
-                    var quickFixes = await CreateQuickFixesAsync(diagnostic, projectAnalysisCommands.Project.Solution, compilationWithAnalyzers, token);
+                    var quickFixes = await quickFixFactory.CreateQuickFixesAsync(
+                        diagnostic,
+                        projectAnalysisCommands.Project.Solution,
+                        compilationWithAnalyzers.AnalysisConfiguration,
+                        token);
 
                     var roslynIssue = issueConverter.ConvertToSonarDiagnostic(diagnostic, quickFixes, compilationWithAnalyzers.Language);
                     // todo SLVS-2468 improve issue merging
@@ -74,33 +77,5 @@ internal class SequentialRoslynAnalysisEngine(
         }
 
         return uniqueDiagnostics;
-    }
-
-    private async Task<List<RoslynQuickFix>> CreateQuickFixesAsync(
-        Diagnostic diagnostic,
-        IRoslynSolutionWrapper solution,
-        IRoslynCompilationWithAnalyzersWrapper compilationWithAnalyzers,
-        CancellationToken token)
-    {
-        var codeActions = new List<CodeAction>();
-
-        if (compilationWithAnalyzers.AnalysisConfiguration.CodeFixProvidersByRuleKey.TryGetValue(diagnostic.Id, out var availableCodeFixProviders)
-            && solution.GetDocument(diagnostic.Location.SourceTree) is {} document)
-        {
-            foreach (var codeFixProvider in availableCodeFixProviders)
-            {
-                await codeFixProvider.RegisterCodeFixesAsync(new CodeFixContext(document, diagnostic, (c, ds) => codeActions.Add(c), token));
-            }
-        }
-
-        var quickFixes = new List<RoslynQuickFix>();
-        foreach (var codeAction in codeActions)
-        {
-            var id = Guid.NewGuid();
-            quickFixStorage.Add(id, new RoslynQuickFixApplicationImpl(workspace, solution, codeAction));
-            quickFixes.Add(new RoslynQuickFix(id));
-        }
-
-        return quickFixes;
     }
 }
