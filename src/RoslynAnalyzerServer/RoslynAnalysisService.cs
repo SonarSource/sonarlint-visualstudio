@@ -33,11 +33,11 @@ internal class RoslynAnalysisService(
     IRoslynAnalysisConfigurationProvider analysisConfigurationProvider,
     IRoslynSolutionAnalysisCommandProvider analysisCommandProvider) : IRoslynAnalysisService
 {
-    public Task<IEnumerable<RoslynIssue>> AnalyzeAsync(
+    public async Task<IEnumerable<RoslynIssue>> AnalyzeAsync(
         AnalysisRequest analysisRequest,
         CancellationToken cancellationToken) =>
-        analysisEngine.AnalyzeAsync(
+        await analysisEngine.AnalyzeAsync(
             analysisCommandProvider.GetAnalysisCommandsForCurrentSolution(analysisRequest.FileNames.Select(x => x.LocalPath).ToArray()),
-            analysisConfigurationProvider.GetConfiguration(analysisRequest.ActiveRules, analysisRequest.AnalysisProperties, analysisRequest.AnalyzerInfo),
+            await analysisConfigurationProvider.GetConfigurationAsync(analysisRequest.ActiveRules, analysisRequest.AnalysisProperties, analysisRequest.AnalyzerInfo),
             cancellationToken);
 }

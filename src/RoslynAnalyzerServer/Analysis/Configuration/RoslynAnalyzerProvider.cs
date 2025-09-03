@@ -28,16 +28,50 @@ using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
 [Export(typeof(IRoslynAnalyzerProvider))]
+[Export(typeof(IRoslynAnalyzerAssemblyContentsLoader))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class RoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersLocator, IRoslynAnalyzerLoader roslynAnalyzerLoader) : IRoslynAnalyzerProvider
+internal class RoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersLocator, IRoslynAnalyzerLoader roslynAnalyzerLoader) : IRoslynAnalyzerProvider, IRoslynAnalyzerAssemblyContentsLoader
 {
-    public ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadAndProcessAnalyzerAssemblies(AnalyzerInfoDto analyzerInfo) =>
-        LoadFromAssemblies(analyzersLocator.GetAnalyzerFullPathsByLanguage(analyzerInfo));
+    private ImmutableDictionary<LicensedRoslynLanguage, AnalyzerAssemblyContents>? cachedAnalyzerAssemblyContents;
+    private static readonly object LockObj = new();
 
-    private ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadFromAssemblies(Dictionary<RoslynLanguage, List<string>> analyzerFullPathsByLanguage)
+    public ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadAndProcessAnalyzerAssemblies(AnalyzerInfoDto analyzerInfo)
     {
-        var builder = ImmutableDictionary.CreateBuilder<RoslynLanguage, AnalyzerAssemblyContents>();
+        LoadRoslynAnalyzerAssemblyContentsIfNeeded();
+
+        return cachedAnalyzerAssemblyContents!
+            .Where(kvp => FilterByLicense(kvp, analyzerInfo))
+            .ToDictionary(kvp => kvp.Key.RoslynLanguage, kvp => kvp.Value)
+            .ToImmutableDictionary();
+    }
+
+    public void LoadRoslynAnalyzerAssemblyContentsIfNeeded()
+    {
+        lock (LockObj)
+        {
+            if (cachedAnalyzerAssemblyContents != null)
+            {
+                return;
+            }
+            var analyzerFullPathsByLanguage = analyzersLocator.GetAnalyzerFullPathsByLicensedLanguage();
+            cachedAnalyzerAssemblyContents = LoadFromAssemblies(analyzerFullPathsByLanguage);
+        }
+    }
+
+    private static bool FilterByLicense(KeyValuePair<LicensedRoslynLanguage, AnalyzerAssemblyContents> kvp, AnalyzerInfoDto analyzerInfo)
+    {
+        if (kvp.Key.RoslynLanguage.Equals(Language.VBNET))
+        {
+            return kvp.Key.IsEnterprise == analyzerInfo.ShouldUseVbEnterprise;
+        }
+
+        return kvp.Key.IsEnterprise == analyzerInfo.ShouldUseCsharpEnterprise;
+    }
+
+    private ImmutableDictionary<LicensedRoslynLanguage, AnalyzerAssemblyContents> LoadFromAssemblies(Dictionary<LicensedRoslynLanguage, List<string>> analyzerFullPathsByLanguage)
+    {
+        var builder = ImmutableDictionary.CreateBuilder<LicensedRoslynLanguage, AnalyzerAssemblyContents>();
 
         foreach (var languageAndAnalyzers in analyzerFullPathsByLanguage)
         {
