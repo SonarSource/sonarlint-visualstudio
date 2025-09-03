@@ -22,14 +22,16 @@ namespace SonarLint.VisualStudio.Core.Analysis;
 
 public class RoslynQuickFix(Guid id) : IRoslynQuickFix
 {
-    public const string StoragePrefix = "#!#SQVS#!#ROSLYN|QUICKFIX|";
+    // private const string StoragePrefix = "#!#SQVS#!#ROSLYN|QUICKFIX|";
+    private const string StoragePrefix = "|<SQVS_ROSLYN_QUICKFIX>|";
+
     public Guid Id { get; } = id;
 
-    public string Serialize() => StoragePrefix + Id;
+    public string GetStorageValue() => StoragePrefix + Id;
 
     public static bool TryParse(string message, out RoslynQuickFix o)
     {
-        if (message.StartsWith(StoragePrefix) && Guid.TryParse(message.Substring(StoragePrefix.Length), out var id))
+        if (message is not null && message.StartsWith(StoragePrefix) && Guid.TryParse(message.Substring(StoragePrefix.Length), out var id))
         {
             o = new RoslynQuickFix(id);
             return true;

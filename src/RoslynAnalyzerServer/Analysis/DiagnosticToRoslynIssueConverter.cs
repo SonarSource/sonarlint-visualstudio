@@ -34,7 +34,7 @@ public class DiagnosticToRoslynIssueConverter : IDiagnosticToRoslynIssueConverte
         new(SonarCompositeRuleId.GetFullErrorCode(language.RepoInfo.Key, diagnostic.Id),
             ConvertLocation(diagnostic.Location.GetMappedLineSpan(), diagnostic.GetMessage()),
             ConvertSecondaryLocations(diagnostic),
-            quickFixes.Select(x => new RoslynIssueQuickFix(x.Serialize())).ToList());
+            quickFixes.Select(x => new RoslynIssueQuickFix(x.GetStorageValue())).ToList());
 
     private static IReadOnlyList<RoslynIssueFlow> ConvertSecondaryLocations(Diagnostic diagnostic)
     {

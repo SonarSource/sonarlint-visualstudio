@@ -291,7 +291,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
     {
         var expectedId = Guid.NewGuid();
         var roslynQuickFix = new RoslynQuickFix(expectedId);
-        var serializedFix = roslynQuickFix.Serialize();
+        var serializedFix = roslynQuickFix.GetStorageValue();
 
         var issue = CreateRaisedIssueDto(quickFixes: [new QuickFixDto([], serializedFix)]);
 
