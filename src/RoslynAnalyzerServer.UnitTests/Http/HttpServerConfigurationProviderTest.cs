@@ -104,8 +104,8 @@ public class HttpServerConfigurationProviderTest
     [TestMethod]
     public void MapToInferredProperties_ReturnsExpectedProperties()
     {
-        var portKey = "sonar.cs.internal.roslynAnalyzerServerPort";
-        var tokenKey = "sonar.cs.internal.roslynAnalyzerServerToken";
+        var portKey = "sonar.sqvsRoslynPlugin.internal.serverPort";
+        var tokenKey = "sonar.sqvsRoslynPlugin.internal.serverToken";
 
         var analysisProperties = testSubject.CurrentConfiguration.MapToInferredProperties();
 
