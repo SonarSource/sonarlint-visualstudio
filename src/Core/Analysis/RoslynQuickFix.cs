@@ -22,7 +22,6 @@ namespace SonarLint.VisualStudio.Core.Analysis;
 
 public class RoslynQuickFix(Guid id) : IRoslynQuickFix
 {
-    // private const string StoragePrefix = "#!#SQVS#!#ROSLYN|QUICKFIX|";
     private const string StoragePrefix = "|<SQVS_ROSLYN_QUICKFIX>|";
 
     public Guid Id { get; } = id;

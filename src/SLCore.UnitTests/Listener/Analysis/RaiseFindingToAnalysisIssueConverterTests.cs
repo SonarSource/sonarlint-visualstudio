@@ -403,17 +403,17 @@ public class RaiseFindingToAnalysisIssueConverterTests
 
     private static RaisedIssueDto CreateRaisedIssueDto(
         Guid? id = null,
-        string? serverKey = null,
+        string serverKey = null,
         string ruleKey = "rule:key",
         string primaryMessage = "Primary message",
         DateTimeOffset? introductionDate = null,
         bool isOnNewCode = true,
         bool resolved = false,
-        TextRangeDto? textRange = null,
-        List<IssueFlowDto>? flows = null,
-        List<QuickFixDto>? quickFixes = null,
-        string? ruleDescriptionContextKey = null,
-        Either<StandardModeDetails, MQRModeDetails>? severityMode = null)
+        TextRangeDto textRange = null,
+        List<IssueFlowDto> flows = null,
+        List<QuickFixDto> quickFixes = null,
+        string ruleDescriptionContextKey = null,
+        Either<StandardModeDetails, MQRModeDetails> severityMode = null)
     {
         return new RaisedIssueDto(
             id ?? Guid.NewGuid(),
@@ -433,19 +433,19 @@ public class RaiseFindingToAnalysisIssueConverterTests
 
     private static RaisedHotspotDto CreateRaisedHotspotDto(
         Guid? id = null,
-        string? serverKey = null,
-        string? ruleKey = "rule:key",
-        string? primaryMessage = "Primary message",
+        string serverKey = null,
+        string ruleKey = "rule:key",
+        string primaryMessage = "Primary message",
         DateTimeOffset? introductionDate = null,
         bool isOnNewCode = true,
         bool resolved = false,
-        TextRangeDto? textRange = null,
-        List<IssueFlowDto>? flows = null,
-        List<QuickFixDto>? quickFixes = null,
-        string? ruleDescriptionContextKey = null,
+        TextRangeDto textRange = null,
+        List<IssueFlowDto> flows = null,
+        List<QuickFixDto> quickFixes = null,
+        string ruleDescriptionContextKey = null,
         VulnerabilityProbability? vulnerabilityProbability = VulnerabilityProbability.HIGH,
         HotspotStatus status = HotspotStatus.TO_REVIEW,
-        Either<StandardModeDetails, MQRModeDetails>? severityMode = null) =>
+        Either<StandardModeDetails, MQRModeDetails> severityMode = null) =>
         new(
             id ?? Guid.NewGuid(),
             serverKey,
