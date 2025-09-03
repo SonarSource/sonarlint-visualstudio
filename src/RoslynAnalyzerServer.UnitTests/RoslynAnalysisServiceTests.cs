@@ -67,7 +67,7 @@ public class RoslynAnalysisServiceTests
     public async Task AnalyzeAsync_PassesCorrectArgumentsToEngine()
     {
         string[] filePaths = [@"C:\file1.cs", @"C:\folder\file2.cs"];
-        analysisConfigurationProvider.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto).Returns(DefaultAnalysisConfigurations);
+        analysisConfigurationProvider.GetConfigurationAsync(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto).Returns(DefaultAnalysisConfigurations);
         analysisCommandProvider.GetAnalysisCommandsForCurrentSolution(Arg.Is<string[]>(x => x.SequenceEqual(filePaths))).Returns(DefaultProjectAnalysisRequests);
         analysisEngine.AnalyzeAsync(DefaultProjectAnalysisRequests, DefaultAnalysisConfigurations, Arg.Any<CancellationToken>()).Returns(DefaultIssues);
         var analysisRequest = new AnalysisRequest
