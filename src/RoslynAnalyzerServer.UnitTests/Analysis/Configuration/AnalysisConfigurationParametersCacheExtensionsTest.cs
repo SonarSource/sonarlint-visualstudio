@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis.Configu
 [TestClass]
 public class AnalysisConfigurationParametersCacheExtensionsTest
 {
-    private readonly AnalyzerInfoDto defaultAnalyzerInfoDto = default;
+    private readonly AnalyzerInfoDto defaultAnalyzerInfoDto = new(false, false);
     private readonly KeyValuePair<string, string> disableRazorAnalysisProp = new("sonar.cs.internal.disableRazor", "true");
     private readonly ActiveRuleDto s101RuleWithParam = new("S101", new Dictionary<string, string> { { "threshold", "3" } });
 

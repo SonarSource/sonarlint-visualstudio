@@ -38,6 +38,6 @@ internal class RoslynAnalysisService(
         CancellationToken cancellationToken) =>
         await analysisEngine.AnalyzeAsync(
             analysisCommandProvider.GetAnalysisCommandsForCurrentSolution(analysisRequest.FileNames.Select(x => x.LocalPath).ToArray()),
-            await analysisConfigurationProvider.GetConfiguration(analysisRequest.ActiveRules, analysisRequest.AnalysisProperties, analysisRequest.AnalyzerInfo),
+            await analysisConfigurationProvider.GetConfigurationAsync(analysisRequest.ActiveRules, analysisRequest.AnalysisProperties, analysisRequest.AnalyzerInfo),
             cancellationToken);
 }

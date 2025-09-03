@@ -43,7 +43,7 @@ internal class RoslynAnalysisConfigurationProvider(
     private IReadOnlyDictionary<Language, RoslynAnalysisConfiguration>? cachedConfigurations;
     private AnalysisConfigurationParametersCache? configurationParametersCache;
 
-    public Task<IReadOnlyDictionary<Language, RoslynAnalysisConfiguration>> GetConfiguration(
+    public Task<IReadOnlyDictionary<Language, RoslynAnalysisConfiguration>> GetConfigurationAsync(
         List<ActiveRuleDto> activeRules,
         Dictionary<string, string> analysisProperties,
         AnalyzerInfoDto analyzerInfo) =>

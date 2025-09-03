@@ -95,7 +95,7 @@ public class RoslynAnalysisConfigurationProviderTests
             Resources.RoslynAnalysisConfigurationLogContext);
 
     [TestMethod]
-    public async Task GetConfiguration_CreatesConfigurationForEachLanguage()
+    public async Task GetConfigurationAsync_CreatesConfigurationForEachLanguage()
     {
         var roslynAnalysisProfiles = new Dictionary<RoslynLanguage, RoslynAnalysisProfile>
         {
@@ -119,7 +119,7 @@ public class RoslynAnalysisConfigurationProviderTests
         analyzerProfilesProvider.GetAnalysisProfilesByLanguage(DefaultAnalyzers, DefaultActiveRules, DefaultAnalysisProperties)
             .Returns(roslynAnalysisProfiles);
 
-        var result = await testSubject.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        var result = await testSubject.GetConfigurationAsync(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
 
         result.Keys.Should().BeEquivalentTo(roslynAnalysisProfiles.Keys);
         foreach (var language in roslynAnalysisProfiles.Keys)
@@ -133,7 +133,7 @@ public class RoslynAnalysisConfigurationProviderTests
     }
 
     [TestMethod]
-    public async Task GetConfiguration_NoAnalyzers_LogsAndExcludesLanguage()
+    public async Task GetConfigurationAsync_NoAnalyzers_LogsAndExcludesLanguage()
     {
         var language = Language.CSharp;
         var roslynAnalysisProfiles = new Dictionary<RoslynLanguage, RoslynAnalysisProfile>
@@ -150,14 +150,14 @@ public class RoslynAnalysisConfigurationProviderTests
         analyzerProfilesProvider.GetAnalysisProfilesByLanguage(DefaultAnalyzers, DefaultActiveRules, DefaultAnalysisProperties)
             .Returns(roslynAnalysisProfiles);
 
-        var result = await testSubject.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        var result = await testSubject.GetConfigurationAsync(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
 
         result.Should().BeEmpty();
         testLogger.AssertPartialOutputStringExists(string.Format(Resources.RoslynAnalysisConfigurationNoAnalyzers, language.Name));
     }
 
     [TestMethod]
-    public async Task GetConfiguration_NoActiveRules_LogsAndExcludesLanguage()
+    public async Task GetConfigurationAsync_NoActiveRules_LogsAndExcludesLanguage()
     {
         var language = Language.CSharp;
         var roslynAnalysisProfiles = new Dictionary<RoslynLanguage, RoslynAnalysisProfile>
@@ -174,144 +174,144 @@ public class RoslynAnalysisConfigurationProviderTests
         analyzerProfilesProvider.GetAnalysisProfilesByLanguage(DefaultAnalyzers, DefaultActiveRules, DefaultAnalysisProperties)
             .Returns(roslynAnalysisProfiles);
 
-        var result = await testSubject.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        var result = await testSubject.GetConfigurationAsync(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
 
         result.Should().BeEmpty();
         testLogger.AssertPartialOutputStringExists(string.Format(Resources.RoslynAnalysisConfigurationNoActiveRules, language.Name));
     }
 
     [TestMethod]
-    public async Task GetConfiguration_NoAnalysisProfiles_ReturnsEmptyDictionary()
+    public async Task GetConfigurationAsync_NoAnalysisProfiles_ReturnsEmptyDictionary()
     {
-        var result = await testSubject.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        var result = await testSubject.GetConfigurationAsync(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
 
         result.Should().BeEmpty();
     }
 
     [TestMethod]
-    public async Task GetConfiguration_MultipleCalls_SameActiveRules_Caches()
+    public async Task GetConfigurationAsync_MultipleCalls_SameActiveRules_Caches()
     {
         var activeRules = new List<ActiveRuleDto> { new("S101", new Dictionary<string, string> { { "threshold", "3" } }) };
         var sameActiveRules = new List<ActiveRuleDto> { new("S101", new Dictionary<string, string> { { "threshold", "3" } }) };
 
-        await testSubject.GetConfiguration(activeRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
-        await testSubject.GetConfiguration(sameActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
-        await testSubject.GetConfiguration(sameActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(activeRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(sameActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(sameActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
 
         analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), activeRules, DefaultAnalysisProperties);
     }
 
     [TestMethod]
-    public async Task GetConfiguration_MultipleCalls_DifferentActiveRules_InvalidatesCache()
+    public async Task GetConfigurationAsync_MultipleCalls_DifferentActiveRules_InvalidatesCache()
     {
         var activeRules = new List<ActiveRuleDto> { new("S101", new Dictionary<string, string> { { "threshold", "3" } }) };
         var newActiveRules = new List<ActiveRuleDto> { new("S102", new Dictionary<string, string> { { "threshold", "3" } }) };
 
-        await testSubject.GetConfiguration(activeRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
-        await testSubject.GetConfiguration(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
-        await testSubject.GetConfiguration(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(activeRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
 
         analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), activeRules, DefaultAnalysisProperties);
         analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), newActiveRules, DefaultAnalysisProperties);
     }
 
     [TestMethod]
-    public async Task GetConfiguration_MultipleCalls_SameRuleWithDifferentParameter_InvalidatesCache()
+    public async Task GetConfigurationAsync_MultipleCalls_SameRuleWithDifferentParameter_InvalidatesCache()
     {
         var activeRules = new List<ActiveRuleDto> { new("S101", new Dictionary<string, string> { { "threshold", "3" } }) };
         var newActiveRules = new List<ActiveRuleDto> { new("S101", new Dictionary<string, string> { { "timeout", "60" } }) };
 
-        await testSubject.GetConfiguration(activeRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
-        await testSubject.GetConfiguration(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
-        await testSubject.GetConfiguration(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(activeRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
 
         analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), activeRules, DefaultAnalysisProperties);
         analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), newActiveRules, DefaultAnalysisProperties);
     }
 
     [TestMethod]
-    public async Task GetConfiguration_MultipleCalls_SameRuleWithDifferentParameters_InvalidatesCache()
+    public async Task GetConfigurationAsync_MultipleCalls_SameRuleWithDifferentParameters_InvalidatesCache()
     {
         var activeRules = new List<ActiveRuleDto> { new("S101", new Dictionary<string, string> { { "threshold", "3" } }) };
         var newActiveRules = new List<ActiveRuleDto> { new("S101", []) };
 
-        await testSubject.GetConfiguration(activeRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
-        await testSubject.GetConfiguration(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
-        await testSubject.GetConfiguration(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(activeRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
 
         analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), activeRules, DefaultAnalysisProperties);
         analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), newActiveRules, DefaultAnalysisProperties);
     }
 
     [TestMethod]
-    public async Task GetConfiguration_MultipleCalls_SameRuleWithDifferentParameterValue_InvalidatesCache()
+    public async Task GetConfigurationAsync_MultipleCalls_SameRuleWithDifferentParameterValue_InvalidatesCache()
     {
         var activeRules = new List<ActiveRuleDto> { new("S101", new Dictionary<string, string> { { "threshold", "3" } }) };
         var newActiveRules = new List<ActiveRuleDto> { new("S101", new Dictionary<string, string> { { "threshold", "5" } }) };
 
-        await testSubject.GetConfiguration(activeRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
-        await testSubject.GetConfiguration(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
-        await testSubject.GetConfiguration(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(activeRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(newActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
 
         analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), activeRules, DefaultAnalysisProperties);
         analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), newActiveRules, DefaultAnalysisProperties);
     }
 
     [TestMethod]
-    public async Task GetConfiguration_MultipleCalls_SameAnalysisProperties_Caches()
+    public async Task GetConfigurationAsync_MultipleCalls_SameAnalysisProperties_Caches()
     {
         var analysisProperties = new Dictionary<string, string> { { "sonar.cs.internal.disableRazor", "true" } };
         var sameAnalysisProperties = new Dictionary<string, string> { { "sonar.cs.internal.disableRazor", "true" } };
 
-        await testSubject.GetConfiguration(DefaultActiveRules, analysisProperties, DefaultAnalyzerInfoDto);
-        await testSubject.GetConfiguration(DefaultActiveRules, sameAnalysisProperties, DefaultAnalyzerInfoDto);
-        await testSubject.GetConfiguration(DefaultActiveRules, sameAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(DefaultActiveRules, analysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(DefaultActiveRules, sameAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(DefaultActiveRules, sameAnalysisProperties, DefaultAnalyzerInfoDto);
 
         analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), DefaultActiveRules, analysisProperties);
     }
 
     [TestMethod]
-    public async Task GetConfiguration_MultipleCalls_SameAnalysisPropertyWithDifferentValue_InvalidatesCache()
+    public async Task GetConfigurationAsync_MultipleCalls_SameAnalysisPropertyWithDifferentValue_InvalidatesCache()
     {
         var analysisProperties = new Dictionary<string, string> { { "sonar.cs.internal.disableRazor", "true" } };
         var newAnalysisProperties = new Dictionary<string, string> { { "sonar.cs.internal.disableRazor", "false" } };
 
-        await testSubject.GetConfiguration(DefaultActiveRules, analysisProperties, DefaultAnalyzerInfoDto);
-        await testSubject.GetConfiguration(DefaultActiveRules, newAnalysisProperties, DefaultAnalyzerInfoDto);
-        await testSubject.GetConfiguration(DefaultActiveRules, newAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(DefaultActiveRules, analysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(DefaultActiveRules, newAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(DefaultActiveRules, newAnalysisProperties, DefaultAnalyzerInfoDto);
 
         analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), DefaultActiveRules, analysisProperties);
         analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), DefaultActiveRules, newAnalysisProperties);
     }
 
     [TestMethod]
-    public async Task GetConfiguration_MultipleCalls_DifferentAnalysisProperties_InvalidatesCache()
+    public async Task GetConfigurationAsync_MultipleCalls_DifferentAnalysisProperties_InvalidatesCache()
     {
         var analysisProperties = new Dictionary<string, string> { { "sonar.cs.internal.disableRazor", "true" } };
         var newAnalysisProperties = new Dictionary<string, string>();
 
-        await testSubject.GetConfiguration(DefaultActiveRules, analysisProperties, DefaultAnalyzerInfoDto);
-        await testSubject.GetConfiguration(DefaultActiveRules, newAnalysisProperties, DefaultAnalyzerInfoDto);
-        await testSubject.GetConfiguration(DefaultActiveRules, newAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(DefaultActiveRules, analysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(DefaultActiveRules, newAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(DefaultActiveRules, newAnalysisProperties, DefaultAnalyzerInfoDto);
 
         analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), DefaultActiveRules, analysisProperties);
         analyzerProfilesProvider.Received(1).GetAnalysisProfilesByLanguage(Arg.Any<ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents>>(), DefaultActiveRules, newAnalysisProperties);
     }
 
     [TestMethod]
-    public async Task GetConfiguration_MultipleCalls_Locks()
+    public async Task GetConfigurationAsync_MultipleCalls_Locks()
     {
-        await testSubject.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
-        await testSubject.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
-        await testSubject.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
 
         asyncLock.Received(3).AcquireAsync().IgnoreAwaitForAssert();
     }
 
     [TestMethod]
-    public async Task GetConfiguration_RunsOnBackgroundThread()
+    public async Task GetConfigurationAsync_RunsOnBackgroundThread()
     {
-        await testSubject.GetConfiguration(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
+        await testSubject.GetConfigurationAsync(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
 
         threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<IReadOnlyDictionary<Language, RoslynAnalysisConfiguration>>>>()).IgnoreAwaitForAssert();
     }
