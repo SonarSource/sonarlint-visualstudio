@@ -21,6 +21,7 @@
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
@@ -32,25 +33,31 @@ internal class RoslynAnalysisConfigurationProvider(
     ISonarLintXmlProvider sonarLintXmlProvider,
     IRoslynAnalyzerProvider roslynAnalyzerProvider,
     IRoslynAnalysisProfilesProvider analyzerProfilesProvider,
+    IAsyncLockFactory asyncLockFactory,
+    IThreadHandling threadHandling,
     ILogger logger) : IRoslynAnalysisConfigurationProvider
 {
     private readonly ILogger logger = logger.ForContext(Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisConfigurationLogContext);
 
-    private static readonly object Lock = new();
+    private readonly IAsyncLock asyncLock = asyncLockFactory.Create();
     private IReadOnlyDictionary<Language, RoslynAnalysisConfiguration>? cachedConfigurations;
     private AnalysisConfigurationParametersCache? configurationParametersCache;
 
-    public IReadOnlyDictionary<Language, RoslynAnalysisConfiguration> GetConfiguration(List<ActiveRuleDto> activeRules, Dictionary<string, string> analysisProperties, AnalyzerInfoDto analyzerInfo)
-    {
-        lock (Lock)
+    public Task<IReadOnlyDictionary<Language, RoslynAnalysisConfiguration>> GetConfiguration(
+        List<ActiveRuleDto> activeRules,
+        Dictionary<string, string> analysisProperties,
+        AnalyzerInfoDto analyzerInfo) =>
+        threadHandling.RunOnBackgroundThread(async () =>
         {
-            if (configurationParametersCache.ShouldInvalidateCache(activeRules, analysisProperties, analyzerInfo))
+            using (await asyncLock.AcquireAsync())
             {
-                BuildConfigurations(activeRules, analysisProperties, analyzerInfo);
+                if (configurationParametersCache.ShouldInvalidateCache(activeRules, analysisProperties, analyzerInfo))
+                {
+                    BuildConfigurations(activeRules, analysisProperties, analyzerInfo);
+                }
+                return cachedConfigurations!;
             }
-            return cachedConfigurations!;
-        }
-    }
+        });
 
     private void BuildConfigurations(
         List<ActiveRuleDto> activeRules,
