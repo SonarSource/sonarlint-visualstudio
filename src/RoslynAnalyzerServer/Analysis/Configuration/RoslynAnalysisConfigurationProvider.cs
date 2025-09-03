@@ -37,11 +37,9 @@ internal class RoslynAnalysisConfigurationProvider(
     IThreadHandling threadHandling,
     ILogger logger) : IRoslynAnalysisConfigurationProvider
 {
-    private readonly ILogger logger = logger.ForContext(Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisConfigurationLogContext);
-
     private readonly IAsyncLock asyncLock = asyncLockFactory.Create();
-    private IReadOnlyDictionary<Language, RoslynAnalysisConfiguration>? cachedConfigurations;
-    private AnalysisConfigurationParametersCache? configurationParametersCache;
+    private readonly ILogger logger = logger.ForContext(Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisConfigurationLogContext);
+    private AnalysisConfigurationCache? cache;
 
     public Task<IReadOnlyDictionary<Language, RoslynAnalysisConfiguration>> GetConfigurationAsync(
         List<ActiveRuleDto> activeRules,
@@ -51,11 +49,11 @@ internal class RoslynAnalysisConfigurationProvider(
         {
             using (await asyncLock.AcquireAsync())
             {
-                if (configurationParametersCache.ShouldInvalidateCache(activeRules, analysisProperties, analyzerInfo))
+                if (!cache.HasValue || cache.Value.Parameters.ShouldInvalidateCache(activeRules, analysisProperties, analyzerInfo))
                 {
                     BuildConfigurations(activeRules, analysisProperties, analyzerInfo);
                 }
-                return cachedConfigurations!;
+                return cache!.Value.Configurations;
             }
         });
 
@@ -66,8 +64,10 @@ internal class RoslynAnalysisConfigurationProvider(
     {
         var analyzerAssemblyContents = roslynAnalyzerProvider.LoadAndProcessAnalyzerAssemblies(analyzerInfo);
         var analysisProfilesByLanguage = analyzerProfilesProvider.GetAnalysisProfilesByLanguage(analyzerAssemblyContents, activeRules, analysisProperties);
-        configurationParametersCache = new(activeRules.ToDictionary(r => r.RuleId, r => r), analysisProperties, analyzerInfo);
-        cachedConfigurations = BuildConfigurations(analysisProfilesByLanguage);
+        var activeRulesMap = activeRules.ToDictionary(r => r.RuleId, r => r);
+        cache = new AnalysisConfigurationCache(
+            new AnalysisConfigurationParametersCache(activeRulesMap, analysisProperties, analyzerInfo),
+            BuildConfigurations(analysisProfilesByLanguage));
     }
 
     private IReadOnlyDictionary<Language, RoslynAnalysisConfiguration> BuildConfigurations(Dictionary<RoslynLanguage, RoslynAnalysisProfile> analysisProfilesByLanguage)
@@ -102,4 +102,6 @@ internal class RoslynAnalysisConfigurationProvider(
         }
         return configurations;
     }
+
+    private record struct AnalysisConfigurationCache(AnalysisConfigurationParametersCache Parameters, IReadOnlyDictionary<Language, RoslynAnalysisConfiguration> Configurations);
 }
