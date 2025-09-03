@@ -24,7 +24,6 @@ using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Vsix.EmbeddedAnalyzers;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.EmbeddedAnalyzers;
 
@@ -41,19 +40,22 @@ public class EmbeddedDotnetAnalyzersLocatorTests
 
     private EmbeddedDotnetAnalyzersLocator testSubject;
     private IVsixRootLocator vsixRootLocator;
+    private ILanguageProvider languageProvider;
 
     [TestInitialize]
     public void TestInitialize()
     {
         vsixRootLocator = Substitute.For<IVsixRootLocator>();
         fileSystem = Substitute.For<IFileSystemService>();
-        testSubject = new EmbeddedDotnetAnalyzersLocator(vsixRootLocator, fileSystem);
+        languageProvider = Substitute.For<ILanguageProvider>();
+        testSubject = new EmbeddedDotnetAnalyzersLocator(vsixRootLocator, languageProvider, fileSystem);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<EmbeddedDotnetAnalyzersLocator, IEmbeddedDotnetAnalyzersLocator>(
             MefTestHelpers.CreateExport<IVsixRootLocator>(),
+            MefTestHelpers.CreateExport<ILanguageProvider>(),
             MefTestHelpers.CreateExport<IFileSystemService>());
 
     [TestMethod]
@@ -140,8 +142,9 @@ public class EmbeddedDotnetAnalyzersLocatorTests
     }
 
     [TestMethod]
-    public void GetAnalyzerFullPathsByLanguage_BothEnterprise_GroupsEnterpriseDllsByLanguage()
+    public void GetAnalyzerFullPathsByLanguage_ReturnsExpectedPaths()
     {
+        languageProvider.RoslynLanguages.Returns([Language.CSharp, Language.VBNET]);
         fileSystem.Directory.GetFiles(Arg.Any<string>(), Arg.Any<string>()).Returns([
             CSharpRegularAnalyzer,
             VbRegularAnalyzer,
@@ -149,50 +152,14 @@ public class EmbeddedDotnetAnalyzersLocatorTests
             VbEnterpriseAnalyzer
         ]);
 
-        testSubject.GetAnalyzerFullPathsByLanguage(new AnalyzerInfoDto(true, true)).Should().BeEquivalentTo(
-            new Dictionary<RoslynLanguage, List<string>> { [Language.CSharp] = [CSharpRegularAnalyzer, CSharpEnterpriseAnalyzer], [Language.VBNET] = [VbRegularAnalyzer, VbEnterpriseAnalyzer] });
-    }
-
-    [TestMethod]
-    public void GetAnalyzerFullPathsByLanguage_BothBasic_GroupsBasicDllsByLanguage()
-    {
-        fileSystem.Directory.GetFiles(Arg.Any<string>(), Arg.Any<string>()).Returns([
-            CSharpRegularAnalyzer,
-            VbRegularAnalyzer,
-            CSharpEnterpriseAnalyzer,
-            VbEnterpriseAnalyzer
-        ]);
-
-        testSubject.GetAnalyzerFullPathsByLanguage(new AnalyzerInfoDto(false, false)).Should().BeEquivalentTo(
-            new Dictionary<RoslynLanguage, List<string>> { [Language.CSharp] = [CSharpRegularAnalyzer], [Language.VBNET] = [VbRegularAnalyzer] });
-    }
-
-    [TestMethod]
-    public void GetAnalyzerFullPathsByLanguage_OnlyCsharpEnterprise_GroupsDllsByLanguage()
-    {
-        fileSystem.Directory.GetFiles(Arg.Any<string>(), Arg.Any<string>()).Returns([
-            CSharpRegularAnalyzer,
-            VbRegularAnalyzer,
-            CSharpEnterpriseAnalyzer,
-            VbEnterpriseAnalyzer
-        ]);
-
-        testSubject.GetAnalyzerFullPathsByLanguage(new AnalyzerInfoDto(true, false)).Should().BeEquivalentTo(
-            new Dictionary<RoslynLanguage, List<string>> { [Language.CSharp] = [CSharpRegularAnalyzer, CSharpEnterpriseAnalyzer], [Language.VBNET] = [VbRegularAnalyzer] });
-    }
-
-    [TestMethod]
-    public void GetAnalyzerFullPathsByLanguage_OnlyVbEnterprise_GroupsDllsByLanguage()
-    {
-        fileSystem.Directory.GetFiles(Arg.Any<string>(), Arg.Any<string>()).Returns([
-            CSharpRegularAnalyzer,
-            VbRegularAnalyzer,
-            CSharpEnterpriseAnalyzer,
-            VbEnterpriseAnalyzer
-        ]);
-
-        testSubject.GetAnalyzerFullPathsByLanguage(new AnalyzerInfoDto(false, true)).Should().BeEquivalentTo(
-            new Dictionary<RoslynLanguage, List<string>> { [Language.CSharp] = [CSharpRegularAnalyzer], [Language.VBNET] = [VbRegularAnalyzer, VbEnterpriseAnalyzer] });
+        testSubject.GetAnalyzerFullPathsByLicensedLanguage().Should().BeEquivalentTo(
+            new Dictionary<LicensedRoslynLanguage, List<string>>
+            {
+                [new LicensedRoslynLanguage(Language.CSharp, false)] = [CSharpRegularAnalyzer],
+                [new LicensedRoslynLanguage(Language.CSharp, true)] = [CSharpRegularAnalyzer, CSharpEnterpriseAnalyzer],
+                [new LicensedRoslynLanguage(Language.VBNET, false)] = [VbRegularAnalyzer],
+                [new LicensedRoslynLanguage(Language.VBNET, true)] = [VbRegularAnalyzer, VbEnterpriseAnalyzer],
+            });
     }
 
     private static string GetAnalyzerFullPath(string pathInsideVsix, string analyzerFile) => Path.Combine(pathInsideVsix, analyzerFile);
