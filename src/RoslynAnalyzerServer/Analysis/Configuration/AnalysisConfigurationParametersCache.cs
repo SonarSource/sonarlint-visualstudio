@@ -34,10 +34,10 @@ internal static class AnalysisConfigurationParametersCacheExtensions
         List<ActiveRuleDto> newActiveRuleDtos,
         Dictionary<string, string> newAnalysisProperties,
         AnalyzerInfoDto analyzerInfo) =>
-        cache == null ||
-        cache.AnalyzerInfo != analyzerInfo ||
-        !AreSameActiveRuleDtos(newActiveRuleDtos, cache.ActiveRuleDtos) ||
-        !AreDictionariesEqual(newAnalysisProperties, cache.AnalysisProperties);
+        cache == null
+        || cache.AnalyzerInfo != analyzerInfo
+        || !AreSameActiveRuleDtos(newActiveRuleDtos, cache.ActiveRuleDtos)
+        || !AreDictionariesEqual(newAnalysisProperties, cache.AnalysisProperties);
 
     private static bool AreSameActiveRuleDtos(List<ActiveRuleDto> newActiveRuleDtos, Dictionary<string, ActiveRuleDto> oldActiveRuleDtos)
     {
