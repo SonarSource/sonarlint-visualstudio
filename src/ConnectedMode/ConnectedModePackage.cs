@@ -40,7 +40,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
     {
         private SSESessionManager sseSessionManager;
         private IQualityProfileServerEventsListener qualityProfileServerEventsListener;
-        private BoundSolutionUpdateHandler boundSolutionUpdateHandler;
         private IHotspotDocumentClosedHandler hotspotDocumentClosedHandler;
         private IHotspotSolutionClosedHandler hotspotSolutionClosedHandler;
         private ILocalHotspotStoreMonitor hotspotStoreMonitor;
@@ -58,8 +57,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
             qualityProfileServerEventsListener = componentModel.GetService<IQualityProfileServerEventsListener>();
             qualityProfileServerEventsListener.ListenAsync().Forget();
-
-            boundSolutionUpdateHandler = componentModel.GetService<BoundSolutionUpdateHandler>();
 
             hotspotDocumentClosedHandler = componentModel.GetService<IHotspotDocumentClosedHandler>();
 
@@ -87,7 +84,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
             if (disposing)
             {
                 sseSessionManager?.Dispose();
-                boundSolutionUpdateHandler?.Dispose();
             }
 
             base.Dispose(disposing);
