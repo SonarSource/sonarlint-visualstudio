@@ -28,7 +28,6 @@ using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using SonarLint.VisualStudio.Integration.CSharpVB.Install;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
@@ -70,7 +69,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private ILogger logger;
         private IActiveCompilationDatabaseTracker activeCompilationDatabaseTracker;
-        private ISolutionRoslynAnalyzerManager solutionRoslynAnalyzerManager;
         private IProjectDocumentsEventsListener projectDocumentsEventsListener;
         private ISLCoreHandler slCoreHandler;
         private IDocumentEventsHandler documentEventsHandler;
@@ -124,7 +122,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 projectDocumentsEventsListener = await this.GetMefServiceAsync<IProjectDocumentsEventsListener>();
                 projectDocumentsEventsListener.Initialize();
 
-                solutionRoslynAnalyzerManager = await this.GetMefServiceAsync<ISolutionRoslynAnalyzerManager>();
                 var importBeforeFileGenerator = await this.GetMefServiceAsync<IImportBeforeFileGenerator>();
                 importBeforeFileGenerator.UpdateOrCreateTargetsFileAsync().Forget();
 
@@ -169,8 +166,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 projectDocumentsEventsListener?.Dispose();
                 projectDocumentsEventsListener = null;
-                solutionRoslynAnalyzerManager?.Dispose();
-                solutionRoslynAnalyzerManager = null;
                 slCoreHandler?.Dispose();
                 slCoreHandler = null;
 
