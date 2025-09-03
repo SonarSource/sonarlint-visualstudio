@@ -26,7 +26,6 @@ using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.EmbeddedAnalyzers;
 
@@ -34,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.EmbeddedAnalyzers;
 [Export(typeof(IObsoleteDotnetAnalyzersLocator))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class EmbeddedDotnetAnalyzersLocator(IVsixRootLocator vsixRootLocator, IFileSystemService fileSystem)
+internal class EmbeddedDotnetAnalyzersLocator(IVsixRootLocator vsixRootLocator, ILanguageProvider languageProvider, IFileSystemService fileSystem)
     : IEmbeddedDotnetAnalyzersLocator, IObsoleteDotnetAnalyzersLocator
 {
     private const string PathInsideVsix = "EmbeddedDotnetAnalyzerDLLs";
@@ -45,14 +44,18 @@ internal class EmbeddedDotnetAnalyzersLocator(IVsixRootLocator vsixRootLocator, 
 
     public List<string> GetBasicAnalyzerFullPaths() => GetBasicAnalyzerDlls().ToList();
 
-    public Dictionary<RoslynLanguage, List<string>> GetAnalyzerFullPathsByLanguage(AnalyzerInfoDto analyzerInfoDto)
+    public Dictionary<LicensedRoslynLanguage, List<string>> GetAnalyzerFullPathsByLicensedLanguage()
     {
+        var languageToDllsMap = new Dictionary<LicensedRoslynLanguage, List<string>>();
         var allAnalyzers = GetAllAnalyzerDlls();
-        var languageToDllsMap = new Dictionary<RoslynLanguage, List<string>>
+        foreach (var roslynLanguage in languageProvider.RoslynLanguages)
         {
-            { RoslynLanguage.CSharp, GetAnalyzerFullPathsByLanguage(RoslynLanguage.CSharp, analyzerInfoDto.ShouldUseCsharpEnterprise, allAnalyzers) },
-            { RoslynLanguage.VBNET, GetAnalyzerFullPathsByLanguage(RoslynLanguage.VBNET, analyzerInfoDto.ShouldUseVbEnterprise, allAnalyzers) }
-        };
+            var basicKey = new LicensedRoslynLanguage(roslynLanguage, IsEnterprise: false);
+            languageToDllsMap.Add(basicKey, GetAnalyzerFullPathsByLanguage(basicKey.RoslynLanguage, basicKey.IsEnterprise, allAnalyzers));
+
+            var enterpriseKey = new LicensedRoslynLanguage(roslynLanguage, IsEnterprise: true);
+            languageToDllsMap.Add(enterpriseKey, GetAnalyzerFullPathsByLanguage(enterpriseKey.RoslynLanguage, enterpriseKey.IsEnterprise, allAnalyzers));
+        }
         return languageToDllsMap;
     }
 
