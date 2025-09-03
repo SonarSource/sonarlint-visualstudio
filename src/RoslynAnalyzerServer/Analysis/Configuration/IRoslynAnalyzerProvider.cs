@@ -31,6 +31,11 @@ internal interface IRoslynAnalyzerProvider
     ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadAndProcessAnalyzerAssemblies(AnalyzerInfoDto analyzerInfo);
 }
 
+public interface IRoslynAnalyzerAssemblyContentsLoader
+{
+    void LoadRoslynAnalyzerAssemblyContentsIfNeeded();
+}
+
 internal readonly record struct AnalyzerAssemblyContents(
     ImmutableArray<DiagnosticAnalyzer> Analyzers,
     ImmutableHashSet<string> SupportedRuleKeys,
