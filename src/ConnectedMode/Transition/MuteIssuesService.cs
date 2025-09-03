@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Suppressions;
@@ -39,8 +38,6 @@ internal class MuteIssuesService(
     IMuteIssuesWindowService muteIssuesWindowService,
     IActiveConfigScopeTracker activeConfigScopeTracker,
     ISLCoreServiceProvider slCoreServiceProvider,
-    IServerIssueFinder serverIssueFinder,
-    IRoslynSuppressionUpdater roslynSuppressionUpdater,
     ILogger logger,
     IThreadHandling threadHandling)
     : IMuteIssuesService
@@ -50,34 +47,20 @@ internal class MuteIssuesService(
     public async Task ResolveIssueWithDialogAsync(IFilterableIssue issue)
     {
         threadHandling.ThrowIfOnUIThread();
-        var issueServerKey = await GetIssueServerKeyAsync(issue);
+        var issueServerKey = GetIssueServerKey(issue);
         var currentConfigScope = activeConfigScopeTracker.Current;
         CheckIsInConnectedMode(currentConfigScope);
         CheckIssueServerKeyNotNullOrEmpty(issueServerKey);
 
         var allowedStatuses = await GetAllowedStatusesAsync(currentConfigScope.ConnectionId, issueServerKey);
         var windowResponse = await PromptMuteIssueResolutionAsync(allowedStatuses);
-        await MuteIssueAsync(currentConfigScope.Id, issueServerKey, issue, windowResponse.IssueTransition.Value);
+        await MuteIssueAsync(currentConfigScope.Id, issueServerKey, windowResponse.IssueTransition.Value);
         await AddCommentAsync(currentConfigScope.Id, issueServerKey, windowResponse.Comment);
     }
 
-    private async Task<string> GetIssueServerKeyAsync(IFilterableIssue issue)
-    {
-        // Non-Roslyn issues already have the issue server key
-        if (issue is IAnalysisIssueVisualization issueViz)
-        {
-            return issueViz.Issue.IssueServerKey;
-        }
-
-        // Roslyn issues need to be converted to SonarQube issues to get the server key as they are handled by SLCore
-        var serverIssue = await serverIssueFinder.FindServerIssueAsync(issue, CancellationToken.None);
-        if (serverIssue is { IsResolved: true })
-        {
-            logger.WriteLine(Resources.MuteIssue_ErrorIssueAlreadyResolved);
-            throw new MuteIssueException(Resources.MuteIssue_ErrorIssueAlreadyResolved);
-        }
-        return serverIssue?.IssueKey;
-    }
+    private static string GetIssueServerKey(IFilterableIssue issue) =>
+        // TODO by https://sonarsource.atlassian.net/browse/SLVS-2419 remove handling of different type of issues
+        ((IAnalysisIssueVisualization)issue).Issue.IssueServerKey;
 
     private async Task<MuteIssuesWindowResponse> PromptMuteIssueResolutionAsync(IEnumerable<ResolutionStatus> allowedStatuses)
     {
@@ -153,7 +136,6 @@ internal class MuteIssuesService(
     private async Task MuteIssueAsync(
         string configurationScopeId,
         string issueServerKey,
-        IFilterableIssue issue,
         SonarQubeIssueTransition transition)
     {
         try
@@ -166,7 +148,6 @@ internal class MuteIssuesService(
                 transition.ToSlCoreResolutionStatus(),
                 false // Muting taints are not supported yet
             ));
-            await UpdateRoslynSuppressionsAsync(issue, issueServerKey);
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
@@ -189,17 +170,6 @@ internal class MuteIssuesService(
         {
             logger.WriteLine(Resources.MuteIssue_AddCommentFailed, issueServerKey, ex.Message);
             throw new MuteIssueException.MuteIssueCommentFailedException();
-        }
-    }
-
-    /// <summary>
-    /// The suppressed issues for roslyn are not dealt by SlCore, but are stored on disk, so we need to update them manually
-    /// </summary>
-    private async Task UpdateRoslynSuppressionsAsync(IFilterableIssue issue, string serverIssueKey)
-    {
-        if (issue is IFilterableRoslynIssue)
-        {
-            await roslynSuppressionUpdater.UpdateSuppressedIssuesAsync(isResolved: true, [serverIssueKey], new CancellationToken());
         }
     }
 }
