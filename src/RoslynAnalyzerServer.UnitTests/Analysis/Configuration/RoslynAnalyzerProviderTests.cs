@@ -33,7 +33,13 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis.Configu
 public class RoslynAnalyzerProviderTests
 {
     private const string CsharpAnalyzerPath = "c:\\analyzers\\csharp.dll";
+    private const string CsharpEnterpriseAnalyzerPath = "c:\\analyzers\\csharp.enterprise.dll";
     private const string VbAnalyzerPath = "c:\\analyzers\\vb.dll";
+    private const string VbEnterpriseAnalyzerPath = "c:\\analyzers\\vb.enterprise.dll";
+    private readonly DiagnosticAnalyzer CsharpAnalyzer = CreateAnalyzerWithDiagnostic();
+    private readonly DiagnosticAnalyzer CsharpEnterpriseAnalyzer = CreateAnalyzerWithDiagnostic();
+    private readonly DiagnosticAnalyzer VbAnalyzer = CreateAnalyzerWithDiagnostic();
+    private readonly DiagnosticAnalyzer VbEnterpriseAnalyzer = CreateAnalyzerWithDiagnostic();
     private static readonly AnalyzerInfoDto DefaultAnalyzerInfoDto = new(false, false);
 
     private IEmbeddedDotnetAnalyzersLocator analyzersLocator = null!;
@@ -49,8 +55,14 @@ public class RoslynAnalyzerProviderTests
     }
 
     [TestMethod]
-    public void MefCtor_CheckIsExported() =>
+    public void MefCtor_IRoslynAnalyzerProvider_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<RoslynAnalyzerProvider, IRoslynAnalyzerProvider>(
+            MefTestHelpers.CreateExport<IEmbeddedDotnetAnalyzersLocator>(),
+            MefTestHelpers.CreateExport<IRoslynAnalyzerLoader>());
+
+    [TestMethod]
+    public void MefCtor_IRoslynAnalyzerAssemblyContentsLoader_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<RoslynAnalyzerProvider, IRoslynAnalyzerAssemblyContentsLoader>(
             MefTestHelpers.CreateExport<IEmbeddedDotnetAnalyzersLocator>(),
             MefTestHelpers.CreateExport<IRoslynAnalyzerLoader>());
 
@@ -58,9 +70,9 @@ public class RoslynAnalyzerProviderTests
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<RoslynAnalyzerProvider>();
 
     [TestMethod]
-    public void GetAnalyzersByLanguage_NoAnalyzers_ReturnsEmptyDictionary()
+    public void LoadAndProcessAnalyzerAssemblies_NoAnalyzers_ReturnsEmptyDictionary()
     {
-        analyzersLocator.GetAnalyzerFullPathsByLanguage(Arg.Any<AnalyzerInfoDto>()).Returns(new Dictionary<RoslynLanguage, List<string>>());
+        analyzersLocator.GetAnalyzerFullPathsByLicensedLanguage().Returns(new Dictionary<LicensedRoslynLanguage, List<string>>());
 
         var result = testSubject.LoadAndProcessAnalyzerAssemblies(DefaultAnalyzerInfoDto);
 
@@ -68,10 +80,10 @@ public class RoslynAnalyzerProviderTests
     }
 
     [TestMethod]
-    public void GetAnalyzersByLanguage_WithAnalyzers_LoadsAnalyzersAndReturnsCorrectDictionary()
+    public void LoadAndProcessAnalyzerAssemblies_WithAnalyzers_LoadsAnalyzersAndReturnsCorrectDictionary()
     {
-        analyzersLocator.GetAnalyzerFullPathsByLanguage(Arg.Any<AnalyzerInfoDto>())
-            .Returns(new Dictionary<RoslynLanguage, List<string>> { { Language.CSharp, [CsharpAnalyzerPath] }, { Language.VBNET, [VbAnalyzerPath] } });
+        analyzersLocator.GetAnalyzerFullPathsByLicensedLanguage()
+            .Returns(new Dictionary<LicensedRoslynLanguage, List<string>> { { new(Language.CSharp, false), [CsharpAnalyzerPath] }, { new(Language.VBNET, false), [VbAnalyzerPath] } });
         var csharpAnalyzer = CreateAnalyzerWithDiagnostic("CS0001");
         var vbAnalyzer = CreateAnalyzerWithDiagnostic("VB0001");
         var csharpCodeFixer = CreateCodeFixProviderWithDiagnostics("CS0001");
@@ -94,10 +106,10 @@ public class RoslynAnalyzerProviderTests
     }
 
     [TestMethod]
-    public void GetAnalyzersByLanguage_IgnoresDuplicateIdsForTheSameLanguage()
+    public void LoadAndProcessAnalyzerAssemblies_IgnoresDuplicateIdsForTheSameLanguage()
     {
-        analyzersLocator.GetAnalyzerFullPathsByLanguage(Arg.Any<AnalyzerInfoDto>())
-            .Returns(new Dictionary<RoslynLanguage, List<string>> { { Language.CSharp, [CsharpAnalyzerPath] }, { Language.VBNET, [VbAnalyzerPath] } });
+        analyzersLocator.GetAnalyzerFullPathsByLicensedLanguage()
+            .Returns(new Dictionary<LicensedRoslynLanguage, List<string>> { { new(Language.CSharp, false), [CsharpAnalyzerPath] }, { new(Language.VBNET, false), [VbAnalyzerPath] } });
         var csharpAnalyzer1 = CreateAnalyzerWithDiagnostic("S001", "SDUPLICATE");
         var csharpAnalyzer2 = CreateAnalyzerWithDiagnostic("S002", "SDUPLICATE");
         var vbAnalyzer = CreateAnalyzerWithDiagnostic("S001", "S002");
@@ -112,11 +124,11 @@ public class RoslynAnalyzerProviderTests
     }
 
     [TestMethod]
-    public void GetAnalyzersByLanguage_MultipleAnalyzersPerLanguage_CombinesAllRules()
+    public void LoadAndProcessAnalyzerAssemblies_MultipleAnalyzersPerLanguage_CombinesAllRules()
     {
         const string csharpAnalyzerPath2 = "c:\\analyzers\\csharp2.dll";
-        analyzersLocator.GetAnalyzerFullPathsByLanguage(Arg.Any<AnalyzerInfoDto>())
-            .Returns(new Dictionary<RoslynLanguage, List<string>> { { Language.CSharp, [CsharpAnalyzerPath, csharpAnalyzerPath2] } });
+        analyzersLocator.GetAnalyzerFullPathsByLicensedLanguage()
+            .Returns(new Dictionary<LicensedRoslynLanguage, List<string>> { { new(Language.CSharp, false), [CsharpAnalyzerPath, csharpAnalyzerPath2] } });
         var csharpAnalyzer1 = CreateAnalyzerWithDiagnostic("S001");
         var csharpAnalyzer2 = CreateAnalyzerWithDiagnostic("S002", "S003");
         var csharpAnalyzer3 = CreateAnalyzerWithDiagnostic("S004");
@@ -131,11 +143,10 @@ public class RoslynAnalyzerProviderTests
     }
 
     [TestMethod]
-    public void GetAnalyzersByLanguage_NoCodeFixProviders_ReturnsEmptyMap()
+    public void LoadAndProcessAnalyzerAssemblies_NoCodeFixProviders_ReturnsEmptyMap()
     {
-        analyzersLocator.GetAnalyzerFullPathsByLanguage(DefaultAnalyzerInfoDto).Returns(new Dictionary<RoslynLanguage, List<string>> { { Language.CSharp, [CsharpAnalyzerPath] } });
         var csharpAnalyzer = CreateAnalyzerWithDiagnostic("S001");
-        roslynAnalyzerLoader.LoadAnalyzerAssembly(CsharpAnalyzerPath).Returns(new LoadedAnalyzerClasses([csharpAnalyzer], []));
+        MockCodeProvidersForCsharp(csharpAnalyzer, []);
 
         var result = testSubject.LoadAndProcessAnalyzerAssemblies(DefaultAnalyzerInfoDto);
 
@@ -143,13 +154,11 @@ public class RoslynAnalyzerProviderTests
     }
 
     [TestMethod]
-    public void GetAnalyzersByLanguage_CodeFixProviderWithMultipleDiagnostics_AddedToAllMappings()
+    public void LoadAndProcessAnalyzerAssemblies_CodeFixProviderWithMultipleDiagnostics_AddedToAllMappings()
     {
-        analyzersLocator.GetAnalyzerFullPathsByLanguage(DefaultAnalyzerInfoDto).Returns(new Dictionary<RoslynLanguage, List<string>> { { Language.CSharp, [CsharpAnalyzerPath] } });
         var csharpAnalyzer = CreateAnalyzerWithDiagnostic("S001", "S002", "S003");
         var codeFixProvider = CreateCodeFixProviderWithDiagnostics("S001", "S002");
-
-        roslynAnalyzerLoader.LoadAnalyzerAssembly(CsharpAnalyzerPath).Returns(new LoadedAnalyzerClasses([csharpAnalyzer], [codeFixProvider]));
+        MockCodeProvidersForCsharp(csharpAnalyzer, codeFixProvider);
 
         var result = testSubject.LoadAndProcessAnalyzerAssemblies(DefaultAnalyzerInfoDto);
 
@@ -158,19 +167,91 @@ public class RoslynAnalyzerProviderTests
     }
 
     [TestMethod]
-    public void GetAnalyzersByLanguage_MultipleCodeFixProvidersForSameId_AllAddedToSameCollection()
+    public void LoadAndProcessAnalyzerAssemblies_MultipleCodeFixProvidersForSameId_AllAddedToSameCollection()
     {
-        analyzersLocator.GetAnalyzerFullPathsByLanguage(DefaultAnalyzerInfoDto).Returns(new Dictionary<RoslynLanguage, List<string>> { { Language.CSharp, [CsharpAnalyzerPath] } });
         var csharpAnalyzer = CreateAnalyzerWithDiagnostic("S001");
         var codeFixProvider1 = CreateCodeFixProviderWithDiagnostics("S001");
         var codeFixProvider2 = CreateCodeFixProviderWithDiagnostics("S001");
-
-        roslynAnalyzerLoader.LoadAnalyzerAssembly(CsharpAnalyzerPath).Returns(new LoadedAnalyzerClasses([csharpAnalyzer], [codeFixProvider1, codeFixProvider2]));
+        MockCodeProvidersForCsharp(csharpAnalyzer, codeFixProvider1, codeFixProvider2);
 
         var result = testSubject.LoadAndProcessAnalyzerAssemblies(DefaultAnalyzerInfoDto);
 
         result[Language.CSharp].CodeFixProvidersByRuleKey.Should().BeEquivalentTo(
             new Dictionary<string, IReadOnlyCollection<CodeFixProvider>> { { "S001", [codeFixProvider1, codeFixProvider2] } });
+    }
+
+    [TestMethod]
+    public void LoadAndProcessAnalyzerAssemblies_BothEnterprise_ReturnsEnterpriseDlls()
+    {
+        MockAnalyzerFullPathsByLicensedLanguage();
+        var analyzerInfo = new AnalyzerInfoDto(ShouldUseCsharpEnterprise: true, ShouldUseVbEnterprise: true);
+
+        var result = testSubject.LoadAndProcessAnalyzerAssemblies(analyzerInfo);
+
+        result[Language.CSharp].Analyzers.Should().BeEquivalentTo(new List<DiagnosticAnalyzer> { CsharpEnterpriseAnalyzer });
+        result[Language.VBNET].Analyzers.Should().BeEquivalentTo(new List<DiagnosticAnalyzer> { VbEnterpriseAnalyzer });
+    }
+
+    [TestMethod]
+    public void LoadAndProcessAnalyzerAssemblies_BothBasic_ReturnsBasicDlls()
+    {
+        MockAnalyzerFullPathsByLicensedLanguage();
+        var analyzerInfo = new AnalyzerInfoDto(ShouldUseCsharpEnterprise: false, ShouldUseVbEnterprise: false);
+
+        var result = testSubject.LoadAndProcessAnalyzerAssemblies(analyzerInfo);
+
+        result[Language.CSharp].Analyzers.Should().BeEquivalentTo(new List<DiagnosticAnalyzer> { CsharpAnalyzer });
+        result[Language.VBNET].Analyzers.Should().BeEquivalentTo(new List<DiagnosticAnalyzer> { VbAnalyzer });
+    }
+
+    [TestMethod]
+    public void LoadAndProcessAnalyzerAssemblies_OnlyCsharpEnterprise_ReturnsCsharpEnterpriseAndVbBasic()
+    {
+        MockAnalyzerFullPathsByLicensedLanguage();
+        var analyzerInfo = new AnalyzerInfoDto(ShouldUseCsharpEnterprise: true, ShouldUseVbEnterprise: false);
+
+        var result = testSubject.LoadAndProcessAnalyzerAssemblies(analyzerInfo);
+
+        result[Language.CSharp].Analyzers.Should().BeEquivalentTo(new List<DiagnosticAnalyzer> { CsharpEnterpriseAnalyzer });
+        result[Language.VBNET].Analyzers.Should().BeEquivalentTo(new List<DiagnosticAnalyzer> { VbAnalyzer });
+    }
+
+    [TestMethod]
+    public void LoadAndProcessAnalyzerAssemblies_OnlyVbEnterprise_ReturnsVbEnterpriseAndCsharpBasic()
+    {
+        MockAnalyzerFullPathsByLicensedLanguage();
+        var analyzerInfo = new AnalyzerInfoDto(ShouldUseCsharpEnterprise: false, ShouldUseVbEnterprise: true);
+
+        var result = testSubject.LoadAndProcessAnalyzerAssemblies(analyzerInfo);
+
+        result[Language.CSharp].Analyzers.Should().BeEquivalentTo(new List<DiagnosticAnalyzer> { CsharpAnalyzer });
+        result[Language.VBNET].Analyzers.Should().BeEquivalentTo(new List<DiagnosticAnalyzer> { VbEnterpriseAnalyzer });
+    }
+
+    [TestMethod]
+    public void LoadAndProcessAnalyzerAssemblies_MultipleCalls_AnalyzerAssemblyContentsAreCached()
+    {
+        MockCodeProvidersForCsharp(CsharpAnalyzer);
+
+        testSubject.LoadAndProcessAnalyzerAssemblies(DefaultAnalyzerInfoDto);
+        testSubject.LoadAndProcessAnalyzerAssemblies(DefaultAnalyzerInfoDto);
+        testSubject.LoadAndProcessAnalyzerAssemblies(DefaultAnalyzerInfoDto);
+
+        analyzersLocator.Received(1).GetAnalyzerFullPathsByLicensedLanguage();
+        roslynAnalyzerLoader.Received(1).LoadAnalyzerAssembly(Arg.Any<string>());
+    }
+
+    [TestMethod]
+    public void LoadRoslynAnalyzerAssemblyContentsIfNeeded_MultipleCalls_AnalyzerAssemblyContentsAreCached()
+    {
+        MockCodeProvidersForCsharp(CsharpAnalyzer);
+
+        testSubject.LoadRoslynAnalyzerAssemblyContentsIfNeeded();
+        testSubject.LoadRoslynAnalyzerAssemblyContentsIfNeeded();
+        testSubject.LoadRoslynAnalyzerAssemblyContentsIfNeeded();
+
+        analyzersLocator.Received(1).GetAnalyzerFullPathsByLicensedLanguage();
+        roslynAnalyzerLoader.Received(1).LoadAnalyzerAssembly(Arg.Any<string>());
     }
 
     private static DiagnosticAnalyzer CreateAnalyzerWithDiagnostic(params string[] diagnosticIds)
@@ -195,4 +276,27 @@ public class RoslynAnalyzerProviderTests
             "any category",
             DiagnosticSeverity.Warning,
             true);
+
+    private void MockCodeProvidersForCsharp(DiagnosticAnalyzer csharpAnalyzer, params CodeFixProvider[] codeFixProviders)
+    {
+        analyzersLocator.GetAnalyzerFullPathsByLicensedLanguage()
+            .Returns(new Dictionary<LicensedRoslynLanguage, List<string>> { { new(Language.CSharp, false), [CsharpAnalyzerPath] } });
+        roslynAnalyzerLoader.LoadAnalyzerAssembly(CsharpAnalyzerPath).Returns(new LoadedAnalyzerClasses([csharpAnalyzer], codeFixProviders));
+    }
+
+    private void MockAnalyzerFullPathsByLicensedLanguage()
+    {
+        roslynAnalyzerLoader.LoadAnalyzerAssembly(CsharpAnalyzerPath).Returns(new LoadedAnalyzerClasses([CsharpAnalyzer], []));
+        roslynAnalyzerLoader.LoadAnalyzerAssembly(CsharpEnterpriseAnalyzerPath).Returns(new LoadedAnalyzerClasses([CsharpEnterpriseAnalyzer], []));
+        roslynAnalyzerLoader.LoadAnalyzerAssembly(VbAnalyzerPath).Returns(new LoadedAnalyzerClasses([VbAnalyzer], []));
+        roslynAnalyzerLoader.LoadAnalyzerAssembly(VbEnterpriseAnalyzerPath).Returns(new LoadedAnalyzerClasses([VbEnterpriseAnalyzer], []));
+        analyzersLocator.GetAnalyzerFullPathsByLicensedLanguage()
+            .Returns(new Dictionary<LicensedRoslynLanguage, List<string>>
+            {
+                { new(Language.CSharp, false), [CsharpAnalyzerPath] },
+                { new(Language.CSharp, true), [CsharpEnterpriseAnalyzerPath] },
+                { new(Language.VBNET, false), [VbAnalyzerPath] },
+                { new(Language.VBNET, true), [VbEnterpriseAnalyzerPath] },
+            });
+    }
 }
