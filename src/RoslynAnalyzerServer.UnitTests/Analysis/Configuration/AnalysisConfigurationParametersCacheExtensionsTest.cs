@@ -26,6 +26,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis.Configu
 [TestClass]
 public class AnalysisConfigurationParametersCacheExtensionsTest
 {
+    private readonly AnalyzerInfoDto defaultAnalyzerInfoDto = default;
     private readonly KeyValuePair<string, string> disableRazorAnalysisProp = new("sonar.cs.internal.disableRazor", "true");
     private readonly ActiveRuleDto s101RuleWithParam = new("S101", new Dictionary<string, string> { { "threshold", "3" } });
 
@@ -34,9 +35,36 @@ public class AnalysisConfigurationParametersCacheExtensionsTest
     {
         AnalysisConfigurationParametersCache? testSubject = null;
 
-        var result = testSubject.ShouldInvalidateCache([], []);
+        var result = testSubject.ShouldInvalidateCache([], [], defaultAnalyzerInfoDto);
 
         result.Should().BeTrue();
+    }
+
+    [TestMethod]
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    [DataRow(true, true)]
+    public void ShouldInvalidateCache_AnalyzerInfoDtoHasDifferentValues_ReturnsTrue(bool useSharpEnterprise, bool useVbNetEnterprise)
+    {
+        var testSubject = new AnalysisConfigurationParametersCache([], [], defaultAnalyzerInfoDto);
+
+        var result = testSubject.ShouldInvalidateCache([], [], new(useSharpEnterprise, useVbNetEnterprise));
+
+        result.Should().BeTrue();
+    }
+
+    [TestMethod]
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    [DataRow(true, true)]
+    [DataRow(false, false)]
+    public void ShouldInvalidateCache_AnalyzerInfoDtoHasSameValues_ReturnsFalse(bool useSharpEnterprise, bool useVbNetEnterprise)
+    {
+        var testSubject = new AnalysisConfigurationParametersCache([], [], new(useSharpEnterprise, useVbNetEnterprise));
+
+        var result = testSubject.ShouldInvalidateCache([], [], new(useSharpEnterprise, useVbNetEnterprise));
+
+        result.Should().BeFalse();
     }
 
     [TestMethod]
@@ -44,9 +72,9 @@ public class AnalysisConfigurationParametersCacheExtensionsTest
     {
         var activeRules = new Dictionary<string, ActiveRuleDto> { { s101RuleWithParam.RuleId, s101RuleWithParam } };
         var sameActiveRules = new List<ActiveRuleDto> { s101RuleWithParam with { Parameters = new Dictionary<string, string>(s101RuleWithParam.Parameters) } };
-        var testSubject = new AnalysisConfigurationParametersCache(activeRules, []);
+        var testSubject = new AnalysisConfigurationParametersCache(activeRules, [], defaultAnalyzerInfoDto);
 
-        var result = testSubject.ShouldInvalidateCache(sameActiveRules, []);
+        var result = testSubject.ShouldInvalidateCache(sameActiveRules, [], defaultAnalyzerInfoDto);
 
         result.Should().BeFalse();
     }
@@ -56,9 +84,9 @@ public class AnalysisConfigurationParametersCacheExtensionsTest
     {
         var activeRules = new Dictionary<string, ActiveRuleDto> { { s101RuleWithParam.RuleId, s101RuleWithParam } };
         var newActiveRules = new List<ActiveRuleDto> { new("S102", new Dictionary<string, string> { { "timeout", "60" } }) };
-        var testSubject = new AnalysisConfigurationParametersCache(activeRules, []);
+        var testSubject = new AnalysisConfigurationParametersCache(activeRules, [], defaultAnalyzerInfoDto);
 
-        var result = testSubject.ShouldInvalidateCache(newActiveRules, []);
+        var result = testSubject.ShouldInvalidateCache(newActiveRules, [], defaultAnalyzerInfoDto);
 
         result.Should().BeTrue();
     }
@@ -68,9 +96,9 @@ public class AnalysisConfigurationParametersCacheExtensionsTest
     {
         var activeRules = new Dictionary<string, ActiveRuleDto> { { s101RuleWithParam.RuleId, s101RuleWithParam } };
         var newActiveRules = new List<ActiveRuleDto> { s101RuleWithParam with { Parameters = new Dictionary<string, string> { { "timeout", "60" } } } };
-        var testSubject = new AnalysisConfigurationParametersCache(activeRules, []);
+        var testSubject = new AnalysisConfigurationParametersCache(activeRules, [], defaultAnalyzerInfoDto);
 
-        var result = testSubject.ShouldInvalidateCache(newActiveRules, []);
+        var result = testSubject.ShouldInvalidateCache(newActiveRules, [], defaultAnalyzerInfoDto);
 
         result.Should().BeTrue();
     }
@@ -80,9 +108,9 @@ public class AnalysisConfigurationParametersCacheExtensionsTest
     {
         var activeRules = new Dictionary<string, ActiveRuleDto> { { s101RuleWithParam.RuleId, s101RuleWithParam } };
         var newActiveRules = new List<ActiveRuleDto> { s101RuleWithParam with { Parameters = [] } };
-        var testSubject = new AnalysisConfigurationParametersCache(activeRules, []);
+        var testSubject = new AnalysisConfigurationParametersCache(activeRules, [], defaultAnalyzerInfoDto);
 
-        var result = testSubject.ShouldInvalidateCache(newActiveRules, []);
+        var result = testSubject.ShouldInvalidateCache(newActiveRules, [], defaultAnalyzerInfoDto);
 
         result.Should().BeTrue();
     }
@@ -92,9 +120,9 @@ public class AnalysisConfigurationParametersCacheExtensionsTest
     {
         var activeRules = new Dictionary<string, ActiveRuleDto> { { s101RuleWithParam.RuleId, s101RuleWithParam } };
         var newActiveRules = new List<ActiveRuleDto> { s101RuleWithParam with { Parameters = new Dictionary<string, string> { { "threshold", "5" } } } };
-        var testSubject = new AnalysisConfigurationParametersCache(activeRules, []);
+        var testSubject = new AnalysisConfigurationParametersCache(activeRules, [], defaultAnalyzerInfoDto);
 
-        var result = testSubject.ShouldInvalidateCache(newActiveRules, []);
+        var result = testSubject.ShouldInvalidateCache(newActiveRules, [], defaultAnalyzerInfoDto);
 
         result.Should().BeTrue();
     }
@@ -104,9 +132,9 @@ public class AnalysisConfigurationParametersCacheExtensionsTest
     {
         var analysisProperties = new Dictionary<string, string> { { disableRazorAnalysisProp.Key, disableRazorAnalysisProp.Value } };
         var sameAnalysisProperties = new Dictionary<string, string> { { disableRazorAnalysisProp.Key, disableRazorAnalysisProp.Value } };
-        var testSubject = new AnalysisConfigurationParametersCache([], analysisProperties);
+        var testSubject = new AnalysisConfigurationParametersCache([], analysisProperties, defaultAnalyzerInfoDto);
 
-        var result = testSubject.ShouldInvalidateCache([], sameAnalysisProperties);
+        var result = testSubject.ShouldInvalidateCache([], sameAnalysisProperties, defaultAnalyzerInfoDto);
 
         result.Should().BeFalse();
     }
@@ -116,9 +144,9 @@ public class AnalysisConfigurationParametersCacheExtensionsTest
     {
         var analysisProperties = new Dictionary<string, string> { { disableRazorAnalysisProp.Key, disableRazorAnalysisProp.Value } };
         var newAnalysisProperties = new Dictionary<string, string> { { disableRazorAnalysisProp.Key, "false" } };
-        var testSubject = new AnalysisConfigurationParametersCache([], analysisProperties);
+        var testSubject = new AnalysisConfigurationParametersCache([], analysisProperties, defaultAnalyzerInfoDto);
 
-        var result = testSubject.ShouldInvalidateCache([], newAnalysisProperties);
+        var result = testSubject.ShouldInvalidateCache([], newAnalysisProperties, defaultAnalyzerInfoDto);
 
         result.Should().BeTrue();
     }
@@ -128,9 +156,9 @@ public class AnalysisConfigurationParametersCacheExtensionsTest
     {
         var analysisProperties = new Dictionary<string, string> { { disableRazorAnalysisProp.Key, disableRazorAnalysisProp.Value } };
         var newAnalysisProperties = new Dictionary<string, string>();
-        var testSubject = new AnalysisConfigurationParametersCache([], analysisProperties);
+        var testSubject = new AnalysisConfigurationParametersCache([], analysisProperties, defaultAnalyzerInfoDto);
 
-        var result = testSubject.ShouldInvalidateCache([], newAnalysisProperties);
+        var result = testSubject.ShouldInvalidateCache([], newAnalysisProperties, defaultAnalyzerInfoDto);
 
         result.Should().BeTrue();
     }

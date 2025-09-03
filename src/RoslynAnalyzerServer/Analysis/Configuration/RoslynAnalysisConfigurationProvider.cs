@@ -44,7 +44,7 @@ internal class RoslynAnalysisConfigurationProvider(
     {
         lock (Lock)
         {
-            if (configurationParametersCache.ShouldInvalidateCache(activeRules, analysisProperties))
+            if (configurationParametersCache.ShouldInvalidateCache(activeRules, analysisProperties, analyzerInfo))
             {
                 BuildConfigurations(activeRules, analysisProperties, analyzerInfo);
             }
@@ -57,8 +57,9 @@ internal class RoslynAnalysisConfigurationProvider(
         Dictionary<string, string> analysisProperties,
         AnalyzerInfoDto analyzerInfo)
     {
-        var analysisProfilesByLanguage = analyzerProfilesProvider.GetAnalysisProfilesByLanguage(roslynAnalyzerProvider.LoadAndProcessAnalyzerAssemblies(analyzerInfo), activeRules, analysisProperties);
-        configurationParametersCache = new(activeRules.ToDictionary(r => r.RuleId, r => r), analysisProperties);
+        var analyzerAssemblyContents = roslynAnalyzerProvider.LoadAndProcessAnalyzerAssemblies(analyzerInfo);
+        var analysisProfilesByLanguage = analyzerProfilesProvider.GetAnalysisProfilesByLanguage(analyzerAssemblyContents, activeRules, analysisProperties);
+        configurationParametersCache = new(activeRules.ToDictionary(r => r.RuleId, r => r), analysisProperties, analyzerInfo);
         cachedConfigurations = BuildConfigurations(analysisProfilesByLanguage);
     }
 

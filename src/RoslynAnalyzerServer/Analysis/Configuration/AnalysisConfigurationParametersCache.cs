@@ -24,12 +24,18 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
 internal sealed record AnalysisConfigurationParametersCache(
     Dictionary<string, ActiveRuleDto> ActiveRuleDtos,
-    Dictionary<string, string> AnalysisProperties);
+    Dictionary<string, string> AnalysisProperties,
+    AnalyzerInfoDto AnalyzerInfo);
 
 internal static class AnalysisConfigurationParametersCacheExtensions
 {
-    public static bool ShouldInvalidateCache(this AnalysisConfigurationParametersCache? cache, List<ActiveRuleDto> newActiveRuleDtos, Dictionary<string, string> newAnalysisProperties) =>
+    public static bool ShouldInvalidateCache(
+        this AnalysisConfigurationParametersCache? cache,
+        List<ActiveRuleDto> newActiveRuleDtos,
+        Dictionary<string, string> newAnalysisProperties,
+        AnalyzerInfoDto analyzerInfo) =>
         cache == null ||
+        cache.AnalyzerInfo != analyzerInfo ||
         !AreSameActiveRuleDtos(newActiveRuleDtos, cache.ActiveRuleDtos) ||
         !AreDictionariesEqual(newAnalysisProperties, cache.AnalysisProperties);
 
