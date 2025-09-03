@@ -44,52 +44,12 @@ internal class RoslynAnalysisConfigurationProvider(
     {
         lock (Lock)
         {
-            if (ShouldInvalidateCache(activeRules, analysisProperties))
+            if (configurationParametersCache.ShouldInvalidateCache(activeRules, analysisProperties))
             {
                 BuildConfigurations(activeRules, analysisProperties, analyzerInfo);
             }
             return cachedConfigurations!;
         }
-    }
-
-    private bool ShouldInvalidateCache(List<ActiveRuleDto> newActiveRuleDtos, Dictionary<string, string> newAnalysisProperties) =>
-        configurationParametersCache == null ||
-        !AreSameActiveRuleDtos(newActiveRuleDtos, configurationParametersCache.ActiveRuleDtos) ||
-        !AreDictionariesEqual(newAnalysisProperties, configurationParametersCache.AnalysisProperties);
-
-    private static bool AreSameActiveRuleDtos(List<ActiveRuleDto> newActiveRuleDtos, Dictionary<string, ActiveRuleDto> oldActiveRuleDtos)
-    {
-        if (oldActiveRuleDtos.Count != newActiveRuleDtos.Count)
-        {
-            return false;
-        }
-
-        foreach (var newRule in newActiveRuleDtos)
-        {
-            if (!oldActiveRuleDtos.TryGetValue(newRule.RuleId, out var cachedActiveRuleDto) ||
-                !AreDictionariesEqual(newRule.Parameters, cachedActiveRuleDto.Parameters))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static bool AreDictionariesEqual(Dictionary<string, string> newDictionary, Dictionary<string, string> oldDictionary)
-    {
-        if (newDictionary.Count != oldDictionary.Count)
-        {
-            return false;
-        }
-
-        foreach (var newKvp in newDictionary)
-        {
-            if (!oldDictionary.TryGetValue(newKvp.Key, out var oldValue) || oldValue != newKvp.Value)
-            {
-                return false;
-            }
-        }
-        return true;
     }
 
     private void BuildConfigurations(
@@ -134,6 +94,4 @@ internal class RoslynAnalysisConfigurationProvider(
         }
         return configurations;
     }
-
-    private sealed record AnalysisConfigurationParametersCache(Dictionary<string, ActiveRuleDto> ActiveRuleDtos, Dictionary<string, string> AnalysisProperties);
 }
