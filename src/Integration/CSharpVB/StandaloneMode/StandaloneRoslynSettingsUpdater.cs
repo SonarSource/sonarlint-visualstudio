@@ -19,10 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
-using System.IO;
-using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.CSharpVB;
+using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 
 namespace SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
@@ -35,74 +32,12 @@ public interface IStandaloneRoslynSettingsUpdater
 [Export(typeof(IStandaloneRoslynSettingsUpdater))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class StandaloneRoslynSettingsUpdater(
-    IRoslynConfigGenerator generator,
-    ILanguageProvider languageProvider,
-    IThreadHandling threadHandling)
+[ExcludeFromCodeCoverage] // todo https://sonarsource.atlassian.net/browse/SLVS-2420
+internal class StandaloneRoslynSettingsUpdater()
     : IStandaloneRoslynSettingsUpdater
 {
-    private readonly object lockObject = new();
-
-    public void Update(UserSettings settings) =>
-        threadHandling
-            .RunOnBackgroundThread(() => UpdateInternal(settings))
-            .Forget();
-
-    private void UpdateInternal(UserSettings settings)
+    public void Update(UserSettings settings)
     {
-        lock (lockObject)
-        {
-            var exclusions = ConvertExclusions(settings);
-            var (ruleStatusesByLanguage, ruleParametersByLanguage) = ConvertRules(settings);
-
-            foreach (var language in languageProvider.RoslynLanguages)
-            {
-                generator.GenerateAndSaveConfiguration(
-                    language,
-                    settings.BaseDirectory,
-                    settings.AnalysisSettings.AnalysisProperties,
-                    exclusions,
-                    ruleStatusesByLanguage[language],
-                    ruleParametersByLanguage[language]);
-            }
-        }
-    }
-
-    private static StandaloneRoslynFileExclusions ConvertExclusions(UserSettings settings)
-    {
-        var exclusions = new StandaloneRoslynFileExclusions(settings.AnalysisSettings);
-        return exclusions;
-    }
-
-    private (Dictionary<Language, List<IRoslynRuleStatus>>, Dictionary<Language, List<IRuleParameters>>) ConvertRules(UserSettings settings)
-    {
-        var ruleStatusesByLanguage = InitializeForAllRoslynLanguages<IRoslynRuleStatus>();
-        var ruleParametersByLanguage = InitializeForAllRoslynLanguages<IRuleParameters>();
-        foreach (var analysisSettingsRule in settings.AnalysisSettings.Rules)
-        {
-            if (!SonarCompositeRuleId.TryParse(analysisSettingsRule.Key, out var ruleId)
-                || !languageProvider.RoslynLanguages.Contains(ruleId.Language))
-            {
-                continue;
-            }
-
-            ruleStatusesByLanguage[ruleId.Language]
-                .Add(new StandaloneRoslynRuleStatus(ruleId, analysisSettingsRule.Value.Level is RuleLevel.On));
-            ruleParametersByLanguage[ruleId.Language]
-                .Add(new StandaloneRoslynRuleParameters(ruleId, analysisSettingsRule.Value.Parameters));
-        }
-        return (ruleStatusesByLanguage, ruleParametersByLanguage);
-    }
-
-    private Dictionary<Language, List<T>> InitializeForAllRoslynLanguages<T>()
-    {
-        var dictionary = new Dictionary<Language, List<T>>();
-
-        foreach (var language in languageProvider.RoslynLanguages)
-        {
-            dictionary[language] = [];
-        }
-
-        return dictionary;
+        // TODO by https://sonarsource.atlassian.net/browse/SLVS-2420 drop this class
     }
 }

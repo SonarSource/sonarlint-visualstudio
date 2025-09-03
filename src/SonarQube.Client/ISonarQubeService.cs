@@ -36,60 +36,6 @@ public interface ISonarQubeService
 
     void Disconnect();
 
-    Task<IList<SonarQubeRule>> GetRulesAsync(
-        bool isActive,
-        string qualityProfileKey,
-        CancellationToken token);
-
-    /// <summary>
-    ///     Returns all properties for the project with the specified projectKey. If a project with such
-    ///     key does not exist, returns the default property values for the connected SonarQube server.
-    /// </summary>
-    Task<IList<SonarQubeProperty>> GetAllPropertiesAsync(string projectKey, CancellationToken token);
-
-    /// <summary>
-    ///     Wrapper for GET api/qualityprofiles/search
-    /// </summary>
-    /// <returns></returns>
-    Task<IList<SonarQubeQualityProfile>> GetAllQualityProfilesAsync(
-        string project,
-        string organizationKey,
-        CancellationToken token);
-
-    /// <summary>
-    ///     Returns the suppressed issues for the specified project/branch.
-    /// </summary>
-    /// <param name="projectKey">The project identifier</param>
-    /// <param name="branch">
-    ///     (optional) The Sonar branch for which issues should be returned. If null/empty,
-    ///     the issues for the "main" branch will be returned.
-    /// </param>
-    /// <param name="token"></param>
-    /// <param name="issueKeys">(optional) The ids of the issues to return. If empty, all issues will be returned.</param>
-    Task<IList<SonarQubeIssue>> GetSuppressedRoslynIssuesAsync(
-        string projectKey,
-        string branch,
-        string[] issueKeys,
-        CancellationToken token);
-
-    /// <summary>
-    ///     Returns the issues in the specified server component with the same rule id
-    /// </summary>
-    /// <param name="projectKey">The project identifier</param>
-    /// <param name="branch">
-    ///     (optional) The Sonar branch for which issues should be returned. If null/empty,
-    ///     the issues for the "main" branch will be returned
-    /// </param>
-    /// <param name="componentKey">The component identifier. Project/Directory/File</param>
-    /// <param name="ruleId">The Rule identifier. Is used to limit the number of issues in the response</param>
-    /// <param name="token"></param>
-    Task<IList<SonarQubeIssue>> GetIssuesForComponentAsync(
-        string projectKey,
-        string branch,
-        string componentKey,
-        string ruleId,
-        CancellationToken token);
-
     Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(
         string projectKey,
         DateTimeOffset eventsSince,
@@ -121,11 +67,6 @@ public interface ISonarQubeService
     ///     Returns branch information for the specified project key
     /// </summary>
     Task<IList<SonarQubeProjectBranch>> GetProjectBranchesAsync(string projectKey, CancellationToken token);
-
-    /// <summary>
-    ///     Returns the inclusions/exclusions
-    /// </summary>
-    Task<ServerExclusions> GetServerExclusions(string projectKey, CancellationToken token);
 
     /// <summary>
     ///     Creates a new <see cref="ISSEStreamReader" /> for the given <see cref="projectKey" />
