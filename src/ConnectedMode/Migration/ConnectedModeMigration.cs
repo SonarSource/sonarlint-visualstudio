@@ -21,7 +21,6 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client;
@@ -44,7 +43,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly IVsAwareFileSystem fileSystem;
         private readonly ISonarQubeService sonarQubeService;
         private readonly IUnintrusiveBindingController unintrusiveBindingController;
-        private readonly IRoslynSuppressionUpdater roslynSuppressionUpdater;
         private readonly ISharedBindingConfigProvider sharedBindingConfigProvider;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
@@ -63,7 +61,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             IVsAwareFileSystem fileSystem,
             ISonarQubeService sonarQubeService,
             IUnintrusiveBindingController unintrusiveBindingController,
-            IRoslynSuppressionUpdater roslynSuppressionUpdater,
             ISharedBindingConfigProvider sharedBindingConfigProvider,
             ILogger logger,
             IThreadHandling threadHandling,
@@ -77,7 +74,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             this.fileSystem = fileSystem;
             this.sonarQubeService = sonarQubeService;
             this.unintrusiveBindingController = unintrusiveBindingController;
-            this.roslynSuppressionUpdater = roslynSuppressionUpdater;
             this.sharedBindingConfigProvider = sharedBindingConfigProvider;
 
             this.logger = logger;
@@ -159,9 +155,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             // Now make all of the files changes required to remove the legacy settings
             // i.e. update project files and delete .sonarlint folder
             await MakeLegacyFileChangesAsync(legacySettings, changedFiles, progress, token);
-
-            // Trigger a re-fetch of suppressions so the Roslyn settings are updated.
-            await roslynSuppressionUpdater.UpdateAllServerSuppressionsAsync();
 
             if (shareBinding)
             {
