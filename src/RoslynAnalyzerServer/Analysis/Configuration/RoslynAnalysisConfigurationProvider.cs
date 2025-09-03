@@ -21,6 +21,7 @@
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
@@ -32,16 +33,45 @@ internal class RoslynAnalysisConfigurationProvider(
     ISonarLintXmlProvider sonarLintXmlProvider,
     IRoslynAnalyzerProvider roslynAnalyzerProvider,
     IRoslynAnalysisProfilesProvider analyzerProfilesProvider,
+    IAsyncLockFactory asyncLockFactory,
+    IThreadHandling threadHandling,
     ILogger logger) : IRoslynAnalysisConfigurationProvider
 {
+    private readonly IAsyncLock asyncLock = asyncLockFactory.Create();
     private readonly ILogger logger = logger.ForContext(Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisConfigurationLogContext);
+    private AnalysisConfigurationCache? cache;
 
-    public IReadOnlyDictionary<Language, RoslynAnalysisConfiguration> GetConfiguration(List<ActiveRuleDto> activeRules, Dictionary<string, string>? analysisProperties, AnalyzerInfoDto analyzerInfo)
+    public Task<IReadOnlyDictionary<Language, RoslynAnalysisConfiguration>> GetConfigurationAsync(
+        List<ActiveRuleDto> activeRules,
+        Dictionary<string, string> analysisProperties,
+        AnalyzerInfoDto analyzerInfo) =>
+        threadHandling.RunOnBackgroundThread(async () =>
+        {
+            using (await asyncLock.AcquireAsync())
+            {
+                if (!cache.HasValue || cache.Value.Parameters.ShouldInvalidateCache(activeRules, analysisProperties, analyzerInfo))
+                {
+                    BuildConfigurations(activeRules, analysisProperties, analyzerInfo);
+                }
+                return cache!.Value.Configurations;
+            }
+        });
+
+    private void BuildConfigurations(
+        List<ActiveRuleDto> activeRules,
+        Dictionary<string, string> analysisProperties,
+        AnalyzerInfoDto analyzerInfo)
     {
-        // todo add caching https://sonarsource.atlassian.net/browse/SLVS-2481
+        var analyzerAssemblyContents = roslynAnalyzerProvider.LoadAndProcessAnalyzerAssemblies(analyzerInfo);
+        var analysisProfilesByLanguage = analyzerProfilesProvider.GetAnalysisProfilesByLanguage(analyzerAssemblyContents, activeRules, analysisProperties);
+        var activeRulesMap = activeRules.ToDictionary(r => r.RuleId, r => r);
+        cache = new AnalysisConfigurationCache(
+            new AnalysisConfigurationParametersCache(activeRulesMap, analysisProperties, analyzerInfo),
+            BuildConfigurations(analysisProfilesByLanguage));
+    }
 
-        var analysisProfilesByLanguage = analyzerProfilesProvider.GetAnalysisProfilesByLanguage(roslynAnalyzerProvider.LoadAndProcessAnalyzerAssemblies(analyzerInfo), activeRules, analysisProperties);
-
+    private IReadOnlyDictionary<Language, RoslynAnalysisConfiguration> BuildConfigurations(Dictionary<RoslynLanguage, RoslynAnalysisProfile> analysisProfilesByLanguage)
+    {
         var configurations = new Dictionary<Language, RoslynAnalysisConfiguration>();
         foreach (var analyzerAndLanguage in analysisProfilesByLanguage)
         {
@@ -70,7 +100,8 @@ internal class RoslynAnalysisConfigurationProvider(
                     analysisProfile.Analyzers,
                     analysisProfile.CodeFixProvidersByRuleKey));
         }
-
         return configurations;
     }
+
+    private record struct AnalysisConfigurationCache(AnalysisConfigurationParametersCache Parameters, IReadOnlyDictionary<Language, RoslynAnalysisConfiguration> Configurations);
 }
