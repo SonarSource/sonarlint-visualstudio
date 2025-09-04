@@ -313,7 +313,7 @@ public class RoslynAnalysisConfigurationProviderTests
     {
         await testSubject.GetConfigurationAsync(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto);
 
-        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<IReadOnlyDictionary<Language, RoslynAnalysisConfiguration>>>>()).IgnoreAwaitForAssert();
+        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration>>>>()).IgnoreAwaitForAssert();
     }
 
     private Dictionary<RoslynLanguage, SonarLintXmlConfigurationFile> SetUpXmlConfigurations(Dictionary<RoslynLanguage, RoslynAnalysisProfile> profiles)

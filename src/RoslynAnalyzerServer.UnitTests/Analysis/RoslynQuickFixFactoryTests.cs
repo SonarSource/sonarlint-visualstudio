@@ -120,7 +120,7 @@ public class RoslynQuickFixFactoryTests
 
         var result = await testSubject.CreateQuickFixesAsync(diagnostic, solution, analysisConfiguration, token);
 
-        result.Should().HaveCount(2);
+        result.Should().HaveCount(3);
         roslynCodeActionFactory.Received(1).GetCodeActionsAsync(codeFixProviders, diagnostic, document, token).IgnoreAwaitForAssert();
         quickFixStorage.Received(1).Add(result[0].Id, Arg.Is<RoslynQuickFixApplicationImpl>(x => x.CodeAction == codeAction1));
         quickFixStorage.Received(1).Add(result[1].Id,Arg.Is<RoslynQuickFixApplicationImpl>(x => x.CodeAction == codeAction2));
