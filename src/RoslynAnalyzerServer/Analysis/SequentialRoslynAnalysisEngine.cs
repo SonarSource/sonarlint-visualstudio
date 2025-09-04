@@ -50,7 +50,6 @@ internal class SequentialRoslynAnalysisEngine(
         var uniqueDiagnostics = new HashSet<RoslynIssue>(DiagnosticDuplicatesComparer.Instance);
         foreach (var projectAnalysisCommands in projectsAnalysis)
         {
-            // todo clear old quickfixes
             var compilationWithAnalyzers = await projectCompilationProvider.GetProjectCompilationAsync(projectAnalysisCommands.Project, sonarRoslynAnalysisConfigurations, token);
 
             // todo SLVS-2467 issue streaming
