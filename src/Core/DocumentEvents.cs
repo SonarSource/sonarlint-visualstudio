@@ -47,6 +47,7 @@ public interface IDocumentTracker
     event EventHandler<DocumentEventArgs> DocumentClosed;
     event EventHandler<DocumentEventArgs> DocumentOpened;
     event EventHandler<DocumentEventArgs> DocumentSaved;
+    event EventHandler<DocumentEventArgs> DocumentUpdated;
     /// <summary>
     /// Raised when an opened document is renamed
     /// </summary>

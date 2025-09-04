@@ -426,6 +426,37 @@ public class TaggerProviderTests
     }
 
     [TestMethod]
+    public void IssueTracker_DocumentUpdated_RaiseEvent()
+    {
+        var eventHandler = Substitute.For<EventHandler<DocumentEventArgs>>();
+        var fileName = "anyname.js";
+        string content = "new content";
+        var doc = CreateMockedDocument(fileName, DetectedLanguagesJsTs);
+        testSubject.DocumentUpdated += eventHandler;
+
+        CreateTaggerForDocument(doc);
+        testSubject.OnDocumentUpdated(fileName, content, DetectedLanguagesJsTs);
+
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == fileName
+                                                                                          && x.Document.DetectedLanguages == DetectedLanguagesJsTs
+                                                                                          && x.Content == content));
+    }
+
+    [TestMethod]
+    public void IssueTracker_DocumentUpdated_AddsNewFileToFileTracker()
+    {
+        var filePath = "anyname.js";
+        string content = "new content";
+        var doc = CreateMockedDocument(filePath, DetectedLanguagesJsTs, content: content);
+        CreateTaggerForDocument(doc);
+        mockFileTracker.ClearReceivedCalls();
+
+        testSubject.OnDocumentUpdated(filePath, content, DetectedLanguagesJsTs);
+
+        mockFileTracker.Received(1).AddFiles(new SourceFile(filePath, encoding: null, content));
+    }
+
+    [TestMethod]
     public void GetOpenDocuments_ReturnsAmountOfIssueTrackers()
     {
         testSubject.AddIssueTracker(CreateMockedIssueTracker("myFile.js", [AnalysisLanguage.Javascript]));

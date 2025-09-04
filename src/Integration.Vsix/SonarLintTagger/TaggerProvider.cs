@@ -225,6 +225,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
     public event EventHandler<DocumentEventArgs> DocumentClosed;
     public event EventHandler<DocumentEventArgs> DocumentOpened;
     public event EventHandler<DocumentEventArgs> DocumentSaved;
+    public event EventHandler<DocumentEventArgs> DocumentUpdated;
     public event EventHandler<DocumentRenamedEventArgs> OpenDocumentRenamed;
 
     public Document[] GetOpenDocuments()
@@ -257,6 +258,12 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
     {
         NotifyFileTracker(fullPath, newContent);
         DocumentSaved?.Invoke(this, new DocumentEventArgs(new Document(fullPath, detectedLanguages), newContent));
+    }
+
+    public void OnDocumentUpdated(string fullPath, string newContent, IEnumerable<AnalysisLanguage> detectedLanguages)
+    {
+        NotifyFileTracker(fullPath, newContent);
+        DocumentUpdated?.Invoke(this, new DocumentEventArgs(new Document(fullPath, detectedLanguages), newContent));
     }
 
     public void OnDocumentClosed(IIssueTracker issueTracker)
