@@ -38,10 +38,7 @@ public static class ApplyChangesOperation
 
         var solutionChanges = changedSolution.GetChanges(originalSolution);
 
-        if (solutionChanges.GetAddedProjects().Any() ||
-            solutionChanges.GetAddedAnalyzerReferences().Any() ||
-            solutionChanges.GetRemovedProjects().Any() ||
-            solutionChanges.GetRemovedAnalyzerReferences().Any())
+        if (SolutionChangedCritically(solutionChanges))
         {
             return false;
             // todo https://sonarsource.atlassian.net/browse/SLVS-2513 this will lead to invalid quickfixes if project configuration changes.
@@ -55,26 +52,13 @@ public static class ApplyChangesOperation
         foreach (var changedProject in solutionChanges.GetProjectChanges())
         {
             // We only support text changes.  If we see any other changes to this project, bail out immediately.
-            if (changedProject.GetAddedAdditionalDocuments().Any() ||
-                changedProject.GetAddedAnalyzerConfigDocuments().Any() ||
-                changedProject.GetAddedAnalyzerReferences().Any() ||
-                changedProject.GetAddedDocuments().Any() ||
-                changedProject.GetAddedMetadataReferences().Any() ||
-                changedProject.GetAddedProjectReferences().Any() ||
-                changedProject.GetRemovedAdditionalDocuments().Any() ||
-                changedProject.GetRemovedAnalyzerConfigDocuments().Any() ||
-                changedProject.GetRemovedAnalyzerReferences().Any() ||
-                changedProject.GetRemovedDocuments().Any() ||
-                changedProject.GetRemovedMetadataReferences().Any() ||
-                changedProject.GetRemovedProjectReferences().Any())
+            if (ProjectChangedCritically(changedProject))
             {
                 return false;
             }
 
             // We have to at least have some changed document
-            var changedDocuments = changedProject.GetChangedDocuments()
-                .Concat(changedProject.GetChangedAdditionalDocuments())
-                .Concat(changedProject.GetChangedAnalyzerConfigDocuments()).ToImmutableArray();
+            var changedDocuments = GetChangedDocuments(changedProject);
 
             if (changedDocuments.Length == 0)
             {
@@ -83,8 +67,10 @@ public static class ApplyChangesOperation
 
             foreach (var documentId in changedDocuments)
             {
-                var originalDocument = changedProject.OldProject.Solution.GetDocument(documentId); // todo handle not found
-                var changedDocument = changedProject.NewProject.Solution.GetDocument(documentId); // todo handle not found
+                if (!GetDocuments(changedProject, documentId, out var originalDocument, out var changedDocument))
+                {
+                    return false;
+                }
 
                 // it has to be a text change the operation wants to make.  If the operation is making some other
                 // sort of change, we can't merge this operation in.
@@ -112,4 +98,57 @@ public static class ApplyChangesOperation
 
         return workspace.TryApplyChanges(forkedSolution);
     }
+
+    private static ImmutableArray<DocumentId> GetChangedDocuments(ProjectChanges changedProject)
+    {
+        var changedDocuments = changedProject.GetChangedDocuments()
+            .Concat(changedProject.GetChangedAdditionalDocuments())
+            .Concat(changedProject.GetChangedAnalyzerConfigDocuments()).ToImmutableArray();
+        return changedDocuments;
+    }
+
+    private static bool GetDocuments(
+        ProjectChanges changedProject,
+        DocumentId documentId,
+        [NotNullWhen(true)]out Document? originalDocument,
+        [NotNullWhen(true)]out Document? changedDocument)
+    {
+        originalDocument = changedProject.OldProject.Solution.GetDocument(documentId);
+
+        if (originalDocument == null)
+        {
+            Debug.Fail("Original document not found");
+            changedDocument = null;
+            return false;
+        }
+
+        changedDocument = changedProject.NewProject.Solution.GetDocument(documentId);
+
+        if (changedDocument == null)
+        {
+            Debug.Fail("Changed document not found");
+            return false;
+        }
+        return true;
+    }
+
+    private static bool SolutionChangedCritically(SolutionChanges solutionChanges) =>
+        solutionChanges.GetAddedProjects().Any() ||
+        solutionChanges.GetAddedAnalyzerReferences().Any() ||
+        solutionChanges.GetRemovedProjects().Any() ||
+        solutionChanges.GetRemovedAnalyzerReferences().Any();
+
+    private static bool ProjectChangedCritically(ProjectChanges changedProject) =>
+        changedProject.GetAddedAdditionalDocuments().Any() ||
+        changedProject.GetAddedAnalyzerConfigDocuments().Any() ||
+        changedProject.GetAddedAnalyzerReferences().Any() ||
+        changedProject.GetAddedDocuments().Any() ||
+        changedProject.GetAddedMetadataReferences().Any() ||
+        changedProject.GetAddedProjectReferences().Any() ||
+        changedProject.GetRemovedAdditionalDocuments().Any() ||
+        changedProject.GetRemovedAnalyzerConfigDocuments().Any() ||
+        changedProject.GetRemovedAnalyzerReferences().Any() ||
+        changedProject.GetRemovedDocuments().Any() ||
+        changedProject.GetRemovedMetadataReferences().Any() ||
+        changedProject.GetRemovedProjectReferences().Any();
 }
