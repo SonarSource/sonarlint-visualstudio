@@ -18,22 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 
-[ExcludeFromCodeCoverage] // todo SLVS-2466 add roslyn 'integration' tests using AdHocWorkspace
-internal class RoslynSolutionWrapper : IRoslynSolutionWrapper
+[TestClass]
+public class RoslynCodeActionFactoryTests
 {
-    public RoslynSolutionWrapper(Solution solution)
-    {
-        RoslynSolution = solution;
-        Projects = solution.Projects.Select(x => new RoslynProjectWrapper(x, this));
-    }
+    [TestMethod]
+    public void MefCtor_CheckIsExported() => MefTestHelpers.CheckTypeCanBeImported<RoslynCodeActionFactory, IRoslynCodeActionFactory>();
 
-    public IEnumerable<IRoslynProjectWrapper> Projects { get; }
-    public Solution RoslynSolution { get; }
-
-    public IRoslynDocumentWrapper? GetDocument(SyntaxTree? tree) => RoslynSolution.GetDocument(tree) is {} roslynDocument ? new RoslynDocumentWrapper(roslynDocument) : null;
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<RoslynCodeActionFactory>();
 }

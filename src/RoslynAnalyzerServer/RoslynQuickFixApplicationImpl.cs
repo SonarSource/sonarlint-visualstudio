@@ -27,20 +27,20 @@ public class RoslynQuickFixApplicationImpl
 {
     private readonly IRoslynWorkspaceWrapper workspace;
     private readonly IRoslynSolutionWrapper originalSolution;
-    private readonly CodeAction codeAction;
+    internal readonly CodeAction CodeAction;
 
     internal RoslynQuickFixApplicationImpl(IRoslynWorkspaceWrapper workspace, IRoslynSolutionWrapper originalSolution, CodeAction codeAction)
     {
         this.workspace = workspace;
         this.originalSolution = originalSolution;
-        this.codeAction = codeAction;
+        CodeAction = codeAction;
     }
 
-    public string Message => codeAction.Title;
+    public string Message => CodeAction.Title;
 
     public async Task<bool> ApplyAsync(CancellationToken cancellationToken)
     {
-        var codeActionOperations = await codeAction.GetOperationsAsync(cancellationToken);
+        var codeActionOperations = await CodeAction.GetOperationsAsync(cancellationToken);
 
         var applyChangesOperation = codeActionOperations.FirstOrDefault(x => x is ApplyChangesOperation) as ApplyChangesOperation;
 

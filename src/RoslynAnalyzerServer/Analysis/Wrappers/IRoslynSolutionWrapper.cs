@@ -27,5 +27,5 @@ internal interface IRoslynSolutionWrapper
     IEnumerable<IRoslynProjectWrapper> Projects { get; }
     Solution RoslynSolution { get; }
 
-    Document? GetDocument(SyntaxTree? tree);
+    IRoslynDocumentWrapper? GetDocument(SyntaxTree? tree);
 }

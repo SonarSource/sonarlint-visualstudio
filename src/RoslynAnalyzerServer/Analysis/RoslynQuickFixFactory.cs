@@ -20,8 +20,6 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
@@ -30,7 +28,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 [Export(typeof(IRoslynQuickFixFactory))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method:ImportingConstructor]
-internal class RoslynQuickFixFactory(IRoslynWorkspaceWrapper workspace, IRoslynQuickFixStorageWriter quickFixStorage)
+internal class RoslynQuickFixFactory(IRoslynWorkspaceWrapper workspace, IRoslynCodeActionFactory roslynCodeActionFactory, IRoslynQuickFixStorageWriter quickFixStorage)
     : IRoslynQuickFixFactory
 {
     public async Task<List<RoslynQuickFix>> CreateQuickFixesAsync(
@@ -39,23 +37,18 @@ internal class RoslynQuickFixFactory(IRoslynWorkspaceWrapper workspace, IRoslynQ
         RoslynAnalysisConfiguration analysisConfiguration,
         CancellationToken token)
     {
-        var codeActions = new List<CodeAction>();
+        var quickFixes = new List<RoslynQuickFix>();
 
         if (analysisConfiguration.CodeFixProvidersByRuleKey.TryGetValue(diagnostic.Id, out var availableCodeFixProviders)
-            && solution.GetDocument(diagnostic.Location.SourceTree) is {} document)
+            && solution.GetDocument(diagnostic.Location.SourceTree) is {} document
+            &&  await roslynCodeActionFactory.GetCodeActionsAsync(availableCodeFixProviders, diagnostic, document, token) is {} codeActions)
         {
-            foreach (var codeFixProvider in availableCodeFixProviders)
+            foreach (var codeAction in codeActions)
             {
-                await codeFixProvider.RegisterCodeFixesAsync(new CodeFixContext(document, diagnostic, (c, _) => codeActions.Add(c), token));
+                var id = Guid.NewGuid();
+                quickFixStorage.Add(id, new RoslynQuickFixApplicationImpl(workspace, solution, codeAction));
+                quickFixes.Add(new RoslynQuickFix(id));
             }
-        }
-
-        var quickFixes = new List<RoslynQuickFix>();
-        foreach (var codeAction in codeActions)
-        {
-            var id = Guid.NewGuid();
-            quickFixStorage.Add(id, new RoslynQuickFixApplicationImpl(workspace, solution, codeAction));
-            quickFixes.Add(new RoslynQuickFix(id));
         }
 
         return quickFixes;

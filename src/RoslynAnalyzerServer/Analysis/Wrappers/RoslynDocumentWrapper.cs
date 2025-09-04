@@ -23,17 +23,8 @@ using Microsoft.CodeAnalysis;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-[ExcludeFromCodeCoverage] // todo SLVS-2466 add roslyn 'integration' tests using AdHocWorkspace
-internal class RoslynSolutionWrapper : IRoslynSolutionWrapper
+[ExcludeFromCodeCoverage]
+internal class RoslynDocumentWrapper(Document roslynDocument) : IRoslynDocumentWrapper
 {
-    public RoslynSolutionWrapper(Solution solution)
-    {
-        RoslynSolution = solution;
-        Projects = solution.Projects.Select(x => new RoslynProjectWrapper(x, this));
-    }
-
-    public IEnumerable<IRoslynProjectWrapper> Projects { get; }
-    public Solution RoslynSolution { get; }
-
-    public IRoslynDocumentWrapper? GetDocument(SyntaxTree? tree) => RoslynSolution.GetDocument(tree) is {} roslynDocument ? new RoslynDocumentWrapper(roslynDocument) : null;
+    public override Document RoslynDocument { get; } = roslynDocument;
 }
