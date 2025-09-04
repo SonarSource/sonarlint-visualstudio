@@ -35,7 +35,7 @@ internal class RoslynCodeActionFactory : IRoslynCodeActionFactory
     public async Task<List<CodeAction>> GetCodeActionsAsync(IReadOnlyCollection<CodeFixProvider> codeFixProviders, Diagnostic diagnostic, IRoslynDocumentWrapper document, CancellationToken token)
     {
         var codeActions = new List<CodeAction>();
-        foreach (var codeFixProvider in codeFixProviders) // ui thread?
+        foreach (var codeFixProvider in codeFixProviders)
         {
             await codeFixProvider.RegisterCodeFixesAsync(new CodeFixContext(document.RoslynDocument, diagnostic, (c, _) => codeActions.Add(c), token));
         }
