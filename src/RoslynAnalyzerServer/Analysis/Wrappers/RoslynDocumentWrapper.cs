@@ -26,5 +26,5 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 [ExcludeFromCodeCoverage]
 internal class RoslynDocumentWrapper(Document roslynDocument) : IRoslynDocumentWrapper
 {
-    public override Document RoslynDocument { get; } = roslynDocument;
+    public Document RoslynDocument { get; } = roslynDocument;
 }
