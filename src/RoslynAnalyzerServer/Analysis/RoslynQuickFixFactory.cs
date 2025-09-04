@@ -46,7 +46,7 @@ internal class RoslynQuickFixFactory(IRoslynWorkspaceWrapper workspace, IRoslynQ
         {
             foreach (var codeFixProvider in availableCodeFixProviders)
             {
-                await codeFixProvider.RegisterCodeFixesAsync(new CodeFixContext(document, diagnostic, (c, ds) => codeActions.Add(c), token));
+                await codeFixProvider.RegisterCodeFixesAsync(new CodeFixContext(document, diagnostic, (c, _) => codeActions.Add(c), token));
             }
         }
 

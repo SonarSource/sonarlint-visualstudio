@@ -41,7 +41,7 @@ public class SequentialRoslynAnalysisEngineTests
     private CancellationToken cancellationToken;
     private SequentialRoslynAnalysisEngine testSubject = null!;
     private IRoslynQuickFixFactory roslynQuickFixFactory = null!;
-    private IRoslynSolutionWrapper solution;
+    private IRoslynSolutionWrapper solution = null!;
 
     [TestInitialize]
     public void TestInitialize()
