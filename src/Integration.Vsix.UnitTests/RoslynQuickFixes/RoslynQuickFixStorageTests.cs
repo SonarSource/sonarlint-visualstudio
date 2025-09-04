@@ -124,5 +124,5 @@ public class RoslynQuickFixStorageTests
     }
 
     private static RoslynQuickFixApplicationImpl CreateApplication() =>
-        new(Substitute.For<IRoslynWorkspaceWrapper>(), Substitute.For<IRoslynSolutionWrapper>(), Substitute.For<CodeAction>());
+        new(Substitute.For<IRoslynWorkspaceWrapper>(), Substitute.For<IRoslynSolutionWrapper>(), Substitute.For<IRoslynCodeActionWrapper>());
 }

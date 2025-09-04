@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.CodeAnalysis.CodeActions;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer;
@@ -27,31 +26,27 @@ public class RoslynQuickFixApplicationImpl
 {
     private readonly IRoslynWorkspaceWrapper workspace;
     private readonly IRoslynSolutionWrapper originalSolution;
-    internal readonly CodeAction CodeAction;
+    internal readonly IRoslynCodeActionWrapper RoslynCodeAction;
 
-    internal RoslynQuickFixApplicationImpl(IRoslynWorkspaceWrapper workspace, IRoslynSolutionWrapper originalSolution, CodeAction codeAction)
+    internal RoslynQuickFixApplicationImpl(IRoslynWorkspaceWrapper workspace, IRoslynSolutionWrapper originalSolution, IRoslynCodeActionWrapper roslynCodeAction)
     {
         this.workspace = workspace;
         this.originalSolution = originalSolution;
-        CodeAction = codeAction;
+        RoslynCodeAction = roslynCodeAction;
     }
 
-    public string Message => CodeAction.Title;
+    public string Message => RoslynCodeAction.Title;
 
     public async Task<bool> ApplyAsync(CancellationToken cancellationToken)
     {
-        var codeActionOperations = await CodeAction.GetOperationsAsync(cancellationToken);
+        var codeActionOperations = await RoslynCodeAction.GetOperationsAsync(cancellationToken);
 
         var applyChangesOperation = codeActionOperations.FirstOrDefault(x => x is Microsoft.CodeAnalysis.CodeActions.ApplyChangesOperation) as Microsoft.CodeAnalysis.CodeActions.ApplyChangesOperation;
 
-        if (applyChangesOperation == null)
+        if (applyChangesOperation == null || codeActionOperations.Length > 1)
         {
+            Debug.Fail($"Unexpected quickfix result: {applyChangesOperation} out of {codeActionOperations.Length}");
             return false;
-        }
-
-        if (codeActionOperations.Length > 1)
-        {
-            // todo ???
         }
 
         return await workspace.ApplyOrMergeChangesAsync(originalSolution, applyChangesOperation, cancellationToken);

@@ -110,9 +110,9 @@ public class RoslynQuickFixFactoryTests
     [TestMethod]
     public async Task CreateQuickFixesAsync_WithCodeActions_ReturnsQuickFixesAndAddsToStorage()
     {
-        var codeAction1 = Substitute.For<CodeAction>();
-        var codeAction2 = Substitute.For<CodeAction>();
-        var codeAction3 = Substitute.For<CodeAction>();
+        var codeAction1 = Substitute.For<IRoslynCodeActionWrapper>();
+        var codeAction2 = Substitute.For<IRoslynCodeActionWrapper>();
+        var codeAction3 = Substitute.For<IRoslynCodeActionWrapper>();
         var analysisConfiguration = CreateAnalysisConfiguration(new() { { diagnostic.Id, codeFixProviders } });
         solution.GetDocument(diagnostic.Location.SourceTree).Returns(document);
         roslynCodeActionFactory.GetCodeActionsAsync(Arg.Any<IReadOnlyCollection<CodeFixProvider>>(), diagnostic, document, token)
@@ -122,9 +122,9 @@ public class RoslynQuickFixFactoryTests
 
         result.Should().HaveCount(3);
         roslynCodeActionFactory.Received(1).GetCodeActionsAsync(codeFixProviders, diagnostic, document, token).IgnoreAwaitForAssert();
-        quickFixStorage.Received(1).Add(result[0].Id, Arg.Is<RoslynQuickFixApplicationImpl>(x => x.CodeAction == codeAction1));
-        quickFixStorage.Received(1).Add(result[1].Id, Arg.Is<RoslynQuickFixApplicationImpl>(x => x.CodeAction == codeAction2));
-        quickFixStorage.Received(1).Add(result[2].Id, Arg.Is<RoslynQuickFixApplicationImpl>(x => x.CodeAction == codeAction3));
+        quickFixStorage.Received(1).Add(result[0].Id, Arg.Is<RoslynQuickFixApplicationImpl>(x => x.RoslynCodeAction == codeAction1));
+        quickFixStorage.Received(1).Add(result[1].Id, Arg.Is<RoslynQuickFixApplicationImpl>(x => x.RoslynCodeAction == codeAction2));
+        quickFixStorage.Received(1).Add(result[2].Id, Arg.Is<RoslynQuickFixApplicationImpl>(x => x.RoslynCodeAction == codeAction3));
     }
 
     private static Diagnostic CreateDiagnostic(string id)

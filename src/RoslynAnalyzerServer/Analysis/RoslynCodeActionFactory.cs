@@ -21,7 +21,6 @@
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
@@ -32,12 +31,12 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 [ExcludeFromCodeCoverage]
 internal class RoslynCodeActionFactory : IRoslynCodeActionFactory
 {
-    public async Task<List<CodeAction>> GetCodeActionsAsync(IReadOnlyCollection<CodeFixProvider> codeFixProviders, Diagnostic diagnostic, IRoslynDocumentWrapper document, CancellationToken token)
+    public async Task<List<IRoslynCodeActionWrapper>> GetCodeActionsAsync(IReadOnlyCollection<CodeFixProvider> codeFixProviders, Diagnostic diagnostic, IRoslynDocumentWrapper document, CancellationToken token)
     {
-        var codeActions = new List<CodeAction>();
+        var codeActions = new List<IRoslynCodeActionWrapper>();
         foreach (var codeFixProvider in codeFixProviders)
         {
-            await codeFixProvider.RegisterCodeFixesAsync(new CodeFixContext(document.RoslynDocument, diagnostic, (c, _) => codeActions.Add(c), token));
+            await codeFixProvider.RegisterCodeFixesAsync(new CodeFixContext(document.RoslynDocument, diagnostic, (c, _) => codeActions.Add(new RoslynCodeActionWrapper(c)), token));
         }
         return codeActions;
     }

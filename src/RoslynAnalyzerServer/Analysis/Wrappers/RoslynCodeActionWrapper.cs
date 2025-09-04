@@ -18,18 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.CodeAnalysis;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-internal interface IRoslynCodeActionFactory
+[ExcludeFromCodeCoverage]
+internal class RoslynCodeActionWrapper(CodeAction codeAction) : IRoslynCodeActionWrapper
 {
-    Task<List<IRoslynCodeActionWrapper>> GetCodeActionsAsync(
-        IReadOnlyCollection<CodeFixProvider> codeFixProviders,
-        Diagnostic diagnostic,
-        IRoslynDocumentWrapper document,
-        CancellationToken token);
+    public string Title => codeAction.Title;
+
+    public Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(CancellationToken cancellationToken) => codeAction.GetOperationsAsync(cancellationToken);
 }
