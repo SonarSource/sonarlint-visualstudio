@@ -34,6 +34,8 @@ internal class QuickFixSuggestedAction(
     IThreadHandling threadHandling)
     : BaseSuggestedAction
 {
+    private readonly ILogger logger = logger.ForContext(Resources.QuickFixSuggestedAction_LogContext);
+
     public override string DisplayText => Resources.ProductNameCommandPrefix + quickFixApplication.Message;
 
     public override void Invoke(CancellationToken cancellationToken)
@@ -45,7 +47,7 @@ internal class QuickFixSuggestedAction(
 
         if (!quickFixApplication.CanBeApplied(textBuffer.CurrentSnapshot))
         {
-            logger.LogVerbose("[Quick Fixes] Quick fix cannot be applied as the text has changed. Issue: " + issueViz.RuleId);
+            logger.LogVerbose("Quick fix cannot be applied as the text has changed. Issue: " + issueViz.RuleId);
             return;
         }
 
@@ -80,6 +82,9 @@ internal class QuickFixSuggestedAction(
             if (!isApplied)
             {
                 issueViz.Span = originalSpan;
+                // todo show message box?
+                // todo trigger reanalysis???
+                logger.WriteLine(Resources.QuickFixSuggestedAction_CouldNotApply, issueViz.RuleId);
             }
         }
 

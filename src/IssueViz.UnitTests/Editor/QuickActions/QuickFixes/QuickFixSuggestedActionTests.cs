@@ -68,6 +68,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         [TestMethod]
+        public void Ctor_SetsLogContext() => logger.Received(1).ForContext(Resources.QuickFixSuggestedAction_LogContext);
+
+        [TestMethod]
         public void DisplayName_ReturnsFixMessage()
         {
             const string message = "some fix";
@@ -152,6 +155,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             });
             issueViz.Received().Span = originalSpan;
             telemetryManager.DidNotReceiveWithAnyArgs().QuickFixApplied(Arg.Any<string>());
+            logger.AssertPartialOutputStringExists(string.Format(Resources.QuickFixSuggestedAction_CouldNotApply, RuleId));
         }
 
         private static ITextSnapshot CreateTextSnapshot()
