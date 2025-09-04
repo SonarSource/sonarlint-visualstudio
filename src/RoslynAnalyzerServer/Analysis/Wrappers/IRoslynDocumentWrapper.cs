@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-internal abstract class IRoslynDocumentWrapper
+internal interface IRoslynDocumentWrapper
 {
-    public abstract Document RoslynDocument { get; }
+    Document RoslynDocument { get; }
 }

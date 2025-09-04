@@ -50,7 +50,7 @@ public class SequentialRoslynAnalysisEngineTests
         projectCompilationProvider = Substitute.For<IRoslynProjectCompilationProvider>();
         logger = Substitute.ForPartsOf<TestLogger>();
         roslynQuickFixFactory = Substitute.For<IRoslynQuickFixFactory>();
-        roslynQuickFixFactory.CreateQuickFixesAsync(default, default, default, default).ReturnsForAnyArgs([]);
+        roslynQuickFixFactory.CreateQuickFixesAsync(default!, default!, default, default).ReturnsForAnyArgs([]);
         solution = Substitute.For<IRoslynSolutionWrapper>();
 
         testSubject = new SequentialRoslynAnalysisEngine(issueConverter, projectCompilationProvider, roslynQuickFixFactory, logger);
