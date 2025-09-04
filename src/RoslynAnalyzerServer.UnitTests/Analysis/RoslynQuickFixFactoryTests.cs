@@ -123,8 +123,8 @@ public class RoslynQuickFixFactoryTests
         result.Should().HaveCount(3);
         roslynCodeActionFactory.Received(1).GetCodeActionsAsync(codeFixProviders, diagnostic, document, token).IgnoreAwaitForAssert();
         quickFixStorage.Received(1).Add(result[0].Id, Arg.Is<RoslynQuickFixApplicationImpl>(x => x.CodeAction == codeAction1));
-        quickFixStorage.Received(1).Add(result[1].Id,Arg.Is<RoslynQuickFixApplicationImpl>(x => x.CodeAction == codeAction2));
-        quickFixStorage.Received(1).Add(result[2].Id,Arg.Is<RoslynQuickFixApplicationImpl>(x => x.CodeAction == codeAction3));
+        quickFixStorage.Received(1).Add(result[1].Id, Arg.Is<RoslynQuickFixApplicationImpl>(x => x.CodeAction == codeAction2));
+        quickFixStorage.Received(1).Add(result[2].Id, Arg.Is<RoslynQuickFixApplicationImpl>(x => x.CodeAction == codeAction3));
     }
 
     private static Diagnostic CreateDiagnostic(string id)

@@ -26,10 +26,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.RoslynQuickFixes;
 
 public class RoslynQuickFixApplication(RoslynQuickFixApplicationImpl implementation) : IQuickFixApplication
 {
-    public string Message => implementation.Message;
+    internal readonly RoslynQuickFixApplicationImpl Implementation = implementation;
+
+    public string Message => Implementation.Message;
 
     public bool CanBeApplied(ITextSnapshot currentSnapshot) => true;
 
     public async Task<bool> ApplyAsync(ITextSnapshot currentSnapshot, CancellationToken cancellationToken) =>
-        await implementation.ApplyAsync(cancellationToken); // todo what to do with quick fix on the odd chance we failed to apply? remove from the issue?
+        await Implementation.ApplyAsync(cancellationToken); // todo what to do with quick fix on the odd chance we failed to apply? remove from the issue?
 }
