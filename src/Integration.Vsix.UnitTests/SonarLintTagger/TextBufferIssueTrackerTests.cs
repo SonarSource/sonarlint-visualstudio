@@ -26,7 +26,6 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
 using SonarLint.VisualStudio.Integration.Vsix;
@@ -167,13 +166,13 @@ public class TextBufferIssueTrackerTests
     [TestMethod]
     public void WhenFileIsSaved_DocumentSavedEventIsRaised()
     {
-        var eventHandler = Substitute.For<EventHandler<DocumentSavedEventArgs>>();
+        var eventHandler = Substitute.For<EventHandler<DocumentEventArgs>>();
         taggerProvider.DocumentSaved += eventHandler;
 
         RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
 
         eventHandler.Received(1).Invoke(taggerProvider,
-            Arg.Is<DocumentSavedEventArgs>(x => x.Document.FullPath == mockedJavascriptDocumentFooJs.FilePath && x.Document.DetectedLanguages == javascriptLanguage));
+            Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == mockedJavascriptDocumentFooJs.FilePath && x.Document.DetectedLanguages == javascriptLanguage));
     }
 
     [TestMethod]
@@ -195,7 +194,7 @@ public class TextBufferIssueTrackerTests
     public void WhenFileIsLoaded_EventsAreNotRaised()
     {
         var renamedEventHandler = Substitute.For<EventHandler<DocumentRenamedEventArgs>>();
-        var savedEventHandler = Substitute.For<EventHandler<DocumentSavedEventArgs>>();
+        var savedEventHandler = Substitute.For<EventHandler<DocumentEventArgs>>();
         taggerProvider.OpenDocumentRenamed += renamedEventHandler;
         taggerProvider.DocumentSaved += savedEventHandler;
 
