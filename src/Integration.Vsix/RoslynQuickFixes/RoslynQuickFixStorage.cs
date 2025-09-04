@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.RoslynAnalyzerServer;
 
@@ -29,19 +30,52 @@ namespace SonarLint.VisualStudio.Integration.Vsix.RoslynQuickFixes;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class RoslynQuickFixStorage : IRoslynQuickFixStorageWriter, IRoslynQuickFixProvider
 {
-    private readonly Dictionary<Guid, RoslynQuickFixApplicationImpl> cache = new(); // todo clear the cache
+    private readonly object locker = new();
+    private readonly Dictionary<Guid, RoslynQuickFixApplicationImpl> cache = new();
+
+    [method: ImportingConstructor]
+    public RoslynQuickFixStorage(IActiveConfigScopeTracker configScopeTracker)
+    {
+        configScopeTracker.CurrentConfigurationScopeChanged += ConfigScopeTracker_OnCurrentConfigurationScopeChanged; // it's okay to miss initial events here, this is only used for cache cleanup
+    }
+
+    private void ConfigScopeTracker_OnCurrentConfigurationScopeChanged(object sender, ConfigurationScopeChangedEventArgs e)
+    {
+        if (!e.DefinitionChanged)
+        {
+            return;
+        }
+
+        ClearCache();
+    }
+
+    private void ClearCache() // todo clear cache on analysis for file
+    {
+        lock (locker)
+        {
+            cache.Clear();
+        }
+    }
 
     public void Add(
         Guid id,
-        RoslynQuickFixApplicationImpl impl) =>
-        cache[id] = impl;
+        RoslynQuickFixApplicationImpl impl)
+    {
+        lock (locker)
+        {
+            cache[id] = impl;
+        }
+    }
 
     public bool TryGet(Guid id, out IQuickFixApplication roslynQuickFix)
     {
-        if (cache.TryGetValue(id, out var quickFixImplementation))
+        lock (locker)
         {
-            roslynQuickFix = new RoslynQuickFixApplication(quickFixImplementation);
-            return true;
+            if (cache.TryGetValue(id, out var quickFixImplementation))
+            {
+                roslynQuickFix = new RoslynQuickFixApplication(quickFixImplementation);
+                return true;
+            }
         }
 
         roslynQuickFix = null;
