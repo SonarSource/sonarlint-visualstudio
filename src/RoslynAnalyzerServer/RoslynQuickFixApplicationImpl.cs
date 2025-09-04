@@ -42,7 +42,7 @@ public class RoslynQuickFixApplicationImpl
     {
         var codeActionOperations = await CodeAction.GetOperationsAsync(cancellationToken);
 
-        var applyChangesOperation = codeActionOperations.FirstOrDefault(x => x is ApplyChangesOperation) as ApplyChangesOperation;
+        var applyChangesOperation = codeActionOperations.FirstOrDefault(x => x is Microsoft.CodeAnalysis.CodeActions.ApplyChangesOperation) as Microsoft.CodeAnalysis.CodeActions.ApplyChangesOperation;
 
         if (applyChangesOperation == null)
         {

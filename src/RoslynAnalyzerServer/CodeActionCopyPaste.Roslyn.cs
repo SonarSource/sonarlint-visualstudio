@@ -1,22 +1,6 @@
-﻿/*
- * SonarLint for Visual Studio
- * Copyright (C) 2016-2025 SonarSource SA
- * mailto:info AT sonarsource DOT com
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -24,8 +8,9 @@ using Microsoft.CodeAnalysis;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer;
 
+// This class was adapted from https://github.com/dotnet/roslyn/blob/75e79dace86b274327a1afe479228d82a06051a4/src/Workspaces/Core/Portable/CodeActions/Operations/ApplyChangesOperation.cs#L46
 [ExcludeFromCodeCoverage]
-public static class CodeActionCopyPaste
+public static class ApplyChangesOperation
 {
     internal static async Task<bool> ApplyOrMergeChangesAsync(
         Workspace workspace,
@@ -49,9 +34,7 @@ public static class CodeActionCopyPaste
         //
         // 2. For text changes, we only support it if the current text of the document we're changing itself has not
         //    changed. This means we can merge in edits if there were changes to unrelated files, but not if there
-        //    are changes to the current file.  We could consider relaxing this in the future, esp. if we make use
-        //    of some sort of text-merging-library to handle this.  However, the user would then have to handle diff
-        //    markers being inserted into their code that they then have to handle.
+        //    are changes to the current file.
 
         var solutionChanges = changedSolution.GetChanges(originalSolution);
 
@@ -61,7 +44,7 @@ public static class CodeActionCopyPaste
             solutionChanges.GetRemovedAnalyzerReferences().Any())
         {
             return false;
-            // todo this will lead to invalid quickfixes if project configuration changes.
+            // todo https://sonarsource.atlassian.net/browse/SLVS-2513 this will lead to invalid quickfixes if project configuration changes.
             // do we need to reanalyze open files on major workspace changes? can modified analyzer references be ignored?
         }
 
@@ -118,8 +101,6 @@ public static class CodeActionCopyPaste
                 }
 
                 // If the file contents changed in the current workspace, then we can't apply this change to it.
-                // Note: we could potentially try to do a 3-way merge in the future, including handling conflicts
-                // with that.  For now though, we'll leave that out of scope.
                 if (await originalDocument.GetTextVersionAsync(cancellationToken) != await currentDocument.GetTextVersionAsync(cancellationToken))
                 {
                     return false;

@@ -33,5 +33,5 @@ public class RoslynQuickFixApplication(RoslynQuickFixApplicationImpl implementat
     public bool CanBeApplied(ITextSnapshot currentSnapshot) => true;
 
     public async Task<bool> ApplyAsync(ITextSnapshot currentSnapshot, CancellationToken cancellationToken) =>
-        await Implementation.ApplyAsync(cancellationToken); // todo what to do with quick fix on the odd chance we failed to apply? remove from the issue?
+        await Implementation.ApplyAsync(cancellationToken);
 }

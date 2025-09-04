@@ -34,6 +34,6 @@ internal class RoslynWorkspaceWrapper([Import(typeof(VisualStudioWorkspace))] Wo
 {
     public IRoslynSolutionWrapper GetCurrentSolution() => new RoslynSolutionWrapper(workspace.CurrentSolution);
 
-    public Task<bool> ApplyOrMergeChangesAsync(IRoslynSolutionWrapper originalSolution, ApplyChangesOperation operation, CancellationToken cancellationToken) =>
-        CodeActionCopyPaste.ApplyOrMergeChangesAsync(workspace, originalSolution.RoslynSolution, operation.ChangedSolution, cancellationToken);
+    public Task<bool> ApplyOrMergeChangesAsync(IRoslynSolutionWrapper originalSolution, Microsoft.CodeAnalysis.CodeActions.ApplyChangesOperation operation, CancellationToken cancellationToken) =>
+        ApplyChangesOperation.ApplyOrMergeChangesAsync(workspace, originalSolution.RoslynSolution, operation.ChangedSolution, cancellationToken);
 }

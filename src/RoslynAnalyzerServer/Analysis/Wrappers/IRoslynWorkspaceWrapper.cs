@@ -29,6 +29,6 @@ internal interface IRoslynWorkspaceWrapper
 
     Task<bool> ApplyOrMergeChangesAsync(
         IRoslynSolutionWrapper originalSolution,
-        ApplyChangesOperation operation,
+        Microsoft.CodeAnalysis.CodeActions.ApplyChangesOperation operation,
         CancellationToken cancellationToken);
 }
