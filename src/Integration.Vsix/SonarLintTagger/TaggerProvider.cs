@@ -53,6 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, IDocumentTracker, IDisposable
 {
+    private const double DebounceMilliseconds = 1000;
     internal static readonly Type SingletonManagerPropertyCollectionKey = typeof(SingletonDisposableTaggerManager<IErrorTag>);
     private readonly IAnalyzer analyzer;
     private readonly IFileTracker fileTracker;
@@ -64,6 +65,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
     private readonly ISonarLanguageRecognizer languageRecognizer;
     private readonly IAnalysisRequester analysisRequester;
     private readonly ILogger logger;
+    private readonly ITaskExecutorWithDebounceFactory taskExecutorWithDebounceFactory;
 
     private readonly object reanalysisLockObject = new();
 
@@ -94,7 +96,8 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
         IFileTracker fileTracker,
         IAnalyzer analyzer,
         ILogger logger,
-        IInitializationProcessorFactory initializationProcessorFactory)
+        IInitializationProcessorFactory initializationProcessorFactory,
+        ITaskExecutorWithDebounceFactory taskExecutorWithDebounceFactory)
     {
         this.sonarErrorDataSource = sonarErrorDataSource;
         this.textDocumentFactoryService = textDocumentFactoryService;
@@ -107,6 +110,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
         this.fileTracker = fileTracker;
         this.analyzer = analyzer;
         this.logger = logger;
+        this.taskExecutorWithDebounceFactory = taskExecutorWithDebounceFactory;
 
         InitializationProcessor = initializationProcessorFactory.CreateAndStart<TaggerProvider>(
             [],
@@ -216,6 +220,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
             vsProjectInfoProvider,
             issueConsumerFactory,
             issueConsumerStorage,
+            taskExecutorWithDebounceFactory.Create<ITextSnapshot>(DebounceMilliseconds),
             logger);
 
     #endregion IViewTaggerProvider members
