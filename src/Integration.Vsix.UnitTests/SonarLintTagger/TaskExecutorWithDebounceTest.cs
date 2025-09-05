@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger;
 [TestClass]
 public class TaskExecutorWithDebounceTest
 {
-    private const int DebounceTimeInMs = 100;
+    private readonly TimeSpan debounceTimeInMs = TimeSpan.FromMilliseconds(100);
     private IAsyncLock asyncLock;
     private IAsyncLockFactory asyncLockFactory;
     private TaskExecutorWithDebounce<TestData> testSubject;
@@ -39,7 +39,7 @@ public class TaskExecutorWithDebounceTest
         asyncLockFactory = Substitute.For<IAsyncLockFactory>();
         asyncLock = Substitute.For<IAsyncLock>();
         asyncLockFactory.Create().Returns(asyncLock);
-        testSubject = new TaskExecutorWithDebounce<TestData>(asyncLockFactory, DebounceTimeInMs);
+        testSubject = new TaskExecutorWithDebounce<TestData>(asyncLockFactory, debounceTimeInMs);
     }
 
     [TestMethod]
@@ -58,7 +58,7 @@ public class TaskExecutorWithDebounceTest
 
         asyncLock.Received(1).AcquireAsync().IgnoreAwaitForAssert();
         currentState.Value.Should().Be(2);
-        stopwatch.ElapsedMilliseconds.Should().BeGreaterOrEqualTo(DebounceTimeInMs);
+        stopwatch.ElapsedMilliseconds.Should().BeGreaterOrEqualTo(debounceTimeInMs.Milliseconds);
     }
 
     [TestMethod]

@@ -48,7 +48,7 @@ public class TaskExecutorWithDebounceFactoryTest
     [TestMethod]
     public void Create_ShouldReturnInstance()
     {
-        var result = testSubject.Create<ITextSnapshot>(1.0);
+        var result = testSubject.Create<ITextSnapshot>(TimeSpan.FromMilliseconds(1));
 
         result.Should().NotBeNull();
         result.Should().BeOfType<TaskExecutorWithDebounce<ITextSnapshot>>();

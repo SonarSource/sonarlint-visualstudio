@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 internal interface ITaskExecutorWithDebounceFactory
 {
-    ITaskExecutorWithDebounce<T> Create<T>(double debounceMilliseconds);
+    ITaskExecutorWithDebounce<T> Create<T>(TimeSpan debounceMilliseconds);
 }
 
 internal interface ITaskExecutorWithDebounce<T>
@@ -39,10 +39,10 @@ internal interface ITaskExecutorWithDebounce<T>
 [method: ImportingConstructor]
 internal class TaskExecutorWithDebounceFactory(IAsyncLockFactory asyncLockFactory) : ITaskExecutorWithDebounceFactory
 {
-    public ITaskExecutorWithDebounce<T> Create<T>(double debounceMilliseconds) => new TaskExecutorWithDebounce<T>(asyncLockFactory, debounceMilliseconds);
+    public ITaskExecutorWithDebounce<T> Create<T>(TimeSpan debounceMilliseconds) => new TaskExecutorWithDebounce<T>(asyncLockFactory, debounceMilliseconds);
 }
 
-internal class TaskExecutorWithDebounce<T>(IAsyncLockFactory asyncLockFactory, double debounceMilliseconds) : ITaskExecutorWithDebounce<T>
+internal class TaskExecutorWithDebounce<T>(IAsyncLockFactory asyncLockFactory, TimeSpan debounceMilliseconds) : ITaskExecutorWithDebounce<T>
 {
     private sealed record Debounce(CancellationTokenSource CancellationTokenSource, T State);
     private Debounce latestDebounceState;
@@ -61,7 +61,7 @@ internal class TaskExecutorWithDebounce<T>(IAsyncLockFactory asyncLockFactory, d
         {
             try
             {
-                await Task.Delay(TimeSpan.FromMilliseconds(debounceMilliseconds), latestState.CancellationTokenSource.Token);
+                await Task.Delay(debounceMilliseconds, latestState.CancellationTokenSource.Token);
                 if (!latestState.CancellationTokenSource.Token.IsCancellationRequested)
                 {
                     task(latestState.State);

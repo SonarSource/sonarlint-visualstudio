@@ -152,7 +152,7 @@ public class TaggerProviderTests
         tagger.Should().NotBeNull();
 
         VerifyCreateIssueConsumerWasCalled(doc);
-        taskExecutorWithDebounceFactory.Received(1).Create<ITextSnapshot>(debounceMilliseconds: 1000);
+        taskExecutorWithDebounceFactory.Received(1).Create<ITextSnapshot>(debounceMilliseconds: TimeSpan.FromMilliseconds(500));
     }
 
     [TestMethod]
