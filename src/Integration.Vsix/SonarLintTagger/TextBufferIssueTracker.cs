@@ -100,7 +100,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
     public string LastAnalysisFilePath { get; private set; }
     public IEnumerable<AnalysisLanguage> DetectedLanguages { get; }
 
-    public void UpdateAnalysisState() => RefreshAnalysisState();
+    public void UpdateAnalysisState() => UpdateAnalysisState(null);
 
     public string GetText() => document.TextBuffer.CurrentSnapshot.GetText();
 
@@ -153,7 +153,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         }
     }
 
-    private void RefreshAnalysisState(ITextSnapshot newTextSnapshot = null)
+    private void UpdateAnalysisState(ITextSnapshot newTextSnapshot)
     {
         try
         {
@@ -201,7 +201,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
     private void TextBuffer_OnChangedOnBackground(object sender, TextContentChangedEventArgs e) =>
         taskExecutorWithDebounce.DebounceAsync(e.After, textSnapshot =>
         {
-            RefreshAnalysisState(textSnapshot);
+            UpdateAnalysisState(textSnapshot);
             Provider.OnDocumentUpdated(document.FilePath, textSnapshot.GetText(), DetectedLanguages);
         }).Forget();
 }
