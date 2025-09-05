@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly IFileCleaner fileCleaner;
         private readonly IVsAwareFileSystem fileSystem;
         private readonly ISonarQubeService sonarQubeService;
-        private readonly IUnintrusiveBindingController unintrusiveBindingController;
+        private readonly IConfigurationPersister configurationPersister;
         private readonly ISharedBindingConfigProvider sharedBindingConfigProvider;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             IFileCleaner fileCleaner,
             IVsAwareFileSystem fileSystem,
             ISonarQubeService sonarQubeService,
-            IUnintrusiveBindingController unintrusiveBindingController,
+            IConfigurationPersister configurationPersister,
             ISharedBindingConfigProvider sharedBindingConfigProvider,
             ILogger logger,
             IThreadHandling threadHandling,
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             this.fileCleaner = fileCleaner;
             this.fileSystem = fileSystem;
             this.sonarQubeService = sonarQubeService;
-            this.unintrusiveBindingController = unintrusiveBindingController;
+            this.configurationPersister = configurationPersister;
             this.sharedBindingConfigProvider = sharedBindingConfigProvider;
 
             this.logger = logger;
@@ -146,11 +146,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             progress?.Report(new MigrationProgress(0, 1, "Creating new binding files ...", false));
             logger.WriteLine(MigrationStrings.Process_ProcessingNewBinding);
 
-            var progressAdapter = new FixedStepsProgressToMigrationProgressAdapter(progress);
             var serverConnection = GetServerConnectionWithMigration(oldBinding);
-            await unintrusiveBindingController.BindAsync(oldBinding.FromBoundSonarQubeProject(await solutionInfoProvider.GetSolutionNameAsync(), serverConnection),
-                progressAdapter,
-                token);
+            configurationPersister.Persist(oldBinding.FromBoundSonarQubeProject(await solutionInfoProvider.GetSolutionNameAsync(), serverConnection));
 
             // Now make all of the files changes required to remove the legacy settings
             // i.e. update project files and delete .sonarlint folder
