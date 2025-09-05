@@ -20,6 +20,7 @@
 
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
@@ -48,10 +49,12 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
     private readonly ITextDocument document;
     private readonly IIssueConsumerFactory issueConsumerFactory;
     private readonly IIssueConsumerStorage issueConsumerStorage;
+    private readonly ITaskExecutorWithDebounce taskExecutorWithDebounce;
     private readonly ILogger logger;
     private readonly ISonarErrorListDataSource sonarErrorDataSource;
     private readonly ITextBuffer textBuffer;
     private readonly IVsProjectInfoProvider vsProjectInfoProvider;
+
     internal /* for testing */ TaggerProvider Provider { get; }
     internal /* for testing */ IssuesSnapshotFactory Factory { get; }
 
@@ -63,6 +66,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         IVsProjectInfoProvider vsProjectInfoProvider,
         IIssueConsumerFactory issueConsumerFactory,
         IIssueConsumerStorage issueConsumerStorage,
+        ITaskExecutorWithDebounce taskExecutorWithDebounce,
         ILogger logger)
     {
         Provider = provider;
@@ -72,6 +76,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         this.vsProjectInfoProvider = vsProjectInfoProvider;
         this.issueConsumerFactory = issueConsumerFactory;
         this.issueConsumerStorage = issueConsumerStorage;
+        this.taskExecutorWithDebounce = taskExecutorWithDebounce;
         this.logger = logger;
         logger.ForContext(nameof(TextBufferIssueTracker));
 
@@ -81,6 +86,10 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         Factory = new IssuesSnapshotFactory(LastAnalysisFilePath);
 
         document.FileActionOccurred += SafeOnFileActionOccurred;
+        if (textBuffer is ITextBuffer2 textBuffer2)
+        {
+            textBuffer2.ChangedOnBackground += TextBuffer_OnChangedOnBackground;
+        }
 
         sonarErrorDataSource.AddFactory(Factory);
         Provider.AddIssueTracker(this);
@@ -91,18 +100,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
     public string LastAnalysisFilePath { get; private set; }
     public IEnumerable<AnalysisLanguage> DetectedLanguages { get; }
 
-    public void UpdateAnalysisState()
-    {
-        try
-        {
-            RemoveIssueConsumer(LastAnalysisFilePath);
-            InitializeAnalysisState();
-        }
-        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-        {
-            logger.WriteLine(Strings.Analysis_ErrorUpdatingAnalysisState, ex);
-        }
-    }
+    public void UpdateAnalysisState() => UpdateAnalysisState(null);
 
     public string GetText() => document.TextBuffer.CurrentSnapshot.GetText();
 
@@ -111,6 +109,10 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         RemoveIssueConsumer(LastAnalysisFilePath);
         document.FileActionOccurred -= SafeOnFileActionOccurred;
         textBuffer.Properties.RemoveProperty(TaggerProvider.SingletonManagerPropertyCollectionKey);
+        if (textBuffer is ITextBuffer2 textBuffer2)
+        {
+            textBuffer2.ChangedOnBackground -= TextBuffer_OnChangedOnBackground;
+        }
         sonarErrorDataSource.RemoveFactory(Factory);
         Provider.OnDocumentClosed(this);
     }
@@ -151,6 +153,19 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         }
     }
 
+    private void UpdateAnalysisState(ITextSnapshot newTextSnapshot)
+    {
+        try
+        {
+            RemoveIssueConsumer(LastAnalysisFilePath);
+            InitializeAnalysisState(newTextSnapshot);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.WriteLine(Strings.Analysis_ErrorUpdatingAnalysisState, ex);
+        }
+    }
+
     private void SnapToNewSnapshot(IIssuesSnapshot newSnapshot)
     {
         // Tell our factory to snap to a new snapshot.
@@ -159,11 +174,11 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         sonarErrorDataSource.RefreshErrorList(Factory);
     }
 
-    private AnalysisSnapshot GetAnalysisSnapshot() => new(LastAnalysisFilePath, document.TextBuffer.CurrentSnapshot);
+    private AnalysisSnapshot GetAnalysisSnapshot(ITextSnapshot newTextSnapshot = null) => new(LastAnalysisFilePath, newTextSnapshot ?? document.TextBuffer.CurrentSnapshot);
 
-    private void InitializeAnalysisState()
+    private void InitializeAnalysisState(ITextSnapshot newTextSnapshot = null)
     {
-        var analysisSnapshot = GetAnalysisSnapshot();
+        var analysisSnapshot = GetAnalysisSnapshot(newTextSnapshot);
         CreateIssueConsumer(analysisSnapshot);
     }
 
@@ -182,4 +197,12 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         issueConsumer.SetIssues(filePath, []);
         issueConsumer.SetHotspots(filePath, []);
     }
+
+    private void TextBuffer_OnChangedOnBackground(object sender, TextContentChangedEventArgs e) =>
+        taskExecutorWithDebounce.DebounceAsync(() =>
+        {
+            var textSnapshot = e.After;
+            UpdateAnalysisState(textSnapshot);
+            Provider.OnDocumentUpdated(document.FilePath, textSnapshot.GetText(), DetectedLanguages);
+        }).Forget();
 }

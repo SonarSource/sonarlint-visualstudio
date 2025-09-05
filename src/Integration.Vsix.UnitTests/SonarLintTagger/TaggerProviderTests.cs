@@ -31,6 +31,7 @@ using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
+using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 
@@ -57,6 +58,7 @@ public class TaggerProviderTests
     private IAnalyzer analyzer;
     private IInitializationProcessorFactory initializationProcessorFactory;
     private IThreadHandling threadHandling;
+    private ITaskExecutorWithDebounceFactory taskExecutorWithDebounceFactory;
 
     private static readonly AnalysisLanguage[] DetectedLanguagesJsTs = [AnalysisLanguage.TypeScript, AnalysisLanguage.Javascript];
 
@@ -90,6 +92,8 @@ public class TaggerProviderTests
 
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
 
+        taskExecutorWithDebounceFactory = Substitute.For<ITaskExecutorWithDebounceFactory>();
+
         testSubject = CreateAndInitializeTestSubject();
     }
 
@@ -121,7 +125,8 @@ public class TaggerProviderTests
         MefTestHelpers.CreateExport<IFileTracker>(),
         MefTestHelpers.CreateExport<IAnalyzer>(),
         MefTestHelpers.CreateExport<ILogger>(),
-        MefTestHelpers.CreateExport<IInitializationProcessorFactory>()
+        MefTestHelpers.CreateExport<IInitializationProcessorFactory>(),
+        MefTestHelpers.CreateExport<ITaskExecutorWithDebounceFactory>(),
     ];
 
     #endregion MEF tests
@@ -147,6 +152,7 @@ public class TaggerProviderTests
         tagger.Should().NotBeNull();
 
         VerifyCreateIssueConsumerWasCalled(doc);
+        taskExecutorWithDebounceFactory.Received(1).Create(debounceMilliseconds: TimeSpan.FromMilliseconds(500));
     }
 
     [TestMethod]
@@ -611,7 +617,7 @@ public class TaggerProviderTests
         var taggerProvider = new TaggerProvider(
             mockSonarErrorDataSource, dummyDocumentFactoryService, serviceProvider,
             mockSonarLanguageRecognizer, mockAnalysisRequester, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage,
-            mockTaggableBufferIndicator, mockFileTracker, analyzer, logger, initializationProcessorFactory);
+            mockTaggableBufferIndicator, mockFileTracker, analyzer, logger, initializationProcessorFactory, taskExecutorWithDebounceFactory);
         taggerProvider.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
         return taggerProvider;
     }
