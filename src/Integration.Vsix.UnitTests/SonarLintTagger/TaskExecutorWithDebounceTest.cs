@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.Core.Synchronization;
-using SonarLint.VisualStudio.Integration.TestInfrastructure;
 using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger;
@@ -28,62 +25,80 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger;
 [TestClass]
 public class TaskExecutorWithDebounceTest
 {
-    private readonly TimeSpan debounceTimeInMs = TimeSpan.FromMilliseconds(100);
-    private IAsyncLock asyncLock;
-    private IAsyncLockFactory asyncLockFactory;
     private TaskExecutorWithDebounce testSubject;
+    private NoOpThreadHandler threadHandling;
+    private ITimerWrapper timer;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        asyncLockFactory = Substitute.For<IAsyncLockFactory>();
-        asyncLock = Substitute.For<IAsyncLock>();
-        asyncLockFactory.Create().Returns(asyncLock);
-        testSubject = new TaskExecutorWithDebounce(asyncLockFactory, debounceTimeInMs);
+        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+        timer = Substitute.For<ITimerWrapper>();
+        testSubject = new TaskExecutorWithDebounce(timer, threadHandling);
     }
 
     [TestMethod]
-    public async Task DebounceAsync_ExecutesTaskWithDebounce()
+    public void Debounce_TimerNotRaised_DoesNotExecuteAction()
     {
-        var currentState = new TestData { Value = 1 };
-        var tcs = new TaskCompletionSource<int>();
-        var stopwatch = Stopwatch.StartNew();
+        var action = Substitute.For<Action>();
 
-        testSubject.DebounceAsync(() =>
+        testSubject.Debounce(action);
+
+        action.DidNotReceive().Invoke();
+        timer.Received().Reset();
+    }
+
+    [TestMethod]
+    public void Debounce_NoActionSet_DoesNotThrow()
+    {
+        var act = () => timer.Elapsed += Raise.Event();
+
+        act.Should().NotThrow();
+    }
+
+    [TestMethod]
+    public void Debounce_ExecutesTaskWithDebounce()
+    {
+        var action = Substitute.For<Action>();
+        testSubject.Debounce(action);
+
+        timer.Elapsed += Raise.Event();
+
+        Received.InOrder(() =>
         {
-            UpdateState(currentState, 2, tcs);
-            stopwatch.Stop();
-        }).Forget();
-        await tcs.Task;
-
-        asyncLock.Received(1).AcquireAsync().IgnoreAwaitForAssert();
-        currentState.Value.Should().Be(2);
-        stopwatch.ElapsedMilliseconds.Should().BeGreaterOrEqualTo(debounceTimeInMs.Milliseconds);
+            timer.Reset();
+            threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+            action.Invoke();
+        });
     }
 
     [TestMethod]
-    public async Task DebounceAsync_MultipleTimes_UpdatesWithLatestState()
+    public void Debounce_MultipleTimes_UpdatesWithLatestState()
     {
-        var currentState = new TestData { Value = 1 };
-        var tcs = new TaskCompletionSource<int>();
+        var action1 = Substitute.For<Action>();
+        var action2 = Substitute.For<Action>();
+        var action3 = Substitute.For<Action>();
+        testSubject.Debounce(action1);
+        testSubject.Debounce(action2);
+        testSubject.Debounce(action3);
 
-        testSubject.DebounceAsync(() => UpdateState(currentState, 2)).Forget();
-        testSubject.DebounceAsync(() => UpdateState(currentState, 3)).Forget();
-        testSubject.DebounceAsync(() => UpdateState(currentState, 4, tcs)).Forget();
-        await tcs.Task;
+        timer.Elapsed += Raise.Event();
 
-        asyncLock.Received(3).AcquireAsync().IgnoreAwaitForAssert();
-        currentState.Value.Should().Be(4);
+        action1.DidNotReceive().Invoke();
+        action2.DidNotReceive().Invoke();
+        action3.Received().Invoke();
     }
 
-    private static void UpdateState(TestData date, int newValue, TaskCompletionSource<int> taskCompletionSource = null)
+    [TestMethod]
+    public void Debounce_MultipleTriggers_ActionOnlyExecutedOnce()
     {
-        date.Value = newValue;
-        taskCompletionSource?.SetResult(1);
-    }
+        var action = Substitute.For<Action>();
+        testSubject.Debounce(action);
 
-    private record TestData
-    {
-        public int Value { get; set; }
+        timer.Elapsed += Raise.Event();
+        timer.Elapsed += Raise.Event();
+        timer.Elapsed += Raise.Event();
+
+        action.Received(1).Invoke();
     }
 }

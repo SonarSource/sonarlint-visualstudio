@@ -490,7 +490,7 @@ public class TextBufferIssueTrackerTests
     }
 
     private void MockTaskExecutorWithDebounce() =>
-        taskExecutorWithDebounce.When(x => x.DebounceAsync(Arg.Any<Action>())).Do(callInfo =>
+        taskExecutorWithDebounce.When(x => x.Debounce(Arg.Any<Action>())).Do(callInfo =>
         {
             var action = callInfo.Arg<Action>();
             action();

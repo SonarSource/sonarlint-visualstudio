@@ -199,10 +199,10 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
     }
 
     private void TextBuffer_OnChangedOnBackground(object sender, TextContentChangedEventArgs e) =>
-        taskExecutorWithDebounce.DebounceAsync(() =>
+        taskExecutorWithDebounce.Debounce(() =>
         {
             var textSnapshot = e.After;
             UpdateAnalysisState(textSnapshot);
             Provider.OnDocumentUpdated(document.FilePath, textSnapshot.GetText(), DetectedLanguages);
-        }).Forget();
+        });
 }
