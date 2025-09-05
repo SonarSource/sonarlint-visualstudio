@@ -22,6 +22,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -78,7 +79,7 @@ public class DiagnosticToRoslynIssueConverterTests
             expectedRuleId,
             expectedLocation);
 
-        var result = testSubject.ConvertToSonarDiagnostic(diagnostic, language);
+        var result = testSubject.ConvertToSonarDiagnostic(diagnostic, [], language);
 
         result.Should().BeEquivalentTo(expectedDiagnostic);
     }
@@ -121,9 +122,32 @@ public class DiagnosticToRoslynIssueConverterTests
             })
         };
 
-        var result = testSubject.ConvertToSonarDiagnostic(diagnostic, Language.CSharp);
+        var result = testSubject.ConvertToSonarDiagnostic(diagnostic, [], Language.CSharp);
 
         result.Flows.Should().BeEquivalentTo(expectedFlows);
+    }
+
+    [TestMethod]
+    public void ConvertToSonarDiagnostic_WithQuickFixes_ConvertsCorrectly()
+    {
+        var diagnostic = CreateDiagnostic("any", "any", CreateLocation("any", 0, 0, 0, 0));
+        var quickFix1 = new RoslynQuickFix(Guid.NewGuid());
+        var quickFix2 = new RoslynQuickFix(Guid.NewGuid());
+
+        var result = testSubject.ConvertToSonarDiagnostic(diagnostic, [quickFix1, quickFix2], Language.CSharp);
+
+        result.QuickFixes.Should().BeEquivalentTo([new RoslynIssueQuickFix(quickFix1.GetStorageValue()), new RoslynIssueQuickFix(quickFix2.GetStorageValue())],
+            options => options.ComparingByMembers<RoslynIssueQuickFix>());
+    }
+
+    [TestMethod]
+    public void ConvertToSonarDiagnostic_WithNoQuickFixes_ReturnsEmptyQuickFixesList()
+    {
+        var diagnostic = CreateDiagnostic("any", "any", CreateLocation("any", 0, 0, 0, 0));
+
+        var result = testSubject.ConvertToSonarDiagnostic(diagnostic, [], Language.CSharp);
+
+        result.QuickFixes.Should().BeEmpty();
     }
 
     private static Location CreateLocation(

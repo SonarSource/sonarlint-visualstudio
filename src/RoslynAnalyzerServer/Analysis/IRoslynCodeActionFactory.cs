@@ -18,32 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Analysis
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
+
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+
+internal interface IRoslynCodeActionFactory
 {
-    public interface IQuickFixBase;
-
-    public interface IRoslynQuickFix : IQuickFixBase
-    {
-        Guid Id { get; }
-    }
-
-    public interface ITextBasedQuickFix : IQuickFixBase
-    {
-        string Message { get; }
-        IReadOnlyList<IEdit> Edits { get; }
-    }
-
-    public interface IEdit
-    {
-        /// <summary>
-        /// The new text to insert. Can be empty if the edit is a deletion.
-        /// </summary>
-        string NewText { get; }
-
-        /// <summary>
-        /// The range of existing text to be replaced.
-        /// The range can have a zero-length if no existing text is being removed i.e. the range will indicate the insertion point.
-        /// </summary>
-        ITextRange RangeToReplace { get; }
-    }
+    Task<List<IRoslynCodeActionWrapper>> GetCodeActionsAsync(
+        IReadOnlyCollection<CodeFixProvider> codeFixProviders,
+        Diagnostic diagnostic,
+        IRoslynDocumentWrapper document,
+        CancellationToken token);
 }

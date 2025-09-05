@@ -18,22 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.VisualStudio.LanguageServices;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-[ExcludeFromCodeCoverage] // todo SLVS-2466 add roslyn 'integration' tests using AdHocWorkspace
-[Export(typeof(IRoslynWorkspaceWrapper))]
-[PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-internal class RoslynWorkspaceWrapper([Import(typeof(VisualStudioWorkspace))] Workspace workspace) : IRoslynWorkspaceWrapper
+internal interface IRoslynCodeActionWrapper
 {
-    public IRoslynSolutionWrapper GetCurrentSolution() => new RoslynSolutionWrapper(workspace.CurrentSolution);
+    string Title { get; }
 
-    public Task<bool> ApplyOrMergeChangesAsync(IRoslynSolutionWrapper originalSolution, Microsoft.CodeAnalysis.CodeActions.ApplyChangesOperation operation, CancellationToken cancellationToken) =>
-        ApplyChangesOperation.ApplyOrMergeChangesAsync(workspace, originalSolution.RoslynSolution, operation.ChangedSolution, cancellationToken);
+    Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(CancellationToken cancellationToken);
 }

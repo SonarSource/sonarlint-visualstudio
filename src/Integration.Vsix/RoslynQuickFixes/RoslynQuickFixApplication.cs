@@ -18,32 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Analysis
+using Microsoft.VisualStudio.Text;
+using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.RoslynAnalyzerServer;
+
+namespace SonarLint.VisualStudio.Integration.Vsix.RoslynQuickFixes;
+
+public class RoslynQuickFixApplication(RoslynQuickFixApplicationImpl implementation) : IQuickFixApplication
 {
-    public interface IQuickFixBase;
+    internal readonly RoslynQuickFixApplicationImpl Implementation = implementation;
 
-    public interface IRoslynQuickFix : IQuickFixBase
-    {
-        Guid Id { get; }
-    }
+    public string Message => Implementation.Message;
 
-    public interface ITextBasedQuickFix : IQuickFixBase
-    {
-        string Message { get; }
-        IReadOnlyList<IEdit> Edits { get; }
-    }
+    public bool CanBeApplied(ITextSnapshot currentSnapshot) => true;
 
-    public interface IEdit
-    {
-        /// <summary>
-        /// The new text to insert. Can be empty if the edit is a deletion.
-        /// </summary>
-        string NewText { get; }
-
-        /// <summary>
-        /// The range of existing text to be replaced.
-        /// The range can have a zero-length if no existing text is being removed i.e. the range will indicate the insertion point.
-        /// </summary>
-        ITextRange RangeToReplace { get; }
-    }
+    public async Task<bool> ApplyAsync(ITextSnapshot currentSnapshot, CancellationToken cancellationToken) =>
+        await Implementation.ApplyAsync(cancellationToken);
 }

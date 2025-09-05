@@ -18,32 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Analysis
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+using SonarLint.VisualStudio.TestInfrastructure;
+
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
+
+[TestClass]
+public class RoslynCodeActionFactoryTests
 {
-    public interface IQuickFixBase;
+    [TestMethod]
+    public void MefCtor_CheckIsExported() => MefTestHelpers.CheckTypeCanBeImported<RoslynCodeActionFactory, IRoslynCodeActionFactory>();
 
-    public interface IRoslynQuickFix : IQuickFixBase
-    {
-        Guid Id { get; }
-    }
-
-    public interface ITextBasedQuickFix : IQuickFixBase
-    {
-        string Message { get; }
-        IReadOnlyList<IEdit> Edits { get; }
-    }
-
-    public interface IEdit
-    {
-        /// <summary>
-        /// The new text to insert. Can be empty if the edit is a deletion.
-        /// </summary>
-        string NewText { get; }
-
-        /// <summary>
-        /// The range of existing text to be replaced.
-        /// The range can have a zero-length if no existing text is being removed i.e. the range will indicate the insertion point.
-        /// </summary>
-        ITextRange RangeToReplace { get; }
-    }
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<RoslynCodeActionFactory>();
 }

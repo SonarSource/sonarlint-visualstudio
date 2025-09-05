@@ -21,19 +21,23 @@
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.CodeAnalysis.CodeFixes;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-[ExcludeFromCodeCoverage] // todo SLVS-2466 add roslyn 'integration' tests using AdHocWorkspace
-[Export(typeof(IRoslynWorkspaceWrapper))]
+[Export(typeof(IRoslynCodeActionFactory))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-internal class RoslynWorkspaceWrapper([Import(typeof(VisualStudioWorkspace))] Workspace workspace) : IRoslynWorkspaceWrapper
+[ExcludeFromCodeCoverage]
+internal class RoslynCodeActionFactory : IRoslynCodeActionFactory
 {
-    public IRoslynSolutionWrapper GetCurrentSolution() => new RoslynSolutionWrapper(workspace.CurrentSolution);
-
-    public Task<bool> ApplyOrMergeChangesAsync(IRoslynSolutionWrapper originalSolution, Microsoft.CodeAnalysis.CodeActions.ApplyChangesOperation operation, CancellationToken cancellationToken) =>
-        ApplyChangesOperation.ApplyOrMergeChangesAsync(workspace, originalSolution.RoslynSolution, operation.ChangedSolution, cancellationToken);
+    public async Task<List<IRoslynCodeActionWrapper>> GetCodeActionsAsync(IReadOnlyCollection<CodeFixProvider> codeFixProviders, Diagnostic diagnostic, IRoslynDocumentWrapper document, CancellationToken token)
+    {
+        var codeActions = new List<IRoslynCodeActionWrapper>();
+        foreach (var codeFixProvider in codeFixProviders)
+        {
+            await codeFixProvider.RegisterCodeFixesAsync(new CodeFixContext(document.RoslynDocument, diagnostic, (c, _) => codeActions.Add(new RoslynCodeActionWrapper(c)), token));
+        }
+        return codeActions;
+    }
 }

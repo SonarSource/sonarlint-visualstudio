@@ -26,6 +26,6 @@ internal interface IRoslynAnalysisEngine
 {
     Task<IEnumerable<RoslynIssue>> AnalyzeAsync(
         List<RoslynProjectAnalysisRequest> projectsAnalysis,
-        IReadOnlyDictionary<Language, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
+        IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token);
 }

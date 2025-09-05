@@ -36,21 +36,24 @@ public class AnalysisIssueVisualizationConverterTests
     private ITextSnapshot textSnapshotMock;
 
     private AnalysisIssueVisualizationConverter testSubject;
+    private IRoslynQuickFixProvider roslynQuickFixProvider;
 
     [TestInitialize]
     public void TestInitialize()
     {
         issueSpanCalculatorMock = new Mock<IIssueSpanCalculator>();
         textSnapshotMock = Mock.Of<ITextSnapshot>();
+        roslynQuickFixProvider = Substitute.For<IRoslynQuickFixProvider>();
 
-        testSubject = new AnalysisIssueVisualizationConverter(issueSpanCalculatorMock.Object, Substitute.For<ISpanTranslator>());
+        testSubject = new AnalysisIssueVisualizationConverter(issueSpanCalculatorMock.Object, Substitute.For<ISpanTranslator>(), roslynQuickFixProvider);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<AnalysisIssueVisualizationConverter, IAnalysisIssueVisualizationConverter>(
             MefTestHelpers.CreateExport<IIssueSpanCalculator>(),
-            MefTestHelpers.CreateExport<ISpanTranslator>());
+            MefTestHelpers.CreateExport<ISpanTranslator>(),
+            MefTestHelpers.CreateExport<IRoslynQuickFixProvider>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<AnalysisIssueVisualizationConverter>();
@@ -145,6 +148,37 @@ public class AnalysisIssueVisualizationConverterTests
         quickFix2.EditVisualizations.Count.Should().Be(1);
         quickFix2.EditVisualizations[0].Edit.Should().Be(edit3);
         quickFix2.EditVisualizations[0].Span.Should().Be(span3);
+    }
+
+    [TestMethod]
+    public void Convert_IssueHasRoslynQuickFix_RoslynQuickFixIsFound_AddsQuickFixToResult()
+    {
+        var roslynQuickFix = new RoslynQuickFix(Guid.NewGuid());
+        var issue = CreateIssue(roslynQuickFix);
+        var expectedQuickFixApplication = Substitute.For<IQuickFixApplication>();
+        roslynQuickFixProvider.TryGet(roslynQuickFix.Id, out Arg.Any<IQuickFixApplication>())
+            .Returns(x =>
+            {
+                x[1] = expectedQuickFixApplication;
+                return true;
+            });
+
+        var result = testSubject.Convert(issue, textSnapshotMock);
+
+        result.QuickFixes.Should().BeEquivalentTo(expectedQuickFixApplication);
+    }
+
+    [TestMethod]
+    public void Convert_IssueHasRoslynQuickFix_RoslynQuickFixNotFound_ReturnsIssueWithoutQuickFix()
+    {
+        var roslynQuickFix = new RoslynQuickFix(Guid.NewGuid());
+        var issue = CreateIssue(roslynQuickFix);
+        roslynQuickFixProvider.TryGet(roslynQuickFix.Id, out Arg.Any<IQuickFixApplication>())
+            .Returns(false);
+
+        var result = testSubject.Convert(issue, textSnapshotMock);
+
+        result.QuickFixes.Should().BeEmpty();
     }
 
     [TestMethod]

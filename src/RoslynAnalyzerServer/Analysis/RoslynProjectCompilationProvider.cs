@@ -37,7 +37,7 @@ internal class RoslynProjectCompilationProvider(ILogger logger) : IRoslynProject
 
     public async Task<IRoslynCompilationWithAnalyzersWrapper> GetProjectCompilationAsync(
         IRoslynProjectWrapper project,
-        IReadOnlyDictionary<Language, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
+        IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token)
     {
         var compilation = await project.GetCompilationAsync(token);
@@ -69,7 +69,7 @@ internal class RoslynProjectCompilationProvider(ILogger logger) : IRoslynProject
             false);
 
         return compilation
-            .WithAnalyzers(analysisConfigurationForLanguage.Analyzers, compilationWithAnalyzersOptions);
+            .WithAnalyzers(analysisConfigurationForLanguage.Analyzers, compilationWithAnalyzersOptions, analysisConfigurationForLanguage);
     }
 
     private static IRoslynCompilationWrapper ApplyDiagnosticOptions(
