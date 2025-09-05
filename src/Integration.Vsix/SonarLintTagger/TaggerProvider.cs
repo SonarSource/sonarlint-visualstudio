@@ -40,10 +40,10 @@ using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 namespace SonarLint.VisualStudio.Integration.Vsix;
 
 /// <summary>
-/// Factory for the <see cref="ITagger{T}" />. There will be one instance of this class/VS session.
+///     Factory for the <see cref="ITagger{T}" />. There will be one instance of this class/VS session.
 /// </summary>
 /// <remarks>
-/// See the README.md in this folder for more information
+///     See the README.md in this folder for more information
 /// </remarks>
 [Export(typeof(ITaggerProvider))]
 [Export(typeof(IDocumentTracker))]
@@ -54,7 +54,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix;
 internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, IDocumentTracker, IDisposable
 {
     internal static readonly Type SingletonManagerPropertyCollectionKey = typeof(SingletonDisposableTaggerManager<IErrorTag>);
+    private readonly IAnalysisRequester analysisRequester;
     private readonly IAnalyzer analyzer;
+    private readonly TimeSpan debounceMilliseconds = TimeSpan.FromMilliseconds(500);
     private readonly IFileTracker fileTracker;
     private readonly IIssueConsumerFactory issueConsumerFactory;
     private readonly IIssueConsumerStorage issueConsumerStorage;
@@ -62,21 +64,21 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
     private readonly ISet<IIssueTracker> issueTrackers = new HashSet<IIssueTracker>();
 
     private readonly ISonarLanguageRecognizer languageRecognizer;
-    private readonly IAnalysisRequester analysisRequester;
     private readonly ILogger logger;
 
     private readonly object reanalysisLockObject = new();
 
     internal readonly ISonarErrorListDataSource sonarErrorDataSource;
     private readonly ITaggableBufferIndicator taggableBufferIndicator;
+    private readonly ITaskExecutorWithDebounceFactory taskExecutorWithDebounceFactory;
     internal readonly ITextDocumentFactoryService textDocumentFactoryService;
     private readonly IVsProjectInfoProvider vsProjectInfoProvider;
-    private IVsStatusbar vsStatusBar;
+
+    private bool disposed;
     private Guid? lastAnalysisId;
     private CancellableJobRunner reanalysisJob;
     private StatusBarReanalysisProgressHandler reanalysisProgressHandler;
-
-    private bool disposed;
+    private IVsStatusbar vsStatusBar;
 
     internal IEnumerable<IIssueTracker> ActiveTrackersForTesting => issueTrackers;
 
@@ -94,7 +96,8 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
         IFileTracker fileTracker,
         IAnalyzer analyzer,
         ILogger logger,
-        IInitializationProcessorFactory initializationProcessorFactory)
+        IInitializationProcessorFactory initializationProcessorFactory,
+        ITaskExecutorWithDebounceFactory taskExecutorWithDebounceFactory)
     {
         this.sonarErrorDataSource = sonarErrorDataSource;
         this.textDocumentFactoryService = textDocumentFactoryService;
@@ -107,6 +110,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
         this.fileTracker = fileTracker;
         this.analyzer = analyzer;
         this.logger = logger;
+        this.taskExecutorWithDebounceFactory = taskExecutorWithDebounceFactory;
 
         InitializationProcessor = initializationProcessorFactory.CreateAndStart<TaggerProvider>(
             [],
@@ -117,7 +121,22 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
             }));
     }
 
-    public IInitializationProcessor InitializationProcessor { get; private set; }
+    public void Dispose()
+    {
+        if (disposed)
+        {
+            return;
+        }
+
+        if (InitializationProcessor.IsFinalized)
+        {
+            analysisRequester.AnalysisRequested -= OnAnalysisRequested;
+        }
+
+        disposed = true;
+    }
+
+    public IInitializationProcessor InitializationProcessor { get; }
 
     private void OnAnalysisRequested(object sender, AnalysisRequestEventArgs args)
     {
@@ -176,7 +195,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
     #region IViewTaggerProvider members
 
     /// <summary>
-    /// Create a tagger that will track SonarLint issues on the view/buffer combination.
+    ///     Create a tagger that will track SonarLint issues on the view/buffer combination.
     /// </summary>
     public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
     {
@@ -216,6 +235,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
             vsProjectInfoProvider,
             issueConsumerFactory,
             issueConsumerStorage,
+            taskExecutorWithDebounceFactory.Create(debounceMilliseconds),
             logger);
 
     #endregion IViewTaggerProvider members
@@ -279,19 +299,4 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
     }
 
     #endregion IDocumentTracker methods
-
-    public void Dispose()
-    {
-        if (disposed)
-        {
-            return;
-        }
-
-        if (InitializationProcessor.IsFinalized)
-        {
-            analysisRequester.AnalysisRequested -= OnAnalysisRequested;
-        }
-
-        disposed = true;
-    }
 }
