@@ -75,7 +75,7 @@ public class TextBufferIssueTrackerTests
         javascriptLanguage = [AnalysisLanguage.Javascript];
         taskExecutorWithDebounceFactory = Substitute.For<ITaskExecutorWithDebounceFactory>();
         taskExecutorWithDebounce = Substitute.For<ITaskExecutorWithDebounce<ITextSnapshot>>();
-        taskExecutorWithDebounceFactory.Create<ITextSnapshot>(Arg.Any<double>()).Returns(taskExecutorWithDebounce);
+        taskExecutorWithDebounceFactory.Create<ITextSnapshot>(Arg.Any<TimeSpan>()).Returns(taskExecutorWithDebounce);
         MockIssueConsumerFactory(mockedJavascriptDocumentFooJs, issueConsumer);
 
         testSubject = CreateTestSubject(mockedJavascriptDocumentFooJs);
@@ -156,6 +156,7 @@ public class TextBufferIssueTrackerTests
         taggerProvider.ActiveTrackersForTesting.Should().BeEmpty();
 
         mockedJavascriptDocumentFooJs.Received(1).FileActionOccurred -= Arg.Any<EventHandler<TextDocumentFileActionEventArgs>>();
+        ((ITextBuffer2)mockDocumentTextBuffer).Received(1).ChangedOnBackground -= Arg.Any<EventHandler<TextContentChangedEventArgs>>();
     }
 
     [TestMethod]

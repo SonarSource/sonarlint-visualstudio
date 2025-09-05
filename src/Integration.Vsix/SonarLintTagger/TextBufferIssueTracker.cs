@@ -109,6 +109,10 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         RemoveIssueConsumer(LastAnalysisFilePath);
         document.FileActionOccurred -= SafeOnFileActionOccurred;
         textBuffer.Properties.RemoveProperty(TaggerProvider.SingletonManagerPropertyCollectionKey);
+        if (textBuffer is ITextBuffer2 textBuffer2)
+        {
+            textBuffer2.ChangedOnBackground -= TextBuffer_OnChangedOnBackground;
+        }
         sonarErrorDataSource.RemoveFactory(Factory);
         Provider.OnDocumentClosed(this);
     }
