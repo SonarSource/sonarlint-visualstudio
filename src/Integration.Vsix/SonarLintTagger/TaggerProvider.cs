@@ -223,8 +223,9 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
     #region IDocumentTracker methods
 
     public event EventHandler<DocumentEventArgs> DocumentClosed;
-    public event EventHandler<DocumentOpenedEventArgs> DocumentOpened;
-    public event EventHandler<DocumentSavedEventArgs> DocumentSaved;
+    public event EventHandler<DocumentEventArgs> DocumentOpened;
+    public event EventHandler<DocumentEventArgs> DocumentSaved;
+    public event EventHandler<DocumentEventArgs> DocumentUpdated;
     public event EventHandler<DocumentRenamedEventArgs> OpenDocumentRenamed;
 
     public Document[] GetOpenDocuments()
@@ -247,7 +248,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
 
         NotifyFileTracker(filePath, content);
         // The lifetime of an issue tracker is tied to a single document. A document is opened, then a tracker is created.
-        DocumentOpened?.Invoke(this, new DocumentOpenedEventArgs(new Document(filePath, issueTracker.DetectedLanguages), content));
+        DocumentOpened?.Invoke(this, new DocumentEventArgs(new Document(filePath, issueTracker.DetectedLanguages), content));
     }
 
     public void OnOpenDocumentRenamed(string newFilePath, string oldFilePath, IEnumerable<AnalysisLanguage> detectedLanguages) =>
@@ -256,7 +257,13 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
     public void OnDocumentSaved(string fullPath, string newContent, IEnumerable<AnalysisLanguage> detectedLanguages)
     {
         NotifyFileTracker(fullPath, newContent);
-        DocumentSaved?.Invoke(this, new DocumentSavedEventArgs(new Document(fullPath, detectedLanguages), newContent));
+        DocumentSaved?.Invoke(this, new DocumentEventArgs(new Document(fullPath, detectedLanguages), newContent));
+    }
+
+    public void OnDocumentUpdated(string fullPath, string newContent, IEnumerable<AnalysisLanguage> detectedLanguages)
+    {
+        NotifyFileTracker(fullPath, newContent);
+        DocumentUpdated?.Invoke(this, new DocumentEventArgs(new Document(fullPath, detectedLanguages), newContent));
     }
 
     public void OnDocumentClosed(IIssueTracker issueTracker)

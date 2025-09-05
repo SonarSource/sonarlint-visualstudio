@@ -22,18 +22,9 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Core;
 
-public class DocumentEventArgs(Document document) : EventArgs
+public class DocumentEventArgs(Document document, string content = null) : EventArgs
 {
     public Document Document { get; } = document;
-}
-
-public class DocumentSavedEventArgs(Document document, string newContent) : DocumentEventArgs(document)
-{
-    public string NewContent { get; } = newContent;
-}
-
-public class DocumentOpenedEventArgs(Document document, string content) : DocumentEventArgs(document)
-{
     public string Content { get; } = content;
 }
 
@@ -54,8 +45,9 @@ public class Document(string fullPath, IEnumerable<AnalysisLanguage> detectedLan
 public interface IDocumentTracker
 {
     event EventHandler<DocumentEventArgs> DocumentClosed;
-    event EventHandler<DocumentOpenedEventArgs> DocumentOpened;
-    event EventHandler<DocumentSavedEventArgs> DocumentSaved;
+    event EventHandler<DocumentEventArgs> DocumentOpened;
+    event EventHandler<DocumentEventArgs> DocumentSaved;
+    event EventHandler<DocumentEventArgs> DocumentUpdated;
     /// <summary>
     /// Raised when an opened document is renamed
     /// </summary>
