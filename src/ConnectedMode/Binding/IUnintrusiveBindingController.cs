@@ -34,31 +34,25 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         bool Unbind(string localBindingKey);
     }
 
-    internal interface IUnintrusiveBindingController
-    {
-        Task BindAsync(BoundServerProject project, IProgress<FixedStepsProgress> progress, CancellationToken token);
-    }
-
     [Export(typeof(IBindingController))]
-    [Export(typeof(IUnintrusiveBindingController))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
-    internal class UnintrusiveBindingController : IUnintrusiveBindingController, IBindingController
+    internal class UnintrusiveBindingController : IBindingController
     {
-        private readonly IBindingProcessFactory bindingProcessFactory;
         private readonly ISonarQubeService sonarQubeService;
         private readonly IActiveSolutionChangedHandler activeSolutionChangedHandler;
+        private readonly IConfigurationPersister configurationPersister;
         private readonly ISolutionBindingRepository solutionBindingRepository;
 
         [ImportingConstructor]
         public UnintrusiveBindingController(
-            IBindingProcessFactory bindingProcessFactory,
             ISonarQubeService sonarQubeService,
             IActiveSolutionChangedHandler activeSolutionChangedHandler,
-            ISolutionBindingRepository solutionBindingRepository)
+            ISolutionBindingRepository solutionBindingRepository,
+            IConfigurationPersister configurationPersister)
         {
-            this.bindingProcessFactory = bindingProcessFactory;
             this.sonarQubeService = sonarQubeService;
             this.activeSolutionChangedHandler = activeSolutionChangedHandler;
+            this.configurationPersister = configurationPersister;
             this.solutionBindingRepository = solutionBindingRepository;
         }
 
@@ -66,14 +60,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         {
             var connectionInformation = new ConnectionInformation(project.ServerConnection.ServerUri, project.ServerConnection.Credentials);
             await sonarQubeService.ConnectAsync(connectionInformation, cancellationToken);
-            await BindAsync(project, null, cancellationToken);
+            configurationPersister.Persist(project);
             activeSolutionChangedHandler.HandleBindingChange();
-        }
-
-        public async Task BindAsync(BoundServerProject project, IProgress<FixedStepsProgress> progress, CancellationToken token)
-        {
-            var bindingProcess = CreateBindingProcess(project);
-            await bindingProcess.DownloadQualityProfileAsync(progress, token);
         }
 
         public bool Unbind(string localBindingKey)
@@ -85,13 +73,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
                 activeSolutionChangedHandler.HandleBindingChange();
             }
             return bindingDeleted;
-        }
-
-        private IBindingProcess CreateBindingProcess(BoundServerProject project)
-        {
-            var bindingProcess = bindingProcessFactory.Create(new BindCommandArgs(project));
-
-            return bindingProcess;
         }
     }
 }
