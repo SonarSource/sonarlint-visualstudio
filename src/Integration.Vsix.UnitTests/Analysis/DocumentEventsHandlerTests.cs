@@ -103,9 +103,9 @@ public class DocumentEventsHandlerTests
             testSubject.InitializationProcessor.InitializeAsync();
             activeConfigScopeTracker.CurrentConfigurationScopeChanged += Arg.Any<EventHandler<ConfigurationScopeChangedEventArgs>>();
             activeCompilationDatabaseTracker.DatabaseChanged += Arg.Any<EventHandler>();
-            documentTracker.DocumentOpened += Arg.Any<EventHandler<DocumentOpenedEventArgs>>();
+            documentTracker.DocumentOpened += Arg.Any<EventHandler<DocumentEventArgs>>();
             documentTracker.DocumentClosed += Arg.Any<EventHandler<DocumentEventArgs>>();
-            documentTracker.DocumentSaved += Arg.Any<EventHandler<DocumentSavedEventArgs>>();
+            documentTracker.DocumentSaved += Arg.Any<EventHandler<DocumentEventArgs>>();
             documentTracker.OpenDocumentRenamed += Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
             documentTracker.GetOpenDocuments(); // the remaining logic is tested in other tests
             slCoreServiceProvider.TryGetTransientService(out Arg.Any<IFileRpcSLCoreService>());
@@ -177,7 +177,7 @@ public class DocumentEventsHandlerTests
     public void DocumentOpened_CFamily_VcxProject_AddFileToCompilationDbAndNotifiesSlCore()
     {
         CreateAndInitializeTestSubject();
-        var args = new DocumentOpenedEventArgs(CFamilyDocument, string.Empty);
+        var args = new DocumentEventArgs(CFamilyDocument, string.Empty);
 
         documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
 
@@ -191,7 +191,7 @@ public class DocumentEventsHandlerTests
     {
         CreateAndInitializeTestSubject();
         MockCompilationDatabaseType(CompilationDatabaseType.CMake);
-        var args = new DocumentOpenedEventArgs(CFamilyDocument, "content");
+        var args = new DocumentEventArgs(CFamilyDocument, "content");
 
         documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
 
@@ -260,7 +260,7 @@ public class DocumentEventsHandlerTests
     public void DocumentOpened_NonCFamily_DoesNotAddFileToVcxCompilationDbButNotifiesSlCore()
     {
         CreateAndInitializeTestSubject();
-        var args = new DocumentOpenedEventArgs(NonCFamilyDocument, string.Empty);
+        var args = new DocumentEventArgs(NonCFamilyDocument, string.Empty);
 
         documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
 
@@ -286,7 +286,7 @@ public class DocumentEventsHandlerTests
     public void DocumentSaved_CFamily_VcxProject_AddFileToCompilationDb()
     {
         CreateAndInitializeTestSubject();
-        var args = new DocumentSavedEventArgs(CFamilyDocument, string.Empty);
+        var args = new DocumentEventArgs(CFamilyDocument, string.Empty);
 
         documentTracker.DocumentSaved += Raise.EventWith(documentTracker, args);
 
@@ -298,7 +298,7 @@ public class DocumentEventsHandlerTests
     {
         CreateAndInitializeTestSubject();
         MockCompilationDatabaseType(CompilationDatabaseType.CMake);
-        var args = new DocumentSavedEventArgs(CFamilyDocument, "content");
+        var args = new DocumentEventArgs(CFamilyDocument, "content");
 
         documentTracker.DocumentSaved += Raise.EventWith(documentTracker, args);
 
@@ -323,7 +323,7 @@ public class DocumentEventsHandlerTests
     [TestMethod]
     public void DocumentSaved_NonCFamily_DoesNothing()
     {
-        var args = new DocumentSavedEventArgs(NonCFamilyDocument, string.Empty);
+        var args = new DocumentEventArgs(NonCFamilyDocument, string.Empty);
 
         documentTracker.DocumentSaved += Raise.EventWith(documentTracker, args);
 
@@ -336,7 +336,7 @@ public class DocumentEventsHandlerTests
     {
         CreateAndInitializeTestSubject();
         threadHandling.ClearReceivedCalls();
-        var args = new DocumentOpenedEventArgs(CFamilyDocument, string.Empty);
+        var args = new DocumentEventArgs(CFamilyDocument, string.Empty);
 
         documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
 
@@ -391,7 +391,7 @@ public class DocumentEventsHandlerTests
     {
         CreateAndInitializeTestSubject();
         threadHandling.ClearReceivedCalls();
-        var args = new DocumentSavedEventArgs(CFamilyDocument, "using System;");
+        var args = new DocumentEventArgs(CFamilyDocument, "using System;");
 
         documentTracker.DocumentSaved += Raise.EventWith(documentTracker, args);
 
@@ -407,7 +407,7 @@ public class DocumentEventsHandlerTests
     {
         CreateAndInitializeTestSubject();
         MockFileRpcService(service: null, succeeds: false);
-        var args = new DocumentOpenedEventArgs(CFamilyDocument, string.Empty);
+        var args = new DocumentEventArgs(CFamilyDocument, string.Empty);
 
         documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
 
@@ -450,7 +450,7 @@ public class DocumentEventsHandlerTests
     {
         CreateAndInitializeTestSubject();
         MockCurrentConfigScope(configurationScope: null);
-        var args = new DocumentOpenedEventArgs(CFamilyDocument, string.Empty);
+        var args = new DocumentEventArgs(CFamilyDocument, string.Empty);
 
         documentTracker.DocumentOpened += Raise.EventWith(documentTracker, args);
 
@@ -501,12 +501,12 @@ public class DocumentEventsHandlerTests
         activeConfigScopeTracker.DidNotReceive().CurrentConfigurationScopeChanged -= Arg.Any<EventHandler<ConfigurationScopeChangedEventArgs>>();
         activeCompilationDatabaseTracker.DidNotReceive().DatabaseChanged += Arg.Any<EventHandler>();
         activeCompilationDatabaseTracker.DidNotReceive().DatabaseChanged -= Arg.Any<EventHandler>();
-        documentTracker.DidNotReceive().DocumentOpened += Arg.Any<EventHandler<DocumentOpenedEventArgs>>();
-        documentTracker.DidNotReceive().DocumentOpened -= Arg.Any<EventHandler<DocumentOpenedEventArgs>>();
+        documentTracker.DidNotReceive().DocumentOpened += Arg.Any<EventHandler<DocumentEventArgs>>();
+        documentTracker.DidNotReceive().DocumentOpened -= Arg.Any<EventHandler<DocumentEventArgs>>();
         documentTracker.DidNotReceive().DocumentClosed += Arg.Any<EventHandler<DocumentEventArgs>>();
         documentTracker.DidNotReceive().DocumentClosed -= Arg.Any<EventHandler<DocumentEventArgs>>();
-        documentTracker.DidNotReceive().DocumentSaved += Arg.Any<EventHandler<DocumentSavedEventArgs>>();
-        documentTracker.DidNotReceive().DocumentSaved -= Arg.Any<EventHandler<DocumentSavedEventArgs>>();
+        documentTracker.DidNotReceive().DocumentSaved += Arg.Any<EventHandler<DocumentEventArgs>>();
+        documentTracker.DidNotReceive().DocumentSaved -= Arg.Any<EventHandler<DocumentEventArgs>>();
         documentTracker.DidNotReceive().OpenDocumentRenamed += Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
         documentTracker.DidNotReceive().OpenDocumentRenamed -= Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
     }
@@ -523,8 +523,8 @@ public class DocumentEventsHandlerTests
         activeConfigScopeTracker.Received(1).CurrentConfigurationScopeChanged -= Arg.Any<EventHandler<ConfigurationScopeChangedEventArgs>>();
         activeCompilationDatabaseTracker.Received(1).DatabaseChanged -= Arg.Any<EventHandler>();
         documentTracker.Received(1).DocumentClosed -= Arg.Any<EventHandler<DocumentEventArgs>>();
-        documentTracker.Received(1).DocumentOpened -= Arg.Any<EventHandler<DocumentOpenedEventArgs>>();
-        documentTracker.Received(1).DocumentSaved -= Arg.Any<EventHandler<DocumentSavedEventArgs>>();
+        documentTracker.Received(1).DocumentOpened -= Arg.Any<EventHandler<DocumentEventArgs>>();
+        documentTracker.Received(1).DocumentSaved -= Arg.Any<EventHandler<DocumentEventArgs>>();
         documentTracker.Received(1).OpenDocumentRenamed -= Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
     }
 
@@ -580,7 +580,6 @@ public class DocumentEventsHandlerTests
         fileRpcSlCoreService.DidNotReceive().DidOpenFile(Arg.Any<DidOpenFileParams>());
         logger.Received(1).LogVerbose(SLCoreStrings.ServiceProviderNotInitialized);
     }
-
 
     [TestMethod]
     public void ActiveCompilationDatabaseTracker_DatabaseChanged_UpdatesCompilationDatabase()
@@ -684,5 +683,6 @@ public class DocumentEventsHandlerTests
 
     private void MockCurrentConfigScope(ConfigurationScope configurationScope) => activeConfigScopeTracker.Current.Returns(configurationScope);
 
-    private void MockCompilationDatabaseType(CompilationDatabaseType? type) => activeCompilationDatabaseTracker.CurrentDatabase.Returns(type is null ? null : new CompilationDatabaseInfo("any", type.Value));
+    private void MockCompilationDatabaseType(CompilationDatabaseType? type) =>
+        activeCompilationDatabaseTracker.CurrentDatabase.Returns(type is null ? null : new CompilationDatabaseInfo("any", type.Value));
 }
