@@ -37,8 +37,6 @@ public class UnintrusiveBindingControllerTests
     private static readonly UsernameAndPasswordCredentials ValidToken = new("TOKEN", new SecureString());
     private static readonly BoundServerProject AnyBoundProject = new("any", "any", new ServerConnection.SonarCloud("any", credentials: ValidToken));
     private IActiveSolutionChangedHandler activeSolutionChangedHandler;
-    private IBindingProcess bindingProcess;
-    private IBindingProcessFactory bindingProcessFactory;
     private ISonarQubeService sonarQubeService;
     private UnintrusiveBindingController testSubject;
     private ISolutionBindingRepository solutionBindingRepository;
@@ -47,31 +45,19 @@ public class UnintrusiveBindingControllerTests
     [TestInitialize]
     public void TestInitialize()
     {
-        CreateBindingProcessFactory();
         sonarQubeService = Substitute.For<ISonarQubeService>();
         activeSolutionChangedHandler = Substitute.For<IActiveSolutionChangedHandler>();
         solutionBindingRepository = Substitute.For<ISolutionBindingRepository>();
         configurationPersister = Substitute.For<IConfigurationPersister>();
-        testSubject = new UnintrusiveBindingController(bindingProcessFactory, sonarQubeService, activeSolutionChangedHandler, solutionBindingRepository, configurationPersister);
+        testSubject = new UnintrusiveBindingController(sonarQubeService, activeSolutionChangedHandler, solutionBindingRepository, configurationPersister);
     }
 
     [TestMethod]
     public void MefCtor_CheckTypeIsNonShared() => MefTestHelpers.CheckIsNonSharedMefComponent<UnintrusiveBindingController>();
 
     [TestMethod]
-    public void MefCtor_IUnintrusiveBindingController_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<UnintrusiveBindingController, IUnintrusiveBindingController>(
-            MefTestHelpers.CreateExport<IBindingProcessFactory>(),
-            MefTestHelpers.CreateExport<ISonarQubeService>(),
-            MefTestHelpers.CreateExport<IActiveSolutionChangedHandler>(),
-            MefTestHelpers.CreateExport<ISolutionBindingRepository>(),
-            MefTestHelpers.CreateExport<IConfigurationPersister>()
-        );
-
-    [TestMethod]
     public void MefCtor_IBindingController_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<UnintrusiveBindingController, IBindingController>(
-            MefTestHelpers.CreateExport<IBindingProcessFactory>(),
             MefTestHelpers.CreateExport<ISonarQubeService>(),
             MefTestHelpers.CreateExport<IActiveSolutionChangedHandler>(),
             MefTestHelpers.CreateExport<ISolutionBindingRepository>(),
@@ -108,18 +94,13 @@ public class UnintrusiveBindingControllerTests
     }
 
     [TestMethod]
-    public async Task BindAsync_CallsBindingProcessInOrder()
+    public async Task BindAsync_PersistsBindingInformation()
     {
         var cancellationToken = CancellationToken.None;
 
-        await testSubject.BindAsync(AnyBoundProject, null, cancellationToken);
+        await testSubject.BindAsync(AnyBoundProject, cancellationToken);
 
-        Received.InOrder(() =>
-        {
-            bindingProcessFactory.Create(Arg.Is<BindCommandArgs>(b => b.ProjectToBind == AnyBoundProject));
-            bindingProcess.DownloadQualityProfileAsync(null, cancellationToken);
-            configurationPersister.Persist(AnyBoundProject);
-        });
+        configurationPersister.Received(1).Persist(AnyBoundProject);
     }
 
     [TestMethod]
@@ -158,13 +139,5 @@ public class UnintrusiveBindingControllerTests
         var result = testSubject.Unbind(AnyBoundProject.LocalBindingKey);
 
         result.Should().Be(expectedResult);
-    }
-
-    private void CreateBindingProcessFactory()
-    {
-        bindingProcess ??= Substitute.For<IBindingProcess>();
-
-        bindingProcessFactory = Substitute.For<IBindingProcessFactory>();
-        bindingProcessFactory.Create(Arg.Any<BindCommandArgs>()).Returns(bindingProcess);
     }
 }
