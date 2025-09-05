@@ -42,6 +42,7 @@ public class UnintrusiveBindingControllerTests
     private ISonarQubeService sonarQubeService;
     private UnintrusiveBindingController testSubject;
     private ISolutionBindingRepository solutionBindingRepository;
+    private IConfigurationPersister configurationPersister;
 
     [TestInitialize]
     public void TestInitialize()
@@ -50,7 +51,8 @@ public class UnintrusiveBindingControllerTests
         sonarQubeService = Substitute.For<ISonarQubeService>();
         activeSolutionChangedHandler = Substitute.For<IActiveSolutionChangedHandler>();
         solutionBindingRepository = Substitute.For<ISolutionBindingRepository>();
-        testSubject = new UnintrusiveBindingController(bindingProcessFactory, sonarQubeService, activeSolutionChangedHandler, solutionBindingRepository);
+        configurationPersister = Substitute.For<IConfigurationPersister>();
+        testSubject = new UnintrusiveBindingController(bindingProcessFactory, sonarQubeService, activeSolutionChangedHandler, solutionBindingRepository, configurationPersister);
     }
 
     [TestMethod]
@@ -62,7 +64,9 @@ public class UnintrusiveBindingControllerTests
             MefTestHelpers.CreateExport<IBindingProcessFactory>(),
             MefTestHelpers.CreateExport<ISonarQubeService>(),
             MefTestHelpers.CreateExport<IActiveSolutionChangedHandler>(),
-            MefTestHelpers.CreateExport<ISolutionBindingRepository>());
+            MefTestHelpers.CreateExport<ISolutionBindingRepository>(),
+            MefTestHelpers.CreateExport<IConfigurationPersister>()
+        );
 
     [TestMethod]
     public void MefCtor_IBindingController_CheckIsExported() =>
@@ -70,7 +74,9 @@ public class UnintrusiveBindingControllerTests
             MefTestHelpers.CreateExport<IBindingProcessFactory>(),
             MefTestHelpers.CreateExport<ISonarQubeService>(),
             MefTestHelpers.CreateExport<IActiveSolutionChangedHandler>(),
-            MefTestHelpers.CreateExport<ISolutionBindingRepository>());
+            MefTestHelpers.CreateExport<ISolutionBindingRepository>(),
+            MefTestHelpers.CreateExport<IConfigurationPersister>()
+        );
 
     [TestMethod]
     public async Task BindAsync_EstablishesConnection()
@@ -112,6 +118,7 @@ public class UnintrusiveBindingControllerTests
         {
             bindingProcessFactory.Create(Arg.Is<BindCommandArgs>(b => b.ProjectToBind == AnyBoundProject));
             bindingProcess.DownloadQualityProfileAsync(null, cancellationToken);
+            configurationPersister.Persist(AnyBoundProject);
         });
     }
 

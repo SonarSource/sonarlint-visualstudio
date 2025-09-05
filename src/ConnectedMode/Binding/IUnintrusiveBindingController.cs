@@ -47,6 +47,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         private readonly IBindingProcessFactory bindingProcessFactory;
         private readonly ISonarQubeService sonarQubeService;
         private readonly IActiveSolutionChangedHandler activeSolutionChangedHandler;
+        private readonly IConfigurationPersister configurationPersister;
         private readonly ISolutionBindingRepository solutionBindingRepository;
 
         [ImportingConstructor]
@@ -54,11 +55,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             IBindingProcessFactory bindingProcessFactory,
             ISonarQubeService sonarQubeService,
             IActiveSolutionChangedHandler activeSolutionChangedHandler,
-            ISolutionBindingRepository solutionBindingRepository)
+            ISolutionBindingRepository solutionBindingRepository,
+            IConfigurationPersister configurationPersister)
         {
             this.bindingProcessFactory = bindingProcessFactory;
             this.sonarQubeService = sonarQubeService;
             this.activeSolutionChangedHandler = activeSolutionChangedHandler;
+            this.configurationPersister = configurationPersister;
             this.solutionBindingRepository = solutionBindingRepository;
         }
 
@@ -74,6 +77,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         {
             var bindingProcess = CreateBindingProcess(project);
             await bindingProcess.DownloadQualityProfileAsync(progress, token);
+            configurationPersister.Persist(project);
         }
 
         public bool Unbind(string localBindingKey)
