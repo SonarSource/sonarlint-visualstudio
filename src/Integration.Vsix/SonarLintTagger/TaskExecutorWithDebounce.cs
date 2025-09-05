@@ -42,39 +42,36 @@ internal class TaskExecutorWithDebounceFactory(IAsyncLockFactory asyncLockFactor
     public ITaskExecutorWithDebounce Create(TimeSpan debounceMilliseconds) => new TaskExecutorWithDebounce(asyncLockFactory, debounceMilliseconds);
 }
 
-internal class TaskExecutorWithDebounce(IAsyncLockFactory asyncLockFactory, TimeSpan debounceMilliseconds) : ITaskExecutorWithDebounce
+internal class TaskExecutorWithDebounce : ITaskExecutorWithDebounce
 {
-    private sealed record Debounce(CancellationTokenSource CancellationTokenSource);
-    private Debounce latestDebounceState;
-    private readonly IAsyncLock asyncLock = asyncLockFactory.Create();
+    private Action latestDebounceState;
+    private object locker = new object();
+    private readonly long debounceMilliseconds;
+    private readonly Timer timer;
+
+    public TaskExecutorWithDebounce(IAsyncLockFactory asyncLockFactory, TimeSpan debounceMilliseconds)
+    {
+        this.debounceMilliseconds = (long)debounceMilliseconds.TotalMilliseconds;
+
+        timer = new Timer(DebounceAction, null, (long)debounceMilliseconds.TotalMilliseconds, Timeout.Infinite);
+    }
+
+    private void DebounceAction(object state)
+    {
+        Action action;
+        lock (locker)
+        {
+            action = latestDebounceState;
+        }
+        action?.Invoke();
+    }
 
     public async Task DebounceAsync(Action task)
     {
-        Debounce latestState;
-        using (await asyncLock.AcquireAsync())
+        lock (locker)
         {
-            latestDebounceState?.CancellationTokenSource.Cancel();
-            latestDebounceState = new Debounce(new CancellationTokenSource());
-            latestState = latestDebounceState;
+            latestDebounceState = task;
+            timer.Change(debounceMilliseconds, Timeout.Infinite);
         }
-
-        ExecuteAction(task, latestState);
     }
-
-    private void ExecuteAction(Action task, Debounce latestState) =>
-        Task.Run(async () =>
-        {
-            try
-            {
-                await Task.Delay(debounceMilliseconds, latestState.CancellationTokenSource.Token);
-                if (!latestState.CancellationTokenSource.Token.IsCancellationRequested)
-                {
-                    task();
-                }
-            }
-            catch (TaskCanceledException)
-            {
-                // do nothing
-            }
-        }, latestState.CancellationTokenSource.Token).Forget();
 }
