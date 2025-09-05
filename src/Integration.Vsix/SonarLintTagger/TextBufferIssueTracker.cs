@@ -49,7 +49,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
     private readonly ITextDocument document;
     private readonly IIssueConsumerFactory issueConsumerFactory;
     private readonly IIssueConsumerStorage issueConsumerStorage;
-    private readonly ITaskExecutorWithDebounce<ITextSnapshot> taskExecutorWithDebounce;
+    private readonly ITaskExecutorWithDebounce taskExecutorWithDebounce;
     private readonly ILogger logger;
     private readonly ISonarErrorListDataSource sonarErrorDataSource;
     private readonly ITextBuffer textBuffer;
@@ -66,7 +66,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         IVsProjectInfoProvider vsProjectInfoProvider,
         IIssueConsumerFactory issueConsumerFactory,
         IIssueConsumerStorage issueConsumerStorage,
-        ITaskExecutorWithDebounce<ITextSnapshot> taskExecutorWithDebounce,
+        ITaskExecutorWithDebounce taskExecutorWithDebounce,
         ILogger logger)
     {
         Provider = provider;
@@ -199,8 +199,9 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
     }
 
     private void TextBuffer_OnChangedOnBackground(object sender, TextContentChangedEventArgs e) =>
-        taskExecutorWithDebounce.DebounceAsync(e.After, textSnapshot =>
+        taskExecutorWithDebounce.DebounceAsync(() =>
         {
+            var textSnapshot = e.After;
             UpdateAnalysisState(textSnapshot);
             Provider.OnDocumentUpdated(document.FilePath, textSnapshot.GetText(), DetectedLanguages);
         }).Forget();

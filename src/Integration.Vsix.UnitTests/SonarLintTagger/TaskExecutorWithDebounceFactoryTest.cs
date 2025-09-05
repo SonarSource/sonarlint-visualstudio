@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
@@ -48,9 +47,9 @@ public class TaskExecutorWithDebounceFactoryTest
     [TestMethod]
     public void Create_ShouldReturnInstance()
     {
-        var result = testSubject.Create<ITextSnapshot>(TimeSpan.FromMilliseconds(1));
+        var result = testSubject.Create(TimeSpan.FromMilliseconds(1));
 
         result.Should().NotBeNull();
-        result.Should().BeOfType<TaskExecutorWithDebounce<ITextSnapshot>>();
+        result.Should().BeOfType<TaskExecutorWithDebounce>();
     }
 }

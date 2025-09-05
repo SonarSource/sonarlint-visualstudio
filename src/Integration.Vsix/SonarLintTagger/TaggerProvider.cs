@@ -235,7 +235,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
             vsProjectInfoProvider,
             issueConsumerFactory,
             issueConsumerStorage,
-            taskExecutorWithDebounceFactory.Create<ITextSnapshot>(debounceMilliseconds),
+            taskExecutorWithDebounceFactory.Create(debounceMilliseconds),
             logger);
 
     #endregion IViewTaggerProvider members

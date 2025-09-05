@@ -26,12 +26,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 internal interface ITaskExecutorWithDebounceFactory
 {
-    ITaskExecutorWithDebounce<T> Create<T>(TimeSpan debounceMilliseconds);
+    ITaskExecutorWithDebounce Create(TimeSpan debounceMilliseconds);
 }
 
-internal interface ITaskExecutorWithDebounce<T>
+internal interface ITaskExecutorWithDebounce
 {
-    Task DebounceAsync(T state, Action<T> task);
+    Task DebounceAsync(Action task);
 }
 
 [Export(typeof(ITaskExecutorWithDebounceFactory))]
@@ -39,24 +39,29 @@ internal interface ITaskExecutorWithDebounce<T>
 [method: ImportingConstructor]
 internal class TaskExecutorWithDebounceFactory(IAsyncLockFactory asyncLockFactory) : ITaskExecutorWithDebounceFactory
 {
-    public ITaskExecutorWithDebounce<T> Create<T>(TimeSpan debounceMilliseconds) => new TaskExecutorWithDebounce<T>(asyncLockFactory, debounceMilliseconds);
+    public ITaskExecutorWithDebounce Create(TimeSpan debounceMilliseconds) => new TaskExecutorWithDebounce(asyncLockFactory, debounceMilliseconds);
 }
 
-internal class TaskExecutorWithDebounce<T>(IAsyncLockFactory asyncLockFactory, TimeSpan debounceMilliseconds) : ITaskExecutorWithDebounce<T>
+internal class TaskExecutorWithDebounce(IAsyncLockFactory asyncLockFactory, TimeSpan debounceMilliseconds) : ITaskExecutorWithDebounce
 {
-    private sealed record Debounce(CancellationTokenSource CancellationTokenSource, T State);
+    private sealed record Debounce(CancellationTokenSource CancellationTokenSource);
     private Debounce latestDebounceState;
     private readonly IAsyncLock asyncLock = asyncLockFactory.Create();
 
-    public async Task DebounceAsync(T state, Action<T> task)
+    public async Task DebounceAsync(Action task)
     {
+        Debounce latestState;
         using (await asyncLock.AcquireAsync())
         {
             latestDebounceState?.CancellationTokenSource.Cancel();
-            latestDebounceState = new Debounce(new CancellationTokenSource(), state);
+            latestDebounceState = new Debounce(new CancellationTokenSource());
+            latestState = latestDebounceState;
         }
 
-        var latestState = latestDebounceState;
+        ExecuteAction(task, latestState);
+    }
+
+    private void ExecuteAction(Action task, Debounce latestState) =>
         Task.Run(async () =>
         {
             try
@@ -64,7 +69,7 @@ internal class TaskExecutorWithDebounce<T>(IAsyncLockFactory asyncLockFactory, T
                 await Task.Delay(debounceMilliseconds, latestState.CancellationTokenSource.Token);
                 if (!latestState.CancellationTokenSource.Token.IsCancellationRequested)
                 {
-                    task(latestState.State);
+                    task();
                 }
             }
             catch (TaskCanceledException)
@@ -72,5 +77,4 @@ internal class TaskExecutorWithDebounce<T>(IAsyncLockFactory asyncLockFactory, T
                 // do nothing
             }
         }, latestState.CancellationTokenSource.Token).Forget();
-    }
 }

@@ -57,7 +57,7 @@ public class TextBufferIssueTrackerTests
     private IIssueConsumerStorage issueConsumerStorage;
     private IIssueConsumer issueConsumer;
     private ITaskExecutorWithDebounceFactory taskExecutorWithDebounceFactory;
-    private ITaskExecutorWithDebounce<ITextSnapshot> taskExecutorWithDebounce;
+    private ITaskExecutorWithDebounce taskExecutorWithDebounce;
 
     [TestInitialize]
     public void SetUp()
@@ -74,8 +74,8 @@ public class TextBufferIssueTrackerTests
         mockedJavascriptDocumentFooJs = CreateDocumentMock("foo.js", mockDocumentTextBuffer);
         javascriptLanguage = [AnalysisLanguage.Javascript];
         taskExecutorWithDebounceFactory = Substitute.For<ITaskExecutorWithDebounceFactory>();
-        taskExecutorWithDebounce = Substitute.For<ITaskExecutorWithDebounce<ITextSnapshot>>();
-        taskExecutorWithDebounceFactory.Create<ITextSnapshot>(Arg.Any<TimeSpan>()).Returns(taskExecutorWithDebounce);
+        taskExecutorWithDebounce = Substitute.For<ITaskExecutorWithDebounce>();
+        taskExecutorWithDebounceFactory.Create(Arg.Any<TimeSpan>()).Returns(taskExecutorWithDebounce);
         MockIssueConsumerFactory(mockedJavascriptDocumentFooJs, issueConsumer);
 
         testSubject = CreateTestSubject(mockedJavascriptDocumentFooJs);
@@ -339,7 +339,7 @@ public class TextBufferIssueTrackerTests
         var newContent = "new content";
         var newSnapshot = CreateTextSnapshotMock(newContent);
         var newAnalysisSnapshot = new AnalysisSnapshot(mockedJavascriptDocumentFooJs.FilePath, newSnapshot);
-        MockTaskExecutorWithDebounce(newSnapshot);
+        MockTaskExecutorWithDebounce();
         CreateTestSubject(mockedJavascriptDocumentFooJs);
 
         RaiseTextBufferChangedOnBackground(currentTextBuffer: mockDocumentTextBuffer, newSnapshot);
@@ -489,11 +489,11 @@ public class TextBufferIssueTrackerTests
         return eventHandler;
     }
 
-    private void MockTaskExecutorWithDebounce(ITextSnapshot newSnapshot) =>
-        taskExecutorWithDebounce.When(x => x.DebounceAsync(Arg.Is<ITextSnapshot>(x => x == newSnapshot), Arg.Any<Action<ITextSnapshot>>())).Do(callInfo =>
+    private void MockTaskExecutorWithDebounce() =>
+        taskExecutorWithDebounce.When(x => x.DebounceAsync(Arg.Any<Action>())).Do(callInfo =>
         {
-            var action = callInfo.Arg<Action<ITextSnapshot>>();
-            action(newSnapshot);
+            var action = callInfo.Arg<Action>();
+            action();
         });
 
     private void VerifyAnalysisStateUpdated(

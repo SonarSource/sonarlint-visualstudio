@@ -31,7 +31,7 @@ public class TaskExecutorWithDebounceTest
     private readonly TimeSpan debounceTimeInMs = TimeSpan.FromMilliseconds(100);
     private IAsyncLock asyncLock;
     private IAsyncLockFactory asyncLockFactory;
-    private TaskExecutorWithDebounce<TestData> testSubject;
+    private TaskExecutorWithDebounce testSubject;
 
     [TestInitialize]
     public void TestInitialize()
@@ -39,7 +39,7 @@ public class TaskExecutorWithDebounceTest
         asyncLockFactory = Substitute.For<IAsyncLockFactory>();
         asyncLock = Substitute.For<IAsyncLock>();
         asyncLockFactory.Create().Returns(asyncLock);
-        testSubject = new TaskExecutorWithDebounce<TestData>(asyncLockFactory, debounceTimeInMs);
+        testSubject = new TaskExecutorWithDebounce(asyncLockFactory, debounceTimeInMs);
     }
 
     [TestMethod]
@@ -49,9 +49,9 @@ public class TaskExecutorWithDebounceTest
         var tcs = new TaskCompletionSource<int>();
         var stopwatch = Stopwatch.StartNew();
 
-        testSubject.DebounceAsync(currentState, state =>
+        testSubject.DebounceAsync(() =>
         {
-            UpdateState(state, 2, tcs);
+            UpdateState(currentState, 2, tcs);
             stopwatch.Stop();
         }).Forget();
         await tcs.Task;
@@ -67,9 +67,9 @@ public class TaskExecutorWithDebounceTest
         var currentState = new TestData { Value = 1 };
         var tcs = new TaskCompletionSource<int>();
 
-        testSubject.DebounceAsync(currentState, state => UpdateState(state, 2)).Forget();
-        testSubject.DebounceAsync(currentState, state => UpdateState(state, 3)).Forget();
-        testSubject.DebounceAsync(currentState, state => UpdateState(state, 4, tcs)).Forget();
+        testSubject.DebounceAsync(() => UpdateState(currentState, 2)).Forget();
+        testSubject.DebounceAsync(() => UpdateState(currentState, 3)).Forget();
+        testSubject.DebounceAsync(() => UpdateState(currentState, 4, tcs)).Forget();
         await tcs.Task;
 
         asyncLock.Received(3).AcquireAsync().IgnoreAwaitForAssert();
