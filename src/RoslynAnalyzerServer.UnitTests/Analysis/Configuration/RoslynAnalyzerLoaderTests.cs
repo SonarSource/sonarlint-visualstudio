@@ -41,6 +41,6 @@ public class RoslynAnalyzerLoaderTests
 
         _ = new RoslynAnalyzerLoader(logger);
 
-        logger.Received().ForContext(Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisAnalyzerLoaderLogContext);
+        logger.Received().ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisAnalyzerLoaderLogContext);
     }
 }

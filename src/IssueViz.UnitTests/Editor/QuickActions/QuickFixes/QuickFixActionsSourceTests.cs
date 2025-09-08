@@ -362,6 +362,7 @@ public class QuickFixActionsSourceTests
             textView,
             textBuffer,
             Mock.Of<IQuickFixesTelemetryManager>(),
+            Substitute.For<IMessageBox>(),
             logger,
             threadHandling);
     }
