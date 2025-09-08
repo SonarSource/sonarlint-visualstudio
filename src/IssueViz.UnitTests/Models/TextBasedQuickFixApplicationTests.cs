@@ -33,7 +33,6 @@ public class TextBasedQuickFixApplicationTests
     private ISpanTranslator spanTranslator;
     private ITextBuffer textBuffer;
     private ITextEdit textEdit;
-    private IAnalysisIssueVisualization issueViz;
     private TextBasedQuickFixApplication testSubject;
 
     [TestInitialize]
@@ -43,7 +42,6 @@ public class TextBasedQuickFixApplicationTests
         snapshot.Length.Returns(int.MaxValue);
         quickFixVisualization = Substitute.For<ITextBasedQuickFixVisualization>();
         spanTranslator = Substitute.For<ISpanTranslator>();
-        issueViz = Substitute.For<IAnalysisIssueVisualization>();
 
         testSubject = new TextBasedQuickFixApplication(quickFixVisualization, spanTranslator);
 
@@ -83,14 +81,13 @@ public class TextBasedQuickFixApplicationTests
             (span1, "new text 1", translatedSpan1),
             (span2, "new text 2", translatedSpan2));
 
-        await testSubject.ApplyAsync(snapshot, issueViz, CancellationToken.None);
+        await testSubject.ApplyAsync(snapshot, CancellationToken.None);
 
         textBuffer.Received(1).CreateEdit();
         spanTranslator.Received(1).TranslateTo(span1, snapshot, SpanTrackingMode.EdgeExclusive);
         spanTranslator.Received(1).TranslateTo(span2, snapshot, SpanTrackingMode.EdgeExclusive);
         textEdit.Received(1).Replace(translatedSpan1.Span, "new text 1");
         textEdit.Received(1).Replace(translatedSpan2.Span, "new text 2");
-        issueViz.Received().Span = Arg.Is<SnapshotSpan>(x => x.Length == 0);
         textEdit.Received(1).Apply();
     }
 
@@ -101,12 +98,11 @@ public class TextBasedQuickFixApplicationTests
         var span = new SnapshotSpan(snapshot, new Span(1, 10));
         SetupEditVisualizations((span, "new text", span));
 
-        var act = () => testSubject.ApplyAsync(snapshot, issueViz, cancellationToken);
+        var act = () => testSubject.ApplyAsync(snapshot, cancellationToken);
         await act.Should().ThrowAsync<OperationCanceledException>();
 
         textBuffer.Received(1).CreateEdit();
         textEdit.DidNotReceiveWithAnyArgs().Apply();
-        issueViz.DidNotReceiveWithAnyArgs().Span = default;
     }
 
     private void SetupTextBufferAndEdit()

@@ -38,6 +38,7 @@ internal sealed class QuickFixActionsSource : ISuggestedActionsSource
     private readonly ILogger logger;
     private readonly IThreadHandling threadHandling;
     private readonly ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator;
+    private readonly IMessageBox messageBox;
     private readonly IQuickFixesTelemetryManager quickFixesTelemetryManager;
 
     public QuickFixActionsSource(ILightBulbBroker lightBulbBroker,
@@ -45,6 +46,7 @@ internal sealed class QuickFixActionsSource : ISuggestedActionsSource
         ITextView textView,
         ITextBuffer textBuffer,
         IQuickFixesTelemetryManager quickFixesTelemetryManager,
+        IMessageBox messageBox,
         ILogger logger,
         IThreadHandling threadHandling)
     {
@@ -52,6 +54,7 @@ internal sealed class QuickFixActionsSource : ISuggestedActionsSource
         this.textBuffer = textBuffer;
         this.textView = textView;
         this.quickFixesTelemetryManager = quickFixesTelemetryManager;
+        this.messageBox = messageBox;
         this.logger = logger;
         this.threadHandling = threadHandling;
 
@@ -76,7 +79,7 @@ internal sealed class QuickFixActionsSource : ISuggestedActionsSource
                 {
                     var applicableFixes = issueViz.QuickFixes.Where(x => x.CanBeApplied(textBuffer.CurrentSnapshot));
 
-                    allActions.AddRange(applicableFixes.Select(fix => new QuickFixSuggestedAction(fix, textBuffer, issueViz, quickFixesTelemetryManager, logger, threadHandling)));
+                    allActions.AddRange(applicableFixes.Select(fix => new QuickFixSuggestedAction(fix, textBuffer, issueViz, quickFixesTelemetryManager, messageBox, logger, threadHandling)));
                 }
             }
         }

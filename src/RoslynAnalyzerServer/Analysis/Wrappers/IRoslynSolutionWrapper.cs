@@ -18,9 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.CodeAnalysis;
+
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 internal interface IRoslynSolutionWrapper
 {
-    public IEnumerable<IRoslynProjectWrapper> Projects { get; }
+    IEnumerable<IRoslynProjectWrapper> Projects { get; }
+    Solution RoslynSolution { get; }
+
+    IRoslynDocumentWrapper? GetDocument(SyntaxTree? tree);
 }
