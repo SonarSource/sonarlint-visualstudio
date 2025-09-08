@@ -18,7 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Windows;
 using Microsoft.VisualStudio.Text;
+using NSubstitute.ExceptionExtensions;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -38,6 +41,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         private ITextSnapshot snapshot;
         private QuickFixSuggestedAction testSubject;
         private const string RuleId = "test-rule-id";
+        private SnapshotSpan originalSpan;
+        private IMessageBox messageBox;
 
         [TestInitialize]
         public void TestInitialize()
@@ -47,6 +52,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             textBuffer = CreateTextBuffer(snapshot);
             issueViz = Substitute.For<IAnalysisIssueVisualization>();
             issueViz.RuleId.Returns(RuleId);
+            messageBox = Substitute.For<IMessageBox>();
+
+            // Set up a non-empty span
+            originalSpan = new SnapshotSpan(snapshot, new Span(0, 10));
+            issueViz.Span.Returns(originalSpan);
+
             telemetryManager = Substitute.For<IQuickFixesTelemetryManager>();
             logger = Substitute.ForPartsOf<TestLogger>();
             threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
@@ -56,9 +67,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 textBuffer,
                 issueViz,
                 telemetryManager,
+                messageBox,
                 logger,
                 threadHandling);
         }
+
+        [TestMethod]
+        public void Ctor_SetsLogContext() => logger.Received(1).ForContext(Resources.QuickFixSuggestedAction_LogContext);
 
         [TestMethod]
         public void DisplayName_ReturnsFixMessage()
@@ -72,7 +87,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         [TestMethod]
         public void Invoke_AppliesFixOnUiThreadWithTelemetry()
         {
-            ConfigureQuickFixApplication();
+            ConfigureQuickFixApplicationCanBeApplied(true, true);
 
             testSubject.Invoke(CancellationToken.None);
 
@@ -81,9 +96,34 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 quickFixApplication.CanBeApplied(snapshot);
                 threadHandling.Run(Arg.Any<Func<Task<int>>>());
                 threadHandling.SwitchToMainThreadAsync();
-                quickFixApplication.ApplyAsync(snapshot, issueViz, Arg.Any<CancellationToken>());
+                quickFixApplication.ApplyAsync(snapshot, Arg.Any<CancellationToken>());
                 telemetryManager.QuickFixApplied(RuleId);
             });
+            issueViz.Received(1).Span = Arg.Is<SnapshotSpan>(s => s.IsEmpty);
+            issueViz.DidNotReceive().Span = originalSpan;
+        }
+
+        [TestMethod]
+        public void Invoke_QuickFixApplicationReturnsFalse_SpanIsRestored_TelemetryNotSent()
+        {
+            ConfigureQuickFixApplicationCanBeApplied(true, false);
+
+            testSubject.Invoke(CancellationToken.None);
+
+            VerifyDidNotApply();
+        }
+
+        [TestMethod]
+        public void Invoke_QuickFixApplicationThrowsException_SpanIsRestored_TelemetryNotSent()
+        {
+            quickFixApplication.CanBeApplied(snapshot).Returns(true);
+            var exception = new Exception("test");
+            quickFixApplication.ApplyAsync(snapshot, Arg.Any<CancellationToken>()).ThrowsAsync(exception);
+
+            var act = () => testSubject.Invoke(CancellationToken.None);
+
+            act.Should().Throw<Exception>().Which.Should().Be(exception);
+            VerifyDidNotApply();
         }
 
         [TestMethod]
@@ -91,7 +131,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         {
             testSubject.Invoke(new CancellationToken(canceled: true));
 
-            quickFixApplication.DidNotReceiveWithAnyArgs().ApplyAsync(default, default, default);
+            quickFixApplication.DidNotReceiveWithAnyArgs().ApplyAsync(default, default);
             issueViz.DidNotReceiveWithAnyArgs().Span = Arg.Any<SnapshotSpan>();
             telemetryManager.DidNotReceiveWithAnyArgs().QuickFixApplied(Arg.Any<string>());
         }
@@ -99,14 +139,30 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         [TestMethod]
         public void Invoke_QuickFixIsNotApplicable_NoChanges()
         {
-            ConfigureNonApplicableQuickFixApplication();
+            ConfigureQuickFixApplicationCanBeApplied(false, false);
 
             testSubject.Invoke(CancellationToken.None);
 
             quickFixApplication.Received(1).CanBeApplied(snapshot);
-            quickFixApplication.DidNotReceiveWithAnyArgs().ApplyAsync(default, default, default);
+            quickFixApplication.DidNotReceiveWithAnyArgs().ApplyAsync(default, default);
             issueViz.DidNotReceiveWithAnyArgs().Span = Arg.Any<SnapshotSpan>();
             telemetryManager.DidNotReceiveWithAnyArgs().QuickFixApplied(Arg.Any<string>());
+        }
+
+        private void VerifyDidNotApply()
+        {
+            var didNotApplyMessage = string.Format(Resources.QuickFixSuggestedAction_CouldNotApply, RuleId);
+            Received.InOrder(() =>
+            {
+                quickFixApplication.CanBeApplied(snapshot);
+                threadHandling.Run(Arg.Any<Func<Task<int>>>());
+                threadHandling.SwitchToMainThreadAsync();
+                quickFixApplication.ApplyAsync(snapshot, Arg.Any<CancellationToken>());
+                messageBox.Show(didNotApplyMessage, Resources.QuickFixSuggestedAction_CouldNotApplyMessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Error);
+            });
+            issueViz.Received().Span = originalSpan;
+            telemetryManager.DidNotReceiveWithAnyArgs().QuickFixApplied(Arg.Any<string>());
+            logger.AssertPartialOutputStringExists(didNotApplyMessage);
         }
 
         private static ITextSnapshot CreateTextSnapshot()
@@ -116,13 +172,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             return snapshot;
         }
 
-        private void ConfigureQuickFixApplication() => ConfigureQuickFixApplication(true);
-
-        private void ConfigureNonApplicableQuickFixApplication() => ConfigureQuickFixApplication(false);
-
-        private void ConfigureQuickFixApplication(bool canBeApplied) =>
+        private void ConfigureQuickFixApplicationCanBeApplied(bool canBeApplied, bool willBeApplied)
+        {
             quickFixApplication.CanBeApplied(snapshot)
                 .Returns(canBeApplied);
+
+            quickFixApplication.ApplyAsync(snapshot, Arg.Any<CancellationToken>())
+                .Returns(willBeApplied);
+        }
 
         private static ITextBuffer CreateTextBuffer(ITextSnapshot snapShot)
         {
