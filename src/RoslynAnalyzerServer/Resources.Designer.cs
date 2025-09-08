@@ -231,11 +231,29 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Roslyn Analysis.
+        ///   Looks up a localized string similar to Analysis.
         /// </summary>
         internal static string RoslynAnalysisLogContext {
             get {
                 return ResourceManager.GetString("RoslynAnalysisLogContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Roslyn.
+        /// </summary>
+        internal static string RoslynLogContext {
+            get {
+                return ResourceManager.GetString("RoslynLogContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to QuickFix.
+        /// </summary>
+        internal static string RoslynQuickFixLogContext {
+            get {
+                return ResourceManager.GetString("RoslynQuickFixLogContext", resourceCulture);
             }
         }
     }

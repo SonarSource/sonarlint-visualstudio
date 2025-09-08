@@ -137,6 +137,11 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
 
         private static IQuickFixBase? GetQuickFix(FileUri fileURi, QuickFixDto quickFixDto)
         {
+            if (RoslynQuickFix.TryParse(quickFixDto.message, out var fix))
+            {
+                return fix;
+            }
+
             var fileEdits = quickFixDto.inputFileEdits.FindAll(e => e.target == fileURi);
             if (fileEdits.Count == 0)
             {

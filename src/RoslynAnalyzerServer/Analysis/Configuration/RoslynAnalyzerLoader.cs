@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 [ExcludeFromCodeCoverage]
 internal class RoslynAnalyzerLoader(ILogger logger) : IRoslynAnalyzerLoader
 {
-    private readonly ILogger logger = logger.ForContext(Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisAnalyzerLoaderLogContext);
+    private readonly ILogger logger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisAnalyzerLoaderLogContext);
 
     public LoadedAnalyzerClasses LoadAnalyzerAssembly(string filePath)
     {

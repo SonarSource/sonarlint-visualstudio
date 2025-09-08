@@ -18,47 +18,86 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Windows;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes
+namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
+
+internal class QuickFixSuggestedAction(
+    IQuickFixApplication quickFixApplication,
+    ITextBuffer textBuffer,
+    IAnalysisIssueVisualization issueViz,
+    IQuickFixesTelemetryManager quickFixesTelemetryManager,
+    IMessageBox messageBox,
+    ILogger logger,
+    IThreadHandling threadHandling)
+    : BaseSuggestedAction
 {
-    internal class QuickFixSuggestedAction(
-        IQuickFixApplication quickFixApplication,
-        ITextBuffer textBuffer,
-        IAnalysisIssueVisualization issueViz,
-        IQuickFixesTelemetryManager quickFixesTelemetryManager,
-        ILogger logger,
-        IThreadHandling threadHandling)
-        : BaseSuggestedAction
+    private readonly ILogger logger = logger.ForContext(Resources.QuickFixSuggestedAction_LogContext);
+
+    public override string DisplayText => Resources.ProductNameCommandPrefix + quickFixApplication.Message;
+
+    public override void Invoke(CancellationToken cancellationToken)
     {
-
-        public override string DisplayText => Resources.ProductNameCommandPrefix + quickFixApplication.Message;
-
-        public override void Invoke(CancellationToken cancellationToken)
+        if (cancellationToken.IsCancellationRequested)
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return;
-            }
-
-            if (!quickFixApplication.CanBeApplied(textBuffer.CurrentSnapshot))
-            {
-                logger.LogVerbose("[Quick Fixes] Quick fix cannot be applied as the text has changed. Issue: " + issueViz.RuleId);
-                return;
-            }
-
-            threadHandling.Run(async () =>
-            {
-                await threadHandling.SwitchToMainThreadAsync();
-                await quickFixApplication.ApplyAsync(textBuffer.CurrentSnapshot, issueViz, cancellationToken);
-
-                quickFixesTelemetryManager.QuickFixApplied(issueViz.RuleId);
-
-                return 0;
-            });
+            return;
         }
+
+        if (!quickFixApplication.CanBeApplied(textBuffer.CurrentSnapshot))
+        {
+            logger.LogVerbose("Quick fix cannot be applied as the text has changed. Issue: " + issueViz.RuleId);
+            return;
+        }
+
+        threadHandling.Run(async () =>
+        {
+            await threadHandling.SwitchToMainThreadAsync();
+
+            var isHandled = await HandleQuickFixAsync(cancellationToken);
+
+            if (isHandled)
+            {
+                quickFixesTelemetryManager.QuickFixApplied(issueViz.RuleId);
+            }
+
+            return 0;
+        });
+    }
+
+    private async Task<bool> HandleQuickFixAsync(CancellationToken cancellationToken)
+    {
+        var originalSpan = issueViz.Span;
+        issueViz.InvalidateSpan();
+
+        var isApplied = false;
+
+        try
+        {
+            isApplied = await quickFixApplication.ApplyAsync(textBuffer.CurrentSnapshot, cancellationToken);
+        }
+        finally
+        {
+            if (!isApplied)
+            {
+                issueViz.Span = originalSpan;
+                NotifyUser();
+            }
+        }
+
+        return isApplied;
+    }
+
+    private void NotifyUser()
+    {
+        logger.WriteLine(Resources.QuickFixSuggestedAction_CouldNotApply, issueViz.RuleId);
+        messageBox.Show(
+            string.Format(Resources.QuickFixSuggestedAction_CouldNotApply,issueViz.RuleId),
+            Resources.QuickFixSuggestedAction_CouldNotApplyMessageBoxCaption,
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
     }
 }
