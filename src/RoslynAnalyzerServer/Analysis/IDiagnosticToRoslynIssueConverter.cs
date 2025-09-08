@@ -20,10 +20,11 @@
 
 using Microsoft.CodeAnalysis;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
 public interface IDiagnosticToRoslynIssueConverter
 {
-    RoslynIssue ConvertToSonarDiagnostic(Diagnostic diagnostic, Language language);
+    RoslynIssue ConvertToSonarDiagnostic(Diagnostic diagnostic, List<RoslynQuickFix> quickFixes, Language language);
 }

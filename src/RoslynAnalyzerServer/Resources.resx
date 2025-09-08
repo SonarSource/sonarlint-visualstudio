@@ -156,8 +156,11 @@
   <data name="DefaultSecondaryLocationTitleTemplate" xml:space="preserve">
     <value>Location {0}</value>
    </data>
+  <data name="RoslynLogContext" xml:space="preserve">
+    <value>Roslyn</value>
+  </data>  
   <data name="RoslynAnalysisLogContext" xml:space="preserve">
-    <value>Roslyn Analysis</value>
+    <value>Analysis</value>
   </data>
   <data name="RoslynAnalysisConfigurationLogContext" xml:space="preserve">
     <value>Configuration</value>
@@ -176,5 +179,8 @@
   </data>
   <data name="RoslynAnalysisAnalyzerClassLoaderFailedToLoad" xml:space="preserve">
     <value>Failed to load class {0} from {1}: {2}</value>
+  </data>
+  <data name="RoslynQuickFixLogContext" xml:space="preserve">
+    <value>QuickFix</value>
   </data>
 </root>

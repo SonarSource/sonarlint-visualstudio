@@ -38,10 +38,10 @@ internal class RoslynAnalysisConfigurationProvider(
     ILogger logger) : IRoslynAnalysisConfigurationProvider
 {
     private readonly IAsyncLock asyncLock = asyncLockFactory.Create();
-    private readonly ILogger logger = logger.ForContext(Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisConfigurationLogContext);
+    private readonly ILogger logger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisConfigurationLogContext);
     private AnalysisConfigurationCache? cache;
 
-    public Task<IReadOnlyDictionary<Language, RoslynAnalysisConfiguration>> GetConfigurationAsync(
+    public Task<IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration>> GetConfigurationAsync(
         List<ActiveRuleDto> activeRules,
         Dictionary<string, string> analysisProperties,
         AnalyzerInfoDto analyzerInfo) =>
@@ -70,9 +70,9 @@ internal class RoslynAnalysisConfigurationProvider(
             BuildConfigurations(analysisProfilesByLanguage));
     }
 
-    private IReadOnlyDictionary<Language, RoslynAnalysisConfiguration> BuildConfigurations(Dictionary<RoslynLanguage, RoslynAnalysisProfile> analysisProfilesByLanguage)
+    private IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> BuildConfigurations(Dictionary<RoslynLanguage, RoslynAnalysisProfile> analysisProfilesByLanguage)
     {
-        var configurations = new Dictionary<Language, RoslynAnalysisConfiguration>();
+        var configurations = new Dictionary<RoslynLanguage, RoslynAnalysisConfiguration>();
         foreach (var analyzerAndLanguage in analysisProfilesByLanguage)
         {
             var language = analyzerAndLanguage.Key;
@@ -103,5 +103,5 @@ internal class RoslynAnalysisConfigurationProvider(
         return configurations;
     }
 
-    private record struct AnalysisConfigurationCache(AnalysisConfigurationParametersCache Parameters, IReadOnlyDictionary<Language, RoslynAnalysisConfiguration> Configurations);
+    private record struct AnalysisConfigurationCache(AnalysisConfigurationParametersCache Parameters, IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> Configurations);
 }
