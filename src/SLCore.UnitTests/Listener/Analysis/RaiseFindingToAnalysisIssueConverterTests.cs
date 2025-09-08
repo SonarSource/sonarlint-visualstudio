@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
+using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using CleanCodeAttribute = SonarLint.VisualStudio.SLCore.Common.Models.CleanCodeAttribute;
 using SoftwareQuality = SonarLint.VisualStudio.SLCore.Common.Models.SoftwareQuality;
@@ -68,31 +69,33 @@ public class RaiseFindingToAnalysisIssueConverterTests
     public void GetAnalysisIssues_HasIssues_ConvertsCorrectly()
     {
         var dateTimeOffset = DateTimeOffset.Now;
-        var issue1 = new RaisedIssueDto(
-            IssueWithFlowsAndQuickFixesUseCase.Issue1Id,
-            "serverKey1",
-            "ruleKey1",
-            "PrimaryMessage1",
-            dateTimeOffset,
-            true,
-            false,
-            new TextRangeDto(1, 2, 3, 4),
-            null,
-            null,
-            "context1",
-            new StandardModeDetails(IssueSeverity.MAJOR, RuleType.CODE_SMELL));
-        var issue2 = new RaisedIssueDto(IssueWithFlowsAndQuickFixesUseCase.Issue2Id,
-            "serverKey2",
-            "ruleKey2",
-            "PrimaryMessage2",
-            dateTimeOffset,
-            true,
-            false,
-            new TextRangeDto(61, 62, 63, 64),
-            [IssueWithFlowsAndQuickFixesUseCase.Issue2Flow1, IssueWithFlowsAndQuickFixesUseCase.Issue2Flow2],
-            [IssueWithFlowsAndQuickFixesUseCase.Issue2Fix1, IssueWithFlowsAndQuickFixesUseCase.Issue2Fix2],
-            "context2",
-            new MQRModeDetails(CleanCodeAttribute.COMPLETE, IssueWithFlowsAndQuickFixesUseCase.Issue2Impacts));
+        var issue1 = CreateRaisedIssueDto(
+            id: IssueWithFlowsAndQuickFixesUseCase.Issue1Id,
+            serverKey: "serverKey1",
+            ruleKey: "ruleKey1",
+            primaryMessage: "PrimaryMessage1",
+            introductionDate: dateTimeOffset,
+            isOnNewCode: true,
+            resolved: false,
+            textRange: new TextRangeDto(1, 2, 3, 4),
+            flows: null,
+            quickFixes: null,
+            ruleDescriptionContextKey: "context1",
+            severityMode: new StandardModeDetails(IssueSeverity.MAJOR, RuleType.CODE_SMELL));
+
+        var issue2 = CreateRaisedIssueDto(
+            id: IssueWithFlowsAndQuickFixesUseCase.Issue2Id,
+            serverKey: "serverKey2",
+            ruleKey: "ruleKey2",
+            primaryMessage: "PrimaryMessage2",
+            introductionDate: dateTimeOffset,
+            isOnNewCode: true,
+            resolved: false,
+            textRange: new TextRangeDto(61, 62, 63, 64),
+            flows: [IssueWithFlowsAndQuickFixesUseCase.Issue2Flow1, IssueWithFlowsAndQuickFixesUseCase.Issue2Flow2],
+            quickFixes: [IssueWithFlowsAndQuickFixesUseCase.Issue2Fix1, IssueWithFlowsAndQuickFixesUseCase.Issue2Fix2],
+            ruleDescriptionContextKey: "context2",
+            severityMode: new MQRModeDetails(CleanCodeAttribute.COMPLETE, IssueWithFlowsAndQuickFixesUseCase.Issue2Impacts));
 
         var result = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedIssueDto> { issue1, issue2 }).ToList();
 
@@ -103,33 +106,37 @@ public class RaiseFindingToAnalysisIssueConverterTests
     public void GetAnalysisIssues_HasHotspot_ConvertsCorrectly()
     {
         var dateTimeOffset = DateTimeOffset.Now;
-        var issue1 = new RaisedHotspotDto(IssueWithFlowsAndQuickFixesUseCase.Issue1Id,
-            "serverKey1",
-            "ruleKey1",
-            "PrimaryMessage1",
-            dateTimeOffset,
-            true,
-            false,
-            new TextRangeDto(1, 2, 3, 4),
-            null,
-            null,
-            "context1",
-            VulnerabilityProbability.HIGH,
-            HotspotStatus.FIXED,
-            new StandardModeDetails(IssueSeverity.MAJOR, RuleType.CODE_SMELL));
-        var issue2 = new RaisedHotspotDto(IssueWithFlowsAndQuickFixesUseCase.Issue2Id,
-            "serverKey2",
-            "ruleKey2",
-            "PrimaryMessage2",
-            dateTimeOffset,
-            true,
-            false,
-            new TextRangeDto(61, 62, 63, 64),
-            [IssueWithFlowsAndQuickFixesUseCase.Issue2Flow1, IssueWithFlowsAndQuickFixesUseCase.Issue2Flow2],
-            [IssueWithFlowsAndQuickFixesUseCase.Issue2Fix1, IssueWithFlowsAndQuickFixesUseCase.Issue2Fix2],
-            "context2", VulnerabilityProbability.HIGH,
-            HotspotStatus.FIXED,
-            new MQRModeDetails(CleanCodeAttribute.COMPLETE, IssueWithFlowsAndQuickFixesUseCase.Issue2Impacts));
+        var issue1 = CreateRaisedHotspotDto(
+            id: IssueWithFlowsAndQuickFixesUseCase.Issue1Id,
+            serverKey: "serverKey1",
+            ruleKey: "ruleKey1",
+            primaryMessage: "PrimaryMessage1",
+            introductionDate: dateTimeOffset,
+            isOnNewCode: true,
+            resolved: false,
+            textRange: new TextRangeDto(1, 2, 3, 4),
+            flows: null,
+            quickFixes: null,
+            ruleDescriptionContextKey: "context1",
+            vulnerabilityProbability: VulnerabilityProbability.HIGH,
+            status: HotspotStatus.FIXED,
+            severityMode: new StandardModeDetails(IssueSeverity.MAJOR, RuleType.CODE_SMELL));
+
+        var issue2 = CreateRaisedHotspotDto(
+            id: IssueWithFlowsAndQuickFixesUseCase.Issue2Id,
+            serverKey: "serverKey2",
+            ruleKey: "ruleKey2",
+            primaryMessage: "PrimaryMessage2",
+            introductionDate: dateTimeOffset,
+            isOnNewCode: true,
+            resolved: false,
+            textRange: new TextRangeDto(61, 62, 63, 64),
+            flows: [IssueWithFlowsAndQuickFixesUseCase.Issue2Flow1, IssueWithFlowsAndQuickFixesUseCase.Issue2Flow2],
+            quickFixes: [IssueWithFlowsAndQuickFixesUseCase.Issue2Fix1, IssueWithFlowsAndQuickFixesUseCase.Issue2Fix2],
+            ruleDescriptionContextKey: "context2",
+            vulnerabilityProbability: VulnerabilityProbability.HIGH,
+            status: HotspotStatus.FIXED,
+            severityMode: new MQRModeDetails(CleanCodeAttribute.COMPLETE, IssueWithFlowsAndQuickFixesUseCase.Issue2Impacts));
 
         var result = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedFindingDto> { issue1, issue2 }).ToList();
 
@@ -141,21 +148,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
     {
         var analysisIssues = testSubject.GetAnalysisIssues(UnflattenedFlowsUseCase.FileUri, new List<RaisedIssueDto>
         {
-            new(Guid.Empty,
-                default,
-                default,
-                default,
-                default,
-                default,
-                default,
-                new TextRangeDto(1,
-                    2,
-                    3,
-                    4),
-                UnflattenedFlowsUseCase.UnflattenedFlows,
-                default,
-                default,
-                new StandardModeDetails(default, default))
+            CreateRaisedIssueDto(flows: UnflattenedFlowsUseCase.UnflattenedFlows)
         });
 
         UnflattenedFlowsUseCase.VerifyFlattenedFlow(analysisIssues);
@@ -166,23 +159,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
     {
         var analysisIssues = testSubject.GetAnalysisIssues(UnflattenedFlowsUseCase.FileUri, new List<RaisedHotspotDto>
         {
-            new(Guid.Empty,
-                default,
-                default,
-                default,
-                default,
-                default,
-                default,
-                new TextRangeDto(1,
-                    2,
-                    3,
-                    4),
-                UnflattenedFlowsUseCase.UnflattenedFlows,
-                default,
-                default,
-                VulnerabilityProbability.HIGH,
-                HotspotStatus.SAFE,
-                new StandardModeDetails(default, default))
+            CreateRaisedHotspotDto(flows: UnflattenedFlowsUseCase.UnflattenedFlows)
         });
 
         UnflattenedFlowsUseCase.VerifyFlattenedFlow(analysisIssues);
@@ -198,23 +175,8 @@ public class RaiseFindingToAnalysisIssueConverterTests
     {
         var analysisIssues = testSubject.GetAnalysisIssues(fileUri, new List<RaisedHotspotDto>
         {
-            new(Guid.Empty,
-                default,
-                default,
-                default,
-                default,
-                default,
-                default,
-                new TextRangeDto(1,
-                    2,
-                    3,
-                    4),
-                [],
-                default,
-                default,
-                vulnerabilityProbability,
-                HotspotStatus.SAFE,
-                new StandardModeDetails(default, default))
+            CreateRaisedHotspotDto(
+                vulnerabilityProbability: vulnerabilityProbability)
         });
 
         analysisIssues.Single().Should().BeOfType<AnalysisHotspotIssue>().Which.HotspotPriority.Should().Be(expectedHotspotPriority);
@@ -225,23 +187,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
     {
         var analysisIssues = testSubject.GetAnalysisIssues(fileUri, new List<RaisedHotspotDto>
         {
-            new(Guid.Empty,
-                default,
-                default,
-                default,
-                default,
-                default,
-                default,
-                new TextRangeDto(1,
-                    2,
-                    3,
-                    4),
-                [],
-                default,
-                default,
-                null,
-                HotspotStatus.SAFE,
-                new StandardModeDetails(default, default))
+            CreateRaisedHotspotDto(vulnerabilityProbability: null)
         });
 
         analysisIssues.Single().Should().BeOfType<AnalysisHotspotIssue>().Which.HotspotPriority.Should().BeNull();
@@ -257,23 +203,8 @@ public class RaiseFindingToAnalysisIssueConverterTests
     {
         var analysisIssues = testSubject.GetAnalysisIssues(fileUri, new List<RaisedHotspotDto>
         {
-            new(Guid.Empty,
-                default,
-                default,
-                default,
-                default,
-                default,
-                default,
-                new TextRangeDto(1,
-                    2,
-                    3,
-                    4),
-                [],
-                default,
-                default,
-                null,
-                HotspotStatus.SAFE,
-                new MQRModeDetails(default,
+            CreateRaisedHotspotDto(
+                severityMode: new MQRModeDetails(default,
                 [
                     new ImpactDto(SoftwareQuality.MAINTAINABILITY, ImpactSeverity.INFO),
                     new ImpactDto(SoftwareQuality.RELIABILITY, severity),
@@ -298,21 +229,8 @@ public class RaiseFindingToAnalysisIssueConverterTests
     {
         var analysisIssues = testSubject.GetAnalysisIssues(fileUri, new List<RaisedIssueDto>
         {
-            new(Guid.Empty,
-                default,
-                default,
-                default,
-                default,
-                default,
-                default,
-                new TextRangeDto(1,
-                    2,
-                    3,
-                    4),
-                [],
-                default,
-                default,
-                new MQRModeDetails(default,
+            CreateRaisedIssueDto(
+                severityMode: new MQRModeDetails(default,
                 [
                     new ImpactDto(SoftwareQuality.MAINTAINABILITY, ImpactSeverity.INFO),
                     new ImpactDto(SoftwareQuality.RELIABILITY, severity),
@@ -333,49 +251,32 @@ public class RaiseFindingToAnalysisIssueConverterTests
     [TestMethod]
     public void GetAnalysisIssues_TextRangeDtoIsNull_ConvertsCorrectly()
     {
-        var dateTimeOffset = DateTimeOffset.Now;
-        var issue1 = new RaisedHotspotDto(IssueWithFlowsAndQuickFixesUseCase.Issue1Id,
-            "serverKey1",
-            "ruleKey1",
-            "PrimaryMessage1",
-            dateTimeOffset,
-            true,
-            false,
-            textRange: null,
-            null,
-            null,
-            "context1",
-            VulnerabilityProbability.HIGH,
-            HotspotStatus.FIXED,
-            new StandardModeDetails(IssueSeverity.MAJOR, RuleType.CODE_SMELL));
+        const string primaryMessage = "PrimaryMessage1";
+        var issue1 = CreateRaisedHotspotDto(
+            id: IssueWithFlowsAndQuickFixesUseCase.Issue1Id,
+            primaryMessage: primaryMessage,
+            textRange: null);
 
         var analysisIssues = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedFindingDto> { issue1 }).ToList();
 
         var issue = analysisIssues.SingleOrDefault() as AnalysisIssue;
         issue.Should().NotBeNull();
         issue.PrimaryLocation.TextRange.Should().BeNull();
+        issue.PrimaryLocation.Message.Should().Be(primaryMessage);
     }
 
     [TestMethod]
     public void GetAnalysisIssues_IssueWithQuickFixSplitIntoTwoFileEdits_ReturnsIssueWithSingleQuickFix()
     {
-        var issue = new RaisedIssueDto(Guid.NewGuid(),
-            "serverKey",
-            "ruleKey",
-            "PrimaryMessage",
-            DateTimeOffset.Now,
-            true,
-            false,
-            new TextRangeDto(1, 2, 3, 4),
-            [],
+        var issue = CreateRaisedIssueDto(
+            quickFixes:
             [
                 new QuickFixDto([
                     new FileEditDto(new FileUri("C:\\IssueFile.cs"), [new TextEditDto(new TextRangeDto(5, 6, 7, 8), "new text")]),
                     new FileEditDto(new FileUri("C:\\IssueFile.cs"), [new TextEditDto(new TextRangeDto(9, 10, 11, 12), "another text")]),
                     new FileEditDto(new FileUri("C:\\AnotherFile.cs"), [new TextEditDto(new TextRangeDto(20, 10, 21, 12), "skip this fix")])
-                ], "QuickFix")],
-            "context",
-            new StandardModeDetails(IssueSeverity.MAJOR, RuleType.CODE_SMELL));
+                ], "QuickFix")
+            ]);
 
         var analysisIssues = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedFindingDto> { issue }).ToList();
 
@@ -383,6 +284,22 @@ public class RaiseFindingToAnalysisIssueConverterTests
         analysisIssues.Should().ContainSingle();
         analysisIssues[0].Fixes.Should().ContainSingle();
         analysisIssues[0].Fixes[0].Should().BeAssignableTo<ITextBasedQuickFix>().Which.Edits.Should().HaveCount(2);
+    }
+
+    [TestMethod]
+    public void GetAnalysisIssues_IssueWithRoslynQuickFix_ReturnsIssueWithRoslynQuickFix()
+    {
+        var expectedId = Guid.NewGuid();
+        var roslynQuickFix = new RoslynQuickFix(expectedId);
+        var serializedFix = roslynQuickFix.GetStorageValue();
+
+        var issue = CreateRaisedIssueDto(quickFixes: [new QuickFixDto([], serializedFix)]);
+
+        var analysisIssues = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedFindingDto> { issue }).ToList();
+
+        analysisIssues.Should().NotBeNull();
+        analysisIssues.Should().ContainSingle();
+        analysisIssues[0].Fixes.Should().BeEquivalentTo(roslynQuickFix);
     }
 
     [TestMethod]
@@ -473,29 +390,77 @@ public class RaiseFindingToAnalysisIssueConverterTests
     {
         var analysisIssues = testSubject.GetAnalysisIssues(fileUri, new List<RaisedHotspotDto>
         {
-            new(Guid.Empty,
-                default,
-                default,
-                default,
-                default,
-                default,
-                default,
-                new TextRangeDto(1,
-                    2,
-                    3,
-                    4),
-                [],
-                default,
-                default,
-                null,
-                hotspotStatus,
-                new StandardModeDetails(default, default))
+            CreateRaisedHotspotDto(
+                vulnerabilityProbability: null,
+                status: hotspotStatus)
         });
 
         var hotspotIssue = analysisIssues.SingleOrDefault() as AnalysisHotspotIssue;
         hotspotIssue.Should().NotBeNull();
         hotspotIssue.HotspotStatus.Should().Be(hotspotStatus.ToHotspotStatus());
     }
+
+
+    private static RaisedIssueDto CreateRaisedIssueDto(
+        Guid? id = null,
+        string serverKey = null,
+        string ruleKey = "rule:key",
+        string primaryMessage = "Primary message",
+        DateTimeOffset? introductionDate = null,
+        bool isOnNewCode = true,
+        bool resolved = false,
+        TextRangeDto textRange = null,
+        List<IssueFlowDto> flows = null,
+        List<QuickFixDto> quickFixes = null,
+        string ruleDescriptionContextKey = null,
+        Either<StandardModeDetails, MQRModeDetails> severityMode = null)
+    {
+        return new RaisedIssueDto(
+            id ?? Guid.NewGuid(),
+            serverKey,
+            ruleKey,
+            primaryMessage,
+            introductionDate ?? DateTimeOffset.Now,
+            isOnNewCode,
+            resolved,
+            textRange,
+            flows ?? [],
+            quickFixes ?? [],
+            ruleDescriptionContextKey,
+            severityMode ?? new StandardModeDetails(IssueSeverity.MAJOR, RuleType.CODE_SMELL));
+    }
+
+
+    private static RaisedHotspotDto CreateRaisedHotspotDto(
+        Guid? id = null,
+        string serverKey = null,
+        string ruleKey = "rule:key",
+        string primaryMessage = "Primary message",
+        DateTimeOffset? introductionDate = null,
+        bool isOnNewCode = true,
+        bool resolved = false,
+        TextRangeDto textRange = null,
+        List<IssueFlowDto> flows = null,
+        List<QuickFixDto> quickFixes = null,
+        string ruleDescriptionContextKey = null,
+        VulnerabilityProbability? vulnerabilityProbability = VulnerabilityProbability.HIGH,
+        HotspotStatus status = HotspotStatus.TO_REVIEW,
+        Either<StandardModeDetails, MQRModeDetails> severityMode = null) =>
+        new(
+            id ?? Guid.NewGuid(),
+            serverKey,
+            ruleKey,
+            primaryMessage,
+            introductionDate ?? DateTimeOffset.Now,
+            isOnNewCode,
+            resolved,
+            textRange,
+            flows ?? [],
+            quickFixes ?? [],
+            ruleDescriptionContextKey,
+            vulnerabilityProbability,
+            status,
+            severityMode ?? new StandardModeDetails(IssueSeverity.MAJOR, RuleType.CODE_SMELL));
 
     private static class UnflattenedFlowsUseCase
     {

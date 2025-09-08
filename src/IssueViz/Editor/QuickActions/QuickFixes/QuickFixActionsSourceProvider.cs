@@ -38,6 +38,7 @@ internal class QuickFixActionsSourceProvider(
     IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
     ILightBulbBroker lightBulbBroker,
     IQuickFixesTelemetryManager quickFixesTelemetryManager,
+    IMessageBox messageBox,
     ILogger logger,
     IThreadHandling threadHandling)
     : ISuggestedActionsSourceProvider
@@ -62,6 +63,7 @@ internal class QuickFixActionsSourceProvider(
             textView,
             textBuffer,
             quickFixesTelemetryManager,
+            messageBox,
             logger,
             threadHandling);
     }

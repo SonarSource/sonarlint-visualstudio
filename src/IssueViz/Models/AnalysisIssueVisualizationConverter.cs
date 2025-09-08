@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
     [Export(typeof(IAnalysisIssueVisualizationConverter))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     [method: ImportingConstructor]
-    internal class AnalysisIssueVisualizationConverter(IIssueSpanCalculator issueSpanCalculator, ISpanTranslator spanTranslator) : IAnalysisIssueVisualizationConverter
+    internal class AnalysisIssueVisualizationConverter(IIssueSpanCalculator issueSpanCalculator, ISpanTranslator spanTranslator, IRoslynQuickFixProvider roslynQuickFixProvider) : IAnalysisIssueVisualizationConverter
     {
         private static readonly IReadOnlyList<IAnalysisIssueFlowVisualization> EmptyConvertedFlows = [];
         private static readonly IReadOnlyList<IQuickFixApplication> EmptyConvertedFixes = [];
@@ -114,6 +114,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
                 .Fixes
                 .Select(fix =>
                 {
+                    if (fix is IRoslynQuickFix roslynQuickFix)
+                    {
+                        if (roslynQuickFixProvider.TryGet(roslynQuickFix.Id, out var roslynQuickFixApplication))
+                        {
+                            return roslynQuickFixApplication;
+                        }
+                        Debug.Fail("Roslyn quick fix not found");
+                    }
                     if (fix is ITextBasedQuickFix textBasedQuickFix)
                     {
                         return HandleTextBasedQuickFix(textSnapshot, textBasedQuickFix);

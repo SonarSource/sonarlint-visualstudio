@@ -27,9 +27,10 @@ using SonarLint.VisualStudio.Core;
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 [ExcludeFromCodeCoverage] // todo SLVS-2466 add roslyn 'integration' tests using AdHocWorkspace
-public class RoslynCompilationWithAnalyzersWrapper(CompilationWithAnalyzers compilation, Language language) : IRoslynCompilationWithAnalyzersWrapper
+internal class RoslynCompilationWithAnalyzersWrapper(CompilationWithAnalyzers compilation, RoslynAnalysisConfiguration analysisConfiguration, RoslynLanguage language) : IRoslynCompilationWithAnalyzersWrapper
 {
-    public Language Language { get; } = language;
+    public RoslynLanguage Language { get; } = language;
+    public RoslynAnalysisConfiguration AnalysisConfiguration { get; }  = analysisConfiguration;
 
     public SyntaxTree? GetSyntaxTree(string filePath) => compilation.Compilation.SyntaxTrees.SingleOrDefault(x => filePath.Equals(x.FilePath));
 
