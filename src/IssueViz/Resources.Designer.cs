@@ -213,6 +213,15 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &quot;SonarQube QuickFix&quot;.
+        /// </summary>
+        public static string QuickFixSuggestedAction_CouldNotApplyMessageBoxCaption {
+            get {
+                return ResourceManager.GetString("QuickFixSuggestedAction_CouldNotApplyMessageBoxCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Quick Fix.
         /// </summary>
         public static string QuickFixSuggestedAction_LogContext {

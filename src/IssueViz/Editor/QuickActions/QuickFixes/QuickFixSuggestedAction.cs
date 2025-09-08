@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Windows;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
@@ -30,6 +31,7 @@ internal class QuickFixSuggestedAction(
     ITextBuffer textBuffer,
     IAnalysisIssueVisualization issueViz,
     IQuickFixesTelemetryManager quickFixesTelemetryManager,
+    IMessageBox messageBox,
     ILogger logger,
     IThreadHandling threadHandling)
     : BaseSuggestedAction
@@ -82,12 +84,20 @@ internal class QuickFixSuggestedAction(
             if (!isApplied)
             {
                 issueViz.Span = originalSpan;
-                // todo show message box?
-                // todo trigger reanalysis???
-                logger.WriteLine(Resources.QuickFixSuggestedAction_CouldNotApply, issueViz.RuleId);
+                NotifyUser();
             }
         }
 
         return isApplied;
+    }
+
+    private void NotifyUser()
+    {
+        logger.WriteLine(Resources.QuickFixSuggestedAction_CouldNotApply, issueViz.RuleId);
+        messageBox.Show(
+            string.Format(Resources.QuickFixSuggestedAction_CouldNotApply,issueViz.RuleId),
+            Resources.QuickFixSuggestedAction_CouldNotApplyMessageBoxCaption,
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
     }
 }

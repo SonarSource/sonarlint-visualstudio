@@ -171,6 +171,9 @@
   <data name="QuickFixSuggestedAction_CouldNotApply" xml:space="preserve">
     <value>Could not apply Quick Fix for {0}. Please reanalyze the file and try again.</value>
   </data>
+  <data name="QuickFixSuggestedAction_CouldNotApplyMessageBoxCaption" xml:space="preserve">
+    <value>"SonarQube QuickFix"</value>
+  </data>
   <data name="QuickFixSuggestedAction_LogContext" xml:space="preserve">
     <value>Quick Fix</value>
   </data>
