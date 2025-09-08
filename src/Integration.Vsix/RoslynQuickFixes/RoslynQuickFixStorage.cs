@@ -49,7 +49,7 @@ public class RoslynQuickFixStorage : IRoslynQuickFixStorageWriter, IRoslynQuickF
         ClearCache();
     }
 
-    private void ClearCache() // todo clear cache on analysis for file
+    private void ClearCache() // todo https://sonarsource.atlassian.net/browse/SLVS-2540 clear cache on analysis for file
     {
         lock (locker)
         {

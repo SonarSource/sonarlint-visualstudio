@@ -91,6 +91,7 @@ public class RoslynAnalysisConfigurationProviderTests
     [TestMethod]
     public void Ctor_SetsLogContext() =>
         testLogger.Received(1).ForContext(
+            Resources.RoslynLogContext,
             Resources.RoslynAnalysisLogContext,
             Resources.RoslynAnalysisConfigurationLogContext);
 

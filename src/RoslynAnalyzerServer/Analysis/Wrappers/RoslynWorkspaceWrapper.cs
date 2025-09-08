@@ -23,6 +23,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.VisualStudio.LanguageServices;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
@@ -30,10 +31,12 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 [Export(typeof(IRoslynWorkspaceWrapper))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class RoslynWorkspaceWrapper([Import(typeof(VisualStudioWorkspace))] Workspace workspace) : IRoslynWorkspaceWrapper
+internal class RoslynWorkspaceWrapper([Import(typeof(VisualStudioWorkspace))] Workspace workspace, ILogger logger) : IRoslynWorkspaceWrapper
 {
+    private readonly ILogger quickFixApplicationLogger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynQuickFixLogContext);
+
     public IRoslynSolutionWrapper GetCurrentSolution() => new RoslynSolutionWrapper(workspace.CurrentSolution);
 
     public Task<bool> ApplyOrMergeChangesAsync(IRoslynSolutionWrapper originalSolution, Microsoft.CodeAnalysis.CodeActions.ApplyChangesOperation operation, CancellationToken cancellationToken) =>
-        ApplyChangesOperation.ApplyOrMergeChangesAsync(workspace, originalSolution.RoslynSolution, operation.ChangedSolution, cancellationToken);
+        ApplyChangesOperation.ApplyOrMergeChangesAsync(workspace, originalSolution.RoslynSolution, operation.ChangedSolution, quickFixApplicationLogger, cancellationToken);
 }

@@ -43,6 +43,7 @@ public class RoslynQuickFixApplicationImpl
 
         var applyChangesOperation = codeActionOperations.FirstOrDefault(x => x is Microsoft.CodeAnalysis.CodeActions.ApplyChangesOperation) as Microsoft.CodeAnalysis.CodeActions.ApplyChangesOperation;
 
+        // we're only interested in ApplyChangesOperation and there can only be one at a time: https://github.com/dotnet/roslyn/blob/75e79dace86b274327a1afe479228d82a06051a4/src/Workspaces/Core/Portable/CodeActions/Operations/ApplyChangesOperation.cs#L18
         if (applyChangesOperation == null || codeActionOperations.Length > 1)
         {
             Debug.Fail($"Unexpected quickfix result: {applyChangesOperation} out of {codeActionOperations.Length}");

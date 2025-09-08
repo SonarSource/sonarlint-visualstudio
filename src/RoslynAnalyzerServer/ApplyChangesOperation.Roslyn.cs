@@ -5,6 +5,8 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
+using SonarLint.VisualStudio.Core;
+using Document = Microsoft.CodeAnalysis.Document;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer;
 
@@ -16,6 +18,7 @@ public static class ApplyChangesOperation
         Workspace workspace,
         Solution originalSolution,
         Solution changedSolution,
+        ILogger logger,
         CancellationToken cancellationToken)
     {
         var currentSolution = workspace.CurrentSolution;
@@ -40,6 +43,7 @@ public static class ApplyChangesOperation
 
         if (SolutionChangedCritically(solutionChanges))
         {
+            logger.LogVerbose("Solution projects have changed, update no longer valid");
             return false;
             // todo https://sonarsource.atlassian.net/browse/SLVS-2513 this will lead to invalid quickfixes if project configuration changes.
             // do we need to reanalyze open files on major workspace changes? can modified analyzer references be ignored?
@@ -54,6 +58,7 @@ public static class ApplyChangesOperation
             // We only support text changes.  If we see any other changes to this project, bail out immediately.
             if (ProjectChangedCritically(changedProject))
             {
+                logger.LogVerbose("Project {0} has changed, update no longer valid", changedProject.NewProject.Name);
                 return false;
             }
 

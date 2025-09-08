@@ -38,7 +38,7 @@ internal class RoslynAnalysisConfigurationProvider(
     ILogger logger) : IRoslynAnalysisConfigurationProvider
 {
     private readonly IAsyncLock asyncLock = asyncLockFactory.Create();
-    private readonly ILogger logger = logger.ForContext(Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisConfigurationLogContext);
+    private readonly ILogger logger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisConfigurationLogContext);
     private AnalysisConfigurationCache? cache;
 
     public Task<IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration>> GetConfigurationAsync(

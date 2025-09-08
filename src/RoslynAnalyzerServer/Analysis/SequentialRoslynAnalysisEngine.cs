@@ -18,16 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
-using Document = SonarLint.VisualStudio.Core.Document;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
