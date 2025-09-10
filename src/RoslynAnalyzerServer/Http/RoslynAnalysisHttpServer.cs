@@ -90,7 +90,7 @@ internal sealed class RoslynAnalysisHttpServer(
         {
             httpListener!.Start();
             logger.LogVerbose(Resources.HttpServerStarted);
-            await WaitForRequests(httpListener, cancellationTokenSource.Token);
+            await WaitForRequestsAsync(httpListener, cancellationTokenSource.Token);
         }
         catch (HttpListenerException ex)
         {
@@ -98,7 +98,7 @@ internal sealed class RoslynAnalysisHttpServer(
         }
     }
 
-    private async Task WaitForRequests(HttpListener listener, CancellationToken cancellationToken)
+    private async Task WaitForRequestsAsync(HttpListener listener, CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -112,7 +112,7 @@ internal sealed class RoslynAnalysisHttpServer(
                     break;
                 }
                 context = new HttpListenerContextAdapter(await getRequestTask);
-                _ = HandleRequestWithTimeout(context, cancellationToken);
+                _ = HandleRequestWithTimeoutAsync(context, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -125,13 +125,13 @@ internal sealed class RoslynAnalysisHttpServer(
         }
     }
 
-    private async Task HandleRequestWithTimeout(IHttpListenerContext context, CancellationToken serverCancellationToken)
+    private async Task HandleRequestWithTimeoutAsync(IHttpListenerContext context, CancellationToken serverCancellationToken)
     {
         using var requestCancellationToken = new CancellationTokenSource(settings.RequestMillisecondsTimeout);
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(serverCancellationToken, requestCancellationToken.Token);
         try
         {
-            await Task.Run(() => HandleRequest(context, linkedCts.Token), linkedCts.Token);
+            await Task.Run(() => HandleRequestAsync(context, linkedCts.Token), linkedCts.Token);
         }
         catch (OperationCanceledException)
         {
@@ -145,14 +145,14 @@ internal sealed class RoslynAnalysisHttpServer(
         }
     }
 
-    private async Task HandleRequest(IHttpListenerContext context, CancellationToken cancellationToken)
+    private async Task HandleRequestAsync(IHttpListenerContext context, CancellationToken cancellationToken)
     {
         if (analysisRequestHandler.ValidateRequest(context) is var validationStatusCode && validationStatusCode != HttpStatusCode.OK)
         {
             httpRequestHandler.CloseRequest(context, validationStatusCode);
             return;
         }
-        if (await analysisRequestHandler.ParseAnalysisRequestBody(context) is not { } analysisRequest)
+        if (await analysisRequestHandler.ParseAnalysisRequestBodyAsync(context) is not { } analysisRequest)
         {
             httpRequestHandler.CloseRequest(context, HttpStatusCode.BadRequest);
             return;
@@ -160,6 +160,6 @@ internal sealed class RoslynAnalysisHttpServer(
 
         var issues = await roslynAnalysisService.AnalyzeAsync(analysisRequest, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
-        await httpRequestHandler.SendResponse(context, analysisRequestHandler.ParseAnalysisRequestResponse(issues.ToList()));
+        await httpRequestHandler.SendResponseAsync(context, analysisRequestHandler.ParseAnalysisRequestResponse(issues.ToList()));
     }
 }

@@ -237,7 +237,7 @@ public class AnalysisRequestHandlerTest
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
 
-        var result = await testSubject.ParseAnalysisRequestBody(context);
+        var result = await testSubject.ParseAnalysisRequestBodyAsync(context);
 
         result.Should().BeNull();
     }
@@ -249,7 +249,7 @@ public class AnalysisRequestHandlerTest
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
 
-        var result = await testSubject.ParseAnalysisRequestBody(context);
+        var result = await testSubject.ParseAnalysisRequestBodyAsync(context);
 
         result.Should().BeNull();
     }
@@ -261,7 +261,7 @@ public class AnalysisRequestHandlerTest
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
 
-        var result = await testSubject.ParseAnalysisRequestBody(context);
+        var result = await testSubject.ParseAnalysisRequestBodyAsync(context);
 
         result.Should().BeNull();
     }
@@ -274,7 +274,7 @@ public class AnalysisRequestHandlerTest
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
 
-        var result = await testSubject.ParseAnalysisRequestBody(context);
+        var result = await testSubject.ParseAnalysisRequestBodyAsync(context);
 
         result.Should().NotBeNull();
         result!.FileNames.Should().HaveCount(1);
