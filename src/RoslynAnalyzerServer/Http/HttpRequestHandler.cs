@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 
 public interface IHttpRequestHandler
 {
-    Task SendResponse(IHttpListenerContext context, string responseString);
+    Task SendResponseAsync(IHttpListenerContext context, string responseString);
 
     void CloseRequest(IHttpListenerContext context, HttpStatusCode statusCode);
 }
@@ -43,9 +43,9 @@ internal class HttpRequestHandler() : IHttpRequestHandler
         context.Response.Close();
     }
 
-    public async Task SendResponse(IHttpListenerContext context, string responseString) => await WriteResponse(responseString, context, HttpStatusCode.OK);
+    public async Task SendResponseAsync(IHttpListenerContext context, string responseString) => await WriteResponseAsync(responseString, context, HttpStatusCode.OK);
 
-    private static async Task WriteResponse(string responseString, IHttpListenerContext context, HttpStatusCode statusCode)
+    private static async Task WriteResponseAsync(string responseString, IHttpListenerContext context, HttpStatusCode statusCode)
     {
         var buffer = Encoding.UTF8.GetBytes(responseString);
         context.Response.ContentLength64 = buffer.Length;
