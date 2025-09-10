@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 
 public interface IAnalysisRequestHandler
 {
-    Task<AnalysisRequest?> ParseAnalysisRequestBody(IHttpListenerContext context);
+    Task<AnalysisRequest?> ParseAnalysisRequestBodyAsync(IHttpListenerContext context);
 
     string ParseAnalysisRequestResponse(List<RoslynIssue> diagnostics);
 
@@ -69,9 +69,9 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerSettings server
         return HttpStatusCode.OK;
     }
 
-    public async Task<AnalysisRequest?> ParseAnalysisRequestBody(IHttpListenerContext context)
+    public async Task<AnalysisRequest?> ParseAnalysisRequestBodyAsync(IHttpListenerContext context)
     {
-        var body = await ReadBody(context);
+        var body = await ReadBodyAsync(context);
         var requestDto = GetAnalysisRequestFromBody(body);
         if (requestDto != null && requestDto.FileNames.Count != 0)
         {
@@ -88,7 +88,7 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerSettings server
         return responseString;
     }
 
-    private static async Task<string> ReadBody(IHttpListenerContext context)
+    private static async Task<string> ReadBodyAsync(IHttpListenerContext context)
     {
         using var reader = new StreamReader(context.Request.InputStream, context.Request.ContentEncoding);
         return await reader.ReadToEndAsync();
