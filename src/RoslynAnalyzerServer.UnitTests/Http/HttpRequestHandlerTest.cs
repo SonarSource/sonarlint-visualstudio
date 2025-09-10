@@ -65,7 +65,7 @@ public class HttpRequestHandlerTest
         response.OutputStream.Returns(new MemoryStream());
         var expectedString = "{\"Diagnostics\":[{\"Id\":\"id1\"}]}";
 
-        await testSubject.SendResponse(context, expectedString);
+        await testSubject.SendResponseAsync(context, expectedString);
 
         response.Received().ContentLength64 = Encoding.UTF8.GetBytes(expectedString).Length;
         response.Received().StatusCode = (int)HttpStatusCode.OK;
@@ -77,7 +77,7 @@ public class HttpRequestHandlerTest
         var outputStream = new MemoryStream();
         response.OutputStream.Returns(outputStream);
 
-        await testSubject.SendResponse(context, "{\"Diagnostics\":[}");
+        await testSubject.SendResponseAsync(context, "{\"Diagnostics\":[}");
 
         outputStream.CanRead.Should().BeFalse();
     }
