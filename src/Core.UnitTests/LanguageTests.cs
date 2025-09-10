@@ -32,7 +32,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             // Arrange
             var key = "k";
             var name = "MyName";
-            var fileSuffix = "suffix";
             var serverLanguageKey = "serverLanguageKey";
 
             // Act + Assert
