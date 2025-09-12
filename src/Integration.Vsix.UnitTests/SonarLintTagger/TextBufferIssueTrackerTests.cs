@@ -68,14 +68,15 @@ public class TextBufferIssueTrackerTests
         issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
         issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
         issueConsumer = Substitute.For<IIssueConsumer>();
+        taskExecutorWithDebounceFactory = Substitute.For<ITaskExecutorWithDebounceFactory>();
+        taskExecutorWithDebounce = Substitute.For<ITaskExecutorWithDebounce>();
         taggerProvider = CreateTaggerProvider();
         mockTextSnapshot = CreateTextSnapshotMock();
         mockDocumentTextBuffer = CreateTextBufferMock(mockTextSnapshot);
         mockedJavascriptDocumentFooJs = CreateDocumentMock("foo.js", mockDocumentTextBuffer);
         javascriptLanguage = [AnalysisLanguage.Javascript];
-        taskExecutorWithDebounceFactory = Substitute.For<ITaskExecutorWithDebounceFactory>();
-        taskExecutorWithDebounce = Substitute.For<ITaskExecutorWithDebounce>();
         taskExecutorWithDebounceFactory.Create(Arg.Any<TimeSpan>()).Returns(taskExecutorWithDebounce);
+
         MockIssueConsumerFactory(mockedJavascriptDocumentFooJs, issueConsumer);
 
         testSubject = CreateTestSubject(mockedJavascriptDocumentFooJs);
