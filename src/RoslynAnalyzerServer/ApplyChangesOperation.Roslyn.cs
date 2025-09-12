@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 using Document = Microsoft.CodeAnalysis.Document;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer;
@@ -19,6 +20,7 @@ public static class ApplyChangesOperation
         Solution originalSolution,
         Solution changedSolution,
         ILogger logger,
+        IWorkspaceChangeIndicator workspaceChangeIndicator,
         CancellationToken cancellationToken)
     {
         var currentSolution = workspace.CurrentSolution;
@@ -41,7 +43,7 @@ public static class ApplyChangesOperation
 
         var solutionChanges = changedSolution.GetChanges(originalSolution);
 
-        if (SolutionChangedCritically(solutionChanges))
+        if (workspaceChangeIndicator.SolutionChangedCritically(solutionChanges))
         {
             logger.LogVerbose(Resources.ApplyChangesOperation_SolutionChanged);
             return false;
@@ -56,7 +58,7 @@ public static class ApplyChangesOperation
         foreach (var changedProject in solutionChanges.GetProjectChanges())
         {
             // We only support text changes.  If we see any other changes to this project, bail out immediately.
-            if (ProjectChangedCritically(changedProject))
+            if (workspaceChangeIndicator.ProjectChangedCritically(changedProject))
             {
                 logger.LogVerbose(Resources.ApplyChangesOperation_ProjectChanged, changedProject.NewProject.Name);
                 return false;
@@ -136,24 +138,4 @@ public static class ApplyChangesOperation
         }
         return true;
     }
-
-    private static bool SolutionChangedCritically(SolutionChanges solutionChanges) =>
-        solutionChanges.GetAddedProjects().Any() ||
-        solutionChanges.GetAddedAnalyzerReferences().Any() ||
-        solutionChanges.GetRemovedProjects().Any() ||
-        solutionChanges.GetRemovedAnalyzerReferences().Any();
-
-    private static bool ProjectChangedCritically(ProjectChanges changedProject) =>
-        changedProject.GetAddedAdditionalDocuments().Any() ||
-        changedProject.GetAddedAnalyzerConfigDocuments().Any() ||
-        changedProject.GetAddedAnalyzerReferences().Any() ||
-        changedProject.GetAddedDocuments().Any() ||
-        changedProject.GetAddedMetadataReferences().Any() ||
-        changedProject.GetAddedProjectReferences().Any() ||
-        changedProject.GetRemovedAdditionalDocuments().Any() ||
-        changedProject.GetRemovedAnalyzerConfigDocuments().Any() ||
-        changedProject.GetRemovedAnalyzerReferences().Any() ||
-        changedProject.GetRemovedDocuments().Any() ||
-        changedProject.GetRemovedMetadataReferences().Any() ||
-        changedProject.GetRemovedProjectReferences().Any();
 }
