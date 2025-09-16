@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 [method: ImportingConstructor]
 internal class RoslynProjectCompilationProvider(ILogger logger) : IRoslynProjectCompilationProvider
 {
-    private readonly ILogger analyzerExceptionLogger = logger.ForContext("Roslyn Analysis", "Analyzer Exception");
+    private readonly ILogger analyzerExceptionLogger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisAnalyzerExceptionLogContext);
 
     public async Task<IRoslynCompilationWithAnalyzersWrapper> GetProjectCompilationAsync(
         IRoslynProjectWrapper project,

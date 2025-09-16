@@ -82,6 +82,10 @@ public class RoslynProjectCompilationProviderTests
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<RoslynProjectCompilationProvider>();
 
     [TestMethod]
+    public void Ctor_SetsLogContext() =>
+        logger.Received(1).ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisAnalyzerExceptionLogContext);
+
+    [TestMethod]
     public async Task GetProjectCompilationAsync_ConfiguresCompilationWithCorrectOptions()
     {
         var result = await testSubject.GetProjectCompilationAsync(project, configurations, CancellationToken.None);

@@ -60,6 +60,69 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No semantic model found for {0}.
+        /// </summary>
+        internal static string AnalysisCommand_NoSemanticModel {
+            get {
+                return ResourceManager.GetString("AnalysisCommand_NoSemanticModel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &quot;No syntax tree found for {0}&quot;.
+        /// </summary>
+        internal static string AnalysisCommand_NoSyntaxTree {
+            get {
+                return ResourceManager.GetString("AnalysisCommand_NoSyntaxTree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Project {0} does not support compilation.
+        /// </summary>
+        internal static string AnalysisCommandProvider_NoCompilationForProject {
+            get {
+                return ResourceManager.GetString("AnalysisCommandProvider_NoCompilationForProject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No projects to analyze.
+        /// </summary>
+        internal static string AnalysisCommandProvider_NoProjects {
+            get {
+                return ResourceManager.GetString("AnalysisCommandProvider_NoProjects", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &quot;Duplicate diagnostic discarded ID: {0}, File: {1}, Line: {2}&quot;.
+        /// </summary>
+        internal static string AnalysisEngine_DuplicateDiagnostic {
+            get {
+                return ResourceManager.GetString("AnalysisEngine_DuplicateDiagnostic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Project {0} has changed, update no longer valid.
+        /// </summary>
+        internal static string ApplyChangesOperation_ProjectChanged {
+            get {
+                return ResourceManager.GetString("ApplyChangesOperation_ProjectChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Solution projects have changed, update no longer valid.
+        /// </summary>
+        internal static string ApplyChangesOperation_SolutionChanged {
+            get {
+                return ResourceManager.GetString("ApplyChangesOperation_SolutionChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Content length exceeded. Received {0} bytes, max allowed: {1} bytes..
         /// </summary>
         internal static string BodyLengthExceeded {
@@ -186,6 +249,15 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analyzer Exception.
+        /// </summary>
+        internal static string RoslynAnalysisAnalyzerExceptionLogContext {
+            get {
+                return ResourceManager.GetString("RoslynAnalysisAnalyzerExceptionLogContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to load analyzer {0}: {1}.
         /// </summary>
         internal static string RoslynAnalysisAnalyzerLoaderFailedToLoad {
@@ -227,6 +299,15 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
         internal static string RoslynAnalysisConfigurationNoAnalyzers {
             get {
                 return ResourceManager.GetString("RoslynAnalysisConfigurationNoAnalyzers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Engine.
+        /// </summary>
+        internal static string RoslynAnalysisEngineLogContext {
+            get {
+                return ResourceManager.GetString("RoslynAnalysisEngineLogContext", resourceCulture);
             }
         }
         
