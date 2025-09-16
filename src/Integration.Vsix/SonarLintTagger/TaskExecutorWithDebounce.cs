@@ -49,7 +49,7 @@ internal class TaskExecutorWithDebounce : ITaskExecutorWithDebounce
     private readonly ITimerWrapper timer;
     private Action latestDebounceState;
 
-    public TaskExecutorWithDebounce(ITimerWrapper timerWrapper, IThreadHandling threadHandling)
+    internal TaskExecutorWithDebounce(ITimerWrapper timerWrapper, IThreadHandling threadHandling)
     {
         this.threadHandling = threadHandling;
         timer = timerWrapper;
