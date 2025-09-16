@@ -34,7 +34,7 @@ internal class RoslynFileSyntaxAnalysis(string analysisFilePath, ILogger logger)
         var syntaxTree = compilation.GetSyntaxTree(AnalysisFilePath);
         if (syntaxTree == null)
         {
-            logger.LogVerbose("No syntax tree found for {0}", AnalysisFilePath);
+            logger.LogVerbose(Resources.AnalysisCommand_NoSyntaxTree, AnalysisFilePath);
             return ImmutableArray<Diagnostic>.Empty;
         }
 

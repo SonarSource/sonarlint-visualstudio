@@ -153,6 +153,12 @@
   <data name="HttpServerStarting" xml:space="preserve">
     <value>Staring http server for roslyn analysis...</value>
   </data>
+  <data name="ApplyChangesOperation_SolutionChanged" xml:space="preserve">
+    <value>Solution projects have changed, update no longer valid</value>
+  </data>
+  <data name="ApplyChangesOperation_ProjectChanged" xml:space="preserve">
+    <value>Project {0} has changed, update no longer valid</value>
+  </data>
   <data name="DefaultSecondaryLocationTitleTemplate" xml:space="preserve">
     <value>Location {0}</value>
    </data>
@@ -164,6 +170,12 @@
   </data>
   <data name="RoslynAnalysisConfigurationLogContext" xml:space="preserve">
     <value>Configuration</value>
+  </data>
+  <data name="RoslynAnalysisEngineLogContext" xml:space="preserve">
+    <value>Engine</value>
+  </data>
+  <data name="RoslynAnalysisAnalyzerExceptionLogContext" xml:space="preserve">
+    <value>Analyzer Exception</value>
   </data>
   <data name="RoslynAnalysisConfigurationNoAnalyzers" xml:space="preserve">
     <value>No analyzers loaded for language {0}</value>
@@ -182,5 +194,20 @@
   </data>
   <data name="RoslynQuickFixLogContext" xml:space="preserve">
     <value>QuickFix</value>
+  </data>
+  <data name="AnalysisCommandProvider_NoProjects" xml:space="preserve">
+    <value>No projects to analyze</value>
+  </data>
+  <data name="AnalysisCommandProvider_NoCompilationForProject" xml:space="preserve">
+    <value>Project {0} does not support compilation</value>
+  </data>
+  <data name="AnalysisCommand_NoSemanticModel" xml:space="preserve">
+    <value>No semantic model found for {0}</value>
+  </data>
+  <data name="AnalysisCommand_NoSyntaxTree" xml:space="preserve">
+    <value>"No syntax tree found for {0}"</value>
+  </data>
+  <data name="AnalysisEngine_DuplicateDiagnostic" xml:space="preserve">
+    <value>"Duplicate diagnostic discarded ID: {0}, File: {1}, Line: {2}"</value>
   </data>
 </root>
