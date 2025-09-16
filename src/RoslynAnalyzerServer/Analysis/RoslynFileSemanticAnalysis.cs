@@ -34,7 +34,7 @@ internal class RoslynFileSemanticAnalysis(string analysisFilePath, ILogger logge
         var semanticModel = compilation.GetSemanticModel(AnalysisFilePath);
         if (semanticModel == null)
         {
-            logger.LogVerbose("No semantic model found for {0}", AnalysisFilePath);
+            logger.LogVerbose(Resources.AnalysisCommand_NoSemanticModel, AnalysisFilePath);
             return ImmutableArray<Diagnostic>.Empty;
         }
 

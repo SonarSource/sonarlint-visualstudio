@@ -33,7 +33,7 @@ internal class SequentialRoslynAnalysisEngine(
     IRoslynQuickFixFactory quickFixFactory,
     ILogger logger) : IRoslynAnalysisEngine
 {
-    private readonly ILogger logger = logger.ForContext("Roslyn Analysis", "Engine");
+    private readonly ILogger logger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisEngineLogContext);
 
     public async Task<IEnumerable<RoslynIssue>> AnalyzeAsync(
         List<RoslynProjectAnalysisRequest> projectsAnalysis,
@@ -62,7 +62,7 @@ internal class SequentialRoslynAnalysisEngine(
                     // todo SLVS-2468 improve issue merging
                     if (!uniqueDiagnostics.Add(roslynIssue))
                     {
-                        logger.LogVerbose("Duplicate diagnostic discarded ID: {0}, File: {1}, Line: {2}", roslynIssue.RuleId, Path.GetFileName(roslynIssue.PrimaryLocation.FilePath), roslynIssue.PrimaryLocation.TextRange.StartLine);
+                        logger.LogVerbose(Resources.AnalysisEngine_DuplicateDiagnostic, roslynIssue.RuleId, Path.GetFileName(roslynIssue.PrimaryLocation.FilePath), roslynIssue.PrimaryLocation.TextRange.StartLine);
                     }
                 }
             }
