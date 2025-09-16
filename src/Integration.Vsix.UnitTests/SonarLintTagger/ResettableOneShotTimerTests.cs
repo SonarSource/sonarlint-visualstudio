@@ -18,34 +18,36 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger;
 
 [TestClass]
-public class TaskExecutorWithDebounceFactoryTest
+public class ResettableOneShotTimerTests
 {
-    private TaskExecutorWithDebounceFactory testSubject;
-
-    [TestInitialize]
-    public void TestInitialize() => testSubject = new TaskExecutorWithDebounceFactory(Substitute.For<IThreadHandling>());
-
     [TestMethod]
-    public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<TaskExecutorWithDebounceFactory, ITaskExecutorWithDebounceFactory>(
-            MefTestHelpers.CreateExport<IThreadHandling>());
-
-    [TestMethod]
-    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<TaskExecutorWithDebounceFactory>();
-
-    [TestMethod]
-    public void Create_ShouldReturnInstance()
+    public async Task ResettableOneShotTimer_SmokeTest()
     {
-        var result = testSubject.Create(TimeSpan.FromMilliseconds(1));
+        var timerTimeSpan = TimeSpan.FromMilliseconds(100);
+        var testSubject = new ResettableOneShotTimer(timerTimeSpan);
+        var eventHandler = Substitute.For<EventHandler>();
+        testSubject.Elapsed += eventHandler;
 
-        result.Should().NotBeNull();
-        result.Should().BeOfType<TaskExecutorWithDebounce>();
+        testSubject.Reset();
+        await Task.Delay(2 * (int)timerTimeSpan.TotalMilliseconds);
+
+        eventHandler.ReceivedWithAnyArgs(1).Invoke(default, default);
+    }
+
+    [TestMethod]
+    public void ResettableOneShotTimer_Dispose_DisposesTimer()
+    {
+        var timerTimeSpan = TimeSpan.FromMilliseconds(50);
+        var testSubject = new ResettableOneShotTimer(timerTimeSpan);
+
+        testSubject.Dispose();
+
+        var act = () => testSubject.Reset();
+        act.Should().Throw<ObjectDisposedException>();
     }
 }
