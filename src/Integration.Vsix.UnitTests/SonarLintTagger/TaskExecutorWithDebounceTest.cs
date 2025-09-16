@@ -27,13 +27,13 @@ public class TaskExecutorWithDebounceTest
 {
     private TaskExecutorWithDebounce testSubject;
     private NoOpThreadHandler threadHandling;
-    private ITimerWrapper timer;
+    private IResettableOneShotTimer timer;
 
     [TestInitialize]
     public void TestInitialize()
     {
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
-        timer = Substitute.For<ITimerWrapper>();
+        timer = Substitute.For<IResettableOneShotTimer>();
         testSubject = new TaskExecutorWithDebounce(timer, threadHandling);
     }
 

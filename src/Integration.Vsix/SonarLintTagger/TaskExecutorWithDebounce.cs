@@ -39,17 +39,17 @@ internal interface ITaskExecutorWithDebounce
 [method: ImportingConstructor]
 internal class TaskExecutorWithDebounceFactory(IThreadHandling threadHandling) : ITaskExecutorWithDebounceFactory
 {
-    public ITaskExecutorWithDebounce Create(TimeSpan debounceTimeSpan) => new TaskExecutorWithDebounce(new TimerWrapper(debounceTimeSpan), threadHandling);
+    public ITaskExecutorWithDebounce Create(TimeSpan debounceTimeSpan) => new TaskExecutorWithDebounce(new ResettableOneShotTimer(debounceTimeSpan), threadHandling);
 }
 
 internal class TaskExecutorWithDebounce : ITaskExecutorWithDebounce
 {
     private readonly IThreadHandling threadHandling;
     private readonly object locker = new();
-    private readonly ITimerWrapper timer;
+    private readonly IResettableOneShotTimer timer;
     private Action latestDebounceState;
 
-    internal TaskExecutorWithDebounce(ITimerWrapper timerWrapper, IThreadHandling threadHandling)
+    internal TaskExecutorWithDebounce(IResettableOneShotTimer timerWrapper, IThreadHandling threadHandling)
     {
         this.threadHandling = threadHandling;
         timer = timerWrapper;

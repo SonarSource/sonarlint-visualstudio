@@ -23,13 +23,13 @@ using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger;
 
 [TestClass]
-public class TimerWrapperTests
+public class ResettableOneShotTimerTests
 {
     [TestMethod]
-    public async Task TimerWrapper_SmokeTest()
+    public async Task ResettableOneShotTimer_SmokeTest()
     {
         var timerTimeSpan = TimeSpan.FromMilliseconds(100);
-        var testSubject = new TimerWrapper(timerTimeSpan);
+        var testSubject = new ResettableOneShotTimer(timerTimeSpan);
         var eventHandler = Substitute.For<EventHandler>();
         testSubject.Elapsed += eventHandler;
 

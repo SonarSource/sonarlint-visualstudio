@@ -20,20 +20,19 @@
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
-
-internal interface ITimerWrapper
+internal interface IResettableOneShotTimer
 {
     void Reset();
 
     event EventHandler Elapsed;
 }
 
-internal class TimerWrapper : ITimerWrapper
+internal class ResettableOneShotTimer : IResettableOneShotTimer
 {
     private readonly Timer timer;
     private readonly long timerDurationMs;
 
-    public TimerWrapper(TimeSpan timerTimeSpan)
+    public ResettableOneShotTimer(TimeSpan timerTimeSpan)
     {
         timerDurationMs = (long)timerTimeSpan.TotalMilliseconds;
         timer = new Timer(TimerAction, null, Timeout.Infinite, Timeout.Infinite);
