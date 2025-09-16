@@ -43,7 +43,7 @@ public static class ApplyChangesOperation
 
         if (SolutionChangedCritically(solutionChanges))
         {
-            logger.LogVerbose("Solution projects have changed, update no longer valid");
+            logger.LogVerbose(Resources.ApplyChangesOperation_SolutionChanged);
             return false;
             // todo https://sonarsource.atlassian.net/browse/SLVS-2513 this will lead to invalid quickfixes if project configuration changes.
             // do we need to reanalyze open files on major workspace changes? can modified analyzer references be ignored?
@@ -58,7 +58,7 @@ public static class ApplyChangesOperation
             // We only support text changes.  If we see any other changes to this project, bail out immediately.
             if (ProjectChangedCritically(changedProject))
             {
-                logger.LogVerbose("Project {0} has changed, update no longer valid", changedProject.NewProject.Name);
+                logger.LogVerbose(Resources.ApplyChangesOperation_ProjectChanged, changedProject.NewProject.Name);
                 return false;
             }
 

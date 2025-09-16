@@ -49,7 +49,7 @@ public class RoslynSolutionAnalysisCommandProviderTests
     public void TestInitialize()
     {
         workspaceWrapper = Substitute.For<IRoslynWorkspaceWrapper>();
-        logger = new TestLogger();
+        logger = Substitute.ForPartsOf<TestLogger>();
         solutionWrapper = Substitute.For<IRoslynSolutionWrapper>();
         workspaceWrapper.GetCurrentSolution().Returns(solutionWrapper);
         testSubject = new RoslynSolutionAnalysisCommandProvider(workspaceWrapper, logger);
@@ -64,6 +64,10 @@ public class RoslynSolutionAnalysisCommandProviderTests
     [TestMethod]
     public void MefCtor_CheckIsSingleton() =>
         MefTestHelpers.CheckIsSingletonMefComponent<RoslynSolutionAnalysisCommandProvider>();
+
+    [TestMethod]
+    public void Ctor_SetsLogContext() =>
+        logger.Received(1).ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisConfigurationLogContext);
 
     [TestMethod]
     public void GetAnalysisCommandsForCurrentSolution_NoProjects_ReturnsEmptyList()
