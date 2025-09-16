@@ -71,6 +71,10 @@ public class SequentialRoslynAnalysisEngineTests
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SequentialRoslynAnalysisEngine>();
 
     [TestMethod]
+    public void Ctor_SetsLogContext() =>
+        logger.Received(1).ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisEngineLogContext);
+
+    [TestMethod]
     public async Task AnalyzeAsync_EmptyAnalysisCommands_ReturnsEmptyCollection()
     {
         var result = await testSubject.AnalyzeAsync([], configurations, cancellationToken);

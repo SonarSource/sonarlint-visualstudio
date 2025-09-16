@@ -31,7 +31,7 @@ internal class RoslynSolutionAnalysisCommandProvider(
     IRoslynWorkspaceWrapper roslynWorkspaceWrapper,
     ILogger logger) : IRoslynSolutionAnalysisCommandProvider
 {
-    private readonly ILogger logger = logger.ForContext("Roslyn Analysis", "Configuration");
+    private readonly ILogger logger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisConfigurationLogContext);
 
     public List<RoslynProjectAnalysisRequest> GetAnalysisCommandsForCurrentSolution(string[] filePaths)
     {
@@ -43,7 +43,7 @@ internal class RoslynSolutionAnalysisCommandProvider(
         {
             if (!project.SupportsCompilation)
             {
-                logger.LogVerbose("Project {0} does not support compilation", project.Name);
+                logger.LogVerbose(Resources.AnalysisCommandProvider_NoCompilationForProject, project.Name);
                 continue;
             }
 
@@ -57,7 +57,7 @@ internal class RoslynSolutionAnalysisCommandProvider(
 
         if (!result.Any())
         {
-            logger.WriteLine("No projects to analyze");
+            logger.WriteLine(Resources.AnalysisCommandProvider_NoProjects);
         }
 
         return result;
