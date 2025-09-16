@@ -101,4 +101,13 @@ public class TaskExecutorWithDebounceTest
 
         action.Received(1).Invoke();
     }
+
+    [TestMethod]
+    public void Dispose_DisposesTimer()
+    {
+        testSubject.Dispose();
+
+        timer.Received(1).Dispose();
+        timer.Received(1).Elapsed -= Arg.Any<EventHandler>();
+    }
 }

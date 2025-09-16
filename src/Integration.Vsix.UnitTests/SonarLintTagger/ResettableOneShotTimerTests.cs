@@ -38,4 +38,16 @@ public class ResettableOneShotTimerTests
 
         eventHandler.ReceivedWithAnyArgs(1).Invoke(default, default);
     }
+
+    [TestMethod]
+    public void ResettableOneShotTimer_Dispose_DisposesTimer()
+    {
+        var timerTimeSpan = TimeSpan.FromMilliseconds(50);
+        var testSubject = new ResettableOneShotTimer(timerTimeSpan);
+
+        testSubject.Dispose();
+
+        var act = () => testSubject.Reset();
+        act.Should().Throw<ObjectDisposedException>();
+    }
 }

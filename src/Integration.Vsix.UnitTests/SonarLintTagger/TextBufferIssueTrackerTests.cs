@@ -157,6 +157,8 @@ public class TextBufferIssueTrackerTests
 
         mockedJavascriptDocumentFooJs.Received(1).FileActionOccurred -= Arg.Any<EventHandler<TextDocumentFileActionEventArgs>>();
         ((ITextBuffer2)mockDocumentTextBuffer).Received(1).ChangedOnBackground -= Arg.Any<EventHandler<TextContentChangedEventArgs>>();
+
+        taskExecutorWithDebounce.Received(1).Dispose();
     }
 
     [TestMethod]

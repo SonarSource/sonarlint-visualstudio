@@ -29,7 +29,7 @@ internal interface ITaskExecutorWithDebounceFactory
     ITaskExecutorWithDebounce Create(TimeSpan debounceTimeSpan);
 }
 
-internal interface ITaskExecutorWithDebounce
+internal interface ITaskExecutorWithDebounce : IDisposable
 {
     void Debounce(Action task);
 }
@@ -42,7 +42,7 @@ internal class TaskExecutorWithDebounceFactory(IThreadHandling threadHandling) :
     public ITaskExecutorWithDebounce Create(TimeSpan debounceTimeSpan) => new TaskExecutorWithDebounce(new ResettableOneShotTimer(debounceTimeSpan), threadHandling);
 }
 
-internal class TaskExecutorWithDebounce : ITaskExecutorWithDebounce
+internal sealed class TaskExecutorWithDebounce : ITaskExecutorWithDebounce
 {
     private readonly IThreadHandling threadHandling;
     private readonly object locker = new();
@@ -78,5 +78,11 @@ internal class TaskExecutorWithDebounce : ITaskExecutorWithDebounce
             latestDebounceState = task;
             timer.Reset();
         }
+    }
+
+    public void Dispose()
+    {
+        timer.Elapsed -= DebounceAction;
+        timer.Dispose();
     }
 }

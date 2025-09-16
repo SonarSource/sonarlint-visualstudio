@@ -20,7 +20,6 @@
 
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
@@ -114,6 +113,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
             textBuffer2.ChangedOnBackground -= TextBuffer_OnChangedOnBackground;
         }
         sonarErrorDataSource.RemoveFactory(Factory);
+        taskExecutorWithDebounce.Dispose();
         Provider.OnDocumentClosed(this);
     }
 
