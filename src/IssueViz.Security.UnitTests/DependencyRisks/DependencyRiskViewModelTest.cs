@@ -29,8 +29,7 @@ public class DependencyRiskViewModelTest
     [TestMethod]
     public void Ctor_InitializesProperties()
     {
-        var dependencyRisk = Substitute.For<IDependencyRisk>();
-        dependencyRisk.Transitions.Returns([]);
+        var dependencyRisk = CreateMockedDependencyRisk();
 
         var testSubject = new DependencyRiskViewModel(dependencyRisk);
 
@@ -57,12 +56,33 @@ public class DependencyRiskViewModelTest
     [DataRow(DependencyRiskStatus.Safe, true)]
     public void Ctor_SetsIsResolved_Correctly(DependencyRiskStatus status, bool expectedIsResolved)
     {
-        var dependencyRisk = Substitute.For<IDependencyRisk>();
+        var dependencyRisk = CreateMockedDependencyRisk();
         dependencyRisk.Status.Returns(status);
-        dependencyRisk.Transitions.Returns([]);
 
         var testSubject = new DependencyRiskViewModel(dependencyRisk);
 
         testSubject.IsResolved.Should().Be(expectedIsResolved);
+    }
+
+    [TestMethod]
+    public void Ctor_SetsIssueViewModelProperties()
+    {
+        var dependencyRisk = CreateMockedDependencyRisk();
+        dependencyRisk.VulnerabilityId.Returns("CVE-2025-123");
+
+        var testSubject = new DependencyRiskViewModel(dependencyRisk);
+
+        testSubject.Title.Should().Be(dependencyRisk.VulnerabilityId);
+        testSubject.Line.Should().BeNull();
+        testSubject.Column.Should().BeNull();
+        testSubject.FilePath.Should().BeNull();
+        testSubject.RuleInfo.Should().BeNull();
+    }
+
+    private static IDependencyRisk CreateMockedDependencyRisk()
+    {
+        var dependencyRisk = Substitute.For<IDependencyRisk>();
+        dependencyRisk.Transitions.Returns([]);
+        return dependencyRisk;
     }
 }
