@@ -36,7 +36,6 @@ internal sealed class GroupFileViewModel : ViewModelBase, IGroupViewModel
     public string Title { get; }
     public string FilePath { get; }
     public ObservableCollection<IIssueViewModel> FilteredIssues { get; }
-    public IIssueViewModel SelectedItem { get; set; }
 
     public void Dispose() { }
 }

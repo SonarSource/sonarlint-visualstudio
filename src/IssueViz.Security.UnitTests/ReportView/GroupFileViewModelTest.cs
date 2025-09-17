@@ -37,6 +37,5 @@ public class GroupFileViewModelTest
         testSubject.Title.Should().Be("myFile.cs");
         testSubject.FilePath.Should().Be(filePath);
         testSubject.FilteredIssues.Should().BeSameAs(issues);
-        testSubject.SelectedItem.Should().BeNull();
     }
 }

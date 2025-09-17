@@ -26,5 +26,4 @@ public interface IGroupViewModel : IDisposable
 {
     string Title { get; }
     ObservableCollection<IIssueViewModel> FilteredIssues { get; }
-    IIssueViewModel SelectedItem { get; set; }
 }
