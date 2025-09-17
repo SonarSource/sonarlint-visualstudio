@@ -232,7 +232,7 @@
 
         <TreeView Grid.Row="1" Grid.Column="0" Margin="0,5"  Visibility="{Binding Path=GroupDependencyRisk.HasRisks, Converter={StaticResource TrueToVisibleConverter}}" SelectedItemChanged="TreeView_OnSelectedItemChanged">
             <TreeViewItem x:Name="GroupDependencyRiskTreeViewItem" DataContext="{Binding Path=GroupDependencyRisk}" 
-                          ItemsSource="{Binding Path=FilteredRisks}"
+                          ItemsSource="{Binding Path=FilteredIssues}"
                           PreviewMouseUp="TreeViewItem_OnPreviewMouseUp">
                 <TreeViewItem.Header>
                     <Grid Cursor="Hand">
@@ -243,7 +243,7 @@
 
                         <TextBlock Grid.Column="0" Text="{Binding Title}" Style="{StaticResource GroupTextBlockStyle}" />
                         <TextBlock Grid.Column="1" Margin="3,0,0,0"
-                                   Text="{Binding Path=FilteredRisks.Count, Converter={StaticResource EnglishPluralizationConverter}, ConverterParameter={x:Static res:Resources.IssueText}, StringFormat={}({0})}"
+                                   Text="{Binding Path=FilteredIssues.Count, Converter={StaticResource EnglishPluralizationConverter}, ConverterParameter={x:Static res:Resources.IssueText}, StringFormat={}({0})}"
                                    Style="{StaticResource GroupTextBlockStyle}" />
                     </Grid>
                 </TreeViewItem.Header>

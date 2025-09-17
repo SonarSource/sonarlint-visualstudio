@@ -153,7 +153,11 @@ public class ReportViewModelTest
     [DataRow(true, true, false, true)]
     [DataRow(true, false, false, true)]
     [DataRow(false, true, true, true)]
-    public void FlipAndUpdateResolutionFilter_OpenFilter_AsExpected(bool open, bool resolved, bool expectedOpen, bool expectedResolved)
+    public void FlipAndUpdateResolutionFilter_OpenFilter_AsExpected(
+        bool open,
+        bool resolved,
+        bool expectedOpen,
+        bool expectedResolved)
     {
         testSubject.ResolutionFilterOpen.IsSelected = open;
         testSubject.ResolutionFilterResolved.IsSelected = resolved;
@@ -164,14 +168,18 @@ public class ReportViewModelTest
 
         testSubject.ResolutionFilterOpen.IsSelected.Should().Be(expectedOpen);
         testSubject.ResolutionFilterResolved.IsSelected.Should().Be(expectedResolved);
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.GroupDependencyRisk.FilteredRisks)));
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.GroupDependencyRisk.FilteredIssues)));
     }
 
     [DataTestMethod]
     [DataRow(true, true, true, false)]
     [DataRow(true, false, true, true)]
     [DataRow(false, true, true, false)]
-    public void FlipAndUpdateResolutionFilter_ResolvedFilter_AsExpected(bool open, bool resolved, bool expectedOpen, bool expectedResolved)
+    public void FlipAndUpdateResolutionFilter_ResolvedFilter_AsExpected(
+        bool open,
+        bool resolved,
+        bool expectedOpen,
+        bool expectedResolved)
     {
         testSubject.ResolutionFilterOpen.IsSelected = open;
         testSubject.ResolutionFilterResolved.IsSelected = resolved;
@@ -182,7 +190,7 @@ public class ReportViewModelTest
 
         testSubject.ResolutionFilterOpen.IsSelected.Should().Be(expectedOpen);
         testSubject.ResolutionFilterResolved.IsSelected.Should().Be(expectedResolved);
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.GroupDependencyRisk.FilteredRisks)));
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.GroupDependencyRisk.FilteredIssues)));
     }
 
     private ReportViewModel CreateTestSubject() =>
