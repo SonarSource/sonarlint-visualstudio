@@ -124,7 +124,7 @@
             <ContextMenu x:Key="DependencyRiskContextMenu" Loaded="DependencyRiskContextMenu_OnLoaded">
                 <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}" 
                           Click="ChangeScaStatusMenuItem_OnClick" 
-                          IsEnabled="{Binding Path=GroupDependencyRisk.SelectedItem.IsTransitionAllowed}"
+                          IsEnabled="{Binding Path=SelectedItem.IsTransitionAllowed}"
                           Style="{StaticResource ChangeStatusMenuItemStyle}"/>
                 <MenuItem Click="ViewDependencyRiskInBrowser_OnClick" Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
             </ContextMenu>

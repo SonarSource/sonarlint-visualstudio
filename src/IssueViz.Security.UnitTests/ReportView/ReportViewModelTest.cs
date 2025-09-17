@@ -193,6 +193,74 @@ public class ReportViewModelTest
         eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.GroupDependencyRisk.FilteredIssues)));
     }
 
+    [TestMethod]
+    public void SelectedItem_Initially_IsNull()
+    {
+        testSubject.SelectedItem.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void SelectedItem_SetToDependencyRiskViewModel_CallsTelemetryForDependencyRisk()
+    {
+        var risk = CreateDependencyRisk();
+        var riskViewModel = new DependencyRiskViewModel(risk);
+
+        testSubject.SelectedItem = riskViewModel;
+
+        testSubject.SelectedItem.Should().BeSameAs(riskViewModel);
+        telemetryManager.Received(1).DependencyRiskInvestigatedLocally();
+    }
+
+    [TestMethod]
+    public void SelectedItem_SetToSameDependencyRiskViewModel_DoesNotCallTelemetry()
+    {
+        var riskViewModel = new DependencyRiskViewModel(CreateDependencyRisk());
+        testSubject.SelectedItem = riskViewModel;
+        telemetryManager.ClearReceivedCalls();
+
+        testSubject.SelectedItem = riskViewModel;
+
+        telemetryManager.DidNotReceive().DependencyRiskInvestigatedLocally();
+    }
+
+    [TestMethod]
+    public void SelectedItem_SetToDifferentDependencyRiskViewModel_CallsTelemetry()
+    {
+        var riskViewModel1 = new DependencyRiskViewModel(CreateDependencyRisk());
+        var riskViewModel2 = new DependencyRiskViewModel(CreateDependencyRisk());
+        testSubject.SelectedItem = riskViewModel1;
+        telemetryManager.ClearReceivedCalls();
+
+        testSubject.SelectedItem = riskViewModel2;
+
+        testSubject.SelectedItem.Should().BeSameAs(riskViewModel2);
+        telemetryManager.Received(1).DependencyRiskInvestigatedLocally();
+    }
+
+    [TestMethod]
+    public void SelectedItem_SetToIssueViewModel_DoesNotCallTelemetryForDependencyRisk()
+    {
+        var issueViewModel = Substitute.For<IIssueViewModel>();
+
+        testSubject.SelectedItem = issueViewModel;
+
+        testSubject.SelectedItem.Should().BeSameAs(issueViewModel);
+        telemetryManager.DidNotReceive().DependencyRiskInvestigatedLocally();
+    }
+
+    [TestMethod]
+    public void SelectedItem_SetToNull_DoesNotCallTelemetry()
+    {
+        var riskViewModel1 = new DependencyRiskViewModel(CreateDependencyRisk());
+        testSubject.SelectedItem = riskViewModel1;
+        telemetryManager.ClearReceivedCalls();
+
+        testSubject.SelectedItem = null;
+
+        testSubject.SelectedItem.Should().BeNull();
+        telemetryManager.DidNotReceive().DependencyRiskInvestigatedLocally();
+    }
+
     private ReportViewModel CreateTestSubject() =>
         new(activeSolutionBoundTracker,
             dependencyRisksStore,

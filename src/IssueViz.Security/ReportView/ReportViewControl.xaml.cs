@@ -98,7 +98,7 @@ internal sealed partial class ReportViewControl : UserControl
 
     private void ViewDependencyRiskInBrowser_OnClick(object sender, RoutedEventArgs e)
     {
-        if (ReportViewModel.GroupDependencyRisk.SelectedItem is not DependencyRiskViewModel selectedDependencyRiskViewModel)
+        if (ReportViewModel.SelectedItem is not DependencyRiskViewModel selectedDependencyRiskViewModel)
         {
             return;
         }
@@ -125,7 +125,7 @@ internal sealed partial class ReportViewControl : UserControl
 
     private async void ChangeScaStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
     {
-        if (ReportViewModel.GroupDependencyRisk.SelectedItem is not DependencyRiskViewModel selectedDependencyRiskViewModel)
+        if (ReportViewModel.SelectedItem is not DependencyRiskViewModel selectedDependencyRiskViewModel)
         {
             return;
         }
@@ -138,7 +138,7 @@ internal sealed partial class ReportViewControl : UserControl
         }
     }
 
-    private void TreeView_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) => ReportViewModel.GroupDependencyRisk.SelectedItem = e.NewValue as DependencyRiskViewModel;
+    private void TreeView_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) => ReportViewModel.SelectedItem = e.NewValue as IIssueViewModel;
 
     private void ResolutionButton_OnClick(object sender, RoutedEventArgs e)
     {

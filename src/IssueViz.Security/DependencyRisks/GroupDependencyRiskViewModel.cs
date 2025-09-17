@@ -21,7 +21,6 @@
 using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
@@ -31,21 +30,17 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewMo
 {
     private readonly IDependencyRisksStore dependencyRisksStore;
     private readonly IReadOnlyCollection<IDependencyRiskFilter> filters;
-    private readonly ITelemetryManager telemetryManager;
     private readonly IThreadHandling threadHandling;
-    private IIssueViewModel selectedItem;
     private readonly ObservableCollection<DependencyRiskViewModel> risks = new();
     private readonly ObservableCollection<IIssueViewModel> filteredRisks = new();
 
     public GroupDependencyRiskViewModel(
         IDependencyRisksStore dependencyRisksStore,
         IReadOnlyCollection<IDependencyRiskFilter> filters,
-        ITelemetryManager telemetryManager,
         IThreadHandling threadHandling)
     {
         this.dependencyRisksStore = dependencyRisksStore;
         this.filters = filters;
-        this.telemetryManager = telemetryManager;
         this.threadHandling = threadHandling;
         dependencyRisksStore.DependencyRisksChanged += OnDependencyRiskChanged;
     }
@@ -54,22 +49,6 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewMo
     public ObservableCollection<DependencyRiskViewModel> Risks => risks;
     public ObservableCollection<IIssueViewModel> FilteredIssues => filteredRisks;
     public bool HasRisks => risks.Count > 0;
-
-    public IIssueViewModel SelectedItem
-    {
-        get => selectedItem;
-        set
-        {
-            if (selectedItem != value)
-            {
-                selectedItem = value;
-                if (selectedItem != null)
-                {
-                    telemetryManager.DependencyRiskInvestigatedLocally();
-                }
-            }
-        }
-    }
 
     public void InitializeRisks() =>
         threadHandling.RunOnUIThread(() =>

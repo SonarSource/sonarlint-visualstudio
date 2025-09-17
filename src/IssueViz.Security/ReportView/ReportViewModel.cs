@@ -32,6 +32,8 @@ internal class ReportViewModel : ServerViewModel
     private readonly IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler;
     private readonly IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler;
     private readonly IMessageBox messageBox;
+    private readonly ITelemetryManager telemetryManager;
+    private IIssueViewModel selectedItem;
     public GroupDependencyRiskViewModel GroupDependencyRisk { get; }
 
     public ReportViewModel(
@@ -46,12 +48,26 @@ internal class ReportViewModel : ServerViewModel
         this.showDependencyRiskInBrowserHandler = showDependencyRiskInBrowserHandler;
         this.changeDependencyRiskStatusHandler = changeDependencyRiskStatusHandler;
         this.messageBox = messageBox;
-        GroupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore, [ResolutionFilterOpen, ResolutionFilterResolved], telemetryManager, threadHandling);
+        this.telemetryManager = telemetryManager;
+        GroupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore, [ResolutionFilterOpen, ResolutionFilterResolved], threadHandling);
         GroupDependencyRisk.InitializeRisks();
     }
 
     public ResolutionFilterViewModel ResolutionFilterOpen { get; } = new(false, true);
     public ResolutionFilterViewModel ResolutionFilterResolved { get; } = new(true, false);
+
+    public IIssueViewModel SelectedItem
+    {
+        get => selectedItem;
+        set
+        {
+            if (selectedItem != value)
+            {
+                selectedItem = value;
+                UpdateTelemetry(selectedItem);
+            }
+        }
+    }
 
     public void FlipAndUpdateResolutionFilter(ResolutionFilterViewModel viewModel)
     {
@@ -97,5 +113,13 @@ internal class ReportViewModel : ServerViewModel
     {
         GroupDependencyRisk.Dispose();
         base.Dispose(disposing);
+    }
+
+    private void UpdateTelemetry(IIssueViewModel issueViewModel)
+    {
+        if (issueViewModel is DependencyRiskViewModel)
+        {
+            telemetryManager.DependencyRiskInvestigatedLocally();
+        }
     }
 }
