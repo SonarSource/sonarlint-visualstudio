@@ -29,6 +29,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
@@ -46,6 +47,7 @@ internal sealed partial class ReportViewControl : UserControl
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IBrowserService browserService,
         IDependencyRisksStore dependencyRisksStore,
+        ILocalHotspotsStore hotspotsStore,
         IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler,
         IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler,
         IMessageBox messageBox,
@@ -56,6 +58,7 @@ internal sealed partial class ReportViewControl : UserControl
         this.browserService = browserService;
         ReportViewModel = new ReportViewModel(activeSolutionBoundTracker,
             dependencyRisksStore,
+            hotspotsStore,
             showDependencyRiskInBrowserHandler,
             changeDependencyRiskStatusHandler,
             messageBox,

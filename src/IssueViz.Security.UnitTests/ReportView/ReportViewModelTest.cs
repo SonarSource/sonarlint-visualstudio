@@ -18,14 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel;
 using System.Windows;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView;
@@ -36,6 +39,7 @@ public class ReportViewModelTest
     private ReportViewModel testSubject;
     private IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private IDependencyRisksStore dependencyRisksStore;
+    private ILocalHotspotsStore localHotspotsStore;
     private IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler;
     private IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler;
     private IMessageBox messageBox;
@@ -47,6 +51,7 @@ public class ReportViewModelTest
     {
         activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
         dependencyRisksStore = Substitute.For<IDependencyRisksStore>();
+        localHotspotsStore = Substitute.For<ILocalHotspotsStore>();
         showDependencyRiskInBrowserHandler = Substitute.For<IShowDependencyRiskInBrowserHandler>();
         changeDependencyRiskStatusHandler = Substitute.For<IChangeDependencyRiskStatusHandler>();
         messageBox = Substitute.For<IMessageBox>();
@@ -60,6 +65,9 @@ public class ReportViewModelTest
     public void Class_InheritsFromServerViewModel() => testSubject.Should().BeAssignableTo<ServerViewModel>();
 
     [TestMethod]
+    public void Class_SubscribesToEvents() => localHotspotsStore.Received(1).IssuesChanged += Arg.Any<EventHandler<IssuesChangedEventArgs>>();
+
+    [TestMethod]
     public void Ctor_InitializesDependencyRisks()
     {
         var dependencyRisk = CreateDependencyRisk();
@@ -67,18 +75,71 @@ public class ReportViewModelTest
 
         testSubject = CreateTestSubject();
 
-        testSubject.GroupDependencyRisk.Should().NotBeNull();
-        testSubject.GroupDependencyRisk.Risks.Should().ContainSingle(vm => vm.DependencyRisk == dependencyRisk);
+        testSubject.GroupViewModels.Should().HaveCount(1);
+        VerifyExpectedDependencyRiskGroupViewModel(testSubject.GroupViewModels[0] as GroupDependencyRiskViewModel, dependencyRisk);
+    }
+
+    [TestMethod]
+    public void Ctor_TwoHotspotsInSameFile_CreatesOneGroupVmWithTwoIssues()
+    {
+        var path = "myFile.cs";
+        var hotspot1 = CreateMockedHotspot(filePath: path);
+        var hotspot2 = CreateMockedHotspot(filePath: path);
+        MockHotspotsInStore(hotspot1, hotspot2);
+
+        testSubject = CreateTestSubject();
+
+        testSubject.GroupViewModels.Should().HaveCount(1);
+        VerifyExpectedHotspotGroupViewModel(testSubject.GroupViewModels[0] as GroupFileViewModel, hotspot1, hotspot2);
+    }
+
+    [TestMethod]
+    public void Ctor_TwoHotspotsInDifferentFiles_CreatesTwoGroupsWithOneIssueEach()
+    {
+        var hotspot1 = CreateMockedHotspot(filePath: "myFile.cs");
+        var hotspot2 = CreateMockedHotspot(filePath: "myFile.js");
+        MockHotspotsInStore(hotspot1, hotspot2);
+
+        testSubject = CreateTestSubject();
+
+        testSubject.GroupViewModels.Should().HaveCount(2);
+        VerifyExpectedHotspotGroupViewModel(testSubject.GroupViewModels[0] as GroupFileViewModel, hotspot1);
+        VerifyExpectedHotspotGroupViewModel(testSubject.GroupViewModels[1] as GroupFileViewModel, hotspot2);
+    }
+
+    [TestMethod]
+    public void Ctor_MixedIssuesTypes_CreatesGroupViewModelsCorrectly()
+    {
+        var dependencyRisk = CreateDependencyRisk();
+        MockRisksInStore(dependencyRisk);
+        var hotspot = CreateMockedHotspot(filePath: "myFile.cs");
+        MockHotspotsInStore(hotspot);
+
+        testSubject = CreateTestSubject();
+
+        testSubject.GroupViewModels.Should().HaveCount(2);
+        VerifyExpectedDependencyRiskGroupViewModel(testSubject.GroupViewModels[0] as GroupDependencyRiskViewModel, dependencyRisk);
+        VerifyExpectedHotspotGroupViewModel(testSubject.GroupViewModels[1] as GroupFileViewModel, hotspot);
+    }
+
+    [TestMethod]
+    public void Ctor_NoIssues_CreatesNoGroupViewModel()
+    {
+        testSubject = CreateTestSubject();
+
+        testSubject.GroupViewModels.Should().BeEmpty();
     }
 
     [TestMethod]
     public void Dispose_UnsubscribesFromEvents()
     {
         MockRisksInStore(CreateDependencyRisk(), CreateDependencyRisk());
+        testSubject = CreateTestSubject();
 
         testSubject.Dispose();
 
         dependencyRisksStore.Received(1).DependencyRisksChanged -= Arg.Any<EventHandler>();
+        localHotspotsStore.Received(1).IssuesChanged -= Arg.Any<EventHandler<IssuesChangedEventArgs>>();
     }
 
     [TestMethod]
@@ -149,49 +210,51 @@ public class ReportViewModelTest
         testSubject.ResolutionFilterResolved.IsSelected.Should().BeFalse();
     }
 
-    [DataTestMethod]
-    [DataRow(true, true, false, true)]
-    [DataRow(true, false, false, true)]
-    [DataRow(false, true, true, true)]
-    public void FlipAndUpdateResolutionFilter_OpenFilter_AsExpected(
-        bool open,
-        bool resolved,
-        bool expectedOpen,
-        bool expectedResolved)
-    {
-        testSubject.ResolutionFilterOpen.IsSelected = open;
-        testSubject.ResolutionFilterResolved.IsSelected = resolved;
-        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
-        testSubject.GroupDependencyRisk.PropertyChanged += eventHandler;
+    // TODO by SLVS-2519 remove filtering as it will be changed completely in another task
+    //[DataTestMethod]
+    //[DataRow(true, true, false, true)]
+    //[DataRow(true, false, false, true)]
+    //[DataRow(false, true, true, true)]
+    //public void FlipAndUpdateResolutionFilter_OpenFilter_AsExpected(
+    //    bool open,
+    //    bool resolved,
+    //    bool expectedOpen,
+    //    bool expectedResolved)
+    //{
+    //    testSubject.ResolutionFilterOpen.IsSelected = open;
+    //    testSubject.ResolutionFilterResolved.IsSelected = resolved;
+    //    var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+    //    testSubject.GroupDependencyRisk.PropertyChanged += eventHandler;
 
-        testSubject.FlipAndUpdateResolutionFilter(testSubject.ResolutionFilterOpen);
+    //    testSubject.FlipAndUpdateResolutionFilter(testSubject.ResolutionFilterOpen);
 
-        testSubject.ResolutionFilterOpen.IsSelected.Should().Be(expectedOpen);
-        testSubject.ResolutionFilterResolved.IsSelected.Should().Be(expectedResolved);
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.GroupDependencyRisk.FilteredIssues)));
-    }
+    //    testSubject.ResolutionFilterOpen.IsSelected.Should().Be(expectedOpen);
+    //    testSubject.ResolutionFilterResolved.IsSelected.Should().Be(expectedResolved);
+    //    eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.GroupDependencyRisk.FilteredIssues)));
+    //}
 
-    [DataTestMethod]
-    [DataRow(true, true, true, false)]
-    [DataRow(true, false, true, true)]
-    [DataRow(false, true, true, false)]
-    public void FlipAndUpdateResolutionFilter_ResolvedFilter_AsExpected(
-        bool open,
-        bool resolved,
-        bool expectedOpen,
-        bool expectedResolved)
-    {
-        testSubject.ResolutionFilterOpen.IsSelected = open;
-        testSubject.ResolutionFilterResolved.IsSelected = resolved;
-        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
-        testSubject.GroupDependencyRisk.PropertyChanged += eventHandler;
+    // TODO by SLVS-2519 remove filtering as it will be changed completely in another task
+    //[DataTestMethod]
+    //[DataRow(true, true, true, false)]
+    //[DataRow(true, false, true, true)]
+    //[DataRow(false, true, true, false)]
+    //public void FlipAndUpdateResolutionFilter_ResolvedFilter_AsExpected(
+    //    bool open,
+    //    bool resolved,
+    //    bool expectedOpen,
+    //    bool expectedResolved)
+    //{
+    //    testSubject.ResolutionFilterOpen.IsSelected = open;
+    //    testSubject.ResolutionFilterResolved.IsSelected = resolved;
+    //    var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+    //    testSubject.GroupDependencyRisk.PropertyChanged += eventHandler;
 
-        testSubject.FlipAndUpdateResolutionFilter(testSubject.ResolutionFilterResolved);
+    //    testSubject.FlipAndUpdateResolutionFilter(testSubject.ResolutionFilterResolved);
 
-        testSubject.ResolutionFilterOpen.IsSelected.Should().Be(expectedOpen);
-        testSubject.ResolutionFilterResolved.IsSelected.Should().Be(expectedResolved);
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.GroupDependencyRisk.FilteredIssues)));
-    }
+    //    testSubject.ResolutionFilterOpen.IsSelected.Should().Be(expectedOpen);
+    //    testSubject.ResolutionFilterResolved.IsSelected.Should().Be(expectedResolved);
+    //    eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.GroupDependencyRisk.FilteredIssues)));
+    //}
 
     [TestMethod]
     public void SelectedItem_Initially_IsNull()
@@ -261,9 +324,106 @@ public class ReportViewModelTest
         telemetryManager.DidNotReceive().DependencyRiskInvestigatedLocally();
     }
 
+    [TestMethod]
+    public void HotspotsAddedInStore_ExistingFile_UpdatesExistingGroup()
+    {
+        var initialHotspot = CreateMockedHotspot(filePath: "myFile.cs");
+        var addedHotspot = CreateMockedHotspot(filePath: "myFile.cs");
+        localHotspotsStore.GetAllLocalHotspots().Returns([initialHotspot], [initialHotspot, addedHotspot]);
+        testSubject = CreateTestSubject();
+
+        localHotspotsStore.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], []));
+
+        testSubject.GroupViewModels.Should().HaveCount(1);
+        VerifyExpectedHotspotGroupViewModel(testSubject.GroupViewModels[0] as GroupFileViewModel, initialHotspot, addedHotspot);
+    }
+
+    [TestMethod]
+    public void HotspotsAddedInStore_NewFile_CreatesNewGroup()
+    {
+        var initialHotspot = CreateMockedHotspot(filePath: "myFile.cs");
+        var addedHotspot = CreateMockedHotspot(filePath: "otherFile.cs");
+        localHotspotsStore.GetAllLocalHotspots().Returns([initialHotspot], [initialHotspot, addedHotspot]);
+        testSubject = CreateTestSubject();
+
+        localHotspotsStore.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], []));
+
+        testSubject.GroupViewModels.Should().HaveCount(2);
+        VerifyExpectedHotspotGroupViewModel(testSubject.GroupViewModels[0] as GroupFileViewModel, initialHotspot);
+        VerifyExpectedHotspotGroupViewModel(testSubject.GroupViewModels[1] as GroupFileViewModel, addedHotspot);
+    }
+
+    [TestMethod]
+    public void HotspotsAddedInStore_DoesNotUpdateDependencyRisks()
+    {
+        var initialHotspot = CreateMockedHotspot(filePath: "myFile.cs");
+        var addedHotspot = CreateMockedHotspot(filePath: "otherFile.cs");
+        localHotspotsStore.GetAllLocalHotspots().Returns([initialHotspot], [initialHotspot, addedHotspot]);
+        testSubject = CreateTestSubject();
+        dependencyRisksStore.ClearReceivedCalls();
+
+        localHotspotsStore.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], []));
+
+        dependencyRisksStore.DidNotReceive().GetAll();
+    }
+
+    [TestMethod]
+    public void HotspotsRemovedFromStore_DeletedHotspotFromExistingFile_UpdatesExistingGroup()
+    {
+        var initialHotspot = CreateMockedHotspot(filePath: "myFile.cs");
+        var initialHotspot2 = CreateMockedHotspot(filePath: "myFile.cs");
+        localHotspotsStore.GetAllLocalHotspots().Returns([initialHotspot, initialHotspot2], [initialHotspot]);
+        testSubject = CreateTestSubject();
+
+        localHotspotsStore.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], []));
+
+        testSubject.GroupViewModels.Should().HaveCount(1);
+        VerifyExpectedHotspotGroupViewModel(testSubject.GroupViewModels[0] as GroupFileViewModel, initialHotspot);
+    }
+
+    [TestMethod]
+    public void HotspotsRemovedFromStore_DeletedSingleHotspotFromExistingFile_RemovesGroup()
+    {
+        var initialHotspot = CreateMockedHotspot(filePath: "myFile.cs");
+        localHotspotsStore.GetAllLocalHotspots().Returns([initialHotspot], new LocalHotspot[] { });
+        testSubject = CreateTestSubject();
+
+        localHotspotsStore.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], []));
+
+        testSubject.GroupViewModels.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void HotspotsRemovedFromStore_DeletedHotspotFromDifferentFile_UpdatesGroupCorrectly()
+    {
+        var initialHotspot = CreateMockedHotspot(filePath: "myFile.cs");
+        var initialHotspot2 = CreateMockedHotspot(filePath: "otherFile.cs");
+        localHotspotsStore.GetAllLocalHotspots().Returns([initialHotspot, initialHotspot2], [initialHotspot]);
+        testSubject = CreateTestSubject();
+
+        localHotspotsStore.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], []));
+
+        testSubject.GroupViewModels.Should().HaveCount(1);
+        VerifyExpectedHotspotGroupViewModel(testSubject.GroupViewModels[0] as GroupFileViewModel, initialHotspot);
+    }
+
+    [TestMethod]
+    public void HotspotsRemovedFromStore_DoesNotUpdateDependencyRisks()
+    {
+        var initialHotspot = CreateMockedHotspot(filePath: "myFile.cs");
+        localHotspotsStore.GetAllLocalHotspots().Returns([initialHotspot], []);
+        testSubject = CreateTestSubject();
+        dependencyRisksStore.ClearReceivedCalls();
+
+        localHotspotsStore.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], []));
+
+        dependencyRisksStore.DidNotReceive().GetAll();
+    }
+
     private ReportViewModel CreateTestSubject() =>
         new(activeSolutionBoundTracker,
             dependencyRisksStore,
+            localHotspotsStore,
             showDependencyRiskInBrowserHandler,
             changeDependencyRiskStatusHandler,
             messageBox,
@@ -279,5 +439,38 @@ public class ReportViewModelTest
         return risk;
     }
 
+    private static LocalHotspot CreateMockedHotspot(string filePath)
+    {
+        var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
+        var analysisIssueBase = Substitute.For<IAnalysisIssueBase>();
+        analysisIssueBase.PrimaryLocation.FilePath.Returns(filePath);
+        analysisIssueVisualization.Issue.Returns(analysisIssueBase);
+
+        return new LocalHotspot(analysisIssueVisualization, default, default);
+    }
+
     private void MockRisksInStore(params IDependencyRisk[] dependencyRisks) => dependencyRisksStore.GetAll().Returns(dependencyRisks);
+
+    private void MockHotspotsInStore(params LocalHotspot[] hotspots) => localHotspotsStore.GetAllLocalHotspots().Returns(hotspots);
+
+    private void VerifyExpectedHotspotGroupViewModel(GroupFileViewModel groupFileVm, params LocalHotspot[] expectedHotspots)
+    {
+        groupFileVm.Should().NotBeNull();
+        groupFileVm.FilePath.Should().Be(expectedHotspots.First().Visualization.Issue.PrimaryLocation.FilePath);
+        groupFileVm.FilteredIssues.Should().HaveCount(expectedHotspots.Length);
+        foreach (var expectedHotspot in expectedHotspots)
+        {
+            groupFileVm.FilteredIssues.Should().ContainSingle(vm => ((HotspotViewModel)vm).LocalHotspot == expectedHotspot);
+        }
+    }
+
+    private void VerifyExpectedDependencyRiskGroupViewModel(GroupDependencyRiskViewModel dependencyRiskGroupVm, params IDependencyRisk[] expectedDependencyRisks)
+    {
+        dependencyRiskGroupVm.Should().NotBeNull();
+        dependencyRiskGroupVm.FilteredIssues.Should().HaveCount(expectedDependencyRisks.Length);
+        foreach (var expectedDependencyRisk in expectedDependencyRisks)
+        {
+            dependencyRiskGroupVm.FilteredIssues.Should().ContainSingle(vm => ((DependencyRiskViewModel)vm).DependencyRisk == expectedDependencyRisk);
+        }
+    }
 }
