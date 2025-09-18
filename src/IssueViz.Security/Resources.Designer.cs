@@ -475,7 +475,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Please ensure that your solution is bound to a SonarQube project that contains dependency risks.
+        ///   Looks up a localized string similar to Please ensure that your solution is bound to a SonarQube project.
         /// </summary>
         public static string NoDependencyRiskFoundText {
             get {
@@ -484,11 +484,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No Dependency Risks were found..
+        ///   Looks up a localized string similar to No findings to display..
         /// </summary>
-        public static string NoDependencyRiskFoundTitle {
+        public static string NoFindingsToDisplayTitle {
             get {
-                return ResourceManager.GetString("NoDependencyRiskFoundTitle", resourceCulture);
+                return ResourceManager.GetString("NoFindingsToDisplayTitle", resourceCulture);
             }
         }
         

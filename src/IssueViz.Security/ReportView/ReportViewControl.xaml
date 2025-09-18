@@ -11,6 +11,7 @@
              xmlns:hotspots="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots"
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:vsimagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:core="clr-namespace:SonarLint.VisualStudio.Core;assembly=SonarLint.VisualStudio.Core"
              DataContext="{Binding RelativeSource={RelativeSource Mode=Self}, Path=ReportViewModel}">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -25,6 +26,7 @@
             <reportView:FileNameToMonikerConverter x:Key="FileNameToMonikerConverter" />
             <hotspots:HotspotTooltipConverter x:Key="HotspotTooltipConverter" />
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
+            <wpf:BoolToVisibilityConverter x:Key="TrueToCollapsedConverter" FalseValue="Visible" TrueValue="Collapsed"/>
             <wpf:EnglishPluralizationConverter x:Key="EnglishPluralizationConverter" />
             <wpf:PascalCaseEnumToSpacedStringConverter x:Key="PascalCaseEnumToSpacedStringConverter" />
 
@@ -377,23 +379,21 @@
             </TreeView.Resources>
         </TreeView>
 
-        <!--TODO by SLVS-2519 show a more generic message when no issues exist-->
-        <!--<Grid Grid.Row="1" Background="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBackgroundKey}}"
+        <Grid Grid.Row="1" Background="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBackgroundKey}}"
               Panel.ZIndex="1000"
-              Visibility="{Binding Path=GroupDependencyRisk.HasRisks, Converter={StaticResource TrueToCollapsedConverter}}">
+              Visibility="{Binding Path=HasGroups, Converter={StaticResource TrueToCollapsedConverter}}">
             <StackPanel VerticalAlignment="Center">
                 <TextBlock Style="{StaticResource OverlayTitleTextStyle}"
-                           Text="{x:Static res:Resources.NoDependencyRiskFoundTitle}"
+                           Text="{x:Static res:Resources.NoFindingsToDisplayTitle}"
                            Margin="0,10" />
                 <TextBlock Style="{StaticResource OverlayTextBlockStyle}">
                     <Run Text="{x:Static res:Resources.NoDependencyRiskFoundText}" /><Run Text=" (see " />
-                    <Hyperlink NavigateUri="{x:Static core:DocumentationLinks.DependencyRisksUri}"
+                    <Hyperlink NavigateUri="{x:Static core:DocumentationLinks.ConnectedModeUri}"
                                RequestNavigate="Hyperlink_OnRequestNavigate">
                         documentation
-                    </Hyperlink>
-                    <Run Text="). " />
+                    </Hyperlink><Run Text="). " />
                 </TextBlock>
             </StackPanel>
-        </Grid>-->
+        </Grid>
     </Grid>
 </UserControl>

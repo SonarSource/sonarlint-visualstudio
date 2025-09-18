@@ -39,7 +39,6 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewMo
     public string Title => Resources.DependencyRisksGroupTitle;
     public ObservableCollection<DependencyRiskViewModel> Risks => risks;
     public ObservableCollection<IIssueViewModel> FilteredIssues => filteredRisks;
-    public bool HasRisks => risks.Count > 0;
 
     public void InitializeRisks()
     {
@@ -56,7 +55,6 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewMo
         }
         RefreshFiltering();
         RaisePropertyChanged(nameof(Risks));
-        RaisePropertyChanged(nameof(HasRisks));
     }
 
     public void Dispose() { }

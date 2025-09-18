@@ -72,27 +72,6 @@ public class GroupDependencyRiskViewModelTest
     }
 
     [TestMethod]
-    public void InitializeRisks_RaisesPropertyChanged()
-    {
-        testSubject.InitializeRisks();
-
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.HasRisks)));
-    }
-
-    [TestMethod]
-    public void HasRisks_ReturnsTrue_WhenThereAreRisks()
-    {
-        MockRisksInStore(CreateDependencyRisk());
-
-        testSubject.InitializeRisks();
-
-        testSubject.HasRisks.Should().BeTrue();
-    }
-
-    [TestMethod]
-    public void HasRisks_ReturnsFalse_WhenThereAreNoRisks() => testSubject.HasRisks.Should().BeFalse();
-
-    [TestMethod]
     public void InitializeRisks_DefaultFilters_FilteredRisksContainsOnlyOpen()
     {
         MockRisksInStore(risksOld);
@@ -111,7 +90,6 @@ public class GroupDependencyRiskViewModelTest
 
         testSubject.InitializeRisks();
 
-        testSubject.HasRisks.Should().BeFalse();
         VerifyRisks();
         VerifyFilteredRisks();
         VerifyUpdatedBothRiskLists();
@@ -125,7 +103,6 @@ public class GroupDependencyRiskViewModelTest
 
         testSubject.InitializeRisks();
 
-        testSubject.HasRisks.Should().BeTrue();
         VerifyRisks(risks);
         VerifyFilteredRisks(risks);
         VerifyUpdatedBothRiskLists();
@@ -140,7 +117,6 @@ public class GroupDependencyRiskViewModelTest
 
         testSubject.InitializeRisks();
 
-        testSubject.HasRisks.Should().BeTrue();
         testSubject.Risks.Should().NotContain(vm => vm.DependencyRisk.Status == DependencyRiskStatus.Fixed);
         VerifyRisks(risks);
         VerifyFilteredRisks(risks);
@@ -151,7 +127,6 @@ public class GroupDependencyRiskViewModelTest
         dependencyRisksStore.Received().GetAll();
         ReceivedEvent(nameof(testSubject.FilteredIssues));
         ReceivedEvent(nameof(testSubject.Risks));
-        ReceivedEvent(nameof(testSubject.HasRisks));
     }
 
     private void SetInitialRisks(IDependencyRisk[] state)

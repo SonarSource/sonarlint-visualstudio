@@ -69,6 +69,7 @@ internal class ReportViewModel : ServerViewModel
     }
 
     public ObservableCollection<IGroupViewModel> GroupViewModels { get; } = [];
+    public bool HasGroups => GroupViewModels.Count > 0;
 
     public IIssueViewModel SelectedItem
     {
@@ -151,10 +152,11 @@ internal class ReportViewModel : ServerViewModel
     {
         var groupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore);
         groupDependencyRisk.InitializeRisks();
-        if (groupDependencyRisk.HasRisks)
+        if (groupDependencyRisk.FilteredIssues.Any())
         {
             GroupViewModels.Add(groupDependencyRisk);
         }
+        RaisePropertyChanged(nameof(HasGroups));
     }
 
     private void InitializeHotspots()
@@ -162,6 +164,7 @@ internal class ReportViewModel : ServerViewModel
         var hotspots = hotspotsStore.GetAllLocalHotspots().Select(x => new HotspotViewModel(x));
         var groups = GetGroupViewModel(hotspots);
         groups.ToList().ForEach(g => GroupViewModels.Add(g));
+        RaisePropertyChanged(nameof(HasGroups));
     }
 
     private ObservableCollection<IGroupViewModel> GetGroupViewModel(IEnumerable<IIssueViewModel> issueViewModels)

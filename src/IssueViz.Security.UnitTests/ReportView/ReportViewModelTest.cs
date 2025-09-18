@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
 using System.Windows;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -45,6 +46,7 @@ public class ReportViewModelTest
     private IMessageBox messageBox;
     private ITelemetryManager telemetryManager;
     private IThreadHandling threadHandling;
+    private PropertyChangedEventHandler eventHandler;
 
     [TestInitialize]
     public void Initialize()
@@ -57,6 +59,7 @@ public class ReportViewModelTest
         messageBox = Substitute.For<IMessageBox>();
         telemetryManager = Substitute.For<ITelemetryManager>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+        eventHandler = Substitute.For<PropertyChangedEventHandler>();
 
         testSubject = CreateTestSubject();
     }
@@ -309,6 +312,7 @@ public class ReportViewModelTest
         localHotspotsStore.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], []));
 
         dependencyRisksStore.DidNotReceive().GetAll();
+        VerifyHasGroupsUpdated();
     }
 
     [TestMethod]
@@ -362,6 +366,7 @@ public class ReportViewModelTest
         localHotspotsStore.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], []));
 
         dependencyRisksStore.DidNotReceive().GetAll();
+        VerifyHasGroupsUpdated();
     }
 
     [TestMethod]
@@ -402,6 +407,7 @@ public class ReportViewModelTest
         dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
 
         localHotspotsStore.DidNotReceive().GetAll();
+        VerifyHasGroupsUpdated();
     }
 
     [TestMethod]
@@ -441,10 +447,24 @@ public class ReportViewModelTest
         dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
 
         localHotspotsStore.DidNotReceive().GetAll();
+        VerifyHasGroupsUpdated();
     }
 
-    private ReportViewModel CreateTestSubject() =>
-        new(activeSolutionBoundTracker,
+    [TestMethod]
+    public void HasRisks_ReturnsTrue_WhenThereAreRisks()
+    {
+        MockRisksInStore(CreateDependencyRisk());
+        testSubject = CreateTestSubject();
+
+        testSubject.HasGroups.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void HasRisks_ReturnsFalse_WhenThereAreNoRisks() => testSubject.HasGroups.Should().BeFalse();
+
+    private ReportViewModel CreateTestSubject()
+    {
+        var reportViewModel = new ReportViewModel(activeSolutionBoundTracker,
             dependencyRisksStore,
             localHotspotsStore,
             showDependencyRiskInBrowserHandler,
@@ -452,6 +472,9 @@ public class ReportViewModelTest
             messageBox,
             telemetryManager,
             threadHandling);
+        reportViewModel.PropertyChanged += eventHandler;
+        return reportViewModel;
+    }
 
     private static IDependencyRisk CreateDependencyRisk(Guid? id = null, bool isResolved = false)
     {
@@ -476,10 +499,10 @@ public class ReportViewModelTest
 
     private void MockHotspotsInStore(params LocalHotspot[] hotspots) => localHotspotsStore.GetAllLocalHotspots().Returns(hotspots);
 
-    private void VerifyExpectedHotspotGroupViewModel(GroupFileViewModel groupFileVm, params LocalHotspot[] expectedHotspots)
+    private static void VerifyExpectedHotspotGroupViewModel(GroupFileViewModel groupFileVm, params LocalHotspot[] expectedHotspots)
     {
         groupFileVm.Should().NotBeNull();
-        groupFileVm.FilePath.Should().Be(expectedHotspots.First().Visualization.Issue.PrimaryLocation.FilePath);
+        groupFileVm.FilePath.Should().Be(expectedHotspots[0].Visualization.Issue.PrimaryLocation.FilePath);
         groupFileVm.FilteredIssues.Should().HaveCount(expectedHotspots.Length);
         foreach (var expectedHotspot in expectedHotspots)
         {
@@ -487,7 +510,7 @@ public class ReportViewModelTest
         }
     }
 
-    private void VerifyExpectedDependencyRiskGroupViewModel(GroupDependencyRiskViewModel dependencyRiskGroupVm, params IDependencyRisk[] expectedDependencyRisks)
+    private static void VerifyExpectedDependencyRiskGroupViewModel(GroupDependencyRiskViewModel dependencyRiskGroupVm, params IDependencyRisk[] expectedDependencyRisks)
     {
         dependencyRiskGroupVm.Should().NotBeNull();
         dependencyRiskGroupVm.FilteredIssues.Should().HaveCount(expectedDependencyRisks.Length);
@@ -496,4 +519,6 @@ public class ReportViewModelTest
             dependencyRiskGroupVm.FilteredIssues.Should().ContainSingle(vm => ((DependencyRiskViewModel)vm).DependencyRisk == expectedDependencyRisk);
         }
     }
+
+    private void VerifyHasGroupsUpdated() => eventHandler.Received().Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.HasGroups)));
 }
