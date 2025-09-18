@@ -53,6 +53,7 @@
             <Style TargetType="TreeViewItem">
                 <Setter Property="IsExpanded" Value="True" />
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}" />
+                <EventSetter Event="PreviewMouseUp" Handler="TreeViewItem_OnPreviewMouseUp"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="TreeViewItem">
