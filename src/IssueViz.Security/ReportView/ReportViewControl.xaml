@@ -20,6 +20,7 @@
             </ResourceDictionary.MergedDictionaries>
 
             <reportView:EnumToImageSourceConverter x:Key="EnumToImageSourceConverter" />
+            <hotspots:HotspotTooltipConverter x:Key="HotspotTooltipConverter" />
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
             <wpf:EnglishPluralizationConverter x:Key="EnglishPluralizationConverter" />
             <wpf:PascalCaseEnumToSpacedStringConverter x:Key="PascalCaseEnumToSpacedStringConverter" />
@@ -367,7 +368,7 @@
 
                 <!--Hotspots styling-->
                 <DataTemplate DataType="{x:Type hotspots:HotspotViewModel}">
-                    <Grid Margin="2" MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown">
+                    <Grid Margin="2" MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown" ToolTip="{x:Static res:Resources.HotspotsControl_NavigationTooltip}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -385,12 +386,10 @@
                                 </MultiBinding>
                             </Image.Source>
                             <Image.ToolTip>
-                                <StackPanel>
-                                    <TextBlock>
-                                        <Run Text="{x:Static res:Resources.DependencyRiskImpactSeverityTooltip}" />
-                                        <Run Text="{Binding LocalHotspot.Priority, Mode=OneWay}" />
-                                    </TextBlock>
-                                </StackPanel>
+                                <MultiBinding Converter="{StaticResource HotspotTooltipConverter}">
+                                    <Binding Path="LocalHotspot" />
+                                    <Binding Path="DataContext.IsCloud" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                </MultiBinding>
                             </Image.ToolTip>
                         </Image>
                         <TextBlock Grid.Column="1"

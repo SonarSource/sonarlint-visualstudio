@@ -271,7 +271,7 @@ Please check the logs for more details.</value>
   </data>
   <data name="CommentRequiredErrorMessage" xml:space="preserve">
     <value>Comment is required.</value>
-   </data>
+  </data>
   <data name="ChangeStatusMenuItem" xml:space="preserve">
     <value>Change Status</value>
   </data>
@@ -361,5 +361,11 @@ Please check the logs for more details.</value>
   </data>
   <data name="ResolutionFilter_Open" xml:space="preserve">
     <value>Open</value>
+  </data>
+  <data name="ServerHotspotTooltip" xml:space="preserve">
+    <value>{0} security hotspot existing on {1}</value>
+  </data>
+  <data name="LocalHotspotTooltip" xml:space="preserve">
+    <value>{0} security hotspot that does not exist on the server.</value>
   </data>
 </root>

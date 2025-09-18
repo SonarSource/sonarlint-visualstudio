@@ -439,6 +439,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} security hotspot that does not exist on the server..
+        /// </summary>
+        public static string LocalHotspotTooltip {
+            get {
+                return ResourceManager.GetString("LocalHotspotTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Change Status.
         /// </summary>
         public static string LogContext_ChangeStatus {
@@ -662,6 +671,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string ReviewHotspotWindow_ToReviewTitle {
             get {
                 return ResourceManager.GetString("ReviewHotspotWindow_ToReviewTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} security hotspot existing on {1}.
+        /// </summary>
+        public static string ServerHotspotTooltip {
+            get {
+                return ResourceManager.GetString("ServerHotspotTooltip", resourceCulture);
             }
         }
         
