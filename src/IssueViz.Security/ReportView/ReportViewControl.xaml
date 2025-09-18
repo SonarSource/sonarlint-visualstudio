@@ -16,6 +16,7 @@
                 <ResourceDictionary
                     Source="../DependencyRisks/DependencyRiskImpactSeverity.xaml" />
                 <ResourceDictionary Source="../SharedUI/SharedResources.xaml" />
+                <ResourceDictionary Source="Hotspots/HotspotSeverity.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <reportView:EnumToImageSourceConverter x:Key="EnumToImageSourceConverter" />
@@ -124,8 +125,7 @@
                 <Setter Property="VerticalAlignment" Value="Center" />
                 <Setter Property="FontSize"
                         Value="{DynamicResource {x:Static vsShell:VsFonts.Environment90PercentFontSizeKey}}" />
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.GrayTextKey}}" />
-                <Setter Property="Margin" Value="2,1" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.InactiveCaptionTextKey}}" />
             </Style>
 
             <Style x:Key="IssueTypeTextBlockStyle" TargetType="TextBlock">
@@ -271,7 +271,7 @@
                         <TextBlock Grid.Column="1" Margin="3,0,0,0"
                                    Text="{Binding Path=FilteredIssues.Count, Converter={StaticResource EnglishPluralizationConverter}, 
                                           ConverterParameter={x:Static res:Resources.IssueText}, StringFormat={}({0})}"
-                                   Style="{StaticResource GroupTextBlockStyle}" />
+                                   Style="{StaticResource LocationTextBlockStyle}" />
                     </Grid>
                 </HierarchicalDataTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type reportView:GroupFileViewModel}"
@@ -374,11 +374,11 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Image Grid.Column="0" Height="17" VerticalAlignment="Center">
+                        <Image Grid.Column="0" Height="15" VerticalAlignment="Center">
                             <Image.Source>
                                 <MultiBinding
-                                    Converter="{StaticResource EnumToImageSourceConverter}">
-                                    <Binding Path="Severity" />
+                                    Converter="{StaticResource EnumToImageSourceConverter}" ConverterParameter="HotspotPriority">
+                                    <Binding Path="LocalHotspot.Priority" />
                                     <Binding RelativeSource="{RelativeSource Self}" />
                                     <Binding Path="ResourceFinder"
                                              RelativeSource="{RelativeSource FindAncestor, AncestorType=UserControl}" />
@@ -388,19 +388,20 @@
                                 <StackPanel>
                                     <TextBlock>
                                         <Run Text="{x:Static res:Resources.DependencyRiskImpactSeverityTooltip}" />
-                                        <Run Text="{Binding Severity, Mode=OneWay}" />
+                                        <Run Text="{Binding LocalHotspot.Priority, Mode=OneWay}" />
                                     </TextBlock>
                                 </StackPanel>
                             </Image.ToolTip>
                         </Image>
                         <TextBlock Grid.Column="1"
+                                   Margin="2,0,0,2"
                                    Style="{StaticResource LocationTextBlockStyle}">
                             <Run Text="{Binding Line, Mode=OneWay, StringFormat={}({0}\,}" />
                             <Run Text="{Binding Path=Column, Mode=OneWay, StringFormat={}{0})}" />
                         </TextBlock>
-                        <TextBlock Grid.Column="2" Text="{Binding Title}" Margin="2,0"
+                        <TextBlock Grid.Column="2" Text="{Binding Title}" Margin="5,0,0,0"
                                    Style="{StaticResource IssueTextBlockStyle}" />
-                        <TextBlock Grid.Column="3" Margin="2,0"
+                        <TextBlock Grid.Column="3" Margin="5,0,0,0"
                                    Style="{StaticResource IssueTextBlockStyle}">
                             <Hyperlink Style="{StaticResource RuleKeyLinkStyle}">
                                 <TextBlock Text="{Binding RuleInfo.RuleKey}"
