@@ -98,7 +98,7 @@ internal sealed partial class ReportViewControl : UserControl
 
     private void ViewDependencyRiskInBrowser_OnClick(object sender, RoutedEventArgs e)
     {
-        if (ReportViewModel.GroupDependencyRisk.SelectedItem is not { } selectedDependencyRiskViewModel)
+        if (ReportViewModel.GroupDependencyRisk.SelectedItem is not DependencyRiskViewModel selectedDependencyRiskViewModel)
         {
             return;
         }
@@ -125,7 +125,7 @@ internal sealed partial class ReportViewControl : UserControl
 
     private async void ChangeScaStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
     {
-        if (ReportViewModel.GroupDependencyRisk.SelectedItem is not { } selectedDependencyRiskViewModel)
+        if (ReportViewModel.GroupDependencyRisk.SelectedItem is not DependencyRiskViewModel selectedDependencyRiskViewModel)
         {
             return;
         }
