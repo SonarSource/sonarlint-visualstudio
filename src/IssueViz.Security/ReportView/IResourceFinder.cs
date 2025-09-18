@@ -21,7 +21,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
 /// <summary>
 /// Abstraction for finding resources introduced to allow UI testability.

@@ -22,14 +22,14 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.DependencyRisks;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView;
 
 [TestClass]
-public class DependencyRiskImpactSeverityToImageSourceConverterTest
+public class EnumToImageSourceConverterTest
 {
-    private DependencyRiskImpactSeverityToImageSourceConverter testSubject;
+    private EnumToImageSourceConverter testSubject;
     private IResourceFinder resourceFinder;
     private Button uiElement;
 
@@ -38,7 +38,7 @@ public class DependencyRiskImpactSeverityToImageSourceConverterTest
     {
         uiElement = new Button();
         resourceFinder = Substitute.For<IResourceFinder>();
-        testSubject = new DependencyRiskImpactSeverityToImageSourceConverter();
+        testSubject = new EnumToImageSourceConverter();
     }
 
     [TestMethod]
@@ -80,10 +80,18 @@ public class DependencyRiskImpactSeverityToImageSourceConverterTest
         var expectedResource = new Style();
         resourceFinder.TryFindResource(uiElement, $"{severity}SeverityDrawingImage").Returns(expectedResource);
 
-        var result = testSubject.Convert([severity, uiElement, resourceFinder], null, null, CultureInfo.InvariantCulture);
+        var result = testSubject.Convert([severity, uiElement, resourceFinder], null, "Severity", CultureInfo.InvariantCulture);
 
         resourceFinder.Received(1).TryFindResource(uiElement, $"{severity}SeverityDrawingImage");
         result.Should().Be(expectedResource);
+    }
+
+    [TestMethod]
+    public void Convert_ParameterNotProvided_SearchesForResource()
+    {
+        testSubject.Convert([DependencyRiskImpactSeverity.Blocker, uiElement, resourceFinder], null, null, CultureInfo.InvariantCulture);
+
+        resourceFinder.Received(1).TryFindResource(uiElement, $"{DependencyRiskImpactSeverity.Blocker}DrawingImage");
     }
 
     [TestMethod]
