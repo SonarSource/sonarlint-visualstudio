@@ -9,6 +9,8 @@
              xmlns:res="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security"
              xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
              xmlns:hotspots="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots"
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:vsimagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              DataContext="{Binding RelativeSource={RelativeSource Mode=Self}, Path=ReportViewModel}">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -20,6 +22,7 @@
             </ResourceDictionary.MergedDictionaries>
 
             <reportView:EnumToImageSourceConverter x:Key="EnumToImageSourceConverter" />
+            <reportView:FileNameToMonikerConverter x:Key="FileNameToMonikerConverter" />
             <hotspots:HotspotTooltipConverter x:Key="HotspotTooltipConverter" />
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
             <wpf:EnglishPluralizationConverter x:Key="EnglishPluralizationConverter" />
@@ -266,25 +269,33 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Column="0" Text="{Binding Title}" Style="{StaticResource GroupTextBlockStyle}" />
-                        <TextBlock Grid.Column="1" Margin="3,0,0,0"
+                        <imaging:CrispImage Grid.Column="0" 
+                                            VerticalAlignment="Bottom"
+                                            Moniker="{x:Static vsimagecatalog:KnownMonikers.Solution}" />
+                        <TextBlock Grid.Column="1" Text="{Binding Title}" Style="{StaticResource GroupTextBlockStyle}" />
+                        <TextBlock Grid.Column="2" Margin="3,0,0,0"
                                    Text="{Binding Path=FilteredIssues.Count, Converter={StaticResource EnglishPluralizationConverter}, 
                                           ConverterParameter={x:Static res:Resources.IssueText}, StringFormat={}({0})}"
                                    Style="{StaticResource LocationTextBlockStyle}" />
                     </Grid>
                 </HierarchicalDataTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type reportView:GroupFileViewModel}"
-                                          ItemsSource="{Binding FilteredIssues}">
+                                          ItemsSource="{Binding FilteredIssues}" >
                     <Grid Cursor="Hand">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Column="0" Text="{Binding Title}" Style="{StaticResource GroupTextBlockStyle}" />
-                        <TextBlock Grid.Column="1" Margin="5,1,0,0"
+                        <imaging:CrispImage Grid.Column="0"
+                                            VerticalAlignment="Bottom" 
+                                            Moniker="{Binding FilePath, Converter={StaticResource FileNameToMonikerConverter}}"/>
+                        <TextBlock Grid.Column="1" Text="{Binding Title}" Style="{StaticResource GroupTextBlockStyle}" />
+                        <TextBlock Grid.Column="2" Margin="5,1,0,0"
                                    Text="{Binding Path=FilteredIssues.Count, Converter={StaticResource EnglishPluralizationConverter}, 
                                         ConverterParameter={x:Static res:Resources.IssueText}, StringFormat={}({0})}"
                                    Style="{StaticResource LocationTextBlockStyle}" />
@@ -293,7 +304,7 @@
 
                 <!--Dependency Risks styling-->
                 <DataTemplate DataType="{x:Type dependencyRisks:DependencyRiskViewModel}">
-                    <Grid Margin="2" ContextMenu="{StaticResource DependencyRiskContextMenu}"
+                    <Grid Margin="5,2" ContextMenu="{StaticResource DependencyRiskContextMenu}"
                           MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -368,7 +379,7 @@
 
                 <!--Hotspots styling-->
                 <DataTemplate DataType="{x:Type hotspots:HotspotViewModel}">
-                    <Grid Margin="2" MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown" ToolTip="{x:Static res:Resources.HotspotsControl_NavigationTooltip}">
+                    <Grid Margin="5,2" MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown" ToolTip="{x:Static res:Resources.HotspotsControl_NavigationTooltip}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
