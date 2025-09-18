@@ -265,7 +265,7 @@
                         <Image Grid.Column="0" Height="17" VerticalAlignment="Center">
                             <Image.Source>
                                 <MultiBinding
-                                    Converter="{StaticResource DependencyRiskImpactSeverityToImageSourceConverter}">
+                                    Converter="{StaticResource DependencyRiskImpactSeverityToImageSourceConverter}" ConverterParameter="Severity">
                                     <Binding Path="DependencyRisk.Severity" />
                                     <Binding RelativeSource="{RelativeSource Self}" />
                                     <Binding Path="ResourceFinder"

@@ -22,34 +22,39 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
-using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks
+namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+
+/// <summary>
+/// Tries to find a DrawingImage resource based on the pattern [EnumValue][CustomSuffix]DrawingImage.
+/// The enum value should be provided as the first binding value.
+/// The FrameworkElement used to find the resource should be provided as the second binding value.
+/// The IResourceFinder used to find the resource should be provided as the third binding value.
+/// A custom suffix can be provided as a converter parameter.
+/// </summary>
+[ValueConversion(typeof(Enum), typeof(ImageSource))]
+public class DependencyRiskImpactSeverityToImageSourceConverter : IMultiValueConverter
 {
-    [ValueConversion(typeof(DependencyRiskImpactSeverity), typeof(ImageSource))]
-    public class DependencyRiskImpactSeverityToImageSourceConverter : IMultiValueConverter
+    private const string Suffix = "DrawingImage";
+
+    public object Convert(
+        object[] values,
+        Type targetType,
+        object parameter,
+        CultureInfo culture)
     {
-        private const string Suffix = "SeverityDrawingImage";
-
-        public object Convert(
-            object[] values,
-            Type targetType,
-            object parameter,
-            CultureInfo culture)
+        if (values.Length < 3 || values[0] is not Enum enumValue || values[1] is not FrameworkElement element || values[2] is not IResourceFinder resourceFinder)
         {
-            if (values.Length < 3 || values[0] is not DependencyRiskImpactSeverity severity || values[1] is not FrameworkElement element || values[2] is not IResourceFinder resourceFinder)
-            {
-                return null;
-            }
-
-            return resourceFinder.TryFindResource(element, $"{severity}{Suffix}");
+            return null;
         }
 
-        public object[] ConvertBack(
-            object value,
-            Type[] targetTypes,
-            object parameter,
-            CultureInfo culture) =>
-            throw new NotImplementedException();
+        return resourceFinder.TryFindResource(element, $"{enumValue}{parameter}{Suffix}");
     }
+
+    public object[] ConvertBack(
+        object value,
+        Type[] targetTypes,
+        object parameter,
+        CultureInfo culture) =>
+        throw new NotImplementedException();
 }

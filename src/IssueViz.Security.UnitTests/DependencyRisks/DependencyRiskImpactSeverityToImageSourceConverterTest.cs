@@ -80,10 +80,18 @@ public class DependencyRiskImpactSeverityToImageSourceConverterTest
         var expectedResource = new Style();
         resourceFinder.TryFindResource(uiElement, $"{severity}SeverityDrawingImage").Returns(expectedResource);
 
-        var result = testSubject.Convert([severity, uiElement, resourceFinder], null, null, CultureInfo.InvariantCulture);
+        var result = testSubject.Convert([severity, uiElement, resourceFinder], null, "Severity", CultureInfo.InvariantCulture);
 
         resourceFinder.Received(1).TryFindResource(uiElement, $"{severity}SeverityDrawingImage");
         result.Should().Be(expectedResource);
+    }
+
+    [TestMethod]
+    public void Convert_ParameterNotProvided_SearchesForResource()
+    {
+        testSubject.Convert([DependencyRiskImpactSeverity.Blocker, uiElement, resourceFinder], null, null, CultureInfo.InvariantCulture);
+
+        resourceFinder.Received(1).TryFindResource(uiElement, $"{DependencyRiskImpactSeverity.Blocker}DrawingImage");
     }
 
     [TestMethod]
