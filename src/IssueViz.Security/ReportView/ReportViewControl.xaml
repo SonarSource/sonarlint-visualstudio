@@ -199,36 +199,6 @@
             </Style>
 
             <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource {x:Static vsShell:VsResourceKeys.ComboBoxStyleKey}}" />
-
-            <reportView:ResolutionToCountConverter x:Key="ResolutionToCountConverter" />
-            <ControlTemplate x:Key="ResolutionFilterControlTemplate" TargetType="ContentControl">
-                <StackPanel Orientation="Horizontal">
-                    <Border Height="18" BorderThickness="1,0,0,0"
-                            BorderBrush="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBorderKey}}"/>
-                    <Button Style="{StaticResource ResolutionFilterBorderStyle}" Click="ResolutionButton_OnClick" >
-                        <Button.Content>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Margin="5,0,2,0" VerticalAlignment="Center">
-                                    <TextBlock.Text>
-                                        <MultiBinding Converter="{StaticResource ResolutionToCountConverter}">
-                                            <Binding ElementName="GroupDependencyRiskTreeViewItem" Path="DataContext.Risks" />
-                                            <!-- we need an explicit binding to IsSelected property to make sure that the converter is triggered when its value changes -->
-                                            <Binding Path="IsResolved"/>
-                                            <!-- this is needed to make sure that the converter is triggered when the hotspots list changes -->
-                                            <Binding ElementName="GroupDependencyRiskTreeViewItem" Path="DataContext.Risks.Count" />
-                                        </MultiBinding>
-                                    </TextBlock.Text>
-                                </TextBlock>
-                                <TextBlock Grid.Column="1" Text="{Binding Path=Title}" Margin="2,0" VerticalAlignment="Center"/>
-                            </Grid>
-                        </Button.Content>
-                    </Button>
-                </StackPanel>
-            </ControlTemplate>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
@@ -240,24 +210,7 @@
             <ColumnDefinition Name="Table" Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Grid Grid.Row="0" Background="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarGradientBeginKey}}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <Grid Grid.Column="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <ContentControl Grid.Column="0" DataContext="{Binding Path=ResolutionFilterOpen}"
-                                Template="{StaticResource ResolutionFilterControlTemplate}" />
-
-                <ContentControl Grid.Column="1" DataContext="{Binding Path=ResolutionFilterResolved}"
-                                Template="{StaticResource ResolutionFilterControlTemplate}" />
-            </Grid>
-        </Grid>
+        <Grid Grid.Row="0" Background="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarGradientBeginKey}}"/>
 
         <TreeView Grid.Row="1" Grid.Column="0" Margin="0,5"
                   ItemsSource="{Binding Path=GroupViewModels}"

@@ -197,66 +197,6 @@ public class ReportViewModelTest
     }
 
     [TestMethod]
-    public void ResolutionFilterOpen_ExpectedResolutionAndDefaultSelection()
-    {
-        testSubject.ResolutionFilterOpen.IsResolved.Should().BeFalse();
-        testSubject.ResolutionFilterOpen.IsSelected.Should().BeTrue();
-    }
-
-    [TestMethod]
-    public void ResolutionFilterResolved_ExpectedResolutionAndDefaultSelection()
-    {
-        testSubject.ResolutionFilterResolved.IsResolved.Should().BeTrue();
-        testSubject.ResolutionFilterResolved.IsSelected.Should().BeFalse();
-    }
-
-    // TODO by SLVS-2519 remove filtering as it will be changed completely in another task
-    //[DataTestMethod]
-    //[DataRow(true, true, false, true)]
-    //[DataRow(true, false, false, true)]
-    //[DataRow(false, true, true, true)]
-    //public void FlipAndUpdateResolutionFilter_OpenFilter_AsExpected(
-    //    bool open,
-    //    bool resolved,
-    //    bool expectedOpen,
-    //    bool expectedResolved)
-    //{
-    //    testSubject.ResolutionFilterOpen.IsSelected = open;
-    //    testSubject.ResolutionFilterResolved.IsSelected = resolved;
-    //    var eventHandler = Substitute.For<PropertyChangedEventHandler>();
-    //    testSubject.GroupDependencyRisk.PropertyChanged += eventHandler;
-
-    //    testSubject.FlipAndUpdateResolutionFilter(testSubject.ResolutionFilterOpen);
-
-    //    testSubject.ResolutionFilterOpen.IsSelected.Should().Be(expectedOpen);
-    //    testSubject.ResolutionFilterResolved.IsSelected.Should().Be(expectedResolved);
-    //    eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.GroupDependencyRisk.FilteredIssues)));
-    //}
-
-    // TODO by SLVS-2519 remove filtering as it will be changed completely in another task
-    //[DataTestMethod]
-    //[DataRow(true, true, true, false)]
-    //[DataRow(true, false, true, true)]
-    //[DataRow(false, true, true, false)]
-    //public void FlipAndUpdateResolutionFilter_ResolvedFilter_AsExpected(
-    //    bool open,
-    //    bool resolved,
-    //    bool expectedOpen,
-    //    bool expectedResolved)
-    //{
-    //    testSubject.ResolutionFilterOpen.IsSelected = open;
-    //    testSubject.ResolutionFilterResolved.IsSelected = resolved;
-    //    var eventHandler = Substitute.For<PropertyChangedEventHandler>();
-    //    testSubject.GroupDependencyRisk.PropertyChanged += eventHandler;
-
-    //    testSubject.FlipAndUpdateResolutionFilter(testSubject.ResolutionFilterResolved);
-
-    //    testSubject.ResolutionFilterOpen.IsSelected.Should().Be(expectedOpen);
-    //    testSubject.ResolutionFilterResolved.IsSelected.Should().Be(expectedResolved);
-    //    eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.GroupDependencyRisk.FilteredIssues)));
-    //}
-
-    [TestMethod]
     public void SelectedItem_Initially_IsNull()
     {
         testSubject.SelectedItem.Should().BeNull();

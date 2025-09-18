@@ -29,18 +29,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewModel
 {
     private readonly IDependencyRisksStore dependencyRisksStore;
-    private readonly IReadOnlyCollection<IDependencyRiskFilter> filters;
     private readonly IThreadHandling threadHandling;
     private readonly ObservableCollection<DependencyRiskViewModel> risks = new();
     private readonly ObservableCollection<IIssueViewModel> filteredRisks = new();
 
     public GroupDependencyRiskViewModel(
         IDependencyRisksStore dependencyRisksStore,
-        IReadOnlyCollection<IDependencyRiskFilter> filters,
         IThreadHandling threadHandling)
     {
         this.dependencyRisksStore = dependencyRisksStore;
-        this.filters = filters;
         this.threadHandling = threadHandling;
         dependencyRisksStore.DependencyRisksChanged += OnDependencyRiskChanged;
     }
@@ -82,7 +79,7 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewMo
     private void UpdateFilteredHotspots()
     {
         filteredRisks.Clear();
-        foreach (var dependencyRiskViewModel in risks.Where(x => filters.All(f => !f.IsFilteredOut(x))))
+        foreach (var dependencyRiskViewModel in risks)
         {
             filteredRisks.Add(dependencyRiskViewModel);
         }

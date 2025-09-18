@@ -68,8 +68,6 @@ internal class ReportViewModel : ServerViewModel
     }
 
     public ObservableCollection<IGroupViewModel> GroupViewModels { get; } = [];
-    public ResolutionFilterViewModel ResolutionFilterOpen { get; } = new(false, true);
-    public ResolutionFilterViewModel ResolutionFilterResolved { get; } = new(true, false);
 
     public IIssueViewModel SelectedItem
     {
@@ -81,27 +79,6 @@ internal class ReportViewModel : ServerViewModel
                 selectedItem = value;
                 UpdateTelemetry(selectedItem);
             }
-        }
-    }
-
-    public void FlipAndUpdateResolutionFilter(ResolutionFilterViewModel viewModel)
-    {
-        viewModel.IsSelected = !viewModel.IsSelected;
-        EnableOtherFilter(viewModel);
-        // TODO by SLVS-2519 remove filtering as it will be changed completely in another task
-        //GroupDependencyRisk.RefreshFiltering();
-    }
-
-    private void EnableOtherFilter(ResolutionFilterViewModel viewModel)
-    {
-        // this is done to not end up in a situation when both filters are disabled
-        if (viewModel == ResolutionFilterOpen)
-        {
-            ResolutionFilterResolved.IsSelected = true;
-        }
-        if (viewModel == ResolutionFilterResolved)
-        {
-            ResolutionFilterOpen.IsSelected = true;
         }
     }
 
@@ -161,7 +138,7 @@ internal class ReportViewModel : ServerViewModel
 
     private void InitializeDependencyRisks()
     {
-        var groupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore, [ResolutionFilterOpen, ResolutionFilterResolved], threadHandling);
+        var groupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore, threadHandling);
         groupDependencyRisk.InitializeRisks();
         if (groupDependencyRisk.HasRisks)
         {

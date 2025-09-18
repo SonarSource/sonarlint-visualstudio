@@ -143,13 +143,5 @@ internal sealed partial class ReportViewControl : UserControl
 
     private void TreeView_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) => ReportViewModel.SelectedItem = e.NewValue as IIssueViewModel;
 
-    private void ResolutionButton_OnClick(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement { DataContext: ResolutionFilterViewModel vm })
-        {
-            ReportViewModel.FlipAndUpdateResolutionFilter(vm);
-        }
-    }
-
     private void Hyperlink_OnRequestNavigate(object sender, RequestNavigateEventArgs e) => browserService.Navigate(e.Uri.AbsoluteUri);
 }
