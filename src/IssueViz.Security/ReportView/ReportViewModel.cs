@@ -38,7 +38,6 @@ internal class ReportViewModel : ServerViewModel
     private readonly IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler;
     private readonly IMessageBox messageBox;
     private readonly ITelemetryManager telemetryManager;
-    private readonly IThreadHandling threadHandling;
     private readonly IDependencyRisksStore dependencyRisksStore;
     private readonly ILocalHotspotsStore hotspotsStore;
     private readonly object @lock = new();
@@ -60,7 +59,6 @@ internal class ReportViewModel : ServerViewModel
         this.changeDependencyRiskStatusHandler = changeDependencyRiskStatusHandler;
         this.messageBox = messageBox;
         this.telemetryManager = telemetryManager;
-        this.threadHandling = threadHandling;
 
         threadHandling.RunOnUIThread(() => { BindingOperations.EnableCollectionSynchronization(GroupViewModels, @lock); });
         hotspotsStore.IssuesChanged += HotspotsStore_IssuesChanged;
@@ -167,7 +165,7 @@ internal class ReportViewModel : ServerViewModel
         RaisePropertyChanged(nameof(HasGroups));
     }
 
-    private ObservableCollection<IGroupViewModel> GetGroupViewModel(IEnumerable<IIssueViewModel> issueViewModels)
+    private static ObservableCollection<IGroupViewModel> GetGroupViewModel(IEnumerable<IIssueViewModel> issueViewModels)
     {
         var issuesByFileGrouping = issueViewModels.GroupBy(vm => vm.FilePath);
         var groupViewModels = new ObservableCollection<IGroupViewModel>();
