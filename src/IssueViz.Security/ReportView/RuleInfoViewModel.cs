@@ -18,23 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.WPF;
-using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
-
-internal class DependencyRiskViewModel(IDependencyRisk dependencyRisk)
-    : ViewModelBase, IIssueViewModel
+public class RuleInfoViewModel(string ruleKey, Guid? issueId)
 {
-    public bool IsTransitionAllowed { get; } = dependencyRisk.Transitions.Any();
-
-    public bool IsResolved { get; } = dependencyRisk.Status is DependencyRiskStatus.Accepted or DependencyRiskStatus.Safe;
-
-    public IDependencyRisk DependencyRisk { get; } = dependencyRisk;
-    public int? Line => null;
-    public int? Column => null;
-    public string Title => DependencyRisk.VulnerabilityId;
-    public string FilePath => null;
-    public RuleInfoViewModel RuleInfo => null;
+    public string RuleKey { get; } = ruleKey;
+    public Guid? IssueId { get; } = issueId;
 }

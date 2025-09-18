@@ -18,23 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.WPF;
-using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 
-internal class DependencyRiskViewModel(IDependencyRisk dependencyRisk)
-    : ViewModelBase, IIssueViewModel
+internal class HotspotViewModel : ViewModelBase, IIssueViewModel
 {
-    public bool IsTransitionAllowed { get; } = dependencyRisk.Transitions.Any();
+    public LocalHotspot LocalHotspot { get; }
 
-    public bool IsResolved { get; } = dependencyRisk.Status is DependencyRiskStatus.Accepted or DependencyRiskStatus.Safe;
+    public HotspotViewModel(LocalHotspot localHotspot)
+    {
+        LocalHotspot = localHotspot;
+        RuleInfo = new RuleInfoViewModel(localHotspot.Visualization.RuleId, localHotspot.Visualization.IssueId);
+    }
 
-    public IDependencyRisk DependencyRisk { get; } = dependencyRisk;
-    public int? Line => null;
-    public int? Column => null;
-    public string Title => DependencyRisk.VulnerabilityId;
-    public string FilePath => null;
-    public RuleInfoViewModel RuleInfo => null;
+    public int? Line => LocalHotspot.Visualization.Issue.PrimaryLocation.TextRange.StartLine;
+    public int? Column => LocalHotspot.Visualization.Issue.PrimaryLocation.TextRange.StartLineOffset;
+    public string Title => LocalHotspot.Visualization.Issue.PrimaryLocation.Message;
+    public string FilePath => LocalHotspot.Visualization.Issue.PrimaryLocation.FilePath;
+    public RuleInfoViewModel RuleInfo { get; }
 }
