@@ -65,7 +65,11 @@ public class ReportViewModelTest
     public void Class_InheritsFromServerViewModel() => testSubject.Should().BeAssignableTo<ServerViewModel>();
 
     [TestMethod]
-    public void Class_SubscribesToEvents() => localHotspotsStore.Received(1).IssuesChanged += Arg.Any<EventHandler<IssuesChangedEventArgs>>();
+    public void Class_SubscribesToEvents()
+    {
+        localHotspotsStore.Received(1).IssuesChanged += Arg.Any<EventHandler<IssuesChangedEventArgs>>();
+        dependencyRisksStore.Received(1).DependencyRisksChanged += Arg.Any<EventHandler>();
+    }
 
     [TestMethod]
     public void Ctor_InitializesDependencyRisks()
@@ -358,6 +362,85 @@ public class ReportViewModelTest
         localHotspotsStore.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], []));
 
         dependencyRisksStore.DidNotReceive().GetAll();
+    }
+
+    [TestMethod]
+    public void DependencyRisksAddedInStore_NoGroupDependencyRisk_CreatesGroup()
+    {
+        var addedRisk = CreateDependencyRisk();
+        dependencyRisksStore.GetAll().Returns([], [addedRisk]);
+        testSubject = CreateTestSubject();
+
+        dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
+
+        testSubject.GroupViewModels.Should().HaveCount(1);
+        VerifyExpectedDependencyRiskGroupViewModel(testSubject.GroupViewModels[0] as GroupDependencyRiskViewModel, addedRisk);
+    }
+
+    [TestMethod]
+    public void DependencyRisksAddedInStore_GroupDependencyRiskExists_RefreshesDependencyRisk()
+    {
+        var initialRisk = CreateDependencyRisk();
+        var addedRisk = CreateDependencyRisk();
+        dependencyRisksStore.GetAll().Returns([initialRisk], [initialRisk, addedRisk]);
+        testSubject = CreateTestSubject();
+
+        dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
+
+        testSubject.GroupViewModels.Should().HaveCount(1);
+        VerifyExpectedDependencyRiskGroupViewModel(testSubject.GroupViewModels[0] as GroupDependencyRiskViewModel, initialRisk, addedRisk);
+    }
+
+    [TestMethod]
+    public void DependencyRisksAddedInStore_DoesNotUpdateHotspots()
+    {
+        var addedRisk = CreateDependencyRisk();
+        dependencyRisksStore.GetAll().Returns([], [addedRisk]);
+        testSubject = CreateTestSubject();
+        dependencyRisksStore.ClearReceivedCalls();
+
+        dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
+
+        localHotspotsStore.DidNotReceive().GetAll();
+    }
+
+    [TestMethod]
+    public void DependencyRisksRemovedFromStore_NoRisksAnymore_RemovesGroupDependencyRisk()
+    {
+        var initialRisk = CreateDependencyRisk();
+        dependencyRisksStore.GetAll().Returns([initialRisk], new IDependencyRisk[] { });
+        testSubject = CreateTestSubject();
+
+        dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
+
+        testSubject.GroupViewModels.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void DependencyRisksRemovedFromStore_RefreshesDependencyRisk()
+    {
+        var initialRisk = CreateDependencyRisk();
+        var initialRisk2 = CreateDependencyRisk();
+        dependencyRisksStore.GetAll().Returns([initialRisk, initialRisk2], [initialRisk]);
+        testSubject = CreateTestSubject();
+
+        dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
+
+        testSubject.GroupViewModels.Should().HaveCount(1);
+        VerifyExpectedDependencyRiskGroupViewModel(testSubject.GroupViewModels[0] as GroupDependencyRiskViewModel, initialRisk);
+    }
+
+    [TestMethod]
+    public void DependencyRisksRemovedFromStore_DoesNotUpdateHotspots()
+    {
+        var initialRisk = CreateDependencyRisk();
+        dependencyRisksStore.GetAll().Returns([initialRisk], new IDependencyRisk[] { });
+        testSubject = CreateTestSubject();
+        dependencyRisksStore.ClearReceivedCalls();
+
+        dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
+
+        localHotspotsStore.DidNotReceive().GetAll();
     }
 
     private ReportViewModel CreateTestSubject() =>

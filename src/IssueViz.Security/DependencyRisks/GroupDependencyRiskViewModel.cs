@@ -19,7 +19,6 @@
  */
 
 using System.Collections.ObjectModel;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
@@ -29,17 +28,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewModel
 {
     private readonly IDependencyRisksStore dependencyRisksStore;
-    private readonly IThreadHandling threadHandling;
     private readonly ObservableCollection<DependencyRiskViewModel> risks = new();
     private readonly ObservableCollection<IIssueViewModel> filteredRisks = new();
 
-    public GroupDependencyRiskViewModel(
-        IDependencyRisksStore dependencyRisksStore,
-        IThreadHandling threadHandling)
+    public GroupDependencyRiskViewModel(IDependencyRisksStore dependencyRisksStore)
     {
         this.dependencyRisksStore = dependencyRisksStore;
-        this.threadHandling = threadHandling;
-        dependencyRisksStore.DependencyRisksChanged += OnDependencyRiskChanged;
     }
 
     public string Title => Resources.DependencyRisksGroupTitle;
@@ -47,28 +41,25 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewMo
     public ObservableCollection<IIssueViewModel> FilteredIssues => filteredRisks;
     public bool HasRisks => risks.Count > 0;
 
-    public void InitializeRisks() =>
-        threadHandling.RunOnUIThread(() =>
+    public void InitializeRisks()
+    {
+        risks.Clear();
+        var dependencyRisks = dependencyRisksStore.GetAll();
+        var newDependencyRiskViewModels = dependencyRisks
+            .Where(x => x.Status != DependencyRiskStatus.Fixed)
+            .OrderByDescending(x => x.Severity)
+            .ThenBy(x => x.Status)
+            .Select(x => new DependencyRiskViewModel(x));
+        foreach (var riskViewModel in newDependencyRiskViewModels)
         {
-            risks.Clear();
-            var dependencyRisks = dependencyRisksStore.GetAll();
-            var newDependencyRiskViewModels = dependencyRisks
-                .Where(x => x.Status != DependencyRiskStatus.Fixed)
-                .OrderByDescending(x => x.Severity)
-                .ThenBy(x => x.Status)
-                .Select(x => new DependencyRiskViewModel(x));
-            foreach (var riskViewModel in newDependencyRiskViewModels)
-            {
-                risks.Add(riskViewModel);
-            }
-            RefreshFiltering();
-            RaisePropertyChanged(nameof(Risks));
-            RaisePropertyChanged(nameof(HasRisks));
-        });
+            risks.Add(riskViewModel);
+        }
+        RefreshFiltering();
+        RaisePropertyChanged(nameof(Risks));
+        RaisePropertyChanged(nameof(HasRisks));
+    }
 
-    private void OnDependencyRiskChanged(object sender, EventArgs e) => InitializeRisks();
-
-    public void Dispose() => dependencyRisksStore.DependencyRisksChanged -= OnDependencyRiskChanged;
+    public void Dispose() { }
 
     public void RefreshFiltering()
     {

@@ -19,10 +19,8 @@
  */
 
 using System.ComponentModel;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.DependencyRisks;
 
@@ -31,7 +29,6 @@ public class GroupDependencyRiskViewModelTest
 {
     private GroupDependencyRiskViewModel testSubject;
     private IDependencyRisksStore dependencyRisksStore;
-    private IThreadHandling threadHandling;
     private PropertyChangedEventHandler eventHandler;
     private readonly IDependencyRisk risk1 = CreateDependencyRisk();
     private readonly IDependencyRisk risk2 = CreateDependencyRisk();
@@ -44,8 +41,7 @@ public class GroupDependencyRiskViewModelTest
     public void Initialize()
     {
         dependencyRisksStore = Substitute.For<IDependencyRisksStore>();
-        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
-        testSubject = new(dependencyRisksStore, threadHandling);
+        testSubject = new(dependencyRisksStore);
         eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
         risksOld = [CreateDependencyRisk(), CreateDependencyRisk()];
@@ -57,17 +53,6 @@ public class GroupDependencyRiskViewModelTest
     {
         testSubject.Title.Should().Be(Resources.DependencyRisksGroupTitle);
         testSubject.Risks.Should().BeEmpty();
-    }
-
-    [TestMethod]
-    public void Ctor_SubscribesToEvents() => dependencyRisksStore.Received().DependencyRisksChanged += Arg.Any<EventHandler>();
-
-    [TestMethod]
-    public void InitializeRisks_ExecutesOnUIThread()
-    {
-        testSubject.InitializeRisks();
-
-        threadHandling.Received(1).RunOnUIThread(Arg.Any<Action>());
     }
 
     [TestMethod]
@@ -106,19 +91,6 @@ public class GroupDependencyRiskViewModelTest
 
     [TestMethod]
     public void HasRisks_ReturnsFalse_WhenThereAreNoRisks() => testSubject.HasRisks.Should().BeFalse();
-
-    [TestMethod]
-    public void DependencyRisksChanged_RefreshesRisks()
-    {
-        var dependencyRisk = CreateDependencyRisk();
-        MockRisksInStore(dependencyRisk);
-        dependencyRisksStore.ClearReceivedCalls();
-
-        dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
-
-        dependencyRisksStore.Received(1).GetAll();
-        testSubject.Risks.Should().ContainSingle(vm => vm.DependencyRisk == dependencyRisk);
-    }
 
     [TestMethod]
     public void InitializeRisks_DefaultFilters_FilteredRisksContainsOnlyOpen()
@@ -174,14 +146,6 @@ public class GroupDependencyRiskViewModelTest
         VerifyFilteredRisks(risks);
     }
 
-    [TestMethod]
-    public void Dispose_UnsubscribesFromEvents()
-    {
-        testSubject.Dispose();
-
-        dependencyRisksStore.Received(1).DependencyRisksChanged -= Arg.Any<EventHandler>();
-    }
-
     private void VerifyUpdatedBothRiskLists()
     {
         dependencyRisksStore.Received().GetAll();
@@ -201,8 +165,6 @@ public class GroupDependencyRiskViewModelTest
     private void VerifyRisks(params IDependencyRisk[] state) => testSubject.Risks.Select(x => x.DependencyRisk).Should().BeEquivalentTo(state);
 
     private void VerifyFilteredRisks(params IDependencyRisk[] state) => testSubject.FilteredIssues.Select(x => ((DependencyRiskViewModel)x).DependencyRisk).Should().BeEquivalentTo(state);
-
-    private void DidNotReceiveEvent(string eventName) => ReceivedEvent(eventName, 0);
 
     private void ReceivedEvent(string eventName, int count = 1) => eventHandler.Received(count).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == eventName));
 

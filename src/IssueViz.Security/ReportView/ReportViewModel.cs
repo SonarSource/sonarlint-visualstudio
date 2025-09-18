@@ -64,6 +64,7 @@ internal class ReportViewModel : ServerViewModel
 
         threadHandling.RunOnUIThread(() => { BindingOperations.EnableCollectionSynchronization(GroupViewModels, @lock); });
         hotspotsStore.IssuesChanged += HotspotsStore_IssuesChanged;
+        dependencyRisksStore.DependencyRisksChanged += DependencyRisksStore_DependencyRiskChanged;
         InitializeViewModels();
     }
 
@@ -105,6 +106,7 @@ internal class ReportViewModel : ServerViewModel
     protected override void Dispose(bool disposing)
     {
         hotspotsStore.IssuesChanged -= HotspotsStore_IssuesChanged;
+        dependencyRisksStore.DependencyRisksChanged -= DependencyRisksStore_DependencyRiskChanged;
         foreach (var groupViewModel in GroupViewModels)
         {
             groupViewModel.Dispose();
@@ -129,6 +131,15 @@ internal class ReportViewModel : ServerViewModel
         InitializeHotspots();
     }
 
+    private void DependencyRisksStore_DependencyRiskChanged(object sender, EventArgs e)
+    {
+        if (GroupViewModels.SingleOrDefault(vm => vm is GroupDependencyRiskViewModel) is { } groupDependencyRiskViewModel)
+        {
+            GroupViewModels.Remove(groupDependencyRiskViewModel);
+        }
+        InitializeDependencyRisks();
+    }
+
     private void InitializeViewModels()
     {
         GroupViewModels.Clear();
@@ -138,7 +149,7 @@ internal class ReportViewModel : ServerViewModel
 
     private void InitializeDependencyRisks()
     {
-        var groupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore, threadHandling);
+        var groupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore);
         groupDependencyRisk.InitializeRisks();
         if (groupDependencyRisk.HasRisks)
         {
