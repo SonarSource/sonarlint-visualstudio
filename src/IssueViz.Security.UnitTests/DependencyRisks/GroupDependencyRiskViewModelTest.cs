@@ -61,7 +61,7 @@ public class GroupDependencyRiskViewModelTest
     [TestMethod]
     public void Ctor_HasPropertiesInitialized()
     {
-        GroupDependencyRiskViewModel.Title.Should().Be(Resources.DependencyRisksGroupTitle);
+        testSubject.Title.Should().Be(Resources.DependencyRisksGroupTitle);
         testSubject.Risks.Should().BeEmpty();
     }
 
@@ -339,7 +339,7 @@ public class GroupDependencyRiskViewModelTest
     private void VerifyOnlyUpdatedFilteredRiskList()
     {
         dependencyRisksStore.DidNotReceiveWithAnyArgs().GetAll();
-        ReceivedEvent(nameof(testSubject.FilteredRisks));
+        ReceivedEvent(nameof(testSubject.FilteredIssues));
         DidNotReceiveEvent(nameof(testSubject.Risks));
         DidNotReceiveEvent(nameof(testSubject.HasRisks));
     }
@@ -347,7 +347,7 @@ public class GroupDependencyRiskViewModelTest
     private void VerifyUpdatedBothRiskLists()
     {
         dependencyRisksStore.Received().GetAll();
-        ReceivedEvent(nameof(testSubject.FilteredRisks));
+        ReceivedEvent(nameof(testSubject.FilteredIssues));
         ReceivedEvent(nameof(testSubject.Risks));
         ReceivedEvent(nameof(testSubject.HasRisks));
     }
@@ -362,7 +362,7 @@ public class GroupDependencyRiskViewModelTest
 
     private void VerifyRisks(params IDependencyRisk[] state) => testSubject.Risks.Select(x => x.DependencyRisk).Should().BeEquivalentTo(state);
 
-    private void VerifyFilteredRisks(params IDependencyRisk[] state) => testSubject.FilteredRisks.Select(x => x.DependencyRisk).Should().BeEquivalentTo(state);
+    private void VerifyFilteredRisks(params IDependencyRisk[] state) => testSubject.FilteredIssues.Select(x => ((DependencyRiskViewModel)x).DependencyRisk).Should().BeEquivalentTo(state);
 
     private void DidNotReceiveEvent(string eventName) => ReceivedEvent(eventName, 0);
 

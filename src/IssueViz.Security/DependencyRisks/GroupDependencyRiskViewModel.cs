@@ -27,15 +27,15 @@ using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
-internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IDisposable
+internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewModel
 {
     private readonly IDependencyRisksStore dependencyRisksStore;
     private readonly IReadOnlyCollection<IDependencyRiskFilter> filters;
     private readonly ITelemetryManager telemetryManager;
     private readonly IThreadHandling threadHandling;
-    private DependencyRiskViewModel selectedItem;
+    private IIssueViewModel selectedItem;
     private readonly ObservableCollection<DependencyRiskViewModel> risks = new();
-    private readonly ObservableCollection<DependencyRiskViewModel> filteredRisks = new();
+    private readonly ObservableCollection<IIssueViewModel> filteredRisks = new();
 
     public GroupDependencyRiskViewModel(
         IDependencyRisksStore dependencyRisksStore,
@@ -50,14 +50,12 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IDisposable
         dependencyRisksStore.DependencyRisksChanged += OnDependencyRiskChanged;
     }
 
-    public static string Title => Resources.DependencyRisksGroupTitle;
-
+    public string Title => Resources.DependencyRisksGroupTitle;
     public ObservableCollection<DependencyRiskViewModel> Risks => risks;
-    public ObservableCollection<DependencyRiskViewModel> FilteredRisks => filteredRisks;
-
+    public ObservableCollection<IIssueViewModel> FilteredIssues => filteredRisks;
     public bool HasRisks => risks.Count > 0;
 
-    public DependencyRiskViewModel SelectedItem
+    public IIssueViewModel SelectedItem
     {
         get => selectedItem;
         set
@@ -99,7 +97,7 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IDisposable
     public void RefreshFiltering()
     {
         UpdateFilteredHotspots();
-        RaisePropertyChanged(nameof(FilteredRisks));
+        RaisePropertyChanged(nameof(FilteredIssues));
     }
 
     private void UpdateFilteredHotspots()
