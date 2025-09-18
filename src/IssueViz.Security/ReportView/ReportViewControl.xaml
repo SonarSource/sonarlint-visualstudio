@@ -18,10 +18,7 @@
                 <ResourceDictionary Source="../SharedUI/SharedResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <dependencyRisks:DependencyRiskImpactSeverityToImageSourceConverter
-                x:Key="DependencyRiskImpactSeverityToImageSourceConverter" />
-            
-
+            <reportView:EnumToImageSourceConverter x:Key="EnumToImageSourceConverter" />
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
             <wpf:BoolToVisibilityConverter x:Key="TrueToCollapsedConverter" FalseValue="Visible" TrueValue="Collapsed" />
             <wpf:EnglishPluralizationConverter x:Key="EnglishPluralizationConverter" />
@@ -265,7 +262,7 @@
                         <Image Grid.Column="0" Height="17" VerticalAlignment="Center">
                             <Image.Source>
                                 <MultiBinding
-                                    Converter="{StaticResource DependencyRiskImpactSeverityToImageSourceConverter}" ConverterParameter="Severity">
+                                    Converter="{StaticResource EnumToImageSourceConverter}" ConverterParameter="Severity">
                                     <Binding Path="DependencyRisk.Severity" />
                                     <Binding RelativeSource="{RelativeSource Self}" />
                                     <Binding Path="ResourceFinder"

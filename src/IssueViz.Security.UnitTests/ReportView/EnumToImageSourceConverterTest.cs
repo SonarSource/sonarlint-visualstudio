@@ -22,14 +22,14 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.DependencyRisks;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView;
 
 [TestClass]
-public class DependencyRiskImpactSeverityToImageSourceConverterTest
+public class EnumToImageSourceConverterTest
 {
-    private DependencyRiskImpactSeverityToImageSourceConverter testSubject;
+    private EnumToImageSourceConverter testSubject;
     private IResourceFinder resourceFinder;
     private Button uiElement;
 
@@ -38,7 +38,7 @@ public class DependencyRiskImpactSeverityToImageSourceConverterTest
     {
         uiElement = new Button();
         resourceFinder = Substitute.For<IResourceFinder>();
-        testSubject = new DependencyRiskImpactSeverityToImageSourceConverter();
+        testSubject = new EnumToImageSourceConverter();
     }
 
     [TestMethod]

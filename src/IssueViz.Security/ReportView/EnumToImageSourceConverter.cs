@@ -23,7 +23,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
 /// <summary>
 /// Tries to find a DrawingImage resource based on the pattern [EnumValue][CustomSuffix]DrawingImage.
@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 /// A custom suffix can be provided as a converter parameter.
 /// </summary>
 [ValueConversion(typeof(Enum), typeof(ImageSource))]
-public class DependencyRiskImpactSeverityToImageSourceConverter : IMultiValueConverter
+public class EnumToImageSourceConverter : IMultiValueConverter
 {
     private const string Suffix = "DrawingImage";
 
