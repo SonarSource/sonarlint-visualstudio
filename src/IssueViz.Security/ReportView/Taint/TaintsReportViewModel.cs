@@ -38,6 +38,7 @@ internal sealed class TaintsReportViewModel : ITaintsReportViewModel
 {
     private readonly ITaintStore taintsStore;
 
+    // TODO by SLVS-2525 introduce base view model to avoid duplication with HotspotsReportViewModel (and future IssuesReportViewModel)
     [ImportingConstructor]
     public TaintsReportViewModel(ITaintStore taintsStore)
     {

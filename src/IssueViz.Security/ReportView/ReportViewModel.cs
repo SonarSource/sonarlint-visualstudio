@@ -29,6 +29,7 @@ using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taint;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
@@ -36,6 +37,7 @@ internal class ReportViewModel : ServerViewModel
 {
     private readonly IHotspotsReportViewModel hotspotsReportViewModel;
     private readonly IDependencyRisksReportViewModel dependencyRisksReportViewModel;
+    private readonly ITaintsReportViewModel taintsReportViewModel;
     private readonly ITelemetryManager telemetryManager;
     private readonly object @lock = new();
     private IIssueViewModel selectedItem;
@@ -46,16 +48,19 @@ internal class ReportViewModel : ServerViewModel
         ILocationNavigator locationNavigator,
         IHotspotsReportViewModel hotspotsReportViewModel,
         IDependencyRisksReportViewModel dependencyRisksReportViewModel,
+        ITaintsReportViewModel taintsReportViewModel,
         ITelemetryManager telemetryManager,
         IThreadHandling threadHandling) : base(activeSolutionBoundTracker)
     {
         this.hotspotsReportViewModel = hotspotsReportViewModel;
         this.dependencyRisksReportViewModel = dependencyRisksReportViewModel;
+        this.taintsReportViewModel = taintsReportViewModel;
         this.telemetryManager = telemetryManager;
 
         threadHandling.RunOnUIThread(() => { BindingOperations.EnableCollectionSynchronization(GroupViewModels, @lock); });
         hotspotsReportViewModel.HotspotsChanged += HotspotsChanged;
         dependencyRisksReportViewModel.DependencyRisksChanged += DependencyRisksChanged;
+        taintsReportViewModel.TaintsChanged += TaintsChanged;
 
         InitializeCommands(navigateToRuleDescriptionCommand, locationNavigator);
         InitializeViewModels();
@@ -87,6 +92,9 @@ internal class ReportViewModel : ServerViewModel
         dependencyRisksReportViewModel.DependencyRisksChanged -= DependencyRisksChanged;
         dependencyRisksReportViewModel.Dispose();
 
+        taintsReportViewModel.TaintsChanged -= TaintsChanged;
+        taintsReportViewModel.Dispose();
+
         foreach (var groupViewModel in GroupViewModels)
         {
             groupViewModel.Dispose();
@@ -113,7 +121,9 @@ internal class ReportViewModel : ServerViewModel
         {
             GroupViewModels.Remove(groupViewModel);
         }
+        // TODO by SLVS-2525 improve merging. Instead of removing and re-adding all hotspots and taints groups, we should only add/remove the necessary ones
         InitializeHotspots();
+        InitializeTaints();
     }
 
     private void DependencyRisksChanged(object sender, EventArgs e)
@@ -125,11 +135,23 @@ internal class ReportViewModel : ServerViewModel
         InitializeDependencyRisks();
     }
 
+    private void TaintsChanged(object sender, EventArgs e)
+    {
+        foreach (var groupViewModel in GroupViewModels.Where(vm => vm is not GroupDependencyRiskViewModel).ToList())
+        {
+            GroupViewModels.Remove(groupViewModel);
+        }
+        // TODO by SLVS-2525 improve merging. Instead of removing and re-adding all hotspots and taints groups, we should only add/remove the necessary ones
+        InitializeHotspots();
+        InitializeTaints();
+    }
+
     private void InitializeViewModels()
     {
         GroupViewModels.Clear();
         InitializeDependencyRisks();
         InitializeHotspots();
+        InitializeTaints();
     }
 
     private void InitializeDependencyRisks()
@@ -145,6 +167,13 @@ internal class ReportViewModel : ServerViewModel
     private void InitializeHotspots()
     {
         var groups = hotspotsReportViewModel.GetHotspotsGroupViewModels();
+        groups.ToList().ForEach(g => GroupViewModels.Add(g));
+        RaisePropertyChanged(nameof(HasGroups));
+    }
+
+    private void InitializeTaints()
+    {
+        var groups = taintsReportViewModel.GetTaintsGroupViewModels();
         groups.ToList().ForEach(g => GroupViewModels.Add(g));
         RaisePropertyChanged(nameof(HasGroups));
     }
