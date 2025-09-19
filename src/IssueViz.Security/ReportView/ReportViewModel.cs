@@ -21,10 +21,13 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Input;
+using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
@@ -51,11 +54,11 @@ internal class ReportViewModel : ServerViewModel
         IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler,
         IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler,
         INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
+        ILocationNavigator locationNavigator,
         IMessageBox messageBox,
         ITelemetryManager telemetryManager,
         IThreadHandling threadHandling) : base(activeSolutionBoundTracker)
     {
-        NavigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
         this.dependencyRisksStore = dependencyRisksStore;
         this.hotspotsStore = hotspotsStore;
         this.showDependencyRiskInBrowserHandler = showDependencyRiskInBrowserHandler;
@@ -66,12 +69,15 @@ internal class ReportViewModel : ServerViewModel
         threadHandling.RunOnUIThread(() => { BindingOperations.EnableCollectionSynchronization(GroupViewModels, @lock); });
         hotspotsStore.IssuesChanged += HotspotsStore_IssuesChanged;
         dependencyRisksStore.DependencyRisksChanged += DependencyRisksStore_DependencyRiskChanged;
+
+        InitializeCommands(navigateToRuleDescriptionCommand, locationNavigator);
         InitializeViewModels();
     }
 
     public ObservableCollection<IGroupViewModel> GroupViewModels { get; } = [];
     public bool HasGroups => GroupViewModels.Count > 0;
-    public INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; }
+    public INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; set; }
+    public ICommand NavigateToLocationCommand { get; set; }
 
     public IIssueViewModel SelectedItem
     {
@@ -179,5 +185,17 @@ internal class ReportViewModel : ServerViewModel
         }
 
         return groupViewModels;
+    }
+
+    private void InitializeCommands(
+        INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
+        ILocationNavigator locationNavigator)
+    {
+        NavigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
+        NavigateToLocationCommand = new DelegateCommand(parameter =>
+        {
+            var analysisIssueViewModel = (IAnalysisIssueViewModel)parameter;
+            locationNavigator.TryNavigate(analysisIssueViewModel.Issue);
+        }, parameter => parameter is IAnalysisIssueViewModel);
     }
 }

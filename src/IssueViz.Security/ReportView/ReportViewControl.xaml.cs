@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
@@ -52,6 +53,7 @@ internal sealed partial class ReportViewControl : UserControl
         IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler,
         IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler,
         INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
+        ILocationNavigator locationNavigator,
         IMessageBox messageBox,
         ITelemetryManager telemetryManager,
         IThreadHandling threadHandling)
@@ -64,6 +66,7 @@ internal sealed partial class ReportViewControl : UserControl
             showDependencyRiskInBrowserHandler,
             changeDependencyRiskStatusHandler,
             navigateToRuleDescriptionCommand,
+            locationNavigator,
             messageBox,
             telemetryManager,
             threadHandling);
@@ -150,15 +153,32 @@ internal sealed partial class ReportViewControl : UserControl
 
     private void TreeViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if ((sender as FrameworkElement)?.DataContext is not IIssueViewModel issueViewModel)
-        {
-            return;
-        }
+        NavigateToLocation(sender);
+        ShowRuleHelp(sender);
+    }
 
-        var commandParam = new NavigateToRuleDescriptionCommandParam { FullRuleKey = issueViewModel.RuleInfo.RuleKey, IssueId = issueViewModel.RuleInfo.IssueId };
-        if (ReportViewModel.NavigateToRuleDescriptionCommand.CanExecute(commandParam))
+    private void NavigateToLocation(object sender)
+    {
+        if ((sender as FrameworkElement)?.DataContext is IAnalysisIssueViewModel analysisIssueViewModel)
         {
-            ReportViewModel.NavigateToRuleDescriptionCommand.Execute(commandParam);
+            ExecuteCommandIfValid(ReportViewModel.NavigateToLocationCommand, analysisIssueViewModel);
+        }
+    }
+
+    private void ShowRuleHelp(object sender)
+    {
+        if ((sender as FrameworkElement)?.DataContext is IIssueViewModel issueViewModel)
+        {
+            var commandParam = new NavigateToRuleDescriptionCommandParam { FullRuleKey = issueViewModel.RuleInfo.RuleKey, IssueId = issueViewModel.RuleInfo.IssueId };
+            ExecuteCommandIfValid(ReportViewModel.NavigateToRuleDescriptionCommand, commandParam);
+        }
+    }
+
+    private static void ExecuteCommandIfValid(ICommand command, object parameter)
+    {
+        if (command.CanExecute(parameter))
+        {
+            command.Execute(parameter);
         }
     }
 }
