@@ -147,4 +147,18 @@ internal sealed partial class ReportViewControl : UserControl
     private void TreeView_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) => ReportViewModel.SelectedItem = e.NewValue as IIssueViewModel;
 
     private void Hyperlink_OnRequestNavigate(object sender, RequestNavigateEventArgs e) => browserService.Navigate(e.Uri.AbsoluteUri);
+
+    private void TreeViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is not IIssueViewModel issueViewModel)
+        {
+            return;
+        }
+
+        var commandParam = new NavigateToRuleDescriptionCommandParam { FullRuleKey = issueViewModel.RuleInfo.RuleKey, IssueId = issueViewModel.RuleInfo.IssueId };
+        if (ReportViewModel.NavigateToRuleDescriptionCommand.CanExecute(commandParam))
+        {
+            ReportViewModel.NavigateToRuleDescriptionCommand.Execute(commandParam);
+        }
+    }
 }
