@@ -19,11 +19,12 @@
  */
 
 using SonarLint.VisualStudio.Core.WPF;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 
-internal class HotspotViewModel : ViewModelBase, IIssueViewModel
+internal class HotspotViewModel : ViewModelBase, IAnalysisIssueViewModel
 {
     public LocalHotspot LocalHotspot { get; }
 
@@ -38,4 +39,5 @@ internal class HotspotViewModel : ViewModelBase, IIssueViewModel
     public string Title => LocalHotspot.Visualization.Issue.PrimaryLocation.Message;
     public string FilePath => LocalHotspot.Visualization.Issue.PrimaryLocation.FilePath;
     public RuleInfoViewModel RuleInfo { get; }
+    public IAnalysisIssueVisualization Issue => LocalHotspot.Visualization;
 }

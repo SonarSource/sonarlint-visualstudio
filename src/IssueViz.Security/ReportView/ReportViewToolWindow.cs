@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
@@ -50,6 +51,7 @@ internal class ReportViewToolWindow : ToolWindowPane
             componentModel?.GetService<IShowDependencyRiskInBrowserHandler>(),
             componentModel?.GetService<IChangeDependencyRiskStatusHandler>(),
             componentModel?.GetService<INavigateToRuleDescriptionCommand>(),
+            componentModel?.GetService<ILocationNavigator>(),
             componentModel?.GetService<IMessageBox>(),
             componentModel?.GetService<ITelemetryManager>(),
             componentModel?.GetService<IThreadHandling>()
