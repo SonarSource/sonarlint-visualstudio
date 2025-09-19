@@ -18,16 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Windows.Data;
-using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 
-public class ResolutionToCountConverter : IMultiValueConverter
+[ValueConversion(typeof(LocalHotspot), typeof(string))]
+public class HotspotTooltipConverter : IMultiValueConverter
 {
     public object Convert(
         object[] values,
@@ -35,12 +34,16 @@ public class ResolutionToCountConverter : IMultiValueConverter
         object parameter,
         CultureInfo culture)
     {
-        if (values[0] is not ObservableCollection<DependencyRiskViewModel> risks ||
-            values[1] is not bool isResolved)
+        if (values.Length < 2 || values[0] is not LocalHotspot localHotspot || values[1] is not bool isCloud)
         {
-            return 0.ToString();
+            return null;
         }
-        return risks.Count(x => x.IsResolved == isResolved).ToString();
+
+        var existsOnServer = localHotspot.Visualization.Issue.IssueServerKey != null;
+        var serverName = isCloud ? CoreStrings.SonarQubeCloudProductName : CoreStrings.SonarQubeServerProductName;
+        return existsOnServer
+            ? string.Format(Resources.ServerHotspotTooltip, localHotspot.Priority, serverName)
+            : string.Format(Resources.LocalHotspotTooltip, localHotspot.Priority);
     }
 
     public object[] ConvertBack(
@@ -48,5 +51,5 @@ public class ResolutionToCountConverter : IMultiValueConverter
         Type[] targetTypes,
         object parameter,
         CultureInfo culture) =>
-        throw new InvalidOperationException();
+        throw new NotImplementedException();
 }

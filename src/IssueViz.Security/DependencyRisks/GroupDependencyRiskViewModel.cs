@@ -19,9 +19,7 @@
  */
 
 using System.Collections.ObjectModel;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
@@ -30,69 +28,36 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewModel
 {
     private readonly IDependencyRisksStore dependencyRisksStore;
-    private readonly IReadOnlyCollection<IDependencyRiskFilter> filters;
-    private readonly ITelemetryManager telemetryManager;
-    private readonly IThreadHandling threadHandling;
-    private IIssueViewModel selectedItem;
     private readonly ObservableCollection<DependencyRiskViewModel> risks = new();
     private readonly ObservableCollection<IIssueViewModel> filteredRisks = new();
 
-    public GroupDependencyRiskViewModel(
-        IDependencyRisksStore dependencyRisksStore,
-        IReadOnlyCollection<IDependencyRiskFilter> filters,
-        ITelemetryManager telemetryManager,
-        IThreadHandling threadHandling)
+    public GroupDependencyRiskViewModel(IDependencyRisksStore dependencyRisksStore)
     {
         this.dependencyRisksStore = dependencyRisksStore;
-        this.filters = filters;
-        this.telemetryManager = telemetryManager;
-        this.threadHandling = threadHandling;
-        dependencyRisksStore.DependencyRisksChanged += OnDependencyRiskChanged;
     }
 
     public string Title => Resources.DependencyRisksGroupTitle;
     public ObservableCollection<DependencyRiskViewModel> Risks => risks;
     public ObservableCollection<IIssueViewModel> FilteredIssues => filteredRisks;
-    public bool HasRisks => risks.Count > 0;
 
-    public IIssueViewModel SelectedItem
+    public void InitializeRisks()
     {
-        get => selectedItem;
-        set
+        risks.Clear();
+        var dependencyRisks = dependencyRisksStore.GetAll();
+        var newDependencyRiskViewModels = dependencyRisks
+            .Where(x => x.Status != DependencyRiskStatus.Fixed)
+            .OrderByDescending(x => x.Severity)
+            .ThenBy(x => x.Status)
+            .Select(x => new DependencyRiskViewModel(x));
+        foreach (var riskViewModel in newDependencyRiskViewModels)
         {
-            if (selectedItem != value)
-            {
-                selectedItem = value;
-                if (selectedItem != null)
-                {
-                    telemetryManager.DependencyRiskInvestigatedLocally();
-                }
-            }
+            risks.Add(riskViewModel);
         }
+        RefreshFiltering();
+        RaisePropertyChanged(nameof(Risks));
     }
 
-    public void InitializeRisks() =>
-        threadHandling.RunOnUIThread(() =>
-        {
-            risks.Clear();
-            var dependencyRisks = dependencyRisksStore.GetAll();
-            var newDependencyRiskViewModels = dependencyRisks
-                .Where(x => x.Status != DependencyRiskStatus.Fixed)
-                .OrderByDescending(x => x.Severity)
-                .ThenBy(x => x.Status)
-                .Select(x => new DependencyRiskViewModel(x));
-            foreach (var riskViewModel in newDependencyRiskViewModels)
-            {
-                risks.Add(riskViewModel);
-            }
-            RefreshFiltering();
-            RaisePropertyChanged(nameof(Risks));
-            RaisePropertyChanged(nameof(HasRisks));
-        });
-
-    private void OnDependencyRiskChanged(object sender, EventArgs e) => InitializeRisks();
-
-    public void Dispose() => dependencyRisksStore.DependencyRisksChanged -= OnDependencyRiskChanged;
+    public void Dispose() { }
 
     public void RefreshFiltering()
     {
@@ -103,7 +68,7 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewMo
     private void UpdateFilteredHotspots()
     {
         filteredRisks.Clear();
-        foreach (var dependencyRiskViewModel in risks.Where(x => filters.All(f => !f.IsFilteredOut(x))))
+        foreach (var dependencyRiskViewModel in risks)
         {
             filteredRisks.Add(dependencyRiskViewModel);
         }

@@ -60,6 +60,9 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
+    <Page Include="ReportView\Hotspots\HotspotSeverity.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="ReviewStatus\ChangeStatusWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
