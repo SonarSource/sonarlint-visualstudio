@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
@@ -45,6 +46,7 @@ public class ReportViewModelTest
     private IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler;
     private IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler;
     private INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand;
+    private ILocationNavigator locationNavigator;
     private IMessageBox messageBox;
     private ITelemetryManager telemetryManager;
     private IThreadHandling threadHandling;
@@ -59,6 +61,7 @@ public class ReportViewModelTest
         showDependencyRiskInBrowserHandler = Substitute.For<IShowDependencyRiskInBrowserHandler>();
         changeDependencyRiskStatusHandler = Substitute.For<IChangeDependencyRiskStatusHandler>();
         navigateToRuleDescriptionCommand = Substitute.For<INavigateToRuleDescriptionCommand>();
+        locationNavigator = Substitute.For<ILocationNavigator>();
         messageBox = Substitute.For<IMessageBox>();
         telemetryManager = Substitute.For<ITelemetryManager>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
@@ -78,7 +81,11 @@ public class ReportViewModelTest
     }
 
     [TestMethod]
-    public void Class_InitializesProperties() => testSubject.NavigateToRuleDescriptionCommand.Should().BeSameAs(navigateToRuleDescriptionCommand);
+    public void Class_InitializesProperties()
+    {
+        testSubject.NavigateToRuleDescriptionCommand.Should().BeSameAs(navigateToRuleDescriptionCommand);
+        testSubject.NavigateToLocationCommand.Should().NotBeNull();
+    }
 
     [TestMethod]
     public void Ctor_InitializesDependencyRisks()
@@ -465,6 +472,35 @@ public class ReportViewModelTest
     [TestMethod]
     public void HasRisks_ReturnsFalse_WhenThereAreNoRisks() => testSubject.HasGroups.Should().BeFalse();
 
+    [TestMethod]
+    public void NavigateToLocationCommand_NullParameter_CanExecuteReturnsFalse() => testSubject.NavigateToLocationCommand.CanExecute(null).Should().BeFalse();
+
+    [TestMethod]
+    public void NavigateToLocationCommand_NotAnalysisIssueViewModelParameter_CanExecuteReturnsFalse()
+    {
+        var viewModel = Substitute.For<IIssueViewModel>();
+
+        testSubject.NavigateToLocationCommand.CanExecute(viewModel).Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void NavigateToLocationCommand_AnalysisIssueViewModelParameter_CanExecuteReturnsTrue()
+    {
+        var analysisIssueViewModel = Substitute.For<IAnalysisIssueViewModel>();
+
+        testSubject.NavigateToLocationCommand.CanExecute(analysisIssueViewModel).Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void NavigateToLocationCommand_NavigatesToLocation()
+    {
+        var analysisIssueViewModel = Substitute.For<IAnalysisIssueViewModel>();
+
+        testSubject.NavigateToLocationCommand.Execute(analysisIssueViewModel);
+
+        locationNavigator.Received(1).TryNavigatePartial(analysisIssueViewModel.Issue);
+    }
+
     private ReportViewModel CreateTestSubject()
     {
         var reportViewModel = new ReportViewModel(activeSolutionBoundTracker,
@@ -473,6 +509,7 @@ public class ReportViewModelTest
             showDependencyRiskInBrowserHandler,
             changeDependencyRiskStatusHandler,
             navigateToRuleDescriptionCommand,
+            locationNavigator,
             messageBox,
             telemetryManager,
             threadHandling);
