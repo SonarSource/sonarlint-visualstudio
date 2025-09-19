@@ -193,6 +193,9 @@
 
             <ContextMenu x:Key="HotspotContextMenu"    
                          Visibility="{Binding Path=ExistsOnServer, Converter={StaticResource TrueToVisibleConverter}}">
+                <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}" 
+                          Click="ChangeHotspotStatusMenuItem_OnClick" 
+                          Style="{StaticResource ChangeStatusMenuItemStyle}"/>
                 <MenuItem Click="ViewHotspotInBrowser_OnClick"
                           Header="{x:Static res:Resources.ViewHotspotInBrowser}"
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />

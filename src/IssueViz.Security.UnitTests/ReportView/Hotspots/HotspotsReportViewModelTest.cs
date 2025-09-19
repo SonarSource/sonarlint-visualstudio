@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Windows;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -33,22 +35,28 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportVie
 [TestClass]
 public class HotspotsReportViewModelTest
 {
+    private readonly LocalHotspot serverHotspot = CreateMockedHotspot("myFile.cs", "serverKey");
     private ILocalHotspotsStore localHotspotsStore;
-    private HotspotsReportViewModel testSubject;
+    private IMessageBox messageBox;
     private IReviewHotspotsService reviewHotspotsService;
+    private HotspotsReportViewModel testSubject;
 
     [TestInitialize]
     public void TestInitialize()
     {
         localHotspotsStore = Substitute.For<ILocalHotspotsStore>();
         reviewHotspotsService = Substitute.For<IReviewHotspotsService>();
-        testSubject = new HotspotsReportViewModel(localHotspotsStore, reviewHotspotsService);
+        messageBox = Substitute.For<IMessageBox>();
+        testSubject = new HotspotsReportViewModel(localHotspotsStore, reviewHotspotsService, messageBox);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<HotspotsReportViewModel, IHotspotsReportViewModel>(
-            MefTestHelpers.CreateExport<ILocalHotspotsStore>());
+            MefTestHelpers.CreateExport<ILocalHotspotsStore>(),
+            MefTestHelpers.CreateExport<IReviewHotspotsService>(),
+            MefTestHelpers.CreateExport<IMessageBox>()
+        );
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<HotspotsReportViewModel>();
@@ -128,12 +136,83 @@ public class HotspotsReportViewModelTest
         reviewHotspotsService.Received(1).OpenHotspotAsync(hotspot.Visualization.Issue.IssueServerKey).IgnoreAwaitForAssert();
     }
 
-    private static LocalHotspot CreateMockedHotspot(string filePath)
+    [TestMethod]
+    public async Task GetAllowedStatusesAsync_ChangeStatusPermitted_ReturnsListOfAllowedStatuses()
+    {
+        var allowedStatuses = new List<HotspotStatus> { HotspotStatus.Fixed, HotspotStatus.ToReview };
+        MockChangeStatusPermitted(serverHotspot.Visualization.Issue.IssueServerKey, allowedStatuses);
+
+        var result = await testSubject.GetAllowedStatusesAsync(new HotspotViewModel(serverHotspot));
+
+        result.Should().BeEquivalentTo(allowedStatuses);
+        messageBox.DidNotReceive().Show(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<MessageBoxButton>(), Arg.Any<MessageBoxImage>());
+    }
+
+    [TestMethod]
+    public async Task GetAllowedStatusesAsync_ChangeStatusNotPermitted_ShowsMessageBoxAndReturnsNull()
+    {
+        var reason = "Not permitted";
+        MockChangeStatusNotPermitted(serverHotspot.Visualization.Issue.IssueServerKey, reason);
+
+        var result = await testSubject.GetAllowedStatusesAsync(new HotspotViewModel(serverHotspot));
+
+        result.Should().BeNull();
+        messageBox.Received(1).Show(Arg.Is<string>(x => x == string.Format(Resources.ReviewHotspotWindow_CheckReviewPermittedFailureMessage, reason)),
+            Arg.Is<string>(x => x == Resources.ReviewHotspotWindow_FailureTitle), MessageBoxButton.OK, MessageBoxImage.Error);
+    }
+
+    [TestMethod]
+    public async Task GetAllowedStatusesAsync_NoStatusSelected_ShowsMessageBoxAndReturnsNull()
+    {
+        var result = await testSubject.GetAllowedStatusesAsync(null);
+
+        result.Should().BeNull();
+        messageBox.Received(1).Show(
+            Arg.Is<string>(x => x == string.Format(Resources.ReviewHotspotWindow_CheckReviewPermittedFailureMessage, Resources.ReviewHotspotWindow_NoStatusSelectedFailureMessage)),
+            Arg.Is<string>(x => x == Resources.ReviewHotspotWindow_FailureTitle), MessageBoxButton.OK, MessageBoxImage.Error);
+    }
+
+    [TestMethod]
+    [DataRow(HotspotStatus.Fixed)]
+    [DataRow(HotspotStatus.ToReview)]
+    [DataRow(HotspotStatus.Acknowledged)]
+    [DataRow(HotspotStatus.Safe)]
+    public async Task ChangeHotspotStatusAsync_Succeeds_ReturnsTrue(HotspotStatus newStatus)
+    {
+        var hotspotViewModel = new HotspotViewModel(serverHotspot);
+        MockReviewHotspot(serverHotspot.Visualization.Issue.IssueServerKey, newStatus, true);
+
+        var result = await testSubject.ChangeHotspotStatusAsync(hotspotViewModel, newStatus);
+
+        result.Should().BeTrue();
+        reviewHotspotsService.Received(1).ReviewHotspotAsync(serverHotspot.Visualization.Issue.IssueServerKey, newStatus).IgnoreAwaitForAssert();
+        messageBox.DidNotReceive().Show(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<MessageBoxButton>(), Arg.Any<MessageBoxImage>());
+    }
+
+    [TestMethod]
+    [DataRow(HotspotStatus.Fixed)]
+    [DataRow(HotspotStatus.ToReview)]
+    [DataRow(HotspotStatus.Acknowledged)]
+    [DataRow(HotspotStatus.Safe)]
+    public async Task ChangeHotspotStatusAsync_Fails_ShowsMessageBox(HotspotStatus newStatus)
+    {
+        var hotspotViewModel = new HotspotViewModel(serverHotspot);
+        MockReviewHotspot(serverHotspot.Visualization.Issue.IssueServerKey, newStatus, false);
+
+        var result = await testSubject.ChangeHotspotStatusAsync(hotspotViewModel, newStatus);
+
+        result.Should().BeFalse();
+        messageBox.Received(1).Show(Arg.Is<string>(x => x == Resources.ReviewHotspotWindow_ReviewFailureMessage), Arg.Is<string>(x => x == Resources.ReviewHotspotWindow_FailureTitle),
+            MessageBoxButton.OK, MessageBoxImage.Error);
+    }
+
+    private static LocalHotspot CreateMockedHotspot(string filePath, string hotspotKey = null)
     {
         var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
         var analysisIssueBase = Substitute.For<IAnalysisIssueBase>();
         analysisIssueBase.PrimaryLocation.FilePath.Returns(filePath);
         analysisIssueVisualization.Issue.Returns(analysisIssueBase);
+        analysisIssueVisualization.Issue.IssueServerKey.Returns(hotspotKey);
 
         return new LocalHotspot(analysisIssueVisualization, default, default);
     }
@@ -150,4 +229,12 @@ public class HotspotsReportViewModelTest
             groupFileVm.FilteredIssues.Should().ContainSingle(vm => ((HotspotViewModel)vm).LocalHotspot == expectedHotspot);
         }
     }
+
+    private void MockChangeStatusPermitted(string hotspotKey, List<HotspotStatus> allowedStatuses) =>
+        reviewHotspotsService.CheckReviewHotspotPermittedAsync(hotspotKey).Returns(new ReviewHotspotPermittedArgs(allowedStatuses));
+
+    private void MockChangeStatusNotPermitted(string hotspotKey, string reason) =>
+        reviewHotspotsService.CheckReviewHotspotPermittedAsync(hotspotKey).Returns(new ReviewHotspotNotPermittedArgs(reason));
+
+    private void MockReviewHotspot(string hotspotKey, HotspotStatus newStatus, bool succeeded) => reviewHotspotsService.ReviewHotspotAsync(hotspotKey, newStatus).Returns(succeeded);
 }
