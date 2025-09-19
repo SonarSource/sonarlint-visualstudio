@@ -1,0 +1,49 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ***********************************************************************************
+         Auto-generated from the SVG files by SvgToXaml. See src/Education/UI/Readme.txt for more information.    
+         *********************************************************************************** -->
+    <DrawingImage x:Key="HighHotspotPriorityDrawingImage">
+        <DrawingImage.Drawing>
+            <DrawingGroup ClipGeometry="M0,0 V16 H16 V0 H0 Z">
+                <GeometryDrawing
+                    Geometry="F1 M16,16z M0,0z M14.16,3.254A0.997,0.997,0,0,0,13.492,2.486L8.257,1.03A1.057,1.057,0,0,0,7.759,1.03L2.522,2.486A0.937,0.937,0,0,0,1.854,3.254C1.774,3.822,1.116,8.869,2.99,11.541A8.976,8.976,0,0,0,7.778,14.992A0.848,0.848,0,0,0,8.007,14.992A0.778,0.778,0,0,0,8.227,14.992A8.906,8.906,0,0,0,13.023,11.542C14.868,8.869,14.23,3.822,14.16,3.254z M12.295,8.011A6.133,6.133,0,0,1,11.438,10.424A7.899,7.899,0,0,1,8.097,12.998L8.097,8.011z M8.097,3.024L8.097,8.011 3.699,8.011A24.225,24.225,0,0,1,3.699,4.201z">
+                    <GeometryDrawing.Brush>
+                        <SolidColorBrush Color="#FFD92D20" Opacity="0.6" />
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+
+    <DrawingImage x:Key="MediumHotspotPriorityDrawingImage">
+        <DrawingImage.Drawing>
+            <DrawingGroup ClipGeometry="M0,0 V16 H16 V0 H0 Z">
+                <GeometryDrawing
+                    Geometry="F1 M16,16z M0,0z M14.16,3.254A0.997,0.997,0,0,0,13.492,2.486L8.257,1.03A1.057,1.057,0,0,0,7.759,1.03L2.522,2.486A0.937,0.937,0,0,0,1.854,3.254C1.774,3.822,1.116,8.869,2.99,11.541A8.976,8.976,0,0,0,7.778,14.992A0.848,0.848,0,0,0,8.007,14.992A0.778,0.778,0,0,0,8.227,14.992A8.906,8.906,0,0,0,13.023,11.542C14.868,8.869,14.23,3.822,14.16,3.254z M12.295,8.011A6.133,6.133,0,0,1,11.438,10.424A7.899,7.899,0,0,1,8.097,12.998L8.097,8.011z M8.097,3.024L8.097,8.011 3.699,8.011A24.225,24.225,0,0,1,3.699,4.201z">
+                    <GeometryDrawing.Brush>
+                        <SolidColorBrush Color="#FFFD7122" Opacity="0.6" />
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+
+
+    <DrawingImage x:Key="LowHotspotPriorityDrawingImage">
+        <DrawingImage.Drawing>
+            <DrawingGroup ClipGeometry="M0,0 V16 H16 V0 H0 Z">
+                <GeometryDrawing
+                    Geometry="F1 M16,16z M0,0z M14.16,3.254A0.997,0.997,0,0,0,13.492,2.486L8.257,1.03A1.057,1.057,0,0,0,7.759,1.03L2.522,2.486A0.937,0.937,0,0,0,1.854,3.254C1.774,3.822,1.116,8.869,2.99,11.541A8.976,8.976,0,0,0,7.778,14.992A0.848,0.848,0,0,0,8.007,14.992A0.778,0.778,0,0,0,8.227,14.992A8.906,8.906,0,0,0,13.023,11.542C14.868,8.869,14.23,3.822,14.16,3.254z M12.295,8.011A6.133,6.133,0,0,1,11.438,10.424A7.899,7.899,0,0,1,8.097,12.998L8.097,8.011z M8.097,3.024L8.097,8.011 3.699,8.011A24.225,24.225,0,0,1,3.699,4.201z">
+                    <GeometryDrawing.Brush>
+                        <SolidColorBrush Color="#FFF5B840" Opacity="0.6" />
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+
+
+</ResourceDictionary>

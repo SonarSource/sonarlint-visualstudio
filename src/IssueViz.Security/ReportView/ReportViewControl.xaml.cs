@@ -29,6 +29,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
@@ -46,6 +47,7 @@ internal sealed partial class ReportViewControl : UserControl
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IBrowserService browserService,
         IDependencyRisksStore dependencyRisksStore,
+        ILocalHotspotsStore hotspotsStore,
         IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler,
         IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler,
         IMessageBox messageBox,
@@ -56,6 +58,7 @@ internal sealed partial class ReportViewControl : UserControl
         this.browserService = browserService;
         ReportViewModel = new ReportViewModel(activeSolutionBoundTracker,
             dependencyRisksStore,
+            hotspotsStore,
             showDependencyRiskInBrowserHandler,
             changeDependencyRiskStatusHandler,
             messageBox,
@@ -98,7 +101,7 @@ internal sealed partial class ReportViewControl : UserControl
 
     private void ViewDependencyRiskInBrowser_OnClick(object sender, RoutedEventArgs e)
     {
-        if (ReportViewModel.GroupDependencyRisk.SelectedItem is not DependencyRiskViewModel selectedDependencyRiskViewModel)
+        if (ReportViewModel.SelectedItem is not DependencyRiskViewModel selectedDependencyRiskViewModel)
         {
             return;
         }
@@ -125,7 +128,7 @@ internal sealed partial class ReportViewControl : UserControl
 
     private async void ChangeScaStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
     {
-        if (ReportViewModel.GroupDependencyRisk.SelectedItem is not DependencyRiskViewModel selectedDependencyRiskViewModel)
+        if (ReportViewModel.SelectedItem is not DependencyRiskViewModel selectedDependencyRiskViewModel)
         {
             return;
         }
@@ -138,15 +141,7 @@ internal sealed partial class ReportViewControl : UserControl
         }
     }
 
-    private void TreeView_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) => ReportViewModel.GroupDependencyRisk.SelectedItem = e.NewValue as DependencyRiskViewModel;
-
-    private void ResolutionButton_OnClick(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement { DataContext: ResolutionFilterViewModel vm })
-        {
-            ReportViewModel.FlipAndUpdateResolutionFilter(vm);
-        }
-    }
+    private void TreeView_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) => ReportViewModel.SelectedItem = e.NewValue as IIssueViewModel;
 
     private void Hyperlink_OnRequestNavigate(object sender, RequestNavigateEventArgs e) => browserService.Navigate(e.Uri.AbsoluteUri);
 }

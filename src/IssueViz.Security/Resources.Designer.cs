@@ -439,6 +439,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} security hotspot that does not exist on the server..
+        /// </summary>
+        public static string LocalHotspotTooltip {
+            get {
+                return ResourceManager.GetString("LocalHotspotTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Change Status.
         /// </summary>
         public static string LogContext_ChangeStatus {
@@ -466,7 +475,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Please ensure that your solution is bound to a SonarQube project that contains dependency risks.
+        ///   Looks up a localized string similar to Please ensure that your solution is bound to a SonarQube project.
         /// </summary>
         public static string NoDependencyRiskFoundText {
             get {
@@ -475,11 +484,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No Dependency Risks were found..
+        ///   Looks up a localized string similar to No findings to display..
         /// </summary>
-        public static string NoDependencyRiskFoundTitle {
+        public static string NoFindingsToDisplayTitle {
             get {
-                return ResourceManager.GetString("NoDependencyRiskFoundTitle", resourceCulture);
+                return ResourceManager.GetString("NoFindingsToDisplayTitle", resourceCulture);
             }
         }
         
@@ -662,6 +671,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string ReviewHotspotWindow_ToReviewTitle {
             get {
                 return ResourceManager.GetString("ReviewHotspotWindow_ToReviewTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} security hotspot existing on {1}.
+        /// </summary>
+        public static string ServerHotspotTooltip {
+            get {
+                return ResourceManager.GetString("ServerHotspotTooltip", resourceCulture);
             }
         }
         
