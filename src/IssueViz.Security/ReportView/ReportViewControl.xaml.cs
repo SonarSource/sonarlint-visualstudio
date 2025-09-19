@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
@@ -50,6 +51,7 @@ internal sealed partial class ReportViewControl : UserControl
         ILocalHotspotsStore hotspotsStore,
         IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler,
         IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler,
+        INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
         IMessageBox messageBox,
         ITelemetryManager telemetryManager,
         IThreadHandling threadHandling)
@@ -61,6 +63,7 @@ internal sealed partial class ReportViewControl : UserControl
             hotspotsStore,
             showDependencyRiskInBrowserHandler,
             changeDependencyRiskStatusHandler,
+            navigateToRuleDescriptionCommand,
             messageBox,
             telemetryManager,
             threadHandling);
@@ -144,4 +147,18 @@ internal sealed partial class ReportViewControl : UserControl
     private void TreeView_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) => ReportViewModel.SelectedItem = e.NewValue as IIssueViewModel;
 
     private void Hyperlink_OnRequestNavigate(object sender, RequestNavigateEventArgs e) => browserService.Navigate(e.Uri.AbsoluteUri);
+
+    private void TreeViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is not IIssueViewModel issueViewModel)
+        {
+            return;
+        }
+
+        var commandParam = new NavigateToRuleDescriptionCommandParam { FullRuleKey = issueViewModel.RuleInfo.RuleKey, IssueId = issueViewModel.RuleInfo.IssueId };
+        if (ReportViewModel.NavigateToRuleDescriptionCommand.CanExecute(commandParam))
+        {
+            ReportViewModel.NavigateToRuleDescriptionCommand.Execute(commandParam);
+        }
+    }
 }

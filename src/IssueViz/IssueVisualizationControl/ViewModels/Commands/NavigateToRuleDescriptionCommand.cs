@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -48,13 +46,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                     }
                 },
                 parameter => parameter is NavigateToRuleDescriptionCommandParam s &&
-                    !string.IsNullOrEmpty(s.FullRuleKey) &&
-                SonarCompositeRuleId.TryParse(s.FullRuleKey, out var _))
+                             !string.IsNullOrEmpty(s.FullRuleKey) &&
+                             SonarCompositeRuleId.TryParse(s.FullRuleKey, out var _))
         {
         }
     }
 
-    internal class NavigateToRuleDescriptionCommandParam
+    public class NavigateToRuleDescriptionCommandParam
     {
         /// <summary>
         /// The id of the issue that comes from SlCore
@@ -65,7 +63,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
     public class NavigateToRuleDescriptionCommandConverter : IMultiValueConverter
     {
-        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(
+            object[] values,
+            Type targetType,
+            object parameter,
+            CultureInfo culture)
         {
             if (values.Length == 2 && values[0] is string && (values[1] is Guid || values[1] == null))
             {
@@ -74,7 +76,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             return null;
         }
 
-        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        public object[] ConvertBack(
+            object value,
+            Type[] targetTypes,
+            object parameter,
+            CultureInfo culture)
         {
             Debug.Fail("We should not hit here");
             return null;

@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
@@ -43,6 +44,7 @@ public class ReportViewModelTest
     private ILocalHotspotsStore localHotspotsStore;
     private IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler;
     private IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler;
+    private INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand;
     private IMessageBox messageBox;
     private ITelemetryManager telemetryManager;
     private IThreadHandling threadHandling;
@@ -56,6 +58,7 @@ public class ReportViewModelTest
         localHotspotsStore = Substitute.For<ILocalHotspotsStore>();
         showDependencyRiskInBrowserHandler = Substitute.For<IShowDependencyRiskInBrowserHandler>();
         changeDependencyRiskStatusHandler = Substitute.For<IChangeDependencyRiskStatusHandler>();
+        navigateToRuleDescriptionCommand = Substitute.For<INavigateToRuleDescriptionCommand>();
         messageBox = Substitute.For<IMessageBox>();
         telemetryManager = Substitute.For<ITelemetryManager>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
@@ -73,6 +76,9 @@ public class ReportViewModelTest
         localHotspotsStore.Received(1).IssuesChanged += Arg.Any<EventHandler<IssuesChangedEventArgs>>();
         dependencyRisksStore.Received(1).DependencyRisksChanged += Arg.Any<EventHandler>();
     }
+
+    [TestMethod]
+    public void Class_InitializesProperties() => testSubject.NavigateToRuleDescriptionCommand.Should().BeSameAs(navigateToRuleDescriptionCommand);
 
     [TestMethod]
     public void Ctor_InitializesDependencyRisks()
@@ -204,10 +210,7 @@ public class ReportViewModelTest
     }
 
     [TestMethod]
-    public void SelectedItem_Initially_IsNull()
-    {
-        testSubject.SelectedItem.Should().BeNull();
-    }
+    public void SelectedItem_Initially_IsNull() => testSubject.SelectedItem.Should().BeNull();
 
     [TestMethod]
     public void SelectedItem_SetToDependencyRiskViewModel_CallsTelemetryForDependencyRisk()
@@ -469,6 +472,7 @@ public class ReportViewModelTest
             localHotspotsStore,
             showDependencyRiskInBrowserHandler,
             changeDependencyRiskStatusHandler,
+            navigateToRuleDescriptionCommand,
             messageBox,
             telemetryManager,
             threadHandling);
