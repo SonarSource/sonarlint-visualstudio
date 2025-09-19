@@ -31,7 +31,7 @@ using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
@@ -43,13 +43,14 @@ internal sealed partial class ReportViewControl : UserControl
     private readonly IBrowserService browserService;
 
     public ReportViewModel ReportViewModel { get; }
+    public IHotspotsReportViewModel HotspotsReportViewModel { get; }
     public IResourceFinder ResourceFinder { get; } = new ResourceFinder();
 
     public ReportViewControl(
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IBrowserService browserService,
         IDependencyRisksStore dependencyRisksStore,
-        ILocalHotspotsStore hotspotsStore,
+        IHotspotsReportViewModel hotspotsReportViewModel,
         IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler,
         IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler,
         INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
@@ -60,13 +61,14 @@ internal sealed partial class ReportViewControl : UserControl
     {
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.browserService = browserService;
+        HotspotsReportViewModel = hotspotsReportViewModel;
         ReportViewModel = new ReportViewModel(activeSolutionBoundTracker,
             dependencyRisksStore,
-            hotspotsStore,
             showDependencyRiskInBrowserHandler,
             changeDependencyRiskStatusHandler,
             navigateToRuleDescriptionCommand,
             locationNavigator,
+            HotspotsReportViewModel,
             messageBox,
             telemetryManager,
             threadHandling);

@@ -30,8 +30,6 @@ using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
-using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
@@ -40,34 +38,34 @@ internal class ReportViewModel : ServerViewModel
 {
     private readonly IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler;
     private readonly IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler;
+    private readonly IHotspotsReportViewModel hotspotsReportViewModel;
     private readonly IMessageBox messageBox;
     private readonly ITelemetryManager telemetryManager;
     private readonly IDependencyRisksStore dependencyRisksStore;
-    private readonly ILocalHotspotsStore hotspotsStore;
     private readonly object @lock = new();
     private IIssueViewModel selectedItem;
 
     public ReportViewModel(
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IDependencyRisksStore dependencyRisksStore,
-        ILocalHotspotsStore hotspotsStore,
         IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler,
         IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler,
         INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
         ILocationNavigator locationNavigator,
+        IHotspotsReportViewModel hotspotsReportViewModel,
         IMessageBox messageBox,
         ITelemetryManager telemetryManager,
         IThreadHandling threadHandling) : base(activeSolutionBoundTracker)
     {
         this.dependencyRisksStore = dependencyRisksStore;
-        this.hotspotsStore = hotspotsStore;
         this.showDependencyRiskInBrowserHandler = showDependencyRiskInBrowserHandler;
         this.changeDependencyRiskStatusHandler = changeDependencyRiskStatusHandler;
+        this.hotspotsReportViewModel = hotspotsReportViewModel;
         this.messageBox = messageBox;
         this.telemetryManager = telemetryManager;
 
         threadHandling.RunOnUIThread(() => { BindingOperations.EnableCollectionSynchronization(GroupViewModels, @lock); });
-        hotspotsStore.IssuesChanged += HotspotsStore_IssuesChanged;
+        hotspotsReportViewModel.HotspotsChanged += HotspotsChanged;
         dependencyRisksStore.DependencyRisksChanged += DependencyRisksStore_DependencyRiskChanged;
 
         InitializeCommands(navigateToRuleDescriptionCommand, locationNavigator);
@@ -114,7 +112,9 @@ internal class ReportViewModel : ServerViewModel
 
     protected override void Dispose(bool disposing)
     {
-        hotspotsStore.IssuesChanged -= HotspotsStore_IssuesChanged;
+        hotspotsReportViewModel.HotspotsChanged -= HotspotsChanged;
+        hotspotsReportViewModel.Dispose();
+
         dependencyRisksStore.DependencyRisksChanged -= DependencyRisksStore_DependencyRiskChanged;
         foreach (var groupViewModel in GroupViewModels)
         {
@@ -131,7 +131,7 @@ internal class ReportViewModel : ServerViewModel
         }
     }
 
-    private void HotspotsStore_IssuesChanged(object sender, IssuesChangedEventArgs e)
+    private void HotspotsChanged(object sender, EventArgs e)
     {
         foreach (var groupViewModel in GroupViewModels.Where(vm => vm is not GroupDependencyRiskViewModel).ToList())
         {
@@ -169,22 +169,9 @@ internal class ReportViewModel : ServerViewModel
 
     private void InitializeHotspots()
     {
-        var hotspots = hotspotsStore.GetAllLocalHotspots().Select(x => new HotspotViewModel(x));
-        var groups = GetGroupViewModel(hotspots);
+        var groups = hotspotsReportViewModel.GetHotspotsGroupViewModels();
         groups.ToList().ForEach(g => GroupViewModels.Add(g));
         RaisePropertyChanged(nameof(HasGroups));
-    }
-
-    private static ObservableCollection<IGroupViewModel> GetGroupViewModel(IEnumerable<IIssueViewModel> issueViewModels)
-    {
-        var issuesByFileGrouping = issueViewModels.GroupBy(vm => vm.FilePath);
-        var groupViewModels = new ObservableCollection<IGroupViewModel>();
-        foreach (var group in issuesByFileGrouping)
-        {
-            groupViewModels.Add(new GroupFileViewModel(group.Key, new ObservableCollection<IIssueViewModel>(group)));
-        }
-
-        return groupViewModels;
     }
 
     private void InitializeCommands(
