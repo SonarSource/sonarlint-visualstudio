@@ -12,6 +12,7 @@
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:vsimagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              xmlns:core="clr-namespace:SonarLint.VisualStudio.Core;assembly=SonarLint.VisualStudio.Core"
+             xmlns:commands="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;assembly=SonarLint.VisualStudio.IssueVisualization"
              DataContext="{Binding RelativeSource={RelativeSource Mode=Self}, Path=ReportViewModel}">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -25,6 +26,8 @@
             <reportView:EnumToImageSourceConverter x:Key="EnumToImageSourceConverter" />
             <reportView:FileNameToMonikerConverter x:Key="FileNameToMonikerConverter" />
             <hotspots:HotspotTooltipConverter x:Key="HotspotTooltipConverter" />
+            <commands:NavigateToRuleDescriptionCommandConverter x:Key="NavigateToRuleDescriptionCommandConverter" />
+
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
             <wpf:BoolToVisibilityConverter x:Key="TrueToCollapsedConverter" FalseValue="Visible" TrueValue="Collapsed"/>
             <wpf:EnglishPluralizationConverter x:Key="EnglishPluralizationConverter" />
@@ -370,7 +373,14 @@
                                    Style="{StaticResource IssueTextBlockStyle}" />
                         <TextBlock Grid.Column="3" Margin="5,0,0,0"
                                    Style="{StaticResource IssueTextBlockStyle}">
-                            <Hyperlink Style="{StaticResource RuleKeyLinkStyle}">
+                            <Hyperlink Style="{StaticResource RuleKeyLinkStyle}"
+                                       Command="{Binding DataContext.NavigateToRuleDescriptionCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}">
+                                <Hyperlink.CommandParameter>
+                                    <MultiBinding Converter="{StaticResource NavigateToRuleDescriptionCommandConverter}">
+                                        <Binding Path=".RuleInfo.RuleKey" />
+                                        <Binding Path=".RuleInfo.IssueId" />
+                                    </MultiBinding>
+                                </Hyperlink.CommandParameter>
                                 <TextBlock Text="{Binding RuleInfo.RuleKey}"
                                            Style="{StaticResource CellTextBlockStyle}" />
                             </Hyperlink>

@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
@@ -50,6 +51,7 @@ internal sealed partial class ReportViewControl : UserControl
         ILocalHotspotsStore hotspotsStore,
         IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler,
         IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler,
+        INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
         IMessageBox messageBox,
         ITelemetryManager telemetryManager,
         IThreadHandling threadHandling)
@@ -61,6 +63,7 @@ internal sealed partial class ReportViewControl : UserControl
             hotspotsStore,
             showDependencyRiskInBrowserHandler,
             changeDependencyRiskStatusHandler,
+            navigateToRuleDescriptionCommand,
             messageBox,
             telemetryManager,
             threadHandling);
