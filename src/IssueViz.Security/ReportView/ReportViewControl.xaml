@@ -137,6 +137,11 @@
                 <Setter Property="FontSize"
                         Value="{DynamicResource {x:Static vsShell:VsFonts.Environment90PercentFontSizeKey}}" />
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.InactiveCaptionTextKey}}" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelected}" Value="True">
+                        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveTextBrushKey}}"/>
+                    </DataTrigger>
+                </Style.Triggers>
             </Style>
 
             <Style x:Key="IssueTypeTextBlockStyle" TargetType="TextBlock">
@@ -157,6 +162,9 @@
                     <Trigger Property="IsMouseOver" Value="True">
                         <Setter Property="TextDecorations" Value="Underline" />
                     </Trigger>
+                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelected}" Value="True">
+                        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveTextBrushKey}}"/>
+                    </DataTrigger>
                 </Style.Triggers>
             </Style>
 
