@@ -43,4 +43,8 @@ public interface ITelemetryManager
     void AddedAutomaticBindings();
 
     void DependencyRiskInvestigatedLocally();
+
+    void HotspotInvestigatedLocally();
+
+    void HotspotInvestigatedRemotely();
 }

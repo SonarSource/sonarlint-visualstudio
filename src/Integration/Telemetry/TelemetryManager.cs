@@ -20,7 +20,6 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.SLCore.Service.Telemetry;
 using SonarLint.VisualStudio.SLCore.Service.Telemetry.Models;
@@ -67,6 +66,10 @@ internal sealed class TelemetryManager : ITelemetryManager,
     public void AddedAutomaticBindings() => telemetryHelper.Notify(telemetryService => telemetryService.AddedAutomaticBindings());
 
     public void DependencyRiskInvestigatedLocally() => telemetryHelper.Notify(telemetryService => telemetryService.DependencyRiskInvestigatedLocally());
+
+    public void HotspotInvestigatedLocally() => telemetryHelper.Notify(telemetryService => telemetryService.HotspotInvestigatedLocally());
+
+    public void HotspotInvestigatedRemotely() => telemetryHelper.Notify(telemetryService => telemetryService.HotspotInvestigatedRemotely());
 
     private static IEnumerable<FixSuggestionResolvedParams> ConvertFixSuggestionChangeToResolvedParams(string suggestionId, IEnumerable<bool> changeApplicationStatus) =>
         changeApplicationStatus
