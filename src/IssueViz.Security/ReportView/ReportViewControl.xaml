@@ -12,6 +12,7 @@
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:vsimagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              xmlns:core="clr-namespace:SonarLint.VisualStudio.Core;assembly=SonarLint.VisualStudio.Core"
+             xmlns:commands="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;assembly=SonarLint.VisualStudio.IssueVisualization"
              DataContext="{Binding RelativeSource={RelativeSource Mode=Self}, Path=ReportViewModel}">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -25,6 +26,8 @@
             <reportView:EnumToImageSourceConverter x:Key="EnumToImageSourceConverter" />
             <reportView:FileNameToMonikerConverter x:Key="FileNameToMonikerConverter" />
             <hotspots:HotspotTooltipConverter x:Key="HotspotTooltipConverter" />
+            <commands:NavigateToRuleDescriptionCommandConverter x:Key="NavigateToRuleDescriptionCommandConverter" />
+
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
             <wpf:BoolToVisibilityConverter x:Key="TrueToCollapsedConverter" FalseValue="Visible" TrueValue="Collapsed"/>
             <wpf:EnglishPluralizationConverter x:Key="EnglishPluralizationConverter" />
@@ -54,6 +57,7 @@
                 <Setter Property="IsExpanded" Value="True" />
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}" />
                 <EventSetter Event="PreviewMouseUp" Handler="TreeViewItem_OnPreviewMouseUp"/>
+                <EventSetter Event="MouseDoubleClick" Handler="TreeViewItem_MouseDoubleClick"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="TreeViewItem">
@@ -134,6 +138,18 @@
                 <Setter Property="FontSize"
                         Value="{DynamicResource {x:Static vsShell:VsFonts.Environment90PercentFontSizeKey}}" />
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.InactiveCaptionTextKey}}" />
+                <Style.Triggers>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelected}" Value="True" />
+                            <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelectionActive}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <MultiDataTrigger.Setters>
+                            <Setter Property="Foreground"
+                                    Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveTextBrushKey}}" />
+                        </MultiDataTrigger.Setters>
+                    </MultiDataTrigger>
+                </Style.Triggers>
             </Style>
 
             <Style x:Key="IssueTypeTextBlockStyle" TargetType="TextBlock">
@@ -154,6 +170,16 @@
                     <Trigger Property="IsMouseOver" Value="True">
                         <Setter Property="TextDecorations" Value="Underline" />
                     </Trigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelected}" Value="True" />
+                            <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelectionActive}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <MultiDataTrigger.Setters>
+                            <Setter Property="Foreground"
+                                    Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveTextBrushKey}}" />
+                        </MultiDataTrigger.Setters>
+                    </MultiDataTrigger>
                 </Style.Triggers>
             </Style>
 
@@ -370,7 +396,14 @@
                                    Style="{StaticResource IssueTextBlockStyle}" />
                         <TextBlock Grid.Column="3" Margin="5,0,0,0"
                                    Style="{StaticResource IssueTextBlockStyle}">
-                            <Hyperlink Style="{StaticResource RuleKeyLinkStyle}">
+                            <Hyperlink Style="{StaticResource RuleKeyLinkStyle}"
+                                       Command="{Binding DataContext.NavigateToRuleDescriptionCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}">
+                                <Hyperlink.CommandParameter>
+                                    <MultiBinding Converter="{StaticResource NavigateToRuleDescriptionCommandConverter}">
+                                        <Binding Path=".RuleInfo.RuleKey" />
+                                        <Binding Path=".RuleInfo.IssueId" />
+                                    </MultiBinding>
+                                </Hyperlink.CommandParameter>
                                 <TextBlock Text="{Binding RuleInfo.RuleKey}"
                                            Style="{StaticResource CellTextBlockStyle}" />
                             </Hyperlink>

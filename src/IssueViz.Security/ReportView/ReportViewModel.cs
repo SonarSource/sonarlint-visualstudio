@@ -25,6 +25,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
@@ -49,10 +50,12 @@ internal class ReportViewModel : ServerViewModel
         ILocalHotspotsStore hotspotsStore,
         IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler,
         IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler,
+        INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
         IMessageBox messageBox,
         ITelemetryManager telemetryManager,
         IThreadHandling threadHandling) : base(activeSolutionBoundTracker)
     {
+        NavigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
         this.dependencyRisksStore = dependencyRisksStore;
         this.hotspotsStore = hotspotsStore;
         this.showDependencyRiskInBrowserHandler = showDependencyRiskInBrowserHandler;
@@ -68,6 +71,7 @@ internal class ReportViewModel : ServerViewModel
 
     public ObservableCollection<IGroupViewModel> GroupViewModels { get; } = [];
     public bool HasGroups => GroupViewModels.Count > 0;
+    public INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; }
 
     public IIssueViewModel SelectedItem
     {
