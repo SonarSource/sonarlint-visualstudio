@@ -44,32 +44,28 @@ internal sealed partial class ReportViewControl : UserControl
 
     public ReportViewModel ReportViewModel { get; }
     public IHotspotsReportViewModel HotspotsReportViewModel { get; }
+    public IDependencyRisksReportViewModel DependencyRisksReportViewModel { get; }
     public IResourceFinder ResourceFinder { get; } = new ResourceFinder();
 
     public ReportViewControl(
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IBrowserService browserService,
-        IDependencyRisksStore dependencyRisksStore,
         IHotspotsReportViewModel hotspotsReportViewModel,
-        IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler,
-        IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler,
+        IDependencyRisksReportViewModel dependencyRisksReportViewModel,
         INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
         ILocationNavigator locationNavigator,
-        IMessageBox messageBox,
         ITelemetryManager telemetryManager,
         IThreadHandling threadHandling)
     {
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.browserService = browserService;
         HotspotsReportViewModel = hotspotsReportViewModel;
+        DependencyRisksReportViewModel = dependencyRisksReportViewModel;
         ReportViewModel = new ReportViewModel(activeSolutionBoundTracker,
-            dependencyRisksStore,
-            showDependencyRiskInBrowserHandler,
-            changeDependencyRiskStatusHandler,
             navigateToRuleDescriptionCommand,
             locationNavigator,
             HotspotsReportViewModel,
-            messageBox,
+            DependencyRisksReportViewModel,
             telemetryManager,
             threadHandling);
         InitializeComponent();
@@ -114,7 +110,7 @@ internal sealed partial class ReportViewControl : UserControl
             return;
         }
 
-        ReportViewModel.ShowInBrowser(selectedDependencyRiskViewModel.DependencyRisk);
+        DependencyRisksReportViewModel.ShowDependencyRiskInBrowser(selectedDependencyRiskViewModel.DependencyRisk);
     }
 
     private void DependencyRiskContextMenu_OnLoaded(object sender, RoutedEventArgs e)
@@ -145,7 +141,8 @@ internal sealed partial class ReportViewControl : UserControl
         var dialog = new ChangeStatusWindow(changeStatusViewModel, browserService, activeSolutionBoundTracker);
         if (dialog.ShowDialog(Application.Current.MainWindow) is true)
         {
-            await ReportViewModel.ChangeStatusAsync(selectedDependencyRiskViewModel.DependencyRisk, changeStatusViewModel.GetSelectedTransition(), changeStatusViewModel.GetNormalizedComment());
+            await DependencyRisksReportViewModel.ChangeDependencyRiskStatusAsync(selectedDependencyRiskViewModel.DependencyRisk, changeStatusViewModel.GetSelectedTransition(),
+                changeStatusViewModel.GetNormalizedComment());
         }
     }
 

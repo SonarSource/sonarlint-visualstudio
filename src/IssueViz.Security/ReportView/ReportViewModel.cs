@@ -19,12 +19,10 @@
  */
 
 using System.Collections.ObjectModel;
-using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
@@ -36,37 +34,28 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
 internal class ReportViewModel : ServerViewModel
 {
-    private readonly IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler;
-    private readonly IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler;
     private readonly IHotspotsReportViewModel hotspotsReportViewModel;
-    private readonly IMessageBox messageBox;
+    private readonly IDependencyRisksReportViewModel dependencyRisksReportViewModel;
     private readonly ITelemetryManager telemetryManager;
-    private readonly IDependencyRisksStore dependencyRisksStore;
     private readonly object @lock = new();
     private IIssueViewModel selectedItem;
 
     public ReportViewModel(
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
-        IDependencyRisksStore dependencyRisksStore,
-        IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler,
-        IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler,
         INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
         ILocationNavigator locationNavigator,
         IHotspotsReportViewModel hotspotsReportViewModel,
-        IMessageBox messageBox,
+        IDependencyRisksReportViewModel dependencyRisksReportViewModel,
         ITelemetryManager telemetryManager,
         IThreadHandling threadHandling) : base(activeSolutionBoundTracker)
     {
-        this.dependencyRisksStore = dependencyRisksStore;
-        this.showDependencyRiskInBrowserHandler = showDependencyRiskInBrowserHandler;
-        this.changeDependencyRiskStatusHandler = changeDependencyRiskStatusHandler;
         this.hotspotsReportViewModel = hotspotsReportViewModel;
-        this.messageBox = messageBox;
+        this.dependencyRisksReportViewModel = dependencyRisksReportViewModel;
         this.telemetryManager = telemetryManager;
 
         threadHandling.RunOnUIThread(() => { BindingOperations.EnableCollectionSynchronization(GroupViewModels, @lock); });
         hotspotsReportViewModel.HotspotsChanged += HotspotsChanged;
-        dependencyRisksStore.DependencyRisksChanged += DependencyRisksStore_DependencyRiskChanged;
+        dependencyRisksReportViewModel.DependencyRisksChanged += DependencyRisksChanged;
 
         InitializeCommands(navigateToRuleDescriptionCommand, locationNavigator);
         InitializeViewModels();
@@ -90,32 +79,14 @@ internal class ReportViewModel : ServerViewModel
         }
     }
 
-    public async Task ChangeStatusAsync(IDependencyRisk dependencyRisk, DependencyRiskTransition? selectedTransition, string getNormalizedComment)
-    {
-        if (selectedTransition is not { } transition)
-        {
-            ShowFailureMessage(Resources.DependencyRiskNullTransitionError);
-            return;
-        }
-
-        var result = await changeDependencyRiskStatusHandler.ChangeStatusAsync(dependencyRisk.Id, transition, getNormalizedComment);
-
-        if (!result)
-        {
-            ShowFailureMessage(Resources.DependencyRiskStatusChangeError);
-        }
-    }
-
-    private void ShowFailureMessage(string errorMessage) => messageBox.Show(Resources.DependencyRiskStatusChangeFailedTitle, errorMessage, MessageBoxButton.OK, MessageBoxImage.Error);
-
-    public void ShowInBrowser(IDependencyRisk dependencyRisk) => showDependencyRiskInBrowserHandler.ShowInBrowser(dependencyRisk.Id);
-
     protected override void Dispose(bool disposing)
     {
         hotspotsReportViewModel.HotspotsChanged -= HotspotsChanged;
         hotspotsReportViewModel.Dispose();
 
-        dependencyRisksStore.DependencyRisksChanged -= DependencyRisksStore_DependencyRiskChanged;
+        dependencyRisksReportViewModel.DependencyRisksChanged -= DependencyRisksChanged;
+        dependencyRisksReportViewModel.Dispose();
+
         foreach (var groupViewModel in GroupViewModels)
         {
             groupViewModel.Dispose();
@@ -140,7 +111,7 @@ internal class ReportViewModel : ServerViewModel
         InitializeHotspots();
     }
 
-    private void DependencyRisksStore_DependencyRiskChanged(object sender, EventArgs e)
+    private void DependencyRisksChanged(object sender, EventArgs e)
     {
         if (GroupViewModels.SingleOrDefault(vm => vm is GroupDependencyRiskViewModel) is { } groupDependencyRiskViewModel)
         {
@@ -158,9 +129,8 @@ internal class ReportViewModel : ServerViewModel
 
     private void InitializeDependencyRisks()
     {
-        var groupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore);
-        groupDependencyRisk.InitializeRisks();
-        if (groupDependencyRisk.FilteredIssues.Any())
+        var groupDependencyRisk = dependencyRisksReportViewModel.GetDependencyRisksGroup();
+        if (groupDependencyRisk != null)
         {
             GroupViewModels.Add(groupDependencyRisk);
         }

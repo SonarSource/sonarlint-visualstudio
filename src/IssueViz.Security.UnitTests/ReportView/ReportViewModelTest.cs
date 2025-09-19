@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel;
-using System.Windows;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
@@ -131,60 +130,6 @@ public class ReportViewModelTest
         dependencyRisksStore.Received(1).DependencyRisksChanged -= Arg.Any<EventHandler>();
         hotspotsReportViewModel.Received(1).HotspotsChanged -= Arg.Any<EventHandler>();
         hotspotsReportViewModel.Received(1).Dispose();
-    }
-
-    [TestMethod]
-    public void ShowInBrowser_CallsHandler()
-    {
-        var riskId = Guid.NewGuid();
-        var dependencyRisk = CreateDependencyRisk(riskId);
-
-        testSubject.ShowInBrowser(dependencyRisk);
-
-        showDependencyRiskInBrowserHandler.Received(1).ShowInBrowser(riskId);
-    }
-
-    [TestMethod]
-    public async Task ChangeStatusAsync_CallsHandler_Success()
-    {
-        var riskId = Guid.NewGuid();
-        var dependencyRisk = CreateDependencyRisk(riskId);
-        var transition = DependencyRiskTransition.Accept;
-        var comment = "test comment";
-        changeDependencyRiskStatusHandler.ChangeStatusAsync(riskId, transition, comment).Returns(true);
-
-        await testSubject.ChangeStatusAsync(dependencyRisk, transition, comment);
-
-        await changeDependencyRiskStatusHandler.Received(1).ChangeStatusAsync(riskId, transition, comment);
-        messageBox.DidNotReceiveWithAnyArgs().Show(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<MessageBoxButton>(), Arg.Any<MessageBoxImage>());
-    }
-
-    [TestMethod]
-    public async Task ChangeStatusAsync_CallsHandler_Failure_ShowsMessageBox()
-    {
-        var riskId = Guid.NewGuid();
-        var dependencyRisk = CreateDependencyRisk(riskId);
-        const DependencyRiskTransition transition = DependencyRiskTransition.Accept;
-        const string comment = "test comment";
-        changeDependencyRiskStatusHandler.ChangeStatusAsync(riskId, transition, comment).Returns(false);
-
-        await testSubject.ChangeStatusAsync(dependencyRisk, transition, comment);
-
-        await changeDependencyRiskStatusHandler.Received(1).ChangeStatusAsync(riskId, transition, comment);
-        messageBox.Received(1).Show(Resources.DependencyRiskStatusChangeFailedTitle, Resources.DependencyRiskStatusChangeError, MessageBoxButton.OK, MessageBoxImage.Error);
-    }
-
-    [TestMethod]
-    public async Task ChangeStatusAsync_NullTransition_DoesNotCallHandler_ShowsMessageBox()
-    {
-        var dependencyRisk = CreateDependencyRisk();
-        DependencyRiskTransition? transition = null;
-        const string comment = "test comment";
-
-        await testSubject.ChangeStatusAsync(dependencyRisk, transition, comment);
-
-        await changeDependencyRiskStatusHandler.DidNotReceiveWithAnyArgs().ChangeStatusAsync(Arg.Any<Guid>(), Arg.Any<DependencyRiskTransition>(), Arg.Any<string>());
-        messageBox.Received(1).Show(Resources.DependencyRiskStatusChangeFailedTitle, Resources.DependencyRiskNullTransitionError, MessageBoxButton.OK, MessageBoxImage.Error);
     }
 
     [TestMethod]
@@ -407,13 +352,10 @@ public class ReportViewModelTest
     private ReportViewModel CreateTestSubject()
     {
         var reportViewModel = new ReportViewModel(activeSolutionBoundTracker,
-            dependencyRisksStore,
-            showDependencyRiskInBrowserHandler,
-            changeDependencyRiskStatusHandler,
             navigateToRuleDescriptionCommand,
             locationNavigator,
             hotspotsReportViewModel,
-            messageBox,
+            new DependencyRisksReportViewModel(dependencyRisksStore, showDependencyRiskInBrowserHandler, changeDependencyRiskStatusHandler, messageBox),
             telemetryManager,
             threadHandling);
         reportViewModel.PropertyChanged += eventHandler;

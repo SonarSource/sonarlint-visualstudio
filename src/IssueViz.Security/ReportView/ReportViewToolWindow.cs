@@ -43,17 +43,13 @@ internal class ReportViewToolWindow : ToolWindowPane
     {
         var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
         Caption = Resources.ReportViewToolWindowCaption;
-        var hotspotsReportViewModel = componentModel?.GetService<IHotspotsReportViewModel>();
         Content = new ReportViewControl(
             componentModel?.GetService<IActiveSolutionBoundTracker>(),
             componentModel?.GetService<IBrowserService>(),
-            componentModel?.GetService<IDependencyRisksStore>(),
-            hotspotsReportViewModel,
-            componentModel?.GetService<IShowDependencyRiskInBrowserHandler>(),
-            componentModel?.GetService<IChangeDependencyRiskStatusHandler>(),
+            componentModel?.GetService<IHotspotsReportViewModel>(),
+            componentModel?.GetService<IDependencyRisksReportViewModel>(),
             componentModel?.GetService<INavigateToRuleDescriptionCommand>(),
             componentModel?.GetService<ILocationNavigator>(),
-            componentModel?.GetService<IMessageBox>(),
             componentModel?.GetService<ITelemetryManager>(),
             componentModel?.GetService<IThreadHandling>()
         );
