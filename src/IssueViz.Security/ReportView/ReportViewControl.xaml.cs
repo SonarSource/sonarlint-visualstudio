@@ -116,14 +116,19 @@ internal sealed partial class ReportViewControl : UserControl
         DependencyRisksReportViewModel.ShowDependencyRiskInBrowser(selectedDependencyRiskViewModel.DependencyRisk);
     }
 
-    private void DependencyRiskContextMenu_OnLoaded(object sender, RoutedEventArgs e)
+    private void DependencyRiskContextMenu_OnLoaded(object sender, RoutedEventArgs e) => SetDataContextToReportViewModel<ContextMenu>(sender);
+
+    private void SetDataContextToReportViewModel<T>(object sender) where T : FrameworkElement
     {
-        if (sender is ContextMenu contextMenu)
+        if (sender is T contextMenu)
         {
-            // setting the DataContext directly on the context menu does not work for the TreeViewItem
+            // workaround that allows setting the DataContext to the ReportViewModel, which is not accessible from the TreeViewItem context menu
+            // due to the fact that a context menu is a popup and is not part of the visual tree
             contextMenu.DataContext = ReportViewModel;
         }
     }
+
+    private void ShowHotspotInBrowserMenuItem_OnLoaded(object sender, RoutedEventArgs e) => SetDataContextToReportViewModel<MenuItem>(sender);
 
     private void TreeViewItem_OnMouseRightButtonDown(object sender, MouseButtonEventArgs e)
     {

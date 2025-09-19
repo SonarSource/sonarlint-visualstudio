@@ -197,7 +197,7 @@
                           Click="ChangeHotspotStatusMenuItem_OnClick" 
                           Style="{StaticResource ChangeStatusMenuItemStyle}"/>
                 <MenuItem Click="ViewHotspotInBrowser_OnClick"
-                          Header="{x:Static res:Resources.ViewHotspotInBrowser}"
+                          Loaded="ShowHotspotInBrowserMenuItem_OnLoaded"
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
             </ContextMenu>
 
