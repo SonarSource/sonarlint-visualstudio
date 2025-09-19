@@ -47,6 +47,7 @@ public class HotspotViewModelTests
         testSubject.Column.Should().Be(hotspot.Visualization.Issue.PrimaryLocation.TextRange.StartLineOffset);
         testSubject.Title.Should().Be(hotspot.Visualization.Issue.PrimaryLocation.Message);
         testSubject.FilePath.Should().Be(hotspot.Visualization.Issue.PrimaryLocation.FilePath);
+        testSubject.Issue.Should().Be(hotspot.Visualization);
     }
 
     private static LocalHotspot CreateMockedHotspot(
