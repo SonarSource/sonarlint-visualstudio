@@ -91,5 +91,5 @@ internal sealed class DependencyRisksReportViewModel : IDependencyRisksReportVie
 
     private void ShowFailureMessage(string errorMessage) => messageBox.Show(Resources.DependencyRiskStatusChangeFailedTitle, errorMessage, MessageBoxButton.OK, MessageBoxImage.Error);
 
-    private void DependencyRisksStore_DependencyRiskChanged(object sender, EventArgs e) => DependencyRisksChanged?.Invoke(null, EventArgs.Empty);
+    private void DependencyRisksStore_DependencyRiskChanged(object sender, EventArgs e) => DependencyRisksChanged?.Invoke(this, EventArgs.Empty);
 }
