@@ -180,4 +180,12 @@ internal sealed partial class ReportViewControl : UserControl
             command.Execute(parameter);
         }
     }
+
+    private async void ViewHotspotInBrowser_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (ReportViewModel.SelectedItem is HotspotViewModel hotspotViewModel)
+        {
+            await HotspotsReportViewModel.ShowHotspotInBrowserAsync(hotspotViewModel.LocalHotspot);
+        }
+    }
 }

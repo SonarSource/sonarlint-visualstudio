@@ -19,8 +19,10 @@
  */
 
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
@@ -33,12 +35,14 @@ public class HotspotsReportViewModelTest
 {
     private ILocalHotspotsStore localHotspotsStore;
     private HotspotsReportViewModel testSubject;
+    private IReviewHotspotsService reviewHotspotsService;
 
     [TestInitialize]
     public void TestInitialize()
     {
         localHotspotsStore = Substitute.For<ILocalHotspotsStore>();
-        testSubject = new HotspotsReportViewModel(localHotspotsStore);
+        reviewHotspotsService = Substitute.For<IReviewHotspotsService>();
+        testSubject = new HotspotsReportViewModel(localHotspotsStore, reviewHotspotsService);
     }
 
     [TestMethod]
@@ -112,6 +116,16 @@ public class HotspotsReportViewModelTest
         localHotspotsStore.IssuesChanged += Raise.Event<EventHandler<IssuesChangedEventArgs>>(null, null);
 
         raised.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public async Task ShowHotspotInBrowserAsync_CallsHandler()
+    {
+        var hotspot = CreateMockedHotspot("myFile.cs");
+
+        await testSubject.ShowHotspotInBrowserAsync(hotspot);
+
+        reviewHotspotsService.Received(1).OpenHotspotAsync(hotspot.Visualization.Issue.IssueServerKey).IgnoreAwaitForAssert();
     }
 
     private static LocalHotspot CreateMockedHotspot(string filePath)

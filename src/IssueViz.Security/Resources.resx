@@ -242,6 +242,9 @@ Please check the logs for more details.</value>
   <data name="ViewIssueInSonarQubeServer" xml:space="preserve">
     <value>View in SonarQube Server</value>
   </data>
+  <data name="ViewHotspotInBrowser" xml:space="preserve">
+    <value>View security hotspot in browser</value>
+  </data>
   <data name="ReportViewToolWindowCaption" xml:space="preserve">
     <value>SonarQube Dependency Risks</value>
   </data>

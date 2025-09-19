@@ -27,6 +27,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots
 internal class HotspotViewModel : ViewModelBase, IAnalysisIssueViewModel
 {
     public LocalHotspot LocalHotspot { get; }
+    public bool ExistsOnServer => LocalHotspot.Visualization.Issue.IssueServerKey != null;
 
     public HotspotViewModel(LocalHotspot localHotspot)
     {

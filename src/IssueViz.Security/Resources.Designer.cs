@@ -792,6 +792,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to View security hotspot in browser.
+        /// </summary>
+        public static string ViewHotspotInBrowser {
+            get {
+                return ResourceManager.GetString("ViewHotspotInBrowser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to View in SonarQube Cloud.
         /// </summary>
         public static string ViewIssueInSonarQubeCloud {

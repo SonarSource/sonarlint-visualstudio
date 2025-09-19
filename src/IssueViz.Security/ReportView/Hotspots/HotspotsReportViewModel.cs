@@ -21,6 +21,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
@@ -28,6 +29,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots
 internal interface IHotspotsReportViewModel : IDisposable
 {
     ObservableCollection<IGroupViewModel> GetHotspotsGroupViewModels();
+
+    Task ShowHotspotInBrowserAsync(LocalHotspot localHotspot);
 
     event EventHandler HotspotsChanged;
 }
@@ -37,11 +40,13 @@ internal interface IHotspotsReportViewModel : IDisposable
 internal sealed class HotspotsReportViewModel : IHotspotsReportViewModel
 {
     private readonly ILocalHotspotsStore hotspotsStore;
+    private readonly IReviewHotspotsService reviewHotspotsService;
 
     [ImportingConstructor]
-    public HotspotsReportViewModel(ILocalHotspotsStore hotspotsStore)
+    public HotspotsReportViewModel(ILocalHotspotsStore hotspotsStore, IReviewHotspotsService reviewHotspotsService)
     {
         this.hotspotsStore = hotspotsStore;
+        this.reviewHotspotsService = reviewHotspotsService;
         hotspotsStore.IssuesChanged += HotspotsStore_IssuesChanged;
     }
 
@@ -54,6 +59,8 @@ internal sealed class HotspotsReportViewModel : IHotspotsReportViewModel
         var hotspots = hotspotsStore.GetAllLocalHotspots().Select(x => new HotspotViewModel(x));
         return GetGroupViewModel(hotspots);
     }
+
+    public async Task ShowHotspotInBrowserAsync(LocalHotspot localHotspot) => await reviewHotspotsService.OpenHotspotAsync(localHotspot.Visualization.Issue.IssueServerKey);
 
     private static ObservableCollection<IGroupViewModel> GetGroupViewModel(IEnumerable<IIssueViewModel> issueViewModels)
     {
