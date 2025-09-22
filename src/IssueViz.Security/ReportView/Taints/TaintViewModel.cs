@@ -72,4 +72,5 @@ internal class TaintViewModel : AnalysisIssueViewModelBase
     }
 
     public override DisplaySeverity DisplaySeverity { get; }
+    public override IssueType IssueType => IssueType.TaintVulnerability;
 }
