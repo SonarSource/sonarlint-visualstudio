@@ -280,15 +280,16 @@ public class ReportViewModelTest
     }
 
     [TestMethod]
-    public void HotspotsChanged_HotspotAdded_NoGroupExists_CreatesGroup()
+    public void HotspotsChanged_HotspotsAdded_NoGroupExists_CreatesGroup()
     {
         ClearCallsForReportsViewModels();
         var hotspot = CreateHotspotVisualization(Guid.NewGuid(), "serverKey", filePath: "myFile.cs");
+        var hotspot2 = CreateHotspotVisualization(Guid.NewGuid(), "serverKey2", filePath: "myFile.cs");
 
-        hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [hotspot]));
+        hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [hotspot, hotspot2]));
 
         testSubject.GroupViewModels.Should().HaveCount(1);
-        VerifyExpectedGroupFileViewModel(testSubject.GroupViewModels[0] as GroupFileViewModel, hotspot);
+        VerifyExpectedGroupFileViewModel(testSubject.GroupViewModels[0] as GroupFileViewModel, hotspot, hotspot2);
         VerifyHasGroupsUpdated();
         dependencyRisksStore.DidNotReceive().GetAll();
         taintsReportViewModel.DidNotReceive().GetTaintsGroupViewModels();
@@ -390,11 +391,12 @@ public class ReportViewModelTest
     {
         ClearCallsForReportsViewModels();
         var taint = CreateTaintVisualization(Guid.NewGuid(), "serverKey", filePath: "myFile.cs");
+        var taint2 = CreateTaintVisualization(Guid.NewGuid(), "serverKey", filePath: "myFile.cs");
 
-        taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [taint]));
+        taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [taint, taint2]));
 
         testSubject.GroupViewModels.Should().HaveCount(1);
-        VerifyExpectedGroupFileViewModel(testSubject.GroupViewModels[0] as GroupFileViewModel, taint);
+        VerifyExpectedGroupFileViewModel(testSubject.GroupViewModels[0] as GroupFileViewModel, taint, taint2);
         VerifyHasGroupsUpdated();
         dependencyRisksStore.DidNotReceive().GetAll();
         taintsReportViewModel.DidNotReceive().GetTaintsGroupViewModels();

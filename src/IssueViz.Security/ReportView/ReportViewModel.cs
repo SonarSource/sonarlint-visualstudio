@@ -185,11 +185,9 @@ internal class ReportViewModel : ServerViewModel
 
     private void UpdateDeletedIssueViewModels(IReadOnlyCollection<IIssueViewModel> removedIssues)
     {
-        var groupFileViewModels = GroupViewModels.Where(vm => vm is GroupFileViewModel).Cast<GroupFileViewModel>().ToList();
         foreach (var removedIssueVm in removedIssues)
         {
-            var group = groupFileViewModels.FirstOrDefault(groupVm => removedIssueVm.FilePath == groupVm.FilePath);
-            if (group != null)
+            if (GetGroupViewModelOfIssueViewModel(removedIssueVm) is { } group)
             {
                 group.FilteredIssues.Remove(removedIssueVm);
                 if (!group.FilteredIssues.Any())
@@ -202,11 +200,9 @@ internal class ReportViewModel : ServerViewModel
 
     private void UpdateAddedIssueViewModels(IReadOnlyCollection<IIssueViewModel> addedIssueViewModels)
     {
-        var groupFileViewModels = GroupViewModels.Where(vm => vm is GroupFileViewModel).Cast<GroupFileViewModel>().ToList();
         foreach (var addedIssueViewModel in addedIssueViewModels)
         {
-            var group = groupFileViewModels.FirstOrDefault(groupVm => addedIssueViewModel.FilePath == groupVm.FilePath);
-            if (group != null)
+            if (GetGroupViewModelOfIssueViewModel(addedIssueViewModel) is { } group)
             {
                 group.FilteredIssues.Add(addedIssueViewModel);
             }
@@ -216,6 +212,9 @@ internal class ReportViewModel : ServerViewModel
             }
         }
     }
+
+    private IGroupViewModel GetGroupViewModelOfIssueViewModel(IIssueViewModel issueViewModel) =>
+        GroupViewModels.FirstOrDefault(groupVm => groupVm is GroupFileViewModel && issueViewModel.FilePath == ((GroupFileViewModel)groupVm).FilePath);
 
     private void InitializeCommands(
         INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
