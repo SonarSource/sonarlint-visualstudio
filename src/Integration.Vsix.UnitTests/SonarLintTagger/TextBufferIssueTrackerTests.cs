@@ -302,17 +302,6 @@ public class TextBufferIssueTrackerTests
     }
 
     [TestMethod]
-    public void UpdateAnalysisState_ClearsErrorList()
-    {
-        var textDocument = mockedJavascriptDocumentFooJs;
-
-        CreateTestSubject(textDocument).UpdateAnalysisState();
-
-        issueConsumer.Received().SetIssues(textDocument.FilePath, []);
-        issueConsumer.Received().SetHotspots(textDocument.FilePath, []);
-    }
-
-    [TestMethod]
     public void UpdateAnalysisState_NonCriticalException_IsSuppressed()
     {
         SetUpIssueConsumerStorageThrows(new InvalidOperationException());
@@ -509,8 +498,8 @@ public class TextBufferIssueTrackerTests
         issueConsumerFactory.Received().Create(textDocument, newAnalysisSnapshot.FilePath, newAnalysisSnapshot.TextSnapshot, Arg.Any<string>(), Arg.Any<Guid>(),
             Arg.Any<SnapshotChangedHandler>());
         issueConsumerStorage.Received().Set(textDocument.FilePath, Arg.Any<IIssueConsumer>());
-        issueConsumer.Received().SetIssues(textDocument.FilePath, []);
-        issueConsumer.Received().SetHotspots(textDocument.FilePath, []);
+        issueConsumer.DidNotReceiveWithAnyArgs().SetIssues(default, default);
+        issueConsumer.DidNotReceiveWithAnyArgs().SetHotspots(default, default);
         eventHandler.Received().Invoke(taggerProvider,
             Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == textDocument.FilePath
                                            && x.Document.DetectedLanguages == javascriptLanguage
