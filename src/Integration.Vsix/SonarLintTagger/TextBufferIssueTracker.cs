@@ -188,13 +188,6 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         var (projectName, projectGuid) = vsProjectInfoProvider.GetDocumentProjectInfo(analysisSnapshot.FilePath);
         var issueConsumer = issueConsumerFactory.Create(document, analysisSnapshot.FilePath, analysisSnapshot.TextSnapshot, projectName, projectGuid, SnapToNewSnapshot);
         issueConsumerStorage.Set(analysisSnapshot.FilePath, issueConsumer);
-        ClearErrorList(analysisSnapshot.FilePath, issueConsumer);
-    }
-
-    private static void ClearErrorList(string filePath, IIssueConsumer issueConsumer)
-    {
-        issueConsumer.SetIssues(filePath, []);
-        issueConsumer.SetHotspots(filePath, []);
     }
 
     private void TextBuffer_OnChangedOnBackground(object sender, TextContentChangedEventArgs e) =>
