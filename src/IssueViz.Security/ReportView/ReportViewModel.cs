@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
@@ -40,6 +41,7 @@ internal class ReportViewModel : ServerViewModel
     private readonly IDependencyRisksReportViewModel dependencyRisksReportViewModel;
     private readonly ITaintsReportViewModel taintsReportViewModel;
     private readonly ITelemetryManager telemetryManager;
+    private readonly IThreadHandling threadHandling;
     private readonly object @lock = new();
     private IIssueViewModel selectedItem;
 
@@ -57,6 +59,7 @@ internal class ReportViewModel : ServerViewModel
         this.dependencyRisksReportViewModel = dependencyRisksReportViewModel;
         this.taintsReportViewModel = taintsReportViewModel;
         this.telemetryManager = telemetryManager;
+        this.threadHandling = threadHandling;
 
         threadHandling.RunOnUIThread(() => { BindingOperations.EnableCollectionSynchronization(GroupViewModels, @lock); });
         hotspotsReportViewModel.IssuesChanged += HotspotsChanged;
@@ -118,13 +121,17 @@ internal class ReportViewModel : ServerViewModel
 
     private void HotspotsChanged(object sender, IssuesChangedEventArgs e)
     {
-        foreach (var groupViewModel in GroupViewModels.Where(vm => vm is not GroupDependencyRiskViewModel).ToList())
-        {
-            GroupViewModels.Remove(groupViewModel);
-        }
-        // TODO by SLVS-2525 improve merging. Instead of removing and re-adding all hotspots and taints groups, we should only add/remove the necessary ones
-        InitializeHotspots();
-        InitializeTaints();
+        var currentHotspotViewModels = GroupViewModels.SelectMany(group => group.FilteredIssues).Where(vm => vm is HotspotViewModel).Cast<HotspotViewModel>();
+        var addedHotspotsViewModels = e.AddedIssues.Select(viz => new HotspotViewModel(LocalHotspot.ToLocalHotspot(viz))).ToList();
+        var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(vm.IsSameAnalysisIssue)).ToList();
+        UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
+    }
+
+    private void UpdateChangedIssues(IReadOnlyCollection<IIssueViewModel> addedIssueViewModels, IReadOnlyCollection<IIssueViewModel> removedIssues)
+    {
+        UpdateDeletedIssueViewModels(removedIssues);
+        UpdateAddedIssueViewModels(addedIssueViewModels);
+        RaisePropertyChanged(nameof(HasGroups));
     }
 
     private void DependencyRisksChanged(object sender, EventArgs e)
@@ -138,13 +145,10 @@ internal class ReportViewModel : ServerViewModel
 
     private void TaintsChanged(object sender, IssuesChangedEventArgs e)
     {
-        foreach (var groupViewModel in GroupViewModels.Where(vm => vm is not GroupDependencyRiskViewModel).ToList())
-        {
-            GroupViewModels.Remove(groupViewModel);
-        }
-        // TODO by SLVS-2525 improve merging. Instead of removing and re-adding all hotspots and taints groups, we should only add/remove the necessary ones
-        InitializeHotspots();
-        InitializeTaints();
+        var addedHotspotsViewModels = e.AddedIssues.Select(viz => new TaintViewModel(viz)).ToList();
+        var currentHotspotViewModels = GroupViewModels.SelectMany(group => group.FilteredIssues).Where(vm => vm is TaintViewModel).Cast<TaintViewModel>();
+        var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(vm.IsSameAnalysisIssue)).ToList();
+        UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
     }
 
     private void InitializeViewModels()
@@ -177,6 +181,40 @@ internal class ReportViewModel : ServerViewModel
         var groups = taintsReportViewModel.GetTaintsGroupViewModels();
         groups.ToList().ForEach(g => GroupViewModels.Add(g));
         RaisePropertyChanged(nameof(HasGroups));
+    }
+
+    private void UpdateDeletedIssueViewModels(IReadOnlyCollection<IIssueViewModel> removedIssues)
+    {
+        var groupFileViewModels = GroupViewModels.Where(vm => vm is GroupFileViewModel).Cast<GroupFileViewModel>().ToList();
+        foreach (var removedIssueVm in removedIssues)
+        {
+            var group = groupFileViewModels.FirstOrDefault(groupVm => removedIssueVm.FilePath == groupVm.FilePath);
+            if (group != null)
+            {
+                group.FilteredIssues.Remove(removedIssueVm);
+                if (!group.FilteredIssues.Any())
+                {
+                    GroupViewModels.Remove(group);
+                }
+            }
+        }
+    }
+
+    private void UpdateAddedIssueViewModels(IReadOnlyCollection<IIssueViewModel> addedIssueViewModels)
+    {
+        var groupFileViewModels = GroupViewModels.Where(vm => vm is GroupFileViewModel).Cast<GroupFileViewModel>().ToList();
+        foreach (var addedIssueViewModel in addedIssueViewModels)
+        {
+            var group = groupFileViewModels.FirstOrDefault(groupVm => addedIssueViewModel.FilePath == groupVm.FilePath);
+            if (group != null)
+            {
+                group.FilteredIssues.Add(addedIssueViewModel);
+            }
+            else
+            {
+                GroupViewModels.Add(new GroupFileViewModel(addedIssueViewModel.FilePath, [addedIssueViewModel], threadHandling));
+            }
+        }
     }
 
     private void InitializeCommands(
