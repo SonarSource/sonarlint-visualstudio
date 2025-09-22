@@ -18,8 +18,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary
-                    Source="../DependencyRisks/DependencyRiskImpactSeverity.xaml" />
+                <ResourceDictionary Source="SeverityIcons.xaml" />
                 <ResourceDictionary Source="../SharedUI/SharedResources.xaml" />
                 <ResourceDictionary Source="Hotspots/HotspotSeverity.xaml" />
             </ResourceDictionary.MergedDictionaries>
