@@ -25,7 +25,9 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -182,6 +184,44 @@ public class ReportViewModelTest
 
         testSubject.SelectedItem.Should().BeSameAs(issueViewModel);
         telemetryManager.DidNotReceive().DependencyRiskInvestigatedLocally();
+        telemetryManager.DidNotReceive().HotspotInvestigatedLocally();
+    }
+
+    [TestMethod]
+    public void SelectedItem_SetToHotspotViewModel_CallsTelemetryForDependencyRisk()
+    {
+        var hotspotViewModel = new HotspotViewModel(CreateMockedHotspot());
+
+        testSubject.SelectedItem = hotspotViewModel;
+
+        testSubject.SelectedItem.Should().BeSameAs(hotspotViewModel);
+        telemetryManager.Received(1).HotspotInvestigatedLocally();
+    }
+
+    [TestMethod]
+    public void SelectedItem_SetToSameHotspotViewModel_DoesNotCallTelemetry()
+    {
+        var hotspotViewModel = new HotspotViewModel(CreateMockedHotspot());
+        testSubject.SelectedItem = hotspotViewModel;
+        telemetryManager.ClearReceivedCalls();
+
+        testSubject.SelectedItem = hotspotViewModel;
+
+        telemetryManager.DidNotReceive().HotspotInvestigatedLocally();
+    }
+
+    [TestMethod]
+    public void SelectedItem_SetToDifferentHotspotViewModel_CallsTelemetry()
+    {
+        var hotspotViewModel1 = new HotspotViewModel(CreateMockedHotspot());
+        var hotspotViewModel2 = new HotspotViewModel(CreateMockedHotspot());
+        testSubject.SelectedItem = hotspotViewModel1;
+        telemetryManager.ClearReceivedCalls();
+
+        testSubject.SelectedItem = hotspotViewModel2;
+
+        testSubject.SelectedItem.Should().BeSameAs(hotspotViewModel2);
+        telemetryManager.Received(1).HotspotInvestigatedLocally();
     }
 
     [TestMethod]
@@ -195,6 +235,7 @@ public class ReportViewModelTest
 
         testSubject.SelectedItem.Should().BeNull();
         telemetryManager.DidNotReceive().DependencyRiskInvestigatedLocally();
+        telemetryManager.DidNotReceive().HotspotInvestigatedLocally();
     }
 
     [TestMethod]
@@ -391,4 +432,6 @@ public class ReportViewModelTest
     }
 
     private void VerifyHasGroupsUpdated() => eventHandler.Received().Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.HasGroups)));
+
+    private static LocalHotspot CreateMockedHotspot() => new(Substitute.For<IAnalysisIssueVisualization>(), default, default);
 }

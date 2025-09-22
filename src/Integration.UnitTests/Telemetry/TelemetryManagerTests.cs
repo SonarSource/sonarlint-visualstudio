@@ -19,7 +19,6 @@
  */
 
 using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration.Telemetry;
 using SonarLint.VisualStudio.SLCore.Service.Telemetry;
@@ -241,6 +240,30 @@ public class TelemetryManagerTests
         {
             telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
             telemetryService.DependencyRiskInvestigatedLocally();
+        });
+    }
+
+    [TestMethod]
+    public void HotspotInvestigatedLocally_CallsRpcService()
+    {
+        telemetryManager.HotspotInvestigatedLocally();
+
+        Received.InOrder(() =>
+        {
+            telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
+            telemetryService.HotspotInvestigatedLocally();
+        });
+    }
+
+    [TestMethod]
+    public void HotspotInvestigatedRemotely_CallsRpcService()
+    {
+        telemetryManager.HotspotInvestigatedRemotely();
+
+        Received.InOrder(() =>
+        {
+            telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
+            telemetryService.HotspotInvestigatedRemotely();
         });
     }
 
