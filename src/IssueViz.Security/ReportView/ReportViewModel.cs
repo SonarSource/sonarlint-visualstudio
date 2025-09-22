@@ -19,56 +19,43 @@
  */
 
 using System.Collections.ObjectModel;
-using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
-using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
 internal class ReportViewModel : ServerViewModel
 {
-    private readonly IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler;
-    private readonly IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler;
-    private readonly IMessageBox messageBox;
+    private readonly IHotspotsReportViewModel hotspotsReportViewModel;
+    private readonly IDependencyRisksReportViewModel dependencyRisksReportViewModel;
     private readonly ITelemetryManager telemetryManager;
-    private readonly IDependencyRisksStore dependencyRisksStore;
-    private readonly ILocalHotspotsStore hotspotsStore;
     private readonly object @lock = new();
     private IIssueViewModel selectedItem;
 
     public ReportViewModel(
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
-        IDependencyRisksStore dependencyRisksStore,
-        ILocalHotspotsStore hotspotsStore,
-        IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler,
-        IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler,
         INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
         ILocationNavigator locationNavigator,
-        IMessageBox messageBox,
+        IHotspotsReportViewModel hotspotsReportViewModel,
+        IDependencyRisksReportViewModel dependencyRisksReportViewModel,
         ITelemetryManager telemetryManager,
         IThreadHandling threadHandling) : base(activeSolutionBoundTracker)
     {
-        this.dependencyRisksStore = dependencyRisksStore;
-        this.hotspotsStore = hotspotsStore;
-        this.showDependencyRiskInBrowserHandler = showDependencyRiskInBrowserHandler;
-        this.changeDependencyRiskStatusHandler = changeDependencyRiskStatusHandler;
-        this.messageBox = messageBox;
+        this.hotspotsReportViewModel = hotspotsReportViewModel;
+        this.dependencyRisksReportViewModel = dependencyRisksReportViewModel;
         this.telemetryManager = telemetryManager;
 
         threadHandling.RunOnUIThread(() => { BindingOperations.EnableCollectionSynchronization(GroupViewModels, @lock); });
-        hotspotsStore.IssuesChanged += HotspotsStore_IssuesChanged;
-        dependencyRisksStore.DependencyRisksChanged += DependencyRisksStore_DependencyRiskChanged;
+        hotspotsReportViewModel.HotspotsChanged += HotspotsChanged;
+        dependencyRisksReportViewModel.DependencyRisksChanged += DependencyRisksChanged;
 
         InitializeCommands(navigateToRuleDescriptionCommand, locationNavigator);
         InitializeViewModels();
@@ -92,30 +79,14 @@ internal class ReportViewModel : ServerViewModel
         }
     }
 
-    public async Task ChangeStatusAsync(IDependencyRisk dependencyRisk, DependencyRiskTransition? selectedTransition, string getNormalizedComment)
-    {
-        if (selectedTransition is not { } transition)
-        {
-            ShowFailureMessage(Resources.DependencyRiskNullTransitionError);
-            return;
-        }
-
-        var result = await changeDependencyRiskStatusHandler.ChangeStatusAsync(dependencyRisk.Id, transition, getNormalizedComment);
-
-        if (!result)
-        {
-            ShowFailureMessage(Resources.DependencyRiskStatusChangeError);
-        }
-    }
-
-    private void ShowFailureMessage(string errorMessage) => messageBox.Show(Resources.DependencyRiskStatusChangeFailedTitle, errorMessage, MessageBoxButton.OK, MessageBoxImage.Error);
-
-    public void ShowInBrowser(IDependencyRisk dependencyRisk) => showDependencyRiskInBrowserHandler.ShowInBrowser(dependencyRisk.Id);
-
     protected override void Dispose(bool disposing)
     {
-        hotspotsStore.IssuesChanged -= HotspotsStore_IssuesChanged;
-        dependencyRisksStore.DependencyRisksChanged -= DependencyRisksStore_DependencyRiskChanged;
+        hotspotsReportViewModel.HotspotsChanged -= HotspotsChanged;
+        hotspotsReportViewModel.Dispose();
+
+        dependencyRisksReportViewModel.DependencyRisksChanged -= DependencyRisksChanged;
+        dependencyRisksReportViewModel.Dispose();
+
         foreach (var groupViewModel in GroupViewModels)
         {
             groupViewModel.Dispose();
@@ -131,7 +102,7 @@ internal class ReportViewModel : ServerViewModel
         }
     }
 
-    private void HotspotsStore_IssuesChanged(object sender, IssuesChangedEventArgs e)
+    private void HotspotsChanged(object sender, EventArgs e)
     {
         foreach (var groupViewModel in GroupViewModels.Where(vm => vm is not GroupDependencyRiskViewModel).ToList())
         {
@@ -140,7 +111,7 @@ internal class ReportViewModel : ServerViewModel
         InitializeHotspots();
     }
 
-    private void DependencyRisksStore_DependencyRiskChanged(object sender, EventArgs e)
+    private void DependencyRisksChanged(object sender, EventArgs e)
     {
         if (GroupViewModels.SingleOrDefault(vm => vm is GroupDependencyRiskViewModel) is { } groupDependencyRiskViewModel)
         {
@@ -158,9 +129,8 @@ internal class ReportViewModel : ServerViewModel
 
     private void InitializeDependencyRisks()
     {
-        var groupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore);
-        groupDependencyRisk.InitializeRisks();
-        if (groupDependencyRisk.FilteredIssues.Any())
+        var groupDependencyRisk = dependencyRisksReportViewModel.GetDependencyRisksGroup();
+        if (groupDependencyRisk != null)
         {
             GroupViewModels.Add(groupDependencyRisk);
         }
@@ -169,22 +139,9 @@ internal class ReportViewModel : ServerViewModel
 
     private void InitializeHotspots()
     {
-        var hotspots = hotspotsStore.GetAllLocalHotspots().Select(x => new HotspotViewModel(x));
-        var groups = GetGroupViewModel(hotspots);
+        var groups = hotspotsReportViewModel.GetHotspotsGroupViewModels();
         groups.ToList().ForEach(g => GroupViewModels.Add(g));
         RaisePropertyChanged(nameof(HasGroups));
-    }
-
-    private static ObservableCollection<IGroupViewModel> GetGroupViewModel(IEnumerable<IIssueViewModel> issueViewModels)
-    {
-        var issuesByFileGrouping = issueViewModels.GroupBy(vm => vm.FilePath);
-        var groupViewModels = new ObservableCollection<IGroupViewModel>();
-        foreach (var group in issuesByFileGrouping)
-        {
-            groupViewModels.Add(new GroupFileViewModel(group.Key, new ObservableCollection<IIssueViewModel>(group)));
-        }
-
-        return groupViewModels;
     }
 
     private void InitializeCommands(
