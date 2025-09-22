@@ -20,7 +20,11 @@
 
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
+using System.Windows;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
@@ -28,6 +32,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots
 internal interface IHotspotsReportViewModel : IDisposable
 {
     ObservableCollection<IGroupViewModel> GetHotspotsGroupViewModels();
+
+    Task ShowHotspotInBrowserAsync(LocalHotspot localHotspot);
+
+    Task<IEnumerable<HotspotStatus>> GetAllowedStatusesAsync(HotspotViewModel selectedHotspotViewModel);
+
+    Task<bool> ChangeHotspotStatusAsync(HotspotViewModel selectedHotspotViewModel, HotspotStatus newStatus);
 
     event EventHandler HotspotsChanged;
 }
@@ -37,11 +47,15 @@ internal interface IHotspotsReportViewModel : IDisposable
 internal sealed class HotspotsReportViewModel : IHotspotsReportViewModel
 {
     private readonly ILocalHotspotsStore hotspotsStore;
+    private readonly IReviewHotspotsService reviewHotspotsService;
+    private readonly IMessageBox messageBox;
 
     [ImportingConstructor]
-    public HotspotsReportViewModel(ILocalHotspotsStore hotspotsStore)
+    public HotspotsReportViewModel(ILocalHotspotsStore hotspotsStore, IReviewHotspotsService reviewHotspotsService, IMessageBox messageBox)
     {
         this.hotspotsStore = hotspotsStore;
+        this.reviewHotspotsService = reviewHotspotsService;
+        this.messageBox = messageBox;
         hotspotsStore.IssuesChanged += HotspotsStore_IssuesChanged;
     }
 
@@ -53,6 +67,35 @@ internal sealed class HotspotsReportViewModel : IHotspotsReportViewModel
     {
         var hotspots = hotspotsStore.GetAllLocalHotspots().Select(x => new HotspotViewModel(x));
         return GetGroupViewModel(hotspots);
+    }
+
+    public async Task ShowHotspotInBrowserAsync(LocalHotspot localHotspot) => await reviewHotspotsService.OpenHotspotAsync(localHotspot.Visualization.Issue.IssueServerKey);
+
+    public async Task<IEnumerable<HotspotStatus>> GetAllowedStatusesAsync(HotspotViewModel selectedHotspotViewModel)
+    {
+        var response = selectedHotspotViewModel == null
+            ? new ReviewHotspotNotPermittedArgs(Resources.ReviewHotspotWindow_NoStatusSelectedFailureMessage)
+            : await reviewHotspotsService.CheckReviewHotspotPermittedAsync(selectedHotspotViewModel.LocalHotspot.Visualization.Issue.IssueServerKey);
+        switch (response)
+        {
+            case ReviewHotspotPermittedArgs reviewHotspotPermittedArgs:
+                return reviewHotspotPermittedArgs.AllowedStatuses;
+            case ReviewHotspotNotPermittedArgs reviewHotspotNotPermittedArgs:
+                messageBox.Show(string.Format(Resources.ReviewHotspotWindow_CheckReviewPermittedFailureMessage, reviewHotspotNotPermittedArgs.Reason), Resources.ReviewHotspotWindow_FailureTitle,
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                break;
+        }
+        return null;
+    }
+
+    public async Task<bool> ChangeHotspotStatusAsync(HotspotViewModel selectedHotspotViewModel, HotspotStatus newStatus)
+    {
+        var wasChanged = await reviewHotspotsService.ReviewHotspotAsync(selectedHotspotViewModel.LocalHotspot.Visualization.Issue.IssueServerKey, newStatus);
+        if (!wasChanged)
+        {
+            messageBox.Show(Resources.ReviewHotspotWindow_ReviewFailureMessage, Resources.ReviewHotspotWindow_FailureTitle, MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        return wasChanged;
     }
 
     private static ObservableCollection<IGroupViewModel> GetGroupViewModel(IEnumerable<IIssueViewModel> issueViewModels)

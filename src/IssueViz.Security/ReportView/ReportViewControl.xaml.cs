@@ -26,13 +26,16 @@ using System.Windows.Media;
 using System.Windows.Navigation;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
+using HotspotViewModel = SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots.HotspotViewModel;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
@@ -113,14 +116,19 @@ internal sealed partial class ReportViewControl : UserControl
         DependencyRisksReportViewModel.ShowDependencyRiskInBrowser(selectedDependencyRiskViewModel.DependencyRisk);
     }
 
-    private void DependencyRiskContextMenu_OnLoaded(object sender, RoutedEventArgs e)
+    private void DependencyRiskContextMenu_OnLoaded(object sender, RoutedEventArgs e) => SetDataContextToReportViewModel<ContextMenu>(sender);
+
+    private void SetDataContextToReportViewModel<T>(object sender) where T : FrameworkElement
     {
-        if (sender is ContextMenu contextMenu)
+        if (sender is T contextMenu)
         {
-            // setting the DataContext directly on the context menu does not work for the TreeViewItem
+            // workaround that allows setting the DataContext to the ReportViewModel, which is not accessible from the TreeViewItem context menu
+            // due to the fact that a context menu is a popup and is not part of the visual tree
             contextMenu.DataContext = ReportViewModel;
         }
     }
+
+    private void ShowHotspotInBrowserMenuItem_OnLoaded(object sender, RoutedEventArgs e) => SetDataContextToReportViewModel<MenuItem>(sender);
 
     private void TreeViewItem_OnMouseRightButtonDown(object sender, MouseButtonEventArgs e)
     {
@@ -178,6 +186,35 @@ internal sealed partial class ReportViewControl : UserControl
         if (command.CanExecute(parameter))
         {
             command.Execute(parameter);
+        }
+    }
+
+    private async void ViewHotspotInBrowser_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (ReportViewModel.SelectedItem is HotspotViewModel hotspotViewModel)
+        {
+            await HotspotsReportViewModel.ShowHotspotInBrowserAsync(hotspotViewModel.LocalHotspot);
+        }
+    }
+
+    private async void ChangeHotspotStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { DataContext: HotspotViewModel hotspotViewModel } ||
+            await HotspotsReportViewModel.GetAllowedStatusesAsync(hotspotViewModel) is not { } allowedStatuses)
+        {
+            return;
+        }
+
+        var changeHotspotStatusViewModel = new ChangeHotspotStatusViewModel(hotspotViewModel.LocalHotspot.HotspotStatus, allowedStatuses);
+        var dialog = new ChangeStatusWindow(changeHotspotStatusViewModel, browserService, activeSolutionBoundTracker);
+        if (dialog.ShowDialog(Application.Current.MainWindow) is true)
+        {
+            var newStatus = changeHotspotStatusViewModel.SelectedStatusViewModel.GetCurrentStatus<HotspotStatus>();
+            var wasChanged = await HotspotsReportViewModel.ChangeHotspotStatusAsync(hotspotViewModel, newStatus);
+            if (wasChanged && newStatus is HotspotStatus.Fixed or HotspotStatus.Safe)
+            {
+                ReportViewModel.GroupViewModels.ToList().ForEach(vm => vm.FilteredIssues.Remove(hotspotViewModel));
+            }
         }
     }
 }

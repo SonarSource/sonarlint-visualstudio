@@ -28,18 +28,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportVie
 [TestClass]
 public class HotspotViewModelTests
 {
+    private readonly LocalHotspot hotspot = CreateMockedHotspot("csharp:101",
+        Guid.NewGuid(),
+        1,
+        66,
+        "remove todo comment",
+        "myClass.cs");
+    private HotspotViewModel testSubject;
+
+    [TestInitialize]
+    public void TestInitialize() => testSubject = new HotspotViewModel(hotspot);
+
     [TestMethod]
     public void Ctor_InitializesPropertiesAsExpected()
     {
-        var hotspot = CreateMockedHotspot("csharp:101",
-            Guid.NewGuid(),
-            1,
-            66,
-            "remove todo comment",
-            "myClass.cs");
-
-        var testSubject = new HotspotViewModel(hotspot);
-
         testSubject.LocalHotspot.Should().Be(hotspot);
         testSubject.RuleInfo.RuleKey.Should().Be(hotspot.Visualization.RuleId);
         testSubject.RuleInfo.IssueId.Should().Be(hotspot.Visualization.IssueId);
@@ -48,6 +50,22 @@ public class HotspotViewModelTests
         testSubject.Title.Should().Be(hotspot.Visualization.Issue.PrimaryLocation.Message);
         testSubject.FilePath.Should().Be(hotspot.Visualization.Issue.PrimaryLocation.FilePath);
         testSubject.Issue.Should().Be(hotspot.Visualization);
+    }
+
+    [TestMethod]
+    public void ExistsOnServer_LocalHotspot_ReturnsFalse()
+    {
+        hotspot.Visualization.Issue.IssueServerKey.Returns((string)null);
+
+        testSubject.ExistsOnServer.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void ExistsOnServer_ServerHotspot_ReturnsTrue()
+    {
+        hotspot.Visualization.Issue.IssueServerKey.Returns(Guid.NewGuid().ToString());
+
+        testSubject.ExistsOnServer.Should().BeTrue();
     }
 
     private static LocalHotspot CreateMockedHotspot(
