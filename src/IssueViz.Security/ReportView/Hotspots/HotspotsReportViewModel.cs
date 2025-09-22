@@ -23,6 +23,7 @@ using System.ComponentModel.Composition;
 using System.Windows;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
@@ -49,13 +50,19 @@ internal sealed class HotspotsReportViewModel : IHotspotsReportViewModel
     private readonly ILocalHotspotsStore hotspotsStore;
     private readonly IReviewHotspotsService reviewHotspotsService;
     private readonly IMessageBox messageBox;
+    private readonly ITelemetryManager telemetryManager;
 
     [ImportingConstructor]
-    public HotspotsReportViewModel(ILocalHotspotsStore hotspotsStore, IReviewHotspotsService reviewHotspotsService, IMessageBox messageBox)
+    public HotspotsReportViewModel(
+        ILocalHotspotsStore hotspotsStore,
+        IReviewHotspotsService reviewHotspotsService,
+        IMessageBox messageBox,
+        ITelemetryManager telemetryManager)
     {
         this.hotspotsStore = hotspotsStore;
         this.reviewHotspotsService = reviewHotspotsService;
         this.messageBox = messageBox;
+        this.telemetryManager = telemetryManager;
         hotspotsStore.IssuesChanged += HotspotsStore_IssuesChanged;
     }
 
@@ -69,7 +76,11 @@ internal sealed class HotspotsReportViewModel : IHotspotsReportViewModel
         return GetGroupViewModel(hotspots);
     }
 
-    public async Task ShowHotspotInBrowserAsync(LocalHotspot localHotspot) => await reviewHotspotsService.OpenHotspotAsync(localHotspot.Visualization.Issue.IssueServerKey);
+    public async Task ShowHotspotInBrowserAsync(LocalHotspot localHotspot)
+    {
+        await reviewHotspotsService.OpenHotspotAsync(localHotspot.Visualization.Issue.IssueServerKey);
+        telemetryManager.HotspotInvestigatedRemotely();
+    }
 
     public async Task<IEnumerable<HotspotStatus>> GetAllowedStatusesAsync(HotspotViewModel selectedHotspotViewModel)
     {

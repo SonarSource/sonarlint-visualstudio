@@ -21,6 +21,7 @@
 using System.Windows;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
@@ -39,6 +40,7 @@ public class HotspotsReportViewModelTest
     private ILocalHotspotsStore localHotspotsStore;
     private IMessageBox messageBox;
     private IReviewHotspotsService reviewHotspotsService;
+    private ITelemetryManager telemetryManager;
     private HotspotsReportViewModel testSubject;
 
     [TestInitialize]
@@ -47,7 +49,8 @@ public class HotspotsReportViewModelTest
         localHotspotsStore = Substitute.For<ILocalHotspotsStore>();
         reviewHotspotsService = Substitute.For<IReviewHotspotsService>();
         messageBox = Substitute.For<IMessageBox>();
-        testSubject = new HotspotsReportViewModel(localHotspotsStore, reviewHotspotsService, messageBox);
+        telemetryManager = Substitute.For<ITelemetryManager>();
+        testSubject = new HotspotsReportViewModel(localHotspotsStore, reviewHotspotsService, messageBox, telemetryManager);
     }
 
     [TestMethod]
@@ -55,7 +58,8 @@ public class HotspotsReportViewModelTest
         MefTestHelpers.CheckTypeCanBeImported<HotspotsReportViewModel, IHotspotsReportViewModel>(
             MefTestHelpers.CreateExport<ILocalHotspotsStore>(),
             MefTestHelpers.CreateExport<IReviewHotspotsService>(),
-            MefTestHelpers.CreateExport<IMessageBox>()
+            MefTestHelpers.CreateExport<IMessageBox>(),
+            MefTestHelpers.CreateExport<ITelemetryManager>()
         );
 
     [TestMethod]
@@ -127,13 +131,14 @@ public class HotspotsReportViewModelTest
     }
 
     [TestMethod]
-    public async Task ShowHotspotInBrowserAsync_CallsHandler()
+    public async Task ShowHotspotInBrowserAsync_CallsHandlerAndTelemetry()
     {
         var hotspot = CreateMockedHotspot("myFile.cs");
 
         await testSubject.ShowHotspotInBrowserAsync(hotspot);
 
         reviewHotspotsService.Received(1).OpenHotspotAsync(hotspot.Visualization.Issue.IssueServerKey).IgnoreAwaitForAssert();
+        telemetryManager.Received(1).HotspotInvestigatedRemotely();
     }
 
     [TestMethod]

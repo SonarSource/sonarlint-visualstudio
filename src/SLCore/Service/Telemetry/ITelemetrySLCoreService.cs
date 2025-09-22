@@ -27,18 +27,36 @@ namespace SonarLint.VisualStudio.SLCore.Service.Telemetry;
 public interface ITelemetrySLCoreService : ISLCoreService
 {
     Task<GetStatusResponse> GetStatusAsync();
+
     void EnableTelemetry();
+
     void DisableTelemetry();
+
     void AnalysisDoneOnSingleLanguage(AnalysisDoneOnSingleLanguageParams parameters);
+
     void DevNotificationsClicked(DevNotificationsClickedParams parameters);
+
     void TaintVulnerabilitiesInvestigatedLocally();
+
     void TaintVulnerabilitiesInvestigatedRemotely();
+
     void AddReportedRules(AddReportedRulesParams parameters);
+
     void AddQuickFixAppliedForRule(AddQuickFixAppliedForRuleParams parameters);
+
     void FixSuggestionResolved(FixSuggestionResolvedParams parameters);
+
     void HelpAndFeedbackLinkClicked(HelpAndFeedbackClickedParams parameters);
+
     void AddedManualBindings();
+
     void AddedImportedBindings();
+
     void AddedAutomaticBindings();
+
     void DependencyRiskInvestigatedLocally();
+
+    void HotspotInvestigatedLocally();
+
+    void HotspotInvestigatedRemotely();
 }

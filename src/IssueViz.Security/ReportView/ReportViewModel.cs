@@ -96,9 +96,14 @@ internal class ReportViewModel : ServerViewModel
 
     private void UpdateTelemetry(IIssueViewModel issueViewModel)
     {
-        if (issueViewModel is DependencyRiskViewModel)
+        switch (issueViewModel)
         {
-            telemetryManager.DependencyRiskInvestigatedLocally();
+            case DependencyRiskViewModel:
+                telemetryManager.DependencyRiskInvestigatedLocally();
+                break;
+            case HotspotViewModel:
+                telemetryManager.HotspotInvestigatedLocally();
+                break;
         }
     }
 
