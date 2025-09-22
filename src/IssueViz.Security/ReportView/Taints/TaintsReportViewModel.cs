@@ -29,44 +29,22 @@ internal interface ITaintsReportViewModel : IDisposable
 {
     ObservableCollection<IGroupViewModel> GetTaintsGroupViewModels();
 
-    event EventHandler TaintsChanged;
+    event EventHandler<IssuesChangedEventArgs> IssuesChanged;
 }
 
 [Export(typeof(ITaintsReportViewModel))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class TaintsReportViewModel : ITaintsReportViewModel
+internal sealed class TaintsReportViewModel : IssuesReportViewModelBase, ITaintsReportViewModel
 {
     private readonly ITaintStore taintsStore;
 
-    // TODO by SLVS-2525 introduce base view model to avoid duplication with HotspotsReportViewModel (and future IssuesReportViewModel)
     [ImportingConstructor]
-    public TaintsReportViewModel(ITaintStore taintsStore)
+    public TaintsReportViewModel(ITaintStore taintsStore) : base(taintsStore)
     {
         this.taintsStore = taintsStore;
-        taintsStore.IssuesChanged += TaintsStore_IssuesChanged;
     }
 
-    public void Dispose() => taintsStore.IssuesChanged -= TaintsStore_IssuesChanged;
+    public ObservableCollection<IGroupViewModel> GetTaintsGroupViewModels() => GetGroupViewModels();
 
-    public event EventHandler TaintsChanged;
-
-    public ObservableCollection<IGroupViewModel> GetTaintsGroupViewModels()
-    {
-        var taints = taintsStore.GetAll().Select(x => new TaintViewModel(x));
-        return GetGroupViewModel(taints);
-    }
-
-    private static ObservableCollection<IGroupViewModel> GetGroupViewModel(IEnumerable<IIssueViewModel> issueViewModels)
-    {
-        var issuesByFileGrouping = issueViewModels.GroupBy(vm => vm.FilePath);
-        var groupViewModels = new ObservableCollection<IGroupViewModel>();
-        foreach (var group in issuesByFileGrouping)
-        {
-            groupViewModels.Add(new GroupFileViewModel(group.Key, new ObservableCollection<IIssueViewModel>(group)));
-        }
-
-        return groupViewModels;
-    }
-
-    private void TaintsStore_IssuesChanged(object sender, IssuesChangedEventArgs e) => TaintsChanged?.Invoke(this, EventArgs.Empty);
+    protected override IEnumerable<IIssueViewModel> GetIssueViewModels() => taintsStore.GetAll().Select(x => new TaintViewModel(x));
 }

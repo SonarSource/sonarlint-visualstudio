@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView.Taint;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView.Taints;
 
 [TestClass]
 public class TaintsReportViewModelTest
@@ -107,7 +107,7 @@ public class TaintsReportViewModelTest
     public void TaintsChanged_RaisedOnStoreIssuesChanged()
     {
         var raised = false;
-        testSubject.TaintsChanged += (_, _) => raised = true;
+        testSubject.IssuesChanged += (_, _) => raised = true;
 
         localTaintsStore.IssuesChanged += Raise.Event<EventHandler<IssuesChangedEventArgs>>(null, null);
 

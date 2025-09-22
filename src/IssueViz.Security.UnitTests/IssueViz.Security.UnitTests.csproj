@@ -26,8 +26,4 @@
     <Reference Include="PresentationCore" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ReportView\Taints\" />
-  </ItemGroup>
-
 </Project>

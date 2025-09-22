@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewMo
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
@@ -79,9 +80,9 @@ public class ReportViewModelTest
     [TestMethod]
     public void Class_SubscribesToEvents()
     {
-        hotspotsReportViewModel.Received(1).HotspotsChanged += Arg.Any<EventHandler>();
+        hotspotsReportViewModel.Received(1).IssuesChanged += Arg.Any<EventHandler<IssuesChangedEventArgs>>();
         dependencyRisksStore.Received(1).DependencyRisksChanged += Arg.Any<EventHandler>();
-        taintsReportViewModel.Received(1).TaintsChanged += Arg.Any<EventHandler>();
+        taintsReportViewModel.Received(1).IssuesChanged += Arg.Any<EventHandler<IssuesChangedEventArgs>>();
     }
 
     [TestMethod]
@@ -166,9 +167,9 @@ public class ReportViewModelTest
         testSubject.Dispose();
 
         dependencyRisksStore.Received(1).DependencyRisksChanged -= Arg.Any<EventHandler>();
-        hotspotsReportViewModel.Received(1).HotspotsChanged -= Arg.Any<EventHandler>();
+        hotspotsReportViewModel.Received(1).IssuesChanged -= Arg.Any<EventHandler<IssuesChangedEventArgs>>();
         hotspotsReportViewModel.Received(1).Dispose();
-        taintsReportViewModel.Received(1).TaintsChanged -= Arg.Any<EventHandler>();
+        taintsReportViewModel.Received(1).IssuesChanged -= Arg.Any<EventHandler<IssuesChangedEventArgs>>();
         taintsReportViewModel.Received(1).Dispose();
     }
 
@@ -284,7 +285,7 @@ public class ReportViewModelTest
         hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns([group1, group2]);
         ClearCallsForReportsViewModels();
 
-        hotspotsReportViewModel.HotspotsChanged += Raise.EventWith(testSubject, EventArgs.Empty);
+        hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], []));
 
         testSubject.GroupViewModels.Should().HaveCount(2);
         testSubject.GroupViewModels.Should().Contain(group1);
@@ -300,7 +301,7 @@ public class ReportViewModelTest
         hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns([]);
         ClearCallsForReportsViewModels();
 
-        hotspotsReportViewModel.HotspotsChanged += Raise.EventWith(testSubject, EventArgs.Empty);
+        hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], []));
 
         testSubject.GroupViewModels.Should().BeEmpty();
         VerifyHasGroupsUpdated();
@@ -316,7 +317,7 @@ public class ReportViewModelTest
         taintsReportViewModel.GetTaintsGroupViewModels().Returns([group1, group2]);
         ClearCallsForReportsViewModels();
 
-        taintsReportViewModel.TaintsChanged += Raise.EventWith(testSubject, EventArgs.Empty);
+        taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], []));
 
         testSubject.GroupViewModels.Should().HaveCount(2);
         testSubject.GroupViewModels.Should().Contain(group1);
@@ -332,7 +333,7 @@ public class ReportViewModelTest
         taintsReportViewModel.GetTaintsGroupViewModels().Returns([]);
         ClearCallsForReportsViewModels();
 
-        taintsReportViewModel.TaintsChanged += Raise.EventWith(testSubject, EventArgs.Empty);
+        taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], []));
 
         testSubject.GroupViewModels.Should().BeEmpty();
         VerifyHasGroupsUpdated();

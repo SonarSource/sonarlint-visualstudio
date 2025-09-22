@@ -123,7 +123,7 @@ public class HotspotsReportViewModelTest
     public void HotspotsChanged_RaisedOnStoreIssuesChanged()
     {
         var raised = false;
-        testSubject.HotspotsChanged += (_, _) => raised = true;
+        testSubject.IssuesChanged += (_, _) => raised = true;
 
         localHotspotsStore.IssuesChanged += Raise.Event<EventHandler<IssuesChangedEventArgs>>(null, null);
 

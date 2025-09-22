@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 
@@ -58,9 +59,9 @@ internal class ReportViewModel : ServerViewModel
         this.telemetryManager = telemetryManager;
 
         threadHandling.RunOnUIThread(() => { BindingOperations.EnableCollectionSynchronization(GroupViewModels, @lock); });
-        hotspotsReportViewModel.HotspotsChanged += HotspotsChanged;
+        hotspotsReportViewModel.IssuesChanged += HotspotsChanged;
         dependencyRisksReportViewModel.DependencyRisksChanged += DependencyRisksChanged;
-        taintsReportViewModel.TaintsChanged += TaintsChanged;
+        taintsReportViewModel.IssuesChanged += TaintsChanged;
 
         InitializeCommands(navigateToRuleDescriptionCommand, locationNavigator);
         InitializeViewModels();
@@ -86,13 +87,13 @@ internal class ReportViewModel : ServerViewModel
 
     protected override void Dispose(bool disposing)
     {
-        hotspotsReportViewModel.HotspotsChanged -= HotspotsChanged;
+        hotspotsReportViewModel.IssuesChanged -= HotspotsChanged;
         hotspotsReportViewModel.Dispose();
 
         dependencyRisksReportViewModel.DependencyRisksChanged -= DependencyRisksChanged;
         dependencyRisksReportViewModel.Dispose();
 
-        taintsReportViewModel.TaintsChanged -= TaintsChanged;
+        taintsReportViewModel.IssuesChanged -= TaintsChanged;
         taintsReportViewModel.Dispose();
 
         foreach (var groupViewModel in GroupViewModels)
@@ -115,7 +116,7 @@ internal class ReportViewModel : ServerViewModel
         }
     }
 
-    private void HotspotsChanged(object sender, EventArgs e)
+    private void HotspotsChanged(object sender, IssuesChangedEventArgs e)
     {
         foreach (var groupViewModel in GroupViewModels.Where(vm => vm is not GroupDependencyRiskViewModel).ToList())
         {
@@ -135,7 +136,7 @@ internal class ReportViewModel : ServerViewModel
         InitializeDependencyRisks();
     }
 
-    private void TaintsChanged(object sender, EventArgs e)
+    private void TaintsChanged(object sender, IssuesChangedEventArgs e)
     {
         foreach (var groupViewModel in GroupViewModels.Where(vm => vm is not GroupDependencyRiskViewModel).ToList())
         {
