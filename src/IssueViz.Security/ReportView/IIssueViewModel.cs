@@ -36,5 +36,5 @@ public interface IAnalysisIssueViewModel : IIssueViewModel
 {
     IAnalysisIssueVisualization Issue { get; }
 
-    bool IsSameAnalysisIssue(IAnalysisIssueVisualization analysisIssue);
+    bool IsSameAnalysisIssue(IAnalysisIssueVisualization analysisIssueVisualization);
 }

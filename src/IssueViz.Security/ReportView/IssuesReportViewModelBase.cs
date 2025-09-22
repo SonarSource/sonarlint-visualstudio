@@ -30,7 +30,7 @@ internal abstract class IssuesReportViewModelBase : IDisposable
     private readonly IThreadHandling threadHandling;
     private bool disposed;
 
-    internal IssuesReportViewModelBase(IIssuesStore issuesStore, IThreadHandling threadHandling)
+    protected IssuesReportViewModelBase(IIssuesStore issuesStore, IThreadHandling threadHandling)
     {
         this.issuesStore = issuesStore;
         this.threadHandling = threadHandling;

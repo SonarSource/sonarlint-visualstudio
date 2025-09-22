@@ -33,6 +33,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView;
@@ -282,7 +283,7 @@ public class ReportViewModelTest
     public void HotspotsChanged_HotspotAdded_NoGroupExists_CreatesGroup()
     {
         ClearCallsForReportsViewModels();
-        var hotspot = CreateAnalysisVisualization(Guid.NewGuid(), "serverKey", filePath: "myFile.cs");
+        var hotspot = CreateHotspotVisualization(Guid.NewGuid(), "serverKey", filePath: "myFile.cs");
 
         hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [hotspot]));
 
@@ -297,8 +298,8 @@ public class ReportViewModelTest
     public void HotspotsChanged_HotspotAdded_GroupAlreadyExists_UpdatesGroup()
     {
         var filePath = "myFile.cs";
-        var existingHotspot = CreateAnalysisVisualization(Guid.NewGuid(), "serverKey2", filePath);
-        var newHotspotSameFile = CreateAnalysisVisualization(Guid.NewGuid(), "serverKey", filePath);
+        var existingHotspot = CreateHotspotVisualization(Guid.NewGuid(), "serverKey2", filePath);
+        var newHotspotSameFile = CreateHotspotVisualization(Guid.NewGuid(), "serverKey", filePath);
         var existingGroup = CreateGroupFileViewModelWithHotspots(existingHotspot);
         InitializeTestSubjectWithInitialGroup(existingGroup);
 
@@ -315,8 +316,8 @@ public class ReportViewModelTest
     [TestMethod]
     public void HotspotsChanged_HotspotAddedToDifferentFile_CreatesNewGroup()
     {
-        var existingHotspot = CreateAnalysisVisualization(Guid.NewGuid(), "serverKey2", "myFile.cs");
-        var newHotspotDifferentFile = CreateAnalysisVisualization(Guid.NewGuid(), "serverKey", "myFile2.cs");
+        var existingHotspot = CreateHotspotVisualization(Guid.NewGuid(), "serverKey2", "myFile.cs");
+        var newHotspotDifferentFile = CreateHotspotVisualization(Guid.NewGuid(), "serverKey", "myFile2.cs");
         var existingGroup = CreateGroupFileViewModelWithHotspots(existingHotspot);
         InitializeTestSubjectWithInitialGroup(existingGroup);
 
@@ -334,12 +335,12 @@ public class ReportViewModelTest
     public void HotspotsChanged_HotspotRemoved_GroupHasJustOneIssue_RemovesGroup()
     {
         var filePath = "myFile.cs";
-        var existingHotspot = CreateAnalysisVisualization(Guid.NewGuid(), "serverKey", filePath);
+        var existingHotspot = CreateHotspotVisualization(Guid.NewGuid(), "serverKey", filePath);
         var existingGroup = CreateGroupFileViewModelWithHotspots(existingHotspot);
         InitializeTestSubjectWithInitialGroup(existingGroup);
 
         hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
-            new IssuesChangedEventArgs([CreateAnalysisVisualization(existingHotspot.Issue.Id, existingHotspot.Issue.IssueServerKey, filePath)], []));
+            new IssuesChangedEventArgs([CreateHotspotVisualization(existingHotspot.Issue.Id, existingHotspot.Issue.IssueServerKey, filePath)], []));
 
         testSubject.GroupViewModels.Should().BeEmpty();
         VerifyHasGroupsUpdated();
@@ -351,13 +352,13 @@ public class ReportViewModelTest
     public void HotspotsChanged_HotspotRemoved_GroupHasMultipleIssue_UpdatesGroup()
     {
         var filePath = "myFile.cs";
-        var existingHotspot = CreateAnalysisVisualization(Guid.NewGuid(), "serverKey", filePath);
-        var existingHotspot2 = CreateAnalysisVisualization(Guid.NewGuid(), "serverKey2", filePath);
+        var existingHotspot = CreateHotspotVisualization(Guid.NewGuid(), "serverKey", filePath);
+        var existingHotspot2 = CreateHotspotVisualization(Guid.NewGuid(), "serverKey2", filePath);
         var existingGroup = CreateGroupFileViewModelWithHotspots(existingHotspot, existingHotspot2);
         InitializeTestSubjectWithInitialGroup(existingGroup);
 
         hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
-            new IssuesChangedEventArgs([CreateAnalysisVisualization(existingHotspot.Issue.Id, existingHotspot.Issue.IssueServerKey, filePath)], []));
+            new IssuesChangedEventArgs([CreateHotspotVisualization(existingHotspot.Issue.Id, existingHotspot.Issue.IssueServerKey, filePath)], []));
 
         testSubject.GroupViewModels.Should().HaveCount(1);
         testSubject.GroupViewModels[0].Should().BeSameAs(existingGroup);
@@ -370,12 +371,12 @@ public class ReportViewModelTest
     [TestMethod]
     public void HotspotsChanged_HotspotRemoved_NoGroupContainsIssue_DoesNothing()
     {
-        var existingHotspot = CreateAnalysisVisualization(Guid.NewGuid(), "serverKey", "myFile.cs");
+        var existingHotspot = CreateHotspotVisualization(Guid.NewGuid(), "serverKey", "myFile.cs");
         var existingGroup = CreateGroupFileViewModelWithHotspots(existingHotspot);
         InitializeTestSubjectWithInitialGroup(existingGroup);
 
         hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
-            new IssuesChangedEventArgs([CreateAnalysisVisualization(existingHotspot.Issue.Id, "notExistingKey", "myFile.cs")], []));
+            new IssuesChangedEventArgs([CreateHotspotVisualization(existingHotspot.Issue.Id, "notExistingKey", "myFile.cs")], []));
 
         testSubject.GroupViewModels.Should().HaveCount(1);
         testSubject.GroupViewModels[0].Should().BeSameAs(existingGroup);
@@ -388,7 +389,7 @@ public class ReportViewModelTest
     public void TaintsChanged_TaintAdded_NoGroupExists_CreatesGroup()
     {
         ClearCallsForReportsViewModels();
-        var taint = CreateAnalysisVisualization(Guid.NewGuid(), "serverKey", filePath: "myFile.cs");
+        var taint = CreateTaintVisualization(Guid.NewGuid(), "serverKey", filePath: "myFile.cs");
 
         taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [taint]));
 
@@ -403,8 +404,8 @@ public class ReportViewModelTest
     public void TaintsChanged_TaintAdded_GroupAlreadyExists_UpdatesGroup()
     {
         var filePath = "myFile.cs";
-        var existingTaint = CreateAnalysisVisualization(Guid.NewGuid(), "serverKey2", filePath);
-        var newTaintSameFile = CreateAnalysisVisualization(Guid.NewGuid(), "serverKey", filePath);
+        var existingTaint = CreateTaintVisualization(Guid.NewGuid(), "serverKey2", filePath);
+        var newTaintSameFile = CreateTaintVisualization(Guid.NewGuid(), "serverKey", filePath);
         var existingGroup = CreateGroupFileViewModelWithTaints(existingTaint);
         InitializeTestSubjectWithInitialGroup(existingGroup);
 
@@ -421,8 +422,8 @@ public class ReportViewModelTest
     [TestMethod]
     public void TaintsChanged_TaintAddedToDifferentFile_CreatesNewGroup()
     {
-        var existingTaint = CreateAnalysisVisualization(Guid.NewGuid(), "serverKey2", "myFile.cs");
-        var newTaintDifferentFile = CreateAnalysisVisualization(Guid.NewGuid(), "serverKey", "myFile2.cs");
+        var existingTaint = CreateTaintVisualization(Guid.NewGuid(), "serverKey2", "myFile.cs");
+        var newTaintDifferentFile = CreateTaintVisualization(Guid.NewGuid(), "serverKey", "myFile2.cs");
         var existingGroup = CreateGroupFileViewModelWithTaints(existingTaint);
         InitializeTestSubjectWithInitialGroup(existingGroup);
 
@@ -440,12 +441,12 @@ public class ReportViewModelTest
     public void TaintsChanged_TaintRemoved_GroupHasJustOneIssue_RemovesGroup()
     {
         var filePath = "myFile.cs";
-        var existingTaint = CreateAnalysisVisualization(Guid.NewGuid(), "serverKey", filePath);
+        var existingTaint = CreateTaintVisualization(Guid.NewGuid(), "serverKey", filePath);
         var existingGroup = CreateGroupFileViewModelWithTaints(existingTaint);
         InitializeTestSubjectWithInitialGroup(existingGroup);
 
         taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
-            new IssuesChangedEventArgs([CreateAnalysisVisualization(existingTaint.Issue.Id, existingTaint.Issue.IssueServerKey, filePath)], []));
+            new IssuesChangedEventArgs([CreateTaintVisualization(existingTaint.Issue.Id, existingTaint.Issue.IssueServerKey, filePath)], []));
 
         testSubject.GroupViewModels.Should().BeEmpty();
         VerifyHasGroupsUpdated();
@@ -457,13 +458,13 @@ public class ReportViewModelTest
     public void TaintsChanged_TaintRemoved_GroupHasMultipleIssue_UpdatesGroup()
     {
         var filePath = "myFile.cs";
-        var existingTaint = CreateAnalysisVisualization(Guid.NewGuid(), "serverKey", filePath);
-        var existingTaint2 = CreateAnalysisVisualization(Guid.NewGuid(), "serverKey2", filePath);
+        var existingTaint = CreateTaintVisualization(Guid.NewGuid(), "serverKey", filePath);
+        var existingTaint2 = CreateTaintVisualization(Guid.NewGuid(), "serverKey2", filePath);
         var existingGroup = CreateGroupFileViewModelWithTaints(existingTaint, existingTaint2);
         InitializeTestSubjectWithInitialGroup(existingGroup);
 
         taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
-            new IssuesChangedEventArgs([CreateAnalysisVisualization(existingTaint.Issue.Id, existingTaint.Issue.IssueServerKey, filePath)], []));
+            new IssuesChangedEventArgs([CreateTaintVisualization(existingTaint.Issue.Id, existingTaint.Issue.IssueServerKey, filePath)], []));
 
         testSubject.GroupViewModels.Should().HaveCount(1);
         testSubject.GroupViewModels[0].Should().BeSameAs(existingGroup);
@@ -476,12 +477,12 @@ public class ReportViewModelTest
     [TestMethod]
     public void TaintsChanged_TaintRemoved_NoGroupContainsIssue_DoesNothing()
     {
-        var existingTaint = CreateAnalysisVisualization(Guid.NewGuid(), "serverKey", "myFile.cs");
+        var existingTaint = CreateTaintVisualization(Guid.NewGuid(), "serverKey", "myFile.cs");
         var existingGroup = CreateGroupFileViewModelWithTaints(existingTaint);
         InitializeTestSubjectWithInitialGroup(existingGroup);
 
         taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
-            new IssuesChangedEventArgs([CreateAnalysisVisualization(existingTaint.Issue.Id, "notExistingKey", "myFile.cs")], []));
+            new IssuesChangedEventArgs([CreateTaintVisualization(existingTaint.Issue.Id, "notExistingKey", "myFile.cs")], []));
 
         testSubject.GroupViewModels.Should().HaveCount(1);
         testSubject.GroupViewModels[0].Should().BeSameAs(existingGroup);
@@ -690,10 +691,20 @@ public class ReportViewModelTest
 
     private static LocalHotspot CreateMockedHotspot() => new(Substitute.For<IAnalysisIssueVisualization>(), default, default);
 
-    private static IAnalysisIssueVisualization CreateAnalysisVisualization(Guid? id, string serverKey, string filePath)
+    private static IAnalysisIssueVisualization CreateHotspotVisualization(Guid? id, string serverKey, string filePath)
     {
         var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
         analysisIssueVisualization.Issue.Returns(Substitute.For<IAnalysisHotspotIssue>());
+        analysisIssueVisualization.Issue.Id.Returns(id);
+        analysisIssueVisualization.Issue.IssueServerKey.Returns(serverKey);
+        analysisIssueVisualization.Issue.PrimaryLocation.FilePath.Returns(filePath);
+        return analysisIssueVisualization;
+    }
+
+    private static IAnalysisIssueVisualization CreateTaintVisualization(Guid? id, string serverKey, string filePath)
+    {
+        var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
+        analysisIssueVisualization.Issue.Returns(Substitute.For<ITaintIssue>());
         analysisIssueVisualization.Issue.Id.Returns(id);
         analysisIssueVisualization.Issue.IssueServerKey.Returns(serverKey);
         analysisIssueVisualization.Issue.PrimaryLocation.FilePath.Returns(filePath);
