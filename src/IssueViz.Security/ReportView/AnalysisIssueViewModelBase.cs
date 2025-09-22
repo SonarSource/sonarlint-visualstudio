@@ -37,4 +37,7 @@ internal class AnalysisIssueViewModelBase : ViewModelBase, IAnalysisIssueViewMod
     public string FilePath => Issue.Issue.PrimaryLocation.FilePath;
     public RuleInfoViewModel RuleInfo { get; }
     public IAnalysisIssueVisualization Issue { get; }
+
+    public bool IsSameAnalysisIssue(IAnalysisIssueVisualization analysisIssueVisualization) =>
+        Issue.Issue.Id == analysisIssueVisualization.Issue.Id && Issue.Issue.IssueServerKey == analysisIssueVisualization.Issue.IssueServerKey;
 }
