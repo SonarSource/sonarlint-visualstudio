@@ -13,6 +13,7 @@
              xmlns:vsimagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              xmlns:core="clr-namespace:SonarLint.VisualStudio.Core;assembly=SonarLint.VisualStudio.Core"
              xmlns:commands="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;assembly=SonarLint.VisualStudio.IssueVisualization"
+             xmlns:taints="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints"
              DataContext="{Binding RelativeSource={RelativeSource Mode=Self}, Path=ReportViewModel}">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -424,8 +425,8 @@
                     </Grid>
                 </DataTemplate>
 
-                <!--Issue styling-->
-                <DataTemplate DataType="{x:Type reportView:IssueViewModel}">
+                <!--Taint styling-->
+                <DataTemplate DataType="{x:Type taints:TaintViewModel}">
                     <Grid Margin="5,2" 
                           MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown">
                         <Grid.ColumnDefinitions>

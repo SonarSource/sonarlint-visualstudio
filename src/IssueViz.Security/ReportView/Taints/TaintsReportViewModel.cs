@@ -52,7 +52,7 @@ internal sealed class TaintsReportViewModel : ITaintsReportViewModel
 
     public ObservableCollection<IGroupViewModel> GetTaintsGroupViewModels()
     {
-        var taints = taintsStore.GetAll().Select(x => new IssueViewModel(x));
+        var taints = taintsStore.GetAll().Select(x => new TaintViewModel(x));
         return GetGroupViewModel(taints);
     }
 

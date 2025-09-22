@@ -19,21 +19,15 @@
  */
 
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 
-internal class IssueViewModel : IAnalysisIssueViewModel
+internal class TaintViewModel : AnalysisIssueViewModelBase
 {
-    public IssueViewModel(IAnalysisIssueVisualization analysisIssueVisualization)
-    {
-        Issue = analysisIssueVisualization;
-        RuleInfo = new RuleInfoViewModel(Issue.RuleId, Issue.IssueId);
-    }
+    public ITaintIssue TaintIssue => (ITaintIssue)Issue.Issue;
 
-    public int? Line => Issue.Issue.PrimaryLocation.TextRange.StartLine;
-    public int? Column => Issue.Issue.PrimaryLocation.TextRange.StartLineOffset;
-    public string Title => Issue.Issue.PrimaryLocation.Message;
-    public string FilePath => Issue.Issue.PrimaryLocation.FilePath;
-    public RuleInfoViewModel RuleInfo { get; }
-    public IAnalysisIssueVisualization Issue { get; }
+    public TaintViewModel(IAnalysisIssueVisualization analysisIssueVisualization) : base(analysisIssueVisualization)
+    {
+    }
 }

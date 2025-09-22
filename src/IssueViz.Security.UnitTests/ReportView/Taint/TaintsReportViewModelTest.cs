@@ -133,7 +133,7 @@ public class TaintsReportViewModelTest
         groupFileVm.FilteredIssues.Should().HaveCount(expectedTaints.Length);
         foreach (var expectedTaint in expectedTaints)
         {
-            groupFileVm.FilteredIssues.Should().ContainSingle(vm => ((IssueViewModel)vm).Issue == expectedTaint);
+            groupFileVm.FilteredIssues.Should().ContainSingle(vm => ((TaintViewModel)vm).Issue == expectedTaint);
         }
     }
 }

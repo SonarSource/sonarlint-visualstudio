@@ -18,17 +18,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
+using SonarLint.VisualStudio.Core.WPF;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-internal class HotspotViewModel : AnalysisIssueViewModelBase
+internal class AnalysisIssueViewModelBase : ViewModelBase, IAnalysisIssueViewModel
 {
-    public LocalHotspot LocalHotspot { get; }
-    public bool ExistsOnServer => LocalHotspot.Visualization.Issue.IssueServerKey != null;
-
-    public HotspotViewModel(LocalHotspot localHotspot) : base(localHotspot.Visualization)
+    public AnalysisIssueViewModelBase(IAnalysisIssueVisualization analysisIssueVisualization)
     {
-        LocalHotspot = localHotspot;
+        Issue = analysisIssueVisualization;
+        RuleInfo = new RuleInfoViewModel(Issue.RuleId, Issue.IssueId);
     }
+
+    public int? Line => Issue.Issue.PrimaryLocation.TextRange.StartLine;
+    public int? Column => Issue.Issue.PrimaryLocation.TextRange.StartLineOffset;
+    public string Title => Issue.Issue.PrimaryLocation.Message;
+    public string FilePath => Issue.Issue.PrimaryLocation.FilePath;
+    public RuleInfoViewModel RuleInfo { get; }
+    public IAnalysisIssueVisualization Issue { get; }
 }
