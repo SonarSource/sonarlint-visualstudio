@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
@@ -30,5 +31,14 @@ internal class HotspotViewModel : AnalysisIssueViewModelBase
     public HotspotViewModel(LocalHotspot localHotspot) : base(localHotspot.Visualization)
     {
         LocalHotspot = localHotspot;
+        DisplaySeverity = LocalHotspot.Priority switch
+        {
+            HotspotPriority.Low => DisplaySeverity.Info,
+            HotspotPriority.Medium => DisplaySeverity.Low,
+            HotspotPriority.High => DisplaySeverity.Medium,
+            _ => DisplaySeverity.Info
+        };
     }
+
+    public override DisplaySeverity DisplaySeverity { get; }
 }

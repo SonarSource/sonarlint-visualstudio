@@ -20,7 +20,9 @@
 
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView;
 
@@ -37,7 +39,7 @@ public class AnalysisIssueViewModelBaseTest
             "remove todo comment",
             "myClass.cs");
 
-        var testSubject = new AnalysisIssueViewModelBase(analysisIssueVisualization);
+        var testSubject = CreateTestSubject(analysisIssueVisualization);
 
         testSubject.Issue.Should().Be(analysisIssueVisualization);
         testSubject.RuleInfo.RuleKey.Should().Be(analysisIssueVisualization.RuleId);
@@ -58,7 +60,7 @@ public class AnalysisIssueViewModelBaseTest
         var analysisIssueVisualization1 = CreateMockedIssue(GetGuid(issueId), serverKey);
         var analysisIssueVisualization2 = CreateMockedIssue(analysisIssueVisualization1.Issue.Id, analysisIssueVisualization1.Issue.IssueServerKey);
 
-        new AnalysisIssueViewModelBase(analysisIssueVisualization1).IsSameAnalysisIssue(analysisIssueVisualization2).Should().BeTrue();
+        CreateTestSubject(analysisIssueVisualization1).IsSameAnalysisIssue(analysisIssueVisualization2).Should().BeTrue();
     }
 
     [TestMethod]
@@ -66,7 +68,7 @@ public class AnalysisIssueViewModelBaseTest
     {
         var analysisIssueVisualization1 = CreateMockedIssue(Guid.NewGuid(), "E2670BAB-4B1E-49C2-8641-7B77CE2A6DBF");
 
-        new AnalysisIssueViewModelBase(analysisIssueVisualization1).IsSameAnalysisIssue(analysisIssueVisualization1).Should().BeTrue();
+        CreateTestSubject(analysisIssueVisualization1).IsSameAnalysisIssue(analysisIssueVisualization1).Should().BeTrue();
     }
 
     [TestMethod]
@@ -78,7 +80,7 @@ public class AnalysisIssueViewModelBaseTest
         var analysisIssueVisualization1 = CreateMockedIssue(GetGuid(issueId1), serverKey);
         var analysisIssueVisualization2 = CreateMockedIssue(GetGuid(issueId2), serverKey);
 
-        new AnalysisIssueViewModelBase(analysisIssueVisualization1).IsSameAnalysisIssue(analysisIssueVisualization2).Should().BeFalse();
+        CreateTestSubject(analysisIssueVisualization1).IsSameAnalysisIssue(analysisIssueVisualization2).Should().BeFalse();
     }
 
     [TestMethod]
@@ -90,8 +92,14 @@ public class AnalysisIssueViewModelBaseTest
         var analysisIssueVisualization1 = CreateMockedIssue(issueId, serverKey1);
         var analysisIssueVisualization2 = CreateMockedIssue(issueId, serverKey2);
 
-        new AnalysisIssueViewModelBase(analysisIssueVisualization1).IsSameAnalysisIssue(analysisIssueVisualization2).Should().BeFalse();
+        CreateTestSubject(analysisIssueVisualization1).IsSameAnalysisIssue(analysisIssueVisualization2).Should().BeFalse();
     }
+
+    /// <summary>
+    /// To prevent adding the tests in all the subclasses we test the base class via any of its child classes.
+    /// </summary>
+    private static AnalysisIssueViewModelBase CreateTestSubject(IAnalysisIssueVisualization analysisIssueVisualization) =>
+        new HotspotViewModel(new LocalHotspot(analysisIssueVisualization, default, default));
 
     private static IAnalysisIssueVisualization CreateMockedIssue(
         string ruleId,

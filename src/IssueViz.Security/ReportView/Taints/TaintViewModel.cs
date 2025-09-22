@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
@@ -29,5 +30,40 @@ internal class TaintViewModel : AnalysisIssueViewModelBase
 
     public TaintViewModel(IAnalysisIssueVisualization analysisIssueVisualization) : base(analysisIssueVisualization)
     {
+        DisplaySeverity = GetDisplaySeverity();
     }
+
+    private DisplaySeverity GetDisplaySeverity()
+    {
+        if (TaintIssue.HighestSoftwareQualitySeverity.HasValue)
+        {
+            return GetDisplaySeverity(TaintIssue.HighestSoftwareQualitySeverity.Value);
+        }
+
+        return TaintIssue.Severity.HasValue ? GetDisplaySeverity(TaintIssue.Severity.Value) : DisplaySeverity.Info;
+    }
+
+    private DisplaySeverity GetDisplaySeverity(SoftwareQualitySeverity softwareQualitySeverity) =>
+        softwareQualitySeverity switch
+        {
+            SoftwareQualitySeverity.Info => DisplaySeverity.Info,
+            SoftwareQualitySeverity.Low => DisplaySeverity.Low,
+            SoftwareQualitySeverity.Medium => DisplaySeverity.Medium,
+            SoftwareQualitySeverity.High => DisplaySeverity.High,
+            SoftwareQualitySeverity.Blocker => DisplaySeverity.Blocker,
+            _ => DisplaySeverity.Info
+        };
+
+    private DisplaySeverity GetDisplaySeverity(AnalysisIssueSeverity severity) =>
+        severity switch
+        {
+            AnalysisIssueSeverity.Info => DisplaySeverity.Info,
+            AnalysisIssueSeverity.Minor => DisplaySeverity.Low,
+            AnalysisIssueSeverity.Major => DisplaySeverity.Medium,
+            AnalysisIssueSeverity.Critical => DisplaySeverity.High,
+            AnalysisIssueSeverity.Blocker => DisplaySeverity.Blocker,
+            _ => DisplaySeverity.Info
+        };
+
+    public override DisplaySeverity DisplaySeverity { get; }
 }

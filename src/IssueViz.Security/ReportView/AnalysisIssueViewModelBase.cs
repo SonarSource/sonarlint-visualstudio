@@ -23,9 +23,9 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-internal class AnalysisIssueViewModelBase : ViewModelBase, IAnalysisIssueViewModel
+internal abstract class AnalysisIssueViewModelBase : ViewModelBase, IAnalysisIssueViewModel
 {
-    public AnalysisIssueViewModelBase(IAnalysisIssueVisualization analysisIssueVisualization)
+    protected AnalysisIssueViewModelBase(IAnalysisIssueVisualization analysisIssueVisualization)
     {
         Issue = analysisIssueVisualization;
         RuleInfo = new RuleInfoViewModel(Issue.RuleId, Issue.IssueId);
@@ -36,6 +36,7 @@ internal class AnalysisIssueViewModelBase : ViewModelBase, IAnalysisIssueViewMod
     public string Title => Issue.Issue.PrimaryLocation.Message;
     public string FilePath => Issue.Issue.PrimaryLocation.FilePath;
     public RuleInfoViewModel RuleInfo { get; }
+    public abstract DisplaySeverity DisplaySeverity { get; }
     public IAnalysisIssueVisualization Issue { get; }
 
     public bool IsSameAnalysisIssue(IAnalysisIssueVisualization analysisIssueVisualization) =>
