@@ -29,7 +29,7 @@ using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
-using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taint;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 

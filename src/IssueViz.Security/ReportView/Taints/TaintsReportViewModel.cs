@@ -23,7 +23,7 @@ using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taint;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 
 internal interface ITaintsReportViewModel : IDisposable
 {
