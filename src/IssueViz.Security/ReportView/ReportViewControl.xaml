@@ -191,6 +191,16 @@
                 <MenuItem Click="ViewDependencyRiskInBrowser_OnClick" Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
             </ContextMenu>
 
+            <ContextMenu x:Key="HotspotContextMenu"    
+                         Visibility="{Binding Path=ExistsOnServer, Converter={StaticResource TrueToVisibleConverter}}">
+                <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}" 
+                          Click="ChangeHotspotStatusMenuItem_OnClick" 
+                          Style="{StaticResource ChangeStatusMenuItemStyle}"/>
+                <MenuItem Click="ViewHotspotInBrowser_OnClick"
+                          Loaded="ShowHotspotInBrowserMenuItem_OnLoaded"
+                          Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
+            </ContextMenu>
+
             <Style x:Key="ResolutionFilterBorderStyle" TargetType="Button">
                 <Setter Property="Margin" Value="5, 3"/>
                 <Setter Property="Padding" Value="2"/>
@@ -362,7 +372,10 @@
 
                 <!--Hotspots styling-->
                 <DataTemplate DataType="{x:Type hotspots:HotspotViewModel}">
-                    <Grid Margin="5,2" MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown" ToolTip="{x:Static res:Resources.HotspotsControl_NavigationTooltip}">
+                    <Grid Margin="5,2" 
+                          ContextMenu="{StaticResource HotspotContextMenu}"
+                          MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown" 
+                          ToolTip="{x:Static res:Resources.HotspotsControl_NavigationTooltip}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
