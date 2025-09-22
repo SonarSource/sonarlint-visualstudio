@@ -43,7 +43,7 @@ internal class TaintViewModel : AnalysisIssueViewModelBase
         return TaintIssue.Severity.HasValue ? GetDisplaySeverity(TaintIssue.Severity.Value) : DisplaySeverity.Info;
     }
 
-    private DisplaySeverity GetDisplaySeverity(SoftwareQualitySeverity softwareQualitySeverity) =>
+    private static DisplaySeverity GetDisplaySeverity(SoftwareQualitySeverity softwareQualitySeverity) =>
         softwareQualitySeverity switch
         {
             SoftwareQualitySeverity.Info => DisplaySeverity.Info,
@@ -54,7 +54,7 @@ internal class TaintViewModel : AnalysisIssueViewModelBase
             _ => DisplaySeverity.Info
         };
 
-    private DisplaySeverity GetDisplaySeverity(AnalysisIssueSeverity severity) =>
+    private static DisplaySeverity GetDisplaySeverity(AnalysisIssueSeverity severity) =>
         severity switch
         {
             AnalysisIssueSeverity.Info => DisplaySeverity.Info,
