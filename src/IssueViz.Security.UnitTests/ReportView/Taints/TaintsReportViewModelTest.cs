@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
@@ -33,18 +34,22 @@ public class TaintsReportViewModelTest
 {
     private ITaintStore localTaintsStore;
     private TaintsReportViewModel testSubject;
+    private IThreadHandling threadHandling;
 
     [TestInitialize]
     public void TestInitialize()
     {
         localTaintsStore = Substitute.For<ITaintStore>();
-        testSubject = new TaintsReportViewModel(localTaintsStore);
+        threadHandling = Substitute.For<IThreadHandling>();
+        testSubject = new TaintsReportViewModel(localTaintsStore, threadHandling);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<TaintsReportViewModel, ITaintsReportViewModel>(
-            MefTestHelpers.CreateExport<ITaintStore>());
+            MefTestHelpers.CreateExport<ITaintStore>(),
+            MefTestHelpers.CreateExport<IThreadHandling>()
+        );
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<TaintsReportViewModel>();

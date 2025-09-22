@@ -19,6 +19,7 @@
  */
 
 using System.Collections.ObjectModel;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
@@ -26,11 +27,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 internal abstract class IssuesReportViewModelBase : IDisposable
 {
     private readonly IIssuesStore issuesStore;
+    private readonly IThreadHandling threadHandling;
     private bool disposed;
 
-    internal IssuesReportViewModelBase(IIssuesStore issuesStore)
+    internal IssuesReportViewModelBase(IIssuesStore issuesStore, IThreadHandling threadHandling)
     {
         this.issuesStore = issuesStore;
+        this.threadHandling = threadHandling;
         issuesStore.IssuesChanged += IssueStore_OnIssuesChanged;
     }
 
@@ -46,13 +49,13 @@ internal abstract class IssuesReportViewModelBase : IDisposable
 
     protected abstract IEnumerable<IIssueViewModel> GetIssueViewModels();
 
-    private static ObservableCollection<IGroupViewModel> GroupIssueViewModels(IEnumerable<IIssueViewModel> issueViewModels)
+    private ObservableCollection<IGroupViewModel> GroupIssueViewModels(IEnumerable<IIssueViewModel> issueViewModels)
     {
         var issuesByFileGrouping = issueViewModels.GroupBy(vm => vm.FilePath);
         var groupViewModels = new ObservableCollection<IGroupViewModel>();
         foreach (var group in issuesByFileGrouping)
         {
-            groupViewModels.Add(new GroupFileViewModel(group.Key, new ObservableCollection<IIssueViewModel>(group)));
+            groupViewModels.Add(new GroupFileViewModel(group.Key, new ObservableCollection<IIssueViewModel>(group), threadHandling));
         }
 
         return groupViewModels;

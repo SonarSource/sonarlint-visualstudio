@@ -20,6 +20,7 @@
 
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 
@@ -39,7 +40,7 @@ internal sealed class TaintsReportViewModel : IssuesReportViewModelBase, ITaints
     private readonly ITaintStore taintsStore;
 
     [ImportingConstructor]
-    public TaintsReportViewModel(ITaintStore taintsStore) : base(taintsStore)
+    public TaintsReportViewModel(ITaintStore taintsStore, IThreadHandling threadHandling) : base(taintsStore, threadHandling)
     {
         this.taintsStore = taintsStore;
     }
