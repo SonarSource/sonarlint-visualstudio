@@ -198,7 +198,14 @@
                           Click="ChangeHotspotStatusMenuItem_OnClick" 
                           Style="{StaticResource ChangeStatusMenuItemStyle}"/>
                 <MenuItem Click="ViewHotspotInBrowser_OnClick"
-                          Loaded="ShowHotspotInBrowserMenuItem_OnLoaded"
+                          Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
+                          Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
+            </ContextMenu>
+
+            <ContextMenu x:Key="TaintContextMenu"    
+                         Visibility="{Binding Path=ExistsOnServer, Converter={StaticResource TrueToVisibleConverter}}">
+                <MenuItem Click="ViewTaintInBrowser_OnClick"
+                          Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
             </ContextMenu>
 
@@ -428,6 +435,7 @@
                 <!--Taint styling-->
                 <DataTemplate DataType="{x:Type taints:TaintViewModel}">
                     <Grid Margin="5,2" 
+                          ContextMenu="{StaticResource TaintContextMenu}"
                           MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
