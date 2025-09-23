@@ -20,6 +20,7 @@
 
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
@@ -66,6 +67,7 @@ internal sealed class TaintsReportViewModel : IssuesReportViewModelBase, ITaints
         showInBrowserService.ShowIssue(taintIssue.IssueServerKey);
     }
 
+    [ExcludeFromCodeCoverage] // UI, not really unit-testable
     public void ShowIssueVisualization() => ToolWindowNavigator.Instance.ShowIssueVisualizationToolWindow();
 
     public ObservableCollection<IGroupViewModel> GetTaintsGroupViewModels() => GetGroupViewModels();
