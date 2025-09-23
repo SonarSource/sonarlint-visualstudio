@@ -196,6 +196,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Clear All.
+        /// </summary>
+        public static string ClearAllButton {
+            get {
+                return ResourceManager.GetString("ClearAllButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Comment is required..
         /// </summary>
         public static string CommentRequiredErrorMessage {
@@ -264,6 +273,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string FinishedPackageInitialization {
             get {
                 return ResourceManager.GetString("FinishedPackageInitialization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show advanced filters.
+        /// </summary>
+        public static string HideAdvancedFiltersTooltip {
+            get {
+                return ResourceManager.GetString("HideAdvancedFiltersTooltip", resourceCulture);
             }
         }
         
@@ -684,6 +702,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Severity:.
+        /// </summary>
+        public static string SeverityLabel {
+            get {
+                return ResourceManager.GetString("SeverityLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show advanced filters.
+        /// </summary>
+        public static string ShowAdvancedFiltersTooltip {
+            get {
+                return ResourceManager.GetString("ShowAdvancedFiltersTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error when showing dependency risk in browser: {0}.
         /// </summary>
         public static string ShowDependencyRisk_Error_ShowingInBrowser {
@@ -707,6 +743,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string StartedPackageInitialization {
             get {
                 return ResourceManager.GetString("StartedPackageInitialization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Status:.
+        /// </summary>
+        public static string StatusLabel {
+            get {
+                return ResourceManager.GetString("StatusLabel", resourceCulture);
             }
         }
         

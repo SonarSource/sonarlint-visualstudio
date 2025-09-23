@@ -373,5 +373,19 @@ Please check the logs for more details.</value>
   </data>
   <data name="ShowIssueVisualizationMenuItemHeader" xml:space="preserve">
     <value>Show Issue Visualization</value>
+  <data name="SeverityLabel" xml:space="preserve">
+    <value>Severity:</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>Status:</value>
+  </data>
+  <data name="ClearAllButton" xml:space="preserve">
+    <value>Clear All</value>
+  </data>
+  <data name="ShowAdvancedFiltersTooltip" xml:space="preserve">
+    <value>Show advanced filters</value>
+  </data>
+  <data name="HideAdvancedFiltersTooltip" xml:space="preserve">
+    <value>Show advanced filters</value>
   </data>
 </root>
