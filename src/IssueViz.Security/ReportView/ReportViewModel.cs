@@ -116,6 +116,9 @@ internal class ReportViewModel : ServerViewModel
             case HotspotViewModel:
                 telemetryManager.HotspotInvestigatedLocally();
                 break;
+            case TaintViewModel:
+                telemetryManager.TaintIssueInvestigatedLocally();
+                break;
         }
     }
 
