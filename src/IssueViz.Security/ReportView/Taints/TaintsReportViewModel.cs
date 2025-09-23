@@ -33,6 +33,8 @@ internal interface ITaintsReportViewModel : IDisposable
 {
     void ShowTaintInBrowser(ITaintIssue taintIssue);
 
+    void ShowIssueVisualization();
+
     ObservableCollection<IGroupViewModel> GetTaintsGroupViewModels();
 
     event EventHandler<IssuesChangedEventArgs> IssuesChanged;
@@ -63,6 +65,8 @@ internal sealed class TaintsReportViewModel : IssuesReportViewModelBase, ITaints
         telemetryManager.TaintIssueInvestigatedRemotely();
         showInBrowserService.ShowIssue(taintIssue.IssueServerKey);
     }
+
+    public void ShowIssueVisualization() => ToolWindowNavigator.Instance.ShowIssueVisualizationToolWindow();
 
     public ObservableCollection<IGroupViewModel> GetTaintsGroupViewModels() => GetGroupViewModels();
 

@@ -165,13 +165,13 @@ internal sealed partial class ReportViewControl : UserControl
 
     private void TreeViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        NavigateToLocation(sender);
+        NavigateToLocation((sender as FrameworkElement)?.DataContext as IAnalysisIssueViewModel);
         ShowRuleHelp(sender);
     }
 
-    private void NavigateToLocation(object sender)
+    private void NavigateToLocation(IAnalysisIssueViewModel analysisIssueViewModel)
     {
-        if ((sender as FrameworkElement)?.DataContext is IAnalysisIssueViewModel analysisIssueViewModel)
+        if (analysisIssueViewModel != null)
         {
             ExecuteCommandIfValid(ReportViewModel.NavigateToLocationCommand, analysisIssueViewModel);
         }
@@ -228,6 +228,15 @@ internal sealed partial class ReportViewControl : UserControl
         if (ReportViewModel.SelectedItem is TaintViewModel taintViewModel)
         {
             TaintsReportViewModel.ShowTaintInBrowser(taintViewModel.TaintIssue);
+        }
+    }
+
+    private void ShowIssueVisualizationForTaint_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (ReportViewModel.SelectedItem is TaintViewModel taintViewModel)
+        {
+            NavigateToLocation(taintViewModel);
+            TaintsReportViewModel.ShowIssueVisualization();
         }
     }
 }

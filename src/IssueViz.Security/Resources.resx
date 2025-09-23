@@ -371,4 +371,7 @@ Please check the logs for more details.</value>
   <data name="LocalHotspotTooltip" xml:space="preserve">
     <value>{0} security hotspot that does not exist on the server.</value>
   </data>
+  <data name="ShowIssueVisualizationMenuItemHeader" xml:space="preserve">
+    <value>Show Issue Visualization</value>
+  </data>
 </root>
