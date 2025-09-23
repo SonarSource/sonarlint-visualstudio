@@ -33,18 +33,16 @@ internal class TaintViewModel : AnalysisIssueViewModelBase
         DisplaySeverity = GetDisplaySeverity();
     }
 
-    private DisplaySeverity GetDisplaySeverity()
+    private DisplaySeverity GetDisplaySeverity() => GetDisplaySeverity(TaintIssue.HighestSoftwareQualitySeverity) ?? GetDisplaySeverity(TaintIssue.Severity) ?? DisplaySeverity.Info;
+
+    private static DisplaySeverity? GetDisplaySeverity(SoftwareQualitySeverity? softwareQualitySeverity)
     {
-        if (TaintIssue.HighestSoftwareQualitySeverity.HasValue)
+        if (!softwareQualitySeverity.HasValue)
         {
-            return GetDisplaySeverity(TaintIssue.HighestSoftwareQualitySeverity.Value);
+            return null;
         }
 
-        return TaintIssue.Severity.HasValue ? GetDisplaySeverity(TaintIssue.Severity.Value) : DisplaySeverity.Info;
-    }
-
-    private static DisplaySeverity GetDisplaySeverity(SoftwareQualitySeverity softwareQualitySeverity) =>
-        softwareQualitySeverity switch
+        return softwareQualitySeverity switch
         {
             SoftwareQualitySeverity.Info => DisplaySeverity.Info,
             SoftwareQualitySeverity.Low => DisplaySeverity.Low,
@@ -53,9 +51,16 @@ internal class TaintViewModel : AnalysisIssueViewModelBase
             SoftwareQualitySeverity.Blocker => DisplaySeverity.Blocker,
             _ => DisplaySeverity.Info
         };
+    }
 
-    private static DisplaySeverity GetDisplaySeverity(AnalysisIssueSeverity severity) =>
-        severity switch
+    private static DisplaySeverity? GetDisplaySeverity(AnalysisIssueSeverity? severity)
+    {
+        if (!severity.HasValue)
+        {
+            return null;
+        }
+
+        return severity switch
         {
             AnalysisIssueSeverity.Info => DisplaySeverity.Info,
             AnalysisIssueSeverity.Minor => DisplaySeverity.Low,
@@ -64,6 +69,7 @@ internal class TaintViewModel : AnalysisIssueViewModelBase
             AnalysisIssueSeverity.Blocker => DisplaySeverity.Blocker,
             _ => DisplaySeverity.Info
         };
+    }
 
     public override DisplaySeverity DisplaySeverity { get; }
 }
