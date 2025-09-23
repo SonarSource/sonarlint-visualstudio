@@ -133,11 +133,7 @@
                 <Setter Property="Margin" Value="1,0" />
             </Style>
 
-            <Style x:Key="LocationTextBlockStyle" TargetType="TextBlock">
-                <Setter Property="VerticalAlignment" Value="Center" />
-                <Setter Property="FontSize"
-                        Value="{DynamicResource {x:Static vsShell:VsFonts.Environment90PercentFontSizeKey}}" />
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.InactiveCaptionTextKey}}" />
+            <Style x:Key="ThemeAwareTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
                 <Style.Triggers>
                     <MultiDataTrigger>
                         <MultiDataTrigger.Conditions>
@@ -152,7 +148,14 @@
                 </Style.Triggers>
             </Style>
 
-            <Style x:Key="IssueTypeTextBlockStyle" TargetType="TextBlock">
+            <Style x:Key="LocationTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource ThemeAwareTextBlockStyle}">
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="FontSize"
+                        Value="{DynamicResource {x:Static vsShell:VsFonts.Environment90PercentFontSizeKey}}" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.InactiveCaptionTextKey}}" />
+            </Style>
+
+            <Style x:Key="IssueTypeTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource ThemeAwareTextBlockStyle}">
                 <Setter Property="VerticalAlignment" Value="Center" />
                 <Setter Property="FontStyle" Value="Italic" />
                 <Setter Property="FontSize"
@@ -352,6 +355,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0"
                                        Style="{StaticResource TypeTextBoxStyle}">
@@ -374,9 +378,12 @@
                                        Style="{StaticResource VulnerabilityOnlyTextBlockStyle}">
                                 <Run Text="[" /><Run Text="{Binding ., Mode=OneWay}"/><Run Text="]"/>
                             </TextBlock>
-                            <TextBlock Grid.Column="4"
+                            <TextBlock Grid.Column="5"
                                        Text="{Binding DependencyRisk.VulnerabilityId}"
                                        Style="{StaticResource VulnerabilityOnlyTextBlockStyle}" />
+                            <TextBlock Grid.Column="4" Text="{Binding IssueType, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}" 
+                                       Margin="5,0,0,0"
+                                       Style="{StaticResource IssueTypeTextBlockStyle}" />
                         </Grid>
 
                     </Grid>
@@ -389,6 +396,7 @@
                           MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown" 
                           ToolTip="{x:Static res:Resources.HotspotsControl_NavigationTooltip}">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -433,6 +441,9 @@
                                            Style="{StaticResource CellTextBlockStyle}" />
                             </Hyperlink>
                         </TextBlock>
+                        <TextBlock Grid.Column="4" Text="{Binding IssueType, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}" 
+                                   Margin="5,0,0,0"
+                                   Style="{StaticResource IssueTypeTextBlockStyle}" />
                     </Grid>
                 </DataTemplate>
 
@@ -442,6 +453,7 @@
                           ContextMenu="{StaticResource TaintContextMenu}"
                           MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
@@ -470,6 +482,9 @@
                                            Style="{StaticResource CellTextBlockStyle}" />
                             </Hyperlink>
                         </TextBlock>
+                        <TextBlock Grid.Column="4" Text="{Binding IssueType, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}" 
+                                   Margin="5,0,0,0"
+                                   Style="{StaticResource IssueTypeTextBlockStyle}" />
                     </Grid>
                 </DataTemplate>
             </TreeView.Resources>

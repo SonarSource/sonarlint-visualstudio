@@ -37,6 +37,7 @@ internal abstract class AnalysisIssueViewModelBase : ViewModelBase, IAnalysisIss
     public string FilePath => Issue.Issue.PrimaryLocation.FilePath;
     public RuleInfoViewModel RuleInfo { get; }
     public abstract DisplaySeverity DisplaySeverity { get; }
+    public abstract IssueType IssueType { get; }
     public IAnalysisIssueVisualization Issue { get; }
 
     public bool IsSameAnalysisIssue(IAnalysisIssueVisualization analysisIssueVisualization) =>

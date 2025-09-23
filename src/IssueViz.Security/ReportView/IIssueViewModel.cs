@@ -22,7 +22,6 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-// TODO by SLVS-2525 introduce type to show in the UI so that user can distinguish between different issue types (e.g., hotspot, taint, normal issues)
 public interface IIssueViewModel
 {
     int? Line { get; }
@@ -31,10 +30,11 @@ public interface IIssueViewModel
     string FilePath { get; }
     RuleInfoViewModel RuleInfo { get; }
     DisplaySeverity DisplaySeverity { get; }
+    IssueType IssueType { get; }
 }
 
 /// <summary>
-/// Used to display severity info in the UI in a uniform way for different type of issues (hotspots, taints etc).
+/// Used to display severity info in the UI in a uniform way for different <see cref="IssueType"/>
 /// </summary>
 public enum DisplaySeverity
 {
@@ -43,6 +43,13 @@ public enum DisplaySeverity
     Medium,
     High,
     Blocker
+}
+
+public enum IssueType
+{
+    DependencyRisk,
+    SecurityHotspot,
+    TaintVulnerability,
 }
 
 public interface IAnalysisIssueViewModel : IIssueViewModel

@@ -46,4 +46,6 @@ internal class DependencyRiskViewModel(IDependencyRisk dependencyRisk)
         DependencyRiskImpactSeverity.Blocker => DisplaySeverity.Blocker,
         _ => DisplaySeverity.Info
     };
+
+    public IssueType IssueType => IssueType.DependencyRisk;
 }
