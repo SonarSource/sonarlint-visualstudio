@@ -131,7 +131,7 @@ internal class ReportViewModel : ServerViewModel
 
     private void HotspotsChanged(object sender, IssuesChangedEventArgs e)
     {
-        var currentHotspotViewModels = GroupViewModels.SelectMany(group => group.FilteredIssues).Where(vm => vm is HotspotViewModel).Cast<HotspotViewModel>();
+        var currentHotspotViewModels = GroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is HotspotViewModel).Cast<HotspotViewModel>();
         var addedHotspotsViewModels = e.AddedIssues.Select(viz => new HotspotViewModel(LocalHotspot.ToLocalHotspot(viz))).ToList();
         var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(vm.IsSameAnalysisIssue)).ToList();
         UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
@@ -156,7 +156,7 @@ internal class ReportViewModel : ServerViewModel
     private void TaintsChanged(object sender, IssuesChangedEventArgs e)
     {
         var addedHotspotsViewModels = e.AddedIssues.Select(viz => new TaintViewModel(viz)).ToList();
-        var currentHotspotViewModels = GroupViewModels.SelectMany(group => group.FilteredIssues).Where(vm => vm is TaintViewModel).Cast<TaintViewModel>();
+        var currentHotspotViewModels = GroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is TaintViewModel).Cast<TaintViewModel>();
         var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(vm.IsSameAnalysisIssue)).ToList();
         UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
     }
@@ -199,8 +199,8 @@ internal class ReportViewModel : ServerViewModel
         {
             if (GetGroupViewModelOfIssueViewModel(removedIssueVm) is { } group)
             {
-                group.FilteredIssues.Remove(removedIssueVm);
-                if (!group.FilteredIssues.Any())
+                group.AllIssues.Remove(removedIssueVm);
+                if (!group.AllIssues.Any())
                 {
                     GroupViewModels.Remove(group);
                 }
@@ -214,7 +214,7 @@ internal class ReportViewModel : ServerViewModel
         {
             if (GetGroupViewModelOfIssueViewModel(addedIssueViewModel) is { } group)
             {
-                group.FilteredIssues.Add(addedIssueViewModel);
+                group.AllIssues.Add(addedIssueViewModel);
             }
             else
             {

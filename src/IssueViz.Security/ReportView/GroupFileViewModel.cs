@@ -34,13 +34,14 @@ internal sealed class GroupFileViewModel : ViewModelBase, IGroupViewModel
     {
         Title = Path.GetFileName(filePath);
         FilePath = filePath;
-        FilteredIssues = issues;
-        threadHandling.RunOnUIThread(() => { BindingOperations.EnableCollectionSynchronization(FilteredIssues, @lock); });
+        AllIssues = issues;
+        threadHandling.RunOnUIThread(() => { BindingOperations.EnableCollectionSynchronization(AllIssues, @lock); });
     }
 
     public string Title { get; }
     public string FilePath { get; }
-    public ObservableCollection<IIssueViewModel> FilteredIssues { get; }
+    public ObservableCollection<IIssueViewModel> AllIssues { get; }
+    public ObservableCollection<IIssueViewModel> FilteredIssues => AllIssues;
 
     public void Dispose() { }
 }
