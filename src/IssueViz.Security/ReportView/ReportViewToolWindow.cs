@@ -30,6 +30,7 @@ using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewMo
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
@@ -53,6 +54,7 @@ internal class ReportViewToolWindow : ToolWindowPane
             componentModel?.GetService<INavigateToRuleDescriptionCommand>(),
             componentModel?.GetService<ILocationNavigator>(),
             componentModel?.GetService<ITelemetryManager>(),
+            componentModel?.GetService<IIssueSelectionService>(),
             componentModel?.GetService<IThreadHandling>()
         );
     }

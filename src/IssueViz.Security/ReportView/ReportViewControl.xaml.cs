@@ -36,6 +36,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.V
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 using HotspotViewModel = SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots.HotspotViewModel;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
@@ -61,6 +62,7 @@ internal sealed partial class ReportViewControl : UserControl
         INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
         ILocationNavigator locationNavigator,
         ITelemetryManager telemetryManager,
+        IIssueSelectionService selectionService,
         IThreadHandling threadHandling)
     {
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
@@ -75,6 +77,7 @@ internal sealed partial class ReportViewControl : UserControl
             DependencyRisksReportViewModel,
             TaintsReportViewModel,
             telemetryManager,
+            selectionService,
             threadHandling);
         InitializeComponent();
     }
