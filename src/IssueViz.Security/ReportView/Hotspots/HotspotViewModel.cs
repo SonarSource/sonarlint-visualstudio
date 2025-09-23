@@ -41,4 +41,5 @@ internal class HotspotViewModel : AnalysisIssueViewModelBase
     }
 
     public override DisplaySeverity DisplaySeverity { get; }
+    public override IssueType IssueType => IssueType.SecurityHotspot;
 }

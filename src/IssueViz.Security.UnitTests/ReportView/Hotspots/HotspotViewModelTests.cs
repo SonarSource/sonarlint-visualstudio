@@ -51,6 +51,7 @@ public class HotspotViewModelTests
         testSubject.Title.Should().Be(hotspot.Visualization.Issue.PrimaryLocation.Message);
         testSubject.FilePath.Should().Be(hotspot.Visualization.Issue.PrimaryLocation.FilePath);
         testSubject.Issue.Should().Be(hotspot.Visualization);
+        testSubject.IssueType.Should().Be(IssueType.SecurityHotspot);
     }
 
     [DataTestMethod]

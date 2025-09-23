@@ -36,6 +36,7 @@ public class DependencyRiskViewModelTest
 
         testSubject.DependencyRisk.Should().Be(dependencyRisk);
         testSubject.IsTransitionAllowed.Should().BeFalse();
+        testSubject.IssueType.Should().Be(IssueType.DependencyRisk);
     }
 
     [TestMethod]
