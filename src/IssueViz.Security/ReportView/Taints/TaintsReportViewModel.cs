@@ -21,13 +21,17 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 
 internal interface ITaintsReportViewModel : IDisposable
 {
+    void ShowTaintInBrowser(ITaintIssue taintIssue);
+
     ObservableCollection<IGroupViewModel> GetTaintsGroupViewModels();
 
     event EventHandler<IssuesChangedEventArgs> IssuesChanged;
@@ -38,12 +42,16 @@ internal interface ITaintsReportViewModel : IDisposable
 internal sealed class TaintsReportViewModel : IssuesReportViewModelBase, ITaintsReportViewModel
 {
     private readonly ITaintStore taintsStore;
+    private readonly IShowInBrowserService showInBrowserService;
 
     [ImportingConstructor]
-    public TaintsReportViewModel(ITaintStore taintsStore, IThreadHandling threadHandling) : base(taintsStore, threadHandling)
+    public TaintsReportViewModel(ITaintStore taintsStore, IShowInBrowserService showInBrowserService, IThreadHandling threadHandling) : base(taintsStore, threadHandling)
     {
         this.taintsStore = taintsStore;
+        this.showInBrowserService = showInBrowserService;
     }
+
+    public void ShowTaintInBrowser(ITaintIssue taintIssue) => showInBrowserService.ShowIssue(taintIssue.IssueServerKey);
 
     public ObservableCollection<IGroupViewModel> GetTaintsGroupViewModels() => GetGroupViewModels();
 

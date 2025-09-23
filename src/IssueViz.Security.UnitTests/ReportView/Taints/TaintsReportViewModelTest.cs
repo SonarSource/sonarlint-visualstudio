@@ -19,12 +19,13 @@
  */
 
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView.Taints;
@@ -35,19 +36,22 @@ public class TaintsReportViewModelTest
     private ITaintStore localTaintsStore;
     private TaintsReportViewModel testSubject;
     private IThreadHandling threadHandling;
+    private IShowInBrowserService showInBrowserService;
 
     [TestInitialize]
     public void TestInitialize()
     {
         localTaintsStore = Substitute.For<ITaintStore>();
         threadHandling = Substitute.For<IThreadHandling>();
-        testSubject = new TaintsReportViewModel(localTaintsStore, threadHandling);
+        showInBrowserService = Substitute.For<IShowInBrowserService>();
+        testSubject = new TaintsReportViewModel(localTaintsStore, showInBrowserService, threadHandling);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<TaintsReportViewModel, ITaintsReportViewModel>(
             MefTestHelpers.CreateExport<ITaintStore>(),
+            MefTestHelpers.CreateExport<IShowInBrowserService>(),
             MefTestHelpers.CreateExport<IThreadHandling>()
         );
 
@@ -119,10 +123,21 @@ public class TaintsReportViewModelTest
         raised.Should().BeTrue();
     }
 
+    [TestMethod]
+    public void ShowTaintInBrowserAsync_CallsServiceWithCorrectArgument()
+    {
+        var taintIssue = Substitute.For<ITaintIssue>();
+        taintIssue.IssueServerKey.Returns("key");
+
+        testSubject.ShowTaintInBrowser(taintIssue);
+
+        showInBrowserService.Received(1).ShowIssue(taintIssue.IssueServerKey);
+    }
+
     private static IAnalysisIssueVisualization CreateMockedTaint(string filePath)
     {
         var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
-        var analysisIssueBase = Substitute.For<IAnalysisIssueBase>();
+        var analysisIssueBase = Substitute.For<ITaintIssue>();
         analysisIssueBase.PrimaryLocation.FilePath.Returns(filePath);
         analysisIssueVisualization.Issue.Returns(analysisIssueBase);
 
