@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
@@ -37,6 +38,7 @@ public class TaintsReportViewModelTest
     private TaintsReportViewModel testSubject;
     private IThreadHandling threadHandling;
     private IShowInBrowserService showInBrowserService;
+    private ITelemetryManager telemetryManager;
 
     [TestInitialize]
     public void TestInitialize()
@@ -44,7 +46,8 @@ public class TaintsReportViewModelTest
         localTaintsStore = Substitute.For<ITaintStore>();
         threadHandling = Substitute.For<IThreadHandling>();
         showInBrowserService = Substitute.For<IShowInBrowserService>();
-        testSubject = new TaintsReportViewModel(localTaintsStore, showInBrowserService, threadHandling);
+        telemetryManager = Substitute.For<ITelemetryManager>();
+        testSubject = new TaintsReportViewModel(localTaintsStore, showInBrowserService, telemetryManager, threadHandling);
     }
 
     [TestMethod]
@@ -52,6 +55,7 @@ public class TaintsReportViewModelTest
         MefTestHelpers.CheckTypeCanBeImported<TaintsReportViewModel, ITaintsReportViewModel>(
             MefTestHelpers.CreateExport<ITaintStore>(),
             MefTestHelpers.CreateExport<IShowInBrowserService>(),
+            MefTestHelpers.CreateExport<ITelemetryManager>(),
             MefTestHelpers.CreateExport<IThreadHandling>()
         );
 
@@ -124,7 +128,7 @@ public class TaintsReportViewModelTest
     }
 
     [TestMethod]
-    public void ShowTaintInBrowserAsync_CallsServiceWithCorrectArgument()
+    public void ShowTaintInBrowserAsync_CallsServiceWithCorrectArgumentAndSendTelemetry()
     {
         var taintIssue = Substitute.For<ITaintIssue>();
         taintIssue.IssueServerKey.Returns("key");
@@ -132,6 +136,7 @@ public class TaintsReportViewModelTest
         testSubject.ShowTaintInBrowser(taintIssue);
 
         showInBrowserService.Received(1).ShowIssue(taintIssue.IssueServerKey);
+        telemetryManager.Received(1).TaintIssueInvestigatedRemotely();
     }
 
     private static IAnalysisIssueVisualization CreateMockedTaint(string filePath)
