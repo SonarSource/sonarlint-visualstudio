@@ -64,9 +64,9 @@ public class ReportViewFilterTest
     [TestMethod]
     public void Ctor_InitializesStatusFilters()
     {
-        testSubject.StatusFilters.Should().HaveCount(3);
-        testSubject.StatusFilters[1].Should().Be(StatusFilter.Open);
-        testSubject.StatusFilters[2].Should().Be(StatusFilter.Resolved);
+        testSubject.StatusFilters.Should().HaveCount(2);
+        testSubject.StatusFilters[0].Should().Be(StatusFilter.Open);
+        testSubject.StatusFilters[1].Should().Be(StatusFilter.Resolved);
 
         testSubject.SelectedStatusFilter.Should().BeNull();
     }
@@ -74,12 +74,12 @@ public class ReportViewFilterTest
     [TestMethod]
     public void Ctor_InitializesSeverityFilters()
     {
-        testSubject.SeverityFilters.Should().HaveCount(4);
+        testSubject.SeverityFilters.Should().HaveCount(5);
         testSubject.SeverityFilters[0].Should().Be(DisplaySeverity.Info);
         testSubject.SeverityFilters[1].Should().Be(DisplaySeverity.Low);
         testSubject.SeverityFilters[2].Should().Be(DisplaySeverity.Medium);
-        testSubject.SeverityFilters[2].Should().Be(DisplaySeverity.High);
-        testSubject.SeverityFilters[2].Should().Be(DisplaySeverity.Blocker);
+        testSubject.SeverityFilters[3].Should().Be(DisplaySeverity.High);
+        testSubject.SeverityFilters[4].Should().Be(DisplaySeverity.Blocker);
 
         testSubject.SelectedSeverityFilter.Should().BeNull();
     }
