@@ -33,9 +33,9 @@ internal class HotspotViewModel : AnalysisIssueViewModelBase
         LocalHotspot = localHotspot;
         DisplaySeverity = LocalHotspot.Priority switch
         {
-            HotspotPriority.Low => DisplaySeverity.Info,
-            HotspotPriority.Medium => DisplaySeverity.Low,
-            HotspotPriority.High => DisplaySeverity.Medium,
+            HotspotPriority.Low => DisplaySeverity.Low,
+            HotspotPriority.Medium => DisplaySeverity.Medium,
+            HotspotPriority.High => DisplaySeverity.High,
             _ => DisplaySeverity.Info
         };
     }

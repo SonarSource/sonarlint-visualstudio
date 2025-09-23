@@ -54,9 +54,9 @@ public class HotspotViewModelTests
     }
 
     [DataTestMethod]
-    [DataRow(HotspotPriority.Low, DisplaySeverity.Info)]
-    [DataRow(HotspotPriority.Medium, DisplaySeverity.Low)]
-    [DataRow(HotspotPriority.High, DisplaySeverity.Medium)]
+    [DataRow(HotspotPriority.Low, DisplaySeverity.Low)]
+    [DataRow(HotspotPriority.Medium, DisplaySeverity.Medium)]
+    [DataRow(HotspotPriority.High, DisplaySeverity.High)]
     public void Ctor_ReturnsCorrectDisplaySeverity(HotspotPriority hotspotPriority, DisplaySeverity expectedSeverity)
     {
         var mockedHotspot = CreateMockedHotspot(hotspotPriority);
