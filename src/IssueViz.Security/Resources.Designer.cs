@@ -205,15 +205,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Severity impact:.
-        /// </summary>
-        public static string DependencyRiskImpactSeverityTooltip {
-            get {
-                return ResourceManager.GetString("DependencyRiskImpactSeverityTooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot change status: transition is not specified.
         /// </summary>
         public static string DependencyRiskNullTransitionError {
@@ -246,6 +237,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string DependencyRiskStatusChangeFailedTitle {
             get {
                 return ResourceManager.GetString("DependencyRiskStatusChangeFailedTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Severity impact:.
+        /// </summary>
+        public static string DisplaySeverityTooltip {
+            get {
+                return ResourceManager.GetString("DisplaySeverityTooltip", resourceCulture);
             }
         }
         

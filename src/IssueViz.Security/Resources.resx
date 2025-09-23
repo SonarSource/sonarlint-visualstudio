@@ -251,7 +251,7 @@ Please check the logs for more details.</value>
   <data name="DependencyRisksGroupTitle" xml:space="preserve">
     <value>Solution findings</value>
   </data>
-  <data name="DependencyRiskImpactSeverityTooltip" xml:space="preserve">
+  <data name="DisplaySeverityTooltip" xml:space="preserve">
     <value>Severity impact:</value>
   </data>
   <data name="NoDependencyRiskFoundText" xml:space="preserve">

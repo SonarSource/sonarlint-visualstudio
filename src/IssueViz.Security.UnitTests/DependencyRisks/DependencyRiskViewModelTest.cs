@@ -20,6 +20,7 @@
 
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.DependencyRisks;
 
@@ -47,6 +48,33 @@ public class DependencyRiskViewModelTest
 
         testSubject.DependencyRisk.Should().Be(dependencyRisk);
         testSubject.IsTransitionAllowed.Should().BeTrue();
+    }
+
+    [DataTestMethod]
+    [DataRow(DependencyRiskImpactSeverity.Info, DisplaySeverity.Info)]
+    [DataRow(DependencyRiskImpactSeverity.Low, DisplaySeverity.Low)]
+    [DataRow(DependencyRiskImpactSeverity.Medium, DisplaySeverity.Medium)]
+    [DataRow(DependencyRiskImpactSeverity.High, DisplaySeverity.High)]
+    [DataRow(DependencyRiskImpactSeverity.Blocker, DisplaySeverity.Blocker)]
+    public void Ctor_ReturnsCorrectDisplaySeverity(DependencyRiskImpactSeverity dependencyRiskSeverity, DisplaySeverity expectedSeverity)
+    {
+        var dependencyRisk = CreateMockedDependencyRisk();
+        dependencyRisk.Severity.Returns(dependencyRiskSeverity);
+
+        var testSubject = new DependencyRiskViewModel(dependencyRisk);
+
+        testSubject.DisplaySeverity.Should().Be(expectedSeverity);
+    }
+
+    [DataTestMethod]
+    public void Ctor_UnknownSeverity_ReturnsInfo()
+    {
+        var dependencyRisk = CreateMockedDependencyRisk();
+        dependencyRisk.Severity.Returns((DependencyRiskImpactSeverity)666);
+
+        var testSubject = new DependencyRiskViewModel(dependencyRisk);
+
+        testSubject.DisplaySeverity.Should().Be(DisplaySeverity.Info);
     }
 
     [DataTestMethod]

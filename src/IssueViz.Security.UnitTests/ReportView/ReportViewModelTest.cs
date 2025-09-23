@@ -268,7 +268,7 @@ public class ReportViewModelTest
     [TestMethod]
     public void SelectedItem_SetToTaintRiskViewModel_CallsTelemetryForTaint()
     {
-        var taint = Substitute.For<IAnalysisIssueVisualization>();
+        var taint = CreateTaintVisualization(default, default, default);
         var riskViewModel = new TaintViewModel(taint);
 
         testSubject.SelectedItem = riskViewModel;
@@ -280,7 +280,7 @@ public class ReportViewModelTest
     [TestMethod]
     public void SelectedItem_SetToSameTaintRiskViewModel_DoesNotCallTelemetry()
     {
-        var taintViewModel = new TaintViewModel(Substitute.For<IAnalysisIssueVisualization>());
+        var taintViewModel = new TaintViewModel(CreateTaintVisualization(default, default, default));
         testSubject.SelectedItem = taintViewModel;
         telemetryManager.ClearReceivedCalls();
 
@@ -292,8 +292,8 @@ public class ReportViewModelTest
     [TestMethod]
     public void SelectedItem_SetToDifferentTaintRiskViewModel_CallsTelemetry()
     {
-        var taintViewModel1 = new TaintViewModel(Substitute.For<IAnalysisIssueVisualization>());
-        var taintViewModel2 = new TaintViewModel(Substitute.For<IAnalysisIssueVisualization>());
+        var taintViewModel1 = new TaintViewModel(CreateTaintVisualization(default, default, default));
+        var taintViewModel2 = new TaintViewModel(CreateTaintVisualization(default, default, default));
         testSubject.SelectedItem = taintViewModel1;
         telemetryManager.ClearReceivedCalls();
 

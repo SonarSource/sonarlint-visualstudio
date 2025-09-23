@@ -1,4 +1,6 @@
-﻿using SonarLint.VisualStudio.IssueVisualization.Models;
+﻿using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
@@ -29,6 +31,66 @@ public class TaintViewModelTest
         testSubject.Issue.Should().Be(analysisIssueVisualization);
     }
 
+    [DataTestMethod]
+    [DataRow(AnalysisIssueSeverity.Info, DisplaySeverity.Info)]
+    [DataRow(AnalysisIssueSeverity.Minor, DisplaySeverity.Low)]
+    [DataRow(AnalysisIssueSeverity.Major, DisplaySeverity.Medium)]
+    [DataRow(AnalysisIssueSeverity.Critical, DisplaySeverity.High)]
+    [DataRow(AnalysisIssueSeverity.Blocker, DisplaySeverity.Blocker)]
+    public void Ctor_TaintHasSeverity_ReturnsCorrectDisplaySeverity(AnalysisIssueSeverity dependencyRiskSeverity, DisplaySeverity expectedSeverity)
+    {
+        var taintIssue = CreateMockedTaint(dependencyRiskSeverity);
+
+        var testSubject = new TaintViewModel(taintIssue);
+
+        testSubject.DisplaySeverity.Should().Be(expectedSeverity);
+    }
+
+    [DataTestMethod]
+    public void Ctor_TaintHasSeverity_UnknownSeverity_ReturnsInfo()
+    {
+        var taintIssue = CreateMockedTaint((AnalysisIssueSeverity)666);
+
+        var testSubject = new TaintViewModel(taintIssue);
+
+        testSubject.DisplaySeverity.Should().Be(DisplaySeverity.Info);
+    }
+
+    [DataTestMethod]
+    [DataRow(SoftwareQualitySeverity.Info, DisplaySeverity.Info)]
+    [DataRow(SoftwareQualitySeverity.Low, DisplaySeverity.Low)]
+    [DataRow(SoftwareQualitySeverity.Medium, DisplaySeverity.Medium)]
+    [DataRow(SoftwareQualitySeverity.High, DisplaySeverity.High)]
+    [DataRow(SoftwareQualitySeverity.Blocker, DisplaySeverity.Blocker)]
+    public void Ctor_TaintHasSoftwareQualitySeverity_ReturnsCorrectDisplaySeverity(SoftwareQualitySeverity softwareQualitySeverity, DisplaySeverity expectedSeverity)
+    {
+        var taintIssue = CreateMockedTaint(severity: AnalysisIssueSeverity.Info, softwareQualitySeverity: softwareQualitySeverity);
+
+        var testSubject = new TaintViewModel(taintIssue);
+
+        testSubject.DisplaySeverity.Should().Be(expectedSeverity);
+    }
+
+    [DataTestMethod]
+    public void Ctor_TaintHasSoftwareQualitySeverity_UnknownSeverity_ReturnsInfo()
+    {
+        var taintIssue = CreateMockedTaint(softwareQualitySeverity: (SoftwareQualitySeverity)666);
+
+        var testSubject = new TaintViewModel(taintIssue);
+
+        testSubject.DisplaySeverity.Should().Be(DisplaySeverity.Info);
+    }
+
+    [DataTestMethod]
+    public void Ctor_TaintHasNoSoftwareQualitySeverityAndNoSeverity_ReturnsInfo()
+    {
+        var taintIssue = CreateMockedTaint(severity: null, softwareQualitySeverity: null);
+
+        var testSubject = new TaintViewModel(taintIssue);
+
+        testSubject.DisplaySeverity.Should().Be(DisplaySeverity.Info);
+    }
+
     private static IAnalysisIssueVisualization CreateMockedTaint(
         string ruleId,
         Guid issueId,
@@ -47,6 +109,17 @@ public class TaintViewModelTest
         analysisIssueBase.PrimaryLocation.Message.Returns(message);
         analysisIssueBase.PrimaryLocation.FilePath.Returns(filePath);
         analysisIssueVisualization.Issue.Returns(analysisIssueBase);
+
+        return analysisIssueVisualization;
+    }
+
+    private static IAnalysisIssueVisualization CreateMockedTaint(AnalysisIssueSeverity? severity = null, SoftwareQualitySeverity? softwareQualitySeverity = null)
+    {
+        var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
+        var taintIssue = Substitute.For<ITaintIssue>();
+        taintIssue.Severity.Returns(severity);
+        taintIssue.HighestSoftwareQualitySeverity.Returns(softwareQualitySeverity);
+        analysisIssueVisualization.Issue.Returns(taintIssue);
 
         return analysisIssueVisualization;
     }
