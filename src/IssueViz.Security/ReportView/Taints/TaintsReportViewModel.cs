@@ -21,6 +21,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
@@ -43,15 +44,25 @@ internal sealed class TaintsReportViewModel : IssuesReportViewModelBase, ITaints
 {
     private readonly ITaintStore taintsStore;
     private readonly IShowInBrowserService showInBrowserService;
+    private readonly ITelemetryManager telemetryManager;
 
     [ImportingConstructor]
-    public TaintsReportViewModel(ITaintStore taintsStore, IShowInBrowserService showInBrowserService, IThreadHandling threadHandling) : base(taintsStore, threadHandling)
+    public TaintsReportViewModel(
+        ITaintStore taintsStore,
+        IShowInBrowserService showInBrowserService,
+        ITelemetryManager telemetryManager,
+        IThreadHandling threadHandling) : base(taintsStore, threadHandling)
     {
         this.taintsStore = taintsStore;
         this.showInBrowserService = showInBrowserService;
+        this.telemetryManager = telemetryManager;
     }
 
-    public void ShowTaintInBrowser(ITaintIssue taintIssue) => showInBrowserService.ShowIssue(taintIssue.IssueServerKey);
+    public void ShowTaintInBrowser(ITaintIssue taintIssue)
+    {
+        telemetryManager.TaintIssueInvestigatedRemotely();
+        showInBrowserService.ShowIssue(taintIssue.IssueServerKey);
+    }
 
     public ObservableCollection<IGroupViewModel> GetTaintsGroupViewModels() => GetGroupViewModels();
 
