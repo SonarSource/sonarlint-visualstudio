@@ -133,7 +133,7 @@ internal sealed partial class ReportViewControl : UserControl
         }
     }
 
-    private void ShowHotspotInBrowserMenuItem_OnLoaded(object sender, RoutedEventArgs e) => SetDataContextToReportViewModel<MenuItem>(sender);
+    private void ShowMenuItemInBrowserMenuItem_OnLoaded(object sender, RoutedEventArgs e) => SetDataContextToReportViewModel<MenuItem>(sender);
 
     private void TreeViewItem_OnMouseRightButtonDown(object sender, MouseButtonEventArgs e)
     {
@@ -220,6 +220,14 @@ internal sealed partial class ReportViewControl : UserControl
             {
                 ReportViewModel.GroupViewModels.ToList().ForEach(vm => vm.FilteredIssues.Remove(hotspotViewModel));
             }
+        }
+    }
+
+    private void ViewTaintInBrowser_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (ReportViewModel.SelectedItem is TaintViewModel taintViewModel)
+        {
+            TaintsReportViewModel.ShowTaintInBrowser(taintViewModel.TaintIssue);
         }
     }
 }
