@@ -34,6 +34,7 @@ using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewMo
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 using HotspotViewModel = SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots.HotspotViewModel;
 
@@ -48,6 +49,7 @@ internal sealed partial class ReportViewControl : UserControl
     public ReportViewModel ReportViewModel { get; }
     public IHotspotsReportViewModel HotspotsReportViewModel { get; }
     public IDependencyRisksReportViewModel DependencyRisksReportViewModel { get; }
+    public ITaintsReportViewModel TaintsReportViewModel { get; }
     public IResourceFinder ResourceFinder { get; } = new ResourceFinder();
 
     public ReportViewControl(
@@ -55,6 +57,7 @@ internal sealed partial class ReportViewControl : UserControl
         IBrowserService browserService,
         IHotspotsReportViewModel hotspotsReportViewModel,
         IDependencyRisksReportViewModel dependencyRisksReportViewModel,
+        ITaintsReportViewModel taintsReportViewModel,
         INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
         ILocationNavigator locationNavigator,
         ITelemetryManager telemetryManager,
@@ -64,11 +67,13 @@ internal sealed partial class ReportViewControl : UserControl
         this.browserService = browserService;
         HotspotsReportViewModel = hotspotsReportViewModel;
         DependencyRisksReportViewModel = dependencyRisksReportViewModel;
+        TaintsReportViewModel = taintsReportViewModel;
         ReportViewModel = new ReportViewModel(activeSolutionBoundTracker,
             navigateToRuleDescriptionCommand,
             locationNavigator,
             HotspotsReportViewModel,
             DependencyRisksReportViewModel,
+            TaintsReportViewModel,
             telemetryManager,
             threadHandling);
         InitializeComponent();

@@ -42,6 +42,7 @@ public class HotspotsReportViewModelTest
     private IReviewHotspotsService reviewHotspotsService;
     private ITelemetryManager telemetryManager;
     private HotspotsReportViewModel testSubject;
+    private IThreadHandling threadHandling;
 
     [TestInitialize]
     public void TestInitialize()
@@ -50,7 +51,8 @@ public class HotspotsReportViewModelTest
         reviewHotspotsService = Substitute.For<IReviewHotspotsService>();
         messageBox = Substitute.For<IMessageBox>();
         telemetryManager = Substitute.For<ITelemetryManager>();
-        testSubject = new HotspotsReportViewModel(localHotspotsStore, reviewHotspotsService, messageBox, telemetryManager);
+        threadHandling = Substitute.For<IThreadHandling>();
+        testSubject = new HotspotsReportViewModel(localHotspotsStore, reviewHotspotsService, messageBox, telemetryManager, threadHandling);
     }
 
     [TestMethod]
@@ -59,7 +61,8 @@ public class HotspotsReportViewModelTest
             MefTestHelpers.CreateExport<ILocalHotspotsStore>(),
             MefTestHelpers.CreateExport<IReviewHotspotsService>(),
             MefTestHelpers.CreateExport<IMessageBox>(),
-            MefTestHelpers.CreateExport<ITelemetryManager>()
+            MefTestHelpers.CreateExport<ITelemetryManager>(),
+            MefTestHelpers.CreateExport<IThreadHandling>()
         );
 
     [TestMethod]
@@ -123,7 +126,7 @@ public class HotspotsReportViewModelTest
     public void HotspotsChanged_RaisedOnStoreIssuesChanged()
     {
         var raised = false;
-        testSubject.HotspotsChanged += (_, _) => raised = true;
+        testSubject.IssuesChanged += (_, _) => raised = true;
 
         localHotspotsStore.IssuesChanged += Raise.Event<EventHandler<IssuesChangedEventArgs>>(null, null);
 

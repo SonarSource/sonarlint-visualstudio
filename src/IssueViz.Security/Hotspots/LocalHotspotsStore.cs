@@ -20,7 +20,6 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 
@@ -53,9 +52,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     internal sealed class LocalHotspotsStore : ILocalHotspotsStore
     {
         private static readonly List<IAnalysisIssueVisualization> EmptyList = [];
-
-        // on the off chance we can't map the RuleId to Priority, which shouldn't happen, it's better to raise it as High
-        private static readonly HotspotPriority DefaultPriority = HotspotPriority.High;
 
         private readonly object lockObject = new();
         private readonly IThreadHandling threadHandling;
@@ -109,17 +105,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 
                 var hotspotsList = hotspots.ToList();
 
-                fileToHotspotsMapping[filePath] = hotspotsList.Select(x => new LocalHotspot(x, GetPriority(x), ((IAnalysisHotspotIssue)x.Issue).HotspotStatus)).ToList();
+                fileToHotspotsMapping[filePath] = hotspotsList.Select(LocalHotspot.ToLocalHotspot).ToList();
 
                 NotifyIssuesChanged(new IssuesChangedEventArgs(oldIssueVisualizations, hotspotsList));
             }
-        }
-
-        private static HotspotPriority GetPriority(IAnalysisIssueVisualization visualization)
-        {
-            var mappedHotspotPriority = (visualization.Issue as IAnalysisHotspotIssue)?.HotspotPriority;
-
-            return mappedHotspotPriority ?? DefaultPriority;
         }
 
         public void RemoveForFile(string filePath)

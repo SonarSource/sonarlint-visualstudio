@@ -20,17 +20,22 @@
 
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Windows.Data;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
 internal sealed class GroupFileViewModel : ViewModelBase, IGroupViewModel
 {
-    public GroupFileViewModel(string filePath, ObservableCollection<IIssueViewModel> issues)
+    private readonly object @lock = new();
+
+    public GroupFileViewModel(string filePath, ObservableCollection<IIssueViewModel> issues, IThreadHandling threadHandling)
     {
         Title = Path.GetFileName(filePath);
         FilePath = filePath;
         FilteredIssues = issues;
+        threadHandling.RunOnUIThread(() => { BindingOperations.EnableCollectionSynchronization(FilteredIssues, @lock); });
     }
 
     public string Title { get; }

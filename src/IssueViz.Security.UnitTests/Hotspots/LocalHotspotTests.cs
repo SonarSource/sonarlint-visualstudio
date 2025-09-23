@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots;
@@ -31,5 +33,56 @@ public class LocalHotspotTests
         Action test = () => new LocalHotspot(null, default, default);
 
         test.Should().Throw<ArgumentNullException>().WithMessage("*visualization*");
+    }
+
+    [TestMethod]
+    [DataRow(HotspotStatus.ToReview)]
+    [DataRow(HotspotStatus.Acknowledged)]
+    [DataRow(HotspotStatus.Fixed)]
+    [DataRow(HotspotStatus.Safe)]
+    public void ToLocalHotspot_WithHotspotStatus_CreatesLocalHotspot(HotspotStatus hotspotStatus)
+    {
+        var analysisIssueVisualization = CreateMockedHotspot(hotspotStatus);
+
+        var result = LocalHotspot.ToLocalHotspot(analysisIssueVisualization);
+
+        result.Visualization.Should().Be(analysisIssueVisualization);
+        result.HotspotStatus.Should().Be(hotspotStatus);
+    }
+
+    [TestMethod]
+    [DataRow(HotspotPriority.High)]
+    [DataRow(HotspotPriority.Low)]
+    [DataRow(HotspotPriority.Medium)]
+    public void ToLocalHotspot_WithHotspotPriority_CreatesLocalHotspot(HotspotPriority hotspotPriority)
+    {
+        var analysisIssueVisualization = CreateMockedHotspot(hotspotStatus: default, hotspotPriority);
+
+        var result = LocalHotspot.ToLocalHotspot(analysisIssueVisualization);
+
+        result.Visualization.Should().Be(analysisIssueVisualization);
+        result.Priority.Should().Be(hotspotPriority);
+    }
+
+    [TestMethod]
+    public void ToLocalHotspot_NoHotspotPriority_ReturnsHighPriority()
+    {
+        var analysisIssueVisualization = CreateMockedHotspot(hotspotStatus: default, hotspotPriority: null);
+
+        var result = LocalHotspot.ToLocalHotspot(analysisIssueVisualization);
+
+        result.Visualization.Should().Be(analysisIssueVisualization);
+        result.Priority.Should().Be(HotspotPriority.High);
+    }
+
+    private IAnalysisIssueVisualization CreateMockedHotspot(HotspotStatus hotspotStatus, HotspotPriority? hotspotPriority = null)
+    {
+        var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
+        var analysisHotspotIssue = Substitute.For<IAnalysisHotspotIssue>();
+        analysisHotspotIssue.HotspotStatus.Returns(hotspotStatus);
+        analysisHotspotIssue.HotspotPriority.Returns(hotspotPriority);
+        analysisIssueVisualization.Issue.Returns(analysisHotspotIssue);
+
+        return analysisIssueVisualization;
     }
 }
