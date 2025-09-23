@@ -202,8 +202,7 @@
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
             </ContextMenu>
 
-            <ContextMenu x:Key="TaintContextMenu"    
-                         Visibility="{Binding Path=ExistsOnServer, Converter={StaticResource TrueToVisibleConverter}}">
+            <ContextMenu x:Key="TaintContextMenu">
                 <MenuItem Click="ViewTaintInBrowser_OnClick"
                           Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
