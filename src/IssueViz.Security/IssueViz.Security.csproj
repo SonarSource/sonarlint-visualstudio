@@ -53,7 +53,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Page Include="DependencyRisks\DependencyRiskImpactSeverity.xaml">
+    <Page Include="ReportView\SeverityIcons.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Hotspots\HotspotsList\HotspotsControl.xaml">

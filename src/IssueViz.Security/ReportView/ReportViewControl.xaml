@@ -18,8 +18,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary
-                    Source="../DependencyRisks/DependencyRiskImpactSeverity.xaml" />
+                <ResourceDictionary Source="SeverityIcons.xaml" />
                 <ResourceDictionary Source="../SharedUI/SharedResources.xaml" />
                 <ResourceDictionary Source="Hotspots/HotspotSeverity.xaml" />
             </ResourceDictionary.MergedDictionaries>
@@ -246,6 +245,30 @@
             </Style>
 
             <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource {x:Static vsShell:VsResourceKeys.ComboBoxStyleKey}}" />
+
+            <Style x:Key="SeverityImage" TargetType="Image">
+                <Setter Property="Source">
+                    <Setter.Value>
+                        <MultiBinding
+                            Converter="{StaticResource EnumToImageSourceConverter}" ConverterParameter="Severity">
+                            <Binding Path="DisplaySeverity" />
+                            <Binding RelativeSource="{RelativeSource Self}" />
+                            <Binding Path="ResourceFinder"
+                                     RelativeSource="{RelativeSource FindAncestor, AncestorType=UserControl}" />
+                        </MultiBinding>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="ToolTip">
+                    <Setter.Value>
+                        <StackPanel>
+                            <TextBlock>
+                                <Run Text="{x:Static res:Resources.DisplaySeverityTooltip}" />
+                                <Run Text="{Binding DisplaySeverity, Mode=OneWay}" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Setter.Value>
+                </Setter>
+            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
@@ -315,25 +338,7 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Image Grid.Column="0" Height="17" VerticalAlignment="Center">
-                            <Image.Source>
-                                <MultiBinding
-                                    Converter="{StaticResource EnumToImageSourceConverter}" ConverterParameter="Severity">
-                                    <Binding Path="DependencyRisk.Severity" />
-                                    <Binding RelativeSource="{RelativeSource Self}" />
-                                    <Binding Path="ResourceFinder"
-                                             RelativeSource="{RelativeSource FindAncestor, AncestorType=UserControl}" />
-                                </MultiBinding>
-                            </Image.Source>
-                            <Image.ToolTip>
-                                <StackPanel>
-                                    <TextBlock>
-                                        <Run Text="{x:Static res:Resources.DependencyRiskImpactSeverityTooltip}" />
-                                        <Run Text="{Binding DependencyRisk.Severity, Mode=OneWay}" />
-                                    </TextBlock>
-                                </StackPanel>
-                            </Image.ToolTip>
-                        </Image>
+                        <Image Grid.Column="0" Height="17" VerticalAlignment="Center" Style="{StaticResource SeverityImage}"/>
                         <TextBlock Grid.Column="1" Text="{Binding DependencyRisk.PackageName, StringFormat={}{0}:}" Margin="2,0,0,0"
                                    Style="{StaticResource IssueTextBlockStyle}" />
                         <TextBlock Grid.Column="2" Text="{Binding DependencyRisk.PackageVersion}" Margin="0,0,1,0"
@@ -442,25 +447,7 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Image Grid.Column="0" Height="17" VerticalAlignment="Center">
-                            <Image.Source>
-                                <MultiBinding 
-                                    Converter="{StaticResource EnumToImageSourceConverter}" ConverterParameter="Severity">
-                                    <Binding Path="Issue.Issue.Severity" />
-                                    <Binding RelativeSource="{RelativeSource Self}" />
-                                    <Binding Path="ResourceFinder"
-                              RelativeSource="{RelativeSource FindAncestor, AncestorType=UserControl}" />
-                                </MultiBinding>
-                            </Image.Source>
-                            <Image.ToolTip>
-                                <StackPanel>
-                                    <TextBlock>
-                         <Run Text="{x:Static res:Resources.DependencyRiskImpactSeverityTooltip}" />
-                         <Run Text="{Binding Issue.Issue.Severity, Mode=OneWay}" />
-                                    </TextBlock>
-                                </StackPanel>
-                            </Image.ToolTip>
-                        </Image>
+                        <Image Grid.Column="0" Height="17" VerticalAlignment="Center" Style="{StaticResource SeverityImage}"/>
                         <TextBlock Grid.Column="1"
                                    Margin="2,0,0,2"
                                    Style="{StaticResource LocationTextBlockStyle}">

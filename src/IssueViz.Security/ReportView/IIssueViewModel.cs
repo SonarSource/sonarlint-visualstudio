@@ -30,6 +30,19 @@ public interface IIssueViewModel
     string Title { get; }
     string FilePath { get; }
     RuleInfoViewModel RuleInfo { get; }
+    DisplaySeverity DisplaySeverity { get; }
+}
+
+/// <summary>
+/// Used to display severity info in the UI in a uniform way for different type of issues (hotspots, taints etc).
+/// </summary>
+public enum DisplaySeverity
+{
+    Info,
+    Low,
+    Medium,
+    High,
+    Blocker
 }
 
 public interface IAnalysisIssueViewModel : IIssueViewModel

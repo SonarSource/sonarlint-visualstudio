@@ -37,4 +37,13 @@ internal class DependencyRiskViewModel(IDependencyRisk dependencyRisk)
     public string Title => DependencyRisk.VulnerabilityId;
     public string FilePath => null;
     public RuleInfoViewModel RuleInfo => null;
+    public DisplaySeverity DisplaySeverity { get; } = dependencyRisk.Severity switch
+    {
+        DependencyRiskImpactSeverity.Info => DisplaySeverity.Info,
+        DependencyRiskImpactSeverity.Low => DisplaySeverity.Low,
+        DependencyRiskImpactSeverity.Medium => DisplaySeverity.Medium,
+        DependencyRiskImpactSeverity.High => DisplaySeverity.High,
+        DependencyRiskImpactSeverity.Blocker => DisplaySeverity.Blocker,
+        _ => DisplaySeverity.Info
+    };
 }
