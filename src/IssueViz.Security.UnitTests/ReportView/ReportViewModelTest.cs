@@ -229,7 +229,7 @@ public class ReportViewModelTest
     }
 
     [TestMethod]
-    public void SelectedItem_SetToHotspotViewModel_CallsTelemetryForDependencyRisk()
+    public void SelectedItem_SetToHotspotViewModel_CallsTelemetryForHotspot()
     {
         var hotspotViewModel = new HotspotViewModel(CreateMockedHotspot());
 
@@ -266,6 +266,44 @@ public class ReportViewModelTest
     }
 
     [TestMethod]
+    public void SelectedItem_SetToTaintRiskViewModel_CallsTelemetryForTaint()
+    {
+        var taint = Substitute.For<IAnalysisIssueVisualization>();
+        var riskViewModel = new TaintViewModel(taint);
+
+        testSubject.SelectedItem = riskViewModel;
+
+        testSubject.SelectedItem.Should().BeSameAs(riskViewModel);
+        telemetryManager.Received(1).TaintIssueInvestigatedLocally();
+    }
+
+    [TestMethod]
+    public void SelectedItem_SetToSameTaintRiskViewModel_DoesNotCallTelemetry()
+    {
+        var taintViewModel = new TaintViewModel(Substitute.For<IAnalysisIssueVisualization>());
+        testSubject.SelectedItem = taintViewModel;
+        telemetryManager.ClearReceivedCalls();
+
+        testSubject.SelectedItem = taintViewModel;
+
+        telemetryManager.DidNotReceive().TaintIssueInvestigatedLocally();
+    }
+
+    [TestMethod]
+    public void SelectedItem_SetToDifferentTaintRiskViewModel_CallsTelemetry()
+    {
+        var taintViewModel1 = new TaintViewModel(Substitute.For<IAnalysisIssueVisualization>());
+        var taintViewModel2 = new TaintViewModel(Substitute.For<IAnalysisIssueVisualization>());
+        testSubject.SelectedItem = taintViewModel1;
+        telemetryManager.ClearReceivedCalls();
+
+        testSubject.SelectedItem = taintViewModel2;
+
+        testSubject.SelectedItem.Should().BeSameAs(taintViewModel2);
+        telemetryManager.Received(1).TaintIssueInvestigatedLocally();
+    }
+
+    [TestMethod]
     public void SelectedItem_SetToNull_DoesNotCallTelemetry()
     {
         var riskViewModel1 = new DependencyRiskViewModel(CreateDependencyRisk());
@@ -277,6 +315,7 @@ public class ReportViewModelTest
         testSubject.SelectedItem.Should().BeNull();
         telemetryManager.DidNotReceive().DependencyRiskInvestigatedLocally();
         telemetryManager.DidNotReceive().HotspotInvestigatedLocally();
+        telemetryManager.DidNotReceive().TaintIssueInvestigatedLocally();
     }
 
     [TestMethod]
