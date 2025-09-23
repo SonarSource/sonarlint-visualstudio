@@ -25,6 +25,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 {
     internal class LocalHotspot
     {
+        // on the off chance we can't map the RuleId to Priority, which shouldn't happen, it's better to raise it as High
+        private static readonly HotspotPriority DefaultPriority = HotspotPriority.High;
+
         /// <param name="visualization">Locally analyzed hotspot visualization</param>
         /// <param name="priority">Hotspot review priority</param>
         /// <param name="hotspotStatus">Hotspot review status</param>
@@ -39,5 +42,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
         public IAnalysisIssueVisualization Visualization { get; }
         public HotspotPriority Priority { get; }
         public HotspotStatus HotspotStatus { get; }
+
+        public static LocalHotspot ToLocalHotspot(IAnalysisIssueVisualization analysisIssueVisualization) =>
+            new(analysisIssueVisualization, GetPriority(analysisIssueVisualization), ((IAnalysisHotspotIssue)analysisIssueVisualization.Issue).HotspotStatus);
+
+        private static HotspotPriority GetPriority(IAnalysisIssueVisualization visualization)
+        {
+            var mappedHotspotPriority = (visualization.Issue as IAnalysisHotspotIssue)?.HotspotPriority;
+
+            return mappedHotspotPriority ?? DefaultPriority;
+        }
     }
 }

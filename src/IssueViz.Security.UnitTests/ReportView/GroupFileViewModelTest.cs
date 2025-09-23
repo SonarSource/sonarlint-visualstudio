@@ -19,6 +19,7 @@
  */
 
 using System.Collections.ObjectModel;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView;
@@ -26,13 +27,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportVie
 [TestClass]
 public class GroupFileViewModelTest
 {
+    private IThreadHandling threadHandling;
+
+    [TestInitialize]
+    public void TestInitialize() => threadHandling = Substitute.For<IThreadHandling>();
+
     [TestMethod]
     public void Ctor_InitializesPropertiesAsExpected()
     {
         var issues = new ObservableCollection<IIssueViewModel> { Substitute.For<IIssueViewModel>() };
         var filePath = "c:\\myDir\\myFile.cs";
 
-        var testSubject = new GroupFileViewModel(filePath, issues);
+        var testSubject = new GroupFileViewModel(filePath, issues, threadHandling);
 
         testSubject.Title.Should().Be("myFile.cs");
         testSubject.FilePath.Should().Be(filePath);

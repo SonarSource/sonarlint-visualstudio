@@ -40,16 +40,16 @@ internal interface IHotspotsReportViewModel : IDisposable
 
     Task<bool> ChangeHotspotStatusAsync(HotspotViewModel selectedHotspotViewModel, HotspotStatus newStatus);
 
-    event EventHandler HotspotsChanged;
+    event EventHandler<IssuesChangedEventArgs> IssuesChanged;
 }
 
 [Export(typeof(IHotspotsReportViewModel))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class HotspotsReportViewModel : IHotspotsReportViewModel
+internal sealed class HotspotsReportViewModel : IssuesReportViewModelBase, IHotspotsReportViewModel
 {
     private readonly ILocalHotspotsStore hotspotsStore;
-    private readonly IReviewHotspotsService reviewHotspotsService;
     private readonly IMessageBox messageBox;
+    private readonly IReviewHotspotsService reviewHotspotsService;
     private readonly ITelemetryManager telemetryManager;
 
     [ImportingConstructor]
@@ -57,24 +57,16 @@ internal sealed class HotspotsReportViewModel : IHotspotsReportViewModel
         ILocalHotspotsStore hotspotsStore,
         IReviewHotspotsService reviewHotspotsService,
         IMessageBox messageBox,
-        ITelemetryManager telemetryManager)
+        ITelemetryManager telemetryManager,
+        IThreadHandling threadHandling) : base(hotspotsStore, threadHandling)
     {
         this.hotspotsStore = hotspotsStore;
         this.reviewHotspotsService = reviewHotspotsService;
         this.messageBox = messageBox;
         this.telemetryManager = telemetryManager;
-        hotspotsStore.IssuesChanged += HotspotsStore_IssuesChanged;
     }
 
-    public void Dispose() => hotspotsStore.IssuesChanged -= HotspotsStore_IssuesChanged;
-
-    public event EventHandler HotspotsChanged;
-
-    public ObservableCollection<IGroupViewModel> GetHotspotsGroupViewModels()
-    {
-        var hotspots = hotspotsStore.GetAllLocalHotspots().Select(x => new HotspotViewModel(x));
-        return GetGroupViewModel(hotspots);
-    }
+    public ObservableCollection<IGroupViewModel> GetHotspotsGroupViewModels() => GetGroupViewModels();
 
     public async Task ShowHotspotInBrowserAsync(LocalHotspot localHotspot)
     {
@@ -109,17 +101,5 @@ internal sealed class HotspotsReportViewModel : IHotspotsReportViewModel
         return wasChanged;
     }
 
-    private static ObservableCollection<IGroupViewModel> GetGroupViewModel(IEnumerable<IIssueViewModel> issueViewModels)
-    {
-        var issuesByFileGrouping = issueViewModels.GroupBy(vm => vm.FilePath);
-        var groupViewModels = new ObservableCollection<IGroupViewModel>();
-        foreach (var group in issuesByFileGrouping)
-        {
-            groupViewModels.Add(new GroupFileViewModel(group.Key, new ObservableCollection<IIssueViewModel>(group)));
-        }
-
-        return groupViewModels;
-    }
-
-    private void HotspotsStore_IssuesChanged(object sender, IssuesChangedEventArgs e) => HotspotsChanged?.Invoke(this, EventArgs.Empty);
+    protected override IEnumerable<IIssueViewModel> GetIssueViewModels() => hotspotsStore.GetAllLocalHotspots().Select(x => new HotspotViewModel(x));
 }

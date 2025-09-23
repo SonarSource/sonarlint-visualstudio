@@ -18,23 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-// TODO by SLVS-2525 introduce type to show in the UI so that user can distinguish between different issue types (e.g., hotspot, taint, normal issues)
-public interface IIssueViewModel
+internal class AnalysisIssueViewModelBase : ViewModelBase, IAnalysisIssueViewModel
 {
-    int? Line { get; }
-    int? Column { get; }
-    string Title { get; }
-    string FilePath { get; }
-    RuleInfoViewModel RuleInfo { get; }
-}
+    public AnalysisIssueViewModelBase(IAnalysisIssueVisualization analysisIssueVisualization)
+    {
+        Issue = analysisIssueVisualization;
+        RuleInfo = new RuleInfoViewModel(Issue.RuleId, Issue.IssueId);
+    }
 
-public interface IAnalysisIssueViewModel : IIssueViewModel
-{
-    IAnalysisIssueVisualization Issue { get; }
+    public int? Line => Issue.Issue.PrimaryLocation.TextRange.StartLine;
+    public int? Column => Issue.Issue.PrimaryLocation.TextRange.StartLineOffset;
+    public string Title => Issue.Issue.PrimaryLocation.Message;
+    public string FilePath => Issue.Issue.PrimaryLocation.FilePath;
+    public RuleInfoViewModel RuleInfo { get; }
+    public IAnalysisIssueVisualization Issue { get; }
 
-    bool IsSameAnalysisIssue(IAnalysisIssueVisualization analysisIssueVisualization);
+    public bool IsSameAnalysisIssue(IAnalysisIssueVisualization analysisIssueVisualization) =>
+        Issue.Issue.Id == analysisIssueVisualization.Issue.Id && Issue.Issue.IssueServerKey == analysisIssueVisualization.Issue.IssueServerKey;
 }

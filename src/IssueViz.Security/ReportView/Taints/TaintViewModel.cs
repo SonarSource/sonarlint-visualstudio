@@ -18,17 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 
-internal class HotspotViewModel : AnalysisIssueViewModelBase
+internal class TaintViewModel : AnalysisIssueViewModelBase
 {
-    public LocalHotspot LocalHotspot { get; }
-    public bool ExistsOnServer => LocalHotspot.Visualization.Issue.IssueServerKey != null;
+    public ITaintIssue TaintIssue => (ITaintIssue)Issue.Issue;
 
-    public HotspotViewModel(LocalHotspot localHotspot) : base(localHotspot.Visualization)
+    public TaintViewModel(IAnalysisIssueVisualization analysisIssueVisualization) : base(analysisIssueVisualization)
     {
-        LocalHotspot = localHotspot;
     }
 }
