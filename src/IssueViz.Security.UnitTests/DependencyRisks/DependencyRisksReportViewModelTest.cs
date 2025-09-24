@@ -114,9 +114,9 @@ public class DependencyRisksReportViewModelTest
         var group = testSubject.GetDependencyRisksGroup();
 
         group.Should().NotBeNull();
-        group.FilteredIssues.Should().HaveCount(2);
-        group.FilteredIssues.Should().AllBeOfType<DependencyRiskViewModel>();
-        group.FilteredIssues.Cast<DependencyRiskViewModel>().Select(vm => vm.DependencyRisk).Should().Contain([risk1, risk3]);
+        group.AllIssues.Should().HaveCount(2);
+        group.AllIssues.Should().AllBeOfType<DependencyRiskViewModel>();
+        group.AllIssues.Cast<DependencyRiskViewModel>().Select(vm => vm.DependencyRisk).Should().Contain([risk1, risk3]);
     }
 
     [TestMethod]

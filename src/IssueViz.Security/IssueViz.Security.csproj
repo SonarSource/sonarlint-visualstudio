@@ -53,6 +53,9 @@
   </ItemGroup>
   
   <ItemGroup>
+    <Page Include="ReportView\Filters\Filter.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="ReportView\SeverityIcons.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

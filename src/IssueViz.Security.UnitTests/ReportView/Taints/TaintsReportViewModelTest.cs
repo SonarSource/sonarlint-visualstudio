@@ -84,8 +84,8 @@ public class TaintsReportViewModelTest
 
         groups.Should().HaveCount(2);
         groups.Select(g => g.Title).Should().Contain([file1, file2]);
-        groups.First(g => g.Title == file1).FilteredIssues.Should().HaveCount(2);
-        groups.First(g => g.Title == file2).FilteredIssues.Should().ContainSingle();
+        groups.First(g => g.Title == file1).AllIssues.Should().HaveCount(2);
+        groups.First(g => g.Title == file2).AllIssues.Should().ContainSingle();
     }
 
     [TestMethod]
@@ -155,10 +155,10 @@ public class TaintsReportViewModelTest
     {
         groupFileVm.Should().NotBeNull();
         groupFileVm.FilePath.Should().Be(expectedTaints[0].Issue.PrimaryLocation.FilePath);
-        groupFileVm.FilteredIssues.Should().HaveCount(expectedTaints.Length);
+        groupFileVm.AllIssues.Should().HaveCount(expectedTaints.Length);
         foreach (var expectedTaint in expectedTaints)
         {
-            groupFileVm.FilteredIssues.Should().ContainSingle(vm => ((TaintViewModel)vm).Issue == expectedTaint);
+            groupFileVm.AllIssues.Should().ContainSingle(vm => ((TaintViewModel)vm).Issue == expectedTaint);
         }
     }
 }

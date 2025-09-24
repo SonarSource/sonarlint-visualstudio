@@ -28,8 +28,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewModel
 {
     private readonly IDependencyRisksStore dependencyRisksStore;
-    private readonly ObservableCollection<DependencyRiskViewModel> risks = new();
-    private readonly ObservableCollection<IIssueViewModel> filteredRisks = new();
+    private readonly ObservableCollection<IIssueViewModel> risks = new();
 
     public GroupDependencyRiskViewModel(IDependencyRisksStore dependencyRisksStore)
     {
@@ -37,8 +36,8 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewMo
     }
 
     public string Title => Resources.DependencyRisksGroupTitle;
-    public ObservableCollection<DependencyRiskViewModel> Risks => risks;
-    public ObservableCollection<IIssueViewModel> FilteredIssues => filteredRisks;
+    public ObservableCollection<IIssueViewModel> AllIssues => risks;
+    public ObservableCollection<IIssueViewModel> FilteredIssues => AllIssues;
 
     public void InitializeRisks()
     {
@@ -53,24 +52,8 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewMo
         {
             risks.Add(riskViewModel);
         }
-        RefreshFiltering();
-        RaisePropertyChanged(nameof(Risks));
+        RaisePropertyChanged(nameof(AllIssues));
     }
 
     public void Dispose() { }
-
-    public void RefreshFiltering()
-    {
-        UpdateFilteredHotspots();
-        RaisePropertyChanged(nameof(FilteredIssues));
-    }
-
-    private void UpdateFilteredHotspots()
-    {
-        filteredRisks.Clear();
-        foreach (var dependencyRiskViewModel in risks)
-        {
-            filteredRisks.Add(dependencyRiskViewModel);
-        }
-    }
 }

@@ -39,7 +39,7 @@
                    TargetType="DataGridRow">
                 <Setter Property="ContextMenu" Value="{StaticResource RowContextMenu}" />
                 <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.BackgroundBrushKey}}"/>
-                <Setter Property="ToolTipService.ToolTip" Value="{x:Static res:Resources.HotspotsControl_NavigationTooltip}"/>
+                <Setter Property="ToolTipService.ToolTip" Value="{x:Static res:Resources.NavigateToHotspotTooltip}"/>
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding Hotspot.Span, Converter={StaticResource SpanToNavigabilityConverter}}" Value="False">
                         <Setter Property="FontStyle" Value="Italic"/>

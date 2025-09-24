@@ -144,8 +144,11 @@
   <data name="HotspotsControl_NavigationErrorTooltip" xml:space="preserve">
     <value>Cannot navigate to location. The source code is different from the analyzed version.</value>
   </data>
-  <data name="HotspotsControl_NavigationTooltip" xml:space="preserve">
+  <data name="NavigateToHotspotTooltip" xml:space="preserve">
     <value>Use double-click or Enter to navigate to the security hotspot.</value>
+  </data>
+  <data name="NavigateToTaintTooltip" xml:space="preserve">
+    <value>Use double-click or Enter to navigate to the taint vulnerability.</value>
   </data>
   <data name="HotspotsControl_NotOnServerTooltip" xml:space="preserve">
     <value>Security Hotspot does not exist on the server.</value>
@@ -373,5 +376,38 @@ Please check the logs for more details.</value>
   </data>
   <data name="ShowIssueVisualizationMenuItemHeader" xml:space="preserve">
     <value>Show Issue Visualization</value>
+  </data>
+  <data name="SeverityLabel" xml:space="preserve">
+    <value>Severity:</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>Status:</value>
+  </data>
+  <data name="ClearAllButton" xml:space="preserve">
+    <value>Clear All</value>
+  </data>
+  <data name="ShowAdvancedFiltersTooltip" xml:space="preserve">
+    <value>Show advanced filters</value>
+  </data>
+  <data name="HideAdvancedFiltersTooltip" xml:space="preserve">
+    <value>Hide advanced filters</value>
+  </data>
+  <data name="DependencyRiskSingular" xml:space="preserve">
+    <value>Dependency Risk</value>
+  </data>
+  <data name="SecurityHotspotSingular" xml:space="preserve">
+    <value>Security Hotspot</value>
+  </data>
+  <data name="TaintVulnerabilitySingular" xml:space="preserve">
+    <value>Taint Vulnerability</value>
+  </data>
+  <data name="TaintVulnerabilityPlural" xml:space="preserve">
+    <value>Taint Vulnerabilities</value>
+  </data>
+  <data name="SecurityHotspotPlural" xml:space="preserve">
+    <value>Security Hotspots</value>
+  </data>
+  <data name="DependencyRiskPlural" xml:space="preserve">
+    <value>Dependency Risks</value>
   </data>
 </root>

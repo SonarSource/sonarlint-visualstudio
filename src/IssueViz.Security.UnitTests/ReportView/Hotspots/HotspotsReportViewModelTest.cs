@@ -90,8 +90,8 @@ public class HotspotsReportViewModelTest
 
         groups.Should().HaveCount(2);
         groups.Select(g => g.Title).Should().Contain([file1, file2]);
-        groups.First(g => g.Title == file1).FilteredIssues.Should().HaveCount(2);
-        groups.First(g => g.Title == file2).FilteredIssues.Should().ContainSingle();
+        groups.First(g => g.Title == file1).AllIssues.Should().HaveCount(2);
+        groups.First(g => g.Title == file2).AllIssues.Should().ContainSingle();
     }
 
     [TestMethod]
@@ -231,10 +231,10 @@ public class HotspotsReportViewModelTest
     {
         groupFileVm.Should().NotBeNull();
         groupFileVm.FilePath.Should().Be(expectedHotspots[0].Visualization.Issue.PrimaryLocation.FilePath);
-        groupFileVm.FilteredIssues.Should().HaveCount(expectedHotspots.Length);
+        groupFileVm.AllIssues.Should().HaveCount(expectedHotspots.Length);
         foreach (var expectedHotspot in expectedHotspots)
         {
-            groupFileVm.FilteredIssues.Should().ContainSingle(vm => ((HotspotViewModel)vm).LocalHotspot == expectedHotspot);
+            groupFileVm.AllIssues.Should().ContainSingle(vm => ((HotspotViewModel)vm).LocalHotspot == expectedHotspot);
         }
     }
 
