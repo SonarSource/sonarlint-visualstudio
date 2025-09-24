@@ -133,4 +133,20 @@ public class ReportViewFilterViewModelTest
 
         eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.SelectedSeverityFilter)));
     }
+
+    [TestMethod]
+    public void ClearAll_SetsAllFiltersToDefaultValued()
+    {
+        testSubject.IssueTypeFilters.ToList().ForEach(vm => vm.IsSelected = false);
+        testSubject.SelectedLocationFilter = testSubject.LocationFilters.Single(f => f.LocationFilter == LocationFilter.CurrentDocument);
+        testSubject.SelectedSeverityFilter = DisplaySeverity.Info;
+        testSubject.SelectedStatusFilter = DisplayStatus.Resolved;
+
+        testSubject.ClearAllFilters();
+
+        testSubject.IssueTypeFilters.All(vm => vm.IsSelected).Should().BeTrue();
+        testSubject.SelectedLocationFilter.LocationFilter.Should().Be(LocationFilter.OpenDocuments);
+        testSubject.SelectedSeverityFilter.Should().Be(DisplaySeverity.Any);
+        testSubject.SelectedStatusFilter.Should().Be(DisplayStatus.Open);
+    }
 }
