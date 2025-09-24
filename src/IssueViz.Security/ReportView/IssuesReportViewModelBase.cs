@@ -55,7 +55,7 @@ internal abstract class IssuesReportViewModelBase : IDisposable
         var groupViewModels = new ObservableCollection<IGroupViewModel>();
         foreach (var group in issuesByFileGrouping)
         {
-            groupViewModels.Add(new GroupFileViewModel(group.Key, new ObservableCollection<IIssueViewModel>(group), threadHandling));
+            groupViewModels.Add(new GroupFileViewModel(group.Key, new List<IIssueViewModel>(group), threadHandling));
         }
 
         return groupViewModels;

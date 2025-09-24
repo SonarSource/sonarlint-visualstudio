@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
@@ -35,7 +34,7 @@ public class GroupFileViewModelTest
     [TestMethod]
     public void Ctor_InitializesPropertiesAsExpected()
     {
-        var issues = new ObservableCollection<IIssueViewModel> { Substitute.For<IIssueViewModel>() };
+        var issues = new List<IIssueViewModel> { Substitute.For<IIssueViewModel>() };
         var filePath = "c:\\myDir\\myFile.cs";
 
         var testSubject = new GroupFileViewModel(filePath, issues, threadHandling);
@@ -43,5 +42,7 @@ public class GroupFileViewModelTest
         testSubject.Title.Should().Be("myFile.cs");
         testSubject.FilePath.Should().Be(filePath);
         testSubject.AllIssues.Should().BeSameAs(issues);
+        testSubject.FilteredIssues.Should().NotBeSameAs(issues);
+        testSubject.FilteredIssues.Should().BeEquivalentTo(issues);
     }
 }

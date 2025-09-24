@@ -53,6 +53,8 @@ public class GroupDependencyRiskViewModelTest
     {
         testSubject.Title.Should().Be(Resources.DependencyRisksGroupTitle);
         testSubject.AllIssues.Should().BeEmpty();
+        testSubject.FilteredIssues.Should().NotBeSameAs(testSubject.AllIssues);
+        testSubject.FilteredIssues.Should().BeEmpty();
     }
 
     [TestMethod]
@@ -125,7 +127,7 @@ public class GroupDependencyRiskViewModelTest
     private void VerifyUpdatedBothRiskLists()
     {
         dependencyRisksStore.Received().GetAll();
-        ReceivedEvent(nameof(testSubject.AllIssues));
+        ReceivedEvent(nameof(testSubject.FilteredIssues));
     }
 
     private void SetInitialRisks(IDependencyRisk[] state)
@@ -138,7 +140,7 @@ public class GroupDependencyRiskViewModelTest
 
     private void VerifyRisks(params IDependencyRisk[] state) => testSubject.AllIssues.Select(x => ((DependencyRiskViewModel)x).DependencyRisk).Should().BeEquivalentTo(state);
 
-    private void VerifyFilteredRisks(params IDependencyRisk[] state) => testSubject.AllIssues.Select(x => ((DependencyRiskViewModel)x).DependencyRisk).Should().BeEquivalentTo(state);
+    private void VerifyFilteredRisks(params IDependencyRisk[] state) => testSubject.FilteredIssues.Select(x => ((DependencyRiskViewModel)x).DependencyRisk).Should().BeEquivalentTo(state);
 
     private void ReceivedEvent(string eventName, int count = 1) => eventHandler.Received(count).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == eventName));
 
