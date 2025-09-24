@@ -22,7 +22,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
@@ -42,23 +41,28 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportVie
 [TestClass]
 public class FilteringTests
 {
-    private const string CurrentDocumentPath = "C:\\source\\myProj\\myFile.cs";
-    private ReportViewModel testSubject;
-    private IActiveSolutionBoundTracker activeSolutionBoundTracker;
-    private IDependencyRisksStore dependencyRisksStore;
-    private IHotspotsReportViewModel hotspotsReportViewModel;
-    private ITaintsReportViewModel taintsReportViewModel;
-    private IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler;
-    private IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler;
-    private INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand;
-    private ILocationNavigator locationNavigator;
-    private IMessageBox messageBox;
-    private ITelemetryManager telemetryManager;
-    private IThreadHandling threadHandling;
-    private PropertyChangedEventHandler eventHandler;
-    private IIssueSelectionService selectionService;
+    private const string CsharpFilePath = "C:\\source\\myProj\\myFile.cs";
+    private const string TsFilePath = "C:\\source\\myProj\\myTaint.ts";
+    private readonly IIssueViewModel csharpHotspot = CreateMockedIssueViewModel(IssueType.SecurityHotspot, CsharpFilePath);
+    private readonly IIssueViewModel csharpTaint = CreateMockedIssueViewModel(IssueType.TaintVulnerability, CsharpFilePath);
+    private readonly IIssueViewModel dependencyRiskIssue = CreateMockedIssueViewModel(IssueType.DependencyRisk, null);
+    private readonly IIssueViewModel tsHotspot = CreateMockedIssueViewModel(IssueType.SecurityHotspot, TsFilePath);
+    private readonly IIssueViewModel tsTaint = CreateMockedIssueViewModel(IssueType.TaintVulnerability, TsFilePath);
     private IActiveDocumentLocator activeDocumentLocator;
     private IActiveDocumentTracker activeDocumentTracker;
+    private IActiveSolutionBoundTracker activeSolutionBoundTracker;
+
+    private IDependencyRisksReportViewModel dependencyRisksReportViewModel;
+    private IDependencyRisksStore dependencyRisksStore;
+    private PropertyChangedEventHandler eventHandler;
+    private IHotspotsReportViewModel hotspotsReportViewModel;
+    private ILocationNavigator locationNavigator;
+    private INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand;
+    private IIssueSelectionService selectionService;
+    private ITaintsReportViewModel taintsReportViewModel;
+    private ITelemetryManager telemetryManager;
+    private ReportViewModel testSubject;
+    private IThreadHandling threadHandling;
 
     [TestInitialize]
     public void Initialize()
@@ -67,11 +71,9 @@ public class FilteringTests
         dependencyRisksStore = Substitute.For<IDependencyRisksStore>();
         hotspotsReportViewModel = Substitute.For<IHotspotsReportViewModel>();
         taintsReportViewModel = Substitute.For<ITaintsReportViewModel>();
-        showDependencyRiskInBrowserHandler = Substitute.For<IShowDependencyRiskInBrowserHandler>();
-        changeDependencyRiskStatusHandler = Substitute.For<IChangeDependencyRiskStatusHandler>();
+        dependencyRisksReportViewModel = Substitute.For<IDependencyRisksReportViewModel>();
         navigateToRuleDescriptionCommand = Substitute.For<INavigateToRuleDescriptionCommand>();
         locationNavigator = Substitute.For<ILocationNavigator>();
-        messageBox = Substitute.For<IMessageBox>();
         telemetryManager = Substitute.For<ITelemetryManager>();
         selectionService = Substitute.For<IIssueSelectionService>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
@@ -81,7 +83,14 @@ public class FilteringTests
         hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns([]);
         taintsReportViewModel.GetTaintsGroupViewModels().Returns([]);
 
+        var csharpGroup = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel(CsharpFilePath, csharpHotspot, csharpTaint)]);
+        var tsGroup = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel(TsFilePath, tsTaint, tsHotspot)]);
+        var dependencyRiskGroup = CreateMockedGroupViewModel(null, dependencyRiskIssue);
+        hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns(csharpGroup);
+        taintsReportViewModel.GetTaintsGroupViewModels().Returns(tsGroup);
+        dependencyRisksReportViewModel.GetDependencyRisksGroup().Returns(dependencyRiskGroup);
         CreateTestSubject();
+        ClearCallsForReportsViewModels();
     }
 
     [TestMethod]
@@ -97,81 +106,53 @@ public class FilteringTests
     [TestMethod]
     public void ApplyFilter_LocationFilterIsCurrentDocument_RemovesGroupsThatAreNotForTheCurrentDocument()
     {
-        var hotspotsGroups = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel(CurrentDocumentPath), CreateMockedGroupViewModel("myTaint.ts")]);
-        var taintGroups = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel("MyTaint.js"), CreateMockedGroupViewModel(CurrentDocumentPath)]);
-        var dependencyRisks = new List<IDependencyRisk>([CreateDependencyRisk()]);
-        InitializeTestSubjectWithInitialGroups(hotspotsGroups, taintGroups, dependencyRisks);
-
         ApplyLocationFilter(LocationFilter.CurrentDocument);
+
         testSubject.ApplyFilter();
 
-        testSubject.FilteredGroupViewModels.Should().HaveCount(2);
-        testSubject.FilteredGroupViewModels.All(group => group.FilePath == CurrentDocumentPath && group is not GroupDependencyRiskViewModel).Should().BeTrue();
+        VerifyOnlyGroupForCurrentDocumentIsShown();
     }
 
     [TestMethod]
     public void ApplyFilter_LocationFilterIsOpenDocuments_ShowsAllGroups()
     {
-        MockActiveDocument();
-        var hotspotsGroups = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel(CurrentDocumentPath), CreateMockedGroupViewModel("myTaint.ts")]);
-        var taintGroups = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel("MyTaint.js"), CreateMockedGroupViewModel(CurrentDocumentPath)]);
-        var dependencyRisks = new List<IDependencyRisk>([CreateDependencyRisk()]);
-        InitializeTestSubjectWithInitialGroups(hotspotsGroups, taintGroups, dependencyRisks);
-
         ApplyLocationFilter(LocationFilter.OpenDocuments);
+
         testSubject.ApplyFilter();
 
-        testSubject.FilteredGroupViewModels.Should().HaveCount(5);
-        testSubject.FilteredGroupViewModels.Should().Contain(hotspotsGroups);
-        testSubject.FilteredGroupViewModels.Should().Contain(taintGroups);
-        testSubject.FilteredGroupViewModels.Should().Contain(g => g is GroupDependencyRiskViewModel);
+        VerifyAllIssuesAreShown();
     }
 
     [TestMethod]
     public void ApplyFilter_LocationFilterChanged_ShowsGroupsCorrectly()
     {
-        MockActiveDocument();
-        var hotspotsGroups = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel(CurrentDocumentPath), CreateMockedGroupViewModel("myTaint.ts")]);
-        var taintGroups = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel("MyTaint.js"), CreateMockedGroupViewModel(CurrentDocumentPath)]);
-        var dependencyRisks = new List<IDependencyRisk>([CreateDependencyRisk()]);
-        InitializeTestSubjectWithInitialGroups(hotspotsGroups, taintGroups, dependencyRisks);
-
         ApplyLocationFilter(LocationFilter.CurrentDocument);
         testSubject.ApplyFilter();
-        testSubject.FilteredGroupViewModels.Should().HaveCount(2);
+        VerifyOnlyGroupForCurrentDocumentIsShown();
 
         ApplyLocationFilter(LocationFilter.OpenDocuments);
         testSubject.ApplyFilter();
-        testSubject.FilteredGroupViewModels.Should().HaveCount(5);
-        testSubject.FilteredGroupViewModels.Should().Contain(hotspotsGroups);
-        testSubject.FilteredGroupViewModels.Should().Contain(taintGroups);
-        testSubject.FilteredGroupViewModels.Should().Contain(g => g is GroupDependencyRiskViewModel);
+        VerifyAllIssuesAreShown();
     }
 
     [TestMethod]
     public void ActiveDocumentChanged_LocationFilterIsCurrentDocument_ReappliesFilter()
     {
-        var newFileName = "C://somePath/MyTaint.js";
-        var taintGroups = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel(newFileName), CreateMockedGroupViewModel(CurrentDocumentPath)]);
-        InitializeTestSubjectWithInitialGroups([], taintGroups, []);
-
         ApplyLocationFilter(LocationFilter.CurrentDocument);
-        activeDocumentTracker.ActiveDocumentChanged += Raise.EventWith(new ActiveDocumentChangedEventArgs(MockTextDocument(newFileName)));
+
+        activeDocumentTracker.ActiveDocumentChanged += Raise.EventWith(new ActiveDocumentChangedEventArgs(MockTextDocument(TsFilePath)));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
-        testSubject.FilteredGroupViewModels.Should().ContainSingle(group => group.FilePath == newFileName);
+        VerifyIsExpectedGroup(TsFilePath, tsTaint, tsHotspot);
         VerifyHasGroupsUpdated();
     }
 
     [TestMethod]
     public void ActiveDocumentChanged_LocationFilterIsOpenDocumentsDocument_DoesNotReapply()
     {
-        var newFileName = "C://somePath/MyTaint.js";
-        var taintGroups = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel(newFileName), CreateMockedGroupViewModel(CurrentDocumentPath)]);
-        InitializeTestSubjectWithInitialGroups([], taintGroups, []);
-
         ApplyLocationFilter(LocationFilter.OpenDocuments);
-        activeDocumentTracker.ActiveDocumentChanged += Raise.EventWith(new ActiveDocumentChangedEventArgs(MockTextDocument(newFileName)));
+
+        activeDocumentTracker.ActiveDocumentChanged += Raise.EventWith(new ActiveDocumentChangedEventArgs(MockTextDocument(TsFilePath)));
 
         eventHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
     }
@@ -183,7 +164,7 @@ public class FilteringTests
             navigateToRuleDescriptionCommand,
             locationNavigator,
             hotspotsReportViewModel,
-            new DependencyRisksReportViewModel(dependencyRisksStore, showDependencyRiskInBrowserHandler, changeDependencyRiskStatusHandler, messageBox),
+            dependencyRisksReportViewModel,
             taintsReportViewModel,
             telemetryManager,
             selectionService,
@@ -199,19 +180,7 @@ public class FilteringTests
 
     private void VerifyHasGroupsUpdated() => eventHandler.Received().Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.HasGroups)));
 
-    private void InitializeTestSubjectWithInitialGroups(
-        ObservableCollection<IGroupViewModel> hotspotGroups,
-        ObservableCollection<IGroupViewModel> taintGroups,
-        IEnumerable<IDependencyRisk> dependencyRisks)
-    {
-        hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns(hotspotGroups);
-        taintsReportViewModel.GetTaintsGroupViewModels().Returns(taintGroups);
-        dependencyRisksStore.GetAll().Returns(dependencyRisks);
-        CreateTestSubject();
-        ClearCallsForReportsViewModels();
-    }
-
-    private void MockActiveDocument(string filePath = CurrentDocumentPath)
+    private void MockActiveDocument(string filePath = CsharpFilePath)
     {
         var textDocument = MockTextDocument(filePath);
         activeDocumentLocator.FindActiveDocument().Returns(textDocument);
@@ -224,11 +193,20 @@ public class FilteringTests
         return textDocument;
     }
 
-    private static IGroupViewModel CreateMockedGroupViewModel(string filePath)
+    private static IGroupViewModel CreateMockedGroupViewModel(string filePath, params IIssueViewModel[] filteredIssueViewModels)
     {
         var group = Substitute.For<IGroupViewModel>();
         group.FilePath.Returns(filePath);
+        group.FilteredIssues.Returns(new ObservableCollection<IIssueViewModel>(filteredIssueViewModels));
         return group;
+    }
+
+    private static IIssueViewModel CreateMockedIssueViewModel(IssueType issueType, string filePath)
+    {
+        var analysisIssueViewModel = Substitute.For<IIssueViewModel>();
+        analysisIssueViewModel.IssueType.Returns(issueType);
+        analysisIssueViewModel.FilePath.Returns(filePath);
+        return analysisIssueViewModel;
     }
 
     private void ClearCallsForReportsViewModels()
@@ -238,12 +216,21 @@ public class FilteringTests
         hotspotsReportViewModel.ClearReceivedCalls();
     }
 
-    private static IDependencyRisk CreateDependencyRisk(Guid? id = null, bool isResolved = false)
+    private void VerifyAllIssuesAreShown()
     {
-        var risk = Substitute.For<IDependencyRisk>();
-        risk.Id.Returns(id ?? Guid.NewGuid());
-        risk.Transitions.Returns([]);
-        risk.Status.Returns(isResolved ? DependencyRiskStatus.Accepted : DependencyRiskStatus.Open);
-        return risk;
+        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        testSubject.FilteredGroupViewModels.Should().Contain(g => g.FilePath == null && g.FilteredIssues.SequenceEqual(new List<IIssueViewModel> { dependencyRiskIssue }));
+        VerifyIsExpectedGroup(CsharpFilePath, csharpTaint, csharpHotspot);
+        VerifyIsExpectedGroup(TsFilePath, tsTaint, tsHotspot);
     }
+
+    private void VerifyOnlyGroupForCurrentDocumentIsShown()
+    {
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        VerifyIsExpectedGroup(CsharpFilePath, csharpTaint, csharpHotspot);
+    }
+
+    private void VerifyIsExpectedGroup(string filePath, params IIssueViewModel[] expectedIssueViewModels) =>
+        testSubject.FilteredGroupViewModels.Should().Contain(g =>
+            g.FilePath == filePath && g.FilteredIssues.Count == expectedIssueViewModels.Length && expectedIssueViewModels.All(issue => g.FilteredIssues.Contains(issue)));
 }
