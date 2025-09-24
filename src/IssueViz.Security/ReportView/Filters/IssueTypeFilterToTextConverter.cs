@@ -53,7 +53,7 @@ public class IssueTypeFilterToTextConverter : IMultiValueConverter
         return $"{count} {GetResourceByKey(issueTypeFilterViewModel.IssueType + PluralSuffix)}";
     }
 
-    private string GetResourceByKey(string resourceKey) => Resources.ResourceManager.GetString(resourceKey) ?? string.Empty;
+    private static string GetResourceByKey(string resourceKey) => Resources.ResourceManager.GetString(resourceKey) ?? string.Empty;
 
     public object[] ConvertBack(
         object value,
