@@ -24,6 +24,8 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -56,6 +58,8 @@ public class ReportViewModelTest
     private IThreadHandling threadHandling;
     private PropertyChangedEventHandler eventHandler;
     private IIssueSelectionService selectionService;
+    private IActiveDocumentLocator activeDocumentLocator;
+    private IActiveDocumentTracker activeDocumentTracker;
 
     [TestInitialize]
     public void Initialize()
@@ -72,6 +76,8 @@ public class ReportViewModelTest
         telemetryManager = Substitute.For<ITelemetryManager>();
         selectionService = Substitute.For<IIssueSelectionService>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+        activeDocumentLocator = Substitute.For<IActiveDocumentLocator>();
+        activeDocumentTracker = Substitute.For<IActiveDocumentTracker>();
         eventHandler = Substitute.For<PropertyChangedEventHandler>();
         hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns([]);
         taintsReportViewModel.GetTaintsGroupViewModels().Returns([]);
@@ -164,6 +170,13 @@ public class ReportViewModelTest
     }
 
     [TestMethod]
+    public void Ctor_InitializesActiveDocument()
+    {
+        activeDocumentLocator.Received(1).FindActiveDocument();
+        activeDocumentTracker.Received(1).ActiveDocumentChanged += Arg.Any<EventHandler<ActiveDocumentChangedEventArgs>>();
+    }
+
+    [TestMethod]
     public void Dispose_UnsubscribesFromEvents()
     {
         MockRisksInStore(CreateDependencyRisk(), CreateDependencyRisk());
@@ -176,6 +189,7 @@ public class ReportViewModelTest
         hotspotsReportViewModel.Received(1).Dispose();
         taintsReportViewModel.Received(1).IssuesChanged -= Arg.Any<EventHandler<IssuesChangedEventArgs>>();
         taintsReportViewModel.Received(1).Dispose();
+        activeDocumentTracker.Received(1).ActiveDocumentChanged -= Arg.Any<EventHandler<ActiveDocumentChangedEventArgs>>();
     }
 
     [TestMethod]
@@ -694,6 +708,8 @@ public class ReportViewModelTest
             taintsReportViewModel,
             telemetryManager,
             selectionService,
+            activeDocumentLocator,
+            activeDocumentTracker,
             threadHandling);
         reportViewModel.PropertyChanged += eventHandler;
         return reportViewModel;

@@ -25,6 +25,8 @@ using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
@@ -49,9 +51,12 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
     private readonly ITaintsReportViewModel taintsReportViewModel;
     private readonly ITelemetryManager telemetryManager;
     private readonly IIssueSelectionService selectionService;
+    private readonly IActiveDocumentLocator activeDocumentLocator;
+    private readonly IActiveDocumentTracker activeDocumentTracker;
     private readonly IThreadHandling threadHandling;
     private readonly object @lock = new();
     private IIssueViewModel selectedItem;
+    private string activeDocumentFilePath;
 
     public ReportViewModel(
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
@@ -62,6 +67,8 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         ITaintsReportViewModel taintsReportViewModel,
         ITelemetryManager telemetryManager,
         IIssueSelectionService selectionService,
+        IActiveDocumentLocator activeDocumentLocator,
+        IActiveDocumentTracker activeDocumentTracker,
         IThreadHandling threadHandling) : base(activeSolutionBoundTracker)
     {
         this.hotspotsReportViewModel = hotspotsReportViewModel;
@@ -69,6 +76,8 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         this.taintsReportViewModel = taintsReportViewModel;
         this.telemetryManager = telemetryManager;
         this.selectionService = selectionService;
+        this.activeDocumentLocator = activeDocumentLocator;
+        this.activeDocumentTracker = activeDocumentTracker;
         this.threadHandling = threadHandling;
 
         threadHandling.RunOnUIThread(() => { BindingOperations.EnableCollectionSynchronization(GroupViewModels, @lock); });
@@ -76,6 +85,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         dependencyRisksReportViewModel.DependencyRisksChanged += DependencyRisksChanged;
         taintsReportViewModel.IssuesChanged += TaintsChanged;
 
+        InitializeActiveDocument();
         InitializeCommands(navigateToRuleDescriptionCommand, locationNavigator);
         InitializeViewModels();
     }
@@ -110,6 +120,8 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
 
         taintsReportViewModel.IssuesChanged -= TaintsChanged;
         taintsReportViewModel.Dispose();
+
+        activeDocumentTracker.ActiveDocumentChanged -= OnActiveDocumentChanged;
 
         foreach (var groupViewModel in GroupViewModels)
         {
@@ -242,4 +254,12 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
             locationNavigator.TryNavigate(analysisIssueViewModel.Issue);
         }, parameter => parameter is IAnalysisIssueViewModel);
     }
+
+    private void InitializeActiveDocument()
+    {
+        activeDocumentFilePath = activeDocumentLocator.FindActiveDocument()?.FilePath;
+        activeDocumentTracker.ActiveDocumentChanged += OnActiveDocumentChanged;
+    }
+
+    private void OnActiveDocumentChanged(object sender, ActiveDocumentChangedEventArgs e) => activeDocumentFilePath = e.ActiveTextDocument?.FilePath;
 }

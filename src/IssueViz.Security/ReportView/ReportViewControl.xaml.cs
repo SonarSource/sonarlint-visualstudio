@@ -29,6 +29,8 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
@@ -64,6 +66,8 @@ internal sealed partial class ReportViewControl : UserControl
         ILocationNavigator locationNavigator,
         ITelemetryManager telemetryManager,
         IIssueSelectionService selectionService,
+        IActiveDocumentLocator activeDocumentLocator,
+        IActiveDocumentTracker activeDocumentTracker,
         IThreadHandling threadHandling)
     {
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
@@ -79,6 +83,8 @@ internal sealed partial class ReportViewControl : UserControl
             TaintsReportViewModel,
             telemetryManager,
             selectionService,
+            activeDocumentLocator,
+            activeDocumentTracker,
             threadHandling);
         InitializeComponent();
     }
