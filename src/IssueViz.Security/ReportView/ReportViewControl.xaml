@@ -517,7 +517,10 @@
 
             <TreeView Grid.Row="1" Grid.Column="0" Margin="0,5"
                       ItemsSource="{Binding Path=GroupViewModels}"
-                      SelectedItemChanged="TreeView_OnSelectedItemChanged">
+                      SelectedItemChanged="TreeView_OnSelectedItemChanged"
+                      VirtualizingStackPanel.IsVirtualizing="True"
+                      VirtualizingStackPanel.VirtualizationMode="Recycling"
+                      ScrollViewer.CanContentScroll="True">
                 <TreeView.Resources>
                     <HierarchicalDataTemplate DataType="{x:Type dependencyRisks:GroupDependencyRiskViewModel}"
                                               ItemsSource="{Binding FilteredIssues}">
