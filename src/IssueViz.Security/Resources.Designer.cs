@@ -538,7 +538,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube Dependency Risks.
+        ///   Looks up a localized string similar to SonarQube Security Report.
         /// </summary>
         public static string ReportViewToolWindowCaption {
             get {
