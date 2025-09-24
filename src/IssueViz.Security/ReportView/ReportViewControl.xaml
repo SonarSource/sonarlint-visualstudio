@@ -208,6 +208,12 @@
                 <MenuItem Click="ViewTaintInBrowser_OnClick"
                           Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
+                <MenuItem Header="{x:Static res:Resources.ShowIssueVisualizationMenuItemHeader}"
+                          Click="ShowIssueVisualizationForTaint_OnClick">
+                    <MenuItem.Icon>
+                        <imaging:CrispImage Source="/SonarLint.VisualStudio.IssueVisualization.Security;component/SharedUI/sonarqube_for_ide_logo_16px.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
             </ContextMenu>
 
             <Style x:Key="ResolutionFilterBorderStyle" TargetType="Button">

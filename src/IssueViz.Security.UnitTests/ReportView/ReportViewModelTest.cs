@@ -34,6 +34,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView;
@@ -54,6 +55,7 @@ public class ReportViewModelTest
     private ITelemetryManager telemetryManager;
     private IThreadHandling threadHandling;
     private PropertyChangedEventHandler eventHandler;
+    private IIssueSelectionService selectionService;
 
     [TestInitialize]
     public void Initialize()
@@ -68,6 +70,7 @@ public class ReportViewModelTest
         locationNavigator = Substitute.For<ILocationNavigator>();
         messageBox = Substitute.For<IMessageBox>();
         telemetryManager = Substitute.For<ITelemetryManager>();
+        selectionService = Substitute.For<IIssueSelectionService>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         eventHandler = Substitute.For<PropertyChangedEventHandler>();
         hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns([]);
@@ -316,6 +319,31 @@ public class ReportViewModelTest
         telemetryManager.DidNotReceive().DependencyRiskInvestigatedLocally();
         telemetryManager.DidNotReceive().HotspotInvestigatedLocally();
         telemetryManager.DidNotReceive().TaintIssueInvestigatedLocally();
+    }
+
+    [TestMethod]
+    public void SelectedItem_CallsSelectionService()
+    {
+        var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
+        var viewModel = Substitute.For<IAnalysisIssueViewModel>();
+        viewModel.Issue.Returns(analysisIssueVisualization);
+
+        testSubject.SelectedItem = viewModel;
+
+        selectionService.Received(1).SelectedIssue = analysisIssueVisualization;
+    }
+
+    [TestMethod]
+    public void SelectedItem_SetToSameViewModel_CallsSelectionService()
+    {
+        var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
+        var viewModel = Substitute.For<IAnalysisIssueViewModel>();
+        viewModel.Issue.Returns(analysisIssueVisualization);
+
+        testSubject.SelectedItem = viewModel;
+        testSubject.SelectedItem = viewModel;
+
+        selectionService.Received(1).SelectedIssue = analysisIssueVisualization;
     }
 
     [TestMethod]
@@ -665,6 +693,7 @@ public class ReportViewModelTest
             new DependencyRisksReportViewModel(dependencyRisksStore, showDependencyRiskInBrowserHandler, changeDependencyRiskStatusHandler, messageBox),
             taintsReportViewModel,
             telemetryManager,
+            selectionService,
             threadHandling);
         reportViewModel.PropertyChanged += eventHandler;
         return reportViewModel;
