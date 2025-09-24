@@ -57,7 +57,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
     private readonly object @lock = new();
     private IIssueViewModel selectedItem;
     private string activeDocumentFilePath;
-    private List<IGroupViewModel> allGroupViewModels { get; } = [];
+    private readonly List<IGroupViewModel> allGroupViewModels = [];
 
     public ReportViewModel(
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
