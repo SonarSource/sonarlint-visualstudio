@@ -113,9 +113,9 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
 
     internal void ApplyFilter()
     {
-        // TODO SLVS-2535 this will be changed
         FilteredGroupViewModels.Clear();
-        allGroupViewModels.ForEach(group => FilteredGroupViewModels.Add(group));
+        FilterGroupsByLocationFilter();
+        RaisePropertyChanged(nameof(HasGroups));
     }
 
     protected override void Dispose(bool disposing)
@@ -166,7 +166,6 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
     {
         UpdateDeletedIssueViewModels(removedIssues);
         UpdateAddedIssueViewModels(addedIssueViewModels);
-        RaisePropertyChanged(nameof(HasGroups));
         ApplyFilter();
     }
 
@@ -273,4 +272,15 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
     }
 
     private void OnActiveDocumentChanged(object sender, ActiveDocumentChangedEventArgs e) => activeDocumentFilePath = e.ActiveTextDocument?.FilePath;
+
+    private void FilterGroupsByLocationFilter()
+    {
+        var groupsToShow = allGroupViewModels;
+        if (ReportViewFilter.SelectedLocationFilter.LocationFilter == LocationFilter.CurrentDocument)
+        {
+            groupsToShow = allGroupViewModels.Where(vm => vm.Title == activeDocumentFilePath).ToList();
+        }
+
+        groupsToShow.ForEach(vm => FilteredGroupViewModels.Add(vm));
+    }
 }

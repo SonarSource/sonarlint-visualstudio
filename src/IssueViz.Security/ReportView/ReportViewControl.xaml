@@ -407,9 +407,10 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <ComboBox ItemsSource="{Binding Path=LocationFilters}"
-                          SelectedItem="{Binding Path=SelectedLocationFilter}"
-                          DisplayMemberPath="DisplayName" Margin="7,3" MinWidth="150" />
+                    <ComboBox ItemsSource="{Binding Path=LocationFilters}"
+                              SelectedItem="{Binding Path=SelectedLocationFilter}"
+                              DisplayMemberPath="DisplayName" Margin="7,3" MinWidth="150" 
+                              SelectionChanged="Control_OnFilterChanged"/>
 
                 <Grid Grid.Column="1">
                     <Grid.ColumnDefinitions>

@@ -259,4 +259,6 @@ internal sealed partial class ReportViewControl : UserControl
     }
 
     private void ShowAdvancedFilters_Click(object sender, RoutedEventArgs e) => ReportViewModel.ReportViewFilter.ShowAdvancedFilters = !ReportViewModel.ReportViewFilter.ShowAdvancedFilters;
+
+    private void Control_OnFilterChanged(object sender, EventArgs e) => ReportViewModel.ApplyFilter();
 }

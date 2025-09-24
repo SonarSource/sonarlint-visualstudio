@@ -20,6 +20,7 @@
 
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
@@ -33,6 +34,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
@@ -44,6 +46,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportVie
 [TestClass]
 public class ReportViewModelTest
 {
+    private const string CurrentDocumentPath = "C:\\source\\myProj\\myFile.cs";
     private ReportViewModel testSubject;
     private IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private IDependencyRisksStore dependencyRisksStore;
@@ -82,7 +85,7 @@ public class ReportViewModelTest
         hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns([]);
         taintsReportViewModel.GetTaintsGroupViewModels().Returns([]);
 
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
     }
 
     [TestMethod]
@@ -109,7 +112,7 @@ public class ReportViewModelTest
         var dependencyRisk = CreateDependencyRisk();
         MockRisksInStore(dependencyRisk);
 
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
         VerifyExpectedDependencyRiskGroupViewModel(testSubject.FilteredGroupViewModels[0] as GroupDependencyRiskViewModel, dependencyRisk);
@@ -122,7 +125,7 @@ public class ReportViewModelTest
         var hotspotGroupViewModel2 = CreateMockedGroupViewModel(filePath: "myFile2.cs");
         hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns([hotspotGroupViewModel, hotspotGroupViewModel2]);
 
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(2);
         testSubject.FilteredGroupViewModels.Should().Contain(hotspotGroupViewModel);
@@ -136,7 +139,7 @@ public class ReportViewModelTest
         var taintGroupViewModel2 = CreateMockedGroupViewModel(filePath: "myFile2.cs");
         taintsReportViewModel.GetTaintsGroupViewModels().Returns([taintGroupViewModel, taintGroupViewModel2]);
 
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(2);
         testSubject.FilteredGroupViewModels.Should().Contain(taintGroupViewModel);
@@ -153,7 +156,7 @@ public class ReportViewModelTest
         var taintGroupViewModel = CreateMockedGroupViewModel(filePath: "myFile2.cs");
         taintsReportViewModel.GetTaintsGroupViewModels().Returns([taintGroupViewModel]);
 
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(3);
         VerifyExpectedDependencyRiskGroupViewModel(testSubject.FilteredGroupViewModels[0] as GroupDependencyRiskViewModel, dependencyRisk);
@@ -164,7 +167,7 @@ public class ReportViewModelTest
     [TestMethod]
     public void Ctor_NoIssues_CreatesNoGroupViewModel()
     {
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
         testSubject.FilteredGroupViewModels.Should().BeEmpty();
     }
@@ -180,7 +183,7 @@ public class ReportViewModelTest
     public void Dispose_UnsubscribesFromEvents()
     {
         MockRisksInStore(CreateDependencyRisk(), CreateDependencyRisk());
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
         testSubject.Dispose();
 
@@ -579,7 +582,7 @@ public class ReportViewModelTest
     {
         var addedRisk = CreateDependencyRisk();
         dependencyRisksStore.GetAll().Returns([], [addedRisk]);
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
         dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
 
@@ -593,7 +596,7 @@ public class ReportViewModelTest
         var initialRisk = CreateDependencyRisk();
         var addedRisk = CreateDependencyRisk();
         dependencyRisksStore.GetAll().Returns([initialRisk], [initialRisk, addedRisk]);
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
         dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
 
@@ -606,7 +609,7 @@ public class ReportViewModelTest
     {
         var addedRisk = CreateDependencyRisk();
         dependencyRisksStore.GetAll().Returns([], [addedRisk]);
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
         ClearCallsForReportsViewModels();
 
         dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
@@ -621,7 +624,7 @@ public class ReportViewModelTest
     {
         var initialRisk = CreateDependencyRisk();
         dependencyRisksStore.GetAll().Returns([initialRisk], new IDependencyRisk[] { });
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
         dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
 
@@ -634,7 +637,7 @@ public class ReportViewModelTest
         var initialRisk = CreateDependencyRisk();
         var initialRisk2 = CreateDependencyRisk();
         dependencyRisksStore.GetAll().Returns([initialRisk, initialRisk2], [initialRisk]);
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
         dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
 
@@ -647,7 +650,7 @@ public class ReportViewModelTest
     {
         var initialRisk = CreateDependencyRisk();
         dependencyRisksStore.GetAll().Returns([initialRisk], new IDependencyRisk[] { });
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
         ClearCallsForReportsViewModels();
 
         dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
@@ -661,7 +664,7 @@ public class ReportViewModelTest
     public void HasGroups_ReturnsTrue_WhenThereAreRisks()
     {
         MockRisksInStore(CreateDependencyRisk());
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
         testSubject.HasGroups.Should().BeTrue();
     }
@@ -698,8 +701,73 @@ public class ReportViewModelTest
         locationNavigator.Received(1).TryNavigatePartial(analysisIssueViewModel.Issue);
     }
 
-    private ReportViewModel CreateTestSubject()
+    [TestMethod]
+    public void ApplyFilter_RaisesEvents()
     {
+        eventHandler.ClearReceivedCalls();
+
+        testSubject.ApplyFilter();
+
+        VerifyHasGroupsUpdated();
+    }
+
+    [TestMethod]
+    public void ApplyFilter_CurrentDocument_RemovesGroupsThatAreNotForTheCurrentDocument()
+    {
+        var hotspotsGroups = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel(CurrentDocumentPath), CreateMockedGroupViewModel("myTaint.ts")]);
+        var taintGroups = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel("MyTaint.js"), CreateMockedGroupViewModel(CurrentDocumentPath)]);
+        var dependencyRisks = new List<IDependencyRisk>([CreateDependencyRisk()]);
+        InitializeTestSubjectWithInitialGroups(hotspotsGroups, taintGroups, dependencyRisks);
+
+        ApplyLocationFilter(LocationFilter.CurrentDocument);
+        testSubject.ApplyFilter();
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(2);
+        testSubject.FilteredGroupViewModels.All(group => group.Title == CurrentDocumentPath && group is not GroupDependencyRiskViewModel).Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void ApplyFilter_OpenDocuments_ShowsAllGroups()
+    {
+        MockActiveDocument();
+        var hotspotsGroups = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel(CurrentDocumentPath), CreateMockedGroupViewModel("myTaint.ts")]);
+        var taintGroups = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel("MyTaint.js"), CreateMockedGroupViewModel(CurrentDocumentPath)]);
+        var dependencyRisks = new List<IDependencyRisk>([CreateDependencyRisk()]);
+        InitializeTestSubjectWithInitialGroups(hotspotsGroups, taintGroups, dependencyRisks);
+
+        ApplyLocationFilter(LocationFilter.OpenDocuments);
+        testSubject.ApplyFilter();
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(5);
+        testSubject.FilteredGroupViewModels.Should().Contain(hotspotsGroups);
+        testSubject.FilteredGroupViewModels.Should().Contain(taintGroups);
+        testSubject.FilteredGroupViewModels.Should().Contain(g => g is GroupDependencyRiskViewModel);
+    }
+
+    [TestMethod]
+    public void ApplyFilter_LocationFilterChanged_ShowsGroupsCorrectly()
+    {
+        MockActiveDocument();
+        var hotspotsGroups = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel(CurrentDocumentPath), CreateMockedGroupViewModel("myTaint.ts")]);
+        var taintGroups = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel("MyTaint.js"), CreateMockedGroupViewModel(CurrentDocumentPath)]);
+        var dependencyRisks = new List<IDependencyRisk>([CreateDependencyRisk()]);
+        InitializeTestSubjectWithInitialGroups(hotspotsGroups, taintGroups, dependencyRisks);
+
+        ApplyLocationFilter(LocationFilter.CurrentDocument);
+        testSubject.ApplyFilter();
+        testSubject.FilteredGroupViewModels.Should().HaveCount(2);
+
+        ApplyLocationFilter(LocationFilter.OpenDocuments);
+        testSubject.ApplyFilter();
+        testSubject.FilteredGroupViewModels.Should().HaveCount(5);
+        testSubject.FilteredGroupViewModels.Should().Contain(hotspotsGroups);
+        testSubject.FilteredGroupViewModels.Should().Contain(taintGroups);
+        testSubject.FilteredGroupViewModels.Should().Contain(g => g is GroupDependencyRiskViewModel);
+    }
+
+    private void CreateTestSubject()
+    {
+        MockActiveDocument();
         var reportViewModel = new ReportViewModel(activeSolutionBoundTracker,
             navigateToRuleDescriptionCommand,
             locationNavigator,
@@ -712,8 +780,12 @@ public class ReportViewModelTest
             activeDocumentTracker,
             threadHandling);
         reportViewModel.PropertyChanged += eventHandler;
-        return reportViewModel;
+        testSubject = reportViewModel;
+        ApplyLocationFilter(LocationFilter.OpenDocuments); // to make easier the mocking set filter for all opened documents
     }
+
+    private void ApplyLocationFilter(LocationFilter filter) =>
+        testSubject.ReportViewFilter.SelectedLocationFilter = testSubject.ReportViewFilter.LocationFilters.Single(f => f.LocationFilter == filter);
 
     private static IDependencyRisk CreateDependencyRisk(Guid? id = null, bool isResolved = false)
     {
@@ -811,7 +883,23 @@ public class ReportViewModelTest
     private void InitializeTestSubjectWithInitialGroup(params IGroupViewModel[] groupViewModels)
     {
         hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns(new ObservableCollection<IGroupViewModel>(groupViewModels));
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
         ClearCallsForReportsViewModels();
+    }
+
+    private void InitializeTestSubjectWithInitialGroups(IEnumerable<IGroupViewModel> hotspotGroups, IEnumerable<IGroupViewModel> taintGroups, IEnumerable<IDependencyRisk> dependencyRisks)
+    {
+        hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns(hotspotGroups);
+        taintsReportViewModel.GetTaintsGroupViewModels().Returns(taintGroups);
+        dependencyRisksStore.GetAll().Returns(dependencyRisks);
+        CreateTestSubject();
+        ClearCallsForReportsViewModels();
+    }
+
+    private void MockActiveDocument(string filePath = CurrentDocumentPath)
+    {
+        var textDocument = Substitute.For<ITextDocument>();
+        textDocument.FilePath.Returns(filePath);
+        activeDocumentLocator.FindActiveDocument().Returns(textDocument);
     }
 }
