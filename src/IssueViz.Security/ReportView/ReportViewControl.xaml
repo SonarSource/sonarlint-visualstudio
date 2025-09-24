@@ -25,6 +25,7 @@
                 <ResourceDictionary Source="Filters/Filter.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
+            <!--  Converters  -->
             <reportView:EnumToImageSourceConverter x:Key="EnumToImageSourceConverter" />
             <reportView:FileNameToMonikerConverter x:Key="FileNameToMonikerConverter" />
             <hotspots:HotspotTooltipConverter x:Key="HotspotTooltipConverter" />
@@ -35,13 +36,6 @@
             <wpf:BoolToVisibilityConverter x:Key="TrueToCollapsedConverter" FalseValue="Visible" TrueValue="Collapsed" />
             <wpf:EnglishPluralizationConverter x:Key="EnglishPluralizationConverter" />
             <wpf:PascalCaseEnumToSpacedStringConverter x:Key="PascalCaseEnumToSpacedStringConverter" />
-
-            <Style TargetType="TreeView">
-                <Style.Setters>
-                    <Setter Property="BorderThickness" Value="0" />
-                    <Setter Property="Background" Value="Transparent" />
-                </Style.Setters>
-            </Style>
 
             <!-- Default ToggleButton template for Expander arrow -->
             <ControlTemplate x:Key="ExpanderToggleButton" TargetType="ToggleButton">
@@ -55,6 +49,14 @@
                     </Trigger>
                 </ControlTemplate.Triggers>
             </ControlTemplate>
+
+            <!--  Styles  -->
+            <Style TargetType="TreeView">
+                <Style.Setters>
+                    <Setter Property="BorderThickness" Value="0" />
+                    <Setter Property="Background" Value="Transparent" />
+                </Style.Setters>
+            </Style>
 
             <Style TargetType="TreeViewItem">
                 <Setter Property="IsExpanded" Value="True" />
@@ -201,38 +203,6 @@
                 </Style.Triggers>
             </Style>
 
-            <ContextMenu x:Key="DependencyRiskContextMenu" Loaded="DependencyRiskContextMenu_OnLoaded">
-                <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}"
-                          Click="ChangeScaStatusMenuItem_OnClick"
-                          IsEnabled="{Binding Path=SelectedItem.IsTransitionAllowed}"
-                          Style="{StaticResource ChangeStatusMenuItemStyle}" />
-                <MenuItem Click="ViewDependencyRiskInBrowser_OnClick"
-                          Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
-            </ContextMenu>
-
-            <ContextMenu x:Key="HotspotContextMenu"
-                         Visibility="{Binding Path=ExistsOnServer, Converter={StaticResource TrueToVisibleConverter}}">
-                <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}"
-                          Click="ChangeHotspotStatusMenuItem_OnClick"
-                          Style="{StaticResource ChangeStatusMenuItemStyle}" />
-                <MenuItem Click="ViewHotspotInBrowser_OnClick"
-                          Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
-                          Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
-            </ContextMenu>
-
-            <ContextMenu x:Key="TaintContextMenu">
-                <MenuItem Click="ViewTaintInBrowser_OnClick"
-                          Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
-                          Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
-                <MenuItem Header="{x:Static res:Resources.ShowIssueVisualizationMenuItemHeader}"
-                          Click="ShowIssueVisualizationForTaint_OnClick">
-                    <MenuItem.Icon>
-                        <imaging:CrispImage
-                            Source="/SonarLint.VisualStudio.IssueVisualization.Security;component/SharedUI/sonarqube_for_ide_logo_16px.png" />
-                    </MenuItem.Icon>
-                </MenuItem>
-            </ContextMenu>
-
             <Style x:Key="DefaultButtonStyle" TargetType="Button">
                 <Setter Property="Margin" Value="5, 3" />
                 <Setter Property="Padding" Value="2,0" />
@@ -351,6 +321,7 @@
                 <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
 
+            <!--  Control templates  -->
             <ControlTemplate x:Key="IssueTypeFilterControlTemplate" TargetType="ContentControl">
                 <StackPanel Orientation="Horizontal">
                     <Border Style="{StaticResource FilterSeparatorBorderStyle}" />
@@ -377,6 +348,39 @@
                     </Button>
                 </StackPanel>
             </ControlTemplate>
+
+            <!--  Context menus  -->
+            <ContextMenu x:Key="DependencyRiskContextMenu" Loaded="DependencyRiskContextMenu_OnLoaded">
+                <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}"
+                          Click="ChangeScaStatusMenuItem_OnClick"
+                          IsEnabled="{Binding Path=SelectedItem.IsTransitionAllowed}"
+                          Style="{StaticResource ChangeStatusMenuItemStyle}" />
+                <MenuItem Click="ViewDependencyRiskInBrowser_OnClick"
+                          Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
+            </ContextMenu>
+
+            <ContextMenu x:Key="HotspotContextMenu"
+                         Visibility="{Binding Path=ExistsOnServer, Converter={StaticResource TrueToVisibleConverter}}">
+                <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}"
+                          Click="ChangeHotspotStatusMenuItem_OnClick"
+                          Style="{StaticResource ChangeStatusMenuItemStyle}" />
+                <MenuItem Click="ViewHotspotInBrowser_OnClick"
+                          Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
+                          Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
+            </ContextMenu>
+
+            <ContextMenu x:Key="TaintContextMenu">
+                <MenuItem Click="ViewTaintInBrowser_OnClick"
+                          Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
+                          Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
+                <MenuItem Header="{x:Static res:Resources.ShowIssueVisualizationMenuItemHeader}"
+                          Click="ShowIssueVisualizationForTaint_OnClick">
+                    <MenuItem.Icon>
+                        <imaging:CrispImage
+                            Source="/SonarLint.VisualStudio.IssueVisualization.Security;component/SharedUI/sonarqube_for_ide_logo_16px.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </ContextMenu>
         </ResourceDictionary>
     </UserControl.Resources>
     <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
