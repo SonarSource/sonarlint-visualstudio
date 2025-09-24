@@ -743,10 +743,10 @@ public class ReportViewModelTest
     private static void VerifyExpectedDependencyRiskGroupViewModel(GroupDependencyRiskViewModel dependencyRiskGroupVm, params IDependencyRisk[] expectedDependencyRisks)
     {
         dependencyRiskGroupVm.Should().NotBeNull();
-        dependencyRiskGroupVm.FilteredIssues.Should().HaveCount(expectedDependencyRisks.Length);
+        dependencyRiskGroupVm.AllIssues.Should().HaveCount(expectedDependencyRisks.Length);
         foreach (var expectedDependencyRisk in expectedDependencyRisks)
         {
-            dependencyRiskGroupVm.FilteredIssues.Should().ContainSingle(vm => ((DependencyRiskViewModel)vm).DependencyRisk == expectedDependencyRisk);
+            dependencyRiskGroupVm.AllIssues.Should().ContainSingle(vm => ((DependencyRiskViewModel)vm).DependencyRisk == expectedDependencyRisk);
         }
     }
 
@@ -784,11 +784,11 @@ public class ReportViewModelTest
     private static void VerifyExpectedGroupFileViewModel(GroupFileViewModel groupFileViewModel, params IAnalysisIssueVisualization[] expectedAnalysisIssueVisualizations)
     {
         groupFileViewModel.Should().NotBeNull();
-        groupFileViewModel.FilteredIssues.Should().HaveCount(expectedAnalysisIssueVisualizations.Length);
+        groupFileViewModel.AllIssues.Should().HaveCount(expectedAnalysisIssueVisualizations.Length);
         foreach (var analysisIssueVisualization in expectedAnalysisIssueVisualizations)
         {
             groupFileViewModel.FilePath.Should().Be(analysisIssueVisualization.Issue.PrimaryLocation.FilePath);
-            groupFileViewModel.FilteredIssues.Should().ContainSingle(vm => ((IAnalysisIssueViewModel)vm).Issue == analysisIssueVisualization);
+            groupFileViewModel.AllIssues.Should().ContainSingle(vm => ((IAnalysisIssueViewModel)vm).Issue == analysisIssueVisualization);
         }
     }
 

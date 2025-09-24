@@ -52,7 +52,7 @@ public class GroupDependencyRiskViewModelTest
     public void Ctor_HasPropertiesInitialized()
     {
         testSubject.Title.Should().Be(Resources.DependencyRisksGroupTitle);
-        testSubject.Risks.Should().BeEmpty();
+        testSubject.AllIssues.Should().BeEmpty();
     }
 
     [TestMethod]
@@ -66,9 +66,9 @@ public class GroupDependencyRiskViewModelTest
         testSubject.InitializeRisks();
 
         dependencyRisksStore.Received(1).GetAll();
-        testSubject.Risks.Should().HaveCount(2);
-        testSubject.Risks.Should().ContainSingle(vm => vm.DependencyRisk == dependencyRisk);
-        testSubject.Risks.Should().ContainSingle(vm => vm.DependencyRisk == dependencyRisk2);
+        testSubject.AllIssues.Should().HaveCount(2);
+        testSubject.AllIssues.Should().ContainSingle(vm => ((DependencyRiskViewModel)vm).DependencyRisk == dependencyRisk);
+        testSubject.AllIssues.Should().ContainSingle(vm => ((DependencyRiskViewModel)vm).DependencyRisk == dependencyRisk2);
     }
 
     [TestMethod]
@@ -117,7 +117,7 @@ public class GroupDependencyRiskViewModelTest
 
         testSubject.InitializeRisks();
 
-        testSubject.Risks.Should().NotContain(vm => vm.DependencyRisk.Status == DependencyRiskStatus.Fixed);
+        testSubject.AllIssues.Should().NotContain(vm => ((DependencyRiskViewModel)vm).DependencyRisk.Status == DependencyRiskStatus.Fixed);
         VerifyRisks(risks);
         VerifyFilteredRisks(risks);
     }
@@ -125,8 +125,7 @@ public class GroupDependencyRiskViewModelTest
     private void VerifyUpdatedBothRiskLists()
     {
         dependencyRisksStore.Received().GetAll();
-        ReceivedEvent(nameof(testSubject.FilteredIssues));
-        ReceivedEvent(nameof(testSubject.Risks));
+        ReceivedEvent(nameof(testSubject.AllIssues));
     }
 
     private void SetInitialRisks(IDependencyRisk[] state)
@@ -137,9 +136,9 @@ public class GroupDependencyRiskViewModelTest
         eventHandler.ClearReceivedCalls();
     }
 
-    private void VerifyRisks(params IDependencyRisk[] state) => testSubject.Risks.Select(x => x.DependencyRisk).Should().BeEquivalentTo(state);
+    private void VerifyRisks(params IDependencyRisk[] state) => testSubject.AllIssues.Select(x => ((DependencyRiskViewModel)x).DependencyRisk).Should().BeEquivalentTo(state);
 
-    private void VerifyFilteredRisks(params IDependencyRisk[] state) => testSubject.FilteredIssues.Select(x => ((DependencyRiskViewModel)x).DependencyRisk).Should().BeEquivalentTo(state);
+    private void VerifyFilteredRisks(params IDependencyRisk[] state) => testSubject.AllIssues.Select(x => ((DependencyRiskViewModel)x).DependencyRisk).Should().BeEquivalentTo(state);
 
     private void ReceivedEvent(string eventName, int count = 1) => eventHandler.Received(count).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == eventName));
 

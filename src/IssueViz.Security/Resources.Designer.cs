@@ -196,6 +196,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Clear All.
+        /// </summary>
+        public static string ClearAllButton {
+            get {
+                return ResourceManager.GetString("ClearAllButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Comment is required..
         /// </summary>
         public static string CommentRequiredErrorMessage {
@@ -214,11 +223,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Dependency Risks.
+        /// </summary>
+        public static string DependencyRiskPlural {
+            get {
+                return ResourceManager.GetString("DependencyRiskPlural", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Solution findings.
         /// </summary>
         public static string DependencyRisksGroupTitle {
             get {
                 return ResourceManager.GetString("DependencyRisksGroupTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dependency Risk.
+        /// </summary>
+        public static string DependencyRiskSingular {
+            get {
+                return ResourceManager.GetString("DependencyRiskSingular", resourceCulture);
             }
         }
         
@@ -264,6 +291,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string FinishedPackageInitialization {
             get {
                 return ResourceManager.GetString("FinishedPackageInitialization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hide advanced filters.
+        /// </summary>
+        public static string HideAdvancedFiltersTooltip {
+            get {
+                return ResourceManager.GetString("HideAdvancedFiltersTooltip", resourceCulture);
             }
         }
         
@@ -336,15 +372,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string HotspotsControl_NavigationErrorTooltip {
             get {
                 return ResourceManager.GetString("HotspotsControl_NavigationErrorTooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use double-click or Enter to navigate to the security hotspot..
-        /// </summary>
-        public static string HotspotsControl_NavigationTooltip {
-            get {
-                return ResourceManager.GetString("HotspotsControl_NavigationTooltip", resourceCulture);
             }
         }
         
@@ -471,6 +498,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string LogContext_ShowInBrowser {
             get {
                 return ResourceManager.GetString("LogContext_ShowInBrowser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use double-click or Enter to navigate to the security hotspot..
+        /// </summary>
+        public static string NavigateToHotspotTooltip {
+            get {
+                return ResourceManager.GetString("NavigateToHotspotTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use double-click or Enter to navigate to the taint vulnerability..
+        /// </summary>
+        public static string NavigateToTaintTooltip {
+            get {
+                return ResourceManager.GetString("NavigateToTaintTooltip", resourceCulture);
             }
         }
         
@@ -675,11 +720,47 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Security Hotspots.
+        /// </summary>
+        public static string SecurityHotspotPlural {
+            get {
+                return ResourceManager.GetString("SecurityHotspotPlural", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Security Hotspot.
+        /// </summary>
+        public static string SecurityHotspotSingular {
+            get {
+                return ResourceManager.GetString("SecurityHotspotSingular", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} security hotspot existing on {1}.
         /// </summary>
         public static string ServerHotspotTooltip {
             get {
                 return ResourceManager.GetString("ServerHotspotTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Severity:.
+        /// </summary>
+        public static string SeverityLabel {
+            get {
+                return ResourceManager.GetString("SeverityLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show advanced filters.
+        /// </summary>
+        public static string ShowAdvancedFiltersTooltip {
+            get {
+                return ResourceManager.GetString("ShowAdvancedFiltersTooltip", resourceCulture);
             }
         }
         
@@ -707,6 +788,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string StartedPackageInitialization {
             get {
                 return ResourceManager.GetString("StartedPackageInitialization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Status:.
+        /// </summary>
+        public static string StatusLabel {
+            get {
+                return ResourceManager.GetString("StatusLabel", resourceCulture);
             }
         }
         
@@ -797,6 +887,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string TaintToolWindowCaption {
             get {
                 return ResourceManager.GetString("TaintToolWindowCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Taint Vulnerabilities.
+        /// </summary>
+        public static string TaintVulnerabilityPlural {
+            get {
+                return ResourceManager.GetString("TaintVulnerabilityPlural", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Taint Vulnerability.
+        /// </summary>
+        public static string TaintVulnerabilitySingular {
+            get {
+                return ResourceManager.GetString("TaintVulnerabilitySingular", resourceCulture);
             }
         }
         

@@ -20,16 +20,26 @@
 
 using SonarLint.VisualStudio.Core.WPF;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
-internal class LocationFilterViewModel(LocationFilter locationFilter, string displayName) : ViewModelBase
+internal interface IIssueTypeFilterViewModel
 {
-    public LocationFilter LocationFilter { get; } = locationFilter;
-    public string DisplayName { get; } = displayName;
+    IssueType IssueType { get; }
+    bool IsSelected { get; set; }
 }
 
-public enum LocationFilter
+internal class IssueTypeFilterViewModel(IssueType issueType) : ViewModelBase, IIssueTypeFilterViewModel
 {
-    CurrentDocument,
-    OpenDocuments,
+    private bool isSelected = true;
+    public IssueType IssueType { get; } = issueType;
+
+    public bool IsSelected
+    {
+        get => isSelected;
+        set
+        {
+            isSelected = value;
+            RaisePropertyChanged();
+        }
+    }
 }

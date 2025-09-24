@@ -68,7 +68,7 @@ internal sealed class DependencyRisksReportViewModel : IDependencyRisksReportVie
     {
         var groupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore);
         groupDependencyRisk.InitializeRisks();
-        return groupDependencyRisk.FilteredIssues.Any() ? groupDependencyRisk : null;
+        return groupDependencyRisk.AllIssues.Any() ? groupDependencyRisk : null;
     }
 
     public async Task ChangeDependencyRiskStatusAsync(IDependencyRisk dependencyRisk, DependencyRiskTransition? selectedTransition, string getNormalizedComment)

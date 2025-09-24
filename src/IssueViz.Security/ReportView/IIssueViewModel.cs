@@ -47,9 +47,9 @@ public enum DisplaySeverity
 
 public enum IssueType
 {
-    DependencyRisk,
     SecurityHotspot,
     TaintVulnerability,
+    DependencyRisk
 }
 
 public interface IAnalysisIssueViewModel : IIssueViewModel

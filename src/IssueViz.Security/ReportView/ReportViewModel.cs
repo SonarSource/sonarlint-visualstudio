@@ -30,13 +30,19 @@ using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewMo
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-internal class ReportViewModel : ServerViewModel
+internal interface IReportViewModel
+{
+    ObservableCollection<IGroupViewModel> GroupViewModels { get; }
+}
+
+internal class ReportViewModel : ServerViewModel, IReportViewModel
 {
     private readonly IHotspotsReportViewModel hotspotsReportViewModel;
     private readonly IDependencyRisksReportViewModel dependencyRisksReportViewModel;
@@ -78,6 +84,7 @@ internal class ReportViewModel : ServerViewModel
     public bool HasGroups => GroupViewModels.Count > 0;
     public INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; set; }
     public ICommand NavigateToLocationCommand { get; set; }
+    public ReportViewFilterViewModel ReportViewFilter { get; } = new();
 
     public IIssueViewModel SelectedItem
     {
@@ -129,7 +136,7 @@ internal class ReportViewModel : ServerViewModel
 
     private void HotspotsChanged(object sender, IssuesChangedEventArgs e)
     {
-        var currentHotspotViewModels = GroupViewModels.SelectMany(group => group.FilteredIssues).Where(vm => vm is HotspotViewModel).Cast<HotspotViewModel>();
+        var currentHotspotViewModels = GroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is HotspotViewModel).Cast<HotspotViewModel>();
         var addedHotspotsViewModels = e.AddedIssues.Select(viz => new HotspotViewModel(LocalHotspot.ToLocalHotspot(viz))).ToList();
         var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(vm.IsSameAnalysisIssue)).ToList();
         UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
@@ -154,7 +161,7 @@ internal class ReportViewModel : ServerViewModel
     private void TaintsChanged(object sender, IssuesChangedEventArgs e)
     {
         var addedHotspotsViewModels = e.AddedIssues.Select(viz => new TaintViewModel(viz)).ToList();
-        var currentHotspotViewModels = GroupViewModels.SelectMany(group => group.FilteredIssues).Where(vm => vm is TaintViewModel).Cast<TaintViewModel>();
+        var currentHotspotViewModels = GroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is TaintViewModel).Cast<TaintViewModel>();
         var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(vm.IsSameAnalysisIssue)).ToList();
         UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
     }
@@ -197,8 +204,8 @@ internal class ReportViewModel : ServerViewModel
         {
             if (GetGroupViewModelOfIssueViewModel(removedIssueVm) is { } group)
             {
-                group.FilteredIssues.Remove(removedIssueVm);
-                if (!group.FilteredIssues.Any())
+                group.AllIssues.Remove(removedIssueVm);
+                if (!group.AllIssues.Any())
                 {
                     GroupViewModels.Remove(group);
                 }
@@ -212,7 +219,7 @@ internal class ReportViewModel : ServerViewModel
         {
             if (GetGroupViewModelOfIssueViewModel(addedIssueViewModel) is { } group)
             {
-                group.FilteredIssues.Add(addedIssueViewModel);
+                group.AllIssues.Add(addedIssueViewModel);
             }
             else
             {
