@@ -144,8 +144,11 @@
   <data name="HotspotsControl_NavigationErrorTooltip" xml:space="preserve">
     <value>Cannot navigate to location. The source code is different from the analyzed version.</value>
   </data>
-  <data name="HotspotsControl_NavigationTooltip" xml:space="preserve">
+  <data name="NavigateToHotspotTooltip" xml:space="preserve">
     <value>Use double-click or Enter to navigate to the security hotspot.</value>
+  </data>
+  <data name="NavigateToTaintTooltip" xml:space="preserve">
+    <value>Use double-click or Enter to navigate to the taint vulnerability.</value>
   </data>
   <data name="HotspotsControl_NotOnServerTooltip" xml:space="preserve">
     <value>Security Hotspot does not exist on the server.</value>

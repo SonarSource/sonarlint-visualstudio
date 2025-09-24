@@ -590,7 +590,7 @@
                         <Grid Margin="5,2" 
                               ContextMenu="{StaticResource HotspotContextMenu}"
                               MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown" 
-                              ToolTip="{x:Static res:Resources.HotspotsControl_NavigationTooltip}">
+                              ToolTip="{x:Static res:Resources.NavigateToHotspotTooltip}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
@@ -647,7 +647,8 @@
                     <DataTemplate DataType="{x:Type taints:TaintViewModel}">
                         <Grid Margin="5,2" 
                               ContextMenu="{StaticResource TaintContextMenu}"
-                              MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown">
+                              MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown"
+                              ToolTip="{x:Static res:Resources.NavigateToTaintTooltip}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />

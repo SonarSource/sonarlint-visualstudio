@@ -376,15 +376,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use double-click or Enter to navigate to the security hotspot..
-        /// </summary>
-        public static string HotspotsControl_NavigationTooltip {
-            get {
-                return ResourceManager.GetString("HotspotsControl_NavigationTooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Security Hotspot does not exist on the server..
         /// </summary>
         public static string HotspotsControl_NotOnServerTooltip {
@@ -507,6 +498,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string LogContext_ShowInBrowser {
             get {
                 return ResourceManager.GetString("LogContext_ShowInBrowser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use double-click or Enter to navigate to the security hotspot..
+        /// </summary>
+        public static string NavigateToHotspotTooltip {
+            get {
+                return ResourceManager.GetString("NavigateToHotspotTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use double-click or Enter to navigate to the taint vulnerability..
+        /// </summary>
+        public static string NavigateToTaintTooltip {
+            get {
+                return ResourceManager.GetString("NavigateToTaintTooltip", resourceCulture);
             }
         }
         
