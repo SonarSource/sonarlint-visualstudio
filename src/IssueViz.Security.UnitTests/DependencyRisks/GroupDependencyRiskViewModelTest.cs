@@ -34,10 +34,10 @@ public class GroupDependencyRiskViewModelTest
     private PropertyChangedEventHandler eventHandler;
     private readonly ReportViewFilterViewModel reportViewFilterViewModel = new();
     private readonly IDependencyRisk riskInfo = CreateDependencyRisk(severity: DependencyRiskImpactSeverity.Info);
-    private readonly IDependencyRisk riskLow = CreateDependencyRisk(severity: DependencyRiskImpactSeverity.Low);
-    private readonly IDependencyRisk riskMedium = CreateDependencyRisk(severity: DependencyRiskImpactSeverity.Medium);
-    private readonly IDependencyRisk riskHigh = CreateDependencyRisk(severity: DependencyRiskImpactSeverity.High);
-    private readonly IDependencyRisk riskBlocker = CreateDependencyRisk(severity: DependencyRiskImpactSeverity.Blocker);
+    private readonly IDependencyRisk riskLow = CreateDependencyRisk(status: DependencyRiskStatus.Open, severity: DependencyRiskImpactSeverity.Low);
+    private readonly IDependencyRisk riskMedium = CreateDependencyRisk(status: DependencyRiskStatus.Confirmed, severity: DependencyRiskImpactSeverity.Medium);
+    private readonly IDependencyRisk riskHigh = CreateDependencyRisk(status: DependencyRiskStatus.Accepted, severity: DependencyRiskImpactSeverity.High);
+    private readonly IDependencyRisk riskBlocker = CreateDependencyRisk(status: DependencyRiskStatus.Safe, severity: DependencyRiskImpactSeverity.Blocker);
     private readonly IDependencyRisk fixedRisk = CreateDependencyRisk(status: DependencyRiskStatus.Fixed);
     private IDependencyRisk[] risksOld;
     private IDependencyRisk[] risks;
@@ -155,6 +155,44 @@ public class GroupDependencyRiskViewModelTest
         VerifyFilteredRisks([]);
     }
 
+    [TestMethod]
+    public void ApplyFilter_OpenStatusFilterSelected_ShowsOnlyRisksWithStatusOpen()
+    {
+        SetInitialRisks(risks);
+        MockStatusFilter(DisplayStatus.Open);
+
+        testSubject.ApplyFilter(reportViewFilterViewModel);
+
+        var expectedFilteredRisks = risks.Where(r => r.Status is DependencyRiskStatus.Open or DependencyRiskStatus.Confirmed).ToArray();
+        VerifyRisks(risks);
+        VerifyFilteredRisks(expectedFilteredRisks);
+    }
+
+    [TestMethod]
+    public void ApplyFilter_ResolvedStatusFilterSelected_ShowsOnlyRisksWithStatusResolved()
+    {
+        SetInitialRisks(risks);
+        MockStatusFilter(DisplayStatus.Resolved);
+
+        testSubject.ApplyFilter(reportViewFilterViewModel);
+
+        var expectedFilteredRisks = risks.Where(r => r.Status is DependencyRiskStatus.Accepted or DependencyRiskStatus.Safe or DependencyRiskStatus.Fixed).ToArray();
+        VerifyRisks(risks);
+        VerifyFilteredRisks(expectedFilteredRisks);
+    }
+
+    [TestMethod]
+    public void ApplyFilter_StatusFilterNotSelected_ShowsAllRisks()
+    {
+        SetInitialRisks(risks);
+        MockStatusFilter(displayStatus: null);
+
+        testSubject.ApplyFilter(reportViewFilterViewModel);
+
+        VerifyRisks(risks);
+        VerifyFilteredRisks(risks);
+    }
+
     private void VerifyUpdatedBothRiskLists()
     {
         dependencyRisksStore.Received().GetAll();
@@ -194,4 +232,6 @@ public class GroupDependencyRiskViewModelTest
     }
 
     private void MockSeverityFilter(DisplaySeverity displaySeverity) => reportViewFilterViewModel.SelectedSeverityFilter = displaySeverity;
+
+    private void MockStatusFilter(DisplayStatus? displayStatus) => reportViewFilterViewModel.SelectedStatusFilter = displayStatus;
 }
