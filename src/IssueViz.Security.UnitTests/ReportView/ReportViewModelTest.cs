@@ -712,7 +712,7 @@ public class ReportViewModelTest
     }
 
     [TestMethod]
-    public void ApplyFilter_CurrentDocument_RemovesGroupsThatAreNotForTheCurrentDocument()
+    public void ApplyFilter_LocationFilterIsCurrentDocument_RemovesGroupsThatAreNotForTheCurrentDocument()
     {
         var hotspotsGroups = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel(CurrentDocumentPath), CreateMockedGroupViewModel("myTaint.ts")]);
         var taintGroups = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel("MyTaint.js"), CreateMockedGroupViewModel(CurrentDocumentPath)]);
@@ -723,11 +723,11 @@ public class ReportViewModelTest
         testSubject.ApplyFilter();
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(2);
-        testSubject.FilteredGroupViewModels.All(group => group.Title == CurrentDocumentPath && group is not GroupDependencyRiskViewModel).Should().BeTrue();
+        testSubject.FilteredGroupViewModels.All(group => group.FilePath == CurrentDocumentPath && group is not GroupDependencyRiskViewModel).Should().BeTrue();
     }
 
     [TestMethod]
-    public void ApplyFilter_OpenDocuments_ShowsAllGroups()
+    public void ApplyFilter_LocationFilterIsOpenDocuments_ShowsAllGroups()
     {
         MockActiveDocument();
         var hotspotsGroups = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel(CurrentDocumentPath), CreateMockedGroupViewModel("myTaint.ts")]);
@@ -765,6 +765,34 @@ public class ReportViewModelTest
         testSubject.FilteredGroupViewModels.Should().Contain(g => g is GroupDependencyRiskViewModel);
     }
 
+    [TestMethod]
+    public void ActiveDocumentChanged_LocationFilterIsCurrentDocument_ReappliesFilter()
+    {
+        var newFileName = "C://somePath/MyTaint.js";
+        var taintGroups = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel(newFileName), CreateMockedGroupViewModel(CurrentDocumentPath)]);
+        InitializeTestSubjectWithInitialGroups([], taintGroups, []);
+
+        ApplyLocationFilter(LocationFilter.CurrentDocument);
+        activeDocumentTracker.ActiveDocumentChanged += Raise.EventWith(new ActiveDocumentChangedEventArgs(MockTextDocument(newFileName)));
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        testSubject.FilteredGroupViewModels.Should().ContainSingle(group => group.FilePath == newFileName);
+        VerifyHasGroupsUpdated();
+    }
+
+    [TestMethod]
+    public void ActiveDocumentChanged_LocationFilterIsOpenDocumentsDocument_DoesNotReapply()
+    {
+        var newFileName = "C://somePath/MyTaint.js";
+        var taintGroups = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel(newFileName), CreateMockedGroupViewModel(CurrentDocumentPath)]);
+        InitializeTestSubjectWithInitialGroups([], taintGroups, []);
+
+        ApplyLocationFilter(LocationFilter.OpenDocuments);
+        activeDocumentTracker.ActiveDocumentChanged += Raise.EventWith(new ActiveDocumentChangedEventArgs(MockTextDocument(newFileName)));
+
+        eventHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
+    }
+
     private void CreateTestSubject()
     {
         MockActiveDocument();
@@ -798,7 +826,7 @@ public class ReportViewModelTest
     private static IGroupViewModel CreateMockedGroupViewModel(string filePath)
     {
         var group = Substitute.For<IGroupViewModel>();
-        group.Title.Returns(filePath);
+        group.FilePath.Returns(filePath);
         return group;
     }
 
@@ -886,7 +914,10 @@ public class ReportViewModelTest
         ClearCallsForReportsViewModels();
     }
 
-    private void InitializeTestSubjectWithInitialGroups(IEnumerable<IGroupViewModel> hotspotGroups, IEnumerable<IGroupViewModel> taintGroups, IEnumerable<IDependencyRisk> dependencyRisks)
+    private void InitializeTestSubjectWithInitialGroups(
+        ObservableCollection<IGroupViewModel> hotspotGroups,
+        ObservableCollection<IGroupViewModel> taintGroups,
+        IEnumerable<IDependencyRisk> dependencyRisks)
     {
         hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns(hotspotGroups);
         taintsReportViewModel.GetTaintsGroupViewModels().Returns(taintGroups);
@@ -897,8 +928,14 @@ public class ReportViewModelTest
 
     private void MockActiveDocument(string filePath = CurrentDocumentPath)
     {
+        var textDocument = MockTextDocument(filePath);
+        activeDocumentLocator.FindActiveDocument().Returns(textDocument);
+    }
+
+    private static ITextDocument MockTextDocument(string filePath)
+    {
         var textDocument = Substitute.For<ITextDocument>();
         textDocument.FilePath.Returns(filePath);
-        activeDocumentLocator.FindActiveDocument().Returns(textDocument);
+        return textDocument;
     }
 }

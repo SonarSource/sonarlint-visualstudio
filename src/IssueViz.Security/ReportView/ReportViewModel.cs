@@ -271,14 +271,21 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         activeDocumentTracker.ActiveDocumentChanged += OnActiveDocumentChanged;
     }
 
-    private void OnActiveDocumentChanged(object sender, ActiveDocumentChangedEventArgs e) => activeDocumentFilePath = e.ActiveTextDocument?.FilePath;
+    private void OnActiveDocumentChanged(object sender, ActiveDocumentChangedEventArgs e)
+    {
+        activeDocumentFilePath = e.ActiveTextDocument?.FilePath;
+        if (ReportViewFilter.SelectedLocationFilter.LocationFilter == LocationFilter.CurrentDocument)
+        {
+            ApplyFilter();
+        }
+    }
 
     private void FilterGroupsByLocationFilter()
     {
         var groupsToShow = allGroupViewModels;
         if (ReportViewFilter.SelectedLocationFilter.LocationFilter == LocationFilter.CurrentDocument)
         {
-            groupsToShow = allGroupViewModels.Where(vm => vm.Title == activeDocumentFilePath).ToList();
+            groupsToShow = allGroupViewModels.Where(vm => vm.FilePath == activeDocumentFilePath).ToList();
         }
 
         groupsToShow.ForEach(vm => FilteredGroupViewModels.Add(vm));
