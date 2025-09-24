@@ -749,8 +749,7 @@
                         <Hyperlink NavigateUri="{x:Static core:DocumentationLinks.ConnectedModeUri}"
                                    RequestNavigate="Hyperlink_OnRequestNavigate">
                             documentation
-                        </Hyperlink>
-                        <Run Text="). " />
+                        </Hyperlink><Run Text="). " />
                     </TextBlock>
                 </StackPanel>
             </Grid>
