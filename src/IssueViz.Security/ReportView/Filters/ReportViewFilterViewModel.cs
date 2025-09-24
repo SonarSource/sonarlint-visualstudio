@@ -31,19 +31,18 @@ internal enum StatusFilter
 
 internal class ReportViewFilterViewModel : ViewModelBase
 {
-    private static readonly ObservableCollection<LocationFilterViewModel> locationFilterViewModels =
-    [
-        new(LocationFilter.CurrentDocument, Resources.HotspotsControl_CurrentDocumentFilter),
-        new(LocationFilter.OpenDocuments, Resources.HotspotsControl_OpenDocumentsFilter)
-    ];
-    private LocationFilterViewModel selectedLocationFilter = locationFilterViewModels.Single(x => x.LocationFilter == LocationFilter.CurrentDocument);
+    private LocationFilterViewModel selectedLocationFilter;
     private DisplaySeverity? selectedSeverityFilter;
     private StatusFilter? selectedStatusFilter;
     private bool showAdvancedFilters;
 
-    public ObservableCollection<LocationFilterViewModel> LocationFilters => locationFilterViewModels;
-    public ObservableCollection<StatusFilter> StatusFilters => new(Enum.GetValues(typeof(StatusFilter)).Cast<StatusFilter>());
-    public ObservableCollection<DisplaySeverity> SeverityFilters => new(Enum.GetValues(typeof(DisplaySeverity)).Cast<DisplaySeverity>());
+    public ObservableCollection<LocationFilterViewModel> LocationFilters { get; } =
+    [
+        new(LocationFilter.CurrentDocument, Resources.HotspotsControl_CurrentDocumentFilter),
+        new(LocationFilter.OpenDocuments, Resources.HotspotsControl_OpenDocumentsFilter)
+    ];
+    public ObservableCollection<StatusFilter> StatusFilters { get; } = new(Enum.GetValues(typeof(StatusFilter)).Cast<StatusFilter>());
+    public ObservableCollection<DisplaySeverity> SeverityFilters { get; } = new(Enum.GetValues(typeof(DisplaySeverity)).Cast<DisplaySeverity>());
     public ObservableCollection<IssueTypeFilterViewModel> IssueTypeFilters { get; } =
         new(Enum.GetValues(typeof(IssueType)).Cast<IssueType>().Select(x => new IssueTypeFilterViewModel(x)));
 
@@ -85,5 +84,10 @@ internal class ReportViewFilterViewModel : ViewModelBase
             showAdvancedFilters = value;
             RaisePropertyChanged();
         }
+    }
+
+    public ReportViewFilterViewModel()
+    {
+        SelectedLocationFilter = LocationFilters.Single(x => x.LocationFilter == LocationFilter.CurrentDocument);
     }
 }
