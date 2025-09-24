@@ -22,7 +22,13 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
-internal class IssueTypeFilterViewModel(IssueType issueType) : ViewModelBase
+internal interface IIssueTypeFilterViewModel
+{
+    IssueType IssueType { get; }
+    bool IsSelected { get; set; }
+}
+
+internal class IssueTypeFilterViewModel(IssueType issueType) : ViewModelBase, IIssueTypeFilterViewModel
 {
     private bool isSelected = true;
     public IssueType IssueType { get; } = issueType;

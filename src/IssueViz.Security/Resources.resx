@@ -388,4 +388,22 @@ Please check the logs for more details.</value>
   <data name="HideAdvancedFiltersTooltip" xml:space="preserve">
     <value>Show advanced filters</value>
   </data>
+  <data name="DependencyRiskSingular" xml:space="preserve">
+    <value>Dependency Risk</value>
+  </data>
+  <data name="SecurityHotspotSingular" xml:space="preserve">
+    <value>Security Hotspot</value>
+  </data>
+  <data name="TaintVulnerabilitySingular" xml:space="preserve">
+    <value>Taint Vulnerability</value>
+  </data>
+  <data name="TaintVulnerabilityPlural" xml:space="preserve">
+    <value>Taint Vulnerabilities</value>
+  </data>
+  <data name="SecurityHotspotPlural" xml:space="preserve">
+    <value>Security Hotspots</value>
+  </data>
+  <data name="DependencyRiskPlural" xml:space="preserve">
+    <value>Dependency Risks</value>
+  </data>
 </root>

@@ -14,6 +14,7 @@
              xmlns:core="clr-namespace:SonarLint.VisualStudio.Core;assembly=SonarLint.VisualStudio.Core"
              xmlns:commands="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;assembly=SonarLint.VisualStudio.IssueVisualization"
              xmlns:taints="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints"
+             xmlns:filters="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters"
              DataContext="{Binding RelativeSource={RelativeSource Mode=Self}, Path=ReportViewModel}">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -28,6 +29,7 @@
             <reportView:FileNameToMonikerConverter x:Key="FileNameToMonikerConverter" />
             <hotspots:HotspotTooltipConverter x:Key="HotspotTooltipConverter" />
             <commands:NavigateToRuleDescriptionCommandConverter x:Key="NavigateToRuleDescriptionCommandConverter" />
+            <filters:IssueTypeFilterToTextConverter x:Key="IssueTypeFilterToTextConverter" />
 
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
             <wpf:BoolToVisibilityConverter x:Key="TrueToCollapsedConverter" FalseValue="Visible" TrueValue="Collapsed"/>
@@ -331,8 +333,18 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="{Binding Path=IssueType, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}"
-                                           Margin="2,0" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="0" Margin="2,0" VerticalAlignment="Center">
+                                    <TextBlock.Text>
+                                        <MultiBinding Converter="{StaticResource IssueTypeFilterToTextConverter}">
+                                            <Binding Path="DataContext" RelativeSource="{RelativeSource Self}" />
+                                            <Binding Path="ReportViewModel"
+                                                     RelativeSource="{RelativeSource FindAncestor, AncestorType=UserControl}" />
+                                            <!-- this is needed to make sure that the converter is triggered when the issues list changes -->
+                                            <Binding Path="ReportViewModel.HasGroups"
+                                                     RelativeSource="{RelativeSource FindAncestor, AncestorType=UserControl}" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
                             </Grid>
                         </Button.Content>
                     </Button>

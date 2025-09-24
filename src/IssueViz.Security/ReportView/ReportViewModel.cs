@@ -37,7 +37,12 @@ using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-internal class ReportViewModel : ServerViewModel
+internal interface IReportViewModel
+{
+    ObservableCollection<IGroupViewModel> GroupViewModels { get; }
+}
+
+internal class ReportViewModel : ServerViewModel, IReportViewModel
 {
     private readonly IHotspotsReportViewModel hotspotsReportViewModel;
     private readonly IDependencyRisksReportViewModel dependencyRisksReportViewModel;

@@ -223,11 +223,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Dependency Risks.
+        /// </summary>
+        public static string DependencyRiskPlural {
+            get {
+                return ResourceManager.GetString("DependencyRiskPlural", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Solution findings.
         /// </summary>
         public static string DependencyRisksGroupTitle {
             get {
                 return ResourceManager.GetString("DependencyRisksGroupTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dependency Risk.
+        /// </summary>
+        public static string DependencyRiskSingular {
+            get {
+                return ResourceManager.GetString("DependencyRiskSingular", resourceCulture);
             }
         }
         
@@ -693,6 +711,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Security Hotspots.
+        /// </summary>
+        public static string SecurityHotspotPlural {
+            get {
+                return ResourceManager.GetString("SecurityHotspotPlural", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Security Hotspot.
+        /// </summary>
+        public static string SecurityHotspotSingular {
+            get {
+                return ResourceManager.GetString("SecurityHotspotSingular", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} security hotspot existing on {1}.
         /// </summary>
         public static string ServerHotspotTooltip {
@@ -842,6 +878,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string TaintToolWindowCaption {
             get {
                 return ResourceManager.GetString("TaintToolWindowCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Taint Vulnerabilities.
+        /// </summary>
+        public static string TaintVulnerabilityPlural {
+            get {
+                return ResourceManager.GetString("TaintVulnerabilityPlural", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Taint Vulnerability.
+        /// </summary>
+        public static string TaintVulnerabilitySingular {
+            get {
+                return ResourceManager.GetString("TaintVulnerabilitySingular", resourceCulture);
             }
         }
         
