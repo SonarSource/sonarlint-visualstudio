@@ -228,7 +228,7 @@ internal sealed partial class ReportViewControl : UserControl
             var wasChanged = await HotspotsReportViewModel.ChangeHotspotStatusAsync(hotspotViewModel, newStatus);
             if (wasChanged && newStatus is HotspotStatus.Fixed or HotspotStatus.Safe)
             {
-                ReportViewModel.GroupViewModels.ToList().ForEach(vm => vm.AllIssues.Remove(hotspotViewModel));
+                ReportViewModel.FilteredGroupViewModels.ToList().ForEach(vm => vm.AllIssues.Remove(hotspotViewModel));
             }
         }
     }

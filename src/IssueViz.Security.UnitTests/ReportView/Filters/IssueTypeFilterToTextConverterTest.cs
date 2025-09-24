@@ -51,7 +51,7 @@ public class IssueTypeFilterToTextConverterTest
     [TestMethod]
     public void Convert_WhenMoreParametersThanExpected_ReturnsLocalization()
     {
-        reportViewModel.GroupViewModels.Returns([]);
+        reportViewModel.FilteredGroupViewModels.Returns([]);
 
         var result = testSubject.Convert([issueTypeFilterViewModel, reportViewModel, default, default], null, null, CultureInfo.InvariantCulture);
 
@@ -159,7 +159,7 @@ public class IssueTypeFilterToTextConverterTest
         var groupVm = Substitute.For<IGroupViewModel>();
         var filteredIssues = new ObservableCollection<IIssueViewModel>(risks.Union(hotspots).Union(taints));
         groupVm.FilteredIssues.Returns(filteredIssues);
-        reportViewModel.GroupViewModels.Returns([groupVm]);
+        reportViewModel.FilteredGroupViewModels.Returns([groupVm]);
     }
 
     private static IIssueViewModel CreateMockedIssueViewModel(IssueType issueType)
