@@ -781,7 +781,6 @@ public class ReportViewModelTest
             threadHandling);
         reportViewModel.PropertyChanged += eventHandler;
         testSubject = reportViewModel;
-        ApplyLocationFilter(LocationFilter.OpenDocuments); // to make easier the mocking set filter for all opened documents
     }
 
     private void ApplyLocationFilter(LocationFilter filter) =>
