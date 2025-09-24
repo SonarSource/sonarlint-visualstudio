@@ -376,6 +376,7 @@ Please check the logs for more details.</value>
   </data>
   <data name="ShowIssueVisualizationMenuItemHeader" xml:space="preserve">
     <value>Show Issue Visualization</value>
+  </data>
   <data name="SeverityLabel" xml:space="preserve">
     <value>Severity:</value>
   </data>
