@@ -255,6 +255,7 @@ internal sealed partial class ReportViewControl : UserControl
         if (sender is FrameworkElement { DataContext: IssueTypeFilterViewModel vm })
         {
             vm.IsSelected = !vm.IsSelected;
+            Control_OnFilterChanged(sender, e);
         }
     }
 

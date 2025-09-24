@@ -115,6 +115,8 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
     {
         FilteredGroupViewModels.Clear();
         FilterGroupsByLocationFilter();
+        FilteredGroupViewModels.ToList().ForEach(group => group.ApplyFilter(ReportViewFilter));
+        RemoveEmptyGroups();
         RaisePropertyChanged(nameof(HasGroups));
     }
 
@@ -289,5 +291,11 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         }
 
         groupsToShow.ForEach(vm => FilteredGroupViewModels.Add(vm));
+    }
+
+    private void RemoveEmptyGroups()
+    {
+        var emptyGroups = FilteredGroupViewModels.Where(g => !g.FilteredIssues.Any()).ToList();
+        emptyGroups.ForEach(g => FilteredGroupViewModels.Remove(g));
     }
 }

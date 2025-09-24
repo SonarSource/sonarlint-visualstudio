@@ -21,6 +21,8 @@
 using System.ComponentModel;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.DependencyRisks;
 
@@ -30,6 +32,7 @@ public class GroupDependencyRiskViewModelTest
     private GroupDependencyRiskViewModel testSubject;
     private IDependencyRisksStore dependencyRisksStore;
     private PropertyChangedEventHandler eventHandler;
+    private readonly ReportViewFilterViewModel reportViewFilterViewModel = new();
     private readonly IDependencyRisk risk1 = CreateDependencyRisk();
     private readonly IDependencyRisk risk2 = CreateDependencyRisk();
     private readonly IDependencyRisk risk3 = CreateDependencyRisk();
@@ -60,53 +63,12 @@ public class GroupDependencyRiskViewModelTest
     [TestMethod]
     public void InitializeRisks_InitializesRisks()
     {
-        var dependencyRisk = CreateDependencyRisk();
-        var dependencyRisk2 = CreateDependencyRisk();
-        MockRisksInStore(dependencyRisk, dependencyRisk2);
-        dependencyRisksStore.ClearReceivedCalls();
-
-        testSubject.InitializeRisks();
-
-        dependencyRisksStore.Received(1).GetAll();
-        testSubject.AllIssues.Should().HaveCount(2);
-        testSubject.AllIssues.Should().ContainSingle(vm => ((DependencyRiskViewModel)vm).DependencyRisk == dependencyRisk);
-        testSubject.AllIssues.Should().ContainSingle(vm => ((DependencyRiskViewModel)vm).DependencyRisk == dependencyRisk2);
-    }
-
-    [TestMethod]
-    public void InitializeRisks_DefaultFilters_FilteredRisksContainsOnlyOpen()
-    {
         MockRisksInStore(risksOld);
 
         testSubject.InitializeRisks();
 
         VerifyRisks(risksOld);
         VerifyFilteredRisks(risksOld);
-        VerifyUpdatedBothRiskLists();
-    }
-
-    [TestMethod]
-    public void InitializeRisks_NoRisks_FilteredRisksIsEmpty()
-    {
-        MockRisksInStore([]);
-
-        testSubject.InitializeRisks();
-
-        VerifyRisks();
-        VerifyFilteredRisks();
-        VerifyUpdatedBothRiskLists();
-    }
-
-    [TestMethod]
-    public void InitializeRisks_PassAllFilter_FilteredRisksContainsAll()
-    {
-        SetInitialRisks(risksOld);
-        MockRisksInStore(risks);
-
-        testSubject.InitializeRisks();
-
-        VerifyRisks(risks);
-        VerifyFilteredRisks(risks);
         VerifyUpdatedBothRiskLists();
     }
 
@@ -122,6 +84,32 @@ public class GroupDependencyRiskViewModelTest
         testSubject.AllIssues.Should().NotContain(vm => ((DependencyRiskViewModel)vm).DependencyRisk.Status == DependencyRiskStatus.Fixed);
         VerifyRisks(risks);
         VerifyFilteredRisks(risks);
+    }
+
+    [TestMethod]
+    public void ApplyFilter_DependencyRiskSelected_ShowsAllRisks()
+    {
+        MockRisksInStore(risks);
+        testSubject.InitializeRisks();
+        MockFilterViewModel(isSelected: true);
+
+        testSubject.ApplyFilter(reportViewFilterViewModel);
+
+        VerifyRisks(risks);
+        VerifyFilteredRisks(risks);
+    }
+
+    [TestMethod]
+    public void ApplyFilter_DependencyRiskNotSelected_RemovesAllRisksFromFilteredLists()
+    {
+        MockRisksInStore(risks);
+        testSubject.InitializeRisks();
+        MockFilterViewModel(isSelected: false);
+
+        testSubject.ApplyFilter(reportViewFilterViewModel);
+
+        VerifyRisks(risks);
+        VerifyFilteredRisks([]);
     }
 
     private void VerifyUpdatedBothRiskLists()
@@ -153,5 +141,11 @@ public class GroupDependencyRiskViewModelTest
         risk.Status.Returns(status);
         risk.Transitions.Returns([]);
         return risk;
+    }
+
+    private void MockFilterViewModel(bool isSelected)
+    {
+        var dependencyRiskFilter = reportViewFilterViewModel.IssueTypeFilters.Single(f => f.IssueType == IssueType.DependencyRisk);
+        dependencyRiskFilter.IsSelected = isSelected;
     }
 }

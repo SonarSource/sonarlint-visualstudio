@@ -23,6 +23,7 @@ using System.IO;
 using System.Windows.Data;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.WPF;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
@@ -43,6 +44,15 @@ internal sealed class GroupFileViewModel : ViewModelBase, IGroupViewModel
     public string FilePath { get; }
     public List<IIssueViewModel> AllIssues { get; }
     public ObservableCollection<IIssueViewModel> FilteredIssues { get; }
+
+    public void ApplyFilter(ReportViewFilterViewModel reportViewFilter)
+    {
+        var issueTypesToShow = reportViewFilter.IssueTypeFilters.Where(x => x.IsSelected).Select(x => x.IssueType);
+        var filteredIssues = AllIssues.Where(issue => issueTypesToShow.Contains(issue.IssueType)).ToList();
+
+        FilteredIssues.Clear();
+        filteredIssues.ForEach(issue => FilteredIssues.Add(issue));
+    }
 
     public void Dispose() { }
 }

@@ -22,6 +22,7 @@ using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
@@ -40,6 +41,15 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewMo
     public string FilePath => null;
     public List<IIssueViewModel> AllIssues => risks;
     public ObservableCollection<IIssueViewModel> FilteredIssues { get; }
+
+    public void ApplyFilter(ReportViewFilterViewModel reportViewFilter)
+    {
+        var dependencyRiskFilter = reportViewFilter.IssueTypeFilters.Single(f => f.IssueType == IssueType.DependencyRisk);
+        var issuesToShow = dependencyRiskFilter.IsSelected ? AllIssues : [];
+
+        FilteredIssues.Clear();
+        issuesToShow.ForEach(issue => FilteredIssues.Add(issue));
+    }
 
     public void InitializeRisks()
     {

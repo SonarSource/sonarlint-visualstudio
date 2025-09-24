@@ -19,6 +19,7 @@
  */
 
 using System.Collections.ObjectModel;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
@@ -28,4 +29,6 @@ internal interface IGroupViewModel : IDisposable
     string FilePath { get; }
     List<IIssueViewModel> AllIssues { get; }
     ObservableCollection<IIssueViewModel> FilteredIssues { get; }
+
+    void ApplyFilter(ReportViewFilterViewModel reportViewFilter);
 }
