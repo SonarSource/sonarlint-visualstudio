@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -59,7 +60,8 @@ internal sealed class ServerIssuesSynchronizer : IServerIssuesSynchronizer
     private readonly IScaIssueDtoToDependencyRiskConverter scaConverter;
 
     [method: ImportingConstructor]
-    public ServerIssuesSynchronizer(ITaintStore taintStore,
+    public ServerIssuesSynchronizer(
+        ITaintStore taintStore,
         IDependencyRisksStore dependencyRisksStore,
         ISLCoreServiceProvider slCoreServiceProvider,
         ITaintIssueToIssueVisualizationConverter taintConverter,
@@ -234,12 +236,11 @@ internal sealed class ServerIssuesSynchronizer : IServerIssuesSynchronizer
     }
 
     private void UpdateTaintIssuesUIContext(bool hasTaintIssues) =>
-        vSServiceOperation.Execute<VSShellInterop.SVsShellMonitorSelection, VSShellInterop.IVsMonitorSelection>(
-            monitorSelection =>
-            {
-                var localGuid = TaintIssuesExistUIContext.Guid;
+        vSServiceOperation.Execute<VSShellInterop.SVsShellMonitorSelection, VSShellInterop.IVsMonitorSelection>(monitorSelection =>
+        {
+            var localGuid = ReportViewIssuesExistUIContext.Guid;
 
-                monitorSelection.GetCmdUIContextCookie(ref localGuid, out var cookie);
-                monitorSelection.SetCmdUIContext(cookie, hasTaintIssues ? 1 : 0);
-            });
+            monitorSelection.GetCmdUIContextCookie(ref localGuid, out var cookie);
+            monitorSelection.SetCmdUIContext(cookie, hasTaintIssues ? 1 : 0);
+        });
 }
