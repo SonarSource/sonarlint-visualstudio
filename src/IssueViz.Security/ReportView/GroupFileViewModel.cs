@@ -48,10 +48,14 @@ internal sealed class GroupFileViewModel : ViewModelBase, IGroupViewModel
     public void ApplyFilter(ReportViewFilterViewModel reportViewFilter)
     {
         var issueTypesToShow = reportViewFilter.IssueTypeFilters.Where(x => x.IsSelected).Select(x => x.IssueType);
-        var filteredIssues = AllIssues.Where(issue => issueTypesToShow.Contains(issue.IssueType)).ToList();
+        var filteredIssues = AllIssues.Where(issue => issueTypesToShow.Contains(issue.IssueType));
+        if (reportViewFilter.SelectedSeverityFilter.HasValue)
+        {
+            filteredIssues = filteredIssues.Where(vm => vm.DisplaySeverity == reportViewFilter.SelectedSeverityFilter.Value);
+        }
 
         FilteredIssues.Clear();
-        filteredIssues.ForEach(issue => FilteredIssues.Add(issue));
+        filteredIssues.ToList().ForEach(issue => FilteredIssues.Add(issue));
     }
 
     public void Dispose() { }

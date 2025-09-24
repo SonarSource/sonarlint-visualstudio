@@ -33,9 +33,11 @@ public class GroupDependencyRiskViewModelTest
     private IDependencyRisksStore dependencyRisksStore;
     private PropertyChangedEventHandler eventHandler;
     private readonly ReportViewFilterViewModel reportViewFilterViewModel = new();
-    private readonly IDependencyRisk risk1 = CreateDependencyRisk();
-    private readonly IDependencyRisk risk2 = CreateDependencyRisk();
-    private readonly IDependencyRisk risk3 = CreateDependencyRisk();
+    private readonly IDependencyRisk riskInfo = CreateDependencyRisk(severity: DependencyRiskImpactSeverity.Info);
+    private readonly IDependencyRisk riskLow = CreateDependencyRisk(severity: DependencyRiskImpactSeverity.Low);
+    private readonly IDependencyRisk riskMedium = CreateDependencyRisk(severity: DependencyRiskImpactSeverity.Medium);
+    private readonly IDependencyRisk riskHigh = CreateDependencyRisk(severity: DependencyRiskImpactSeverity.High);
+    private readonly IDependencyRisk riskBlocker = CreateDependencyRisk(severity: DependencyRiskImpactSeverity.Blocker);
     private readonly IDependencyRisk fixedRisk = CreateDependencyRisk(status: DependencyRiskStatus.Fixed);
     private IDependencyRisk[] risksOld;
     private IDependencyRisk[] risks;
@@ -48,7 +50,7 @@ public class GroupDependencyRiskViewModelTest
         eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
         risksOld = [CreateDependencyRisk(), CreateDependencyRisk()];
-        risks = [risk1, risk2, risk3];
+        risks = [riskInfo, riskLow, riskMedium, riskHigh, riskBlocker];
     }
 
     [TestMethod]
@@ -87,11 +89,10 @@ public class GroupDependencyRiskViewModelTest
     }
 
     [TestMethod]
-    public void ApplyFilter_DependencyRiskSelected_ShowsAllRisks()
+    public void ApplyFilter_DependencyRiskFilterSelected_ShowsAllRisks()
     {
-        MockRisksInStore(risks);
-        testSubject.InitializeRisks();
-        MockFilterViewModel(isSelected: true);
+        SetInitialRisks(risks);
+        MockIssueTypeFilter(isSelected: true);
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
@@ -100,11 +101,53 @@ public class GroupDependencyRiskViewModelTest
     }
 
     [TestMethod]
-    public void ApplyFilter_DependencyRiskNotSelected_RemovesAllRisksFromFilteredLists()
+    public void ApplyFilter_DependencyRiskFilterNotSelected_RemovesAllRisksFromFilteredLists()
     {
-        MockRisksInStore(risks);
-        testSubject.InitializeRisks();
-        MockFilterViewModel(isSelected: false);
+        SetInitialRisks(risks);
+        MockIssueTypeFilter(isSelected: false);
+
+        testSubject.ApplyFilter(reportViewFilterViewModel);
+
+        VerifyRisks(risks);
+        VerifyFilteredRisks([]);
+    }
+
+    [TestMethod]
+    [DataRow(DisplaySeverity.Info, DependencyRiskImpactSeverity.Info)]
+    [DataRow(DisplaySeverity.Low, DependencyRiskImpactSeverity.Low)]
+    [DataRow(DisplaySeverity.Medium, DependencyRiskImpactSeverity.Medium)]
+    [DataRow(DisplaySeverity.High, DependencyRiskImpactSeverity.High)]
+    [DataRow(DisplaySeverity.Blocker, DependencyRiskImpactSeverity.Blocker)]
+    public void ApplyFilter_SeverityFilterSelected_ShowsOnlyRisksWithThatSeverity(DisplaySeverity selectedSeverityFilter, DependencyRiskImpactSeverity expectedSeverity)
+    {
+        SetInitialRisks(risks);
+        MockSeverityFilter(selectedSeverityFilter);
+
+        testSubject.ApplyFilter(reportViewFilterViewModel);
+
+        var expectedFilteredRisks = risks.Where(r => r.Severity == expectedSeverity).ToArray();
+        VerifyRisks(risks);
+        VerifyFilteredRisks(expectedFilteredRisks);
+    }
+
+    [TestMethod]
+    public void ApplyFilter_SeverityFilterNotSelected_ShowsAllRisks()
+    {
+        SetInitialRisks(risks);
+        MockSeverityFilter(displaySeverity: null);
+
+        testSubject.ApplyFilter(reportViewFilterViewModel);
+
+        VerifyRisks(risks);
+        VerifyFilteredRisks(risks);
+    }
+
+    [TestMethod]
+    public void ApplyFilter_DependencyRiskFilterNotSelectedAndSeveritySelected_RemovesAllRisksFromFilteredLists()
+    {
+        SetInitialRisks(risks);
+        MockIssueTypeFilter(isSelected: false);
+        MockSeverityFilter(DisplaySeverity.Blocker);
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
@@ -134,18 +177,21 @@ public class GroupDependencyRiskViewModelTest
 
     private void MockRisksInStore(params IDependencyRisk[] dependencyRisks) => dependencyRisksStore.GetAll().Returns(dependencyRisks);
 
-    private static IDependencyRisk CreateDependencyRisk(Guid? id = null, DependencyRiskStatus status = DependencyRiskStatus.Open)
+    private static IDependencyRisk CreateDependencyRisk(Guid? id = null, DependencyRiskStatus status = DependencyRiskStatus.Open, DependencyRiskImpactSeverity severity = default)
     {
         var risk = Substitute.For<IDependencyRisk>();
         risk.Id.Returns(id ?? Guid.NewGuid());
         risk.Status.Returns(status);
+        risk.Severity.Returns(severity);
         risk.Transitions.Returns([]);
         return risk;
     }
 
-    private void MockFilterViewModel(bool isSelected)
+    private void MockIssueTypeFilter(bool isSelected)
     {
         var dependencyRiskFilter = reportViewFilterViewModel.IssueTypeFilters.Single(f => f.IssueType == IssueType.DependencyRisk);
         dependencyRiskFilter.IsSelected = isSelected;
     }
+
+    private void MockSeverityFilter(DisplaySeverity? displaySeverity) => reportViewFilterViewModel.SelectedSeverityFilter = displaySeverity;
 }
