@@ -693,6 +693,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show Issue Visualization.
+        /// </summary>
+        public static string ShowIssueVisualizationMenuItemHeader {
+            get {
+                return ResourceManager.GetString("ShowIssueVisualizationMenuItemHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Initializing security package....
         /// </summary>
         public static string StartedPackageInitialization {

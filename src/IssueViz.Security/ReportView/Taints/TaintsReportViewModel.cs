@@ -20,6 +20,7 @@
 
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
@@ -32,6 +33,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 internal interface ITaintsReportViewModel : IDisposable
 {
     void ShowTaintInBrowser(ITaintIssue taintIssue);
+
+    void ShowIssueVisualization();
 
     ObservableCollection<IGroupViewModel> GetTaintsGroupViewModels();
 
@@ -63,6 +66,9 @@ internal sealed class TaintsReportViewModel : IssuesReportViewModelBase, ITaints
         telemetryManager.TaintIssueInvestigatedRemotely();
         showInBrowserService.ShowIssue(taintIssue.IssueServerKey);
     }
+
+    [ExcludeFromCodeCoverage] // UI, not really unit-testable
+    public void ShowIssueVisualization() => ToolWindowNavigator.Instance.ShowIssueVisualizationToolWindow();
 
     public ObservableCollection<IGroupViewModel> GetTaintsGroupViewModels() => GetGroupViewModels();
 

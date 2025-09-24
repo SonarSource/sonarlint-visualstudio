@@ -86,6 +86,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
                 new CommandID(Constants.CommandSetGuid, Constants.ReportViewToolWindowCommandId),
                 ReportViewToolWindow.ToolWindowId);
 
+            await ToolWindowNavigator.CreateAsync(this);
+
             logger.WriteLine(Resources.FinishedPackageInitialization);
         }
 

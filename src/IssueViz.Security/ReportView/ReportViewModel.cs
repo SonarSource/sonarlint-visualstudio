@@ -32,6 +32,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
@@ -41,6 +42,7 @@ internal class ReportViewModel : ServerViewModel
     private readonly IDependencyRisksReportViewModel dependencyRisksReportViewModel;
     private readonly ITaintsReportViewModel taintsReportViewModel;
     private readonly ITelemetryManager telemetryManager;
+    private readonly IIssueSelectionService selectionService;
     private readonly IThreadHandling threadHandling;
     private readonly object @lock = new();
     private IIssueViewModel selectedItem;
@@ -53,12 +55,14 @@ internal class ReportViewModel : ServerViewModel
         IDependencyRisksReportViewModel dependencyRisksReportViewModel,
         ITaintsReportViewModel taintsReportViewModel,
         ITelemetryManager telemetryManager,
+        IIssueSelectionService selectionService,
         IThreadHandling threadHandling) : base(activeSolutionBoundTracker)
     {
         this.hotspotsReportViewModel = hotspotsReportViewModel;
         this.dependencyRisksReportViewModel = dependencyRisksReportViewModel;
         this.taintsReportViewModel = taintsReportViewModel;
         this.telemetryManager = telemetryManager;
+        this.selectionService = selectionService;
         this.threadHandling = threadHandling;
 
         threadHandling.RunOnUIThread(() => { BindingOperations.EnableCollectionSynchronization(GroupViewModels, @lock); });
@@ -83,6 +87,7 @@ internal class ReportViewModel : ServerViewModel
             if (selectedItem != value)
             {
                 selectedItem = value;
+                selectionService.SelectedIssue = (selectedItem as IAnalysisIssueViewModel)?.Issue;
                 UpdateTelemetry(selectedItem);
             }
         }

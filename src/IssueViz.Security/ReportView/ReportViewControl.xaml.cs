@@ -36,6 +36,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.V
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 using HotspotViewModel = SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots.HotspotViewModel;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
@@ -61,6 +62,7 @@ internal sealed partial class ReportViewControl : UserControl
         INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
         ILocationNavigator locationNavigator,
         ITelemetryManager telemetryManager,
+        IIssueSelectionService selectionService,
         IThreadHandling threadHandling)
     {
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
@@ -75,6 +77,7 @@ internal sealed partial class ReportViewControl : UserControl
             DependencyRisksReportViewModel,
             TaintsReportViewModel,
             telemetryManager,
+            selectionService,
             threadHandling);
         InitializeComponent();
     }
@@ -165,13 +168,13 @@ internal sealed partial class ReportViewControl : UserControl
 
     private void TreeViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        NavigateToLocation(sender);
+        NavigateToLocation((sender as FrameworkElement)?.DataContext as IAnalysisIssueViewModel);
         ShowRuleHelp(sender);
     }
 
-    private void NavigateToLocation(object sender)
+    private void NavigateToLocation(IAnalysisIssueViewModel analysisIssueViewModel)
     {
-        if ((sender as FrameworkElement)?.DataContext is IAnalysisIssueViewModel analysisIssueViewModel)
+        if (analysisIssueViewModel != null)
         {
             ExecuteCommandIfValid(ReportViewModel.NavigateToLocationCommand, analysisIssueViewModel);
         }
@@ -228,6 +231,15 @@ internal sealed partial class ReportViewControl : UserControl
         if (ReportViewModel.SelectedItem is TaintViewModel taintViewModel)
         {
             TaintsReportViewModel.ShowTaintInBrowser(taintViewModel.TaintIssue);
+        }
+    }
+
+    private void ShowIssueVisualizationForTaint_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (ReportViewModel.SelectedItem is TaintViewModel taintViewModel)
+        {
+            NavigateToLocation(taintViewModel);
+            TaintsReportViewModel.ShowIssueVisualization();
         }
     }
 }
