@@ -32,7 +32,7 @@
             <filters:IssueTypeFilterToTextConverter x:Key="IssueTypeFilterToTextConverter" />
 
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
-            <wpf:BoolToVisibilityConverter x:Key="TrueToCollapsedConverter" FalseValue="Visible" TrueValue="Collapsed"/>
+            <wpf:BoolToVisibilityConverter x:Key="TrueToCollapsedConverter" FalseValue="Visible" TrueValue="Collapsed" />
             <wpf:EnglishPluralizationConverter x:Key="EnglishPluralizationConverter" />
             <wpf:PascalCaseEnumToSpacedStringConverter x:Key="PascalCaseEnumToSpacedStringConverter" />
 
@@ -59,8 +59,8 @@
             <Style TargetType="TreeViewItem">
                 <Setter Property="IsExpanded" Value="True" />
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}" />
-                <EventSetter Event="PreviewMouseUp" Handler="TreeViewItem_OnPreviewMouseUp"/>
-                <EventSetter Event="MouseDoubleClick" Handler="TreeViewItem_MouseDoubleClick"/>
+                <EventSetter Event="PreviewMouseUp" Handler="TreeViewItem_OnPreviewMouseUp" />
+                <EventSetter Event="MouseDoubleClick" Handler="TreeViewItem_MouseDoubleClick" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="TreeViewItem">
@@ -79,11 +79,11 @@
                                         BorderBrush="{TemplateBinding BorderBrush}"
                                         SnapsToDevicePixels="true"
                                         Margin="{TemplateBinding Margin}">
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" >
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <ToggleButton x:Name="ExpanderArrow" Width="16" Height="16" Margin="2,0,2,0"
                                                       IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
                                                       Visibility="{Binding HasItems, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource TrueToVisibleConverter}}"
-                                                      Template="{StaticResource ExpanderToggleButton}" Cursor="Hand"/>
+                                                      Template="{StaticResource ExpanderToggleButton}" Cursor="Hand" />
                                         <ContentPresenter x:Name="Header" ContentSource="Header" Margin="5,0,0,0"
                                                           VerticalAlignment="Center" />
                                     </StackPanel>
@@ -125,7 +125,7 @@
             <Style x:Key="GroupTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
                 <Setter Property="FontSize"
                         Value="{DynamicResource {x:Static vsShell:VsFonts.Environment111PercentFontSizeKey}}" />
-                <Setter Property="Margin" Value="2,0"/>
+                <Setter Property="Margin" Value="2,0" />
             </Style>
 
             <Style x:Key="TypeTextBoxStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
@@ -136,12 +136,17 @@
                 <Setter Property="Margin" Value="1,0" />
             </Style>
 
-            <Style x:Key="ThemeAwareTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Style x:Key="ThemeAwareTextBlockStyle" TargetType="TextBlock"
+                   BasedOn="{StaticResource {x:Type TextBlock}}">
                 <Style.Triggers>
                     <MultiDataTrigger>
                         <MultiDataTrigger.Conditions>
-                            <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelected}" Value="True" />
-                            <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelectionActive}" Value="True" />
+                            <Condition
+                                Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelected}"
+                                Value="True" />
+                            <Condition
+                                Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelectionActive}"
+                                Value="True" />
                         </MultiDataTrigger.Conditions>
                         <MultiDataTrigger.Setters>
                             <Setter Property="Foreground"
@@ -151,14 +156,17 @@
                 </Style.Triggers>
             </Style>
 
-            <Style x:Key="LocationTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource ThemeAwareTextBlockStyle}">
+            <Style x:Key="LocationTextBlockStyle" TargetType="TextBlock"
+                   BasedOn="{StaticResource ThemeAwareTextBlockStyle}">
                 <Setter Property="VerticalAlignment" Value="Center" />
                 <Setter Property="FontSize"
                         Value="{DynamicResource {x:Static vsShell:VsFonts.Environment90PercentFontSizeKey}}" />
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.InactiveCaptionTextKey}}" />
+                <Setter Property="Foreground"
+                        Value="{DynamicResource {x:Static vsShell:VsBrushes.InactiveCaptionTextKey}}" />
             </Style>
 
-            <Style x:Key="IssueTypeTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource ThemeAwareTextBlockStyle}">
+            <Style x:Key="IssueTypeTextBlockStyle" TargetType="TextBlock"
+                   BasedOn="{StaticResource ThemeAwareTextBlockStyle}">
                 <Setter Property="VerticalAlignment" Value="Center" />
                 <Setter Property="FontStyle" Value="Italic" />
                 <Setter Property="FontSize"
@@ -178,8 +186,12 @@
                     </Trigger>
                     <MultiDataTrigger>
                         <MultiDataTrigger.Conditions>
-                            <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelected}" Value="True" />
-                            <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelectionActive}" Value="True" />
+                            <Condition
+                                Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelected}"
+                                Value="True" />
+                            <Condition
+                                Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelectionActive}"
+                                Value="True" />
                         </MultiDataTrigger.Conditions>
                         <MultiDataTrigger.Setters>
                             <Setter Property="Foreground"
@@ -193,15 +205,16 @@
                 <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}"
                           Click="ChangeScaStatusMenuItem_OnClick"
                           IsEnabled="{Binding Path=SelectedItem.IsTransitionAllowed}"
-                          Style="{StaticResource ChangeStatusMenuItemStyle}"/>
-                <MenuItem Click="ViewDependencyRiskInBrowser_OnClick" Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
+                          Style="{StaticResource ChangeStatusMenuItemStyle}" />
+                <MenuItem Click="ViewDependencyRiskInBrowser_OnClick"
+                          Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
             </ContextMenu>
 
-            <ContextMenu x:Key="HotspotContextMenu"    
+            <ContextMenu x:Key="HotspotContextMenu"
                          Visibility="{Binding Path=ExistsOnServer, Converter={StaticResource TrueToVisibleConverter}}">
-                <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}" 
-                          Click="ChangeHotspotStatusMenuItem_OnClick" 
-                          Style="{StaticResource ChangeStatusMenuItemStyle}"/>
+                <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}"
+                          Click="ChangeHotspotStatusMenuItem_OnClick"
+                          Style="{StaticResource ChangeStatusMenuItemStyle}" />
                 <MenuItem Click="ViewHotspotInBrowser_OnClick"
                           Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}" />
@@ -214,29 +227,36 @@
                 <MenuItem Header="{x:Static res:Resources.ShowIssueVisualizationMenuItemHeader}"
                           Click="ShowIssueVisualizationForTaint_OnClick">
                     <MenuItem.Icon>
-                        <imaging:CrispImage Source="/SonarLint.VisualStudio.IssueVisualization.Security;component/SharedUI/sonarqube_for_ide_logo_16px.png" />
+                        <imaging:CrispImage
+                            Source="/SonarLint.VisualStudio.IssueVisualization.Security;component/SharedUI/sonarqube_for_ide_logo_16px.png" />
                     </MenuItem.Icon>
                 </MenuItem>
             </ContextMenu>
 
             <Style x:Key="DefaultButtonStyle" TargetType="Button">
-                <Setter Property="Margin" Value="5, 3"/>
-                <Setter Property="Padding" Value="2,0"/>
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}"/>
+                <Setter Property="Margin" Value="5, 3" />
+                <Setter Property="Padding" Value="2,0" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}" />
                 <Setter Property="Background" Value="Transparent" />
-                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsTheming:CommonControlsColors.ButtonBorderBrushKey}}" />
+                <Setter Property="BorderBrush"
+                        Value="{DynamicResource {x:Static vsTheming:CommonControlsColors.ButtonBorderBrushKey}}" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
-                                    BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Padding="{TemplateBinding Padding}">
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsTheming:CommonControlsColors.ButtonHoverTextBrushKey}}" />
-                                    <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:CommonControlsColors.ButtonHoverBrushKey}}" />
-                                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsTheming:CommonControlsColors.ButtonBorderHoverBrushKey}}" />
+                                    <Setter Property="Foreground"
+                                            Value="{DynamicResource {x:Static vsTheming:CommonControlsColors.ButtonHoverTextBrushKey}}" />
+                                    <Setter Property="Background"
+                                            Value="{DynamicResource {x:Static vsTheming:CommonControlsColors.ButtonHoverBrushKey}}" />
+                                    <Setter Property="BorderBrush"
+                                            Value="{DynamicResource {x:Static vsTheming:CommonControlsColors.ButtonBorderHoverBrushKey}}" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -245,17 +265,20 @@
             </Style>
 
             <Style x:Key="FilterButtonStyle" TargetType="Button">
-                <Setter Property="Margin" Value="5, 3"/>
-                <Setter Property="Padding" Value="2"/>
-                <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}"/>
+                <Setter Property="Margin" Value="5, 3" />
+                <Setter Property="Padding" Value="2" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}" />
                 <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.AccentLightKey}}" />
-                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverOverSelectedIconBorderKey}}" />
+                <Setter Property="BorderBrush"
+                        Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverOverSelectedIconBorderKey}}" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type Button}">
-                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
-                                    BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Padding="{TemplateBinding Padding}">
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                         </ControlTemplate>
@@ -268,12 +291,14 @@
                     </DataTrigger>
                     <Trigger Property="IsMouseOver" Value="True">
                         <Setter Property="BorderThickness" Value="1" />
-                        <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverKey}}" />
+                        <Setter Property="Background"
+                                Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverKey}}" />
                     </Trigger>
                 </Style.Triggers>
             </Style>
 
-            <Style x:Key="VulnerabilityOnlyTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource TypeTextBoxStyle}">
+            <Style x:Key="VulnerabilityOnlyTextBlockStyle" TargetType="TextBlock"
+                   BasedOn="{StaticResource TypeTextBoxStyle}">
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding}" Value="{x:Null}">
                         <Setter Property="Visibility" Value="Collapsed" />
@@ -281,7 +306,8 @@
                 </Style.Triggers>
             </Style>
 
-            <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource {x:Static vsShell:VsResourceKeys.ComboBoxStyleKey}}" />
+            <Style TargetType="{x:Type ComboBox}"
+                   BasedOn="{StaticResource {x:Static vsShell:VsResourceKeys.ComboBoxStyleKey}}" />
 
             <Style x:Key="SeverityImage" TargetType="Image">
                 <Setter Property="Source">
@@ -308,26 +334,27 @@
             </Style>
 
             <Style x:Key="FilterSeparatorBorderStyle" TargetType="Border">
-                <Setter Property="Height" Value="18"/>
-                <Setter Property="BorderThickness" Value="1,0,0,0"/>
-                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBorderKey}}"/>
+                <Setter Property="Height" Value="18" />
+                <Setter Property="BorderThickness" Value="1,0,0,0" />
+                <Setter Property="BorderBrush"
+                        Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBorderKey}}" />
             </Style>
 
             <Style x:Key="FilterTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-                <Setter Property="VerticalAlignment" Value="Center"/>
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}"/>
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
             </Style>
 
             <Style x:Key="FilterComboboxStyle" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
-                <Setter Property="MinWidth" Value="150"/>
-                <Setter Property="Margin" Value="5,0"/>
-                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="MinWidth" Value="150" />
+                <Setter Property="Margin" Value="5,0" />
+                <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
 
             <ControlTemplate x:Key="IssueTypeFilterControlTemplate" TargetType="ContentControl">
                 <StackPanel Orientation="Horizontal">
-                    <Border Style="{StaticResource FilterSeparatorBorderStyle}"/>
-                    <Button Style="{StaticResource FilterButtonStyle}" Click="IssueTypeFilterButton_OnClick" >
+                    <Border Style="{StaticResource FilterSeparatorBorderStyle}" />
+                    <Button Style="{StaticResource FilterButtonStyle}" Click="IssueTypeFilterButton_OnClick">
                         <Button.Content>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -359,7 +386,7 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Name="Table" Width="*"/>
+                <ColumnDefinition Name="Table" Width="*" />
             </Grid.ColumnDefinitions>
 
             <Grid Grid.Row="0" Background="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarGradientBeginKey}}"
@@ -377,9 +404,9 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <ComboBox ItemsSource="{Binding Path=LocationFilters}" 
-                              SelectedItem="{Binding Path=SelectedLocationFilter}" 
-                              DisplayMemberPath="DisplayName" Margin="7,3" MinWidth="150"/>
+                    <ComboBox ItemsSource="{Binding Path=LocationFilters}"
+                              SelectedItem="{Binding Path=SelectedLocationFilter}"
+                              DisplayMemberPath="DisplayName" Margin="7,3" MinWidth="150" />
 
                     <Grid Grid.Column="1">
                         <Grid.ColumnDefinitions>
@@ -388,13 +415,13 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <ContentControl Grid.Column="0" DataContext="{Binding Path=IssueTypeFilters[0]}" 
+                        <ContentControl Grid.Column="0" DataContext="{Binding Path=IssueTypeFilters[0]}"
                                         Template="{StaticResource IssueTypeFilterControlTemplate}" />
 
-                        <ContentControl Grid.Column="1" DataContext="{Binding Path=IssueTypeFilters[1]}" 
+                        <ContentControl Grid.Column="1" DataContext="{Binding Path=IssueTypeFilters[1]}"
                                         Template="{StaticResource IssueTypeFilterControlTemplate}" />
 
-                        <ContentControl Grid.Column="2" DataContext="{Binding Path=IssueTypeFilters[2]}" 
+                        <ContentControl Grid.Column="2" DataContext="{Binding Path=IssueTypeFilters[2]}"
                                         Template="{StaticResource IssueTypeFilterControlTemplate}" />
                     </Grid>
 
@@ -413,14 +440,17 @@
                                         <DataTrigger Binding="{Binding Path=ShowAdvancedFilters}" Value="False">
                                             <Setter Property="BorderThickness" Value="0" />
                                             <Setter Property="Background" Value="Transparent" />
-                                            <Setter Property="ToolTip" Value="{x:Static res:Resources.ShowAdvancedFiltersTooltip}" />
+                                            <Setter Property="ToolTip"
+                                                    Value="{x:Static res:Resources.ShowAdvancedFiltersTooltip}" />
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding Path=ShowAdvancedFilters}" Value="True">
-                                            <Setter Property="ToolTip" Value="{x:Static res:Resources.HideAdvancedFiltersTooltip}" />
+                                            <Setter Property="ToolTip"
+                                                    Value="{x:Static res:Resources.HideAdvancedFiltersTooltip}" />
                                         </DataTrigger>
                                         <Trigger Property="IsMouseOver" Value="True">
                                             <Setter Property="BorderThickness" Value="1" />
-                                            <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverKey}}" />
+                                            <Setter Property="Background"
+                                                    Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverKey}}" />
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -428,55 +458,55 @@
                             <Image Source="{StaticResource FilterDrawingImage}" />
                         </Button>
                     </Grid>
-                   
+
                 </Grid>
 
-                <Grid Grid.Row="0" Grid.Column="1" 
+                <Grid Grid.Row="0" Grid.Column="1"
                       HorizontalAlignment="Right"
                       Visibility="{Binding ShowAdvancedFilters, Converter={StaticResource TrueToVisibleConverter}}"
                       Margin="10,0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
                     <Grid Grid.Column="0">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Column="0" 
-                                   Text="{x:Static res:Resources.SeverityLabel}" 
-                                   Style="{StaticResource FilterTextBlockStyle}"/>
-                        <ComboBox Grid.Column="1" 
+                        <TextBlock Grid.Column="0"
+                                   Text="{x:Static res:Resources.SeverityLabel}"
+                                   Style="{StaticResource FilterTextBlockStyle}" />
+                        <ComboBox Grid.Column="1"
                                   ItemsSource="{Binding SeverityFilters}"
                                   SelectedItem="{Binding SelectedSeverityFilter}"
-                                  Style="{StaticResource FilterComboboxStyle}"/>
+                                  Style="{StaticResource FilterComboboxStyle}" />
                         <Border Grid.Column="2" Style="{StaticResource FilterSeparatorBorderStyle}" />
                     </Grid>
 
                     <Grid Grid.Column="1" Margin="5,0">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Column="0" 
-                                   Text="{x:Static res:Resources.StatusLabel}" 
-                                   Style="{StaticResource FilterTextBlockStyle}"/>
+                        <TextBlock Grid.Column="0"
+                                   Text="{x:Static res:Resources.StatusLabel}"
+                                   Style="{StaticResource FilterTextBlockStyle}" />
                         <ComboBox Grid.Column="1" ItemsSource="{Binding StatusFilters}"
                                   SelectedItem="{Binding SelectedStatusFilter}"
                                   Style="{StaticResource FilterComboboxStyle}" />
                         <Border Grid.Column="2" Style="{StaticResource FilterSeparatorBorderStyle}" />
                     </Grid>
 
-                    <Button Grid.Column="2" Content="{x:Static res:Resources.ClearAllButton}" 
-                            Style="{StaticResource DefaultButtonStyle}" 
-                            Padding="5,0"/>
+                    <Button Grid.Column="2" Content="{x:Static res:Resources.ClearAllButton}"
+                            Style="{StaticResource DefaultButtonStyle}"
+                            Padding="5,0" />
 
                 </Grid>
             </Grid>
@@ -494,10 +524,11 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <imaging:CrispImage Grid.Column="0" 
+                            <imaging:CrispImage Grid.Column="0"
                                                 VerticalAlignment="Bottom"
                                                 Moniker="{x:Static vsimagecatalog:KnownMonikers.Solution}" />
-                            <TextBlock Grid.Column="1" Text="{Binding Title}" Style="{StaticResource GroupTextBlockStyle}" />
+                            <TextBlock Grid.Column="1" Text="{Binding Title}"
+                                       Style="{StaticResource GroupTextBlockStyle}" />
                             <TextBlock Grid.Column="2" Margin="3,0,0,0"
                                        Text="{Binding Path=FilteredIssues.Count, Converter={StaticResource EnglishPluralizationConverter}, 
                                               ConverterParameter={x:Static res:Resources.IssueText}, StringFormat={}({0})}"
@@ -505,7 +536,7 @@
                         </Grid>
                     </HierarchicalDataTemplate>
                     <HierarchicalDataTemplate DataType="{x:Type reportView:GroupFileViewModel}"
-                                              ItemsSource="{Binding FilteredIssues}" >
+                                              ItemsSource="{Binding FilteredIssues}">
                         <Grid Cursor="Hand">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -514,9 +545,10 @@
                             </Grid.ColumnDefinitions>
 
                             <imaging:CrispImage Grid.Column="0"
-                                                VerticalAlignment="Bottom" 
-                                                Moniker="{Binding FilePath, Converter={StaticResource FileNameToMonikerConverter}}"/>
-                            <TextBlock Grid.Column="1" Text="{Binding Title}" Style="{StaticResource GroupTextBlockStyle}" />
+                                                VerticalAlignment="Bottom"
+                                                Moniker="{Binding FilePath, Converter={StaticResource FileNameToMonikerConverter}}" />
+                            <TextBlock Grid.Column="1" Text="{Binding Title}"
+                                       Style="{StaticResource GroupTextBlockStyle}" />
                             <TextBlock Grid.Column="2" Margin="5,1,0,0"
                                        Text="{Binding Path=FilteredIssues.Count, Converter={StaticResource EnglishPluralizationConverter}, 
                                             ConverterParameter={x:Static res:Resources.IssueText}, StringFormat={}({0})}"
@@ -537,11 +569,13 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <Image Grid.Column="0" Height="17" VerticalAlignment="Center" Style="{StaticResource SeverityImage}"/>
-                            <TextBlock Grid.Column="1" Text="{Binding DependencyRisk.PackageName, StringFormat={}{0}:}" Margin="2,0,0,0"
+                            <Image Grid.Column="0" Height="17" VerticalAlignment="Center"
+                                   Style="{StaticResource SeverityImage}" />
+                            <TextBlock Grid.Column="1" Text="{Binding DependencyRisk.PackageName, StringFormat={}{0}:}"
+                                       Margin="2,0,0,0"
                                        Style="{StaticResource IssueTextBlockStyle}" />
                             <TextBlock Grid.Column="2" Text="{Binding DependencyRisk.PackageVersion}" Margin="0,0,1,0"
-                                       Style="{StaticResource IssueTextBlockStyle}"/>
+                                       Style="{StaticResource IssueTextBlockStyle}" />
 
                             <Grid Grid.Column="3" VerticalAlignment="Center">
                                 <Grid.ColumnDefinitions>
@@ -555,29 +589,34 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0"
                                            Style="{StaticResource TypeTextBoxStyle}">
-                                    <Run Text="("/><Run Text="{Binding DependencyRisk.Type, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}, Mode=OneWay}"/><Run Text=")"/>
+                                    <Run Text="(" />
+                                    <Run
+                                        Text="{Binding DependencyRisk.Type, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}, Mode=OneWay}" />
+                                    <Run Text=")" />
                                 </TextBlock>
                                 <TextBlock Grid.Column="1"
                                            Style="{StaticResource TypeTextBoxStyle}"
                                            Margin="2,0"
                                            FontStyle="Oblique">
-                                    <Run Text="{Binding DependencyRisk.Status, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}, Mode=OneWay}"/>
+                                    <Run
+                                        Text="{Binding DependencyRisk.Status, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}, Mode=OneWay}" />
                                 </TextBlock>
                                 <TextBlock Grid.Column="2"
                                            DataContext="{Binding DependencyRisk.CvssScore, Mode=OneWay}"
                                            Text="-"
                                            Margin="4,0,3,0"
-                                           Style="{StaticResource VulnerabilityOnlyTextBlockStyle}"/>
+                                           Style="{StaticResource VulnerabilityOnlyTextBlockStyle}" />
                                 <TextBlock Grid.Column="3"
                                            Margin="4,0,0,0"
                                            DataContext="{Binding DependencyRisk.CvssScore, Mode=OneWay}"
                                            Style="{StaticResource VulnerabilityOnlyTextBlockStyle}">
-                                    <Run Text="[" /><Run Text="{Binding ., Mode=OneWay}"/><Run Text="]"/>
+                                    <Run Text="[" /><Run Text="{Binding ., Mode=OneWay}" /><Run Text="]" />
                                 </TextBlock>
                                 <TextBlock Grid.Column="5"
                                            Text="{Binding DependencyRisk.VulnerabilityId}"
                                            Style="{StaticResource VulnerabilityOnlyTextBlockStyle}" />
-                                <TextBlock Grid.Column="4" Text="{Binding IssueType, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}" 
+                                <TextBlock Grid.Column="4"
+                                           Text="{Binding IssueType, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}"
                                            Margin="5,0,0,0"
                                            Style="{StaticResource IssueTypeTextBlockStyle}" />
                             </Grid>
@@ -587,9 +626,9 @@
 
                     <!--Hotspots styling-->
                     <DataTemplate DataType="{x:Type hotspots:HotspotViewModel}">
-                        <Grid Margin="5,2" 
+                        <Grid Margin="5,2"
                               ContextMenu="{StaticResource HotspotContextMenu}"
-                              MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown" 
+                              MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown"
                               ToolTip="{x:Static res:Resources.NavigateToHotspotTooltip}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -601,7 +640,8 @@
                             <Image Grid.Column="0" Height="15" VerticalAlignment="Center">
                                 <Image.Source>
                                     <MultiBinding
-                                        Converter="{StaticResource EnumToImageSourceConverter}" ConverterParameter="HotspotPriority">
+                                        Converter="{StaticResource EnumToImageSourceConverter}"
+                                        ConverterParameter="HotspotPriority">
                                         <Binding Path="LocalHotspot.Priority" />
                                         <Binding RelativeSource="{RelativeSource Self}" />
                                         <Binding Path="ResourceFinder"
@@ -611,7 +651,8 @@
                                 <Image.ToolTip>
                                     <MultiBinding Converter="{StaticResource HotspotTooltipConverter}">
                                         <Binding Path="LocalHotspot" />
-                                        <Binding Path="DataContext.IsCloud" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                        <Binding Path="DataContext.IsCloud"
+                                                 RelativeSource="{RelativeSource AncestorType=UserControl}" />
                                     </MultiBinding>
                                 </Image.ToolTip>
                             </Image>
@@ -628,7 +669,8 @@
                                 <Hyperlink Style="{StaticResource RuleKeyLinkStyle}"
                                            Command="{Binding DataContext.NavigateToRuleDescriptionCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}">
                                     <Hyperlink.CommandParameter>
-                                        <MultiBinding Converter="{StaticResource NavigateToRuleDescriptionCommandConverter}">
+                                        <MultiBinding
+                                            Converter="{StaticResource NavigateToRuleDescriptionCommandConverter}">
                                             <Binding Path=".RuleInfo.RuleKey" />
                                             <Binding Path=".RuleInfo.IssueId" />
                                         </MultiBinding>
@@ -637,7 +679,8 @@
                                                Style="{StaticResource CellTextBlockStyle}" />
                                 </Hyperlink>
                             </TextBlock>
-                            <TextBlock Grid.Column="4" Text="{Binding IssueType, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}" 
+                            <TextBlock Grid.Column="4"
+                                       Text="{Binding IssueType, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}"
                                        Margin="5,0,0,0"
                                        Style="{StaticResource IssueTypeTextBlockStyle}" />
                         </Grid>
@@ -645,7 +688,7 @@
 
                     <!--Taint styling-->
                     <DataTemplate DataType="{x:Type taints:TaintViewModel}">
-                        <Grid Margin="5,2" 
+                        <Grid Margin="5,2"
                               ContextMenu="{StaticResource TaintContextMenu}"
                               MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown"
                               ToolTip="{x:Static res:Resources.NavigateToTaintTooltip}">
@@ -656,7 +699,8 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <Image Grid.Column="0" Height="17" VerticalAlignment="Center" Style="{StaticResource SeverityImage}"/>
+                            <Image Grid.Column="0" Height="17" VerticalAlignment="Center"
+                                   Style="{StaticResource SeverityImage}" />
                             <TextBlock Grid.Column="1"
                                        Margin="2,0,0,2"
                                        Style="{StaticResource LocationTextBlockStyle}">
@@ -670,7 +714,8 @@
                                 <Hyperlink Style="{StaticResource RuleKeyLinkStyle}"
                                            Command="{Binding DataContext.NavigateToRuleDescriptionCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}">
                                     <Hyperlink.CommandParameter>
-                                        <MultiBinding Converter="{StaticResource NavigateToRuleDescriptionCommandConverter}">
+                                        <MultiBinding
+                                            Converter="{StaticResource NavigateToRuleDescriptionCommandConverter}">
                                             <Binding Path=".RuleInfo.RuleKey" />
                                             <Binding Path=".RuleInfo.IssueId" />
                                         </MultiBinding>
@@ -679,7 +724,8 @@
                                                Style="{StaticResource CellTextBlockStyle}" />
                                 </Hyperlink>
                             </TextBlock>
-                            <TextBlock Grid.Column="4" Text="{Binding IssueType, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}" 
+                            <TextBlock Grid.Column="4"
+                                       Text="{Binding IssueType, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}"
                                        Margin="5,0,0,0"
                                        Style="{StaticResource IssueTypeTextBlockStyle}" />
                         </Grid>
@@ -699,7 +745,8 @@
                         <Hyperlink NavigateUri="{x:Static core:DocumentationLinks.ConnectedModeUri}"
                                    RequestNavigate="Hyperlink_OnRequestNavigate">
                             documentation
-                        </Hyperlink><Run Text="). " />
+                        </Hyperlink>
+                        <Run Text="). " />
                     </TextBlock>
                 </StackPanel>
             </Grid>
