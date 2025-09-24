@@ -500,14 +500,15 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Column="0"
-                               Text="{x:Static res:Resources.StatusLabel}"
-                               Style="{StaticResource FilterTextBlockStyle}" />
-                    <ComboBox Grid.Column="1" ItemsSource="{Binding StatusFilters}"
-                              SelectedItem="{Binding SelectedStatusFilter}"
-                              Style="{StaticResource FilterComboboxStyle}" />
-                    <Border Grid.Column="2" Style="{StaticResource FilterSeparatorBorderStyle}" />
-                </Grid>
+                        <TextBlock Grid.Column="0"
+                                   Text="{x:Static res:Resources.StatusLabel}"
+                                   Style="{StaticResource FilterTextBlockStyle}" />
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding StatusFilters}"
+                                  SelectedItem="{Binding SelectedStatusFilter}"
+                                  Style="{StaticResource FilterComboboxStyle}" 
+                                  SelectionChanged="Control_OnFilterChanged"/>
+                        <Border Grid.Column="2" Style="{StaticResource FilterSeparatorBorderStyle}" />
+                    </Grid>
 
                 <Button Grid.Column="2" Content="{x:Static res:Resources.ClearAllButton}"
                         Style="{StaticResource DefaultButtonStyle}"
