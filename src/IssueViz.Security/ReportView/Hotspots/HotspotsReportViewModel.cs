@@ -57,8 +57,7 @@ internal sealed class HotspotsReportViewModel : IssuesReportViewModelBase, IHots
         ILocalHotspotsStore hotspotsStore,
         IReviewHotspotsService reviewHotspotsService,
         IMessageBox messageBox,
-        ITelemetryManager telemetryManager,
-        IThreadHandling threadHandling) : base(hotspotsStore, threadHandling)
+        ITelemetryManager telemetryManager) : base(hotspotsStore)
     {
         this.hotspotsStore = hotspotsStore;
         this.reviewHotspotsService = reviewHotspotsService;

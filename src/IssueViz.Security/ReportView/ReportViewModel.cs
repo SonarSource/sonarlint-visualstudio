@@ -19,7 +19,6 @@
  */
 
 using System.Collections.ObjectModel;
-using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.Core;
@@ -54,7 +53,6 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
     private readonly IActiveDocumentLocator activeDocumentLocator;
     private readonly IActiveDocumentTracker activeDocumentTracker;
     private readonly IThreadHandling threadHandling;
-    private readonly object @lock = new();
     private IIssueViewModel selectedItem;
     private string activeDocumentFilePath;
     private readonly List<IGroupViewModel> allGroupViewModels = [];
@@ -88,7 +86,6 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         InitializeActiveDocument();
         InitializeCommands(navigateToRuleDescriptionCommand, locationNavigator);
         InitializeViewModels();
-        threadHandling.RunOnUIThread(() => { BindingOperations.EnableCollectionSynchronization(FilteredGroupViewModels, @lock); });
     }
 
     public ObservableCollection<IGroupViewModel> FilteredGroupViewModels { get; private set; }
@@ -164,18 +161,34 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
     }
 
-    private void UpdateChangedIssues(IReadOnlyCollection<IIssueViewModel> addedIssueViewModels, IReadOnlyCollection<IIssueViewModel> removedIssues)
-    {
-        UpdateDeletedIssueViewModels(removedIssues);
-        UpdateAddedIssueViewModels(addedIssueViewModels);
-        ApplyFilter();
-    }
+    private void UpdateChangedIssues(IReadOnlyCollection<IIssueViewModel> addedIssueViewModels, IReadOnlyCollection<IIssueViewModel> removedIssues) =>
+        threadHandling.RunOnUIThread(() =>
+        {
+            UpdateDeletedIssueViewModels(removedIssues);
+            UpdateAddedIssueViewModels(addedIssueViewModels);
+            ApplyFilter();
+        });
+
+    private void RemoveGroupViewModel(IGroupViewModel groupViewModel) =>
+        threadHandling.RunOnUIThread(() =>
+        {
+            allGroupViewModels.Remove(groupViewModel);
+        });
+
+    private void AddGroupViewModel(IGroupViewModel groupViewModel) =>
+        threadHandling.RunOnUIThread(() =>
+        {
+            if (groupViewModel != null)
+            {
+                allGroupViewModels.Add(groupViewModel);
+            }
+        });
 
     private void DependencyRisksChanged(object sender, EventArgs e)
     {
         if (allGroupViewModels.SingleOrDefault(vm => vm is GroupDependencyRiskViewModel) is { } groupDependencyRiskViewModel)
         {
-            allGroupViewModels.Remove(groupDependencyRiskViewModel);
+            RemoveGroupViewModel(groupDependencyRiskViewModel);
         }
         InitializeDependencyRisks();
         ApplyFilter();
@@ -201,10 +214,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
     private void InitializeDependencyRisks()
     {
         var groupDependencyRisk = dependencyRisksReportViewModel.GetDependencyRisksGroup();
-        if (groupDependencyRisk != null)
-        {
-            allGroupViewModels.Add(groupDependencyRisk);
-        }
+        AddGroupViewModel(groupDependencyRisk);
         RaisePropertyChanged(nameof(HasGroups));
     }
 
@@ -247,7 +257,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
             }
             else
             {
-                allGroupViewModels.Add(new GroupFileViewModel(addedIssueViewModel.FilePath, [addedIssueViewModel], threadHandling));
+                allGroupViewModels.Add(new GroupFileViewModel(addedIssueViewModel.FilePath, [addedIssueViewModel]));
             }
         }
     }

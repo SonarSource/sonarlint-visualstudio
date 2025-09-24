@@ -739,7 +739,7 @@ public class ReportViewModelTest
             var issueViewModel = new HotspotViewModel(localHotspot);
             return issueViewModel;
         });
-        var group = new GroupFileViewModel(analysisIssueVisualizations[0].Issue.PrimaryLocation.FilePath, new List<IIssueViewModel>(issueViewModels), threadHandling);
+        var group = new GroupFileViewModel(analysisIssueVisualizations[0].Issue.PrimaryLocation.FilePath, new List<IIssueViewModel>(issueViewModels));
         return group;
     }
 
@@ -750,7 +750,7 @@ public class ReportViewModelTest
             var issueViewModel = new TaintViewModel(x);
             return issueViewModel;
         });
-        var group = new GroupFileViewModel(analysisIssueVisualizations[0].Issue.PrimaryLocation.FilePath, new List<IIssueViewModel>(issueViewModels), threadHandling);
+        var group = new GroupFileViewModel(analysisIssueVisualizations[0].Issue.PrimaryLocation.FilePath, new List<IIssueViewModel>(issueViewModels));
         return group;
     }
 

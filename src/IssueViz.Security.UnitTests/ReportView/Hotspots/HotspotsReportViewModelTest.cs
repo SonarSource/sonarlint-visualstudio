@@ -42,7 +42,6 @@ public class HotspotsReportViewModelTest
     private IReviewHotspotsService reviewHotspotsService;
     private ITelemetryManager telemetryManager;
     private HotspotsReportViewModel testSubject;
-    private IThreadHandling threadHandling;
 
     [TestInitialize]
     public void TestInitialize()
@@ -51,8 +50,7 @@ public class HotspotsReportViewModelTest
         reviewHotspotsService = Substitute.For<IReviewHotspotsService>();
         messageBox = Substitute.For<IMessageBox>();
         telemetryManager = Substitute.For<ITelemetryManager>();
-        threadHandling = Substitute.For<IThreadHandling>();
-        testSubject = new HotspotsReportViewModel(localHotspotsStore, reviewHotspotsService, messageBox, telemetryManager, threadHandling);
+        testSubject = new HotspotsReportViewModel(localHotspotsStore, reviewHotspotsService, messageBox, telemetryManager);
     }
 
     [TestMethod]
@@ -61,8 +59,7 @@ public class HotspotsReportViewModelTest
             MefTestHelpers.CreateExport<ILocalHotspotsStore>(),
             MefTestHelpers.CreateExport<IReviewHotspotsService>(),
             MefTestHelpers.CreateExport<IMessageBox>(),
-            MefTestHelpers.CreateExport<ITelemetryManager>(),
-            MefTestHelpers.CreateExport<IThreadHandling>()
+            MefTestHelpers.CreateExport<ITelemetryManager>()
         );
 
     [TestMethod]

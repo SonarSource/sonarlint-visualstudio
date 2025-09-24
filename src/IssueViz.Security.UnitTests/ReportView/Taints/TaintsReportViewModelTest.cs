@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -36,7 +35,6 @@ public class TaintsReportViewModelTest
 {
     private ITaintStore localTaintsStore;
     private TaintsReportViewModel testSubject;
-    private IThreadHandling threadHandling;
     private IShowInBrowserService showInBrowserService;
     private ITelemetryManager telemetryManager;
 
@@ -44,10 +42,9 @@ public class TaintsReportViewModelTest
     public void TestInitialize()
     {
         localTaintsStore = Substitute.For<ITaintStore>();
-        threadHandling = Substitute.For<IThreadHandling>();
         showInBrowserService = Substitute.For<IShowInBrowserService>();
         telemetryManager = Substitute.For<ITelemetryManager>();
-        testSubject = new TaintsReportViewModel(localTaintsStore, showInBrowserService, telemetryManager, threadHandling);
+        testSubject = new TaintsReportViewModel(localTaintsStore, showInBrowserService, telemetryManager);
     }
 
     [TestMethod]
@@ -55,8 +52,7 @@ public class TaintsReportViewModelTest
         MefTestHelpers.CheckTypeCanBeImported<TaintsReportViewModel, ITaintsReportViewModel>(
             MefTestHelpers.CreateExport<ITaintStore>(),
             MefTestHelpers.CreateExport<IShowInBrowserService>(),
-            MefTestHelpers.CreateExport<ITelemetryManager>(),
-            MefTestHelpers.CreateExport<IThreadHandling>()
+            MefTestHelpers.CreateExport<ITelemetryManager>()
         );
 
     [TestMethod]

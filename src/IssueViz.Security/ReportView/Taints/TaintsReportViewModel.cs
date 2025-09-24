@@ -21,7 +21,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
@@ -53,8 +52,7 @@ internal sealed class TaintsReportViewModel : IssuesReportViewModelBase, ITaints
     public TaintsReportViewModel(
         ITaintStore taintsStore,
         IShowInBrowserService showInBrowserService,
-        ITelemetryManager telemetryManager,
-        IThreadHandling threadHandling) : base(taintsStore, threadHandling)
+        ITelemetryManager telemetryManager) : base(taintsStore)
     {
         this.taintsStore = taintsStore;
         this.showInBrowserService = showInBrowserService;

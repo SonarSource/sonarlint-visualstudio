@@ -359,7 +359,7 @@ public class FilteringTests
     }
 
     private IGroupViewModel CreateGroupFileViewModel(string filePath, params IIssueViewModel[] filteredIssueViewModels) =>
-        new GroupFileViewModel(filePath, filteredIssueViewModels.ToList(), threadHandling);
+        new GroupFileViewModel(filePath, filteredIssueViewModels.ToList());
 
     private IGroupViewModel CreateGroupDependencyRiskViewModel(params IDependencyRisk[] dependencyRisks)
     {

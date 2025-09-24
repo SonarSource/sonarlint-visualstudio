@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
@@ -28,7 +27,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportVie
 public class GroupFileViewModelTest
 {
     private const string filePath = "c:\\myDir\\myFile.cs";
-    private IThreadHandling threadHandling;
     private readonly IIssueViewModel hotspotInfo = CreateMockedIssueType(IssueType.SecurityHotspot, DisplaySeverity.Info, DisplayStatus.Open);
     private readonly IIssueViewModel hotspotLow = CreateMockedIssueType(IssueType.SecurityHotspot, DisplaySeverity.Low, DisplayStatus.Resolved);
     private readonly IIssueViewModel taintHigh = CreateMockedIssueType(IssueType.TaintVulnerability, DisplaySeverity.High, DisplayStatus.Open);
@@ -41,9 +39,8 @@ public class GroupFileViewModelTest
     [TestInitialize]
     public void TestInitialize()
     {
-        threadHandling = Substitute.For<IThreadHandling>();
         allIssues = [hotspotInfo, hotspotLow, taintMedium, taintHigh, taintBlocker];
-        testSubject = new GroupFileViewModel(filePath, allIssues, threadHandling);
+        testSubject = new GroupFileViewModel(filePath, allIssues);
         MockStatusFilter(DisplayStatus.Any); // tests were written with this assumption, changing the tests would take too much time
     }
 
