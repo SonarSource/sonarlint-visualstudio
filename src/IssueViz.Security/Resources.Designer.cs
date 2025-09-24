@@ -295,7 +295,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Show advanced filters.
+        ///   Looks up a localized string similar to Hide advanced filters.
         /// </summary>
         public static string HideAdvancedFiltersTooltip {
             get {
