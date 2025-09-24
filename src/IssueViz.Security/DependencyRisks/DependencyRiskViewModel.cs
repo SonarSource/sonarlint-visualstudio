@@ -21,6 +21,7 @@
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
@@ -48,4 +49,13 @@ internal class DependencyRiskViewModel(IDependencyRisk dependencyRisk)
     };
 
     public IssueType IssueType => IssueType.DependencyRisk;
+    public DisplayStatus? Status { get; } = dependencyRisk.Status switch
+    {
+        DependencyRiskStatus.Fixed => DisplayStatus.Resolved,
+        DependencyRiskStatus.Open => DisplayStatus.Open,
+        DependencyRiskStatus.Confirmed => DisplayStatus.Open,
+        DependencyRiskStatus.Accepted => DisplayStatus.Resolved,
+        DependencyRiskStatus.Safe => DisplayStatus.Resolved,
+        _ => null
+    };
 }

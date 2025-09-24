@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
@@ -31,6 +32,7 @@ public interface IIssueViewModel
     RuleInfoViewModel RuleInfo { get; }
     DisplaySeverity DisplaySeverity { get; }
     IssueType IssueType { get; }
+    DisplayStatus? Status { get; }
 }
 
 /// <summary>

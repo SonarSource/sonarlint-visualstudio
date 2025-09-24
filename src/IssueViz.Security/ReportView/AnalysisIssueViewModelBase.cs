@@ -20,6 +20,7 @@
 
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
@@ -38,6 +39,7 @@ internal abstract class AnalysisIssueViewModelBase : ViewModelBase, IAnalysisIss
     public RuleInfoViewModel RuleInfo { get; }
     public abstract DisplaySeverity DisplaySeverity { get; }
     public abstract IssueType IssueType { get; }
+    public abstract DisplayStatus? Status { get; }
     public IAnalysisIssueVisualization Issue { get; }
 
     public bool IsSameAnalysisIssue(IAnalysisIssueVisualization analysisIssueVisualization) =>

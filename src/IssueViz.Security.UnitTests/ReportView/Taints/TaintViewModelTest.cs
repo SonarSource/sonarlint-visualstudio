@@ -30,6 +30,7 @@ public class TaintViewModelTest
         testSubject.FilePath.Should().Be(analysisIssueVisualization.Issue.PrimaryLocation.FilePath);
         testSubject.Issue.Should().Be(analysisIssueVisualization);
         testSubject.IssueType.Should().Be(IssueType.TaintVulnerability);
+        testSubject.Status.Should().BeNull();
     }
 
     [DataTestMethod]

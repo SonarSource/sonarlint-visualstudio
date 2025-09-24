@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 /// <summary>
 /// Used to display status info in the UI in a uniform way for different <see cref="IssueType"/>
 /// </summary>
-internal enum DisplayStatus
+public enum DisplayStatus
 {
     Open,
     Resolved
