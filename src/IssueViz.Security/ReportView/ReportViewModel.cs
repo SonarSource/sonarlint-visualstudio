@@ -84,7 +84,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
     public bool HasGroups => GroupViewModels.Count > 0;
     public INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; set; }
     public ICommand NavigateToLocationCommand { get; set; }
-    public ReportViewFilter ReportViewFilter { get; } = new();
+    public ReportViewFilterViewModel ReportViewFilter { get; } = new();
 
     public IIssueViewModel SelectedItem
     {

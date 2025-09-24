@@ -29,7 +29,7 @@ internal enum StatusFilter
     Resolved
 }
 
-internal class ReportViewFilter : ViewModelBase
+internal class ReportViewFilterViewModel : ViewModelBase
 {
     private static readonly ObservableCollection<LocationFilterViewModel> locationFilterViewModels =
     [

@@ -25,14 +25,14 @@ using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView.Filters;
 
 [TestClass]
-public class ReportViewFilterTest
+public class ReportViewFilterViewModelTest
 {
-    private ReportViewFilter testSubject;
+    private ReportViewFilterViewModel testSubject;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        testSubject = new ReportViewFilter();
+        testSubject = new ReportViewFilterViewModel();
     }
 
     [TestMethod]
