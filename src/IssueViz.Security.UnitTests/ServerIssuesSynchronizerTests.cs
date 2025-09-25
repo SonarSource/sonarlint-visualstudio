@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList;
 using SonarLint.VisualStudio.SLCore.Common.Models;
@@ -378,7 +379,7 @@ public class ServerIssuesSynchronizerTests
 
     private void SetUpMonitorSelectionMock(uint cookie)
     {
-        var localGuid = TaintIssuesExistUIContext.Guid;
+        var localGuid = ReportViewIssuesExistUIContext.Guid;
         vsMonitorSelection.GetCmdUIContextCookie(ref localGuid, out Arg.Any<uint>()).Returns(call =>
         {
             call[1] = cookie;

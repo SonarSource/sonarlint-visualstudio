@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.TestInfrastructure;
 using Task = System.Threading.Tasks.Task;
 
@@ -208,7 +209,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
             Action setCmdUICallback = null)
         {
             var monitor = new Mock<IVsMonitorSelection>();
-            var localGuid = LocalHotspotIssuesExistUIContext.Guid;
+            var localGuid = ReportViewIssuesExistUIContext.Guid;
             monitor.Setup(x => x.GetCmdUIContextCookie(ref localGuid, out cookieToReturn))
                 .Callback(() => getCmdUICallback?.Invoke());
 
@@ -243,7 +244,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
 
         private static void CheckUIContextCookieIsFetched(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie)
         {
-            var localGuid = LocalHotspotIssuesExistUIContext.Guid;
+            var localGuid = ReportViewIssuesExistUIContext.Guid;
             monitorMock.Verify(x => x.GetCmdUIContextCookie(ref localGuid, out expectedCookie), Times.Once);
         }
 
