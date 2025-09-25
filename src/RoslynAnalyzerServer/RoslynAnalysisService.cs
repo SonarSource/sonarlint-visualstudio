@@ -33,11 +33,59 @@ internal class RoslynAnalysisService(
     IRoslynAnalysisConfigurationProvider analysisConfigurationProvider,
     IRoslynSolutionAnalysisCommandProvider analysisCommandProvider) : IRoslynAnalysisService
 {
+    private readonly object locker = new();
+    private readonly Dictionary<Guid, CancellationTokenSource> cancellationTokensForAnalysis = new();
+
     public async Task<IEnumerable<RoslynIssue>> AnalyzeAsync(
         AnalysisRequest analysisRequest,
-        CancellationToken cancellationToken) =>
-        await analysisEngine.AnalyzeAsync(
-            analysisCommandProvider.GetAnalysisCommandsForCurrentSolution(analysisRequest.FileNames.Select(x => x.LocalPath).ToArray()),
-            await analysisConfigurationProvider.GetConfigurationAsync(analysisRequest.ActiveRules, analysisRequest.AnalysisProperties, analysisRequest.AnalyzerInfo),
-            cancellationToken);
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await analysisEngine.AnalyzeAsync(
+                analysisCommandProvider.GetAnalysisCommandsForCurrentSolution(analysisRequest.FileNames.Select(x => x.LocalPath).ToArray()),
+                await analysisConfigurationProvider.GetConfigurationAsync(analysisRequest.ActiveRules, analysisRequest.AnalysisProperties, analysisRequest.AnalyzerInfo),
+                SetUpCancellationTokenForAnalysis(analysisRequest, cancellationToken));
+        }
+        finally
+        {
+            CancelAndCleanUpToken(analysisRequest.AnalysisId);
+        }
+    }
+
+    private CancellationToken SetUpCancellationTokenForAnalysis(
+        AnalysisRequest analysisRequest,
+        CancellationToken cancellationToken)
+    {
+        lock (locker)
+        {
+            var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            cancellationTokensForAnalysis[analysisRequest.AnalysisId] = cancellationTokenSource;
+            cancellationToken = cancellationTokenSource.Token;
+        }
+        return cancellationToken;
+    }
+
+    public bool Cancel(AnalysisCancellationRequest analysisCancellationRequest)
+    {
+        var analysisId = analysisCancellationRequest.AnalysisId;
+        return CancelAndCleanUpToken(analysisId);
+    }
+
+    private bool CancelAndCleanUpToken(Guid analysisId)
+    {
+        CancellationTokenSource? cancellationTokenSource;
+        lock (locker)
+        {
+            if (!cancellationTokensForAnalysis.TryGetValue(analysisId, out cancellationTokenSource))
+            {
+                return false;
+            }
+            cancellationTokensForAnalysis.Remove(analysisId);
+        }
+
+        cancellationTokenSource.Cancel();
+        cancellationTokenSource.Dispose();
+        return true;
+    }
 }

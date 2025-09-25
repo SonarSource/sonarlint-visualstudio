@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 using System.Net;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Adapters;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 
@@ -147,19 +148,25 @@ internal sealed class RoslynAnalysisHttpServer(
 
     private async Task HandleRequestAsync(IHttpListenerContext context, CancellationToken cancellationToken)
     {
-        if (analysisRequestHandler.ValidateRequest(context) is var validationStatusCode && validationStatusCode != HttpStatusCode.OK)
+        if (!analysisRequestHandler.ValidateRequest(context, out var validationStatusCode, out var requestType))
         {
             httpRequestHandler.CloseRequest(context, validationStatusCode);
             return;
         }
-        if (await analysisRequestHandler.ParseAnalysisRequestBodyAsync(context) is not { } analysisRequest)
+
+        if (requestType == RequestType.Analyze && await analysisRequestHandler.ParseAnalysisRequestBodyAsync(context) is { } analysisRequest)
+        {
+            var issues = await roslynAnalysisService.AnalyzeAsync(analysisRequest, cancellationToken);
+            await httpRequestHandler.SendResponseAsync(context, analysisRequestHandler.SerializeAnalysisRequestResponse(issues.ToList()));
+        }
+        else if (requestType == RequestType.Cancel && await analysisRequestHandler.ParseCancellationRequestBodyAsync(context) is { } cancellationRequest)
+        {
+            var status = roslynAnalysisService.Cancel(cancellationRequest);
+            httpRequestHandler.CloseRequest(context, status ? HttpStatusCode.OK : HttpStatusCode.NotFound);
+        }
+        else
         {
             httpRequestHandler.CloseRequest(context, HttpStatusCode.BadRequest);
-            return;
         }
-
-        var issues = await roslynAnalysisService.AnalyzeAsync(analysisRequest, cancellationToken);
-        cancellationToken.ThrowIfCancellationRequested();
-        await httpRequestHandler.SendResponseAsync(context, analysisRequestHandler.ParseAnalysisRequestResponse(issues.ToList()));
     }
 }
