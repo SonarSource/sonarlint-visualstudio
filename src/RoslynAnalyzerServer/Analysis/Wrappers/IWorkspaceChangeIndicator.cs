@@ -19,16 +19,21 @@
  */
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-internal interface IRoslynWorkspaceWrapper : IDisposable
+/// <summary>
+/// Indicates whether workspace changes are critical and require reanalysis
+/// </summary>
+internal interface IWorkspaceChangeIndicator
 {
-    IRoslynSolutionWrapper GetCurrentSolution();
+    /// <summary>
+    /// Checks if solution changes are critical and require reanalysis
+    /// </summary>
+    bool SolutionChangedCritically(SolutionChanges solutionChanges);
 
-    Task<bool> ApplyOrMergeChangesAsync(
-        IRoslynSolutionWrapper originalSolution,
-        Microsoft.CodeAnalysis.CodeActions.ApplyChangesOperation operation,
-        CancellationToken cancellationToken);
+    /// <summary>
+    /// Checks if project changes are critical and require reanalysis
+    /// </summary>
+    bool ProjectChangedCritically(ProjectChanges changedProject);
 }

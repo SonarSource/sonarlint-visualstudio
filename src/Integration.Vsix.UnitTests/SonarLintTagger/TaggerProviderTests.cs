@@ -59,6 +59,7 @@ public class TaggerProviderTests
     private IInitializationProcessorFactory initializationProcessorFactory;
     private IThreadHandling threadHandling;
     private ITaskExecutorWithDebounceFactory taskExecutorWithDebounceFactory;
+    private ITaskExecutorWithDebounce reanalysisExecutorWithDebounce;
 
     private static readonly AnalysisLanguage[] DetectedLanguagesJsTs = [AnalysisLanguage.TypeScript, AnalysisLanguage.Javascript];
 
@@ -93,6 +94,9 @@ public class TaggerProviderTests
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
 
         taskExecutorWithDebounceFactory = Substitute.For<ITaskExecutorWithDebounceFactory>();
+        reanalysisExecutorWithDebounce = Substitute.For<ITaskExecutorWithDebounce>();
+        taskExecutorWithDebounceFactory.Create(Arg.Any<TimeSpan>()).Returns(reanalysisExecutorWithDebounce);
+        reanalysisExecutorWithDebounce.When(x => x.Debounce(Arg.Any<Action>())).Do(call => call.Arg<Action>().Invoke());
 
         testSubject = CreateAndInitializeTestSubject();
     }
@@ -146,6 +150,7 @@ public class TaggerProviderTests
     [TestMethod]
     public void CreateTagger_should_create_tracker_when_tagger_is_created()
     {
+        taskExecutorWithDebounceFactory.ClearReceivedCalls();
         var doc = CreateMockedDocument("anyname");
         var tagger = CreateTaggerForDocument(doc);
 
@@ -501,6 +506,7 @@ public class TaggerProviderTests
         mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new AnalysisRequestEventArgs(filesToaAnalyze));
         analysisExecutingSignal.WaitOne(AnalysisTimeout);
 
+        reanalysisExecutorWithDebounce.Received(1).Debounce(Arg.Any<Action>());
         analyzer.Received(1).ExecuteAnalysis(Arg.Is<List<string>>(x => x.SequenceEqual(filesToaAnalyze)));
     }
 

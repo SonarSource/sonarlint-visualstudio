@@ -23,7 +23,7 @@ using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer;
 
-internal interface IRoslynAnalysisService
+internal interface IRoslynAnalysisService : IDisposable
 {
     Task<IEnumerable<RoslynIssue>> AnalyzeAsync(AnalysisRequest analysisRequest, CancellationToken cancellationToken);
 }

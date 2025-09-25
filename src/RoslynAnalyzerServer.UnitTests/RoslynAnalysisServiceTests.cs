@@ -42,21 +42,24 @@ public class RoslynAnalysisServiceTests
     private IRoslynAnalysisConfigurationProvider analysisConfigurationProvider = null!;
 
     private IRoslynAnalysisEngine analysisEngine = null!;
+    private IRoslynWorkspaceWrapper workspace = null!;
     private RoslynAnalysisService testSubject = null!;
 
     [TestInitialize]
     public void TestInitialize()
     {
+        workspace = Substitute.For<IRoslynWorkspaceWrapper>();
         analysisEngine = Substitute.For<IRoslynAnalysisEngine>();
         analysisConfigurationProvider = Substitute.For<IRoslynAnalysisConfigurationProvider>();
         analysisCommandProvider = Substitute.For<IRoslynSolutionAnalysisCommandProvider>();
 
-        testSubject = new RoslynAnalysisService(analysisEngine, analysisConfigurationProvider, analysisCommandProvider);
+        testSubject = new RoslynAnalysisService(workspace, analysisEngine, analysisConfigurationProvider, analysisCommandProvider);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<RoslynAnalysisService, IRoslynAnalysisService>(
+            MefTestHelpers.CreateExport<IRoslynWorkspaceWrapper>(),
             MefTestHelpers.CreateExport<IRoslynAnalysisEngine>(),
             MefTestHelpers.CreateExport<IRoslynAnalysisConfigurationProvider>(),
             MefTestHelpers.CreateExport<IRoslynSolutionAnalysisCommandProvider>());
@@ -79,5 +82,13 @@ public class RoslynAnalysisServiceTests
         var issues = await testSubject.AnalyzeAsync(analysisRequest, CancellationToken.None);
 
         issues.Should().BeSameAs(DefaultIssues);
+    }
+
+    [TestMethod]
+    public void Dispose_DisposesWorkspace()
+    {
+        testSubject.Dispose();
+
+        workspace.Received().Dispose();
     }
 }

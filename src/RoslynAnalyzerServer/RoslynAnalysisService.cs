@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer;
@@ -28,7 +29,8 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer;
 [Export(typeof(IRoslynAnalysisService))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class RoslynAnalysisService(
+internal sealed class RoslynAnalysisService(
+    IRoslynWorkspaceWrapper workspaceWrapper,
     IRoslynAnalysisEngine analysisEngine,
     IRoslynAnalysisConfigurationProvider analysisConfigurationProvider,
     IRoslynSolutionAnalysisCommandProvider analysisCommandProvider) : IRoslynAnalysisService
@@ -40,4 +42,6 @@ internal class RoslynAnalysisService(
             analysisCommandProvider.GetAnalysisCommandsForCurrentSolution(analysisRequest.FileNames.Select(x => x.LocalPath).ToArray()),
             await analysisConfigurationProvider.GetConfigurationAsync(analysisRequest.ActiveRules, analysisRequest.AnalysisProperties, analysisRequest.AnalyzerInfo),
             cancellationToken);
+
+    public void Dispose() => workspaceWrapper.Dispose();
 }
