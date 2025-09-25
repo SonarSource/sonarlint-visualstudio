@@ -249,7 +249,7 @@ Please check the logs for more details.</value>
     <value>View security hotspot in browser</value>
   </data>
   <data name="ReportViewToolWindowCaption" xml:space="preserve">
-    <value>SonarQube Dependency Risks</value>
+    <value>SonarQube Security Report</value>
   </data>
   <data name="DependencyRisksGroupTitle" xml:space="preserve">
     <value>Solution findings</value>

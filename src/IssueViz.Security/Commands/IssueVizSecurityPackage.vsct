@@ -32,7 +32,7 @@
       <Button guid="SecurityMenuCmdSet" id="ViewReportCommand" priority="0x0203" type="Button">
         <Parent guid="SecurityMenuCmdSet" id="SecurityGroup" />
         <Strings>
-          <ButtonText>View Dependency Risks</ButtonText>
+          <ButtonText>View Security Report</ButtonText>
         </Strings>
       </Button>
 
