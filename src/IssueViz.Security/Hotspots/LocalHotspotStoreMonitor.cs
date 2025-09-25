@@ -18,15 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Linq;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
@@ -47,7 +45,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
         private uint contextCookie;
 
         [ImportingConstructor]
-        public LocalHotspotStoreMonitor([Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider,
+        public LocalHotspotStoreMonitor(
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             ILocalHotspotsStore localHotspotsStore,
             IThreadHandling threadHandling)
         {
@@ -63,7 +62,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
             await threadHandling.RunOnUIThreadAsync(() =>
             {
                 vsMonitorSelection = (IVsMonitorSelection)serviceProvider.GetService(typeof(SVsShellMonitorSelection));
-                Guid localGuid = LocalHotspotIssuesExistUIContext.Guid;
+                Guid localGuid = ReportViewIssuesExistUIContext.Guid;
                 vsMonitorSelection.GetCmdUIContextCookie(ref localGuid, out contextCookie);
 
                 Refresh();
