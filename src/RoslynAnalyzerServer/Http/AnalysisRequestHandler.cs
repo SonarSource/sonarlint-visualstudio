@@ -30,13 +30,22 @@ using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 
+public enum RequestType
+{
+    Unknown,
+    Analyze,
+    Cancel
+}
+
 public interface IAnalysisRequestHandler
 {
     Task<AnalysisRequest?> ParseAnalysisRequestBodyAsync(IHttpListenerContext context);
 
-    string ParseAnalysisRequestResponse(List<RoslynIssue> diagnostics);
+    Task<AnalysisCancellationRequest?> ParseCancellationRequestBodyAsync(IHttpListenerContext context);
 
-    HttpStatusCode ValidateRequest(IHttpListenerContext context);
+    string SerializeAnalysisRequestResponse(List<RoslynIssue> diagnostics);
+
+    bool ValidateRequest(IHttpListenerContext context, out HttpStatusCode errorCode, out RequestType requestType);
 }
 
 [Export(typeof(IAnalysisRequestHandler))]
@@ -46,46 +55,39 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerSettings server
 {
     private const string XAuthTokenHeader = "X-Auth-Token";
     private const string AnalyzeRequestUrl = "/analyze";
+    private const string CancelAnalysisRequestUrl = "/cancel";
     private readonly ILogger logger = logger.ForContext(Resources.HttpServerLogContext).ForContext(nameof(AnalysisRequestHandler));
 
-    public HttpStatusCode ValidateRequest(IHttpListenerContext context)
-    {
-        if (VerifyLocalRequest(context) is var localRequestStatusCode && localRequestStatusCode != HttpStatusCode.OK)
-        {
-            return localRequestStatusCode;
-        }
-        if (VerifyToken(context) is var tokenStatusCode && tokenStatusCode != HttpStatusCode.OK)
-        {
-            return tokenStatusCode;
-        }
-        if (VerifyMethod(context) is var methodStatusCode && methodStatusCode != HttpStatusCode.OK)
-        {
-            return methodStatusCode;
-        }
-        if (VerifyContentLength(context) is var contentLengthStatusCode && contentLengthStatusCode != HttpStatusCode.OK)
-        {
-            return contentLengthStatusCode;
-        }
-        return HttpStatusCode.OK;
-    }
-
-    public async Task<AnalysisRequest?> ParseAnalysisRequestBodyAsync(IHttpListenerContext context)
-    {
-        var body = await ReadBodyAsync(context);
-        var requestDto = GetAnalysisRequestFromBody(body);
-        if (requestDto != null && requestDto.FileNames.Count != 0)
-        {
-            return requestDto;
-        }
-
-        return null;
-    }
-
-    public string ParseAnalysisRequestResponse(List<RoslynIssue> diagnostics)
+    public string SerializeAnalysisRequestResponse(List<RoslynIssue> diagnostics)
     {
         var responseObj = new AnalysisResponse { RoslynIssues = diagnostics };
         var responseString = JsonConvert.SerializeObject(responseObj);
         return responseString;
+    }
+
+    public bool ValidateRequest(IHttpListenerContext context, out HttpStatusCode errorCode, out RequestType requestType)
+    {
+        requestType = RequestType.Unknown;
+        errorCode = default;
+        return VerifyLocalRequest(context, out errorCode)
+               && VerifyToken(context, out errorCode)
+               && VerifyMethod(context, out errorCode, out requestType)
+               && VerifyContentLength(context, out errorCode);
+    }
+
+    public async Task<AnalysisRequest?> ParseAnalysisRequestBodyAsync(IHttpListenerContext context)
+    {
+        var analysisRequestBodyAsync = await ParseAnalysisRequestBodyAsync<AnalysisRequest>(context);
+        return analysisRequestBodyAsync is { FileNames.Count: > 0, ActiveRules.Count: > 0 } ? analysisRequestBodyAsync : null;
+    }
+
+    public Task<AnalysisCancellationRequest?> ParseCancellationRequestBodyAsync(IHttpListenerContext context) =>
+        ParseAnalysisRequestBodyAsync<AnalysisCancellationRequest>(context);
+
+    public async Task<T?> ParseAnalysisRequestBodyAsync<T>(IHttpListenerContext context) where T : class
+    {
+        var body = await ReadBodyAsync(context);
+        return GetAnalysisRequestFromBody<T>(body);
     }
 
     private static async Task<string> ReadBodyAsync(IHttpListenerContext context)
@@ -94,12 +96,12 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerSettings server
         return await reader.ReadToEndAsync();
     }
 
-    private static AnalysisRequest? GetAnalysisRequestFromBody(string body)
+    private static T? GetAnalysisRequestFromBody<T>(string body) where T : class
     {
-        AnalysisRequest? requestDto;
+        T? requestDto;
         try
         {
-            requestDto = JsonConvert.DeserializeObject<AnalysisRequest>(body);
+            requestDto = JsonConvert.DeserializeObject<T>(body);
         }
         catch (Exception)
         {
@@ -108,37 +110,66 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerSettings server
         return requestDto;
     }
 
-    private static HttpStatusCode VerifyLocalRequest(IHttpListenerContext context) => IsLocalRequest(context.Request) ? HttpStatusCode.OK : HttpStatusCode.Forbidden;
+    private static bool VerifyLocalRequest(IHttpListenerContext context, out HttpStatusCode errorCode)
+    {
+        if (!IsLocalRequest(context.Request))
+        {
+            errorCode = HttpStatusCode.Forbidden;
+            return false;
+        }
+        errorCode = default;
+        return true;
+    }
+
+    private bool VerifyToken(IHttpListenerContext context, out HttpStatusCode errorCode)
+    {
+        var token = context.Request.Headers[XAuthTokenHeader];
+        if (token != serverConfigurationProvider.CurrentConfiguration.Token.ToUnsecureString())
+        {
+            errorCode = HttpStatusCode.Unauthorized;
+            return false;
+        }
+        errorCode = default;
+        return true;
+    }
+
+    private static bool VerifyMethod(IHttpListenerContext context, out HttpStatusCode errorCode, out RequestType requestType)
+    {
+        errorCode = default;
+        if (context.Request.HttpMethod == HttpMethod.Post.Method && context.Request.Url.AbsolutePath == AnalyzeRequestUrl)
+        {
+            requestType = RequestType.Analyze;
+            return true;
+        }
+
+        if (context.Request.HttpMethod == HttpMethod.Post.Method && context.Request.Url.AbsolutePath == CancelAnalysisRequestUrl)
+        {
+            requestType = RequestType.Cancel;
+            return true;
+        }
+
+        requestType = RequestType.Unknown;
+        errorCode = HttpStatusCode.BadRequest;
+        return false;
+    }
+
+    private bool VerifyContentLength(IHttpListenerContext context, out HttpStatusCode errorCode)
+    {
+        if (context.Request.ContentLength64 > serverSettings.MaxRequestBodyBytes)
+        {
+            logger.LogVerbose(Resources.BodyLengthExceeded, context.Request.ContentLength64, serverSettings.MaxRequestBodyBytes);
+            errorCode = HttpStatusCode.RequestEntityTooLarge;
+            return false;
+        }
+        errorCode = default;
+        return true;
+    }
 
     private static bool IsLocalRequest(IHttpListenerRequest request)
     {
-        var remote = request.RemoteEndPoint;
-        return remote != null && (remote.Address.Equals(IPAddress.Loopback) || remote.Address.Equals(IPAddress.IPv6Loopback));
-    }
-
-    private HttpStatusCode VerifyToken(IHttpListenerContext context)
-    {
-        var token = context.Request.Headers[XAuthTokenHeader];
-
-        return token == serverConfigurationProvider.CurrentConfiguration.Token.ToUnsecureString() ? HttpStatusCode.OK : HttpStatusCode.Unauthorized;
-    }
-
-    private static HttpStatusCode VerifyMethod(IHttpListenerContext context)
-    {
-        if (context.Request.HttpMethod == HttpMethod.Post.Method && context.Request.Url.AbsolutePath == AnalyzeRequestUrl)
-        {
-            return HttpStatusCode.OK;
-        }
-        return HttpStatusCode.NotFound;
-    }
-
-    private HttpStatusCode VerifyContentLength(IHttpListenerContext context)
-    {
-        if (context.Request.ContentLength64 <= serverSettings.MaxRequestBodyBytes)
-        {
-            return HttpStatusCode.OK;
-        }
-        logger.LogVerbose(Resources.BodyLengthExceeded, context.Request.ContentLength64, serverSettings.MaxRequestBodyBytes);
-        return HttpStatusCode.RequestEntityTooLarge;
+        var remoteAddress = request.RemoteEndPoint?.Address;
+        return remoteAddress != null
+               && (remoteAddress.Equals(IPAddress.Loopback)
+                   || remoteAddress.Equals(IPAddress.IPv6Loopback));
     }
 }
