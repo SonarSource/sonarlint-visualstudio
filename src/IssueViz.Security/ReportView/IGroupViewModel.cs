@@ -25,6 +25,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 public interface IGroupViewModel : IDisposable
 {
     string Title { get; }
+    string FilePath { get; }
     ObservableCollection<IIssueViewModel> AllIssues { get; }
     ObservableCollection<IIssueViewModel> FilteredIssues { get; }
 }

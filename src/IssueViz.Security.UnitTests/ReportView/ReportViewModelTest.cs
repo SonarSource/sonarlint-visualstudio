@@ -24,6 +24,8 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -56,6 +58,8 @@ public class ReportViewModelTest
     private IThreadHandling threadHandling;
     private PropertyChangedEventHandler eventHandler;
     private IIssueSelectionService selectionService;
+    private IActiveDocumentLocator activeDocumentLocator;
+    private IActiveDocumentTracker activeDocumentTracker;
 
     [TestInitialize]
     public void Initialize()
@@ -72,11 +76,13 @@ public class ReportViewModelTest
         telemetryManager = Substitute.For<ITelemetryManager>();
         selectionService = Substitute.For<IIssueSelectionService>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+        activeDocumentLocator = Substitute.For<IActiveDocumentLocator>();
+        activeDocumentTracker = Substitute.For<IActiveDocumentTracker>();
         eventHandler = Substitute.For<PropertyChangedEventHandler>();
         hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns([]);
         taintsReportViewModel.GetTaintsGroupViewModels().Returns([]);
 
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
     }
 
     [TestMethod]
@@ -103,10 +109,10 @@ public class ReportViewModelTest
         var dependencyRisk = CreateDependencyRisk();
         MockRisksInStore(dependencyRisk);
 
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
-        testSubject.GroupViewModels.Should().HaveCount(1);
-        VerifyExpectedDependencyRiskGroupViewModel(testSubject.GroupViewModels[0] as GroupDependencyRiskViewModel, dependencyRisk);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        VerifyExpectedDependencyRiskGroupViewModel(testSubject.FilteredGroupViewModels[0] as GroupDependencyRiskViewModel, dependencyRisk);
     }
 
     [TestMethod]
@@ -116,11 +122,11 @@ public class ReportViewModelTest
         var hotspotGroupViewModel2 = CreateMockedGroupViewModel(filePath: "myFile2.cs");
         hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns([hotspotGroupViewModel, hotspotGroupViewModel2]);
 
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
-        testSubject.GroupViewModels.Should().HaveCount(2);
-        testSubject.GroupViewModels.Should().Contain(hotspotGroupViewModel);
-        testSubject.GroupViewModels.Should().Contain(hotspotGroupViewModel2);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(2);
+        testSubject.FilteredGroupViewModels.Should().Contain(hotspotGroupViewModel);
+        testSubject.FilteredGroupViewModels.Should().Contain(hotspotGroupViewModel2);
     }
 
     [TestMethod]
@@ -130,11 +136,11 @@ public class ReportViewModelTest
         var taintGroupViewModel2 = CreateMockedGroupViewModel(filePath: "myFile2.cs");
         taintsReportViewModel.GetTaintsGroupViewModels().Returns([taintGroupViewModel, taintGroupViewModel2]);
 
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
-        testSubject.GroupViewModels.Should().HaveCount(2);
-        testSubject.GroupViewModels.Should().Contain(taintGroupViewModel);
-        testSubject.GroupViewModels.Should().Contain(taintGroupViewModel2);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(2);
+        testSubject.FilteredGroupViewModels.Should().Contain(taintGroupViewModel);
+        testSubject.FilteredGroupViewModels.Should().Contain(taintGroupViewModel2);
     }
 
     [TestMethod]
@@ -147,27 +153,34 @@ public class ReportViewModelTest
         var taintGroupViewModel = CreateMockedGroupViewModel(filePath: "myFile2.cs");
         taintsReportViewModel.GetTaintsGroupViewModels().Returns([taintGroupViewModel]);
 
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
-        testSubject.GroupViewModels.Should().HaveCount(3);
-        VerifyExpectedDependencyRiskGroupViewModel(testSubject.GroupViewModels[0] as GroupDependencyRiskViewModel, dependencyRisk);
-        testSubject.GroupViewModels.Should().Contain(hotspotGroupViewModel);
-        testSubject.GroupViewModels.Should().Contain(taintGroupViewModel);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        VerifyExpectedDependencyRiskGroupViewModel(testSubject.FilteredGroupViewModels[0] as GroupDependencyRiskViewModel, dependencyRisk);
+        testSubject.FilteredGroupViewModels.Should().Contain(hotspotGroupViewModel);
+        testSubject.FilteredGroupViewModels.Should().Contain(taintGroupViewModel);
     }
 
     [TestMethod]
     public void Ctor_NoIssues_CreatesNoGroupViewModel()
     {
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
-        testSubject.GroupViewModels.Should().BeEmpty();
+        testSubject.FilteredGroupViewModels.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void Ctor_InitializesActiveDocument()
+    {
+        activeDocumentLocator.Received(1).FindActiveDocument();
+        activeDocumentTracker.Received(1).ActiveDocumentChanged += Arg.Any<EventHandler<ActiveDocumentChangedEventArgs>>();
     }
 
     [TestMethod]
     public void Dispose_UnsubscribesFromEvents()
     {
         MockRisksInStore(CreateDependencyRisk(), CreateDependencyRisk());
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
         testSubject.Dispose();
 
@@ -176,6 +189,7 @@ public class ReportViewModelTest
         hotspotsReportViewModel.Received(1).Dispose();
         taintsReportViewModel.Received(1).IssuesChanged -= Arg.Any<EventHandler<IssuesChangedEventArgs>>();
         taintsReportViewModel.Received(1).Dispose();
+        activeDocumentTracker.Received(1).ActiveDocumentChanged -= Arg.Any<EventHandler<ActiveDocumentChangedEventArgs>>();
     }
 
     [TestMethod]
@@ -355,8 +369,8 @@ public class ReportViewModelTest
 
         hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [hotspot, hotspot2]));
 
-        testSubject.GroupViewModels.Should().HaveCount(1);
-        VerifyExpectedGroupFileViewModel(testSubject.GroupViewModels[0] as GroupFileViewModel, hotspot, hotspot2);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        VerifyExpectedGroupFileViewModel(testSubject.FilteredGroupViewModels[0] as GroupFileViewModel, hotspot, hotspot2);
         VerifyHasGroupsUpdated();
         dependencyRisksStore.DidNotReceive().GetAll();
         taintsReportViewModel.DidNotReceive().GetTaintsGroupViewModels();
@@ -373,8 +387,8 @@ public class ReportViewModelTest
 
         hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [newHotspotSameFile]));
 
-        testSubject.GroupViewModels.Should().HaveCount(1);
-        testSubject.GroupViewModels.Single().Should().BeSameAs(existingGroup);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        testSubject.FilteredGroupViewModels.Single().Should().BeSameAs(existingGroup);
         VerifyExpectedGroupFileViewModel(existingGroup, existingHotspot, newHotspotSameFile);
         VerifyHasGroupsUpdated();
         dependencyRisksStore.DidNotReceive().GetAll();
@@ -391,9 +405,9 @@ public class ReportViewModelTest
 
         hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [newHotspotDifferentFile]));
 
-        testSubject.GroupViewModels.Should().HaveCount(2);
-        testSubject.GroupViewModels[0].Should().BeSameAs(existingGroup);
-        VerifyExpectedGroupFileViewModel(testSubject.GroupViewModels[1] as GroupFileViewModel, newHotspotDifferentFile);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(2);
+        testSubject.FilteredGroupViewModels[0].Should().BeSameAs(existingGroup);
+        VerifyExpectedGroupFileViewModel(testSubject.FilteredGroupViewModels[1] as GroupFileViewModel, newHotspotDifferentFile);
         VerifyHasGroupsUpdated();
         dependencyRisksStore.DidNotReceive().GetAll();
         taintsReportViewModel.DidNotReceive().GetTaintsGroupViewModels();
@@ -410,7 +424,7 @@ public class ReportViewModelTest
         hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
             new IssuesChangedEventArgs([CreateHotspotVisualization(existingHotspot.Issue.Id, existingHotspot.Issue.IssueServerKey, filePath)], []));
 
-        testSubject.GroupViewModels.Should().BeEmpty();
+        testSubject.FilteredGroupViewModels.Should().BeEmpty();
         VerifyHasGroupsUpdated();
         dependencyRisksStore.DidNotReceive().GetAll();
         taintsReportViewModel.DidNotReceive().GetTaintsGroupViewModels();
@@ -428,9 +442,9 @@ public class ReportViewModelTest
         hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
             new IssuesChangedEventArgs([CreateHotspotVisualization(existingHotspot.Issue.Id, existingHotspot.Issue.IssueServerKey, filePath)], []));
 
-        testSubject.GroupViewModels.Should().HaveCount(1);
-        testSubject.GroupViewModels[0].Should().BeSameAs(existingGroup);
-        VerifyExpectedGroupFileViewModel(testSubject.GroupViewModels[0] as GroupFileViewModel, existingHotspot2);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        testSubject.FilteredGroupViewModels[0].Should().BeSameAs(existingGroup);
+        VerifyExpectedGroupFileViewModel(testSubject.FilteredGroupViewModels[0] as GroupFileViewModel, existingHotspot2);
         VerifyHasGroupsUpdated();
         dependencyRisksStore.DidNotReceive().GetAll();
         taintsReportViewModel.DidNotReceive().GetTaintsGroupViewModels();
@@ -446,8 +460,8 @@ public class ReportViewModelTest
         hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
             new IssuesChangedEventArgs([CreateHotspotVisualization(existingHotspot.Issue.Id, "notExistingKey", "myFile.cs")], []));
 
-        testSubject.GroupViewModels.Should().HaveCount(1);
-        testSubject.GroupViewModels[0].Should().BeSameAs(existingGroup);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        testSubject.FilteredGroupViewModels[0].Should().BeSameAs(existingGroup);
         VerifyHasGroupsUpdated();
         dependencyRisksStore.DidNotReceive().GetAll();
         taintsReportViewModel.DidNotReceive().GetTaintsGroupViewModels();
@@ -462,8 +476,8 @@ public class ReportViewModelTest
 
         taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [taint, taint2]));
 
-        testSubject.GroupViewModels.Should().HaveCount(1);
-        VerifyExpectedGroupFileViewModel(testSubject.GroupViewModels[0] as GroupFileViewModel, taint, taint2);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        VerifyExpectedGroupFileViewModel(testSubject.FilteredGroupViewModels[0] as GroupFileViewModel, taint, taint2);
         VerifyHasGroupsUpdated();
         dependencyRisksStore.DidNotReceive().GetAll();
         taintsReportViewModel.DidNotReceive().GetTaintsGroupViewModels();
@@ -480,8 +494,8 @@ public class ReportViewModelTest
 
         taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [newTaintSameFile]));
 
-        testSubject.GroupViewModels.Should().HaveCount(1);
-        testSubject.GroupViewModels.Single().Should().BeSameAs(existingGroup);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        testSubject.FilteredGroupViewModels.Single().Should().BeSameAs(existingGroup);
         VerifyExpectedGroupFileViewModel(existingGroup, existingTaint, newTaintSameFile);
         VerifyHasGroupsUpdated();
         dependencyRisksStore.DidNotReceive().GetAll();
@@ -498,9 +512,9 @@ public class ReportViewModelTest
 
         taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [newTaintDifferentFile]));
 
-        testSubject.GroupViewModels.Should().HaveCount(2);
-        testSubject.GroupViewModels[0].Should().BeSameAs(existingGroup);
-        VerifyExpectedGroupFileViewModel(testSubject.GroupViewModels[1] as GroupFileViewModel, newTaintDifferentFile);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(2);
+        testSubject.FilteredGroupViewModels[0].Should().BeSameAs(existingGroup);
+        VerifyExpectedGroupFileViewModel(testSubject.FilteredGroupViewModels[1] as GroupFileViewModel, newTaintDifferentFile);
         VerifyHasGroupsUpdated();
         dependencyRisksStore.DidNotReceive().GetAll();
         taintsReportViewModel.DidNotReceive().GetTaintsGroupViewModels();
@@ -517,7 +531,7 @@ public class ReportViewModelTest
         taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
             new IssuesChangedEventArgs([CreateTaintVisualization(existingTaint.Issue.Id, existingTaint.Issue.IssueServerKey, filePath)], []));
 
-        testSubject.GroupViewModels.Should().BeEmpty();
+        testSubject.FilteredGroupViewModels.Should().BeEmpty();
         VerifyHasGroupsUpdated();
         dependencyRisksStore.DidNotReceive().GetAll();
         taintsReportViewModel.DidNotReceive().GetTaintsGroupViewModels();
@@ -535,9 +549,9 @@ public class ReportViewModelTest
         taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
             new IssuesChangedEventArgs([CreateTaintVisualization(existingTaint.Issue.Id, existingTaint.Issue.IssueServerKey, filePath)], []));
 
-        testSubject.GroupViewModels.Should().HaveCount(1);
-        testSubject.GroupViewModels[0].Should().BeSameAs(existingGroup);
-        VerifyExpectedGroupFileViewModel(testSubject.GroupViewModels[0] as GroupFileViewModel, existingTaint2);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        testSubject.FilteredGroupViewModels[0].Should().BeSameAs(existingGroup);
+        VerifyExpectedGroupFileViewModel(testSubject.FilteredGroupViewModels[0] as GroupFileViewModel, existingTaint2);
         VerifyHasGroupsUpdated();
         dependencyRisksStore.DidNotReceive().GetAll();
         taintsReportViewModel.DidNotReceive().GetTaintsGroupViewModels();
@@ -553,8 +567,8 @@ public class ReportViewModelTest
         taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
             new IssuesChangedEventArgs([CreateTaintVisualization(existingTaint.Issue.Id, "notExistingKey", "myFile.cs")], []));
 
-        testSubject.GroupViewModels.Should().HaveCount(1);
-        testSubject.GroupViewModels[0].Should().BeSameAs(existingGroup);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        testSubject.FilteredGroupViewModels[0].Should().BeSameAs(existingGroup);
         VerifyHasGroupsUpdated();
         dependencyRisksStore.DidNotReceive().GetAll();
         taintsReportViewModel.DidNotReceive().GetTaintsGroupViewModels();
@@ -565,12 +579,12 @@ public class ReportViewModelTest
     {
         var addedRisk = CreateDependencyRisk();
         dependencyRisksStore.GetAll().Returns([], [addedRisk]);
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
         dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
 
-        testSubject.GroupViewModels.Should().HaveCount(1);
-        VerifyExpectedDependencyRiskGroupViewModel(testSubject.GroupViewModels[0] as GroupDependencyRiskViewModel, addedRisk);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        VerifyExpectedDependencyRiskGroupViewModel(testSubject.FilteredGroupViewModels[0] as GroupDependencyRiskViewModel, addedRisk);
     }
 
     [TestMethod]
@@ -579,12 +593,12 @@ public class ReportViewModelTest
         var initialRisk = CreateDependencyRisk();
         var addedRisk = CreateDependencyRisk();
         dependencyRisksStore.GetAll().Returns([initialRisk], [initialRisk, addedRisk]);
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
         dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
 
-        testSubject.GroupViewModels.Should().HaveCount(1);
-        VerifyExpectedDependencyRiskGroupViewModel(testSubject.GroupViewModels[0] as GroupDependencyRiskViewModel, initialRisk, addedRisk);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        VerifyExpectedDependencyRiskGroupViewModel(testSubject.FilteredGroupViewModels[0] as GroupDependencyRiskViewModel, initialRisk, addedRisk);
     }
 
     [TestMethod]
@@ -592,7 +606,7 @@ public class ReportViewModelTest
     {
         var addedRisk = CreateDependencyRisk();
         dependencyRisksStore.GetAll().Returns([], [addedRisk]);
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
         ClearCallsForReportsViewModels();
 
         dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
@@ -607,11 +621,11 @@ public class ReportViewModelTest
     {
         var initialRisk = CreateDependencyRisk();
         dependencyRisksStore.GetAll().Returns([initialRisk], new IDependencyRisk[] { });
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
         dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
 
-        testSubject.GroupViewModels.Should().BeEmpty();
+        testSubject.FilteredGroupViewModels.Should().BeEmpty();
     }
 
     [TestMethod]
@@ -620,12 +634,12 @@ public class ReportViewModelTest
         var initialRisk = CreateDependencyRisk();
         var initialRisk2 = CreateDependencyRisk();
         dependencyRisksStore.GetAll().Returns([initialRisk, initialRisk2], [initialRisk]);
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
         dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
 
-        testSubject.GroupViewModels.Should().HaveCount(1);
-        VerifyExpectedDependencyRiskGroupViewModel(testSubject.GroupViewModels[0] as GroupDependencyRiskViewModel, initialRisk);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        VerifyExpectedDependencyRiskGroupViewModel(testSubject.FilteredGroupViewModels[0] as GroupDependencyRiskViewModel, initialRisk);
     }
 
     [TestMethod]
@@ -633,7 +647,7 @@ public class ReportViewModelTest
     {
         var initialRisk = CreateDependencyRisk();
         dependencyRisksStore.GetAll().Returns([initialRisk], new IDependencyRisk[] { });
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
         ClearCallsForReportsViewModels();
 
         dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>();
@@ -647,7 +661,7 @@ public class ReportViewModelTest
     public void HasGroups_ReturnsTrue_WhenThereAreRisks()
     {
         MockRisksInStore(CreateDependencyRisk());
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
 
         testSubject.HasGroups.Should().BeTrue();
     }
@@ -684,7 +698,7 @@ public class ReportViewModelTest
         locationNavigator.Received(1).TryNavigatePartial(analysisIssueViewModel.Issue);
     }
 
-    private ReportViewModel CreateTestSubject()
+    private void CreateTestSubject()
     {
         var reportViewModel = new ReportViewModel(activeSolutionBoundTracker,
             navigateToRuleDescriptionCommand,
@@ -694,9 +708,11 @@ public class ReportViewModelTest
             taintsReportViewModel,
             telemetryManager,
             selectionService,
+            activeDocumentLocator,
+            activeDocumentTracker,
             threadHandling);
         reportViewModel.PropertyChanged += eventHandler;
-        return reportViewModel;
+        testSubject = reportViewModel;
     }
 
     private static IDependencyRisk CreateDependencyRisk(Guid? id = null, bool isResolved = false)
@@ -711,7 +727,7 @@ public class ReportViewModelTest
     private static IGroupViewModel CreateMockedGroupViewModel(string filePath)
     {
         var group = Substitute.For<IGroupViewModel>();
-        group.Title.Returns(filePath);
+        group.FilePath.Returns(filePath);
         return group;
     }
 
@@ -795,7 +811,7 @@ public class ReportViewModelTest
     private void InitializeTestSubjectWithInitialGroup(params IGroupViewModel[] groupViewModels)
     {
         hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns(new ObservableCollection<IGroupViewModel>(groupViewModels));
-        testSubject = CreateTestSubject();
+        CreateTestSubject();
         ClearCallsForReportsViewModels();
     }
 }

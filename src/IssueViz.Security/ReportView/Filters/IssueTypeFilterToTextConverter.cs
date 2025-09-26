@@ -40,7 +40,7 @@ public class IssueTypeFilterToTextConverter : IMultiValueConverter
             return null;
         }
 
-        var count = reportViewModel.GroupViewModels.SelectMany(group => group.FilteredIssues).Count(vm => vm.IssueType == issueTypeFilterViewModel.IssueType);
+        var count = reportViewModel.FilteredGroupViewModels.SelectMany(group => group.FilteredIssues).Count(vm => vm.IssueType == issueTypeFilterViewModel.IssueType);
         if (count == 0)
         {
             return $"No {GetResourceByKey(issueTypeFilterViewModel.IssueType + PluralSuffix)}";
