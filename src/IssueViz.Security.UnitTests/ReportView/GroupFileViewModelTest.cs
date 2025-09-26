@@ -29,8 +29,11 @@ public class GroupFileViewModelTest
 {
     private const string filePath = "c:\\myDir\\myFile.cs";
     private IThreadHandling threadHandling;
-    private readonly IIssueViewModel hotspot = CreateMockedIssueType(IssueType.SecurityHotspot);
-    private readonly IIssueViewModel taint = CreateMockedIssueType(IssueType.TaintVulnerability);
+    private readonly IIssueViewModel hotspotInfo = CreateMockedIssueType(IssueType.SecurityHotspot, DisplaySeverity.Info);
+    private readonly IIssueViewModel hotspotLow = CreateMockedIssueType(IssueType.SecurityHotspot, DisplaySeverity.Low);
+    private readonly IIssueViewModel taintHigh = CreateMockedIssueType(IssueType.TaintVulnerability, DisplaySeverity.High);
+    private readonly IIssueViewModel taintMedium = CreateMockedIssueType(IssueType.TaintVulnerability, DisplaySeverity.Medium);
+    private readonly IIssueViewModel taintBlocker = CreateMockedIssueType(IssueType.TaintVulnerability, DisplaySeverity.Blocker);
     private readonly ReportViewFilterViewModel reportViewFilterViewModel = new();
     private List<IIssueViewModel> allIssues;
     private GroupFileViewModel testSubject;
@@ -39,9 +42,8 @@ public class GroupFileViewModelTest
     public void TestInitialize()
     {
         threadHandling = Substitute.For<IThreadHandling>();
-        allIssues = [hotspot, taint];
+        allIssues = [hotspotInfo, hotspotLow, taintMedium, taintHigh, taintBlocker];
         testSubject = new GroupFileViewModel(filePath, allIssues, threadHandling);
-        ClearFilter();
     }
 
     [TestMethod]
@@ -57,11 +59,12 @@ public class GroupFileViewModelTest
     [TestMethod]
     public void ApplyFilter_HotspotFilterSelected_FilteredIssuesHasOnlyTaints()
     {
-        MockFilterViewModel(IssueType.SecurityHotspot, isSelected: true);
+        ClearFilter();
+        MockIssueTypeFilter(IssueType.SecurityHotspot, isSelected: true);
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
-        testSubject.FilteredIssues.Should().HaveCount(1);
+        testSubject.FilteredIssues.Should().HaveCount(2);
         testSubject.FilteredIssues.Should().OnlyContain(i => i.IssueType == IssueType.SecurityHotspot);
         VerifyAllIssuesUnchanged();
     }
@@ -69,11 +72,12 @@ public class GroupFileViewModelTest
     [TestMethod]
     public void ApplyFilter_TaintFilterSelected_FilteredIssuesHasOnlyHotspots()
     {
-        MockFilterViewModel(IssueType.TaintVulnerability, isSelected: true);
+        ClearFilter();
+        MockIssueTypeFilter(IssueType.TaintVulnerability, isSelected: true);
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
-        testSubject.FilteredIssues.Should().HaveCount(1);
+        testSubject.FilteredIssues.Should().HaveCount(3);
         testSubject.FilteredIssues.Should().OnlyContain(i => i.IssueType == IssueType.TaintVulnerability);
         VerifyAllIssuesUnchanged();
     }
@@ -81,7 +85,8 @@ public class GroupFileViewModelTest
     [TestMethod]
     public void ApplyFilter_DependencyRisksSelected_FilteredIssuesHasNoIssues()
     {
-        MockFilterViewModel(IssueType.DependencyRisk, isSelected: true);
+        ClearFilter();
+        MockIssueTypeFilter(IssueType.DependencyRisk, isSelected: true);
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
@@ -92,9 +97,9 @@ public class GroupFileViewModelTest
     [TestMethod]
     public void ApplyFilter_AllTypesSelected_FilteredIssuesHasAllIssues()
     {
-        MockFilterViewModel(IssueType.SecurityHotspot, isSelected: true);
-        MockFilterViewModel(IssueType.TaintVulnerability, isSelected: true);
-        MockFilterViewModel(IssueType.DependencyRisk, isSelected: true);
+        MockIssueTypeFilter(IssueType.SecurityHotspot, isSelected: true);
+        MockIssueTypeFilter(IssueType.TaintVulnerability, isSelected: true);
+        MockIssueTypeFilter(IssueType.DependencyRisk, isSelected: true);
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
@@ -105,8 +110,9 @@ public class GroupFileViewModelTest
     [TestMethod]
     public void ApplyFilter_NoTypesSelected_FilteredIssuesHasNoIssues()
     {
-        MockFilterViewModel(IssueType.SecurityHotspot, isSelected: false);
-        MockFilterViewModel(IssueType.TaintVulnerability, isSelected: false);
+        ClearFilter();
+        MockIssueTypeFilter(IssueType.SecurityHotspot, isSelected: false);
+        MockIssueTypeFilter(IssueType.TaintVulnerability, isSelected: false);
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
@@ -114,18 +120,63 @@ public class GroupFileViewModelTest
         VerifyAllIssuesUnchanged();
     }
 
-    private static IIssueViewModel CreateMockedIssueType(IssueType issueType)
+    [TestMethod]
+    [DataRow(DisplaySeverity.Info)]
+    [DataRow(DisplaySeverity.Low)]
+    [DataRow(DisplaySeverity.Medium)]
+    [DataRow(DisplaySeverity.High)]
+    [DataRow(DisplaySeverity.Blocker)]
+    public void ApplyFilter_SeverityFilterSelected_ShowsOnlyRisksWithThatSeverity(DisplaySeverity selectedSeverityFilter)
+    {
+        MockSeverityFilter(selectedSeverityFilter);
+
+        testSubject.ApplyFilter(reportViewFilterViewModel);
+
+        testSubject.FilteredIssues.Should().HaveCount(1);
+        testSubject.FilteredIssues.Should().OnlyContain(i => i.DisplaySeverity == selectedSeverityFilter);
+        VerifyAllIssuesUnchanged();
+    }
+
+    [TestMethod]
+    public void ApplyFilter_SeverityFilterNotSelected_ShowsAllRisks()
+    {
+        MockSeverityFilter(displaySeverity: DisplaySeverity.Any);
+
+        testSubject.ApplyFilter(reportViewFilterViewModel);
+
+        testSubject.FilteredIssues.Should().BeEquivalentTo(testSubject.AllIssues);
+        VerifyAllIssuesUnchanged();
+    }
+
+    [TestMethod]
+    public void ApplyFilter_MixedFilters_FiltersCorrectly()
+    {
+        ClearFilter();
+        MockSeverityFilter(displaySeverity: DisplaySeverity.Low);
+        MockIssueTypeFilter(IssueType.SecurityHotspot, isSelected: true);
+
+        testSubject.ApplyFilter(reportViewFilterViewModel);
+
+        testSubject.FilteredIssues.Should().HaveCount(1);
+        testSubject.FilteredIssues.Should().OnlyContain(i => i.DisplaySeverity == DisplaySeverity.Low && i.IssueType == IssueType.SecurityHotspot);
+        VerifyAllIssuesUnchanged();
+    }
+
+    private static IIssueViewModel CreateMockedIssueType(IssueType issueType, DisplaySeverity severity = default)
     {
         var issueHotspot = Substitute.For<IIssueViewModel>();
         issueHotspot.IssueType.Returns(issueType);
+        issueHotspot.DisplaySeverity.Returns(severity);
         return issueHotspot;
     }
 
-    private void MockFilterViewModel(IssueType issueType, bool isSelected)
+    private void MockIssueTypeFilter(IssueType issueType, bool isSelected)
     {
         var dependencyRiskFilter = reportViewFilterViewModel.IssueTypeFilters.Single(f => f.IssueType == issueType);
         dependencyRiskFilter.IsSelected = isSelected;
     }
+
+    private void MockSeverityFilter(DisplaySeverity displaySeverity) => reportViewFilterViewModel.SelectedSeverityFilter = displaySeverity;
 
     private void ClearFilter() => reportViewFilterViewModel.IssueTypeFilters.ToList().ForEach(f => f.IsSelected = false);
 
