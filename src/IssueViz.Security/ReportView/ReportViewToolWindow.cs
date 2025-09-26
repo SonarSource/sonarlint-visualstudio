@@ -25,6 +25,8 @@ using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
@@ -55,6 +57,8 @@ internal class ReportViewToolWindow : ToolWindowPane
             componentModel?.GetService<ILocationNavigator>(),
             componentModel?.GetService<ITelemetryManager>(),
             componentModel?.GetService<IIssueSelectionService>(),
+            componentModel?.GetService<IActiveDocumentLocator>(),
+            componentModel?.GetService<IActiveDocumentTracker>(),
             componentModel?.GetService<IThreadHandling>()
         );
     }

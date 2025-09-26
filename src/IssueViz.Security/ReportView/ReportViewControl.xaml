@@ -407,9 +407,10 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <ComboBox ItemsSource="{Binding Path=LocationFilters}"
-                          SelectedItem="{Binding Path=SelectedLocationFilter}"
-                          DisplayMemberPath="DisplayName" Margin="7,3" MinWidth="150" />
+                    <ComboBox ItemsSource="{Binding Path=LocationFilters}"
+                              SelectedItem="{Binding Path=SelectedLocationFilter}"
+                              DisplayMemberPath="DisplayName" Margin="7,3" MinWidth="150" 
+                              SelectionChanged="Control_OnFilterChanged"/>
 
                 <Grid Grid.Column="1">
                     <Grid.ColumnDefinitions>
@@ -515,7 +516,7 @@
         </Grid>
 
         <TreeView Grid.Row="1" Grid.Column="0" Margin="0,5"
-                  ItemsSource="{Binding Path=GroupViewModels}"
+                  ItemsSource="{Binding Path=FilteredGroupViewModels}"
                   SelectedItemChanged="TreeView_OnSelectedItemChanged"
                   VirtualizingStackPanel.IsVirtualizing="True"
                   VirtualizingStackPanel.VirtualizationMode="Recycling"

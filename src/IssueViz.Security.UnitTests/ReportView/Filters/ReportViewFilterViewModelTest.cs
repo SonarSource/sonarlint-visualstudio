@@ -45,7 +45,7 @@ public class ReportViewFilterViewModelTest
         testSubject.LocationFilters[1].DisplayName.Should().Be(Resources.HotspotsControl_OpenDocumentsFilter);
 
         testSubject.SelectedLocationFilter.Should().NotBeNull();
-        testSubject.SelectedLocationFilter.LocationFilter.Should().Be(LocationFilter.CurrentDocument);
+        testSubject.SelectedLocationFilter.LocationFilter.Should().Be(LocationFilter.OpenDocuments);
 
         testSubject.ShowAdvancedFilters.Should().BeFalse();
     }

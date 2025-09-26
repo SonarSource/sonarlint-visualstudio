@@ -29,6 +29,8 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
@@ -64,6 +66,8 @@ internal sealed partial class ReportViewControl : UserControl
         ILocationNavigator locationNavigator,
         ITelemetryManager telemetryManager,
         IIssueSelectionService selectionService,
+        IActiveDocumentLocator activeDocumentLocator,
+        IActiveDocumentTracker activeDocumentTracker,
         IThreadHandling threadHandling)
     {
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
@@ -79,6 +83,8 @@ internal sealed partial class ReportViewControl : UserControl
             TaintsReportViewModel,
             telemetryManager,
             selectionService,
+            activeDocumentLocator,
+            activeDocumentTracker,
             threadHandling);
         InitializeComponent();
     }
@@ -222,7 +228,7 @@ internal sealed partial class ReportViewControl : UserControl
             var wasChanged = await HotspotsReportViewModel.ChangeHotspotStatusAsync(hotspotViewModel, newStatus);
             if (wasChanged && newStatus is HotspotStatus.Fixed or HotspotStatus.Safe)
             {
-                ReportViewModel.GroupViewModels.ToList().ForEach(vm => vm.AllIssues.Remove(hotspotViewModel));
+                ReportViewModel.FilteredGroupViewModels.ToList().ForEach(vm => vm.AllIssues.Remove(hotspotViewModel));
             }
         }
     }
@@ -253,4 +259,6 @@ internal sealed partial class ReportViewControl : UserControl
     }
 
     private void ShowAdvancedFilters_Click(object sender, RoutedEventArgs e) => ReportViewModel.ReportViewFilter.ShowAdvancedFilters = !ReportViewModel.ReportViewFilter.ShowAdvancedFilters;
+
+    private void Control_OnFilterChanged(object sender, EventArgs e) => ReportViewModel.ApplyFilter();
 }

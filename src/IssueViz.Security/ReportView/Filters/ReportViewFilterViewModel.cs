@@ -88,6 +88,6 @@ internal class ReportViewFilterViewModel : ViewModelBase
 
     public ReportViewFilterViewModel()
     {
-        SelectedLocationFilter = LocationFilters.Single(x => x.LocationFilter == LocationFilter.CurrentDocument);
+        SelectedLocationFilter = LocationFilters.Single(x => x.LocationFilter == LocationFilter.OpenDocuments);
     }
 }

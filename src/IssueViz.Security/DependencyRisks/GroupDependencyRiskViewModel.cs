@@ -36,6 +36,7 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewMo
     }
 
     public string Title => Resources.DependencyRisksGroupTitle;
+    public string FilePath => null;
     public ObservableCollection<IIssueViewModel> AllIssues => risks;
     public ObservableCollection<IIssueViewModel> FilteredIssues => AllIssues;
 
