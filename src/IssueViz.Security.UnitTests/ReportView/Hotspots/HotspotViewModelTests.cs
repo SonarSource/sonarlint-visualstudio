@@ -93,13 +93,13 @@ public class HotspotViewModelTests
     }
 
     [DataTestMethod]
-    public void Ctor_UnknownStatus_ReturnsNull()
+    public void Ctor_UnknownStatus_DefaultsToOpen()
     {
         var mockedHotspot = CreateMockedHotspot(default, (HotspotStatus)666);
 
         var hotspotViewModel = new HotspotViewModel(mockedHotspot);
 
-        hotspotViewModel.Status.Should().BeNull();
+        hotspotViewModel.Status.Should().Be(DisplayStatus.Open);
     }
 
     [TestMethod]

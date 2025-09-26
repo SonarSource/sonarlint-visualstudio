@@ -64,11 +64,14 @@ public class ReportViewFilterViewModelTest
     [TestMethod]
     public void Ctor_InitializesStatusFilters()
     {
-        testSubject.StatusFilters.Should().HaveCount(2);
-        testSubject.StatusFilters[0].Should().Be(DisplayStatus.Open);
-        testSubject.StatusFilters[1].Should().Be(DisplayStatus.Resolved);
+        testSubject.StatusFilters.Should().BeEquivalentTo(
+        [
+            DisplayStatus.Open,
+            DisplayStatus.Resolved,
+            DisplayStatus.Any
+        ], options => options.WithStrictOrdering());
 
-        testSubject.SelectedStatusFilter.Should().BeNull();
+        testSubject.SelectedStatusFilter.Should().Be(DisplayStatus.Open);
     }
 
     [TestMethod]

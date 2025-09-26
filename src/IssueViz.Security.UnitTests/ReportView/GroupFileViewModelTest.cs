@@ -44,6 +44,7 @@ public class GroupFileViewModelTest
         threadHandling = Substitute.For<IThreadHandling>();
         allIssues = [hotspotInfo, hotspotLow, taintMedium, taintHigh, taintBlocker];
         testSubject = new GroupFileViewModel(filePath, allIssues, threadHandling);
+        MockStatusFilter(DisplayStatus.Any); // tests were written with this assumption, changing the tests would take too much time
     }
 
     [TestMethod]
@@ -189,7 +190,7 @@ public class GroupFileViewModelTest
     [TestMethod]
     public void ApplyFilter_StatusFilterNotSelected_ShowsAllRisks()
     {
-        MockStatusFilter(displayStatus: null);
+        MockStatusFilter(displayStatus: DisplayStatus.Any);
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
@@ -197,7 +198,7 @@ public class GroupFileViewModelTest
         VerifyAllIssuesUnchanged();
     }
 
-    private static IIssueViewModel CreateMockedIssueType(IssueType issueType, DisplaySeverity severity = default, DisplayStatus? status = null)
+    private static IIssueViewModel CreateMockedIssueType(IssueType issueType, DisplaySeverity severity = DisplaySeverity.Info, DisplayStatus status = DisplayStatus.Open)
     {
         var issueHotspot = Substitute.For<IIssueViewModel>();
         issueHotspot.IssueType.Returns(issueType);
@@ -214,7 +215,7 @@ public class GroupFileViewModelTest
 
     private void MockSeverityFilter(DisplaySeverity displaySeverity) => reportViewFilterViewModel.SelectedSeverityFilter = displaySeverity;
 
-    private void MockStatusFilter(DisplayStatus? displayStatus) => reportViewFilterViewModel.SelectedStatusFilter = displayStatus;
+    private void MockStatusFilter(DisplayStatus displayStatus) => reportViewFilterViewModel.SelectedStatusFilter = displayStatus;
 
     private void ClearFilter() => reportViewFilterViewModel.IssueTypeFilters.ToList().ForEach(f => f.IsSelected = false);
 

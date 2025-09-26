@@ -1,6 +1,7 @@
 ﻿using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
@@ -30,7 +31,7 @@ public class TaintViewModelTest
         testSubject.FilePath.Should().Be(analysisIssueVisualization.Issue.PrimaryLocation.FilePath);
         testSubject.Issue.Should().Be(analysisIssueVisualization);
         testSubject.IssueType.Should().Be(IssueType.TaintVulnerability);
-        testSubject.Status.Should().BeNull();
+        testSubject.Status.Should().Be(DisplayStatus.Open);
     }
 
     [DataTestMethod]
@@ -46,6 +47,18 @@ public class TaintViewModelTest
         var testSubject = new TaintViewModel(taintIssue);
 
         testSubject.DisplaySeverity.Should().Be(expectedSeverity);
+    }
+
+    [DataTestMethod]
+    [DataRow(true, DisplayStatus.Resolved)]
+    [DataRow(false, DisplayStatus.Open)]
+    public void Ctor_Status_ReturnsCorrectValueBasedOnIsResloved(bool isResolved, DisplayStatus expectedStatus)
+    {
+        var taintIssue = CreateMockedTaint(isResolved: isResolved);
+
+        var testSubject = new TaintViewModel(taintIssue);
+
+        testSubject.Status.Should().Be(expectedStatus);
     }
 
     [DataTestMethod]
@@ -115,12 +128,13 @@ public class TaintViewModelTest
         return analysisIssueVisualization;
     }
 
-    private static IAnalysisIssueVisualization CreateMockedTaint(AnalysisIssueSeverity? severity = null, SoftwareQualitySeverity? softwareQualitySeverity = null)
+    private static IAnalysisIssueVisualization CreateMockedTaint(AnalysisIssueSeverity? severity = null, SoftwareQualitySeverity? softwareQualitySeverity = null, bool isResolved = false)
     {
         var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
         var taintIssue = Substitute.For<ITaintIssue>();
         taintIssue.Severity.Returns(severity);
         taintIssue.HighestSoftwareQualitySeverity.Returns(softwareQualitySeverity);
+        analysisIssueVisualization.IsResolved.Returns(isResolved);
         analysisIssueVisualization.Issue.Returns(taintIssue);
 
         return analysisIssueVisualization;

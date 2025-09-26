@@ -126,14 +126,14 @@ public class DependencyRiskViewModelTest
     }
 
     [DataTestMethod]
-    public void Ctor_UnknownStatus_ReturnsNull()
+    public void Ctor_UnknownStatus_DefaultsToOpen()
     {
         var dependencyRisk = CreateMockedDependencyRisk();
         dependencyRisk.Status.Returns((DependencyRiskStatus)666);
 
         var testSubject = new DependencyRiskViewModel(dependencyRisk);
 
-        testSubject.Status.Should().BeNull();
+        testSubject.Status.Should().Be(DisplayStatus.Open);
     }
 
     private static IDependencyRisk CreateMockedDependencyRisk()

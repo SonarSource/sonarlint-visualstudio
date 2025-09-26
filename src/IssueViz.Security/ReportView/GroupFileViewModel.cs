@@ -53,9 +53,9 @@ internal sealed class GroupFileViewModel : ViewModelBase, IGroupViewModel
         {
             filteredIssues = filteredIssues.Where(vm => vm.DisplaySeverity == reportViewFilter.SelectedSeverityFilter);
         }
-        if (reportViewFilter.SelectedStatusFilter.HasValue)
+        if (reportViewFilter.SelectedStatusFilter != DisplayStatus.Any)
         {
-            filteredIssues = filteredIssues.Where(vm => vm.Status == reportViewFilter.SelectedStatusFilter.Value);
+            filteredIssues = filteredIssues.Where(vm => vm.Status == reportViewFilter.SelectedStatusFilter);
         }
 
         FilteredIssues.Clear();

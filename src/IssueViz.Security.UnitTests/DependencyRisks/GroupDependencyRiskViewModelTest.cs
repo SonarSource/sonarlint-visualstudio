@@ -93,6 +93,7 @@ public class GroupDependencyRiskViewModelTest
     {
         SetInitialRisks(risks);
         MockIssueTypeFilter(isSelected: true);
+        MockStatusFilter(DisplayStatus.Any);
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
@@ -105,6 +106,7 @@ public class GroupDependencyRiskViewModelTest
     {
         SetInitialRisks(risks);
         MockIssueTypeFilter(isSelected: false);
+        MockStatusFilter(DisplayStatus.Any);
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
@@ -122,6 +124,7 @@ public class GroupDependencyRiskViewModelTest
     {
         SetInitialRisks(risks);
         MockSeverityFilter(selectedSeverityFilter);
+        MockStatusFilter(DisplayStatus.Any);
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
@@ -135,6 +138,7 @@ public class GroupDependencyRiskViewModelTest
     {
         SetInitialRisks(risks);
         MockSeverityFilter(displaySeverity: DisplaySeverity.Any);
+        MockStatusFilter(DisplayStatus.Any);
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
@@ -148,6 +152,7 @@ public class GroupDependencyRiskViewModelTest
         SetInitialRisks(risks);
         MockIssueTypeFilter(isSelected: false);
         MockSeverityFilter(DisplaySeverity.Blocker);
+        MockStatusFilter(DisplayStatus.Any);
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
@@ -185,7 +190,7 @@ public class GroupDependencyRiskViewModelTest
     public void ApplyFilter_StatusFilterNotSelected_ShowsAllRisks()
     {
         SetInitialRisks(risks);
-        MockStatusFilter(displayStatus: null);
+        MockStatusFilter(displayStatus: DisplayStatus.Any);
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
@@ -233,5 +238,5 @@ public class GroupDependencyRiskViewModelTest
 
     private void MockSeverityFilter(DisplaySeverity displaySeverity) => reportViewFilterViewModel.SelectedSeverityFilter = displaySeverity;
 
-    private void MockStatusFilter(DisplayStatus? displayStatus) => reportViewFilterViewModel.SelectedStatusFilter = displayStatus;
+    private void MockStatusFilter(DisplayStatus displayStatus) => reportViewFilterViewModel.SelectedStatusFilter = displayStatus;
 }

@@ -32,7 +32,7 @@ public interface IIssueViewModel
     RuleInfoViewModel RuleInfo { get; }
     DisplaySeverity DisplaySeverity { get; }
     IssueType IssueType { get; }
-    DisplayStatus? Status { get; }
+    DisplayStatus Status { get; }
 }
 
 /// <summary>

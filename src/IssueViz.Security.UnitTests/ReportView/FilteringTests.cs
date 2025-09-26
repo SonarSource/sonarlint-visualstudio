@@ -283,7 +283,7 @@ public class FilteringTests
     [TestMethod]
     public void ApplyFilter_StatusFilterNotSelected_ShowsAllRisks()
     {
-        MockStatusFilter(displayStatus: null);
+        MockStatusFilter(displayStatus: DisplayStatus.Any);
 
         testSubject.ApplyFilter();
 
@@ -331,6 +331,7 @@ public class FilteringTests
             threadHandling);
         reportViewModel.PropertyChanged += eventHandler;
         testSubject = reportViewModel;
+        MockStatusFilter(DisplayStatus.Any); // tests were written with this assumption, changing the tests would take too much time
     }
 
     private void ApplyLocationFilter(LocationFilter filter) =>
@@ -423,7 +424,7 @@ public class FilteringTests
 
     private void MockSeverityFilter(DisplaySeverity displaySeverity) => testSubject.ReportViewFilter.SelectedSeverityFilter = displaySeverity;
 
-    private void MockStatusFilter(DisplayStatus? displayStatus) => testSubject.ReportViewFilter.SelectedStatusFilter = displayStatus;
+    private void MockStatusFilter(DisplayStatus displayStatus) => testSubject.ReportViewFilter.SelectedStatusFilter = displayStatus;
 
     private void ClearFilter() => testSubject.ReportViewFilter.IssueTypeFilters.ToList().ForEach(f => f.IsSelected = false);
 }

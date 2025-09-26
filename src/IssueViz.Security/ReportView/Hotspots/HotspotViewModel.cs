@@ -45,11 +45,11 @@ internal class HotspotViewModel : AnalysisIssueViewModelBase
             HotspotStatus.Acknowledged => DisplayStatus.Open,
             HotspotStatus.Fixed => DisplayStatus.Resolved,
             HotspotStatus.Safe => DisplayStatus.Resolved,
-            _ => null
+            _ => DisplayStatus.Open
         };
     }
 
     public override DisplaySeverity DisplaySeverity { get; }
     public override IssueType IssueType => IssueType.SecurityHotspot;
-    public override DisplayStatus? Status { get; }
+    public override DisplayStatus Status { get; }
 }

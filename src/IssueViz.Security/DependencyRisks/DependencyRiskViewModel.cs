@@ -49,13 +49,13 @@ internal class DependencyRiskViewModel(IDependencyRisk dependencyRisk)
     };
 
     public IssueType IssueType => IssueType.DependencyRisk;
-    public DisplayStatus? Status { get; } = dependencyRisk.Status switch
+    public DisplayStatus Status { get; } = dependencyRisk.Status switch
     {
         DependencyRiskStatus.Fixed => DisplayStatus.Resolved,
         DependencyRiskStatus.Open => DisplayStatus.Open,
         DependencyRiskStatus.Confirmed => DisplayStatus.Open,
         DependencyRiskStatus.Accepted => DisplayStatus.Resolved,
         DependencyRiskStatus.Safe => DisplayStatus.Resolved,
-        _ => null
+        _ => DisplayStatus.Open
     };
 }

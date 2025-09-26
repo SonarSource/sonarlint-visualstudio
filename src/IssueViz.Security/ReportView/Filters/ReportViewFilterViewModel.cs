@@ -29,14 +29,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 public enum DisplayStatus
 {
     Open,
-    Resolved
+    Resolved,
+    Any
 }
 
 internal class ReportViewFilterViewModel : ViewModelBase
 {
     private LocationFilterViewModel selectedLocationFilter;
     private DisplaySeverity selectedSeverityFilter = DisplaySeverity.Any;
-    private DisplayStatus? selectedStatusFilter;
+    private DisplayStatus selectedStatusFilter = DisplayStatus.Open;
     private bool showAdvancedFilters;
 
     public ObservableCollection<LocationFilterViewModel> LocationFilters { get; } =
@@ -59,7 +60,7 @@ internal class ReportViewFilterViewModel : ViewModelBase
         }
     }
 
-    public DisplayStatus? SelectedStatusFilter
+    public DisplayStatus SelectedStatusFilter
     {
         get => selectedStatusFilter;
         set

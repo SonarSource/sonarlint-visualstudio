@@ -39,7 +39,7 @@ internal abstract class AnalysisIssueViewModelBase : ViewModelBase, IAnalysisIss
     public RuleInfoViewModel RuleInfo { get; }
     public abstract DisplaySeverity DisplaySeverity { get; }
     public abstract IssueType IssueType { get; }
-    public abstract DisplayStatus? Status { get; }
+    public abstract DisplayStatus Status { get; }
     public IAnalysisIssueVisualization Issue { get; }
 
     public bool IsSameAnalysisIssue(IAnalysisIssueVisualization analysisIssueVisualization) =>
