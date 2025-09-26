@@ -482,15 +482,16 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Column="0"
-                               Text="{x:Static res:Resources.SeverityLabel}"
-                               Style="{StaticResource FilterTextBlockStyle}" />
-                    <ComboBox Grid.Column="1"
-                              ItemsSource="{Binding SeverityFilters}"
-                              SelectedItem="{Binding SelectedSeverityFilter}"
-                              Style="{StaticResource FilterComboboxStyle}" />
-                    <Border Grid.Column="2" Style="{StaticResource FilterSeparatorBorderStyle}" />
-                </Grid>
+                        <TextBlock Grid.Column="0"
+                                   Text="{x:Static res:Resources.SeverityLabel}"
+                                   Style="{StaticResource FilterTextBlockStyle}" />
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding SeverityFilters}"
+                                  SelectedItem="{Binding SelectedSeverityFilter}"
+                                  Style="{StaticResource FilterComboboxStyle}" 
+                                  SelectionChanged="Control_OnFilterChanged"/>
+                        <Border Grid.Column="2" Style="{StaticResource FilterSeparatorBorderStyle}" />
+                    </Grid>
 
                 <Grid Grid.Column="1" Margin="5,0">
                     <Grid.ColumnDefinitions>
