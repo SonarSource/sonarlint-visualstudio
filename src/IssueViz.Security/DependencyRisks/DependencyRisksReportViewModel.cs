@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
-public interface IDependencyRisksReportViewModel : IDisposable
+internal interface IDependencyRisksReportViewModel : IDisposable
 {
     IGroupViewModel GetDependencyRisksGroup();
 
