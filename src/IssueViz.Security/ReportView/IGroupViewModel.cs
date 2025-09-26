@@ -19,13 +19,16 @@
  */
 
 using System.Collections.ObjectModel;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-public interface IGroupViewModel : IDisposable
+internal interface IGroupViewModel : IDisposable
 {
     string Title { get; }
     string FilePath { get; }
-    ObservableCollection<IIssueViewModel> AllIssues { get; }
+    List<IIssueViewModel> AllIssues { get; }
     ObservableCollection<IIssueViewModel> FilteredIssues { get; }
+
+    void ApplyFilter(ReportViewFilterViewModel reportViewFilter);
 }

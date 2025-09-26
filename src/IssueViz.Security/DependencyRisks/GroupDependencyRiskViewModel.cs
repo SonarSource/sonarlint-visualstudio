@@ -22,27 +22,39 @@ using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
 internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewModel
 {
     private readonly IDependencyRisksStore dependencyRisksStore;
-    private readonly ObservableCollection<IIssueViewModel> risks = new();
+    private readonly List<IIssueViewModel> risks = new();
 
     public GroupDependencyRiskViewModel(IDependencyRisksStore dependencyRisksStore)
     {
         this.dependencyRisksStore = dependencyRisksStore;
+        FilteredIssues = new ObservableCollection<IIssueViewModel>(risks);
     }
 
     public string Title => Resources.DependencyRisksGroupTitle;
     public string FilePath => null;
-    public ObservableCollection<IIssueViewModel> AllIssues => risks;
-    public ObservableCollection<IIssueViewModel> FilteredIssues => AllIssues;
+    public List<IIssueViewModel> AllIssues => risks;
+    public ObservableCollection<IIssueViewModel> FilteredIssues { get; }
+
+    public void ApplyFilter(ReportViewFilterViewModel reportViewFilter)
+    {
+        var dependencyRiskFilter = reportViewFilter.IssueTypeFilters.Single(f => f.IssueType == IssueType.DependencyRisk);
+        var issuesToShow = dependencyRiskFilter.IsSelected ? AllIssues : [];
+
+        FilteredIssues.Clear();
+        issuesToShow.ForEach(issue => FilteredIssues.Add(issue));
+    }
 
     public void InitializeRisks()
     {
         risks.Clear();
+        FilteredIssues.Clear();
         var dependencyRisks = dependencyRisksStore.GetAll();
         var newDependencyRiskViewModels = dependencyRisks
             .Where(x => x.Status != DependencyRiskStatus.Fixed)
@@ -52,8 +64,9 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewMo
         foreach (var riskViewModel in newDependencyRiskViewModels)
         {
             risks.Add(riskViewModel);
+            FilteredIssues.Add(riskViewModel);
         }
-        RaisePropertyChanged(nameof(AllIssues));
+        RaisePropertyChanged(nameof(FilteredIssues));
     }
 
     public void Dispose() { }

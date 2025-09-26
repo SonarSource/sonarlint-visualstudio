@@ -23,6 +23,7 @@ using System.IO;
 using System.Windows.Data;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.WPF;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
@@ -30,18 +31,28 @@ internal sealed class GroupFileViewModel : ViewModelBase, IGroupViewModel
 {
     private readonly object @lock = new();
 
-    public GroupFileViewModel(string filePath, ObservableCollection<IIssueViewModel> issues, IThreadHandling threadHandling)
+    public GroupFileViewModel(string filePath, List<IIssueViewModel> issues, IThreadHandling threadHandling)
     {
         Title = Path.GetFileName(filePath);
         FilePath = filePath;
         AllIssues = issues;
+        FilteredIssues = new ObservableCollection<IIssueViewModel>(issues);
         threadHandling.RunOnUIThread(() => { BindingOperations.EnableCollectionSynchronization(AllIssues, @lock); });
     }
 
     public string Title { get; }
     public string FilePath { get; }
-    public ObservableCollection<IIssueViewModel> AllIssues { get; }
-    public ObservableCollection<IIssueViewModel> FilteredIssues => AllIssues;
+    public List<IIssueViewModel> AllIssues { get; }
+    public ObservableCollection<IIssueViewModel> FilteredIssues { get; }
+
+    public void ApplyFilter(ReportViewFilterViewModel reportViewFilter)
+    {
+        var issueTypesToShow = reportViewFilter.IssueTypeFilters.Where(x => x.IsSelected).Select(x => x.IssueType);
+        var filteredIssues = AllIssues.Where(issue => issueTypesToShow.Contains(issue.IssueType)).ToList();
+
+        FilteredIssues.Clear();
+        filteredIssues.ForEach(issue => FilteredIssues.Add(issue));
+    }
 
     public void Dispose() { }
 }

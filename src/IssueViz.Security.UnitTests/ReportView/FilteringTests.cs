@@ -22,6 +22,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
@@ -45,7 +46,8 @@ public class FilteringTests
     private const string TsFilePath = "C:\\source\\myProj\\myTaint.ts";
     private readonly IIssueViewModel csharpHotspot = CreateMockedIssueViewModel(IssueType.SecurityHotspot, CsharpFilePath);
     private readonly IIssueViewModel csharpTaint = CreateMockedIssueViewModel(IssueType.TaintVulnerability, CsharpFilePath);
-    private readonly IIssueViewModel dependencyRiskIssue = CreateMockedIssueViewModel(IssueType.DependencyRisk, null);
+    private readonly IDependencyRisk dependencyRisk = CreateDependencyRisk();
+    private IIssueViewModel dependencyRiskIssue;
     private readonly IIssueViewModel tsHotspot = CreateMockedIssueViewModel(IssueType.SecurityHotspot, TsFilePath);
     private readonly IIssueViewModel tsTaint = CreateMockedIssueViewModel(IssueType.TaintVulnerability, TsFilePath);
     private IActiveDocumentLocator activeDocumentLocator;
@@ -83,9 +85,10 @@ public class FilteringTests
         hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns([]);
         taintsReportViewModel.GetTaintsGroupViewModels().Returns([]);
 
-        var csharpGroup = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel(CsharpFilePath, csharpHotspot, csharpTaint)]);
-        var tsGroup = new ObservableCollection<IGroupViewModel>([CreateMockedGroupViewModel(TsFilePath, tsTaint, tsHotspot)]);
-        var dependencyRiskGroup = CreateMockedGroupViewModel(null, dependencyRiskIssue);
+        var csharpGroup = new ObservableCollection<IGroupViewModel>([CreateGroupFileViewModel(CsharpFilePath, csharpHotspot, csharpTaint)]);
+        var tsGroup = new ObservableCollection<IGroupViewModel>([CreateGroupFileViewModel(TsFilePath, tsTaint, tsHotspot)]);
+        var dependencyRiskGroup = CreateGroupDependencyRiskViewModel(dependencyRisk);
+        dependencyRiskIssue = dependencyRiskGroup.FilteredIssues.Single();
         hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns(csharpGroup);
         taintsReportViewModel.GetTaintsGroupViewModels().Returns(tsGroup);
         dependencyRisksReportViewModel.GetDependencyRisksGroup().Returns(dependencyRiskGroup);
@@ -148,6 +151,88 @@ public class FilteringTests
     }
 
     [TestMethod]
+    public void ApplyFilter_IssueTypeFilterIsHotspot_FiltersIssuesInGroups()
+    {
+        ClearFilter();
+        SetIssueTypeFilter(IssueType.SecurityHotspot, isSelected: true);
+
+        testSubject.ApplyFilter();
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(2);
+        VerifyIsExpectedGroup(TsFilePath, tsHotspot);
+        VerifyIsExpectedGroup(CsharpFilePath, csharpHotspot);
+    }
+
+    [TestMethod]
+    public void ApplyFilter_IssueTypeFilterIsHotspotAndTaint_FiltersIssuesInGroups()
+    {
+        ClearFilter();
+        SetIssueTypeFilter(IssueType.SecurityHotspot, isSelected: true);
+        SetIssueTypeFilter(IssueType.TaintVulnerability, isSelected: true);
+
+        testSubject.ApplyFilter();
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(2);
+        VerifyIsExpectedGroup(TsFilePath, tsHotspot, tsTaint);
+        VerifyIsExpectedGroup(CsharpFilePath, csharpHotspot, csharpTaint);
+    }
+
+    [TestMethod]
+    public void ApplyFilter_IssueTypeFilterIsHotspotAndDependencyRisk_FiltersIssuesInGroups()
+    {
+        ClearFilter();
+        SetIssueTypeFilter(IssueType.SecurityHotspot, isSelected: true);
+        SetIssueTypeFilter(IssueType.DependencyRisk, isSelected: true);
+
+        testSubject.ApplyFilter();
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        VerifyIsExpectedGroup(TsFilePath, tsHotspot);
+        VerifyIsExpectedGroup(CsharpFilePath, csharpHotspot);
+        VerifyIsExpectedGroup(null, dependencyRiskIssue);
+    }
+
+    [TestMethod]
+    public void ApplyFilter_IssueTypeFilterIsTaint_FiltersIssuesInGroups()
+    {
+        ClearFilter();
+        SetIssueTypeFilter(IssueType.TaintVulnerability, isSelected: true);
+
+        testSubject.ApplyFilter();
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(2);
+        VerifyIsExpectedGroup(TsFilePath, tsTaint);
+        VerifyIsExpectedGroup(CsharpFilePath, csharpTaint);
+    }
+
+    [TestMethod]
+    public void ApplyFilter_IssueTypeFilterIsTaintAndDependencyRisk_FiltersIssuesInGroups()
+    {
+        ClearFilter();
+        SetIssueTypeFilter(IssueType.TaintVulnerability, isSelected: true);
+        SetIssueTypeFilter(IssueType.DependencyRisk, isSelected: true);
+
+        testSubject.ApplyFilter();
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        VerifyIsExpectedGroup(TsFilePath, tsTaint);
+        VerifyIsExpectedGroup(CsharpFilePath, csharpTaint);
+        VerifyIsExpectedGroup(null, dependencyRiskIssue);
+    }
+
+    [TestMethod]
+    public void ApplyFilter_IssueTypeFilterIsDependencyRisk_FiltersIssuesInGroups()
+    {
+        ClearFilter();
+        SetIssueTypeFilter(IssueType.DependencyRisk, isSelected: true);
+
+        testSubject.ApplyFilter();
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        VerifyIsExpectedGroup(null, dependencyRiskIssue);
+    }
+
+    [TestMethod]
     public void ActiveDocumentChanged_LocationFilterIsOpenDocumentsDocument_DoesNotReapply()
     {
         ApplyLocationFilter(LocationFilter.OpenDocuments);
@@ -178,6 +263,12 @@ public class FilteringTests
     private void ApplyLocationFilter(LocationFilter filter) =>
         testSubject.ReportViewFilter.SelectedLocationFilter = testSubject.ReportViewFilter.LocationFilters.Single(f => f.LocationFilter == filter);
 
+    private void SetIssueTypeFilter(IssueType issueType, bool isSelected)
+    {
+        var issueTypeFilter = testSubject.ReportViewFilter.IssueTypeFilters.Single(f => f.IssueType == issueType);
+        issueTypeFilter.IsSelected = isSelected;
+    }
+
     private void VerifyHasGroupsUpdated() => eventHandler.Received().Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.HasGroups)));
 
     private void MockActiveDocument(string filePath = CsharpFilePath)
@@ -193,12 +284,15 @@ public class FilteringTests
         return textDocument;
     }
 
-    private static IGroupViewModel CreateMockedGroupViewModel(string filePath, params IIssueViewModel[] filteredIssueViewModels)
+    private IGroupViewModel CreateGroupFileViewModel(string filePath, params IIssueViewModel[] filteredIssueViewModels) =>
+        new GroupFileViewModel(filePath, filteredIssueViewModels.ToList(), threadHandling);
+
+    private IGroupViewModel CreateGroupDependencyRiskViewModel(params IDependencyRisk[] dependencyRisks)
     {
-        var group = Substitute.For<IGroupViewModel>();
-        group.FilePath.Returns(filePath);
-        group.FilteredIssues.Returns(new ObservableCollection<IIssueViewModel>(filteredIssueViewModels));
-        return group;
+        dependencyRisksStore.GetAll().Returns(dependencyRisks);
+        var groupVm = new GroupDependencyRiskViewModel(dependencyRisksStore);
+        groupVm.InitializeRisks();
+        return groupVm;
     }
 
     private static IIssueViewModel CreateMockedIssueViewModel(IssueType issueType, string filePath)
@@ -233,4 +327,15 @@ public class FilteringTests
     private void VerifyIsExpectedGroup(string filePath, params IIssueViewModel[] expectedIssueViewModels) =>
         testSubject.FilteredGroupViewModels.Should().Contain(g =>
             g.FilePath == filePath && g.FilteredIssues.Count == expectedIssueViewModels.Length && expectedIssueViewModels.All(issue => g.FilteredIssues.Contains(issue)));
+
+    private static IDependencyRisk CreateDependencyRisk(Guid? id = null, bool isResolved = false)
+    {
+        var risk = Substitute.For<IDependencyRisk>();
+        risk.Id.Returns(id ?? Guid.NewGuid());
+        risk.Transitions.Returns([]);
+        risk.Status.Returns(isResolved ? DependencyRiskStatus.Accepted : DependencyRiskStatus.Open);
+        return risk;
+    }
+
+    private void ClearFilter() => testSubject.ReportViewFilter.IssueTypeFilters.ToList().ForEach(f => f.IsSelected = false);
 }
