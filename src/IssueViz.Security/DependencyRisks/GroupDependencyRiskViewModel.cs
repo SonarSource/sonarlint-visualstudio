@@ -46,9 +46,9 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewMo
     {
         var dependencyRiskFilter = reportViewFilter.IssueTypeFilters.Single(f => f.IssueType == IssueType.DependencyRisk);
         IEnumerable<IIssueViewModel> issuesToShow = dependencyRiskFilter.IsSelected ? AllIssues : [];
-        if (reportViewFilter.SelectedSeverityFilter.HasValue)
+        if (reportViewFilter.SelectedSeverityFilter != DisplaySeverity.Any)
         {
-            issuesToShow = issuesToShow.Where(vm => vm.DisplaySeverity == reportViewFilter.SelectedSeverityFilter.Value);
+            issuesToShow = issuesToShow.Where(vm => vm.DisplaySeverity == reportViewFilter.SelectedSeverityFilter);
         }
 
         FilteredIssues.Clear();

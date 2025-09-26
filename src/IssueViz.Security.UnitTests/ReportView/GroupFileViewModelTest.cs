@@ -140,7 +140,7 @@ public class GroupFileViewModelTest
     [TestMethod]
     public void ApplyFilter_SeverityFilterNotSelected_ShowsAllRisks()
     {
-        MockSeverityFilter(displaySeverity: null);
+        MockSeverityFilter(displaySeverity: DisplaySeverity.Any);
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
@@ -176,7 +176,7 @@ public class GroupFileViewModelTest
         dependencyRiskFilter.IsSelected = isSelected;
     }
 
-    private void MockSeverityFilter(DisplaySeverity? displaySeverity) => reportViewFilterViewModel.SelectedSeverityFilter = displaySeverity;
+    private void MockSeverityFilter(DisplaySeverity displaySeverity) => reportViewFilterViewModel.SelectedSeverityFilter = displaySeverity;
 
     private void ClearFilter() => reportViewFilterViewModel.IssueTypeFilters.ToList().ForEach(f => f.IsSelected = false);
 

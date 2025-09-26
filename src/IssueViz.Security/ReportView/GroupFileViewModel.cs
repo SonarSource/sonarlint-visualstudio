@@ -49,9 +49,9 @@ internal sealed class GroupFileViewModel : ViewModelBase, IGroupViewModel
     {
         var issueTypesToShow = reportViewFilter.IssueTypeFilters.Where(x => x.IsSelected).Select(x => x.IssueType);
         var filteredIssues = AllIssues.Where(issue => issueTypesToShow.Contains(issue.IssueType));
-        if (reportViewFilter.SelectedSeverityFilter.HasValue)
+        if (reportViewFilter.SelectedSeverityFilter != DisplaySeverity.Any)
         {
-            filteredIssues = filteredIssues.Where(vm => vm.DisplaySeverity == reportViewFilter.SelectedSeverityFilter.Value);
+            filteredIssues = filteredIssues.Where(vm => vm.DisplaySeverity == reportViewFilter.SelectedSeverityFilter);
         }
 
         FilteredIssues.Clear();

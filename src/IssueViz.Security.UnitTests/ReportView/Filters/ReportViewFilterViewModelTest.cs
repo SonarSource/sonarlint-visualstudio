@@ -74,14 +74,17 @@ public class ReportViewFilterViewModelTest
     [TestMethod]
     public void Ctor_InitializesSeverityFilters()
     {
-        testSubject.SeverityFilters.Should().HaveCount(5);
-        testSubject.SeverityFilters[0].Should().Be(DisplaySeverity.Info);
-        testSubject.SeverityFilters[1].Should().Be(DisplaySeverity.Low);
-        testSubject.SeverityFilters[2].Should().Be(DisplaySeverity.Medium);
-        testSubject.SeverityFilters[3].Should().Be(DisplaySeverity.High);
-        testSubject.SeverityFilters[4].Should().Be(DisplaySeverity.Blocker);
+        testSubject.SeverityFilters.Should().BeEquivalentTo(
+        [
+            DisplaySeverity.Any,
+            DisplaySeverity.Blocker,
+            DisplaySeverity.High,
+            DisplaySeverity.Medium,
+            DisplaySeverity.Low,
+            DisplaySeverity.Info,
+        ], options => options.WithStrictOrdering());
 
-        testSubject.SelectedSeverityFilter.Should().BeNull();
+        testSubject.SelectedSeverityFilter.Should().Be(DisplaySeverity.Any);
     }
 
     [TestMethod]

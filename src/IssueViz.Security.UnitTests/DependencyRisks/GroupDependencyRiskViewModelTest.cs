@@ -134,7 +134,7 @@ public class GroupDependencyRiskViewModelTest
     public void ApplyFilter_SeverityFilterNotSelected_ShowsAllRisks()
     {
         SetInitialRisks(risks);
-        MockSeverityFilter(displaySeverity: null);
+        MockSeverityFilter(displaySeverity: DisplaySeverity.Any);
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
@@ -193,5 +193,5 @@ public class GroupDependencyRiskViewModelTest
         dependencyRiskFilter.IsSelected = isSelected;
     }
 
-    private void MockSeverityFilter(DisplaySeverity? displaySeverity) => reportViewFilterViewModel.SelectedSeverityFilter = displaySeverity;
+    private void MockSeverityFilter(DisplaySeverity displaySeverity) => reportViewFilterViewModel.SelectedSeverityFilter = displaySeverity;
 }

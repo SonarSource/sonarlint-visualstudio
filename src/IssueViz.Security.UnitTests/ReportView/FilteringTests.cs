@@ -251,7 +251,7 @@ public class FilteringTests
     [TestMethod]
     public void ApplyFilter_SeverityFilterNotSelected_ShowsAllRisks()
     {
-        MockSeverityFilter(displaySeverity: null);
+        MockSeverityFilter(displaySeverity: DisplaySeverity.Any);
 
         testSubject.ApplyFilter();
 
@@ -378,7 +378,7 @@ public class FilteringTests
         return risk;
     }
 
-    private void MockSeverityFilter(DisplaySeverity? displaySeverity) => testSubject.ReportViewFilter.SelectedSeverityFilter = displaySeverity;
+    private void MockSeverityFilter(DisplaySeverity displaySeverity) => testSubject.ReportViewFilter.SelectedSeverityFilter = displaySeverity;
 
     private void ClearFilter() => testSubject.ReportViewFilter.IssueTypeFilters.ToList().ForEach(f => f.IsSelected = false);
 }
