@@ -663,11 +663,16 @@ public class ReportViewModelTest
         MockRisksInStore(CreateDependencyRisk());
         CreateTestSubject();
 
+        testSubject.HasAnyGroups.Should().BeTrue();
         testSubject.HasFilteredGroups.Should().BeTrue();
     }
 
     [TestMethod]
-    public void HasGroups_ReturnsFalse_WhenThereAreNoRisks() => testSubject.HasFilteredGroups.Should().BeFalse();
+    public void HasGroups_ReturnsFalse_WhenThereAreNoRisks()
+    {
+        testSubject.HasAnyGroups.Should().BeFalse();
+        testSubject.HasFilteredGroups.Should().BeFalse();
+    }
 
     [TestMethod]
     public void NavigateToLocationCommand_NullParameter_CanExecuteReturnsFalse() => testSubject.NavigateToLocationCommand.CanExecute(null).Should().BeFalse();
@@ -765,7 +770,11 @@ public class ReportViewModelTest
         }
     }
 
-    private void VerifyHasGroupsUpdated() => eventHandler.Received().Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.HasFilteredGroups)));
+    private void VerifyHasGroupsUpdated()
+    {
+        eventHandler.Received().Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.HasAnyGroups)));
+        eventHandler.Received().Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.HasFilteredGroups)));
+    }
 
     private void ClearCallsForReportsViewModels()
     {
