@@ -84,9 +84,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 
         public void UpdateForFile(string filePath, IEnumerable<IAnalysisIssueVisualization> hotspots)
         {
+            List<IAnalysisIssueVisualization> oldIssueVisualizations;
+            var hotspotsList = hotspots.ToList();
             lock (lockObject)
             {
-                List<IAnalysisIssueVisualization> oldIssueVisualizations;
                 if (fileToHotspotsMapping.TryGetValue(filePath, out var oldHotspots))
                 {
                     oldIssueVisualizations = oldHotspots
@@ -98,53 +99,49 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
                     oldIssueVisualizations = EmptyList;
                 }
 
-                if (!hotspots.Any() && !oldIssueVisualizations.Any())
+                if (!hotspotsList.Any() && !oldIssueVisualizations.Any())
                 {
                     return;
                 }
 
-                var hotspotsList = hotspots.ToList();
-
                 fileToHotspotsMapping[filePath] = hotspotsList.Select(LocalHotspot.ToLocalHotspot).ToList();
-
-                NotifyIssuesChanged(new IssuesChangedEventArgs(oldIssueVisualizations, hotspotsList));
             }
+            NotifyIssuesChanged(new IssuesChangedEventArgs(oldIssueVisualizations, hotspotsList));
         }
 
         public void RemoveForFile(string filePath)
         {
             threadHandling.ThrowIfOnUIThread();
 
+            List<LocalHotspot> localHotspots;
             lock (lockObject)
             {
-                if (!fileToHotspotsMapping.TryGetValue(filePath, out var localHotspots))
+                if (!fileToHotspotsMapping.TryGetValue(filePath, out localHotspots))
                 {
                     return;
                 }
 
                 fileToHotspotsMapping.Remove(filePath);
-
-                NotifyIssuesChanged(new IssuesChangedEventArgs(localHotspots.Select(x => x.Visualization).ToList(),
-                    EmptyList));
             }
+            NotifyIssuesChanged(new IssuesChangedEventArgs(localHotspots.Select(x => x.Visualization).ToList(), EmptyList));
         }
 
         public void Clear()
         {
             threadHandling.ThrowIfOnUIThread();
 
+            IssuesChangedEventArgs removedIssues;
             lock (lockObject)
             {
-                var removedIssues = new IssuesChangedEventArgs(fileToHotspotsMapping
+                removedIssues = new IssuesChangedEventArgs(fileToHotspotsMapping
                         .SelectMany(x =>
                             x.Value.Select(y => y.Visualization))
                         .ToList(),
                     EmptyList);
 
                 fileToHotspotsMapping.Clear();
-
-                NotifyIssuesChanged(removedIssues);
             }
+            NotifyIssuesChanged(removedIssues);
         }
 
         private IEnumerable<LocalHotspot> GetOpenHotspots() => fileToHotspotsMapping.SelectMany(kvp => kvp.Value).Where(hs => !hs.Visualization.IsResolved);

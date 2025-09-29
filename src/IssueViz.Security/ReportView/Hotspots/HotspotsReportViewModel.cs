@@ -45,27 +45,15 @@ internal interface IHotspotsReportViewModel : IDisposable
 
 [Export(typeof(IHotspotsReportViewModel))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class HotspotsReportViewModel : IssuesReportViewModelBase, IHotspotsReportViewModel
+[method: ImportingConstructor]
+internal sealed class HotspotsReportViewModel(
+    ILocalHotspotsStore hotspotsStore,
+    IReviewHotspotsService reviewHotspotsService,
+    IMessageBox messageBox,
+    ITelemetryManager telemetryManager,
+    IThreadHandling threadHandling)
+    : IssuesReportViewModelBase(hotspotsStore, threadHandling), IHotspotsReportViewModel
 {
-    private readonly ILocalHotspotsStore hotspotsStore;
-    private readonly IMessageBox messageBox;
-    private readonly IReviewHotspotsService reviewHotspotsService;
-    private readonly ITelemetryManager telemetryManager;
-
-    [ImportingConstructor]
-    public HotspotsReportViewModel(
-        ILocalHotspotsStore hotspotsStore,
-        IReviewHotspotsService reviewHotspotsService,
-        IMessageBox messageBox,
-        ITelemetryManager telemetryManager,
-        IThreadHandling threadHandling) : base(hotspotsStore, threadHandling)
-    {
-        this.hotspotsStore = hotspotsStore;
-        this.reviewHotspotsService = reviewHotspotsService;
-        this.messageBox = messageBox;
-        this.telemetryManager = telemetryManager;
-    }
-
     public ObservableCollection<IGroupViewModel> GetHotspotsGroupViewModels() => GetGroupViewModels();
 
     public async Task ShowHotspotInBrowserAsync(LocalHotspot localHotspot)
