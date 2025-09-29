@@ -53,7 +53,6 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
     private readonly IActiveDocumentTracker activeDocumentTracker;
     private IIssueViewModel selectedItem;
     private string activeDocumentFilePath;
-    private readonly List<IGroupViewModel> allGroupViewModels = [];
 
     public ReportViewModel(
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
@@ -84,8 +83,10 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         InitializeViewModels();
     }
 
+    public ObservableCollection<IGroupViewModel> AllGroupViewModels { get; private set; }
     public ObservableCollection<IGroupViewModel> FilteredGroupViewModels { get; private set; }
-    public bool HasGroups => FilteredGroupViewModels.Count > 0;
+    public bool HasAnyGroups => AllGroupViewModels.Count > 0;
+    public bool HasFilteredGroups => FilteredGroupViewModels.Count > 0;
     public INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; set; }
     public ICommand NavigateToLocationCommand { get; set; }
     public ReportViewFilterViewModel ReportViewFilter { get; } = new();
@@ -106,11 +107,11 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
 
     private void InitializeViewModels()
     {
-        allGroupViewModels.Clear();
+        AllGroupViewModels = new ObservableCollection<IGroupViewModel>();
         InitializeDependencyRisks();
         InitializeHotspots();
         InitializeTaints();
-        FilteredGroupViewModels = new ObservableCollection<IGroupViewModel>(allGroupViewModels);
+        FilteredGroupViewModels = new ObservableCollection<IGroupViewModel>(AllGroupViewModels);
     }
 
     private void InitializeDependencyRisks()
@@ -118,23 +119,26 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         var groupDependencyRisk = dependencyRisksReportViewModel.GetDependencyRisksGroup();
         if (groupDependencyRisk != null)
         {
-            allGroupViewModels.Add(groupDependencyRisk);
+            AllGroupViewModels.Add(groupDependencyRisk);
         }
-        RaisePropertyChanged(nameof(HasGroups));
+        RaisePropertyChanged(nameof(HasAnyGroups));
+        RaisePropertyChanged(nameof(HasFilteredGroups));
     }
 
     private void InitializeHotspots()
     {
         var groups = hotspotsReportViewModel.GetHotspotsGroupViewModels();
-        groups.ToList().ForEach(g => allGroupViewModels.Add(g));
-        RaisePropertyChanged(nameof(HasGroups));
+        groups.ToList().ForEach(g => AllGroupViewModels.Add(g));
+        RaisePropertyChanged(nameof(HasAnyGroups));
+        RaisePropertyChanged(nameof(HasFilteredGroups));
     }
 
     private void InitializeTaints()
     {
         var groups = taintsReportViewModel.GetTaintsGroupViewModels();
-        groups.ToList().ForEach(g => allGroupViewModels.Add(g));
-        RaisePropertyChanged(nameof(HasGroups));
+        groups.ToList().ForEach(g => AllGroupViewModels.Add(g));
+        RaisePropertyChanged(nameof(HasAnyGroups));
+        RaisePropertyChanged(nameof(HasFilteredGroups));
     }
 
     internal void ApplyFilter()
@@ -143,7 +147,8 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         FilterGroupsByLocationFilter();
         FilteredGroupViewModels.ToList().ForEach(group => group.ApplyFilter(ReportViewFilter));
         RemoveEmptyGroups();
-        RaisePropertyChanged(nameof(HasGroups));
+        RaisePropertyChanged(nameof(HasAnyGroups));
+        RaisePropertyChanged(nameof(HasFilteredGroups));
     }
 
     protected override void Dispose(bool disposing)
@@ -159,7 +164,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
 
         activeDocumentTracker.ActiveDocumentChanged -= OnActiveDocumentChanged;
 
-        foreach (var groupViewModel in allGroupViewModels)
+        foreach (var groupViewModel in AllGroupViewModels)
         {
             groupViewModel.Dispose();
         }
@@ -180,14 +185,13 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
                 telemetryManager.TaintIssueInvestigatedLocally();
                 break;
         }
-
     }
 
     private void DependencyRisksViewModel_DependencyRisksChanged(object sender, EventArgs e)
     {
-        if (allGroupViewModels.SingleOrDefault(vm => vm is GroupDependencyRiskViewModel) is { } groupDependencyRiskViewModel)
+        if (AllGroupViewModels.SingleOrDefault(vm => vm is GroupDependencyRiskViewModel) is { } groupDependencyRiskViewModel)
         {
-            allGroupViewModels.Remove(groupDependencyRiskViewModel);
+            AllGroupViewModels.Remove(groupDependencyRiskViewModel);
         }
         InitializeDependencyRisks();
         ApplyFilter();
@@ -195,7 +199,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
 
     private void HotspotsViewModel_IssuesChanged(object sender, IssuesChangedEventArgs e)
     {
-        var currentHotspotViewModels = allGroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is HotspotViewModel).Cast<HotspotViewModel>();
+        var currentHotspotViewModels = AllGroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is HotspotViewModel).Cast<HotspotViewModel>();
         var addedHotspotsViewModels = e.AddedIssues.Select(viz => new HotspotViewModel(LocalHotspot.ToLocalHotspot(viz))).ToList();
         var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(vm.IsSameAnalysisIssue)).ToList();
         UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
@@ -204,7 +208,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
     private void TaintViewModel_IssuesChanged(object sender, IssuesChangedEventArgs e)
     {
         var addedHotspotsViewModels = e.AddedIssues.Select(viz => new TaintViewModel(viz)).ToList();
-        var currentHotspotViewModels = allGroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is TaintViewModel).Cast<TaintViewModel>();
+        var currentHotspotViewModels = AllGroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is TaintViewModel).Cast<TaintViewModel>();
         var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(vm.IsSameAnalysisIssue)).ToList();
         UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
     }
@@ -225,7 +229,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
                 group.AllIssues.Remove(removedIssueVm);
                 if (!group.AllIssues.Any())
                 {
-                    allGroupViewModels.Remove(group);
+                    AllGroupViewModels.Remove(group);
                 }
             }
         }
@@ -241,13 +245,13 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
             }
             else
             {
-                allGroupViewModels.Add(new GroupFileViewModel(addedIssueViewModel.FilePath, [addedIssueViewModel]));
+                AllGroupViewModels.Add(new GroupFileViewModel(addedIssueViewModel.FilePath, [addedIssueViewModel]));
             }
         }
     }
 
     private IGroupViewModel GetGroupViewModelOfIssueViewModel(IIssueViewModel issueViewModel) =>
-        allGroupViewModels.FirstOrDefault(groupVm => groupVm is GroupFileViewModel && issueViewModel.FilePath == ((GroupFileViewModel)groupVm).FilePath);
+        AllGroupViewModels.FirstOrDefault(groupVm => groupVm is GroupFileViewModel && issueViewModel.FilePath == ((GroupFileViewModel)groupVm).FilePath);
 
     private void InitializeCommands(
         INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
@@ -278,13 +282,16 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
 
     private void FilterGroupsByLocationFilter()
     {
-        var groupsToShow = allGroupViewModels;
+        IEnumerable<IGroupViewModel> groupsToShow = AllGroupViewModels;
         if (ReportViewFilter.SelectedLocationFilter.LocationFilter == LocationFilter.CurrentDocument)
         {
-            groupsToShow = allGroupViewModels.Where(vm => vm.FilePath == activeDocumentFilePath).ToList();
+            groupsToShow = AllGroupViewModels.Where(vm => vm.FilePath == activeDocumentFilePath);
         }
 
-        groupsToShow.ForEach(vm => FilteredGroupViewModels.Add(vm));
+        foreach (var groupViewModel in groupsToShow)
+        {
+            FilteredGroupViewModels.Add(groupViewModel);
+        }
     }
 
     private void RemoveEmptyGroups()

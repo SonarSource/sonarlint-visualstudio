@@ -263,6 +263,12 @@ Please check the logs for more details.</value>
   <data name="NoFindingsToDisplayTitle" xml:space="preserve">
     <value>No findings to display.</value>
   </data>
+  <data name="NoFindingsToDisplayCurrentFiltersTitle" xml:space="preserve">
+    <value>Please select different filters or</value>
+  </data>
+  <data name="NoFindingsToDisplayCurrentClearFiltersLink" xml:space="preserve">
+    <value>clear all current filters</value>
+  </data>
   <data name="IssueText" xml:space="preserve">
     <value>issue</value>
   </data>
