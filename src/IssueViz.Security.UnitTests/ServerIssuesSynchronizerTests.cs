@@ -29,7 +29,6 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
-using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.DependencyRisks;
@@ -453,7 +452,7 @@ public class ServerIssuesSynchronizerTests
 
     private void CheckUIContextUpdated(uint expectedCookie, int expectedState) => vsMonitorSelection.Received(1).SetCmdUIContext(expectedCookie, expectedState);
 
-    private void CheckToolWindowServiceIsCalled() => toolWindowService.Received().EnsureToolWindowExists(TaintToolWindow.ToolWindowId);
+    private void CheckToolWindowServiceIsCalled() => toolWindowService.Received().EnsureToolWindowExists(ReportViewToolWindow.ToolWindowId);
 
     private void CheckTaintStoreIsCleared() => taintStore.Received(1).Reset();
 

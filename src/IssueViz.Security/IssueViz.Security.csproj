@@ -59,10 +59,6 @@
     <Page Include="ReportView\SeverityIcons.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Hotspots\HotspotsList\HotspotsControl.xaml">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      <Generator>XamlIntelliSenseFileGenerator</Generator>
-    </Page>
     <Page Include="ReportView\Hotspots\HotspotSeverity.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -75,10 +71,6 @@
     </Page>
     <Page Include="SharedUI\SharedResources.xaml">
       <Generator>XamlIntelliSenseFileGenerator</Generator>
-    </Page>
-    <Page Include="Taint\TaintList\TaintIssuesControl.xaml">
-      <Generator>XamlIntelliSenseFileGenerator</Generator>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Page>
 
     <Compile Update="Resources.Designer.cs">

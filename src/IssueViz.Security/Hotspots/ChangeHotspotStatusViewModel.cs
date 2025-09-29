@@ -21,7 +21,7 @@
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 
 internal class ChangeHotspotStatusViewModel(HotspotStatus currentStatus, IEnumerable<HotspotStatus> allowedStatuses)
     : ChangeStatusViewModel<HotspotStatus>(currentStatus,

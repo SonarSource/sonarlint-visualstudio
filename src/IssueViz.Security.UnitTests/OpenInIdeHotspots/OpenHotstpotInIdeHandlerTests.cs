@@ -53,7 +53,7 @@ public class OpenIssueInIdeHandlerTests
 
         testSubject.Show(issue, configScope);
 
-        handler.Received().ShowIssue(issue, configScope, converter, IssueListIds.HotspotsId);
+        handler.Received().ShowIssue(issue, configScope, converter, IssueListIds.ReportToolWindowId);
     }
 
     private OpenHotspotInIdeHandler CreateTestSubject(

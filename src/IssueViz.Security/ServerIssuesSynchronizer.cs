@@ -26,7 +26,6 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
-using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.DependencyRisks;
 using SonarLint.VisualStudio.SLCore.Service.Taint;
@@ -205,7 +204,7 @@ internal sealed class ServerIssuesSynchronizer : IServerIssuesSynchronizer
             // We need the tool window content to exist so the issues are filtered and the
             // tool window caption is updated. See the "EnsureToolWindowExists" method comment
             // for more information.
-            toolWindowService.EnsureToolWindowExists(TaintToolWindow.ToolWindowId);
+            toolWindowService.EnsureToolWindowExists(ReportViewToolWindow.ToolWindowId);
         }
         else
         {
