@@ -84,8 +84,7 @@ internal sealed partial class ReportViewControl : UserControl
             telemetryManager,
             selectionService,
             activeDocumentLocator,
-            activeDocumentTracker,
-            threadHandling);
+            activeDocumentTracker);
         InitializeComponent();
     }
 

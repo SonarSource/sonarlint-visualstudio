@@ -13,6 +13,7 @@ public class DependencyRisksReportViewModelTest
     private IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler;
     private IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler;
     private IMessageBox messageBox;
+    private IThreadHandling threadHandling;
     private DependencyRisksReportViewModel testSubject;
 
     [TestInitialize]
@@ -22,8 +23,9 @@ public class DependencyRisksReportViewModelTest
         showDependencyRiskInBrowserHandler = Substitute.For<IShowDependencyRiskInBrowserHandler>();
         changeDependencyRiskStatusHandler = Substitute.For<IChangeDependencyRiskStatusHandler>();
         messageBox = Substitute.For<IMessageBox>();
+        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
 
-        testSubject = new DependencyRisksReportViewModel(dependencyRisksStore, showDependencyRiskInBrowserHandler, changeDependencyRiskStatusHandler, messageBox);
+        testSubject = new DependencyRisksReportViewModel(dependencyRisksStore, showDependencyRiskInBrowserHandler, changeDependencyRiskStatusHandler, messageBox, threadHandling);
     }
 
     [TestMethod]
@@ -32,7 +34,8 @@ public class DependencyRisksReportViewModelTest
             MefTestHelpers.CreateExport<IDependencyRisksStore>(),
             MefTestHelpers.CreateExport<IShowDependencyRiskInBrowserHandler>(),
             MefTestHelpers.CreateExport<IChangeDependencyRiskStatusHandler>(),
-            MefTestHelpers.CreateExport<IMessageBox>()
+            MefTestHelpers.CreateExport<IMessageBox>(),
+            MefTestHelpers.CreateExport<IThreadHandling>()
         );
 
     [TestMethod]
@@ -144,12 +147,16 @@ public class DependencyRisksReportViewModelTest
     [TestMethod]
     public void DependencyRisksChanged_RaisedOnStoreIssuesChanged()
     {
-        var raised = false;
-        testSubject.DependencyRisksChanged += (_, _) => raised = true;
+        var eventHandler = Substitute.For<EventHandler>();
+        testSubject.DependencyRisksChanged += eventHandler;
 
         dependencyRisksStore.DependencyRisksChanged += Raise.Event<EventHandler>(null, null);
 
-        raised.Should().BeTrue();
+        Received.InOrder(() =>
+        {
+            threadHandling.RunOnUIThread(Arg.Any<Action>());
+            eventHandler.Invoke(Arg.Any<object>(), Arg.Any<EventArgs>());
+        });
     }
 
     private static IDependencyRisk CreateDependencyRisk(Guid? id = null, bool isFixed = false)

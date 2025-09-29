@@ -704,13 +704,12 @@ public class ReportViewModelTest
             navigateToRuleDescriptionCommand,
             locationNavigator,
             hotspotsReportViewModel,
-            new DependencyRisksReportViewModel(dependencyRisksStore, showDependencyRiskInBrowserHandler, changeDependencyRiskStatusHandler, messageBox),
+            new DependencyRisksReportViewModel(dependencyRisksStore, showDependencyRiskInBrowserHandler, changeDependencyRiskStatusHandler, messageBox, threadHandling),
             taintsReportViewModel,
             telemetryManager,
             selectionService,
             activeDocumentLocator,
-            activeDocumentTracker,
-            threadHandling);
+            activeDocumentTracker);
         reportViewModel.PropertyChanged += eventHandler;
         testSubject = reportViewModel;
     }
@@ -739,7 +738,7 @@ public class ReportViewModelTest
             var issueViewModel = new HotspotViewModel(localHotspot);
             return issueViewModel;
         });
-        var group = new GroupFileViewModel(analysisIssueVisualizations[0].Issue.PrimaryLocation.FilePath, new List<IIssueViewModel>(issueViewModels), threadHandling);
+        var group = new GroupFileViewModel(analysisIssueVisualizations[0].Issue.PrimaryLocation.FilePath, new List<IIssueViewModel>(issueViewModels));
         return group;
     }
 
@@ -750,7 +749,7 @@ public class ReportViewModelTest
             var issueViewModel = new TaintViewModel(x);
             return issueViewModel;
         });
-        var group = new GroupFileViewModel(analysisIssueVisualizations[0].Issue.PrimaryLocation.FilePath, new List<IIssueViewModel>(issueViewModels), threadHandling);
+        var group = new GroupFileViewModel(analysisIssueVisualizations[0].Issue.PrimaryLocation.FilePath, new List<IIssueViewModel>(issueViewModels));
         return group;
     }
 

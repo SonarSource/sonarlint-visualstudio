@@ -43,24 +43,14 @@ internal interface ITaintsReportViewModel : IDisposable
 
 [Export(typeof(ITaintsReportViewModel))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class TaintsReportViewModel : IssuesReportViewModelBase, ITaintsReportViewModel
+[method: ImportingConstructor]
+internal sealed class TaintsReportViewModel(
+    ITaintStore taintsStore,
+    IShowInBrowserService showInBrowserService,
+    ITelemetryManager telemetryManager,
+    IThreadHandling threadHandling)
+    : IssuesReportViewModelBase(taintsStore, threadHandling), ITaintsReportViewModel
 {
-    private readonly ITaintStore taintsStore;
-    private readonly IShowInBrowserService showInBrowserService;
-    private readonly ITelemetryManager telemetryManager;
-
-    [ImportingConstructor]
-    public TaintsReportViewModel(
-        ITaintStore taintsStore,
-        IShowInBrowserService showInBrowserService,
-        ITelemetryManager telemetryManager,
-        IThreadHandling threadHandling) : base(taintsStore, threadHandling)
-    {
-        this.taintsStore = taintsStore;
-        this.showInBrowserService = showInBrowserService;
-        this.telemetryManager = telemetryManager;
-    }
-
     public void ShowTaintInBrowser(ITaintIssue taintIssue)
     {
         telemetryManager.TaintIssueInvestigatedRemotely();

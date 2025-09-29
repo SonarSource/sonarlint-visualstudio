@@ -36,17 +36,18 @@ public class TaintsReportViewModelTest
 {
     private ITaintStore localTaintsStore;
     private TaintsReportViewModel testSubject;
-    private IThreadHandling threadHandling;
     private IShowInBrowserService showInBrowserService;
     private ITelemetryManager telemetryManager;
+    private IThreadHandling threadHandling;
 
     [TestInitialize]
     public void TestInitialize()
     {
         localTaintsStore = Substitute.For<ITaintStore>();
-        threadHandling = Substitute.For<IThreadHandling>();
         showInBrowserService = Substitute.For<IShowInBrowserService>();
         telemetryManager = Substitute.For<ITelemetryManager>();
+        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+
         testSubject = new TaintsReportViewModel(localTaintsStore, showInBrowserService, telemetryManager, threadHandling);
     }
 
@@ -116,15 +117,20 @@ public class TaintsReportViewModelTest
         VerifyExpectedTaintGroupViewModel(groups[1] as GroupFileViewModel, taint2);
     }
 
+
     [TestMethod]
-    public void TaintsChanged_RaisedOnStoreIssuesChanged()
+    public void HotspotsChanged_RaisedOnStoreIssuesChanged()
     {
-        var raised = false;
-        testSubject.IssuesChanged += (_, _) => raised = true;
+        var eventHandler = Substitute.For<EventHandler<IssuesChangedEventArgs>>();
+        testSubject.IssuesChanged += eventHandler;
 
         localTaintsStore.IssuesChanged += Raise.Event<EventHandler<IssuesChangedEventArgs>>(null, null);
 
-        raised.Should().BeTrue();
+        Received.InOrder(() =>
+        {
+            threadHandling.RunOnUIThread(Arg.Any<Action>());
+            eventHandler.Invoke(Arg.Any<object>(), Arg.Any<IssuesChangedEventArgs>());
+        });
     }
 
     [TestMethod]

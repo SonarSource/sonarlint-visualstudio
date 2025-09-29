@@ -44,6 +44,7 @@ internal sealed class DependencyRisksReportViewModel : IDependencyRisksReportVie
     private readonly IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler;
     private readonly IDependencyRisksStore dependencyRisksStore;
     private readonly IMessageBox messageBox;
+    private readonly IThreadHandling threadHandling;
     private readonly IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler;
 
     [ImportingConstructor]
@@ -51,12 +52,14 @@ internal sealed class DependencyRisksReportViewModel : IDependencyRisksReportVie
         IDependencyRisksStore dependencyRisksStore,
         IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler,
         IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler,
-        IMessageBox messageBox)
+        IMessageBox messageBox,
+        IThreadHandling threadHandling)
     {
         this.dependencyRisksStore = dependencyRisksStore;
         this.showDependencyRiskInBrowserHandler = showDependencyRiskInBrowserHandler;
         this.changeDependencyRiskStatusHandler = changeDependencyRiskStatusHandler;
         this.messageBox = messageBox;
+        this.threadHandling = threadHandling;
         dependencyRisksStore.DependencyRisksChanged += DependencyRisksStore_DependencyRiskChanged;
     }
 
@@ -91,5 +94,5 @@ internal sealed class DependencyRisksReportViewModel : IDependencyRisksReportVie
 
     private void ShowFailureMessage(string errorMessage) => messageBox.Show(Resources.DependencyRiskStatusChangeFailedTitle, errorMessage, MessageBoxButton.OK, MessageBoxImage.Error);
 
-    private void DependencyRisksStore_DependencyRiskChanged(object sender, EventArgs e) => DependencyRisksChanged?.Invoke(this, EventArgs.Empty);
+    private void DependencyRisksStore_DependencyRiskChanged(object sender, EventArgs e) => threadHandling.RunOnUIThread(() => DependencyRisksChanged?.Invoke(this, EventArgs.Empty));
 }

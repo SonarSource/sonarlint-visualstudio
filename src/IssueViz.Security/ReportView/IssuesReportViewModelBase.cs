@@ -45,7 +45,7 @@ internal abstract class IssuesReportViewModelBase : IDisposable
         return GroupIssueViewModels(issueViewModels);
     }
 
-    private void IssueStore_OnIssuesChanged(object sender, IssuesChangedEventArgs e) => IssuesChanged?.Invoke(this, e);
+    private void IssueStore_OnIssuesChanged(object sender, IssuesChangedEventArgs e) => threadHandling.RunOnUIThread(() => IssuesChanged?.Invoke(this, e));
 
     protected abstract IEnumerable<IIssueViewModel> GetIssueViewModels();
 
@@ -55,7 +55,7 @@ internal abstract class IssuesReportViewModelBase : IDisposable
         var groupViewModels = new ObservableCollection<IGroupViewModel>();
         foreach (var group in issuesByFileGrouping)
         {
-            groupViewModels.Add(new GroupFileViewModel(group.Key, new List<IIssueViewModel>(group), threadHandling));
+            groupViewModels.Add(new GroupFileViewModel(group.Key, new List<IIssueViewModel>(group)));
         }
 
         return groupViewModels;
