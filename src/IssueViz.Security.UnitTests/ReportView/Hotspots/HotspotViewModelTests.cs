@@ -22,6 +22,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView.Hotspots;
@@ -77,6 +78,30 @@ public class HotspotViewModelTests
         hotspotViewModel.DisplaySeverity.Should().Be(DisplaySeverity.Info);
     }
 
+    [DataTestMethod]
+    [DataRow(HotspotStatus.ToReview, DisplayStatus.Open)]
+    [DataRow(HotspotStatus.Acknowledged, DisplayStatus.Open)]
+    [DataRow(HotspotStatus.Fixed, DisplayStatus.Resolved)]
+    [DataRow(HotspotStatus.Safe, DisplayStatus.Resolved)]
+    public void Ctor_ReturnsCorrectStatus(HotspotStatus hotspotStatus, DisplayStatus expectedStatus)
+    {
+        var mockedHotspot = CreateMockedHotspot(default, hotspotStatus);
+
+        var hotspotViewModel = new HotspotViewModel(mockedHotspot);
+
+        hotspotViewModel.Status.Should().Be(expectedStatus);
+    }
+
+    [DataTestMethod]
+    public void Ctor_UnknownStatus_DefaultsToOpen()
+    {
+        var mockedHotspot = CreateMockedHotspot(default, (HotspotStatus)666);
+
+        var hotspotViewModel = new HotspotViewModel(mockedHotspot);
+
+        hotspotViewModel.Status.Should().Be(DisplayStatus.Open);
+    }
+
     [TestMethod]
     public void ExistsOnServer_LocalHotspot_ReturnsFalse()
     {
@@ -115,12 +140,12 @@ public class HotspotViewModelTests
         return new LocalHotspot(analysisIssueVisualization, default, default);
     }
 
-    private static LocalHotspot CreateMockedHotspot(HotspotPriority priority)
+    private static LocalHotspot CreateMockedHotspot(HotspotPriority priority, HotspotStatus status = default)
     {
         var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
         var analysisIssueBase = Substitute.For<IAnalysisIssueBase>();
         analysisIssueVisualization.Issue.Returns(analysisIssueBase);
 
-        return new LocalHotspot(analysisIssueVisualization, priority, default);
+        return new LocalHotspot(analysisIssueVisualization, priority, status);
     }
 }

@@ -20,6 +20,7 @@
 
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
@@ -31,6 +32,7 @@ internal class TaintViewModel : AnalysisIssueViewModelBase
     public TaintViewModel(IAnalysisIssueVisualization analysisIssueVisualization) : base(analysisIssueVisualization)
     {
         DisplaySeverity = GetDisplaySeverity();
+        Status = analysisIssueVisualization.IsResolved ? DisplayStatus.Resolved : DisplayStatus.Open;
     }
 
     private DisplaySeverity GetDisplaySeverity() => GetDisplaySeverity(TaintIssue.HighestSoftwareQualitySeverity) ?? GetDisplaySeverity(TaintIssue.Severity) ?? DisplaySeverity.Info;
@@ -73,4 +75,5 @@ internal class TaintViewModel : AnalysisIssueViewModelBase
 
     public override DisplaySeverity DisplaySeverity { get; }
     public override IssueType IssueType => IssueType.TaintVulnerability;
+    public override DisplayStatus Status { get; }
 }

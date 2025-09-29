@@ -20,6 +20,7 @@
 
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 
@@ -38,8 +39,17 @@ internal class HotspotViewModel : AnalysisIssueViewModelBase
             HotspotPriority.High => DisplaySeverity.High,
             _ => DisplaySeverity.Info
         };
+        Status = LocalHotspot.HotspotStatus switch
+        {
+            HotspotStatus.ToReview => DisplayStatus.Open,
+            HotspotStatus.Acknowledged => DisplayStatus.Open,
+            HotspotStatus.Fixed => DisplayStatus.Resolved,
+            HotspotStatus.Safe => DisplayStatus.Resolved,
+            _ => DisplayStatus.Open
+        };
     }
 
     public override DisplaySeverity DisplaySeverity { get; }
     public override IssueType IssueType => IssueType.SecurityHotspot;
+    public override DisplayStatus Status { get; }
 }
