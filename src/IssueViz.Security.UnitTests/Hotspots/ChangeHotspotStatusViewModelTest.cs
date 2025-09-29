@@ -19,9 +19,9 @@
  */
 
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.HotspotsList.ViewModels;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots;
 
 [TestClass]
 public class ChangeHotspotStatusViewModelTest

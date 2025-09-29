@@ -54,7 +54,7 @@ public class OpenIssueInIdeHandlerTests
 
         testSubject.Show(issue, configScope);
 
-        handler.Received().ShowIssue(issue, configScope, converter, isTaint ? IssueListIds.TaintId : IssueListIds.ErrorListId);
+        handler.Received().ShowIssue(issue, configScope, converter, isTaint ? IssueListIds.ReportToolWindowId : IssueListIds.ErrorListId);
     }
 
     private OpenIssueInIdeHandler CreateTestSubject(

@@ -44,7 +44,7 @@ internal class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
             configurationScope,
             converter,
             issueDetailDto.isTaint
-                ? IssueListIds.TaintId
+                ? IssueListIds.ReportToolWindowId
                 : IssueListIds.ErrorListId);
     }
 }
