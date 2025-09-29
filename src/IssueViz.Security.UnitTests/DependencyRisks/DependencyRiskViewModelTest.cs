@@ -21,6 +21,7 @@
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.DependencyRisks;
 
@@ -106,6 +107,33 @@ public class DependencyRiskViewModelTest
         testSubject.Column.Should().BeNull();
         testSubject.FilePath.Should().BeNull();
         testSubject.RuleInfo.Should().BeNull();
+    }
+
+    [DataTestMethod]
+    [DataRow(DependencyRiskStatus.Open, DisplayStatus.Open)]
+    [DataRow(DependencyRiskStatus.Confirmed, DisplayStatus.Open)]
+    [DataRow(DependencyRiskStatus.Accepted, DisplayStatus.Resolved)]
+    [DataRow(DependencyRiskStatus.Fixed, DisplayStatus.Resolved)]
+    [DataRow(DependencyRiskStatus.Safe, DisplayStatus.Resolved)]
+    public void Ctor_ReturnsCorrectStatus(DependencyRiskStatus hotspotStatus, DisplayStatus expectedStatus)
+    {
+        var dependencyRisk = CreateMockedDependencyRisk();
+        dependencyRisk.Status.Returns(hotspotStatus);
+
+        var testSubject = new DependencyRiskViewModel(dependencyRisk);
+
+        testSubject.Status.Should().Be(expectedStatus);
+    }
+
+    [DataTestMethod]
+    public void Ctor_UnknownStatus_DefaultsToOpen()
+    {
+        var dependencyRisk = CreateMockedDependencyRisk();
+        dependencyRisk.Status.Returns((DependencyRiskStatus)666);
+
+        var testSubject = new DependencyRiskViewModel(dependencyRisk);
+
+        testSubject.Status.Should().Be(DisplayStatus.Open);
     }
 
     private static IDependencyRisk CreateMockedDependencyRisk()

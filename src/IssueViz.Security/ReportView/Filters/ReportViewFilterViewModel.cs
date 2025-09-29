@@ -23,17 +23,21 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
-internal enum StatusFilter
+/// <summary>
+/// Used to display status info in the UI in a uniform way for different <see cref="IssueType"/>
+/// </summary>
+public enum DisplayStatus
 {
     Open,
-    Resolved
+    Resolved,
+    Any
 }
 
 internal class ReportViewFilterViewModel : ViewModelBase
 {
     private LocationFilterViewModel selectedLocationFilter;
     private DisplaySeverity selectedSeverityFilter = DisplaySeverity.Any;
-    private StatusFilter? selectedStatusFilter;
+    private DisplayStatus selectedStatusFilter = DisplayStatus.Open;
     private bool showAdvancedFilters;
 
     public ObservableCollection<LocationFilterViewModel> LocationFilters { get; } =
@@ -41,7 +45,7 @@ internal class ReportViewFilterViewModel : ViewModelBase
         new(LocationFilter.CurrentDocument, Resources.HotspotsControl_CurrentDocumentFilter),
         new(LocationFilter.OpenDocuments, Resources.HotspotsControl_OpenDocumentsFilter)
     ];
-    public ObservableCollection<StatusFilter> StatusFilters { get; } = new(Enum.GetValues(typeof(StatusFilter)).Cast<StatusFilter>());
+    public ObservableCollection<DisplayStatus> StatusFilters { get; } = new(Enum.GetValues(typeof(DisplayStatus)).Cast<DisplayStatus>());
     public ObservableCollection<DisplaySeverity> SeverityFilters { get; } = new(Enum.GetValues(typeof(DisplaySeverity)).Cast<DisplaySeverity>().Reverse());
     public ObservableCollection<IssueTypeFilterViewModel> IssueTypeFilters { get; } =
         new(Enum.GetValues(typeof(IssueType)).Cast<IssueType>().Select(x => new IssueTypeFilterViewModel(x)));
@@ -56,7 +60,7 @@ internal class ReportViewFilterViewModel : ViewModelBase
         }
     }
 
-    public StatusFilter? SelectedStatusFilter
+    public DisplayStatus SelectedStatusFilter
     {
         get => selectedStatusFilter;
         set

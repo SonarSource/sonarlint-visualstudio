@@ -44,11 +44,11 @@ public class FilteringTests
 {
     private const string CsharpFilePath = "C:\\source\\myProj\\myFile.cs";
     private const string TsFilePath = "C:\\source\\myProj\\myTaint.ts";
-    private readonly IIssueViewModel csharpHotspotInfo = CreateMockedIssueViewModel(IssueType.SecurityHotspot, CsharpFilePath, DisplaySeverity.Info);
-    private readonly IIssueViewModel csharpTaintLow = CreateMockedIssueViewModel(IssueType.TaintVulnerability, CsharpFilePath, DisplaySeverity.Low);
-    private readonly IIssueViewModel tsHotspotMedium = CreateMockedIssueViewModel(IssueType.SecurityHotspot, TsFilePath, DisplaySeverity.Medium);
-    private readonly IIssueViewModel tsTaintHigh = CreateMockedIssueViewModel(IssueType.TaintVulnerability, TsFilePath, DisplaySeverity.High);
-    private readonly IDependencyRisk dependencyRisk = CreateDependencyRisk(severity: DependencyRiskImpactSeverity.Blocker);
+    private readonly IIssueViewModel csharpHotspotInfo = CreateMockedIssueViewModel(IssueType.SecurityHotspot, CsharpFilePath, DisplaySeverity.Info, DisplayStatus.Open);
+    private readonly IIssueViewModel csharpTaintLow = CreateMockedIssueViewModel(IssueType.TaintVulnerability, CsharpFilePath, DisplaySeverity.Low, DisplayStatus.Resolved);
+    private readonly IIssueViewModel tsHotspotMedium = CreateMockedIssueViewModel(IssueType.SecurityHotspot, TsFilePath, DisplaySeverity.Medium, DisplayStatus.Resolved);
+    private readonly IIssueViewModel tsTaintHigh = CreateMockedIssueViewModel(IssueType.TaintVulnerability, TsFilePath, DisplaySeverity.High, DisplayStatus.Open);
+    private readonly IDependencyRisk dependencyRisk = CreateDependencyRisk(severity: DependencyRiskImpactSeverity.Blocker, status: DependencyRiskStatus.Open);
     private IIssueViewModel dependencyRiskIssue;
     private IActiveDocumentLocator activeDocumentLocator;
     private IActiveDocumentTracker activeDocumentTracker;
@@ -259,16 +259,50 @@ public class FilteringTests
     }
 
     [TestMethod]
+    public void ApplyFilter_OpenStatusFilterSelected_ShowsOnlyRisksWithStatusOpen()
+    {
+        MockStatusFilter(DisplayStatus.Open);
+
+        testSubject.ApplyFilter();
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        testSubject.FilteredGroupViewModels.Should().Contain(g => g.FilteredIssues.SingleOrDefault(vm => vm.Status == DisplayStatus.Open) != null);
+    }
+
+    [TestMethod]
+    public void ApplyFilter_ResolvedStatusFilterSelected_ShowsOnlyRisksWithStatusResolved()
+    {
+        MockStatusFilter(DisplayStatus.Resolved);
+
+        testSubject.ApplyFilter();
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(2);
+        testSubject.FilteredGroupViewModels.Should().Contain(g => g.FilteredIssues.SingleOrDefault(vm => vm.Status == DisplayStatus.Resolved) != null);
+    }
+
+    [TestMethod]
+    public void ApplyFilter_StatusFilterNotSelected_ShowsAllRisks()
+    {
+        MockStatusFilter(displayStatus: DisplayStatus.Any);
+
+        testSubject.ApplyFilter();
+
+        VerifyAllIssuesAreShown();
+    }
+
+    [TestMethod]
     public void ApplyFilter_MixedFilters_FiltersCorrectly()
     {
         ClearFilter();
         MockSeverityFilter(displaySeverity: DisplaySeverity.Blocker);
+        MockStatusFilter(DisplayStatus.Open);
         SetIssueTypeFilter(IssueType.DependencyRisk, isSelected: true);
 
         testSubject.ApplyFilter();
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
-        testSubject.FilteredGroupViewModels.Should().Contain(g => g.FilteredIssues.SingleOrDefault(vm => vm.DisplaySeverity == DisplaySeverity.Blocker) != null);
+        testSubject.FilteredGroupViewModels.Should().Contain(g =>
+            g.FilteredIssues.SingleOrDefault(vm => vm.DisplaySeverity == DisplaySeverity.Blocker && vm.Status == DisplayStatus.Open && vm.IssueType == IssueType.DependencyRisk) != null);
     }
 
     [TestMethod]
@@ -297,6 +331,7 @@ public class FilteringTests
             threadHandling);
         reportViewModel.PropertyChanged += eventHandler;
         testSubject = reportViewModel;
+        MockStatusFilter(DisplayStatus.Any); // tests were written with this assumption, changing the tests would take too much time
     }
 
     private void ApplyLocationFilter(LocationFilter filter) =>
@@ -334,12 +369,17 @@ public class FilteringTests
         return groupVm;
     }
 
-    private static IIssueViewModel CreateMockedIssueViewModel(IssueType issueType, string filePath, DisplaySeverity severity)
+    private static IIssueViewModel CreateMockedIssueViewModel(
+        IssueType issueType,
+        string filePath,
+        DisplaySeverity severity,
+        DisplayStatus status)
     {
         var analysisIssueViewModel = Substitute.For<IIssueViewModel>();
         analysisIssueViewModel.IssueType.Returns(issueType);
         analysisIssueViewModel.FilePath.Returns(filePath);
         analysisIssueViewModel.DisplaySeverity.Returns(severity);
+        analysisIssueViewModel.Status.Returns(status);
         return analysisIssueViewModel;
     }
 
@@ -368,17 +408,23 @@ public class FilteringTests
         testSubject.FilteredGroupViewModels.Should().Contain(g =>
             g.FilePath == filePath && g.FilteredIssues.Count == expectedIssueViewModels.Length && expectedIssueViewModels.All(issue => g.FilteredIssues.Contains(issue)));
 
-    private static IDependencyRisk CreateDependencyRisk(Guid? id = null, bool isResolved = false, DependencyRiskImpactSeverity severity = default)
+    private static IDependencyRisk CreateDependencyRisk(
+        Guid? id = null,
+        bool isResolved = false,
+        DependencyRiskImpactSeverity severity = default,
+        DependencyRiskStatus status = default)
     {
         var risk = Substitute.For<IDependencyRisk>();
         risk.Id.Returns(id ?? Guid.NewGuid());
         risk.Transitions.Returns([]);
-        risk.Status.Returns(isResolved ? DependencyRiskStatus.Accepted : DependencyRiskStatus.Open);
+        risk.Status.Returns(status);
         risk.Severity.Returns(severity);
         return risk;
     }
 
     private void MockSeverityFilter(DisplaySeverity displaySeverity) => testSubject.ReportViewFilter.SelectedSeverityFilter = displaySeverity;
+
+    private void MockStatusFilter(DisplayStatus displayStatus) => testSubject.ReportViewFilter.SelectedStatusFilter = displayStatus;
 
     private void ClearFilter() => testSubject.ReportViewFilter.IssueTypeFilters.ToList().ForEach(f => f.IsSelected = false);
 }

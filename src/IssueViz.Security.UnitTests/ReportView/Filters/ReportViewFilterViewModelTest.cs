@@ -64,11 +64,14 @@ public class ReportViewFilterViewModelTest
     [TestMethod]
     public void Ctor_InitializesStatusFilters()
     {
-        testSubject.StatusFilters.Should().HaveCount(2);
-        testSubject.StatusFilters[0].Should().Be(StatusFilter.Open);
-        testSubject.StatusFilters[1].Should().Be(StatusFilter.Resolved);
+        testSubject.StatusFilters.Should().BeEquivalentTo(
+        [
+            DisplayStatus.Open,
+            DisplayStatus.Resolved,
+            DisplayStatus.Any
+        ], options => options.WithStrictOrdering());
 
-        testSubject.SelectedStatusFilter.Should().BeNull();
+        testSubject.SelectedStatusFilter.Should().Be(DisplayStatus.Open);
     }
 
     [TestMethod]
@@ -115,7 +118,7 @@ public class ReportViewFilterViewModelTest
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 
-        testSubject.SelectedStatusFilter = StatusFilter.Open;
+        testSubject.SelectedStatusFilter = DisplayStatus.Open;
 
         eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.SelectedStatusFilter)));
     }

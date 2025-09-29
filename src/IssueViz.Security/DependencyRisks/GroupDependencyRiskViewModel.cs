@@ -50,6 +50,10 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewMo
         {
             issuesToShow = issuesToShow.Where(vm => vm.DisplaySeverity == reportViewFilter.SelectedSeverityFilter);
         }
+        if (reportViewFilter.SelectedStatusFilter != DisplayStatus.Any)
+        {
+            issuesToShow = issuesToShow.Where(vm => vm.Status == reportViewFilter.SelectedStatusFilter);
+        }
 
         FilteredIssues.Clear();
         issuesToShow.ToList().ForEach(issue => FilteredIssues.Add(issue));
