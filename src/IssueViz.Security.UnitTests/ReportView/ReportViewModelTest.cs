@@ -704,13 +704,12 @@ public class ReportViewModelTest
             navigateToRuleDescriptionCommand,
             locationNavigator,
             hotspotsReportViewModel,
-            new DependencyRisksReportViewModel(dependencyRisksStore, showDependencyRiskInBrowserHandler, changeDependencyRiskStatusHandler, messageBox),
+            new DependencyRisksReportViewModel(dependencyRisksStore, showDependencyRiskInBrowserHandler, changeDependencyRiskStatusHandler, messageBox, threadHandling),
             taintsReportViewModel,
             telemetryManager,
             selectionService,
             activeDocumentLocator,
-            activeDocumentTracker,
-            threadHandling);
+            activeDocumentTracker);
         reportViewModel.PropertyChanged += eventHandler;
         testSubject = reportViewModel;
     }

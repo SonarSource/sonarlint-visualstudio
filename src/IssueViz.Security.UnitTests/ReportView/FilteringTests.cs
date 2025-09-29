@@ -64,7 +64,6 @@ public class FilteringTests
     private ITaintsReportViewModel taintsReportViewModel;
     private ITelemetryManager telemetryManager;
     private ReportViewModel testSubject;
-    private IThreadHandling threadHandling;
 
     [TestInitialize]
     public void Initialize()
@@ -78,7 +77,6 @@ public class FilteringTests
         locationNavigator = Substitute.For<ILocationNavigator>();
         telemetryManager = Substitute.For<ITelemetryManager>();
         selectionService = Substitute.For<IIssueSelectionService>();
-        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         activeDocumentLocator = Substitute.For<IActiveDocumentLocator>();
         activeDocumentTracker = Substitute.For<IActiveDocumentTracker>();
         eventHandler = Substitute.For<PropertyChangedEventHandler>();
@@ -327,8 +325,7 @@ public class FilteringTests
             telemetryManager,
             selectionService,
             activeDocumentLocator,
-            activeDocumentTracker,
-            threadHandling);
+            activeDocumentTracker);
         reportViewModel.PropertyChanged += eventHandler;
         testSubject = reportViewModel;
         MockStatusFilter(DisplayStatus.Any); // tests were written with this assumption, changing the tests would take too much time

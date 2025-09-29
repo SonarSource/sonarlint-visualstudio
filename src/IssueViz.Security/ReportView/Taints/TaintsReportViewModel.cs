@@ -21,6 +21,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
@@ -42,23 +43,14 @@ internal interface ITaintsReportViewModel : IDisposable
 
 [Export(typeof(ITaintsReportViewModel))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class TaintsReportViewModel : IssuesReportViewModelBase, ITaintsReportViewModel
+[method: ImportingConstructor]
+internal sealed class TaintsReportViewModel(
+    ITaintStore taintsStore,
+    IShowInBrowserService showInBrowserService,
+    ITelemetryManager telemetryManager,
+    IThreadHandling threadHandling)
+    : IssuesReportViewModelBase(taintsStore, threadHandling), ITaintsReportViewModel
 {
-    private readonly ITaintStore taintsStore;
-    private readonly IShowInBrowserService showInBrowserService;
-    private readonly ITelemetryManager telemetryManager;
-
-    [ImportingConstructor]
-    public TaintsReportViewModel(
-        ITaintStore taintsStore,
-        IShowInBrowserService showInBrowserService,
-        ITelemetryManager telemetryManager) : base(taintsStore)
-    {
-        this.taintsStore = taintsStore;
-        this.showInBrowserService = showInBrowserService;
-        this.telemetryManager = telemetryManager;
-    }
-
     public void ShowTaintInBrowser(ITaintIssue taintIssue)
     {
         telemetryManager.TaintIssueInvestigatedRemotely();

@@ -41,6 +41,7 @@ public class HotspotsReportViewModelTest
     private IMessageBox messageBox;
     private IReviewHotspotsService reviewHotspotsService;
     private ITelemetryManager telemetryManager;
+    private IThreadHandling threadHandling;
     private HotspotsReportViewModel testSubject;
 
     [TestInitialize]
@@ -50,7 +51,9 @@ public class HotspotsReportViewModelTest
         reviewHotspotsService = Substitute.For<IReviewHotspotsService>();
         messageBox = Substitute.For<IMessageBox>();
         telemetryManager = Substitute.For<ITelemetryManager>();
-        testSubject = new HotspotsReportViewModel(localHotspotsStore, reviewHotspotsService, messageBox, telemetryManager);
+        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+
+        testSubject = new HotspotsReportViewModel(localHotspotsStore, reviewHotspotsService, messageBox, telemetryManager, threadHandling);
     }
 
     [TestMethod]
@@ -59,7 +62,8 @@ public class HotspotsReportViewModelTest
             MefTestHelpers.CreateExport<ILocalHotspotsStore>(),
             MefTestHelpers.CreateExport<IReviewHotspotsService>(),
             MefTestHelpers.CreateExport<IMessageBox>(),
-            MefTestHelpers.CreateExport<ITelemetryManager>()
+            MefTestHelpers.CreateExport<ITelemetryManager>(),
+            MefTestHelpers.CreateExport<IThreadHandling>()
         );
 
     [TestMethod]
@@ -122,12 +126,16 @@ public class HotspotsReportViewModelTest
     [TestMethod]
     public void HotspotsChanged_RaisedOnStoreIssuesChanged()
     {
-        var raised = false;
-        testSubject.IssuesChanged += (_, _) => raised = true;
+        var eventHandler = Substitute.For<EventHandler<IssuesChangedEventArgs>>();
+        testSubject.IssuesChanged += eventHandler;
 
         localHotspotsStore.IssuesChanged += Raise.Event<EventHandler<IssuesChangedEventArgs>>(null, null);
 
-        raised.Should().BeTrue();
+        Received.InOrder(() =>
+        {
+            threadHandling.RunOnUIThread(Arg.Any<Action>());
+            eventHandler.Invoke(Arg.Any<object>(), Arg.Any<IssuesChangedEventArgs>());
+        });
     }
 
     [TestMethod]

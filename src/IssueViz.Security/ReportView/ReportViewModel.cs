@@ -21,7 +21,6 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
@@ -52,7 +51,6 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
     private readonly IIssueSelectionService selectionService;
     private readonly IActiveDocumentLocator activeDocumentLocator;
     private readonly IActiveDocumentTracker activeDocumentTracker;
-    private readonly IThreadHandling threadHandling;
     private IIssueViewModel selectedItem;
     private string activeDocumentFilePath;
     private readonly List<IGroupViewModel> allGroupViewModels = [];
@@ -67,8 +65,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         ITelemetryManager telemetryManager,
         IIssueSelectionService selectionService,
         IActiveDocumentLocator activeDocumentLocator,
-        IActiveDocumentTracker activeDocumentTracker,
-        IThreadHandling threadHandling) : base(activeSolutionBoundTracker)
+        IActiveDocumentTracker activeDocumentTracker) : base(activeSolutionBoundTracker)
     {
         this.hotspotsReportViewModel = hotspotsReportViewModel;
         this.dependencyRisksReportViewModel = dependencyRisksReportViewModel;
@@ -77,11 +74,10 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         this.selectionService = selectionService;
         this.activeDocumentLocator = activeDocumentLocator;
         this.activeDocumentTracker = activeDocumentTracker;
-        this.threadHandling = threadHandling;
 
-        hotspotsReportViewModel.IssuesChanged += HotspotsChanged;
-        dependencyRisksReportViewModel.DependencyRisksChanged += DependencyRisksChanged;
-        taintsReportViewModel.IssuesChanged += TaintsChanged;
+        hotspotsReportViewModel.IssuesChanged += HotspotsViewModel_IssuesChanged;
+        dependencyRisksReportViewModel.DependencyRisksChanged += DependencyRisksViewModel_DependencyRisksChanged;
+        taintsReportViewModel.IssuesChanged += TaintViewModel_IssuesChanged;
 
         InitializeActiveDocument();
         InitializeCommands(navigateToRuleDescriptionCommand, locationNavigator);
@@ -108,6 +104,39 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         }
     }
 
+    private void InitializeViewModels()
+    {
+        allGroupViewModels.Clear();
+        InitializeDependencyRisks();
+        InitializeHotspots();
+        InitializeTaints();
+        FilteredGroupViewModels = new ObservableCollection<IGroupViewModel>(allGroupViewModels);
+    }
+
+    private void InitializeDependencyRisks()
+    {
+        var groupDependencyRisk = dependencyRisksReportViewModel.GetDependencyRisksGroup();
+        if (groupDependencyRisk != null)
+        {
+            allGroupViewModels.Add(groupDependencyRisk);
+        }
+        RaisePropertyChanged(nameof(HasGroups));
+    }
+
+    private void InitializeHotspots()
+    {
+        var groups = hotspotsReportViewModel.GetHotspotsGroupViewModels();
+        groups.ToList().ForEach(g => allGroupViewModels.Add(g));
+        RaisePropertyChanged(nameof(HasGroups));
+    }
+
+    private void InitializeTaints()
+    {
+        var groups = taintsReportViewModel.GetTaintsGroupViewModels();
+        groups.ToList().ForEach(g => allGroupViewModels.Add(g));
+        RaisePropertyChanged(nameof(HasGroups));
+    }
+
     internal void ApplyFilter()
     {
         FilteredGroupViewModels.Clear();
@@ -119,13 +148,13 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
 
     protected override void Dispose(bool disposing)
     {
-        hotspotsReportViewModel.IssuesChanged -= HotspotsChanged;
+        hotspotsReportViewModel.IssuesChanged -= HotspotsViewModel_IssuesChanged;
         hotspotsReportViewModel.Dispose();
 
-        dependencyRisksReportViewModel.DependencyRisksChanged -= DependencyRisksChanged;
+        dependencyRisksReportViewModel.DependencyRisksChanged -= DependencyRisksViewModel_DependencyRisksChanged;
         dependencyRisksReportViewModel.Dispose();
 
-        taintsReportViewModel.IssuesChanged -= TaintsChanged;
+        taintsReportViewModel.IssuesChanged -= TaintViewModel_IssuesChanged;
         taintsReportViewModel.Dispose();
 
         activeDocumentTracker.ActiveDocumentChanged -= OnActiveDocumentChanged;
@@ -151,9 +180,20 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
                 telemetryManager.TaintIssueInvestigatedLocally();
                 break;
         }
+
     }
 
-    private void HotspotsChanged(object sender, IssuesChangedEventArgs e)
+    private void DependencyRisksViewModel_DependencyRisksChanged(object sender, EventArgs e)
+    {
+        if (allGroupViewModels.SingleOrDefault(vm => vm is GroupDependencyRiskViewModel) is { } groupDependencyRiskViewModel)
+        {
+            allGroupViewModels.Remove(groupDependencyRiskViewModel);
+        }
+        InitializeDependencyRisks();
+        ApplyFilter();
+    }
+
+    private void HotspotsViewModel_IssuesChanged(object sender, IssuesChangedEventArgs e)
     {
         var currentHotspotViewModels = allGroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is HotspotViewModel).Cast<HotspotViewModel>();
         var addedHotspotsViewModels = e.AddedIssues.Select(viz => new HotspotViewModel(LocalHotspot.ToLocalHotspot(viz))).ToList();
@@ -161,40 +201,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
     }
 
-    private void UpdateChangedIssues(IReadOnlyCollection<IIssueViewModel> addedIssueViewModels, IReadOnlyCollection<IIssueViewModel> removedIssues) =>
-        threadHandling.RunOnUIThread(() =>
-        {
-            UpdateDeletedIssueViewModels(removedIssues);
-            UpdateAddedIssueViewModels(addedIssueViewModels);
-            ApplyFilter();
-        });
-
-    private void RemoveGroupViewModel(IGroupViewModel groupViewModel) =>
-        threadHandling.RunOnUIThread(() =>
-        {
-            allGroupViewModels.Remove(groupViewModel);
-        });
-
-    private void AddGroupViewModel(IGroupViewModel groupViewModel) =>
-        threadHandling.RunOnUIThread(() =>
-        {
-            if (groupViewModel != null)
-            {
-                allGroupViewModels.Add(groupViewModel);
-            }
-        });
-
-    private void DependencyRisksChanged(object sender, EventArgs e)
-    {
-        if (allGroupViewModels.SingleOrDefault(vm => vm is GroupDependencyRiskViewModel) is { } groupDependencyRiskViewModel)
-        {
-            RemoveGroupViewModel(groupDependencyRiskViewModel);
-        }
-        InitializeDependencyRisks();
-        ApplyFilter();
-    }
-
-    private void TaintsChanged(object sender, IssuesChangedEventArgs e)
+    private void TaintViewModel_IssuesChanged(object sender, IssuesChangedEventArgs e)
     {
         var addedHotspotsViewModels = e.AddedIssues.Select(viz => new TaintViewModel(viz)).ToList();
         var currentHotspotViewModels = allGroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is TaintViewModel).Cast<TaintViewModel>();
@@ -202,34 +209,11 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
     }
 
-    private void InitializeViewModels()
+    private void UpdateChangedIssues(IReadOnlyCollection<IIssueViewModel> addedIssueViewModels, IReadOnlyCollection<IIssueViewModel> removedIssues)
     {
-        allGroupViewModels.Clear();
-        InitializeDependencyRisks();
-        InitializeHotspots();
-        InitializeTaints();
-        FilteredGroupViewModels = new ObservableCollection<IGroupViewModel>(allGroupViewModels);
-    }
-
-    private void InitializeDependencyRisks()
-    {
-        var groupDependencyRisk = dependencyRisksReportViewModel.GetDependencyRisksGroup();
-        AddGroupViewModel(groupDependencyRisk);
-        RaisePropertyChanged(nameof(HasGroups));
-    }
-
-    private void InitializeHotspots()
-    {
-        var groups = hotspotsReportViewModel.GetHotspotsGroupViewModels();
-        groups.ToList().ForEach(g => allGroupViewModels.Add(g));
-        RaisePropertyChanged(nameof(HasGroups));
-    }
-
-    private void InitializeTaints()
-    {
-        var groups = taintsReportViewModel.GetTaintsGroupViewModels();
-        groups.ToList().ForEach(g => allGroupViewModels.Add(g));
-        RaisePropertyChanged(nameof(HasGroups));
+        UpdateDeletedIssueViewModels(removedIssues);
+        UpdateAddedIssueViewModels(addedIssueViewModels);
+        ApplyFilter();
     }
 
     private void UpdateDeletedIssueViewModels(IReadOnlyCollection<IIssueViewModel> removedIssues)

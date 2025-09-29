@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -37,6 +38,7 @@ public class TaintsReportViewModelTest
     private TaintsReportViewModel testSubject;
     private IShowInBrowserService showInBrowserService;
     private ITelemetryManager telemetryManager;
+    private IThreadHandling threadHandling;
 
     [TestInitialize]
     public void TestInitialize()
@@ -44,7 +46,9 @@ public class TaintsReportViewModelTest
         localTaintsStore = Substitute.For<ITaintStore>();
         showInBrowserService = Substitute.For<IShowInBrowserService>();
         telemetryManager = Substitute.For<ITelemetryManager>();
-        testSubject = new TaintsReportViewModel(localTaintsStore, showInBrowserService, telemetryManager);
+        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+
+        testSubject = new TaintsReportViewModel(localTaintsStore, showInBrowserService, telemetryManager, threadHandling);
     }
 
     [TestMethod]
@@ -52,7 +56,8 @@ public class TaintsReportViewModelTest
         MefTestHelpers.CheckTypeCanBeImported<TaintsReportViewModel, ITaintsReportViewModel>(
             MefTestHelpers.CreateExport<ITaintStore>(),
             MefTestHelpers.CreateExport<IShowInBrowserService>(),
-            MefTestHelpers.CreateExport<ITelemetryManager>()
+            MefTestHelpers.CreateExport<ITelemetryManager>(),
+            MefTestHelpers.CreateExport<IThreadHandling>()
         );
 
     [TestMethod]
@@ -112,15 +117,20 @@ public class TaintsReportViewModelTest
         VerifyExpectedTaintGroupViewModel(groups[1] as GroupFileViewModel, taint2);
     }
 
+
     [TestMethod]
-    public void TaintsChanged_RaisedOnStoreIssuesChanged()
+    public void HotspotsChanged_RaisedOnStoreIssuesChanged()
     {
-        var raised = false;
-        testSubject.IssuesChanged += (_, _) => raised = true;
+        var eventHandler = Substitute.For<EventHandler<IssuesChangedEventArgs>>();
+        testSubject.IssuesChanged += eventHandler;
 
         localTaintsStore.IssuesChanged += Raise.Event<EventHandler<IssuesChangedEventArgs>>(null, null);
 
-        raised.Should().BeTrue();
+        Received.InOrder(() =>
+        {
+            threadHandling.RunOnUIThread(Arg.Any<Action>());
+            eventHandler.Invoke(Arg.Any<object>(), Arg.Any<IssuesChangedEventArgs>());
+        });
     }
 
     [TestMethod]
