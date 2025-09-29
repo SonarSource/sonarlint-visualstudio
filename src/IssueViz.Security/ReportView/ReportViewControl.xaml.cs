@@ -47,6 +47,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
 internal sealed partial class ReportViewControl : UserControl
 {
+    public static readonly Uri ClearAllFiltersUri = new Uri("sonarlint://clearfilters");
+
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly IBrowserService browserService;
 
@@ -171,6 +173,8 @@ internal sealed partial class ReportViewControl : UserControl
     private void TreeView_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) => ReportViewModel.SelectedItem = e.NewValue as IIssueViewModel;
 
     private void Hyperlink_OnRequestNavigate(object sender, RequestNavigateEventArgs e) => browserService.Navigate(e.Uri.AbsoluteUri);
+
+    private void ClearFiltersHyperlink(object sender, RequestNavigateEventArgs e) => ClearAllFilters_OnClick(sender, e);
 
     private void TreeViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {

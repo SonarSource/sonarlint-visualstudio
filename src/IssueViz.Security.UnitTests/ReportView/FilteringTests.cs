@@ -340,7 +340,7 @@ public class FilteringTests
         issueTypeFilter.IsSelected = isSelected;
     }
 
-    private void VerifyHasGroupsUpdated() => eventHandler.Received().Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.HasGroups)));
+    private void VerifyHasGroupsUpdated() => eventHandler.Received().Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.HasFilteredGroups)));
 
     private void MockActiveDocument(string filePath = CsharpFilePath)
     {
