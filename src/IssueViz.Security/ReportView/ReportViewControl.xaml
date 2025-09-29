@@ -510,9 +510,10 @@
                         <Border Grid.Column="2" Style="{StaticResource FilterSeparatorBorderStyle}" />
                     </Grid>
 
-                <Button Grid.Column="2" Content="{x:Static res:Resources.ClearAllButton}"
-                        Style="{StaticResource DefaultButtonStyle}"
-                        Padding="5,0" />
+                    <Button Grid.Column="2" Content="{x:Static res:Resources.ClearAllButton}"
+                            Style="{StaticResource DefaultButtonStyle}"
+                            Padding="5,0" 
+                            Click="ClearAllFilters_OnClick"/>
 
             </Grid>
         </Grid>

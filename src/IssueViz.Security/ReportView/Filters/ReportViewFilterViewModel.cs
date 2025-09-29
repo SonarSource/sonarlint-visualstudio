@@ -92,6 +92,16 @@ internal class ReportViewFilterViewModel : ViewModelBase
 
     public ReportViewFilterViewModel()
     {
-        SelectedLocationFilter = LocationFilters.Single(x => x.LocationFilter == LocationFilter.OpenDocuments);
+        SelectedLocationFilter = GetDefaultLocationFilter();
+    }
+
+    private LocationFilterViewModel GetDefaultLocationFilter() => LocationFilters.Single(x => x.LocationFilter == LocationFilter.OpenDocuments);
+
+    public void ClearAllFilters()
+    {
+        IssueTypeFilters.ToList().ForEach(vm => vm.IsSelected = true);
+        SelectedLocationFilter = GetDefaultLocationFilter();
+        SelectedSeverityFilter = DisplaySeverity.Any;
+        SelectedStatusFilter = DisplayStatus.Open;
     }
 }
