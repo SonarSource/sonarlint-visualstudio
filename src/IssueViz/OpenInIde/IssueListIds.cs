@@ -24,9 +24,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 
 public static class IssueListIds
 {
-    public const string TaintIdAsString = "537833A5-E0F1-4405-821D-D83D89370B78";
-    public static readonly Guid TaintId = new Guid(TaintIdAsString);
-    public const string HotspotsIdAsString = "4BCD4392-DBCF-4AA2-9852-01129D229CD8";
-    public static readonly Guid HotspotsId = new Guid(HotspotsIdAsString);
+    public const string ReportToolWindowIdAsString = "6CDF14D1-EFE5-4651-B8B2-32D7AE954E16";
+    public static readonly Guid ReportToolWindowId = new Guid(ReportToolWindowIdAsString);
     public static readonly Guid ErrorListId = new Guid(ToolWindowGuids80.ErrorList);
 }

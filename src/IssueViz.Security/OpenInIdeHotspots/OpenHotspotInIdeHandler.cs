@@ -40,5 +40,5 @@ internal class OpenHotspotInIdeHandler : IOpenHotspotInIdeHandler
     }
 
     public void Show(HotspotDetailsDto hotspotDetailsDto, string configurationScope) =>
-        openInIdeHandlerImplementation.ShowIssue(hotspotDetailsDto, configurationScope, converter, IssueListIds.HotspotsId);
+        openInIdeHandlerImplementation.ShowIssue(hotspotDetailsDto, configurationScope, converter, IssueListIds.ReportToolWindowId);
 }
