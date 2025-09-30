@@ -250,27 +250,6 @@ dogfood_task:
   on_failure:
     slack_notification_script: *SLACK_NOTIFICATION_SCRIPT_DEFINITION
 
-mend_scan_task:
-  ec2_instance: *INSTANCE_DEFINITION
-  only_if: $CIRRUS_USER_COLLABORATOR == "true" && $CIRRUS_TAG == "" && ($CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH =~ "mend-.*") && $CIRRUS_CRON != "secondary-platform"
-  depends_on:
-    - build
-  env:
-    WS_APIKEY: VAULT[development/kv/data/mend data.apikey]
-  calculate_version_script: *CALCULATE_VERSION_SCRIPT_DEFINITION
-  mend_scan_script: |
-    source cirrus-env QA
-    export WS_PRODUCTNAME="SonarLint/VisualStudio"
-    export WS_PROJECTNAME="${CIRRUS_REPO_FULL_NAME} ${SHORT_VERSION}"
-    export WS_PROJECTVERSION=${SHORT_VERSION}
-    ws_scan.sh -c build/whitesource/wss-unified-agent.config
-  allow_failures: true
-  always:
-    ws_artifacts:
-      path: "whitesource/**/*"
-  on_failure:
-    slack_notification_script: *SLACK_NOTIFICATION_SCRIPT_DEFINITION
-
 promote_task:
   ec2_instance: *INSTANCE_DEFINITION
   only_if: $CIRRUS_USER_COLLABORATOR == "true" && $CIRRUS_TAG == "" && ($CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH || $CIRRUS_BRANCH =~ "branch-.*") && $CIRRUS_CRON != "secondary-platform"
