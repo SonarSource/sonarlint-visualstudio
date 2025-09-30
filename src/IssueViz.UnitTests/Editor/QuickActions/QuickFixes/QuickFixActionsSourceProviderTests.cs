@@ -43,6 +43,7 @@ public class QuickFixActionsSourceProviderTests
             MefTestHelpers.CreateExport<IBufferTagAggregatorFactoryService>(),
             MefTestHelpers.CreateExport<ILightBulbBroker>(),
             MefTestHelpers.CreateExport<IQuickFixesTelemetryManager>(),
+            MefTestHelpers.CreateExport<IMessageBox>(),
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
     }
@@ -103,6 +104,7 @@ public class QuickFixActionsSourceProviderTests
             bufferTagAggregatorFactoryService.Object,
             lightBulbBroker,
             Mock.Of<IQuickFixesTelemetryManager>(),
+            Substitute.For<IMessageBox>(),
             Mock.Of<ILogger>(),
             new NoOpThreadHandler());
     }

@@ -22,10 +22,11 @@ namespace SonarLint.VisualStudio.Core;
 
 public record PluginInfo
 {
-    public PluginInfo(string pluginKey, string filePattern)
+    public PluginInfo(string pluginKey, string filePattern, bool isEnabledForAnalysis = true)
     {
         Key = pluginKey ?? throw new ArgumentNullException(nameof(pluginKey));
         FilePattern = filePattern;
+        IsEnabledForAnalysis = isEnabledForAnalysis;
     }
 
     public string Key { get; }
@@ -34,4 +35,6 @@ public record PluginInfo
     /// Nullable, because it can be a connected mode only language so there will be no file on disk (plugin won't be embedded)
     /// </summary>
     public string FilePattern { get; }
+
+    public bool IsEnabledForAnalysis { get; }
 }

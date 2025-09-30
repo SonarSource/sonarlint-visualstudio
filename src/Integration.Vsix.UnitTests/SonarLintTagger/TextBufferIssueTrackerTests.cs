@@ -26,7 +26,6 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
 using SonarLint.VisualStudio.Integration.Vsix;
@@ -57,6 +56,8 @@ public class TextBufferIssueTrackerTests
     private IIssueConsumerFactory issueConsumerFactory;
     private IIssueConsumerStorage issueConsumerStorage;
     private IIssueConsumer issueConsumer;
+    private ITaskExecutorWithDebounceFactory taskExecutorWithDebounceFactory;
+    private ITaskExecutorWithDebounce taskExecutorWithDebounce;
 
     [TestInitialize]
     public void SetUp()
@@ -72,6 +73,9 @@ public class TextBufferIssueTrackerTests
         mockDocumentTextBuffer = CreateTextBufferMock(mockTextSnapshot);
         mockedJavascriptDocumentFooJs = CreateDocumentMock("foo.js", mockDocumentTextBuffer);
         javascriptLanguage = [AnalysisLanguage.Javascript];
+        taskExecutorWithDebounceFactory = Substitute.For<ITaskExecutorWithDebounceFactory>();
+        taskExecutorWithDebounce = Substitute.For<ITaskExecutorWithDebounce>();
+        taskExecutorWithDebounceFactory.Create(Arg.Any<TimeSpan>()).Returns(taskExecutorWithDebounce);
         MockIssueConsumerFactory(mockedJavascriptDocumentFooJs, issueConsumer);
 
         testSubject = CreateTestSubject(mockedJavascriptDocumentFooJs);
@@ -99,6 +103,7 @@ public class TextBufferIssueTrackerTests
         taggerProvider.ActiveTrackersForTesting.Should().BeEquivalentTo(testSubject);
 
         mockedJavascriptDocumentFooJs.Received(1).FileActionOccurred += Arg.Any<EventHandler<TextDocumentFileActionEventArgs>>();
+        ((ITextBuffer2)mockDocumentTextBuffer).Received(1).ChangedOnBackground += Arg.Any<EventHandler<TextContentChangedEventArgs>>();
 
         // Note: the test subject isn't responsible for adding the entry to the buffer.Properties
         // - that's done by the TaggerProvider.
@@ -151,6 +156,9 @@ public class TextBufferIssueTrackerTests
         taggerProvider.ActiveTrackersForTesting.Should().BeEmpty();
 
         mockedJavascriptDocumentFooJs.Received(1).FileActionOccurred -= Arg.Any<EventHandler<TextDocumentFileActionEventArgs>>();
+        ((ITextBuffer2)mockDocumentTextBuffer).Received(1).ChangedOnBackground -= Arg.Any<EventHandler<TextContentChangedEventArgs>>();
+
+        taskExecutorWithDebounce.Received(1).Dispose();
     }
 
     [TestMethod]
@@ -167,13 +175,13 @@ public class TextBufferIssueTrackerTests
     [TestMethod]
     public void WhenFileIsSaved_DocumentSavedEventIsRaised()
     {
-        var eventHandler = Substitute.For<EventHandler<DocumentSavedEventArgs>>();
+        var eventHandler = Substitute.For<EventHandler<DocumentEventArgs>>();
         taggerProvider.DocumentSaved += eventHandler;
 
         RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
 
         eventHandler.Received(1).Invoke(taggerProvider,
-            Arg.Is<DocumentSavedEventArgs>(x => x.Document.FullPath == mockedJavascriptDocumentFooJs.FilePath && x.Document.DetectedLanguages == javascriptLanguage));
+            Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == mockedJavascriptDocumentFooJs.FilePath && x.Document.DetectedLanguages == javascriptLanguage));
     }
 
     [TestMethod]
@@ -195,9 +203,8 @@ public class TextBufferIssueTrackerTests
     public void WhenFileIsLoaded_EventsAreNotRaised()
     {
         var renamedEventHandler = Substitute.For<EventHandler<DocumentRenamedEventArgs>>();
-        var savedEventHandler = Substitute.For<EventHandler<DocumentSavedEventArgs>>();
+        var savedEventHandler = Substitute.For<EventHandler<DocumentEventArgs>>();
         taggerProvider.OpenDocumentRenamed += renamedEventHandler;
-        taggerProvider.DocumentSaved += savedEventHandler;
 
         RaiseFileLoadedEvent(mockedJavascriptDocumentFooJs);
 
@@ -295,17 +302,6 @@ public class TextBufferIssueTrackerTests
     }
 
     [TestMethod]
-    public void UpdateAnalysisState_ClearsErrorList()
-    {
-        var textDocument = mockedJavascriptDocumentFooJs;
-
-        CreateTestSubject(textDocument).UpdateAnalysisState();
-
-        issueConsumer.Received().SetIssues(textDocument.FilePath, []);
-        issueConsumer.Received().SetHotspots(textDocument.FilePath, []);
-    }
-
-    [TestMethod]
     public void UpdateAnalysisState_NonCriticalException_IsSuppressed()
     {
         SetUpIssueConsumerStorageThrows(new InvalidOperationException());
@@ -325,6 +321,21 @@ public class TextBufferIssueTrackerTests
 
         act.Should().Throw<DivideByZeroException>()
             .WithMessage("this is a test");
+    }
+
+    [TestMethod]
+    public void OnTextBufferChangedOnBackground_UpdatesAnalysisState()
+    {
+        var eventHandler = SubscribeToDocumentSaved();
+        var newContent = "new content";
+        var newSnapshot = CreateTextSnapshotMock(newContent);
+        var newAnalysisSnapshot = new AnalysisSnapshot(mockedJavascriptDocumentFooJs.FilePath, newSnapshot);
+        MockTaskExecutorWithDebounce();
+        CreateTestSubject(mockedJavascriptDocumentFooJs);
+
+        RaiseTextBufferChangedOnBackground(currentTextBuffer: mockDocumentTextBuffer, newSnapshot);
+
+        VerifyAnalysisStateUpdated(mockedJavascriptDocumentFooJs, newAnalysisSnapshot, eventHandler, newContent);
     }
 
     private void SetUpIssueConsumerStorageThrows(Exception exception) => issueConsumerStorage.When(x => x.Remove(Arg.Any<string>())).Do(x => throw exception);
@@ -373,21 +384,21 @@ public class TextBufferIssueTrackerTests
         var analysisRequester = mockAnalysisRequester;
         var provider = new TaggerProvider(sonarErrorListDataSource, textDocumentFactoryService,
             serviceProvider, languageRecognizer, analysisRequester, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage, Mock.Of<ITaggableBufferIndicator>(),
-            mockFileTracker, analyzer, logger, new InitializationProcessorFactory(Substitute.For<IAsyncLockFactory>(), new NoOpThreadHandler(), new TestLogger()));
+            mockFileTracker, analyzer, logger, new InitializationProcessorFactory(Substitute.For<IAsyncLockFactory>(), new NoOpThreadHandler(), new TestLogger()), taskExecutorWithDebounceFactory);
         return provider;
     }
 
-    private static ITextSnapshot CreateTextSnapshotMock()
+    private static ITextSnapshot CreateTextSnapshotMock(string content = TextContent)
     {
         var textSnapshot = Substitute.For<ITextSnapshot>();
-        textSnapshot.GetText().Returns(TextContent);
+        textSnapshot.GetText().Returns(content);
         return textSnapshot;
     }
 
     private static ITextBuffer CreateTextBufferMock(ITextSnapshot textSnapshot)
     {
         // Text buffer with a properties collection and current snapshot
-        var mockTextBuffer = Substitute.For<ITextBuffer>();
+        var mockTextBuffer = Substitute.For<ITextBuffer2>();
 
         var dummyProperties = new PropertyCollection();
         mockTextBuffer.Properties.Returns(dummyProperties);
@@ -447,12 +458,51 @@ public class TextBufferIssueTrackerTests
     private TextBufferIssueTracker CreateTestSubject(ITextDocument textDocument, ILogger logger) =>
         new(taggerProvider,
             textDocument, javascriptLanguage,
-            mockSonarErrorDataSource, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage, logger);
+            mockSonarErrorDataSource, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage, taskExecutorWithDebounce, logger);
 
     private void ClearIssueConsumerCalls()
     {
         issueConsumerStorage.ClearReceivedCalls();
         issueConsumerFactory.ClearReceivedCalls();
         vsProjectInfoProvider.ClearReceivedCalls();
+    }
+
+    private static void RaiseTextBufferChangedOnBackground(ITextBuffer currentTextBuffer, ITextSnapshot newTextSnapshot)
+    {
+        var args = new TextContentChangedEventArgs(Substitute.For<ITextSnapshot>(), newTextSnapshot, EditOptions.DefaultMinimalChange, null);
+        ((ITextBuffer2)currentTextBuffer).ChangedOnBackground += Raise.EventWith(null, args);
+    }
+
+    private EventHandler<DocumentEventArgs> SubscribeToDocumentSaved()
+    {
+        var eventHandler = Substitute.For<EventHandler<DocumentEventArgs>>();
+        taggerProvider.DocumentUpdated += eventHandler;
+        return eventHandler;
+    }
+
+    private void MockTaskExecutorWithDebounce() =>
+        taskExecutorWithDebounce.When(x => x.Debounce(Arg.Any<Action>())).Do(callInfo =>
+        {
+            var action = callInfo.Arg<Action>();
+            action();
+        });
+
+    private void VerifyAnalysisStateUpdated(
+        ITextDocument textDocument,
+        AnalysisSnapshot newAnalysisSnapshot,
+        EventHandler<DocumentEventArgs> eventHandler,
+        string newContent)
+    {
+        issueConsumerStorage.Received().Remove(textDocument.FilePath);
+        vsProjectInfoProvider.Received().GetDocumentProjectInfo(newAnalysisSnapshot.FilePath);
+        issueConsumerFactory.Received().Create(textDocument, newAnalysisSnapshot.FilePath, newAnalysisSnapshot.TextSnapshot, Arg.Any<string>(), Arg.Any<Guid>(),
+            Arg.Any<SnapshotChangedHandler>());
+        issueConsumerStorage.Received().Set(textDocument.FilePath, Arg.Any<IIssueConsumer>());
+        issueConsumer.DidNotReceiveWithAnyArgs().SetIssues(default, default);
+        issueConsumer.DidNotReceiveWithAnyArgs().SetHotspots(default, default);
+        eventHandler.Received().Invoke(taggerProvider,
+            Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == textDocument.FilePath
+                                           && x.Document.DetectedLanguages == javascriptLanguage
+                                           && x.Content == newContent));
     }
 }

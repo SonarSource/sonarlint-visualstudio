@@ -70,7 +70,7 @@ public class SonarLintConfigGeneratorTests
     public void Generate_UnrecognisedLanguage_Throws(string languageKey)
     {
         Action act = () => testSubject.Generate(EmptyRules, EmptyProperties, new ServerExclusions(),
-            new Language(languageKey, "languageX", languageKey, new PluginInfo("pluginKey", null), new RepoInfo("repoKey"), settingsFileName: ".any"));
+            new Language(languageKey, "languageX", languageKey, new PluginInfo("pluginKey", null), new RepoInfo("repoKey")));
         act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("language");
     }
 

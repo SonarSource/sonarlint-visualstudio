@@ -58,6 +58,12 @@
     <SonarTextPluginDownloadPath>$(JarDownloadDir)\$(SonarTextPluginFileName)</SonarTextPluginDownloadPath>
     <SonarTextPluginRemoteUrl>https://repox.jfrog.io/artifactory/sonarsource/org/sonarsource/text/sonar-text-plugin/$(EmbeddedSonarSecretsJarVersion)/$(SonarTextPluginFileName)</SonarTextPluginRemoteUrl>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <SonarSqvsRoslynPluginFileName>sonarqube-ide-visualstudio-roslyn-plugin-$(EmbeddedSonarSqvsRoslynJarVersion).jar</SonarSqvsRoslynPluginFileName>
+    <SonarSqvsRoslynPluginDownloadPath>$(JarDownloadDir)\$(SonarSqvsRoslynPluginFileName)</SonarSqvsRoslynPluginDownloadPath>
+    <SonarSqvsRoslynPluginRemoteUrl>https://repox.jfrog.io/artifactory/sonarsource/org/sonarsource/sonarlint/visualstudio/roslyn/sonarqube-ide-visualstudio-roslyn-plugin/$(EmbeddedSonarSqvsRoslynJarVersion)/$(SonarSqvsRoslynPluginFileName)</SonarSqvsRoslynPluginRemoteUrl>
+  </PropertyGroup>
   
   <PropertyGroup>
     <DotnetPluginsExtractDir>$(LOCALAPPDATA)\SLVS_Build_Dotnet</DotnetPluginsExtractDir>

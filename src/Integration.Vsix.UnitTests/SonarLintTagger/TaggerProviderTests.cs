@@ -31,6 +31,7 @@ using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
+using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 
@@ -57,6 +58,7 @@ public class TaggerProviderTests
     private IAnalyzer analyzer;
     private IInitializationProcessorFactory initializationProcessorFactory;
     private IThreadHandling threadHandling;
+    private ITaskExecutorWithDebounceFactory taskExecutorWithDebounceFactory;
 
     private static readonly AnalysisLanguage[] DetectedLanguagesJsTs = [AnalysisLanguage.TypeScript, AnalysisLanguage.Javascript];
 
@@ -90,6 +92,8 @@ public class TaggerProviderTests
 
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
 
+        taskExecutorWithDebounceFactory = Substitute.For<ITaskExecutorWithDebounceFactory>();
+
         testSubject = CreateAndInitializeTestSubject();
     }
 
@@ -121,7 +125,8 @@ public class TaggerProviderTests
         MefTestHelpers.CreateExport<IFileTracker>(),
         MefTestHelpers.CreateExport<IAnalyzer>(),
         MefTestHelpers.CreateExport<ILogger>(),
-        MefTestHelpers.CreateExport<IInitializationProcessorFactory>()
+        MefTestHelpers.CreateExport<IInitializationProcessorFactory>(),
+        MefTestHelpers.CreateExport<ITaskExecutorWithDebounceFactory>(),
     ];
 
     #endregion MEF tests
@@ -147,6 +152,7 @@ public class TaggerProviderTests
         tagger.Should().NotBeNull();
 
         VerifyCreateIssueConsumerWasCalled(doc);
+        taskExecutorWithDebounceFactory.Received(1).Create(debounceTimeSpan: TimeSpan.FromMilliseconds(500));
     }
 
     [TestMethod]
@@ -341,7 +347,7 @@ public class TaggerProviderTests
     [TestMethod]
     public void AddIssueTracker_RaisesEvent()
     {
-        var eventHandler = Substitute.For<EventHandler<DocumentOpenedEventArgs>>();
+        var eventHandler = Substitute.For<EventHandler<DocumentEventArgs>>();
         var filePath = "file1.txt";
         var content = "some text";
         testSubject.DocumentOpened += eventHandler;
@@ -349,7 +355,7 @@ public class TaggerProviderTests
 
         testSubject.AddIssueTracker(issueTracker);
 
-        eventHandler.Received(1).Invoke(testSubject, Arg.Is<DocumentOpenedEventArgs>(e =>
+        eventHandler.Received(1).Invoke(testSubject, Arg.Is<DocumentEventArgs>(e =>
             e.Document.FullPath == filePath &&
             e.Document.DetectedLanguages == DetectedLanguagesJsTs &&
             e.Content == content));
@@ -384,7 +390,7 @@ public class TaggerProviderTests
     [TestMethod]
     public void IssueTracker_DocumentSaved_RaiseEvent()
     {
-        var eventHandler = Substitute.For<EventHandler<DocumentSavedEventArgs>>();
+        var eventHandler = Substitute.For<EventHandler<DocumentEventArgs>>();
         var fileName = "anyname.js";
         var doc = CreateMockedDocument(fileName, DetectedLanguagesJsTs);
         testSubject.DocumentSaved += eventHandler;
@@ -392,7 +398,7 @@ public class TaggerProviderTests
         CreateTaggerForDocument(doc);
         RaiseFileEvent(doc, FileActionTypes.ContentSavedToDisk);
 
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<DocumentSavedEventArgs>(x => x.Document.FullPath == fileName && x.Document.DetectedLanguages == DetectedLanguagesJsTs));
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == fileName && x.Document.DetectedLanguages == DetectedLanguagesJsTs));
     }
 
     [TestMethod]
@@ -423,6 +429,37 @@ public class TaggerProviderTests
 
         eventHandler.Received(1).Invoke(Arg.Any<object>(),
             Arg.Is<DocumentRenamedEventArgs>(x => x.Document.FullPath == newName && x.OldFilePath == oldName && x.Document.DetectedLanguages == DetectedLanguagesJsTs));
+    }
+
+    [TestMethod]
+    public void IssueTracker_DocumentUpdated_RaiseEvent()
+    {
+        var eventHandler = Substitute.For<EventHandler<DocumentEventArgs>>();
+        var fileName = "anyname.js";
+        string content = "new content";
+        var doc = CreateMockedDocument(fileName, DetectedLanguagesJsTs);
+        testSubject.DocumentUpdated += eventHandler;
+
+        CreateTaggerForDocument(doc);
+        testSubject.OnDocumentUpdated(fileName, content, DetectedLanguagesJsTs);
+
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == fileName
+                                                                                          && x.Document.DetectedLanguages == DetectedLanguagesJsTs
+                                                                                          && x.Content == content));
+    }
+
+    [TestMethod]
+    public void IssueTracker_DocumentUpdated_AddsNewFileToFileTracker()
+    {
+        var filePath = "anyname.js";
+        string content = "new content";
+        var doc = CreateMockedDocument(filePath, DetectedLanguagesJsTs, content: content);
+        CreateTaggerForDocument(doc);
+        mockFileTracker.ClearReceivedCalls();
+
+        testSubject.OnDocumentUpdated(filePath, content, DetectedLanguagesJsTs);
+
+        mockFileTracker.Received(1).AddFiles(new SourceFile(filePath, encoding: null, content));
     }
 
     [TestMethod]
@@ -580,7 +617,7 @@ public class TaggerProviderTests
         var taggerProvider = new TaggerProvider(
             mockSonarErrorDataSource, dummyDocumentFactoryService, serviceProvider,
             mockSonarLanguageRecognizer, mockAnalysisRequester, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage,
-            mockTaggableBufferIndicator, mockFileTracker, analyzer, logger, initializationProcessorFactory);
+            mockTaggableBufferIndicator, mockFileTracker, analyzer, logger, initializationProcessorFactory, taskExecutorWithDebounceFactory);
         taggerProvider.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
         return taggerProvider;
     }

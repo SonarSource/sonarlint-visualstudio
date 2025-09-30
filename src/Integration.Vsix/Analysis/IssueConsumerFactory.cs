@@ -20,7 +20,6 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
@@ -42,7 +41,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         /// Instancing: a new issue consumer should be created for each analysis request
         /// i.e. the lifetime of the issue consumer should be tied to that analysis.
         /// </remarks>
-        IIssueConsumer Create(ITextDocument textDocument,
+        IIssueConsumer Create(
+            ITextDocument textDocument,
             string analysisFilePath,
             ITextSnapshot analysisSnapshot,
             string projectName,
@@ -64,7 +64,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             this.localHotspotsStore = localHotspotsStore;
         }
 
-        public IIssueConsumer Create(ITextDocument textDocument,
+        public IIssueConsumer Create(
+            ITextDocument textDocument,
             string analysisFilePath,
             ITextSnapshot analysisSnapshot,
             string projectName,

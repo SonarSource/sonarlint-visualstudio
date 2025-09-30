@@ -115,55 +115,6 @@ public class SonarQubeService : ISonarQubeService, IDisposable
         requestFactory = null;
     }
 
-    public async Task<IList<SonarQubeProperty>> GetAllPropertiesAsync(string projectKey, CancellationToken token) =>
-        await InvokeCheckedRequestAsync<IGetPropertiesRequest, SonarQubeProperty[]>(
-            request =>
-            {
-                request.ProjectKey = projectKey;
-            },
-            token);
-
-    public async Task<IList<SonarQubeQualityProfile>> GetAllQualityProfilesAsync(string project, string organizationKey, CancellationToken token) =>
-        await InvokeCheckedRequestAsync<IGetQualityProfilesRequest, SonarQubeQualityProfile[]>(
-            request =>
-            {
-                request.ProjectKey = project;
-                request.OrganizationKey = GetOrganizationKeyForWebApiCalls(organizationKey, logger);
-            },
-            token);
-
-    public async Task<IList<SonarQubeIssue>> GetSuppressedRoslynIssuesAsync(
-        string projectKey,
-        string branch,
-        string[] issueKeys,
-        CancellationToken token) =>
-        await InvokeCheckedRequestAsync<IGetIssuesRequest, SonarQubeIssue[]>(
-            request =>
-            {
-                request.ProjectKey = projectKey;
-                request.Branch = branch;
-                request.IssueKeys = issueKeys;
-                request.Languages = string.Join(",", languageProvider.RoslynLanguages.Select(x => x.ServerLanguageKey));
-                request.Statuses = "RESOLVED"; // Resolved issues will be hidden in SLVS
-            },
-            token);
-
-    public async Task<IList<SonarQubeIssue>> GetIssuesForComponentAsync(
-        string projectKey,
-        string branch,
-        string componentKey,
-        string ruleId,
-        CancellationToken token) =>
-        await InvokeCheckedRequestAsync<IGetIssuesRequest, SonarQubeIssue[]>(
-            request =>
-            {
-                request.ProjectKey = projectKey;
-                request.Branch = branch;
-                request.ComponentKey = componentKey;
-                request.RuleId = ruleId;
-            },
-            token);
-
     public async Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(
         string projectKey,
         DateTimeOffset eventsSince,
@@ -191,15 +142,6 @@ public class SonarQubeService : ISonarQubeService, IDisposable
             token
         );
 
-    public async Task<IList<SonarQubeRule>> GetRulesAsync(bool isActive, string qualityProfileKey, CancellationToken token) =>
-        await InvokeCheckedRequestAsync<IGetRulesRequest, SonarQubeRule[]>(
-            request =>
-            {
-                request.IsActive = isActive;
-                request.QualityProfileKey = qualityProfileKey;
-            },
-            token);
-
     public Uri GetViewIssueUrl(string projectKey, string issueKey)
     {
         EnsureIsConnected();
@@ -215,13 +157,6 @@ public class SonarQubeService : ISonarQubeService, IDisposable
 
     public async Task<IList<SonarQubeProjectBranch>> GetProjectBranchesAsync(string projectKey, CancellationToken token) =>
         await InvokeCheckedRequestAsync<IGetProjectBranchesRequest, SonarQubeProjectBranch[]>(
-            request =>
-            {
-                request.ProjectKey = projectKey;
-            }, token);
-
-    public async Task<ServerExclusions> GetServerExclusions(string projectKey, CancellationToken token) =>
-        await InvokeCheckedRequestAsync<IGetExclusionsRequest, ServerExclusions>(
             request =>
             {
                 request.ProjectKey = projectKey;

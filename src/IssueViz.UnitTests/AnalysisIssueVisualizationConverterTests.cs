@@ -22,8 +22,10 @@ using System.IO;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests;
 
@@ -34,15 +36,27 @@ public class AnalysisIssueVisualizationConverterTests
     private ITextSnapshot textSnapshotMock;
 
     private AnalysisIssueVisualizationConverter testSubject;
+    private IRoslynQuickFixProvider roslynQuickFixProvider;
 
     [TestInitialize]
     public void TestInitialize()
     {
         issueSpanCalculatorMock = new Mock<IIssueSpanCalculator>();
         textSnapshotMock = Mock.Of<ITextSnapshot>();
+        roslynQuickFixProvider = Substitute.For<IRoslynQuickFixProvider>();
 
-        testSubject = new AnalysisIssueVisualizationConverter(issueSpanCalculatorMock.Object);
+        testSubject = new AnalysisIssueVisualizationConverter(issueSpanCalculatorMock.Object, Substitute.For<ISpanTranslator>(), roslynQuickFixProvider);
     }
+
+    [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<AnalysisIssueVisualizationConverter, IAnalysisIssueVisualizationConverter>(
+            MefTestHelpers.CreateExport<IIssueSpanCalculator>(),
+            MefTestHelpers.CreateExport<ISpanTranslator>(),
+            MefTestHelpers.CreateExport<IRoslynQuickFixProvider>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<AnalysisIssueVisualizationConverter>();
 
     [TestMethod]
     public void Convert_NoTextBuffer_IssueWithNullSpan()
@@ -73,7 +87,7 @@ public class AnalysisIssueVisualizationConverterTests
     [TestMethod]
     public void Convert_NoTextBuffer_QuickFixSpansAreNotCalculated()
     {
-        var issue = CreateIssue(Mock.Of<IQuickFix>());
+        var issue = CreateIssue(Mock.Of<IQuickFixBase>());
 
         var result = testSubject.Convert(issue, textSnapshot: null);
 
@@ -110,8 +124,8 @@ public class AnalysisIssueVisualizationConverterTests
         SetupSpanCalculator(textRange3, span3);
         var edit3 = CreateEdit(textRange3);
 
-        var fix1 = new QuickFix("fix1", new[] { edit1, edit2 });
-        var fix2 = new QuickFix("fix2", new[] { edit3 });
+        var fix1 = new TextBasedQuickFix("fix1", [edit1, edit2]);
+        var fix2 = new TextBasedQuickFix("fix2", [edit3]);
         var issue = CreateIssue(fix1, fix2);
 
         var result = testSubject.Convert(issue, textSnapshotMock);
@@ -119,19 +133,52 @@ public class AnalysisIssueVisualizationConverterTests
         result.QuickFixes.Should().NotBeEmpty();
         result.QuickFixes.Count.Should().Be(2);
 
-        result.QuickFixes[0].Fix.Should().Be(fix1);
-        result.QuickFixes[0].EditVisualizations.Should().NotBeEmpty();
-        result.QuickFixes[0].EditVisualizations.Count.Should().Be(2);
-        result.QuickFixes[0].EditVisualizations[0].Edit.Should().Be(edit1);
-        result.QuickFixes[0].EditVisualizations[0].Span.Should().Be(span1);
-        result.QuickFixes[0].EditVisualizations[1].Edit.Should().Be(edit2);
-        result.QuickFixes[0].EditVisualizations[1].Span.Should().Be(span2);
+        var quickFix1 = result.QuickFixes[0].Should().BeOfType<TextBasedQuickFixApplication>().Subject.QuickFixVisualization;
+        quickFix1.Fix.Should().Be(fix1);
+        quickFix1.EditVisualizations.Should().NotBeEmpty();
+        quickFix1.EditVisualizations.Count.Should().Be(2);
+        quickFix1.EditVisualizations[0].Edit.Should().Be(edit1);
+        quickFix1.EditVisualizations[0].Span.Should().Be(span1);
+        quickFix1.EditVisualizations[1].Edit.Should().Be(edit2);
+        quickFix1.EditVisualizations[1].Span.Should().Be(span2);
 
-        result.QuickFixes[1].Fix.Should().Be(fix2);
-        result.QuickFixes[1].EditVisualizations.Should().NotBeEmpty();
-        result.QuickFixes[1].EditVisualizations.Count.Should().Be(1);
-        result.QuickFixes[1].EditVisualizations[0].Edit.Should().Be(edit3);
-        result.QuickFixes[1].EditVisualizations[0].Span.Should().Be(span3);
+        var quickFix2 = result.QuickFixes[1].Should().BeOfType<TextBasedQuickFixApplication>().Subject.QuickFixVisualization;
+        quickFix2.Fix.Should().Be(fix2);
+        quickFix2.EditVisualizations.Should().NotBeEmpty();
+        quickFix2.EditVisualizations.Count.Should().Be(1);
+        quickFix2.EditVisualizations[0].Edit.Should().Be(edit3);
+        quickFix2.EditVisualizations[0].Span.Should().Be(span3);
+    }
+
+    [TestMethod]
+    public void Convert_IssueHasRoslynQuickFix_RoslynQuickFixIsFound_AddsQuickFixToResult()
+    {
+        var roslynQuickFix = new RoslynQuickFix(Guid.NewGuid());
+        var issue = CreateIssue(roslynQuickFix);
+        var expectedQuickFixApplication = Substitute.For<IQuickFixApplication>();
+        roslynQuickFixProvider.TryGet(roslynQuickFix.Id, out Arg.Any<IQuickFixApplication>())
+            .Returns(x =>
+            {
+                x[1] = expectedQuickFixApplication;
+                return true;
+            });
+
+        var result = testSubject.Convert(issue, textSnapshotMock);
+
+        result.QuickFixes.Should().BeEquivalentTo(expectedQuickFixApplication);
+    }
+
+    [TestMethod]
+    public void Convert_IssueHasRoslynQuickFix_RoslynQuickFixNotFound_ReturnsIssueWithoutQuickFix()
+    {
+        var roslynQuickFix = new RoslynQuickFix(Guid.NewGuid());
+        var issue = CreateIssue(roslynQuickFix);
+        roslynQuickFixProvider.TryGet(roslynQuickFix.Id, out Arg.Any<IQuickFixApplication>())
+            .Returns(false);
+
+        var result = testSubject.Convert(issue, textSnapshotMock);
+
+        result.QuickFixes.Should().BeEmpty();
     }
 
     [TestMethod]
@@ -156,10 +203,10 @@ public class AnalysisIssueVisualizationConverterTests
         SetupSpanCalculator(issue.PrimaryLocation.TextRange, issueSpan);
 
         var expectedIssueVisualization = new AnalysisIssueVisualization(
-            Array.Empty<IAnalysisIssueFlowVisualization>(),
+            [],
             issue,
             issueSpan,
-            Array.Empty<IQuickFixVisualization>());
+            []);
 
         var actualIssueVisualization = testSubject.Convert(issue, textSnapshotMock);
 
@@ -177,13 +224,13 @@ public class AnalysisIssueVisualizationConverterTests
         SetupSpanCalculator(issue.PrimaryLocation.TextRange, issueSpan);
 
         var expectedLocationVisualization = new AnalysisIssueLocationVisualization(1, location);
-        var expectedFlowVisualization = new AnalysisIssueFlowVisualization(1, new[] { expectedLocationVisualization }, flow);
+        var expectedFlowVisualization = new AnalysisIssueFlowVisualization(1, [expectedLocationVisualization], flow);
 
         var expectedIssueVisualization = new AnalysisIssueVisualization(
-            new[] { expectedFlowVisualization },
+            [expectedFlowVisualization],
             issue,
             issueSpan,
-            Array.Empty<IQuickFixVisualization>());
+            []);
 
         var actualIssueVisualization = testSubject.Convert(issue, textSnapshotMock);
 
@@ -207,18 +254,18 @@ public class AnalysisIssueVisualizationConverterTests
 
         var expectedFirstFlowFirstLocationVisualization = new AnalysisIssueLocationVisualization(1, firstFlowFirstLocation);
         var expectedFirstFlowSecondLocationVisualization = new AnalysisIssueLocationVisualization(2, firstFlowSecondLocation);
-        var expectedFirstFlowVisualization = new AnalysisIssueFlowVisualization(1, new[] { expectedFirstFlowFirstLocationVisualization, expectedFirstFlowSecondLocationVisualization }, firstFlow);
+        var expectedFirstFlowVisualization = new AnalysisIssueFlowVisualization(1, [expectedFirstFlowFirstLocationVisualization, expectedFirstFlowSecondLocationVisualization], firstFlow);
 
         var expectedSecondFlowFirstLocationVisualization = new AnalysisIssueLocationVisualization(1, secondFlowFirstLocation);
         var expectedSecondFlowSecondLocationVisualization = new AnalysisIssueLocationVisualization(2, secondFlowSecondLocation);
         var expectedSecondFlowVisualization
-            = new AnalysisIssueFlowVisualization(2, new[] { expectedSecondFlowFirstLocationVisualization, expectedSecondFlowSecondLocationVisualization }, secondFlow);
+            = new AnalysisIssueFlowVisualization(2, [expectedSecondFlowFirstLocationVisualization, expectedSecondFlowSecondLocationVisualization], secondFlow);
 
         var expectedIssueVisualization = new AnalysisIssueVisualization(
-            new[] { expectedFirstFlowVisualization, expectedSecondFlowVisualization },
+            [expectedFirstFlowVisualization, expectedSecondFlowVisualization],
             issue,
             issueSpan,
-            Array.Empty<IQuickFixVisualization>());
+            []);
 
         var actualIssueVisualization = testSubject.Convert(issue, textSnapshotMock);
 
@@ -243,13 +290,13 @@ public class AnalysisIssueVisualizationConverterTests
 
         var expectedLocation1 = new AnalysisIssueLocationVisualization(1, locationInSameFile) { Span = locationSpan };
         var expectedLocation2 = new AnalysisIssueLocationVisualization(2, locationInAnotherFile) { Span = null };
-        var expectedFlow = new AnalysisIssueFlowVisualization(1, new[] { expectedLocation1, expectedLocation2 }, flow);
+        var expectedFlow = new AnalysisIssueFlowVisualization(1, [expectedLocation1, expectedLocation2], flow);
 
         var expectedIssueVisualization = new AnalysisIssueVisualization(
-            new[] { expectedFlow },
+            [expectedFlow],
             issue,
             issueSpan,
-            Array.Empty<IQuickFixVisualization>());
+            []);
 
         var actualIssueVisualization = testSubject.Convert(issue, textSnapshotMock);
 
@@ -276,7 +323,7 @@ public class AnalysisIssueVisualizationConverterTests
         actualIssueVisualization.Flows.Should().BeEquivalentTo(expectedIssueVisualization.Flows, c => c.WithStrictOrdering());
     }
 
-    private IAnalysisIssue CreateIssue(params IQuickFix[] quickFixes)
+    private IAnalysisIssue CreateIssue(params IQuickFixBase[] quickFixes)
     {
         var issue = new AnalysisIssue(
             Guid.NewGuid(),

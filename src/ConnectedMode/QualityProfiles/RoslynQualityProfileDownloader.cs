@@ -19,10 +19,9 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
 {
@@ -39,93 +38,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
     [Export(typeof(IQualityProfileDownloader))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     [method: ImportingConstructor]
-    internal class RoslynQualityProfileDownloader(
-        IBindingConfigProvider bindingConfigProvider,
-        IConfigurationPersister configurationPersister,
-        IOutOfDateQualityProfileFinder outOfDateQualityProfileFinder,
-        ILogger logger,
-        ILanguageProvider languageProvider)
+    [ExcludeFromCodeCoverage] // todo https://sonarsource.atlassian.net/browse/SLVS-2420
+    internal class RoslynQualityProfileDownloader()
         : IQualityProfileDownloader
     {
-        private readonly IEnumerable<Language> languagesToBind = languageProvider.RoslynLanguages;
-
         public async Task<bool> UpdateAsync(
             BoundServerProject boundProject,
             IProgress<FixedStepsProgress> progress,
             CancellationToken cancellationToken)
         {
-            var isChanged = false;
-
-            LogWithBindingPrefix(QualityProfilesStrings.UpdatingQualityProfiles);
-
-            EnsureProfilesExistForAllSupportedLanguages(boundProject);
-
-            var outOfDateProfiles = await outOfDateQualityProfileFinder.GetAsync(boundProject, cancellationToken);
-
-            int currentLanguage = 0;
-            var totalLanguages = outOfDateProfiles.Count;
-
-            LogWithBindingPrefix(string.Format(QualityProfilesStrings.OutOfDateQPsFound, totalLanguages));
-
-            foreach (var (language, qualityProfileInfo) in outOfDateProfiles)
-            {
-                if (!languagesToBind.Contains(language))
-                {
-                    continue;
-                }
-                currentLanguage++;
-
-                var progressMessage = string.Format(QualityProfilesStrings.DownloadingQualityProfileProgressMessage, language.Name);
-                progress?.Report(new FixedStepsProgress(progressMessage, currentLanguage, totalLanguages));
-
-                UpdateProfile(boundProject, language, qualityProfileInfo);
-
-                // (1) Save the top-level binding.config file that contains the QP timestamp
-                var bindingConfiguration = configurationPersister.Persist(boundProject);
-
-                // (2) Save the language-specific rules config.
-                // Note: we've already saved the updated timestamp for the current language in the binding.config file at step (1) above
-                // If there is an error between (1) and (2) then the timestamp in the binding.config will show this language
-                // is up to date when it is not.
-                await bindingConfigProvider.SaveConfigurationAsync(qualityProfileInfo, language, bindingConfiguration, cancellationToken);
-                isChanged = true;
-
-                LogWithBindingPrefix(string.Format(BindingStrings.SubTextPaddingFormat,
-                    string.Format(QualityProfilesStrings.QualityProfileDownloadSuccessfulMessageFormat, qualityProfileInfo.Name, qualityProfileInfo.Key, language.Name)));
-            }
-
-            if (!isChanged)
-            {
-                LogWithBindingPrefix(string.Format(QualityProfilesStrings.SubTextPaddingFormat, QualityProfilesStrings.DownloadingQualityProfilesNotNeeded));
-            }
-
-            return isChanged;
+            // TODO by https://sonarsource.atlassian.net/browse/SLVS-2420 drop this class
+            return false;
         }
-
-        /// <summary>
-        /// Ensures that the bound project has a profile entry for every supported language
-        /// </summary>
-        /// <remarks>If we add support for new language in the future, this method will make sure it's
-        /// Quality Profile is fetched next time an update is triggered</remarks>
-        private void EnsureProfilesExistForAllSupportedLanguages(BoundServerProject boundProject)
-        {
-            if (boundProject.Profiles == null)
-            {
-                boundProject.Profiles = new Dictionary<Language, ApplicableQualityProfile>();
-            }
-
-            foreach (var language in languagesToBind)
-            {
-                if (!boundProject.Profiles.ContainsKey(language))
-                {
-                    boundProject.Profiles[language] = new ApplicableQualityProfile { ProfileKey = null, ProfileTimestamp = DateTime.MinValue, };
-                }
-            }
-        }
-
-        private static void UpdateProfile(BoundServerProject boundSonarQubeProject, Language language, SonarQubeQualityProfile serverProfile) =>
-            boundSonarQubeProject.Profiles[language] = new ApplicableQualityProfile { ProfileKey = serverProfile.Key, ProfileTimestamp = serverProfile.TimeStamp };
-
-        private void LogWithBindingPrefix(string text) => logger.WriteLine(QualityProfilesStrings.QPMessagePrefix + text);
     }
 }

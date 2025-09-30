@@ -18,296 +18,173 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Windows;
 using Microsoft.VisualStudio.Text;
-using Moq;
+using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickActions.QuickFixes
 {
     [TestClass]
     public class QuickFixSuggestedActionTests
     {
+        private IQuickFixApplication quickFixApplication;
+        private ITextBuffer textBuffer;
+        private IAnalysisIssueVisualization issueViz;
+        private IQuickFixesTelemetryManager telemetryManager;
+        private TestLogger logger;
+        private NoOpThreadHandler threadHandling;
+        private ITextSnapshot snapshot;
+        private QuickFixSuggestedAction testSubject;
+        private const string RuleId = "test-rule-id";
+        private SnapshotSpan originalSpan;
+        private IMessageBox messageBox;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            quickFixApplication = Substitute.For<IQuickFixApplication>();
+            snapshot = CreateTextSnapshot();
+            textBuffer = CreateTextBuffer(snapshot);
+            issueViz = Substitute.For<IAnalysisIssueVisualization>();
+            issueViz.RuleId.Returns(RuleId);
+            messageBox = Substitute.For<IMessageBox>();
+
+            // Set up a non-empty span
+            originalSpan = new SnapshotSpan(snapshot, new Span(0, 10));
+            issueViz.Span.Returns(originalSpan);
+
+            telemetryManager = Substitute.For<IQuickFixesTelemetryManager>();
+            logger = Substitute.ForPartsOf<TestLogger>();
+            threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+
+            testSubject = new QuickFixSuggestedAction(
+                quickFixApplication,
+                textBuffer,
+                issueViz,
+                telemetryManager,
+                messageBox,
+                logger,
+                threadHandling);
+        }
+
+        [TestMethod]
+        public void Ctor_SetsLogContext() => logger.Received(1).ForContext(Resources.QuickFixSuggestedAction_LogContext);
+
         [TestMethod]
         public void DisplayName_ReturnsFixMessage()
         {
-            var quickFixViz = new Mock<IQuickFixVisualization>();
-            quickFixViz.Setup(x => x.Fix.Message).Returns("some fix");
+            const string message = "some fix";
+            quickFixApplication.Message.Returns(message);
 
-            var testSubject = CreateTestSubject(quickFixViz.Object);
-
-            testSubject.DisplayText.Should().Be(Resources.ProductNameCommandPrefix + "some fix");
+            testSubject.DisplayText.Should().Be(Resources.ProductNameCommandPrefix + message);
         }
 
         [TestMethod]
-        public void Invoke_QuickFixCanBeApplied_TelemetryIsSent()
+        public void Invoke_AppliesFixOnUiThreadWithTelemetry()
         {
-            var snapshot = CreateTextSnapshot();
-            var quickFixViz = CreateQuickFixViz(snapshot.Object);
-            var textBuffer = CreateTextBuffer(snapshot.Object);
-
-            var issueViz = new Mock<IAnalysisIssueVisualization>();
-            issueViz.Setup(x => x.RuleId).Returns("some rule");
-
-            var telemetryManager = new Mock<IQuickFixesTelemetryManager>();
-
-            var testSubject = CreateTestSubject(quickFixViz.Object,
-                textBuffer.Object,
-                issueViz: issueViz.Object,
-                telemetryManager: telemetryManager.Object);
+            ConfigureQuickFixApplicationCanBeApplied(true, true);
 
             testSubject.Invoke(CancellationToken.None);
 
-            telemetryManager.Verify(x => x.QuickFixApplied("some rule"), Times.Once);
-            telemetryManager.VerifyNoOtherCalls();
+            Received.InOrder(() =>
+            {
+                quickFixApplication.CanBeApplied(snapshot);
+                threadHandling.Run(Arg.Any<Func<Task<int>>>());
+                threadHandling.SwitchToMainThreadAsync();
+                quickFixApplication.ApplyAsync(snapshot, Arg.Any<CancellationToken>());
+                telemetryManager.QuickFixApplied(RuleId);
+            });
+            issueViz.Received(1).Span = Arg.Is<SnapshotSpan>(s => s.IsEmpty);
+            issueViz.DidNotReceive().Span = originalSpan;
         }
 
         [TestMethod]
-        public void Invoke_QuickFixCannotBeApplied_TelemetryNotSent()
+        public void Invoke_QuickFixApplicationReturnsFalse_SpanIsRestored_TelemetryNotSent()
         {
-            var snapshot = CreateTextSnapshot();
-            var quickFixViz = CreateNonApplicableQuickFixViz(snapshot.Object);
-            var textBuffer = CreateTextBuffer(snapshot.Object);
+            ConfigureQuickFixApplicationCanBeApplied(true, false);
 
-            var telemetryManager = new Mock<IQuickFixesTelemetryManager>();
-
-            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object, telemetryManager: telemetryManager.Object);
             testSubject.Invoke(CancellationToken.None);
 
-            telemetryManager.Verify(x => x.QuickFixApplied(It.IsAny<string>()), Times.Never);
-            telemetryManager.VerifyNoOtherCalls();
+            VerifyDidNotApply();
         }
 
         [TestMethod]
-        public void Invoke_AppliesFixWithOneEdit()
+        public void Invoke_QuickFixApplicationThrowsException_SpanIsRestored_TelemetryNotSent()
         {
-            var snapshot = CreateTextSnapshot();
+            quickFixApplication.CanBeApplied(snapshot).Returns(true);
+            var exception = new Exception("test");
+            quickFixApplication.ApplyAsync(snapshot, Arg.Any<CancellationToken>()).ThrowsAsync(exception);
 
-            var span = new Span(1, 10);
-            var editVisualization = CreateEditVisualization(new SnapshotSpan(snapshot.Object, span));
-            var quickFixViz = CreateQuickFixViz(snapshot.Object, editVisualization.Object);
-            var textEdit = new Mock<ITextEdit>(MockBehavior.Strict);
-            var textBuffer = CreateTextBuffer(snapshot.Object, textEdit.Object);
+            var act = () => testSubject.Invoke(CancellationToken.None);
 
-            var sequence = new MockSequence();
-
-            textBuffer.InSequence(sequence).Setup(t => t.CreateEdit()).Returns(textEdit.Object);
-            textEdit.InSequence(sequence).Setup(t => t.Replace(span, "edit")).Returns(true);
-            textEdit.InSequence(sequence).Setup(t => t.Apply()).Returns(Mock.Of<ITextSnapshot>());
-
-            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object);
-            testSubject.Invoke(CancellationToken.None);
-
-            textBuffer.Verify(tb => tb.CreateEdit(), Times.Once(), "CreateEdit should be called once");
-            textEdit.Verify(tb => tb.Replace(It.IsAny<Span>(), It.IsAny<string>()), Times.Exactly(1), "Replace should be called one time");
-            textEdit.Verify(tb => tb.Apply(), Times.Once(), "Apply should be called once");
-        }
-
-        [TestMethod]
-        public void Invoke_AppliesFixWithMultipleEdits()
-        {
-            var snapshot = CreateTextSnapshot();
-
-            var span1 = new Span(1, 10);
-            var editVisualization1 = CreateEditVisualization(new SnapshotSpan(snapshot.Object, span1), "edit1");
-
-            var span2 = new Span(2, 20);
-            var editVisualization2 = CreateEditVisualization(new SnapshotSpan(snapshot.Object, span2), "edit2");
-
-            var span3 = new Span(3, 30);
-            var editVisualization3 = CreateEditVisualization(new SnapshotSpan(snapshot.Object, span3), "edit3");
-
-            var quickFixViz = CreateQuickFixViz(snapshot.Object,
-                editVisualization1.Object,
-                editVisualization2.Object,
-                editVisualization3.Object);
-
-            var textEdit = new Mock<ITextEdit>(MockBehavior.Strict);
-            var textBuffer = CreateTextBuffer(snapshot.Object, textEdit.Object);
-
-            var sequence = new MockSequence();
-
-            textBuffer.InSequence(sequence).Setup(t => t.CreateEdit()).Returns(textEdit.Object);
-            textEdit.InSequence(sequence).Setup(t => t.Replace(span1, "edit1")).Returns(true);
-            textEdit.InSequence(sequence).Setup(t => t.Replace(span2, "edit2")).Returns(true);
-            textEdit.InSequence(sequence).Setup(t => t.Replace(span3, "edit3")).Returns(true);
-            textEdit.InSequence(sequence).Setup(t => t.Apply()).Returns(Mock.Of<ITextSnapshot>());
-
-            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object);
-            testSubject.Invoke(CancellationToken.None);
-
-            textBuffer.Verify(tb => tb.CreateEdit(), Times.Once(), "CreateEdit should be called once");
-            textEdit.Verify(tb => tb.Replace(It.IsAny<Span>(), It.IsAny<string>()), Times.Exactly(3), "Replace should be called three time");
-            textEdit.Verify(tb => tb.Apply(), Times.Once(), "Apply should be called once");
+            act.Should().Throw<Exception>().Which.Should().Be(exception);
+            VerifyDidNotApply();
         }
 
         [TestMethod]
         public void Invoke_CancellationTokenIsCancelled_NoChanges()
         {
-            var quickFixViz = new Mock<IQuickFixVisualization>();
-            var textBuffer = new Mock<ITextBuffer>();
-            var issueViz = new Mock<IAnalysisIssueVisualization>();
-
-            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object, issueViz: issueViz.Object);
-
             testSubject.Invoke(new CancellationToken(canceled: true));
 
-            quickFixViz.VerifyNoOtherCalls();
-            textBuffer.VerifyNoOtherCalls();
-            issueViz.VerifyNoOtherCalls();
+            quickFixApplication.DidNotReceiveWithAnyArgs().ApplyAsync(default, default);
+            issueViz.DidNotReceiveWithAnyArgs().Span = Arg.Any<SnapshotSpan>();
+            telemetryManager.DidNotReceiveWithAnyArgs().QuickFixApplied(Arg.Any<string>());
         }
 
         [TestMethod]
         public void Invoke_QuickFixIsNotApplicable_NoChanges()
         {
-            var snapshot = Mock.Of<ITextSnapshot>();
-            var quickFixViz = CreateNonApplicableQuickFixViz(snapshot);
-            var issueViz = new Mock<IAnalysisIssueVisualization>();
-            var textBuffer = CreateTextBuffer(snapshot);
-
-            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object, issueViz: issueViz.Object);
+            ConfigureQuickFixApplicationCanBeApplied(false, false);
 
             testSubject.Invoke(CancellationToken.None);
 
-            quickFixViz.Verify(x => x.CanBeApplied(snapshot), Times.Once);
-            quickFixViz.VerifyNoOtherCalls();
-
-            textBuffer.VerifyGet(x => x.CurrentSnapshot, Times.Once);
-            textBuffer.VerifyNoOtherCalls();
-
-            issueViz.VerifyGet(x => x.RuleId, Times.Once);
-            issueViz.VerifyNoOtherCalls();
+            quickFixApplication.Received(1).CanBeApplied(snapshot);
+            quickFixApplication.DidNotReceiveWithAnyArgs().ApplyAsync(default, default);
+            issueViz.DidNotReceiveWithAnyArgs().Span = Arg.Any<SnapshotSpan>();
+            telemetryManager.DidNotReceiveWithAnyArgs().QuickFixApplied(Arg.Any<string>());
         }
 
-        [TestMethod]
-        public void Invoke_SpansAreTranslatedCorrectly()
+        private void VerifyDidNotApply()
         {
-            var snapshot = CreateTextSnapshot();
-            var span1 = new Span(1, 10);
-            var span2 = new Span(20, 30);
-
-            var originalSnapshotSpan = new SnapshotSpan(snapshot.Object, span1);
-            var modifiedSnapshotSpan = new SnapshotSpan(snapshot.Object, span2);
-
-            var spanTranslator = new Mock<ISpanTranslator>();
-            spanTranslator
-                .Setup(x => x.TranslateTo(originalSnapshotSpan, snapshot.Object, SpanTrackingMode.EdgeExclusive))
-                .Returns(modifiedSnapshotSpan);
-
-            var editVisualization = CreateEditVisualization(originalSnapshotSpan, text: "some edit");
-            var quickFixViz = CreateQuickFixViz(snapshot.Object, editVisualization.Object);
-
-            var textEdit = new Mock<ITextEdit>();
-            var textBuffer = CreateTextBuffer(snapshot.Object, textEdit.Object);
-
-            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object, spanTranslator.Object);
-            testSubject.Invoke(CancellationToken.None);
-
-            textEdit.Verify(t => t.Replace(span2, "some edit"), Times.Once);
-        }
-
-        [TestMethod]
-        public void Invoke_SpanInvalidatedCorrectly()
-        {
-            var snapshot = CreateTextSnapshot();
-            var editVisualization = CreateEditVisualization(new SnapshotSpan(snapshot.Object, new Span(1, 10)));
-            var quickFixViz = CreateQuickFixViz(snapshot.Object, editVisualization.Object);
-            var textBuffer = CreateTextBuffer(snapshot.Object);
-
-            var issueViz = new Mock<IAnalysisIssueVisualization>();
-
-            var testSubject = CreateTestSubject(quickFixViz.Object, textBuffer.Object, issueViz: issueViz.Object);
-            testSubject.Invoke(CancellationToken.None);
-
-            issueViz.VerifySet(iv => iv.Span = new SnapshotSpan());
-        }
-
-        private static Mock<ITextSnapshot> CreateTextSnapshot()
-        {
-            var snapShot = new Mock<ITextSnapshot>();
-            snapShot.SetupGet(ss => ss.Length).Returns(int.MaxValue);
-
-            return snapShot;
-        }
-
-        private static QuickFixSuggestedAction CreateTestSubject(
-            IQuickFixVisualization quickFixViz,
-            ITextBuffer textBuffer = null,
-            ISpanTranslator spanTranslator = null,
-            IAnalysisIssueVisualization issueViz = null,
-            IQuickFixesTelemetryManager telemetryManager = null)
-        {
-            if (spanTranslator == null)
+            var didNotApplyMessage = string.Format(Resources.QuickFixSuggestedAction_CouldNotApply, RuleId);
+            Received.InOrder(() =>
             {
-                SnapshotSpan originalSnapshotSpan = new();
-
-                var doNothingSpanTranslator = new Mock<ISpanTranslator>();
-                doNothingSpanTranslator.Setup(x => x.TranslateTo(
-                        It.IsAny<SnapshotSpan>(),
-                        It.IsAny<ITextSnapshot>(),
-                        It.IsAny<SpanTrackingMode>()))
-                    .Callback((SnapshotSpan snapshotSpan, ITextSnapshot textSnapshot, SpanTrackingMode mode)
-                        => originalSnapshotSpan = snapshotSpan)
-                    .Returns(() => originalSnapshotSpan);
-
-                spanTranslator = doNothingSpanTranslator.Object;
-            }
-
-            issueViz ??= Mock.Of<IAnalysisIssueVisualization>();
-            telemetryManager ??= Mock.Of<IQuickFixesTelemetryManager>();
-
-            return new QuickFixSuggestedAction(quickFixViz,
-                textBuffer,
-                issueViz,
-                telemetryManager,
-                Mock.Of<ILogger>(),
-                spanTranslator);
+                quickFixApplication.CanBeApplied(snapshot);
+                threadHandling.Run(Arg.Any<Func<Task<int>>>());
+                threadHandling.SwitchToMainThreadAsync();
+                quickFixApplication.ApplyAsync(snapshot, Arg.Any<CancellationToken>());
+                messageBox.Show(didNotApplyMessage, Resources.QuickFixSuggestedAction_CouldNotApplyMessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Error);
+            });
+            issueViz.Received().Span = originalSpan;
+            telemetryManager.DidNotReceiveWithAnyArgs().QuickFixApplied(Arg.Any<string>());
+            logger.AssertPartialOutputStringExists(didNotApplyMessage);
         }
 
-        private static Mock<IQuickFixVisualization> CreateQuickFixViz(ITextSnapshot snapShot, params IQuickFixEditVisualization[] editVisualizations) =>
-            CreateQuickFixViz(snapShot, true, editVisualizations);
-
-        private static Mock<IQuickFixVisualization> CreateNonApplicableQuickFixViz(ITextSnapshot snapShot) => CreateQuickFixViz(snapShot, false);
-
-        private static Mock<IQuickFixVisualization> CreateQuickFixViz(
-            ITextSnapshot snapShot,
-            bool canBeApplied = true,
-            params IQuickFixEditVisualization[] editVisualizations)
+        private static ITextSnapshot CreateTextSnapshot()
         {
-            var quickFixViz = new Mock<IQuickFixVisualization>();
+            var snapshot = Substitute.For<ITextSnapshot>();
+            snapshot.Length.Returns(int.MaxValue);
+            return snapshot;
+        }
 
-            quickFixViz
-                .Setup(x => x.EditVisualizations)
-                .Returns(editVisualizations);
-
-            quickFixViz
-                .Setup(x => x.CanBeApplied(snapShot))
+        private void ConfigureQuickFixApplicationCanBeApplied(bool canBeApplied, bool willBeApplied)
+        {
+            quickFixApplication.CanBeApplied(snapshot)
                 .Returns(canBeApplied);
 
-            return quickFixViz;
+            quickFixApplication.ApplyAsync(snapshot, Arg.Any<CancellationToken>())
+                .Returns(willBeApplied);
         }
 
-        private static Mock<IQuickFixEditVisualization> CreateEditVisualization(SnapshotSpan snapshotSpan, string text = "edit")
+        private static ITextBuffer CreateTextBuffer(ITextSnapshot snapShot)
         {
-            var editVisualization = new Mock<IQuickFixEditVisualization>();
-
-            editVisualization.Setup(e => e.Edit.NewText).Returns(text);
-            editVisualization.Setup(e => e.Span).Returns(snapshotSpan);
-
-            return editVisualization;
-        }
-
-        private static Mock<ITextBuffer> CreateTextBuffer(ITextSnapshot snapShot, ITextEdit textEdit = null)
-        {
-            textEdit ??= Mock.Of<ITextEdit>();
-
-            var textBuffer = new Mock<ITextBuffer>(MockBehavior.Strict);
-            textBuffer.Setup(x => x.CurrentSnapshot).Returns(snapShot);
-            textBuffer.Setup(t => t.CreateEdit()).Returns(textEdit);
-
+            var textBuffer = Substitute.For<ITextBuffer>();
+            textBuffer.CurrentSnapshot.Returns(snapShot);
             return textBuffer;
         }
     }

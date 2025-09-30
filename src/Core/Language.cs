@@ -35,11 +35,12 @@ namespace SonarLint.VisualStudio.Core
     /// </remarks>
     [DebuggerDisplay("{Name} (ID: {Id})")]
     [TypeConverter(typeof(LanguageConverter))]
-    public sealed class Language : IEquatable<Language>
+    public class Language : IEquatable<Language>
     {
         private const string VersionNumberPattern = "(\\d+\\.\\d+\\.\\d+\\.\\d+)\\";
-        private static readonly PluginInfo CSharpPlugin = new("csharpenterprise", $"sonar-csharp-enterprise-plugin-{VersionNumberPattern}.jar");
-        private static readonly PluginInfo VbNetPlugin = new("vbnetenterprise", $"sonar-vbnet-enterprise-plugin-{VersionNumberPattern}.jar");
+        private static readonly PluginInfo SqvsRoslynPlugin = new("sqvsroslyn", $"sonarqube-ide-visualstudio-roslyn-plugin-{VersionNumberPattern}.jar");
+        private static readonly PluginInfo CSharpPlugin = new("csharpenterprise", $"sonar-csharp-enterprise-plugin-{VersionNumberPattern}.jar", isEnabledForAnalysis: false);
+        private static readonly PluginInfo VbNetPlugin = new("vbnetenterprise", $"sonar-vbnet-enterprise-plugin-{VersionNumberPattern}.jar", isEnabledForAnalysis: false);
         private static readonly PluginInfo SecretsPlugin = new("text", $"sonar-text-plugin-{VersionNumberPattern}.jar");
         private static readonly PluginInfo CFamilyPlugin = new("cpp", $"sonar-cfamily-plugin-{VersionNumberPattern}.jar");
         private static readonly PluginInfo JavascriptPlugin = new("javascript", $"sonar-javascript-plugin-{VersionNumberPattern}.jar");
@@ -62,9 +63,10 @@ namespace SonarLint.VisualStudio.Core
         private static readonly RepoInfo TsqlRepo = new("tsql");
 
         public static readonly Language Unknown = new();
-        public static readonly Language CSharp = new("CSharp", CoreStrings.CSharpLanguageName, "cs", CSharpPlugin, CSharpRepo, CSharpSecurityRepo,
-            settingsFileName: "sonarlint_csharp.globalconfig");
-        public static readonly Language VBNET = new("VB", CoreStrings.VBNetLanguageName, "vbnet", VbNetPlugin, VbNetRepo, settingsFileName: "sonarlint_vb.globalconfig");
+        public static readonly RoslynLanguage CSharp = new("CSharp", CoreStrings.CSharpLanguageName, "cs", SqvsRoslynPlugin, CSharpRepo,
+            settingsFileName: "sonarlint_csharp.globalconfig", roslynDllIdentifier: ".CSharp.", CSharpSecurityRepo, additionalPlugins: [CSharpPlugin]);
+        public static readonly RoslynLanguage VBNET = new("VB", CoreStrings.VBNetLanguageName, "vbnet", SqvsRoslynPlugin, VbNetRepo, settingsFileName: "sonarlint_vb.globalconfig", roslynDllIdentifier: ".VisualBasic.",
+            additionalPlugins: [VbNetPlugin]);
         public static readonly Language Cpp = new("C++", CoreStrings.CppLanguageName, "cpp", CFamilyPlugin, CppRepo);
         public static readonly Language C = new("C", "C", "c", CFamilyPlugin, CRepo);
         public static readonly Language Js = new("Js", "JavaScript", "js", JavascriptPlugin, JsRepo, JsSecurityRepo);
@@ -96,10 +98,9 @@ namespace SonarLint.VisualStudio.Core
         public string Name { get; }
 
         /// <summary>
-        /// Suffix and extension added to the language-specific rules configuration file for the language
+        /// Additional plugins that should be installed for a language
         /// </summary>
-        /// <remarks>e.g. for ruleset-based languages this will be a language identifier + ".globalconfig"</remarks>
-        public string SettingsFileNameAndExtension { get; }
+        public PluginInfo[] AdditionalPlugins { get; }
 
         public RepoInfo RepoInfo { get; }
 
@@ -115,7 +116,6 @@ namespace SonarLint.VisualStudio.Core
         {
             Id = string.Empty;
             Name = CoreStrings.UnknownLanguageName;
-            SettingsFileNameAndExtension = string.Empty;
         }
 
         public Language(
@@ -125,7 +125,7 @@ namespace SonarLint.VisualStudio.Core
             PluginInfo pluginInfo,
             RepoInfo repoInfo,
             RepoInfo securityRepoInfo = null,
-            string settingsFileName = null)
+            PluginInfo[] additionalPlugins = null)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.Core
 
             Id = id;
             Name = name;
-            SettingsFileNameAndExtension = settingsFileName;
+            AdditionalPlugins = additionalPlugins;
             ServerLanguageKey = serverLanguageKey ?? throw new ArgumentNullException(nameof(serverLanguageKey));
             PluginInfo = pluginInfo ?? throw new ArgumentNullException(nameof(pluginInfo));
             RepoInfo = repoInfo ?? throw new ArgumentNullException(nameof(repoInfo));
@@ -174,5 +174,38 @@ namespace SonarLint.VisualStudio.Core
         public override string ToString() => Name;
 
         public bool HasRepoKey(string repoKey) => RepoInfo.Key == repoKey || SecurityRepoInfo?.Key == repoKey;
+    }
+
+    /// <summary>
+    /// Represents a Roslyn-based programming language with specific Roslyn analyzer configuration.
+    /// </summary>
+    public class RoslynLanguage : Language
+    {
+        /// <summary>
+        /// Suffix and extension added to the language-specific rules configuration file for the language
+        /// </summary>
+        /// <remarks>e.g. for ruleset-based languages this will be a language identifier + ".globalconfig"</remarks>
+        public string SettingsFileNameAndExtension { get; }
+
+        /// <summary>
+        /// A substring that is contained in the name of the analyzer files for specific roslyn language.
+        /// </summary>
+        public string RoslynDllIdentifier { get; }
+
+        public RoslynLanguage(
+            string id,
+            string name,
+            string serverLanguageKey,
+            PluginInfo pluginInfo,
+            RepoInfo repoInfo,
+            string settingsFileName,
+            string roslynDllIdentifier,
+            RepoInfo securityRepoInfo = null,
+            PluginInfo[] additionalPlugins = null)
+            : base(id, name, serverLanguageKey, pluginInfo, repoInfo, securityRepoInfo, additionalPlugins)
+        {
+            SettingsFileNameAndExtension = settingsFileName;
+            RoslynDllIdentifier = roslynDllIdentifier;
+        }
     }
 }

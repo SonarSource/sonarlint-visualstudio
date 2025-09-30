@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\SonarLint.Product.props" />  
+  <!-- This project references the Microsoft.VisualStudio.Shell assembly which is VS-version specific -->
+  <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
+
+  <PropertyGroup>
+    <RootNamespace>SonarLint.VisualStudio.RoslynAnalyzerServer</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.RoslynAnalyzerServer</AssemblyName>
+    <Nullable>enable</Nullable>
+    <RequiresLanguageServices>true</RequiresLanguageServices>
+  </PropertyGroup>
+
+  <ItemGroup Label="Framework references">
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.11.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="3.11.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

@@ -46,7 +46,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
     private readonly ISLCoreLanguageProvider slCoreLanguageProvider;
     private readonly ISLCoreFoldersProvider slCoreFoldersProvider;
     private readonly IServerConnectionsProvider serverConnectionConfigurationProvider;
-    private readonly ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider;
+    private readonly ISLCoreEmbeddedPluginProvider slCoreEmbeddedPluginProvider;
     private readonly INodeLocationProvider nodeLocator;
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly IConfigScopeUpdater configScopeUpdater;
@@ -63,7 +63,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
         ISLCoreLanguageProvider slCoreLanguageProvider,
         ISLCoreFoldersProvider slCoreFoldersProvider,
         IServerConnectionsProvider serverConnectionConfigurationProvider,
-        ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider,
+        ISLCoreEmbeddedPluginProvider slCoreEmbeddedPluginProvider,
         INodeLocationProvider nodeLocator,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IConfigScopeUpdater configScopeUpdater,
@@ -78,7 +78,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
         this.slCoreLanguageProvider = slCoreLanguageProvider;
         this.slCoreFoldersProvider = slCoreFoldersProvider;
         this.serverConnectionConfigurationProvider = serverConnectionConfigurationProvider;
-        this.slCoreEmbeddedPluginJarProvider = slCoreEmbeddedPluginJarProvider;
+        this.slCoreEmbeddedPluginProvider = slCoreEmbeddedPluginProvider;
         this.nodeLocator = nodeLocator;
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.configScopeUpdater = configScopeUpdater;
@@ -96,7 +96,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
             slCoreLanguageProvider,
             slCoreFoldersProvider,
             serverConnectionConfigurationProvider,
-            slCoreEmbeddedPluginJarProvider,
+            slCoreEmbeddedPluginProvider,
             nodeLocator,
             esLintBridgeLocator,
             activeSolutionBoundTracker,

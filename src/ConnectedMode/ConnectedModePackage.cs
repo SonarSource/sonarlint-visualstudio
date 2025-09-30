@@ -25,9 +25,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
-using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using Task = System.Threading.Tasks.Task;
@@ -41,10 +39,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
     public sealed class ConnectedModePackage : AsyncPackage
     {
         private SSESessionManager sseSessionManager;
-        private IIssueServerEventsListener issueServerEventsListener;
         private IQualityProfileServerEventsListener qualityProfileServerEventsListener;
-        private BoundSolutionUpdateHandler boundSolutionUpdateHandler;
-        private TimedUpdateHandler timedUpdateHandler;
         private IHotspotDocumentClosedHandler hotspotDocumentClosedHandler;
         private IHotspotSolutionClosedHandler hotspotSolutionClosedHandler;
         private ILocalHotspotStoreMonitor hotspotStoreMonitor;
@@ -60,14 +55,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
             LoadServicesAndDoInitialUpdates(componentModel);
 
-            issueServerEventsListener = componentModel.GetService<IIssueServerEventsListener>();
-            issueServerEventsListener.ListenAsync().Forget();
-
             qualityProfileServerEventsListener = componentModel.GetService<IQualityProfileServerEventsListener>();
             qualityProfileServerEventsListener.ListenAsync().Forget();
-
-            boundSolutionUpdateHandler = componentModel.GetService<BoundSolutionUpdateHandler>();
-            timedUpdateHandler = componentModel.GetService<TimedUpdateHandler>();
 
             hotspotDocumentClosedHandler = componentModel.GetService<IHotspotDocumentClosedHandler>();
 
@@ -88,8 +77,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
         {
             sseSessionManager = componentModel.GetService<SSESessionManager>();
             sseSessionManager.CreateSessionIfInConnectedMode();
-            var updater = componentModel.GetService<IRoslynSuppressionUpdater>();
-            updater.UpdateAllServerSuppressionsAsync().Forget();
         }
 
         protected override void Dispose(bool disposing)
@@ -97,9 +84,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
             if (disposing)
             {
                 sseSessionManager?.Dispose();
-                issueServerEventsListener?.Dispose();
-                boundSolutionUpdateHandler?.Dispose();
-                timedUpdateHandler?.Dispose();
             }
 
             base.Dispose(disposing);

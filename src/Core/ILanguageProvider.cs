@@ -28,7 +28,7 @@ public interface ILanguageProvider
 
     IReadOnlyList<Language> NonRoslynLanguages { get; }
 
-    IReadOnlyList<Language> RoslynLanguages { get; }
+    IReadOnlyList<RoslynLanguage> RoslynLanguages { get; }
 
     IReadOnlyList<Language> LanguagesInStandaloneMode { get; }
 
@@ -56,7 +56,7 @@ public class LanguageProvider : ILanguageProvider
     }
 
     public IReadOnlyList<Language> NonRoslynLanguages { get; } = [Language.C, Language.Cpp, Language.Js, Language.Ts, Language.Css, Language.Secrets, Language.Html, Language.TSql, Language.Text];
-    public IReadOnlyList<Language> RoslynLanguages { get; } = [Language.CSharp, Language.VBNET];
+    public IReadOnlyList<RoslynLanguage> RoslynLanguages { get; } = [Language.CSharp, Language.VBNET];
     public IReadOnlyList<Language> AllKnownLanguages { get; }
     public IReadOnlyList<Language> LanguagesInStandaloneMode { get; }
     public IReadOnlyList<Language> ExtraLanguagesInConnectedMode { get; } = [Language.TSql, Language.Text];

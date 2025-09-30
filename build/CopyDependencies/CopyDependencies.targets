@@ -37,6 +37,7 @@
       <SourceJars Include="$(JarDownloadDir)\sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar" />
       <SourceJars Include="$(JarDownloadDir)\sonar-html-plugin-$(EmbeddedSonarHtmlAnalyzerVersion).jar" />
       <SourceJars Include="$(JarDownloadDir)\sonar-text-plugin-$(EmbeddedSonarSecretsJarVersion).jar" />
+      <SourceJars Include="$(JarDownloadDir)\sonarqube-ide-visualstudio-roslyn-plugin-$(EmbeddedSonarSqvsRoslynJarVersion).jar" />
     </ItemGroup>
     <Copy SourceFiles ="@(SourceJars)" DestinationFolder="$(EmbeddedJarDir)" />
   </Target>

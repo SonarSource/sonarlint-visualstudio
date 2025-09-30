@@ -51,7 +51,7 @@ namespace SonarQube.Client.Tests
 
         protected const string UserAgent = "the-test-user-agent/1.0";
 
-        protected virtual Language[] MockRoslynLanguages { get; }
+        protected virtual RoslynLanguage[] MockRoslynLanguages { get; }
 
         [TestInitialize]
         public void TestInitialize()
