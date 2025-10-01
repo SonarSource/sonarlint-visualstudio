@@ -12,7 +12,7 @@
         <ReleaseNotes>https://github.com/SonarSource/sonarlint-visualstudio/releases</ReleaseNotes>
         <Icon>Resources\sonarqube_for_ide_logo_128px.png</Icon>
         <PreviewImage>Resources\sonarqube_for_ide_logo_200px.png</PreviewImage>
-        <Tags>SonarLint;SonarQube;Analysis;Roslyn;CodeAnalysis;Analyzer;Code analysis;Sonar;Debt;Technical;Tech;Quality;C#;VB.NET;C;C++;Javascript;TypeScript;CSS;HTML;T-SQL</Tags>
+        <Tags>SonarLint;SonarQube;2022;2026;Analysis;Roslyn;CodeAnalysis;Analyzer;Code analysis;Sonar;Debt;Technical;Tech;Quality;C#;VB.NET;C;C++;Javascript;TypeScript;CSS;HTML;T-SQL</Tags>
     </Metadata>
     <Installation>
       <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0.31808.319,19.0)">
