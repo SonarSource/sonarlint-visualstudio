@@ -3,7 +3,7 @@
     <Metadata>
         <!-- Note: keep the version number in sync with AssemblyInfo.Shared.cs -->
         <Identity Id="SonarLint.0DE19254-1DCA-4479-8EAF-58E5D677FF4D" Version="8.29.0.0" Language="en-US" Publisher="SonarSource" />
-        <DisplayName>SonarQube for Visual Studio 2022</DisplayName>
+        <DisplayName>SonarQube for Visual Studio</DisplayName>
         <Preview>false</Preview>
         <Description xml:space="preserve">Advanced linter to detect and fix coding issues locally in C#, VB.NET, C/C++, JS, TS, CSS, HTML, T-SQL. Use with SonarQube (Server, Cloud) for optimal team performance.</Description>
         <MoreInfo>http://vs.sonarlint.org</MoreInfo>
@@ -12,10 +12,10 @@
         <ReleaseNotes>https://github.com/SonarSource/sonarlint-visualstudio/releases</ReleaseNotes>
         <Icon>Resources\sonarqube_for_ide_logo_128px.png</Icon>
         <PreviewImage>Resources\sonarqube_for_ide_logo_200px.png</PreviewImage>
-        <Tags>SonarLint;SonarQube;Analysis;Roslyn;CodeAnalysis;Analyzer;Code analysis;Sonar;Debt;Technical;Tech;Quality;C#;VB.NET;C;C++;Javascript;TypeScript;CSS;HTML;T-SQL</Tags>
+        <Tags>SonarLint;SonarQube;2022;2026;Analysis;Roslyn;CodeAnalysis;Analyzer;Code analysis;Sonar;Debt;Technical;Tech;Quality;C#;VB.NET;C;C++;Javascript;TypeScript;CSS;HTML;T-SQL</Tags>
     </Metadata>
     <Installation>
-      <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0.31808.319,18.0)">
+      <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0.31808.319,19.0)">
         <ProductArchitecture>amd64</ProductArchitecture>
       </InstallationTarget>
     </Installation>
@@ -54,7 +54,7 @@
     <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="Core" Path="|Core|" />
   </Assets>
   <Prerequisites>
-    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,18.0)" DisplayName="Visual Studio core editor" />
-    <Prerequisite Id="Microsoft.VisualStudio.Component.Roslyn.Compiler" Version="[17.0,18.0)" DisplayName="C# and Visual Basic Roslyn compilers" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,19.0)" DisplayName="Visual Studio core editor" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.Roslyn.Compiler" Version="[17.0,19.0)" DisplayName="C# and Visual Basic Roslyn compilers" />
   </Prerequisites>
 </PackageManifest>

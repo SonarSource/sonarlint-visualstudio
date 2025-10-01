@@ -31,6 +31,7 @@
   <!-- Set the VsTargetVersion based on the version of VS -->
   <PropertyGroup Condition=" $(VsTargetVersion) == '' " >
     <VsTargetVersion Condition="$(VisualStudioVersion)=='17.0'">2022</VsTargetVersion>
+    <VsTargetVersion Condition="$(VisualStudioVersion)=='18.0'">2022</VsTargetVersion>
   </PropertyGroup>
 
   <!-- ************************************************************* -->
