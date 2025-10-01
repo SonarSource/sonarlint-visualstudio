@@ -7,7 +7,7 @@
 
   <Import Project="$(MSBuildThisFileDirectory)..\..\EmbeddedSonarAnalyzer.props" />
   <Import Project="$(MSBuildThisFileDirectory)..\..\..\build\DownloadDependencies\CommonProperties.props" />
-  <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v17.0\TextTemplating\Microsoft.TextTemplating.targets" />
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TextTemplating\Microsoft.TextTemplating.targets" />
   
   <ItemGroup Label="Roslyn / analyzer packages">
     <!-- NOTE: We need to reference at least Roslyn v3.3.1, which is when the DiagnosticSuppressor class was introduced.

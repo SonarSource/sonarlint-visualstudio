@@ -42,6 +42,6 @@ public class UserAgentProvider(IVsInfoProvider vsInfoProvider) : IUserAgentProvi
         var vsProductName = vsVersionInfo?.DisplayName ?? "VisualStudio";
         var vsProductVersion = vsVersionInfo?.DisplayVersion ?? "version unknown";
 
-        return $"SonarQube for IDE (SonarLint) - Visual Studio {VersionHelper.SonarLintVersion} - {vsProductName} {vsProductVersion}";
+        return ($"SonarQube for IDE (SonarLint) - Visual Studio {VersionHelper.SonarLintVersion} - {vsProductName} {vsProductVersion}").Replace("[", "").Replace("]", "");
     }
 }
