@@ -39,7 +39,7 @@ internal sealed class RoslynAnalysisHttpServer(
     IRoslynAnalysisService roslynAnalysisService) : IRoslynAnalysisHttpServer
 {
     private readonly CancellationTokenSource cancellationTokenSource = new();
-    private readonly ILogger logger = logger.ForContext(Resources.HttpServerLogContext).ForContext(nameof(RoslynAnalysisHttpServer));
+    private readonly ILogger logger = logger.ForContext(Resources.RoslynLogContext, Resources.HttpServerLogContext);
     private HttpListener? httpListener;
     private bool isDisposed;
 
@@ -130,43 +130,64 @@ internal sealed class RoslynAnalysisHttpServer(
     {
         using var requestCancellationToken = new CancellationTokenSource(settings.RequestMillisecondsTimeout);
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(serverCancellationToken, requestCancellationToken.Token);
+
+        var requestContext = new MessageLevelContext() { VerboseContext = [ $"Request {Guid.NewGuid().ToString()}"] };
+
         try
         {
-            await Task.Run(() => HandleRequestAsync(context, linkedCts.Token), linkedCts.Token);
+            logger.LogVerbose(requestContext, "Received request {0}", context.Request.Url);
+            var statusCode = await Task.Run(() => HandleRequestAsync(context, linkedCts.Token), linkedCts.Token);
+            logger.LogVerbose(requestContext, "Response code {0}", statusCode);
         }
         catch (OperationCanceledException)
         {
-            logger.LogVerbose(Resources.HttpRequestTimedOut, settings.RequestMillisecondsTimeout);
+            logger.LogVerbose(requestContext, Resources.HttpRequestTimedOut, settings.RequestMillisecondsTimeout);
             httpRequestHandler.CloseRequest(context, HttpStatusCode.RequestTimeout);
         }
         catch (Exception exception)
         {
-            logger.LogVerbose(Resources.HttpRequestFailed, exception.Message + exception.StackTrace);
+            logger.LogVerbose(requestContext, Resources.HttpRequestFailed, exception.Message + exception.StackTrace);
             httpRequestHandler.CloseRequest(context, HttpStatusCode.InternalServerError);
         }
     }
 
-    private async Task HandleRequestAsync(IHttpListenerContext context, CancellationToken cancellationToken)
+    private async Task<HttpStatusCode> HandleRequestAsync(IHttpListenerContext context, CancellationToken cancellationToken)
     {
-        if (!analysisRequestHandler.ValidateRequest(context, out var validationStatusCode, out var requestType))
+        if (!analysisRequestHandler.ValidateRequest(context.Request, out var validationStatusCode, out var requestType))
         {
             httpRequestHandler.CloseRequest(context, validationStatusCode);
-            return;
+            return validationStatusCode;
         }
 
-        if (requestType == RequestType.Analyze && await analysisRequestHandler.ParseAnalysisRequestBodyAsync(context) is { } analysisRequest)
+        return requestType switch
         {
-            var issues = await roslynAnalysisService.AnalyzeAsync(analysisRequest, cancellationToken);
-            await httpRequestHandler.SendResponseAsync(context, analysisRequestHandler.SerializeAnalysisRequestResponse(issues.ToList()));
-        }
-        else if (requestType == RequestType.Cancel && await analysisRequestHandler.ParseCancellationRequestBodyAsync(context) is { } cancellationRequest)
-        {
-            var status = roslynAnalysisService.Cancel(cancellationRequest);
-            httpRequestHandler.CloseRequest(context, status ? HttpStatusCode.OK : HttpStatusCode.NotFound);
-        }
-        else
-        {
-            httpRequestHandler.CloseRequest(context, HttpStatusCode.BadRequest);
-        }
+            RequestType.Analyze when await analysisRequestHandler.ParseAnalysisRequestBodyAsync(context.Request) is { } analysisRequest => await HandleAnalyzeAsync(context, cancellationToken, analysisRequest),
+            RequestType.Cancel when await analysisRequestHandler.ParseCancellationRequestBodyAsync(context.Request) is { } cancellationRequest => HandleCancel(context, cancellationRequest),
+            _ => HandleBadRequest(context)
+        };
+    }
+
+    private HttpStatusCode HandleBadRequest(IHttpListenerContext context)
+    {
+        httpRequestHandler.CloseRequest(context, HttpStatusCode.BadRequest);
+        return HttpStatusCode.BadRequest;
+    }
+
+    private HttpStatusCode HandleCancel(IHttpListenerContext context, AnalysisCancellationRequest cancellationRequest)
+    {
+        var status = roslynAnalysisService.Cancel(cancellationRequest);
+        var httpStatusCode = status ? HttpStatusCode.OK : HttpStatusCode.NotFound;
+        httpRequestHandler.CloseRequest(context, httpStatusCode);
+        return httpStatusCode;
+    }
+
+    private async Task<HttpStatusCode> HandleAnalyzeAsync(
+        IHttpListenerContext context,
+        CancellationToken cancellationToken,
+        AnalysisRequest analysisRequest)
+    {
+        var issues = await roslynAnalysisService.AnalyzeAsync(analysisRequest, cancellationToken);
+        await httpRequestHandler.SendResponseAsync(context, analysisRequestHandler.SerializeAnalysisRequestResponse(issues.ToList()));
+        return HttpStatusCode.OK;
     }
 }

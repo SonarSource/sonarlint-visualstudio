@@ -39,13 +39,13 @@ public enum RequestType
 
 public interface IAnalysisRequestHandler
 {
-    Task<AnalysisRequest?> ParseAnalysisRequestBodyAsync(IHttpListenerContext context);
+    Task<AnalysisRequest?> ParseAnalysisRequestBodyAsync(IHttpListenerRequest request);
 
-    Task<AnalysisCancellationRequest?> ParseCancellationRequestBodyAsync(IHttpListenerContext context);
+    Task<AnalysisCancellationRequest?> ParseCancellationRequestBodyAsync(IHttpListenerRequest request);
 
     string SerializeAnalysisRequestResponse(List<RoslynIssue> diagnostics);
 
-    bool ValidateRequest(IHttpListenerContext context, out HttpStatusCode errorCode, out RequestType requestType);
+    bool ValidateRequest(IHttpListenerRequest request, out HttpStatusCode errorCode, out RequestType requestType);
 }
 
 [Export(typeof(IAnalysisRequestHandler))]
@@ -65,34 +65,34 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerSettings server
         return responseString;
     }
 
-    public bool ValidateRequest(IHttpListenerContext context, out HttpStatusCode errorCode, out RequestType requestType)
+    public bool ValidateRequest(IHttpListenerRequest request, out HttpStatusCode errorCode, out RequestType requestType)
     {
         requestType = RequestType.Unknown;
         errorCode = default;
-        return VerifyLocalRequest(context, out errorCode)
-               && VerifyToken(context, out errorCode)
-               && VerifyMethod(context, out errorCode, out requestType)
-               && VerifyContentLength(context, out errorCode);
+        return VerifyLocalRequest(request, out errorCode)
+               && VerifyToken(request, out errorCode)
+               && VerifyMethod(request, out errorCode, out requestType)
+               && VerifyContentLength(request, out errorCode);
     }
 
-    public async Task<AnalysisRequest?> ParseAnalysisRequestBodyAsync(IHttpListenerContext context)
+    public async Task<AnalysisRequest?> ParseAnalysisRequestBodyAsync(IHttpListenerRequest request)
     {
-        var analysisRequestBodyAsync = await ParseAnalysisRequestBodyAsync<AnalysisRequest>(context);
+        var analysisRequestBodyAsync = await ParseAnalysisRequestBodyAsync<AnalysisRequest>(request);
         return analysisRequestBodyAsync is { FileNames.Count: > 0, ActiveRules.Count: > 0 } ? analysisRequestBodyAsync : null;
     }
 
-    public Task<AnalysisCancellationRequest?> ParseCancellationRequestBodyAsync(IHttpListenerContext context) =>
-        ParseAnalysisRequestBodyAsync<AnalysisCancellationRequest>(context);
+    public Task<AnalysisCancellationRequest?> ParseCancellationRequestBodyAsync(IHttpListenerRequest request) =>
+        ParseAnalysisRequestBodyAsync<AnalysisCancellationRequest>(request);
 
-    public async Task<T?> ParseAnalysisRequestBodyAsync<T>(IHttpListenerContext context) where T : class
+    public async Task<T?> ParseAnalysisRequestBodyAsync<T>(IHttpListenerRequest request) where T : class
     {
-        var body = await ReadBodyAsync(context);
+        var body = await ReadBodyAsync(request);
         return GetAnalysisRequestFromBody<T>(body);
     }
 
-    private static async Task<string> ReadBodyAsync(IHttpListenerContext context)
+    private static async Task<string> ReadBodyAsync(IHttpListenerRequest request)
     {
-        using var reader = new StreamReader(context.Request.InputStream, context.Request.ContentEncoding);
+        using var reader = new StreamReader(request.InputStream, request.ContentEncoding);
         return await reader.ReadToEndAsync();
     }
 
@@ -110,9 +110,9 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerSettings server
         return requestDto;
     }
 
-    private static bool VerifyLocalRequest(IHttpListenerContext context, out HttpStatusCode errorCode)
+    private static bool VerifyLocalRequest(IHttpListenerRequest request, out HttpStatusCode errorCode)
     {
-        if (!IsLocalRequest(context.Request))
+        if (!IsLocalRequest(request))
         {
             errorCode = HttpStatusCode.Forbidden;
             return false;
@@ -121,9 +121,9 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerSettings server
         return true;
     }
 
-    private bool VerifyToken(IHttpListenerContext context, out HttpStatusCode errorCode)
+    private bool VerifyToken(IHttpListenerRequest request, out HttpStatusCode errorCode)
     {
-        var token = context.Request.Headers[XAuthTokenHeader];
+        var token = request.Headers[XAuthTokenHeader];
         if (token != serverConfigurationProvider.CurrentConfiguration.Token.ToUnsecureString())
         {
             errorCode = HttpStatusCode.Unauthorized;
@@ -133,16 +133,16 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerSettings server
         return true;
     }
 
-    private static bool VerifyMethod(IHttpListenerContext context, out HttpStatusCode errorCode, out RequestType requestType)
+    private static bool VerifyMethod(IHttpListenerRequest request, out HttpStatusCode errorCode, out RequestType requestType)
     {
         errorCode = default;
-        if (context.Request.HttpMethod == HttpMethod.Post.Method && context.Request.Url.AbsolutePath == AnalyzeRequestUrl)
+        if (request.HttpMethod == HttpMethod.Post.Method && request.Url.AbsolutePath == AnalyzeRequestUrl)
         {
             requestType = RequestType.Analyze;
             return true;
         }
 
-        if (context.Request.HttpMethod == HttpMethod.Post.Method && context.Request.Url.AbsolutePath == CancelAnalysisRequestUrl)
+        if (request.HttpMethod == HttpMethod.Post.Method && request.Url.AbsolutePath == CancelAnalysisRequestUrl)
         {
             requestType = RequestType.Cancel;
             return true;
@@ -153,11 +153,11 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerSettings server
         return false;
     }
 
-    private bool VerifyContentLength(IHttpListenerContext context, out HttpStatusCode errorCode)
+    private bool VerifyContentLength(IHttpListenerRequest request, out HttpStatusCode errorCode)
     {
-        if (context.Request.ContentLength64 > serverSettings.MaxRequestBodyBytes)
+        if (request.ContentLength64 > serverSettings.MaxRequestBodyBytes)
         {
-            logger.LogVerbose(Resources.BodyLengthExceeded, context.Request.ContentLength64, serverSettings.MaxRequestBodyBytes);
+            logger.LogVerbose(Resources.BodyLengthExceeded, request.ContentLength64, serverSettings.MaxRequestBodyBytes);
             errorCode = HttpStatusCode.RequestEntityTooLarge;
             return false;
         }

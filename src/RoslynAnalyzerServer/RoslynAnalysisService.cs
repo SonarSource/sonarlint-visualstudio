@@ -53,6 +53,11 @@ internal class RoslynAnalysisService(
         }
     }
 
+    public bool Cancel(AnalysisCancellationRequest analysisCancellationRequest)
+    {
+        return CancelAndCleanUpToken(analysisCancellationRequest.AnalysisId);
+    }
+
     private CancellationToken SetUpCancellationTokenForAnalysis(
         AnalysisRequest analysisRequest,
         CancellationToken cancellationToken)
@@ -64,12 +69,6 @@ internal class RoslynAnalysisService(
             cancellationToken = cancellationTokenSource.Token;
         }
         return cancellationToken;
-    }
-
-    public bool Cancel(AnalysisCancellationRequest analysisCancellationRequest)
-    {
-        var analysisId = analysisCancellationRequest.AnalysisId;
-        return CancelAndCleanUpToken(analysisId);
     }
 
     private bool CancelAndCleanUpToken(Guid analysisId)

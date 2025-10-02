@@ -85,7 +85,7 @@ public class AnalysisRequestHandlerTest
     {
         request.RemoteEndPoint.Returns((IPEndPoint?)null);
 
-        var result = testSubject.ValidateRequest(context, out var errorCode, out var requestType);
+        var result = testSubject.ValidateRequest(context.Request, out var errorCode, out var requestType);
 
         result.Should().BeFalse();
         errorCode.Should().Be(HttpStatusCode.Forbidden);
@@ -96,7 +96,7 @@ public class AnalysisRequestHandlerTest
     {
         request.RemoteEndPoint.Returns(new IPEndPoint(IPAddress.Parse("8.8.8.8"), DefaultPort));
 
-        var result = testSubject.ValidateRequest(context, out var errorCode, out var requestType);
+        var result = testSubject.ValidateRequest(context.Request, out var errorCode, out var requestType);
 
         result.Should().BeFalse();
         errorCode.Should().Be(HttpStatusCode.Forbidden);
@@ -108,7 +108,7 @@ public class AnalysisRequestHandlerTest
         MockValidRequest();
         request.RemoteEndPoint.Returns(new IPEndPoint(IPAddress.Loopback, DefaultPort));
 
-        var result = testSubject.ValidateRequest(context, out var errorCode, out var requestType);
+        var result = testSubject.ValidateRequest(context.Request, out var errorCode, out var requestType);
 
         result.Should().BeTrue();
     }
@@ -119,7 +119,7 @@ public class AnalysisRequestHandlerTest
         MockValidRequest();
         request.RemoteEndPoint.Returns(new IPEndPoint(IPAddress.IPv6Loopback, DefaultPort));
 
-        var result = testSubject.ValidateRequest(context, out var errorCode, out var requestType);
+        var result = testSubject.ValidateRequest(context.Request, out var errorCode, out var requestType);
 
         result.Should().BeTrue();
     }
@@ -130,7 +130,7 @@ public class AnalysisRequestHandlerTest
         MockValidRequest();
         request.Headers.Returns(new WebHeaderCollection { [AuthTokenHeader] = InvalidToken });
 
-        var result = testSubject.ValidateRequest(context, out var errorCode, out var requestType);
+        var result = testSubject.ValidateRequest(context.Request, out var errorCode, out var requestType);
 
         result.Should().BeFalse();
         errorCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -145,7 +145,7 @@ public class AnalysisRequestHandlerTest
         MockValidRequest();
         request.Headers.Returns(new WebHeaderCollection { [wrongAuthenticationHeader] = InvalidToken });
 
-        var result = testSubject.ValidateRequest(context, out var errorCode, out var requestType);
+        var result = testSubject.ValidateRequest(context.Request, out var errorCode, out var requestType);
 
         result.Should().BeFalse();
         errorCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -157,7 +157,7 @@ public class AnalysisRequestHandlerTest
         MockValidRequest();
         request.Headers.Returns(new WebHeaderCollection { [AuthTokenHeader] = ValidToken });
 
-        var result = testSubject.ValidateRequest(context, out var errorCode, out var requestType);
+        var result = testSubject.ValidateRequest(context.Request, out var errorCode, out var requestType);
 
         result.Should().BeTrue();
     }
@@ -170,7 +170,7 @@ public class AnalysisRequestHandlerTest
         MockValidRequest();
         request.Url.Returns(new Uri(invalidUrl));
 
-        var result = testSubject.ValidateRequest(context, out var errorCode, out var requestType);
+        var result = testSubject.ValidateRequest(context.Request, out var errorCode, out var requestType);
 
         result.Should().BeFalse();
         errorCode.Should().Be(HttpStatusCode.BadRequest);
@@ -186,7 +186,7 @@ public class AnalysisRequestHandlerTest
         MockValidRequest();
         request.HttpMethod.Returns(httpMethod);
 
-        var result = testSubject.ValidateRequest(context, out var errorCode, out var requestType);
+        var result = testSubject.ValidateRequest(context.Request, out var errorCode, out var requestType);
 
         result.Should().BeFalse();
         errorCode.Should().Be(HttpStatusCode.BadRequest);
@@ -198,7 +198,7 @@ public class AnalysisRequestHandlerTest
         MockValidRequest();
         request.ContentLength64.Returns(MaxRequestBodyBytes + 1);
 
-        var result = testSubject.ValidateRequest(context, out var errorCode, out var requestType);
+        var result = testSubject.ValidateRequest(context.Request, out var errorCode, out var requestType);
 
         result.Should().BeFalse();
         errorCode.Should().Be(HttpStatusCode.RequestEntityTooLarge);
@@ -211,7 +211,7 @@ public class AnalysisRequestHandlerTest
         MockValidRequest();
         request.ContentLength64.Returns(MaxRequestBodyBytes);
 
-        var result = testSubject.ValidateRequest(context, out var errorCode, out var requestType);
+        var result = testSubject.ValidateRequest(context.Request, out var errorCode, out var requestType);
 
         result.Should().BeTrue();
     }
@@ -221,7 +221,7 @@ public class AnalysisRequestHandlerTest
     {
         MockValidRequest();
 
-        var result = testSubject.ValidateRequest(context, out var errorCode, out var requestType);
+        var result = testSubject.ValidateRequest(context.Request, out var errorCode, out var requestType);
 
         result.Should().BeTrue();
     }
@@ -245,7 +245,7 @@ public class AnalysisRequestHandlerTest
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
 
-        var result = await testSubject.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context);
+        var result = await testSubject.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context.Request);
 
         result.Should().BeNull();
     }
@@ -257,7 +257,7 @@ public class AnalysisRequestHandlerTest
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
 
-        var result = await testSubject.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context);
+        var result = await testSubject.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context.Request);
 
         result.Should().BeNull();
     }
@@ -269,7 +269,7 @@ public class AnalysisRequestHandlerTest
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
 
-        var result = await testSubject.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context);
+        var result = await testSubject.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context.Request);
 
         result.Should().BeNull();
     }
@@ -282,7 +282,7 @@ public class AnalysisRequestHandlerTest
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
 
-        var result = await testSubject.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context);
+        var result = await testSubject.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context.Request);
 
         result.Should().NotBeNull();
         result!.FileNames.Should().HaveCount(1);
