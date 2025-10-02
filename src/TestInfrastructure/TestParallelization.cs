@@ -20,6 +20,8 @@
 
 #if SLVSTestInfrastructureBuild
 
-#else
+#elif DEBUG
 [assembly:Parallelize(Workers = 8, Scope = ExecutionScope.ClassLevel)] // method level is not safe as multiple test classes rely on global setup (for example, SLCore integration tests)
+#else
+[assembly:Parallelize(Workers = 4, Scope = ExecutionScope.ClassLevel)] // method level is not safe as multiple test classes rely on global setup (for example, SLCore integration tests)
 #endif
