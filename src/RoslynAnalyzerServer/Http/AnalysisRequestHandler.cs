@@ -84,7 +84,7 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerSettings server
     public Task<AnalysisCancellationRequest?> ParseCancellationRequestBodyAsync(IHttpListenerRequest request) =>
         ParseAnalysisRequestBodyAsync<AnalysisCancellationRequest>(request);
 
-    public async Task<T?> ParseAnalysisRequestBodyAsync<T>(IHttpListenerRequest request) where T : class
+    internal static async Task<T?> ParseAnalysisRequestBodyAsync<T>(IHttpListenerRequest request) where T : class
     {
         var body = await ReadBodyAsync(request);
         return GetAnalysisRequestFromBody<T>(body);

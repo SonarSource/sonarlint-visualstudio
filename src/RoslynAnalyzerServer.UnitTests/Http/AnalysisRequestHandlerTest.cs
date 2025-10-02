@@ -262,7 +262,7 @@ public class AnalysisRequestHandlerTest
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
 
-        var result = await testSubject.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context.Request);
+        var result = await AnalysisRequestHandler.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context.Request);
 
         result.Should().BeNull();
     }
@@ -274,7 +274,7 @@ public class AnalysisRequestHandlerTest
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
 
-        var result = await testSubject.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context.Request);
+        var result = await AnalysisRequestHandler.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context.Request);
 
         result.Should().BeNull();
     }
@@ -286,7 +286,7 @@ public class AnalysisRequestHandlerTest
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
 
-        var result = await testSubject.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context.Request);
+        var result = await AnalysisRequestHandler.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context.Request);
 
         result.Should().BeNull();
     }
@@ -299,7 +299,7 @@ public class AnalysisRequestHandlerTest
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
 
-        var result = await testSubject.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context.Request);
+        var result = await AnalysisRequestHandler.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context.Request);
 
         result.Should().NotBeNull();
         result!.FileNames.Should().HaveCount(1);
