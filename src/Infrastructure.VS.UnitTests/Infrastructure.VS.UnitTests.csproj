@@ -24,5 +24,6 @@
 
   <ItemGroup>
     <Reference Include="System.ComponentModel.Composition" />
+    <Compile Remove="..\TestInfrastructure\TestParallelization.cs"/>
   </ItemGroup>
 </Project>

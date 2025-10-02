@@ -37,10 +37,4 @@
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Include="..\TestInfrastructure\TestParallelization.cs">
-      <Link>TestParallelization.cs</Link>
-    </Compile>
-  </ItemGroup>
-
 </Project>

@@ -22,12 +22,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  
-  <ItemGroup>
-    <Compile Include="..\TestInfrastructure\TestParallelization.cs">
-      <Link>TestParallelization.cs</Link>
-    </Compile>
-  </ItemGroup>
 
   <!-- **************************************************************** -->
   <!-- HACK to make the C++ rule loader tests work -->
