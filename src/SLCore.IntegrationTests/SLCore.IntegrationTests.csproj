@@ -65,8 +65,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\TestInfrastructure\TestParallelization.cs">
-      <Link>TestParallelization.cs</Link>
+    <Compile Remove="..\TestInfrastructure\TestParallelization.cs"/>
+    <Compile Include="..\TestInfrastructure\TestParallelizationIntegrationTests.cs">
+      <Link>TestParallelizationIntegrationTests.cs</Link>
     </Compile>
   </ItemGroup>
 

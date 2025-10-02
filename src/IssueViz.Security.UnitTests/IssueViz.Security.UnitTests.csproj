@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <Reference Include="PresentationCore" />
+    <Compile Remove="..\TestInfrastructure\TestParallelization.cs"/>
   </ItemGroup>
 
 </Project>
