@@ -8,6 +8,8 @@
          We'd prefer to set this the shared SonarLint.VSSpecificAssemblies.props file, but
          the IDE isn't picking up the setting if we do that. -->
     <DefineConstants Condition="$(VSTargetVersion)=='2022'">$(DefineConstants);VS2022</DefineConstants>
+    <!-- This is done so that parallelization attribute is not defined for this project, avoiding double attribute declaration -->
+    <DefineConstants>$(DefineConstants);SLVSTestInfrastructureBuild</DefineConstants>
     <RequiresAlmAuthentication>true</RequiresAlmAuthentication>
   </PropertyGroup>
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
@@ -37,6 +39,14 @@
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\Integration\Integration.csproj" />
     <ProjectReference Include="..\Infrastructure.VS\Infrastructure.VS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Since this project contains this file and also links it via test props, removing it fixes duplicate file compilation error-->
+    <Compile Remove="..\TestInfrastructure\TestParallelization.cs"/>
+    <Compile Include="..\TestInfrastructure\TestParallelization.cs">
+      <Link>TestParallelization.cs</Link>
+    </Compile>
   </ItemGroup>
 
 </Project>

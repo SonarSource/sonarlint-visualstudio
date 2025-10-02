@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="..\TestInfrastructure\TestParallelization.cs"/>
     <Compile Include="..\..\TestInfrastructure\TestParallelization.cs">
       <Link>TestParallelization.cs</Link>
     </Compile>
