@@ -135,6 +135,19 @@ public class RoslynAnalysisHttpServerTest
     }
 
     [TestMethod]
+    public async Task UnknownUrl_ReturnsBadRequest()
+    {
+        var unknownUrlRequest = new AnalysisRequestConfig<object>(ServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Token,
+            GetRequestUrl(ServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Port, requestPath: "UNKNOWNURL"),
+            new { });
+        ServerStarter.StartListeningOnBackgroundThread();
+
+        var response = await HttpRequester.SendRequest(unknownUrlRequest);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [TestMethod]
     public async Task StartListenAsync_ExceededBodyLength_Fails()
     {
         var bodyLength = 1;
