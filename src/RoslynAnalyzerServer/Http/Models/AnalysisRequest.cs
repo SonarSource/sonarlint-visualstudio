@@ -18,14 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 public record AnalysisRequest
 {
+    [JsonRequired]
     public List<FileUri> FileNames { get; set; } = [];
+    [JsonRequired]
     public List<ActiveRuleDto> ActiveRules { get; set; } = [];
     public Dictionary<string, string> AnalysisProperties { get; set; } = [];
     public AnalyzerInfoDto AnalyzerInfo { get; set; } = null!;
+    [JsonRequired]
+    public Guid AnalysisId { get; set; }
 }

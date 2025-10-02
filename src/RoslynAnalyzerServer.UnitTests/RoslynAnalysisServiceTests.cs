@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.TestInfrastructure;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
@@ -68,16 +70,117 @@ public class RoslynAnalysisServiceTests
     public async Task AnalyzeAsync_PassesCorrectArgumentsToEngine()
     {
         string[] filePaths = [@"C:\file1.cs", @"C:\folder\file2.cs"];
-        analysisConfigurationProvider.GetConfigurationAsync(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto).Returns(DefaultAnalysisConfigurations);
-        analysisCommandProvider.GetAnalysisCommandsForCurrentSolution(Arg.Is<string[]>(x => x.SequenceEqual(filePaths))).Returns(DefaultProjectAnalysisRequests);
+        SetUpBasicAnalysisServices(filePaths);
         analysisEngine.AnalyzeAsync(DefaultProjectAnalysisRequests, DefaultAnalysisConfigurations, Arg.Any<CancellationToken>()).Returns(DefaultIssues);
-        var analysisRequest = new AnalysisRequest
-        {
-            FileNames = filePaths.Select(x => new FileUri(x)).ToList(), ActiveRules = DefaultActiveRules, AnalysisProperties = DefaultAnalysisProperties, AnalyzerInfo = DefaultAnalyzerInfoDto
-        };
+
+        var analysisRequest = CreateAnalysisRequest(filePaths.Select(x => new FileUri(x)).ToList());
 
         var issues = await testSubject.AnalyzeAsync(analysisRequest, CancellationToken.None);
 
         issues.Should().BeSameAs(DefaultIssues);
     }
+
+    [TestMethod]
+    public void Cancel_NonExistingId_ReturnsFalse()
+    {
+        var nonExistingId = Guid.NewGuid();
+        var cancellationRequest = CreateCancellationRequest(nonExistingId);
+
+        var result = testSubject.Cancel(cancellationRequest);
+
+        result.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void Cancel_ExistingId_ReturnsTrueAndCancelsToken()
+    {
+        var analysisId = Guid.NewGuid();
+        var analysisRequest = CreateAnalysisRequest(analysisId: analysisId);
+
+        SetUpBasicAnalysisServices();
+
+        var taskCompletionSource = new TaskCompletionSource<IEnumerable<RoslynIssue>>();
+        var internalAnalysisToken = CancellationToken.None;
+
+        analysisEngine.AnalyzeAsync(
+                Arg.Any<List<RoslynProjectAnalysisRequest>>(),
+                Arg.Any<IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration>>(),
+                Arg.Do<CancellationToken>(t => internalAnalysisToken = t))
+            .Returns(taskCompletionSource.Task);
+
+        testSubject.AnalyzeAsync(analysisRequest, CancellationToken.None).IgnoreAwaitForAssert();
+        var cancellationRequest = CreateCancellationRequest(analysisId);
+
+        var result = testSubject.Cancel(cancellationRequest);
+
+        result.Should().BeTrue();
+        taskCompletionSource.SetResult(DefaultIssues);
+        internalAnalysisToken.IsCancellationRequested.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public async Task AnalyzeAsync_TokenRemovedAfterAnalysis_EvenIfAnalysisSucceeds()
+    {
+        var analysisId = Guid.NewGuid();
+        var analysisRequest = CreateAnalysisRequest(analysisId: analysisId);
+        SetUpBasicAnalysisServices();
+        analysisEngine
+            .AnalyzeAsync(Arg.Any<List<RoslynProjectAnalysisRequest>>(), Arg.Any<IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration>>(), Arg.Any<CancellationToken>())
+            .Returns(DefaultIssues);
+
+        await testSubject.AnalyzeAsync(analysisRequest, CancellationToken.None);
+
+        var cancellationRequest = CreateCancellationRequest(analysisId);
+        var result = testSubject.Cancel(cancellationRequest);
+        result.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void AnalyzeAsync_TokenRemovedAfterAnalysis_EvenIfAnalysisThrows()
+    {
+        var analysisId = Guid.NewGuid();
+        var analysisRequest = CreateAnalysisRequest(analysisId: analysisId);
+        SetUpBasicAnalysisServices();
+        analysisEngine
+            .AnalyzeAsync(Arg.Any<List<RoslynProjectAnalysisRequest>>(), Arg.Any<IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration>>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync(new InvalidOperationException("Test exception"));
+
+        var act = () => testSubject.AnalyzeAsync(analysisRequest, CancellationToken.None);
+        act.Should().ThrowAsync<InvalidOperationException>().IgnoreAwaitForAssert();
+
+        var cancellationRequest = CreateCancellationRequest(analysisId);
+        var result = testSubject.Cancel(cancellationRequest);
+        result.Should().BeFalse();
+    }
+
+    private void SetUpConfigurationProvider() =>
+        analysisConfigurationProvider
+            .GetConfigurationAsync(DefaultActiveRules, DefaultAnalysisProperties, DefaultAnalyzerInfoDto)
+            .Returns(DefaultAnalysisConfigurations);
+
+    private void SetUpBasicAnalysisServices(string[]? filePaths = null)
+    {
+        SetUpConfigurationProvider();
+        analysisCommandProvider
+            .GetAnalysisCommandsForCurrentSolution(filePaths is not null ? Arg.Is<string[]>(x => x.SequenceEqual(filePaths)) : Arg.Any<string[]>())
+            .Returns(DefaultProjectAnalysisRequests);
+    }
+
+    private static AnalysisRequest CreateAnalysisRequest(
+        List<FileUri>? fileNames = null,
+        Guid? analysisId = null)
+    {
+        fileNames ??= [new FileUri(@"C:\file1.cs")];
+
+        return new AnalysisRequest
+        {
+            FileNames = fileNames,
+            ActiveRules = DefaultActiveRules,
+            AnalysisProperties = DefaultAnalysisProperties,
+            AnalyzerInfo = DefaultAnalyzerInfoDto,
+            AnalysisId = analysisId ?? Guid.NewGuid()
+        };
+    }
+
+    private static AnalysisCancellationRequest CreateCancellationRequest(Guid analysisId) => new() { AnalysisId = analysisId };
 }

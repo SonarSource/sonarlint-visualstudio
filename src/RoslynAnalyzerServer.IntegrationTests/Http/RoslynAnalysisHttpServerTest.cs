@@ -23,9 +23,12 @@ using System.Net.Http;
 using System.Security;
 using System.Text;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.IntegrationTests.Http.Helper;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.IntegrationTests.Http;
 
@@ -69,7 +72,7 @@ public class RoslynAnalysisHttpServerTest
         serverStarter.RoslynAnalysisHttpServer.Dispose();
         await serverStarter.RoslynAnalysisHttpServer.StartListenAsync();
 
-        await VerifyServerNotReachable<TaskCanceledException>(CreateClientRequestConfig(serverStarter)); // the timeout of the request should be reached
+        await VerifyServerNotReachable<TaskCanceledException, AnalysisRequest>(CreateClientRequestConfig(serverStarter)); // the timeout of the request should be reached
         serverStarter.MockedLogger.Received(1).LogVerbose(Resources.HttpServerStarted);
         serverStarter.MockedLogger.Received(1).LogVerbose(Resources.HttpServerDisposed);
     }
@@ -108,13 +111,40 @@ public class RoslynAnalysisHttpServerTest
         var millisecondTimeout = 5;
         using var serverStarter2 = new HttpServerStarter(useMockedServerSettings: true);
         MockServerSettings(serverStarter2.ServerSettings, requestTimeout: millisecondTimeout);
-        SimulateLongAnalysis(serverStarter2.MockedRoslynAnalysisService, millisecondTimeout * 2);
+        SimulateAnalysisRunsOutOfTime(serverStarter2.MockedRoslynAnalysisService);
         serverStarter2.StartListeningOnBackgroundThread();
 
         var response = await HttpRequester.SendRequest(CreateClientRequestConfig(serverStarter2));
 
-        serverStarter2.MockedLogger.Received(1).LogVerbose(Resources.HttpRequestTimedOut, Arg.Any<int>());
         response.StatusCode.Should().Be(HttpStatusCode.RequestTimeout);
+        serverStarter2.MockedLogger.Received(1).LogVerbose(Arg.Any<MessageLevelContext>(), Resources.HttpRequestTimedOut, Arg.Any<int>());
+    }
+
+    [DataTestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task Cancel_ReturnsExpectedResult(bool isCanceled)
+    {
+        var analysisId = Guid.NewGuid();
+        ServerStarter.MockedRoslynAnalysisService.Cancel(Arg.Is<AnalysisCancellationRequest>(x => x.AnalysisId == analysisId)).Returns(isCanceled);
+        ServerStarter.StartListeningOnBackgroundThread();
+
+        var response = await HttpRequester.SendRequest(CreateCancellationRequestConfig(ServerStarter, analysisId));
+
+        response.StatusCode.Should().Be(isCanceled ? HttpStatusCode.OK : HttpStatusCode.NotFound);
+    }
+
+    [TestMethod]
+    public async Task UnknownUrl_ReturnsBadRequest()
+    {
+        var unknownUrlRequest = new AnalysisRequestConfig<object>(ServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Token,
+            GetRequestUrl(ServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Port, requestPath: "UNKNOWNURL"),
+            new { });
+        ServerStarter.StartListeningOnBackgroundThread();
+
+        var response = await HttpRequester.SendRequest(unknownUrlRequest);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [TestMethod]
@@ -179,7 +209,7 @@ public class RoslynAnalysisHttpServerTest
 
         var response = await HttpRequester.SendRequest(CreateClientRequestConfig(requestUri: invalidRequestUrl));
 
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [TestMethod]
@@ -203,7 +233,7 @@ public class RoslynAnalysisHttpServerTest
         var response = await HttpRequester.SendRequest(CreateClientRequestConfig(serverStarter2));
 
         response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
-        serverStarter2.MockedLogger.Received(1).LogVerbose(Resources.HttpRequestFailed, Arg.Is<string>(x => x.Contains(exceptionMessage)));
+        serverStarter2.MockedLogger.Received(1).LogVerbose(Arg.Any<MessageLevelContext>(), Resources.HttpRequestFailed, Arg.Is<string>(x => x.Contains(exceptionMessage)));
     }
 
     [TestMethod]
@@ -214,7 +244,7 @@ public class RoslynAnalysisHttpServerTest
 
         testServerStarter.RoslynAnalysisHttpServer.Dispose();
 
-        await VerifyServerNotReachable<TaskCanceledException>(CreateClientRequestConfig(testServerStarter)); // the timeout of the request should be reached
+        await VerifyServerNotReachable<TaskCanceledException, AnalysisRequest>(CreateClientRequestConfig(testServerStarter)); // the timeout of the request should be reached
         testServerStarter.MockedLogger.Received(1).LogVerbose(Resources.HttpServerDisposed);
     }
 
@@ -231,22 +261,37 @@ public class RoslynAnalysisHttpServerTest
         testServerStarter.MockedLogger.Received(1).LogVerbose(Resources.HttpServerDisposed);
     }
 
-    private static AnalysisRequestConfig CreateClientRequestConfig(HttpServerStarter httpServerStarter) =>
-        CreateClientRequestConfig([CsharpFileName], GetRequestUrl(httpServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Port),
-            httpServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Token);
+    private static AnalysisRequestConfig<AnalysisRequest> CreateClientRequestConfig(HttpServerStarter httpServerStarter, Guid? analysisId = null) =>
+        CreateClientRequestConfig(
+            [CsharpFileName],
+            GetRequestUrl(httpServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Port),
+            httpServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Token,
+            analysisId);
 
-    private static AnalysisRequestConfig CreateClientRequestConfig(SecureString? token = null, string? requestUri = null) => CreateClientRequestConfig([CsharpFileName], requestUri, token);
+    private static AnalysisRequestConfig<AnalysisCancellationRequest> CreateCancellationRequestConfig(HttpServerStarter httpServerStarter, Guid analysisId) =>
+        new(httpServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Token,
+            GetRequestUrl(httpServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Port, requestPath: "cancel"),
+            new AnalysisCancellationRequest { AnalysisId = analysisId });
 
-    private static AnalysisRequestConfig CreateClientRequestConfig(string[] fileNames, string? requestUri = null, SecureString? token = null)
+    private static AnalysisRequestConfig<AnalysisRequest> CreateClientRequestConfig(SecureString? token = null, string? requestUri = null) =>
+        CreateClientRequestConfig([CsharpFileName], requestUri, token);
+
+    private static AnalysisRequestConfig<AnalysisRequest> CreateClientRequestConfig(
+        string[] fileNames,
+        string? requestUri = null,
+        SecureString? token = null,
+        Guid? analysisId = null)
     {
         token ??= ServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Token;
         requestUri ??= GetRequestUrl(ServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Port);
-        return new AnalysisRequestConfig(token, requestUri, fileNames);
+        var fileUris = fileNames.Select(x => new FileUri(x));
+        var analysisRequest = new AnalysisRequest { FileNames = [.. fileUris], ActiveRules = [new ActiveRuleDto("id", [])], AnalysisId = analysisId ?? Guid.NewGuid() };
+        return new AnalysisRequestConfig<AnalysisRequest>(token, requestUri, analysisRequest);
     }
 
     private static string GetRequestUrl(int port, string requestPath = "analyze") => $"http://127.0.0.1:{port}/{requestPath}";
 
-    private static async Task VerifyServerReachable(AnalysisRequestConfig requestConfig)
+    private static async Task VerifyServerReachable<T>(AnalysisRequestConfig<T> requestConfig)
     {
         var response = await HttpRequester.SendRequest(requestConfig);
         await VerifyRequestSucceeded(response);
@@ -260,10 +305,10 @@ public class RoslynAnalysisHttpServerTest
         analysisResponse!.RoslynIssues.Should().BeEmpty();
     }
 
-    private static async Task VerifyServerNotReachable<T>(AnalysisRequestConfig analysisRequestConfig) where T : Exception
+    private static async Task VerifyServerNotReachable<TException, TRequest>(AnalysisRequestConfig<TRequest> analysisRequestConfig) where TException : Exception
     {
         var act = async () => await HttpRequester.SendRequest(analysisRequestConfig);
-        await act.Should().ThrowAsync<T>();
+        await act.Should().ThrowAsync<TException>();
     }
 
     private static async Task<AnalysisResponse?> GetAnalysisResponse(HttpResponseMessage response)
@@ -276,7 +321,7 @@ public class RoslynAnalysisHttpServerTest
     private static void MockServerSettings(
         IHttpServerSettings serverConfiguration,
         int requestTimeout = 50,
-        int maxBodyLength = 100)
+        int maxBodyLength = 1024)
     {
         serverConfiguration.MaxStartAttempts.Returns(3);
         serverConfiguration.RequestMillisecondsTimeout.Returns(requestTimeout);
@@ -285,8 +330,16 @@ public class RoslynAnalysisHttpServerTest
 
     private static void MockServerConfiguration(IHttpServerConfigurationProvider serverConfigurationProvider, int port) => serverConfigurationProvider.CurrentConfiguration.Port.Returns(port);
 
-    private static void SimulateLongAnalysis(IRoslynAnalysisService roslynAnalysisService, int milliseconds) =>
+    private static void SimulateAnalysisRunsOutOfTime(IRoslynAnalysisService roslynAnalysisService) =>
         roslynAnalysisService
             .When(x => x.AnalyzeAsync(Arg.Any<AnalysisRequest>(), Arg.Any<CancellationToken>()))
-            .Do(_ => Task.Delay(milliseconds).GetAwaiter().GetResult());
+            .Throw(new OperationCanceledException());
+
+    private static void SimulateAnalysisWithCallback(IRoslynAnalysisService roslynAnalysisService, Action callback) =>
+        roslynAnalysisService.AnalyzeAsync(Arg.Any<AnalysisRequest>(), Arg.Any<CancellationToken>())
+            .Returns(_ =>
+            {
+                callback();
+                return Task.FromResult(Enumerable.Empty<RoslynIssue>());
+            });
 }
