@@ -28,6 +28,11 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 internal interface IWorkspaceChangeIndicator
 {
     /// <summary>
+    /// Checks if solution change event is not critical. Does not guarantee that it is critical if returns false.
+    /// </summary>
+    bool IsChangeKindTrivial(WorkspaceChangeKind kind);
+
+    /// <summary>
     /// Checks if solution changes are critical and require reanalysis
     /// </summary>
     bool SolutionChangedCritically(SolutionChanges solutionChanges);

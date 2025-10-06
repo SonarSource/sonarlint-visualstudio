@@ -64,7 +64,13 @@ internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
         ApplyChangesOperation.ApplyOrMergeChangesAsync(workspace, originalSolution.RoslynSolution, operation.ChangedSolution, quickFixApplicationLogger, workspaceChangeIndicator, cancellationToken);
 
     // todo SLVS-2466 add roslyn 'integration' tests using AdHocWorkspace
-    private void WorkspaceOnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e) =>
+    private void WorkspaceOnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    {
+        if (workspaceChangeIndicator.IsChangeKindTrivial(e.Kind))
+        {
+            return;
+        }
+
         threadHandling.RunOnBackgroundThread(() =>
         {
             var solutionChanges = e.NewSolution.GetChanges(e.OldSolution);
@@ -75,6 +81,7 @@ internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
                 analysisRequester.RequestAnalysis();
             }
         }).Forget();
+    }
 
     public void Dispose()
     {

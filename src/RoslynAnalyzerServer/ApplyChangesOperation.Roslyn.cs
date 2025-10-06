@@ -47,8 +47,6 @@ public static class ApplyChangesOperation
         {
             logger.LogVerbose(Resources.ApplyChangesOperation_SolutionChanged);
             return false;
-            // todo https://sonarsource.atlassian.net/browse/SLVS-2513 this will lead to invalid quickfixes if project configuration changes.
-            // do we need to reanalyze open files on major workspace changes? can modified analyzer references be ignored?
         }
 
         // Take the actual current solution the workspace is pointing to and fork it with just the text changes the

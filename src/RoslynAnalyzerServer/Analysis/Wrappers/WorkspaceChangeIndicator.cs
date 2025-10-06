@@ -30,23 +30,56 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class WorkspaceChangeIndicator : IWorkspaceChangeIndicator
 {
+    private readonly HashSet<WorkspaceChangeKind> trivialChanges =
+    [
+        // currently changes in other files should not affect too many quickfixes
+        // there is an opportunity for improvement:
+        // this group needs to be removed, and a mechanism that either re-analyzes on apply fail,
+        // or a background analysis job, need to be added
+        WorkspaceChangeKind.DocumentAdded,
+        WorkspaceChangeKind.DocumentRemoved,
+        WorkspaceChangeKind.DocumentReloaded,
+        WorkspaceChangeKind.DocumentChanged,
+        WorkspaceChangeKind.DocumentInfoChanged,
+        WorkspaceChangeKind.AdditionalDocumentAdded,
+        WorkspaceChangeKind.AdditionalDocumentRemoved,
+        WorkspaceChangeKind.AdditionalDocumentReloaded,
+        WorkspaceChangeKind.AdditionalDocumentChanged,
+
+        // we don't care about other analyzers
+        WorkspaceChangeKind.AnalyzerConfigDocumentAdded,
+        WorkspaceChangeKind.AnalyzerConfigDocumentRemoved,
+        WorkspaceChangeKind.AnalyzerConfigDocumentReloaded,
+        WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
+    ];
+
+    public bool IsChangeKindTrivial(WorkspaceChangeKind kind) => trivialChanges.Contains(kind);
+
     public bool SolutionChangedCritically(SolutionChanges solutionChanges) =>
         solutionChanges.GetAddedProjects().Any() ||
-        solutionChanges.GetAddedAnalyzerReferences().Any() ||
-        solutionChanges.GetRemovedProjects().Any() ||
-        solutionChanges.GetRemovedAnalyzerReferences().Any();
+        solutionChanges.GetRemovedProjects().Any();
+
+        // we don't care about other analyzers
+        // solutionChanges.GetAddedAnalyzerReferences().Any() ||
+        // solutionChanges.GetRemovedAnalyzerReferences().Any();
 
     public bool ProjectChangedCritically(ProjectChanges changedProject) =>
-        changedProject.GetAddedAdditionalDocuments().Any() ||
-        changedProject.GetAddedAnalyzerConfigDocuments().Any() ||
-        changedProject.GetAddedAnalyzerReferences().Any() ||
-        changedProject.GetAddedDocuments().Any() ||
         changedProject.GetAddedMetadataReferences().Any() ||
         changedProject.GetAddedProjectReferences().Any() ||
-        changedProject.GetRemovedAdditionalDocuments().Any() ||
-        changedProject.GetRemovedAnalyzerConfigDocuments().Any() ||
-        changedProject.GetRemovedAnalyzerReferences().Any() ||
-        changedProject.GetRemovedDocuments().Any() ||
         changedProject.GetRemovedMetadataReferences().Any() ||
         changedProject.GetRemovedProjectReferences().Any();
+
+        // currently changes in other files should not affect too many quickfixes, see comment above
+        // changedProject.GetAddedDocuments().Any() ||
+        // changedProject.GetRemovedDocuments().Any() ||
+        // changedProject.GetAddedAdditionalDocuments().Any() ||
+        // changedProject.GetRemovedAdditionalDocuments().Any() ||
+
+        // we don't care about configs
+        // changedProject.GetAddedAnalyzerConfigDocuments().Any() ||
+        // changedProject.GetRemovedAnalyzerConfigDocuments().Any() ||
+
+        // we don't care about other analyzers
+        // changedProject.GetAddedAnalyzerReferences().Any() ||
+        // changedProject.GetRemovedAnalyzerReferences().Any() ||
 }
