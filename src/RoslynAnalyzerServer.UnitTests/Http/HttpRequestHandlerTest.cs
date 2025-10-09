@@ -21,6 +21,7 @@
 using System.IO;
 using System.Net;
 using System.Text;
+using SonarLint.VisualStudio.Integration.TestInfrastructure;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Adapters;
 
@@ -32,6 +33,7 @@ public class HttpRequestHandlerTest
     private IHttpListenerContext context = null!;
     private IHttpListenerRequest request = null!;
     private IHttpListenerResponse response = null!;
+    private Stream stream = null!;
     private HttpRequestHandler testSubject = null!;
 
     [TestInitialize]
@@ -42,6 +44,9 @@ public class HttpRequestHandlerTest
         context = Substitute.For<IHttpListenerContext>();
         context.Request.Returns(request);
         context.Response.Returns(response);
+        stream = Substitute.For<Stream>();
+        stream.CanWrite.Returns(true);
+        context.Response.OutputStream.Returns(stream);
         testSubject = new HttpRequestHandler();
     }
 
@@ -57,6 +62,17 @@ public class HttpRequestHandlerTest
 
         response.Received().StatusCode = (int)statusCode;
         response.Received().Close();
+    }
+
+    [TestMethod]
+    public void CloseRequest_ConnectionBroken_DoesNotWriteResponse()
+    {
+        stream.CanWrite.Returns(false);
+
+        testSubject.CloseRequest(context, HttpStatusCode.BadRequest);
+
+        response.DidNotReceiveWithAnyArgs().StatusCode = default;
+        response.DidNotReceiveWithAnyArgs().Close();
     }
 
     [TestMethod]
@@ -80,5 +96,18 @@ public class HttpRequestHandlerTest
         await testSubject.SendResponseAsync(context, "{\"Diagnostics\":[}");
 
         outputStream.CanRead.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public async Task SendResponse_ConnectionBroken_DoesNotWriteResponse()
+    {
+        stream.CanWrite.Returns(false);
+
+        await testSubject.SendResponseAsync(context, "{\"Diagnostics\":[}");
+
+        stream.DidNotReceiveWithAnyArgs().WriteAsync(default, default, default, default).IgnoreAwaitForAssert();
+        stream.DidNotReceiveWithAnyArgs().Write(default, default, default);
+        response.DidNotReceiveWithAnyArgs().StatusCode = default;
+        response.DidNotReceiveWithAnyArgs().Close();
     }
 }

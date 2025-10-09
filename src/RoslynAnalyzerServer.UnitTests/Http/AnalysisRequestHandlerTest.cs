@@ -18,12 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
 using System.Net;
 using System.Text;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Adapters;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -35,11 +35,14 @@ public class AnalysisRequestHandlerTest
     private const string ValidToken = "token";
     private const string InvalidToken = "wrong";
     private const string AnalyzeUrl = "http://localhost/analyze";
+    private const string CancelUrl = "http://localhost/cancel";
+    private const string UnknownUrl = "http://localhost/SOMERANDOMURL";
     private const int DefaultPort = 1234;
     private const int MaxRequestBodyBytes = 100;
     private const string AuthTokenHeader = "X-Auth-Token";
     private const string HttpMethodPost = "POST";
     private const string DiagnosticId = "S100";
+    private static readonly Guid AnalysisId = Guid.NewGuid();
     private static readonly FileUri FileUri = new("C:\\File.cs");
     private IHttpServerSettings settings = null!;
     private IHttpServerConfigurationProvider configurationProvider = null!;
@@ -84,9 +87,10 @@ public class AnalysisRequestHandlerTest
     {
         request.RemoteEndPoint.Returns((IPEndPoint?)null);
 
-        var result = testSubject.ValidateRequest(context);
+        var result = testSubject.ValidateRequest(context.Request, out var errorCode, out _);
 
-        result.Should().Be(HttpStatusCode.Forbidden);
+        result.Should().BeFalse();
+        errorCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [TestMethod]
@@ -94,9 +98,10 @@ public class AnalysisRequestHandlerTest
     {
         request.RemoteEndPoint.Returns(new IPEndPoint(IPAddress.Parse("8.8.8.8"), DefaultPort));
 
-        var result = testSubject.ValidateRequest(context);
+        var result = testSubject.ValidateRequest(context.Request, out var errorCode, out _);
 
-        result.Should().Be(HttpStatusCode.Forbidden);
+        result.Should().BeFalse();
+        errorCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [TestMethod]
@@ -105,9 +110,9 @@ public class AnalysisRequestHandlerTest
         MockValidRequest();
         request.RemoteEndPoint.Returns(new IPEndPoint(IPAddress.Loopback, DefaultPort));
 
-        var result = testSubject.ValidateRequest(context);
+        var result = testSubject.ValidateRequest(context.Request, out _, out _);
 
-        result.Should().Be(HttpStatusCode.OK);
+        result.Should().BeTrue();
     }
 
     [TestMethod]
@@ -116,9 +121,9 @@ public class AnalysisRequestHandlerTest
         MockValidRequest();
         request.RemoteEndPoint.Returns(new IPEndPoint(IPAddress.IPv6Loopback, DefaultPort));
 
-        var result = testSubject.ValidateRequest(context);
+        var result = testSubject.ValidateRequest(context.Request, out _, out _);
 
-        result.Should().Be(HttpStatusCode.OK);
+        result.Should().BeTrue();
     }
 
     [TestMethod]
@@ -127,9 +132,10 @@ public class AnalysisRequestHandlerTest
         MockValidRequest();
         request.Headers.Returns(new WebHeaderCollection { [AuthTokenHeader] = InvalidToken });
 
-        var result = testSubject.ValidateRequest(context);
+        var result = testSubject.ValidateRequest(context.Request, out var errorCode, out _);
 
-        result.Should().Be(HttpStatusCode.Unauthorized);
+        result.Should().BeFalse();
+        errorCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [TestMethod]
@@ -141,9 +147,10 @@ public class AnalysisRequestHandlerTest
         MockValidRequest();
         request.Headers.Returns(new WebHeaderCollection { [wrongAuthenticationHeader] = InvalidToken });
 
-        var result = testSubject.ValidateRequest(context);
+        var result = testSubject.ValidateRequest(context.Request, out var errorCode, out _);
 
-        result.Should().Be(HttpStatusCode.Unauthorized);
+        result.Should().BeFalse();
+        errorCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [TestMethod]
@@ -152,9 +159,9 @@ public class AnalysisRequestHandlerTest
         MockValidRequest();
         request.Headers.Returns(new WebHeaderCollection { [AuthTokenHeader] = ValidToken });
 
-        var result = testSubject.ValidateRequest(context);
+        var result = testSubject.ValidateRequest(context.Request, out _, out _);
 
-        result.Should().Be(HttpStatusCode.OK);
+        result.Should().BeTrue();
     }
 
     [TestMethod]
@@ -165,9 +172,10 @@ public class AnalysisRequestHandlerTest
         MockValidRequest();
         request.Url.Returns(new Uri(invalidUrl));
 
-        var result = testSubject.ValidateRequest(context);
+        var result = testSubject.ValidateRequest(context.Request, out var errorCode, out _);
 
-        result.Should().Be(HttpStatusCode.NotFound);
+        result.Should().BeFalse();
+        errorCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [TestMethod]
@@ -180,9 +188,10 @@ public class AnalysisRequestHandlerTest
         MockValidRequest();
         request.HttpMethod.Returns(httpMethod);
 
-        var result = testSubject.ValidateRequest(context);
+        var result = testSubject.ValidateRequest(context.Request, out var errorCode, out _);
 
-        result.Should().Be(HttpStatusCode.NotFound);
+        result.Should().BeFalse();
+        errorCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [TestMethod]
@@ -191,9 +200,10 @@ public class AnalysisRequestHandlerTest
         MockValidRequest();
         request.ContentLength64.Returns(MaxRequestBodyBytes + 1);
 
-        var result = testSubject.ValidateRequest(context);
+        var result = testSubject.ValidateRequest(context.Request, out var errorCode, out _);
 
-        result.Should().Be(HttpStatusCode.RequestEntityTooLarge);
+        result.Should().BeFalse();
+        errorCode.Should().Be(HttpStatusCode.RequestEntityTooLarge);
         logger.Received().LogVerbose(Resources.BodyLengthExceeded, context.Request.ContentLength64, settings.MaxRequestBodyBytes);
     }
 
@@ -203,9 +213,9 @@ public class AnalysisRequestHandlerTest
         MockValidRequest();
         request.ContentLength64.Returns(MaxRequestBodyBytes);
 
-        var result = testSubject.ValidateRequest(context);
+        var result = testSubject.ValidateRequest(context.Request, out _, out _);
 
-        result.Should().Be(HttpStatusCode.OK);
+        result.Should().BeTrue();
     }
 
     [TestMethod]
@@ -213,9 +223,24 @@ public class AnalysisRequestHandlerTest
     {
         MockValidRequest();
 
-        var result = testSubject.ValidateRequest(context);
+        var result = testSubject.ValidateRequest(context.Request, out _, out _);
 
-        result.Should().Be(HttpStatusCode.OK);
+        result.Should().BeTrue();
+    }
+
+    [TestMethod]
+    [DataRow(AnalyzeUrl, RequestType.Analyze)]
+    [DataRow(CancelUrl, RequestType.Cancel)]
+    [DataRow(UnknownUrl, RequestType.Unknown)]
+    public void ValidateRequest_ValidRequestType_SetsCorrectRequestType(string url, RequestType expectedRequestType)
+    {
+        MockValidRequest();
+        request.Url.Returns(new Uri(url));
+
+        var result = testSubject.ValidateRequest(context.Request, out _, out var requestType);
+
+        result.Should().Be(expectedRequestType != RequestType.Unknown);
+        requestType.Should().Be(expectedRequestType);
     }
 
     [TestMethod]
@@ -237,7 +262,7 @@ public class AnalysisRequestHandlerTest
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
 
-        var result = await testSubject.ParseAnalysisRequestBodyAsync(context);
+        var result = await AnalysisRequestHandler.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context.Request);
 
         result.Should().BeNull();
     }
@@ -245,11 +270,11 @@ public class AnalysisRequestHandlerTest
     [TestMethod]
     public async Task ParseAnalysisRequestBody_FileNamesMissing_ReturnsNull()
     {
-        var stream = new MemoryStream("{\"ActiveRules\":[]}"u8.ToArray());
+        var stream = new MemoryStream("""{"ActiveRules":[]}"""u8.ToArray());
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
 
-        var result = await testSubject.ParseAnalysisRequestBodyAsync(context);
+        var result = await AnalysisRequestHandler.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context.Request);
 
         result.Should().BeNull();
     }
@@ -257,11 +282,11 @@ public class AnalysisRequestHandlerTest
     [TestMethod]
     public async Task ParseAnalysisRequestBody_FileNamesEmpty_ReturnsNull()
     {
-        var stream = new MemoryStream("{\"FileNames\":[],\"ActiveRules\":[]}"u8.ToArray());
+        var stream = new MemoryStream("""{"FileNames":[],"ActiveRules":[]}"""u8.ToArray());
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
 
-        var result = await testSubject.ParseAnalysisRequestBodyAsync(context);
+        var result = await AnalysisRequestHandler.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context.Request);
 
         result.Should().BeNull();
     }
@@ -269,18 +294,46 @@ public class AnalysisRequestHandlerTest
     [TestMethod]
     public async Task ParseAnalysisRequestBody_RequestBodyValid_ReturnsExpectedModel()
     {
-        var validRequestJson = $"{{\"FileNames\":[\"{FileUri}\"],\"ActiveRules\":[{{\"RuleId\":\"{DiagnosticId}\"}}]}}";
+        var validRequestJson = $$"""{"FileNames":["{{FileUri}}"],"ActiveRules":[{"RuleId":"{{DiagnosticId}}"}], "AnalysisId":"{{AnalysisId}}"}""";
         var stream = new MemoryStream(Encoding.UTF8.GetBytes(validRequestJson));
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
 
-        var result = await testSubject.ParseAnalysisRequestBodyAsync(context);
+        var result = await AnalysisRequestHandler.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context.Request);
 
         result.Should().NotBeNull();
         result!.FileNames.Should().HaveCount(1);
         result.FileNames[0].Should().Be(FileUri);
         result.ActiveRules.Should().HaveCount(1);
         result.ActiveRules[0].RuleId.Should().Be(DiagnosticId);
+        result.AnalysisId.Should().Be(AnalysisId);
+    }
+
+    [TestMethod]
+    public async Task ParseCancellationRequestBody_DeserializationFails_ReturnsNull()
+    {
+        var invalidBodyContent = "{}";
+        var stream = new MemoryStream(Encoding.UTF8.GetBytes(invalidBodyContent));
+        request.InputStream.Returns(stream);
+        request.ContentEncoding.Returns(Encoding.UTF8);
+
+        var result = await testSubject.ParseCancellationRequestBodyAsync(context.Request);
+
+        result.Should().BeNull();
+    }
+
+    [TestMethod]
+    public async Task ParseCancellationRequestBody_RequestBodyValid_ReturnsExpectedModel()
+    {
+        var validRequestJson = $$"""{"AnalysisId":"{{AnalysisId}}"}""";
+        var stream = new MemoryStream(Encoding.UTF8.GetBytes(validRequestJson));
+        request.InputStream.Returns(stream);
+        request.ContentEncoding.Returns(Encoding.UTF8);
+
+        var result = await testSubject.ParseCancellationRequestBodyAsync(context.Request);
+
+        result.Should().NotBeNull();
+        result!.AnalysisId.Should().Be(AnalysisId);
     }
 
     private void MockValidRequest()
