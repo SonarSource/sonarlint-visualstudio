@@ -8,7 +8,7 @@ using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.IntegrationTests.Http.Helper;
 
-internal record AnalysisRequestConfig(SecureString Token, string RequestUri, params string[] FileNames);
+internal record AnalysisRequestConfig<T>(SecureString Token, string RequestUri, T Request);
 
 internal sealed class HttpRequester : IDisposable
 {
@@ -25,11 +25,9 @@ internal sealed class HttpRequester : IDisposable
 
     public void Dispose() => httpClient.Dispose();
 
-    internal async Task<HttpResponseMessage> SendRequest(AnalysisRequestConfig analysisRequestConfig)
+    internal async Task<HttpResponseMessage> SendRequest<T>(AnalysisRequestConfig<T> analysisRequestConfig)
     {
-        var fileNames = analysisRequestConfig.FileNames.Select(x => new FileUri(x));
-        var analysisRequest = new AnalysisRequest { FileNames = [.. fileNames] };
-        var body = JsonConvert.SerializeObject(analysisRequest);
+        var body = JsonConvert.SerializeObject(analysisRequestConfig.Request);
 
         return await SendRequest(analysisRequestConfig.Token.ToUnsecureString(), analysisRequestConfig.RequestUri, body);
     }

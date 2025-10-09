@@ -67,7 +67,7 @@ public class RoslynAnalysisHttpServerTest
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<RoslynAnalysisHttpServer>();
 
     [TestMethod]
-    public void Ctor_LoggerSetsContext() => _logger.Received(1).ForContext(Resources.HttpServerLogContext).ForContext(nameof(RoslynAnalysisHttpServer));
+    public void Ctor_LoggerSetsContext() => _logger.Received(1).ForContext(Resources.RoslynLogContext, Resources.HttpServerLogContext);
 
     [TestMethod]
     public void Dispose_CanBeCalledMultipleTimes()

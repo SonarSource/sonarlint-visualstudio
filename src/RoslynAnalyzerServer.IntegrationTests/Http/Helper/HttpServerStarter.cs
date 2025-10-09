@@ -68,7 +68,7 @@ internal sealed class HttpServerStarter : IDisposable
     private static ILogger CreateMockedLogger()
     {
         var logger = Substitute.For<ILogger>();
-        logger.ForContext(Arg.Any<string>()).Returns(logger);
+        logger.ForContext(Arg.Any<string[]>()).Returns(logger);
         return logger;
     }
 

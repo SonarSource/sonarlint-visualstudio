@@ -39,6 +39,11 @@ internal class HttpRequestHandler() : IHttpRequestHandler
 {
     public void CloseRequest(IHttpListenerContext context, HttpStatusCode statusCode)
     {
+        if (!context.Response.OutputStream.CanWrite)
+        {
+            return;
+        }
+
         context.Response.StatusCode = (int)statusCode;
         context.Response.Close();
     }
@@ -47,6 +52,11 @@ internal class HttpRequestHandler() : IHttpRequestHandler
 
     private static async Task WriteResponseAsync(string responseString, IHttpListenerContext context, HttpStatusCode statusCode)
     {
+        if (!context.Response.OutputStream.CanWrite)
+        {
+            return;
+        }
+
         var buffer = Encoding.UTF8.GetBytes(responseString);
         context.Response.ContentLength64 = buffer.Length;
         context.Response.StatusCode = (int)statusCode;
