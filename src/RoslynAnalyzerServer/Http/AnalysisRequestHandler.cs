@@ -78,7 +78,7 @@ internal class AnalysisRequestHandler(ILogger logger, IHttpServerSettings server
     public async Task<AnalysisRequest?> ParseAnalysisRequestBodyAsync(IHttpListenerRequest request)
     {
         var analysisRequestBodyAsync = await ParseAnalysisRequestBodyAsync<AnalysisRequest>(request);
-        return analysisRequestBodyAsync is { FileNames.Count: > 0, ActiveRules.Count: > 0 } ? analysisRequestBodyAsync : null;
+        return analysisRequestBodyAsync is { FileUris.Count: > 0, ActiveRules.Count: > 0 } ? analysisRequestBodyAsync : null;
     }
 
     public Task<AnalysisCancellationRequest?> ParseCancellationRequestBodyAsync(IHttpListenerRequest request) =>

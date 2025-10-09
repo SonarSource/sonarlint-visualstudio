@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.TestInfrastructure;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 using Language = SonarLint.VisualStudio.Core.Language;
 
@@ -125,7 +126,7 @@ public class SequentialRoslynAnalysisEngineTests
         result.Should().BeEquivalentTo(duplicateIssue1);
         VerifyAnalysisExecution(requestForProject, compilationForProject, [duplicateDiagnostic1, duplicateDiagnostic2]);
         logger.AssertPartialOutputStringExists(
-            $"Duplicate diagnostic discarded ID: {duplicateIssue2.RuleId}, File: {duplicateIssue2.PrimaryLocation.FilePath}, Line: {duplicateIssue2.PrimaryLocation.TextRange.StartLine}");
+            $"Duplicate diagnostic discarded ID: {duplicateIssue2.RuleId}, File: {duplicateIssue2.PrimaryLocation.FileUri.LocalPath}, Line: {duplicateIssue2.PrimaryLocation.TextRange.StartLine}");
     }
 
     [TestMethod]
@@ -142,7 +143,7 @@ public class SequentialRoslynAnalysisEngineTests
         VerifyAnalysisExecution(requestForProject1, compilationForProject1, [diagnostic1]);
         VerifyAnalysisExecution(requestForProject2, compilationForProject2, [diagnostic2]);
         logger.AssertPartialOutputStringExists(
-            $"Duplicate diagnostic discarded ID: {duplicateIssue.RuleId}, File: {duplicateIssue.PrimaryLocation.FilePath}, Line: {duplicateIssue.PrimaryLocation.TextRange.StartLine}");
+            $"Duplicate diagnostic discarded ID: {duplicateIssue.RuleId}, File: {duplicateIssue.PrimaryLocation.FileUri.LocalPath}, Line: {duplicateIssue.PrimaryLocation.TextRange.StartLine}");
     }
 
     [TestMethod]
@@ -314,7 +315,7 @@ public class SequentialRoslynAnalysisEngineTests
             true);
 
         var location = Location.Create(
-            "test.cs",
+            "C:\\test.cs",
             new TextSpan(0, 1),
             new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 1)));
 
@@ -324,7 +325,7 @@ public class SequentialRoslynAnalysisEngineTests
     private static RoslynIssue CreateSonarIssue(string ruleId, string message)
     {
         var textRange = new RoslynIssueTextRange(1, 1, 0, 1);
-        var location = new RoslynIssueLocation(message, "test.cs", textRange);
+        var location = new RoslynIssueLocation(message, new FileUri("C:\\test.cs"), textRange);
         return new RoslynIssue(ruleId, location);
     }
 }

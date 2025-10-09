@@ -21,10 +21,11 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 
@@ -57,13 +58,14 @@ public class DiagnosticToRoslynIssueConverterTests
         Language language,
         string ruleId,
         string message,
-        string filePath,
+        string fileName,
         int startLine,
         int endLine,
         int startChar,
         int endChar)
     {
-        var location = CreateLocation(filePath, startLine, endLine, startChar, endChar);
+        var fileUri = new FileUri(fileName);
+        var location = CreateLocation(fileUri, startLine, endLine, startChar, endChar);
         var diagnostic = CreateDiagnostic(ruleId, message, location);
         var expectedTextRange = new RoslynIssueTextRange(
             startLine + 1, // Convert to 1-based
@@ -72,7 +74,7 @@ public class DiagnosticToRoslynIssueConverterTests
             endChar);
         var expectedLocation = new RoslynIssueLocation(
             message,
-            filePath,
+            fileUri,
             expectedTextRange);
         var expectedRuleId = $"{language.RepoInfo.Key}:{ruleId}";
         var expectedDiagnostic = new RoslynIssue(
@@ -104,8 +106,8 @@ public class DiagnosticToRoslynIssueConverterTests
     {
         const string fileCs = "c:\\test\\file.cs";
         const string file2Cs = "c:\\test\\file2.cs";
-        var primaryLocation = CreateLocation(fileCs, 5, 5, 10, 15);
-        var additionalLocations = new[] { CreateLocation(fileCs, 10, 10, 20, 25), CreateLocation(file2Cs, 15, 15, 30, 35) };
+        var primaryLocation = CreateLocation(new FileUri(fileCs), 5, 5, 10, 15);
+        var additionalLocations = new[] { CreateLocation(new FileUri(fileCs), 10, 10, 20, 25), CreateLocation(new FileUri(file2Cs), 15, 15, 30, 35) };
         var diagnostic = CreateDiagnostic("any", "any", primaryLocation, additionalLocations, properties);
         var expectedFlows = new[]
         {
@@ -113,11 +115,11 @@ public class DiagnosticToRoslynIssueConverterTests
             {
                 new(
                     expectedMessages[0],
-                    fileCs,
+                    new FileUri(fileCs),
                     new RoslynIssueTextRange(11, 11, 20, 25)),
                 new(
                     expectedMessages[1],
-                    file2Cs,
+                    new FileUri(file2Cs),
                     new RoslynIssueTextRange(16, 16, 30, 35))
             })
         };
@@ -130,7 +132,7 @@ public class DiagnosticToRoslynIssueConverterTests
     [TestMethod]
     public void ConvertToSonarDiagnostic_WithQuickFixes_ConvertsCorrectly()
     {
-        var diagnostic = CreateDiagnostic("any", "any", CreateLocation("any", 0, 0, 0, 0));
+        var diagnostic = CreateDiagnostic("any", "any", CreateLocation(new FileUri("file:///C:/any.cs"), 0, 0, 0, 0));
         var quickFix1 = new RoslynQuickFix(Guid.NewGuid());
         var quickFix2 = new RoslynQuickFix(Guid.NewGuid());
 
@@ -143,7 +145,7 @@ public class DiagnosticToRoslynIssueConverterTests
     [TestMethod]
     public void ConvertToSonarDiagnostic_WithNoQuickFixes_ReturnsEmptyQuickFixesList()
     {
-        var diagnostic = CreateDiagnostic("any", "any", CreateLocation("any", 0, 0, 0, 0));
+        var diagnostic = CreateDiagnostic("any", "any", CreateLocation(new FileUri("file:///C:/any.cs"), 0, 0, 0, 0));
 
         var result = testSubject.ConvertToSonarDiagnostic(diagnostic, [], Language.CSharp);
 
@@ -151,7 +153,7 @@ public class DiagnosticToRoslynIssueConverterTests
     }
 
     private static Location CreateLocation(
-        string filePath,
+        FileUri fileUri,
         int startLine,
         int endLine,
         int startChar,
@@ -162,7 +164,7 @@ public class DiagnosticToRoslynIssueConverterTests
         var linePositionSpan = new LinePositionSpan(
             new LinePosition(startLine, startChar),
             new LinePosition(endLine, endChar));
-        syntaxTree.GetMappedLineSpan(textSpan, CancellationToken.None).Returns(new FileLinePositionSpan(filePath, linePositionSpan));
+        syntaxTree.GetMappedLineSpan(textSpan, CancellationToken.None).Returns(new FileLinePositionSpan(fileUri.LocalPath, linePositionSpan));
 
         return Location.Create(syntaxTree, textSpan);
     }

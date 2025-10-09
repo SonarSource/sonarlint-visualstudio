@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 
@@ -26,7 +27,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 public class DiagnosticDuplicatesComparerTests
 {
     private readonly DiagnosticDuplicatesComparer testSubject = DiagnosticDuplicatesComparer.Instance;
-    private readonly RoslynIssue diagnostic1 = CreateDiagnostic("rule1", "file1.cs", 1, 1, 1, 10);
+    private readonly RoslynIssue diagnostic1 = CreateDiagnostic("rule1", new FileUri("file:///a/file1.cs"), 1, 1, 1, 10);
 
     [TestMethod]
     public void Equals_SameReference_ReturnsTrue()
@@ -55,7 +56,7 @@ public class DiagnosticDuplicatesComparerTests
     [TestMethod]
     public void Equals_SameRuleKeyAndLocation_ReturnsTrue()
     {
-        var diagnostic2 = CreateDiagnostic("rule1", "file1.cs", 1, 1, 1, 10);
+        var diagnostic2 = CreateDiagnostic("rule1", new FileUri("file:///a/file1.cs"), 1, 1, 1, 10);
 
         var result = testSubject.Equals(diagnostic1, diagnostic2);
 
@@ -66,7 +67,7 @@ public class DiagnosticDuplicatesComparerTests
     [TestMethod]
     public void Equals_SameRuleKeyAndLocation_MessageIsIgnored()
     {
-        var diagnostic2 = CreateDiagnostic("rule1", "file1.cs", 1, 1, 1, 10, "some different message");
+        var diagnostic2 = CreateDiagnostic("rule1", new FileUri("file:///a/file1.cs"), 1, 1, 1, 10, "some different message");
 
         var result = testSubject.Equals(diagnostic1, diagnostic2);
 
@@ -74,15 +75,15 @@ public class DiagnosticDuplicatesComparerTests
     }
 
     [TestMethod]
-    [DataRow("rule2", "file1.cs", 1, 1, 1, 10, DisplayName = "Different RuleKey")]
-    [DataRow("rule1", "file2.cs", 1, 1, 1, 10, DisplayName = "Different FilePath")]
-    [DataRow("rule1", "file1.cs", 2, 1, 1, 10, DisplayName = "Different StartLine")]
-    [DataRow("rule1", "file1.cs", 1, 1, 2, 10, DisplayName = "Different EndLine")]
-    [DataRow("rule1", "file1.cs", 1, 2, 1, 10, DisplayName = "Different StartLineOffset")]
-    [DataRow("rule1", "file1.cs", 1, 1, 1, 11, DisplayName = "Different EndLineOffset")]
+    [DataRow("rule2", "file:///a/file1.cs", 1, 1, 1, 10, DisplayName = "Different RuleKey")]
+    [DataRow("rule1", "file:///a/file2.cs", 1, 1, 1, 10, DisplayName = "Different FilePath")]
+    [DataRow("rule1", "file:///a/file1.cs", 2, 1, 1, 10, DisplayName = "Different StartLine")]
+    [DataRow("rule1", "file:///a/file1.cs", 1, 1, 2, 10, DisplayName = "Different EndLine")]
+    [DataRow("rule1", "file:///a/file1.cs", 1, 2, 1, 10, DisplayName = "Different StartLineOffset")]
+    [DataRow("rule1", "file:///a/file1.cs", 1, 1, 1, 11, DisplayName = "Different EndLineOffset")]
     public void Equals_DifferentValues_ReturnsFalse(string ruleKey, string filePath, int startLine, int startLineOffset, int endLine, int endLineOffset)
     {
-        var diagnostic2 = CreateDiagnostic(ruleKey, filePath, startLine, startLineOffset, endLine, endLineOffset);
+        var diagnostic2 = CreateDiagnostic(ruleKey, new FileUri(filePath), startLine, startLineOffset, endLine, endLineOffset);
 
         var result = testSubject.Equals(diagnostic1, diagnostic2);
 
@@ -92,7 +93,7 @@ public class DiagnosticDuplicatesComparerTests
     [TestMethod]
     public void GetHashCode_SameObjects_ReturnsSameHashCode()
     {
-        var diagnostic2 = CreateDiagnostic("rule1", "file1.cs", 1, 1, 1, 10);
+        var diagnostic2 = CreateDiagnostic("rule1", new FileUri("file:///a/file1.cs"), 1, 1, 1, 10);
 
         var hash1 = testSubject.GetHashCode(diagnostic1);
         var hash2 = testSubject.GetHashCode(diagnostic2);
@@ -103,7 +104,7 @@ public class DiagnosticDuplicatesComparerTests
     [TestMethod]
     public void GetHashCode_DifferentObjects_ReturnsDifferentHashCodes()
     {
-        var diagnostic2 = CreateDiagnostic("rule2", "file2.cs", 2, 2, 2, 20);
+        var diagnostic2 = CreateDiagnostic("rule2", new FileUri("file:///a/file2.cs"), 2, 2, 2, 20);
 
         var hash1 = testSubject.GetHashCode(diagnostic1);
         var hash2 = testSubject.GetHashCode(diagnostic2);
@@ -120,10 +121,10 @@ public class DiagnosticDuplicatesComparerTests
         instance1.Should().BeSameAs(instance2);
     }
 
-    private static RoslynIssue CreateDiagnostic(string ruleKey, string filePath, int startLine, int startLineOffset, int endLine, int endLineOffset, string? message = null)
+    private static RoslynIssue CreateDiagnostic(string ruleKey, FileUri fileUri, int startLine, int startLineOffset, int endLine, int endLineOffset, string? message = null)
     {
         var textRange = new RoslynIssueTextRange(startLine, endLine, startLineOffset, endLineOffset);
-        var location = new RoslynIssueLocation(message ?? "message", filePath, textRange);
+        var location = new RoslynIssueLocation(message ?? "message", fileUri, textRange);
         return new RoslynIssue(ruleKey, location);
     }
 }
