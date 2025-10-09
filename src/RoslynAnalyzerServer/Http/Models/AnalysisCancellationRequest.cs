@@ -18,13 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
+using Newtonsoft.Json;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
-internal interface IRoslynAnalysisService
+public record AnalysisCancellationRequest
 {
-    Task<IEnumerable<RoslynIssue>> AnalyzeAsync(AnalysisRequest analysisRequest, CancellationToken cancellationToken);
-    bool Cancel(AnalysisCancellationRequest analysisCancellationRequest);
+    [JsonRequired]
+    public Guid AnalysisId { get; set; }
 }
