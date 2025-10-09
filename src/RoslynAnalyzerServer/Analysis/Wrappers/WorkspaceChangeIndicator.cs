@@ -32,10 +32,11 @@ internal class WorkspaceChangeIndicator : IWorkspaceChangeIndicator
 {
     private readonly HashSet<WorkspaceChangeKind> trivialChanges =
     [
-        // currently changes in other files should not affect too many quickfixes
-        // there is an opportunity for improvement:
+        // Currently changes in other files should not affect too many quickfixes
+        // There is an opportunity for improvement:
         // this group needs to be removed, and a mechanism that either re-analyzes on apply fail,
         // or a background analysis job, need to be added
+        // todo https://sonarsource.atlassian.net/browse/SLVS-2612
         WorkspaceChangeKind.DocumentAdded,
         WorkspaceChangeKind.DocumentRemoved,
         WorkspaceChangeKind.DocumentReloaded,
@@ -59,7 +60,7 @@ internal class WorkspaceChangeIndicator : IWorkspaceChangeIndicator
         solutionChanges.GetAddedProjects().Any() ||
         solutionChanges.GetRemovedProjects().Any();
 
-        // we don't care about other analyzers
+        // We don't care about other analyzers. This is preserved for documentation's sake, as this code was originally copied from roslyn's github
         // solutionChanges.GetAddedAnalyzerReferences().Any() ||
         // solutionChanges.GetRemovedAnalyzerReferences().Any();
 
@@ -69,17 +70,18 @@ internal class WorkspaceChangeIndicator : IWorkspaceChangeIndicator
         changedProject.GetRemovedMetadataReferences().Any() ||
         changedProject.GetRemovedProjectReferences().Any();
 
-        // currently changes in other files should not affect too many quickfixes, see comment above
+        // todo https://sonarsource.atlassian.net/browse/SLVS-2612
+        // Currently changes in other files should not affect too many quickfixes, see comment above.
         // changedProject.GetAddedDocuments().Any() ||
         // changedProject.GetRemovedDocuments().Any() ||
         // changedProject.GetAddedAdditionalDocuments().Any() ||
         // changedProject.GetRemovedAdditionalDocuments().Any() ||
 
-        // we don't care about configs
+        // We don't care about configs as we get rules configuration from SLCore. This is preserved for documentation's sake, as this code was originally copied from roslyn's github
         // changedProject.GetAddedAnalyzerConfigDocuments().Any() ||
         // changedProject.GetRemovedAnalyzerConfigDocuments().Any() ||
 
-        // we don't care about other analyzers
+        // We don't care about other analyzers or suppressors. This is preserved for documentation's sake, as this code was originally copied from roslyn's github
         // changedProject.GetAddedAnalyzerReferences().Any() ||
         // changedProject.GetRemovedAnalyzerReferences().Any() ||
 }
