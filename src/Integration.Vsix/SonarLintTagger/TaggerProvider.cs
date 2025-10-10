@@ -79,6 +79,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
     private CancellableJobRunner reanalysisJob;
     private StatusBarReanalysisProgressHandler reanalysisProgressHandler;
     private IVsStatusbar vsStatusBar;
+    private readonly ITaskExecutorWithDebounce requestAnalysisDebounceExecutor;
 
     internal IEnumerable<IIssueTracker> ActiveTrackersForTesting => issueTrackers;
 
@@ -111,6 +112,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
         this.analyzer = analyzer;
         this.logger = logger;
         this.taskExecutorWithDebounceFactory = taskExecutorWithDebounceFactory;
+        requestAnalysisDebounceExecutor = taskExecutorWithDebounceFactory.Create(debounceMilliseconds);
 
         InitializationProcessor = initializationProcessorFactory.CreateAndStart<TaggerProvider>(
             [],
@@ -138,10 +140,11 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
 
     public IInitializationProcessor InitializationProcessor { get; }
 
-    private void OnAnalysisRequested(object sender, AnalysisRequestEventArgs args)
-    {
-        // This method is not currently used, but is left here as there are opportunities to use it in the future
+    private void OnAnalysisRequested(object sender, AnalysisRequestEventArgs args) =>
+        requestAnalysisDebounceExecutor.Debounce(() => RequestAnalysis(args));
 
+    private void RequestAnalysis(AnalysisRequestEventArgs args)
+    {
         lock (reanalysisLockObject)
         {
             reanalysisJob?.Cancel();
