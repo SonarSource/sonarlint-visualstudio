@@ -81,6 +81,7 @@ internal sealed class RoslynAnalysisHttpServer(
         cancellationTokenSource.Cancel();
         cancellationTokenSource.Dispose();
         httpListener?.Close();
+        roslynAnalysisService.Dispose();
         isDisposed = true;
         logger.LogVerbose(Resources.HttpServerDisposed);
     }

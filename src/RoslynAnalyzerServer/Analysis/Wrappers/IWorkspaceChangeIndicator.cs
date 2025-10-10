@@ -18,13 +18,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
+using Microsoft.CodeAnalysis;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-internal interface IRoslynAnalysisService : IDisposable
+/// <summary>
+/// Indicates whether workspace changes are critical and require reanalysis
+/// </summary>
+internal interface IWorkspaceChangeIndicator
 {
-    Task<IEnumerable<RoslynIssue>> AnalyzeAsync(AnalysisRequest analysisRequest, CancellationToken cancellationToken);
-    bool Cancel(AnalysisCancellationRequest analysisCancellationRequest);
+    /// <summary>
+    /// Checks if solution change event is not critical. Does not guarantee that it is critical if returns false.
+    /// </summary>
+    bool IsChangeKindTrivial(WorkspaceChangeKind kind);
+
+    /// <summary>
+    /// Checks if solution changes are critical and require reanalysis
+    /// </summary>
+    bool SolutionChangedCritically(SolutionChanges solutionChanges);
+
+    /// <summary>
+    /// Checks if project changes are critical and require reanalysis
+    /// </summary>
+    bool ProjectChangedCritically(ProjectChanges changedProject);
 }
