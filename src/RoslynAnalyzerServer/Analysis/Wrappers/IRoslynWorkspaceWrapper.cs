@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-internal interface IRoslynWorkspaceWrapper
+internal interface IRoslynWorkspaceWrapper : IDisposable
 {
     IRoslynSolutionWrapper GetCurrentSolution();
 
