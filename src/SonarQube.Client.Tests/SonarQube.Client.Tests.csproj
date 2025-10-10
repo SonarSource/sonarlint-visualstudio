@@ -36,4 +36,8 @@
     </Compile>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Requests\Api\" />
+  </ItemGroup>
+
 </Project>

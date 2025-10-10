@@ -23,26 +23,22 @@ using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
-using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.EmbeddedAnalyzers;
 
 [Export(typeof(IEmbeddedDotnetAnalyzersLocator))]
-[Export(typeof(IObsoleteDotnetAnalyzersLocator))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
 internal class EmbeddedDotnetAnalyzersLocator(IVsixRootLocator vsixRootLocator, ILanguageProvider languageProvider, IFileSystemService fileSystem)
-    : IEmbeddedDotnetAnalyzersLocator, IObsoleteDotnetAnalyzersLocator
+    : IEmbeddedDotnetAnalyzersLocator
 {
     private const string PathInsideVsix = "EmbeddedDotnetAnalyzerDLLs";
     private const string DllsSearchPattern = "SonarAnalyzer.*.dll"; // starting from 10.0, the analyzer assemblies are merged and all of the dll names start with SonarAnalyzer
     private const string EnterpriseInfix = ".Enterprise."; // enterprise analyzer assemblies are included in the same folder and need to be filtered out
 
     private readonly IFileSystem fileSystem = fileSystem;
-
-    public List<string> GetBasicAnalyzerFullPaths() => GetBasicAnalyzerDlls().ToList();
 
     public Dictionary<LicensedRoslynLanguage, List<string>> GetAnalyzerFullPathsByLicensedLanguage()
     {
@@ -65,10 +61,6 @@ internal class EmbeddedDotnetAnalyzersLocator(IVsixRootLocator vsixRootLocator, 
 
         return dlls.Where(dll => dll.Contains(language.RoslynDllIdentifier)).ToList();
     }
-
-    private IEnumerable<string> GetBasicAnalyzerDlls() => GetAllAnalyzerDlls().Where(x => !x.Contains(EnterpriseInfix));
-
-    public List<string> GetEnterpriseAnalyzerFullPaths() => GetAllAnalyzerDlls().ToList();
 
     private string[] GetAllAnalyzerDlls() => fileSystem.Directory.GetFiles(GetPathToParentFolder(), DllsSearchPattern);
 

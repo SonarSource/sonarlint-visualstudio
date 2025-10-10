@@ -59,7 +59,6 @@ namespace SonarLint.VisualStudio.Core.Binding
 
         public string ProjectKey { get; set; }
         public string ProjectName { get; set; }
-        public Dictionary<Language, ApplicableQualityProfile> Profiles { get; set; }
 
         [JsonIgnore]
         public IConnectionCredentials Credentials { get; set; }
