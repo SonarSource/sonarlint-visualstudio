@@ -21,79 +21,58 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
-using SonarLint.VisualStudio.Core.Synchronization;
+using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Listener.Branch;
 using SonarLint.VisualStudio.SLCore.Service.Branch;
 
 namespace SonarLint.VisualStudio.ConnectedMode
 {
     [Export(typeof(IStatefulServerBranchProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class StatefulServerBranchProvider : IStatefulServerBranchProvider, IDisposable
+    internal sealed class StatefulServerBranchProvider : IStatefulServerBranchProvider
     {
-        private readonly IServerBranchProvider serverBranchProvider;
-        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
         private readonly ISLCoreServiceProvider serviceProvider;
+        private readonly IBoundSolutionGitMonitor gitMonitor;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
-        private bool disposedValue;
-        private string selectedBranch;
-        private readonly IAsyncLock asyncLock;
+        private bool disposed;
 
         [ImportingConstructor]
         public StatefulServerBranchProvider(
-            IServerBranchProvider serverBranchProvider,
-            IActiveSolutionBoundTracker activeSolutionBoundTracker,
             IActiveConfigScopeTracker activeConfigScopeTracker,
             ISLCoreServiceProvider serviceProvider,
+            IBoundSolutionGitMonitor gitMonitor,
             ILogger logger,
             IThreadHandling threadHandling,
-            IAsyncLockFactory asyncLockFactory)
+            IInitializationProcessorFactory initializationProcessorFactory)
         {
-            this.serverBranchProvider = serverBranchProvider;
-            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.activeConfigScopeTracker = activeConfigScopeTracker;
             this.serviceProvider = serviceProvider;
+            this.gitMonitor = gitMonitor;
             this.logger = logger;
             this.threadHandling = threadHandling;
-            asyncLock = asyncLockFactory.Create();
 
-            activeSolutionBoundTracker.PreSolutionBindingUpdated += OnPreSolutionBindingUpdated;
-            activeSolutionBoundTracker.PreSolutionBindingChanged += OnPreSolutionBindingChanged;
-        }
-
-        private void OnPreSolutionBindingUpdated(object sender, EventArgs e)
-        {
-            logger.LogVerbose(Resources.StatefulBranchProvider_BindingUpdated);
-            SafeClearSelectedBranchCache();
-
-            NotifySlCoreBranchChange();
-        }
-
-        private void SafeClearSelectedBranchCache()
-        {
-            using (asyncLock.Acquire())
+            InitializationProcessor = initializationProcessorFactory.Create<StatefulServerBranchProvider>([gitMonitor],
+                _ => threadHandling.RunOnUIThreadAsync(() =>
             {
-                selectedBranch = null;
+                gitMonitor.HeadChanged += GitMonitor_OnHeadChanged;
+                activeConfigScopeTracker.CurrentConfigurationScopeChanged += ActiveConfigScopeTracker_OnCurrentConfigurationScopeChanged;
+            }));
+        }
+
+        private void ActiveConfigScopeTracker_OnCurrentConfigurationScopeChanged(object sender, ConfigurationScopeChangedEventArgs e)
+        {
+            if (e.DefinitionChanged)
+            {
+                gitMonitor.Refresh();
             }
         }
 
-        private void OnPreSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
-        {
-            logger.LogVerbose(Resources.StatefulBranchProvider_BindingChanged);
-            SafeClearSelectedBranchCache();
-
-            if (e.Configuration.Mode.IsInAConnectedMode())
-            {
-                NotifySlCoreBranchChange();
-            }
-        }
-
-        private void NotifySlCoreBranchChange() =>
+        private void GitMonitor_OnHeadChanged(object sender, EventArgs e) =>
             threadHandling.RunOnBackgroundThread(() =>
             {
                 if (!serviceProvider.TryGetTransientService(out ISonarProjectBranchSlCoreService sonarProjectBranchSlCoreService))
@@ -108,54 +87,21 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 sonarProjectBranchSlCoreService.DidVcsRepositoryChange(new DidVcsRepositoryChangeParams(activeConfigScopeTracker.Current.Id));
             }).Forget();
 
-        public async Task<string> GetServerBranchNameAsync(CancellationToken token)
-        {
-            using (await asyncLock.AcquireAsync())
-            {
-                if (selectedBranch == null)
-                {
-                    logger.LogVerbose(Resources.StatefulBranchProvider_CacheMiss);
-
-                    // Note: we're using null to indicate that a refresh is required.
-                    // However, the serverBranchProvider will return null in some cases e.g. standalone mode, not a git repo.
-                    // In these cases we expect the serverBranchProvider to return quickly so the impact of making unnecessary
-                    // calls is not significant.
-                    selectedBranch = await DoGetServerBranchNameAsync(token);
-                }
-                else
-                {
-                    logger.LogVerbose(Resources.StatefulBranchProvider_CacheHit);
-                }
-            }
-
-            logger.WriteLine(Resources.StatefulBranchProvider_ReturnValue, selectedBranch ?? Resources.NullBranchName);
-            return selectedBranch;
-        }
-
-        private Task<string> DoGetServerBranchNameAsync(CancellationToken token) => threadHandling.RunOnBackgroundThread(() => serverBranchProvider.GetServerBranchNameAsync(token));
-
-        #region IDisposable
-
-        private void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    activeSolutionBoundTracker.PreSolutionBindingChanged -= OnPreSolutionBindingChanged;
-                    activeSolutionBoundTracker.PreSolutionBindingUpdated -= OnPreSolutionBindingUpdated;
-                }
-                disposedValue = true;
-            }
-        }
-
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            if (disposed)
+            {
+                return;
+            }
+
+            if (InitializationProcessor.IsFinalized)
+            {
+                gitMonitor.HeadChanged -= GitMonitor_OnHeadChanged;
+                activeConfigScopeTracker.CurrentConfigurationScopeChanged -= ActiveConfigScopeTracker_OnCurrentConfigurationScopeChanged;
+            }
+            disposed = true;
         }
 
-        #endregion IDisposable
+        public IInitializationProcessor InitializationProcessor { get; }
     }
 }

@@ -175,20 +175,8 @@
   <data name="Package_Initializing" xml:space="preserve">
     <value>[ConnectedMode] Initializing package...</value>
   </data>
-  <data name="StatefulBranchProvider_BindingChanged" xml:space="preserve">
-    <value>[ConnectedMode/BranchMapping] Binding changed -&gt; cache cleared</value>
-  </data>
   <data name="StatefulBranchProvider_BindingUpdated" xml:space="preserve">
-    <value>[ConnectedMode/BranchMapping] Binding updated -&gt; cache cleared</value>
-  </data>
-  <data name="StatefulBranchProvider_CacheHit" xml:space="preserve">
-    <value>[ConnectedMode/BranchMapping] Cache hit</value>
-  </data>
-  <data name="StatefulBranchProvider_CacheMiss" xml:space="preserve">
-    <value>[ConnectedMode/BranchMapping] Cache miss. Recalculating server branch mapping...</value>
-  </data>
-  <data name="StatefulBranchProvider_ReturnValue" xml:space="preserve">
-    <value>[ConnectedMode/BranchMapping] Closest Sonar server branch: {0}</value>
+    <value>Git HEAD changed, updating SLCore</value>
   </data>
   <data name="ActionRunner_CancellingCurrentOperation" xml:space="preserve">
     <value>[ActionRunner] Cancelling current operation...</value>

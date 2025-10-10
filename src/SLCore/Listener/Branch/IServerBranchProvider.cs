@@ -18,8 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core
+using SonarLint.VisualStudio.Core.Initialization;
+
+namespace SonarLint.VisualStudio.SLCore.Listener.Branch
 {
+    public record struct RemoteBranch(string Name, bool IsMain);
+
     public interface IServerBranchProvider
     {
         /// <summary>
@@ -32,7 +36,7 @@ namespace SonarLint.VisualStudio.Core
         /// <remarks>
         /// Only applies in connected mode.
         /// </remarks>
-        Task<string> GetServerBranchNameAsync(CancellationToken token);
+        string? GetServerBranchName(List<RemoteBranch> branches);
     }
 
     /// <summary>
@@ -41,6 +45,7 @@ namespace SonarLint.VisualStudio.Core
     /// <remarks>The implementation is a singleton that recalculates the Sonar branch name
     /// automatically when necessary e.g. when a different solution is opened
     /// </remarks>
-    public interface IStatefulServerBranchProvider : IServerBranchProvider { }
-
+    public interface IStatefulServerBranchProvider : IRequireInitialization, IDisposable // todo rename & import
+    {
+    }
 }

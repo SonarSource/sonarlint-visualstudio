@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.SLCore.Listener.Branch;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode
@@ -34,11 +35,12 @@ namespace SonarLint.VisualStudio.ConnectedMode
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideAutoLoad(BoundSolutionUIContext.GuidString, PackageAutoLoadFlags.BackgroundLoad)]
     [Guid("dd3427e0-7bb2-4a51-b00a-ddae2c32c7ef")]
-    public sealed class ConnectedModePackage : AsyncPackage
+    public sealed class ConnectedModePackage : AsyncPackage, IDisposable
     {
         private IHotspotDocumentClosedHandler hotspotDocumentClosedHandler;
         private IHotspotSolutionClosedHandler hotspotSolutionClosedHandler;
         private ILocalHotspotStoreMonitor hotspotStoreMonitor;
+        private IStatefulServerBranchProvider statefulServerBranchProvider;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -48,6 +50,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
             var logger = componentModel.GetService<ILogger>();
 
             logger.WriteLine(Resources.Package_Initializing);
+            statefulServerBranchProvider = componentModel.GetService<IStatefulServerBranchProvider>();
+            await statefulServerBranchProvider.InitializationProcessor.InitializeAsync();
 
             hotspotDocumentClosedHandler = componentModel.GetService<IHotspotDocumentClosedHandler>();
 
@@ -56,8 +60,11 @@ namespace SonarLint.VisualStudio.ConnectedMode
             hotspotStoreMonitor = componentModel.GetService<ILocalHotspotStoreMonitor>();
             await hotspotStoreMonitor.InitializeAsync();
 
+
             logger.WriteLine(Resources.Package_Initialized);
         }
 
+        public void Dispose() =>
+            statefulServerBranchProvider.Dispose();
     }
 }
