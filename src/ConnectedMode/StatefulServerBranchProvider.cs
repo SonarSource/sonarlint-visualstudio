@@ -59,6 +59,10 @@ namespace SonarLint.VisualStudio.ConnectedMode
             InitializationProcessor = initializationProcessorFactory.Create<StatefulServerBranchProvider>([gitMonitor],
                 _ => threadHandling.RunOnUIThreadAsync(() =>
             {
+                if (disposed)
+                {
+                    return;
+                }
                 gitMonitor.HeadChanged += GitMonitor_OnHeadChanged;
                 activeConfigScopeTracker.CurrentConfigurationScopeChanged += ActiveConfigScopeTracker_OnCurrentConfigurationScopeChanged;
             }));
