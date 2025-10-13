@@ -294,4 +294,7 @@
   <data name="ConfigScope_UpdatedAnalysisReadiness" xml:space="preserve">
     <value>Updated analysis readiness for Configuration Scope {0}: {1}</value>
   </data>
+  <data name="ConfigScope_UpdatedSonarBranch" xml:space="preserve">
+    <value>Updated Sonar branch for Configuration Scope {0}: {1}</value>
+  </data>
 </root>

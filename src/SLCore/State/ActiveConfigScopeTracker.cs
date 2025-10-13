@@ -137,41 +137,28 @@ internal sealed class ActiveConfigScopeTracker(
         OnCurrentConfigurationScopeChanged(true);
     }
 
-    public bool TryUpdateRootOnCurrentConfigScope(string? id, string root, string commandsBaseDir)
-    {
-        using (asyncLock.Acquire())
+    public bool TryUpdateRootOnCurrentConfigScope(string? id, string root, string commandsBaseDir) =>
+        UpdateCurrentScope(id, () =>
         {
-            if (id is null || CurrentConfigScope?.Id != id)
-            {
-                return false;
-            }
-
-            CurrentConfigScope = CurrentConfigScope with { RootPath = root, CommandsBaseDir = commandsBaseDir };
+            CurrentConfigScope = CurrentConfigScope! with { RootPath = root, CommandsBaseDir = commandsBaseDir };
             logger.WriteLine(SLCoreStrings.ConfigScope_UpdatedFileSystem, id, root, commandsBaseDir);
-            LogConfigurationScopeChangedUnsafe();
-        }
-        OnCurrentConfigurationScopeChanged(false);
-        return true;
-    }
+        });
 
-    public bool TryUpdateAnalysisReadinessOnCurrentConfigScope(string? id, bool isReady)
-    {
-        using (asyncLock.Acquire())
+    public bool TryUpdateAnalysisReadinessOnCurrentConfigScope(string? id, bool isReady) =>
+        UpdateCurrentScope(id, () =>
         {
-            if (id is null || CurrentConfigScope?.Id != id)
-            {
-                return false;
-            }
-
-            CurrentConfigScope = CurrentConfigScope with { IsReadyForAnalysis = isReady};
+            CurrentConfigScope = CurrentConfigScope! with { IsReadyForAnalysis = isReady};
             logger.WriteLine(SLCoreStrings.ConfigScope_UpdatedAnalysisReadiness, id, isReady);
-            LogConfigurationScopeChangedUnsafe();
-        }
-        OnCurrentConfigurationScopeChanged(false);
-        return true;
-    }
+        });
 
-    public bool TryUpdateMatchedBranchOnCurrentConfigScope(string? id, string branch)
+    public bool TryUpdateMatchedBranchOnCurrentConfigScope(string? id, string branch) =>
+        UpdateCurrentScope(id, () =>
+        {
+            CurrentConfigScope = CurrentConfigScope! with { MatchedBranch = branch };
+            logger.WriteLine(SLCoreStrings.ConfigScope_UpdatedSonarBranch, id, branch);
+        });
+
+    private bool UpdateCurrentScope(string? id, Action update)
     {
         using (asyncLock.Acquire())
         {
@@ -180,8 +167,7 @@ internal sealed class ActiveConfigScopeTracker(
                 return false;
             }
 
-            CurrentConfigScope = CurrentConfigScope with { MatchedBranch = branch};
-            logger.WriteLine(SLCoreStrings.ConfigScope_UpdatedAnalysisReadiness, id, branch);
+            update.Invoke();
             LogConfigurationScopeChangedUnsafe();
         }
         OnCurrentConfigurationScopeChanged(false);
