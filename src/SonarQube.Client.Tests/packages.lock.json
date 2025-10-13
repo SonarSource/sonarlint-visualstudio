@@ -14,12 +14,6 @@
         "resolved": "0.11.4",
         "contentHash": "zSCkwOgc5OyfMfEeMr9x0K7WCDf8i6VdF2RtCLN/4m6iebTtJQdeoJ9IS4/RyYHuLUYjrm0sd+siWbaSvSzRYQ=="
       },
-      "Google.Protobuf": {
-        "type": "Direct",
-        "requested": "[3.6.1, )",
-        "resolved": "3.6.1",
-        "contentHash": "741fGeDQjixBJaU2j+0CbrmZXsNJkTn/hWbOh4fLVXndHsCclJmWznCPWrJmPoZKvajBvAz3e8ECJOUvRtwjNQ=="
-      },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
         "requested": "[16.6.1, )",
@@ -82,11 +76,6 @@
         "type": "Transitive",
         "resolved": "5.1.1",
         "contentHash": "rpYtIczkzGpf+EkZgDr9CClTdemhsrwA/W5hMoPjLkRFnXzH44zDLoovXeKtmxb1ykXK9aJVODSpiJml8CTw2g=="
-      },
-      "Grpc.Tools": {
-        "type": "Transitive",
-        "resolved": "1.4.1",
-        "contentHash": "D5AcNr0yPFz5dqftJYKnMtwg6AEMUics+UysxTXKVuZtresqWUcHIrnscM+KsAIreG7wvdumWzjdIXRIMekCLg=="
       },
       "Microsoft.CodeCoverage": {
         "type": "Transitive",
@@ -165,8 +154,6 @@
       "sonarqube.client": {
         "type": "Project",
         "dependencies": {
-          "Google.Protobuf": "[3.6.1, )",
-          "Grpc.Tools": "[1.4.1, )",
           "Newtonsoft.Json": "[13.0.3, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "System.Net.Http": "[4.0.0, )"

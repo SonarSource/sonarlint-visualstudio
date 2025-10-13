@@ -13,10 +13,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.6.1" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Reference Include="System.Net.Http" />
   </ItemGroup>
 
@@ -28,6 +24,9 @@
     <None Update="TestResources\IssuesProtobufResponse">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Compile Include="..\TestInfrastructure\TestParallelization.cs">
+      <Link>TestParallelization.cs</Link>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

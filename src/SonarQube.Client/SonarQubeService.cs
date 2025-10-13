@@ -132,13 +132,6 @@ public class SonarQubeService : ISonarQubeService, IDisposable
         return new Uri(currentHttpClient.BaseAddress, string.Format(ViewIssueRelativeUrl, projectKey, issueKey));
     }
 
-    public async Task<IList<SonarQubeProjectBranch>> GetProjectBranchesAsync(string projectKey, CancellationToken token) =>
-        await InvokeCheckedRequestAsync<IGetProjectBranchesRequest, SonarQubeProjectBranch[]>(
-            request =>
-            {
-                request.ProjectKey = projectKey;
-            }, token);
-
     /// <summary>
     ///     Creates a new instance of the specified TRequest request, configures and invokes it and returns its response.
     /// </summary>
