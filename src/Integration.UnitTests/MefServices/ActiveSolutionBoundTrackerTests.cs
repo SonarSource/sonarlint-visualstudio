@@ -84,7 +84,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
                 MefTestHelpers.CreateExport<IConfigScopeUpdater>(),
                 MefTestHelpers.CreateExport<ILogger>(),
-                MefTestHelpers.CreateExport<IBoundSolutionGitMonitor>(),
                 MefTestHelpers.CreateExport<IConfigurationProvider>(),
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
