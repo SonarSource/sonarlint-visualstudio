@@ -21,15 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="TestResources\IssuesProtobufResponse">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <Compile Include="..\TestInfrastructure\TestParallelization.cs">
-      <Link>TestParallelization.cs</Link>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Requests\Api\" />
   </ItemGroup>
 
