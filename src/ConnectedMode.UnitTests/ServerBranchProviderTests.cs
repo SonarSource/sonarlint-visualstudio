@@ -29,10 +29,31 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
     [TestClass]
     public class ServerBranchProviderTests
     {
+        private IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private IGitWorkspaceService gitWorkspaceService;
+        private IBranchMatcher branchMatcher;
+        private TestLogger logger;
+        private ServerBranchProvider.CreateRepositoryObject createRepoOp;
+        private ServerBranchProvider testSubject;
+        private IRepository repo;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
+            gitWorkspaceService = Substitute.For<IGitWorkspaceService>();
+            branchMatcher = Substitute.For<IBranchMatcher>();
+            logger = Substitute.ForPartsOf<TestLogger>();
+            createRepoOp = Substitute.For<ServerBranchProvider.CreateRepositoryObject>();
+            repo = Substitute.For<IRepository>();
+
+            testSubject = new ServerBranchProvider(activeSolutionBoundTracker, gitWorkspaceService, branchMatcher, logger, createRepoOp);
+        }
+
         [TestMethod]
         public void MefCtor_CheckIsExported() =>
             MefTestHelpers.CheckTypeCanBeImported<ServerBranchProvider, IServerBranchProvider>(
-                MefTestHelpers.CreateExport<IConfigurationProvider>(),
+                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
                 MefTestHelpers.CreateExport<IGitWorkspaceService>(),
                 MefTestHelpers.CreateExport<IBranchMatcher>(),
                 MefTestHelpers.CreateExport<ILogger>());
@@ -40,53 +61,33 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         [TestMethod]
         public void Get_StandaloneMode_ReturnsNull()
         {
-            var configProvider = CreateConfigProvider(CreateBindingConfig(SonarLintMode.Standalone));
-            var gitWorkspace = new Mock<IGitWorkspaceService>();
-            var branchMatcher = new Mock<IBranchMatcher>();
-            var logger = new TestLogger(logToConsole: true);
+            SetUpBindingConfiguration(SonarLintMode.Standalone);
             var branches = new List<RemoteBranch> { new RemoteBranch("branch1", false), new RemoteBranch("main", true), new RemoteBranch("branch2", false) };
-
-            var testSubject = CreateTestSubject(configProvider.Object,
-                gitWorkspace.Object,
-                branchMatcher: branchMatcher.Object,
-                logger: logger);
 
             var actual = testSubject.GetServerBranchName(branches);
 
             actual.Should().BeNull();
-
-            configProvider.VerifyAll();
-            gitWorkspace.Invocations.Should().HaveCount(0);
-            branchMatcher.Invocations.Should().HaveCount(0);
+            _ = activeSolutionBoundTracker.Received(1).CurrentConfiguration;
+            gitWorkspaceService.DidNotReceiveWithAnyArgs().GetRepoRoot();
+            branchMatcher.DidNotReceiveWithAnyArgs().GetMatchingBranch(Arg.Any<string>(), Arg.Any<IRepository>(), Arg.Any<List<RemoteBranch>>());
         }
 
         [TestMethod]
         public void Get_NoGitRepo_ReturnsDefaultMainBranch()
         {
-            var configProvider = CreateConfigProvider(CreateBindingConfig(SonarLintMode.Connected));
-            var gitWorkspace = CreateGitWorkspace(repoRootToReturn: null);
-
-            var branchMatcher = new Mock<IBranchMatcher>();
-            var logger = new TestLogger(logToConsole: true);
-            var createRepoOp = CreateCreateRepoOp(repository: null);
-
+            SetUpBindingConfiguration(SonarLintMode.Connected);
+            SetUpGitWorkspaceService(null);
+            createRepoOp.Invoke(Arg.Any<string>()).Returns((IRepository)null);
             var branches = new List<RemoteBranch> { new RemoteBranch("branch1", false), new RemoteBranch("main branch name", true), new RemoteBranch("branch2", false) };
-
-            var testSubject = CreateTestSubject(configProvider.Object,
-                gitWorkspace.Object,
-                branchMatcher: branchMatcher.Object,
-                logger: logger,
-                createRepoOp: createRepoOp.Object);
 
             var actual = testSubject.GetServerBranchName(branches);
 
             actual.Should().Be("main branch name");
-
-            configProvider.VerifyAll();
-            gitWorkspace.Verify(x => x.GetRepoRoot(), Times.Once);
-            gitWorkspace.Invocations.Should().HaveCount(1);
-            branchMatcher.Invocations.Should().HaveCount(0);
-            createRepoOp.Invocations.Should().HaveCount(0);
+            _ = activeSolutionBoundTracker.Received(1).CurrentConfiguration;
+            gitWorkspaceService.Received(1).GetRepoRoot();
+            gitWorkspaceService.ReceivedCalls().Should().HaveCount(1);
+            branchMatcher.DidNotReceiveWithAnyArgs().GetMatchingBranch(Arg.Any<string>(), Arg.Any<IRepository>(), Arg.Any<List<RemoteBranch>>());
+            createRepoOp.DidNotReceiveWithAnyArgs().Invoke(Arg.Any<string>());
         }
 
         [TestMethod]
@@ -94,114 +95,58 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         [DataRow(SonarLintMode.Connected)]
         public void Get_ConnectedModeAndHasGitRepo_HasMatchingBranch_ReturnsExpectedBranch(SonarLintMode mode)
         {
-            var configProvider = CreateConfigProvider(CreateBindingConfig(mode, "my project key"));
-            var gitWorkspace = CreateGitWorkspace("c:\\aaa\\reporoot");
-
-            var branchMatcher = CreateBranchMatcher(branchToReturn: "my matching branch");
-            var logger = new TestLogger(logToConsole: true);
-
-            var repo = Mock.Of<IRepository>();
-            var createRepoOp = CreateCreateRepoOp(repository: repo);
-
+            SetUpBindingConfiguration(mode, "my project key");
+            var repoRoot = "c:\\aaa\\reporoot";
+            SetUpGitWorkspaceService(repoRoot);
+            SetUpBranchMatcher("my matching branch");
+            createRepoOp.Invoke(repoRoot).Returns(repo);
             var branches = new List<RemoteBranch> { new RemoteBranch("branch1", false), new RemoteBranch("main", true), new RemoteBranch("branch2", false) };
-
-            var testSubject = CreateTestSubject(configProvider.Object,
-                gitWorkspace.Object,
-                branchMatcher: branchMatcher.Object,
-                logger: logger,
-                createRepoOp: createRepoOp.Object);
 
             var actual = testSubject.GetServerBranchName(branches);
 
             actual.Should().Be("my matching branch");
             logger.AssertPartialOutputStringExists("my matching branch");
-
-            configProvider.VerifyAll();
-            gitWorkspace.Verify(x => x.GetRepoRoot(), Times.Once);
-            createRepoOp.Verify(x => x.Invoke("c:\\aaa\\reporoot"), Times.Once);
-            branchMatcher.Verify(x => x.GetMatchingBranch("my project key", repo, branches), Times.Once);
-
-            gitWorkspace.Invocations.Should().HaveCount(1);
-            branchMatcher.Invocations.Should().HaveCount(1);
-            createRepoOp.Invocations.Should().HaveCount(1);
+            _ = activeSolutionBoundTracker.Received(1).CurrentConfiguration;
+            gitWorkspaceService.Received(1).GetRepoRoot();
+            createRepoOp.Received(1).Invoke(repoRoot);
+            branchMatcher.Received(1).GetMatchingBranch("my project key", repo, branches);
         }
 
         [TestMethod]
         public void Get_ConnectedModeAndHasGitRepo_NoMatchingBranch_ReturnsDefaultMainBranch()
         {
-            var configProvider = CreateConfigProvider(CreateBindingConfig(SonarLintMode.Connected, "my project key"));
-            var gitWorkspace = CreateGitWorkspace("x:\\");
-
-            var branchMatcher = CreateBranchMatcher(branchToReturn: null);
-            var logger = new TestLogger(logToConsole: true);
-
-            var repo = Mock.Of<IRepository>();
-            var createRepoOp = CreateCreateRepoOp(repository: repo);
-
+            SetUpBindingConfiguration(SonarLintMode.Connected, "my project key");
+            var repoRoot = "x:\\";
+            SetUpGitWorkspaceService(repoRoot);
+            SetUpBranchMatcher(null);
+            createRepoOp.Invoke(repoRoot).Returns(repo);
             var branches = new List<RemoteBranch> { new RemoteBranch("branch1", false), new RemoteBranch("some main branch", true), new RemoteBranch("branch2", false) };
-
-            var testSubject = CreateTestSubject(configProvider.Object,
-                gitWorkspace.Object,
-                branchMatcher: branchMatcher.Object,
-                logger: logger,
-                createRepoOp: createRepoOp.Object);
 
             var actual = testSubject.GetServerBranchName(branches);
 
             actual.Should().Be("some main branch");
-
-            branchMatcher.Verify(x => x.GetMatchingBranch("my project key", repo, branches), Times.Once);
+            branchMatcher.Received(1).GetMatchingBranch("my project key", repo, branches);
         }
 
-        private static ServerBranchProvider CreateTestSubject(
-            IConfigurationProvider configurationProvider = null,
-            IGitWorkspaceService gitWorkspaceService = null,
-            IBranchMatcher branchMatcher = null,
-            ILogger logger = null,
-            ServerBranchProvider.CreateRepositoryObject createRepoOp = null)
+        private void SetUpBindingConfiguration(SonarLintMode mode = SonarLintMode.Connected, string projectKey = "any")
         {
-            configurationProvider ??= Mock.Of<IConfigurationProvider>();
-            gitWorkspaceService ??= Mock.Of<IGitWorkspaceService>();
-            branchMatcher ??= Mock.Of<IBranchMatcher>();
-            logger ??= new TestLogger();
-            createRepoOp ??= (string repoRoot) => null;
+            var config = new BindingConfiguration(
+                new BoundServerProject("solution", projectKey, new ServerConnection.SonarCloud("org")),
+                mode,
+                "any dir");
 
-            var testSubject = new ServerBranchProvider(configurationProvider, gitWorkspaceService, branchMatcher, logger, createRepoOp);
-            return testSubject;
+            activeSolutionBoundTracker.CurrentConfiguration.Returns(config);
         }
 
-        private static BindingConfiguration CreateBindingConfig(SonarLintMode mode = SonarLintMode.Connected, string projectKey = "any") =>
-            new(new BoundServerProject("solution", projectKey, new ServerConnection.SonarCloud("org")), mode, "any dir");
-
-        private static Mock<IConfigurationProvider> CreateConfigProvider(BindingConfiguration config = null)
+        private void SetUpGitWorkspaceService(string repoRootToReturn)
         {
-            config ??= CreateBindingConfig();
-
-            var configProvider = new Mock<IConfigurationProvider>();
-            configProvider.Setup(x => x.GetConfiguration()).Returns(config);
-            return configProvider;
+            gitWorkspaceService.GetRepoRoot().Returns(repoRootToReturn);
         }
 
-        private static Mock<IGitWorkspaceService> CreateGitWorkspace(string repoRootToReturn)
+        private void SetUpBranchMatcher(string branchToReturn)
         {
-            var gitWorkspace = new Mock<IGitWorkspaceService>();
-            gitWorkspace.Setup(x => x.GetRepoRoot()).Returns(repoRootToReturn);
-            return gitWorkspace;
-        }
-
-        private static Mock<ServerBranchProvider.CreateRepositoryObject> CreateCreateRepoOp(IRepository repository)
-        {
-            var createOp = new Mock<ServerBranchProvider.CreateRepositoryObject>();
-            createOp.Setup(x => x.Invoke(It.IsAny<string>())).Returns(repository);
-            return createOp;
-        }
-
-        private static Mock<IBranchMatcher> CreateBranchMatcher(string branchToReturn)
-        {
-            var branchMatcher = new Mock<IBranchMatcher>();
-            branchMatcher.Setup(x => x.GetMatchingBranch(It.IsAny<string>(), It.IsAny<IRepository>(), It.IsAny<List<RemoteBranch>>()))
+            branchMatcher.GetMatchingBranch(Arg.Any<string>(), Arg.Any<IRepository>(), Arg.Any<List<RemoteBranch>>())
                 .Returns(branchToReturn);
-            return branchMatcher;
         }
     }
 }

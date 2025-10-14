@@ -35,7 +35,7 @@ internal class ServerBranchProvider : IServerBranchProvider
     /// <remarks>Only used for testing</remarks>
     internal delegate IRepository CreateRepositoryObject(string repoRootPath);
 
-    private readonly IConfigurationProvider configurationProvider;
+    private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly IGitWorkspaceService gitWorkspaceService;
     private readonly IBranchMatcher branchMatcher;
     private readonly ILogger logger;
@@ -43,22 +43,22 @@ internal class ServerBranchProvider : IServerBranchProvider
 
     [ImportingConstructor]
     public ServerBranchProvider(
-        IConfigurationProvider configurationProvider,
+        IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IGitWorkspaceService gitWorkspaceService,
         IBranchMatcher branchMatcher,
         ILogger logger)
-        : this(configurationProvider, gitWorkspaceService, branchMatcher, logger, DoCreateRepo)
+        : this(activeSolutionBoundTracker, gitWorkspaceService, branchMatcher, logger, DoCreateRepo)
     {
     }
 
     internal /* for testing */ ServerBranchProvider(
-        IConfigurationProvider configurationProvider,
+        IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IGitWorkspaceService gitWorkspaceService,
         IBranchMatcher branchMatcher,
         ILogger logger,
         CreateRepositoryObject createRepo)
     {
-        this.configurationProvider = configurationProvider;
+        this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.gitWorkspaceService = gitWorkspaceService;
         this.branchMatcher = branchMatcher;
         this.logger = logger;
@@ -67,7 +67,7 @@ internal class ServerBranchProvider : IServerBranchProvider
 
     public string GetServerBranchName(List<RemoteBranch> branches)
     {
-        var config = configurationProvider.GetConfiguration();
+        var config = activeSolutionBoundTracker.CurrentConfiguration;
 
         if (config.Mode == SonarLintMode.Standalone)
         {
