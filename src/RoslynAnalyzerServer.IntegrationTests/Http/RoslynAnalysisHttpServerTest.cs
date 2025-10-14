@@ -285,7 +285,7 @@ public class RoslynAnalysisHttpServerTest
         token ??= ServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Token;
         requestUri ??= GetRequestUrl(ServerStarter.HttpServerConfigurationProvider.CurrentConfiguration.Port);
         var fileUris = fileNames.Select(x => new FileUri(x));
-        var analysisRequest = new AnalysisRequest { FileNames = [.. fileUris], ActiveRules = [new ActiveRuleDto("id", [])], AnalysisId = analysisId ?? Guid.NewGuid() };
+        var analysisRequest = new AnalysisRequest { FileUris = [.. fileUris], ActiveRules = [new ActiveRuleDto("id", [])], AnalysisId = analysisId ?? Guid.NewGuid() };
         return new AnalysisRequestConfig<AnalysisRequest>(token, requestUri, analysisRequest);
     }
 
