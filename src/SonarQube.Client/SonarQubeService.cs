@@ -18,14 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
 using System.Net.Http;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Api;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
-using SonarQube.Client.Models.ServerSentEvents;
 using SonarQube.Client.Requests;
 using ILogger = SonarQube.Client.Logging.ILogger;
 
@@ -36,16 +34,14 @@ public class SonarQubeService : ISonarQubeService, IDisposable
     private const string MinSqVersionSupportingBearer = "10.4";
     private readonly IHttpClientHandlerFactory httpClientHandlerFactory;
     private readonly ILogger logger;
-    private readonly ILanguageProvider languageProvider;
     private readonly IRequestFactorySelector requestFactorySelector;
-    private readonly ISSEStreamReaderFactory sseStreamReaderFactory;
     private readonly string userAgent;
     private HttpClient currentHttpClient;
     private ServerInfo currentServerInfo;
     private IRequestFactory requestFactory;
 
     public SonarQubeService(string userAgent, ILogger logger, ILanguageProvider languageProvider)
-        : this(new HttpClientHandlerFactory(new ProxyDetector(), logger), userAgent, logger, languageProvider, new RequestFactorySelector(), new SSEStreamReaderFactory(logger))
+        : this(new HttpClientHandlerFactory(new ProxyDetector(), logger), userAgent, logger, new RequestFactorySelector())
     {
     }
 
@@ -53,17 +49,13 @@ public class SonarQubeService : ISonarQubeService, IDisposable
         IHttpClientHandlerFactory httpClientHandlerFactory,
         string userAgent,
         ILogger logger,
-        ILanguageProvider languageProvider,
-        IRequestFactorySelector requestFactorySelector,
-        ISSEStreamReaderFactory sseStreamReaderFactory)
+        IRequestFactorySelector requestFactorySelector)
     {
         this.httpClientHandlerFactory = httpClientHandlerFactory ?? throw new ArgumentNullException(nameof(httpClientHandlerFactory));
         this.userAgent = userAgent ?? throw new ArgumentNullException(nameof(userAgent));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        this.languageProvider = languageProvider ?? throw new ArgumentNullException(nameof(languageProvider));
 
         this.requestFactorySelector = requestFactorySelector;
-        this.sseStreamReaderFactory = sseStreamReaderFactory;
     }
 
     public bool IsConnected => GetServerInfo() != null;
@@ -127,21 +119,6 @@ public class SonarQubeService : ISonarQubeService, IDisposable
             },
             token);
 
-    public async Task<IList<string>> SearchFilesByNameAsync(
-        string projectKey,
-        string branch,
-        string fileName,
-        CancellationToken token) =>
-        await InvokeCheckedRequestAsync<ISearchFilesByNameRequest, string[]>(
-            request =>
-            {
-                request.ProjectKey = projectKey;
-                request.BranchName = branch;
-                request.FileName = fileName;
-            },
-            token
-        );
-
     public Uri GetViewIssueUrl(string projectKey, string issueKey)
     {
         EnsureIsConnected();
@@ -161,18 +138,6 @@ public class SonarQubeService : ISonarQubeService, IDisposable
             {
                 request.ProjectKey = projectKey;
             }, token);
-
-    public async Task<ISSEStreamReader> CreateSSEStreamReader(string projectKey, CancellationToken token)
-    {
-        var networkStream = await InvokeCheckedRequestAsync<IGetSonarLintEventStream, Stream>(
-            request =>
-            {
-                request.ProjectKey = projectKey;
-            },
-            token);
-
-        return sseStreamReaderFactory.Create(networkStream, token);
-    }
 
     /// <summary>
     ///     Creates a new instance of the specified TRequest request, configures and invokes it and returns its response.
