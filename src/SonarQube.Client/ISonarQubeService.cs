@@ -19,7 +19,6 @@
  */
 
 using SonarQube.Client.Models;
-using SonarQube.Client.Models.ServerSentEvents;
 
 namespace SonarQube.Client;
 
@@ -42,22 +41,6 @@ public interface ISonarQubeService
         CancellationToken token);
 
     /// <summary>
-    ///     Returns the list of server paths with matching file names
-    /// </summary>
-    /// <param name="projectKey">The project identifier</param>
-    /// <param name="branch">
-    ///     (optional) The Sonar branch for which issues should be returned. If null/empty,
-    ///     the issues for the "main" branch will be returned
-    /// </param>
-    /// <param name="fileName">The file name used for the search</param>
-    /// <param name="token"></param>
-    Task<IList<string>> SearchFilesByNameAsync(
-        string projectKey,
-        string branch,
-        string fileName,
-        CancellationToken token);
-
-    /// <summary>
     ///     Returns the URI to view the specified issue on the server
     /// </summary>
     /// <remarks>The method does not check whether the project or issue exists or not</remarks>
@@ -67,9 +50,4 @@ public interface ISonarQubeService
     ///     Returns branch information for the specified project key
     /// </summary>
     Task<IList<SonarQubeProjectBranch>> GetProjectBranchesAsync(string projectKey, CancellationToken token);
-
-    /// <summary>
-    ///     Creates a new <see cref="ISSEStreamReader" /> for the given <see cref="projectKey" />
-    /// </summary>
-    Task<ISSEStreamReader> CreateSSEStreamReader(string projectKey, CancellationToken token);
 }

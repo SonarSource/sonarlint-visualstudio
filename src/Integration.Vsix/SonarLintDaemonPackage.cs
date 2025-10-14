@@ -19,7 +19,6 @@
  */
 
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
@@ -28,7 +27,6 @@ using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Integration.CSharpVB.Install;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Events;
@@ -122,9 +120,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 projectDocumentsEventsListener = await this.GetMefServiceAsync<IProjectDocumentsEventsListener>();
                 projectDocumentsEventsListener.Initialize();
-
-                var importBeforeFileGenerator = await this.GetMefServiceAsync<IImportBeforeFileGenerator>();
-                importBeforeFileGenerator.UpdateOrCreateTargetsFileAsync().Forget();
 
                 var thread = await this.GetMefServiceAsync<IThreadHandling>();
                 var roslynAnalyzerAssemblyLoader = await this.GetMefServiceAsync<IRoslynAnalyzerAssemblyContentsLoader>();

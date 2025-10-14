@@ -24,8 +24,6 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
-using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
-using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using Task = System.Threading.Tasks.Task;
@@ -38,8 +36,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
     [Guid("dd3427e0-7bb2-4a51-b00a-ddae2c32c7ef")]
     public sealed class ConnectedModePackage : AsyncPackage
     {
-        private SSESessionManager sseSessionManager;
-        private IQualityProfileServerEventsListener qualityProfileServerEventsListener;
         private IHotspotDocumentClosedHandler hotspotDocumentClosedHandler;
         private IHotspotSolutionClosedHandler hotspotSolutionClosedHandler;
         private ILocalHotspotStoreMonitor hotspotStoreMonitor;
@@ -53,11 +49,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
             logger.WriteLine(Resources.Package_Initializing);
 
-            LoadServicesAndDoInitialUpdates(componentModel);
-
-            qualityProfileServerEventsListener = componentModel.GetService<IQualityProfileServerEventsListener>();
-            qualityProfileServerEventsListener.ListenAsync().Forget();
-
             hotspotDocumentClosedHandler = componentModel.GetService<IHotspotDocumentClosedHandler>();
 
             hotspotSolutionClosedHandler = componentModel.GetService<IHotspotSolutionClosedHandler>();
@@ -68,25 +59,5 @@ namespace SonarLint.VisualStudio.ConnectedMode
             logger.WriteLine(Resources.Package_Initialized);
         }
 
-        /// <summary>
-        /// Trigger an initial update of classes that need them. (These classes might have missed the initial solution binding
-        /// event from the ActiveSolutionBoundTracker)
-        /// See https://github.com/SonarSource/sonarlint-visualstudio/issues/3886
-        /// </summary>
-        private void LoadServicesAndDoInitialUpdates(IComponentModel componentModel)
-        {
-            sseSessionManager = componentModel.GetService<SSESessionManager>();
-            sseSessionManager.CreateSessionIfInConnectedMode();
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                sseSessionManager?.Dispose();
-            }
-
-            base.Dispose(disposing);
-        }
     }
 }

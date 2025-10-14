@@ -36,7 +36,7 @@ public class BindingJsonModelSerializationTests
         "my_project_123",
         "My Project",
         /* ignored */ null,
-        new SonarQubeOrganization("org_key_123", "My Org")) { Profiles = QualityProfiles };
+        new SonarQubeOrganization("org_key_123", "My Org"));
 
     private readonly BindingJsonModel bindingJsonModel = new()
     {
@@ -45,12 +45,11 @@ public class BindingJsonModelSerializationTests
         ProjectName = "My Project",
         Organization = new SonarQubeOrganization("org_key_123", "My Org"),
         ServerConnectionId = "some_connection_id_123",
-        Profiles = QualityProfiles
     };
 
-    private readonly BoundServerProject boundSonarCloudServerProject = new("solution123", "my_project_123", new ServerConnection.SonarCloud("org_key_123")) { Profiles = QualityProfiles };
+    private readonly BoundServerProject boundSonarCloudServerProject = new("solution123", "my_project_123", new ServerConnection.SonarCloud("org_key_123"));
     private readonly BoundServerProject boundSonarQubeServerProject
-        = new("solution123", "my_project_123", new ServerConnection.SonarQube(new Uri("http://next.sonarqube.com/sonarqube"))) { Profiles = QualityProfiles };
+        = new("solution123", "my_project_123", new ServerConnection.SonarQube(new Uri("http://next.sonarqube.com/sonarqube")));
 
     private readonly BindingJsonModelConverter bindingJsonModelConverter = new();
 
@@ -69,13 +68,7 @@ public class BindingJsonModelSerializationTests
                 "Name": "My Org"
               },
               "ProjectKey": "my_project_123",
-              "ProjectName": "My Project",
-              "Profiles": {
-                "C": {
-                  "ProfileKey": "qpkey",
-                  "ProfileTimestamp": "2020-12-31T23:59:59"
-                }
-              }
+              "ProjectName": "My Project"
             }
             """);
     }
@@ -94,13 +87,7 @@ public class BindingJsonModelSerializationTests
                 "Key": "org_key_123",
                 "Name": null
               },
-              "ProjectKey": "my_project_123",
-              "Profiles": {
-                "C": {
-                  "ProfileKey": "qpkey",
-                  "ProfileTimestamp": "2020-12-31T23:59:59"
-                }
-              }
+              "ProjectKey": "my_project_123"
             }
             """);
     }
@@ -115,13 +102,7 @@ public class BindingJsonModelSerializationTests
             {
               "ServerConnectionId": "http://next.sonarqube.com/sonarqube",
               "ServerUri": "http://next.sonarqube.com/sonarqube",
-              "ProjectKey": "my_project_123",
-              "Profiles": {
-                "C": {
-                  "ProfileKey": "qpkey",
-                  "ProfileTimestamp": "2020-12-31T23:59:59"
-                }
-              }
+              "ProjectKey": "my_project_123"
             }
             """);
     }
