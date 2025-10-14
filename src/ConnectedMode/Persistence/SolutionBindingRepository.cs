@@ -145,20 +145,8 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
         }
     }
 
-    private BindingJsonModel ReadBindingFile(string configFilePath)
-    {
-        var bound = solutionBindingFileLoader.Load(configFilePath);
-
-        if (bound is null)
-        {
-            return null;
-        }
-
-        Debug.Assert(!bound.Profiles?.ContainsKey(Language.Unknown) ?? true,
-            "Not expecting the deserialized binding config to contain the profile for an unknown language");
-
-        return bound;
-    }
+    private BindingJsonModel ReadBindingFile(string configFilePath) =>
+        solutionBindingFileLoader.Load(configFilePath);
 
     private BoundServerProject Convert(BindingJsonModel bindingJsonModel, string configFilePath) =>
         bindingJsonModel is not null && serverConnectionsRepository.TryGet(bindingJsonModel.ServerConnectionId, out var connection)

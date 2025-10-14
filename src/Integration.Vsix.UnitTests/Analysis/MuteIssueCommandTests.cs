@@ -213,7 +213,7 @@ public class MuteIssueCommandTests
     [TestMethod]
     public void Execute_WithRoslynIssue_MutesIssue()
     {
-        var roslynIssue = SetupRoslynIssue(out var sonarQubeIssue);
+        var roslynIssue = SetupRoslynIssue();
 
         testSubjectMenuCommand.Invoke();
 
@@ -268,7 +268,7 @@ public class MuteIssueCommandTests
     [TestMethod]
     public void Execute_WithRoslynIssue_WhenMuteIssueException_CatchesAndShowsMessageBox()
     {
-        SetupRoslynIssue(out _);
+        SetupRoslynIssue();
         muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<IFilterableIssue>()).ThrowsAsync(new MuteIssueException("Error while muting"));
 
         var act = () => testSubjectMenuCommand.Invoke();
@@ -292,7 +292,7 @@ public class MuteIssueCommandTests
     [TestMethod]
     public void Execute_WithRoslynIssue_WhenMuteIssueCommentFailedException_CatchesAndShowsMessageBox()
     {
-        SetupRoslynIssue(out _);
+        SetupRoslynIssue();
         muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<IFilterableIssue>()).ThrowsAsync(new MuteIssueException.MuteIssueCommentFailedException());
 
         var act = () => testSubjectMenuCommand.Invoke();
@@ -316,7 +316,7 @@ public class MuteIssueCommandTests
     [TestMethod]
     public void Execute_WithRoslynIssue_WhenMuteIssueCancelledException_Catches()
     {
-        SetupRoslynIssue(out _);
+        SetupRoslynIssue();
         muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<IFilterableIssue>()).ThrowsAsync(new MuteIssueException.MuteIssueCancelledException());
 
         var act = () => testSubjectMenuCommand.Invoke();
@@ -333,10 +333,9 @@ public class MuteIssueCommandTests
         supportedRepos.Should().HaveCount(languageProvider.AllKnownLanguages.Count);
     }
 
-    private IFilterableRoslynIssue SetupRoslynIssue(out SonarQubeIssue sonarQubeIssue)
+    private IFilterableRoslynIssue SetupRoslynIssue()
     {
         var roslynIssue = Substitute.For<IFilterableRoslynIssue>();
-        sonarQubeIssue = DummySonarQubeIssueFactory.CreateServerIssue();
         errorListHelper.TryGetIssueFromSelectedRow(out _).Returns(x =>
         {
             x[0] = roslynIssue;
