@@ -18,23 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+namespace SonarLint.VisualStudio.SLCore.Listener.Branch;
 
-namespace SonarQube.Client.Models
-{
-    public class SonarQubeProjectBranch
-    {
-        public string Name { get; }
-        public bool IsMain { get; }
-        public DateTimeOffset LastAnalysisTimestamp { get; }
-        public string Type { get; set; }
-
-        public SonarQubeProjectBranch(string name, bool isMain, DateTimeOffset analysisDate, string type)
-        {
-            Name = name;
-            IsMain = isMain;
-            LastAnalysisTimestamp = analysisDate;
-            Type = type;
-        }
-    }
-}
+public record DidChangeMatchedSonarProjectBranchParams(string configScopeId, string newMatchedBranchName);

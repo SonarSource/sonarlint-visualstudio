@@ -19,268 +19,215 @@
  */
 
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
-using SonarLint.VisualStudio.Core.Synchronization;
+using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Listener.Branch;
 using SonarLint.VisualStudio.SLCore.Service.Branch;
+using SonarLint.VisualStudio.SLCore.State;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests;
+
+[TestClass]
+public class SLCoreGitChangeNotifierTests
 {
-    [TestClass]
-    public class StatefulServerBranchProviderTests
+    private NoOpThreadHandler threadHandling;
+    private ISLCoreServiceProvider slCoreServiceProvider;
+    private TestLogger logger;
+    private SlCoreGitChangeNotifier testSubject;
+    private IActiveConfigScopeTracker activeConfigScopeTracker;
+    private ISonarProjectBranchSlCoreService sonarProjectBranchSlCoreService;
+    private IBoundSolutionGitMonitor gitMonitor;
+    private IInitializationProcessorFactory initializationProcessorFactory;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
-        private readonly ActiveSolutionBindingEventArgs connectedModeBinding = new(new BindingConfiguration(default, SonarLintMode.Connected, default));
-        private readonly ActiveSolutionBindingEventArgs standaloneModeBinding = new(BindingConfiguration.Standalone);
-        private IThreadHandling threadHandling;
-        private IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private ISLCoreServiceProvider slCoreServiceProvider;
-        private TestLogger logger;
-        private IAsyncLockFactory asyncLockFactory;
-        private StatefulServerBranchProvider testSubject;
-        private IServerBranchProvider serverBranchProvider;
-        private IActiveConfigScopeTracker activeConfigScopeTracker;
-        private ISonarProjectBranchSlCoreService sonarProjectBranchSlCoreService;
-        private IAsyncLock asyncLock;
+        activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
+        logger = Substitute.ForPartsOf<TestLogger>();
+        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+        slCoreServiceProvider = Substitute.For<ISLCoreServiceProvider>();
+        gitMonitor = Substitute.For<IBoundSolutionGitMonitor>();
 
-        [TestInitialize]
-        public void TestInitialize()
+        MockSonarProjectBranchSlCoreService();
+    }
+
+    [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<SlCoreGitChangeNotifier, ISlCoreGitChangeNotifier>(
+            MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
+            MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
+            MefTestHelpers.CreateExport<IBoundSolutionGitMonitor>(),
+            MefTestHelpers.CreateExport<ILogger>(),
+            MefTestHelpers.CreateExport<IThreadHandling>(),
+            MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SlCoreGitChangeNotifier>();
+
+    [TestMethod]
+    public void WhenInitialized_EventHandlersAreRegistered()
+    {
+        CreateAndInitializeTestSubject();
+
+        var initializationDependencies = new IRequireInitialization[] { gitMonitor };
+        initializationProcessorFactory.Received(1).Create<SlCoreGitChangeNotifier>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.SequenceEqual(initializationDependencies)), Arg.Any<Func<IThreadHandling, Task>>());
+
+        Received.InOrder(() =>
         {
-            serverBranchProvider = Substitute.For<IServerBranchProvider>();
-            activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
-            activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
-            logger = new TestLogger();
-            threadHandling = new NoOpThreadHandler();
-            slCoreServiceProvider = Substitute.For<ISLCoreServiceProvider>();
-            MockSonarProjectBranchSlCoreService();
-            MockAsyncLock();
-            testSubject = new StatefulServerBranchProvider(serverBranchProvider, activeSolutionBoundTracker, activeConfigScopeTracker, slCoreServiceProvider, logger, threadHandling, asyncLockFactory);
-        }
+            threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
+            gitMonitor.HeadChanged += Arg.Any<EventHandler>();
+            activeConfigScopeTracker.CurrentConfigurationScopeChanged += Arg.Any<EventHandler<ConfigurationScopeChangedEventArgs>>();
+        });
+    }
 
-        [TestMethod]
-        public void MefCtor_CheckIsExported() =>
-            MefTestHelpers.CheckTypeCanBeImported<StatefulServerBranchProvider, IStatefulServerBranchProvider>(
-                MefTestHelpers.CreateExport<IServerBranchProvider>(),
-                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
-                MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
-                MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
-                MefTestHelpers.CreateExport<ILogger>(),
-                MefTestHelpers.CreateExport<IThreadHandling>(),
-                MefTestHelpers.CreateExport<IAsyncLockFactory>());
+    [TestMethod]
+    public void OnHeadChanged_NotifiesSlCoreAboutBranchChange()
+    {
+        CreateAndInitializeTestSubject();
 
-        [TestMethod]
-        public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<StatefulServerBranchProvider>();
+        const string expectedConfigScopeId = "expected-id";
+        var configScope = new Core.ConfigurationScope.ConfigurationScope(expectedConfigScopeId);
+        activeConfigScopeTracker.Current.Returns(configScope);
+        MockSonarProjectBranchSlCoreService();
 
-        [TestMethod]
-        public async Task GetServerBranchNameAsync_WhenCalled_UsesCache()
+        gitMonitor.HeadChanged += Raise.EventWith(gitMonitor, EventArgs.Empty);
+
+        sonarProjectBranchSlCoreService.Received(1)
+            .DidVcsRepositoryChange(Arg.Is<DidVcsRepositoryChangeParams>(p => p.configurationScopeId == expectedConfigScopeId));
+    }
+
+    [TestMethod]
+    public void OnHeadChanged_WhenConfigScopeIsNull_DoesNotNotifySlCore()
+    {
+        CreateAndInitializeTestSubject();
+
+        activeConfigScopeTracker.Current.Returns((Core.ConfigurationScope.ConfigurationScope)null);
+        MockSonarProjectBranchSlCoreService();
+
+        gitMonitor.HeadChanged += Raise.EventWith(gitMonitor, EventArgs.Empty);
+
+        sonarProjectBranchSlCoreService.DidNotReceive()
+            .DidVcsRepositoryChange(Arg.Any<DidVcsRepositoryChangeParams>());
+    }
+
+    [TestMethod]
+    public void OnHeadChanged_WhenServiceProviderFails_LogsError()
+    {
+        CreateAndInitializeTestSubject();
+
+        const string expectedConfigScopeId = "expected-id";
+        var configScope = new Core.ConfigurationScope.ConfigurationScope(expectedConfigScopeId);
+        activeConfigScopeTracker.Current.Returns(configScope);
+        MockSonarProjectBranchSlCoreService(wasFound: false);
+
+        gitMonitor.HeadChanged += Raise.EventWith(gitMonitor, EventArgs.Empty);
+
+        logger.AssertPartialOutputStringExists(SLCoreStrings.ServiceProviderNotInitialized);
+        sonarProjectBranchSlCoreService.DidNotReceive()
+            .DidVcsRepositoryChange(Arg.Any<DidVcsRepositoryChangeParams>());
+    }
+
+    [TestMethod]
+    public void OnConfigScopeChanged_WhenDefinitionChanges_RefreshesGitMonitor()
+    {
+        CreateAndInitializeTestSubject();
+
+        var args = new ConfigurationScopeChangedEventArgs(true);
+        activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith(activeConfigScopeTracker, args);
+
+        gitMonitor.Received(1).Refresh();
+    }
+
+    [TestMethod]
+    public void OnConfigScopeChanged_WhenDefinitionDoesNotChange_DoesNotRefreshGitMonitor()
+    {
+        CreateAndInitializeTestSubject();
+
+        var args = new ConfigurationScopeChangedEventArgs(false);
+        activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith(activeConfigScopeTracker, args);
+
+        gitMonitor.DidNotReceive().Refresh();
+    }
+
+    [TestMethod]
+    public void Dispose_WhenInitialized_UnhooksEventHandlers()
+    {
+        CreateAndInitializeTestSubject();
+
+        testSubject.Dispose();
+        testSubject.Dispose();
+        testSubject.Dispose();
+
+        gitMonitor.ReceivedWithAnyArgs(1).HeadChanged -= default;
+        activeConfigScopeTracker.ReceivedWithAnyArgs(1).CurrentConfigurationScopeChanged -= default;
+    }
+
+    [TestMethod]
+    public void Dispose_WhenNotInitialized_DoesNotExecute()
+    {
+        CreateUninitializedTestSubject(out var barrier);
+
+        CheckDisposed();
+
+        barrier.SetResult(1);
+        testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
+        testSubject.InitializationProcessor.IsFinalized.Should().BeTrue();
+        CheckDisposed();
+
+        void CheckDisposed()
         {
-            MockGetServerBranchName("Branch");
+            var act = () => testSubject.Dispose();
 
-            // First call: Should use IServerBranchProvider
-            var serverBranch = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
-            serverBranch.Should().Be("Branch");
-            serverBranchProvider.VerifyGetServerBranchNameCalled(1);
-
-            // Second call: Should use cache
-            serverBranchProvider.SetBranchNameToReturn("branch name that should not be returned - should use cached value");
-            serverBranch = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
-
-            // Not expecting any more threading calls since using the cache
-            serverBranch.Should().Be("Branch");
-            serverBranchProvider.VerifyGetServerBranchNameCalled(1);
-        }
-
-        [TestMethod]
-        public async Task GetServerBranchNameAsync_RunsOnBackgroundThread()
-        {
-            MockGetServerBranchName("Branch");
-            var mockedThreadHandling = MockThreadHandling();
-            testSubject = new StatefulServerBranchProvider(serverBranchProvider, activeSolutionBoundTracker, activeConfigScopeTracker, slCoreServiceProvider, logger, mockedThreadHandling,
-                asyncLockFactory);
-
-            var serverBranch = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
-
-            await mockedThreadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<string>>>());
-            mockedThreadHandling.ReceivedCalls().Should().HaveCount(1);
-            serverBranch.Should().Be("Branch");
-            serverBranchProvider.VerifyGetServerBranchNameCalled(1);
-        }
-
-        [TestMethod]
-        public async Task GetServerBranchNameAsync_WhenCalled_UpdatesCacheThreadSafe()
-        {
-            MockGetServerBranchName("Branch");
-
-            var serverBranch = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
-
-            serverBranch.Should().Be("Branch");
-            await asyncLock.Received(1).AcquireAsync();
-        }
-
-        [DataTestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public async Task GetServerBranchNameAsync_PreSolutionBindingChanged_CacheIsCleared(bool isConnected) =>
-            await TestEffectOfRaisingEventOnCacheAsync(RaisePreSolutionBindingUpdated, eventArg: isConnected ? connectedModeBinding : standaloneModeBinding, shouldClearCache: true);
-
-        [TestMethod]
-        public async Task GetServerBranchNameAsync_PreSolutionBindingUpdated_CacheIsCleared() => await TestEffectOfRaisingEventOnCacheAsync(RaisePreSolutionBindingUpdated, shouldClearCache: true);
-
-        [TestMethod]
-        public async Task GetServerBranchNameAsync_SolutionBindingChanged_CacheIsNotCleared() => await TestEffectOfRaisingEventOnCacheAsync(RaiseSolutionBindingUpdated, shouldClearCache: false);
-
-        [TestMethod]
-        public async Task GetServerBranchNameAsync_SolutionBindingUpdated_CacheIsNotCleared() => await TestEffectOfRaisingEventOnCacheAsync(RaiseSolutionBindingUpdated, shouldClearCache: false);
-
-        [TestMethod]
-        public void NotifySlCoreBranchChange_BindingChanged_Connected_CallsDidVcsRepositoryChangeWithCorrectId()
-        {
-            const string expectedConfigScopeId = "expected-id";
-            activeConfigScopeTracker.Current.Returns(new Core.ConfigurationScope.ConfigurationScope(expectedConfigScopeId));
-            MockSonarProjectBranchSlCoreService();
-            MockGetServerBranchName("OriginalBranch");
-
-            RaisePreSolutionBindingUpdated(connectedModeBinding);
-
-            sonarProjectBranchSlCoreService.Received(1)
-                .DidVcsRepositoryChange(Arg.Is<DidVcsRepositoryChangeParams>(p => p.configurationScopeId == expectedConfigScopeId));
-        }
-
-        [TestMethod]
-        public void NotifySlCoreBranchChange_BindingChanged_Standalone_Ignores()
-        {
-            MockGetServerBranchName("OriginalBranch");
-
-            RaisePreSolutionBindingUpdated(standaloneModeBinding);
-
-            activeConfigScopeTracker.ReceivedCalls().Should().HaveCount(1); // no other calls
-            slCoreServiceProvider.ReceivedCalls().Should().HaveCount(1); // no other calls
-        }
-
-        [TestMethod]
-        public void NotifySlCoreBranchChange_BindingUpdated_CallsDidVcsRepositoryChangeWithCorrectId()
-        {
-            const string expectedConfigScopeId = "expected-id";
-            activeConfigScopeTracker.Current.Returns(new Core.ConfigurationScope.ConfigurationScope(expectedConfigScopeId));
-            MockSonarProjectBranchSlCoreService();
-            MockGetServerBranchName("OriginalBranch");
-
-            RaisePreSolutionBindingUpdated(null);
-
-            sonarProjectBranchSlCoreService.Received(1).DidVcsRepositoryChange(Arg.Is<DidVcsRepositoryChangeParams>(p => p.configurationScopeId == expectedConfigScopeId));
-        }
-
-        [TestMethod]
-        public void NotifySlCoreBranchChange_BindingChanged_WhenServiceProviderReturnsFalse_LogsError()
-        {
-            MockSonarProjectBranchSlCoreService(wasFound: false);
-            MockGetServerBranchName("OriginalBranch");
-
-            RaisePreSolutionBindingUpdated(connectedModeBinding);
-
-            logger.AssertPartialOutputStringExists(SLCoreStrings.ServiceProviderNotInitialized);
-            slCoreServiceProvider.ReceivedCalls().Should().HaveCount(1); // no other calls
-        }
-
-        [TestMethod]
-        public void NotifySlCoreBranchChange_BindingUpdated_WhenServiceProviderReturnsFalse_LogsError()
-        {
-            MockSonarProjectBranchSlCoreService(wasFound: false);
-            MockGetServerBranchName("OriginalBranch");
-
-            RaisePreSolutionBindingUpdated(null);
-
-            logger.AssertPartialOutputStringExists(SLCoreStrings.ServiceProviderNotInitialized);
-            slCoreServiceProvider.ReceivedCalls().Should().HaveCount(1); // no other calls
-        }
-
-        [TestMethod]
-        public void Dispose_UnhooksEventHandlers()
-        {
-            testSubject.Dispose();
-
-            // Should only unhook the "Pre-" event handlers
-            activeSolutionBoundTracker.Received(1).PreSolutionBindingChanged -= Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
-            activeSolutionBoundTracker.Received(1).PreSolutionBindingUpdated -= Arg.Any<EventHandler>();
-
-            activeSolutionBoundTracker.DidNotReceive().SolutionBindingChanged -= Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
-            activeSolutionBoundTracker.DidNotReceive().SolutionBindingUpdated -= Arg.Any<EventHandler>();
-        }
-
-        private void MockGetServerBranchName(string branchName) => serverBranchProvider.GetServerBranchNameAsync(Arg.Any<CancellationToken>()).Returns(branchName);
-
-        private void MockAsyncLock()
-        {
-            asyncLock = Substitute.For<IAsyncLock>();
-            asyncLockFactory = Substitute.For<IAsyncLockFactory>();
-            asyncLockFactory.Create().Returns(asyncLock);
-        }
-
-        private async Task TestEffectOfRaisingEventOnCacheAsync(
-            Action<EventArgs> eventAction,
-            bool shouldClearCache,
-            EventArgs eventArg = null)
-        {
-            MockGetServerBranchName("OriginalBranch");
-
-            //first call: Should use IServerBranchProvider
-            var serverBranch = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
-
-            serverBranch.Should().Be("OriginalBranch");
-            serverBranchProvider.VerifyGetServerBranchNameCalled(1);
-
-            serverBranchProvider.SetBranchNameToReturn("NewBranch");
-
-            // Raise event - should *not* trigger clearing the cache
-            eventAction(eventArg);
-
-            //second call: may or may not use the cache
-            serverBranch = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
-
-            if (shouldClearCache)
-            {
-                serverBranch.Should().Be("NewBranch");
-                serverBranchProvider.VerifyGetServerBranchNameCalled(2);
-                asyncLock.Received(1).Acquire();
-            }
-            else
-            {
-                serverBranch.Should().Be("OriginalBranch");
-                serverBranchProvider.VerifyGetServerBranchNameCalled(1);
-                asyncLock.DidNotReceive().Acquire();
-            }
-        }
-
-        private void RaisePreSolutionBindingUpdated(EventArgs eventArg) => activeSolutionBoundTracker.PreSolutionBindingUpdated += Raise.EventWith(null, eventArg);
-
-        private void RaiseSolutionBindingUpdated(EventArgs eventArg) => activeSolutionBoundTracker.SolutionBindingUpdated += Raise.EventWith(null, eventArg);
-
-        private void MockSonarProjectBranchSlCoreService(bool wasFound = true)
-        {
-            sonarProjectBranchSlCoreService = Substitute.For<ISonarProjectBranchSlCoreService>();
-            slCoreServiceProvider.TryGetTransientService(out ISonarProjectBranchSlCoreService _).Returns(x =>
-            {
-                x[0] = sonarProjectBranchSlCoreService;
-                return wasFound;
-            });
-        }
-
-        private IThreadHandling MockThreadHandling()
-        {
-            var mockedThreadHandling = Substitute.For<IThreadHandling>();
-            mockedThreadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<string>>>()).Returns(info => info.Arg<Func<Task<string>>>()());
-            return mockedThreadHandling;
+            act.Should().NotThrow();
+            gitMonitor.DidNotReceiveWithAnyArgs().HeadChanged += default;
+            gitMonitor.DidNotReceiveWithAnyArgs().HeadChanged -= default;
+            activeConfigScopeTracker.DidNotReceiveWithAnyArgs().CurrentConfigurationScopeChanged += default;
+            activeConfigScopeTracker.DidNotReceiveWithAnyArgs().CurrentConfigurationScopeChanged -= default;
         }
     }
 
-    internal static class StatefulServerBranchProviderTestsExtensions
+    private void MockSonarProjectBranchSlCoreService(bool wasFound = true)
     {
-        public static void VerifyGetServerBranchNameCalled(this IServerBranchProvider serverBranchProvider, int times) =>
-            serverBranchProvider.Received(times).GetServerBranchNameAsync(Arg.Any<CancellationToken>());
+        sonarProjectBranchSlCoreService = Substitute.For<ISonarProjectBranchSlCoreService>();
+        slCoreServiceProvider.TryGetTransientService(out ISonarProjectBranchSlCoreService _).Returns(x =>
+        {
+            x[0] = sonarProjectBranchSlCoreService;
+            return wasFound;
+        });
+    }
 
-        public static void SetBranchNameToReturn(this IServerBranchProvider serverBranchProvider, string branchName) =>
-            serverBranchProvider.GetServerBranchNameAsync(Arg.Any<CancellationToken>()).Returns(branchName);
+    private void CreateUninitializedTestSubject(out TaskCompletionSource<byte> barrier)
+    {
+        var tcs = barrier = new TaskCompletionSource<byte>();
+        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<SlCoreGitChangeNotifier>(
+            threadHandling,
+            logger,
+            processor => MockableInitializationProcessor.ConfigureWithWait(processor, tcs));
+
+        testSubject = new SlCoreGitChangeNotifier(
+            activeConfigScopeTracker,
+            slCoreServiceProvider,
+            gitMonitor,
+            logger,
+            threadHandling,
+            initializationProcessorFactory);
+    }
+
+    private void CreateAndInitializeTestSubject()
+    {
+        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<SlCoreGitChangeNotifier>(threadHandling, logger);
+
+        testSubject = new SlCoreGitChangeNotifier(
+            activeConfigScopeTracker,
+            slCoreServiceProvider,
+            gitMonitor,
+            logger,
+            threadHandling,
+            initializationProcessorFactory);
+
+        testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
     }
 }

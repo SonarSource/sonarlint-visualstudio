@@ -18,16 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Client.Models;
-using SonarQube.Client.Requests;
+using SonarLint.VisualStudio.Core.Initialization;
 
-namespace SonarQube.Client.Api
-{
-    /// <summary>
-    /// Returns branch information for the specified project
-    /// </summary>
-    public interface IGetProjectBranchesRequest : IRequest<SonarQubeProjectBranch[]>
-    {
-        string ProjectKey { get; set; }
-    }
-}
+namespace SonarLint.VisualStudio.SLCore.State;
+
+public interface ISlCoreGitChangeNotifier : IRequireInitialization, IDisposable;
