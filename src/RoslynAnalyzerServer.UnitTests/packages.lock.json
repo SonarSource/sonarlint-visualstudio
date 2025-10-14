@@ -148,16 +148,6 @@
           "Microsoft.VisualStudio.Interop": "17.0.31902.203"
         }
       },
-      "Google.Protobuf": {
-        "type": "Transitive",
-        "resolved": "3.6.1",
-        "contentHash": "741fGeDQjixBJaU2j+0CbrmZXsNJkTn/hWbOh4fLVXndHsCclJmWznCPWrJmPoZKvajBvAz3e8ECJOUvRtwjNQ=="
-      },
-      "Grpc.Tools": {
-        "type": "Transitive",
-        "resolved": "1.4.1",
-        "contentHash": "D5AcNr0yPFz5dqftJYKnMtwg6AEMUics+UysxTXKVuZtresqWUcHIrnscM+KsAIreG7wvdumWzjdIXRIMekCLg=="
-      },
       "Humanizer.Core": {
         "type": "Transitive",
         "resolved": "2.2.0",
@@ -1425,8 +1415,6 @@
       "sonarqube.client": {
         "type": "Project",
         "dependencies": {
-          "Google.Protobuf": "[3.6.1, )",
-          "Grpc.Tools": "[1.4.1, )",
           "Newtonsoft.Json": "[13.0.3, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "System.Net.Http": "[4.0.0, )"

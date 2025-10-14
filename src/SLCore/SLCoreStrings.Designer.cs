@@ -231,6 +231,15 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Updated Sonar branch for Configuration Scope {0}: {1}.
+        /// </summary>
+        public static string ConfigScope_UpdatedSonarBranch {
+            get {
+                return ResourceManager.GetString("ConfigScope_UpdatedSonarBranch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Configuration scope conflict.
         /// </summary>
         public static string ConfigScopeConflict {
