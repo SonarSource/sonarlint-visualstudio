@@ -45,7 +45,7 @@ internal sealed class RoslynAnalysisService(
         try
         {
             return await analysisEngine.AnalyzeAsync(
-                analysisCommandProvider.GetAnalysisCommandsForCurrentSolution(analysisRequest.FileNames.Select(x => x.LocalPath).ToArray()),
+                analysisCommandProvider.GetAnalysisCommandsForCurrentSolution(analysisRequest.FileUris.Select(x => x.LocalPath).ToArray()),
                 await analysisConfigurationProvider.GetConfigurationAsync(analysisRequest.ActiveRules, analysisRequest.AnalysisProperties, analysisRequest.AnalyzerInfo),
                 SetUpCancellationTokenForAnalysis(analysisRequest, cancellationToken));
         }

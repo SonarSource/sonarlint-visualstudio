@@ -62,7 +62,7 @@ internal class SequentialRoslynAnalysisEngine(
                     // todo SLVS-2468 improve issue merging
                     if (!uniqueDiagnostics.Add(roslynIssue))
                     {
-                        logger.LogVerbose(Resources.AnalysisEngine_DuplicateDiagnostic, roslynIssue.RuleId, Path.GetFileName(roslynIssue.PrimaryLocation.FilePath), roslynIssue.PrimaryLocation.TextRange.StartLine);
+                        logger.LogVerbose(Resources.AnalysisEngine_DuplicateDiagnostic, roslynIssue.RuleId, roslynIssue.PrimaryLocation.FileUri.LocalPath, roslynIssue.PrimaryLocation.TextRange.StartLine);
                     }
                 }
             }

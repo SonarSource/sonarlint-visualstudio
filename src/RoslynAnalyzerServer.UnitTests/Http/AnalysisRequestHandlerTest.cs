@@ -294,7 +294,7 @@ public class AnalysisRequestHandlerTest
     [TestMethod]
     public async Task ParseAnalysisRequestBody_RequestBodyValid_ReturnsExpectedModel()
     {
-        var validRequestJson = $$"""{"FileNames":["{{FileUri}}"],"ActiveRules":[{"RuleId":"{{DiagnosticId}}"}], "AnalysisId":"{{AnalysisId}}"}""";
+        var validRequestJson = $$"""{"FileUris":["{{FileUri}}"],"ActiveRules":[{"RuleId":"{{DiagnosticId}}"}], "AnalysisId":"{{AnalysisId}}"}""";
         var stream = new MemoryStream(Encoding.UTF8.GetBytes(validRequestJson));
         request.InputStream.Returns(stream);
         request.ContentEncoding.Returns(Encoding.UTF8);
@@ -302,8 +302,8 @@ public class AnalysisRequestHandlerTest
         var result = await AnalysisRequestHandler.ParseAnalysisRequestBodyAsync<AnalysisRequest>(context.Request);
 
         result.Should().NotBeNull();
-        result!.FileNames.Should().HaveCount(1);
-        result.FileNames[0].Should().Be(FileUri);
+        result!.FileUris.Should().HaveCount(1);
+        result.FileUris[0].Should().Be(FileUri);
         result.ActiveRules.Should().HaveCount(1);
         result.ActiveRules[0].RuleId.Should().Be(DiagnosticId);
         result.AnalysisId.Should().Be(AnalysisId);

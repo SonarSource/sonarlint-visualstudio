@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
@@ -69,7 +70,7 @@ public class DiagnosticToRoslynIssueConverter : IDiagnosticToRoslynIssueConverte
 
         var location = new RoslynIssueLocation(
             message,
-            fileLinePositionSpan.Path,
+            new FileUri(fileLinePositionSpan.Path),
             textRange);
 
         return location;

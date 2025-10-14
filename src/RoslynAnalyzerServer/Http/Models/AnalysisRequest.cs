@@ -26,11 +26,11 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 public record AnalysisRequest
 {
     [JsonRequired]
-    public List<FileUri> FileNames { get; set; } = [];
+    public List<FileUri> FileUris { get; init; } = [];
     [JsonRequired]
-    public List<ActiveRuleDto> ActiveRules { get; set; } = [];
-    public Dictionary<string, string> AnalysisProperties { get; set; } = [];
-    public AnalyzerInfoDto AnalyzerInfo { get; set; } = null!;
+    public List<ActiveRuleDto> ActiveRules { get; init; } = [];
+    public Dictionary<string, string> AnalysisProperties { get; init; } = [];
+    public AnalyzerInfoDto AnalyzerInfo { get; init; } = null!;
     [JsonRequired]
-    public Guid AnalysisId { get; set; }
+    public Guid AnalysisId { get; init; }
 }

@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.SLCore.Common.Models;
+
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
 public class RoslynIssue(
@@ -44,9 +46,9 @@ public class RoslynIssueFlow(IReadOnlyList<RoslynIssueLocation> locations)
     public IReadOnlyList<RoslynIssueLocation> Locations { get; } = locations ?? throw new ArgumentNullException(nameof(locations));
 }
 
-public class RoslynIssueLocation(string message, string filePath, RoslynIssueTextRange textRange)
+public class RoslynIssueLocation(string message, FileUri fileUri, RoslynIssueTextRange textRange)
 {
-    public string FilePath { get; } = filePath;
+    public FileUri FileUri { get; } = fileUri;
     public string Message { get; } = message;
     public RoslynIssueTextRange TextRange { get; } = textRange;
 }
