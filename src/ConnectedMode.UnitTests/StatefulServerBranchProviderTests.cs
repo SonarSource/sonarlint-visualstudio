@@ -25,17 +25,18 @@ using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Branch;
 using SonarLint.VisualStudio.SLCore.Service.Branch;
+using SonarLint.VisualStudio.SLCore.State;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests;
 
 [TestClass]
-public class StatefulServerBranchProviderTests
+public class SLCoreGitChangeNotifierTests
 {
     private NoOpThreadHandler threadHandling;
     private ISLCoreServiceProvider slCoreServiceProvider;
     private TestLogger logger;
-    private StatefulServerBranchProvider testSubject;
+    private SlCoreGitChangeNotifier testSubject;
     private IActiveConfigScopeTracker activeConfigScopeTracker;
     private ISonarProjectBranchSlCoreService sonarProjectBranchSlCoreService;
     private IBoundSolutionGitMonitor gitMonitor;
@@ -55,7 +56,7 @@ public class StatefulServerBranchProviderTests
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<StatefulServerBranchProvider, IStatefulServerBranchProvider>(
+        MefTestHelpers.CheckTypeCanBeImported<SlCoreGitChangeNotifier, ISlCoreGitChangeNotifier>(
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
             MefTestHelpers.CreateExport<IBoundSolutionGitMonitor>(),
@@ -64,7 +65,7 @@ public class StatefulServerBranchProviderTests
             MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<StatefulServerBranchProvider>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SlCoreGitChangeNotifier>();
 
     [TestMethod]
     public void WhenInitialized_EventHandlersAreRegistered()
@@ -72,7 +73,7 @@ public class StatefulServerBranchProviderTests
         CreateAndInitializeTestSubject();
 
         var initializationDependencies = new IRequireInitialization[] { gitMonitor };
-        initializationProcessorFactory.Received(1).Create<StatefulServerBranchProvider>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.SequenceEqual(initializationDependencies)), Arg.Any<Func<IThreadHandling, Task>>());
+        initializationProcessorFactory.Received(1).Create<SlCoreGitChangeNotifier>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.SequenceEqual(initializationDependencies)), Arg.Any<Func<IThreadHandling, Task>>());
 
         Received.InOrder(() =>
         {
@@ -201,12 +202,12 @@ public class StatefulServerBranchProviderTests
     private void CreateUninitializedTestSubject(out TaskCompletionSource<byte> barrier)
     {
         var tcs = barrier = new TaskCompletionSource<byte>();
-        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<StatefulServerBranchProvider>(
+        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<SlCoreGitChangeNotifier>(
             threadHandling,
             logger,
             processor => MockableInitializationProcessor.ConfigureWithWait(processor, tcs));
 
-        testSubject = new StatefulServerBranchProvider(
+        testSubject = new SlCoreGitChangeNotifier(
             activeConfigScopeTracker,
             slCoreServiceProvider,
             gitMonitor,
@@ -217,9 +218,9 @@ public class StatefulServerBranchProviderTests
 
     private void CreateAndInitializeTestSubject()
     {
-        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<StatefulServerBranchProvider>(threadHandling, logger);
+        initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<SlCoreGitChangeNotifier>(threadHandling, logger);
 
-        testSubject = new StatefulServerBranchProvider(
+        testSubject = new SlCoreGitChangeNotifier(
             activeConfigScopeTracker,
             slCoreServiceProvider,
             gitMonitor,

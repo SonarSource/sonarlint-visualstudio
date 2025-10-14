@@ -22,11 +22,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.SLCore.Listener.Branch;
+using SonarLint.VisualStudio.SLCore.State;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode
@@ -40,7 +39,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
         private IHotspotDocumentClosedHandler hotspotDocumentClosedHandler;
         private IHotspotSolutionClosedHandler hotspotSolutionClosedHandler;
         private ILocalHotspotStoreMonitor hotspotStoreMonitor;
-        private IStatefulServerBranchProvider statefulServerBranchProvider;
+        private ISlCoreGitChangeNotifier slCoreGitChangeNotifier;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -50,8 +49,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
             var logger = componentModel.GetService<ILogger>();
 
             logger.WriteLine(Resources.Package_Initializing);
-            statefulServerBranchProvider = componentModel.GetService<IStatefulServerBranchProvider>();
-            await statefulServerBranchProvider.InitializationProcessor.InitializeAsync();
+            slCoreGitChangeNotifier = componentModel.GetService<ISlCoreGitChangeNotifier>();
+            await slCoreGitChangeNotifier.InitializationProcessor.InitializeAsync();
 
             hotspotDocumentClosedHandler = componentModel.GetService<IHotspotDocumentClosedHandler>();
 
@@ -65,6 +64,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
         }
 
         public void Dispose() =>
-            statefulServerBranchProvider.Dispose();
+            slCoreGitChangeNotifier.Dispose();
     }
 }

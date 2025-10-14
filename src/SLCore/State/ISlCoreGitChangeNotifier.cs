@@ -18,22 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Branch
-{
-    public record struct RemoteBranch(string Name, bool IsMain);
+using SonarLint.VisualStudio.Core.Initialization;
 
-    public interface IServerBranchProvider
-    {
-        /// <summary>
-        /// Returns the Sonar server branch to use when requesting data
-        /// </summary>
-        /// <returns>The Sonar server branch name,
-        /// or the name of the Sonar server branch marked as "Main" if the branch cannot be determined,
-        /// or null if we are not in connected mode.
-        /// </returns>
-        /// <remarks>
-        /// Only applies in connected mode.
-        /// </remarks>
-        string? GetServerBranchName(List<RemoteBranch> branches);
-    }
-}
+namespace SonarLint.VisualStudio.SLCore.State;
+
+public interface ISlCoreGitChangeNotifier : IRequireInitialization, IDisposable;

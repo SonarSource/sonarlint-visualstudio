@@ -25,14 +25,14 @@ using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Listener.Branch;
 using SonarLint.VisualStudio.SLCore.Service.Branch;
+using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.ConnectedMode
 {
-    [Export(typeof(IStatefulServerBranchProvider))]
+    [Export(typeof(ISlCoreGitChangeNotifier))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class StatefulServerBranchProvider : IStatefulServerBranchProvider
+    internal sealed class SlCoreGitChangeNotifier : ISlCoreGitChangeNotifier
     {
         private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
         private readonly ISLCoreServiceProvider serviceProvider;
@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
         private bool disposed;
 
         [ImportingConstructor]
-        public StatefulServerBranchProvider(
+        public SlCoreGitChangeNotifier(
             IActiveConfigScopeTracker activeConfigScopeTracker,
             ISLCoreServiceProvider serviceProvider,
             IBoundSolutionGitMonitor gitMonitor,
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             this.logger = logger;
             this.threadHandling = threadHandling;
 
-            InitializationProcessor = initializationProcessorFactory.Create<StatefulServerBranchProvider>([gitMonitor],
+            InitializationProcessor = initializationProcessorFactory.Create<SlCoreGitChangeNotifier>([gitMonitor],
                 _ => threadHandling.RunOnUIThreadAsync(() =>
             {
                 if (disposed)
