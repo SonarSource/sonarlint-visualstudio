@@ -20,4 +20,4 @@
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Branch;
 
-public record MatchSonarProjectBranchResponse(string matchedSonarBranch);
+public record MatchSonarProjectBranchResponse(string? matchedSonarBranch);

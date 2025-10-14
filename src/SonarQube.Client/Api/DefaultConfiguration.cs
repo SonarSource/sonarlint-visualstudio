@@ -29,8 +29,7 @@ internal static class DefaultConfiguration
         requestFactory
             .RegisterRequest<IGetVersionRequest, V2_10.GetVersionRequest>("2.1")
             .RegisterRequest<IValidateCredentialsRequest, V3_30.ValidateCredentialsRequest>("3.3")
-            .RegisterRequest<IGetNotificationsRequest, V6_60.GetNotificationsRequest>("6.6")
-            .RegisterRequest<IGetProjectBranchesRequest, V6_60.GetProjectBranchesRequest>("6.6");
+            .RegisterRequest<IGetNotificationsRequest, V6_60.GetNotificationsRequest>("6.6");
 
         return requestFactory;
     }
@@ -40,8 +39,7 @@ internal static class DefaultConfiguration
         requestFactory
             .RegisterRequest<IGetVersionRequest, V2_10.GetVersionRequest>()
             .RegisterRequest<IValidateCredentialsRequest, V3_30.ValidateCredentialsRequest>()
-            .RegisterRequest<IGetNotificationsRequest, V6_60.GetNotificationsRequest>()
-            .RegisterRequest<IGetProjectBranchesRequest, V6_60.GetProjectBranchesRequest>();
+            .RegisterRequest<IGetNotificationsRequest, V6_60.GetNotificationsRequest>();
 
         return requestFactory;
     }
