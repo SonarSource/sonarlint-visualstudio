@@ -25,7 +25,6 @@ public class BoundServerProject
     public string LocalBindingKey { get; }
     public string ServerProjectKey { get; }
     public ServerConnection ServerConnection { get; }
-    public Dictionary<Language, ApplicableQualityProfile> Profiles { get; set; }
 
     public BoundServerProject(string localBindingKey, string serverProjectKey, ServerConnection serverConnection)
     {
