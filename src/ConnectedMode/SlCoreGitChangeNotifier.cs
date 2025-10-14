@@ -28,36 +28,36 @@ using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Branch;
 using SonarLint.VisualStudio.SLCore.State;
 
-namespace SonarLint.VisualStudio.ConnectedMode
+namespace SonarLint.VisualStudio.ConnectedMode;
+
+[Export(typeof(ISlCoreGitChangeNotifier))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal sealed class SlCoreGitChangeNotifier : ISlCoreGitChangeNotifier
 {
-    [Export(typeof(ISlCoreGitChangeNotifier))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class SlCoreGitChangeNotifier : ISlCoreGitChangeNotifier
+    private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
+    private readonly ISLCoreServiceProvider serviceProvider;
+    private readonly IBoundSolutionGitMonitor gitMonitor;
+    private readonly ILogger logger;
+    private readonly IThreadHandling threadHandling;
+    private bool disposed;
+
+    [ImportingConstructor]
+    public SlCoreGitChangeNotifier(
+        IActiveConfigScopeTracker activeConfigScopeTracker,
+        ISLCoreServiceProvider serviceProvider,
+        IBoundSolutionGitMonitor gitMonitor,
+        ILogger logger,
+        IThreadHandling threadHandling,
+        IInitializationProcessorFactory initializationProcessorFactory)
     {
-        private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
-        private readonly ISLCoreServiceProvider serviceProvider;
-        private readonly IBoundSolutionGitMonitor gitMonitor;
-        private readonly ILogger logger;
-        private readonly IThreadHandling threadHandling;
-        private bool disposed;
+        this.activeConfigScopeTracker = activeConfigScopeTracker;
+        this.serviceProvider = serviceProvider;
+        this.gitMonitor = gitMonitor;
+        this.logger = logger;
+        this.threadHandling = threadHandling;
 
-        [ImportingConstructor]
-        public SlCoreGitChangeNotifier(
-            IActiveConfigScopeTracker activeConfigScopeTracker,
-            ISLCoreServiceProvider serviceProvider,
-            IBoundSolutionGitMonitor gitMonitor,
-            ILogger logger,
-            IThreadHandling threadHandling,
-            IInitializationProcessorFactory initializationProcessorFactory)
-        {
-            this.activeConfigScopeTracker = activeConfigScopeTracker;
-            this.serviceProvider = serviceProvider;
-            this.gitMonitor = gitMonitor;
-            this.logger = logger;
-            this.threadHandling = threadHandling;
-
-            InitializationProcessor = initializationProcessorFactory.Create<SlCoreGitChangeNotifier>([gitMonitor],
-                _ => threadHandling.RunOnUIThreadAsync(() =>
+        InitializationProcessor = initializationProcessorFactory.Create<SlCoreGitChangeNotifier>([gitMonitor],
+            _ => threadHandling.RunOnUIThreadAsync(() =>
             {
                 if (disposed)
                 {
@@ -66,46 +66,45 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 gitMonitor.HeadChanged += GitMonitor_OnHeadChanged;
                 activeConfigScopeTracker.CurrentConfigurationScopeChanged += ActiveConfigScopeTracker_OnCurrentConfigurationScopeChanged;
             }));
-        }
+    }
 
-        private void ActiveConfigScopeTracker_OnCurrentConfigurationScopeChanged(object sender, ConfigurationScopeChangedEventArgs e)
+    private void ActiveConfigScopeTracker_OnCurrentConfigurationScopeChanged(object sender, ConfigurationScopeChangedEventArgs e)
+    {
+        if (e.DefinitionChanged)
         {
-            if (e.DefinitionChanged)
+            gitMonitor.Refresh();
+        }
+    }
+
+    private void GitMonitor_OnHeadChanged(object sender, EventArgs e) =>
+        threadHandling.RunOnBackgroundThread(() =>
+        {
+            if (!serviceProvider.TryGetTransientService(out ISonarProjectBranchSlCoreService sonarProjectBranchSlCoreService))
             {
-                gitMonitor.Refresh();
+                logger.LogVerbose(SLCoreStrings.ServiceProviderNotInitialized);
+                return;
             }
-        }
-
-        private void GitMonitor_OnHeadChanged(object sender, EventArgs e) =>
-            threadHandling.RunOnBackgroundThread(() =>
-            {
-                if (!serviceProvider.TryGetTransientService(out ISonarProjectBranchSlCoreService sonarProjectBranchSlCoreService))
-                {
-                    logger.LogVerbose(SLCoreStrings.ServiceProviderNotInitialized);
-                    return;
-                }
-                if (activeConfigScopeTracker.Current == null)
-                {
-                    return;
-                }
-                sonarProjectBranchSlCoreService.DidVcsRepositoryChange(new DidVcsRepositoryChangeParams(activeConfigScopeTracker.Current.Id));
-            }).Forget();
-
-        public void Dispose()
-        {
-            if (disposed)
+            if (activeConfigScopeTracker.Current == null)
             {
                 return;
             }
+            sonarProjectBranchSlCoreService.DidVcsRepositoryChange(new DidVcsRepositoryChangeParams(activeConfigScopeTracker.Current.Id));
+        }).Forget();
 
-            if (InitializationProcessor.IsFinalized)
-            {
-                gitMonitor.HeadChanged -= GitMonitor_OnHeadChanged;
-                activeConfigScopeTracker.CurrentConfigurationScopeChanged -= ActiveConfigScopeTracker_OnCurrentConfigurationScopeChanged;
-            }
-            disposed = true;
+    public void Dispose()
+    {
+        if (disposed)
+        {
+            return;
         }
 
-        public IInitializationProcessor InitializationProcessor { get; }
+        if (InitializationProcessor.IsFinalized)
+        {
+            gitMonitor.HeadChanged -= GitMonitor_OnHeadChanged;
+            activeConfigScopeTracker.CurrentConfigurationScopeChanged -= ActiveConfigScopeTracker_OnCurrentConfigurationScopeChanged;
+        }
+        disposed = true;
     }
+
+    public IInitializationProcessor InitializationProcessor { get; }
 }
