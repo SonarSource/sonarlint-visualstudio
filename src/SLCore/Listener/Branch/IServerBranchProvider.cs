@@ -18,29 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core
+namespace SonarLint.VisualStudio.SLCore.Listener.Branch;
+
+public record struct RemoteBranch(string Name, bool IsMain);
+
+public interface IServerBranchProvider
 {
-    public interface IServerBranchProvider
-    {
-        /// <summary>
-        /// Returns the Sonar server branch to use when requesting data
-        /// </summary>
-        /// <returns>The Sonar server branch name,
-        /// or the name of the Sonar server branch marked as "Main" if the branch cannot be determined,
-        /// or null if we are not in connected mode.
-        /// </returns>
-        /// <remarks>
-        /// Only applies in connected mode.
-        /// </remarks>
-        Task<string> GetServerBranchNameAsync(CancellationToken token);
-    }
-
     /// <summary>
-    /// Stateful version of <see cref="IServerBranchProvider"/>
+    /// Returns the Sonar server branch to use when requesting data
     /// </summary>
-    /// <remarks>The implementation is a singleton that recalculates the Sonar branch name
-    /// automatically when necessary e.g. when a different solution is opened
+    /// <returns>The Sonar server branch name,
+    /// or the name of the Sonar server branch marked as "Main" if the branch cannot be determined,
+    /// or null if we are not in connected mode.
+    /// </returns>
+    /// <remarks>
+    /// Only applies in connected mode.
     /// </remarks>
-    public interface IStatefulServerBranchProvider : IServerBranchProvider { }
-
+    string? GetServerBranchName(List<RemoteBranch> branches);
 }

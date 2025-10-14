@@ -45,9 +45,4 @@ public interface ISonarQubeService
     /// </summary>
     /// <remarks>The method does not check whether the project or issue exists or not</remarks>
     Uri GetViewIssueUrl(string projectKey, string issueKey);
-
-    /// <summary>
-    ///     Returns branch information for the specified project key
-    /// </summary>
-    Task<IList<SonarQubeProjectBranch>> GetProjectBranchesAsync(string projectKey, CancellationToken token);
 }

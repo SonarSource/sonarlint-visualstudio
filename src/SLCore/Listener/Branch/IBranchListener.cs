@@ -36,5 +36,5 @@ public interface IBranchListener : ISLCoreListener
     /// </summary>
     /// <param name="parameters">Parameter's here for compability we discard it</param>
     /// <remarks>This will be implemented properly in the future when needed but features we support does not need branch awareness for now</remarks>
-    Task DidChangeMatchedSonarProjectBranchAsync(object parameters);
+    Task DidChangeMatchedSonarProjectBranchAsync(DidChangeMatchedSonarProjectBranchParams parameters);
 }
