@@ -52,7 +52,7 @@ public class DiagnosticDuplicatesComparer : IEqualityComparer<RoslynIssue>
         {
             var hc = obj.RuleId.GetHashCode();
             const int prime = 397;
-            hc = (hc * prime) ^ obj.PrimaryLocation.FilePath.GetHashCode();
+            hc = (hc * prime) ^ obj.PrimaryLocation.FileUri.GetHashCode();
             hc = (hc * prime) ^ obj.PrimaryLocation.TextRange.StartLine;
             hc = (hc * prime) ^ obj.PrimaryLocation.TextRange.StartLineOffset;
             hc = (hc * prime) ^ obj.PrimaryLocation.TextRange.EndLine;
@@ -62,7 +62,7 @@ public class DiagnosticDuplicatesComparer : IEqualityComparer<RoslynIssue>
     }
 
     private static bool LocationEquals(RoslynIssueLocation xPrimaryLocation, RoslynIssueLocation yPrimaryLocation) =>
-        xPrimaryLocation.FilePath == yPrimaryLocation.FilePath &&
+        xPrimaryLocation.FileUri == yPrimaryLocation.FileUri &&
         xPrimaryLocation.TextRange.StartLine == yPrimaryLocation.TextRange.StartLine &&
         xPrimaryLocation.TextRange.EndLine == yPrimaryLocation.TextRange.EndLine &&
         xPrimaryLocation.TextRange.StartLineOffset == yPrimaryLocation.TextRange.StartLineOffset &&
