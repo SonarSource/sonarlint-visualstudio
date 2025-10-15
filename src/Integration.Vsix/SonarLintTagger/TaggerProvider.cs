@@ -245,6 +245,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
         var filePath = issueTracker.LastAnalysisFilePath;
         var content = issueTracker.GetText();
 
+        logger.LogVerbose(new MessageLevelContext(){VerboseContext = ["File Tracker Invoke"]}, "Open: {0}", filePath);
         NotifyFileTracker(filePath, content);
         // The lifetime of an issue tracker is tied to a single document. A document is opened, then a tracker is created.
         DocumentOpened?.Invoke(this, new DocumentOpenedEventArgs(new Document(filePath, issueTracker.DetectedLanguages), content));
@@ -255,6 +256,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
 
     public void OnDocumentSaved(string fullPath, string newContent, IEnumerable<AnalysisLanguage> detectedLanguages)
     {
+        logger.LogVerbose(new MessageLevelContext(){VerboseContext = ["File Tracker Invoke"]}, "Save: {0}", fullPath);
         NotifyFileTracker(fullPath, newContent);
         DocumentSaved?.Invoke(this, new DocumentSavedEventArgs(new Document(fullPath, detectedLanguages), newContent));
     }
