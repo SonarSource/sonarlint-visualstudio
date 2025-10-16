@@ -35,5 +35,19 @@ internal class RoslynSolutionWrapper : IRoslynSolutionWrapper
     public IEnumerable<IRoslynProjectWrapper> Projects { get; }
     public Solution RoslynSolution { get; }
 
-    public IRoslynDocumentWrapper? GetDocument(SyntaxTree? tree) => RoslynSolution.GetDocument(tree) is {} roslynDocument ? new RoslynDocumentWrapper(roslynDocument) : null;
+    public IRoslynDocumentWrapper? GetDocument(SyntaxTree? tree) => RoslynSolution.GetDocument(tree) is { } roslynDocument ? new RoslynDocumentWrapper(roslynDocument) : null;
+
+    public IRoslynDocumentWrapper? GetDocument(string filePath)
+    {
+        // todo search is not good
+
+        var documentId = RoslynSolution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault();
+
+        if (documentId is null || RoslynSolution.GetDocument(documentId) is not { } document)
+        {
+            return null;
+        }
+
+        return new RoslynDocumentWrapper(document);
+    }
 }

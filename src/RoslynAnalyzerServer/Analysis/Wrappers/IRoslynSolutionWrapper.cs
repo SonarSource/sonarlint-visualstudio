@@ -28,4 +28,6 @@ internal interface IRoslynSolutionWrapper
     Solution RoslynSolution { get; }
 
     IRoslynDocumentWrapper? GetDocument(SyntaxTree? tree);
+
+    IRoslynDocumentWrapper? GetDocument(string filePath);
 }

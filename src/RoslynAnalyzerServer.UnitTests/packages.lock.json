@@ -199,6 +199,14 @@
         "resolved": "3.3.2",
         "contentHash": "7xt6zTlIEizUgEsYAIgm37EbdkiMmr6fP6J9pDoKEpiGM4pi32BCPGr/IczmSJI9Zzp0a6HOzpr9OvpMP+2veA=="
       },
+      "Microsoft.CodeAnalysis.VisualBasic": {
+        "type": "Transitive",
+        "resolved": "3.11.0",
+        "contentHash": "i+BGiANEBvkKfhx0NChsMtSmAlhjBtRRkx77LLCgH15pkaCv+H3gfCAJY9FWfK+34691BGp07c45Ml4xulXT8g==",
+        "dependencies": {
+          "Microsoft.CodeAnalysis.Common": "[3.11.0]"
+        }
+      },
       "Microsoft.CodeCoverage": {
         "type": "Transitive",
         "resolved": "16.6.1",
@@ -1402,6 +1410,8 @@
       "SonarLint.VisualStudio.RoslynAnalyzerServer": {
         "type": "Project",
         "dependencies": {
+          "Microsoft.CodeAnalysis.CSharp": "[3.11.0, )",
+          "Microsoft.CodeAnalysis.VisualBasic": "[3.11.0, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )"
         }
       },

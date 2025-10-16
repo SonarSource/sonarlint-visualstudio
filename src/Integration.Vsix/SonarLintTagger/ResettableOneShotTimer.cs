@@ -22,7 +22,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 internal interface IResettableOneShotTimer : IDisposable
 {
-    void Reset();
+    void Reset(TimeSpan? customDuration = null);
+
+    void Cancel();
 
     event EventHandler Elapsed;
 }
@@ -40,7 +42,9 @@ internal sealed class ResettableOneShotTimer : IResettableOneShotTimer
 
     private void TimerAction(object state) => Elapsed?.Invoke(this, EventArgs.Empty);
 
-    public void Reset() => timer.Change(timerDurationMs, Timeout.Infinite);
+    public void Reset(TimeSpan? customDuration = null) => timer.Change((long)(customDuration?.TotalMilliseconds ?? timerDurationMs), Timeout.Infinite);
+
+    public void Cancel() => timer.Change(Timeout.Infinite, Timeout.Infinite);
 
     public event EventHandler Elapsed;
 
