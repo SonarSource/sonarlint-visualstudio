@@ -35,6 +35,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             internalStorage = new Dictionary<string, IIssueConsumer>();
         }
 
+
         public void Remove(string filePath)
         {
             lock (Lock)

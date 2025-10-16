@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.Core;
@@ -25,11 +26,13 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
+using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
-internal record AnalysisSnapshot(string FilePath, ITextSnapshot TextSnapshot);
+
+internal record FileSnapshot(string FilePath, ITextSnapshot TextSnapshot);
 
 ///<summary>
 ///Tracks SonarLint errors for a specific buffer.
@@ -43,46 +46,46 @@ internal record AnalysisSnapshot(string FilePath, ITextSnapshot TextSnapshot);
 /// See the README.md in this folder for more information
 /// </para>
 ///</remarks>
-internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
+internal sealed class TextBufferIssueTracker : IFileState, ITagger<IErrorTag>
 {
     private readonly ITextDocument document;
+    private readonly ISonarLanguageRecognizer languageRecognizer;
     private readonly IIssueConsumerFactory issueConsumerFactory;
     private readonly IIssueConsumerStorage issueConsumerStorage;
-    private readonly ITaskExecutorWithDebounce taskExecutorWithDebounce;
     private readonly ILogger logger;
     private readonly ISonarErrorListDataSource sonarErrorDataSource;
     private readonly ITextBuffer textBuffer;
     private readonly IVsProjectInfoProvider vsProjectInfoProvider;
+    private string projectName;
+    private Guid projectGuid;
 
-    internal /* for testing */ TaggerProvider Provider { get; }
+    private readonly IDocumentTrackerUpdater documentTrackerUpdater;
     internal /* for testing */ IssuesSnapshotFactory Factory { get; }
 
     public TextBufferIssueTracker(
-        TaggerProvider provider,
+        IDocumentTrackerUpdater documentTrackerUpdater,
         ITextDocument document,
-        IEnumerable<AnalysisLanguage> detectedLanguages,
+        ISonarLanguageRecognizer languageRecognizer,
         ISonarErrorListDataSource sonarErrorDataSource,
         IVsProjectInfoProvider vsProjectInfoProvider,
         IIssueConsumerFactory issueConsumerFactory,
         IIssueConsumerStorage issueConsumerStorage,
-        ITaskExecutorWithDebounce taskExecutorWithDebounce,
         ILogger logger)
     {
-        Provider = provider;
+        this.documentTrackerUpdater = documentTrackerUpdater;
         textBuffer = document.TextBuffer;
 
         this.sonarErrorDataSource = sonarErrorDataSource;
         this.vsProjectInfoProvider = vsProjectInfoProvider;
         this.issueConsumerFactory = issueConsumerFactory;
         this.issueConsumerStorage = issueConsumerStorage;
-        this.taskExecutorWithDebounce = taskExecutorWithDebounce;
         this.logger = logger;
         logger.ForContext(nameof(TextBufferIssueTracker));
 
         this.document = document;
-        LastAnalysisFilePath = document.FilePath;
-        DetectedLanguages = detectedLanguages;
-        Factory = new IssuesSnapshotFactory(LastAnalysisFilePath);
+        this.languageRecognizer = languageRecognizer;
+        UpdateMetadata(document.FilePath);
+        Factory = new IssuesSnapshotFactory(FilePath);
 
         document.FileActionOccurred += SafeOnFileActionOccurred;
         if (textBuffer is ITextBuffer2 textBuffer2)
@@ -91,21 +94,15 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         }
 
         sonarErrorDataSource.AddFactory(Factory);
-        Provider.AddIssueTracker(this);
-
-        InitializeAnalysisState();
+        this.documentTrackerUpdater.OnDocumentOpened(this);
     }
 
-    public string LastAnalysisFilePath { get; private set; }
-    public IEnumerable<AnalysisLanguage> DetectedLanguages { get; }
-
-    public void UpdateAnalysisState() => UpdateAnalysisState(null);
-
-    public string GetText() => document.TextBuffer.CurrentSnapshot.GetText();
+    public string FilePath { get; private set; }
+    public IEnumerable<AnalysisLanguage> DetectedLanguages { get; set; }
 
     public void Dispose()
     {
-        RemoveIssueConsumer(LastAnalysisFilePath);
+        RemoveIssueConsumer(FilePath);
         document.FileActionOccurred -= SafeOnFileActionOccurred;
         textBuffer.Properties.RemoveProperty(TaggerProvider.SingletonManagerPropertyCollectionKey);
         if (textBuffer is ITextBuffer2 textBuffer2)
@@ -113,8 +110,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
             textBuffer2.ChangedOnBackground -= TextBuffer_OnChangedOnBackground;
         }
         sonarErrorDataSource.RemoveFactory(Factory);
-        taskExecutorWithDebounce.Dispose();
-        Provider.OnDocumentClosed(this);
+        documentTrackerUpdater.OnDocumentClosed(this);
     }
 
     public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans) => [];
@@ -131,16 +127,19 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
             {
                 case FileActionTypes.ContentSavedToDisk:
                     {
-                        UpdateAnalysisState();
-                        Provider.OnDocumentSaved(document.FilePath, GetText(), DetectedLanguages);
+
+                        UpdateMetadata(e.FilePath);
+                        documentTrackerUpdater.OnDocumentSaved(this);
                         break;
                     }
                 case FileActionTypes.DocumentRenamed:
                     {
-                        var oldFilePath = LastAnalysisFilePath;
-                        LastAnalysisFilePath = e.FilePath;
-                        UpdateAnalysisState();
-                        Provider.OnOpenDocumentRenamed(e.FilePath, oldFilePath, DetectedLanguages);
+                        var oldFilePath = FilePath;
+                        // workaround for issue consumer storage being filepath-based, instead of buffer based.
+                        // buffer always has the latest file path, so here we have to clear the old file path, even though it's still the same buffer
+                        issueConsumerStorage.Remove(oldFilePath);
+                        UpdateMetadata(e.FilePath);
+                        documentTrackerUpdater.OnOpenDocumentRenamed(this, oldFilePath);
                         break;
                     }
                 default:
@@ -153,16 +152,17 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         }
     }
 
-    private void UpdateAnalysisState(ITextSnapshot newTextSnapshot)
+    public FileSnapshot UpdateFileState()
     {
         try
         {
-            RemoveIssueConsumer(LastAnalysisFilePath);
-            InitializeAnalysisState(newTextSnapshot);
+            RemoveIssueConsumer(FilePath);
+            return InitializeAnalysisState();
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
             logger.WriteLine(Strings.Analysis_ErrorUpdatingAnalysisState, ex);
+            return null;
         }
     }
 
@@ -173,28 +173,39 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         sonarErrorDataSource.RefreshErrorList(Factory, oldSnapshot);
     }
 
-    private AnalysisSnapshot GetAnalysisSnapshot(ITextSnapshot newTextSnapshot = null) => new(LastAnalysisFilePath, newTextSnapshot ?? document.TextBuffer.CurrentSnapshot);
+    private FileSnapshot GetAnalysisSnapshot() => new(FilePath, document.TextBuffer.CurrentSnapshot);
 
-    private void InitializeAnalysisState(ITextSnapshot newTextSnapshot = null)
+    private FileSnapshot InitializeAnalysisState()
     {
-        var analysisSnapshot = GetAnalysisSnapshot(newTextSnapshot);
+        var analysisSnapshot = GetAnalysisSnapshot();
         CreateIssueConsumer(analysisSnapshot);
+        return analysisSnapshot;
+    }
+
+    private void UpdateMetadata(string filePath)
+    {
+        FilePath = filePath;
+        (projectName, projectGuid) = vsProjectInfoProvider.GetDocumentProjectInfo(FilePath);
+        DetectedLanguages = languageRecognizer.Detect(filePath, textBuffer.ContentType);
     }
 
     private void RemoveIssueConsumer(string filePath) => issueConsumerStorage.Remove(filePath);
 
-    private void CreateIssueConsumer(AnalysisSnapshot analysisSnapshot)
+    private void CreateIssueConsumer(FileSnapshot fileSnapshot)
     {
-        var (projectName, projectGuid) = vsProjectInfoProvider.GetDocumentProjectInfo(analysisSnapshot.FilePath);
-        var issueConsumer = issueConsumerFactory.Create(document, analysisSnapshot.FilePath, analysisSnapshot.TextSnapshot, projectName, projectGuid, SnapToNewSnapshot);
-        issueConsumerStorage.Set(analysisSnapshot.FilePath, issueConsumer);
+        var issueConsumer = issueConsumerFactory.Create(document, FilePath, fileSnapshot.TextSnapshot, projectName, projectGuid, SnapToNewSnapshot);
+        issueConsumerStorage.Set(FilePath, issueConsumer);
     }
 
-    private void TextBuffer_OnChangedOnBackground(object sender, TextContentChangedEventArgs e) =>
-        taskExecutorWithDebounce.Debounce(() =>
+    private void TextBuffer_OnChangedOnBackground(object sender, TextContentChangedEventArgs e)
+    {
+        var normalizedTextChangeCollection = e.Changes;
+
+        if (normalizedTextChangeCollection.All(x => string.IsNullOrWhiteSpace(x.NewText) && string.IsNullOrWhiteSpace(x.OldText)))
         {
-            var textSnapshot = e.After;
-            UpdateAnalysisState(textSnapshot);
-            Provider.OnDocumentUpdated(document.FilePath, textSnapshot.GetText(), DetectedLanguages);
-        });
+            return;
+        }
+
+        documentTrackerUpdater.OnDocumentUpdated(this);
+    }
 }

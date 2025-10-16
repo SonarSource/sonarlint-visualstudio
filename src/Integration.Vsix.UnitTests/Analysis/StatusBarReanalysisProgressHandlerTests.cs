@@ -46,19 +46,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var progressHandler = new StatusBarReanalysisProgressHandler(dummyStatusBar, logger);
 
             // 1. Initial request
-            ReportProgress(progressHandler, CancellableJobRunner.RunnerState.Running, 0, 2);
+            ReportProgress(progressHandler, JobRunnerProgress.RunnerState.Running, 0, 2);
             dummyStatusBar.CheckLastCallWasSetupCall(0, 2);
 
             // 2a. Progress updates
-            ReportProgress(progressHandler, CancellableJobRunner.RunnerState.Running, 1, 2);
+            ReportProgress(progressHandler, JobRunnerProgress.RunnerState.Running, 1, 2);
             dummyStatusBar.CheckLastCallWasInProgressCall(1, 2);
 
             // 2b. Progress updates
-            ReportProgress(progressHandler, CancellableJobRunner.RunnerState.Running, 2, 2);
+            ReportProgress(progressHandler, JobRunnerProgress.RunnerState.Running, 2, 2);
             dummyStatusBar.CheckLastCallWasInProgressCall(2, 2);
 
             // 3. Finished -> clean up and reset the statusbar
-            ReportProgress(progressHandler, CancellableJobRunner.RunnerState.Finished, 111, 222);
+            ReportProgress(progressHandler, JobRunnerProgress.RunnerState.Finished, 111, 222);
 
             dummyStatusBar.CheckLastCallWasCleanup();
             dummyStatusBar.ProgressCallCount.Should().Be(4);
@@ -75,11 +75,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var progressHandler = new StatusBarReanalysisProgressHandler(dummyStatusBar, logger);
 
             // 1. Initial request
-            ReportProgress(progressHandler, CancellableJobRunner.RunnerState.Running, 0, 1000);
+            ReportProgress(progressHandler, JobRunnerProgress.RunnerState.Running, 0, 1000);
             dummyStatusBar.CheckLastCallWasSetupCall(0, 1000);
 
             // 2. Progress updates
-            ReportProgress(progressHandler, CancellableJobRunner.RunnerState.Running, 100, 1000);
+            ReportProgress(progressHandler, JobRunnerProgress.RunnerState.Running, 100, 1000);
             dummyStatusBar.CheckLastCallWasInProgressCall(100, 1000);
 
             dummyStatusBar.ProgressCallCount.Should().Be(2);
@@ -91,9 +91,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             dummyStatusBar.ProgressCallCount.Should().Be(3);
 
             // 4. Any further notifications should be ignored
-            ReportProgress(progressHandler, CancellableJobRunner.RunnerState.Running, 111, 222);
-            ReportProgress(progressHandler, CancellableJobRunner.RunnerState.Faulted, 333, 444);
-            ReportProgress(progressHandler, CancellableJobRunner.RunnerState.Finished, 555, 666);
+            ReportProgress(progressHandler, JobRunnerProgress.RunnerState.Running, 111, 222);
+            ReportProgress(progressHandler, JobRunnerProgress.RunnerState.Faulted, 333, 444);
+            ReportProgress(progressHandler, JobRunnerProgress.RunnerState.Finished, 555, 666);
             dummyStatusBar.ProgressCallCount.Should().Be(3); // no further calls
         }
 
@@ -104,24 +104,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var progressHandler = new StatusBarReanalysisProgressHandler(dummyStatusBar, logger);
 
             // 1. Initial request
-            ReportProgress(progressHandler, CancellableJobRunner.RunnerState.Running, 0, 1000);
+            ReportProgress(progressHandler, JobRunnerProgress.RunnerState.Running, 0, 1000);
             dummyStatusBar.CheckLastCallWasSetupCall(0, 1000);
 
             // 2. Progress updates
-            ReportProgress(progressHandler, CancellableJobRunner.RunnerState.Running, 100, 1000);
+            ReportProgress(progressHandler, JobRunnerProgress.RunnerState.Running, 100, 1000);
             dummyStatusBar.CheckLastCallWasInProgressCall(100, 1000);
 
             dummyStatusBar.ProgressCallCount.Should().Be(2);
 
             // 3. Report a fault -  should cause statusbar cleanup
-            ReportProgress(progressHandler, CancellableJobRunner.RunnerState.Faulted, 100, 1000);
+            ReportProgress(progressHandler, JobRunnerProgress.RunnerState.Faulted, 100, 1000);
 
             dummyStatusBar.CheckLastCallWasCleanup();
             dummyStatusBar.ProgressCallCount.Should().Be(3);
 
             // 4. Any further notifications should be ignored
-            ReportProgress(progressHandler, CancellableJobRunner.RunnerState.Running, 111, 222);
-            ReportProgress(progressHandler, CancellableJobRunner.RunnerState.Finished, 555, 666);
+            ReportProgress(progressHandler, JobRunnerProgress.RunnerState.Running, 111, 222);
+            ReportProgress(progressHandler, JobRunnerProgress.RunnerState.Finished, 555, 666);
             dummyStatusBar.ProgressCallCount.Should().Be(3); // no further calls
         }
 
@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var progressHandler = new StatusBarReanalysisProgressHandler(dummyStatusBar, logger);
 
             // Act and Assert: exception should be suppressed
-            ReportProgress(progressHandler, CancellableJobRunner.RunnerState.Running, 0, 1000);
+            ReportProgress(progressHandler, JobRunnerProgress.RunnerState.Running, 0, 1000);
             opExecuted.Should().BeTrue();
 
             logger.AssertPartialOutputStringExists("xxx");
@@ -156,15 +156,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             // Act and Assert: exception should not be suppressed
             dummyStatusBar.ProgressOperation = () => throw new StackOverflowException("xxx");
 
-            Action act = () => ReportProgress(progressHandler, CancellableJobRunner.RunnerState.Running, 1, 2);
+            Action act = () => ReportProgress(progressHandler, JobRunnerProgress.RunnerState.Running, 1, 2);
             act.Should().Throw<StackOverflowException>().And.Message.Should().Be("xxx");
 
             logger.AssertPartialOutputStringDoesNotExist("xxx");
         }
 
-        private void ReportProgress(StatusBarReanalysisProgressHandler handler, CancellableJobRunner.RunnerState runnerState, int completedOperations, int totalOperations)
+        private void ReportProgress(StatusBarReanalysisProgressHandler handler, JobRunnerProgress.RunnerState runnerState, int completedOperations, int totalOperations)
         {
-            handler.Report(new CancellableJobRunner.JobRunnerProgress(runnerState, completedOperations, totalOperations));
+            handler.Report(new JobRunnerProgress(runnerState, completedOperations, totalOperations));
         }
     }
 }

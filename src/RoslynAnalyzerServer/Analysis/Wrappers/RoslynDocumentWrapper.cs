@@ -26,5 +26,21 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 [ExcludeFromCodeCoverage]
 internal class RoslynDocumentWrapper(Document roslynDocument) : IRoslynDocumentWrapper
 {
+    public string? FilePath => RoslynDocument.FilePath;
     public Document RoslynDocument { get; } = roslynDocument;
+
+    public override bool Equals(object? obj)
+    {
+        if (ReferenceEquals(this, obj))
+        {
+            return true;
+        }
+        if (obj is not RoslynDocumentWrapper otherWrapper)
+        {
+            return false;
+        }
+        return RoslynDocument.Equals(otherWrapper.RoslynDocument);
+    }
+
+    public override int GetHashCode() => RoslynDocument.GetHashCode();
 }
