@@ -29,11 +29,11 @@ public class ResettableOneShotTimerTests
     public async Task ResettableOneShotTimer_SmokeTest()
     {
         var timerTimeSpan = TimeSpan.FromMilliseconds(100);
-        var testSubject = new ResettableOneShotTimer(timerTimeSpan);
+        var testSubject = new ResettableOneShotTimer();
         var eventHandler = Substitute.For<EventHandler>();
         testSubject.Elapsed += eventHandler;
 
-        testSubject.Reset();
+        testSubject.Reset(timerTimeSpan);
         await Task.Delay(2 * (int)timerTimeSpan.TotalMilliseconds);
 
         eventHandler.ReceivedWithAnyArgs(1).Invoke(default, default);
@@ -43,11 +43,11 @@ public class ResettableOneShotTimerTests
     public void ResettableOneShotTimer_Dispose_DisposesTimer()
     {
         var timerTimeSpan = TimeSpan.FromMilliseconds(50);
-        var testSubject = new ResettableOneShotTimer(timerTimeSpan);
+        var testSubject = new ResettableOneShotTimer();
 
         testSubject.Dispose();
 
-        var act = () => testSubject.Reset();
+        var act = () => testSubject.Reset(timerTimeSpan);
         act.Should().Throw<ObjectDisposedException>();
     }
 }

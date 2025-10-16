@@ -26,18 +26,16 @@ namespace SonarLint.VisualStudio.Core.Analysis;
 public interface IIssueConsumerStorage
 {
     /// <summary>
-    /// Sets the latest <paramref name="analysisId"/> for <paramref name="filePath"/> and associated <paramref name="issueConsumer"/>
+    /// Sets the latest <paramref name="issueConsumer"/> for <paramref name="filePath"/>
     /// </summary>
     /// <param name="filePath">File system path for which the analysis was scheduled</param>
-    /// <param name="analysisId">Unique analysis identifier</param>
     /// <param name="issueConsumer">Consumer for analysis results</param>
     void Set(string filePath, IIssueConsumer issueConsumer);
 
     /// <summary>
-    /// Gets the latest <paramref name="analysisId"/> for <paramref name="filePath"/> and associated <paramref name="issueConsumer"/>
+    /// Gets the latest <paramref name="issueConsumer"/> for <paramref name="filePath"/>
     /// </summary>
     /// <param name="filePath">File system path for which the analysis was scheduled</param>
-    /// <param name="analysisId">Unique analysis identifier</param>
     /// <param name="issueConsumer">Consumer for analysis results</param>
     /// <returns>true if analysis is scheduled for the given <paramref name="filePath"/>, false otherwise</returns>
     bool TryGet(string filePath, out IIssueConsumer issueConsumer);
