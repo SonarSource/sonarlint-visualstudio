@@ -31,7 +31,11 @@ internal interface ITaskExecutorWithDebounceFactory
 
 internal interface ITaskExecutorWithDebounce : IDisposable
 {
-    void Debounce(Action task);
+    void Debounce(Action action, TimeSpan? debounceTimeSpan = null);
+
+    bool IsScheduled { get; }
+
+    void Cancel();
 }
 
 [Export(typeof(ITaskExecutorWithDebounceFactory))]
@@ -44,45 +48,67 @@ internal class TaskExecutorWithDebounceFactory(IThreadHandling threadHandling) :
 
 internal sealed class TaskExecutorWithDebounce : ITaskExecutorWithDebounce
 {
-    private readonly IThreadHandling threadHandling;
     private readonly object locker = new();
+    private readonly IThreadHandling threadHandling;
     private readonly IResettableOneShotTimer timer;
-    private Action latestDebounceState;
+    private Action taskToExecute;
 
     internal TaskExecutorWithDebounce(IResettableOneShotTimer timerWrapper, IThreadHandling threadHandling)
     {
         this.threadHandling = threadHandling;
         timer = timerWrapper;
-        timer.Elapsed += DebounceAction;
+        timer.Elapsed += HandleTimerEvent;
     }
 
-    private void DebounceAction(object state, EventArgs eventArgs)
-    {
-        Action action;
-        lock (locker)
-        {
-            action = latestDebounceState;
-            latestDebounceState = null;
-        }
-
-        if (action != null)
-        {
-            threadHandling.RunOnBackgroundThread(action).Forget();
-        }
-    }
-
-    public void Debounce(Action task)
+    public void Debounce(Action action, TimeSpan? debounceTimeSpan = null)
     {
         lock (locker)
         {
-            latestDebounceState = task;
-            timer.Reset();
+            taskToExecute = action;
+            timer.Reset(debounceTimeSpan);
         }
     }
 
-    public void Dispose()
+    public bool IsScheduled
     {
-        timer.Elapsed -= DebounceAction;
+        get
+        {
+            lock (locker)
+            {
+                return taskToExecute != null;
+            }
+        }
+    }
+
+    public void Cancel()
+    {
+        lock (locker)
+        {
+            taskToExecute = null;
+            timer.Cancel();
+        }
+    }
+
+    public void Dispose() // fix dispose
+    {
+        timer.Elapsed -= HandleTimerEvent;
         timer.Dispose();
     }
+
+    private void HandleTimerEvent(object state, EventArgs eventArgs)
+    {
+        Action task;
+        lock (locker)
+        {
+            task = taskToExecute;
+            taskToExecute = null;
+        }
+
+        if (task != null)
+        {
+            Execute(task);
+        }
+    }
+
+    private void Execute(Action action) => threadHandling.RunOnBackgroundThread(action).Forget();
 }

@@ -19,16 +19,15 @@
  */
 
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal interface IIssueTracker : IDisposable
     {
-        string LastAnalysisFilePath { get; }
+        string FilePath { get; }
         IEnumerable<AnalysisLanguage> DetectedLanguages { get; }
 
-        void UpdateAnalysisState();
-
-        string GetText();
+        AnalysisSnapshot UpdateAnalysisState();
     }
 }
