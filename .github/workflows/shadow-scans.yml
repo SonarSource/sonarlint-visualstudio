@@ -1,0 +1,88 @@
+name: Shadow scans
+on:
+  schedule:
+    # Run the workflow every day at 04:00 UTC
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  scan:
+    runs-on: warp-custom-sonarlint-visualstudio
+    name: Scan on ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: SonarQubeCloudEU
+            vault_path: development/kv/data/sonarcloud
+            project_key: sonarlint-visualstudio
+          - platform: SonarQubeCloudUS
+            vault_path: development/kv/data/sonarqube-us
+            project_key: SonarSource_sonarlint-visualstudio
+          - platform: SonarQubeServerNext
+            vault_path: development/kv/data/next
+            project_key: SonarSource_sonarlint-visualstudio_b822e41c-dcc7-40ab-a423-2d1dfbb1e248
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Fetch vault secrets
+        id: secrets
+        uses: SonarSource/vault-action-wrapper@v3
+        with:
+          secrets: |
+            development/kv/data/repox url | ARTIFACTORY_URL;
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username | ARTIFACTORY_USER;
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_ACCESS_TOKEN;
+            ${{ matrix.vault_path }} url | SONAR_URL;
+            ${{ matrix.vault_path }} token | SONAR_TOKEN;
+        
+      - uses: SonarSource/ci-github-actions/get-build-number@v1
+
+      - name: Build
+        env:
+          ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
+          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_ACCESS_TOKEN }}
+          BRANCH_NAME: ${{ github.ref_name }}
+          SONAR_PROJECT_KEY: ${{ matrix.project_key }}
+          SONAR_URL: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_URL }}
+          SONAR_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_TOKEN }}
+          COVERAGE_FILE: ${{ github.workspace }}/coverage.xml
+        shell: bash
+        run: |
+          msbuild.exe build/ChangeVersion.proj -p:Sha1=${GITHUB_SHA} -p:BranchName=${BRANCH_NAME} -p:BuildNumber=${BUILD_NUMBER} -p:BuildConfiguration=Release
+          msbuild.exe build/DownloadDependencies -p:VsVersion=17.0 -p:VsTargetVersion=2022
+          dotnet restore "SonarQube.VisualStudio.sln" --locked-mode
+          .github/scripts/sonarqube-analysis.sh
+          msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=false -p:DeployExtension=false -p:Sha1="${GITHUB_SHA}" -p:BuildNumber="${BUILD_NUMBER}" -p:Configuration=Release
+          
+      - name: Test and Analyze
+        env:
+          SONAR_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_TOKEN }}
+          MSVC: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.40.33807\bin\Hostx64\x64\cl.exe # Required for CFamily integration tests
+        shell: bash
+        run: |
+          vstest.console.exe --EnableCodeCoverage --Logger:trx --ResultsDirectory:"TestResults" src/**/bin/**/Sonar*.*Tests.dll
+          dotnet-coverage merge -o "coverage.xml" -f xml "**/*.coverage"
+          dotnet sonarscanner end -d:sonar.token="${SONAR_TOKEN}"
+
+  iris-analysis:
+    runs-on: github-ubuntu-latest-s
+    name: Run IRIS Analysis
+    needs: scan
+    if: ${{ !cancelled() }}
+    steps:
+      - name: Run IRIS Analysis
+        uses: SonarSource/unified-dogfooding-actions/run-iris@v1
+        with:
+          primary_project_key: "sonarlint-visualstudio"
+          primary_platform: "SQC-EU"
+          shadow1_project_key: "SonarSource_sonarlint-visualstudio_b822e41c-dcc7-40ab-a423-2d1dfbb1e248"
+          shadow1_platform: "Next"
+          shadow2_project_key: "SonarSource_sonarlint-visualstudio"
+          shadow2_platform: "SQC-US"
