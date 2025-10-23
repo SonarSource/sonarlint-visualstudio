@@ -35,6 +35,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
             internalStorage = new Dictionary<string, IIssueConsumer>();
         }
 
+        // todo set and remove should be buffer-based, bot file path based
+
         public void Remove(string filePath)
         {
             lock (Lock)
