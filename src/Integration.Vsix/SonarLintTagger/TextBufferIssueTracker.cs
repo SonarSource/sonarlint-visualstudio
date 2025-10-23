@@ -59,11 +59,11 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
     private string projectName;
     private Guid projectGuid;
 
-    internal /* for testing */ TaggerProvider Provider { get; }
+    private readonly IDocumentTrackerUpdater documentTrackerUpdater;
     internal /* for testing */ IssuesSnapshotFactory Factory { get; }
 
     public TextBufferIssueTracker(
-        TaggerProvider provider,
+        IDocumentTrackerUpdater documentTrackerUpdater,
         ITextDocument document,
         ISonarLanguageRecognizer languageRecognizer,
         ISonarErrorListDataSource sonarErrorDataSource,
@@ -72,7 +72,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         IIssueConsumerStorage issueConsumerStorage,
         ILogger logger)
     {
-        Provider = provider;
+        this.documentTrackerUpdater = documentTrackerUpdater;
         textBuffer = document.TextBuffer;
 
         this.sonarErrorDataSource = sonarErrorDataSource;
@@ -94,7 +94,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         }
 
         sonarErrorDataSource.AddFactory(Factory);
-        Provider.AddIssueTracker(this);
+        this.documentTrackerUpdater.OnDocumentOpened(this);
     }
 
     public string FilePath { get; private set; }
@@ -110,7 +110,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
             textBuffer2.ChangedOnBackground -= TextBuffer_OnChangedOnBackground;
         }
         sonarErrorDataSource.RemoveFactory(Factory);
-        Provider.OnDocumentClosed(this);
+        documentTrackerUpdater.OnDocumentClosed(this);
     }
 
     public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans) => [];
@@ -129,14 +129,15 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
                     {
 
                         UpdateMetadata(e.FilePath);
-                        Provider.OnDocumentSaved(this);
+                        documentTrackerUpdater.OnDocumentSaved(this);
                         break;
                     }
                 case FileActionTypes.DocumentRenamed:
                     {
                         var oldFilePath = FilePath;
+                        issueConsumerStorage.Remove(oldFilePath); // workaround for issue consumer storage being filepath-based
                         UpdateMetadata(e.FilePath);
-                        Provider.OnOpenDocumentRenamed(this, oldFilePath);
+                        documentTrackerUpdater.OnOpenDocumentRenamed(this, oldFilePath);
                         break;
                     }
                 default:
@@ -203,6 +204,6 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
             return;
         }
 
-        Provider.OnDocumentUpdated(this);
+        documentTrackerUpdater.OnDocumentUpdated(this);
     }
 }

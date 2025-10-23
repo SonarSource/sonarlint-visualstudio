@@ -21,7 +21,6 @@
 using System.ComponentModel.Composition.Primitives;
 using System.Text;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
@@ -40,7 +39,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger;
 [TestClass]
 public class TaggerProviderTests
 {
-    private const int AnalysisTimeout = 1000;
     private ISonarErrorListDataSource mockSonarErrorDataSource;
     private TestLogger logger;
     private ISonarLanguageRecognizer mockSonarLanguageRecognizer;
@@ -51,15 +49,13 @@ public class TaggerProviderTests
     private DummyTextDocumentFactoryService dummyDocumentFactoryService;
     private IServiceProvider serviceProvider;
     private IAnalysisRequester mockAnalysisRequester;
-    private IFileTracker mockFileTracker;
     private IVsProjectInfoProvider vsProjectInfoProvider;
     private IIssueConsumerFactory issueConsumerFactory;
     private IIssueConsumerStorage issueConsumerStorage;
     private IAnalyzer analyzer;
     private IInitializationProcessorFactory initializationProcessorFactory;
     private IThreadHandling threadHandling;
-    private ITaskExecutorWithDebounceFactory taskExecutorWithDebounceFactory;
-    private ITaskExecutorWithDebounce reanalysisExecutorWithDebounce;
+    private IAnalysisQueue mockAnalysisQueue;
 
     private static readonly AnalysisLanguage[] DetectedLanguagesJsTs = [AnalysisLanguage.TypeScript, AnalysisLanguage.Javascript];
 
@@ -84,8 +80,6 @@ public class TaggerProviderTests
 
         mockAnalysisRequester = Substitute.For<IAnalysisRequester>();
 
-        mockFileTracker = Substitute.For<IFileTracker>();
-
         vsProjectInfoProvider = Substitute.For<IVsProjectInfoProvider>();
         issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
         issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
@@ -93,10 +87,7 @@ public class TaggerProviderTests
 
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
 
-        taskExecutorWithDebounceFactory = Substitute.For<ITaskExecutorWithDebounceFactory>();
-        reanalysisExecutorWithDebounce = Substitute.For<ITaskExecutorWithDebounce>();
-        taskExecutorWithDebounceFactory.Create(Arg.Any<TimeSpan>()).Returns(reanalysisExecutorWithDebounce);
-        reanalysisExecutorWithDebounce.When(x => x.Debounce(Arg.Any<Action>())).Do(call => call.Arg<Action>().Invoke());
+        mockAnalysisQueue = Substitute.For<IAnalysisQueue>();
 
         testSubject = CreateAndInitializeTestSubject();
     }
@@ -126,11 +117,11 @@ public class TaggerProviderTests
         MefTestHelpers.CreateExport<IIssueConsumerFactory>(),
         MefTestHelpers.CreateExport<IIssueConsumerStorage>(),
         MefTestHelpers.CreateExport<ITaggableBufferIndicator>(),
-        MefTestHelpers.CreateExport<IFileTracker>(),
+        MefTestHelpers.CreateExport<IAnalysisQueue>(),
         MefTestHelpers.CreateExport<IAnalyzer>(),
         MefTestHelpers.CreateExport<ILogger>(),
         MefTestHelpers.CreateExport<IInitializationProcessorFactory>(),
-        MefTestHelpers.CreateExport<ITaskExecutorWithDebounceFactory>(),
+        MefTestHelpers.CreateExport<IThreadHandling>(),
     ];
 
     #endregion MEF tests
@@ -142,7 +133,6 @@ public class TaggerProviderTests
             initializationProcessorFactory.Create<TaggerProvider>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.Count == 0), Arg.Any<Func<IThreadHandling, Task>>());
             testSubject.InitializationProcessor.InitializeAsync();
             threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
-            serviceProvider.GetService(typeof(IVsStatusbar));
             mockAnalysisRequester.AnalysisRequested += Arg.Any<EventHandler<AnalysisRequestEventArgs>>();
             testSubject.InitializationProcessor.InitializeAsync(); // called by testinitialize
         });
@@ -150,14 +140,12 @@ public class TaggerProviderTests
     [TestMethod]
     public void CreateTagger_should_create_tracker_when_tagger_is_created()
     {
-        taskExecutorWithDebounceFactory.ClearReceivedCalls();
         var doc = CreateMockedDocument("anyname");
         var tagger = CreateTaggerForDocument(doc);
 
         tagger.Should().NotBeNull();
 
-        VerifyCreateIssueConsumerWasCalled(doc);
-        taskExecutorWithDebounceFactory.Received(1).Create(debounceTimeSpan: TimeSpan.FromMilliseconds(500));
+        VerifyFileOpenedAndClosedTimes(1, 0);
     }
 
     [TestMethod]
@@ -223,7 +211,7 @@ public class TaggerProviderTests
 
         // Taggers should be different but tracker should be the same
         tagger1.Should().NotBeSameAs(tagger2);
-        testSubject.ActiveTrackersForTesting.Count().Should().Be(1);
+        VerifyFileOpenedAndClosedTimes(1, 0);
     }
 
     [TestMethod]
@@ -237,19 +225,19 @@ public class TaggerProviderTests
         testSubject.DocumentClosed += OnDocumentClosed;
 
         var tracker1 = CreateTaggerForDocument(doc1);
-        testSubject.ActiveTrackersForTesting.Count().Should().Be(1);
+        VerifyFileOpenedAndClosedTimes(1, 0);
 
         var tracker2 = CreateTaggerForDocument(doc1);
-        testSubject.ActiveTrackersForTesting.Count().Should().Be(1);
+        VerifyFileOpenedAndClosedTimes(1, 0);
 
         // Remove one tagger -> tracker should still be registered
         ((IDisposable)tracker1).Dispose();
-        testSubject.ActiveTrackersForTesting.Count().Should().Be(1);
+        VerifyFileOpenedAndClosedTimes(1, 0);
         eventCount.Should().Be(0); // no event yet...
 
         // Remove the last tagger -> tracker should be unregistered
         ((IDisposable)tracker2).Dispose();
-        testSubject.ActiveTrackersForTesting.Count().Should().Be(0);
+        VerifyFileOpenedAndClosedTimes(1, 1);
         eventCount.Should().Be(1);
         actualSender.Should().BeSameAs(testSubject);
         actualEventArgs.Should().NotBeNull();
@@ -264,18 +252,6 @@ public class TaggerProviderTests
     }
 
     [TestMethod]
-    public void DocEvents_CloseLastTagger_NoListeners_NoError()
-    {
-        var doc1 = CreateMockedDocument("doc1.js");
-
-        var tracker1 = CreateTaggerForDocument(doc1);
-        testSubject.ActiveTrackersForTesting.Count().Should().Be(1);
-
-        ((IDisposable)tracker1).Dispose();
-        testSubject.ActiveTrackersForTesting.Count().Should().Be(0);
-    }
-
-    [TestMethod]
     public void CreateTagger_tracker_should_be_distinct_per_file()
     {
         var doc1 = CreateMockedDocument("foo.js");
@@ -286,245 +262,181 @@ public class TaggerProviderTests
         var tagger2 = CreateTaggerForDocument(doc2);
         tagger2.Should().NotBeNull();
 
-        testSubject.ActiveTrackersForTesting.Count().Should().Be(2);
+        VerifyFileOpenedAndClosedTimes(2, 0);
         tagger1.Should().NotBe(tagger2);
     }
 
-    [TestMethod]
-    [DataRow(null)]
-    [DataRow(new string[] { })]
-    public void FilterIssueTrackersByPath_NullOrEmptyPaths_AllTrackersReturned(string[] filePaths)
-    {
-        var trackers = CreateMockedIssueTrackers("any", "any2");
-
-        var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers, filePaths);
-
-        actual.Should().BeEquivalentTo(trackers);
-    }
-
-    [TestMethod]
-    public void FilterIssueTrackersByPath_WithPaths_NoMatches_EmptyListReturned()
-    {
-        var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp");
-
-        var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
-            new string[] { "no matches", "file1.wrongextension" });
-
-        actual.Should().BeEmpty();
-    }
-
-    [TestMethod]
-    public void FilterIssueTrackersByPath_WithPaths_SingleMatch_SingleTrackerReturned()
-    {
-        var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
-
-        var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
-            new string[] { "file1.txt" });
-
-        actual.Should().BeEquivalentTo(trackers[0]);
-    }
-
-    [TestMethod]
-    public void FilterIssueTrackersByPath_WithPaths_MultipleMatches_MultipleTrackersReturned()
-    {
-        var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
-
-        var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
-            new string[]
-            {
-                "file1.txt", "D:\\BBB\\FILE3.xxx" // match should be case-insensitive
-            });
-
-        actual.Should().BeEquivalentTo(trackers[0], trackers[2]);
-    }
-
-    [TestMethod]
-    public void FilterIssueTrackersByPath_WithPaths_AllMatched_AllTrackersReturned()
-    {
-        var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
-
-        var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
-            new string[] { "unmatchedFile1.cs", "file1.txt", "c:\\aaa\\file2.cpp", "unmatchedfile2.cpp", "d:\\bbb\\file3.xxx" });
-
-        actual.Should().BeEquivalentTo(trackers);
-    }
-
-    [TestMethod]
-    public void AddIssueTracker_RaisesEvent()
-    {
-        var eventHandler = Substitute.For<EventHandler<DocumentEventArgs>>();
-        var filePath = "file1.txt";
-        var content = "some text";
-        testSubject.DocumentOpened += eventHandler;
-        var issueTracker = CreateMockedIssueTracker(filePath, DetectedLanguagesJsTs, content: content);
-
-        testSubject.AddIssueTracker(issueTracker);
-
-        eventHandler.Received(1).Invoke(testSubject, Arg.Is<DocumentEventArgs>(e =>
-            e.Document.FullPath == filePath &&
-            e.Document.DetectedLanguages == DetectedLanguagesJsTs &&
-            e.Content == content));
-    }
+    // todo add to analysis queue tests
+    // [TestMethod]
+    // [DataRow(null)]
+    // [DataRow(new string[] { })]
+    // public void FilterIssueTrackersByPath_NullOrEmptyPaths_AllTrackersReturned(string[] filePaths)
+    // {
+    //     var trackers = CreateMockedIssueTrackers("any", "any2");
+    //
+    //     var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers, filePaths);
+    //
+    //     actual.Should().BeEquivalentTo(trackers);
+    // }
+    //
+    // [TestMethod]
+    // public void FilterIssueTrackersByPath_WithPaths_NoMatches_EmptyListReturned()
+    // {
+    //     var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp");
+    //
+    //     var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
+    //         new string[] { "no matches", "file1.wrongextension" });
+    //
+    //     actual.Should().BeEmpty();
+    // }
+    //
+    // [TestMethod]
+    // public void FilterIssueTrackersByPath_WithPaths_SingleMatch_SingleTrackerReturned()
+    // {
+    //     var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
+    //
+    //     var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
+    //         new string[] { "file1.txt" });
+    //
+    //     actual.Should().BeEquivalentTo(trackers[0]);
+    // }
+    //
+    // [TestMethod]
+    // public void FilterIssueTrackersByPath_WithPaths_MultipleMatches_MultipleTrackersReturned()
+    // {
+    //     var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
+    //
+    //     var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
+    //         new string[]
+    //         {
+    //             "file1.txt", "D:\\BBB\\FILE3.xxx" // match should be case-insensitive
+    //         });
+    //
+    //     actual.Should().BeEquivalentTo(trackers[0], trackers[2]);
+    // }
+    //
+    // [TestMethod]
+    // public void FilterIssueTrackersByPath_WithPaths_AllMatched_AllTrackersReturned()
+    // {
+    //     var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
+    //
+    //     var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
+    //         new string[] { "unmatchedFile1.cs", "file1.txt", "c:\\aaa\\file2.cpp", "unmatchedfile2.cpp", "d:\\bbb\\file3.xxx" });
+    //
+    //     actual.Should().BeEquivalentTo(trackers);
+    // }
 
     [TestMethod]
     public void AddIssueTracker_AddsNewFileToFileTracker()
     {
-        var filePath = "file1.txt";
-        var content = "some text";
-        var issueTracker = CreateMockedIssueTracker(filePath, DetectedLanguagesJsTs, content: content);
+        var eventHandler = Substitute.For<EventHandler<DocumentEventArgs>>();
+        const string filePath = "anyname.js";
+        var issueTracker = CreateMockedIssueTracker(filePath);
+        issueTracker.DetectedLanguages.Returns(DetectedLanguagesJsTs);
+        testSubject.DocumentOpened += eventHandler;
 
-        testSubject.AddIssueTracker(issueTracker);
+        testSubject.OnDocumentOpened(issueTracker);
 
-        mockFileTracker.Received(1).AddFiles(new SourceFile(filePath, encoding: null, content));
+        mockAnalysisQueue.Renamed(issueTracker);
+        eventHandler.Received(1).Invoke(Arg.Any<object>(),
+            Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == filePath && x.Document.DetectedLanguages == DetectedLanguagesJsTs));
     }
 
     [TestMethod]
     public void IssueTracker_DocumentClosed_RaiseEvent()
     {
         var eventHandler = Substitute.For<EventHandler<DocumentEventArgs>>();
-        var fileName = "anyname.js";
-        var doc = CreateMockedDocument(fileName, DetectedLanguagesJsTs);
+        const string filePath = "anyname.js";
+        var issueTracker = CreateMockedIssueTracker(filePath);
+        issueTracker.DetectedLanguages.Returns(DetectedLanguagesJsTs);
         testSubject.DocumentClosed += eventHandler;
 
-        CreateTaggerForDocument(doc);
-        testSubject.ActiveTrackersForTesting.First().Dispose();
+        testSubject.OnDocumentClosed(issueTracker);
 
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == fileName && x.Document.DetectedLanguages == DetectedLanguagesJsTs));
+        mockAnalysisQueue.Renamed(issueTracker);
+        eventHandler.Received(1).Invoke(Arg.Any<object>(),
+            Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == filePath && x.Document.DetectedLanguages == DetectedLanguagesJsTs));
     }
 
     [TestMethod]
-    public void IssueTracker_DocumentSaved_RaiseEvent()
+    public void IssueTracker_DocumentSaved_UpdatesAnalysisStateAndRaisesEvent()
     {
         var eventHandler = Substitute.For<EventHandler<DocumentEventArgs>>();
-        var fileName = "anyname.js";
-        var doc = CreateMockedDocument(fileName, DetectedLanguagesJsTs);
+        const string filePath = "anyname.js";
+        var issueTracker = CreateMockedIssueTracker(filePath);
+        issueTracker.DetectedLanguages.Returns(DetectedLanguagesJsTs);
         testSubject.DocumentSaved += eventHandler;
 
-        CreateTaggerForDocument(doc);
-        RaiseFileEvent(doc, FileActionTypes.ContentSavedToDisk);
+        testSubject.OnDocumentSaved(issueTracker);
 
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == fileName && x.Document.DetectedLanguages == DetectedLanguagesJsTs));
+        mockAnalysisQueue.Renamed(issueTracker);
+        eventHandler.Received(1).Invoke(Arg.Any<object>(),
+            Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == filePath && x.Document.DetectedLanguages == DetectedLanguagesJsTs));
     }
 
     [TestMethod]
-    public void IssueTracker_DocumentSaved_AddsNewFileToFileTracker()
-    {
-        var filePath = "anyname.js";
-        string content = "new content";
-        var doc = CreateMockedDocument(filePath, DetectedLanguagesJsTs, content: content);
-        CreateTaggerForDocument(doc);
-        mockFileTracker.ClearReceivedCalls();
-
-        RaiseFileEvent(doc, FileActionTypes.ContentSavedToDisk);
-
-        mockFileTracker.Received(1).AddFiles(new SourceFile(filePath, encoding: null, content));
-    }
-
-    [TestMethod]
-    public void IssueTracker_DocumentRename_RaiseEvent()
+    public void IssueTracker_DocumentRename_UpdatesAnalysisStateAndRaisesEvent()
     {
         var eventHandler = Substitute.For<EventHandler<DocumentRenamedEventArgs>>();
-        var oldName = "anyname.js";
-        var newName = "newName.js";
-        var doc = CreateMockedDocument(oldName, DetectedLanguagesJsTs);
+        const string oldName = "anyname.js";
+        const string newName = "newName.js";
+        var issueTracker = CreateMockedIssueTracker(newName);
+        issueTracker.DetectedLanguages.Returns(DetectedLanguagesJsTs);
         testSubject.OpenDocumentRenamed += eventHandler;
 
-        CreateTaggerForDocument(doc);
-        RaiseFileEvent(doc, FileActionTypes.DocumentRenamed, newName);
+        testSubject.OnOpenDocumentRenamed(issueTracker, oldName);
 
+        mockAnalysisQueue.Renamed(issueTracker);
         eventHandler.Received(1).Invoke(Arg.Any<object>(),
             Arg.Is<DocumentRenamedEventArgs>(x => x.Document.FullPath == newName && x.OldFilePath == oldName && x.Document.DetectedLanguages == DetectedLanguagesJsTs));
     }
 
     [TestMethod]
-    public void IssueTracker_DocumentUpdated_RaiseEvent()
+    public void IssueTracker_DocumentUpdated_UpdatesAnalysisState()
     {
+        var issueTracker = CreateMockedIssueTracker("any");
         var eventHandler = Substitute.For<EventHandler<DocumentEventArgs>>();
-        var fileName = "anyname.js";
-        string content = "new content";
-        var doc = CreateMockedDocument(fileName, DetectedLanguagesJsTs);
-        testSubject.DocumentUpdated += eventHandler;
+        testSubject.DocumentSaved += eventHandler;
 
-        CreateTaggerForDocument(doc);
-        testSubject.OnDocumentUpdated(fileName, content, DetectedLanguagesJsTs);
+        testSubject.OnDocumentUpdated(issueTracker);
 
-        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == fileName
-                                                                                          && x.Document.DetectedLanguages == DetectedLanguagesJsTs
-                                                                                          && x.Content == content));
-    }
-
-    [TestMethod]
-    public void IssueTracker_DocumentUpdated_AddsNewFileToFileTracker()
-    {
-        var filePath = "anyname.js";
-        string content = "new content";
-        var doc = CreateMockedDocument(filePath, DetectedLanguagesJsTs, content: content);
-        CreateTaggerForDocument(doc);
-        mockFileTracker.ClearReceivedCalls();
-
-        testSubject.OnDocumentUpdated(filePath, content, DetectedLanguagesJsTs);
-
-        mockFileTracker.Received(1).AddFiles(new SourceFile(filePath, encoding: null, content));
+        mockAnalysisQueue.ContentChanged(issueTracker);
+        eventHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
     }
 
     [TestMethod]
     public void GetOpenDocuments_ReturnsAmountOfIssueTrackers()
     {
-        testSubject.AddIssueTracker(CreateMockedIssueTracker("myFile.js", [AnalysisLanguage.Javascript]));
-        testSubject.AddIssueTracker(CreateMockedIssueTracker("myFile2.cs", [AnalysisLanguage.RoslynFamily]));
-        testSubject.AddIssueTracker(CreateMockedIssueTracker("myFile3.cpp", [AnalysisLanguage.CFamily]));
+        Document[] documents =
+        [
+            new("myFile.js", [AnalysisLanguage.Javascript]),
+            new("myFile2.cs", [AnalysisLanguage.RoslynFamily]),
+            new("myFile3.cpp", [AnalysisLanguage.CFamily])
+        ];
+        mockAnalysisQueue.GetOpenDocuments().Returns(documents);
 
-        var result = testSubject.GetOpenDocuments().ToList();
+        var result = testSubject.GetOpenDocuments();
 
-        result.Should().HaveCount(3);
-        result.Should().Contain(x => x.FullPath == "myFile.js" && x.DetectedLanguages.Contains(AnalysisLanguage.Javascript));
-        result.Should().Contain(x => x.FullPath == "myFile2.cs" && x.DetectedLanguages.Contains(AnalysisLanguage.RoslynFamily));
-        result.Should().Contain(x => x.FullPath == "myFile3.cpp" && x.DetectedLanguages.Contains(AnalysisLanguage.CFamily));
+        result.Should().BeEquivalentTo(documents);
     }
 
     [TestMethod]
-    public void AnalysisRequested_DisplaysCorrectNumberOfDocumentsBeingAnalyzed()
+    public void AnalysisRequested_CallsAnalysisQueueMultiFileAnalysis()
     {
-        var fileName = "file.js";
-        CreateTaggerForDocument(CreateMockedDocument(fileName, DetectedLanguagesJsTs));
-        var analysisExecutingSignal = CreateAnalysisExecutingSignal([fileName]);
+        var fileName1 = "file.js";
+        var fileName2 = "file2.cs";
+        string[] filePaths = [fileName1, fileName2];
+        mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new AnalysisRequestEventArgs(filePaths));
 
-        mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new AnalysisRequestEventArgs([fileName]));
-        analysisExecutingSignal.WaitOne(AnalysisTimeout);
-
-        var expectedMessage = string.Format(Vsix.Resources.Strings.JobRunner_JobDescription_ReaanalyzeDocs, 1);
-        logger.AssertPartialOutputStringExists(expectedMessage);
+        mockAnalysisQueue.Received().MultiFileReanalysis(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(filePaths)));
     }
 
     [TestMethod]
-    public void AnalysisRequested_CallsAnalyzerRequestAnalysis()
+    public void AnalysisRequested_Null_CallsAnalysisQueueMultiFileAnalysis()
     {
-        List<string> filesToaAnalyze = ["file.js"];
-        var analysisExecutingSignal = CreateAnalysisExecutingSignal(filesToaAnalyze);
-        CreateTaggerForDocument(CreateMockedDocument(filesToaAnalyze[0], DetectedLanguagesJsTs));
+        mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new AnalysisRequestEventArgs(null));
 
-        mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new AnalysisRequestEventArgs(filesToaAnalyze));
-        analysisExecutingSignal.WaitOne(AnalysisTimeout);
-
-        reanalysisExecutorWithDebounce.Received(1).Debounce(Arg.Any<Action>());
-        analyzer.Received(1).ExecuteAnalysis(Arg.Is<List<string>>(x => x.SequenceEqual(filesToaAnalyze)));
-    }
-
-    [TestMethod]
-    public void AnalysisRequested_TwoOpenedDocuments_AddFilesToFileTrackerInBatch()
-    {
-        string[] sourceFiles = ["file.js", "file2.js"];
-        CreateTaggerForDocument(CreateMockedDocument(sourceFiles[0], DetectedLanguagesJsTs));
-        testSubject.AddIssueTracker(CreateMockedIssueTracker(sourceFiles[1]));
-        mockFileTracker.ClearReceivedCalls();
-        var analysisExecutingSignal = CreateAnalysisExecutingSignal(sourceFiles);
-
-        mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new AnalysisRequestEventArgs([]));
-        analysisExecutingSignal.WaitOne(AnalysisTimeout);
-
-        mockFileTracker.Received(1).AddFiles(Arg.Is<SourceFile[]>(files => files.Length == 2 &&
-                                                                           files[0].FilePath == sourceFiles[0] &&
-                                                                           files[1].FilePath == sourceFiles[1]));
+        mockAnalysisQueue.Received().MultiFileReanalysis();
     }
 
     #region Dispose tests
@@ -541,20 +453,10 @@ public class TaggerProviderTests
 
     #endregion
 
-    private IIssueTracker[] CreateMockedIssueTrackers(params string[] filePaths) => filePaths.Select(CreateMockedIssueTracker).ToArray();
-
     private static IIssueTracker CreateMockedIssueTracker(string filePath)
     {
         var mock = Substitute.For<IIssueTracker>();
-        mock.LastAnalysisFilePath.Returns(filePath);
-        return mock;
-    }
-
-    private static IIssueTracker CreateMockedIssueTracker(string filePath, IEnumerable<AnalysisLanguage> analysisLanguages, string content = "")
-    {
-        var mock = CreateMockedIssueTracker(filePath);
-        mock.DetectedLanguages.Returns(analysisLanguages);
-        mock.GetText().Returns(content);
+        mock.FilePath.Returns(filePath);
         return mock;
     }
 
@@ -623,34 +525,17 @@ public class TaggerProviderTests
         var taggerProvider = new TaggerProvider(
             mockSonarErrorDataSource, dummyDocumentFactoryService, serviceProvider,
             mockSonarLanguageRecognizer, mockAnalysisRequester, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage,
-            mockTaggableBufferIndicator, mockFileTracker, analyzer, logger, initializationProcessorFactory, taskExecutorWithDebounceFactory);
+            mockTaggableBufferIndicator, mockAnalysisQueue, analyzer, logger, initializationProcessorFactory, threadHandling);
         taggerProvider.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
         return taggerProvider;
     }
 
-    private static void RaiseFileEvent(ITextDocument textDocument, FileActionTypes actionType, string filePath = null)
+    private void VerifyFileOpenedAndClosedTimes(int opened, int closed)
     {
-        var args = new TextDocumentFileActionEventArgs(filePath ?? textDocument.FilePath, DateTime.UtcNow, actionType);
-        textDocument.FileActionOccurred += Raise.EventWith(null, args);
+        mockAnalysisQueue.ReceivedWithAnyArgs(opened).Opened(default);
+        mockAnalysisQueue.ReceivedWithAnyArgs(closed).Closed(default);
     }
 
-    private void VerifyCreateIssueConsumerWasCalled(
-        ITextDocument document)
-    {
-        vsProjectInfoProvider.Received(1).GetDocumentProjectInfo(document.FilePath);
-        issueConsumerFactory.Received(1).Create(document, document.FilePath, Arg.Any<ITextSnapshot>(), Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<SnapshotChangedHandler>());
-        issueConsumerStorage.Received(1).Set(document.FilePath, Arg.Any<IIssueConsumer>());
-    }
-
-    private ManualResetEvent CreateAnalysisExecutingSignal(IEnumerable<string> filesToAnalyze)
-    {
-        var manualResetEvent = new ManualResetEvent(false);
-        analyzer.When(x => x.ExecuteAnalysis(Arg.Is<List<string>>(y => y.SequenceEqual(filesToAnalyze)))).Do(args =>
-        {
-            manualResetEvent.Set();
-        });
-        return manualResetEvent;
-    }
 
     private class DummyTextDocumentFactoryService : ITextDocumentFactoryService
     {

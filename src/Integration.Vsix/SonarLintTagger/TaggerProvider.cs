@@ -36,6 +36,19 @@ using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 
 namespace SonarLint.VisualStudio.Integration.Vsix;
 
+internal interface IDocumentTrackerUpdater
+{
+    void OnDocumentOpened(IIssueTracker issueTracker);
+
+    void OnOpenDocumentRenamed(IIssueTracker issueTracker, string oldFilePath);
+
+    void OnDocumentSaved(IIssueTracker issueTracker);
+
+    void OnDocumentUpdated(IIssueTracker document);
+
+    void OnDocumentClosed(IIssueTracker issueTracker);
+}
+
 /// <summary>
 ///     Factory for the <see cref="ITagger{T}" />. There will be one instance of this class/VS session.
 /// </summary>
@@ -48,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix;
 [ContentType("text")]
 [TextViewRole(PredefinedTextViewRoles.Document)]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, IDocumentTracker, IDisposable
+internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, IDocumentTracker, IDocumentTrackerUpdater, IDisposable
 {
     internal static readonly Type SingletonManagerPropertyCollectionKey = typeof(SingletonDisposableTaggerManager<IErrorTag>);
     private readonly IAnalysisRequester analysisRequester;
@@ -179,7 +192,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
 
     public Document[] GetOpenDocuments() => analysisQueue.GetOpenDocuments();
 
-    public void AddIssueTracker(IIssueTracker issueTracker) =>
+    public void OnDocumentOpened(IIssueTracker issueTracker) =>
         threadHandling.RunOnBackgroundThread(() =>
         {
             analysisQueue.Opened(issueTracker);
