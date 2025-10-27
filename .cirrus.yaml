@@ -38,16 +38,16 @@ build_task:
     LOCALAPPDATA: C:\sonar-ci\AppData\Local # Fixes unit test error
     SIGN_KEY: VAULT[development/kv/data/sign data.key]
     SIGN_PASSPHRASE: VAULT[development/kv/data/sign data.passphrase]
-    SM_API_KEY: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.apikey]
-    SM_CERT_FP: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.cert_fp]
-    SM_CERT: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.cert]
-    SM_CLIENT_CERT_FILE_BASE64: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.client_cert_file_base64]
+    SM_API_KEY: VAULT[development/kv/data/sign/digicert data.apikey]
+    SM_CERT_FP: VAULT[development/kv/data/sign/digicert data.cert_fp]
+    SM_CERT: VAULT[development/kv/data/sign/digicert data.cert]
+    SM_CLIENT_CERT_FILE_BASE64: VAULT[development/kv/data/sign/digicert data.client_cert_file_base64]
     SM_CLIENT_CERT_FILE: ${TMP_DIR}\digicert_signing_certificate.p12
-    SM_CLIENT_CERT_PASSWORD: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.client_cert_password]
+    SM_CLIENT_CERT_PASSWORD: VAULT[development/kv/data/sign/digicert data.client_cert_password]
     SM_CLIENT_CRT_FILE: ${TMP_DIR}\digicert_signing_certificate.crt
-    SM_CLIENT_CRT: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.cert]
-    SM_HOST: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.host]
-    SM_KP: key_525594307
+    SM_CLIENT_CRT: VAULT[development/kv/data/sign/digicert data.cert]
+    SM_HOST: VAULT[development/kv/data/sign/digicert data.host]
+    SM_KP: key_1361216169
     SOLUTION_PATH: SonarQube.VisualStudio.sln
     SONAR_TOKEN: VAULT[development/kv/data/sonarcloud data.token]
     SONAR_URL: VAULT[development/kv/data/sonarcloud data.url]
@@ -67,17 +67,13 @@ build_task:
     fi
   calculate_version_script: *CALCULATE_VERSION_SCRIPT_DEFINITION
   prepare_signing_script: |
-    if [[ "${CIRRUS_BRANCH}" == "${CIRRUS_DEFAULT_BRANCH}" ]] || echo "${CIRRUS_BRANCH}" | grep -qE "^branch-.*" || echo "${CIRRUS_BRANCH}" | grep -qE "^sign-.*"; then
-      mkdir -p "${TMP_DIR}"
-      mkdir -p "${LOCALAPPDATA}"
-      echo "${SONARSOURCE_SNK}" | base64 -d > "${SONARSOURCE_SNK_FILE}"
-      echo "${SM_CLIENT_CERT_FILE_BASE64}" | base64 -d > "${SM_CLIENT_CERT_FILE}"
-      echo "${SM_CLIENT_CRT}" > "${SM_CLIENT_CRT_FILE}"
-      smctl windows certsync
-      echo "SHOULD_SIGN=true" >> $CIRRUS_ENV
-    else
-      echo "SHOULD_SIGN=false" >> $CIRRUS_ENV
-    fi
+    mkdir -p "${TMP_DIR}"
+    mkdir -p "${LOCALAPPDATA}"
+    echo "${SONARSOURCE_SNK}" | base64 -d > "${SONARSOURCE_SNK_FILE}"
+    echo "${SM_CLIENT_CERT_FILE_BASE64}" | base64 -d > "${SM_CLIENT_CERT_FILE}"
+    echo "${SM_CLIENT_CRT}" > "${SM_CLIENT_CRT_FILE}"
+    smctl windows certsync
+    echo "SHOULD_SIGN=true" >> $CIRRUS_ENV
   set_project_version_script: |
     msbuild.exe build/ChangeVersion.proj -p:Sha1=${CIRRUS_CHANGE_IN_REPO} -p:BranchName=${CIRRUS_BRANCH} -p:BuildNumber=${CI_BUILD_NUMBER} -p:BuildConfiguration=Release
   download_jar_dependencies_script: |
