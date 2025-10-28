@@ -32,7 +32,7 @@ using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 
-internal record AnalysisSnapshot(string FilePath, ITextSnapshot TextSnapshot);
+internal record FileSnapshot(string FilePath, ITextSnapshot TextSnapshot);
 
 ///<summary>
 ///Tracks SonarLint errors for a specific buffer.
@@ -46,7 +46,7 @@ internal record AnalysisSnapshot(string FilePath, ITextSnapshot TextSnapshot);
 /// See the README.md in this folder for more information
 /// </para>
 ///</remarks>
-internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
+internal sealed class TextBufferIssueTracker : IFileState, ITagger<IErrorTag>
 {
     private readonly ITextDocument document;
     private readonly ISonarLanguageRecognizer languageRecognizer;
@@ -150,7 +150,7 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         }
     }
 
-    public AnalysisSnapshot UpdateAnalysisState()
+    public FileSnapshot UpdateFileState()
     {
         try
         {
@@ -172,9 +172,9 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
         sonarErrorDataSource.RefreshErrorList(Factory);
     }
 
-    private AnalysisSnapshot GetAnalysisSnapshot() => new(FilePath, document.TextBuffer.CurrentSnapshot);
+    private FileSnapshot GetAnalysisSnapshot() => new(FilePath, document.TextBuffer.CurrentSnapshot);
 
-    private AnalysisSnapshot InitializeAnalysisState()
+    private FileSnapshot InitializeAnalysisState()
     {
         var analysisSnapshot = GetAnalysisSnapshot();
         CreateIssueConsumer(analysisSnapshot);
@@ -190,9 +190,9 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
 
     private void RemoveIssueConsumer(string filePath) => issueConsumerStorage.Remove(filePath);
 
-    private void CreateIssueConsumer(AnalysisSnapshot analysisSnapshot)
+    private void CreateIssueConsumer(FileSnapshot fileSnapshot)
     {
-        var issueConsumer = issueConsumerFactory.Create(document, FilePath, analysisSnapshot.TextSnapshot, projectName, projectGuid, SnapToNewSnapshot);
+        var issueConsumer = issueConsumerFactory.Create(document, FilePath, fileSnapshot.TextSnapshot, projectName, projectGuid, SnapToNewSnapshot);
         issueConsumerStorage.Set(FilePath, issueConsumer);
     }
 

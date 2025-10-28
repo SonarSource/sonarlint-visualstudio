@@ -22,25 +22,10 @@ namespace SonarLint.VisualStudio.Core.Analysis
 {
     public interface IAnalysisRequester
     {
-        /// <summary>
-        /// Notification that analysis has been requested
-        /// </summary>
-        event EventHandler<AnalysisRequestEventArgs> AnalysisRequested;
+        event EventHandler<OpenFilesAnalysisRequestEventArgs> AnalysisRequested;
 
-        /// <summary>
-        /// Called to request that analysis is performed
-        /// </summary>
-        /// <param name="filePaths">List of specific files to analyze. Can be null, in which case all opened files will be analyzed.</param>
-        /// <remarks>There are no guarantees about whether the analysis is performed before the method
-        /// returns or not.</remarks>
-        void RequestAnalysis(params string[] filePaths);
+        void QueueAnalyzeOpenFiles();
     }
 
-    public class AnalysisRequestEventArgs(IEnumerable<string> filePaths) : EventArgs
-    {
-        /// <summary>
-        /// The list of files to analyze. Null/empty = analyze all files
-        /// </summary>
-        public IEnumerable<string> FilePaths { get; } = filePaths;
-    }
+    public class OpenFilesAnalysisRequestEventArgs() : EventArgs;
 }

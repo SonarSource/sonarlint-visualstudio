@@ -18,74 +18,94 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Threading;
+using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
-internal class LiveAnalysisState(ITaskExecutorWithDebounce executor, IIssueTracker file, IFileTracker fileTracker) : IDisposable
+internal interface ILiveAnalysisStateFactory
+{
+    ILiveAnalysisState Create(IFileState fileState);
+}
+
+[Export(typeof(ILiveAnalysisStateFactory))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+internal class LiveAnalysisStateFactory(
+    ITaskExecutorWithDebounceFactory taskExecutorWithDebounceFactory,
+    IFileTracker fileTracker,
+    ILinkedFileAnalyzer linkedFileAnalyzer) : ILiveAnalysisStateFactory
+{
+    public ILiveAnalysisState Create(IFileState fileState) =>
+        new LiveAnalysisState(taskExecutorWithDebounceFactory.Create(), fileState, fileTracker, linkedFileAnalyzer);
+}
+
+internal interface ILiveAnalysisState : IDisposable
+{
+    IFileState FileState { get; }
+    bool IsWaiting { get; }
+
+    void HandleLiveAnalysisEvent(bool triggerLinkedAnalysis);
+
+    void HandleBackgroundAnalysisEvent();
+}
+
+internal class LiveAnalysisState(
+    ITaskExecutorWithDebounce executor,
+    IFileState file,
+    IFileTracker fileTracker,
+    ILinkedFileAnalyzer linkedFileAnalyzer)
+    : ILiveAnalysisState
 {
     private bool disposed;
-    private readonly object locker = new();
 
-    public bool IsWaiting
+    public IFileState FileState => file;
+
+    public bool IsWaiting => !disposed && !executor.IsScheduled;
+
+    public void HandleLiveAnalysisEvent(bool triggerLinkedAnalysis)
     {
-        get
+        if (disposed)
         {
-            lock (locker)
-            {
-                return !disposed && !executor.IsScheduled;
-            }
+            return;
         }
-    }
 
-    public void HandleLiveAnalysisEvent(Func<Task> postAnalysisAction)
-    {
-        lock (locker)
-        {
-            if (disposed)
-            {
-                return;
-            }
-
-            executor.Debounce(() =>
+        executor.Debounce(
+            () =>
             {
                 AnalyzeFile();
-                postAnalysisAction?.Invoke().Forget(); // todo schedule for debounce??
-            });
-        }
+                if (triggerLinkedAnalysis)
+                {
+                    executor.Debounce(() => linkedFileAnalyzer.ScheduleLinkedAnalysis(file), TimeSpan.FromSeconds(1.5));
+                }
+            },
+            TimeSpan.FromMilliseconds(700));
     }
 
     private void AnalyzeFile()
     {
-        var analysisSnapshot = file.UpdateAnalysisState();
+        var analysisSnapshot = file.UpdateFileState();
         fileTracker.AddFiles(new SourceFile(analysisSnapshot.FilePath, content: analysisSnapshot.TextSnapshot.GetText()));
     }
 
     public void HandleBackgroundAnalysisEvent()
     {
-        lock (locker)
+        if (!IsWaiting)
         {
-            if (!IsWaiting)
-            {
-                return;
-            }
-
-            executor.Debounce(AnalyzeFile, TimeSpan.FromSeconds(2));
+            return;
         }
+
+        executor.Debounce(AnalyzeFile, TimeSpan.FromSeconds(2));
     }
 
     public void Dispose()
     {
-        lock (locker)
+        if (disposed)
         {
-            if (disposed)
-            {
-                return;
-            }
-
-            disposed = true;
-            executor.Dispose();
+            return;
         }
+
+        disposed = true;
+        executor.Dispose();
     }
 }

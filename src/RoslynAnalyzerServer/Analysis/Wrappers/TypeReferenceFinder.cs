@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Immutable;
+using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -26,12 +27,23 @@ using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-public static class TypeReferenceFinder
+internal interface ITypeReferenceFinder
 {
-    public static async Task<HashSet<Document>> GetCrossFileReferencesInScopeAsync(
-        Document sourceDocument,
-        IEnumerable<Document> documentsToSearch,
-        Solution solution,
+    Task<HashSet<IRoslynDocumentWrapper>> GetCrossFileReferencesInScopeAsync(
+        IRoslynDocumentWrapper sourceDocument,
+        IEnumerable<IRoslynDocumentWrapper> documentsToSearch,
+        IRoslynSolutionWrapper solution,
+        CancellationToken cancellationToken = default);
+}
+
+[Export(typeof(ITypeReferenceFinder))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal class TypeReferenceFinder : ITypeReferenceFinder
+{
+    public async Task<HashSet<IRoslynDocumentWrapper>> GetCrossFileReferencesInScopeAsync(
+        IRoslynDocumentWrapper sourceDocument,
+        IEnumerable<IRoslynDocumentWrapper> documentsToSearch,
+        IRoslynSolutionWrapper solution,
         CancellationToken cancellationToken = default)
     {
         var (model, root) = await GetModelAndRootAsync(sourceDocument, cancellationToken);
@@ -46,9 +58,9 @@ public static class TypeReferenceFinder
             return [];
         }
 
-        var referencedDocumentIds = new HashSet<Document>();
+        var referencedDocumentIds = new HashSet<IRoslynDocumentWrapper>(new ImplicitRoslynDocumentWrapperComparer());
 
-        foreach (var document in documentsToSearch.Where(doc => doc.Id != sourceDocument.Id))
+        foreach (var document in documentsToSearch.Where(doc => doc.RoslynDocument.Id != sourceDocument.RoslynDocument.Id))
         {
             if (await DocumentContainsReferenceAsync(document, solution, targetSymbols, cancellationToken))
             {
@@ -68,8 +80,8 @@ public static class TypeReferenceFinder
             .ToImmutableHashSet(SymbolEqualityComparer.Default);// todo check nullable structs
 
     private static async Task<bool> DocumentContainsReferenceAsync(
-        Document document,
-        Solution solution,
+        IRoslynDocumentWrapper document,
+        IRoslynSolutionWrapper solution,
         ISet<ISymbol> targetSymbols,
         CancellationToken token)
     {
@@ -98,19 +110,19 @@ public static class TypeReferenceFinder
     private static async Task<bool> CheckSymbolAsync(
         ISymbol? symbolToCheck,
         ISet<ISymbol?> targetSymbols,
-        Solution solution,
+        IRoslynSolutionWrapper solution,
         CancellationToken token)
     {
-        if (targetSymbols.Contains(symbolToCheck?.OriginalDefinition) || targetSymbols.Contains(await SymbolFinder.FindSourceDefinitionAsync(symbolToCheck, solution, token)))
+        if (targetSymbols.Contains(symbolToCheck?.OriginalDefinition) || targetSymbols.Contains(await SymbolFinder.FindSourceDefinitionAsync(symbolToCheck, solution.RoslynSolution, token)))
         {
             return true;
         }
         return false;
     }
 
-    private static async Task<(SemanticModel?, SyntaxNode?)> GetModelAndRootAsync(Document document, CancellationToken token)
+    private static async Task<(SemanticModel?, SyntaxNode?)> GetModelAndRootAsync(IRoslynDocumentWrapper document, CancellationToken token)
     {
-        var model = await document.GetSemanticModelAsync(token);
+        var model = await document.RoslynDocument.GetSemanticModelAsync(token);
         var root = await model?.SyntaxTree.GetRootAsync(token);
         return (model, root);
     }

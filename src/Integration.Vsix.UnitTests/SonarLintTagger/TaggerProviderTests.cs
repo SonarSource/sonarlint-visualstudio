@@ -133,7 +133,7 @@ public class TaggerProviderTests
             initializationProcessorFactory.Create<TaggerProvider>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.Count == 0), Arg.Any<Func<IThreadHandling, Task>>());
             testSubject.InitializationProcessor.InitializeAsync();
             threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
-            mockAnalysisRequester.AnalysisRequested += Arg.Any<EventHandler<AnalysisRequestEventArgs>>();
+            mockAnalysisRequester.AnalysisRequested += Arg.Any<EventHandler<OpenFilesAnalysisRequestEventArgs>>();
             testSubject.InitializationProcessor.InitializeAsync(); // called by testinitialize
         });
 
@@ -426,17 +426,17 @@ public class TaggerProviderTests
         var fileName1 = "file.js";
         var fileName2 = "file2.cs";
         string[] filePaths = [fileName1, fileName2];
-        mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new AnalysisRequestEventArgs(filePaths));
+        mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new OpenFilesAnalysisRequestEventArgs());
 
-        mockAnalysisQueue.Received().MultiFileReanalysis(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(filePaths)));
+        mockAnalysisQueue.Received().AnalyzeAllOpenFiles(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(filePaths)));
     }
 
     [TestMethod]
     public void AnalysisRequested_Null_CallsAnalysisQueueMultiFileAnalysis()
     {
-        mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new AnalysisRequestEventArgs(null));
+        mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new OpenFilesAnalysisRequestEventArgs());
 
-        mockAnalysisQueue.Received().MultiFileReanalysis();
+        mockAnalysisQueue.Received().AnalyzeAllOpenFiles();
     }
 
     #region Dispose tests
@@ -448,7 +448,7 @@ public class TaggerProviderTests
         testSubject.Dispose();
         testSubject.Dispose();
 
-        mockAnalysisRequester.Received(1).AnalysisRequested -= Arg.Any<EventHandler<AnalysisRequestEventArgs>>();
+        mockAnalysisRequester.Received(1).AnalysisRequested -= Arg.Any<EventHandler<OpenFilesAnalysisRequestEventArgs>>();
     }
 
     #endregion

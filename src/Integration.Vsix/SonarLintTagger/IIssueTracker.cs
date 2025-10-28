@@ -23,11 +23,11 @@ using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    internal interface IIssueTracker : IDisposable
+    internal interface IFileState : IDisposable
     {
         string FilePath { get; }
         IEnumerable<AnalysisLanguage> DetectedLanguages { get; }
 
-        AnalysisSnapshot UpdateAnalysisState();
+        FileSnapshot UpdateFileState();
     }
 }
