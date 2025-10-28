@@ -165,9 +165,10 @@ public class InitializeParamsTests
                                             "bundlePath": "bundlePath"
                                           }
                                         },
-                                        "automaticAnalysisEnabled": true
+                                        "automaticAnalysisEnabled": true,
+                                        "logLevel": "DEBUG"
                                       }
-                                      """;
+                                      """; // todo: SLVS-2625 Provide logging level to SLCore to avoid client-side filtering
 
         var serializedString = JsonConvert.SerializeObject(testSubject, Formatting.Indented);
 
