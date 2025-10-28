@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
@@ -47,5 +48,9 @@ namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle
         TelemetryClientConstantAttributesDto telemetryConstantAttributes,
         TelemetryMigrationDto? telemetryMigration,
         LanguageSpecificRequirements? languageSpecificRequirements,
-        bool automaticAnalysisEnabled);
+        bool automaticAnalysisEnabled)
+    {
+        [ExcludeFromCodeCoverage]
+        public string logLevel => "DEBUG"; // todo: SLVS-2625 Provide logging level to SLCore to avoid client-side filtering
+    }
 }
