@@ -58,6 +58,7 @@ jobs:
             development/aws/sts/downloads access_key | AWS_ACCESS_KEY_ID;
             development/aws/sts/downloads secret_key | AWS_SECRET_ACCESS_KEY;
             development/aws/sts/downloads security_token | AWS_SESSION_TOKEN;
+            development/github/token/{REPO_OWNER_NAME_DASH}-promotion token | GITHUB_PROMOTION_TOKEN;
             development/kv/data/slack token | SLACK_BOT_TOKEN;
 
       - uses: SonarSource/ci-github-actions/get-build-number@v1
@@ -181,7 +182,6 @@ jobs:
           ARTIFACTORY_URL: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_URL }}
           ARTIFACTORY_DEPLOY_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_DEPLOY_TOKEN }}
           REPO_NAME: ${{ github.event.repository.name }}
-          
         run: |
           jf config add repox --artifactory-url ${ARTIFACTORY_URL} --access-token "${ARTIFACTORY_DEPLOY_TOKEN}"
           jf rt upload "binaries/*" sonarsource-public-qa/org/sonarsource/sonarlint/visualstudio/${REPO_NAME}/${PROJECT_VERSION}/ --flat --build-name ${REPO_NAME} --build-number ${BUILD_NUMBER} --module="org.sonarsource.sonarlint.visualstudio:${REPO_NAME}:${PROJECT_VERSION}"
@@ -193,9 +193,25 @@ jobs:
         env:
           ARTIFACTORY_URL: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_URL }}
           ARTIFACTORY_PROMOTE_ACCESS_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PROMOTE_ACCESS_TOKEN }}
-          GITHUB_PROMOTION_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GITHUB_PROMOTION_TOKEN }}
+          GH_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GITHUB_PROMOTION_TOKEN }}
           REPO_NAME: ${{ github.event.repository.name }}
-        run: jf rt bpr --status "it-passed" "${REPO_NAME}" "${BUILD_NUMBER}" "sonarsource-public-builds"
+        run: |
+          jf config remove repox
+          jf config add repox --artifactory-url ${ARTIFACTORY_URL} --access-token "${ARTIFACTORY_PROMOTE_ACCESS_TOKEN}"
+          jf rt bpr --status "it-passed" "${REPO_NAME}" "${BUILD_NUMBER}" "sonarsource-public-builds"
+          # Post promotion status to GitHub
+          longDescription="Latest promoted build of '${PROJECT_VERSION}' from branch '${GITHUB_REF}'"
+          shortDescription=${longDescription:0:140}
+          buildUrl="${ARTIFACTORY_URL%/*}/ui/builds/${REPO_NAME}/${BUILD_NUMBER}/"
+          githubApiUrl="https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}"
+          gh api -X POST -H "X-GitHub-Api-Version: 2022-11-28" "$githubApiUrl" -H "Content-Type: application/json" --input - <<EOF
+          {
+            "state": "success",
+            "target_url": "$buildUrl",
+            "description": "$shortDescription",
+            "context": "repox-${GITHUB_REF_NAME}"
+          }
+          EOF
 
       - name: Publish to Dogfood
         if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'dogfood-on-') }}
