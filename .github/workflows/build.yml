@@ -195,9 +195,7 @@ jobs:
           ARTIFACTORY_PROMOTE_ACCESS_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PROMOTE_ACCESS_TOKEN }}
           GITHUB_PROMOTION_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GITHUB_PROMOTION_TOKEN }}
           REPO_NAME: ${{ github.event.repository.name }}
-        run: |
-          jf config add repox --artifactory-url ${ARTIFACTORY_URL} --access-token "${ARTIFACTORY_PROMOTE_ACCESS_TOKEN}"
-          jf rt bpr --status "it-passed" "${REPO_NAME}" "${BUILD_NUMBER}" "sonarsource-public-builds"
+        run: jf rt bpr --status "it-passed" "${REPO_NAME}" "${BUILD_NUMBER}" "sonarsource-public-builds"
 
       - name: Publish to Dogfood
         if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'dogfood-on-') }}
