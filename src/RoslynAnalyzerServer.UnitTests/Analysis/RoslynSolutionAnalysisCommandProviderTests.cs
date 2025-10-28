@@ -193,9 +193,11 @@ public class RoslynSolutionAnalysisCommandProviderTests
     }
 
     private static void SetupContainsDocument(IRoslynProjectWrapper project, string file, string analyzedFile) =>
-        project.ContainsDocument(file, out Arg.Any<string?>()).Returns(x =>
+        project.ContainsDocument(file, out Arg.Any<IRoslynDocumentWrapper?>()).Returns(x =>
         {
-            x[1] = analyzedFile;
+            var roslynDocumentWrapper = Substitute.For<IRoslynDocumentWrapper>();
+            roslynDocumentWrapper.FilePath.Returns(analyzedFile);
+            x[1] = roslynDocumentWrapper;
             return true;
         });
 }

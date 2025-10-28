@@ -26,12 +26,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 internal interface ITaskExecutorWithDebounceFactory
 {
-    ITaskExecutorWithDebounce Create(TimeSpan debounceTimeSpan);
+    ITaskExecutorWithDebounce Create();
 }
 
 internal interface ITaskExecutorWithDebounce : IDisposable
 {
-    void Debounce(Action action, TimeSpan? debounceTimeSpan = null);
+    void Debounce(Action action, TimeSpan debounceDuration);
 
     bool IsScheduled { get; }
 
@@ -43,7 +43,7 @@ internal interface ITaskExecutorWithDebounce : IDisposable
 [method: ImportingConstructor]
 internal class TaskExecutorWithDebounceFactory(IThreadHandling threadHandling) : ITaskExecutorWithDebounceFactory
 {
-    public ITaskExecutorWithDebounce Create(TimeSpan debounceTimeSpan) => new TaskExecutorWithDebounce(new ResettableOneShotTimer(debounceTimeSpan), threadHandling);
+    public ITaskExecutorWithDebounce Create() => new TaskExecutorWithDebounce(new ResettableOneShotTimer(), threadHandling);
 }
 
 internal sealed class TaskExecutorWithDebounce : ITaskExecutorWithDebounce
@@ -60,12 +60,12 @@ internal sealed class TaskExecutorWithDebounce : ITaskExecutorWithDebounce
         timer.Elapsed += HandleTimerEvent;
     }
 
-    public void Debounce(Action action, TimeSpan? debounceTimeSpan = null)
+    public void Debounce(Action action, TimeSpan debounceDuration)
     {
         lock (locker)
         {
             taskToExecute = action;
-            timer.Reset(debounceTimeSpan);
+            timer.Reset(debounceDuration);
         }
     }
 
@@ -84,15 +84,16 @@ internal sealed class TaskExecutorWithDebounce : ITaskExecutorWithDebounce
     {
         lock (locker)
         {
-            taskToExecute = null;
             timer.Cancel();
+            taskToExecute = null;
         }
     }
 
-    public void Dispose() // fix dispose
+    public void Dispose() // todo fix dispose
     {
         timer.Elapsed -= HandleTimerEvent;
         timer.Dispose();
+        taskToExecute = null;
     }
 
     private void HandleTimerEvent(object state, EventArgs eventArgs)

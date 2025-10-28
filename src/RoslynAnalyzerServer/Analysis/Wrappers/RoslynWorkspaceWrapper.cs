@@ -78,7 +78,7 @@ internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
             if (workspaceChangeIndicator.SolutionChangedCritically(solutionChanges)
                 || solutionChanges.GetProjectChanges().Any(changedProject => workspaceChangeIndicator.ProjectChangedCritically(changedProject)))
             {
-                analysisRequester.RequestAnalysis();
+                analysisRequester.QueueAnalyzeOpenFiles();
             }
         }).Forget();
     }
