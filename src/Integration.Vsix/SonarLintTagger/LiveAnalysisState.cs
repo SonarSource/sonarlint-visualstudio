@@ -71,12 +71,12 @@ internal class LiveAnalysisState(
         }
 
         executor.Debounce(
-            () =>
+            _ =>
             {
                 AnalyzeFile();
                 if (triggerLinkedAnalysis)
                 {
-                    executor.Debounce(() => linkedFileAnalyzer.ScheduleLinkedAnalysis(file), TimeSpan.FromSeconds(1.5));
+                    executor.Debounce(token => linkedFileAnalyzer.ScheduleLinkedAnalysis(file, token), TimeSpan.FromSeconds(1.5));
                 }
             },
             TimeSpan.FromMilliseconds(700));
@@ -95,7 +95,7 @@ internal class LiveAnalysisState(
             return;
         }
 
-        executor.Debounce(AnalyzeFile, TimeSpan.FromSeconds(2));
+        executor.Debounce(_ => AnalyzeFile(), TimeSpan.FromSeconds(2));
     }
 
     public void Dispose()
