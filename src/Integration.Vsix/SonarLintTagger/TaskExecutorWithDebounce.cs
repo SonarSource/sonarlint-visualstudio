@@ -31,11 +31,9 @@ internal interface ITaskExecutorWithDebounceFactory
 
 internal interface ITaskExecutorWithDebounce : IDisposable
 {
-    void Debounce(Action action, TimeSpan debounceDuration);
+    void Debounce(Action<CancellationToken> action, TimeSpan debounceDuration);
 
     bool IsScheduled { get; }
-
-    void Cancel();
 }
 
 [Export(typeof(ITaskExecutorWithDebounceFactory))]
@@ -48,10 +46,12 @@ internal class TaskExecutorWithDebounceFactory(IThreadHandling threadHandling) :
 
 internal sealed class TaskExecutorWithDebounce : ITaskExecutorWithDebounce
 {
+    private bool disposed;
     private readonly object locker = new();
     private readonly IThreadHandling threadHandling;
     private readonly IResettableOneShotTimer timer;
-    private Action taskToExecute;
+    private Action<CancellationToken> taskToExecute;
+    private CancellationTokenSource lastCancellationTokenSource;
 
     internal TaskExecutorWithDebounce(IResettableOneShotTimer timerWrapper, IThreadHandling threadHandling)
     {
@@ -60,7 +60,7 @@ internal sealed class TaskExecutorWithDebounce : ITaskExecutorWithDebounce
         timer.Elapsed += HandleTimerEvent;
     }
 
-    public void Debounce(Action action, TimeSpan debounceDuration)
+    public void Debounce(Action<CancellationToken> action, TimeSpan debounceDuration)
     {
         lock (locker)
         {
@@ -75,41 +75,55 @@ internal sealed class TaskExecutorWithDebounce : ITaskExecutorWithDebounce
         {
             lock (locker)
             {
-                return taskToExecute != null;
+                return taskToExecute != null; // intentionally not checking the lastCancellationTokenSource, as it needs to be discarded
             }
         }
     }
 
-    public void Cancel()
+    public void Dispose()
     {
         lock (locker)
         {
-            timer.Cancel();
-            taskToExecute = null;
-        }
-    }
+            if (disposed)
+            {
+                return;
+            }
 
-    public void Dispose() // todo fix dispose
-    {
-        timer.Elapsed -= HandleTimerEvent;
-        timer.Dispose();
-        taskToExecute = null;
+            disposed = true;
+            CleanUpLastExecution();
+            timer.Elapsed -= HandleTimerEvent;
+            timer.Dispose();
+        }
     }
 
     private void HandleTimerEvent(object state, EventArgs eventArgs)
     {
-        Action task;
+        Action<CancellationToken> task;
+        CancellationTokenSource taskCancellationTokenSource;
         lock (locker)
         {
+            if (taskToExecute == null)
+            {
+                return;
+            }
+
             task = taskToExecute;
-            taskToExecute = null;
+            CleanUpLastExecution();
+            taskCancellationTokenSource = new CancellationTokenSource();
+            lastCancellationTokenSource = taskCancellationTokenSource;
         }
 
-        if (task != null)
-        {
-            Execute(task);
-        }
+        Execute(task, taskCancellationTokenSource);
     }
 
-    private void Execute(Action action) => threadHandling.RunOnBackgroundThread(action).Forget();
+    private void CleanUpLastExecution()
+    {
+        lastCancellationTokenSource?.Cancel();
+        lastCancellationTokenSource?.Dispose();
+        lastCancellationTokenSource = null;
+        taskToExecute = null;
+    }
+
+    private void Execute(Action<CancellationToken> action, CancellationTokenSource taskCancellationTokenSource) =>
+        threadHandling.RunOnBackgroundThread(() => action(taskCancellationTokenSource.Token)).Forget();
 }

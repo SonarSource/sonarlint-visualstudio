@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 internal interface ILinkedFileAnalyzer
 {
-    void ScheduleLinkedAnalysis(IFileState file);
+    void ScheduleLinkedAnalysis(IFileState file, CancellationToken token);
 }
 
 [Export(typeof(ILinkedFileAnalyzer))]
@@ -40,9 +40,9 @@ internal class LinkedFileAnalyzer(
     Lazy<IAnalysisStateProvider> analysisStateProvider)
     : ILinkedFileAnalyzer
 {
-    public void ScheduleLinkedAnalysis(IFileState file) => RunLinkedAnalysisAsync(file).Forget();
+    public void ScheduleLinkedAnalysis(IFileState file, CancellationToken token) => RunLinkedAnalysisAsync(file, token).Forget();
 
-    private async Task RunLinkedAnalysisAsync(IFileState file)
+    private async Task RunLinkedAnalysisAsync(IFileState file, CancellationToken token)
     {
         var stopwatch = Stopwatch.StartNew();
 
@@ -61,7 +61,8 @@ internal class LinkedFileAnalyzer(
         var linkedDocuments = await typeReferenceFinder.GetCrossFileReferencesInScopeAsync(
             sourceDocument,
             otherDocuments.Keys,
-            solution);
+            solution,
+            token);
 
         foreach (var fileModel in linkedDocuments)
         {

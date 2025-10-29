@@ -33,7 +33,7 @@ internal interface ITypeReferenceFinder
         IRoslynDocumentWrapper sourceDocument,
         IEnumerable<IRoslynDocumentWrapper> documentsToSearch,
         IRoslynSolutionWrapper solution,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 }
 
 [Export(typeof(ITypeReferenceFinder))]
@@ -44,7 +44,7 @@ internal class TypeReferenceFinder : ITypeReferenceFinder
         IRoslynDocumentWrapper sourceDocument,
         IEnumerable<IRoslynDocumentWrapper> documentsToSearch,
         IRoslynSolutionWrapper solution,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var (model, root) = await GetModelAndRootAsync(sourceDocument, cancellationToken);
         if (model is null || root is null)
@@ -77,7 +77,7 @@ internal class TypeReferenceFinder : ITypeReferenceFinder
             .Select(declaration => model.GetDeclaredSymbol(declaration, token))
             .Where(symbol => symbol is not null)
             .Select(symbol => symbol!)
-            .ToImmutableHashSet(SymbolEqualityComparer.Default);// todo check nullable structs
+            .ToImmutableHashSet(SymbolEqualityComparer.Default); // todo check nullable structs
 
     private static async Task<bool> DocumentContainsReferenceAsync(
         IRoslynDocumentWrapper document,
@@ -91,14 +91,15 @@ internal class TypeReferenceFinder : ITypeReferenceFinder
             return false;
         }
 
-        foreach (var identifier in root.DescendantNodes().Where(x => x is Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax or Microsoft.CodeAnalysis.VisualBasic.Syntax.IdentifierNameSyntax))
+        foreach (var identifier in GetIdentifiers(root))
         {
             if (model.GetSymbolInfo(identifier, token).Symbol is not { } foundSymbol)
             {
                 continue;
             }
 
-            if (await CheckSymbolAsync(foundSymbol, targetSymbols!, solution, token) || await CheckSymbolAsync(foundSymbol.ContainingType, targetSymbols!, solution, token))
+            if (await IsReferringToTargetSymbolAsync(foundSymbol, targetSymbols!, solution, token)
+                || await IsReferringToTargetSymbolAsync(foundSymbol.ContainingType, targetSymbols!, solution, token))
             {
                 return true;
             }
@@ -107,18 +108,20 @@ internal class TypeReferenceFinder : ITypeReferenceFinder
         return false;
     }
 
-    private static async Task<bool> CheckSymbolAsync(
+    private static IEnumerable<SyntaxNode> GetIdentifiers(SyntaxNode root) =>
+        root
+            .DescendantNodes()
+            .Where(x =>
+                x is Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax
+                    or Microsoft.CodeAnalysis.VisualBasic.Syntax.IdentifierNameSyntax);
+
+    private static async Task<bool> IsReferringToTargetSymbolAsync(
         ISymbol? symbolToCheck,
         ISet<ISymbol?> targetSymbols,
         IRoslynSolutionWrapper solution,
-        CancellationToken token)
-    {
-        if (targetSymbols.Contains(symbolToCheck?.OriginalDefinition) || targetSymbols.Contains(await SymbolFinder.FindSourceDefinitionAsync(symbolToCheck, solution.RoslynSolution, token)))
-        {
-            return true;
-        }
-        return false;
-    }
+        CancellationToken token) =>
+        targetSymbols.Contains(symbolToCheck?.OriginalDefinition)
+        || targetSymbols.Contains(await SymbolFinder.FindSourceDefinitionAsync(symbolToCheck, solution.RoslynSolution, token));
 
     private static async Task<(SemanticModel?, SyntaxNode?)> GetModelAndRootAsync(IRoslynDocumentWrapper document, CancellationToken token)
     {
