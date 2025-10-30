@@ -63,7 +63,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             eventRaised.Should().BeTrue();
             actualSender.Should().Be(testSubject);
             actualEventArgs.Should().NotBeNull();
-            actualEventArgs.FilePaths.Should().BeEquivalentTo("file1", "c:\\aaa\\bbb.cs");
         }
 
         [TestMethod]

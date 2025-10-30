@@ -28,6 +28,7 @@ public class TaskExecutorWithDebounceTest
     private TaskExecutorWithDebounce testSubject;
     private NoOpThreadHandler threadHandling;
     private IResettableOneShotTimer timer;
+    private TimeSpan debounceInterval = TimeSpan.FromSeconds(123);
 
     [TestInitialize]
     public void TestInitialize()
@@ -40,12 +41,12 @@ public class TaskExecutorWithDebounceTest
     [TestMethod]
     public void Debounce_TimerNotRaised_DoesNotExecuteAction()
     {
-        var action = Substitute.For<Action>();
+        var action = Substitute.For<Action<CancellationToken>>();
 
-        testSubject.Debounce(action);
+        testSubject.Debounce(action, debounceInterval);
 
-        action.DidNotReceive().Invoke();
-        timer.Received().Reset();
+        action.DidNotReceiveWithAnyArgs().Invoke(default);
+        timer.Received().Reset(debounceInterval);
     }
 
     [TestMethod]
@@ -59,47 +60,47 @@ public class TaskExecutorWithDebounceTest
     [TestMethod]
     public void Debounce_ExecutesTaskWithDebounce()
     {
-        var action = Substitute.For<Action>();
-        testSubject.Debounce(action);
+        var action = Substitute.For<Action<CancellationToken>>();
+        testSubject.Debounce(action, debounceInterval);
 
         timer.Elapsed += Raise.Event();
 
         Received.InOrder(() =>
         {
-            timer.Reset();
+            timer.Reset(debounceInterval);
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
-            action.Invoke();
+            action.Invoke(Arg.Any<CancellationToken>());
         });
     }
 
     [TestMethod]
     public void Debounce_MultipleTimes_UpdatesWithLatestState()
     {
-        var action1 = Substitute.For<Action>();
-        var action2 = Substitute.For<Action>();
-        var action3 = Substitute.For<Action>();
-        testSubject.Debounce(action1);
-        testSubject.Debounce(action2);
-        testSubject.Debounce(action3);
+        var action1 = Substitute.For<Action<CancellationToken>>();
+        var action2 = Substitute.For<Action<CancellationToken>>();
+        var action3 = Substitute.For<Action<CancellationToken>>();
+        testSubject.Debounce(action1, debounceInterval);
+        testSubject.Debounce(action2, debounceInterval);
+        testSubject.Debounce(action3, debounceInterval);
 
         timer.Elapsed += Raise.Event();
 
-        action1.DidNotReceive().Invoke();
-        action2.DidNotReceive().Invoke();
-        action3.Received().Invoke();
+        action1.DidNotReceiveWithAnyArgs().Invoke(default);
+        action2.DidNotReceiveWithAnyArgs().Invoke(default);
+        action3.Received().Invoke(Arg.Any<CancellationToken>());
     }
 
     [TestMethod]
     public void Debounce_MultipleTriggers_ActionOnlyExecutedOnce()
     {
-        var action = Substitute.For<Action>();
-        testSubject.Debounce(action);
+        var action = Substitute.For<Action<CancellationToken>>();
+        testSubject.Debounce(action, debounceInterval);
 
         timer.Elapsed += Raise.Event();
         timer.Elapsed += Raise.Event();
         timer.Elapsed += Raise.Event();
 
-        action.Received(1).Invoke();
+        action.Received(1).Invoke(Arg.Any<CancellationToken>());
     }
 
     [TestMethod]

@@ -135,7 +135,7 @@ public class TextBufferIssueTrackerTests
     }
 
     [TestMethod]
-    public void WhenFileIsSaved_AnalysisSnapshotIsUpdated()
+    public void WhenFileIsSaved_FileSnapshotIsUpdated()
     {
         var csharpContentType = Substitute.For<IContentType>();
         mockedJavascriptDocumentFooJs.TextBuffer.ContentType.Returns(csharpContentType);
@@ -201,7 +201,7 @@ public class TextBufferIssueTrackerTests
         RaiseFileRenamedEvent(mockedJavascriptDocumentFooJs, newFilePath); // force metadata update
         ClearMocks();
 
-        var updateAnalysisState = testSubject.UpdateAnalysisState();
+        var updateAnalysisState = testSubject.UpdateFileState();
 
         updateAnalysisState.FilePath.Should().Be(newFilePath);
         updateAnalysisState.TextSnapshot.Should().Be(newTextSnapshot);
@@ -216,7 +216,7 @@ public class TextBufferIssueTrackerTests
         MockIssueConsumerFactory(mockedJavascriptDocumentFooJs, InitialFilePath, initialTextSnapshot, initialProjectInfo, issueConsumer);
         ClearMocks();
 
-        var updateAnalysisState = testSubject.UpdateAnalysisState();
+        var updateAnalysisState = testSubject.UpdateFileState();
 
         updateAnalysisState.FilePath.Should().Be(InitialFilePath);
         updateAnalysisState.TextSnapshot.Should().BeSameAs(initialTextSnapshot);
@@ -230,7 +230,7 @@ public class TextBufferIssueTrackerTests
     {
         SetUpIssueConsumerStorageThrows(new InvalidOperationException());
 
-        var act = () => testSubject.UpdateAnalysisState();
+        var act = () => testSubject.UpdateFileState();
 
         act.Should().NotThrow();
         logger.AssertPartialOutputStringExists(string.Format(Strings.Analysis_ErrorUpdatingAnalysisState, string.Empty));
@@ -241,7 +241,7 @@ public class TextBufferIssueTrackerTests
     {
         SetUpIssueConsumerStorageThrows(new DivideByZeroException("this is a test"));
 
-        var act = () => testSubject.UpdateAnalysisState();
+        var act = () => testSubject.UpdateFileState();
 
         act.Should().Throw<DivideByZeroException>()
             .WithMessage("this is a test");
@@ -369,10 +369,10 @@ public class TextBufferIssueTrackerTests
         ITextDocument document,
         (string projectName, Guid projectGuid) projectInfo,
         IIssueConsumer issueConsumerToVerify,
-        AnalysisSnapshot analysisSnapshot)
+        FileSnapshot FileSnapshot)
     {
-        issueConsumerFactory.Received().Create(document, analysisSnapshot.FilePath, analysisSnapshot.TextSnapshot, projectInfo.projectName, projectInfo.projectGuid, Arg.Any<SnapshotChangedHandler>());
-        issueConsumerStorage.Received().Set(analysisSnapshot.FilePath, issueConsumerToVerify);
+        issueConsumerFactory.Received().Create(document, FileSnapshot.FilePath, FileSnapshot.TextSnapshot, projectInfo.projectName, projectInfo.projectGuid, Arg.Any<SnapshotChangedHandler>());
+        issueConsumerStorage.Received().Set(FileSnapshot.FilePath, issueConsumerToVerify);
     }
 
     private void VerifyIssueConsumerNotCreated()
