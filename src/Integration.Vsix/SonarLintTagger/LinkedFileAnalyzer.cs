@@ -40,6 +40,8 @@ internal class LinkedFileAnalyzer(
     Lazy<IAnalysisStateProvider> analysisStateProvider)
     : ILinkedFileAnalyzer
 {
+    private readonly ILogger logger = logger.ForVerboseContext(nameof(LinkedFileAnalyzer));
+
     public void ScheduleLinkedAnalysis(IFileState file, CancellationToken token) => RunLinkedAnalysisAsync(file, token).Forget();
 
     private async Task RunLinkedAnalysisAsync(IFileState file, CancellationToken token)
@@ -69,7 +71,7 @@ internal class LinkedFileAnalyzer(
             otherDocuments[fileModel].HandleLiveAnalysisEvent(false);
         }
 
-        logger.WriteLine("Linked file calculation took {0} ms, found {1} for {2}", stopwatch.Elapsed.TotalMilliseconds, linkedDocuments.Count, file.FilePath);
+        logger.LogVerbose("Linked file calculation took {0} ms, found {1} for {2}", stopwatch.Elapsed.TotalMilliseconds, linkedDocuments.Count, file.FilePath);
     }
 
     private static Dictionary<IRoslynDocumentWrapper, ILiveAnalysisState> GetRoslynDocuments(

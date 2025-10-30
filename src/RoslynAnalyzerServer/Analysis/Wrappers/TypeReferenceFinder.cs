@@ -20,6 +20,7 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -38,6 +39,7 @@ internal interface ITypeReferenceFinder
 
 [Export(typeof(ITypeReferenceFinder))]
 [PartCreationPolicy(CreationPolicy.Shared)]
+[ExcludeFromCodeCoverage]
 internal class TypeReferenceFinder : ITypeReferenceFinder
 {
     public async Task<HashSet<IRoslynDocumentWrapper>> GetCrossFileReferencesInScopeAsync(
