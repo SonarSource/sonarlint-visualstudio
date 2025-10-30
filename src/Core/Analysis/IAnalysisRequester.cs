@@ -18,14 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Analysis
+namespace SonarLint.VisualStudio.Core.Analysis;
+
+public interface IAnalysisRequester
 {
-    public interface IAnalysisRequester
-    {
-        event EventHandler<OpenFilesAnalysisRequestEventArgs> AnalysisRequested;
+    event EventHandler<EventArgs> AnalysisRequested;
 
-        void QueueAnalyzeOpenFiles();
-    }
-
-    public class OpenFilesAnalysisRequestEventArgs() : EventArgs;
+    void QueueAnalyzeOpenFiles();
 }

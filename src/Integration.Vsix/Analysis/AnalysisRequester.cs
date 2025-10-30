@@ -29,14 +29,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     [method: ImportingConstructor]
     public class AnalysisRequester(ILogger logger) : IAnalysisRequester
     {
-        public event EventHandler<OpenFilesAnalysisRequestEventArgs> AnalysisRequested;
+        public event EventHandler<EventArgs> AnalysisRequested;
 
         public void QueueAnalyzeOpenFiles()
         {
             try
             {
-                var args = new OpenFilesAnalysisRequestEventArgs();
-                AnalysisRequested?.Invoke(this, args);
+                AnalysisRequested?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {

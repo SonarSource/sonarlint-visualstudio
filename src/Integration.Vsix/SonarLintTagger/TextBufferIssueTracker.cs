@@ -135,7 +135,9 @@ internal sealed class TextBufferIssueTracker : IFileState, ITagger<IErrorTag>
                 case FileActionTypes.DocumentRenamed:
                     {
                         var oldFilePath = FilePath;
-                        issueConsumerStorage.Remove(oldFilePath); // workaround for issue consumer storage being filepath-based
+                        // workaround for issue consumer storage being filepath-based, instead of buffer based.
+                        // buffer always has the latest file path, so here we have to clear the old file path, even though it's still the same buffer
+                        issueConsumerStorage.Remove(oldFilePath);
                         UpdateMetadata(e.FilePath);
                         documentTrackerUpdater.OnOpenDocumentRenamed(this, oldFilePath);
                         break;

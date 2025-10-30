@@ -134,7 +134,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
 
     public IInitializationProcessor InitializationProcessor { get; }
 
-    private void OnAnalysisRequested(object sender, OpenFilesAnalysisRequestEventArgs args) =>
+    private void OnAnalysisRequested(object sender, EventArgs args) =>
         threadHandling.RunOnBackgroundThread(() => fileStateManager.AnalyzeAllOpenFiles())
             .Forget();
 
