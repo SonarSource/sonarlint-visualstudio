@@ -55,6 +55,7 @@ public class TaskExecutorWithDebounceTest
         var act = () => timer.Elapsed += Raise.Event();
 
         act.Should().NotThrow();
+        testSubject.IsScheduled.Should().BeFalse();
     }
 
     [TestMethod]
@@ -63,7 +64,9 @@ public class TaskExecutorWithDebounceTest
         var action = Substitute.For<Action<CancellationToken>>();
         testSubject.Debounce(action, debounceInterval);
 
+        testSubject.IsScheduled.Should().BeTrue();
         timer.Elapsed += Raise.Event();
+        testSubject.IsScheduled.Should().BeFalse();
 
         Received.InOrder(() =>
         {
