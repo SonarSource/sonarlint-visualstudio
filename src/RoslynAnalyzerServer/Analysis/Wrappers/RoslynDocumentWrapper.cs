@@ -28,4 +28,19 @@ internal class RoslynDocumentWrapper(Document roslynDocument) : IRoslynDocumentW
 {
     public string? FilePath => RoslynDocument.FilePath;
     public Document RoslynDocument { get; } = roslynDocument;
+
+    public override bool Equals(object? other)
+    {
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+        if (other is not RoslynDocumentWrapper otherWrapper)
+        {
+            return false;
+        }
+        return RoslynDocument.Equals(otherWrapper.RoslynDocument);
+    }
+
+    public override int GetHashCode() => RoslynDocument.GetHashCode();
 }

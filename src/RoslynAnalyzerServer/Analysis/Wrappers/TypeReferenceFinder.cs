@@ -60,7 +60,7 @@ internal class TypeReferenceFinder : ITypeReferenceFinder
             return [];
         }
 
-        var referencedDocumentIds = new HashSet<IRoslynDocumentWrapper>(new ImplicitRoslynDocumentWrapperComparer());
+        var referencedDocumentIds = new HashSet<IRoslynDocumentWrapper>();
 
         foreach (var document in documentsToSearch.Where(doc => doc.RoslynDocument.Id != sourceDocument.RoslynDocument.Id))
         {
