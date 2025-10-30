@@ -29,13 +29,13 @@ internal class RoslynDocumentWrapper(Document roslynDocument) : IRoslynDocumentW
     public string? FilePath => RoslynDocument.FilePath;
     public Document RoslynDocument { get; } = roslynDocument;
 
-    public override bool Equals(object? other)
+    public override bool Equals(object? obj)
     {
-        if (ReferenceEquals(this, other))
+        if (ReferenceEquals(this, obj))
         {
             return true;
         }
-        if (other is not RoslynDocumentWrapper otherWrapper)
+        if (obj is not RoslynDocumentWrapper otherWrapper)
         {
             return false;
         }
