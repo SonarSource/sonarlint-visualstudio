@@ -35,9 +35,9 @@ internal interface ILinkedFileAnalyzer
 [method:ImportingConstructor]
 internal class LinkedFileAnalyzer(
     ITypeReferenceFinder typeReferenceFinder,
+    Lazy<IAnalysisStateProvider> analysisStateProvider,
     IRoslynWorkspaceWrapper workspaceWrapper,
-    ILogger logger,
-    Lazy<IAnalysisStateProvider> analysisStateProvider)
+    ILogger logger)
     : ILinkedFileAnalyzer
 {
     private readonly ILogger logger = logger.ForVerboseContext(nameof(LinkedFileAnalyzer));
@@ -60,6 +60,11 @@ internal class LinkedFileAnalyzer(
             file,
             solution);
 
+        if (otherDocuments.Count == 0)
+        {
+            return;
+        }
+
         var linkedDocuments = await typeReferenceFinder.GetCrossFileReferencesInScopeAsync(
             sourceDocument,
             otherDocuments.Keys,
@@ -79,7 +84,7 @@ internal class LinkedFileAnalyzer(
         IFileState excludeFile,
         IRoslynSolutionWrapper solution)
     {
-        Dictionary<IRoslynDocumentWrapper, ILiveAnalysisState> fileModels = new(new ImplicitRoslynDocumentWrapperComparer());
+        Dictionary<IRoslynDocumentWrapper, ILiveAnalysisState> fileModels = new();
         foreach (var state in states)
         {
             var tracker = state.FileState;

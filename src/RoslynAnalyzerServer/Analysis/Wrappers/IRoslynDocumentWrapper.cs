@@ -27,21 +27,3 @@ internal interface IRoslynDocumentWrapper
     string? FilePath { get; }
     Document RoslynDocument { get; }
 }
-
-internal class ImplicitRoslynDocumentWrapperComparer : IEqualityComparer<IRoslynDocumentWrapper>
-{
-    public bool Equals(IRoslynDocumentWrapper? x, IRoslynDocumentWrapper? y)
-    {
-        if (ReferenceEquals(x, y))
-        {
-            return true;
-        }
-        if (x is null || y is null)
-        {
-            return false;
-        }
-        return x.RoslynDocument.Equals(y.RoslynDocument);
-    }
-
-    public int GetHashCode(IRoslynDocumentWrapper obj) => obj.RoslynDocument.GetHashCode();
-}
