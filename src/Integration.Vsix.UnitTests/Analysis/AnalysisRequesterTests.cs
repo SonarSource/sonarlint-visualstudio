@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             bool eventRaised = false;
             object actualSender = null;
-            OpenFilesAnalysisRequestEventArgs actualEventArgs = null;
+            EventArgs actualEventArgs = null;
 
             testSubject.AnalysisRequested += (s, args) =>
             {

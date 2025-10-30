@@ -133,7 +133,7 @@ public class TaggerProviderTests
             initializationProcessorFactory.Create<TaggerProvider>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.Count == 0), Arg.Any<Func<IThreadHandling, Task>>());
             testSubject.InitializationProcessor.InitializeAsync();
             threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
-            mockAnalysisRequester.AnalysisRequested += Arg.Any<EventHandler<OpenFilesAnalysisRequestEventArgs>>();
+            mockAnalysisRequester.AnalysisRequested += Arg.Any<EventHandler<EventArgs>>();
             testSubject.InitializationProcessor.InitializeAsync(); // called by testinitialize
         });
 
@@ -423,7 +423,7 @@ public class TaggerProviderTests
     [TestMethod]
     public void AnalysisRequested_CallsAnalysisQueueMultiFileAnalysis()
     {
-        mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new OpenFilesAnalysisRequestEventArgs());
+        mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, EventArgs.Empty);
 
         fileStateManager.Received().AnalyzeAllOpenFiles();
     }
@@ -431,7 +431,7 @@ public class TaggerProviderTests
     [TestMethod]
     public void AnalysisRequested_Null_CallsAnalysisQueueMultiFileAnalysis()
     {
-        mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, new OpenFilesAnalysisRequestEventArgs());
+        mockAnalysisRequester.AnalysisRequested += Raise.EventWith(this, EventArgs.Empty);
 
         fileStateManager.Received().AnalyzeAllOpenFiles();
     }
@@ -445,7 +445,7 @@ public class TaggerProviderTests
         testSubject.Dispose();
         testSubject.Dispose();
 
-        mockAnalysisRequester.Received(1).AnalysisRequested -= Arg.Any<EventHandler<OpenFilesAnalysisRequestEventArgs>>();
+        mockAnalysisRequester.Received(1).AnalysisRequested -= Arg.Any<EventHandler<EventArgs>>();
     }
 
     #endregion

@@ -50,7 +50,7 @@ internal interface ILiveAnalysisState : IDisposable
     void HandleBackgroundAnalysisEvent();
 }
 
-internal class LiveAnalysisState(
+internal sealed class LiveAnalysisState(
     ITaskExecutorWithDebounce executor,
     IFileState file,
     IFileTracker fileTracker,

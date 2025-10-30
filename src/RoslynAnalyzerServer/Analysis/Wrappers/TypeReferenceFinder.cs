@@ -79,7 +79,7 @@ internal class TypeReferenceFinder : ITypeReferenceFinder
             .Select(declaration => model.GetDeclaredSymbol(declaration, token))
             .Where(symbol => symbol is not null)
             .Select(symbol => symbol!)
-            .ToImmutableHashSet(SymbolEqualityComparer.Default); // todo check nullable structs
+            .ToImmutableHashSet(SymbolEqualityComparer.Default);
 
     private static async Task<bool> DocumentContainsReferenceAsync(
         IRoslynDocumentWrapper document,
@@ -128,7 +128,7 @@ internal class TypeReferenceFinder : ITypeReferenceFinder
     private static async Task<(SemanticModel?, SyntaxNode?)> GetModelAndRootAsync(IRoslynDocumentWrapper document, CancellationToken token)
     {
         var model = await document.RoslynDocument.GetSemanticModelAsync(token);
-        var root = await model?.SyntaxTree.GetRootAsync(token);
+        var root = model != null ? await model.SyntaxTree.GetRootAsync(token) : null;
         return (model, root);
     }
 }
