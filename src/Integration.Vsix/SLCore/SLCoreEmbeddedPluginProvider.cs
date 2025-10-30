@@ -1,0 +1,112 @@
+﻿/*
+ * SonarLint for Visual Studio
+ * Copyright (C) 2016-2025 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+using System.ComponentModel.Composition;
+using System.IO;
+using System.IO.Abstractions;
+using System.Text.RegularExpressions;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.Vsix.Helpers;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
+using SonarLint.VisualStudio.SLCore.Configuration;
+using IFileSystem = System.IO.Abstractions.IFileSystem;
+using ILogger = SonarLint.VisualStudio.Core.ILogger;
+
+namespace SonarLint.VisualStudio.Integration.Vsix.SLCore;
+
+[Export(typeof(ISLCoreEmbeddedPluginProvider))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+public class SLCoreEmbeddedPluginProvider : ISLCoreEmbeddedPluginProvider
+{
+    private const string JarFolderName = "DownloadedJars";
+
+    private readonly IFileSystem fileSystem;
+    private readonly ILogger logger;
+    private readonly ILanguageProvider languageProvider;
+    private readonly IVsixRootLocator vsixRootLocator;
+
+    internal HashSet<PluginInfo> StandalonePlugins { get; }
+
+    [ImportingConstructor]
+    public SLCoreEmbeddedPluginProvider(IVsixRootLocator vsixRootLocator, ILogger logger, ILanguageProvider languageProvider) : this(vsixRootLocator, new FileSystem(), logger, languageProvider) { }
+
+    internal SLCoreEmbeddedPluginProvider(
+        IVsixRootLocator vsixRootLocator,
+        IFileSystem fileSystem,
+        ILogger logger,
+        ILanguageProvider languageProvider)
+    {
+        this.vsixRootLocator = vsixRootLocator;
+        this.fileSystem = fileSystem;
+        this.logger = logger;
+        this.languageProvider = languageProvider;
+        StandalonePlugins = languageProvider.LanguagesInStandaloneMode.Select(x => x.PluginInfo).ToHashSet();
+    }
+
+    public List<string> ListJarFiles()
+    {
+        var jarFolderPath = Path.Combine(vsixRootLocator.GetVsixRoot(), JarFolderName);
+
+        if (fileSystem.Directory.Exists(jarFolderPath))
+        {
+            return fileSystem.Directory.GetFiles(jarFolderPath, "*.jar").ToList();
+        }
+        return new List<string>();
+    }
+
+    public Dictionary<string, string> ListConnectedModeEmbeddedPluginPathsByKey()
+    {
+        var connectedModeEmbeddedPluginPathsByKey = new Dictionary<string, string>();
+        var embeddedPluginFilePaths = ListJarFiles();
+
+        foreach (var plugin in StandalonePlugins)
+        {
+            if (GetPathByPluginKey(embeddedPluginFilePaths, plugin.Key, plugin.FilePattern) is { } pluginFilePath)
+            {
+                connectedModeEmbeddedPluginPathsByKey.Add(plugin.Key, pluginFilePath);
+            }
+        }
+
+        return connectedModeEmbeddedPluginPathsByKey;
+    }
+
+    public List<string> ListDisabledPluginKeysForAnalysis()
+    {
+        var allPlugins = languageProvider.LanguagesInStandaloneMode.Where(x => x.AdditionalPlugins != null).SelectMany(x => x.AdditionalPlugins).ToHashSet();
+        allPlugins.UnionWith(StandalonePlugins);
+        return allPlugins.Where(p => !p.IsEnabledForAnalysis).Select(p => p.Key).ToList();
+    }
+
+    private string GetPathByPluginKey(List<string> pluginFilePaths, string pluginKey, string pluginNameRegexPattern)
+    {
+        var regex = new Regex(pluginNameRegexPattern, RegexOptions.None, RegexConstants.DefaultTimeout);
+        var matchedFilePaths = pluginFilePaths.Where(jar => regex.IsMatch(jar)).ToList();
+        switch (matchedFilePaths.Count)
+        {
+            case 0:
+                logger.LogVerbose(Strings.ConnectedModeEmbeddedPluginJarLocator_JarsNotFound);
+                break;
+            case > 1:
+                logger.LogVerbose(Strings.ConnectedModeEmbeddedPluginJarLocator_MultipleJars, pluginKey);
+                break;
+        }
+        return matchedFilePaths.FirstOrDefault();
+    }
+}

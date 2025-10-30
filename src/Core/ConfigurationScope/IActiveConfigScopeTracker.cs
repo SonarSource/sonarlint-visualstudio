@@ -34,6 +34,8 @@ public interface IActiveConfigScopeTracker : IDisposable
 
     bool TryUpdateAnalysisReadinessOnCurrentConfigScope(string id, bool isReady);
 
+    bool TryUpdateMatchedBranchOnCurrentConfigScope(string id, string branch);
+
     event EventHandler<ConfigurationScopeChangedEventArgs> CurrentConfigurationScopeChanged;
 }
 
@@ -51,7 +53,8 @@ public record ConfigurationScope(
     string SonarProjectId = null,
     string RootPath = null,
     string CommandsBaseDir = null,
-    bool IsReadyForAnalysis = false)
+    bool IsReadyForAnalysis = false,
+    string MatchedBranch = null)
 {
     public string Id { get; } = Id ?? throw new ArgumentNullException(nameof(Id));
 }

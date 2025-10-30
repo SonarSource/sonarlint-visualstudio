@@ -41,5 +41,5 @@ public class DummyAnalysisIssue : IAnalysisIssue
     public bool IsResolved { get; set; }
     public string IssueServerKey { get; set; }
 
-    public IReadOnlyList<IQuickFix> Fixes { get; } = Array.Empty<IQuickFix>();
+    public IReadOnlyList<IQuickFixBase> Fixes { get; } = [];
 }

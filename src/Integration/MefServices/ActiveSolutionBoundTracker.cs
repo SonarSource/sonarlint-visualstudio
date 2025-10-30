@@ -50,7 +50,6 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly IConfigurationProvider configurationProvider;
         private readonly ISonarQubeService sonarQubeService;
-        private readonly IBoundSolutionGitMonitor gitEventsMonitor;
         private readonly IConfigScopeUpdater configScopeUpdater;
         private readonly ILogger logger;
         private IVsMonitorSelection vsMonitorSelection;
@@ -59,8 +58,6 @@ namespace SonarLint.VisualStudio.Integration
 
         public event EventHandler<ActiveSolutionBindingEventArgs> PreSolutionBindingChanged;
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
-        public event EventHandler PreSolutionBindingUpdated;
-        public event EventHandler SolutionBindingUpdated;
         public BindingConfiguration CurrentConfiguration { get; private set; }
 
         [ImportingConstructor]
@@ -69,20 +66,18 @@ namespace SonarLint.VisualStudio.Integration
             IActiveSolutionTracker activeSolutionTracker,
             IConfigScopeUpdater configScopeUpdater,
             ILogger logger,
-            IBoundSolutionGitMonitor gitEventsMonitor,
             IConfigurationProvider configurationProvider,
             ISonarQubeService sonarQubeService,
             IInitializationProcessorFactory initializationProcessorFactory)
         {
             this.serviceProvider = serviceProvider;
             solutionTracker = activeSolutionTracker;
-            this.gitEventsMonitor = gitEventsMonitor;
             this.logger = logger;
             this.configurationProvider = configurationProvider;
             this.sonarQubeService = sonarQubeService;
             this.configScopeUpdater = configScopeUpdater;
             InitializationProcessor = initializationProcessorFactory.Create<ActiveSolutionBoundTracker>(
-                [solutionTracker, this.gitEventsMonitor],
+                [solutionTracker],
                 InitializeInternalAsync);
 
             CurrentConfiguration = BindingConfiguration.Standalone;
@@ -107,7 +102,6 @@ namespace SonarLint.VisualStudio.Integration
                 return;
             }
             solutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
-            gitEventsMonitor.HeadChanged += GitEventsMonitor_HeadChanged;
         }
 
         public void HandleBindingChange()
@@ -119,15 +113,6 @@ namespace SonarLint.VisualStudio.Integration
 
             var newBindingConfiguration = configurationProvider.GetConfiguration();
             RaiseAnalyzersChangedIfBindingChanged(newBindingConfiguration);
-        }
-
-        private void GitEventsMonitor_HeadChanged(object sender, EventArgs e)
-        {
-            if (CurrentConfiguration.Mode.IsInAConnectedMode())
-            {
-                PreSolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
-                SolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
-            }
         }
 
         private async void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs args)
@@ -148,8 +133,6 @@ namespace SonarLint.VisualStudio.Integration
             var newBindingConfiguration = configurationProvider.GetConfiguration();
 
             var connectionUpdatedSuccessfully = await UpdateConnectionAsync(newBindingConfiguration);
-
-            gitEventsMonitor.Refresh();
 
             RaiseAnalyzersChangedIfBindingChanged(connectionUpdatedSuccessfully ? newBindingConfiguration : BindingConfiguration.Standalone);
         }
@@ -220,7 +203,6 @@ namespace SonarLint.VisualStudio.Integration
             if (InitializationProcessor.IsFinalized)
             {
                 solutionTracker.ActiveSolutionChanged -= OnActiveSolutionChanged;
-                gitEventsMonitor.HeadChanged -= GitEventsMonitor_HeadChanged;
             }
             disposed = true;
         }

@@ -66,6 +66,5 @@ public class BoundServerProjectTests
         boundServerProject.LocalBindingKey.Should().BeSameAs(localBindingKey);
         boundServerProject.ServerProjectKey.Should().BeSameAs(serverProjectKey);
         boundServerProject.ServerConnection.Should().BeSameAs(serverConnection);
-        boundServerProject.Profiles.Should().BeNull();
     }
 }

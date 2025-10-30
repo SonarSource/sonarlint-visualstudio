@@ -39,14 +39,13 @@ internal interface IBindingJsonModelConverter
 internal class BindingJsonModelConverter : IBindingJsonModelConverter
 {
     public BoundServerProject ConvertFromModel(BindingJsonModel bindingJsonModel, ServerConnection connection, string localBindingKey) =>
-        new(localBindingKey, bindingJsonModel.ProjectKey, connection) { Profiles = bindingJsonModel.Profiles };
+        new(localBindingKey, bindingJsonModel.ProjectKey, connection);
 
     public BindingJsonModel ConvertToModel(BoundServerProject binding) =>
         new()
         {
             ProjectKey = binding.ServerProjectKey,
             ServerConnectionId = binding.ServerConnection.Id,
-            Profiles = binding.Profiles,
             // for compatibility reasons:
             ServerUri = binding.ServerConnection.ServerUri,
             Organization = binding.ServerConnection is ServerConnection.SonarCloud sonarCloudConnection
@@ -59,5 +58,5 @@ internal class BindingJsonModelConverter : IBindingJsonModelConverter
             bindingJsonModel.ProjectKey,
             bindingJsonModel.ProjectName,
             credentials,
-            bindingJsonModel.Organization) { Profiles = bindingJsonModel.Profiles };
+            bindingJsonModel.Organization);
 }

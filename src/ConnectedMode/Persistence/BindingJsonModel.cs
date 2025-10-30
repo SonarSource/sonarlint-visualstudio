@@ -36,5 +36,4 @@ internal class BindingJsonModel
     public SonarQubeOrganization Organization { get; set; } // left here for backward compatibility reasons
     public string ProjectKey { get; set; }
     public string ProjectName { get; set; } // left here for backward compatibility reasons
-    public Dictionary<Language, ApplicableQualityProfile> Profiles { get; set; }
 }

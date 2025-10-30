@@ -44,9 +44,6 @@ namespace SonarQube.Client.Tests
 
             action = () => new SonarQubeService(string.Empty, null, languageProvider);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-
-            action = () => new SonarQubeService(string.Empty, logger, null);
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("languageProvider");
         }
 
         [TestMethod]
@@ -81,7 +78,7 @@ namespace SonarQube.Client.Tests
             var messageHandlerFactory = new Mock<IHttpClientHandlerFactory>();
             messageHandlerFactory.Setup(x => x.Create(connectionInfo.ServerUri)).Returns(Mock.Of<HttpClientHandler>());
 
-            var testSubject = new SonarQubeService(messageHandlerFactory.Object, "user-agent", logger, Substitute.For<ILanguageProvider>(), selectorMock.Object, null);
+            var testSubject = new SonarQubeService(messageHandlerFactory.Object, "user-agent", logger, selectorMock.Object);
             await testSubject.ConnectAsync(connectionInfo, CancellationToken.None);
 
             selectorMock.Verify(x => x.Select(isSonarCloud, logger), Times.Once);
@@ -111,7 +108,7 @@ namespace SonarQube.Client.Tests
             var messageHandlerFactory = new Mock<IHttpClientHandlerFactory>();
             messageHandlerFactory.Setup(x => x.Create(It.IsAny<Uri>())).Returns(Mock.Of<HttpClientHandler>());
 
-            var testSubject = new SonarQubeService(messageHandlerFactory.Object, "user-agent", logger, Substitute.For<ILanguageProvider>(), selectorMock.Object, null);
+            var testSubject = new SonarQubeService(messageHandlerFactory.Object, "user-agent", logger, selectorMock.Object);
 
             // 1. Connect to SonarQube
             await testSubject.ConnectAsync(sonarQubeConnectionInfo, CancellationToken.None);

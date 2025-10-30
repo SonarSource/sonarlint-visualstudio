@@ -21,6 +21,7 @@
 using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
@@ -32,31 +33,33 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation.Analy
 public class AnalysisConfigurationProviderListenerTests
 {
     private IActiveConfigScopeTracker activeConfigScopeTracker;
-    private AnalysisConfigurationProviderListener testSubject;
+    private IHttpServerConfigurationProvider httpServerConfigurationProvider;
     private TestLogger logger;
+    private AnalysisConfigurationProviderListener testSubject;
 
     [TestInitialize]
     public void TestInitialize()
     {
         activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
+        httpServerConfigurationProvider = Substitute.For<IHttpServerConfigurationProvider>();
         logger = Substitute.ForPartsOf<TestLogger>();
 
         testSubject = new AnalysisConfigurationProviderListener(
-            activeConfigScopeTracker, logger);
+            activeConfigScopeTracker, httpServerConfigurationProvider, logger);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<AnalysisConfigurationProviderListener, ISLCoreListener>(
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
+            MefTestHelpers.CreateExport<IHttpServerConfigurationProvider>(),
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<AnalysisConfigurationProviderListener>();
 
     [TestMethod]
-    public void Ctor_InitializesLogContexts() =>
-        logger.Received(1).ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.SLCoreAnalysisConfigurationLogContext);
+    public void Ctor_InitializesLogContexts() => logger.Received(1).ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.SLCoreAnalysisConfigurationLogContext);
 
     [TestMethod]
     public void GetBaseDirAsync_NoConfigurationScope_ReturnsNull()
@@ -95,15 +98,18 @@ public class AnalysisConfigurationProviderListenerTests
 
     [DataRow(null, [new string[0]])]
     [DataRow("", [new string[0]])]
-    [DataRow("configScopeId", [new[] {@"C:\file1"}])]
-    [DataRow("configScopeId123", [new[] {@"C:\file1", @"D:\file"}])]
+    [DataRow("configScopeId", [new[] { @"C:\file1" }])]
+    [DataRow("configScopeId123", [new[] { @"C:\file1", @"D:\file" }])]
     [DataTestMethod]
-    public void GetInferredAnalysisProperties_AnyValue_ReturnsEmptySet(string configScopeId, string[] files)
+    public void GetInferredAnalysisProperties_AnyValue_ReturnsHttpServerConfiguration(string configScopeId, string[] files)
     {
+        var expectedProperties = new Dictionary<string, string> { { "prop1", "val1" } };
+        httpServerConfigurationProvider.CurrentConfiguration.MapToInferredProperties().Returns(expectedProperties);
+
         var result = testSubject.GetInferredAnalysisPropertiesAsync(new GetInferredAnalysisPropertiesParams(configScopeId,
                 files.Select(x => new FileUri(x)).ToList()))
             .Result;
 
-        result.Should().BeEquivalentTo(new GetInferredAnalysisPropertiesResponse([]),config:options => options.ComparingByMembers<GetInferredAnalysisPropertiesResponse>());
+        result.Should().BeEquivalentTo(new GetInferredAnalysisPropertiesResponse(expectedProperties), options => options.ComparingByMembers<GetInferredAnalysisPropertiesResponse>());
     }
 }

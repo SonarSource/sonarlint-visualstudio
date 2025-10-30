@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\SonarLint.Test.props" />
+
+  <PropertyGroup>
+    <RootNamespace>SonarLint.VisualStudio.RoslynAnalyzerServer.IntegrationTests</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.RoslynAnalyzerServer.IntegrationTests</AssemblyName>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup Label="Framework references">
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RoslynAnalyzerServer\RoslynAnalyzerServer.csproj" />
+  </ItemGroup>
+
+</Project>

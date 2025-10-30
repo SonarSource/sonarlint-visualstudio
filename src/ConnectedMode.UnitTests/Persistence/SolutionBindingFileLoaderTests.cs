@@ -55,22 +55,12 @@ public class SolutionBindingFileLoaderTests
             ProjectKey = "MyProject Key",
             ProjectName = "projectName",
             ServerConnectionId = null,
-            Profiles = new Dictionary<Language, ApplicableQualityProfile>
-            {
-                { Language.CSharp, new ApplicableQualityProfile { ProfileKey = "sonar way", ProfileTimestamp = DateTime.Parse("2020-02-25T08:57:54+0000") } }
-            }
         };
 
         serializedProject = @"{
   ""ServerUri"": ""http://xxx.www.zzz/yyy:9000"",
   ""ProjectKey"": ""MyProject Key"",
-  ""ProjectName"": ""projectName"",
-  ""Profiles"": {
-    ""CSharp"": {
-      ""ProfileKey"": ""sonar way"",
-      ""ProfileTimestamp"": ""2020-02-25T08:57:54Z""
-    }
-  }
+  ""ProjectName"": ""projectName""
 }";
     }
 
@@ -201,23 +191,6 @@ public class SolutionBindingFileLoaderTests
 
         var actual = testSubject.Load(MockFilePath);
         actual.Should().BeEquivalentTo(bindingJsonModel);
-    }
-
-    [TestMethod]
-    public void Load_FileExists_ProjectWithNonUtcTimestamp_DeserializedProjectWithCorrectTimestampData()
-    {
-        const string utcDate = "2020-02-25T08:57:54Z";
-        const string localDate = "2020-02-25T10:57:54+02:00";
-        serializedProject = serializedProject.Replace(utcDate, localDate);
-
-        MockFileExists(MockFilePath);
-        fileSystem.File.ReadAllText(MockFilePath).Returns(serializedProject);
-
-        var actual = testSubject.Load(MockFilePath);
-        actual.Should().BeEquivalentTo(bindingJsonModel);
-
-        var deserializedTimestamp = actual.Profiles[Language.CSharp].ProfileTimestamp.Value.ToUniversalTime();
-        deserializedTimestamp.Should().Be(new DateTime(2020, 2, 25, 8, 57, 54));
     }
 
     [TestMethod]

@@ -28,7 +28,6 @@ using Moq.Protected;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Models;
-using SonarQube.Client.Models.ServerSentEvents;
 using SonarQube.Client.Requests;
 using SonarQube.Client.Tests.Infra;
 
@@ -45,13 +44,12 @@ namespace SonarQube.Client.Tests
 
         // Note: can't be protected because the interfaces are internal
         internal IRequestFactorySelector requestFactorySelector;
-        internal Mock<ISSEStreamReaderFactory> sseStreamFactory;
 
         private const string DefaultBasePath = "http://localhost/";
 
         protected const string UserAgent = "the-test-user-agent/1.0";
 
-        protected virtual Language[] MockRoslynLanguages { get; }
+        protected virtual RoslynLanguage[] MockRoslynLanguages { get; }
 
         [TestInitialize]
         public void TestInitialize()
@@ -71,7 +69,6 @@ namespace SonarQube.Client.Tests
 
             proxyDetector = new Mock<IProxyDetector>();
             requestFactorySelector = new RequestFactorySelector();
-            sseStreamFactory = new Mock<ISSEStreamReaderFactory>();
 
             ResetService();
         }
@@ -127,7 +124,7 @@ namespace SonarQube.Client.Tests
 
         protected internal virtual SonarQubeService CreateTestSubject()
         {
-            return new SonarQubeService(httpClientHandlerFactory.Object, UserAgent, logger, languageProvider, requestFactorySelector, sseStreamFactory.Object);
+            return new SonarQubeService(httpClientHandlerFactory.Object, UserAgent, logger, requestFactorySelector);
         }
 
         private static IUsernameAndPasswordCredentials MockBasicAuthCredentials(string userName, SecureString password)

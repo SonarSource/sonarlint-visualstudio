@@ -151,7 +151,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
             NotifySlCoreFileClosed(args.Document.FullPath, activeConfigScopeTracker.Current);
         }).Forget();
 
-    private void OnDocumentOpened(object sender, DocumentOpenedEventArgs args) =>
+    private void OnDocumentOpened(object sender, DocumentEventArgs args) =>
         threadHandling.RunOnBackgroundThread(async () =>
         {
             await AddFilesToCompilationDatabaseAsync(args.Document);
@@ -163,7 +163,7 @@ public sealed class DocumentEventsHandler : IDocumentEventsHandler
     /// Due to the fact that we can't react to project/file properties changes, regenerating the compilation database entry on file save is needed
     /// Additionally, this is a workaround that can deal with the renaming bug described in https://sonarsource.atlassian.net/browse/SLVS-2170
     /// </summary>
-    private void OnDocumentSaved(object sender, DocumentSavedEventArgs args) =>
+    private void OnDocumentSaved(object sender, DocumentEventArgs args) =>
         threadHandling.RunOnBackgroundThread(async () =>
         {
             await AddFilesToCompilationDatabaseAsync(args.Document);

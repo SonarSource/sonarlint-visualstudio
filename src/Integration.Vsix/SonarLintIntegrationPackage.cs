@@ -26,7 +26,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.Integration.Vsix.Settings.FileExclusions;
-using SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -65,7 +64,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private PackageCommandManager commandManager;
 
         private ILogger logger;
-        private IRoslynSettingsFileSynchronizer roslynSettingsFileSynchronizer;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -88,7 +86,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 await commandManager.InitializeAsync(this, ShowOptionPage);
 
                 // make sure roslynSettingsFileSynchronizer is initialized
-                roslynSettingsFileSynchronizer = await this.GetMefServiceAsync<IRoslynSettingsFileSynchronizer>();
                 Debug.Assert(threadHandling.CheckAccess(), "Still expecting to be on the UI thread");
 
                 logger.WriteLine(Strings.SL_InitializationComplete);
@@ -97,16 +94,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 // Suppress non-critical exceptions
                 logger.WriteLine(Strings.SL_ERROR, ex.Message);
-            }
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            if (disposing)
-            {
-                roslynSettingsFileSynchronizer?.Dispose();
-                roslynSettingsFileSynchronizer = null;
             }
         }
     }

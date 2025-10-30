@@ -32,7 +32,7 @@ public interface IAnalysisIssueVisualization : IAnalysisIssueLocationVisualizati
 
     IAnalysisIssueBase Issue { get; }
 
-    IReadOnlyList<IQuickFixVisualization> QuickFixes { get; }
+    IReadOnlyList<IQuickFixApplication> QuickFixes { get; }
 
     bool IsResolved { get; }
 }
@@ -47,7 +47,7 @@ internal class AnalysisIssueVisualization : IAnalysisIssueVisualization
         IReadOnlyList<IAnalysisIssueFlowVisualization> flows,
         IAnalysisIssueBase issue,
         SnapshotSpan? span,
-        IReadOnlyList<IQuickFixVisualization> quickFixes)
+        IReadOnlyList<IQuickFixApplication> quickFixes)
     {
         Flows = flows;
         Issue = issue;
@@ -57,7 +57,7 @@ internal class AnalysisIssueVisualization : IAnalysisIssueVisualization
     }
 
     public IReadOnlyList<IAnalysisIssueFlowVisualization> Flows { get; }
-    public IReadOnlyList<IQuickFixVisualization> QuickFixes { get; }
+    public IReadOnlyList<IQuickFixApplication> QuickFixes { get; }
     public IAnalysisIssueBase Issue { get; }
     public int StepNumber => 0;
     public IAnalysisIssueLocation Location => Issue.PrimaryLocation;

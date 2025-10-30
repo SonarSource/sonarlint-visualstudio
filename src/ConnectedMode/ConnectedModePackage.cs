@@ -22,14 +22,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
-using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
-using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
-using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.SLCore.State;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode
@@ -38,16 +34,12 @@ namespace SonarLint.VisualStudio.ConnectedMode
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideAutoLoad(BoundSolutionUIContext.GuidString, PackageAutoLoadFlags.BackgroundLoad)]
     [Guid("dd3427e0-7bb2-4a51-b00a-ddae2c32c7ef")]
-    public sealed class ConnectedModePackage : AsyncPackage
+    public sealed class ConnectedModePackage : AsyncPackage, IDisposable
     {
-        private SSESessionManager sseSessionManager;
-        private IIssueServerEventsListener issueServerEventsListener;
-        private IQualityProfileServerEventsListener qualityProfileServerEventsListener;
-        private BoundSolutionUpdateHandler boundSolutionUpdateHandler;
-        private TimedUpdateHandler timedUpdateHandler;
         private IHotspotDocumentClosedHandler hotspotDocumentClosedHandler;
         private IHotspotSolutionClosedHandler hotspotSolutionClosedHandler;
         private ILocalHotspotStoreMonitor hotspotStoreMonitor;
+        private ISlCoreGitChangeNotifier slCoreGitChangeNotifier;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -57,17 +49,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
             var logger = componentModel.GetService<ILogger>();
 
             logger.WriteLine(Resources.Package_Initializing);
-
-            LoadServicesAndDoInitialUpdates(componentModel);
-
-            issueServerEventsListener = componentModel.GetService<IIssueServerEventsListener>();
-            issueServerEventsListener.ListenAsync().Forget();
-
-            qualityProfileServerEventsListener = componentModel.GetService<IQualityProfileServerEventsListener>();
-            qualityProfileServerEventsListener.ListenAsync().Forget();
-
-            boundSolutionUpdateHandler = componentModel.GetService<BoundSolutionUpdateHandler>();
-            timedUpdateHandler = componentModel.GetService<TimedUpdateHandler>();
+            slCoreGitChangeNotifier = componentModel.GetService<ISlCoreGitChangeNotifier>();
+            await slCoreGitChangeNotifier.InitializationProcessor.InitializeAsync();
 
             hotspotDocumentClosedHandler = componentModel.GetService<IHotspotDocumentClosedHandler>();
 
@@ -76,33 +59,11 @@ namespace SonarLint.VisualStudio.ConnectedMode
             hotspotStoreMonitor = componentModel.GetService<ILocalHotspotStoreMonitor>();
             await hotspotStoreMonitor.InitializeAsync();
 
+
             logger.WriteLine(Resources.Package_Initialized);
         }
 
-        /// <summary>
-        /// Trigger an initial update of classes that need them. (These classes might have missed the initial solution binding
-        /// event from the ActiveSolutionBoundTracker)
-        /// See https://github.com/SonarSource/sonarlint-visualstudio/issues/3886
-        /// </summary>
-        private void LoadServicesAndDoInitialUpdates(IComponentModel componentModel)
-        {
-            sseSessionManager = componentModel.GetService<SSESessionManager>();
-            sseSessionManager.CreateSessionIfInConnectedMode();
-            var updater = componentModel.GetService<IRoslynSuppressionUpdater>();
-            updater.UpdateAllServerSuppressionsAsync().Forget();
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                sseSessionManager?.Dispose();
-                issueServerEventsListener?.Dispose();
-                boundSolutionUpdateHandler?.Dispose();
-                timedUpdateHandler?.Dispose();
-            }
-
-            base.Dispose(disposing);
-        }
+        public void Dispose() =>
+            slCoreGitChangeNotifier.Dispose();
     }
 }

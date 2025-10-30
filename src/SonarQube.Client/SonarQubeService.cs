@@ -18,14 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
 using System.Net.Http;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Api;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
-using SonarQube.Client.Models.ServerSentEvents;
 using SonarQube.Client.Requests;
 using ILogger = SonarQube.Client.Logging.ILogger;
 
@@ -36,16 +34,14 @@ public class SonarQubeService : ISonarQubeService, IDisposable
     private const string MinSqVersionSupportingBearer = "10.4";
     private readonly IHttpClientHandlerFactory httpClientHandlerFactory;
     private readonly ILogger logger;
-    private readonly ILanguageProvider languageProvider;
     private readonly IRequestFactorySelector requestFactorySelector;
-    private readonly ISSEStreamReaderFactory sseStreamReaderFactory;
     private readonly string userAgent;
     private HttpClient currentHttpClient;
     private ServerInfo currentServerInfo;
     private IRequestFactory requestFactory;
 
     public SonarQubeService(string userAgent, ILogger logger, ILanguageProvider languageProvider)
-        : this(new HttpClientHandlerFactory(new ProxyDetector(), logger), userAgent, logger, languageProvider, new RequestFactorySelector(), new SSEStreamReaderFactory(logger))
+        : this(new HttpClientHandlerFactory(new ProxyDetector(), logger), userAgent, logger, new RequestFactorySelector())
     {
     }
 
@@ -53,17 +49,13 @@ public class SonarQubeService : ISonarQubeService, IDisposable
         IHttpClientHandlerFactory httpClientHandlerFactory,
         string userAgent,
         ILogger logger,
-        ILanguageProvider languageProvider,
-        IRequestFactorySelector requestFactorySelector,
-        ISSEStreamReaderFactory sseStreamReaderFactory)
+        IRequestFactorySelector requestFactorySelector)
     {
         this.httpClientHandlerFactory = httpClientHandlerFactory ?? throw new ArgumentNullException(nameof(httpClientHandlerFactory));
         this.userAgent = userAgent ?? throw new ArgumentNullException(nameof(userAgent));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        this.languageProvider = languageProvider ?? throw new ArgumentNullException(nameof(languageProvider));
 
         this.requestFactorySelector = requestFactorySelector;
-        this.sseStreamReaderFactory = sseStreamReaderFactory;
     }
 
     public bool IsConnected => GetServerInfo() != null;
@@ -115,55 +107,6 @@ public class SonarQubeService : ISonarQubeService, IDisposable
         requestFactory = null;
     }
 
-    public async Task<IList<SonarQubeProperty>> GetAllPropertiesAsync(string projectKey, CancellationToken token) =>
-        await InvokeCheckedRequestAsync<IGetPropertiesRequest, SonarQubeProperty[]>(
-            request =>
-            {
-                request.ProjectKey = projectKey;
-            },
-            token);
-
-    public async Task<IList<SonarQubeQualityProfile>> GetAllQualityProfilesAsync(string project, string organizationKey, CancellationToken token) =>
-        await InvokeCheckedRequestAsync<IGetQualityProfilesRequest, SonarQubeQualityProfile[]>(
-            request =>
-            {
-                request.ProjectKey = project;
-                request.OrganizationKey = GetOrganizationKeyForWebApiCalls(organizationKey, logger);
-            },
-            token);
-
-    public async Task<IList<SonarQubeIssue>> GetSuppressedRoslynIssuesAsync(
-        string projectKey,
-        string branch,
-        string[] issueKeys,
-        CancellationToken token) =>
-        await InvokeCheckedRequestAsync<IGetIssuesRequest, SonarQubeIssue[]>(
-            request =>
-            {
-                request.ProjectKey = projectKey;
-                request.Branch = branch;
-                request.IssueKeys = issueKeys;
-                request.Languages = string.Join(",", languageProvider.RoslynLanguages.Select(x => x.ServerLanguageKey));
-                request.Statuses = "RESOLVED"; // Resolved issues will be hidden in SLVS
-            },
-            token);
-
-    public async Task<IList<SonarQubeIssue>> GetIssuesForComponentAsync(
-        string projectKey,
-        string branch,
-        string componentKey,
-        string ruleId,
-        CancellationToken token) =>
-        await InvokeCheckedRequestAsync<IGetIssuesRequest, SonarQubeIssue[]>(
-            request =>
-            {
-                request.ProjectKey = projectKey;
-                request.Branch = branch;
-                request.ComponentKey = componentKey;
-                request.RuleId = ruleId;
-            },
-            token);
-
     public async Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(
         string projectKey,
         DateTimeOffset eventsSince,
@@ -173,30 +116,6 @@ public class SonarQubeService : ISonarQubeService, IDisposable
             {
                 request.ProjectKey = projectKey;
                 request.EventsSince = eventsSince;
-            },
-            token);
-
-    public async Task<IList<string>> SearchFilesByNameAsync(
-        string projectKey,
-        string branch,
-        string fileName,
-        CancellationToken token) =>
-        await InvokeCheckedRequestAsync<ISearchFilesByNameRequest, string[]>(
-            request =>
-            {
-                request.ProjectKey = projectKey;
-                request.BranchName = branch;
-                request.FileName = fileName;
-            },
-            token
-        );
-
-    public async Task<IList<SonarQubeRule>> GetRulesAsync(bool isActive, string qualityProfileKey, CancellationToken token) =>
-        await InvokeCheckedRequestAsync<IGetRulesRequest, SonarQubeRule[]>(
-            request =>
-            {
-                request.IsActive = isActive;
-                request.QualityProfileKey = qualityProfileKey;
             },
             token);
 
@@ -211,32 +130,6 @@ public class SonarQubeService : ISonarQubeService, IDisposable
         const string ViewIssueRelativeUrl = "project/issues?id={0}&issues={1}&open={1}";
 
         return new Uri(currentHttpClient.BaseAddress, string.Format(ViewIssueRelativeUrl, projectKey, issueKey));
-    }
-
-    public async Task<IList<SonarQubeProjectBranch>> GetProjectBranchesAsync(string projectKey, CancellationToken token) =>
-        await InvokeCheckedRequestAsync<IGetProjectBranchesRequest, SonarQubeProjectBranch[]>(
-            request =>
-            {
-                request.ProjectKey = projectKey;
-            }, token);
-
-    public async Task<ServerExclusions> GetServerExclusions(string projectKey, CancellationToken token) =>
-        await InvokeCheckedRequestAsync<IGetExclusionsRequest, ServerExclusions>(
-            request =>
-            {
-                request.ProjectKey = projectKey;
-            }, token);
-
-    public async Task<ISSEStreamReader> CreateSSEStreamReader(string projectKey, CancellationToken token)
-    {
-        var networkStream = await InvokeCheckedRequestAsync<IGetSonarLintEventStream, Stream>(
-            request =>
-            {
-                request.ProjectKey = projectKey;
-            },
-            token);
-
-        return sseStreamReaderFactory.Create(networkStream, token);
     }
 
     /// <summary>

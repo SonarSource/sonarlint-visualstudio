@@ -18,20 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using LibGit2Sharp;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ETW;
-using SonarQube.Client;
+using SonarLint.VisualStudio.SLCore.Listener.Branch;
 
 namespace SonarLint.VisualStudio.ConnectedMode
 {
-    public interface IBranchMatcher
+    internal interface IBranchMatcher
     {
         /// <summary>
         /// Calculates the Sonar server branch that is the closest match to the head branch.
@@ -43,7 +38,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
         /// This is the same algorithm as the other SonarLint flavours (?except in how we treated branch histories.
         /// We treat branch histories as series of linear commits ordered by time, even if there are merges).
         /// </remarks>
-        Task<string> GetMatchingBranch(string projectKey, IRepository gitRepo, CancellationToken token);
+        string GetMatchingBranch(string projectKey, IRepository gitRepo, List<RemoteBranch> branches);
     }
 
     [Export(typeof(IBranchMatcher))]
@@ -51,30 +46,23 @@ namespace SonarLint.VisualStudio.ConnectedMode
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class BranchMatcher : IBranchMatcher
     {
-        private const string shortBranchType = "SHORT";
-
-        private readonly ISonarQubeService sonarQubeService;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public BranchMatcher(ISonarQubeService sonarQubeService, ILogger logger)
+        public BranchMatcher(ILogger logger)
         {
-            this.sonarQubeService = sonarQubeService;
             this.logger = logger;
         }
 
-        public async Task<string> GetMatchingBranch(string projectKey, IRepository gitRepo, CancellationToken token)
+        public string GetMatchingBranch(string projectKey, IRepository gitRepo, List<RemoteBranch> branches)
         {
-            Debug.Assert(sonarQubeService.IsConnected,
-                "Not expecting GetMatchingBranch to be called unless we are in Connected Mode");
-
             logger.LogVerbose(Resources.BranchMapper_CalculatingServerBranch_Started);
 
             string closestBranch;
             try
             {
                 CodeMarkers.Instance.GetMatchingBranchStart(projectKey);
-                closestBranch = await DoGetMatchingBranch(projectKey, gitRepo, token);
+                closestBranch = DoGetMatchingBranch(gitRepo, branches);
             }
             finally
             {
@@ -85,7 +73,9 @@ namespace SonarLint.VisualStudio.ConnectedMode
             return closestBranch;
         }
 
-        private async Task<string> DoGetMatchingBranch(string projectKey, IRepository gitRepo, CancellationToken token)
+        private string DoGetMatchingBranch(
+            IRepository gitRepo,
+            List<RemoteBranch> branches)
         {
             var head = gitRepo.Head;
 
@@ -95,9 +85,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 return null;
             }
 
-            var remoteBranches = (await sonarQubeService.GetProjectBranchesAsync(projectKey, token)).Where(b => b.Type != shortBranchType);
 
-            if (remoteBranches.Any(rb => string.Equals(rb.Name, head.FriendlyName, StringComparison.InvariantCultureIgnoreCase)))
+            if (branches.Any(rb => string.Equals(rb.Name, head.FriendlyName, StringComparison.InvariantCultureIgnoreCase)))
             {
                 logger.LogVerbose(Resources.BranchMapper_Match_SameSonarBranchName, head.FriendlyName);
                 return head.FriendlyName;
@@ -109,7 +98,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             Lazy<Commit[]> headCommits = new Lazy<Commit[]>(() => head.Commits.ToArray());
 
             logger.LogVerbose(Resources.BranchMapper_CheckingSonarBranches);
-            foreach (var remoteBranch in remoteBranches)
+            foreach (var remoteBranch in branches)
             {
                 var localBranch = gitRepo.Branches.FirstOrDefault(r => string.Equals(r.FriendlyName, remoteBranch.Name, StringComparison.InvariantCultureIgnoreCase));
 
@@ -128,7 +117,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             if (closestBranch is null)
             {
                 logger.LogVerbose(Resources.BranchMapper_NoMatchingBranchFound);
-                closestBranch = remoteBranches.First(rb => rb.IsMain).Name;
+                closestBranch = branches.First(rb => rb.IsMain).Name;
             }
 
             return closestBranch;

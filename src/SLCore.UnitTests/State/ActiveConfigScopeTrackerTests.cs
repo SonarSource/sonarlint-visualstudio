@@ -164,6 +164,41 @@ public class ActiveConfigScopeTrackerTests
     }
 
     [TestMethod]
+    public void TryUpdateMatchedBranchOnCurrentConfigScope_ConfigScopeSame_Updates()
+    {
+        const string configScopeId = "myid";
+        const string connectionId = "connectionid";
+        const string sonarProjectKey = "projectkey";
+        const string root = "root";
+        const string baseDir = "basedir";
+        const string branch = "branch";
+        testSubject.CurrentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root, baseDir, true, branch);
+
+        var result = testSubject.TryUpdateMatchedBranchOnCurrentConfigScope(configScopeId, branch);
+
+        result.Should().BeTrue();
+        testSubject.CurrentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root, baseDir, true, branch));
+        VerifyCurrentConfigurationScopeChangedRaised(false);
+        logger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ConfigScope_UpdatedSonarBranch, configScopeId, branch));
+    }
+
+    [TestMethod]
+    public void TryUpdateMatchedBranchOnCurrentConfigScope_ConfigScopeDifferent_DoesNotUpdate()
+    {
+        const string configScopeId = "myid";
+        const string connectionId = "connectionid";
+        const string sonarProjectKey = "projectkey";
+        const string root = "root";
+        testSubject.CurrentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root);
+
+        var result = testSubject.TryUpdateMatchedBranchOnCurrentConfigScope("some other id", "branch");
+
+        result.Should().BeFalse();
+        testSubject.CurrentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root, MatchedBranch: null));
+        VerifyCurrentConfigurationScopeChangedNotRaised();
+    }
+
+    [TestMethod]
     public void SetCurrentConfigScope_SetsBoundScope()
     {
         const string configScopeId = "myid";

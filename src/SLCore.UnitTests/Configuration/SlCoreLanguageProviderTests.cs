@@ -57,27 +57,12 @@ public class SlCoreLanguageProviderTests
         testSubject.ExtraLanguagesInConnectedMode.Should().BeEquivalentTo(languageProvider.ExtraLanguagesInConnectedMode.Select(x => x.ConvertToSlCoreLanguage()));
     }
 
-    [TestMethod]
-    public void LanguagesWithDisabledAnalysis_ShouldBeExpected()
-    {
-        _ = languageProvider.Received(1).RoslynLanguages;
-        testSubject.LanguagesWithDisabledAnalysis.Should().BeEquivalentTo(languageProvider.RoslynLanguages.Select(x => x.ConvertToSlCoreLanguage()));
-    }
-
-    [TestMethod]
-    public void AllAnalyzableLanguages_ShouldBeExpected()
-    {
-        var expected = testSubject.LanguagesInStandaloneMode.Concat(testSubject.ExtraLanguagesInConnectedMode).Except(testSubject.LanguagesWithDisabledAnalysis);
-
-        testSubject.AllAnalyzableLanguages.Should().BeEquivalentTo(expected);
-    }
-
     private void MockLanguageProvider()
     {
         languageProvider = Substitute.For<ILanguageProvider>();
         // it doesn't have to be the real lists, just need to be different so the test can verify that the provider is using them
         languageProvider.AllKnownLanguages.Returns([Language.C, Language.Js, Language.Ts, Language.TSql]);
-        languageProvider.RoslynLanguages.Returns([Language.C]);
+        languageProvider.RoslynLanguages.Returns([Language.CSharp]);
         languageProvider.NonRoslynLanguages.Returns([Language.Js]);
         languageProvider.LanguagesInStandaloneMode.Returns([Language.Ts]);
         languageProvider.ExtraLanguagesInConnectedMode.Returns([Language.TSql]);

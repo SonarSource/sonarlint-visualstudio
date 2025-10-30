@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Branch;
 
@@ -28,24 +29,38 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
     [Export(typeof(ISLCoreListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     [method: ImportingConstructor]
-    public class BranchListener(IStatefulServerBranchProvider statefulServerBranchProvider) : IBranchListener
+    public class BranchListener(IServerBranchProvider serverBranchProvider, IActiveConfigScopeTracker activeConfigScopeTracker, ILogger log) : IBranchListener
     {
+        private readonly ILogger log = log.ForContext(SLCoreStrings.SLCoreAnalysisConfigurationLogContext, SLCoreStrings.ConnectedMode_LogContext).ForVerboseContext(nameof(BranchListener));
+
         /// <summary>
         /// Request to calculate the matching branch between the local project and the sonar server
         /// </summary>
-        public async Task<MatchSonarProjectBranchResponse> MatchSonarProjectBranchAsync(MatchSonarProjectBranchParams parameters)
+        public Task<MatchSonarProjectBranchResponse> MatchSonarProjectBranchAsync(MatchSonarProjectBranchParams parameters)
         {
-            var matchingBranchName = await statefulServerBranchProvider.GetServerBranchNameAsync(CancellationToken.None);
-            return new MatchSonarProjectBranchResponse(matchingBranchName);
+            if (activeConfigScopeTracker.Current.Id is var currentId && currentId != parameters.configurationScopeId)
+            {
+                log.WriteLine(SLCoreStrings.ConfigurationScopeMismatch, parameters.configurationScopeId, currentId);
+                return Task.FromResult(new MatchSonarProjectBranchResponse(null));
+            }
+
+            var matchingBranchName = serverBranchProvider.GetServerBranchName(parameters.allSonarBranchesNames
+                .Select(x => new RemoteBranch(x, x == parameters.mainSonarBranchName))
+                .ToList());
+
+            return Task.FromResult(new MatchSonarProjectBranchResponse(matchingBranchName));
         }
 
         /// <summary>
-        /// Stub method for compability with SLCore. TODO https://github.com/SonarSource/sonarlint-visualstudio/issues/5401
+        /// Handles calculated branch notification from SLCore
         /// </summary>
-        /// <param name="parameters">Parameter's here for compability we discard it</param>
-        /// <remarks>This will be implemented properly in the future when needed but features we support does not need branch awareness for now</remarks>
-        public Task DidChangeMatchedSonarProjectBranchAsync(object parameters)
+        public Task DidChangeMatchedSonarProjectBranchAsync(DidChangeMatchedSonarProjectBranchParams parameters)
         {
+            if (!activeConfigScopeTracker.TryUpdateMatchedBranchOnCurrentConfigScope(parameters.configScopeId, parameters.newMatchedBranchName))
+            {
+                log.WriteLine(SLCoreStrings.ConfigurationScopeMismatch, parameters.configScopeId, activeConfigScopeTracker.Current.Id);
+            }
+
             return Task.CompletedTask;
         }
     }

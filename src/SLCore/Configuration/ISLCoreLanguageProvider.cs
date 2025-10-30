@@ -29,8 +29,6 @@ public interface ISLCoreLanguageProvider
 {
     IReadOnlyList<Language> LanguagesInStandaloneMode { get; }
     IReadOnlyList<Language> ExtraLanguagesInConnectedMode { get; }
-    IReadOnlyList<Language> AllAnalyzableLanguages { get; }
-    IReadOnlyList<Language> LanguagesWithDisabledAnalysis { get; }
 }
 
 [Export(typeof(ISLCoreLanguageProvider))]
@@ -42,12 +40,8 @@ public class SLCoreLanguageProvider : ISLCoreLanguageProvider
     {
         LanguagesInStandaloneMode = languageProvider.LanguagesInStandaloneMode.Select(x => x.ConvertToSlCoreLanguage()).ToList();
         ExtraLanguagesInConnectedMode = languageProvider.ExtraLanguagesInConnectedMode.Select(x => x.ConvertToSlCoreLanguage()).ToList();
-        LanguagesWithDisabledAnalysis = languageProvider.RoslynLanguages.Select(x => x.ConvertToSlCoreLanguage()).ToList();
-        AllAnalyzableLanguages = LanguagesInStandaloneMode.Concat(ExtraLanguagesInConnectedMode).Except(LanguagesWithDisabledAnalysis).ToList();
     }
 
     public IReadOnlyList<Language> LanguagesInStandaloneMode { get; }
     public IReadOnlyList<Language> ExtraLanguagesInConnectedMode { get; }
-    public IReadOnlyList<Language> LanguagesWithDisabledAnalysis { get; }
-    public IReadOnlyList<Language> AllAnalyzableLanguages { get; }
 }

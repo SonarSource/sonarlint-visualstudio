@@ -57,7 +57,6 @@ public class BindingJsonModelConverterTests
         var bindingModel = new BindingJsonModel
         {
             ProjectKey = "project123",
-            Profiles = new Dictionary<Language, ApplicableQualityProfile>(),
             ProjectName = "ignored",
             Organization = new SonarQubeOrganization("ignored", "ignored"),
             ServerUri = new Uri("http://ignored"),
@@ -70,13 +69,12 @@ public class BindingJsonModelConverterTests
         boundServerProject.ServerConnection.Should().BeSameAs(connection);
         boundServerProject.LocalBindingKey.Should().BeSameAs(localBindingKey);
         boundServerProject.ServerProjectKey.Should().BeSameAs(bindingModel.ProjectKey);
-        boundServerProject.Profiles.Should().BeSameAs(bindingModel.Profiles);
     }
 
     [TestMethod]
     public void ConvertToModel_SonarCloudConnection_ConvertsCorrectly()
     {
-        var boundServerProject = new BoundServerProject("localBinding", "serverProject", new ServerConnection.SonarCloud("myorg")) { Profiles = new Dictionary<Language, ApplicableQualityProfile>() };
+        var boundServerProject = new BoundServerProject("localBinding", "serverProject", new ServerConnection.SonarCloud("myorg"));
 
         var bindingModel = testSubject.ConvertToModel(boundServerProject);
 
@@ -85,16 +83,12 @@ public class BindingJsonModelConverterTests
         bindingModel.ServerUri.Should().BeEquivalentTo(boundServerProject.ServerConnection.ServerUri);
         bindingModel.Organization.Key.Should().BeSameAs(((ServerConnection.SonarCloud)boundServerProject.ServerConnection).OrganizationKey);
         bindingModel.ServerConnectionId.Should().BeSameAs(boundServerProject.ServerConnection.Id);
-        bindingModel.Profiles.Should().BeSameAs(boundServerProject.Profiles);
     }
 
     [TestMethod]
     public void ConvertToModel_SonarQubeConnection_ConvertsCorrectly()
     {
-        var boundServerProject = new BoundServerProject("localBinding", "serverProject", new ServerConnection.SonarQube(new Uri("http://mysq")))
-        {
-            Profiles = new Dictionary<Language, ApplicableQualityProfile>()
-        };
+        var boundServerProject = new BoundServerProject("localBinding", "serverProject", new ServerConnection.SonarQube(new Uri("http://mysq")));
 
         var bindingModel = testSubject.ConvertToModel(boundServerProject);
 
@@ -103,7 +97,6 @@ public class BindingJsonModelConverterTests
         bindingModel.ServerUri.Should().BeEquivalentTo(boundServerProject.ServerConnection.ServerUri);
         bindingModel.Organization.Should().BeNull();
         bindingModel.ServerConnectionId.Should().BeSameAs(boundServerProject.ServerConnection.Id);
-        bindingModel.Profiles.Should().BeSameAs(boundServerProject.Profiles);
     }
 
     [TestMethod]
@@ -116,7 +109,6 @@ public class BindingJsonModelConverterTests
             ServerUri = new Uri("http://localhost"),
             ProjectKey = "project123",
             ProjectName = "project 123",
-            Profiles = new Dictionary<Language, ApplicableQualityProfile>(),
             ServerConnectionId = "ignored",
         };
 
@@ -126,7 +118,6 @@ public class BindingJsonModelConverterTests
         legacyBinding.ProjectName.Should().BeSameAs(bindingModel.ProjectName);
         legacyBinding.ServerUri.Should().BeSameAs(bindingModel.ServerUri);
         legacyBinding.Organization.Should().BeSameAs(bindingModel.Organization);
-        legacyBinding.Profiles.Should().BeSameAs(legacyBinding.Profiles);
         legacyBinding.Credentials.Should().BeSameAs(credentials);
     }
 }

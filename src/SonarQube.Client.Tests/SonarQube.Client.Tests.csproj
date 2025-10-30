@@ -13,10 +13,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.6.1" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Reference Include="System.Net.Http" />
   </ItemGroup>
 
@@ -25,9 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="TestResources\IssuesProtobufResponse">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <Folder Include="Requests\Api\" />
   </ItemGroup>
 
 </Project>

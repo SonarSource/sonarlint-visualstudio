@@ -58,7 +58,6 @@
     <None Remove="Notifications\NotificationIndicator.xaml" />
     <None Remove="Progress\ProgressControl.xaml" />
     <None Remove="Transition\MuteWindowDialog.xaml" />
-    <EmbeddedResource Include="CSharpVB\Install\SonarLintTargets.xml" />
     <Page Include="Notifications\NotificationIndicator.xaml" />
     <Page Include="Transition\MuteWindowDialog.xaml" />
   </ItemGroup>

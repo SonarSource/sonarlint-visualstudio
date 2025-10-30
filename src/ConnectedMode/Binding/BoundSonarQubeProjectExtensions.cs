@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         public static BoundServerProject FromBoundSonarQubeProject(this BoundSonarQubeProject boundProject, string localBindingKey, ServerConnection connection) =>
             new(localBindingKey ?? throw new ArgumentNullException(nameof(localBindingKey)),
                 boundProject?.ProjectKey ?? throw new ArgumentNullException(nameof(boundProject)),
-                connection ?? throw new ArgumentNullException(nameof(connection))) { Profiles = boundProject.Profiles };
+                connection ?? throw new ArgumentNullException(nameof(connection)));
 
         public static ConnectionInformation CreateConnectionInformation(this BoundSonarQubeProject binding)
         {

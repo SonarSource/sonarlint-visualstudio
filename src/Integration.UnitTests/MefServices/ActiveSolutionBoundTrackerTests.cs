@@ -45,7 +45,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private TestLogger testLogger;
         private ISonarQubeService sonarQubeServiceMock;
 
-        private IBoundSolutionGitMonitor gitEventsMonitor;
         private IConfigScopeUpdater configScopeUpdater;
         private IInitializationProcessorFactory initializationProcessorFactory;
         private MockableInitializationProcessor createdInitializationProcessor;
@@ -59,8 +58,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             configProvider = Substitute.ForPartsOf<ConfigurableConfigurationProvider>();
             activeSolutionTracker = Substitute.ForPartsOf<ConfigurableActiveSolutionTracker>();
-            gitEventsMonitor = Substitute.For<IBoundSolutionGitMonitor>();
-            initializationDependencies = [activeSolutionTracker, gitEventsMonitor];
+            initializationDependencies = [activeSolutionTracker];
             testLogger = new TestLogger();
             vsMonitorMock = Substitute.For<IVsMonitorSelection>();
             vsMonitorMock.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out Arg.Any<uint>())
@@ -86,7 +84,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
                 MefTestHelpers.CreateExport<IConfigScopeUpdater>(),
                 MefTestHelpers.CreateExport<ILogger>(),
-                MefTestHelpers.CreateExport<IBoundSolutionGitMonitor>(),
                 MefTestHelpers.CreateExport<IConfigurationProvider>(),
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
@@ -109,9 +106,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
                 vsMonitorMock.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out Arg.Any<uint>());
                 _ = sonarQubeServiceMock.IsConnected;
-                gitEventsMonitor.Refresh();
                 activeSolutionTracker.ActiveSolutionChanged += Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
-                gitEventsMonitor.HeadChanged += Arg.Any<EventHandler>();
                 createdInitializationProcessor.InitializeAsync();
             });
         }
@@ -134,9 +129,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 vsMonitorMock.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out Arg.Any<uint>());
                 _ = sonarQubeServiceMock.IsConnected;
                 sonarQubeServiceMock.ConnectAsync(Arg.Any<ConnectionInformation>(), Arg.Any<CancellationToken>());
-                gitEventsMonitor.Refresh();
                 activeSolutionTracker.ActiveSolutionChanged += Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
-                gitEventsMonitor.HeadChanged += Arg.Any<EventHandler>();
                 createdInitializationProcessor.InitializeAsync();
             });
         }
@@ -151,8 +144,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             activeSolutionTracker.DidNotReceive().ActiveSolutionChanged += Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
             activeSolutionTracker.DidNotReceive().ActiveSolutionChanged -= Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
-            gitEventsMonitor.DidNotReceive().HeadChanged += Arg.Any<EventHandler>();
-            gitEventsMonitor.DidNotReceive().HeadChanged -= Arg.Any<EventHandler>();
         }
 
         [TestMethod]
@@ -162,7 +153,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.Dispose();
 
             activeSolutionTracker.Received().ActiveSolutionChanged -= Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
-            gitEventsMonitor.Received().HeadChanged -= Arg.Any<EventHandler>();
         }
 
         [TestMethod]
@@ -207,7 +197,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             ConfigureSolutionBinding(boundSonarQubeProject);
             testSubject.HandleBindingChange();
-            gitEventsMonitor.HeadChanged += Raise.Event();
 
             // state is unmodified and events are not raised until initialized
             bindingChangedHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
@@ -225,34 +214,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             bindingChangedHandler.ReceivedWithAnyArgs().Invoke(default, default);
             configScopeUpdater.ReceivedWithAnyArgs().UpdateConfigScopeForCurrentSolution(default);
             testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone);
-        }
-
-        [TestMethod]
-        public void ActiveSolutionBoundTracker_GitHeadChanged_EventsAreNotTriggeredBeforeInitializationIsComplete()
-        {
-            ConfigureService(false);
-            ConfigureSolutionBinding(boundSonarQubeProject);
-            using var testSubject = CreateUninitializedTestSubject(out var barrier);
-            var bindingUpdatedEventHandler = Substitute.For<EventHandler>();
-            testSubject.SolutionBindingUpdated += bindingUpdatedEventHandler;
-
-            testSubject.HandleBindingChange();
-            activeSolutionTracker.SimulateActiveSolutionChanged(false, null);
-            activeSolutionTracker.SimulateActiveSolutionChanged(true, "name");
-            gitEventsMonitor.HeadChanged += Raise.Event();
-
-            // state is unmodified and events are not raised until initialized
-            bindingUpdatedEventHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
-            configProvider.DidNotReceiveWithAnyArgs().GetConfiguration();
-            testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone);
-
-            barrier.SetResult(1);
-            testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
-
-            // switch to connected mode to test binding updated event
-            testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Connected);
-            gitEventsMonitor.HeadChanged += Raise.Event();
-            bindingUpdatedEventHandler.ReceivedWithAnyArgs().Invoke(default, default);
         }
 
         [TestMethod]
@@ -593,61 +554,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             eventCounter.SolutionBindingChangedCount.Should().Be(1);
         }
 
-        [TestMethod]
-        public void GitRepoUpdated_SolutionBindingUpdatedEventsRaised()
-        {
-            // Arrange
-            ConfigureService(false);
-            ConfigureSolutionBinding(new BoundServerProject("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://foo"))));
-            using var testSubject = CreateAndInitializeTestSubject();
-            var eventCounter = new EventCounter(testSubject);
-
-            // Act
-            gitEventsMonitor.HeadChanged += Raise.Event();
-
-            // Assert
-            eventCounter.PreSolutionBindingUpdatedCount.Should().Be(1);
-            eventCounter.SolutionBindingUpdatedCount.Should().Be(1);
-            eventCounter.PreSolutionBindingChangedCount.Should().Be(0);
-            eventCounter.SolutionBindingChangedCount.Should().Be(0);
-
-            eventCounter.RaisedEventNames.Should().HaveCount(2);
-            eventCounter.RaisedEventNames[0].Should().Be(nameof(testSubject.PreSolutionBindingUpdated));
-            eventCounter.RaisedEventNames[1].Should().Be(nameof(testSubject.SolutionBindingUpdated));
-        }
-
-        [TestMethod]
-        public void GitRepoUpdated_UnBoundProject_SolutionBingingUpdatedNotInvoked()
-        {
-            // Arrange
-            using var testSubject = CreateAndInitializeTestSubject();
-            var eventCounter = new EventCounter(testSubject);
-
-            // Act
-            ConfigureSolutionBinding(null);
-            gitEventsMonitor.HeadChanged += Raise.Event();
-
-            // Assert
-            eventCounter.RaisedEventNames.Should().HaveCount(0);
-        }
-
-        [TestMethod]
-        public void ActiveSolutionChanged_GitEventsMonitorRefreshInvoked()
-        {
-            ConfigureService(true);
-            ConfigureSolutionBinding(new BoundServerProject("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://foo"))));
-
-            // Arrange
-            using var testSubject = CreateAndInitializeTestSubject();
-            gitEventsMonitor.ClearReceivedCalls(); // invoked during initialization
-
-            // Act
-            activeSolutionTracker.SimulateActiveSolutionChanged(true, "solution");
-
-            // Assert
-            gitEventsMonitor.Received(1).Refresh();
-        }
-
         private ActiveSolutionBoundTracker CreateUninitializedTestSubject(out TaskCompletionSource<byte> barrier)
         {
             var tcs = barrier = new();
@@ -656,7 +562,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 createdInitializationProcessor = processor;
                 MockableInitializationProcessor.ConfigureWithWait(processor, tcs);
             });
-            return new ActiveSolutionBoundTracker(serviceProvider, activeSolutionTracker, configScopeUpdater, testLogger, gitEventsMonitor, configProvider, sonarQubeServiceMock,
+            return new ActiveSolutionBoundTracker(serviceProvider, activeSolutionTracker, configScopeUpdater, testLogger, configProvider, sonarQubeServiceMock,
                 initializationProcessorFactory);
         }
 
@@ -664,7 +570,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             initializationProcessorFactory
                 = MockableInitializationProcessor.CreateFactory<ActiveSolutionBoundTracker>(threadHandling, new TestLogger(), processor => createdInitializationProcessor = processor);
-            var testSubject = new ActiveSolutionBoundTracker(serviceProvider, activeSolutionTracker, configScopeUpdater, testLogger, gitEventsMonitor, configProvider, sonarQubeServiceMock,
+            var testSubject = new ActiveSolutionBoundTracker(serviceProvider, activeSolutionTracker, configScopeUpdater, testLogger, configProvider, sonarQubeServiceMock,
                 initializationProcessorFactory);
             testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
             return testSubject;
@@ -731,18 +637,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 {
                     SolutionBindingChangedCount++;
                     raisedEventNames.Add(nameof(IActiveSolutionBoundTracker.SolutionBindingChanged));
-                };
-
-                tracker.PreSolutionBindingUpdated += (_, _) =>
-                {
-                    PreSolutionBindingUpdatedCount++;
-                    raisedEventNames.Add(nameof(IActiveSolutionBoundTracker.PreSolutionBindingUpdated));
-                };
-
-                tracker.SolutionBindingUpdated += (_, _) =>
-                {
-                    SolutionBindingUpdatedCount++;
-                    raisedEventNames.Add(nameof(IActiveSolutionBoundTracker.SolutionBindingUpdated));
                 };
             }
         }

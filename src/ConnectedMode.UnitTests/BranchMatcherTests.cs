@@ -18,17 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using LibGit2Sharp;
 using SonarLint.VisualStudio.ConnectedMode.UnitTests.LibGit2SharpWrappers;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.SLCore.Listener.Branch;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarQube.Client;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 {
@@ -39,7 +33,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<BranchMatcher, IBranchMatcher>(
-                MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
@@ -47,26 +40,26 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         [DataRow("branch")]
         [DataRow("Branch")]
         [TestMethod]
-        public async Task GetMatchingBranch_ChooseBranchWithSameName(string serverBranchName)
+        public void GetMatchingBranch_ChooseBranchWithSameName(string serverBranchName)
         {
-            var service = CreateSonarQubeService("master", serverBranchName).Object;
+            var remoteBranches = CreateRemoteBranches("master", serverBranchName);
 
             var masterBranch = CreateBranch("master");
             var headBranch = CreateBranch("branch");
 
             var repo = CreateRepo(headBranch, masterBranch);
 
-            var testSubject = CreateTestSubject(service);
+            var testSubject = CreateTestSubject();
 
-            var result = await testSubject.GetMatchingBranch("projectKey", repo, CancellationToken.None);
+            var result = testSubject.GetMatchingBranch("projectKey", repo, remoteBranches);
 
             result.Should().Be("branch");
         }
 
         [TestMethod]
-        public async Task GetMatchingBranch_NoBranchWithSameName_ChooseClosestMatch()
+        public void GetMatchingBranch_NoBranchWithSameName_ChooseClosestMatch()
         {
-            var service = CreateSonarQubeService("master", "dev").Object;
+            var remoteBranches = CreateRemoteBranches("master", "dev");
 
             var masterCommit = new CommitWrapper(1);
             var devBranchCommit = new CommitWrapper(2);
@@ -78,17 +71,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var repo = CreateRepo(headBranch, masterBranch, devBranch);
 
-            var testSubject = CreateTestSubject(service);
+            var testSubject = CreateTestSubject();
 
-            var result = await testSubject.GetMatchingBranch("projectKey", repo, CancellationToken.None);
+            var result = testSubject.GetMatchingBranch("projectKey", repo, remoteBranches);
 
             result.Should().Be("dev");
         }
 
         [TestMethod]
-        public async Task GetMatchingBranch_ShorterPathFoundBefore_EarlyOut()
+        public void GetMatchingBranch_ShorterPathFoundBefore_EarlyOut()
         {
-            var service = CreateSonarQubeService("master", "serverbranch").Object;
+            var remoteBranches = CreateRemoteBranches("master", "serverbranch");
 
             var masterCommit0 = new CommitWrapper(10);
             var masterCommit1 = new CommitWrapper(11);
@@ -106,9 +99,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var repo = CreateRepo(localBranch, serverBranch, masterBranch);
 
-            var testSubject = CreateTestSubject(service);
+            var testSubject = CreateTestSubject();
 
-            var result = await testSubject.GetMatchingBranch("projectKey", repo, CancellationToken.None);
+            var result = testSubject.GetMatchingBranch("projectKey", repo, remoteBranches);
 
             result.Should().Be("serverbranch");
 
@@ -117,7 +110,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             // * 7 = localbranchCommit2 -> serverBranchCommit3, serverBranchCommit2, serverBranchCommit1, masterCommit3, masterCommit2, masterCommit1, masterCommit0
             // * 7 = localbranchCommit1 -> serverBranchCommit3, serverBranchCommit2, serverBranchCommit1, masterCommit3, masterCommit2, masterCommit1, masterCommit0
             // * 1 = serverBranchCommit3 -> serverBranchCommit3
-            // Total = 7 + 7 + 1 = 13, and closestMatch = 2
+            // Total = 7 + 7 + 1 = 15, and closestMatch = 2
             ((CommitLogWrapperWithEnumerationCount)serverBranch.Commits).EnumerateCount.Should().Be(15);
 
             // ClosestDistance is now 2 so any tries passes those should fail
@@ -128,9 +121,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         }
 
         [TestMethod]
-        public async Task GetMatchingBranch_ClosestBranchNotOnTheServer_IgnoreClosest()
+        public void GetMatchingBranch_ClosestBranchNotOnTheServer_IgnoreClosest()
         {
-            var service = CreateSonarQubeService("master", "dev").Object;
+            var remoteBranches = CreateRemoteBranches("master", "dev");
 
             var masterCommit = new CommitWrapper(1);
             var devBranchCommit = new CommitWrapper(2);
@@ -144,9 +137,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var repo = CreateRepo(headBranch, closestBranch, masterBranch, devBranch);
 
-            var testSubject = CreateTestSubject(service);
+            var testSubject = CreateTestSubject();
 
-            var result = await testSubject.GetMatchingBranch("projectKey", repo, CancellationToken.None);
+            var result = testSubject.GetMatchingBranch("projectKey", repo, remoteBranches);
 
             result.Should().Be("dev");
         }
@@ -185,9 +178,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
          */
 
         [TestMethod]
-        public async Task GetMatchingBranch_MultipleCandidate_ChooseClosestMatch()
+        public void GetMatchingBranch_MultipleCandidate_ChooseClosestMatch()
         {
-            var service = CreateSonarQubeService("master", "Branch1", "Branch2").Object;
+            var remoteBranches = CreateRemoteBranches("master", "Branch1", "Branch2");
 
             var commit1 = new CommitWrapper(1);
             var commit2 = new CommitWrapper(2);
@@ -207,17 +200,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var repo = CreateRepo(headBranch: branch3, masterBranch, branch1, branch2);
 
-            var testSubject = CreateTestSubject(service);
+            var testSubject = CreateTestSubject();
 
-            var result = await testSubject.GetMatchingBranch("projectKey", repo, CancellationToken.None);
+            var result = testSubject.GetMatchingBranch("projectKey", repo, remoteBranches);
 
             result.Should().Be("branch2");
         }
 
         [TestMethod]
-        public async Task GetMatchingBranch_NoMatchingBranch_ChooseMain()
+        public void GetMatchingBranch_NoMatchingBranch_ChooseMain()
         {
-            var service = CreateSonarQubeService("premier", "branch1", "branch2").Object;
+            var remoteBranches = CreateRemoteBranches("premier", "branch1", "branch2");
 
             var masterCommit = new CommitWrapper(1);
             var branch1Commit = new CommitWrapper(2);
@@ -231,17 +224,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var repo = CreateRepo(headBranch, masterBranch, branch1, branch2);
 
-            var testSubject = CreateTestSubject(service);
+            var testSubject = CreateTestSubject();
 
-            var result = await testSubject.GetMatchingBranch("projectKey", repo, CancellationToken.None);
+            var result = testSubject.GetMatchingBranch("projectKey", repo, remoteBranches);
 
             result.Should().Be("premier");
         }
 
         [TestMethod]
-        public async Task GetMatchingBranch_MultipleMatchingBranchesWithMain_ChooseMain()
+        public void GetMatchingBranch_MultipleMatchingBranchesWithMain_ChooseMain()
         {
-            var service = CreateSonarQubeService("master", "branch1", "branch2").Object;
+            var remoteBranches = CreateRemoteBranches("master", "branch1", "branch2");
 
             var commit1 = new CommitWrapper(1);
             var commit2 = new CommitWrapper(2);
@@ -256,17 +249,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var repo = CreateRepo(branch3, branch1, branch2, masterBranch);
 
-            var testSubject = CreateTestSubject(service);
+            var testSubject = CreateTestSubject();
 
-            var result = await testSubject.GetMatchingBranch("projectKey", repo, CancellationToken.None);
+            var result = testSubject.GetMatchingBranch("projectKey", repo, remoteBranches);
 
             result.Should().Be("master");
         }
 
         [TestMethod]
-        public async Task GetMatchingBranch_HasShortLivedBranches_IgnoreShortLivedBranch()
+        public void GetMatchingBranch_HasShortLivedBranches_BranchTypeIsIgnored()
         {
-            var service = CreateSonarQubeServiceWithTypes("master", ("branch1", "LONG"), ("branch2", "SHORT")).Object;
+            // Note: the new RemoteBranch doesn't have a branch type, so we're testing that the algorithm
+            // works correctly without considering branch types
+            var remoteBranches = new List<RemoteBranch>
+            {
+                new RemoteBranch("master", true),
+                new RemoteBranch("branch1", false),
+                new RemoteBranch("branch2", false)
+            };
 
             var commit1 = new CommitWrapper(1);
             var commit2 = new CommitWrapper(2);
@@ -280,39 +280,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var repo = CreateRepo(branch3, masterBranch, branch1, branch2);
 
-            var testSubject = CreateTestSubject(service);
+            var testSubject = CreateTestSubject();
 
-            var result = await testSubject.GetMatchingBranch("projectKey", repo, CancellationToken.None);
+            var result = testSubject.GetMatchingBranch("projectKey", repo, remoteBranches);
 
-            result.Should().Be("branch1");
+            result.Should().Be("branch2");
         }
 
         [TestMethod]
-        public async Task GetMatchingBranch_RepoHasNoHead_ReturnsNull()
+        public void GetMatchingBranch_RepoHasNoHead_ReturnsNull()
         {
-            var testSubject = CreateTestSubject(CreateSonarQubeService("any").Object);
+            var testSubject = CreateTestSubject();
 
-            var result = await testSubject.GetMatchingBranch("projectKey", Mock.Of<IRepository>(), CancellationToken.None);
+            var result = testSubject.GetMatchingBranch("projectKey", Mock.Of<IRepository>(), new List<RemoteBranch> { new RemoteBranch("any", true) });
 
             result.Should().BeNull();
-        }
-
-        [TestMethod]
-        public async Task GetMatchingBranch_CancellationToken_IsPropagatedToWebClient()
-        {
-            var service = CreateSonarQubeService("any");
-
-            var commit = new CommitWrapper(1);
-            var branch = CreateBranch("premier", commit);
-            var repo = CreateRepo(branch);
-
-            var source = new CancellationTokenSource();
-
-            var testSubject = CreateTestSubject(service.Object);
-
-            _ = await testSubject.GetMatchingBranch("projectKey", repo, source.Token);
-
-            service.Verify(x => x.GetProjectBranchesAsync("projectKey", source.Token), Times.Once);
         }
 
         private static IRepository CreateRepo(Branch headBranch, params Branch[] branches)
@@ -339,33 +321,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         private static BranchWrapper CreateBranchWithEnumerationCount(string branchName, params CommitWrapper[] commits)
             => new(branchName, new CommitLogWrapperWithEnumerationCount(commits));
 
-        private static Mock<ISonarQubeService> CreateSonarQubeService(string mainBranch, params string[] branches)
+        private static List<RemoteBranch> CreateRemoteBranches(string mainBranch, params string[] branches)
         {
-            var branchesWithType = branches.Select(b => (b, "BRANCH")).ToArray();
-
-            return CreateSonarQubeServiceWithTypes(mainBranch, branchesWithType);
-        }
-
-        private static Mock<ISonarQubeService> CreateSonarQubeServiceWithTypes(string mainBranch, params (string branchName, string type)[] branches)
-        {
-            var service = new Mock<ISonarQubeService>();
-            service.Setup(x => x.IsConnected).Returns(true);
-
-            IList<SonarQubeProjectBranch> remoteBranches = new List<SonarQubeProjectBranch>();
+            var result = new List<RemoteBranch>();
 
             foreach (var branch in branches)
             {
-                remoteBranches.Add(new SonarQubeProjectBranch(branch.branchName, false, DateTime.Now, branch.type));
+                result.Add(new RemoteBranch(branch, false));
             }
 
-            remoteBranches.Add(new SonarQubeProjectBranch(mainBranch, true, DateTime.Now, "BRANCH"));
+            result.Add(new RemoteBranch(mainBranch, true));
 
-            service.Setup(s => s.GetProjectBranchesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(remoteBranches));
-
-            return service;
+            return result;
         }
 
-        private static BranchMatcher CreateTestSubject(ISonarQubeService sonarQubeService)
-            => new BranchMatcher(sonarQubeService, new TestLogger(logToConsole: true));
+        private static BranchMatcher CreateTestSubject()
+            => new BranchMatcher(new TestLogger(logToConsole: true));
     }
 }
