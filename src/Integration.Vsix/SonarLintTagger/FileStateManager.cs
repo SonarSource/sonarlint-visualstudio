@@ -20,7 +20,6 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.Core;
 using Document = SonarLint.VisualStudio.Core.Document;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
@@ -51,13 +50,10 @@ internal interface IAnalysisStateProvider
 [Export(typeof(IFileStateManager))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class FileStateManager(
-    ILiveAnalysisStateFactory liveAnalysisStateFactory,
-    ILogger logger) : IFileStateManager, IAnalysisStateProvider
+internal class FileStateManager(ILiveAnalysisStateFactory liveAnalysisStateFactory) : IFileStateManager, IAnalysisStateProvider
 {
     private readonly object locker = new();
     private ImmutableDictionary<IFileState, ILiveAnalysisState> states = ImmutableDictionary<IFileState, ILiveAnalysisState>.Empty;
-    private readonly ILogger logger = logger;
 
     public Document[] GetOpenDocuments()
     {
@@ -86,17 +82,12 @@ internal class FileStateManager(
         }
     }
 
-    public void Opened(IFileState file)
-    {
-        lock (locker)
-        {
-            var state = CreateAnalysisState(file);
-            state.HandleLiveAnalysisEvent(false);
-        }
-    }
+    public void Opened(IFileState file) =>
+        HandleFileUpdate(file, false);
 
     private ILiveAnalysisState CreateAnalysisState(IFileState file)
     {
+
         var state = liveAnalysisStateFactory.Create(file);
         states = states.Add(file, state);
         return state;
@@ -121,7 +112,7 @@ internal class FileStateManager(
 
     public void ContentChanged(IFileState file) => HandleFileUpdate(file);
 
-    private void HandleFileUpdate(IFileState file)
+    private void HandleFileUpdate(IFileState file, bool performLinkedAnalysis = true)
     {
         lock (locker)
         {
@@ -129,7 +120,7 @@ internal class FileStateManager(
             {
                 state = CreateAnalysisState(file);
             }
-            state.HandleLiveAnalysisEvent(true);
+            state.HandleLiveAnalysisEvent(performLinkedAnalysis);
         }
     }
 }
