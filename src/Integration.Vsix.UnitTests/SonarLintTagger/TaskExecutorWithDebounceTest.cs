@@ -91,6 +91,25 @@ public class TaskExecutorWithDebounceTest
     }
 
     [TestMethod]
+    public void Debounce_CancelsPreviousActionWhenExecuting()
+    {
+        var token = CancellationToken.None;
+        void CaptureCancellation(CancellationToken ct) => token = ct;
+
+        var mockAction = Substitute.For<Action<CancellationToken>>();
+
+        testSubject.Debounce(CaptureCancellation, debounceInterval);
+        timer.Elapsed += Raise.Event();
+        testSubject.Debounce(mockAction, debounceInterval);
+
+        token.IsCancellationRequested.Should().BeFalse();
+        timer.Elapsed += Raise.Event();
+        token.IsCancellationRequested.Should().BeTrue();
+
+        mockAction.Received().Invoke(Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
     public void Debounce_MultipleTriggers_ActionOnlyExecutedOnce()
     {
         var action = Substitute.For<Action<CancellationToken>>();
