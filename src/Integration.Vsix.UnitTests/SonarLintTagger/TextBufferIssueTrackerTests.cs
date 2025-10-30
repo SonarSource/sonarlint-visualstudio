@@ -67,6 +67,7 @@ public class TextBufferIssueTrackerTests
         issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
         issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
         issueConsumer = Substitute.For<IIssueConsumer>();
+        logger =  new TestLogger();
         taggerProvider = CreateTaggerProvider();
         mockTextSnapshot = CreateTextSnapshotMock();
         mockDocumentTextBuffer = CreateTextBufferMock(mockTextSnapshot);
