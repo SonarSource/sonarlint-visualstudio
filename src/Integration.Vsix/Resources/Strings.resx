@@ -425,4 +425,7 @@ E.g. C:\Program Files\Java\jdk-17</value>
   <data name="AddAnalysisPropertyDialog_EmptyErrorMessage" xml:space="preserve">
     <value>All fields must be filled.</value>
   </data>
+  <data name="SLVSVersionLog" xml:space="preserve">
+    <value>SonarQube for VisualStudio version: {0}</value>
+  </data>
 </root>

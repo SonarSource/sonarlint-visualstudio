@@ -19,6 +19,7 @@
  */
 
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
@@ -99,6 +100,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 logger = await this.GetMefServiceAsync<ILogger>();
                 logger.WriteLine(Strings.Daemon_Initializing);
+                LogProductVersion();
 
                 // This migration should be performed before initializing other services, independent if a solution or a folder is opened.
                 await MigrateBindingsToServerConnectionsIfNeededAsync();
@@ -140,6 +142,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             var bindingToConnectionMigration = await this.GetMefServiceAsync<IBindingToConnectionMigration>();
             await bindingToConnectionMigration.MigrateAllBindingsToServerConnectionsIfNeededAsync();
+        }
+
+        private void LogProductVersion()
+        {
+            try
+            {
+                logger.WriteLine(Strings.SLVSVersionLog,
+                    typeof(SonarLintIntegrationPackage).GetCustomAttribute<InstalledProductRegistrationAttribute>()?.ProductId);
+            }
+            catch
+            {
+                // do nothing
+            }
         }
 
         protected override void Dispose(bool disposing)
