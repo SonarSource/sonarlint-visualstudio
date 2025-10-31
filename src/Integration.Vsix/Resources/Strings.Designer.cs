@@ -710,6 +710,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarQube for VisualStudio version: {0}.
+        /// </summary>
+        public static string SLVSVersionLog {
+            get {
+                return ResourceManager.GetString("SLVSVersionLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Apply.
         /// </summary>
         public static string SolutionSettingsDialog_ApplyButton {
