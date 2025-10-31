@@ -230,33 +230,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
             result.First().Should().Be(AnalysisLanguage.Javascript);
         }
 
-        [DataRow("cs", AnalysisLanguage.RoslynFamily)]
-        [DataRow("vb", AnalysisLanguage.RoslynFamily)]
-        [DataRow("js", AnalysisLanguage.Javascript)]
-        [DataRow("ts", AnalysisLanguage.TypeScript)]
-        [DataRow("cpp", AnalysisLanguage.CFamily)]
-        [DataRow("css", AnalysisLanguage.CascadingStyleSheets)]
-        [DataRow("scss", AnalysisLanguage.CascadingStyleSheets)]
-        [DataRow("less", AnalysisLanguage.CascadingStyleSheets)]
-        [TestMethod]
-        public void GetAnalysisLanguageFromExtension_ReturnsAnalysisLangFromExtension(string fileName, AnalysisLanguage expectedLanguage)
-        {
-            var actualLanguage = testSubject.GetAnalysisLanguageFromExtension(fileName);
-
-            actualLanguage.Should().NotBeNull();
-            actualLanguage.Value.Should().Be(expectedLanguage);
-        }
-
-        [DataRow("json")]
-        [DataRow("")]
-        [DataRow(null)]
-        public void GetAnalysisLanguageFromExtension_UnknownExtensionPassed_ReturnsNull(string fileName)
-        {
-            var actualLanguage = testSubject.GetAnalysisLanguageFromExtension(fileName);
-
-            actualLanguage.Should().BeNull();
-        }
-
         private void FileExtensionServiceSetup()
         {
             ContentTypesSetup();

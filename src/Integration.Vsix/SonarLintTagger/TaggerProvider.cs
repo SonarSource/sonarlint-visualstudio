@@ -19,9 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Globalization;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -32,12 +30,24 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
-using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 
 namespace SonarLint.VisualStudio.Integration.Vsix;
+
+internal interface IDocumentTrackerUpdater
+{
+    void OnDocumentOpened(IFileState fileState);
+
+    void OnOpenDocumentRenamed(IFileState fileState, string oldFilePath);
+
+    void OnDocumentSaved(IFileState fileState);
+
+    void OnDocumentUpdated(IFileState document);
+
+    void OnDocumentClosed(IFileState fileState);
+}
 
 /// <summary>
 ///     Factory for the <see cref="ITagger{T}" />. There will be one instance of this class/VS session.
@@ -51,37 +61,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix;
 [ContentType("text")]
 [TextViewRole(PredefinedTextViewRoles.Document)]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, IDocumentTracker, IDisposable
+internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, IDocumentTracker, IDocumentTrackerUpdater, IDisposable
 {
     internal static readonly Type SingletonManagerPropertyCollectionKey = typeof(SingletonDisposableTaggerManager<IErrorTag>);
     private readonly IAnalysisRequester analysisRequester;
-    private readonly IAnalyzer analyzer;
-    private readonly TimeSpan debounceMilliseconds = TimeSpan.FromMilliseconds(500);
-    private readonly IFileTracker fileTracker;
+    private readonly IFileStateManager fileStateManager;
     private readonly IIssueConsumerFactory issueConsumerFactory;
     private readonly IIssueConsumerStorage issueConsumerStorage;
 
-    private readonly ISet<IIssueTracker> issueTrackers = new HashSet<IIssueTracker>();
-
     private readonly ISonarLanguageRecognizer languageRecognizer;
     private readonly ILogger logger;
+    private readonly IThreadHandling threadHandling;
 
-    private readonly object reanalysisLockObject = new();
-
-    internal readonly ISonarErrorListDataSource sonarErrorDataSource;
+    private readonly ISonarErrorListDataSource sonarErrorDataSource;
     private readonly ITaggableBufferIndicator taggableBufferIndicator;
-    private readonly ITaskExecutorWithDebounceFactory taskExecutorWithDebounceFactory;
-    internal readonly ITextDocumentFactoryService textDocumentFactoryService;
+    private readonly ITextDocumentFactoryService textDocumentFactoryService;
     private readonly IVsProjectInfoProvider vsProjectInfoProvider;
 
     private bool disposed;
-    private Guid? lastAnalysisId;
-    private CancellableJobRunner reanalysisJob;
-    private StatusBarReanalysisProgressHandler reanalysisProgressHandler;
-    private IVsStatusbar vsStatusBar;
-    private readonly ITaskExecutorWithDebounce requestAnalysisDebounceExecutor;
-
-    internal IEnumerable<IIssueTracker> ActiveTrackersForTesting => issueTrackers;
 
     [ImportingConstructor]
     internal TaggerProvider(
@@ -94,11 +91,11 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
         IIssueConsumerFactory issueConsumerFactory,
         IIssueConsumerStorage issueConsumerStorage,
         ITaggableBufferIndicator taggableBufferIndicator,
-        IFileTracker fileTracker,
+        IFileStateManager fileStateManager,
         IAnalyzer analyzer,
         ILogger logger,
         IInitializationProcessorFactory initializationProcessorFactory,
-        ITaskExecutorWithDebounceFactory taskExecutorWithDebounceFactory)
+        IThreadHandling threadHandling)
     {
         this.sonarErrorDataSource = sonarErrorDataSource;
         this.textDocumentFactoryService = textDocumentFactoryService;
@@ -108,17 +105,14 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
         this.languageRecognizer = languageRecognizer;
         this.analysisRequester = analysisRequester;
         this.taggableBufferIndicator = taggableBufferIndicator;
-        this.fileTracker = fileTracker;
-        this.analyzer = analyzer;
+        this.fileStateManager = fileStateManager;
         this.logger = logger;
-        this.taskExecutorWithDebounceFactory = taskExecutorWithDebounceFactory;
-        requestAnalysisDebounceExecutor = taskExecutorWithDebounceFactory.Create(debounceMilliseconds);
+        this.threadHandling = threadHandling;
 
         InitializationProcessor = initializationProcessorFactory.CreateAndStart<TaggerProvider>(
             [],
-            threadHandling => threadHandling.RunOnUIThreadAsync(() =>
+            _ => threadHandling.RunOnUIThreadAsync(() =>
             {
-                vsStatusBar = serviceProvider.GetService(typeof(IVsStatusbar)) as IVsStatusbar;
                 analysisRequester.AnalysisRequested += OnAnalysisRequested;
             }));
     }
@@ -140,60 +134,9 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
 
     public IInitializationProcessor InitializationProcessor { get; }
 
-    private void OnAnalysisRequested(object sender, AnalysisRequestEventArgs args) =>
-        requestAnalysisDebounceExecutor.Debounce(() => RequestAnalysis(args));
-
-    private void RequestAnalysis(AnalysisRequestEventArgs args)
-    {
-        lock (reanalysisLockObject)
-        {
-            reanalysisJob?.Cancel();
-            reanalysisProgressHandler?.Dispose();
-            if (lastAnalysisId.HasValue)
-            {
-                analyzer.CancelAnalysis(lastAnalysisId.Value);
-            }
-
-            var filteredIssueTrackers = FilterIssuesTrackersByPath(issueTrackers, args.FilePaths).ToList();
-
-            var operations = filteredIssueTrackers
-                .Select<IIssueTracker, Action>(it => it.UpdateAnalysisState)
-                .ToList(); // create a fixed list - the user could close a file before the reanalysis completes which would cause the enumeration to change
-            var documentsToAnalyzeCount = operations.Count;
-            operations.Add(() => NotifyFileTracker(filteredIssueTrackers));
-            operations.Add(() => ExecuteAnalysisAsync(filteredIssueTrackers).Forget());
-
-            reanalysisProgressHandler = new StatusBarReanalysisProgressHandler(vsStatusBar, logger);
-
-            var message = string.Format(CultureInfo.CurrentCulture, Strings.JobRunner_JobDescription_ReaanalyzeDocs, documentsToAnalyzeCount);
-            reanalysisJob = CancellableJobRunner.Start(message, operations,
-                reanalysisProgressHandler, logger);
-        }
-    }
-
-    private async Task ExecuteAnalysisAsync(IEnumerable<IIssueTracker> filteredIssueTrackers) =>
-        lastAnalysisId = await analyzer.ExecuteAnalysis(filteredIssueTrackers.Select(x => x.LastAnalysisFilePath).ToList());
-
-    internal /* for testing */ static IEnumerable<IIssueTracker> FilterIssuesTrackersByPath(
-        IEnumerable<IIssueTracker> issueTrackers,
-        IEnumerable<string> filePaths)
-    {
-        if (filePaths == null || !filePaths.Any())
-        {
-            return issueTrackers;
-        }
-        return issueTrackers.Where(it => filePaths.Contains(it.LastAnalysisFilePath, StringComparer.OrdinalIgnoreCase));
-    }
-
-    private void NotifyFileTracker(string filePath, string content) => fileTracker.AddFiles(CreateSourceFile(filePath, content));
-
-    private void NotifyFileTracker(IEnumerable<IIssueTracker> filteredIssueTrackers)
-    {
-        var sourceFilesToUpdate = filteredIssueTrackers.Select(it => CreateSourceFile(it.LastAnalysisFilePath, it.GetText()));
-        fileTracker.AddFiles(sourceFilesToUpdate.ToArray());
-    }
-
-    private static SourceFile CreateSourceFile(string filePath, string content) => new(filePath, content: content);
+    private void OnAnalysisRequested(object sender, EventArgs args) =>
+        threadHandling.RunOnBackgroundThread(() => fileStateManager.AnalyzeAllOpenFiles())
+            .Forget();
 
     #region IViewTaggerProvider members
 
@@ -218,27 +161,24 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
             return null;
         }
 
-        var detectedLanguages = languageRecognizer.Detect(textDocument.FilePath, buffer.ContentType);
-
         // We only want one TBIT per buffer and we don't want it be disposed until
         // it is not being used by any tag aggregators, so we're wrapping it in a SingletonDisposableTaggerManager
         var singletonTaggerManager = buffer.Properties.GetOrCreateSingletonProperty(SingletonManagerPropertyCollectionKey,
-            () => new SingletonDisposableTaggerManager<IErrorTag>(_ => InternalCreateTextBufferIssueTracker(textDocument, detectedLanguages)));
+            () => new SingletonDisposableTaggerManager<IErrorTag>(_ => InternalCreateTextBufferIssueTracker(textDocument)));
 
         var tagger = singletonTaggerManager.CreateTagger(buffer);
         return tagger as ITagger<T>;
     }
 
-    private TextBufferIssueTracker InternalCreateTextBufferIssueTracker(ITextDocument textDocument, IEnumerable<AnalysisLanguage> analysisLanguages) =>
+    private TextBufferIssueTracker InternalCreateTextBufferIssueTracker(ITextDocument textDocument) =>
         new(
             this,
             textDocument,
-            analysisLanguages,
+            languageRecognizer,
             sonarErrorDataSource,
             vsProjectInfoProvider,
             issueConsumerFactory,
             issueConsumerStorage,
-            taskExecutorWithDebounceFactory.Create(debounceMilliseconds),
             logger);
 
     #endregion IViewTaggerProvider members
@@ -248,58 +188,46 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
     public event EventHandler<DocumentEventArgs> DocumentClosed;
     public event EventHandler<DocumentEventArgs> DocumentOpened;
     public event EventHandler<DocumentEventArgs> DocumentSaved;
-    public event EventHandler<DocumentEventArgs> DocumentUpdated;
     public event EventHandler<DocumentRenamedEventArgs> OpenDocumentRenamed;
 
-    public Document[] GetOpenDocuments()
-    {
-        lock (issueTrackers)
+    public Document[] GetOpenDocuments() => fileStateManager.GetOpenDocuments();
+
+    public void OnDocumentOpened(IFileState fileState) =>
+        threadHandling.RunOnBackgroundThread(() =>
         {
-            return issueTrackers.Select(it => new Document(it.LastAnalysisFilePath, it.DetectedLanguages)).ToArray();
-        }
-    }
+            fileStateManager.Opened(fileState);
+            // The lifetime of an issue tracker is tied to a single document. A document is opened, then a tracker is created.
+            DocumentOpened?.Invoke(this, new DocumentEventArgs(new Document(fileState.FilePath, fileState.DetectedLanguages)));
+        }).Forget();
 
-    public void AddIssueTracker(IIssueTracker issueTracker)
-    {
-        lock (issueTrackers)
+    public void OnOpenDocumentRenamed(IFileState fileState, string oldFilePath) =>
+        threadHandling.RunOnBackgroundThread(() =>
         {
-            issueTrackers.Add(issueTracker);
-        }
+            fileStateManager.Renamed(fileState);
+            OpenDocumentRenamed?.Invoke(this, new DocumentRenamedEventArgs(new Document(fileState.FilePath, fileState.DetectedLanguages), oldFilePath));
+        }).Forget();
 
-        var filePath = issueTracker.LastAnalysisFilePath;
-        var content = issueTracker.GetText();
-
-        NotifyFileTracker(filePath, content);
-        // The lifetime of an issue tracker is tied to a single document. A document is opened, then a tracker is created.
-        DocumentOpened?.Invoke(this, new DocumentEventArgs(new Document(filePath, issueTracker.DetectedLanguages), content));
-    }
-
-    public void OnOpenDocumentRenamed(string newFilePath, string oldFilePath, IEnumerable<AnalysisLanguage> detectedLanguages) =>
-        OpenDocumentRenamed?.Invoke(this, new DocumentRenamedEventArgs(new Document(newFilePath, detectedLanguages), oldFilePath));
-
-    public void OnDocumentSaved(string fullPath, string newContent, IEnumerable<AnalysisLanguage> detectedLanguages)
-    {
-        NotifyFileTracker(fullPath, newContent);
-        DocumentSaved?.Invoke(this, new DocumentEventArgs(new Document(fullPath, detectedLanguages), newContent));
-    }
-
-    public void OnDocumentUpdated(string fullPath, string newContent, IEnumerable<AnalysisLanguage> detectedLanguages)
-    {
-        NotifyFileTracker(fullPath, newContent);
-        DocumentUpdated?.Invoke(this, new DocumentEventArgs(new Document(fullPath, detectedLanguages), newContent));
-    }
-
-    public void OnDocumentClosed(IIssueTracker issueTracker)
-    {
-        lock (issueTrackers)
+    public void OnDocumentSaved(IFileState fileState) =>
+        threadHandling.RunOnBackgroundThread(() =>
         {
-            issueTrackers.Remove(issueTracker);
-        }
+            fileStateManager.ContentSaved(fileState);
+            DocumentSaved?.Invoke(this, new DocumentEventArgs(new Document(fileState.FilePath, fileState.DetectedLanguages)));
+        }).Forget();
 
-        // The lifetime of an issue tracker is tied to a single document. A tracker is removed when
-        // it is no longer needed i.e. the document has been closed.
-        DocumentClosed?.Invoke(this, new DocumentEventArgs(new Document(issueTracker.LastAnalysisFilePath, issueTracker.DetectedLanguages)));
-    }
+    public void OnDocumentUpdated(IFileState document) =>
+        threadHandling.RunOnBackgroundThread(() =>
+        {
+            fileStateManager.ContentChanged(document);
+        }).Forget();
+
+    public void OnDocumentClosed(IFileState fileState) =>
+        threadHandling.RunOnBackgroundThread(() =>
+        {
+            fileStateManager.Closed(fileState);
+            // The lifetime of an issue tracker is tied to a single document. A tracker is removed when
+            // it is no longer needed i.e. the document has been closed.
+            DocumentClosed?.Invoke(this, new DocumentEventArgs(new Document(fileState.FilePath, fileState.DetectedLanguages)));
+        }).Forget();
 
     #endregion IDocumentTracker methods
 }

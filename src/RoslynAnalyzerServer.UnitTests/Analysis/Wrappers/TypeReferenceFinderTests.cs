@@ -18,28 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-internal interface IResettableOneShotTimer : IDisposable
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis.Wrappers;
+
+[TestClass]
+public class TypeReferenceFinderTests
 {
-    void Reset(TimeSpan duration);
-    event EventHandler Elapsed;
-}
+    [TestMethod]
+    public void MefCtor_CheckIsExported() => MefTestHelpers.CheckTypeCanBeImported<TypeReferenceFinder, ITypeReferenceFinder>();
 
-internal sealed class ResettableOneShotTimer : IResettableOneShotTimer
-{
-    private readonly Timer timer;
-
-    public ResettableOneShotTimer()
-    {
-        timer = new Timer(TimerAction, null, Timeout.Infinite, Timeout.Infinite);
-    }
-
-    private void TimerAction(object state) => Elapsed?.Invoke(this, EventArgs.Empty);
-
-    public void Reset(TimeSpan duration) => timer.Change((long)duration.TotalMilliseconds, Timeout.Infinite);
-
-    public event EventHandler Elapsed;
-
-    public void Dispose() => timer?.Dispose();
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<TypeReferenceFinder>();
 }

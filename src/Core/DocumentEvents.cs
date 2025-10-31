@@ -22,10 +22,9 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Core;
 
-public class DocumentEventArgs(Document document, string content = null) : EventArgs
+public class DocumentEventArgs(Document document) : EventArgs
 {
     public Document Document { get; } = document;
-    public string Content { get; } = content;
 }
 
 public class DocumentRenamedEventArgs(Document document, string oldFilePath) : DocumentEventArgs(document)
@@ -47,7 +46,6 @@ public interface IDocumentTracker
     event EventHandler<DocumentEventArgs> DocumentClosed;
     event EventHandler<DocumentEventArgs> DocumentOpened;
     event EventHandler<DocumentEventArgs> DocumentSaved;
-    event EventHandler<DocumentEventArgs> DocumentUpdated;
     /// <summary>
     /// Raised when an opened document is renamed
     /// </summary>

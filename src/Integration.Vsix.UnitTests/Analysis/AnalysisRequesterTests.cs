@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var logger = new TestLogger();
             var testSubject = new AnalysisRequester(logger);
 
-            testSubject.RequestAnalysis();
+            testSubject.QueueAnalyzeOpenFiles();
 
             logger.AssertNoOutputMessages();
         }
@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             bool eventRaised = false;
             object actualSender = null;
-            AnalysisRequestEventArgs actualEventArgs = null;
+            EventArgs actualEventArgs = null;
 
             testSubject.AnalysisRequested += (s, args) =>
             {
@@ -57,13 +57,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             };
 
             // Act
-            testSubject.RequestAnalysis("file1", "c:\\aaa\\bbb.cs");
+            testSubject.QueueAnalyzeOpenFiles();
 
             // Assert
             eventRaised.Should().BeTrue();
             actualSender.Should().Be(testSubject);
             actualEventArgs.Should().NotBeNull();
-            actualEventArgs.FilePaths.Should().BeEquivalentTo("file1", "c:\\aaa\\bbb.cs");
         }
 
         [TestMethod]
@@ -75,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             testSubject.AnalysisRequested += (s, e) => throw new ArgumentException("XXX yyy");
 
             // Act
-            testSubject.RequestAnalysis();
+            testSubject.QueueAnalyzeOpenFiles();
 
             // Assert
             logger.AssertPartialOutputStringExists("XXX yyy");
@@ -89,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             testSubject.AnalysisRequested += (s, e) => throw new StackOverflowException("XXX overflow");
 
-            Action act = () => testSubject.RequestAnalysis();
+            Action act = () => testSubject.QueueAnalyzeOpenFiles();
 
             // Act
             act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("XXX overflow");

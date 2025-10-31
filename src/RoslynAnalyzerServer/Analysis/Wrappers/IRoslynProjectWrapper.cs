@@ -32,7 +32,7 @@ internal interface IRoslynProjectWrapper
 
     bool ContainsDocument(
         string filePath,
-        [NotNullWhen(true)]out string? analysisFilePath);
+        [NotNullWhen(true)]out IRoslynDocumentWrapper? document);
 
     Task<IRoslynCompilationWrapper> GetCompilationAsync(CancellationToken token);
 }

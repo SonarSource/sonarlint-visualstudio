@@ -69,13 +69,13 @@ internal class RoslynSolutionAnalysisCommandProvider(
 
         foreach (var filePath in filePaths)
         {
-            if (!project.ContainsDocument(filePath, out var analysisFilePath))
+            if (!project.ContainsDocument(filePath, out var document))
             {
                 continue;
             }
 
-            commands.Add(new RoslynFileSyntaxAnalysis(analysisFilePath, logger));
-            commands.Add(new RoslynFileSemanticAnalysis(analysisFilePath, logger));
+            commands.Add(new RoslynFileSyntaxAnalysis(document.FilePath!, logger));
+            commands.Add(new RoslynFileSemanticAnalysis(document.FilePath!, logger));
         }
         return commands;
     }

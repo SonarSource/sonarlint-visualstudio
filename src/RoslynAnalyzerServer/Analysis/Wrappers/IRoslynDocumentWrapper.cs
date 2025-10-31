@@ -24,5 +24,6 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 internal interface IRoslynDocumentWrapper
 {
+    string? FilePath { get; }
     Document RoslynDocument { get; }
 }

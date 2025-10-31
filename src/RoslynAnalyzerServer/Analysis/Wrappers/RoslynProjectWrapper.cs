@@ -36,15 +36,22 @@ internal class RoslynProjectWrapper(Project project, IRoslynSolutionWrapper solu
 
     public bool ContainsDocument(
         string filePath,
-        [NotNullWhen(true)] out string? analysisFilePath)
+        [NotNullWhen(true)] out IRoslynDocumentWrapper? document)
     {
-        analysisFilePath = project.Documents
-            .Select(document => document.FilePath)
+        var doc = project.Documents
             .Where(path => path != null)
             .FirstOrDefault(candidatePath =>
-                candidatePath!.Equals(filePath) || IsAssociatedGeneratedFile(filePath, candidatePath));
+                candidatePath.FilePath!.Equals(filePath) || IsAssociatedGeneratedFile(filePath, candidatePath.FilePath));
 
-        return analysisFilePath != null;
+        if (doc != null)
+        {
+            document = new RoslynDocumentWrapper(doc);
+            return true;
+        }
+
+        document = null;
+        return false;
+
     }
 
     // cshtml razor files are converted into .\file.cshtml.<random chars>.g.cs OR .\file.vbhtml.<random chars>.g.vb files when included in the compilation

@@ -18,11 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core.Analysis;
 
@@ -31,13 +28,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
     public interface ISonarLanguageRecognizer
     {
         IEnumerable<AnalysisLanguage> Detect(string filePath, IContentType bufferContentType);
-
-        /// <summary>
-        /// Returns Language associated with the extension
-        /// </summary>
-        /// <param name="fileExtension">file extension in lower case without "."</param>
-        /// <returns>AnalysisLanguage or null if not recognized</returns>
-        AnalysisLanguage? GetAnalysisLanguageFromExtension(string fileExtension);
     }
 
     [Export(typeof(ISonarLanguageRecognizer))]
@@ -48,8 +38,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
 
         private const string CFamilyTypeName = "C/C++";
         private const string TypeScriptTypeName = "TypeScript";
-        private const string CSharpTypeName = "CSharp";
-        private const string BasicTypeName = "Basic";
+        private const string JavascriptTypeName = "JavaScript";
+        private const string VueTypeName = "Vue";
+        private const string RoslynLanguagesTypeName = "Roslyn Languages";
         private const string CSSTypeName = "css";
         private const string SCSSTypeName = "SCSS";
         private const string LESSTypeName = "LESS";
@@ -100,7 +91,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
             return detectedLanguages;
         }
 
-        private IEnumerable<IContentType> GetExtensionContentTypes(string fileExtension, IContentType bufferContentType)
+        private List<IContentType> GetExtensionContentTypes(string fileExtension, IContentType bufferContentType)
         {
             var contentTypes = contentTypeRegistryService
                 .ContentTypes
@@ -119,58 +110,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
         }
 
         private static bool CanDocumentHaveCss(string fileExtension, IEnumerable<IContentType> contentTypes) =>
-            fileExtension == VueExtension || contentTypes.Any(type => type.IsOfType("Vue")) || IsCssDocument(contentTypes);
+            fileExtension == VueExtension || contentTypes.Any(type => type.IsOfType(VueTypeName)) || IsCssDocument(contentTypes);
 
         private static bool IsJavascriptDocument(string fileExtension, IEnumerable<IContentType> contentTypes) =>
             JavascriptSupportedExtensions.Contains(fileExtension) ||
-            contentTypes.Any(type => type.IsOfType("JavaScript") ||
-                                     type.IsOfType("Vue"));
+            contentTypes.Any(type => type.IsOfType(JavascriptTypeName) ||
+                                     type.IsOfType(VueTypeName));
 
         private static bool IsCFamilyDocument(IEnumerable<IContentType> contentTypes) =>
-            contentTypes.Any(type => type.IsOfType("C/C++"));
+            contentTypes.Any(type => type.IsOfType(CFamilyTypeName));
 
         private static bool IsRoslynFamilyDocument(IEnumerable<IContentType> contentTypes) =>
-            contentTypes.Any(type => type.IsOfType("Roslyn Languages"));
+            contentTypes.Any(type => type.IsOfType(RoslynLanguagesTypeName));
 
-        private static bool IsTypeScriptDocument(IEnumerable<IContentType> contentTypes)
-        {
-            return contentTypes.Any(type => type.IsOfType("TypeScript"));
-        }
+        private static bool IsTypeScriptDocument(IEnumerable<IContentType> contentTypes) => contentTypes.Any(type => type.IsOfType(TypeScriptTypeName));
 
         private static bool IsCssDocument(IEnumerable<IContentType> contentTypes) =>
             contentTypes.Any(type => type.IsOfType(CSSTypeName) || type.IsOfType(SCSSTypeName) || type.IsOfType(LESSTypeName));
 
-        public AnalysisLanguage? GetAnalysisLanguageFromExtension(string fileExtension)
-        {
-            if (string.IsNullOrEmpty(fileExtension))
-            {
-                return null;
-            }
-
-            // ContentType for "js" is typescript we do manual check to be consistent with Detect method
-            if (JavascriptSupportedExtensions.Contains(fileExtension)) { return AnalysisLanguage.Javascript; }
-
-            var contentTypeName = fileExtensionRegistryService.GetContentTypeForExtension(fileExtension).TypeName;
-            switch (contentTypeName)
-            {
-                case TypeScriptTypeName:
-                    return AnalysisLanguage.TypeScript;
-
-                case CFamilyTypeName:
-                    return AnalysisLanguage.CFamily;
-
-                case CSharpTypeName:
-                case BasicTypeName:
-                    return AnalysisLanguage.RoslynFamily;
-
-                case CSSTypeName:
-                case SCSSTypeName:
-                case LESSTypeName:
-                    return AnalysisLanguage.CascadingStyleSheets;
-
-                default:
-                    return null;
-            }
-        }
     }
 }
