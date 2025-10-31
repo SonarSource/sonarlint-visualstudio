@@ -21,6 +21,7 @@
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Security.Issues;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
@@ -45,6 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             private readonly Guid projectGuid;
             private readonly SnapshotChangedHandler onSnapshotChanged;
             private readonly ILocalHotspotsStoreUpdater localHotspotsStore;
+            private readonly ILocalIssuesStoreUpdater localIssuesStoreUpdater;
 
             private readonly TranslateSpans translateSpans;
 
@@ -53,8 +55,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 string projectName,
                 Guid projectGuid,
                 SnapshotChangedHandler onSnapshotChanged,
-                ILocalHotspotsStoreUpdater localHotspotsStore)
-                : this(textDocument, projectName, projectGuid, onSnapshotChanged, localHotspotsStore, DoTranslateSpans)
+                ILocalHotspotsStoreUpdater localHotspotsStore,
+                ILocalIssuesStoreUpdater localIssuesStoreUpdater)
+                : this(textDocument, projectName, projectGuid, onSnapshotChanged, localHotspotsStore, DoTranslateSpans, localIssuesStoreUpdater)
             {
             }
 
@@ -64,7 +67,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 Guid projectGuid,
                 SnapshotChangedHandler onSnapshotChanged,
                 ILocalHotspotsStoreUpdater localHotspotsStore,
-                TranslateSpans translateSpans)
+                TranslateSpans translateSpans,
+                ILocalIssuesStoreUpdater localIssuesStoreUpdater)
             {
                 this.textDocument = textDocument;
                 this.projectName = projectName;
@@ -73,12 +77,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 this.localHotspotsStore = localHotspotsStore;
 
                 this.translateSpans = translateSpans;
+                this.localIssuesStoreUpdater = localIssuesStoreUpdater;
             }
 
             public void HandleNewIssues(IEnumerable<IAnalysisIssueVisualization> issues)
             {
                 var translatedIssues = PrepareIssues(issues);
                 var newSnapshot = new IssuesSnapshot(projectName, projectGuid, textDocument.FilePath, translatedIssues);
+                localIssuesStoreUpdater.UpdateForFile(textDocument.FilePath, translatedIssues);
                 onSnapshotChanged(newSnapshot);
             }
 

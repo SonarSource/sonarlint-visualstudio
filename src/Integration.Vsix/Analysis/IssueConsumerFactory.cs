@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Security.Issues;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
@@ -56,12 +57,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     {
         private readonly IAnalysisIssueVisualizationConverter converter;
         private readonly ILocalHotspotsStoreUpdater localHotspotsStore;
+        private readonly ILocalIssuesStoreUpdater localIssuesStoreUpdater;
 
         [ImportingConstructor]
-        internal IssueConsumerFactory(IAnalysisIssueVisualizationConverter converter, ILocalHotspotsStoreUpdater localHotspotsStore)
+        internal IssueConsumerFactory(IAnalysisIssueVisualizationConverter converter, ILocalHotspotsStoreUpdater localHotspotsStore, ILocalIssuesStoreUpdater localIssuesStoreUpdater)
         {
             this.converter = converter;
             this.localHotspotsStore = localHotspotsStore;
+            this.localIssuesStoreUpdater = localIssuesStoreUpdater;
         }
 
         public IIssueConsumer Create(
@@ -72,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             Guid projectGuid,
             SnapshotChangedHandler onSnapshotChanged)
         {
-            var issueHandler = new IssueHandler(textDocument, projectName, projectGuid, onSnapshotChanged, localHotspotsStore);
+            var issueHandler = new IssueHandler(textDocument, projectName, projectGuid, onSnapshotChanged, localHotspotsStore, localIssuesStoreUpdater);
             var issueConsumer = new IssueConsumer(analysisSnapshot, analysisFilePath, issueHandler, converter);
 
             return issueConsumer;

@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.IssueVisualization.Security.Issues;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 {
@@ -31,17 +32,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     {
         private readonly IDocumentTracker documentTracker;
         private readonly ILocalHotspotsStoreUpdater localHotspotsStoreUpdater;
+        private readonly ILocalIssuesStoreUpdater localIssuesStoreUpdater;
         private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
         public DocumentClosedHandler(
             IDocumentTracker documentTracker,
             ILocalHotspotsStoreUpdater localHotspotsStore,
-            IThreadHandling threadHandling)
+            IThreadHandling threadHandling,
+            ILocalIssuesStoreUpdater localIssuesStoreUpdater)
         {
             this.documentTracker = documentTracker;
             localHotspotsStoreUpdater = localHotspotsStore;
             this.threadHandling = threadHandling;
+            this.localIssuesStoreUpdater = localIssuesStoreUpdater;
 
             this.documentTracker.DocumentClosed += OnDocumentClosed;
         }
@@ -56,6 +60,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
             await threadHandling.RunOnBackgroundThread(() =>
             {
                 localHotspotsStoreUpdater.RemoveForFile(closedFilePath);
+                localIssuesStoreUpdater.RemoveForFile(closedFilePath);
                 return Task.FromResult(true);
             });
         }

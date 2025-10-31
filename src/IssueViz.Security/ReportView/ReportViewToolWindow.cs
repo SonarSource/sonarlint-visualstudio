@@ -53,13 +53,13 @@ internal class ReportViewToolWindow : ToolWindowPane
             componentModel?.GetService<IHotspotsReportViewModel>(),
             componentModel?.GetService<IDependencyRisksReportViewModel>(),
             componentModel?.GetService<ITaintsReportViewModel>(),
+            componentModel?.GetService<IIssuesReportViewModel>(),
             componentModel?.GetService<INavigateToRuleDescriptionCommand>(),
             componentModel?.GetService<ILocationNavigator>(),
             componentModel?.GetService<ITelemetryManager>(),
             componentModel?.GetService<IIssueSelectionService>(),
             componentModel?.GetService<IActiveDocumentLocator>(),
-            componentModel?.GetService<IActiveDocumentTracker>(),
-            componentModel?.GetService<IThreadHandling>()
+            componentModel?.GetService<IActiveDocumentTracker>()
         );
     }
 }

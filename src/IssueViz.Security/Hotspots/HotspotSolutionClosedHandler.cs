@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.IssueVisualization.Security.Issues;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 {
@@ -33,17 +34,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     public class HotspotSolutionClosedHandler : IHotspotSolutionClosedHandler, IDisposable
     {
         private readonly ILocalHotspotsStoreUpdater localHotspotsStore;
+        private readonly ILocalIssuesStoreUpdater localIssuesStoreUpdater;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
         internal HotspotSolutionClosedHandler(ILocalHotspotsStoreUpdater localHotspotsStore,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
-            IThreadHandling threadHandling)
+            IThreadHandling threadHandling,
+            ILocalIssuesStoreUpdater localIssuesStoreUpdater)
         {
             this.localHotspotsStore = localHotspotsStore;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.threadHandling = threadHandling;
+            this.localIssuesStoreUpdater = localIssuesStoreUpdater;
             this.activeSolutionBoundTracker.SolutionBindingChanged += OnBindingChanged;
         }
 
@@ -60,6 +64,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
             return threadHandling.RunOnBackgroundThread(() =>
             {
                 localHotspotsStore.Clear();
+                localIssuesStoreUpdater.Clear();
                 return Task.FromResult(true);
             });
         }

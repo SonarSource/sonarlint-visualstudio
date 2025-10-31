@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore
         [ImportingConstructor]
         public AggregatingIssueLocationStoreAdapter([ImportMany] IEnumerable<IIssuesStore> issueStores)
         {
-            this.issueStores = issueStores;
+            this.issueStores = issueStores; // todo exclude issues store?
 
             foreach (var store in issueStores)
             {

@@ -37,42 +37,6 @@ internal class TaintViewModel : AnalysisIssueViewModelBase
 
     private DisplaySeverity GetDisplaySeverity() => GetDisplaySeverity(TaintIssue.HighestSoftwareQualitySeverity) ?? GetDisplaySeverity(TaintIssue.Severity) ?? DisplaySeverity.Info;
 
-    private static DisplaySeverity? GetDisplaySeverity(SoftwareQualitySeverity? softwareQualitySeverity)
-    {
-        if (!softwareQualitySeverity.HasValue)
-        {
-            return null;
-        }
-
-        return softwareQualitySeverity switch
-        {
-            SoftwareQualitySeverity.Info => DisplaySeverity.Info,
-            SoftwareQualitySeverity.Low => DisplaySeverity.Low,
-            SoftwareQualitySeverity.Medium => DisplaySeverity.Medium,
-            SoftwareQualitySeverity.High => DisplaySeverity.High,
-            SoftwareQualitySeverity.Blocker => DisplaySeverity.Blocker,
-            _ => DisplaySeverity.Info
-        };
-    }
-
-    private static DisplaySeverity? GetDisplaySeverity(AnalysisIssueSeverity? severity)
-    {
-        if (!severity.HasValue)
-        {
-            return null;
-        }
-
-        return severity switch
-        {
-            AnalysisIssueSeverity.Info => DisplaySeverity.Info,
-            AnalysisIssueSeverity.Minor => DisplaySeverity.Low,
-            AnalysisIssueSeverity.Major => DisplaySeverity.Medium,
-            AnalysisIssueSeverity.Critical => DisplaySeverity.High,
-            AnalysisIssueSeverity.Blocker => DisplaySeverity.Blocker,
-            _ => DisplaySeverity.Info
-        };
-    }
-
     public override DisplaySeverity DisplaySeverity { get; }
     public override IssueType IssueType => IssueType.TaintVulnerability;
     public override DisplayStatus Status { get; }

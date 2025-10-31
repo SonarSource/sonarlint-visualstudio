@@ -740,6 +740,52 @@
                                    Style="{StaticResource IssueTypeTextBlockStyle}" />
                     </Grid>
                 </DataTemplate>
+                
+                <!-- issue styling-->
+                <DataTemplate DataType="{x:Type hotspots:IssueViewModel}">
+                    <Grid Margin="5,2"
+                          ContextMenu="{StaticResource TaintContextMenu}"
+                          MouseRightButtonDown="TreeViewItem_OnMouseRightButtonDown"
+                          ToolTip="{x:Static res:Resources.NavigateToTaintTooltip}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Image Grid.Column="0" Height="17" VerticalAlignment="Center"
+                               Style="{StaticResource SeverityImage}" />
+                        <TextBlock Grid.Column="1"
+                                   Margin="2,0,0,2"
+                                   Style="{StaticResource LocationTextBlockStyle}">
+                            <Run Text="{Binding Line, Mode=OneWay, StringFormat={}({0}\,}" />
+                            <Run Text="{Binding Path=Column, Mode=OneWay, StringFormat={}{0})}" />
+                        </TextBlock>
+                        <TextBlock Grid.Column="2" Text="{Binding Title}" Margin="5,0,0,0"
+                                   Style="{StaticResource IssueTextBlockStyle}" />
+                        <TextBlock Grid.Column="3" Margin="5,0,0,0"
+                                   Style="{StaticResource IssueTextBlockStyle}">
+                            <Hyperlink Style="{StaticResource RuleKeyLinkStyle}"
+                                       Command="{Binding DataContext.NavigateToRuleDescriptionCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}">
+                                <Hyperlink.CommandParameter>
+                                    <MultiBinding
+                                        Converter="{StaticResource NavigateToRuleDescriptionCommandConverter}">
+                                        <Binding Path=".RuleInfo.RuleKey" />
+                                        <Binding Path=".RuleInfo.IssueId" />
+                                    </MultiBinding>
+                                </Hyperlink.CommandParameter>
+                                <TextBlock Text="{Binding RuleInfo.RuleKey}"
+                                           Style="{StaticResource CellTextBlockStyle}" />
+                            </Hyperlink>
+                        </TextBlock>
+                        <TextBlock Grid.Column="4"
+                                   Text="{Binding IssueType, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}"
+                                   Margin="5,0,0,0"
+                                   Style="{StaticResource IssueTypeTextBlockStyle}" />
+                    </Grid>
+                </DataTemplate>
+
             </TreeView.Resources>
         </TreeView>
 

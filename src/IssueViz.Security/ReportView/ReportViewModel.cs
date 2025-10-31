@@ -46,6 +46,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
 {
     private readonly IHotspotsReportViewModel hotspotsReportViewModel;
     private readonly IDependencyRisksReportViewModel dependencyRisksReportViewModel;
+    private readonly IIssuesReportViewModel issuesReportViewModel;
     private readonly ITaintsReportViewModel taintsReportViewModel;
     private readonly ITelemetryManager telemetryManager;
     private readonly IIssueSelectionService selectionService;
@@ -64,7 +65,8 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         ITelemetryManager telemetryManager,
         IIssueSelectionService selectionService,
         IActiveDocumentLocator activeDocumentLocator,
-        IActiveDocumentTracker activeDocumentTracker) : base(activeSolutionBoundTracker)
+        IActiveDocumentTracker activeDocumentTracker,
+        IIssuesReportViewModel issuesReportViewModel) : base(activeSolutionBoundTracker)
     {
         this.hotspotsReportViewModel = hotspotsReportViewModel;
         this.dependencyRisksReportViewModel = dependencyRisksReportViewModel;
@@ -73,10 +75,12 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         this.selectionService = selectionService;
         this.activeDocumentLocator = activeDocumentLocator;
         this.activeDocumentTracker = activeDocumentTracker;
+        this.issuesReportViewModel = issuesReportViewModel;
 
         hotspotsReportViewModel.IssuesChanged += HotspotsViewModel_IssuesChanged;
         dependencyRisksReportViewModel.DependencyRisksChanged += DependencyRisksViewModel_DependencyRisksChanged;
         taintsReportViewModel.IssuesChanged += TaintViewModel_IssuesChanged;
+        issuesReportViewModel.IssuesChanged += IssuesReportViewModel_IssuesChanged;
 
         InitializeActiveDocument();
         InitializeCommands(navigateToRuleDescriptionCommand, locationNavigator);
@@ -111,6 +115,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         InitializeDependencyRisks();
         InitializeHotspots();
         InitializeTaints();
+        InitializeIssues();
         FilteredGroupViewModels = new ObservableCollection<IGroupViewModel>(AllGroupViewModels);
     }
 
@@ -141,6 +146,15 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         RaisePropertyChanged(nameof(HasFilteredGroups));
     }
 
+    private void InitializeIssues()
+    {
+        // todo fix copypaste
+        var groups = issuesReportViewModel.GetIssuesGroupViewModels();
+        groups.ToList().ForEach(g => AllGroupViewModels.Add(g));
+        RaisePropertyChanged(nameof(HasAnyGroups));
+        RaisePropertyChanged(nameof(HasFilteredGroups));
+    }
+
     internal void ApplyFilter()
     {
         FilteredGroupViewModels.Clear();
@@ -161,6 +175,9 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
 
         taintsReportViewModel.IssuesChanged -= TaintViewModel_IssuesChanged;
         taintsReportViewModel.Dispose();
+
+        issuesReportViewModel.IssuesChanged -= IssuesReportViewModel_IssuesChanged;
+        issuesReportViewModel.Dispose();
 
         activeDocumentTracker.ActiveDocumentChanged -= OnActiveDocumentChanged;
 
@@ -209,6 +226,15 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
     {
         var addedHotspotsViewModels = e.AddedIssues.Select(viz => new TaintViewModel(viz)).ToList();
         var currentHotspotViewModels = AllGroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is TaintViewModel).Cast<TaintViewModel>();
+        var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(vm.IsSameAnalysisIssue)).ToList();
+        UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
+    }
+
+    private void IssuesReportViewModel_IssuesChanged(object sender, IssuesChangedEventArgs e)
+    {
+        // todo fix copypaste
+        var addedHotspotsViewModels = e.AddedIssues.Select(viz => new IssueViewModel(viz)).ToList();
+        var currentHotspotViewModels = AllGroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is IssueViewModel).Cast<IssueViewModel>();
         var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(vm.IsSameAnalysisIssue)).ToList();
         UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
     }
