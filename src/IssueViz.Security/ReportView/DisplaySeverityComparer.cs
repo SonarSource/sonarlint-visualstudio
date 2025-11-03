@@ -18,45 +18,30 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
-
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-public interface IIssueViewModel
+public class DisplaySeverityComparer : IComparer<DisplaySeverity>
 {
-    int? Line { get; }
-    int? Column { get; }
-    string Title { get; }
-    string FilePath { get; }
-    RuleInfoViewModel RuleInfo { get; }
-    DisplaySeverity DisplaySeverity { get; }
-    IssueType IssueType { get; }
-    DisplayStatus Status { get; }
-}
+    private DisplaySeverityComparer()
+    {
+    }
 
-/// <summary>
-/// Used to display severity info in the UI in a uniform way for different <see cref="IssueType"/>
-/// </summary>
-public enum DisplaySeverity
-{
-    Info,
-    Low,
-    Medium,
-    High,
-    Blocker
-}
+    public static IComparer<DisplaySeverity> Instance { get; } = new DisplaySeverityComparer();
 
-public enum IssueType
-{
-    SecurityHotspot,
-    TaintVulnerability,
-    DependencyRisk
-}
+    private static readonly Dictionary<DisplaySeverity, int> Ranks = new()
+    {
+        { DisplaySeverity.Info, 0 },
+        { DisplaySeverity.Low, 1 },
+        { DisplaySeverity.Medium, 2 },
+        { DisplaySeverity.High, 3 },
+        { DisplaySeverity.Blocker, 4 }
+    };
 
-public interface IAnalysisIssueViewModel : IIssueViewModel
-{
-    IAnalysisIssueVisualization Issue { get; }
+    public int Compare(DisplaySeverity x, DisplaySeverity y)
+    {
+        var rankX = Ranks[x];
+        var rankY = Ranks[y];
 
-    bool IsSameAnalysisIssue(IAnalysisIssueVisualization analysisIssueVisualization);
+        return rankX.CompareTo(rankY);
+    }
 }

@@ -120,7 +120,7 @@ public class GroupDependencyRiskViewModelTest
     [DataRow(DisplaySeverity.Medium, DependencyRiskImpactSeverity.Medium)]
     [DataRow(DisplaySeverity.High, DependencyRiskImpactSeverity.High)]
     [DataRow(DisplaySeverity.Blocker, DependencyRiskImpactSeverity.Blocker)]
-    public void ApplyFilter_SeverityFilterSelected_ShowsOnlyRisksWithThatSeverity(DisplaySeverity selectedSeverityFilter, DependencyRiskImpactSeverity expectedSeverity)
+    public void ApplyFilter_SeverityFilterSelected_ShowsOnlyRisksWithThatSeverityOrHigher(DisplaySeverity selectedSeverityFilter, DependencyRiskImpactSeverity expectedSeverity)
     {
         SetInitialRisks(risks);
         MockSeverityFilter(selectedSeverityFilter);
@@ -128,7 +128,7 @@ public class GroupDependencyRiskViewModelTest
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
-        var expectedFilteredRisks = risks.Where(r => r.Severity == expectedSeverity).ToArray();
+        var expectedFilteredRisks = risks.Where(r => r.Severity >= expectedSeverity).ToArray();
         VerifyRisks(risks);
         VerifyFilteredRisks(expectedFilteredRisks);
     }
@@ -137,7 +137,7 @@ public class GroupDependencyRiskViewModelTest
     public void ApplyFilter_SeverityFilterNotSelected_ShowsAllRisks()
     {
         SetInitialRisks(risks);
-        MockSeverityFilter(displaySeverity: DisplaySeverity.Any);
+        MockSeverityFilter(displaySeverity: DisplaySeverity.Info);
         MockStatusFilter(DisplayStatus.Any);
 
         testSubject.ApplyFilter(reportViewFilterViewModel);

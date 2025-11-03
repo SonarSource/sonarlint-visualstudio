@@ -236,20 +236,19 @@ public class FilteringTests
     [DataRow(DisplaySeverity.Medium)]
     [DataRow(DisplaySeverity.High)]
     [DataRow(DisplaySeverity.Blocker)]
-    public void ApplyFilter_SeverityFilterSelected_ShowsOnlyRisksWithThatSeverity(DisplaySeverity selectedSeverityFilter)
+    public void ApplyFilter_SeverityFilterSelected_ShowsOnlyRisksWithThatSeverityOrHigher(DisplaySeverity selectedSeverityFilter)
     {
         MockSeverityFilter(selectedSeverityFilter);
 
         testSubject.ApplyFilter();
 
-        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
-        testSubject.FilteredGroupViewModels.Should().Contain(g => g.FilteredIssues.SingleOrDefault(vm => vm.DisplaySeverity == selectedSeverityFilter) != null);
+        testSubject.FilteredGroupViewModels.Should().Contain(g => g.FilteredIssues.SingleOrDefault(vm => vm.DisplaySeverity >= selectedSeverityFilter) != null);
     }
 
     [TestMethod]
     public void ApplyFilter_SeverityFilterNotSelected_ShowsAllRisks()
     {
-        MockSeverityFilter(displaySeverity: DisplaySeverity.Any);
+        MockSeverityFilter(displaySeverity: DisplaySeverity.Info);
 
         testSubject.ApplyFilter();
 

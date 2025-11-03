@@ -124,21 +124,20 @@ public class GroupFileViewModelTest
     [DataRow(DisplaySeverity.Medium)]
     [DataRow(DisplaySeverity.High)]
     [DataRow(DisplaySeverity.Blocker)]
-    public void ApplyFilter_SeverityFilterSelected_ShowsOnlyRisksWithThatSeverity(DisplaySeverity selectedSeverityFilter)
+    public void ApplyFilter_SeverityFilterSelected_ShowsOnlyRisksWithThatSeverityOrHigher(DisplaySeverity selectedSeverityFilter)
     {
         MockSeverityFilter(selectedSeverityFilter);
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
-        testSubject.FilteredIssues.Should().HaveCount(1);
-        testSubject.FilteredIssues.Should().OnlyContain(i => i.DisplaySeverity == selectedSeverityFilter);
+        testSubject.FilteredIssues.Should().OnlyContain(i => i.DisplaySeverity >= selectedSeverityFilter);
         VerifyAllIssuesUnchanged();
     }
 
     [TestMethod]
     public void ApplyFilter_SeverityFilterNotSelected_ShowsAllRisks()
     {
-        MockSeverityFilter(displaySeverity: DisplaySeverity.Any);
+        MockSeverityFilter(displaySeverity: DisplaySeverity.Info);
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 

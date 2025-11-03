@@ -36,7 +36,7 @@ public enum DisplayStatus
 internal class ReportViewFilterViewModel : ViewModelBase
 {
     private LocationFilterViewModel selectedLocationFilter;
-    private DisplaySeverity selectedSeverityFilter = DisplaySeverity.Any;
+    private DisplaySeverity selectedSeverityFilter = DisplaySeverity.Info;
     private DisplayStatus selectedStatusFilter = DisplayStatus.Open;
     private bool showAdvancedFilters;
 
@@ -101,7 +101,7 @@ internal class ReportViewFilterViewModel : ViewModelBase
     {
         IssueTypeFilters.ToList().ForEach(vm => vm.IsSelected = true);
         SelectedLocationFilter = GetDefaultLocationFilter();
-        SelectedSeverityFilter = DisplaySeverity.Any;
+        SelectedSeverityFilter = DisplaySeverity.Info;
         SelectedStatusFilter = DisplayStatus.Open;
     }
 }

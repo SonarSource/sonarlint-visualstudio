@@ -79,7 +79,6 @@ public class ReportViewFilterViewModelTest
     {
         testSubject.SeverityFilters.Should().BeEquivalentTo(
         [
-            DisplaySeverity.Any,
             DisplaySeverity.Blocker,
             DisplaySeverity.High,
             DisplaySeverity.Medium,
@@ -87,7 +86,7 @@ public class ReportViewFilterViewModelTest
             DisplaySeverity.Info,
         ], options => options.WithStrictOrdering());
 
-        testSubject.SelectedSeverityFilter.Should().Be(DisplaySeverity.Any);
+        testSubject.SelectedSeverityFilter.Should().Be(DisplaySeverity.Info);
     }
 
     [TestMethod]
@@ -146,7 +145,7 @@ public class ReportViewFilterViewModelTest
 
         testSubject.IssueTypeFilters.All(vm => vm.IsSelected).Should().BeTrue();
         testSubject.SelectedLocationFilter.LocationFilter.Should().Be(LocationFilter.OpenDocuments);
-        testSubject.SelectedSeverityFilter.Should().Be(DisplaySeverity.Any);
+        testSubject.SelectedSeverityFilter.Should().Be(DisplaySeverity.Info);
         testSubject.SelectedStatusFilter.Should().Be(DisplayStatus.Open);
     }
 }
