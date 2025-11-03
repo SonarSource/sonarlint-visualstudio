@@ -59,7 +59,7 @@
             </Style>
 
             <Style TargetType="TreeViewItem">
-                <Setter Property="IsExpanded" Value="True" />
+                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}" />
                 <EventSetter Event="PreviewMouseUp" Handler="TreeViewItem_OnPreviewMouseUp" />
                 <EventSetter Event="MouseDoubleClick" Handler="TreeViewItem_MouseDoubleClick" />

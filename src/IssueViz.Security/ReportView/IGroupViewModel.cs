@@ -30,5 +30,7 @@ internal interface IGroupViewModel : IDisposable
     List<IIssueViewModel> AllIssues { get; }
     ObservableCollection<IIssueViewModel> FilteredIssues { get; }
 
+    bool IsExpanded { get; set; }
+
     void ApplyFilter(ReportViewFilterViewModel reportViewFilter);
 }
