@@ -45,8 +45,7 @@ public enum DisplaySeverity
     Low,
     Medium,
     High,
-    Blocker,
-    Any
+    Blocker
 }
 
 public enum IssueType

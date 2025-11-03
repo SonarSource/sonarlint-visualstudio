@@ -42,7 +42,7 @@ public enum NewCodeStatus
 internal class ReportViewFilterViewModel : ViewModelBase
 {
     private LocationFilterViewModel selectedLocationFilter;
-    private DisplaySeverity selectedSeverityFilter = DisplaySeverity.Any;
+    private DisplaySeverity selectedSeverityFilter = DisplaySeverity.Info;
     private DisplayStatus selectedStatusFilter = DisplayStatus.Open;
     private bool showAdvancedFilters;
     private NewCodeStatus selectedNewCodeFilter;
@@ -119,7 +119,7 @@ internal class ReportViewFilterViewModel : ViewModelBase
     {
         IssueTypeFilters.ToList().ForEach(vm => vm.IsSelected = true);
         SelectedLocationFilter = GetDefaultLocationFilter();
-        SelectedSeverityFilter = DisplaySeverity.Any;
+        SelectedSeverityFilter = DisplaySeverity.Info;
         SelectedStatusFilter = DisplayStatus.Open;
         SelectedNewCodeFilter = NewCodeStatus.All; // todo should be persistent, actually all filters should be persistent...
     }
