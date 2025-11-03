@@ -394,10 +394,10 @@
 
         <Grid Grid.Row="0" Background="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarGradientBeginKey}}"
               DataContext="{Binding Path=ReportViewFilter}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
 
             <Grid Grid.Row="0" Grid.Column="0" Margin="5,0">
@@ -469,7 +469,7 @@
 
             </Grid>
 
-            <Grid Grid.Row="0" Grid.Column="1"
+            <Grid Grid.Row="1" Grid.Column="0"
                   HorizontalAlignment="Right"
                   Visibility="{Binding ShowAdvancedFilters, Converter={StaticResource TrueToVisibleConverter}}"
                   Margin="10,0">
