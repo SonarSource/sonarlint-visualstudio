@@ -7,17 +7,17 @@ before pushing to your SCM. This ensures your code meets your quality standards 
 Understand the "why" behind issues with detailed contextual information, turning SonarQube for IDE into your personal coding tutor, and levelling up your coding skills.
 
 Connect to [SonarQube Server](https://www.sonarsource.com/products/sonarqube/) or [SonarQube Cloud](https://www.sonarsource.com/products/sonarcloud/) (you can create a
-[free SonarQube Cloud account](https://www.sonarsource.com/products/sonarcloud/signup/) to get started), to create a powerful, unified code quality platform for your team,
-throughout the software development lifecycle. [This connection](https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/team-features/connected-mode/)
+[free SonarQube Cloud account](https://www.sonarsource.com/products/sonarcloud/signup/) to get started) and create a powerful, unified code quality platform for your team,
+throughout the software development lifecycle. [This connection](https://docs.sonarsource.com/sonarqube-for-visual-studio/connect-your-ide/connected-mode/)
 enables sharing of consistent language rulesets and project settings, and unlocks analysis of deeply hidden security issues, fostering collaboration and code uniformity.
 Additionally, Connected Mode unlocks analysis of T-SQL and custom secret rules detection.
 
 SonarQube for IDE is the only extension you need in Visual Studio for ensuring both code quality and code security. It supports a wide range of languages:
-C, C++, C#, VB.NET, JavaScript, TypeScript, HTML, CSS. Refer to our [documentation](https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/) for the complete list of
+C, C++, C#, VB.NET, JavaScript, TypeScript, HTML, CSS. Refer to our [documentation](https://docs.sonarsource.com/sonarqube-for-visual-studio/using/rules/) for the complete list of
 supported languages, rules, and secret detection capabilities.
 
-Get started for free. Check the [Requirements](https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/getting-started/requirements/) and
-[Installation](https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/getting-started/installation/) pages —
+Get started for free. Check the [Requirements](https://docs.sonarsource.com/sonarqube-for-visual-studio/getting-started/requirements/) and
+[Installation](https://docs.sonarsource.com/sonarqube-for-visual-studio/getting-started/installation/) pages —
 download SonarQube for IDE in the Extension Marketplace and enjoy safe coding!
 
 # **How it works**
