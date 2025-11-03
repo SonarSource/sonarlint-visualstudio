@@ -30,6 +30,7 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewMo
 {
     private readonly IDependencyRisksStore dependencyRisksStore;
     private readonly List<IIssueViewModel> risks = new();
+    private bool isExpanded = true;
 
     public GroupDependencyRiskViewModel(IDependencyRisksStore dependencyRisksStore)
     {
@@ -41,6 +42,16 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewMo
     public string FilePath => null;
     public List<IIssueViewModel> AllIssues => risks;
     public ObservableCollection<IIssueViewModel> FilteredIssues { get; }
+
+    public bool IsExpanded
+    {
+        get => isExpanded;
+        set
+        {
+            isExpanded = value;
+            RaisePropertyChanged();
+        }
+    }
 
     public void ApplyFilter(ReportViewFilterViewModel reportViewFilter)
     {

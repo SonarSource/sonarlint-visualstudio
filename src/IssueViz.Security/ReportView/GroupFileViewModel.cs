@@ -27,6 +27,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
 internal sealed class GroupFileViewModel : ViewModelBase, IGroupViewModel
 {
+    private bool isExpanded = true;
+
     public GroupFileViewModel(string filePath, List<IIssueViewModel> issues)
     {
         Title = Path.GetFileName(filePath);
@@ -39,6 +41,16 @@ internal sealed class GroupFileViewModel : ViewModelBase, IGroupViewModel
     public string FilePath { get; }
     public List<IIssueViewModel> AllIssues { get; }
     public ObservableCollection<IIssueViewModel> FilteredIssues { get; }
+
+    public bool IsExpanded
+    {
+        get => isExpanded;
+        set
+        {
+            isExpanded = value;
+            RaisePropertyChanged();
+        }
+    }
 
     public void ApplyFilter(ReportViewFilterViewModel reportViewFilter)
     {
