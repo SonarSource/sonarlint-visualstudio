@@ -330,6 +330,7 @@ public class AnalysisIssueVisualizationConverterTests
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
             false,
+            true,
             AnalysisIssueSeverity.Blocker,
             AnalysisIssueType.Bug,
             new Impact(SoftwareQuality.Maintainability, SoftwareQualitySeverity.High),
@@ -348,6 +349,7 @@ public class AnalysisIssueVisualizationConverterTests
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
             isResolved,
+            true, // todo ?
             AnalysisIssueSeverity.Blocker,
             AnalysisIssueType.Bug,
             new Impact(SoftwareQuality.Maintainability, SoftwareQualitySeverity.High),

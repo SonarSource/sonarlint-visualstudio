@@ -58,4 +58,5 @@ internal class DependencyRiskViewModel(IDependencyRisk dependencyRisk)
         DependencyRiskStatus.Safe => DisplayStatus.Resolved,
         _ => DisplayStatus.Open
     };
+    public bool IsOnNewCode { get; } = true; // todo dependency risks don't have new code status!
 }

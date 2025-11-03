@@ -49,6 +49,7 @@ internal class HotspotDetailsDtoToHotspotConverter : IHotspotDetailsDtoToHotspot
         return new Hotspot(id: null,
             hotspotDetailsDto.key,
             isResolved: false,
+            isOnNewCode: true,
             hotspotDetailsDto.ideFilePath,
             new AnalysisIssueLocation(hotspotDetailsDto.message,
                 Path.Combine(rootPath, hotspotDetailsDto.ideFilePath),

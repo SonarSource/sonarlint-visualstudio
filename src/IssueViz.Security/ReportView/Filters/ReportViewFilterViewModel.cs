@@ -33,12 +33,19 @@ public enum DisplayStatus
     Any
 }
 
+public enum NewCodeStatus
+{
+    All,
+    New
+}
+
 internal class ReportViewFilterViewModel : ViewModelBase
 {
     private LocationFilterViewModel selectedLocationFilter;
     private DisplaySeverity selectedSeverityFilter = DisplaySeverity.Any;
     private DisplayStatus selectedStatusFilter = DisplayStatus.Open;
     private bool showAdvancedFilters;
+    private NewCodeStatus selectedNewCodeFilter;
 
     public ObservableCollection<LocationFilterViewModel> LocationFilters { get; } =
     [
@@ -46,6 +53,7 @@ internal class ReportViewFilterViewModel : ViewModelBase
         new(LocationFilter.OpenDocuments, Resources.HotspotsControl_OpenDocumentsFilter)
     ];
     public ObservableCollection<DisplayStatus> StatusFilters { get; } = new(Enum.GetValues(typeof(DisplayStatus)).Cast<DisplayStatus>());
+    public ObservableCollection<NewCodeStatus> NewCodeFilters { get; } = new(Enum.GetValues(typeof(NewCodeStatus)).Cast<NewCodeStatus>());
     public ObservableCollection<DisplaySeverity> SeverityFilters { get; } = new(Enum.GetValues(typeof(DisplaySeverity)).Cast<DisplaySeverity>().Reverse());
     public ObservableCollection<IssueTypeFilterViewModel> IssueTypeFilters { get; } =
         new(Enum.GetValues(typeof(IssueType)).Cast<IssueType>().Select(x => new IssueTypeFilterViewModel(x)));
@@ -66,6 +74,16 @@ internal class ReportViewFilterViewModel : ViewModelBase
         set
         {
             selectedStatusFilter = value;
+            RaisePropertyChanged();
+        }
+    }
+
+    public NewCodeStatus SelectedNewCodeFilter
+    {
+        get => selectedNewCodeFilter;
+        set
+        {
+            selectedNewCodeFilter = value;
             RaisePropertyChanged();
         }
     }
@@ -103,5 +121,6 @@ internal class ReportViewFilterViewModel : ViewModelBase
         SelectedLocationFilter = GetDefaultLocationFilter();
         SelectedSeverityFilter = DisplaySeverity.Any;
         SelectedStatusFilter = DisplayStatus.Open;
+        SelectedNewCodeFilter = NewCodeStatus.All; // todo should be persistent, actually all filters should be persistent...
     }
 }

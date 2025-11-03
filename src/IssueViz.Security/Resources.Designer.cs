@@ -456,6 +456,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Issues.
+        /// </summary>
+        public static string IssuePlural {
+            get {
+                return ResourceManager.GetString("IssuePlural", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Issue.
+        /// </summary>
+        public static string IssueSingular {
+            get {
+                return ResourceManager.GetString("IssueSingular", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to issue.
         /// </summary>
         public static string IssueText {
@@ -515,6 +533,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string NavigateToTaintTooltip {
             get {
                 return ResourceManager.GetString("NavigateToTaintTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Code:.
+        /// </summary>
+        public static string NewCodeLabel {
+            get {
+                return ResourceManager.GetString("NewCodeLabel", resourceCulture);
             }
         }
         

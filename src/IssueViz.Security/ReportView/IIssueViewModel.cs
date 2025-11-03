@@ -33,6 +33,7 @@ public interface IIssueViewModel
     DisplaySeverity DisplaySeverity { get; }
     IssueType IssueType { get; }
     DisplayStatus Status { get; }
+    bool IsOnNewCode { get; }
 }
 
 /// <summary>

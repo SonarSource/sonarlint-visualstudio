@@ -52,6 +52,10 @@ internal sealed class GroupFileViewModel : ViewModelBase, IGroupViewModel
         {
             filteredIssues = filteredIssues.Where(vm => vm.Status == reportViewFilter.SelectedStatusFilter);
         }
+        if (reportViewFilter.SelectedNewCodeFilter == NewCodeStatus.New)
+        {
+            filteredIssues = filteredIssues.Where(vm => vm.IsOnNewCode);
+        }
 
         FilteredIssues.Clear();
         filteredIssues.ToList().ForEach(issue => FilteredIssues.Add(issue));
