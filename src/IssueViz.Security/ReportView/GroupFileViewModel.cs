@@ -20,59 +20,12 @@
 
 using System.Collections.ObjectModel;
 using System.IO;
-using SonarLint.VisualStudio.Core.WPF;
-using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-internal sealed class GroupFileViewModel : ViewModelBase, IGroupViewModel
+internal sealed class GroupFileViewModel(string filePath, List<IIssueViewModel> issues) : GroupViewModelBase(Path.GetFileName(filePath), filePath)
 {
-    private bool isExpanded = true;
-
-    public GroupFileViewModel(string filePath, List<IIssueViewModel> issues)
-    {
-        Title = Path.GetFileName(filePath);
-        FilePath = filePath;
-        AllIssues = issues;
-        FilteredIssues = new ObservableCollection<IIssueViewModel>(issues);
-    }
-
-    public string Title { get; }
-    public string FilePath { get; }
-    public List<IIssueViewModel> AllIssues { get; }
-    public ObservableCollection<IIssueViewModel> FilteredIssues { get; }
-
-    public bool IsExpanded
-    {
-        get => isExpanded;
-        set
-        {
-            isExpanded = value;
-            RaisePropertyChanged();
-        }
-    }
-
-    public void ApplyFilter(ReportViewFilterViewModel reportViewFilter)
-    {
-        var issueTypesToShow = reportViewFilter.IssueTypeFilters.Where(x => x.IsSelected).Select(x => x.IssueType);
-        var filteredIssues = AllIssues.Where(issue => issueTypesToShow.Contains(issue.IssueType));
-
-        filteredIssues = filteredIssues
-            .Where(vm => DisplaySeverityComparer.Instance.Compare(vm.DisplaySeverity, reportViewFilter.SelectedSeverityFilter) >= 0)
-            .OrderByDescending(vm => vm.DisplaySeverity, DisplaySeverityComparer.Instance);
-
-        if (reportViewFilter.SelectedStatusFilter != DisplayStatus.Any)
-        {
-            filteredIssues = filteredIssues.Where(vm => vm.Status == reportViewFilter.SelectedStatusFilter);
-        }
-        if (reportViewFilter.SelectedNewCodeFilter == NewCodeStatus.New)
-        {
-            filteredIssues = filteredIssues.Where(vm => vm.IsOnNewCode);
-        }
-
-        FilteredIssues.Clear();
-        filteredIssues.ToList().ForEach(issue => FilteredIssues.Add(issue));
-    }
-
-    public void Dispose() { }
+    public override List<IIssueViewModel> AllIssues { get; } = issues;
+    public override List<IIssueViewModel> PreFilteredIssues { get; protected set; } = issues;
+    public override ObservableCollection<IIssueViewModel> FilteredIssues { get; } = new(issues);
 }

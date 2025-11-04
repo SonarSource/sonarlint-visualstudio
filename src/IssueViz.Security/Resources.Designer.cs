@@ -285,6 +285,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to findings.
+        /// </summary>
+        public static string FindingPluralSmall {
+            get {
+                return ResourceManager.GetString("FindingPluralSmall", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to finding.
+        /// </summary>
+        public static string FindingSingularSmall {
+            get {
+                return ResourceManager.GetString("FindingSingularSmall", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Finished initializing security package..
         /// </summary>
         public static string FinishedPackageInitialization {
@@ -470,15 +488,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string IssueSingular {
             get {
                 return ResourceManager.GetString("IssueSingular", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to issue.
-        /// </summary>
-        public static string IssueText {
-            get {
-                return ResourceManager.GetString("IssueText", resourceCulture);
             }
         }
         

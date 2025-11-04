@@ -31,6 +31,7 @@
             <hotspots:HotspotTooltipConverter x:Key="HotspotTooltipConverter" />
             <commands:NavigateToRuleDescriptionCommandConverter x:Key="NavigateToRuleDescriptionCommandConverter" />
             <filters:IssueTypeFilterToTextConverter x:Key="IssueTypeFilterToTextConverter" />
+            <filters:GroupToIssueCountTextConverter x:Key="GroupToIssueCountTextConverter" />
 
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
             <wpf:BoolToVisibilityConverter x:Key="FalseToHiddenConverter" FalseValue="Hidden" TrueValue="Visible" />
@@ -563,8 +564,7 @@
                         <TextBlock Grid.Column="1" Text="{Binding Title}"
                                    Style="{StaticResource GroupTextBlockStyle}" />
                         <TextBlock Grid.Column="2" Margin="3,0,0,0"
-                                   Text="{Binding Path=FilteredIssues.Count, Converter={StaticResource EnglishPluralizationConverter}, 
-                                              ConverterParameter={x:Static res:Resources.IssueText}, StringFormat={}({0})}"
+                                   Text="{Binding Converter={StaticResource GroupToIssueCountTextConverter}}"
                                    Style="{StaticResource LocationTextBlockStyle}" />
                     </Grid>
                 </HierarchicalDataTemplate>
@@ -582,9 +582,8 @@
                                             Moniker="{Binding FilePath, Converter={StaticResource FileNameToMonikerConverter}}" />
                         <TextBlock Grid.Column="1" Text="{Binding Title}"
                                    Style="{StaticResource GroupTextBlockStyle}" />
-                        <TextBlock Grid.Column="2" Margin="5,1,0,0"
-                                   Text="{Binding Path=FilteredIssues.Count, Converter={StaticResource EnglishPluralizationConverter}, 
-                                            ConverterParameter={x:Static res:Resources.IssueText}, StringFormat={}({0})}"
+                        <TextBlock Grid.Column="2" Margin="3,0,0,0"
+                                   Text="{Binding Converter={StaticResource GroupToIssueCountTextConverter}}"
                                    Style="{StaticResource LocationTextBlockStyle}" />
                     </Grid>
                 </HierarchicalDataTemplate>
@@ -814,7 +813,7 @@
 
         <Grid Grid.Row="1" Background="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBackgroundKey}}"
               Panel.ZIndex="1000"
-              Visibility="{Binding Path=HasFilteredGroups, Converter={StaticResource TrueToCollapsedConverter}}">
+              Visibility="{Binding Path=HasNoFilteredIssuesForGroupsWithIssues, Converter={StaticResource TrueToVisibleConverter}}">
             <StackPanel VerticalAlignment="Center">
                 <TextBlock Style="{StaticResource OverlayTitleTextStyle}"
                            Text="{x:Static res:Resources.NoFindingsToDisplayTitle}"
