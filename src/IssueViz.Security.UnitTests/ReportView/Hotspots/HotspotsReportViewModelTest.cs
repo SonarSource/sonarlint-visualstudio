@@ -81,46 +81,16 @@ public class HotspotsReportViewModelTest
     }
 
     [TestMethod]
-    public void GetHotspotsGroupViewModels_GroupsByFilePath()
+    public void GetIssueViewModels_ReturnsIssuesFromStore()
     {
         var file1 = "file1.cs";
         var file2 = "file2.cs";
-        MockHotspotsInStore(CreateMockedHotspot(file1), CreateMockedHotspot(file1), CreateMockedHotspot(file2));
+        LocalHotspot[] hotspots = [CreateMockedHotspot(file1), CreateMockedHotspot(file1), CreateMockedHotspot(file2)];
+        MockHotspotsInStore(hotspots);
 
-        var groups = testSubject.GetHotspotsGroupViewModels();
+        var issues = testSubject.GetIssueViewModels();
 
-        groups.Should().HaveCount(2);
-        groups.Select(g => g.Title).Should().Contain([file1, file2]);
-        groups.First(g => g.Title == file1).AllIssues.Should().HaveCount(2);
-        groups.First(g => g.Title == file2).AllIssues.Should().ContainSingle();
-    }
-
-    [TestMethod]
-    public void GetHotspotsGroupViewModels_TwoHotspotsInSameFile_CreatesOneGroupVmWithTwoIssues()
-    {
-        var path = "myFile.cs";
-        var hotspot1 = CreateMockedHotspot(path);
-        var hotspot2 = CreateMockedHotspot(path);
-        MockHotspotsInStore(hotspot1, hotspot2);
-
-        var groups = testSubject.GetHotspotsGroupViewModels();
-
-        groups.Should().ContainSingle();
-        VerifyExpectedHotspotGroupViewModel(groups[0] as GroupFileViewModel, hotspot1, hotspot2);
-    }
-
-    [TestMethod]
-    public void GetHotspotsGroupViewModels_TwoHotspotsInDifferentFiles_CreatesTwoGroupsWithOneIssueEach()
-    {
-        var hotspot1 = CreateMockedHotspot("myFile.cs");
-        var hotspot2 = CreateMockedHotspot("myFile.js");
-        MockHotspotsInStore(hotspot1, hotspot2);
-
-        var groups = testSubject.GetHotspotsGroupViewModels();
-
-        groups.Should().HaveCount(2);
-        VerifyExpectedHotspotGroupViewModel(groups[0] as GroupFileViewModel, hotspot1);
-        VerifyExpectedHotspotGroupViewModel(groups[1] as GroupFileViewModel, hotspot2);
+        issues.Select(x => ((HotspotViewModel)x).LocalHotspot).Should().BeEquivalentTo(hotspots);
     }
 
     [TestMethod]

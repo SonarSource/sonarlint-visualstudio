@@ -39,27 +39,7 @@ internal abstract class IssuesReportViewModelBase : IDisposable
 
     public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
 
-    public ObservableCollection<IGroupViewModel> GetGroupViewModels()
-    {
-        var issueViewModels = GetIssueViewModels();
-        return GroupIssueViewModels(issueViewModels);
-    }
-
     private void IssueStore_OnIssuesChanged(object sender, IssuesChangedEventArgs e) => threadHandling.RunOnUIThread(() => IssuesChanged?.Invoke(this, e));
-
-    protected abstract IEnumerable<IIssueViewModel> GetIssueViewModels();
-
-    private ObservableCollection<IGroupViewModel> GroupIssueViewModels(IEnumerable<IIssueViewModel> issueViewModels)
-    {
-        var issuesByFileGrouping = issueViewModels.GroupBy(vm => vm.FilePath);
-        var groupViewModels = new ObservableCollection<IGroupViewModel>();
-        foreach (var group in issuesByFileGrouping)
-        {
-            groupViewModels.Add(new GroupFileViewModel(group.Key, new List<IIssueViewModel>(group)));
-        }
-
-        return groupViewModels;
-    }
 
     public void Dispose()
     {

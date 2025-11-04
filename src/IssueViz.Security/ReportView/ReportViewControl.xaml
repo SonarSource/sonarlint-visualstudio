@@ -33,6 +33,7 @@
             <filters:IssueTypeFilterToTextConverter x:Key="IssueTypeFilterToTextConverter" />
 
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
+            <wpf:BoolToVisibilityConverter x:Key="FalseToHiddenConverter" FalseValue="Hidden" TrueValue="Visible" />
             <wpf:BoolToVisibilityConverter x:Key="TrueToCollapsedConverter" FalseValue="Visible" TrueValue="Collapsed" />
             <wpf:EnglishPluralizationConverter x:Key="EnglishPluralizationConverter" />
             <wpf:PascalCaseEnumToSpacedStringConverter x:Key="PascalCaseEnumToSpacedStringConverter" />
@@ -84,7 +85,7 @@
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <ToggleButton x:Name="ExpanderArrow" Width="16" Height="16" Margin="2,0,2,0"
                                                       IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
-                                                      Visibility="{Binding HasItems, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource TrueToVisibleConverter}}"
+                                                      Visibility="{Binding HasItems, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource FalseToHiddenConverter}}"
                                                       Template="{StaticResource ExpanderToggleButton}" Cursor="Hand" />
                                         <ContentPresenter x:Name="Header" ContentSource="Header" Margin="5,0,0,0"
                                                           VerticalAlignment="Center" />

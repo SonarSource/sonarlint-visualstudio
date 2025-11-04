@@ -32,8 +32,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots
 
 internal interface IHotspotsReportViewModel : IDisposable
 {
-    ObservableCollection<IGroupViewModel> GetHotspotsGroupViewModels();
-
     Task ShowHotspotInBrowserAsync(LocalHotspot localHotspot);
 
     Task<IEnumerable<HotspotStatus>> GetAllowedStatusesAsync(HotspotViewModel selectedHotspotViewModel);
@@ -41,6 +39,8 @@ internal interface IHotspotsReportViewModel : IDisposable
     Task<bool> ChangeHotspotStatusAsync(HotspotViewModel selectedHotspotViewModel, HotspotStatus newStatus);
 
     event EventHandler<IssuesChangedEventArgs> IssuesChanged;
+
+    IEnumerable<IIssueViewModel> GetIssueViewModels();
 }
 
 [Export(typeof(IHotspotsReportViewModel))]
@@ -54,8 +54,6 @@ internal sealed class HotspotsReportViewModel(
     IThreadHandling threadHandling)
     : IssuesReportViewModelBase(hotspotsStore, threadHandling), IHotspotsReportViewModel
 {
-    public ObservableCollection<IGroupViewModel> GetHotspotsGroupViewModels() => GetGroupViewModels();
-
     public async Task ShowHotspotInBrowserAsync(LocalHotspot localHotspot)
     {
         await reviewHotspotsService.OpenHotspotAsync(localHotspot.Visualization.Issue.IssueServerKey);
@@ -89,5 +87,5 @@ internal sealed class HotspotsReportViewModel(
         return wasChanged;
     }
 
-    protected override IEnumerable<IIssueViewModel> GetIssueViewModels() => hotspotsStore.GetAllLocalHotspots().Select(x => new HotspotViewModel(x));
+    public IEnumerable<IIssueViewModel> GetIssueViewModels() => hotspotsStore.GetAllLocalHotspots().Select(x => new HotspotViewModel(x));
 }
