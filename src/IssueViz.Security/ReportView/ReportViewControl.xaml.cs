@@ -179,7 +179,6 @@ internal sealed partial class ReportViewControl : UserControl
     private void TreeViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
         NavigateToLocation((sender as FrameworkElement)?.DataContext as IAnalysisIssueViewModel);
-        ShowRuleHelp(sender);
     }
 
     private void NavigateToLocation(IAnalysisIssueViewModel analysisIssueViewModel)
