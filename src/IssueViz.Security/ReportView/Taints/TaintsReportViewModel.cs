@@ -36,7 +36,7 @@ internal interface ITaintsReportViewModel : IDisposable
 
     void ShowIssueVisualization();
 
-    ObservableCollection<IGroupViewModel> GetTaintsGroupViewModels();
+    IEnumerable<IIssueViewModel> GetIssueViewModels();
 
     event EventHandler<IssuesChangedEventArgs> IssuesChanged;
 }
@@ -60,7 +60,5 @@ internal sealed class TaintsReportViewModel(
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     public void ShowIssueVisualization() => ToolWindowNavigator.Instance.ShowIssueVisualizationToolWindow();
 
-    public ObservableCollection<IGroupViewModel> GetTaintsGroupViewModels() => GetGroupViewModels();
-
-    protected override IEnumerable<IIssueViewModel> GetIssueViewModels() => taintsStore.GetAll().Select(x => new TaintViewModel(x));
+    public IEnumerable<IIssueViewModel> GetIssueViewModels() => taintsStore.GetAll().Select(x => new TaintViewModel(x));
 }

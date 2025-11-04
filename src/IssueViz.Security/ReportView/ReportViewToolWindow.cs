@@ -59,7 +59,9 @@ internal class ReportViewToolWindow : ToolWindowPane
             componentModel?.GetService<ITelemetryManager>(),
             componentModel?.GetService<IIssueSelectionService>(),
             componentModel?.GetService<IActiveDocumentLocator>(),
-            componentModel?.GetService<IActiveDocumentTracker>()
+            componentModel?.GetService<IActiveDocumentTracker>(),
+            componentModel?.GetService<IDocumentTracker>(),
+            componentModel?.GetService<IThreadHandling>()
         );
     }
 }

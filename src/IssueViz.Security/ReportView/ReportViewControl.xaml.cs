@@ -70,7 +70,9 @@ internal sealed partial class ReportViewControl : UserControl
         ITelemetryManager telemetryManager,
         IIssueSelectionService selectionService,
         IActiveDocumentLocator activeDocumentLocator,
-        IActiveDocumentTracker activeDocumentTracker)
+        IActiveDocumentTracker activeDocumentTracker,
+        IDocumentTracker documentTracker,
+        IThreadHandling threadHandling)
     {
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.browserService = browserService;
@@ -87,7 +89,9 @@ internal sealed partial class ReportViewControl : UserControl
             selectionService,
             activeDocumentLocator,
             activeDocumentTracker,
-            issuesReportViewModel);
+            issuesReportViewModel,
+            documentTracker,
+            threadHandling);
         InitializeComponent();
     }
 

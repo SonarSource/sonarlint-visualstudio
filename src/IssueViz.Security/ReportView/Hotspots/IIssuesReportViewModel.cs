@@ -31,8 +31,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots
 
 internal interface IIssuesReportViewModel : IDisposable
 {
-    ObservableCollection<IGroupViewModel> GetIssuesGroupViewModels();
     event EventHandler<IssuesChangedEventArgs> IssuesChanged;
+
+    IEnumerable<IIssueViewModel> GetIssueViewModels();
 }
 
 [Export(typeof(IIssuesReportViewModel))]
@@ -40,9 +41,7 @@ internal interface IIssuesReportViewModel : IDisposable
 [method:ImportingConstructor]
 internal sealed class IssuesReportViewModel(ILocalIssuesStore localIssuesStore, IThreadHandling threadHandling) : IssuesReportViewModelBase(localIssuesStore, threadHandling), IIssuesReportViewModel
 {
-    protected override IEnumerable<IIssueViewModel> GetIssueViewModels() => localIssuesStore.GetAll().Select(x => new IssueViewModel(x));
-
-    public ObservableCollection<IGroupViewModel> GetIssuesGroupViewModels() => GetGroupViewModels();
+    public IEnumerable<IIssueViewModel> GetIssueViewModels() => localIssuesStore.GetAll().Select(x => new IssueViewModel(x));
 }
 
 internal class IssueViewModel : AnalysisIssueViewModelBase
