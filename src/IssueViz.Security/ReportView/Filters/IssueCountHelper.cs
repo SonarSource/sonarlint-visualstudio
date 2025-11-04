@@ -18,14 +18,29 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.ObjectModel;
-using System.IO;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
-
-internal sealed class GroupFileViewModel(string filePath, List<IIssueViewModel> issues) : GroupViewModelBase(Path.GetFileName(filePath), filePath)
+public static class IssueCountHelper
 {
-    public override List<IIssueViewModel> AllIssues { get; } = issues;
-    public override List<IIssueViewModel> PreFilteredIssues { get; protected set; } = issues;
-    public override ObservableCollection<IIssueViewModel> FilteredIssues { get; } = new(issues);
+    public static string FormatString(
+        int filteredCount,
+        int totalCount,
+        string singular,
+        string plural)
+    {
+        var prefix = filteredCount != totalCount ? $"{filteredCount} of " : string.Empty;
+        var suffix = FormatString(totalCount, singular, plural);
+        return prefix + suffix;
+    }
+
+    private static string FormatString(
+        int totalCount,
+        string singular,
+        string plural) =>
+        totalCount switch
+        {
+            0 => $"No {plural}",
+            1 => $"{totalCount} {singular}",
+            _ => $"{totalCount} {plural}"
+        };
 }

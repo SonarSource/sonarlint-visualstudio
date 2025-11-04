@@ -52,6 +52,7 @@ public class IssueTypeFilterToTextConverterTest
     public void Convert_WhenMoreParametersThanExpected_ReturnsLocalization()
     {
         reportViewModel.FilteredGroupViewModels.Returns([]);
+        reportViewModel.AllGroupViewModels.Returns([]);
 
         var result = testSubject.Convert([issueTypeFilterViewModel, reportViewModel, default, default], null, null, CultureInfo.InvariantCulture);
 
@@ -129,6 +130,22 @@ public class IssueTypeFilterToTextConverterTest
     }
 
     [TestMethod]
+    public void Convert_AccountsForFilteredLocationAndIssueBasedPreFiltering()
+    {
+        // in total, there is 7 issues. 2 are not included due to pre-filtering (currently only severity). Only 2 issues are in filtered issues of filtered files, so expected is 2 of 5 and not 3 of 7
+        var group1 = MockGroupViewModelWithSameType(3, 2, 1);
+        var group2 = MockGroupViewModelWithSameType(1, 1, 1);
+        var group3 = MockGroupViewModelWithSameType(3, 2, 1); // this is included in total count, but not in filtered count
+        reportViewModel.FilteredGroupViewModels.Returns([group1, group2]);
+        reportViewModel.AllGroupViewModels.Returns([group1, group2, group3]);
+        MockIssueTypeFilter(IssueType.TaintVulnerability);
+
+        var result = testSubject.Convert([issueTypeFilterViewModel, reportViewModel], null, null, null);
+
+        result.Should().Be("2 of 5 Taint Vulnerabilities");
+    }
+
+    [TestMethod]
     public void ConvertBack_ThrowsNotImplementedException()
     {
         Action act = () => testSubject.ConvertBack("value", null, null, null);
@@ -158,8 +175,25 @@ public class IssueTypeFilterToTextConverterTest
 
         var groupVm = Substitute.For<IGroupViewModel>();
         var filteredIssues = new ObservableCollection<IIssueViewModel>(risks.Union(hotspots).Union(taints));
+        groupVm.PreFilteredIssues.Returns(filteredIssues.ToList());
         groupVm.FilteredIssues.Returns(filteredIssues);
         reportViewModel.FilteredGroupViewModels.Returns([groupVm]);
+        reportViewModel.AllGroupViewModels.Returns([groupVm]);
+    }
+
+    private IGroupViewModel MockGroupViewModelWithSameType(
+        int allFindings,
+        int preFilteredFindings,
+        int filteredFindings)
+    {
+        var groupVm = Substitute.For<IGroupViewModel>();
+        var issueViewModels = Enumerable.Range(0, allFindings).Select(_ => CreateMockedIssueViewModel(IssueType.TaintVulnerability)).ToList();
+        groupVm.AllIssues.Returns(issueViewModels);
+        var preFilteredViewModels = Enumerable.Range(0, preFilteredFindings).Select(_ => CreateMockedIssueViewModel(IssueType.TaintVulnerability)).ToList();
+        groupVm.PreFilteredIssues.Returns(preFilteredViewModels);
+        var filteredViewModels = new ObservableCollection<IIssueViewModel>(Enumerable.Range(0, filteredFindings).Select(_ => CreateMockedIssueViewModel(IssueType.TaintVulnerability)));
+        groupVm.FilteredIssues.Returns(filteredViewModels);
+        return groupVm;
     }
 
     private static IIssueViewModel CreateMockedIssueViewModel(IssueType issueType)

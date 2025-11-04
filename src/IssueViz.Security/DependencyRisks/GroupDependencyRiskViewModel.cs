@@ -20,56 +20,24 @@
 
 using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
-using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
-internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewModel
+internal sealed class GroupDependencyRiskViewModel : GroupViewModelBase
 {
     private readonly IDependencyRisksStore dependencyRisksStore;
     private readonly List<IIssueViewModel> risks = new();
-    private bool isExpanded = true;
 
-    public GroupDependencyRiskViewModel(IDependencyRisksStore dependencyRisksStore)
+    public GroupDependencyRiskViewModel(IDependencyRisksStore dependencyRisksStore) : base(Resources.DependencyRisksGroupTitle, null)
     {
         this.dependencyRisksStore = dependencyRisksStore;
+        PreFilteredIssues = risks;
         FilteredIssues = new ObservableCollection<IIssueViewModel>(risks);
     }
-
-    public string Title => Resources.DependencyRisksGroupTitle;
-    public string FilePath => null;
-    public List<IIssueViewModel> AllIssues => risks;
-    public ObservableCollection<IIssueViewModel> FilteredIssues { get; }
-
-    public bool IsExpanded
-    {
-        get => isExpanded;
-        set
-        {
-            isExpanded = value;
-            RaisePropertyChanged();
-        }
-    }
-
-    public void ApplyFilter(ReportViewFilterViewModel reportViewFilter)
-    {
-        var dependencyRiskFilter = reportViewFilter.IssueTypeFilters.Single(f => f.IssueType == IssueType.DependencyRisk);
-        IEnumerable<IIssueViewModel> issuesToShow = dependencyRiskFilter.IsSelected ? AllIssues : [];
-
-        issuesToShow = issuesToShow
-            .Where(vm => DisplaySeverityComparer.Instance.Compare(vm.DisplaySeverity, reportViewFilter.SelectedSeverityFilter) >= 0)
-            .OrderByDescending(vm => vm.DisplaySeverity, DisplaySeverityComparer.Instance);
-
-        if (reportViewFilter.SelectedStatusFilter != DisplayStatus.Any)
-        {
-            issuesToShow = issuesToShow.Where(vm => vm.Status == reportViewFilter.SelectedStatusFilter);
-        }
-
-        FilteredIssues.Clear();
-        issuesToShow.ToList().ForEach(issue => FilteredIssues.Add(issue));
-    }
+    public override List<IIssueViewModel> AllIssues => risks;
+    public override List<IIssueViewModel> PreFilteredIssues { get; protected set; }
+    public override ObservableCollection<IIssueViewModel> FilteredIssues { get; }
 
     public void InitializeRisks()
     {
@@ -88,6 +56,4 @@ internal sealed class GroupDependencyRiskViewModel : ViewModelBase, IGroupViewMo
         }
         RaisePropertyChanged(nameof(FilteredIssues));
     }
-
-    public void Dispose() { }
 }

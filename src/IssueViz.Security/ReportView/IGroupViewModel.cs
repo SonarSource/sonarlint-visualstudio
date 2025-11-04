@@ -28,6 +28,7 @@ internal interface IGroupViewModel : IDisposable
     string Title { get; }
     string FilePath { get; }
     List<IIssueViewModel> AllIssues { get; }
+    List<IIssueViewModel> PreFilteredIssues { get; }
     ObservableCollection<IIssueViewModel> FilteredIssues { get; }
 
     bool IsExpanded { get; set; }

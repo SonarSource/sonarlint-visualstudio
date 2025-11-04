@@ -182,8 +182,39 @@ public class GroupFileViewModelTest
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
+        testSubject.PreFilteredIssues.Should().HaveCount(3);
         testSubject.FilteredIssues.Should().HaveCount(3);
         testSubject.FilteredIssues.Should().OnlyContain(i => i.Status == DisplayStatus.Resolved);
+        VerifyAllIssuesUnchanged();
+    }
+
+    [TestMethod]
+    public void ApplyFilter_StatusAndSeverityFilter_AppliesStatusAsPreFilter()
+    {
+        MockStatusFilter(DisplayStatus.Resolved);
+        MockSeverityFilter(DisplaySeverity.Blocker);
+
+        testSubject.ApplyFilter(reportViewFilterViewModel);
+
+        testSubject.AllIssues.Should().HaveCount(5);
+        testSubject.PreFilteredIssues.Should().HaveCount(3);
+        testSubject.FilteredIssues.Should().HaveCount(1);
+        testSubject.FilteredIssues.Should().OnlyContain(i => i.Status == DisplayStatus.Resolved && i.DisplaySeverity == DisplaySeverity.Blocker);
+        VerifyAllIssuesUnchanged();
+    }
+
+    [TestMethod]
+    public void ApplyFilter_TypeAndSeverityFilter_NoPreFiltering()
+    {
+        MockIssueTypeFilter(IssueType.TaintVulnerability, true);
+        MockSeverityFilter(DisplaySeverity.Blocker);
+
+        testSubject.ApplyFilter(reportViewFilterViewModel);
+
+        testSubject.AllIssues.Should().HaveCount(5);
+        testSubject.PreFilteredIssues.Should().HaveCount(5);
+        testSubject.FilteredIssues.Should().HaveCount(1);
+        testSubject.FilteredIssues.Should().OnlyContain(i => i.IssueType == IssueType.TaintVulnerability && i.DisplaySeverity == DisplaySeverity.Blocker);
         VerifyAllIssuesUnchanged();
     }
 

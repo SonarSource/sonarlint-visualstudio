@@ -117,51 +117,31 @@ public class ReportViewModelTest
         VerifyExpectedDependencyRiskGroupViewModel(testSubject.FilteredGroupViewModels[0] as GroupDependencyRiskViewModel, dependencyRisk);
     }
 
-    // [TestMethod]
-    // public void Ctor_InitializesHotspots()
-    // {
-    //     var hotspotGroupViewModel = CreateMockedGroupViewModel(filePath: "myFile.cs");
-    //     var hotspotGroupViewModel2 = CreateMockedGroupViewModel(filePath: "myFile2.cs");
-    //     hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns([hotspotGroupViewModel, hotspotGroupViewModel2]);
-    //
-    //     CreateTestSubject();
-    //
-    //     testSubject.FilteredGroupViewModels.Should().HaveCount(2);
-    //     testSubject.FilteredGroupViewModels.Should().Contain(hotspotGroupViewModel);
-    //     testSubject.FilteredGroupViewModels.Should().Contain(hotspotGroupViewModel2);
-    // }
-    //
-    // [TestMethod]
-    // public void Ctor_InitializesTaints()
-    // {
-    //     var taintGroupViewModel = CreateMockedGroupViewModel(filePath: "myFile.cs");
-    //     var taintGroupViewModel2 = CreateMockedGroupViewModel(filePath: "myFile2.cs");
-    //     taintsReportViewModel.GetTaintsGroupViewModels().Returns([taintGroupViewModel, taintGroupViewModel2]);
-    //
-    //     CreateTestSubject();
-    //
-    //     testSubject.FilteredGroupViewModels.Should().HaveCount(2);
-    //     testSubject.FilteredGroupViewModels.Should().Contain(taintGroupViewModel);
-    //     testSubject.FilteredGroupViewModels.Should().Contain(taintGroupViewModel2);
-    // }
-    //
-    // [TestMethod]
-    // public void Ctor_MixedIssuesTypes_CreatesGroupViewModelsCorrectly()
-    // {
-    //     var dependencyRisk = CreateDependencyRisk();
-    //     MockRisksInStore(dependencyRisk);
-    //     var hotspotGroupViewModel = CreateMockedGroupViewModel(filePath: "myFile.cs");
-    //     hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns([hotspotGroupViewModel]);
-    //     var taintGroupViewModel = CreateMockedGroupViewModel(filePath: "myFile2.cs");
-    //     taintsReportViewModel.GetTaintsGroupViewModels().Returns([taintGroupViewModel]);
-    //
-    //     CreateTestSubject();
-    //
-    //     testSubject.FilteredGroupViewModels.Should().HaveCount(3);
-    //     VerifyExpectedDependencyRiskGroupViewModel(testSubject.FilteredGroupViewModels[0] as GroupDependencyRiskViewModel, dependencyRisk);
-    //     testSubject.FilteredGroupViewModels.Should().Contain(hotspotGroupViewModel);
-    //     testSubject.FilteredGroupViewModels.Should().Contain(taintGroupViewModel);
-    // }
+    [TestMethod]
+    public void Ctor_MixedIssuesTypes_CreatesGroupViewModelsCorrectly()
+    {
+        var dependencyRisk = CreateDependencyRisk();
+        MockRisksInStore(dependencyRisk);
+
+        var filePath = "myFile.cs";
+        var filePath2 = "myFile2.cs";
+        var file1Hotspot = CreateHotspotVisualization(Guid.NewGuid(), "any", filePath);
+        var file2Hotspot = CreateHotspotVisualization(Guid.NewGuid(), "any", filePath2);
+        IEnumerable<IIssueViewModel> hotspots = [CreateHotspotViewModel(file1Hotspot), CreateHotspotViewModel(file2Hotspot)];
+        hotspotsReportViewModel.GetIssueViewModels().Returns(hotspots);
+        var file1Taint = CreateTaintVisualization(Guid.NewGuid(), "any", filePath);
+        IEnumerable<IIssueViewModel> taints = [CreateTaintViewModel(file1Taint)];
+        taintsReportViewModel.GetIssueViewModels().Returns(taints);
+        InitializeTestSubjectWithInitialGroup(filePath, filePath2, "myFile3.cs");
+
+        CreateTestSubject();
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(4);
+        VerifyExpectedDependencyRiskGroupViewModel(testSubject.FilteredGroupViewModels[0] as GroupDependencyRiskViewModel, dependencyRisk);
+        VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[1], file1Hotspot, file1Taint);
+        VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[2], file2Hotspot);
+        VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[3]);
+    }
 
     [TestMethod]
     public void Ctor_NoIssues_CreatesNoGroupViewModel()
@@ -677,6 +657,7 @@ public class ReportViewModelTest
 
         testSubject.HasAnyGroups.Should().BeTrue();
         testSubject.HasFilteredGroups.Should().BeTrue();
+        testSubject.HasNoFilteredIssuesForGroupsWithIssues.Should().BeFalse();
     }
 
     [TestMethod]
@@ -684,6 +665,7 @@ public class ReportViewModelTest
     {
         testSubject.HasAnyGroups.Should().BeFalse();
         testSubject.HasFilteredGroups.Should().BeFalse();
+        testSubject.HasNoFilteredIssuesForGroupsWithIssues.Should().BeFalse();
     }
 
     [TestMethod]

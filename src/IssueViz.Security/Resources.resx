@@ -269,9 +269,6 @@ Please check the logs for more details.</value>
   <data name="NoFindingsToDisplayCurrentClearFiltersLink" xml:space="preserve">
     <value>clear all current filters</value>
   </data>
-  <data name="IssueText" xml:space="preserve">
-    <value>issue</value>
-  </data>
   <data name="ChangeStatusWindow_CommentLabel" xml:space="preserve">
     <value>Add a comment:</value>
   </data>
@@ -415,5 +412,17 @@ Please check the logs for more details.</value>
   </data>
   <data name="DependencyRiskPlural" xml:space="preserve">
     <value>Dependency Risks</value>
+  </data>
+  <data name="IssueSingular" xml:space="preserve">
+    <value>Issue</value>
+  </data>
+  <data name="IssuePlural" xml:space="preserve">
+    <value>Issues</value>
+  </data>
+  <data name="FindingSingularSmall" xml:space="preserve">
+    <value>finding</value>
+  </data>
+  <data name="FindingPluralSmall" xml:space="preserve">
+    <value>findings</value>
   </data>
 </root>
