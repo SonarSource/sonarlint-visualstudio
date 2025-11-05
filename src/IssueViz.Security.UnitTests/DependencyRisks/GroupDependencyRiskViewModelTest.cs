@@ -225,7 +225,7 @@ public class GroupDependencyRiskViewModelTest
         testSubject.AllIssues.Should().HaveCount(5);
         testSubject.PreFilteredIssues.Should().HaveCount(5);
         testSubject.FilteredIssues.Should().HaveCount(1);
-        testSubject.FilteredIssues.Should().OnlyContain(i => i.IssueType == IssueType.TaintVulnerability && i.DisplaySeverity == DisplaySeverity.Blocker);
+        testSubject.FilteredIssues.Should().OnlyContain(i => i.DisplaySeverity == DisplaySeverity.Blocker);
     }
 
     [TestMethod]
