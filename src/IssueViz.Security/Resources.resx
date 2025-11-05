@@ -384,7 +384,7 @@ Please check the logs for more details.</value>
     <value>Show Issue Visualization</value>
   </data>
   <data name="SeverityLabel" xml:space="preserve">
-    <value>Minimal Severity:</value>
+    <value>Minimum Severity:</value>
   </data>
   <data name="StatusLabel" xml:space="preserve">
     <value>Status:</value>

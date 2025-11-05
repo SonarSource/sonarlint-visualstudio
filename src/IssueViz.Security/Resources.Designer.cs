@@ -764,7 +764,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Minimal Severity:.
+        ///   Looks up a localized string similar to Minimum Severity:.
         /// </summary>
         public static string SeverityLabel {
             get {
