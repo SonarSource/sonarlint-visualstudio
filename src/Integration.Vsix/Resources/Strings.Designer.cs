@@ -764,6 +764,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarQube for VisualStudio version: {0}.
+        /// </summary>
+        public static string SQVSVersionLog {
+            get {
+                return ResourceManager.GetString("SQVSVersionLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Telemetry: error occurred: {0}.
         /// </summary>
         public static string Telemetry_ERROR {

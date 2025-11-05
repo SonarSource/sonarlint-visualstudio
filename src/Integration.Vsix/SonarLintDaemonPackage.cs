@@ -19,6 +19,7 @@
  */
 
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
@@ -29,6 +30,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using SonarLint.VisualStudio.Integration.CSharpVB.Install;
+using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.Events;
@@ -99,6 +101,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 logger = await this.GetMefServiceAsync<ILogger>();
                 logger.WriteLine(Strings.Daemon_Initializing);
+                logger.WriteLine(Strings.SQVSVersionLog, VersionHelper.SonarLintVersion);
 
                 // This migration should be performed before initializing other services, independent if a solution or a folder is opened.
                 await MigrateBindingsToServerConnectionsIfNeededAsync();
