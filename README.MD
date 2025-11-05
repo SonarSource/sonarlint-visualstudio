@@ -20,17 +20,17 @@ Note: SonarQube for Visual Studio 2017 and 2019 has been deprecated. New version
 * Support for standalone analysis.
 * Support for connected mode.
 
-[Connected Mode](https://docs.sonarsource.com/sonarlint/visual-studio/team-features/connected-mode/) provides suppression of issues marked as **False Positive** or **Won't Fix** on SonarQube (Server, Cloud). Follow the link for more information.
+[Connected Mode](https://docs.sonarsource.com/sonarqube-for-visual-studio/connect-your-ide/connected-mode/) provides suppression of issues marked as **False Positive** or **Won't Fix** on SonarQube (Server, Cloud). Follow the link for more information.
 
 ## Useful links
-* [SonarQube for Visual Studio documentation](https://docs.sonarsource.com/sonarlint/visual-studio/)
+* [SonarQube for Visual Studio documentation](https://docs.sonarsource.com/sonarqube-for-visual-studio/)
 * [Community Forum](https://community.sonarsource.com/)
 * [SonarQube for Visual Studio overview](https://www.sonarsource.com/products/sonarlint/features/visual-studio/)
 * [Issue tracking](https://github.com/SonarSource/sonarlint-visualstudio/issues)
 
 ## Have questions or feedback?
 
-The preferred way to discuss SonarQube for Visual Studio is by posting on the [SonarSource Community Forum](https://community.sonarsource.com). Feel free to ask questions, report issues, and give suggestions.
+The preferred way to discuss SonarQube for Visual Studio is by posting on the [SonarSource Community Forum](https://community.sonarsource.com/c/sl/11). Feel free to ask questions, report issues, and give suggestions.
 
 **False positives:** please report false positives in analysis rules in [this section](https://community.sonarsource.com/c/bug/fp/7) of the community forum. 
 
