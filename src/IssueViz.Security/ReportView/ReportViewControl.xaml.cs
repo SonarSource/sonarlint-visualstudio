@@ -37,6 +37,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Issues;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
@@ -56,6 +57,7 @@ internal sealed partial class ReportViewControl : UserControl
     public IHotspotsReportViewModel HotspotsReportViewModel { get; }
     public IDependencyRisksReportViewModel DependencyRisksReportViewModel { get; }
     public ITaintsReportViewModel TaintsReportViewModel { get; }
+    public IIssuesReportViewModel IssuesReportViewModel { get; }
     public IResourceFinder ResourceFinder { get; } = new ResourceFinder();
 
     public ReportViewControl(
@@ -64,6 +66,7 @@ internal sealed partial class ReportViewControl : UserControl
         IHotspotsReportViewModel hotspotsReportViewModel,
         IDependencyRisksReportViewModel dependencyRisksReportViewModel,
         ITaintsReportViewModel taintsReportViewModel,
+        IIssuesReportViewModel issuesReportViewModel,
         INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
         ILocationNavigator locationNavigator,
         ITelemetryManager telemetryManager,
@@ -78,12 +81,14 @@ internal sealed partial class ReportViewControl : UserControl
         HotspotsReportViewModel = hotspotsReportViewModel;
         DependencyRisksReportViewModel = dependencyRisksReportViewModel;
         TaintsReportViewModel = taintsReportViewModel;
+        IssuesReportViewModel = issuesReportViewModel;
         ReportViewModel = new ReportViewModel(activeSolutionBoundTracker,
             navigateToRuleDescriptionCommand,
             locationNavigator,
             HotspotsReportViewModel,
             DependencyRisksReportViewModel,
             TaintsReportViewModel,
+            IssuesReportViewModel,
             telemetryManager,
             selectionService,
             activeDocumentLocator,
@@ -243,6 +248,23 @@ internal sealed partial class ReportViewControl : UserControl
         {
             NavigateToLocation(taintViewModel);
             TaintsReportViewModel.ShowIssueVisualization();
+        }
+    }
+
+    private void ViewIssueInBrowser_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (ReportViewModel.SelectedItem is IssueViewModel issueViewModel)
+        {
+            IssuesReportViewModel.ShowIssueInBrowser(issueViewModel.AnalysisIssue);
+        }
+    }
+
+    private void ShowIssueVisualizationForIssue_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (ReportViewModel.SelectedItem is IssueViewModel issueViewModel)
+        {
+            NavigateToLocation(issueViewModel);
+            IssuesReportViewModel.ShowIssueVisualization();
         }
     }
 

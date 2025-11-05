@@ -18,25 +18,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
-using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Issues;
 
-internal class TaintViewModel : AnalysisIssueViewModelBase
+internal class IssueViewModel : AnalysisIssueViewModelBase
 {
-    public ITaintIssue TaintIssue => (ITaintIssue)Issue.Issue;
+    public IAnalysisIssue AnalysisIssue => Issue.Issue as IAnalysisIssue;
 
-    public TaintViewModel(IAnalysisIssueVisualization analysisIssueVisualization) : base(analysisIssueVisualization)
+    public IssueViewModel(IAnalysisIssueVisualization analysisIssueVisualization) : base(analysisIssueVisualization)
     {
-        DisplaySeverity = GetDisplaySeverity();
+        DisplaySeverity = GetDisplaySeverity(AnalysisIssue.HighestImpact?.Severity) ?? GetDisplaySeverity(AnalysisIssue.Severity) ?? DisplaySeverity.Info;
         Status = analysisIssueVisualization.IsResolved ? DisplayStatus.Resolved : DisplayStatus.Open;
     }
 
-    private DisplaySeverity GetDisplaySeverity() => GetDisplaySeverity(TaintIssue.HighestSoftwareQualitySeverity) ?? GetDisplaySeverity(TaintIssue.Severity) ?? DisplaySeverity.Info;
-
     public override DisplaySeverity DisplaySeverity { get; }
-    public override IssueType IssueType => IssueType.TaintVulnerability;
+    public override IssueType IssueType => IssueType.Issue;
     public override DisplayStatus Status { get; }
 }

@@ -19,59 +19,53 @@
  */
 
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Issues;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
-using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
-using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
-using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
-using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Issues;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView.Taints;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView.Issues;
 
 [TestClass]
-public class TaintsReportViewModelTest
+public class IssuesReportViewModelTests
 {
-    private ITaintStore localTaintsStore;
-    private TaintsReportViewModel testSubject;
+    private ILocalIssuesStore localIssuesStore;
+    private IssuesReportViewModel testSubject;
     private IShowInBrowserService showInBrowserService;
-    private ITelemetryManager telemetryManager;
     private IThreadHandling threadHandling;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        localTaintsStore = Substitute.For<ITaintStore>();
+        localIssuesStore = Substitute.For<ILocalIssuesStore>();
         showInBrowserService = Substitute.For<IShowInBrowserService>();
-        telemetryManager = Substitute.For<ITelemetryManager>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
 
-        testSubject = new TaintsReportViewModel(localTaintsStore, showInBrowserService, telemetryManager, threadHandling);
+        testSubject = new IssuesReportViewModel(localIssuesStore, showInBrowserService, threadHandling);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<TaintsReportViewModel, ITaintsReportViewModel>(
-            MefTestHelpers.CreateExport<ITaintStore>(),
+        MefTestHelpers.CheckTypeCanBeImported<IssuesReportViewModel, IIssuesReportViewModel>(
+            MefTestHelpers.CreateExport<IIssuesStore>(),
             MefTestHelpers.CreateExport<IShowInBrowserService>(),
-            MefTestHelpers.CreateExport<ITelemetryManager>(),
             MefTestHelpers.CreateExport<IThreadHandling>()
         );
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<TaintsReportViewModel>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<IssuesReportViewModel>();
 
     [TestMethod]
-    public void Constructor_SubscribesToIssuesChanged() => localTaintsStore.Received().IssuesChanged += Arg.Any<EventHandler<IssuesChangedEventArgs>>();
+    public void Constructor_SubscribesToIssuesChanged() => localIssuesStore.Received().IssuesChanged += Arg.Any<EventHandler<IssuesChangedEventArgs>>();
 
     [TestMethod]
     public void Dispose_UnsubscribesFromIssuesChanged()
     {
         testSubject.Dispose();
-
-        localTaintsStore.Received().IssuesChanged -= Arg.Any<EventHandler<IssuesChangedEventArgs>>();
+        localIssuesStore.Received().IssuesChanged -= Arg.Any<EventHandler<IssuesChangedEventArgs>>();
     }
 
     [TestMethod]
@@ -79,21 +73,21 @@ public class TaintsReportViewModelTest
     {
         var file1 = "file1.cs";
         var file2 = "file2.cs";
-        IAnalysisIssueVisualization[] taints = [CreateMockedTaint(file1), CreateMockedTaint(file1), CreateMockedTaint(file2)];
-        MockTaintsInStore(taints);
+        IAnalysisIssueVisualization[] issues = [CreateMockedIssue(file1), CreateMockedIssue(file1), CreateMockedIssue(file2)];
+        MockIssuesInStore(issues);
 
-        var issues = testSubject.GetIssueViewModels();
+        var result = testSubject.GetIssueViewModels();
 
-        issues.Select(x => ((TaintViewModel)x).Issue).Should().BeEquivalentTo(taints);
+        result.Select(x => ((IssueViewModel)x).Issue).Should().BeEquivalentTo(issues);
     }
 
     [TestMethod]
-    public void HotspotsChanged_RaisedOnStoreIssuesChanged()
+    public void IssuesChanged_RaisedOnStoreIssuesChanged()
     {
         var eventHandler = Substitute.For<EventHandler<IssuesChangedEventArgs>>();
         testSubject.IssuesChanged += eventHandler;
 
-        localTaintsStore.IssuesChanged += Raise.Event<EventHandler<IssuesChangedEventArgs>>(null, null);
+        localIssuesStore.IssuesChanged += Raise.Event<EventHandler<IssuesChangedEventArgs>>(null, null);
 
         Received.InOrder(() =>
         {
@@ -103,26 +97,24 @@ public class TaintsReportViewModelTest
     }
 
     [TestMethod]
-    public void ShowTaintInBrowserAsync_CallsServiceWithCorrectArgumentAndSendTelemetry()
+    public void ShowIssueInBrowser_CallsServiceWithCorrectArgumentAndSendTelemetry()
     {
-        var taintIssue = Substitute.For<ITaintIssue>();
-        taintIssue.IssueServerKey.Returns("key");
+        var issue = Substitute.For<IAnalysisIssue>();
+        issue.IssueServerKey.Returns("key");
 
-        testSubject.ShowTaintInBrowser(taintIssue);
+        testSubject.ShowIssueInBrowser(issue);
 
-        showInBrowserService.Received(1).ShowIssue(taintIssue.IssueServerKey);
-        telemetryManager.Received(1).TaintIssueInvestigatedRemotely();
+        showInBrowserService.Received(1).ShowIssue(issue.IssueServerKey);
     }
 
-    private static IAnalysisIssueVisualization CreateMockedTaint(string filePath)
+    private static IAnalysisIssueVisualization CreateMockedIssue(string filePath)
     {
         var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
-        var analysisIssueBase = Substitute.For<ITaintIssue>();
+        var analysisIssueBase = Substitute.For<IAnalysisIssue>();
         analysisIssueBase.PrimaryLocation.FilePath.Returns(filePath);
         analysisIssueVisualization.Issue.Returns(analysisIssueBase);
-
         return analysisIssueVisualization;
     }
 
-    private void MockTaintsInStore(params IAnalysisIssueVisualization[] taints) => localTaintsStore.GetAll().Returns(taints);
+    private void MockIssuesInStore(params IAnalysisIssueVisualization[] issues) => localIssuesStore.GetAll().Returns(issues);
 }

@@ -34,6 +34,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Issues;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
@@ -49,6 +50,7 @@ public class ReportViewModelTest
     private IDependencyRisksStore dependencyRisksStore;
     private IHotspotsReportViewModel hotspotsReportViewModel;
     private ITaintsReportViewModel taintsReportViewModel;
+    private IIssuesReportViewModel issuesReportViewModel;
     private IShowDependencyRiskInBrowserHandler showDependencyRiskInBrowserHandler;
     private IChangeDependencyRiskStatusHandler changeDependencyRiskStatusHandler;
     private INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand;
@@ -69,6 +71,7 @@ public class ReportViewModelTest
         dependencyRisksStore = Substitute.For<IDependencyRisksStore>();
         hotspotsReportViewModel = Substitute.For<IHotspotsReportViewModel>();
         taintsReportViewModel = Substitute.For<ITaintsReportViewModel>();
+        issuesReportViewModel = Substitute.For<IIssuesReportViewModel>();
         showDependencyRiskInBrowserHandler = Substitute.For<IShowDependencyRiskInBrowserHandler>();
         changeDependencyRiskStatusHandler = Substitute.For<IChangeDependencyRiskStatusHandler>();
         navigateToRuleDescriptionCommand = Substitute.For<INavigateToRuleDescriptionCommand>();
@@ -83,6 +86,7 @@ public class ReportViewModelTest
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         hotspotsReportViewModel.GetIssueViewModels().Returns([]);
         taintsReportViewModel.GetIssueViewModels().Returns([]);
+        issuesReportViewModel.GetIssueViewModels().Returns([]);
 
         CreateTestSubject();
     }
@@ -125,21 +129,29 @@ public class ReportViewModelTest
 
         var filePath = "myFile.cs";
         var filePath2 = "myFile2.cs";
+
         var file1Hotspot = CreateHotspotVisualization(Guid.NewGuid(), "any", filePath);
         var file2Hotspot = CreateHotspotVisualization(Guid.NewGuid(), "any", filePath2);
         IEnumerable<IIssueViewModel> hotspots = [CreateHotspotViewModel(file1Hotspot), CreateHotspotViewModel(file2Hotspot)];
         hotspotsReportViewModel.GetIssueViewModels().Returns(hotspots);
+
         var file1Taint = CreateTaintVisualization(Guid.NewGuid(), "any", filePath);
         IEnumerable<IIssueViewModel> taints = [CreateTaintViewModel(file1Taint)];
         taintsReportViewModel.GetIssueViewModels().Returns(taints);
+
+        var file1Issue = CreateIssueVisualization(Guid.NewGuid(), filePath);
+        var file2Issue = CreateIssueVisualization(Guid.NewGuid(),  filePath2);
+        IEnumerable<IIssueViewModel> issues = [CreateIssueViewModel(file1Issue), CreateIssueViewModel(file2Issue)];
+        issuesReportViewModel.GetIssueViewModels().Returns(issues);
+
         InitializeTestSubjectWithInitialGroup(filePath, filePath2, "myFile3.cs");
 
         CreateTestSubject();
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(4);
         VerifyExpectedDependencyRiskGroupViewModel(testSubject.FilteredGroupViewModels[0] as GroupDependencyRiskViewModel, dependencyRisk);
-        VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[1], file1Hotspot, file1Taint);
-        VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[2], file2Hotspot);
+        VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[1], file1Hotspot, file1Taint, file1Issue);
+        VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[2], file2Hotspot, file2Issue);
         VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[3]);
     }
 
@@ -567,6 +579,131 @@ public class ReportViewModelTest
     }
 
     [TestMethod]
+    public void IssuesChanged_IssuesAdded_NoGroupExists_CreatesGroup()
+    {
+        ClearCallsForReportsViewModels();
+        var issue = CreateIssueVisualization(Guid.NewGuid(), filePath: "myFile.cs");
+        var issue2 = CreateIssueVisualization(Guid.NewGuid(), filePath: "myFile.cs");
+
+        issuesReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [issue, issue2]));
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        VerifyExpectedGroupFileViewModel(testSubject.FilteredGroupViewModels[0] as GroupFileViewModel, issue, issue2);
+        VerifyHasGroupsUpdated();
+        issuesReportViewModel.DidNotReceive().GetIssueViewModels();
+    }
+
+    [TestMethod]
+    public void IssuesChanged_TaintAdded_GroupAlreadyExists_UpdatesGroup()
+    {
+        var filePath = "myFile.cs";
+        var existingIssue = CreateIssueVisualization(Guid.NewGuid(), filePath);
+        IEnumerable<IIssueViewModel> issueViewModels = [CreateIssueViewModel(existingIssue)];
+        issuesReportViewModel.GetIssueViewModels().Returns(issueViewModels);
+        InitializeTestSubjectWithInitialGroup(filePath);
+        var newIssueSameFile = CreateIssueVisualization(Guid.NewGuid(), filePath);
+
+        issuesReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [newIssueSameFile]));
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[0], existingIssue, newIssueSameFile);
+        VerifyHasGroupsUpdated();
+        issuesReportViewModel.DidNotReceive().GetIssueViewModels();
+    }
+
+    [TestMethod]
+    public void IssuesChanged_IssueAddedToDifferentFile_CreatesNewGroup()
+    {
+        var filePath = "myFile.cs";
+        var existingIssue = CreateIssueVisualization(Guid.NewGuid(), filePath);
+        IEnumerable<IIssueViewModel> issueViewModels = [CreateIssueViewModel(existingIssue)];
+        issuesReportViewModel.GetIssueViewModels().Returns(issueViewModels);
+        InitializeTestSubjectWithInitialGroup(filePath);
+        var newIssueDifferentFile = CreateIssueVisualization(Guid.NewGuid(), "myFile2.cs");
+
+        issuesReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [newIssueDifferentFile]));
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(2);
+        VerifyExpectedGroupFileViewModel(testSubject.FilteredGroupViewModels[0] as GroupFileViewModel, existingIssue);
+        VerifyExpectedGroupFileViewModel(testSubject.FilteredGroupViewModels[1] as GroupFileViewModel, newIssueDifferentFile);
+        VerifyHasGroupsUpdated();
+        issuesReportViewModel.DidNotReceive().GetIssueViewModels();
+    }
+
+    [TestMethod]
+    public void IssuesChanged_IssueRemoved_GroupHasJustOneIssue_KeepsGroup()
+    {
+        var filePath = "myFile.cs";
+        var existingIssue = CreateIssueVisualization(Guid.NewGuid(), filePath);
+        IEnumerable<IIssueViewModel> issueViewModels = [CreateIssueViewModel(existingIssue)];
+        issuesReportViewModel.GetIssueViewModels().Returns(issueViewModels);
+        InitializeTestSubjectWithInitialGroup(filePath);
+
+        issuesReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
+            new IssuesChangedEventArgs([CreateIssueVisualization(existingIssue.Issue.Id, filePath)], []));
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[0]);
+        VerifyHasGroupsUpdated();
+        issuesReportViewModel.DidNotReceive().GetIssueViewModels();
+    }
+
+    [TestMethod]
+    public void IssuesChanged_IssueRemoved_GroupHasMultipleIssue_UpdatesGroup()
+    {
+        var filePath = "myFile.cs";
+        var existingIssue = CreateIssueVisualization(Guid.NewGuid(), filePath);
+        var existingIssue2 = CreateIssueVisualization(Guid.NewGuid(), filePath);
+        IEnumerable<IIssueViewModel> issueViewModels = [CreateIssueViewModel(existingIssue), CreateIssueViewModel(existingIssue2)];
+        issuesReportViewModel.GetIssueViewModels().Returns(issueViewModels);
+        InitializeTestSubjectWithInitialGroup(filePath);
+
+        issuesReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
+            new IssuesChangedEventArgs([CreateIssueVisualization(existingIssue.Issue.Id, filePath)], []));
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[0], existingIssue2);
+        VerifyHasGroupsUpdated();
+        issuesReportViewModel.DidNotReceive().GetIssueViewModels();
+    }
+
+    [TestMethod]
+    public void IssuesChanged_IssueRemoved_NoGroupContainsIssue_DoesNothing()
+    {
+        var myfileCs = "myFile.cs";
+        var existingIssue = CreateIssueVisualization(Guid.NewGuid(), myfileCs);
+        IEnumerable<IIssueViewModel> issueViewModels = [CreateIssueViewModel(existingIssue)];
+        issuesReportViewModel.GetIssueViewModels().Returns(issueViewModels);
+        InitializeTestSubjectWithInitialGroup(myfileCs);
+
+        issuesReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
+            new IssuesChangedEventArgs([CreateIssueVisualization(Guid.NewGuid(), myfileCs)], []));
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[0], existingIssue);
+        VerifyHasGroupsUpdated();
+        issuesReportViewModel.DidNotReceive().GetIssueViewModels();
+    }
+
+    [TestMethod]
+    public void IssuesChanged_MultipleFindingTypes_HasAllInOneGroup()
+    {
+        var myfileCs = "myFile.cs";
+        var hotspot = CreateHotspotVisualization(Guid.NewGuid(), "any", myfileCs);
+        var issue = CreateIssueVisualization(Guid.NewGuid(), myfileCs);
+        var taint = CreateTaintVisualization(Guid.NewGuid(), "any", myfileCs);
+        InitializeTestSubjectWithInitialGroup(myfileCs);
+
+        issuesReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [issue]));
+        hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [hotspot]));
+        taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [taint]));
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[0], issue, hotspot, taint);
+        VerifyHasGroupsUpdated();
+    }
+
+    [TestMethod]
     public void DependencyRisksAddedInStore_NoGroupDependencyRisk_CreatesGroup()
     {
         var addedRisk = CreateDependencyRisk();
@@ -850,6 +987,7 @@ public class ReportViewModelTest
             hotspotsReportViewModel,
             new DependencyRisksReportViewModel(dependencyRisksStore, showDependencyRiskInBrowserHandler, changeDependencyRiskStatusHandler, messageBox, threadHandling),
             taintsReportViewModel,
+            issuesReportViewModel,
             telemetryManager,
             selectionService,
             activeDocumentLocator,
@@ -898,6 +1036,7 @@ public class ReportViewModelTest
         dependencyRisksStore.ClearReceivedCalls();
         taintsReportViewModel.ClearReceivedCalls();
         hotspotsReportViewModel.ClearReceivedCalls();
+        issuesReportViewModel.ClearReceivedCalls();
     }
 
     private static LocalHotspot CreateMockedHotspot() => new(Substitute.For<IAnalysisIssueVisualization>(), default, default);
@@ -916,12 +1055,23 @@ public class ReportViewModelTest
 
     private static IIssueViewModel CreateTaintViewModel(IAnalysisIssueVisualization issue) => new TaintViewModel(issue);
 
+    private static IIssueViewModel CreateIssueViewModel(IAnalysisIssueVisualization issue) => new IssueViewModel(issue);
+
     private static IAnalysisIssueVisualization CreateTaintVisualization(Guid? id, string serverKey, string filePath)
     {
         var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
         analysisIssueVisualization.Issue.Returns(Substitute.For<ITaintIssue>());
         analysisIssueVisualization.Issue.Id.Returns(id);
         analysisIssueVisualization.Issue.IssueServerKey.Returns(serverKey);
+        analysisIssueVisualization.Issue.PrimaryLocation.FilePath.Returns(filePath);
+        return analysisIssueVisualization;
+    }
+
+    private static IAnalysisIssueVisualization CreateIssueVisualization(Guid? id, string filePath)
+    {
+        var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
+        analysisIssueVisualization.Issue.Returns(Substitute.For<IAnalysisIssue>());
+        analysisIssueVisualization.Issue.Id.Returns(id);
         analysisIssueVisualization.Issue.PrimaryLocation.FilePath.Returns(filePath);
         return analysisIssueVisualization;
     }
