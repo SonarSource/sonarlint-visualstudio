@@ -127,7 +127,8 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
     public ObservableCollection<IGroupViewModel> FilteredGroupViewModels { get; private set; }
     public bool HasAnyGroups => AllGroupViewModels.Any(x => x.AllIssues.Any());
     public bool HasFilteredGroups => FilteredGroupViewModels.Any(x => x.FilteredIssues.Any());
-    public bool HasNoFilteredIssuesForGroupsWithIssues => FilteredGroupViewModels.All(x => !x.FilteredIssues.Any() && x.PreFilteredIssues.Any()); // todo test
+    // this indicates whether to show the 'too restrictive filters' warning, we only want to do that if filtered issues are 0 but prefiltered are not
+    public bool HasNoFilteredIssuesForGroupsWithIssues => AllGroupViewModels.Any() && FilteredGroupViewModels.All(x => !x.FilteredIssues.Any() && x.PreFilteredIssues.Any());
     public INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; set; }
     public ICommand NavigateToLocationCommand { get; set; }
     public ReportViewFilterViewModel ReportViewFilter { get; } = new();

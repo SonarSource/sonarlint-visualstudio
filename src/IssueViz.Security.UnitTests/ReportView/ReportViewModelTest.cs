@@ -669,6 +669,92 @@ public class ReportViewModelTest
     }
 
     [TestMethod]
+    public void HasNoFilteredIssuesForGroupsWithIssues_HasNoFilteredGroups_True()
+    {
+        testSubject.AllGroupViewModels.Add(CreateFakeGroup(true, true, true));
+
+        testSubject.HasNoFilteredIssuesForGroupsWithIssues.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void HasNoFilteredIssuesForGroupsWithIssues_GroupHasNoIssues_False()
+    {
+        var groupViewModel = CreateFakeGroup(false, false, false);
+        testSubject.AllGroupViewModels.Add(groupViewModel);
+        testSubject.FilteredGroupViewModels.Add(groupViewModel);
+
+        testSubject.HasNoFilteredIssuesForGroupsWithIssues.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void HasNoFilteredIssuesForGroupsWithIssues_GroupsHasIssuesButNoPreFilteredOrFilteredIssues_False()
+    {
+        var groupViewModel = CreateFakeGroup(true, false, false);
+        testSubject.AllGroupViewModels.Add(groupViewModel);
+        testSubject.FilteredGroupViewModels.Add(groupViewModel);
+
+        testSubject.HasNoFilteredIssuesForGroupsWithIssues.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void HasNoFilteredIssuesForGroupsWithIssues_GroupHasIssuesAndPreFilteredButNoFilteredIssues_True()
+    {
+        var groupViewModel = CreateFakeGroup(true, true, false);
+        testSubject.AllGroupViewModels.Add(groupViewModel);
+        testSubject.FilteredGroupViewModels.Add(groupViewModel);
+
+        testSubject.HasNoFilteredIssuesForGroupsWithIssues.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void HasNoFilteredIssuesForGroupsWithIssues_GroupHasIssuesAndPreFilteredAndFilteredIssues_False()
+    {
+        var groupViewModel = CreateFakeGroup(true, true, true);
+        testSubject.AllGroupViewModels.Add(groupViewModel);
+        testSubject.FilteredGroupViewModels.Add(groupViewModel);
+
+        testSubject.HasNoFilteredIssuesForGroupsWithIssues.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void HasNoFilteredIssuesForGroupsWithIssues_AtLeastOneGroupHasFilteredIssues_False()
+    {
+        var groupViewModel = CreateFakeGroup(true, true, true);
+        var groupViewModel2 = CreateFakeGroup(true, true, false);
+        testSubject.AllGroupViewModels.Add(groupViewModel);
+        testSubject.AllGroupViewModels.Add(groupViewModel2);
+        testSubject.FilteredGroupViewModels.Add(groupViewModel);
+        testSubject.FilteredGroupViewModels.Add(groupViewModel2);
+
+        testSubject.HasNoFilteredIssuesForGroupsWithIssues.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void HasNoFilteredIssuesForGroupsWithIssues_OnlyRestrictedGroupIsFiltered_False()
+    {
+        var groupViewModel = CreateFakeGroup(true, true, true);
+        var groupViewModel2 = CreateFakeGroup(true, true, false);
+        testSubject.AllGroupViewModels.Add(groupViewModel);
+        testSubject.AllGroupViewModels.Add(groupViewModel2);
+        testSubject.FilteredGroupViewModels.Add(groupViewModel2);
+
+        testSubject.HasNoFilteredIssuesForGroupsWithIssues.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void HasNoFilteredIssuesForGroupsWithIssues_AllGroupsRestrictedByFilters_True()
+    {
+        var groupViewModel = CreateFakeGroup(true, true, false);
+        var groupViewModel2 = CreateFakeGroup(true, true, false);
+        testSubject.AllGroupViewModels.Add(groupViewModel);
+        testSubject.AllGroupViewModels.Add(groupViewModel2);
+        testSubject.FilteredGroupViewModels.Add(groupViewModel);
+        testSubject.FilteredGroupViewModels.Add(groupViewModel2);
+
+        testSubject.HasNoFilteredIssuesForGroupsWithIssues.Should().BeTrue();
+    }
+
+    [TestMethod]
     public void NavigateToLocationCommand_NullParameter_CanExecuteReturnsFalse() => testSubject.NavigateToLocationCommand.CanExecute(null).Should().BeFalse();
 
     [TestMethod]
@@ -871,5 +957,15 @@ public class ReportViewModelTest
         {
             VerifyHasNotGroupsUpdated();
         }
+    }
+
+    private IGroupViewModel CreateFakeGroup(bool total, bool prefiltered, bool filtered)
+    {
+        var vm = Substitute.For<IIssueViewModel>();
+        var groupViewModel = Substitute.For<IGroupViewModel>();
+        groupViewModel.AllIssues.Returns(total ? [vm] : []);
+        groupViewModel.PreFilteredIssues.Returns(prefiltered ? [vm] : []);
+        groupViewModel.FilteredIssues.Returns(new ObservableCollection<IIssueViewModel>(filtered ? [vm] : []));
+        return groupViewModel;
     }
 }

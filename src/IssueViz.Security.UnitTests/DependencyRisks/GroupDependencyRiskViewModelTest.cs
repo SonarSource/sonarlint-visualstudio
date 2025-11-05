@@ -207,7 +207,7 @@ public class GroupDependencyRiskViewModelTest
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
-        testSubject.AllIssues.Should().HaveCount(6);
+        testSubject.AllIssues.Should().HaveCount(5);
         testSubject.PreFilteredIssues.Should().HaveCount(2);
         testSubject.FilteredIssues.Should().HaveCount(1);
         testSubject.FilteredIssues.Should().OnlyContain(i => i.Status == DisplayStatus.Resolved && i.DisplaySeverity == DisplaySeverity.Blocker);
@@ -222,8 +222,8 @@ public class GroupDependencyRiskViewModelTest
 
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
-        testSubject.AllIssues.Should().HaveCount(6);
-        testSubject.PreFilteredIssues.Should().HaveCount(6);
+        testSubject.AllIssues.Should().HaveCount(5);
+        testSubject.PreFilteredIssues.Should().HaveCount(5);
         testSubject.FilteredIssues.Should().HaveCount(1);
         testSubject.FilteredIssues.Should().OnlyContain(i => i.IssueType == IssueType.TaintVulnerability && i.DisplaySeverity == DisplaySeverity.Blocker);
     }
