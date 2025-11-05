@@ -153,10 +153,9 @@ internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
 
     private void SnapToNewSnapshot(IIssuesSnapshot newSnapshot)
     {
-        // Tell our factory to snap to a new snapshot.
+        var oldSnapshot = Factory.CurrentSnapshot;
         Factory.UpdateSnapshot(newSnapshot);
-
-        sonarErrorDataSource.RefreshErrorList(Factory);
+        sonarErrorDataSource.RefreshErrorList(Factory, oldSnapshot);
     }
 
     private AnalysisSnapshot GetAnalysisSnapshot() => new(LastAnalysisFilePath, document.TextBuffer.CurrentSnapshot);

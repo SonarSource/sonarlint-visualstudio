@@ -303,6 +303,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
             result.Should().BeEquivalentTo(location1, location2, location3);
         }
 
+        [TestMethod]
+        public void Ctor_IgnoresCombinedStore()
+        {
+            var combinedStore = Substitute.For<IIssuesStore, IIssueLocationStore>();
+
+            CreateTestSubject(combinedStore);
+
+            combinedStore.DidNotReceiveWithAnyArgs().IssuesChanged += Arg.Any<EventHandler<IssuesStore.IssuesChangedEventArgs>>();
+        }
+
         private static IAnalysisIssueLocationVisualization CreateLocation(string filePath)
         {
             var location = new Mock<IAnalysisIssueLocationVisualization>();

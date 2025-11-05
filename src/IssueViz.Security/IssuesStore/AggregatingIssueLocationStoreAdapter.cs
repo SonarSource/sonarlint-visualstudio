@@ -40,9 +40,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore
         [ImportingConstructor]
         public AggregatingIssueLocationStoreAdapter([ImportMany] IEnumerable<IIssuesStore> issueStores)
         {
-            this.issueStores = issueStores;
+            this.issueStores = issueStores.Where(x => x is not IIssueLocationStore).ToArray();
 
-            foreach (var store in issueStores)
+            foreach (var store in this.issueStores)
             {
                 store.IssuesChanged += Store_IssuesChanged;
             }

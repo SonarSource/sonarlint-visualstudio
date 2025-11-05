@@ -44,12 +44,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var testSubject = CreateTestSubject();
 
             testSubject.GetIssues().Should().Equal();
+            testSubject.GetAll().Should().BeEmpty();
 
             testSubject.AddFactory(factory);
             testSubject.GetIssues().Should().Equal(issue1, issue2);
+            testSubject.GetAll().Should().Equal(issue1, issue2);
 
             testSubject.RemoveFactory(factory);
             testSubject.GetIssues().Should().Equal();
+            testSubject.GetAll().Should().Equal();
         }
 
         [TestMethod]
@@ -66,15 +69,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var testSubject = CreateTestSubject();
 
             testSubject.GetIssues().Should().Equal();
+            testSubject.GetAll().Should().Equal();
 
             testSubject.AddFactory(factory);
             testSubject.GetIssues().Should().Equal(issue1, issue2);
+            testSubject.GetAll().Should().Equal(issue1, issue2);
 
             testSubject.AddFactory(factory2);
             testSubject.GetIssues().Should().Equal(issue1, issue2, issue3, issue4);
+            testSubject.GetAll().Should().Equal(issue1, issue2, issue3, issue4);
 
             testSubject.RemoveFactory(factory);
             testSubject.GetIssues().Should().Equal(issue3, issue4);
+            testSubject.GetAll().Should().Equal(issue3, issue4);
         }
 
         private SonarErrorListDataSource CreateTestSubject()
