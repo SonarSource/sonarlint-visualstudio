@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 logger = await this.GetMefServiceAsync<ILogger>();
                 logger.WriteLine(Strings.Daemon_Initializing);
-                logger.WriteLine(Strings.SLVSVersionLog, VersionHelper.SonarLintVersion);
+                logger.WriteLine(Strings.SQVSVersionLog, VersionHelper.SonarLintVersion);
 
                 // This migration should be performed before initializing other services, independent if a solution or a folder is opened.
                 await MigrateBindingsToServerConnectionsIfNeededAsync();
