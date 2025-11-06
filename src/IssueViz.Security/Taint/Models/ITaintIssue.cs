@@ -39,6 +39,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
             Guid? id,
             string issueServerKey,
             bool isResolved,
+            bool isOnNewCode,
             string ruleKey,
             IAnalysisIssueLocation primaryLocation,
             AnalysisIssueSeverity? severity,
@@ -50,6 +51,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
             Id = id;
             IssueServerKey = issueServerKey;
             IsResolved = isResolved;
+            IsOnNewCode = isOnNewCode;
             RuleKey = ruleKey;
             PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
             Severity = severity;
@@ -65,6 +67,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
         }
 
         public Guid? Id { get; }
+        public bool IsOnNewCode { get; }
         public string IssueServerKey { get; }
         public string RuleKey { get; }
         public AnalysisIssueSeverity? Severity { get; }

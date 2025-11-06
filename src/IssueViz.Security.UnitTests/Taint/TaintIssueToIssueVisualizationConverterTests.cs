@@ -241,7 +241,19 @@ public class TaintIssueToIssueVisualizationConverterTests
         issueVizConverter.Received(1).Convert(Arg.Is<IAnalysisIssueBase>(x => x.IsResolved == isResolved));
     }
 
-    private static TaintVulnerabilityDto CreateDefaultTaintDto(Either<StandardModeDetails, MQRModeDetails> severity = null, bool resolved = true) =>
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void Convert_IssueVizIsCorrectlyMarkedAsNewCode(bool isOnNewCode)
+    {
+        var taintVulnerabilityDto = CreateDefaultTaintDto(isOnNewCode: isOnNewCode);
+
+        testSubject.Convert(taintVulnerabilityDto, "C:\\root");
+
+        issueVizConverter.Received(1).Convert(Arg.Is<IAnalysisIssueBase>(x => x.IsOnNewCode == isOnNewCode));
+    }
+
+    private static TaintVulnerabilityDto CreateDefaultTaintDto(Either<StandardModeDetails, MQRModeDetails> severity = null, bool resolved = true, bool isOnNewCode = true) =>
         new(
             Guid.Parse("efa697a2-9cfd-4faf-ba21-71b378667a81"),
             "serverkey",
@@ -254,7 +266,7 @@ public class TaintIssueToIssueVisualizationConverterTests
             [],
             new TextRangeWithHashDto(1, 2, 3, 4, "hash1"),
             "rulecontext",
-            false);
+            isOnNewCode);
 
     private static IAnalysisIssueVisualization CreateIssueViz(string serverFilePath = null, params IAnalysisIssueLocationVisualization[] locationVizs)
     {

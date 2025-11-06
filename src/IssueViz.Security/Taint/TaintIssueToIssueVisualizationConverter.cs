@@ -51,6 +51,7 @@ internal class TaintIssueToIssueVisualizationConverter(IAnalysisIssueVisualizati
             slcoreTaintIssue.id,
             slcoreTaintIssue.sonarServerKey,
             isResolved: slcoreTaintIssue.resolved,
+            isOnNewCode: slcoreTaintIssue.isOnNewCode,
             slcoreTaintIssue.ruleKey,
             CreateLocation(slcoreTaintIssue.message, slcoreTaintIssue.ideFilePath, configScopeRoot, slcoreTaintIssue.textRange),
             slcoreTaintIssue.severityMode.Left?.severity.ToAnalysisIssueSeverity(),

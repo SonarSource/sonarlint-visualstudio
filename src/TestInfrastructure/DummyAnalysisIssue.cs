@@ -39,6 +39,7 @@ public class DummyAnalysisIssue : IAnalysisIssue
 
     public IAnalysisIssueLocation PrimaryLocation { get; set; } = new DummyAnalysisIssueLocation();
     public bool IsResolved { get; set; }
+    public bool IsOnNewCode { get; set; }
     public string IssueServerKey { get; set; }
 
     public IReadOnlyList<IQuickFix> Fixes { get; } = Array.Empty<IQuickFix>();

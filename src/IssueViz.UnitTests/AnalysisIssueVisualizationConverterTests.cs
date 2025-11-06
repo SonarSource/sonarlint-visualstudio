@@ -202,7 +202,7 @@ public class AnalysisIssueVisualizationConverterTests
         var secondFlow = CreateFlow(secondFlowFirstLocation, secondFlowSecondLocation);
 
         var issueSpan = CreateNonEmptySpan();
-        var issue = CreateIssue(Path.GetRandomFileName(), isResolved: false, firstFlow, secondFlow);
+        var issue = CreateIssue(Path.GetRandomFileName(), isResolved: false, false,firstFlow, secondFlow);
         SetupSpanCalculator(issue.PrimaryLocation.TextRange, issueSpan);
 
         var expectedFirstFlowFirstLocationVisualization = new AnalysisIssueLocationVisualization(1, firstFlowFirstLocation);
@@ -269,6 +269,19 @@ public class AnalysisIssueVisualizationConverterTests
         result.IsResolved.Should().Be(isResolved);
     }
 
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void Convert_NewCode(bool isOnNewCode)
+    {
+        var issue = CreateIssue(Path.GetRandomFileName(), isOnNewCode: isOnNewCode);
+
+        var result = testSubject.Convert(issue, textSnapshotMock);
+
+        result.Should().NotBeNull();
+        result.IsOnNewCode.Should().Be(isOnNewCode);
+    }
+
     private void AssertConversion(IAnalysisIssueVisualization expectedIssueVisualization, IAnalysisIssueVisualization actualIssueVisualization)
     {
         actualIssueVisualization.Issue.Should().Be(expectedIssueVisualization.Issue);
@@ -283,6 +296,7 @@ public class AnalysisIssueVisualizationConverterTests
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
             false,
+            true,
             AnalysisIssueSeverity.Blocker,
             AnalysisIssueType.Bug,
             new Impact(SoftwareQuality.Maintainability, SoftwareQualitySeverity.High),
@@ -294,13 +308,14 @@ public class AnalysisIssueVisualizationConverterTests
         return issue;
     }
 
-    private IAnalysisIssue CreateIssue(string filePath, bool isResolved = false, params IAnalysisIssueFlow[] flows)
+    private IAnalysisIssue CreateIssue(string filePath, bool isResolved = false, bool isOnNewCode = true, params IAnalysisIssueFlow[] flows)
     {
         var issue = new AnalysisIssue(
             Guid.NewGuid(),
             Guid.NewGuid().ToString(),
             Guid.NewGuid().ToString(),
             isResolved,
+            isOnNewCode,
             AnalysisIssueSeverity.Blocker,
             AnalysisIssueType.Bug,
             new Impact(SoftwareQuality.Maintainability, SoftwareQualitySeverity.High),
