@@ -191,7 +191,7 @@ internal sealed class SonarErrorListDataSource :
             NotifyIssuesChanged(factory.CurrentSnapshot.FilesInSnapshot);
             var oldIssues = oldSnapshot.Issues.ToArray();
             var newIssues = factory.CurrentSnapshot.Issues.ToArray();
-            ABOBA?.Invoke(this, new IssueVisualization.Security.IssuesStore.IssuesChangedEventArgs(oldIssues, newIssues));
+            NotifyIssueStoreIssuesChanged(oldIssues, newIssues);
         }
     }
 
@@ -207,6 +207,11 @@ internal sealed class SonarErrorListDataSource :
 
     private void NotifyIssuesChanged(IEnumerable<string> filePaths) => IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(filePaths));
 
+    private void NotifyIssueStoreIssuesChanged(
+        IAnalysisIssueVisualization[] oldIssues,
+        IAnalysisIssueVisualization[] newIssues) =>
+        IssueStoreIssuesChanged?.Invoke(this, new IssueVisualization.Security.IssuesStore.IssuesChangedEventArgs(oldIssues, newIssues));
+
     public void AddFactory(IIssuesSnapshotFactory factory)
     {
         lock (sinks)
@@ -218,7 +223,7 @@ internal sealed class SonarErrorListDataSource :
             }
 
             NotifyIssuesChanged(factory.CurrentSnapshot.FilesInSnapshot);
-            ABOBA?.Invoke(this, new IssueVisualization.Security.IssuesStore.IssuesChangedEventArgs([], factory.CurrentSnapshot.Issues.ToArray()));
+            NotifyIssueStoreIssuesChanged([], factory.CurrentSnapshot.Issues.ToArray());
         }
     }
 
@@ -236,7 +241,7 @@ internal sealed class SonarErrorListDataSource :
             if (wasRemoved)
             {
                 NotifyIssuesChanged(factory.CurrentSnapshot.FilesInSnapshot);
-                ABOBA?.Invoke(this, new IssueVisualization.Security.IssuesStore.IssuesChangedEventArgs(factory.CurrentSnapshot.Issues.ToArray(), []));
+                NotifyIssueStoreIssuesChanged(factory.CurrentSnapshot.Issues.ToArray(), []);
             }
         }
     }
@@ -247,12 +252,12 @@ internal sealed class SonarErrorListDataSource :
 
     public IReadOnlyCollection<IAnalysisIssueVisualization> GetAll() => GetIssues().ToArray();
 
-    private event EventHandler<IssueVisualization.Security.IssuesStore.IssuesChangedEventArgs> ABOBA;
+    private event EventHandler<IssueVisualization.Security.IssuesStore.IssuesChangedEventArgs> IssueStoreIssuesChanged;
 
     event EventHandler<IssueVisualization.Security.IssuesStore.IssuesChangedEventArgs> IIssuesStore.IssuesChanged
     {
-        add => ABOBA += value;
-        remove => ABOBA -= value;
+        add => IssueStoreIssuesChanged += value;
+        remove => IssueStoreIssuesChanged -= value;
     }
 
     public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
