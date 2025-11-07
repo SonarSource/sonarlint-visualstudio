@@ -198,6 +198,40 @@ public class GroupDependencyRiskViewModelTest
         VerifyFilteredRisks(risks);
     }
 
+    [TestMethod]
+    public void IsExpanded_DefaultValue_IsTrue()
+    {
+        var result = testSubject.IsExpanded;
+
+        result.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void IsExpanded_SetToFalse_ValueIsFalse()
+    {
+        testSubject.IsExpanded = false;
+
+        testSubject.IsExpanded.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void IsExpanded_SetToTrue_ValueIsTrue()
+    {
+        testSubject.IsExpanded = false;
+
+        testSubject.IsExpanded = true;
+
+        testSubject.IsExpanded.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void IsExpanded_SetValue_RaisesPropertyChanged()
+    {
+        testSubject.IsExpanded = true;
+
+        ReceivedEvent(nameof(testSubject.IsExpanded));
+    }
+
     private void VerifyUpdatedBothRiskLists()
     {
         dependencyRisksStore.Received().GetAll();

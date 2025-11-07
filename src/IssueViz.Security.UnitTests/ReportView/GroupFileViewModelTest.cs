@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
@@ -34,6 +35,7 @@ public class GroupFileViewModelTest
     private readonly IIssueViewModel taintBlocker = CreateMockedIssueType(IssueType.TaintVulnerability, DisplaySeverity.Blocker, DisplayStatus.Resolved);
     private readonly ReportViewFilterViewModel reportViewFilterViewModel = new();
     private List<IIssueViewModel> allIssues;
+    private PropertyChangedEventHandler eventHandler;
     private GroupFileViewModel testSubject;
 
     [TestInitialize]
@@ -41,6 +43,8 @@ public class GroupFileViewModelTest
     {
         allIssues = [hotspotInfo, hotspotLow, taintMedium, taintHigh, taintBlocker];
         testSubject = new GroupFileViewModel(filePath, allIssues);
+        eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
         MockStatusFilter(DisplayStatus.Any); // tests were written with this assumption, changing the tests would take too much time
     }
 
@@ -194,6 +198,40 @@ public class GroupFileViewModelTest
         VerifyAllIssuesUnchanged();
     }
 
+    [TestMethod]
+    public void IsExpanded_DefaultValue_IsTrue()
+    {
+        var result = testSubject.IsExpanded;
+
+        result.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void IsExpanded_SetToFalse_ValueIsFalse()
+    {
+        testSubject.IsExpanded = false;
+
+        testSubject.IsExpanded.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void IsExpanded_SetToTrue_ValueIsTrue()
+    {
+        testSubject.IsExpanded = false;
+
+        testSubject.IsExpanded = true;
+
+        testSubject.IsExpanded.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void IsExpanded_SetValue_RaisesPropertyChanged()
+    {
+        testSubject.IsExpanded = true;
+
+        ReceivedEvent(nameof(testSubject.IsExpanded));
+    }
+
     private static IIssueViewModel CreateMockedIssueType(IssueType issueType, DisplaySeverity severity = DisplaySeverity.Info, DisplayStatus status = DisplayStatus.Open)
     {
         var issueHotspot = Substitute.For<IIssueViewModel>();
@@ -216,4 +254,6 @@ public class GroupFileViewModelTest
     private void ClearFilter() => reportViewFilterViewModel.IssueTypeFilters.ToList().ForEach(f => f.IsSelected = false);
 
     private void VerifyAllIssuesUnchanged() => testSubject.AllIssues.Should().BeSameAs(allIssues);
+
+    private void ReceivedEvent(string eventName, int count = 1) => eventHandler.Received(count).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == eventName));
 }
