@@ -28,11 +28,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportVie
 public class GroupFileViewModelTest
 {
     private const string filePath = "c:\\myDir\\myFile.cs";
-    private readonly IIssueViewModel hotspotInfo = CreateMockedIssueType(IssueType.SecurityHotspot, DisplaySeverity.Info, DisplayStatus.Open);
-    private readonly IIssueViewModel hotspotLow = CreateMockedIssueType(IssueType.SecurityHotspot, DisplaySeverity.Low, DisplayStatus.Resolved);
-    private readonly IIssueViewModel taintHigh = CreateMockedIssueType(IssueType.TaintVulnerability, DisplaySeverity.High, DisplayStatus.Open);
-    private readonly IIssueViewModel taintMedium = CreateMockedIssueType(IssueType.TaintVulnerability, DisplaySeverity.Medium, DisplayStatus.Resolved);
-    private readonly IIssueViewModel taintBlocker = CreateMockedIssueType(IssueType.TaintVulnerability, DisplaySeverity.Blocker, DisplayStatus.Resolved);
+    private readonly IIssueViewModel hotspotInfo = CreateMockedIssueType(IssueType.SecurityHotspot, DisplaySeverity.Info, DisplayStatus.Open, true);
+    private readonly IIssueViewModel hotspotLow = CreateMockedIssueType(IssueType.SecurityHotspot, DisplaySeverity.Low, DisplayStatus.Resolved, false);
+    private readonly IIssueViewModel taintHigh = CreateMockedIssueType(IssueType.TaintVulnerability, DisplaySeverity.High, DisplayStatus.Open, true);
+    private readonly IIssueViewModel taintMedium = CreateMockedIssueType(IssueType.TaintVulnerability, DisplaySeverity.Medium, DisplayStatus.Resolved, false);
+    private readonly IIssueViewModel taintBlocker = CreateMockedIssueType(IssueType.TaintVulnerability, DisplaySeverity.Blocker, DisplayStatus.Resolved, true);
     private readonly ReportViewFilterViewModel reportViewFilterViewModel = new();
     private List<IIssueViewModel> allIssues;
     private PropertyChangedEventHandler eventHandler;
@@ -119,6 +119,21 @@ public class GroupFileViewModelTest
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
         testSubject.FilteredIssues.Should().BeEmpty();
+        VerifyAllIssuesUnchanged();
+    }
+
+    [DataRow(true, 3)]
+    [DataRow(false, 5)]
+    [DataTestMethod]
+    public void ApplyFilter_NewCodeSelected_AppliesAccordingly(bool isOnNewCode, int filteredCount)
+    {
+        MockNewCodeFilter(isOnNewCode);
+
+        testSubject.ApplyFilter(reportViewFilterViewModel);
+
+        testSubject.AllIssues.Should().HaveCount(5);
+        testSubject.PreFilteredIssues.Should().HaveCount(5);
+        testSubject.FilteredIssues.Should().HaveCount(filteredCount);
         VerifyAllIssuesUnchanged();
     }
 
@@ -219,6 +234,21 @@ public class GroupFileViewModelTest
     }
 
     [TestMethod]
+    public void ApplyFilter_NewCodeAndSeverityFilter_NoPreFiltering()
+    {
+        MockNewCodeFilter(true);
+        MockSeverityFilter(DisplaySeverity.Medium);
+
+        testSubject.ApplyFilter(reportViewFilterViewModel);
+
+        testSubject.AllIssues.Should().HaveCount(5);
+        testSubject.PreFilteredIssues.Should().HaveCount(5);
+        testSubject.FilteredIssues.Should().HaveCount(2);
+        testSubject.FilteredIssues.Should().BeEquivalentTo(taintBlocker, taintHigh);
+        VerifyAllIssuesUnchanged();
+    }
+
+    [TestMethod]
     public void ApplyFilter_StatusFilterNotSelected_ShowsAllRisks()
     {
         MockStatusFilter(displayStatus: DisplayStatus.Any);
@@ -263,12 +293,17 @@ public class GroupFileViewModelTest
         ReceivedEvent(nameof(testSubject.IsExpanded));
     }
 
-    private static IIssueViewModel CreateMockedIssueType(IssueType issueType, DisplaySeverity severity = DisplaySeverity.Info, DisplayStatus status = DisplayStatus.Open)
+    private static IIssueViewModel CreateMockedIssueType(
+        IssueType issueType,
+        DisplaySeverity severity,
+        DisplayStatus status,
+        bool isOnNewCode)
     {
         var issueHotspot = Substitute.For<IIssueViewModel>();
         issueHotspot.IssueType.Returns(issueType);
         issueHotspot.DisplaySeverity.Returns(severity);
         issueHotspot.Status.Returns(status);
+        issueHotspot.IsOnNewCode.Returns(isOnNewCode);
         return issueHotspot;
     }
 
@@ -279,6 +314,8 @@ public class GroupFileViewModelTest
     }
 
     private void MockSeverityFilter(DisplaySeverity displaySeverity) => reportViewFilterViewModel.SelectedSeverityFilter = displaySeverity;
+
+    private void MockNewCodeFilter(bool isOnNewCode) => reportViewFilterViewModel.SelectedNewCodeFilter = isOnNewCode;
 
     private void MockStatusFilter(DisplayStatus displayStatus) => reportViewFilterViewModel.SelectedStatusFilter = displayStatus;
 

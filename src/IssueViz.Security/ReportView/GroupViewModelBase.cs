@@ -76,6 +76,10 @@ internal abstract class GroupViewModelBase(string title, string filePath) : View
         {
             filteredIssues = filteredIssues.Where(vm => DisplaySeverityComparer.Instance.Compare(vm.DisplaySeverity, reportViewFilter.SelectedSeverityFilter) >= 0);
         }
+        if (reportViewFilter.SelectedNewCodeFilter)
+        {
+            filteredIssues = filteredIssues.Where(vm => vm.IsOnNewCode);
+        }
 
         return filteredIssues;
     }

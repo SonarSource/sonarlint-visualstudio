@@ -41,6 +41,7 @@ internal abstract class AnalysisIssueViewModelBase : ViewModelBase, IAnalysisIss
     public abstract DisplaySeverity DisplaySeverity { get; }
     public abstract IssueType IssueType { get; }
     public abstract DisplayStatus Status { get; }
+    public bool IsOnNewCode => Issue.IsOnNewCode;
     public IAnalysisIssueVisualization Issue { get; }
 
     public bool HasSecondaryLocations => Issue.Flows?.Any(x => x.Locations?.Any() ?? false) ?? false;

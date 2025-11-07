@@ -39,6 +39,7 @@ internal class ReportViewFilterViewModel : ViewModelBase
     private DisplaySeverity selectedSeverityFilter = DisplaySeverity.Info;
     private DisplayStatus selectedStatusFilter = DisplayStatus.Open;
     private bool showAdvancedFilters;
+    private bool selectedNewCodeFilter;
 
     public ObservableCollection<LocationFilterViewModel> LocationFilters { get; } =
     [
@@ -66,6 +67,16 @@ internal class ReportViewFilterViewModel : ViewModelBase
         set
         {
             selectedStatusFilter = value;
+            RaisePropertyChanged();
+        }
+    }
+
+    public bool SelectedNewCodeFilter
+    {
+        get => selectedNewCodeFilter;
+        set
+        {
+            selectedNewCodeFilter = value;
             RaisePropertyChanged();
         }
     }
@@ -103,5 +114,6 @@ internal class ReportViewFilterViewModel : ViewModelBase
         SelectedLocationFilter = GetDefaultLocationFilter();
         SelectedSeverityFilter = DisplaySeverity.Info;
         SelectedStatusFilter = DisplayStatus.Open;
+        SelectedNewCodeFilter = false;
     }
 }

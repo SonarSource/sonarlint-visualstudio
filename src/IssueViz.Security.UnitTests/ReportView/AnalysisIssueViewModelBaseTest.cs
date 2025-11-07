@@ -126,6 +126,17 @@ public class AnalysisIssueViewModelBaseTest
         CreateTestSubject(issue).IsServerIssue.Should().Be(isServerIssue);
     }
 
+    [DataRow(true)]
+    [DataRow(false)]
+    [DataTestMethod]
+    public void IsOnNewCode_ReturnsBasedOnIssue(bool isOnNewCode)
+    {
+        var issue = CreateMockedIssue(Guid.NewGuid(), "any");
+        issue.IsOnNewCode.Returns(isOnNewCode);
+
+        CreateTestSubject(issue).IsOnNewCode.Should().Be(isOnNewCode);
+    }
+
     /// <summary>
     /// To prevent adding the tests in all the subclasses we test the base class via any of its child classes.
     /// </summary>
