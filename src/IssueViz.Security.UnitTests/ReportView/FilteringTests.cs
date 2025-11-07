@@ -46,12 +46,12 @@ public class FilteringTests
     private const string CsharpFilePath = "C:\\source\\myProj\\myFile.cs";
     private const string TsFilePath = "C:\\source\\myProj\\myTaint.ts";
     private const string CppFilePath = "C:\\source\\myProj\\myFile.cpp";
-    private readonly IIssueViewModel csharpHotspotInfo = CreateMockedIssueViewModel(IssueType.SecurityHotspot, CsharpFilePath, DisplaySeverity.Info, DisplayStatus.Open);
-    private readonly IIssueViewModel csharpTaintLow = CreateMockedIssueViewModel(IssueType.TaintVulnerability, CsharpFilePath, DisplaySeverity.Low, DisplayStatus.Resolved);
-    private readonly IIssueViewModel tsHotspotMedium = CreateMockedIssueViewModel(IssueType.SecurityHotspot, TsFilePath, DisplaySeverity.Medium, DisplayStatus.Resolved);
-    private readonly IIssueViewModel tsTaintHigh = CreateMockedIssueViewModel(IssueType.TaintVulnerability, TsFilePath, DisplaySeverity.High, DisplayStatus.Open);
-    private readonly IIssueViewModel csharpIssueHigh = CreateMockedIssueViewModel(IssueType.Issue, CsharpFilePath, DisplaySeverity.High, DisplayStatus.Resolved);
-    private readonly IIssueViewModel cppIssueMedium = CreateMockedIssueViewModel(IssueType.Issue, CppFilePath, DisplaySeverity.Medium, DisplayStatus.Open);
+    private readonly IIssueViewModel csharpHotspotInfo = CreateMockedIssueViewModel(IssueType.SecurityHotspot, CsharpFilePath, DisplaySeverity.Info, DisplayStatus.Open, true);
+    private readonly IIssueViewModel csharpTaintLow = CreateMockedIssueViewModel(IssueType.TaintVulnerability, CsharpFilePath, DisplaySeverity.Low, DisplayStatus.Resolved, false);
+    private readonly IIssueViewModel tsHotspotMedium = CreateMockedIssueViewModel(IssueType.SecurityHotspot, TsFilePath, DisplaySeverity.Medium, DisplayStatus.Resolved, true);
+    private readonly IIssueViewModel tsTaintHigh = CreateMockedIssueViewModel(IssueType.TaintVulnerability, TsFilePath, DisplaySeverity.High, DisplayStatus.Open, false);
+    private readonly IIssueViewModel csharpIssueHigh = CreateMockedIssueViewModel(IssueType.Issue, CsharpFilePath, DisplaySeverity.High, DisplayStatus.Resolved, true);
+    private readonly IIssueViewModel cppIssueMedium = CreateMockedIssueViewModel(IssueType.Issue, CppFilePath, DisplaySeverity.Medium, DisplayStatus.Open, false);
     private readonly IDependencyRisk dependencyRisk = CreateDependencyRisk(severity: DependencyRiskImpactSeverity.Blocker, status: DependencyRiskStatus.Open);
     private IIssueViewModel dependencyRiskIssue;
     private IActiveDocumentLocator activeDocumentLocator;
@@ -313,7 +313,7 @@ public class FilteringTests
     }
 
     [TestMethod]
-    public void ApplyFilter_MixedFilters_FiltersCorrectly()
+    public void ApplyFilter_MixedFiltersOpenBlockerDependencyRisk_FiltersCorrectly()
     {
         ClearFilter();
         MockSeverityFilter(displaySeverity: DisplaySeverity.Blocker);
@@ -326,6 +326,37 @@ public class FilteringTests
         testSubject.FilteredGroupViewModels.Where(x => x.FilteredIssues.Any()).Should().HaveCount(1);
         testSubject.FilteredGroupViewModels.Should().Contain(g =>
             g.FilteredIssues.SingleOrDefault(vm => vm.DisplaySeverity == DisplaySeverity.Blocker && vm.Status == DisplayStatus.Open && vm.IssueType == IssueType.DependencyRisk) != null);
+    }
+
+    [TestMethod]
+    public void ApplyFilter_MixedFiltersResolvedNewCode_FiltersCorrectly()
+    {
+        MockNewCodeFilter(true);
+        MockStatusFilter(DisplayStatus.Resolved);
+
+        testSubject.ApplyFilter();
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(4);
+        testSubject.FilteredGroupViewModels.Where(x => x.FilteredIssues.Any()).Should().HaveCount(2);
+        testSubject.FilteredGroupViewModels
+            .All(g =>
+                !g.FilteredIssues.Any()
+                || g.FilteredIssues.All(vm => vm.IsOnNewCode && vm.Status == DisplayStatus.Resolved))
+            .Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void ApplyFilter_IsOnNewCode_FiltersIssuesInGroups()
+    {
+        MockNewCodeFilter(true);
+
+        testSubject.ApplyFilter();
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(4);
+        testSubject.FilteredGroupViewModels.Where(x => x.FilteredIssues.Any()).Should().HaveCount(3);
+        VerifyIsExpectedGroup(TsFilePath, tsHotspotMedium);
+        VerifyIsExpectedGroup(CsharpFilePath, csharpIssueHigh, csharpHotspotInfo);
+        dependencyRisksReportViewModel.GetDependencyRisksGroup().FilteredIssues.Should().BeEquivalentTo(dependencyRiskIssue);
     }
 
     [TestMethod]
@@ -395,13 +426,15 @@ public class FilteringTests
         IssueType issueType,
         string filePath,
         DisplaySeverity severity,
-        DisplayStatus status)
+        DisplayStatus status,
+        bool isOnNewCode)
     {
         var analysisIssueViewModel = Substitute.For<IIssueViewModel>();
         analysisIssueViewModel.IssueType.Returns(issueType);
         analysisIssueViewModel.FilePath.Returns(filePath);
         analysisIssueViewModel.DisplaySeverity.Returns(severity);
         analysisIssueViewModel.Status.Returns(status);
+        analysisIssueViewModel.IsOnNewCode.Returns(isOnNewCode);
         return analysisIssueViewModel;
     }
 
@@ -446,6 +479,8 @@ public class FilteringTests
     }
 
     private void MockSeverityFilter(DisplaySeverity displaySeverity) => testSubject.ReportViewFilter.SelectedSeverityFilter = displaySeverity;
+
+    private void MockNewCodeFilter(bool  isOnNewCode) => testSubject.ReportViewFilter.SelectedNewCodeFilter = isOnNewCode;
 
     private void MockStatusFilter(DisplayStatus displayStatus) => testSubject.ReportViewFilter.SelectedStatusFilter = displayStatus;
 

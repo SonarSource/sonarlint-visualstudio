@@ -135,12 +135,24 @@ public class ReportViewFilterViewModelTest
     }
 
     [TestMethod]
+    public void SelectedNewCodeFilter_RaisesEvents()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+
+        testSubject.SelectedNewCodeFilter = true;
+
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.SelectedNewCodeFilter)));
+    }
+
+    [TestMethod]
     public void ClearAll_SetsAllFiltersToDefaultValued()
     {
         testSubject.IssueTypeFilters.ToList().ForEach(vm => vm.IsSelected = false);
         testSubject.SelectedLocationFilter = testSubject.LocationFilters.Single(f => f.LocationFilter == LocationFilter.CurrentDocument);
         testSubject.SelectedSeverityFilter = DisplaySeverity.Info;
         testSubject.SelectedStatusFilter = DisplayStatus.Resolved;
+        testSubject.SelectedNewCodeFilter = true;
 
         testSubject.ClearAllFilters();
 
@@ -148,5 +160,6 @@ public class ReportViewFilterViewModelTest
         testSubject.SelectedLocationFilter.LocationFilter.Should().Be(LocationFilter.OpenDocuments);
         testSubject.SelectedSeverityFilter.Should().Be(DisplaySeverity.Info);
         testSubject.SelectedStatusFilter.Should().Be(DisplayStatus.Open);
+        testSubject.SelectedNewCodeFilter.Should().BeFalse();
     }
 }

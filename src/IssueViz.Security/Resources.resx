@@ -386,6 +386,9 @@ Please check the logs for more details.</value>
   <data name="StatusLabel" xml:space="preserve">
     <value>Status:</value>
   </data>
+  <data name="NewCodeLabel" xml:space="preserve">
+    <value>New Code:</value>
+  </data>
   <data name="ClearAllButton" xml:space="preserve">
     <value>Clear All</value>
   </data>

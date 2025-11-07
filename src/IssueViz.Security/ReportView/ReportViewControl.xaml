@@ -365,18 +365,18 @@
                 <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}"
                           Click="ChangeHotspotStatusMenuItem_OnClick"
                           Style="{StaticResource ChangeStatusMenuItemStyle}"
-                          IsEnabled="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }"/>
+                          IsEnabled="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }" />
                 <MenuItem Click="ViewHotspotInBrowser_OnClick"
                           Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}"
-                          IsEnabled="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }"/>
+                          IsEnabled="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }" />
             </ContextMenu>
 
             <ContextMenu x:Key="TaintContextMenu">
                 <MenuItem Click="ViewTaintInBrowser_OnClick"
                           Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}"
-                          IsEnabled="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }"/>
+                          IsEnabled="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }" />
                 <MenuItem Header="{x:Static res:Resources.ShowIssueVisualizationMenuItemHeader}"
                           Click="ShowIssueVisualizationForTaint_OnClick"
                           IsEnabled="{Binding DataContext.HasSecondaryLocations, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }">
@@ -386,12 +386,12 @@
                     </MenuItem.Icon>
                 </MenuItem>
             </ContextMenu>
-            
+
             <ContextMenu x:Key="IssuesContextMenu">
                 <MenuItem Click="ViewIssueInBrowser_OnClick"
                           Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}"
-                          IsEnabled="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }"/>
+                          IsEnabled="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }" />
                 <MenuItem Header="{x:Static res:Resources.ShowIssueVisualizationMenuItemHeader}"
                           Click="ShowIssueVisualizationForIssue_OnClick"
                           IsEnabled="{Binding DataContext.HasSecondaryLocations, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }">
@@ -414,10 +414,10 @@
 
         <Grid Grid.Row="0" Background="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarGradientBeginKey}}"
               DataContext="{Binding Path=ReportViewFilter}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
 
             <Grid Grid.Row="0" Grid.Column="0" Margin="5,0">
@@ -425,12 +425,13 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                    <ComboBox ItemsSource="{Binding Path=LocationFilters}"
-                              SelectedItem="{Binding Path=SelectedLocationFilter}"
-                              DisplayMemberPath="DisplayName" Margin="7,3" MinWidth="150" 
-                              SelectionChanged="Control_OnFilterChanged"/>
+                <ComboBox ItemsSource="{Binding Path=LocationFilters}"
+                          SelectedItem="{Binding Path=SelectedLocationFilter}"
+                          DisplayMemberPath="DisplayName" Margin="7,3" MinWidth="150"
+                          SelectionChanged="Control_OnFilterChanged" />
 
                 <Grid Grid.Column="1">
                     <Grid.ColumnDefinitions>
@@ -448,12 +449,28 @@
 
                     <ContentControl Grid.Column="2" DataContext="{Binding Path=IssueTypeFilters[2]}"
                                     Template="{StaticResource IssueTypeFilterControlTemplate}" />
-                    
+
                     <ContentControl Grid.Column="3" DataContext="{Binding Path=IssueTypeFilters[3]}"
                                     Template="{StaticResource IssueTypeFilterControlTemplate}" />
                 </Grid>
 
                 <Grid Grid.Column="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource FilterSeparatorBorderStyle}" />
+
+                    <CheckBox Grid.Column="1" Content="Focus on New Code"
+                              IsChecked="{Binding SelectedNewCodeFilter, Mode=TwoWay}" 
+                              VerticalAlignment="Center"
+                              Checked="Control_OnFilterChanged"
+                              Unchecked="Control_OnFilterChanged"
+                              Margin="5,0"
+                              />
+                </Grid>
+
+                <Grid Grid.Column="3">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
@@ -489,33 +506,32 @@
 
             </Grid>
 
-            <Grid Grid.Row="0" Grid.Column="1"
-                  HorizontalAlignment="Right"
+            <Grid Grid.Row="1" Grid.Column="0"
                   Visibility="{Binding ShowAdvancedFilters, Converter={StaticResource TrueToVisibleConverter}}"
-                  Margin="10,0">
+                  Margin="5,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <Grid Grid.Column="0">
+                <Grid Grid.Column="0" Margin="7, 0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Column="0"
-                                   Text="{x:Static res:Resources.SeverityLabel}"
-                                   Style="{StaticResource FilterTextBlockStyle}" />
-                        <ComboBox Grid.Column="1"
-                                  ItemsSource="{Binding SeverityFilters}"
-                                  SelectedItem="{Binding SelectedSeverityFilter}"
-                                  Style="{StaticResource FilterComboboxStyle}" 
-                                  SelectionChanged="Control_OnFilterChanged"/>
-                        <Border Grid.Column="2" Style="{StaticResource FilterSeparatorBorderStyle}" />
-                    </Grid>
+                    <TextBlock Grid.Column="0"
+                               Text="{x:Static res:Resources.SeverityLabel}"
+                               Style="{StaticResource FilterTextBlockStyle}" />
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{Binding SeverityFilters}"
+                              SelectedItem="{Binding SelectedSeverityFilter}"
+                              Style="{StaticResource FilterComboboxStyle}"
+                              SelectionChanged="Control_OnFilterChanged" />
+                    <Border Grid.Column="2" Style="{StaticResource FilterSeparatorBorderStyle}" />
+                </Grid>
 
                 <Grid Grid.Column="1" Margin="5,0">
                     <Grid.ColumnDefinitions>
@@ -524,20 +540,20 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Column="0"
-                                   Text="{x:Static res:Resources.StatusLabel}"
-                                   Style="{StaticResource FilterTextBlockStyle}" />
-                        <ComboBox Grid.Column="1" ItemsSource="{Binding StatusFilters}"
-                                  SelectedItem="{Binding SelectedStatusFilter}"
-                                  Style="{StaticResource FilterComboboxStyle}" 
-                                  SelectionChanged="Control_OnFilterChanged"/>
-                        <Border Grid.Column="2" Style="{StaticResource FilterSeparatorBorderStyle}" />
-                    </Grid>
+                    <TextBlock Grid.Column="0"
+                               Text="{x:Static res:Resources.StatusLabel}"
+                               Style="{StaticResource FilterTextBlockStyle}" />
+                    <ComboBox Grid.Column="1" ItemsSource="{Binding StatusFilters}"
+                              SelectedItem="{Binding SelectedStatusFilter}"
+                              Style="{StaticResource FilterComboboxStyle}"
+                              SelectionChanged="Control_OnFilterChanged" />
+                    <Border Grid.Column="2" Style="{StaticResource FilterSeparatorBorderStyle}" />
+                </Grid>
 
-                    <Button Grid.Column="2" Content="{x:Static res:Resources.ClearAllButton}"
-                            Style="{StaticResource DefaultButtonStyle}"
-                            Padding="5,0" 
-                            Click="ClearAllFilters_OnClick"/>
+                <Button Grid.Column="2" Content="{x:Static res:Resources.ClearAllButton}"
+                        Style="{StaticResource DefaultButtonStyle}"
+                        Padding="5,0"
+                        Click="ClearAllFilters_OnClick" />
 
             </Grid>
         </Grid>
@@ -762,7 +778,7 @@
                                    Style="{StaticResource IssueTypeTextBlockStyle}" />
                     </Grid>
                 </DataTemplate>
-                
+
                 <!-- issue styling-->
                 <DataTemplate DataType="{x:Type issues:IssueViewModel}">
                     <Grid Margin="5,2"
@@ -819,10 +835,12 @@
                            Text="{x:Static res:Resources.NoFindingsToDisplayTitle}"
                            Margin="0,10" />
                 <TextBlock Style="{StaticResource OverlayTextBlockStyle}">
-                    <Run Text="{x:Static res:Resources.NoFindingsToDisplayCurrentFiltersTitle}"/><Run Text=" " />
-                    <Hyperlink NavigateUri="{x:Static reportView:ReportViewControl.ClearAllFiltersUri}" RequestNavigate="ClearFiltersHyperlink">
-                        <Run Text="{x:Static res:Resources.NoFindingsToDisplayCurrentClearFiltersLink}"/>
-                    </Hyperlink><Run Text=". " />
+                    <Run Text="{x:Static res:Resources.NoFindingsToDisplayCurrentFiltersTitle}" /><Run Text=" " />
+                    <Hyperlink NavigateUri="{x:Static reportView:ReportViewControl.ClearAllFiltersUri}"
+                               RequestNavigate="ClearFiltersHyperlink">
+                        <Run Text="{x:Static res:Resources.NoFindingsToDisplayCurrentClearFiltersLink}" />
+                    </Hyperlink>
+                    <Run Text=". " />
                 </TextBlock>
             </StackPanel>
         </Grid>

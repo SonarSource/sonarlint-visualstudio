@@ -186,6 +186,23 @@ public class GroupDependencyRiskViewModelTest
         VerifyFilteredRisks(expectedFilteredRisks);
     }
 
+
+    [DataRow(true)]
+    [DataRow(false)]
+    [DataTestMethod]
+    public void ApplyFilter_NewCodeSelected_DoesNotAffect(bool isOnNewCode)
+    {
+        SetInitialRisks(risks);
+        MockStatusFilter(displayStatus: DisplayStatus.Any);
+        MockNewCodeFilter(isOnNewCode);
+
+        testSubject.ApplyFilter(reportViewFilterViewModel);
+
+        testSubject.AllIssues.Should().HaveCount(5);
+        testSubject.PreFilteredIssues.Should().HaveCount(5);
+        testSubject.FilteredIssues.Should().HaveCount(5);
+    }
+
     [TestMethod]
     public void ApplyFilter_StatusFilterNotSelected_ShowsAllRisks()
     {
@@ -303,4 +320,6 @@ public class GroupDependencyRiskViewModelTest
     private void MockSeverityFilter(DisplaySeverity displaySeverity) => reportViewFilterViewModel.SelectedSeverityFilter = displaySeverity;
 
     private void MockStatusFilter(DisplayStatus displayStatus) => reportViewFilterViewModel.SelectedStatusFilter = displayStatus;
+
+    private void MockNewCodeFilter(bool isOnNewCode) => reportViewFilterViewModel.SelectedNewCodeFilter = isOnNewCode;
 }

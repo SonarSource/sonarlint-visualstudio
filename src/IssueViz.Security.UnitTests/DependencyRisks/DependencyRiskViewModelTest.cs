@@ -136,6 +136,14 @@ public class DependencyRiskViewModelTest
         testSubject.Status.Should().Be(DisplayStatus.Open);
     }
 
+    [TestMethod]
+    public void IsOnNewCode_ReturnsTrue()
+    {
+        var testSubject = new DependencyRiskViewModel(CreateMockedDependencyRisk());
+
+        testSubject.IsOnNewCode.Should().BeTrue();
+    }
+
     private static IDependencyRisk CreateMockedDependencyRisk()
     {
         var dependencyRisk = Substitute.For<IDependencyRisk>();
