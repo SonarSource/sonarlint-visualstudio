@@ -53,10 +53,11 @@ public class ReportViewFilterViewModelTest
     [TestMethod]
     public void Ctor_InitializesIssueTypeFilters()
     {
-        testSubject.IssueTypeFilters.Should().HaveCount(3);
-        testSubject.IssueTypeFilters[0].IssueType.Should().Be(IssueType.SecurityHotspot);
-        testSubject.IssueTypeFilters[1].IssueType.Should().Be(IssueType.TaintVulnerability);
-        testSubject.IssueTypeFilters[2].IssueType.Should().Be(IssueType.DependencyRisk);
+        testSubject.IssueTypeFilters.Should().HaveCount(4);
+        testSubject.IssueTypeFilters[0].IssueType.Should().Be(IssueType.Issue);
+        testSubject.IssueTypeFilters[1].IssueType.Should().Be(IssueType.SecurityHotspot);
+        testSubject.IssueTypeFilters[2].IssueType.Should().Be(IssueType.TaintVulnerability);
+        testSubject.IssueTypeFilters[3].IssueType.Should().Be(IssueType.DependencyRisk);
 
         testSubject.IssueTypeFilters.All(x => x.IsSelected).Should().BeTrue();
     }

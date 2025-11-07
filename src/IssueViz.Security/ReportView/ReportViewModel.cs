@@ -33,6 +33,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Issues;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -48,6 +49,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
 {
     private readonly IHotspotsReportViewModel hotspotsReportViewModel;
     private readonly IDependencyRisksReportViewModel dependencyRisksReportViewModel;
+    private readonly IIssuesReportViewModel issuesReportViewModel;
     private readonly ITaintsReportViewModel taintsReportViewModel;
     private readonly ITelemetryManager telemetryManager;
     private readonly IIssueSelectionService selectionService;
@@ -65,6 +67,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         IHotspotsReportViewModel hotspotsReportViewModel,
         IDependencyRisksReportViewModel dependencyRisksReportViewModel,
         ITaintsReportViewModel taintsReportViewModel,
+        IIssuesReportViewModel issuesReportViewModel,
         ITelemetryManager telemetryManager,
         IIssueSelectionService selectionService,
         IActiveDocumentLocator activeDocumentLocator,
@@ -81,10 +84,12 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         this.activeDocumentTracker = activeDocumentTracker;
         this.documentTracker = documentTracker;
         this.threadHandling = threadHandling;
+        this.issuesReportViewModel = issuesReportViewModel;
 
         hotspotsReportViewModel.IssuesChanged += HotspotsViewModel_IssuesChanged;
         dependencyRisksReportViewModel.DependencyRisksChanged += DependencyRisksViewModel_DependencyRisksChanged;
         taintsReportViewModel.IssuesChanged += TaintViewModel_IssuesChanged;
+        issuesReportViewModel.IssuesChanged += IssuesReportViewModel_IssuesChanged;
         documentTracker.DocumentOpened += DocumentTracker_DocumentOpened;
         documentTracker.DocumentClosed += DocumentTracker_DocumentClosed;
 
@@ -156,7 +161,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         }
 
         InitializeDependencyRisks();
-        UpdateAddedIssueViewModels(hotspotsReportViewModel.GetIssueViewModels().Concat(taintsReportViewModel.GetIssueViewModels()));
+        UpdateAddedIssueViewModels(hotspotsReportViewModel.GetIssueViewModels().Concat(taintsReportViewModel.GetIssueViewModels()).Concat(issuesReportViewModel.GetIssueViewModels()));
 
         FilteredGroupViewModels = new ObservableCollection<IGroupViewModel>();
         ApplyFilter();
@@ -194,6 +199,9 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
 
         taintsReportViewModel.IssuesChanged -= TaintViewModel_IssuesChanged;
         taintsReportViewModel.Dispose();
+
+        issuesReportViewModel.IssuesChanged -= IssuesReportViewModel_IssuesChanged;
+        issuesReportViewModel.Dispose();
 
         activeDocumentTracker.ActiveDocumentChanged -= OnActiveDocumentChanged;
 
@@ -245,6 +253,16 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
     {
         var addedHotspotsViewModels = e.AddedIssues.Select(viz => new TaintViewModel(viz)).ToList();
         var currentHotspotViewModels = AllGroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is TaintViewModel).Cast<TaintViewModel>();
+        var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(vm.IsSameAnalysisIssue)).ToList();
+        UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
+    }
+
+    private void IssuesReportViewModel_IssuesChanged(object sender, IssuesChangedEventArgs e)
+    {
+        // if refactoring: fix copypaste
+        // if refactoring: wrap issues into viewmodels before proxying the event because it owns issue conversion to viewmodels
+        var addedHotspotsViewModels = e.AddedIssues.Select(viz => new IssueViewModel(viz)).ToList();
+        var currentHotspotViewModels = AllGroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is IssueViewModel).Cast<IssueViewModel>();
         var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(vm.IsSameAnalysisIssue)).ToList();
         UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
     }

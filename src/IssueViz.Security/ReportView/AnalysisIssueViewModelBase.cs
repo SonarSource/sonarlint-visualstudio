@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
@@ -42,6 +43,46 @@ internal abstract class AnalysisIssueViewModelBase : ViewModelBase, IAnalysisIss
     public abstract DisplayStatus Status { get; }
     public IAnalysisIssueVisualization Issue { get; }
 
+    public bool HasSecondaryLocations => Issue.Flows?.Any(x => x.Locations?.Any() ?? false) ?? false;
+
+    public bool IsServerIssue => Issue.Issue.IssueServerKey is not null;
+
     public bool IsSameAnalysisIssue(IAnalysisIssueVisualization analysisIssueVisualization) =>
         Issue.Issue.Id == analysisIssueVisualization.Issue.Id && Issue.Issue.IssueServerKey == analysisIssueVisualization.Issue.IssueServerKey;
+
+    protected static DisplaySeverity? GetDisplaySeverity(SoftwareQualitySeverity? softwareQualitySeverity)
+    {
+        if (!softwareQualitySeverity.HasValue)
+        {
+            return null;
+        }
+
+        return softwareQualitySeverity switch
+        {
+            SoftwareQualitySeverity.Info => DisplaySeverity.Info,
+            SoftwareQualitySeverity.Low => DisplaySeverity.Low,
+            SoftwareQualitySeverity.Medium => DisplaySeverity.Medium,
+            SoftwareQualitySeverity.High => DisplaySeverity.High,
+            SoftwareQualitySeverity.Blocker => DisplaySeverity.Blocker,
+            _ => DisplaySeverity.Info
+        };
+    }
+
+    protected static DisplaySeverity? GetDisplaySeverity(AnalysisIssueSeverity? severity)
+    {
+        if (!severity.HasValue)
+        {
+            return null;
+        }
+
+        return severity switch
+        {
+            AnalysisIssueSeverity.Info => DisplaySeverity.Info,
+            AnalysisIssueSeverity.Minor => DisplaySeverity.Low,
+            AnalysisIssueSeverity.Major => DisplaySeverity.Medium,
+            AnalysisIssueSeverity.Critical => DisplaySeverity.High,
+            AnalysisIssueSeverity.Blocker => DisplaySeverity.Blocker,
+            _ => DisplaySeverity.Info
+        };
+    }
 }

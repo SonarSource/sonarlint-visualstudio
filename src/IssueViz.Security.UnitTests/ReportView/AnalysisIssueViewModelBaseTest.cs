@@ -95,6 +95,37 @@ public class AnalysisIssueViewModelBaseTest
         CreateTestSubject(analysisIssueVisualization1).IsSameAnalysisIssue(analysisIssueVisualization2).Should().BeFalse();
     }
 
+    [TestMethod]
+    public void HasSecondaryLocations_NoFlows_ReturnsFalse()
+    {
+        var issue = CreateMockedIssue(Guid.NewGuid(), "any");
+        issue.Flows.Returns([]);
+
+        CreateTestSubject(issue).HasSecondaryLocations.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void HasSecondaryLocations_HasFlows_ReturnsTrue()
+    {
+        var issue = CreateMockedIssue(Guid.NewGuid(), "any");
+        var flow = Substitute.For<IAnalysisIssueFlowVisualization>();
+        issue.Flows.Returns([flow]);
+        var location = Substitute.For<IAnalysisIssueLocationVisualization>();
+        flow.Locations.Returns([location]);
+
+        CreateTestSubject(issue).HasSecondaryLocations.Should().BeTrue();
+    }
+
+    [DataRow("key", true)]
+    [DataRow(null, false)]
+    [DataTestMethod]
+    public void IsServerIssue_ReturnsBasedOnServerKey(string serverKey, bool isServerIssue)
+    {
+        var issue = CreateMockedIssue(Guid.NewGuid(), serverKey);
+
+        CreateTestSubject(issue).IsServerIssue.Should().Be(isServerIssue);
+    }
+
     /// <summary>
     /// To prevent adding the tests in all the subclasses we test the base class via any of its child classes.
     /// </summary>

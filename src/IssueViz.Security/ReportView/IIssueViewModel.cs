@@ -49,6 +49,7 @@ public enum DisplaySeverity
 
 public enum IssueType
 {
+    Issue,
     SecurityHotspot,
     TaintVulnerability,
     DependencyRisk

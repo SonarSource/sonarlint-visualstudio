@@ -33,6 +33,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Issues;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -44,10 +45,13 @@ public class FilteringTests
 {
     private const string CsharpFilePath = "C:\\source\\myProj\\myFile.cs";
     private const string TsFilePath = "C:\\source\\myProj\\myTaint.ts";
+    private const string CppFilePath = "C:\\source\\myProj\\myFile.cpp";
     private readonly IIssueViewModel csharpHotspotInfo = CreateMockedIssueViewModel(IssueType.SecurityHotspot, CsharpFilePath, DisplaySeverity.Info, DisplayStatus.Open);
     private readonly IIssueViewModel csharpTaintLow = CreateMockedIssueViewModel(IssueType.TaintVulnerability, CsharpFilePath, DisplaySeverity.Low, DisplayStatus.Resolved);
     private readonly IIssueViewModel tsHotspotMedium = CreateMockedIssueViewModel(IssueType.SecurityHotspot, TsFilePath, DisplaySeverity.Medium, DisplayStatus.Resolved);
     private readonly IIssueViewModel tsTaintHigh = CreateMockedIssueViewModel(IssueType.TaintVulnerability, TsFilePath, DisplaySeverity.High, DisplayStatus.Open);
+    private readonly IIssueViewModel csharpIssueHigh = CreateMockedIssueViewModel(IssueType.Issue, CsharpFilePath, DisplaySeverity.High, DisplayStatus.Resolved);
+    private readonly IIssueViewModel cppIssueMedium = CreateMockedIssueViewModel(IssueType.Issue, CppFilePath, DisplaySeverity.Medium, DisplayStatus.Open);
     private readonly IDependencyRisk dependencyRisk = CreateDependencyRisk(severity: DependencyRiskImpactSeverity.Blocker, status: DependencyRiskStatus.Open);
     private IIssueViewModel dependencyRiskIssue;
     private IActiveDocumentLocator activeDocumentLocator;
@@ -58,6 +62,7 @@ public class FilteringTests
     private IDependencyRisksStore dependencyRisksStore;
     private PropertyChangedEventHandler eventHandler;
     private IHotspotsReportViewModel hotspotsReportViewModel;
+    private IIssuesReportViewModel issuesReportViewModel;
     private ILocationNavigator locationNavigator;
     private INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand;
     private IIssueSelectionService selectionService;
@@ -74,6 +79,7 @@ public class FilteringTests
         dependencyRisksStore = Substitute.For<IDependencyRisksStore>();
         hotspotsReportViewModel = Substitute.For<IHotspotsReportViewModel>();
         taintsReportViewModel = Substitute.For<ITaintsReportViewModel>();
+        issuesReportViewModel = Substitute.For<IIssuesReportViewModel>();
         dependencyRisksReportViewModel = Substitute.For<IDependencyRisksReportViewModel>();
         navigateToRuleDescriptionCommand = Substitute.For<INavigateToRuleDescriptionCommand>();
         locationNavigator = Substitute.For<ILocationNavigator>();
@@ -88,6 +94,7 @@ public class FilteringTests
         dependencyRiskIssue = dependencyRiskGroup.FilteredIssues.Single();
         hotspotsReportViewModel.GetIssueViewModels().Returns([csharpHotspotInfo, tsHotspotMedium]);
         taintsReportViewModel.GetIssueViewModels().Returns([csharpTaintLow, tsTaintHigh]);
+        issuesReportViewModel.GetIssueViewModels().Returns([csharpIssueHigh, cppIssueMedium]);
         dependencyRisksReportViewModel.GetDependencyRisksGroup().Returns(dependencyRiskGroup);
         CreateTestSubject();
         ClearCallsForReportsViewModels();
@@ -155,7 +162,7 @@ public class FilteringTests
 
         testSubject.ApplyFilter();
 
-        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(4);
         testSubject.FilteredGroupViewModels.Where(x => x.FilteredIssues.Any()).Should().HaveCount(2);
         VerifyIsExpectedGroup(TsFilePath, tsHotspotMedium);
         VerifyIsExpectedGroup(CsharpFilePath, csharpHotspotInfo);
@@ -170,7 +177,7 @@ public class FilteringTests
 
         testSubject.ApplyFilter();
 
-        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(4);
         testSubject.FilteredGroupViewModels.Where(x => x.FilteredIssues.Any()).Should().HaveCount(2);
         VerifyIsExpectedGroup(TsFilePath, tsHotspotMedium, tsTaintHigh);
         VerifyIsExpectedGroup(CsharpFilePath, csharpHotspotInfo, csharpTaintLow);
@@ -185,7 +192,7 @@ public class FilteringTests
 
         testSubject.ApplyFilter();
 
-        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(4);
         VerifyIsExpectedGroup(TsFilePath, tsHotspotMedium);
         VerifyIsExpectedGroup(CsharpFilePath, csharpHotspotInfo);
         VerifyIsExpectedGroup(null, dependencyRiskIssue);
@@ -199,10 +206,24 @@ public class FilteringTests
 
         testSubject.ApplyFilter();
 
-        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(4);
         testSubject.FilteredGroupViewModels.Where(x => x.FilteredIssues.Any()).Should().HaveCount(2);
         VerifyIsExpectedGroup(TsFilePath, tsTaintHigh);
         VerifyIsExpectedGroup(CsharpFilePath, csharpTaintLow);
+    }
+
+    [TestMethod]
+    public void ApplyFilter_IssueTypeFilterIsIssue_FiltersIssuesInGroups()
+    {
+        ClearFilter();
+        SetIssueTypeFilter(IssueType.Issue, isSelected: true);
+
+        testSubject.ApplyFilter();
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(4);
+        testSubject.FilteredGroupViewModels.Where(x => x.FilteredIssues.Any()).Should().HaveCount(2);
+        VerifyIsExpectedGroup(CppFilePath, cppIssueMedium);
+        VerifyIsExpectedGroup(CsharpFilePath, csharpIssueHigh);
     }
 
     [TestMethod]
@@ -214,7 +235,7 @@ public class FilteringTests
 
         testSubject.ApplyFilter();
 
-        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(4);
         VerifyIsExpectedGroup(TsFilePath, tsTaintHigh);
         VerifyIsExpectedGroup(CsharpFilePath, csharpTaintLow);
         VerifyIsExpectedGroup(null, dependencyRiskIssue);
@@ -228,7 +249,7 @@ public class FilteringTests
 
         testSubject.ApplyFilter();
 
-        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(4);
         testSubject.FilteredGroupViewModels.Where(x => x.FilteredIssues.Any()).Should().HaveCount(1);
         VerifyIsExpectedGroup(null, dependencyRiskIssue);
     }
@@ -265,7 +286,7 @@ public class FilteringTests
 
         testSubject.ApplyFilter();
 
-        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(4);
         testSubject.FilteredGroupViewModels.Should().Contain(g => g.FilteredIssues.SingleOrDefault(vm => vm.Status == DisplayStatus.Open) != null);
     }
 
@@ -276,9 +297,9 @@ public class FilteringTests
 
         testSubject.ApplyFilter();
 
-        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(4);
         testSubject.FilteredGroupViewModels.Where(x => x.FilteredIssues.Any()).Should().HaveCount(2);
-        testSubject.FilteredGroupViewModels.Should().Contain(g => g.FilteredIssues.SingleOrDefault(vm => vm.Status == DisplayStatus.Resolved) != null);
+        testSubject.FilteredGroupViewModels.Should().Contain(g => g.FilteredIssues.Any() && g.FilteredIssues.All(vm => vm.Status == DisplayStatus.Resolved));
     }
 
     [TestMethod]
@@ -301,7 +322,7 @@ public class FilteringTests
 
         testSubject.ApplyFilter();
 
-        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(4);
         testSubject.FilteredGroupViewModels.Where(x => x.FilteredIssues.Any()).Should().HaveCount(1);
         testSubject.FilteredGroupViewModels.Should().Contain(g =>
             g.FilteredIssues.SingleOrDefault(vm => vm.DisplaySeverity == DisplaySeverity.Blocker && vm.Status == DisplayStatus.Open && vm.IssueType == IssueType.DependencyRisk) != null);
@@ -326,6 +347,7 @@ public class FilteringTests
             hotspotsReportViewModel,
             dependencyRisksReportViewModel,
             taintsReportViewModel,
+            issuesReportViewModel,
             telemetryManager,
             selectionService,
             activeDocumentLocator,
@@ -392,16 +414,17 @@ public class FilteringTests
 
     private void VerifyAllIssuesAreShown()
     {
-        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(4);
         testSubject.FilteredGroupViewModels.Should().Contain(g => g.FilePath == null && g.FilteredIssues.SequenceEqual(new List<IIssueViewModel> { dependencyRiskIssue }));
-        VerifyIsExpectedGroup(CsharpFilePath, csharpTaintLow, csharpHotspotInfo);
+        VerifyIsExpectedGroup(CsharpFilePath, csharpTaintLow, csharpHotspotInfo, csharpIssueHigh);
         VerifyIsExpectedGroup(TsFilePath, tsTaintHigh, tsHotspotMedium);
+        VerifyIsExpectedGroup(CppFilePath, cppIssueMedium);
     }
 
     private void VerifyOnlyGroupForCurrentDocumentIsShown()
     {
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
-        VerifyIsExpectedGroup(CsharpFilePath, csharpTaintLow, csharpHotspotInfo);
+        VerifyIsExpectedGroup(CsharpFilePath, csharpTaintLow, csharpHotspotInfo, csharpIssueHigh);
     }
 
     private void VerifyIsExpectedGroup(string filePath, params IIssueViewModel[] expectedIssueViewModels) =>
