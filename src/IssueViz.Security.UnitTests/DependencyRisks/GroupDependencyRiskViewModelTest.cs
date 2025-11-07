@@ -199,6 +199,36 @@ public class GroupDependencyRiskViewModelTest
     }
 
     [TestMethod]
+    public void ApplyFilter_StatusAndSeverityFilter_AppliesStatusAsPreFilter()
+    {
+        SetInitialRisks(risks);
+        MockStatusFilter(DisplayStatus.Resolved);
+        MockSeverityFilter(DisplaySeverity.Blocker);
+
+        testSubject.ApplyFilter(reportViewFilterViewModel);
+
+        testSubject.AllIssues.Should().HaveCount(5);
+        testSubject.PreFilteredIssues.Should().HaveCount(2);
+        testSubject.FilteredIssues.Should().HaveCount(1);
+        testSubject.FilteredIssues.Should().OnlyContain(i => i.Status == DisplayStatus.Resolved && i.DisplaySeverity == DisplaySeverity.Blocker);
+    }
+
+    [TestMethod]
+    public void ApplyFilter_SeverityFilter_NoPreFiltering()
+    {
+        SetInitialRisks(risks);
+        MockStatusFilter(DisplayStatus.Any);
+        MockSeverityFilter(DisplaySeverity.Blocker);
+
+        testSubject.ApplyFilter(reportViewFilterViewModel);
+
+        testSubject.AllIssues.Should().HaveCount(5);
+        testSubject.PreFilteredIssues.Should().HaveCount(5);
+        testSubject.FilteredIssues.Should().HaveCount(1);
+        testSubject.FilteredIssues.Should().OnlyContain(i => i.DisplaySeverity == DisplaySeverity.Blocker);
+    }
+
+    [TestMethod]
     public void IsExpanded_DefaultValue_IsTrue()
     {
         var result = testSubject.IsExpanded;

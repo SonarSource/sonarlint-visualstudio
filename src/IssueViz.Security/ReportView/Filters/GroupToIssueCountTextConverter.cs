@@ -23,33 +23,26 @@ using System.Windows.Data;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
-[ValueConversion(typeof(IIssueTypeFilterViewModel), typeof(string))]
-public class IssueTypeFilterToTextConverter : IMultiValueConverter
+[ValueConversion(typeof(IGroupViewModel), typeof(string))]
+public class GroupToIssueCountTextConverter : IValueConverter
 {
-    private const string PluralSuffix = "Plural";
-    private const string SingularSuffix = "Singular";
-
     public object Convert(
-        object[] values,
+        object value,
         Type targetType,
         object parameter,
         CultureInfo culture)
     {
-        if (values.Length < 2 || values[0] is not IIssueTypeFilterViewModel issueTypeFilterViewModel || values[1] is not IReportViewModel reportViewModel)
+        if (value is not IGroupViewModel groupViewModel)
         {
             return null;
         }
 
-        var count = reportViewModel.FilteredGroupViewModels.SelectMany(group => group.FilteredIssues).Count(vm => vm.IssueType == issueTypeFilterViewModel.IssueType);
-        var totalCount = reportViewModel.AllGroupViewModels.SelectMany(group => group.PreFilteredIssues).Count(vm => vm.IssueType == issueTypeFilterViewModel.IssueType);
-        return IssueCountHelper.FormatString(count, totalCount, GetResourceByKey(issueTypeFilterViewModel.IssueType + SingularSuffix), GetResourceByKey(issueTypeFilterViewModel.IssueType + PluralSuffix));
+        return IssueCountHelper.FormatString(groupViewModel.FilteredIssues.Count, groupViewModel.PreFilteredIssues.Count, Resources.FindingSingularSmall, Resources.FindingPluralSmall);
     }
 
-    private static string GetResourceByKey(string resourceKey) => Resources.ResourceManager.GetString(resourceKey) ?? string.Empty;
-
-    public object[] ConvertBack(
+    public object ConvertBack(
         object value,
-        Type[] targetTypes,
+        Type targetType,
         object parameter,
         CultureInfo culture) =>
         throw new NotImplementedException();

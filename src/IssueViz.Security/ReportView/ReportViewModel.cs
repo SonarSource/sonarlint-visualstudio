@@ -41,6 +41,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 internal interface IReportViewModel
 {
     ObservableCollection<IGroupViewModel> FilteredGroupViewModels { get; }
+    ObservableCollection<IGroupViewModel> AllGroupViewModels { get; }
 }
 
 internal class ReportViewModel : ServerViewModel, IReportViewModel
@@ -124,8 +125,10 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
 
     public ObservableCollection<IGroupViewModel> AllGroupViewModels { get; private set; }
     public ObservableCollection<IGroupViewModel> FilteredGroupViewModels { get; private set; }
-    public bool HasAnyGroups => AllGroupViewModels.Count > 0;
-    public bool HasFilteredGroups => FilteredGroupViewModels.Count > 0;
+    public bool HasAnyGroups => AllGroupViewModels.Any(x => x.AllIssues.Any());
+    public bool HasFilteredGroups => FilteredGroupViewModels.Any(x => x.FilteredIssues.Any());
+    // this indicates whether to show the 'too restrictive filters' warning, we only want to do that if filtered issues are 0 but prefiltered are not
+    public bool HasNoFilteredIssuesForGroupsWithIssues => AllGroupViewModels.Any() && FilteredGroupViewModels.All(x => !x.FilteredIssues.Any() && x.PreFilteredIssues.Any());
     public INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; set; }
     public ICommand NavigateToLocationCommand { get; set; }
     public ReportViewFilterViewModel ReportViewFilter { get; } = new();
@@ -168,6 +171,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         }
         RaisePropertyChanged(nameof(HasAnyGroups));
         RaisePropertyChanged(nameof(HasFilteredGroups));
+        RaisePropertyChanged(nameof(HasNoFilteredIssuesForGroupsWithIssues));
     }
 
     internal void ApplyFilter()
@@ -177,6 +181,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         FilteredGroupViewModels.ToList().ForEach(group => group.ApplyFilter(ReportViewFilter));
         RaisePropertyChanged(nameof(HasAnyGroups));
         RaisePropertyChanged(nameof(HasFilteredGroups));
+        RaisePropertyChanged(nameof(HasNoFilteredIssuesForGroupsWithIssues));
     }
 
     protected override void Dispose(bool disposing)

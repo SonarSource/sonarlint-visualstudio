@@ -285,6 +285,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to findings.
+        /// </summary>
+        public static string FindingPluralSmall {
+            get {
+                return ResourceManager.GetString("FindingPluralSmall", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to finding.
+        /// </summary>
+        public static string FindingSingularSmall {
+            get {
+                return ResourceManager.GetString("FindingSingularSmall", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Finished initializing security package..
         /// </summary>
         public static string FinishedPackageInitialization {
@@ -456,11 +474,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to issue.
+        ///   Looks up a localized string similar to Issues.
         /// </summary>
-        public static string IssueText {
+        public static string IssuePlural {
             get {
-                return ResourceManager.GetString("IssueText", resourceCulture);
+                return ResourceManager.GetString("IssuePlural", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Issue.
+        /// </summary>
+        public static string IssueSingular {
+            get {
+                return ResourceManager.GetString("IssueSingular", resourceCulture);
             }
         }
         
@@ -515,6 +542,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string NavigateToTaintTooltip {
             get {
                 return ResourceManager.GetString("NavigateToTaintTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Code:.
+        /// </summary>
+        public static string NewCodeLabel {
+            get {
+                return ResourceManager.GetString("NewCodeLabel", resourceCulture);
             }
         }
         

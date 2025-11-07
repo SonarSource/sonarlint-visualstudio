@@ -18,32 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Globalization;
-using System.Windows.Data;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
-namespace SonarLint.VisualStudio.Core.WPF;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView.Filters;
 
-[ValueConversion(typeof(int), typeof(string))]
-public class EnglishPluralizationConverter : IValueConverter
+[TestClass]
+public class IssueCountHelperTests
 {
-    public object Convert(
-        object value,
-        Type targetType,
-        object parameter,
-        CultureInfo culture)
+    [DataRow(0, 0, "No b")]
+    [DataRow(0, 1, "0 of 1 a")]
+    [DataRow(1, 1, "1 a")]
+    [DataRow(0, 2, "0 of 2 b")]
+    [DataRow(1, 2, "1 of 2 b")]
+    [DataRow(2, 2, "2 b")]
+    [DataTestMethod]
+    public void FormatString_ReturnsExpectedValue(int filtered, int total, string expectedValue)
     {
-        if (value is not int count || parameter is not string singularLocalization)
-        {
-            return string.Empty;
-        }
-        var singular = $"{count} {singularLocalization}";
-        return count == 1 ? singular : $"{singular}s";
-    }
+        var singular = "a";
+        var plural = "b";
 
-    public object ConvertBack(
-        object value,
-        Type targetType,
-        object parameter,
-        CultureInfo culture) =>
-        throw new NotImplementedException();
+        IssueCountHelper.FormatString(filtered, total, singular, plural).Should().BeEquivalentTo(expectedValue);
+    }
 }
