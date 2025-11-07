@@ -260,7 +260,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
     private void IssuesReportViewModel_IssuesChanged(object sender, IssuesChangedEventArgs e)
     {
         // if refactoring: fix copypaste
-        // if refactoring: wrap issues into viewmodels before proxying the event
+        // if refactoring: wrap issues into viewmodels before proxying the event because it owns issue conversion to viewmodels
         var addedHotspotsViewModels = e.AddedIssues.Select(viz => new IssueViewModel(viz)).ToList();
         var currentHotspotViewModels = AllGroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is IssueViewModel).Cast<IssueViewModel>();
         var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(vm.IsSameAnalysisIssue)).ToList();
