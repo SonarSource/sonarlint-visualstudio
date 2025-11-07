@@ -49,7 +49,7 @@ public class RoslynQuickFixStorage : IRoslynQuickFixStorageWriter, IRoslynQuickF
         ClearCache();
     }
 
-    private void ClearCache() // todo https://sonarsource.atlassian.net/browse/SLVS-2540 clear cache on analysis for file
+    private void ClearCache()
     {
         lock (locker)
         {
@@ -57,13 +57,26 @@ public class RoslynQuickFixStorage : IRoslynQuickFixStorageWriter, IRoslynQuickF
         }
     }
 
-    public void Add(
-        Guid id,
-        RoslynQuickFixApplicationImpl impl)
+    public void Add(RoslynQuickFixApplicationImpl impl)
     {
         lock (locker)
         {
-            cache[id] = impl;
+            cache[impl.Id] = impl;
+        }
+    }
+
+    public void Clear(string filePath)
+    {
+        lock (locker)
+        {
+            var toRemove = cache
+                .Where(x => x.Value.FilePath.Equals(filePath))
+                .Select(x => x.Key)
+                .ToList();
+            foreach (var keyToRemove in toRemove)
+            {
+                cache.Remove(keyToRemove);
+            }
         }
     }
 

@@ -32,6 +32,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer;
 internal sealed class RoslynAnalysisService(
     IRoslynWorkspaceWrapper workspaceWrapper,
     IRoslynAnalysisEngine analysisEngine,
+    IRoslynQuickFixStorageWriter quickFixStorageWriter,
     IRoslynAnalysisConfigurationProvider analysisConfigurationProvider,
     IRoslynSolutionAnalysisCommandProvider analysisCommandProvider) : IRoslynAnalysisService
 {
@@ -44,6 +45,11 @@ internal sealed class RoslynAnalysisService(
     {
         try
         {
+            foreach (var fileUri in analysisRequest.FileUris)
+            {
+                quickFixStorageWriter.Clear(fileUri.LocalPath);
+            }
+
             return await analysisEngine.AnalyzeAsync(
                 analysisCommandProvider.GetAnalysisCommandsForCurrentSolution(analysisRequest.FileUris.Select(x => x.LocalPath).ToArray()),
                 await analysisConfigurationProvider.GetConfigurationAsync(analysisRequest.ActiveRules, analysisRequest.AnalysisProperties, analysisRequest.AnalyzerInfo),

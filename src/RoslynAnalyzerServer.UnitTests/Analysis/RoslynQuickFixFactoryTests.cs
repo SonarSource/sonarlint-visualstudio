@@ -76,7 +76,7 @@ public class RoslynQuickFixFactoryTests
 
         result.Should().BeEmpty();
         roslynCodeActionFactory.DidNotReceiveWithAnyArgs().GetCodeActionsAsync(default!, default!, default!, default).IgnoreAwaitForAssert();
-        quickFixStorage.DidNotReceiveWithAnyArgs().Add(default, default!);
+        quickFixStorage.DidNotReceiveWithAnyArgs().Add(default!);
     }
 
     [TestMethod]
@@ -89,7 +89,7 @@ public class RoslynQuickFixFactoryTests
 
         result.Should().BeEmpty();
         roslynCodeActionFactory.DidNotReceiveWithAnyArgs().GetCodeActionsAsync(default!, default!, default!, default).IgnoreAwaitForAssert();
-        quickFixStorage.DidNotReceiveWithAnyArgs().Add(default, default!);
+        quickFixStorage.DidNotReceiveWithAnyArgs().Add(default!);
     }
 
     [TestMethod]
@@ -104,7 +104,7 @@ public class RoslynQuickFixFactoryTests
 
         result.Should().BeEmpty();
         roslynCodeActionFactory.Received(1).GetCodeActionsAsync(codeFixProviders, diagnostic, document, token).IgnoreAwaitForAssert();
-        quickFixStorage.DidNotReceiveWithAnyArgs().Add(default, default!);
+        quickFixStorage.DidNotReceiveWithAnyArgs().Add(default!);
     }
 
     [TestMethod]
@@ -122,9 +122,9 @@ public class RoslynQuickFixFactoryTests
 
         result.Should().HaveCount(3);
         roslynCodeActionFactory.Received(1).GetCodeActionsAsync(codeFixProviders, diagnostic, document, token).IgnoreAwaitForAssert();
-        quickFixStorage.Received(1).Add(result[0].Id, Arg.Is<RoslynQuickFixApplicationImpl>(x => x.RoslynCodeAction == codeAction1));
-        quickFixStorage.Received(1).Add(result[1].Id, Arg.Is<RoslynQuickFixApplicationImpl>(x => x.RoslynCodeAction == codeAction2));
-        quickFixStorage.Received(1).Add(result[2].Id, Arg.Is<RoslynQuickFixApplicationImpl>(x => x.RoslynCodeAction == codeAction3));
+        quickFixStorage.Received(1).Add(Arg.Is<RoslynQuickFixApplicationImpl>(x => x.RoslynCodeAction == codeAction1));
+        quickFixStorage.Received(1).Add(Arg.Is<RoslynQuickFixApplicationImpl>(x => x.RoslynCodeAction == codeAction2));
+        quickFixStorage.Received(1).Add(Arg.Is<RoslynQuickFixApplicationImpl>(x => x.RoslynCodeAction == codeAction3));
     }
 
     private static Diagnostic CreateDiagnostic(string id)

@@ -29,6 +29,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests;
 [TestClass]
 public class RoslynQuickFixApplicationImplTests
 {
+    private const string FilePath = "some file path";
     private IRoslynWorkspaceWrapper workspace = null!;
     private IRoslynSolutionWrapper originalSolution = null!;
     private IRoslynCodeActionWrapper codeAction = null!;
@@ -43,7 +44,20 @@ public class RoslynQuickFixApplicationImplTests
         originalSolution = Substitute.For<IRoslynSolutionWrapper>();
         codeAction = Substitute.For<IRoslynCodeActionWrapper>();
 
-        testSubject = new RoslynQuickFixApplicationImpl(workspace, originalSolution, codeAction);
+        testSubject = new RoslynQuickFixApplicationImpl(workspace, originalSolution, codeAction, FilePath);
+    }
+
+    [TestMethod]
+    public void Ctor_GeneratesUniqueId()
+    {
+        const string title = "Test title";
+        codeAction.Title.Returns(title);
+
+        var qf1 = new RoslynQuickFixApplicationImpl(workspace, originalSolution, codeAction, FilePath);
+        var qf2 = new RoslynQuickFixApplicationImpl(workspace, originalSolution, codeAction, FilePath);
+
+        qf1.Should().BeEquivalentTo(qf2, options => options.Excluding(x => x.Id));
+        qf1.Id.Should().NotBe(qf2.Id);
     }
 
     [TestMethod]
@@ -53,6 +67,12 @@ public class RoslynQuickFixApplicationImplTests
         codeAction.Title.Returns(title);
 
         testSubject.Message.Should().Be(title);
+    }
+
+    [TestMethod]
+    public void FilePath_ReturnsFilePath()
+    {
+        testSubject.FilePath.Should().BeSameAs(FilePath);
     }
 
     [TestMethod]

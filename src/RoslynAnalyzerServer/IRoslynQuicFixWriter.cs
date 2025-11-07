@@ -22,5 +22,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer;
 
 public interface IRoslynQuickFixStorageWriter
 {
-    void Add(Guid id, RoslynQuickFixApplicationImpl impl);
+    void Add(RoslynQuickFixApplicationImpl impl);
+
+    void Clear(string filePath);
 }
