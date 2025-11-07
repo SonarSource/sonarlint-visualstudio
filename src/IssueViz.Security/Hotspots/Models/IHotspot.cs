@@ -32,38 +32,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
         string ServerFilePath { get; }
     }
 
-    internal class Hotspot : IHotspot
+    internal class Hotspot(
+        Guid? id,
+        string issueServerKey,
+        bool isResolved,
+        bool isOnNewCode,
+        string serverFilePath,
+        IAnalysisIssueLocation primaryLocation,
+        IHotspotRule rule,
+        IReadOnlyList<IAnalysisIssueFlow> flows,
+        string context = null)
+        : IHotspot
     {
         private static readonly IReadOnlyList<IAnalysisIssueFlow> EmptyFlows = Array.Empty<IAnalysisIssueFlow>();
 
-        public Hotspot(
-            Guid? id,
-            string issueServerKey,
-            bool isResolved,
-            string serverFilePath,
-            IAnalysisIssueLocation primaryLocation,
-            IHotspotRule rule,
-            IReadOnlyList<IAnalysisIssueFlow> flows,
-            string context = null)
-        {
-            Id = id;
-            IssueServerKey = issueServerKey;
-            IsResolved = isResolved;
-            ServerFilePath = serverFilePath;
-            PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
-            Rule = rule;
-            Flows = flows ?? EmptyFlows;
-            RuleDescriptionContextKey = context;
-        }
-
-        public Guid? Id { get; }
+        public Guid? Id { get; } = id;
         public string RuleKey => Rule.RuleKey;
-        public IHotspotRule Rule { get; }
-        public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
-        public IAnalysisIssueLocation PrimaryLocation { get; }
-        public bool IsResolved { get; }
-        public string IssueServerKey { get; }
-        public string ServerFilePath { get; }
-        public string RuleDescriptionContextKey { get; }
+        public IHotspotRule Rule { get; } = rule;
+        public IReadOnlyList<IAnalysisIssueFlow> Flows { get; } = flows ?? EmptyFlows;
+        public IAnalysisIssueLocation PrimaryLocation { get; } = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
+        public bool IsResolved { get; } = isResolved;
+        public bool IsOnNewCode { get; } = isOnNewCode;
+        public string IssueServerKey { get; } = issueServerKey;
+        public string ServerFilePath { get; } = serverFilePath;
+        public string RuleDescriptionContextKey { get; } = context;
     }
 }

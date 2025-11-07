@@ -35,6 +35,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             Action act = () => new Hotspot(id: null,
                 "hotspot key",
                 false,
+                false,
                 "server-path",
                 primaryLocation: null,
                 ValidRule,
@@ -48,6 +49,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         {
             var hotspot = new Hotspot(id: null,
                 "hotspot key",
+                true,
                 true,
                 "server-path",
                 primaryLocation: new AnalysisIssueLocation(
@@ -65,6 +67,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
 
             hotspot.IssueServerKey.Should().Be("hotspot key");
             hotspot.IsResolved.Should().BeTrue();
+            hotspot.IsOnNewCode.Should().BeTrue();
             hotspot.ServerFilePath.Should().Be("server-path");
             hotspot.RuleKey.Should().Be(ValidRule.RuleKey);
             hotspot.Rule.Should().BeSameAs(ValidRule);
@@ -85,6 +88,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             IReadOnlyList<IAnalysisIssueFlow> flows = null;
             var hotspot = new Hotspot(id: null,
                 "hotspot key",
+                false,
                 false,
                 "server-path",
                 new AnalysisIssueLocation(
@@ -108,6 +112,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             var flows = new[] { Mock.Of<IAnalysisIssueFlow>(), Mock.Of<IAnalysisIssueFlow>() };
             var hotspot = new Hotspot(id: null,
                 "hotspot key",
+                false,
                 false,
                 "server-path",
                 new AnalysisIssueLocation(

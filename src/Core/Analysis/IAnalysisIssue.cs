@@ -58,6 +58,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
         /// </summary>
         bool IsResolved { get; }
 
+        bool IsOnNewCode { get; }
+
         /// <summary>
         /// The key of the issue on the server
         /// </summary>

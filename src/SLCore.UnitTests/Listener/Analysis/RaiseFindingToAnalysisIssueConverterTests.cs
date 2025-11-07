@@ -385,6 +385,56 @@ public class RaiseFindingToAnalysisIssueConverterTests
         analysisIssues[0].Fixes[0].Edits.Should().HaveCount(2);
     }
 
+    [DataRow(true)]
+    [DataRow(false)]
+    [TestMethod]
+    public void GetAnalysisIssues_IsResolvedSetCorrectly(bool isResolved)
+    {
+        var issue = new RaisedIssueDto(Guid.NewGuid(),
+            "serverKey",
+            "ruleKey",
+            "PrimaryMessage",
+            DateTimeOffset.Now,
+            true,
+            isResolved,
+            new TextRangeDto(1, 2, 3, 4),
+            [],
+            [],
+            "context",
+            new StandardModeDetails(IssueSeverity.MAJOR, RuleType.CODE_SMELL));
+
+        var analysisIssues = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedFindingDto> { issue }).ToList();
+
+        analysisIssues.Should().NotBeNull();
+        analysisIssues.Should().ContainSingle();
+        analysisIssues[0].IsResolved.Should().Be(isResolved);
+    }
+
+    [DataRow(true)]
+    [DataRow(false)]
+    [TestMethod]
+    public void GetAnalysisIssues_IsOnNewCodeSetCorrectly(bool isOnNewCode)
+    {
+        var issue = new RaisedIssueDto(Guid.NewGuid(),
+            "serverKey",
+            "ruleKey",
+            "PrimaryMessage",
+            DateTimeOffset.Now,
+            isOnNewCode,
+            false,
+            new TextRangeDto(1, 2, 3, 4),
+            [],
+            [],
+            "context",
+            new StandardModeDetails(IssueSeverity.MAJOR, RuleType.CODE_SMELL));
+
+        var analysisIssues = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedFindingDto> { issue }).ToList();
+
+        analysisIssues.Should().NotBeNull();
+        analysisIssues.Should().ContainSingle();
+        analysisIssues[0].IsOnNewCode.Should().Be(isOnNewCode);
+    }
+
     [TestMethod]
     public void GetAnalysisIssues_TwoIssuesAndOneIsInvalidIssueDto_ReturnsOneIssueAndLogsTheInvalidOne()
     {

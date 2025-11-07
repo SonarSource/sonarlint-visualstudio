@@ -48,6 +48,7 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
         return new ServerIssue(Id: null,
             issueDetailDto.ruleKey,
             IsResolved: false,
+            IsOnNewCode: true,
             new AnalysisIssueLocation(issueDetailDto.message,
                 Path.Combine(rootPath, issueDetailDto.ideFilePath),
                 new TextRange(issueDetailDto.textRange.startLine,
@@ -75,6 +76,7 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
         Guid? Id,
         string RuleKey,
         bool IsResolved,
+        bool IsOnNewCode,
         IAnalysisIssueLocation PrimaryLocation,
         IReadOnlyList<IAnalysisIssueFlow> Flows,
         string IssueServerKey)

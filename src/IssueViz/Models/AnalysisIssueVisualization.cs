@@ -35,6 +35,8 @@ public interface IAnalysisIssueVisualization : IAnalysisIssueLocationVisualizati
     IReadOnlyList<IQuickFixVisualization> QuickFixes { get; }
 
     bool IsResolved { get; }
+
+    bool IsOnNewCode { get; }
 }
 
 internal class AnalysisIssueVisualization : IAnalysisIssueVisualization
@@ -73,6 +75,7 @@ internal class AnalysisIssueVisualization : IAnalysisIssueVisualization
     }
 
     public bool IsResolved => Issue.IsResolved;
+    public bool IsOnNewCode => Issue.IsOnNewCode;
 
     public string CurrentFilePath
     {

@@ -348,7 +348,7 @@ public class MuteIssueCommandTests
     private IAnalysisIssueVisualization SetupNonRoslynIssue()
     {
         var issue = Substitute.For<IAnalysisIssueVisualization>();
-        issue.Issue.Returns(new AnalysisIssue(Guid.NewGuid(), "ruleKey", "issueServerKey", false, AnalysisIssueSeverity.Major, AnalysisIssueType.Bug, null, Substitute.For<IAnalysisIssueLocation>(),
+        issue.Issue.Returns(new AnalysisIssue(Guid.NewGuid(), "ruleKey", "issueServerKey", false, true, AnalysisIssueSeverity.Major, AnalysisIssueType.Bug, null, Substitute.For<IAnalysisIssueLocation>(),
             []));
 
         errorListHelper.TryGetIssueFromSelectedRow(out _).Returns(x =>

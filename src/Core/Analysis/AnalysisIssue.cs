@@ -20,124 +20,89 @@
 
 namespace SonarLint.VisualStudio.Core.Analysis
 {
-    public class AnalysisIssue : IAnalysisIssue
+    public class AnalysisIssue(
+        Guid? id,
+        string ruleKey,
+        string issueServerKey,
+        bool isResolved,
+        bool isOnNewCode,
+        AnalysisIssueSeverity? severity,
+        AnalysisIssueType? type,
+        Impact highestImpact,
+        IAnalysisIssueLocation primaryLocation,
+        IReadOnlyList<IAnalysisIssueFlow> flows,
+        IReadOnlyList<IQuickFix> fixes = null)
+        : IAnalysisIssue
     {
         private static readonly IReadOnlyList<IAnalysisIssueFlow> EmptyFlows = [];
         private static readonly IReadOnlyList<IQuickFix> EmptyFixes = [];
 
-        public AnalysisIssue(
-            Guid? id,
-            string ruleKey,
-            string issueServerKey,
-            bool isResolved,
-            AnalysisIssueSeverity? severity,
-            AnalysisIssueType? type,
-            Impact highestImpact,
-            IAnalysisIssueLocation primaryLocation,
-            IReadOnlyList<IAnalysisIssueFlow> flows,
-            IReadOnlyList<IQuickFix> fixes = null)
-        {
-            Id = id;
-            RuleKey = ruleKey;
-            IssueServerKey = issueServerKey;
-            IsResolved = isResolved;
-            Severity = severity;
-            HighestImpact = highestImpact;
-            Type = type;
-            PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
-            Flows = flows ?? EmptyFlows;
-            Fixes = fixes ?? EmptyFixes;
-        }
+        public Guid? Id { get; } = id;
 
-        public Guid? Id { get; }
+        public string RuleKey { get; } = ruleKey;
 
-        public string RuleKey { get; }
+        public AnalysisIssueSeverity? Severity { get; } = severity;
 
-        public AnalysisIssueSeverity? Severity { get; }
+        public AnalysisIssueType? Type { get; } = type;
 
-        public AnalysisIssueType? Type { get; }
+        public IReadOnlyList<IAnalysisIssueFlow> Flows { get; } = flows ?? EmptyFlows;
 
-        public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
+        public IAnalysisIssueLocation PrimaryLocation { get; } = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
+        public bool IsResolved { get; } = isResolved;
 
-        public IAnalysisIssueLocation PrimaryLocation { get; }
-        public bool IsResolved { get; }
-        public string IssueServerKey { get; }
+        public bool IsOnNewCode { get; } = isOnNewCode;
+        public string IssueServerKey { get; } = issueServerKey;
 
-        public IReadOnlyList<IQuickFix> Fixes { get; }
-        public Impact HighestImpact { get; }
+        public IReadOnlyList<IQuickFix> Fixes { get; } = fixes ?? EmptyFixes;
+        public Impact HighestImpact { get; } = highestImpact;
     }
 
-    public class AnalysisHotspotIssue : AnalysisIssue, IAnalysisHotspotIssue
+    public class AnalysisHotspotIssue(
+        Guid? id,
+        string ruleKey,
+        string issueServerKey,
+        bool isResolved,
+        bool isOnNewCode,
+        AnalysisIssueSeverity? severity,
+        AnalysisIssueType? type,
+        Impact highestImpact,
+        IAnalysisIssueLocation primaryLocation,
+        IReadOnlyList<IAnalysisIssueFlow> flows,
+        HotspotStatus hotspotStatus,
+        IReadOnlyList<IQuickFix> fixes = null,
+        HotspotPriority? hotspotPriority = null)
+        : AnalysisIssue(id, ruleKey, issueServerKey, isResolved, isOnNewCode, severity, type, highestImpact, primaryLocation, flows, fixes), IAnalysisHotspotIssue
     {
-        public AnalysisHotspotIssue(
-            Guid? id,
-            string ruleKey,
-            string issueServerKey,
-            bool isResolved,
-            AnalysisIssueSeverity? severity,
-            AnalysisIssueType? type,
-            Impact highestImpact,
-            IAnalysisIssueLocation primaryLocation,
-            IReadOnlyList<IAnalysisIssueFlow> flows,
-            HotspotStatus hotspotStatus,
-            IReadOnlyList<IQuickFix> fixes = null,
-            HotspotPriority? hotspotPriority = null) :
-            base(id, ruleKey, issueServerKey, isResolved, severity, type, highestImpact, primaryLocation, flows, fixes)
-        {
-            HotspotPriority = hotspotPriority;
-            HotspotStatus = hotspotStatus;
-        }
-
-        public HotspotPriority? HotspotPriority { get; }
-        public HotspotStatus HotspotStatus { get; }
+        public HotspotPriority? HotspotPriority { get; } = hotspotPriority;
+        public HotspotStatus HotspotStatus { get; } = hotspotStatus;
     }
 
-    public class AnalysisIssueFlow : IAnalysisIssueFlow
+    public class AnalysisIssueFlow(IReadOnlyList<IAnalysisIssueLocation> locations) : IAnalysisIssueFlow
     {
-        public AnalysisIssueFlow(IReadOnlyList<IAnalysisIssueLocation> locations)
-        {
-            Locations = locations ?? throw new ArgumentNullException(nameof(locations));
-        }
-
-        public IReadOnlyList<IAnalysisIssueLocation> Locations { get; }
+        public IReadOnlyList<IAnalysisIssueLocation> Locations { get; } = locations ?? throw new ArgumentNullException(nameof(locations));
     }
 
-    public class AnalysisIssueLocation : IAnalysisIssueLocation
+    public class AnalysisIssueLocation(string message, string filePath, ITextRange textRange) : IAnalysisIssueLocation
     {
-        public AnalysisIssueLocation(string message, string filePath, ITextRange textRange)
-        {
-            Message = message;
-            FilePath = filePath;
-            TextRange = textRange;
-        }
+        public string FilePath { get; } = filePath;
 
-        public string FilePath { get; }
+        public string Message { get; } = message;
 
-        public string Message { get; }
-
-        public ITextRange TextRange { get; }
+        public ITextRange TextRange { get; } = textRange;
     }
 
-    public class TextRange : ITextRange
+    public class TextRange(
+        int startLine,
+        int endLine,
+        int startLineOffset,
+        int endLineOffset,
+        string lineHash)
+        : ITextRange
     {
-        public TextRange(
-            int startLine,
-            int endLine,
-            int startLineOffset,
-            int endLineOffset,
-            string lineHash)
-        {
-            StartLine = startLine;
-            EndLine = endLine;
-            StartLineOffset = startLineOffset;
-            EndLineOffset = endLineOffset;
-            LineHash = lineHash;
-        }
-
-        public int StartLine { get; }
-        public int EndLine { get; }
-        public int StartLineOffset { get; }
-        public int EndLineOffset { get; }
-        public string LineHash { get; }
+        public int StartLine { get; } = startLine;
+        public int EndLine { get; } = endLine;
+        public int StartLineOffset { get; } = startLineOffset;
+        public int EndLineOffset { get; } = endLineOffset;
+        public string LineHash { get; } = lineHash;
     }
 }

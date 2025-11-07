@@ -48,6 +48,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
                 var itemRuleKey = item.ruleKey;
                 var itemIssueServerKey = item.serverKey;
                 var isResolved = item.resolved;
+                var isOnNewCode = item.isOnNewCode;
                 var analysisIssueSeverity = item.severityMode.Left?.severity.ToAnalysisIssueSeverity();
                 var analysisIssueType = item.severityMode.Left?.type.ToAnalysisIssueType();
                 var highestSoftwareQualitySeverity = GetHighestImpact(item.severityMode.Right?.impacts);
@@ -61,6 +62,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
                         itemRuleKey,
                         itemIssueServerKey,
                         isResolved,
+                        isOnNewCode,
                         analysisIssueSeverity,
                         analysisIssueType,
                         highestSoftwareQualitySeverity,
@@ -75,6 +77,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
                     itemRuleKey,
                     itemIssueServerKey,
                     isResolved,
+                    isOnNewCode,
                     analysisIssueSeverity,
                     analysisIssueType,
                     highestSoftwareQualitySeverity,
