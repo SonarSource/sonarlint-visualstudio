@@ -46,6 +46,19 @@ internal class LinkedFileAnalyzer(
 
     private async Task RunLinkedAnalysisAsync(IFileState file, CancellationToken token)
     {
+        try
+        {
+            logger.LogVerbose("Starting affected files calculation for {0}", file.FilePath);
+            await RunLinkedAnalysisInternalAsync(file, token);
+        }
+        catch (Exception e)
+        {
+            logger.LogVerbose(e.ToString());
+        }
+    }
+
+    private async Task RunLinkedAnalysisInternalAsync(IFileState file, CancellationToken token)
+    {
         var stopwatch = Stopwatch.StartNew();
 
         var solution = workspaceWrapper.GetCurrentSolution();
