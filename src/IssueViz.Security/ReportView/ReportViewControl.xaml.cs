@@ -189,15 +189,6 @@ internal sealed partial class ReportViewControl : UserControl
         }
     }
 
-    private void ShowRuleHelp(object sender)
-    {
-        if ((sender as FrameworkElement)?.DataContext is IIssueViewModel issueViewModel)
-        {
-            var commandParam = new NavigateToRuleDescriptionCommandParam { FullRuleKey = issueViewModel.RuleInfo.RuleKey, IssueId = issueViewModel.RuleInfo.IssueId };
-            ExecuteCommandIfValid(ReportViewModel.NavigateToRuleDescriptionCommand, commandParam);
-        }
-    }
-
     private static void ExecuteCommandIfValid(ICommand command, object parameter)
     {
         if (command.CanExecute(parameter))
