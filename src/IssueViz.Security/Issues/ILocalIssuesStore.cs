@@ -18,17 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
-{
-    /// <summary>
-    /// Abstraction over the Error List, consumed by the rest of SLVS
-    /// </summary>
-    internal interface ISonarErrorListDataSource
-    {
-        void RefreshErrorList(IIssuesSnapshotFactory factory, IIssuesSnapshot oldSnapshot);
+using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 
-        void AddFactory(IIssuesSnapshotFactory factory);
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Issues;
 
-        void RemoveFactory(IIssuesSnapshotFactory factory);
-    }
-}
+public interface ILocalIssuesStore : IIssuesStore;
