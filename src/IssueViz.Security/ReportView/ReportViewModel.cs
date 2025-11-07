@@ -111,8 +111,13 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         InitializeDependencyRisks();
         InitializeHotspots();
         InitializeTaints();
-        FilteredGroupViewModels = new ObservableCollection<IGroupViewModel>(AllGroupViewModels);
+        FilteredGroupViewModels = new ObservableCollection<IGroupViewModel>(StableSortGroups(AllGroupViewModels));
     }
+
+    private static IEnumerable<IGroupViewModel> StableSortGroups(IEnumerable<IGroupViewModel> groups) =>
+        groups
+            .OrderBy(x => x.FilePath is not null)
+            .ThenBy(x => x.Title);
 
     private void InitializeDependencyRisks()
     {
@@ -288,7 +293,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
             groupsToShow = AllGroupViewModels.Where(vm => vm.FilePath == activeDocumentFilePath);
         }
 
-        foreach (var groupViewModel in groupsToShow)
+        foreach (var groupViewModel in StableSortGroups(groupsToShow))
         {
             FilteredGroupViewModels.Add(groupViewModel);
         }
