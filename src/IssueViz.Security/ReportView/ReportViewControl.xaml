@@ -377,7 +377,6 @@
                           Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}"
                           IsEnabled="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }"/>
-                <!-- todo Only enable if there are flows -->
                 <MenuItem Header="{x:Static res:Resources.ShowIssueVisualizationMenuItemHeader}"
                           Click="ShowIssueVisualizationForTaint_OnClick"
                           IsEnabled="{Binding DataContext.HasSecondaryLocations, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }">
@@ -393,7 +392,6 @@
                           Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}"
                           IsEnabled="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }"/>
-                <!-- todo Only enable if there are flows -->
                 <MenuItem Header="{x:Static res:Resources.ShowIssueVisualizationMenuItemHeader}"
                           Click="ShowIssueVisualizationForIssue_OnClick"
                           IsEnabled="{Binding DataContext.HasSecondaryLocations, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }">
