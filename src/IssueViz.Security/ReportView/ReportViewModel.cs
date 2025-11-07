@@ -21,6 +21,7 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
@@ -51,6 +52,8 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
     private readonly IIssueSelectionService selectionService;
     private readonly IActiveDocumentLocator activeDocumentLocator;
     private readonly IActiveDocumentTracker activeDocumentTracker;
+    private readonly IDocumentTracker documentTracker;
+    private readonly IThreadHandling threadHandling;
     private IIssueViewModel selectedItem;
     private string activeDocumentFilePath;
 
@@ -64,7 +67,9 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         ITelemetryManager telemetryManager,
         IIssueSelectionService selectionService,
         IActiveDocumentLocator activeDocumentLocator,
-        IActiveDocumentTracker activeDocumentTracker) : base(activeSolutionBoundTracker)
+        IActiveDocumentTracker activeDocumentTracker,
+        IDocumentTracker documentTracker,
+        IThreadHandling threadHandling) : base(activeSolutionBoundTracker)
     {
         this.hotspotsReportViewModel = hotspotsReportViewModel;
         this.dependencyRisksReportViewModel = dependencyRisksReportViewModel;
@@ -73,15 +78,49 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         this.selectionService = selectionService;
         this.activeDocumentLocator = activeDocumentLocator;
         this.activeDocumentTracker = activeDocumentTracker;
+        this.documentTracker = documentTracker;
+        this.threadHandling = threadHandling;
 
         hotspotsReportViewModel.IssuesChanged += HotspotsViewModel_IssuesChanged;
         dependencyRisksReportViewModel.DependencyRisksChanged += DependencyRisksViewModel_DependencyRisksChanged;
         taintsReportViewModel.IssuesChanged += TaintViewModel_IssuesChanged;
+        documentTracker.DocumentOpened += DocumentTracker_DocumentOpened;
+        documentTracker.DocumentClosed += DocumentTracker_DocumentClosed;
 
         InitializeActiveDocument();
         InitializeCommands(navigateToRuleDescriptionCommand, locationNavigator);
         InitializeViewModels();
     }
+
+    private void DocumentTracker_DocumentOpened(object sender, DocumentEventArgs e) =>
+        threadHandling.RunOnUIThread(() =>
+        {
+            if (GetGroupViewModelOfIssueViewModel(e.Document.FullPath) != null)
+            {
+                return;
+            }
+
+            AllGroupViewModels.Add(new GroupFileViewModel(e.Document.FullPath, []));
+            ApplyFilter();
+        });
+
+    private void DocumentTracker_DocumentClosed(object sender, DocumentEventArgs e) =>
+        threadHandling.RunOnUIThread(() =>
+        {
+            if (AllGroupViewModels.FirstOrDefault(x => x.FilePath == e.Document.FullPath) is not { } group)
+            {
+                return;
+            }
+
+            if (group.AllIssues.Any(x => x.IssueType == IssueType.TaintVulnerability))
+            {
+                // todo https://sonarsource.atlassian.net/browse/SLVS-2620 taints are global, not based on open file events
+                return;
+            }
+
+            AllGroupViewModels.Remove(group);
+            ApplyFilter();
+        });
 
     public ObservableCollection<IGroupViewModel> AllGroupViewModels { get; private set; }
     public ObservableCollection<IGroupViewModel> FilteredGroupViewModels { get; private set; }
@@ -108,16 +147,17 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
     private void InitializeViewModels()
     {
         AllGroupViewModels = new ObservableCollection<IGroupViewModel>();
-        InitializeDependencyRisks();
-        InitializeHotspots();
-        InitializeTaints();
-        FilteredGroupViewModels = new ObservableCollection<IGroupViewModel>(StableSortGroups(AllGroupViewModels));
-    }
+        foreach (var openDocument in documentTracker.GetOpenDocuments())
+        {
+            AllGroupViewModels.Add(new GroupFileViewModel(openDocument.FullPath, []));
+        }
 
-    private static IEnumerable<IGroupViewModel> StableSortGroups(IEnumerable<IGroupViewModel> groups) =>
-        groups
-            .OrderBy(x => x.FilePath is not null)
-            .ThenBy(x => x.Title);
+        InitializeDependencyRisks();
+        UpdateAddedIssueViewModels(hotspotsReportViewModel.GetIssueViewModels().Concat(taintsReportViewModel.GetIssueViewModels()));
+
+        FilteredGroupViewModels = new ObservableCollection<IGroupViewModel>();
+        ApplyFilter();
+    }
 
     private void InitializeDependencyRisks()
     {
@@ -130,28 +170,11 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         RaisePropertyChanged(nameof(HasFilteredGroups));
     }
 
-    private void InitializeHotspots()
-    {
-        var groups = hotspotsReportViewModel.GetHotspotsGroupViewModels();
-        groups.ToList().ForEach(g => AllGroupViewModels.Add(g));
-        RaisePropertyChanged(nameof(HasAnyGroups));
-        RaisePropertyChanged(nameof(HasFilteredGroups));
-    }
-
-    private void InitializeTaints()
-    {
-        var groups = taintsReportViewModel.GetTaintsGroupViewModels();
-        groups.ToList().ForEach(g => AllGroupViewModels.Add(g));
-        RaisePropertyChanged(nameof(HasAnyGroups));
-        RaisePropertyChanged(nameof(HasFilteredGroups));
-    }
-
     internal void ApplyFilter()
     {
         FilteredGroupViewModels.Clear();
         FilterGroupsByLocationFilter();
         FilteredGroupViewModels.ToList().ForEach(group => group.ApplyFilter(ReportViewFilter));
-        RemoveEmptyGroups();
         RaisePropertyChanged(nameof(HasAnyGroups));
         RaisePropertyChanged(nameof(HasFilteredGroups));
     }
@@ -168,6 +191,9 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         taintsReportViewModel.Dispose();
 
         activeDocumentTracker.ActiveDocumentChanged -= OnActiveDocumentChanged;
+
+        documentTracker.DocumentOpened -= DocumentTracker_DocumentOpened;
+        documentTracker.DocumentClosed -= DocumentTracker_DocumentClosed;
 
         foreach (var groupViewModel in AllGroupViewModels)
         {
@@ -229,22 +255,18 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
     {
         foreach (var removedIssueVm in removedIssues)
         {
-            if (GetGroupViewModelOfIssueViewModel(removedIssueVm) is { } group)
+            if (GetGroupViewModelOfIssueViewModel(removedIssueVm.FilePath) is { } group)
             {
                 group.AllIssues.Remove(removedIssueVm);
-                if (!group.AllIssues.Any())
-                {
-                    AllGroupViewModels.Remove(group);
-                }
             }
         }
     }
 
-    private void UpdateAddedIssueViewModels(IReadOnlyCollection<IIssueViewModel> addedIssueViewModels)
+    private void UpdateAddedIssueViewModels(IEnumerable<IIssueViewModel> addedIssueViewModels)
     {
         foreach (var addedIssueViewModel in addedIssueViewModels)
         {
-            if (GetGroupViewModelOfIssueViewModel(addedIssueViewModel) is { } group)
+            if (GetGroupViewModelOfIssueViewModel(addedIssueViewModel.FilePath) is { } group)
             {
                 group.AllIssues.Add(addedIssueViewModel);
             }
@@ -255,8 +277,8 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         }
     }
 
-    private IGroupViewModel GetGroupViewModelOfIssueViewModel(IIssueViewModel issueViewModel) =>
-        AllGroupViewModels.FirstOrDefault(groupVm => groupVm is GroupFileViewModel && issueViewModel.FilePath == ((GroupFileViewModel)groupVm).FilePath);
+    private IGroupViewModel GetGroupViewModelOfIssueViewModel(string filePath) =>
+        AllGroupViewModels.FirstOrDefault(groupVm => groupVm is GroupFileViewModel && filePath == ((GroupFileViewModel)groupVm).FilePath);
 
     private void InitializeCommands(
         INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
@@ -293,15 +315,9 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
             groupsToShow = AllGroupViewModels.Where(vm => vm.FilePath == activeDocumentFilePath);
         }
 
-        foreach (var groupViewModel in StableSortGroups(groupsToShow))
+        foreach (var groupViewModel in groupsToShow.OrderBy(x => x.FilePath is not null).ThenBy(x => x.Title))
         {
             FilteredGroupViewModels.Add(groupViewModel);
         }
-    }
-
-    private void RemoveEmptyGroups()
-    {
-        var emptyGroups = FilteredGroupViewModels.Where(g => !g.FilteredIssues.Any()).ToList();
-        emptyGroups.ForEach(g => FilteredGroupViewModels.Remove(g));
     }
 }

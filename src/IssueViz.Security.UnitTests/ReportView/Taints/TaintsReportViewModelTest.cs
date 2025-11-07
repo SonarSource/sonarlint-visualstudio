@@ -75,48 +75,17 @@ public class TaintsReportViewModelTest
     }
 
     [TestMethod]
-    public void GetTaintsGroupViewModels_GroupsByFilePath()
+    public void GetIssueViewModels_ReturnsIssuesFromStore()
     {
         var file1 = "file1.cs";
         var file2 = "file2.cs";
-        MockTaintsInStore(CreateMockedTaint(file1), CreateMockedTaint(file1), CreateMockedTaint(file2));
+        IAnalysisIssueVisualization[] taints = [CreateMockedTaint(file1), CreateMockedTaint(file1), CreateMockedTaint(file2)];
+        MockTaintsInStore(taints);
 
-        var groups = testSubject.GetTaintsGroupViewModels();
+        var issues = testSubject.GetIssueViewModels();
 
-        groups.Should().HaveCount(2);
-        groups.Select(g => g.Title).Should().Contain([file1, file2]);
-        groups.First(g => g.Title == file1).AllIssues.Should().HaveCount(2);
-        groups.First(g => g.Title == file2).AllIssues.Should().ContainSingle();
+        issues.Select(x => ((TaintViewModel)x).Issue).Should().BeEquivalentTo(taints);
     }
-
-    [TestMethod]
-    public void GetTaintsGroupViewModels_TwoTaintsInSameFile_CreatesOneGroupVmWithTwoIssues()
-    {
-        var path = "myFile.cs";
-        var taint1 = CreateMockedTaint(path);
-        var taint2 = CreateMockedTaint(path);
-        MockTaintsInStore(taint1, taint2);
-
-        var groups = testSubject.GetTaintsGroupViewModels();
-
-        groups.Should().ContainSingle();
-        VerifyExpectedTaintGroupViewModel(groups[0] as GroupFileViewModel, taint1, taint2);
-    }
-
-    [TestMethod]
-    public void GetTaintsGroupViewModels_TwoTaintsInDifferentFiles_CreatesTwoGroupsWithOneIssueEach()
-    {
-        var taint1 = CreateMockedTaint("myFile.cs");
-        var taint2 = CreateMockedTaint("myFile.js");
-        MockTaintsInStore(taint1, taint2);
-
-        var groups = testSubject.GetTaintsGroupViewModels();
-
-        groups.Should().HaveCount(2);
-        VerifyExpectedTaintGroupViewModel(groups[0] as GroupFileViewModel, taint1);
-        VerifyExpectedTaintGroupViewModel(groups[1] as GroupFileViewModel, taint2);
-    }
-
 
     [TestMethod]
     public void HotspotsChanged_RaisedOnStoreIssuesChanged()

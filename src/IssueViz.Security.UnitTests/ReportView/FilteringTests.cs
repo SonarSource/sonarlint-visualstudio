@@ -63,6 +63,8 @@ public class FilteringTests
     private IIssueSelectionService selectionService;
     private ITaintsReportViewModel taintsReportViewModel;
     private ITelemetryManager telemetryManager;
+    private IDocumentTracker documentTracker;
+    private IThreadHandling threadHandling;
     private ReportViewModel testSubject;
 
     [TestInitialize]
@@ -80,15 +82,12 @@ public class FilteringTests
         activeDocumentLocator = Substitute.For<IActiveDocumentLocator>();
         activeDocumentTracker = Substitute.For<IActiveDocumentTracker>();
         eventHandler = Substitute.For<PropertyChangedEventHandler>();
-        hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns([]);
-        taintsReportViewModel.GetTaintsGroupViewModels().Returns([]);
-
-        var csharpGroup = new ObservableCollection<IGroupViewModel>([CreateGroupFileViewModel(CsharpFilePath, csharpHotspotInfo, csharpTaintLow)]);
-        var tsGroup = new ObservableCollection<IGroupViewModel>([CreateGroupFileViewModel(TsFilePath, tsHotspotMedium, tsTaintHigh)]);
+        documentTracker = Substitute.For<IDocumentTracker>();
+        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         var dependencyRiskGroup = CreateGroupDependencyRiskViewModel(dependencyRisk);
         dependencyRiskIssue = dependencyRiskGroup.FilteredIssues.Single();
-        hotspotsReportViewModel.GetHotspotsGroupViewModels().Returns(csharpGroup);
-        taintsReportViewModel.GetTaintsGroupViewModels().Returns(tsGroup);
+        hotspotsReportViewModel.GetIssueViewModels().Returns([csharpHotspotInfo, tsHotspotMedium]);
+        taintsReportViewModel.GetIssueViewModels().Returns([csharpTaintLow, tsTaintHigh]);
         dependencyRisksReportViewModel.GetDependencyRisksGroup().Returns(dependencyRiskGroup);
         CreateTestSubject();
         ClearCallsForReportsViewModels();
@@ -156,7 +155,8 @@ public class FilteringTests
 
         testSubject.ApplyFilter();
 
-        testSubject.FilteredGroupViewModels.Should().HaveCount(2);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        testSubject.FilteredGroupViewModels.Where(x => x.FilteredIssues.Any()).Should().HaveCount(2);
         VerifyIsExpectedGroup(TsFilePath, tsHotspotMedium);
         VerifyIsExpectedGroup(CsharpFilePath, csharpHotspotInfo);
     }
@@ -170,7 +170,8 @@ public class FilteringTests
 
         testSubject.ApplyFilter();
 
-        testSubject.FilteredGroupViewModels.Should().HaveCount(2);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        testSubject.FilteredGroupViewModels.Where(x => x.FilteredIssues.Any()).Should().HaveCount(2);
         VerifyIsExpectedGroup(TsFilePath, tsHotspotMedium, tsTaintHigh);
         VerifyIsExpectedGroup(CsharpFilePath, csharpHotspotInfo, csharpTaintLow);
     }
@@ -198,7 +199,8 @@ public class FilteringTests
 
         testSubject.ApplyFilter();
 
-        testSubject.FilteredGroupViewModels.Should().HaveCount(2);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        testSubject.FilteredGroupViewModels.Where(x => x.FilteredIssues.Any()).Should().HaveCount(2);
         VerifyIsExpectedGroup(TsFilePath, tsTaintHigh);
         VerifyIsExpectedGroup(CsharpFilePath, csharpTaintLow);
     }
@@ -226,7 +228,8 @@ public class FilteringTests
 
         testSubject.ApplyFilter();
 
-        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        testSubject.FilteredGroupViewModels.Where(x => x.FilteredIssues.Any()).Should().HaveCount(1);
         VerifyIsExpectedGroup(null, dependencyRiskIssue);
     }
 
@@ -273,7 +276,8 @@ public class FilteringTests
 
         testSubject.ApplyFilter();
 
-        testSubject.FilteredGroupViewModels.Should().HaveCount(2);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        testSubject.FilteredGroupViewModels.Where(x => x.FilteredIssues.Any()).Should().HaveCount(2);
         testSubject.FilteredGroupViewModels.Should().Contain(g => g.FilteredIssues.SingleOrDefault(vm => vm.Status == DisplayStatus.Resolved) != null);
     }
 
@@ -297,7 +301,8 @@ public class FilteringTests
 
         testSubject.ApplyFilter();
 
-        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        testSubject.FilteredGroupViewModels.Should().HaveCount(3);
+        testSubject.FilteredGroupViewModels.Where(x => x.FilteredIssues.Any()).Should().HaveCount(1);
         testSubject.FilteredGroupViewModels.Should().Contain(g =>
             g.FilteredIssues.SingleOrDefault(vm => vm.DisplaySeverity == DisplaySeverity.Blocker && vm.Status == DisplayStatus.Open && vm.IssueType == IssueType.DependencyRisk) != null);
     }
@@ -324,7 +329,9 @@ public class FilteringTests
             telemetryManager,
             selectionService,
             activeDocumentLocator,
-            activeDocumentTracker);
+            activeDocumentTracker,
+            documentTracker,
+            threadHandling);
         reportViewModel.PropertyChanged += eventHandler;
         testSubject = reportViewModel;
         MockStatusFilter(DisplayStatus.Any); // tests were written with this assumption, changing the tests would take too much time
@@ -353,9 +360,6 @@ public class FilteringTests
         textDocument.FilePath.Returns(filePath);
         return textDocument;
     }
-
-    private IGroupViewModel CreateGroupFileViewModel(string filePath, params IIssueViewModel[] filteredIssueViewModels) =>
-        new GroupFileViewModel(filePath, filteredIssueViewModels.ToList());
 
     private IGroupViewModel CreateGroupDependencyRiskViewModel(params IDependencyRisk[] dependencyRisks)
     {
