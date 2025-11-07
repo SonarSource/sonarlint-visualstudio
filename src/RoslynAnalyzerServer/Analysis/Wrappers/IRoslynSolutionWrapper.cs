@@ -42,7 +42,7 @@ internal static class SolutionWrapperExtensions
         {
             if (roslynProjectWrapper.ContainsDocument(filePath, out var wrapper))
             {
-                document = wrapper; // multi match? the paths should be identical
+                document = wrapper;
                 return true;
             }
         }
