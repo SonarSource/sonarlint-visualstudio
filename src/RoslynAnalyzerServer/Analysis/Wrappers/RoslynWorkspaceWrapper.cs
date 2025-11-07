@@ -64,7 +64,8 @@ internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
         ApplyChangesOperation.ApplyOrMergeChangesAsync(workspace, originalSolution.RoslynSolution, operation.ChangedSolution, quickFixApplicationLogger, workspaceChangeIndicator, cancellationToken);
 
     // todo SLVS-2466 add roslyn 'integration' tests using AdHocWorkspace
-    // ideally, if doing a refactoring, this code should be moved closer to FileStateManager/LinkedFileAnalyzer by exposing the original event via IRoslynWorkspaceWrapper instead
+    // ideally, if doing a refactoring, this code should be moved closer to FileStateManager/LinkedFileAnalyzer by proxying the original event via IRoslynWorkspaceWrapper instead
+    // FileStateManager should be deciding which files to queue, by reacting to the event, as it is its responsibility
     private void WorkspaceOnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
     {
         if (workspaceChangeIndicator.IsChangeKindTrivial(e.Kind))
