@@ -179,7 +179,6 @@ internal sealed partial class ReportViewControl : UserControl
     private void TreeViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
         NavigateToLocation((sender as FrameworkElement)?.DataContext as IAnalysisIssueViewModel);
-        ShowRuleHelp(sender);
     }
 
     private void NavigateToLocation(IAnalysisIssueViewModel analysisIssueViewModel)
@@ -187,15 +186,6 @@ internal sealed partial class ReportViewControl : UserControl
         if (analysisIssueViewModel != null)
         {
             ExecuteCommandIfValid(ReportViewModel.NavigateToLocationCommand, analysisIssueViewModel);
-        }
-    }
-
-    private void ShowRuleHelp(object sender)
-    {
-        if ((sender as FrameworkElement)?.DataContext is IIssueViewModel issueViewModel)
-        {
-            var commandParam = new NavigateToRuleDescriptionCommandParam { FullRuleKey = issueViewModel.RuleInfo.RuleKey, IssueId = issueViewModel.RuleInfo.IssueId };
-            ExecuteCommandIfValid(ReportViewModel.NavigateToRuleDescriptionCommand, commandParam);
         }
     }
 
