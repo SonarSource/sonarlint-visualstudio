@@ -281,9 +281,5 @@ internal sealed partial class ReportViewControl : UserControl
 
     private void Control_OnFilterChanged(object sender, EventArgs e) => ReportViewModel.ApplyFilter();
 
-    private void ClearAllFilters_OnClick(object sender, RoutedEventArgs e)
-    {
-        ReportViewModel.ReportViewFilter.ClearAllFilters();
-        Control_OnFilterChanged(sender, e);
-    }
+    private void ClearAllFilters_OnClick(object sender, RoutedEventArgs e) => ReportViewModel.ResetFilters();
 }

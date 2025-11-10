@@ -93,10 +93,13 @@ public class ServerViewModelTest
         activeSolutionBoundTracker.ReceivedWithAnyArgs(1).SolutionBindingChanged -= Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
     }
 
-    private ServerViewModel CreateTestSubject() => new TestServerViewModel(activeSolutionBoundTracker);
+    private ServerViewModel CreateTestSubject() => new TestServerViewModel(activeSolutionBoundTracker, _ => { });
 
     private static BindingConfiguration CreateBindingConfiguration(ServerConnection serverConnection, SonarLintMode mode) =>
         new(new BoundServerProject("my solution", "my project", serverConnection), mode, string.Empty);
 
-    private class TestServerViewModel(IActiveSolutionBoundTracker activeSolutionBoundTracker) : ServerViewModel(activeSolutionBoundTracker);
+    private class TestServerViewModel(IActiveSolutionBoundTracker activeSolutionBoundTracker, Action<BindingConfiguration> resetFiltersAction) : ServerViewModel(activeSolutionBoundTracker)
+    {
+        protected override void HandleBindingChange(BindingConfiguration newBinding) => resetFiltersAction(newBinding);
+    }
 }

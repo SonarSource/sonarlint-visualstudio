@@ -258,7 +258,7 @@ Please check the logs for more details.</value>
     <value>Severity impact:</value>
   </data>
   <data name="NoDependencyRiskFoundText" xml:space="preserve">
-    <value>Please ensure that your solution is bound to a SonarQube project</value>
+    <value>Only open files are analyzed.</value>
   </data>
   <data name="NoFindingsToDisplayTitle" xml:space="preserve">
     <value>No findings to display.</value>
@@ -427,5 +427,8 @@ Please check the logs for more details.</value>
   </data>
   <data name="FindingPluralSmall" xml:space="preserve">
     <value>findings</value>
+  </data>
+  <data name="FilterNotAvailableInStandaloneMode">
+    This filter is only available in Connected Mode
   </data>
 </root>

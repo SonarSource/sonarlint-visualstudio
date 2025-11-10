@@ -810,6 +810,7 @@ public class ReportViewModelTest
     {
         testSubject.AllGroupViewModels.Add(CreateFakeGroup(true, true, true));
 
+        testSubject.HasAnyGroups.Should().BeTrue();
         testSubject.HasNoFilteredIssuesForGroupsWithIssues.Should().BeTrue();
     }
 
@@ -820,6 +821,7 @@ public class ReportViewModelTest
         testSubject.AllGroupViewModels.Add(groupViewModel);
         testSubject.FilteredGroupViewModels.Add(groupViewModel);
 
+        testSubject.HasAnyGroups.Should().BeTrue();
         testSubject.HasNoFilteredIssuesForGroupsWithIssues.Should().BeFalse();
     }
 

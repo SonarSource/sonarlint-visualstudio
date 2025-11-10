@@ -285,6 +285,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This filter is only available in Connected Mode.
+        /// </summary>
+        public static string FilterNotAvailableInStandaloneMode {
+            get {
+                return ResourceManager.GetString("FilterNotAvailableInStandaloneMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to findings.
         /// </summary>
         public static string FindingPluralSmall {
@@ -555,7 +564,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Please ensure that your solution is bound to a SonarQube project.
+        ///   Looks up a localized string similar to Only open files are analyzed..
         /// </summary>
         public static string NoDependencyRiskFoundText {
             get {
