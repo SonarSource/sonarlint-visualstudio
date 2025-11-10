@@ -5,7 +5,7 @@
   <PropertyGroup>
     <!-- Note: Guide on how to update the analyzers is on the xtranet! -->
     <EmbeddedSonarAnalyzerVersion>10.15.0.120848</EmbeddedSonarAnalyzerVersion>
-    <EmbeddedSonarCFamilyAnalyzerVersion>6.73.0.90893</EmbeddedSonarCFamilyAnalyzerVersion>
+    <EmbeddedSonarCFamilyAnalyzerVersion>6.74.0.91793</EmbeddedSonarCFamilyAnalyzerVersion>
     <EmbeddedSonarJSAnalyzerVersion>11.5.0.35357</EmbeddedSonarJSAnalyzerVersion>
     <EmbeddedSonarHtmlAnalyzerVersion>3.20.0.6289</EmbeddedSonarHtmlAnalyzerVersion>
     <EmbeddedSonarSecretsJarVersion>2.31.0.8443</EmbeddedSonarSecretsJarVersion>
