@@ -925,7 +925,7 @@ public class ReportViewModelTest
     {
         var filePath = "file";
 
-        documentTracker.DocumentOpened += Raise.EventWith(testSubject, new DocumentOpenedEventArgs(new Document(filePath, []), string.Empty));
+        documentTracker.DocumentOpened += Raise.EventWith(testSubject, new DocumentEventArgs(new Document(filePath, []), string.Empty));
 
         VerifyExpectedGroups(true, filePath);
     }
@@ -936,7 +936,7 @@ public class ReportViewModelTest
         var filePath = "existingFile.cs";
         InitializeTestSubjectWithInitialGroup(filePath);
 
-        documentTracker.DocumentOpened += Raise.EventWith(testSubject, new DocumentOpenedEventArgs(new Document(filePath, []), string.Empty));
+        documentTracker.DocumentOpened += Raise.EventWith(testSubject, new DocumentEventArgs(new Document(filePath, []), string.Empty));
 
         VerifyExpectedGroups(false, filePath);
     }
