@@ -45,7 +45,8 @@ internal interface IReportViewModel
     ObservableCollection<IGroupViewModel> AllGroupViewModels { get; }
 }
 
-internal class ReportViewModel : ServerViewModel, IReportViewModel
+internal class
+ReportViewModel : ServerViewModel, IReportViewModel
 {
     private readonly IHotspotsReportViewModel hotspotsReportViewModel;
     private readonly IDependencyRisksReportViewModel dependencyRisksReportViewModel;
