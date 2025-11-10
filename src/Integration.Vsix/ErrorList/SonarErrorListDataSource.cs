@@ -179,6 +179,9 @@ internal sealed class SonarErrorListDataSource :
             throw new ArgumentNullException(nameof(factory));
         }
 
+        IIssuesSnapshot currentSnapshot;
+        IAnalysisIssueVisualization[] oldIssues;
+        IAnalysisIssueVisualization[] newIssues;
         lock (sinks)
         {
             // Guard against potential race condition - factory could have been removed
@@ -188,11 +191,12 @@ internal sealed class SonarErrorListDataSource :
             }
 
             InternalRefreshErrorList(factory);
-            NotifyIssuesChanged(factory.CurrentSnapshot.FilesInSnapshot);
-            var oldIssues = oldSnapshot.Issues.ToArray();
-            var newIssues = factory.CurrentSnapshot.Issues.ToArray();
-            NotifyIssueStoreIssuesChanged(oldIssues, newIssues);
+            currentSnapshot = factory.CurrentSnapshot;
+            oldIssues = oldSnapshot.Issues.ToArray();
+            newIssues = currentSnapshot.Issues.ToArray();
         }
+        NotifyIssuesChanged(currentSnapshot.FilesInSnapshot);
+        NotifyIssueStoreIssuesChanged(oldIssues, newIssues);
     }
 
     private void InternalRefreshErrorList(ITableEntriesSnapshotFactory factory)
@@ -214,6 +218,7 @@ internal sealed class SonarErrorListDataSource :
 
     public void AddFactory(IIssuesSnapshotFactory factory)
     {
+        var currentSnapshot = factory.CurrentSnapshot;
         lock (sinks)
         {
             factories.Add(factory);
@@ -221,28 +226,31 @@ internal sealed class SonarErrorListDataSource :
             {
                 SafeOperation(sink, "AddFactory", () => sink.AddFactory(factory));
             }
-
-            NotifyIssuesChanged(factory.CurrentSnapshot.FilesInSnapshot);
-            NotifyIssueStoreIssuesChanged([], factory.CurrentSnapshot.Issues.ToArray());
         }
+
+        NotifyIssuesChanged(currentSnapshot.FilesInSnapshot);
+        NotifyIssueStoreIssuesChanged([], currentSnapshot.Issues.ToArray());
     }
 
     public void RemoveFactory(IIssuesSnapshotFactory factory)
     {
+        bool wasRemoved;
+        IIssuesSnapshot currentSnapshot;
         lock (sinks)
         {
-            var wasRemoved = factories.Remove(factory);
+            wasRemoved = factories.Remove(factory);
 
             foreach (var sink in sinks)
             {
                 SafeOperation(sink, "RemoveFactory", () => sink.RemoveFactory(factory));
             }
 
-            if (wasRemoved)
-            {
-                NotifyIssuesChanged(factory.CurrentSnapshot.FilesInSnapshot);
-                NotifyIssueStoreIssuesChanged(factory.CurrentSnapshot.Issues.ToArray(), []);
-            }
+            currentSnapshot = factory.CurrentSnapshot;
+        }
+        if (wasRemoved)
+        {
+            NotifyIssuesChanged(currentSnapshot.FilesInSnapshot);
+            NotifyIssueStoreIssuesChanged(currentSnapshot.Issues.ToArray(), []);
         }
     }
 
@@ -311,10 +319,9 @@ internal sealed class SonarErrorListDataSource :
 
     private void InternalRefreshAffectedFiles(IEnumerable<string> affectedFilePaths, bool notifyListeners)
     {
+        var affectedSnapshotFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         lock (sinks)
         {
-            var affectedSnapshotFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
             foreach (var factory in factories)
             {
                 var oldSnapshot = factory.CurrentSnapshot;
@@ -348,11 +355,11 @@ internal sealed class SonarErrorListDataSource :
                     issueSelectionService.SelectedIssue = null;
                 }
             }
+        }
 
-            if (notifyListeners && affectedSnapshotFiles.Count > 0)
-            {
-                NotifyIssuesChanged(affectedSnapshotFiles);
-            }
+        if (notifyListeners && affectedSnapshotFiles.Count > 0)
+        {
+            NotifyIssuesChanged(affectedSnapshotFiles);
         }
     }
 
