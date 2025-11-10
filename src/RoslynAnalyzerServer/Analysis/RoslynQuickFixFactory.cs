@@ -45,9 +45,9 @@ internal class RoslynQuickFixFactory(IRoslynWorkspaceWrapper workspace, IRoslynC
         {
             foreach (var codeAction in codeActions)
             {
-                var id = Guid.NewGuid();
-                quickFixStorage.Add(id, new RoslynQuickFixApplicationImpl(workspace, solution, codeAction));
-                quickFixes.Add(new RoslynQuickFix(id));
+                var quickFixImpl = new RoslynQuickFixApplicationImpl(workspace, solution, codeAction, document.FilePath!);
+                quickFixStorage.Add(quickFixImpl);
+                quickFixes.Add(new RoslynQuickFix(quickFixImpl.Id));
             }
         }
 

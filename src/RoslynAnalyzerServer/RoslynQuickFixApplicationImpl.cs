@@ -28,13 +28,20 @@ public class RoslynQuickFixApplicationImpl
     private readonly IRoslynSolutionWrapper originalSolution;
     internal readonly IRoslynCodeActionWrapper RoslynCodeAction;
 
-    internal RoslynQuickFixApplicationImpl(IRoslynWorkspaceWrapper workspace, IRoslynSolutionWrapper originalSolution, IRoslynCodeActionWrapper roslynCodeAction)
+    internal RoslynQuickFixApplicationImpl(
+        IRoslynWorkspaceWrapper workspace,
+        IRoslynSolutionWrapper originalSolution,
+        IRoslynCodeActionWrapper roslynCodeAction,
+        string filePath)
     {
         this.workspace = workspace;
         this.originalSolution = originalSolution;
         RoslynCodeAction = roslynCodeAction;
+        FilePath = filePath;
     }
 
+    public Guid Id { get; }  = Guid.NewGuid();
+    public string FilePath { get; }
     public string Message => RoslynCodeAction.Title;
 
     public async Task<bool> ApplyAsync(CancellationToken cancellationToken)

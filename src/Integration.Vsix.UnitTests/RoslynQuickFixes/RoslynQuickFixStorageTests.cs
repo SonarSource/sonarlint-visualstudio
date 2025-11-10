@@ -55,31 +55,14 @@ public class RoslynQuickFixStorageTests
     [TestMethod]
     public void Add_ThenTryGet_ReturnsTrueAndQuickFix()
     {
-        var id = Guid.NewGuid();
         var quickFixImpl = CreateApplication();
 
-        testSubject.Add(id, quickFixImpl);
+        testSubject.Add(quickFixImpl);
 
-        var result = testSubject.TryGet(id, out var retrievedQuickFix);
+        var result = testSubject.TryGet(quickFixImpl.Id, out var retrievedQuickFix);
 
         result.Should().BeTrue();
         retrievedQuickFix.Should().BeOfType<RoslynQuickFixApplication>().Which.Implementation.Should().BeSameAs(quickFixImpl);
-    }
-
-    [TestMethod]
-    public void Add_ExistingId_OverwritesExistingValue()
-    {
-        var id = Guid.NewGuid();
-        var originalQuickFixImpl = CreateApplication();
-        var newQuickFixImpl = CreateApplication();
-
-        testSubject.Add(id, originalQuickFixImpl);
-        testSubject.Add(id, newQuickFixImpl);
-
-        var result = testSubject.TryGet(id, out var retrievedQuickFix);
-
-        result.Should().BeTrue();
-        retrievedQuickFix.Should().BeOfType<RoslynQuickFixApplication>().Which.Implementation.Should().BeSameAs(newQuickFixImpl);
     }
 
     [TestMethod]
@@ -94,14 +77,13 @@ public class RoslynQuickFixStorageTests
     [TestMethod]
     public void ConfigScopeTracker_OnCurrentConfigurationScopeChanged_DefinitionChanged_ClearsCache()
     {
-        var id = Guid.NewGuid();
         var quickFixImpl = CreateApplication();
-        testSubject.Add(id, quickFixImpl);
+        testSubject.Add(quickFixImpl);
 
         configScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith(
             new ConfigurationScopeChangedEventArgs(definitionChanged: true));
 
-        var result = testSubject.TryGet(id, out var retrievedQuickFix);
+        var result = testSubject.TryGet(quickFixImpl.Id, out var retrievedQuickFix);
 
         result.Should().BeFalse();
         retrievedQuickFix.Should().BeNull();
@@ -110,19 +92,35 @@ public class RoslynQuickFixStorageTests
     [TestMethod]
     public void ConfigScopeTracker_OnCurrentConfigurationScopeChanged_DefinitionNotChanged_DoesNotClearCache()
     {
-        var id = Guid.NewGuid();
         var quickFixImpl = CreateApplication();
-        testSubject.Add(id, quickFixImpl);
+        testSubject.Add(quickFixImpl);
 
         configScopeTracker.CurrentConfigurationScopeChanged += Raise.EventWith(
             new ConfigurationScopeChangedEventArgs(definitionChanged: false));
 
-        var result = testSubject.TryGet(id, out var retrievedQuickFix);
+        var result = testSubject.TryGet(quickFixImpl.Id, out var retrievedQuickFix);
 
         result.Should().BeTrue();
         retrievedQuickFix.Should().BeOfType<RoslynQuickFixApplication>().Which.Implementation.Should().BeSameAs(quickFixImpl);
     }
 
-    private static RoslynQuickFixApplicationImpl CreateApplication() =>
-        new(Substitute.For<IRoslynWorkspaceWrapper>(), Substitute.For<IRoslynSolutionWrapper>(), Substitute.For<IRoslynCodeActionWrapper>());
+    [TestMethod]
+    public void Clear_RemovesForFile()
+    {
+        const string file1 = "1.cs";
+        const string file2 = "2.cs";
+        var quickFixImpl1 = CreateApplication(file1);
+        var quickFixImpl2 = CreateApplication(file2);
+        testSubject.Add(quickFixImpl1);
+        testSubject.Add(quickFixImpl2);
+
+        testSubject.Clear(file1);
+
+        testSubject.TryGet(quickFixImpl1.Id, out _).Should().BeFalse();
+        testSubject.TryGet(quickFixImpl2.Id, out var retrievedQuickFix).Should().BeTrue();
+        retrievedQuickFix.Should().BeOfType<RoslynQuickFixApplication>().Which.Implementation.Should().BeSameAs(quickFixImpl2);
+    }
+
+    private static RoslynQuickFixApplicationImpl CreateApplication(string filePath = "any") =>
+        new(Substitute.For<IRoslynWorkspaceWrapper>(), Substitute.For<IRoslynSolutionWrapper>(), Substitute.For<IRoslynCodeActionWrapper>(), filePath);
 }

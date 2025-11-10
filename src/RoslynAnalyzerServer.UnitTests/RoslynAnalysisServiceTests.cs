@@ -45,6 +45,7 @@ public class RoslynAnalysisServiceTests
 
     private IRoslynAnalysisEngine analysisEngine = null!;
     private IRoslynWorkspaceWrapper workspace = null!;
+    private IRoslynQuickFixStorageWriter quickFixStorageWriter = null!;
     private RoslynAnalysisService testSubject = null!;
 
     [TestInitialize]
@@ -54,8 +55,9 @@ public class RoslynAnalysisServiceTests
         analysisEngine = Substitute.For<IRoslynAnalysisEngine>();
         analysisConfigurationProvider = Substitute.For<IRoslynAnalysisConfigurationProvider>();
         analysisCommandProvider = Substitute.For<IRoslynSolutionAnalysisCommandProvider>();
+        quickFixStorageWriter = Substitute.For<IRoslynQuickFixStorageWriter>();
 
-        testSubject = new RoslynAnalysisService(workspace, analysisEngine, analysisConfigurationProvider, analysisCommandProvider);
+        testSubject = new RoslynAnalysisService(workspace, analysisEngine, quickFixStorageWriter, analysisConfigurationProvider, analysisCommandProvider);
     }
 
     [TestMethod]
@@ -63,6 +65,7 @@ public class RoslynAnalysisServiceTests
         MefTestHelpers.CheckTypeCanBeImported<RoslynAnalysisService, IRoslynAnalysisService>(
             MefTestHelpers.CreateExport<IRoslynWorkspaceWrapper>(),
             MefTestHelpers.CreateExport<IRoslynAnalysisEngine>(),
+            MefTestHelpers.CreateExport<IRoslynQuickFixStorageWriter>(),
             MefTestHelpers.CreateExport<IRoslynAnalysisConfigurationProvider>(),
             MefTestHelpers.CreateExport<IRoslynSolutionAnalysisCommandProvider>());
 
@@ -80,6 +83,8 @@ public class RoslynAnalysisServiceTests
 
         var issues = await testSubject.AnalyzeAsync(analysisRequest, CancellationToken.None);
 
+        quickFixStorageWriter.Received().Clear(filePaths[0]);
+        quickFixStorageWriter.Received().Clear(filePaths[1]);
         issues.Should().BeSameAs(DefaultIssues);
     }
 
