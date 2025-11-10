@@ -35,7 +35,8 @@ public class ProjectDocumentsEventsListenerTests
         MefTestHelpers.CheckTypeCanBeImported<ProjectDocumentsEventsListener, IProjectDocumentsEventsListener>(
             MefTestHelpers.CreateExport<IFileTracker>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
-            MefTestHelpers.CreateExport<IVsUIServiceOperation>());
+            MefTestHelpers.CreateExport<IVsUIServiceOperation>(),
+            MefTestHelpers.CreateExport<ILogger>());
     }
 
     [TestMethod]
@@ -224,6 +225,6 @@ public class ProjectDocumentsEventsListenerTests
         fileTracker ??= Substitute.For<IFileTracker>();
         threadHandling ??= Substitute.For<IThreadHandling>();
         serviceOperation ??= Substitute.For<IVsUIServiceOperation>();
-        return new ProjectDocumentsEventsListener(fileTracker, threadHandling, serviceOperation);
+        return new ProjectDocumentsEventsListener(fileTracker, threadHandling, serviceOperation, Substitute.For<ILogger>());
     }
 }

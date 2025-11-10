@@ -34,15 +34,17 @@ internal sealed class ProjectDocumentsEventsListener : IProjectDocumentsEventsLi
     private readonly IFileTracker fileTracker;
     private readonly IThreadHandling threadHandling;
     private readonly IVsUIServiceOperation serviceOperation;
+    private readonly ILogger logger;
     private uint trackDocumentEventsCookie;
     private bool isDisposed;
 
     [ImportingConstructor]
-    public ProjectDocumentsEventsListener(IFileTracker fileTracker, IThreadHandling threadHandling, IVsUIServiceOperation serviceOperation)
+    public ProjectDocumentsEventsListener(IFileTracker fileTracker, IThreadHandling threadHandling, IVsUIServiceOperation serviceOperation, ILogger logger)
     {
         this.fileTracker = fileTracker;
         this.threadHandling = threadHandling;
         this.serviceOperation = serviceOperation;
+        this.logger = logger;
     }
 
     public void Initialize()
@@ -65,6 +67,7 @@ internal sealed class ProjectDocumentsEventsListener : IProjectDocumentsEventsLi
         string[] rgpszMkDocuments, VSADDFILEFLAGS[] rgFlags)
     {
         threadHandling.ThrowIfNotOnUIThread();
+        logger.LogVerbose(new MessageLevelContext{VerboseContext = ["File Tracker Invoke", "Project Events"]}, "Save: {0}", string.Join(",", rgpszMkDocuments));
         fileTracker.AddFiles(rgpszMkDocuments.Select(fp => new SourceFile(fp)).ToArray());
         return VSConstants.S_OK;
     }
@@ -79,6 +82,7 @@ internal sealed class ProjectDocumentsEventsListener : IProjectDocumentsEventsLi
         string[] rgpszMkDocuments, VSREMOVEFILEFLAGS[] rgFlags)
     {
         threadHandling.ThrowIfNotOnUIThread();
+        logger.LogVerbose(new MessageLevelContext{VerboseContext = ["File Tracker Invoke", "Project Events"]}, "Removed: {0}", string.Join(",", rgpszMkDocuments));
         fileTracker.RemoveFiles(rgpszMkDocuments);
         return VSConstants.S_OK;
     }
@@ -99,6 +103,7 @@ internal sealed class ProjectDocumentsEventsListener : IProjectDocumentsEventsLi
         string[] rgszMkOldNames, string[] rgszMkNewNames, VSRENAMEFILEFLAGS[] rgFlags)
     {
         threadHandling.ThrowIfNotOnUIThread();
+        logger.LogVerbose(new MessageLevelContext{VerboseContext = ["File Tracker Invoke", "Project Events"]}, "Renamed: {0}", string.Join(",", rgszMkNewNames));
         fileTracker.RenameFiles(rgszMkOldNames, rgszMkNewNames.Select(fp => new SourceFile(fp)).ToArray());
         return VSConstants.S_OK;
     }

@@ -75,13 +75,13 @@ public class FileTracker : IFileTracker
     {
         if (!serviceProvider.TryGetTransientService(out IFileRpcSLCoreService fileRpcSlCoreService))
         {
-            logger.WriteLine(SLCoreStrings.ServiceProviderNotInitialized);
+            logger.LogVerbose(SLCoreStrings.ServiceProviderNotInitialized);
             return;
         }
 
         if (activeConfigScopeTracker.Current is not { RootPath: not null } configScope)
         {
-            logger.WriteLine(SLCoreStrings.ConfigScopeNotInitialized);
+            logger.LogVerbose(SLCoreStrings.ConfigScopeNotInitialized);
             return;
         }
 
