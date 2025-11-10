@@ -26,12 +26,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 internal interface ITaskExecutorWithDebounceFactory
 {
-    ITaskExecutorWithDebounce Create(TimeSpan debounceTimeSpan);
+    ITaskExecutorWithDebounce Create();
 }
 
 internal interface ITaskExecutorWithDebounce : IDisposable
 {
-    void Debounce(Action task);
+    void Debounce(Action<CancellationToken> action, TimeSpan debounceDuration);
+
+    bool IsScheduled { get; }
 }
 
 [Export(typeof(ITaskExecutorWithDebounceFactory))]
@@ -39,50 +41,89 @@ internal interface ITaskExecutorWithDebounce : IDisposable
 [method: ImportingConstructor]
 internal class TaskExecutorWithDebounceFactory(IThreadHandling threadHandling) : ITaskExecutorWithDebounceFactory
 {
-    public ITaskExecutorWithDebounce Create(TimeSpan debounceTimeSpan) => new TaskExecutorWithDebounce(new ResettableOneShotTimer(debounceTimeSpan), threadHandling);
+    public ITaskExecutorWithDebounce Create() => new TaskExecutorWithDebounce(new ResettableOneShotTimer(), threadHandling);
 }
 
 internal sealed class TaskExecutorWithDebounce : ITaskExecutorWithDebounce
 {
-    private readonly IThreadHandling threadHandling;
+    private bool disposed;
     private readonly object locker = new();
+    private readonly IThreadHandling threadHandling;
     private readonly IResettableOneShotTimer timer;
-    private Action latestDebounceState;
+    private Action<CancellationToken> taskToExecute;
+    private CancellationTokenSource lastCancellationTokenSource;
 
     internal TaskExecutorWithDebounce(IResettableOneShotTimer timerWrapper, IThreadHandling threadHandling)
     {
         this.threadHandling = threadHandling;
         timer = timerWrapper;
-        timer.Elapsed += DebounceAction;
+        timer.Elapsed += HandleTimerEvent;
     }
 
-    private void DebounceAction(object state, EventArgs eventArgs)
-    {
-        Action action;
-        lock (locker)
-        {
-            action = latestDebounceState;
-            latestDebounceState = null;
-        }
-
-        if (action != null)
-        {
-            threadHandling.RunOnBackgroundThread(action).Forget();
-        }
-    }
-
-    public void Debounce(Action task)
+    public void Debounce(Action<CancellationToken> action, TimeSpan debounceDuration)
     {
         lock (locker)
         {
-            latestDebounceState = task;
-            timer.Reset();
+            taskToExecute = action;
+            timer.Reset(debounceDuration);
+        }
+    }
+
+    public bool IsScheduled
+    {
+        get
+        {
+            lock (locker)
+            {
+                return taskToExecute != null; // intentionally not checking the lastCancellationTokenSource, as it needs to be discarded
+            }
         }
     }
 
     public void Dispose()
     {
-        timer.Elapsed -= DebounceAction;
-        timer.Dispose();
+        lock (locker)
+        {
+            if (disposed)
+            {
+                return;
+            }
+
+            disposed = true;
+            CleanUpLastExecution();
+            timer.Elapsed -= HandleTimerEvent;
+            timer.Dispose();
+        }
     }
+
+    private void HandleTimerEvent(object state, EventArgs eventArgs)
+    {
+        Action<CancellationToken> task;
+        CancellationTokenSource taskCancellationTokenSource;
+        lock (locker)
+        {
+            if (taskToExecute == null)
+            {
+                return;
+            }
+
+            task = taskToExecute;
+            CleanUpLastExecution();
+            taskCancellationTokenSource = new CancellationTokenSource();
+            lastCancellationTokenSource = taskCancellationTokenSource;
+        }
+
+        Execute(task, taskCancellationTokenSource);
+    }
+
+    private void CleanUpLastExecution()
+    {
+        lastCancellationTokenSource?.Cancel();
+        lastCancellationTokenSource?.Dispose();
+        lastCancellationTokenSource = null;
+        taskToExecute = null;
+    }
+
+    private void Execute(Action<CancellationToken> action, CancellationTokenSource taskCancellationTokenSource) =>
+        threadHandling.RunOnBackgroundThread(() => action(taskCancellationTokenSource.Token)).Forget();
 }

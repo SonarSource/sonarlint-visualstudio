@@ -35,5 +35,5 @@ internal class RoslynSolutionWrapper : IRoslynSolutionWrapper
     public IEnumerable<IRoslynProjectWrapper> Projects { get; }
     public Solution RoslynSolution { get; }
 
-    public IRoslynDocumentWrapper? GetDocument(SyntaxTree? tree) => RoslynSolution.GetDocument(tree) is {} roslynDocument ? new RoslynDocumentWrapper(roslynDocument) : null;
+    public IRoslynDocumentWrapper? GetDocument(SyntaxTree? tree) => RoslynSolution.GetDocument(tree) is { } roslynDocument ? new RoslynDocumentWrapper(roslynDocument) : null;
 }

@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     /// <summary>
     /// Handles displaying reanalysis progress in the VS status bar
     /// </summary>
-    internal sealed class StatusBarReanalysisProgressHandler : IProgress<CancellableJobRunner.JobRunnerProgress>, IDisposable
+    internal sealed class StatusBarReanalysisProgressHandler : IProgress<JobRunnerProgress>, IDisposable
     {
         private readonly ILogger logger;
 
@@ -48,17 +48,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             this.logger = logger;
         }
 
-        public void Report(CancellableJobRunner.JobRunnerProgress value)
+        public void Report(JobRunnerProgress value)
         {
             try
             {
-                if (value.CurrentState == CancellableJobRunner.RunnerState.Running)
+                if (value.CurrentState == JobRunnerProgress.RunnerState.Running)
                 {
                     UpdateStatusBar(value.CompletedOperations, value.TotalOperations);
                 }
                 else
                 {
-                    Debug.Assert(value.CurrentState != CancellableJobRunner.RunnerState.NotStarted,
+                    Debug.Assert(value.CurrentState != JobRunnerProgress.RunnerState.NotStarted,
                         "Not expecting a progress notification until the runner has started");
                     Dispose();
                 }

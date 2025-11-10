@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
@@ -28,4 +29,25 @@ internal interface IRoslynSolutionWrapper
     Solution RoslynSolution { get; }
 
     IRoslynDocumentWrapper? GetDocument(SyntaxTree? tree);
+}
+
+internal static class SolutionWrapperExtensions
+{
+    public static bool ContainsDocument(
+        this IRoslynSolutionWrapper solution,
+        string filePath,
+        [NotNullWhen(true)] out IRoslynDocumentWrapper? document)
+    {
+        foreach (var roslynProjectWrapper in solution.Projects)
+        {
+            if (roslynProjectWrapper.ContainsDocument(filePath, out var wrapper))
+            {
+                document = wrapper;
+                return true;
+            }
+        }
+
+        document = null;
+        return false;
+    }
 }
