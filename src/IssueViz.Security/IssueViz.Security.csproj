@@ -28,6 +28,9 @@
   </PropertyGroup>
 
   <ItemGroup Label="Taint Xaml Sources">
+    <Resource Include="Commands\Resources\sonarqube_for_ide_logo_16px.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="SharedUI\sonarqube_for_ide_logo_16px.png" />
   </ItemGroup>
 

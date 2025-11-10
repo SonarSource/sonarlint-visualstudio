@@ -15,7 +15,7 @@
 
     <Buttons>
 
-      <Button guid="guidIssueVizPackageCmdSet" id="IssueVisualizationToolWindowCommandId" priority="0x0100" type="Button">
+      <Button guid="guidIssueVizPackageCmdSet" id="IssueVisualizationToolWindowCommandId" priority="0x0102" type="Button">
         <Parent guid="SonarLintCmdSet" id="SonarLintGroup"/>
         <Icon guid="ImageCatalogGuid" id="TreeView" /> <!-- known VS icon ID -->
         <CommandFlag>IconIsMoniker</CommandFlag>
