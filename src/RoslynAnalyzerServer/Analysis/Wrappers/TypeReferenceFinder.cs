@@ -22,9 +22,9 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
+using VBSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax;
+using CSSyntax = Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
@@ -74,12 +74,36 @@ internal class TypeReferenceFinder : ITypeReferenceFinder
     }
 
     private static ImmutableHashSet<ISymbol> GetDeclaredTypeSymbols(SemanticModel model, SyntaxNode root, CancellationToken token) =>
-        root.DescendantNodes()
-            .Where(x => x is TypeDeclarationSyntax or EnumDeclarationSyntax or TypeBlockSyntax or EnumBlockSyntax)
-            .Select(declaration => model.GetDeclaredSymbol(declaration, token))
+        root.DescendantNodes(node =>
+                node is not // ignoring nodes that definitely can't have children of type/enum to save time
+                    (CSSyntax.BaseFieldDeclarationSyntax
+                    or CSSyntax.BaseMethodDeclarationSyntax
+                    or CSSyntax.BasePropertyDeclarationSyntax
+                    or CSSyntax.DelegateDeclarationSyntax
+                    or CSSyntax.EnumMemberDeclarationSyntax
+                    or CSSyntax.ExpressionOrPatternSyntax
+                    or CSSyntax.StatementSyntax
+                    or CSSyntax.IncompleteMemberSyntax
+                    or VBSyntax.AttributesStatementSyntax
+                    or VBSyntax.EndBlockStatementSyntax
+                    or VBSyntax.EnumMemberDeclarationSyntax
+                    or VBSyntax.EventBlockSyntax
+                    or VBSyntax.FieldDeclarationSyntax
+                    or VBSyntax.ImportsStatementSyntax
+                    or VBSyntax.InheritsOrImplementsStatementSyntax
+                    or VBSyntax.MethodBaseSyntax
+                    or VBSyntax.MethodBlockBaseSyntax
+                    or VBSyntax.OptionStatementSyntax
+                    or VBSyntax.PropertyBlockSyntax
+                    or VBSyntax.IncompleteMemberSyntax))
+            .Where(node =>
+                node is CSSyntax.TypeDeclarationSyntax
+                    or CSSyntax.EnumDeclarationSyntax
+                    or VBSyntax.TypeBlockSyntax
+                    or VBSyntax.EnumBlockSyntax)
+            .Select(node => model.GetDeclaredSymbol(node, token))
             .Where(symbol => symbol is not null)
-            .Select(symbol => symbol!)
-            .ToImmutableHashSet(SymbolEqualityComparer.Default);
+            .ToImmutableHashSet(SymbolEqualityComparer.Default)!;
 
     private static async Task<bool> DocumentContainsReferenceAsync(
         IRoslynDocumentWrapper document,
@@ -113,9 +137,7 @@ internal class TypeReferenceFinder : ITypeReferenceFinder
     private static IEnumerable<SyntaxNode> GetIdentifiers(SyntaxNode root) =>
         root
             .DescendantNodes()
-            .Where(x =>
-                x is Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax
-                    or Microsoft.CodeAnalysis.VisualBasic.Syntax.IdentifierNameSyntax);
+            .Where(x => x is CSSyntax.IdentifierNameSyntax or VBSyntax.IdentifierNameSyntax);
 
     private static async Task<bool> IsReferringToTargetSymbolAsync(
         ISymbol? symbolToCheck,
