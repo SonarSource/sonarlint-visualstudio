@@ -213,7 +213,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Manage Binding.
+        ///   Looks up a localized string similar to Connected Mode: Manage Binding.
         /// </summary>
         public static string BindingButton_ConnectedText {
             get {
@@ -222,7 +222,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Bind to SonarQube (Server, Cloud)....
+        ///   Looks up a localized string similar to Connected Mode: Bind to SonarQube (Server, Cloud)....
         /// </summary>
         public static string BindingButton_StandaloneText {
             get {

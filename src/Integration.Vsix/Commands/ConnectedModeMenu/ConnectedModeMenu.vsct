@@ -9,7 +9,7 @@
         <Parent guid="SonarLintCmdSet" id="SonarLintConnectedModeGroup"/>
         <CommandFlag>TextChanges</CommandFlag>
         <Strings>
-          <ButtonText>Bind to SonarQube (Server, Cloud)...</ButtonText>
+          <ButtonText>Connected Mode: Bind to SonarQube (Server, Cloud)...</ButtonText>
         </Strings>
       </Button>
     </Buttons>

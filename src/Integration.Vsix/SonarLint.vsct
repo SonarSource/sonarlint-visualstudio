@@ -48,13 +48,7 @@
           <ButtonText>SonarQube</ButtonText>
         </Strings>
       </Menu>
-
-      <Menu guid="SonarLintCmdSet" id="ConnectedModeMenu">
-        <Parent guid="SonarLintCmdSet" id="SonarLintConnectedModeGroup"/>
-        <Strings>
-          <ButtonText>Connected Mode</ButtonText>
-        </Strings>
-      </Menu>
+      
       <Menu guid="SonarLintCmdSet" id="HelpMenu">
         <Parent guid="SonarLintCmdSet" id="SonarLintHelpGroup"/>
         <Strings>
@@ -96,7 +90,6 @@
       <IDSymbol name="SonarLintMenu" value="0x1021" />
       <IDSymbol name="SonarLintCommandsGroup" value="0x1022" />
       <IDSymbol name="HelpMenu" value="0x1023"/>
-      <IDSymbol name="ConnectedModeMenu" value="0x1024"/>
       <IDSymbol name="OptionsCommand" value="0x1025"/>
       <IDSymbol name="SolutionSettingsCommand" value="0x1028"/>
       <IDSymbol name="SonarLintHelpGroup" value="0x1026"/>
