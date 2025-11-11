@@ -2,18 +2,14 @@
 <CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable"
               xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <Commands package="guidVsPackagePkgString">
-    <Groups>
-      <Group guid="ConnectedModeMenuCmdSet" id="ConnectedModeGroup">
-        <Parent guid="SonarLintCmdSet" id="ConnectedModeMenu" />
-      </Group>
-    </Groups>
 
+    
     <Buttons>
       <Button guid="ConnectedModeMenuCmdSet" id="ManageServerConnectionsCommand">
-        <Parent guid="ConnectedModeMenuCmdSet" id="ConnectedModeGroup" />
+        <Parent guid="SonarLintCmdSet" id="SonarLintConnectedModeGroup"/>
         <CommandFlag>TextChanges</CommandFlag>
         <Strings>
-          <ButtonText>Bind to SonarQube (Server, Cloud)...</ButtonText>
+          <ButtonText>Connected Mode: Bind to SonarQube (Server, Cloud)...</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -21,12 +17,11 @@
 
   <Symbols>
     <GuidSymbol name="ConnectedModeMenuCmdSet" value="{E5D50D82-248A-4300-A2B2-B640FCC4D4FD}">
-      <IDSymbol name="ConnectedModeGroup" value="0x101" />
       <IDSymbol name="ManageServerConnectionsCommand" value="0x102" />
     </GuidSymbol>
 
     <GuidSymbol name="SonarLintCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
-      <IDSymbol name="ConnectedModeMenu" value="0x1024" />
+      <IDSymbol name="SonarLintConnectedModeGroup" value="0x1027"/>
     </GuidSymbol>
   </Symbols>
 </CommandTable>

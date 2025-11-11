@@ -24,8 +24,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
     {
         public static readonly Guid CommandSetGuid = new Guid("97856422-20A2-4DB5-A468-1BAA9B6EEC38");
 
-        public const int HotspotsToolWindowCommandId = 0x0100;
-        public const int TaintToolWindowCommandId = 0x0101;
         public const int ReportViewToolWindowCommandId = 0x0102;
     }
 }

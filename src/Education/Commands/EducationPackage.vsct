@@ -7,7 +7,7 @@
 
   <Commands package="guidEducationPackage">
     <Buttons>
-      <Button guid="guidEducationPackageCmdSet" id="RuleHelpWindowCommandId" priority="0x0100" type="Button">
+      <Button guid="guidEducationPackageCmdSet" id="RuleHelpWindowCommandId" priority="0x0101" type="Button">
         <Parent guid="SonarLintCmdSet" id="SonarLintGroup"/>
         <Strings>
           <ButtonText>Open Rule Help</ButtonText>
