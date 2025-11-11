@@ -137,7 +137,7 @@ internal class TypeReferenceFinder : ITypeReferenceFinder
     private static IEnumerable<SyntaxNode> GetIdentifiers(SyntaxNode root) =>
         root
             .DescendantNodes()
-            .Where(x => x is CSSyntax.IdentifierNameSyntax or VBSyntax.IdentifierNameSyntax);
+            .Where(x => x is CSSyntax.IdentifierNameSyntax  or CSSyntax.ImplicitObjectCreationExpressionSyntax or VBSyntax.IdentifierNameSyntax);
 
     private static async Task<bool> IsReferringToTargetSymbolAsync(
         ISymbol? symbolToCheck,
