@@ -35,26 +35,18 @@ using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.ConnectedMode.CredentialStore2;
 
-internal class CredentialDto
-{
-    public Uri Uri { get; init; }
-    public string EncryptedToken { get; init; }
-}
-
 [Export(typeof(ISolutionBindingCredentialsLoaderImpl))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-public class DpapiMasterPasswordCredentialsLoader(
+public class DpapiCurrentUserCredentialsLoader(
     IFileSystemService fileSystem,
-    IThreadHandling threadHandling,
     ILogger log) : ISolutionBindingCredentialsLoaderImpl, IDisposable
 {
-    private readonly string storagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SLVS_Credentials", "credentials_dpapimaster.json");
+    private readonly string storagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SLVS_Credentials", "credentials_dpapicurrentuser.json");
     private bool disposed = false;
     private readonly ILogger log = log.ForVerboseContext(nameof(DpapiMasterPasswordCredentialsLoader));
-    private readonly MasterPasswordManager masterPasswordManager = new(threadHandling);
 
-    public CredentialStoreType StoreType => CredentialStoreType.DPAPIMasterPassword;
+    public CredentialStoreType StoreType => CredentialStoreType.DPAPI;
 
     public void DeleteCredentials(Uri targetUri)
     {
@@ -105,27 +97,22 @@ public class DpapiMasterPasswordCredentialsLoader(
             throw new ArgumentException("Only token credentials are supported", nameof(credentials));
         }
 
-        var tokenProtectedBytes = UseMasterPasswordSafe(masterPasswordBytes =>
+        byte[] tokenUnprotected = null;
+        byte[] tokenProtected = null;
+        try
         {
-            byte[] tokenUnprotected = null;
-            byte[] tokenProtected = null;
-            try
-            {
-                tokenUnprotected = Encoding.UTF8.GetBytes(tokenCredentials.Token.ToUnsecureString());
-                tokenProtected = ProtectedData.Protect(
-                    tokenUnprotected,
-                    masterPasswordBytes,
-                    DataProtectionScope.LocalMachine);
-            }
-            finally
-            {
-                Clear(tokenUnprotected);
-            }
+            tokenUnprotected = Encoding.UTF8.GetBytes(tokenCredentials.Token.ToUnsecureString());
+            tokenProtected = ProtectedData.Protect(
+                tokenUnprotected,
+                null,
+                DataProtectionScope.CurrentUser);
+        }
+        finally
+        {
+            Clear(tokenUnprotected);
+        }
 
-            return tokenProtected;
-        });
-
-        WriteToken(boundServerUri, Convert.ToBase64String(tokenProtectedBytes));
+        WriteToken(boundServerUri, Convert.ToBase64String(tokenProtected));
     }
 
     public void Clear() => fileSystem.File.Delete(storagePath);
@@ -137,17 +124,16 @@ public class DpapiMasterPasswordCredentialsLoader(
         string unprotectedString;
         try
         {
-            tokenUnprotectedBytes = UseMasterPasswordSafe(masterPasswordBytes =>
+            tokenUnprotectedBytes =
                 ProtectedData.Unprotect(
                     Convert.FromBase64String(encryptedToken),
-                    masterPasswordBytes,
-                    DataProtectionScope.LocalMachine));
+                    null,
+                    DataProtectionScope.CurrentUser);
             unprotectedString = Encoding.UTF8.GetString(tokenUnprotectedBytes);
         }
         catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
         {
             log.WriteLine(e.ToString());
-            masterPasswordManager.Reset();
             return null;
         }
         finally
@@ -162,28 +148,6 @@ public class DpapiMasterPasswordCredentialsLoader(
         secureToken.MakeReadOnly();
 
         return secureToken;
-    }
-
-    private byte[] UseMasterPasswordSafe(Func<byte[], byte[]> operation)
-    {
-        byte[] masterPasswordUnprotectedBytes = null;
-        byte[] result = null;
-        try
-        {
-            var masterPassword = masterPasswordManager.EnsureMasterPasswordInitialized();
-            if (masterPassword == null || masterPassword.Length == 0)
-            {
-                throw new InvalidOperationException("Master password is required but was not provided");
-            }
-
-            masterPasswordUnprotectedBytes = Encoding.UTF8.GetBytes(masterPassword.ToUnsecureString());
-            result = operation(masterPasswordUnprotectedBytes);
-        }
-        finally
-        {
-            Clear(masterPasswordUnprotectedBytes);
-        }
-        return result;
     }
 
     private string ReadToken(Uri targetUri)
@@ -251,62 +215,6 @@ public class DpapiMasterPasswordCredentialsLoader(
             return;
         }
 
-        masterPasswordManager.Dispose();
         disposed = true;
     }
-
-    private class MasterPasswordManager
-    {
-        private SecureString masterPassword;
-        private readonly IThreadHandling threadHandling;
-        private readonly object lockObj = new object();
-
-        public MasterPasswordManager(IThreadHandling threadHandling)
-        {
-            this.threadHandling = threadHandling;
-        }
-
-        public SecureString EnsureMasterPasswordInitialized()
-        {
-            var updatedPassword = null as SecureString;
-            threadHandling.RunOnUIThread(() =>
-            {
-                lock (lockObj)
-                {
-                    if (masterPassword != null)
-                    {
-                        updatedPassword = masterPassword;
-                        return;
-                    }
-
-                    var dialog = new MasterPasswordDialog();
-                    var dialogResult = dialog.ShowDialog(Application.Current.MainWindow); // need to make this show only once
-
-                    if (dialogResult.HasValue && dialogResult.Value)
-                    {
-                        updatedPassword = masterPassword = dialog.MasterPassword;
-                    }
-                }
-            });
-
-            return updatedPassword;
-        }
-
-        public void Reset()
-        {
-            lock (lockObj)
-            {
-                masterPassword = null;
-            }
-        }
-
-        public void Dispose()
-        {
-            lock (lockObj)
-            {
-                masterPassword?.Dispose();
-            }
-        }
-    }
-
 }
