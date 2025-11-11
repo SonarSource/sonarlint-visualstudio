@@ -66,7 +66,7 @@
         </StackPanel>
         
         <StackPanel Grid.Column="0" x:Name="CredentialStorePanel" Grid.Row="3" Grid.ColumnSpan="2" Margin="5">
-            <TextBlock Text="Credential Store Type:" />
+            <TextBlock Text="Credential Store Type (RESTART TO APPLY):" />
 
             <ComboBox SelectedIndex="0" HorizontalContentAlignment="Stretch" Margin="0,5,0,0" Padding="5,2.5"
                       ItemsSource="{Binding Path=CredentialStoreTypes}" SelectedItem="{Binding Path=CredentialStoreType}" />

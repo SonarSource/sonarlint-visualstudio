@@ -42,42 +42,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 
     public interface ICredentialStoreTypeProvider
     {
-        CredentialStoreType CredentialStoreType { get; set; }
-
-        event EventHandler Changed;
+        CredentialStoreType CredentialStoreType { get; }
     }
 
     [Export(typeof(ICredentialStoreTypeProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class CredentialStoreTypeProvider : ICredentialStoreTypeProvider
+    [method: ImportingConstructor]
+    public class CredentialStoreTypeProvider(ISonarLintSettings sonarLintSettings) : ICredentialStoreTypeProvider
     {
-        private readonly object locker = new object();
-        private CredentialStoreType credentialStoreType;
-
-        public CredentialStoreType CredentialStoreType
-        {
-            get
-            {
-                lock (locker)
-                {
-                    return credentialStoreType;
-                }
-            }
-            set
-            {
-                lock (locker)
-                {
-                    if (credentialStoreType == value)
-                    {
-                        return;
-                    }
-                    credentialStoreType = value;
-                }
-                Changed?.Invoke(this, EventArgs.Empty);
-            }
-        }
-
-        public event EventHandler Changed;
+        public CredentialStoreType CredentialStoreType { get; } = sonarLintSettings.CredentialStoreType;
     }
 
 }

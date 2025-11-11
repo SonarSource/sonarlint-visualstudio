@@ -42,11 +42,8 @@ public class AggregatingSolutionBindingCredentialsLoader : ISolutionBindingCrede
     {
         this.credentialStoreTypeProvider = credentialStoreTypeProvider;
         this.logger = logger.ForVerboseContext(nameof(AggregatingSolutionBindingCredentialsLoader));
-        credentialStoreTypeProvider.Changed += CredentialStoreTypeProviderOnChanged;
         solutionBindingCredentialsLoaderImpls = impls.ToDictionary(x => x.StoreType, y => y);
     }
-
-    private void CredentialStoreTypeProviderOnChanged(object sender, EventArgs e) => Clear();
 
     public void DeleteCredentials(Uri boundServerUri) =>
         SafeExecute(() =>
@@ -81,6 +78,8 @@ public class AggregatingSolutionBindingCredentialsLoader : ISolutionBindingCrede
 
     private void SafeExecute(Action act, [CallerMemberName] string caller = "")
     {
+        logger.LogVerbose(GetContext(caller), "Executing Credential Operation");
+
         try
         {
             act();
