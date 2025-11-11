@@ -258,7 +258,7 @@ Please check the logs for more details.</value>
     <value>Severity impact:</value>
   </data>
   <data name="NoDependencyRiskFoundText" xml:space="preserve">
-    <value>Only open files are analyzed.</value>
+    <value>Analysis runs on open files. Please open a file to expand the scope.</value>
   </data>
   <data name="NoFindingsToDisplayTitle" xml:space="preserve">
     <value>No findings to display.</value>

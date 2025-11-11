@@ -564,7 +564,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Only open files are analyzed..
+        ///   Looks up a localized string similar to Analysis runs on open files. Please open a file to expand the scope..
         /// </summary>
         public static string NoDependencyRiskFoundText {
             get {
