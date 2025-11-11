@@ -45,7 +45,8 @@ internal interface IReportViewModel
     ObservableCollection<IGroupViewModel> AllGroupViewModels { get; }
 }
 
-internal class ReportViewModel : ServerViewModel, IReportViewModel
+internal class
+ReportViewModel : ServerViewModel, IReportViewModel
 {
     private readonly IHotspotsReportViewModel hotspotsReportViewModel;
     private readonly IDependencyRisksReportViewModel dependencyRisksReportViewModel;
@@ -130,7 +131,7 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
 
     public ObservableCollection<IGroupViewModel> AllGroupViewModels { get; private set; }
     public ObservableCollection<IGroupViewModel> FilteredGroupViewModels { get; private set; }
-    public bool HasAnyGroups => AllGroupViewModels.Any(x => x.AllIssues.Any());
+    public bool HasAnyGroups => AllGroupViewModels.Any();
     public bool HasFilteredGroups => FilteredGroupViewModels.Any(x => x.FilteredIssues.Any());
     // this indicates whether to show the 'too restrictive filters' warning, we only want to do that if filtered issues are 0 but prefiltered are not
     public bool HasNoFilteredIssuesForGroupsWithIssues => AllGroupViewModels.Any() && FilteredGroupViewModels.All(x => !x.FilteredIssues.Any() && x.PreFilteredIssues.Any());
@@ -179,6 +180,12 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         RaisePropertyChanged(nameof(HasNoFilteredIssuesForGroupsWithIssues));
     }
 
+    internal void ResetFilters()
+    {
+        ReportViewFilter.ClearAllFilters();
+        ApplyFilter();
+    }
+
     internal void ApplyFilter()
     {
         FilteredGroupViewModels.Clear();
@@ -188,6 +195,8 @@ internal class ReportViewModel : ServerViewModel, IReportViewModel
         RaisePropertyChanged(nameof(HasFilteredGroups));
         RaisePropertyChanged(nameof(HasNoFilteredIssuesForGroupsWithIssues));
     }
+
+    protected override void HandleBindingChange(BindingConfiguration newBinding) => ResetFilters();
 
     protected override void Dispose(bool disposing)
     {

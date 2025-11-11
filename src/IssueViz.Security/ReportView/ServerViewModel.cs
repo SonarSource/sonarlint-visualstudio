@@ -27,6 +27,7 @@ internal abstract class ServerViewModel : ViewModelBase, IDisposable
 {
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private bool isCloud;
+    private bool isConnectedMode;
 
     public bool IsCloud
     {
@@ -37,6 +38,18 @@ internal abstract class ServerViewModel : ViewModelBase, IDisposable
             RaisePropertyChanged();
         }
     }
+
+    public bool IsConnectedMode
+    {
+        get => isConnectedMode;
+        private set
+        {
+            isConnectedMode = value;
+            RaisePropertyChanged();
+        }
+    }
+
+    protected abstract void HandleBindingChange(BindingConfiguration newBinding);
 
     protected ServerViewModel(IActiveSolutionBoundTracker activeSolutionBoundTracker)
     {
@@ -60,7 +73,12 @@ internal abstract class ServerViewModel : ViewModelBase, IDisposable
         activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
     }
 
-    private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args) => IsCloud = IsCurrentConfigurationToCloud(args.Configuration);
+    private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args)
+    {
+        IsConnectedMode = args.Configuration.Mode != SonarLintMode.Standalone;
+        IsCloud = IsCurrentConfigurationToCloud(args.Configuration);
+        HandleBindingChange(args.Configuration);
+    }
 
     private static bool IsCurrentConfigurationToCloud(BindingConfiguration bindingConfiguration) => bindingConfiguration?.Project?.ServerConnection is ServerConnection.SonarCloud;
 }

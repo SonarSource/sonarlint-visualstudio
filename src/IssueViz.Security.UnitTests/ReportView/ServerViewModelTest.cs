@@ -68,9 +68,9 @@ public class ServerViewModelTest
     [DataRow(SonarLintMode.LegacyConnected)]
     public void SolutionBindingChanged_BindingToServer_IsCloudIsFalse(SonarLintMode sonarLintMode)
     {
-        var cloudBindingConfiguration = CreateBindingConfiguration(new ServerConnection.SonarQube(new Uri("C:\\")), sonarLintMode);
+        var serverBindingConfiguration = CreateBindingConfiguration(new ServerConnection.SonarQube(new Uri("C:\\")), sonarLintMode);
 
-        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(cloudBindingConfiguration));
+        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(serverBindingConfiguration));
 
         testSubject.IsCloud.Should().BeFalse();
     }
@@ -86,6 +86,39 @@ public class ServerViewModelTest
     }
 
     [TestMethod]
+    [DataRow(SonarLintMode.Connected)]
+    [DataRow(SonarLintMode.LegacyConnected)]
+    public void SolutionBindingChanged_BindingToServer_IsInConnectedModeTrue(SonarLintMode sonarLintMode)
+    {
+        var serverBindingConfiguration = CreateBindingConfiguration(new ServerConnection.SonarQube(new Uri("C:\\")), sonarLintMode);
+
+        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(serverBindingConfiguration));
+
+        testSubject.IsConnectedMode.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void SolutionBindingChanged_Standalone_IsInConnectedModeFalse()
+    {
+        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(BindingConfiguration.Standalone));
+
+        testSubject.IsConnectedMode.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void SolutionBindingChanged_BindingToServer_CallsChildClass()
+    {
+        var cloudBindingConfiguration = CreateBindingConfiguration(new ServerConnection.SonarQube(new Uri("C:\\")), SonarLintMode.Connected);
+        testSubject?.Dispose();
+        var bindingHandler = Substitute.For<Action<BindingConfiguration>>();
+        testSubject = CreateTestSubject(bindingHandler);
+
+        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(cloudBindingConfiguration));
+
+        bindingHandler.Received().Invoke(cloudBindingConfiguration);
+    }
+
+    [TestMethod]
     public void Dispose_UnsubscribesFromActiveSolutionBoundTrackerEvents()
     {
         testSubject.Dispose();
@@ -93,10 +126,13 @@ public class ServerViewModelTest
         activeSolutionBoundTracker.ReceivedWithAnyArgs(1).SolutionBindingChanged -= Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
     }
 
-    private ServerViewModel CreateTestSubject() => new TestServerViewModel(activeSolutionBoundTracker);
+    private ServerViewModel CreateTestSubject(Action<BindingConfiguration> bindingProcessing = null) => new TestServerViewModel(activeSolutionBoundTracker, bindingProcessing ?? (_ => { }));
 
     private static BindingConfiguration CreateBindingConfiguration(ServerConnection serverConnection, SonarLintMode mode) =>
         new(new BoundServerProject("my solution", "my project", serverConnection), mode, string.Empty);
 
-    private class TestServerViewModel(IActiveSolutionBoundTracker activeSolutionBoundTracker) : ServerViewModel(activeSolutionBoundTracker);
+    private class TestServerViewModel(IActiveSolutionBoundTracker activeSolutionBoundTracker, Action<BindingConfiguration> bindingProcessing) : ServerViewModel(activeSolutionBoundTracker)
+    {
+        protected override void HandleBindingChange(BindingConfiguration newBinding) => bindingProcessing(newBinding);
+    }
 }

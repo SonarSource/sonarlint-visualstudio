@@ -360,6 +360,30 @@ public class FilteringTests
     }
 
     [TestMethod]
+    public void ResetFilters_ResetsToDefaultFilters()
+    {
+        testSubject.ResetFilters();
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(4);
+        VerifyIsExpectedGroup(TsFilePath, tsTaintHigh);
+        VerifyIsExpectedGroup(CsharpFilePath, csharpHotspotInfo);
+        VerifyIsExpectedGroup(CppFilePath, cppIssueMedium);
+        dependencyRisksReportViewModel.GetDependencyRisksGroup().FilteredIssues.Should().BeEquivalentTo(dependencyRiskIssue);
+    }
+
+    [TestMethod]
+    public void BindingChange_ResetsToDefaultFilters()
+    {
+        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(BindingConfiguration.Standalone));
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(4);
+        VerifyIsExpectedGroup(TsFilePath, tsTaintHigh);
+        VerifyIsExpectedGroup(CsharpFilePath, csharpHotspotInfo);
+        VerifyIsExpectedGroup(CppFilePath, cppIssueMedium);
+        dependencyRisksReportViewModel.GetDependencyRisksGroup().FilteredIssues.Should().BeEquivalentTo(dependencyRiskIssue);
+    }
+
+    [TestMethod]
     public void ActiveDocumentChanged_LocationFilterIsOpenDocumentsDocument_DoesNotReapply()
     {
         ApplyLocationFilter(LocationFilter.OpenDocuments);
