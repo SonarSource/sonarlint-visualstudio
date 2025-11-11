@@ -18,19 +18,29 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 {
-    internal class SolutionBindingCredentialsLoader : ISolutionBindingCredentialsLoader
+    [Export(typeof(ISolutionBindingCredentialsLoaderImpl))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class DefaultBindingCredentialsLoader : ISolutionBindingCredentialsLoaderImpl
     {
         private readonly ICredentialStoreService store;
+        private readonly ILogger log;
 
-        public SolutionBindingCredentialsLoader(ICredentialStoreService store)
+        [ImportingConstructor]
+        public DefaultBindingCredentialsLoader(ILogger log)
         {
-            this.store = store ?? throw new ArgumentNullException(nameof(store));
+            this.log = log.ForVerboseContext(nameof(DefaultBindingCredentialsLoader));
+            store = new CredentialStore(this.log);
         }
+
+        public CredentialStoreType StoreType => CredentialStoreType.Default;
 
         public void DeleteCredentials(Uri boundServerUri)
         {
@@ -62,5 +72,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
             var credentialToSave = credentials.ToCredential();
             store.WriteCredentials(boundServerUri, credentialToSave);
         }
+
+        public void Clear()
+        {
+            log.LogVerbose("Default loader does not support clear, manually delete using Credential Manager app");
+        }
+
+        public void Dispose(){}
     }
 }
