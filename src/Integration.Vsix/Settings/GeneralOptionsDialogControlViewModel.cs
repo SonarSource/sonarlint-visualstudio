@@ -105,6 +105,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         IsActivateMoreEnabled = slSettings.IsActivateMoreEnabled;
         JreLocation = slSettings.JreLocation;
         ShowCloudRegion = slSettings.ShowCloudRegion;
+        CredentialStoreType = slSettings.CredentialStoreType;
     }
 
     public void SaveSettings()
@@ -114,8 +115,6 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         slSettings.JreLocation = JreLocation?.Trim();
         slSettings.ShowCloudRegion = ShowCloudRegion;
         slSettings.CredentialStoreType = CredentialStoreType;
-
-        credentialStoreTypeProvider.CredentialStoreType = CredentialStoreType;
     }
 
     internal void ViewInBrowser(string url) => browserService.Navigate(url);
