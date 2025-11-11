@@ -35,5 +35,13 @@ namespace SonarLint.VisualStudio.Integration
         DaemonLogLevel DaemonLogLevel { get; set; }
         string JreLocation { get; set; }
         bool ShowCloudRegion { get; set; }
+        CredentialStoreType CredentialStoreType { get; set; }
+    }
+
+    public enum CredentialStoreType
+    {
+        Default,
+        DPAPI,
+        DPAPIMasterPassword
     }
 }

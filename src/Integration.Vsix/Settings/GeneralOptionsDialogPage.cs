@@ -22,6 +22,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Integration.Vsix.Settings;
@@ -47,7 +48,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     Debug.Assert(Site != null, "Expecting the page to be sited");
                     var browserService = Site.GetMefService<IBrowserService>();
-                    viewModel = new GeneralOptionsDialogControlViewModel(Settings, browserService, GetOpenSettingsFileWpfCommand());
+                    var credStoreTypeProvider = Site.GetMefService<ICredentialStoreTypeProvider>();
+                    viewModel = new GeneralOptionsDialogControlViewModel(Settings, browserService, GetOpenSettingsFileWpfCommand(), credStoreTypeProvider);
                 }
                 return viewModel;
             }

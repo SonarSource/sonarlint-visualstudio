@@ -16,6 +16,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="Messages\Protobuf\" />
+  </ItemGroup>
 
 
 </Project>
