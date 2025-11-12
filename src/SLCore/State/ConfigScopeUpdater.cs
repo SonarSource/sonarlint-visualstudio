@@ -28,20 +28,14 @@ namespace SonarLint.VisualStudio.SLCore.State;
 
 [Export(typeof(IConfigScopeUpdater))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class ConfigScopeUpdater : IConfigScopeUpdater
+[method: ImportingConstructor]
+internal class ConfigScopeUpdater(
+    IActiveConfigScopeTracker activeConfigScopeTracker,
+    ISolutionInfoProvider solutionInfoProvider,
+    Lazy<ISLCoreHandler> slCoreHandler,
+    IThreadHandling threadHandling)
+    : IConfigScopeUpdater
 {
-    private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
-    private readonly ISolutionInfoProvider solutionInfoProvider;
-    private readonly IThreadHandling threadHandling;
-
-    [ImportingConstructor]
-    public ConfigScopeUpdater(IActiveConfigScopeTracker activeConfigScopeTracker, ISolutionInfoProvider solutionInfoProvider, IThreadHandling threadHandling)
-    {
-        this.activeConfigScopeTracker = activeConfigScopeTracker;
-        this.solutionInfoProvider = solutionInfoProvider;
-        this.threadHandling = threadHandling;
-    }
-
     public void UpdateConfigScopeForCurrentSolution(BoundServerProject currentBinding)
     {
         var solutionName = solutionInfoProvider.GetSolutionName();
@@ -57,13 +51,20 @@ internal class ConfigScopeUpdater : IConfigScopeUpdater
 
     private void HandleConfigScopeUpdateInternal(string solutionName, string connectionId, string projectKey)
     {
-        if (solutionName is null)
+        try
         {
-            activeConfigScopeTracker.RemoveCurrentConfigScope();
+            if (solutionName is null)
+            {
+                activeConfigScopeTracker.RemoveCurrentConfigScope();
+            }
+            else
+            {
+                activeConfigScopeTracker.SetCurrentConfigScope(solutionName, connectionId, projectKey);
+            }
         }
-        else
+        catch (InvalidOperationException e) when(e.Message == SLCoreStrings.ServiceProviderNotInitialized)
         {
-            activeConfigScopeTracker.SetCurrentConfigScope(solutionName, connectionId, projectKey);
+            slCoreHandler.Value.ShowNotificationIfNeeded();
         }
     }
 }

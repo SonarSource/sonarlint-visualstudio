@@ -22,5 +22,8 @@ namespace SonarLint.VisualStudio.SLCore.Configuration;
 
 public interface ISLCoreLocator
 {
+    bool IsCustomJreSet();
+    bool IsGlobalJreAvailable();
+    void SetCustomJreToGlobal();
     SLCoreLaunchParameters LocateExecutable();
 }
