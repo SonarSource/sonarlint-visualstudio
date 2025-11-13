@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
+using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Notification;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Notification
@@ -29,7 +31,10 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Notification
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<SloopRestartFailedNotificationService, ISloopRestartFailedNotificationService>(MefTestHelpers.CreateExport<INotificationService>());
+            MefTestHelpers.CheckTypeCanBeImported<SloopRestartFailedNotificationService, ISloopRestartFailedNotificationService>(
+                MefTestHelpers.CreateExport<INotificationService>(),
+                MefTestHelpers.CreateExport<IOutputWindowService>(),
+                MefTestHelpers.CreateExport<ISLCoreLocator>());
         }
 
         [TestMethod]
@@ -41,28 +46,104 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Notification
         [TestMethod]
         public void Show_CreatesNotificationAndCallsShow()
         {
-            bool actionIsRun = false;
             INotification notification = null;
-            Action act = () => { actionIsRun = true; };
 
             var notificationService = Substitute.For<INotificationService>();
             notificationService.When(ns => ns.ShowNotification(Arg.Any<INotification>())).Do(n => notification = (INotification)n.Args()[0]);
 
-            var testSubject = new SloopRestartFailedNotificationService(notificationService);
+            var testSubject = new SloopRestartFailedNotificationService(notificationService, Substitute.For<IOutputWindowService>(), Substitute.For<ISLCoreLocator>());
 
-            testSubject.Show(act);
+            testSubject.Show(Substitute.For<Action>());
 
             notificationService.Received(1).ShowNotification(notification);
 
             notification.Should().NotBeNull();
             notification.Id.Should().Be("sonarlint.sloop.restart.failed");
             notification.Message.Should().Be(SLCoreStrings.SloopRestartFailedNotificationService_GoldBarMessage);
-            notification.Actions.Should().HaveCount(1);
             notification.CloseOnSolutionClose.Should().Be(false);
+        }
 
-            notification.Actions.First().Action(notification);
+        [TestMethod]
+        public void Show_CreatesNotificationWithRestartAndShowLogsActions()
+        {
+            var restartAction = Substitute.For<Action>();
+            INotification notification = null;
 
-            actionIsRun.Should().BeTrue();
+            var notificationService = Substitute.For<INotificationService>();
+            var outputWindowService = Substitute.For<IOutputWindowService>();
+            var locator = Substitute.For<ISLCoreLocator>();
+            locator.IsCustomJreSet().Returns(true); // disables UseAutoDetected
+            locator.IsGlobalJreAvailable().Returns(true);
+
+            notificationService.When(ns => ns.ShowNotification(Arg.Any<INotification>())).Do(n => notification = (INotification)n.Args()[0]);
+
+            var testSubject = new SloopRestartFailedNotificationService(notificationService, outputWindowService, locator);
+            testSubject.Show(restartAction);
+
+            notificationService.Received(1).ShowNotification(notification);
+            notification.Should().NotBeNull();
+            notification.Actions.Should().HaveCount(2);
+            notification.Actions.Select(a => a.CommandText).Should().Contain([
+                SLCoreStrings.SloopRestartFailedNotificationService_Restart,
+                SLCoreStrings.Infobar_ShowLogs
+            ]);
+
+            // Restart action
+            var restart = notification.Actions.First(a => a.CommandText == SLCoreStrings.SloopRestartFailedNotificationService_Restart);
+            restart.Action(notification);
+            restartAction.Received(1).Invoke();
+
+            // Show logs action
+            var showLogs = notification.Actions.First(a => a.CommandText == SLCoreStrings.Infobar_ShowLogs);
+            showLogs.Action(notification);
+            outputWindowService.Received(1).Show();
+        }
+
+        [TestMethod]
+        public void Show_CreatesNotificationWithUseAutoDetectedAction_WhenApplicable()
+        {
+            var restartAction = Substitute.For<Action>();
+            INotification notification = null;
+
+            var notificationService = Substitute.For<INotificationService>();
+            var outputWindowService = Substitute.For<IOutputWindowService>();
+            var locator = Substitute.For<ISLCoreLocator>();
+            locator.IsCustomJreSet().Returns(false); // enables UseAutoDetected
+            locator.IsGlobalJreAvailable().Returns(true);
+
+            notificationService.When(ns => ns.ShowNotification(Arg.Any<INotification>())).Do(n => notification = (INotification)n.Args()[0]);
+
+            var testSubject = new SloopRestartFailedNotificationService(notificationService, outputWindowService, locator);
+            testSubject.Show(restartAction);
+
+            notificationService.Received(1).ShowNotification(notification);
+            notification.Should().NotBeNull();
+            notification.Actions.Select(a => a.CommandText).Should().Contain(SLCoreStrings.SloopRestartFailedNotificationService_UseAutoDetected);
+
+            var useAutoDetected = notification.Actions.First(a => a.CommandText == SLCoreStrings.SloopRestartFailedNotificationService_UseAutoDetected);
+            useAutoDetected.Action(notification);
+            locator.Received(1).SetCustomJreToGlobal();
+            restartAction.Received(1).Invoke();
+        }
+
+        [TestMethod]
+        public void Show_DoesNotAddUseAutoDetectedAction_WhenNotAvailable()
+        {
+            var notificationService = Substitute.For<INotificationService>();
+            var outputWindowService = Substitute.For<IOutputWindowService>();
+            var locator = Substitute.For<ISLCoreLocator>();
+            locator.IsCustomJreSet().Returns(false);
+            locator.IsGlobalJreAvailable().Returns(false); // disables UseAutoDetected
+
+            INotification notification = null;
+            notificationService.When(ns => ns.ShowNotification(Arg.Any<INotification>())).Do(n => notification = (INotification)n.Args()[0]);
+
+            var testSubject = new SloopRestartFailedNotificationService(notificationService, outputWindowService, locator);
+            testSubject.Show(() => { });
+
+            notificationService.Received(1).ShowNotification(notification);
+            notification.Should().NotBeNull();
+            notification.Actions.Select(a => a.CommandText).Should().NotContain(SLCoreStrings.SloopRestartFailedNotificationService_UseAutoDetected);
         }
     }
 }

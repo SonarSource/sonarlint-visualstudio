@@ -150,6 +150,9 @@
   <data name="SloopRestartFailedNotificationService_Restart" xml:space="preserve">
     <value>Restart SonarQube for Visual Studio</value>
   </data>
+  <data name="SloopRestartFailedNotificationService_UseAutoDetected" xml:space="preserve">
+    <value>Use detected Java installation (can be changed in SonarQube Options)</value>
+  </data>
   <data name="ConfigScopeConflict" xml:space="preserve">
     <value>Configuration scope conflict</value>
   </data>
@@ -204,7 +207,7 @@
   <data name="ServerCertificateInfobar_LearnMore" xml:space="preserve">
     <value>Learn more</value>
   </data>
-  <data name="ServerCertificateInfobar_ShowLogs" xml:space="preserve">
+  <data name="Infobar_ShowLogs" xml:space="preserve">
     <value>Show logs</value>
   </data>
   <data name="RaiseFindingToAnalysisIssueConverter_CreateAnalysisIssueFailed" xml:space="preserve">

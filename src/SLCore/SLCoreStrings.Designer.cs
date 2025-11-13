@@ -18,7 +18,7 @@ namespace SonarLint.VisualStudio.SLCore {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class SLCoreStrings {
@@ -375,6 +375,15 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show logs.
+        /// </summary>
+        public static string Infobar_ShowLogs {
+            get {
+                return ResourceManager.GetString("Infobar_ShowLogs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to List.
         /// </summary>
         public static string ListFiles_LogContext {
@@ -452,15 +461,6 @@ namespace SonarLint.VisualStudio.SLCore {
         public static string ServerCertificateInfobar_LearnMore {
             get {
                 return ResourceManager.GetString("ServerCertificateInfobar_LearnMore", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Show logs.
-        /// </summary>
-        public static string ServerCertificateInfobar_ShowLogs {
-            get {
-                return ResourceManager.GetString("ServerCertificateInfobar_ShowLogs", resourceCulture);
             }
         }
         
@@ -569,6 +569,15 @@ namespace SonarLint.VisualStudio.SLCore {
         public static string SloopRestartFailedNotificationService_Restart {
             get {
                 return ResourceManager.GetString("SloopRestartFailedNotificationService_Restart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use detected Java installation (can be changed in SonarQube Options).
+        /// </summary>
+        public static string SloopRestartFailedNotificationService_UseAutoDetected {
+            get {
+                return ResourceManager.GetString("SloopRestartFailedNotificationService_UseAutoDetected", resourceCulture);
             }
         }
         

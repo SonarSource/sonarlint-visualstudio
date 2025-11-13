@@ -85,7 +85,7 @@ public class ServerCertificateInvalidNotificationTests
     {
         notification.Actions.Should().HaveCount(2);
         notification.Actions.Should().Contain(x => IsExpectedAction(x, SLCoreStrings.ServerCertificateInfobar_LearnMore));
-        notification.Actions.Should().Contain(x => IsExpectedAction(x, SLCoreStrings.ServerCertificateInfobar_ShowLogs));
+        notification.Actions.Should().Contain(x => IsExpectedAction(x, SLCoreStrings.Infobar_ShowLogs));
 
         notification.Actions.First().Action.Invoke(null);
         notification.Actions.Last().Action.Invoke(null);

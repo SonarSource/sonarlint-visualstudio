@@ -29,6 +29,8 @@ namespace SonarLint.VisualStudio.SLCore;
 public interface ISLCoreHandler : IDisposable
 {
     void EnableSloop();
+
+    void ShowNotificationIfNeeded();
 }
 
 [Export(typeof(ISLCoreHandler))]
@@ -87,6 +89,14 @@ internal sealed class SLCoreHandler : ISLCoreHandler
 
             return 0;
         }).Forget();
+    }
+
+    public void ShowNotificationIfNeeded()
+    {
+        if (!disposed && ShouldNotifyUser())
+        {
+            notificationService.Show(InitiateStart);
+        }
     }
 
     private bool ShouldNotifyUser()

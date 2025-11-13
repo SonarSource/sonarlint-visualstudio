@@ -90,7 +90,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
             var rootLocator = Substitute.For<IVsixRootLocator>();
             rootLocator.GetVsixRoot().Returns(DependencyLocator.SloopBasePath);
-            var slCoreLocator = new SLCoreLocator(rootLocator, string.Empty, Substitute.For<ISonarLintSettings>(), infrastructureLogger, Substitute.For<IFileSystem>());
+            var slCoreLocator = new SLCoreLocator(rootLocator, string.Empty, Substitute.For<ISonarLintSettings>(), Substitute.For<IGlobalJreProvider>(), infrastructureLogger, Substitute.For<IFileSystem>());
 
             var sLCoreLanguageProvider = Substitute.For<ISLCoreLanguageProvider>();
             var constantsProvider = Substitute.For<ISLCoreConstantsProvider>();

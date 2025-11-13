@@ -428,4 +428,13 @@ E.g. C:\Program Files\Java\jdk-17</value>
   <data name="SQVSVersionLog" xml:space="preserve">
     <value>SonarQube for VisualStudio version: {0}</value>
   </data>
+  <data name="GlobalJreProvider_JavaExecutableFound" xml:space="preserve">
+    <value>Java executable found using {0}: {1}</value>
+  </data>
+  <data name="GlobalJreProvider_CouldNotLocateJava" xml:space="preserve">
+    <value>Could not locate Java using {0}</value>
+  </data>
+  <data name="GlobalJreProvider_ErrorFindingJava" xml:space="preserve">
+    <value>Error finding Java using {0}: {1}</value>
+  </data>
 </root>

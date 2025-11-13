@@ -19,43 +19,61 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
+using SonarLint.VisualStudio.SLCore.Configuration;
 
-namespace SonarLint.VisualStudio.SLCore.Notification
+namespace SonarLint.VisualStudio.SLCore.Notification;
+
+public interface ISloopRestartFailedNotificationService
 {
-    public interface ISloopRestartFailedNotificationService
+    void Show(Action restartAction);
+}
+
+[Export(typeof(ISloopRestartFailedNotificationService))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+public class SloopRestartFailedNotificationService(
+    INotificationService notificationService,
+    IOutputWindowService outputWindowService,
+    ISLCoreLocator locator)
+    : ISloopRestartFailedNotificationService
+{
+    private const string NotificationId = "sonarlint.sloop.restart.failed";
+
+    public void Show(Action restartAction)
     {
-        void Show(Action act);
+        List<NotificationAction> actions = [];
+
+        AddRestartAction(restartAction, actions);
+        AddUseAutoDetectedIfNeeded(restartAction, actions);
+        AddShowLogsAction(actions);
+
+        var notification = new VisualStudio.Core.Notifications.Notification(
+            id: NotificationId,
+            message: SLCoreStrings.SloopRestartFailedNotificationService_GoldBarMessage,
+            actions: actions,
+            showOncePerSession: false,
+            closeOnSolutionClose: false
+        );
+
+        notificationService.ShowNotification(notification);
     }
 
-    [Export(typeof(ISloopRestartFailedNotificationService))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    public class SloopRestartFailedNotificationService : ISloopRestartFailedNotificationService
+    private void AddShowLogsAction(List<NotificationAction> actions) => actions.Add(new NotificationAction(SLCoreStrings.Infobar_ShowLogs, _ => outputWindowService.Show(), false));
+
+    private void AddUseAutoDetectedIfNeeded(Action restartAction, List<NotificationAction> actions)
     {
-        private readonly INotificationService notificationService;
-
-        private const string NotificationId = "sonarlint.sloop.restart.failed";
-
-        [ImportingConstructor]
-        public SloopRestartFailedNotificationService(INotificationService notificationService)
+        if (!locator.IsCustomJreSet() && locator.IsGlobalJreAvailable())
         {
-            this.notificationService = notificationService;
-        }
-
-        public void Show(Action act)
-        {
-            var notification = new VisualStudio.Core.Notifications.Notification(
-                id: NotificationId,
-                message: SLCoreStrings.SloopRestartFailedNotificationService_GoldBarMessage,
-                actions: new[]
-                {
-                    new NotificationAction(SLCoreStrings.SloopRestartFailedNotificationService_Restart, _ => act(), true)
-                },
-                showOncePerSession: false,
-                closeOnSolutionClose: false
-            );
-
-            notificationService.ShowNotification(notification);
+            actions.Add(new NotificationAction(SLCoreStrings.SloopRestartFailedNotificationService_UseAutoDetected, _ =>
+            {
+                locator.SetCustomJreToGlobal();
+                restartAction();
+            }, true));
         }
     }
+
+    private static void AddRestartAction(Action restartAction, List<NotificationAction> actions) =>
+        actions.Add(new NotificationAction(SLCoreStrings.SloopRestartFailedNotificationService_Restart, _ => restartAction(), true));
 }

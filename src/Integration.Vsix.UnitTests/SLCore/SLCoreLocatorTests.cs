@@ -19,7 +19,6 @@
  */
 
 using System.IO.Abstractions;
-using Org.BouncyCastle.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.SLCore;
@@ -35,6 +34,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
         private SLCoreLocator testSubject;
         private ILogger logger;
         private IFileSystem fileSystem;
+        private IGlobalJreProvider globalJreProvider;
         private const string VsixRoot = "C:\\SomePath";
 
         [TestInitialize]
@@ -44,7 +44,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
             settings = Substitute.For<ISonarLintSettings>();
             logger = Substitute.For<ILogger>();
             fileSystem = Substitute.For<IFileSystem>();
-            testSubject = new SLCoreLocator(vsixRootLocator, string.Empty, settings, logger, fileSystem);
+            globalJreProvider = Substitute.For<IGlobalJreProvider>();
+            testSubject = new SLCoreLocator(
+                vsixRootLocator: vsixRootLocator,
+                basePathInsideVsix: string.Empty,
+                slSettings: settings,
+                globalJreProvider: globalJreProvider,
+                logger: logger,
+                fileSystem: fileSystem);
 
             vsixRootLocator.GetVsixRoot().Returns(VsixRoot);
         }
@@ -55,6 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
             MefTestHelpers.CheckTypeCanBeImported<SLCoreLocator, ISLCoreLocator>(
                 MefTestHelpers.CreateExport<IVsixRootLocator>(),
                 MefTestHelpers.CreateExport<ISonarLintSettings>(),
+                MefTestHelpers.CreateExport<IGlobalJreProvider>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
@@ -77,7 +85,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
         [TestMethod]
         public void LocateExecutable_CustomVsixFoler_IsIncludedInPath()
         {
-            var slCoreLocator = new SLCoreLocator(vsixRootLocator, "Custom\\VsixSubpath\\", settings, logger, fileSystem);
+            var slCoreLocator = new SLCoreLocator(
+                vsixRootLocator: vsixRootLocator,
+                basePathInsideVsix: """Custom\VsixSubpath\""",
+                slSettings: settings,
+                globalJreProvider: globalJreProvider,
+                logger: logger,
+                fileSystem: fileSystem);
 
             var result = slCoreLocator.LocateExecutable();
 
@@ -90,7 +104,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
         public void LocateExecutable_EmptyVsixSubPath_UsesVsixRootDirectly()
         {
             vsixRootLocator.GetVsixRoot().Returns("C:\\SomePath");
-            var slCoreLocator = new SLCoreLocator(vsixRootLocator, string.Empty, settings, logger, fileSystem);
+            var slCoreLocator = new SLCoreLocator(
+                vsixRootLocator: vsixRootLocator,
+                basePathInsideVsix: string.Empty,
+                slSettings: settings,
+                globalJreProvider: globalJreProvider,
+                logger: logger,
+                fileSystem: fileSystem);
 
             var result = slCoreLocator.LocateExecutable();
 
@@ -117,7 +137,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
         [TestMethod]
         public void LocateExecutable_JreLocationIsProvidedAndExeCanNotBeDetected_UsesBundledJreAndLogs()
         {
-            settings.JreLocation.Returns("C:\\jrePath");
+            settings.JreLocation.Returns("""C:\jrePath""");
             var customPathToExecutable = """C:\jrePath\bin\java.exe""";
             fileSystem.File.Exists(customPathToExecutable).Returns(false);
 
@@ -132,7 +152,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
         [TestMethod]
         public void LocateExecutable_JreLocationIsProvidedAndExeCanBeDetected_UsesProvidedJreLocationAndLogs()
         {
-            settings.JreLocation.Returns("C:\\jrePath");
+            settings.JreLocation.Returns("""C:\jrePath""");
             var expectedPathToExecutable = """C:\jrePath\bin\java.exe""";
             fileSystem.File.Exists(expectedPathToExecutable).Returns(true);
 
@@ -142,6 +162,60 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
             result.PathToExecutable.Should().Be(expectedPathToExecutable);
             result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
             logger.Received(1).LogVerbose(string.Format(Resources.Strings.SlCoreLocator_UsingCustomJreLocation, expectedPathToExecutable));
+        }
+
+        [TestMethod]
+        [DataRow(null, false)]
+        [DataRow("", false)]
+        [DataRow("   ", false)]
+        [DataRow("""C:\jrePath""", true)]
+        public void IsCustomJreSet_ReturnsExpectedResult(string jreLocation, bool expected)
+        {
+            settings.JreLocation.Returns(jreLocation);
+
+            testSubject.IsCustomJreSet().Should().Be(expected);
+        }
+
+        [TestMethod]
+        [DataRow(null, false)]
+        [DataRow("""C:\some\path\java""", false)]
+        [DataRow("""C:\some\path\bin\java.exe""", true)]
+        public void IsGlobalJreAvailable_ReturnsExpectedResult(string jreFullPath, bool expected)
+        {
+            globalJreProvider.JreFullPath.Returns(jreFullPath);
+
+            testSubject.IsGlobalJreAvailable().Should().Be(expected);
+        }
+
+        [TestMethod]
+        public void SetCustomJreToGlobal_SetsJreLocation_WhenValidGlobalJre()
+        {
+            const string fullPath = """C:\some\path\bin\java.exe""";
+            globalJreProvider.JreFullPath.Returns(fullPath);
+
+            testSubject.SetCustomJreToGlobal();
+
+            settings.Received(1).JreLocation = """C:\some\path\""";
+        }
+
+        [TestMethod]
+        public void SetCustomJreToGlobal_Throws_WhenJreFullPathIsNull()
+        {
+            globalJreProvider.JreFullPath.Returns((string)null);
+
+            Action act = () => testSubject.SetCustomJreToGlobal();
+
+            act.Should().Throw<InvalidOperationException>().WithMessage("Jre not found");
+        }
+
+        [TestMethod]
+        public void SetCustomJreToGlobal_Throws_WhenJreFullPathIsInvalid()
+        {
+            globalJreProvider.JreFullPath.Returns("""C:\not\a\jre\path""");
+
+            Action act = () => testSubject.SetCustomJreToGlobal();
+
+            act.Should().Throw<InvalidOperationException>().WithMessage("Jre not found");
         }
     }
 }

@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
@@ -28,11 +29,28 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.State;
 [TestClass]
 public class ConfigScopeUpdaterTests
 {
+    private IActiveConfigScopeTracker activeConfigScopeTrackerMock;
+    private ISolutionInfoProvider solutionInfoProviderMock;
+    private IThreadHandling threadHandlingMock;
+    private ISLCoreHandler slCoreHandlerMock;
+    private ConfigScopeUpdater testSubject;
+
+    [TestInitialize]
+    public void TestInitialize()
+    {
+        activeConfigScopeTrackerMock = Substitute.For<IActiveConfigScopeTracker>();
+        solutionInfoProviderMock = Substitute.For<ISolutionInfoProvider>();
+        threadHandlingMock = Substitute.ForPartsOf<NoOpThreadHandler>();
+        slCoreHandlerMock = Substitute.For<ISLCoreHandler>();
+        testSubject = CreateTestSubject(activeConfigScopeTrackerMock, solutionInfoProviderMock, threadHandlingMock, slCoreHandlerMock);
+    }
+
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<ConfigScopeUpdater, IConfigScopeUpdater>(
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
+            MefTestHelpers.CreateExport<ISLCoreHandler>(),
             MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
     }
@@ -46,38 +64,23 @@ public class ConfigScopeUpdaterTests
     [TestMethod]
     public void UpdateConfigScopeForCurrentSolution_CallsTrackerOnBackgroundThread()
     {
-        var mockSequence = new MockSequence();
-        var threadHandlingMock = new Mock<IThreadHandling>();
-        threadHandlingMock
-            .InSequence(mockSequence)
-            .Setup(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<int>>>()))
-            .Callback((Func<Task<int>> action) => action());
-        var solutionInfoProviderMock = new Mock<ISolutionInfoProvider>();
-        solutionInfoProviderMock.InSequence(mockSequence).Setup(x => x.GetSolutionName()).Returns("sln");
-        var activeConfigScopeTrackerMock = new Mock<IActiveConfigScopeTracker>();
-        activeConfigScopeTrackerMock.Setup(x =>
-            x.SetCurrentConfigScope(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
-        var testSubject = CreateTestSubject(activeConfigScopeTrackerMock.Object, solutionInfoProviderMock.Object, threadHandling: threadHandlingMock.Object);
+        solutionInfoProviderMock.GetSolutionName().Returns("sln");
 
         testSubject.UpdateConfigScopeForCurrentSolution(null);
 
-        threadHandlingMock.Verify(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<int>>>()));
-        threadHandlingMock.VerifyNoOtherCalls();
+        threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+        threadHandlingMock.ReceivedCalls().Should().HaveCount(1);
     }
-
 
     [TestMethod]
     public void UpdateConfigScopeForCurrentSolution_UnboundSolutionOpen_SetsCurrentConfigScope()
     {
-        var activeConfigScopeTrackerMock = new Mock<IActiveConfigScopeTracker>();
-        var solutionInfoProviderMock = new Mock<ISolutionInfoProvider>();
-        solutionInfoProviderMock.Setup(x => x.GetSolutionName()).Returns("sln");
-        var testSubject = CreateTestSubject(activeConfigScopeTrackerMock.Object, solutionInfoProviderMock.Object);
+        solutionInfoProviderMock.GetSolutionName().Returns("sln");
 
         testSubject.UpdateConfigScopeForCurrentSolution(null);
 
-        activeConfigScopeTrackerMock.Verify(x => x.SetCurrentConfigScope("sln", null, null));
-        activeConfigScopeTrackerMock.VerifyNoOtherCalls();
+        activeConfigScopeTrackerMock.Received(1).SetCurrentConfigScope("sln", null, null);
+        activeConfigScopeTrackerMock.ReceivedCalls().Should().HaveCount(1);
     }
 
     [TestMethod]
@@ -85,15 +88,12 @@ public class ConfigScopeUpdaterTests
     {
         var serverConnection = new ServerConnection.SonarQube(new Uri("http://localhost"));
         var binding = new BoundServerProject("solution", "projectKey", serverConnection);
-        var activeConfigScopeTrackerMock = new Mock<IActiveConfigScopeTracker>();
-        var solutionInfoProviderMock = new Mock<ISolutionInfoProvider>();
-        solutionInfoProviderMock.Setup(x => x.GetSolutionName()).Returns("sln");
-        var testSubject = CreateTestSubject(activeConfigScopeTrackerMock.Object, solutionInfoProviderMock.Object);
+        solutionInfoProviderMock.GetSolutionName().Returns("sln");
 
         testSubject.UpdateConfigScopeForCurrentSolution(binding);
 
-        activeConfigScopeTrackerMock.Verify(x => x.SetCurrentConfigScope("sln", serverConnection.Id, binding.ServerProjectKey));
-        activeConfigScopeTrackerMock.VerifyNoOtherCalls();
+        activeConfigScopeTrackerMock.Received(1).SetCurrentConfigScope("sln", serverConnection.Id, binding.ServerProjectKey);
+        activeConfigScopeTrackerMock.ReceivedCalls().Should().HaveCount(1);
     }
 
     [TestMethod]
@@ -101,36 +101,60 @@ public class ConfigScopeUpdaterTests
     {
         var serverConnection = new ServerConnection.SonarCloud("org");
         var binding = new BoundServerProject("solution", "projectKey", serverConnection);
-        var activeConfigScopeTrackerMock = new Mock<IActiveConfigScopeTracker>();
-        var solutionInfoProviderMock = new Mock<ISolutionInfoProvider>();
-        solutionInfoProviderMock.Setup(x => x.GetSolutionName()).Returns("sln");
-        var testSubject = CreateTestSubject(activeConfigScopeTrackerMock.Object, solutionInfoProviderMock.Object);
+        solutionInfoProviderMock.GetSolutionName().Returns("sln");
 
         testSubject.UpdateConfigScopeForCurrentSolution(binding);
 
-        activeConfigScopeTrackerMock.Verify(x => x.SetCurrentConfigScope("sln", serverConnection.Id, binding.ServerProjectKey));
-        activeConfigScopeTrackerMock.VerifyNoOtherCalls();
+        activeConfigScopeTrackerMock.Received(1).SetCurrentConfigScope("sln", serverConnection.Id, binding.ServerProjectKey);
+        activeConfigScopeTrackerMock.ReceivedCalls().Should().HaveCount(1);
     }
 
     [TestMethod]
     public void UpdateConfigScopeForCurrentSolution_SolutionClosed_RemovesCurrentConfigScope()
     {
-        var activeConfigScopeTrackerMock = new Mock<IActiveConfigScopeTracker>();
-        var testSubject = CreateTestSubject(activeConfigScopeTrackerMock.Object);
+        solutionInfoProviderMock.GetSolutionName().ReturnsNull();
 
         testSubject.UpdateConfigScopeForCurrentSolution(null);
 
-        activeConfigScopeTrackerMock.Verify(x => x.RemoveCurrentConfigScope());
-        activeConfigScopeTrackerMock.VerifyNoOtherCalls();
+        activeConfigScopeTrackerMock.Received(1).RemoveCurrentConfigScope();
+        activeConfigScopeTrackerMock.ReceivedCalls().Should().HaveCount(1);
     }
 
-    private static ConfigScopeUpdater CreateTestSubject(IActiveConfigScopeTracker activeConfigScopeTracker = null,
-        ISolutionInfoProvider solutionInfoProvider = null,
-        IThreadHandling threadHandling = null)
+    [TestMethod]
+    public void UpdateConfigScopeForCurrentSolution_WhenServiceProviderNotInitialized_ShowsNotification()
     {
-        activeConfigScopeTracker ??= Mock.Of<IActiveConfigScopeTracker>();
-        solutionInfoProvider ??= Mock.Of<ISolutionInfoProvider>();
+        activeConfigScopeTrackerMock
+            .When(x => x.SetCurrentConfigScope(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()))
+            .Do(_ => throw new InvalidOperationException(SLCoreStrings.ServiceProviderNotInitialized));
+        solutionInfoProviderMock.GetSolutionName().Returns("sln");
+
+        testSubject.UpdateConfigScopeForCurrentSolution(null);
+
+        slCoreHandlerMock.Received(1).ShowNotificationIfNeeded();
+    }
+
+    [TestMethod]
+    public void UpdateConfigScopeForCurrentSolution_WhenOtherInvalidOperationException_DoesNotShowNotification()
+    {
+        activeConfigScopeTrackerMock
+            .When(x => x.SetCurrentConfigScope(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()))
+            .Do(_ => throw new InvalidOperationException("Some other message"));
+        solutionInfoProviderMock.GetSolutionName().Returns("sln");
+
+        Assert.ThrowsException<InvalidOperationException>(() => testSubject.UpdateConfigScopeForCurrentSolution(null));
+        slCoreHandlerMock.DidNotReceive().ShowNotificationIfNeeded();
+    }
+
+    private static ConfigScopeUpdater CreateTestSubject(
+        IActiveConfigScopeTracker activeConfigScopeTracker = null,
+        ISolutionInfoProvider solutionInfoProvider = null,
+        IThreadHandling threadHandling = null,
+        ISLCoreHandler slCoreHandler = null)
+    {
+        activeConfigScopeTracker ??= Substitute.For<IActiveConfigScopeTracker>();
+        solutionInfoProvider ??= Substitute.For<ISolutionInfoProvider>();
         threadHandling ??= new NoOpThreadHandler();
-        return new ConfigScopeUpdater(activeConfigScopeTracker, solutionInfoProvider, threadHandling);
+        slCoreHandler ??= Substitute.For<ISLCoreHandler>();
+        return new ConfigScopeUpdater(activeConfigScopeTracker, solutionInfoProvider, new Lazy<ISLCoreHandler>(() => slCoreHandler), threadHandling);
     }
 }

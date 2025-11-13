@@ -18,12 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.SLCore.Configuration;
+namespace SonarLint.VisualStudio.Integration.Vsix.SLCore;
 
-public interface ISLCoreLocator
+public static class JavaLocationConstants
 {
-    bool IsCustomJreSet();
-    bool IsGlobalJreAvailable();
-    void SetCustomJreToGlobal();
-    SLCoreLaunchParameters LocateExecutable();
+    public const string WindowsJreSubPath = "bin\\java.exe";
 }
