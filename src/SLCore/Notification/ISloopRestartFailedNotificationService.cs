@@ -46,7 +46,7 @@ public class SloopRestartFailedNotificationService(
         List<NotificationAction> actions = [];
 
         AddRestartAction(restartAction, actions);
-        AddUseAutoDetectedIfNeeded(actions);
+        AddUseAutoDetectedIfNeeded(restartAction, actions);
         // todo add open settings option if custom jre is already set
         AddShowLogsAction(actions);
 
@@ -61,13 +61,19 @@ public class SloopRestartFailedNotificationService(
         notificationService.ShowNotification(notification);
     }
 
+
     private void AddShowLogsAction(List<NotificationAction> actions) => actions.Add(new NotificationAction("Show Logs", _ => outputWindowService.Show(), false));
 
-    private void AddUseAutoDetectedIfNeeded(List<NotificationAction> actions)
+
+    private void AddUseAutoDetectedIfNeeded(Action restartAction, List<NotificationAction> actions)
     {
         if (!locator.IsCustomJreSet() && locator.IsGlobalJreAvailable())
         {
-            actions.Add(new NotificationAction("Use detected JRE", _ => locator.SetCustomJreToGlobal(), true));
+            actions.Add(new NotificationAction("Use detected JRE", _ =>
+            {
+                locator.SetCustomJreToGlobal();
+                restartAction();
+            }, true));
         }
     }
 
