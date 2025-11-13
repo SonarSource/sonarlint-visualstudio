@@ -19,6 +19,7 @@
  */
 
 using System.Windows.Input;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.WPF;
 
@@ -31,10 +32,13 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
     private bool isActivateMoreEnabled;
     private readonly ISonarLintSettings slSettings;
     private readonly IBrowserService browserService;
+    private readonly ICredentialStoreTypeProvider credentialStoreTypeProvider;
     private bool showCloudRegion;
+    private CredentialStoreType credentialStoreType;
 
     public ICommand OpenSettingsFileCommand { get; }
     public IEnumerable<DaemonLogLevel> DaemonLogLevels { get; } = Enum.GetValues(typeof(DaemonLogLevel)).Cast<DaemonLogLevel>();
+    public IEnumerable<CredentialStoreType> CredentialStoreTypes { get; } = Enum.GetValues(typeof(CredentialStoreType)).Cast<CredentialStoreType>();
 
     public string JreLocation
     {
@@ -76,19 +80,32 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         }
     }
 
+    public CredentialStoreType CredentialStoreType
+    {
+        get => credentialStoreType;
+        set
+        {
+            credentialStoreType = value;
+            RaisePropertyChanged();
+        }
+    }
+
     public GeneralOptionsDialogControlViewModel(
         ISonarLintSettings slSettings,
         IBrowserService browserService,
-        ICommand openSettingsFileCommand)
+        ICommand openSettingsFileCommand,
+        ICredentialStoreTypeProvider credentialStoreTypeProvider)
     {
         OpenSettingsFileCommand = openSettingsFileCommand ?? throw new ArgumentNullException(nameof(openSettingsFileCommand));
         this.browserService = browserService ?? throw new ArgumentNullException(nameof(browserService));
+        this.credentialStoreTypeProvider = credentialStoreTypeProvider;
 
         this.slSettings = slSettings;
         SelectedDaemonLogLevel = slSettings.DaemonLogLevel;
         IsActivateMoreEnabled = slSettings.IsActivateMoreEnabled;
         JreLocation = slSettings.JreLocation;
         ShowCloudRegion = slSettings.ShowCloudRegion;
+        CredentialStoreType = slSettings.CredentialStoreType;
     }
 
     public void SaveSettings()
@@ -97,6 +114,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         slSettings.IsActivateMoreEnabled = IsActivateMoreEnabled;
         slSettings.JreLocation = JreLocation?.Trim();
         slSettings.ShowCloudRegion = ShowCloudRegion;
+        slSettings.CredentialStoreType = CredentialStoreType;
     }
 
     internal void ViewInBrowser(string url) => browserService.Navigate(url);
