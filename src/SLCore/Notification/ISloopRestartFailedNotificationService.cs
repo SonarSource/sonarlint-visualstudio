@@ -47,7 +47,6 @@ public class SloopRestartFailedNotificationService(
 
         AddRestartAction(restartAction, actions);
         AddUseAutoDetectedIfNeeded(restartAction, actions);
-        // todo add open settings option if custom jre is already set
         AddShowLogsAction(actions);
 
         var notification = new VisualStudio.Core.Notifications.Notification(
