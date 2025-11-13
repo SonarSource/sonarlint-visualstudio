@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -48,7 +48,7 @@ public class HttpConfigurationListenerTests
         certificateDtoConverter = Substitute.For<ICertificateDtoConverter>();
         proxySettingsDetector = Substitute.For<ISystemProxyDetector>();
         certificateInvalidNotification = Substitute.For<IServerCertificateInvalidNotification>();
-        
+
         testSubject = new HttpConfigurationListener(logger,
             certificateChainValidator,
             certificateDtoConverter,
