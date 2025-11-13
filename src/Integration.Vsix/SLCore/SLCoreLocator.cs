@@ -38,7 +38,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SLCore
         private readonly IFileSystem fileSystem;
         private readonly IGlobalJreProvider globalJreProvider;
         private const string SlCoreJreSubPath = "jre\\bin\\java.exe";
-        private const string WindowsJreSubPath = "bin\\java.exe";
         private const string LibSubPath = "lib\\*";
         private readonly IVsixRootLocator vsixRootLocator;
 
@@ -76,11 +75,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SLCore
                 throw new InvalidOperationException("Jre not found");
             }
 
-            var jreHomePath = globalJrePath.Substring(0, globalJrePath.Length - WindowsJreSubPath.Length);
+            var jreHomePath = globalJrePath.Substring(0, globalJrePath.Length - JavaLocationConstants.WindowsJreSubPath.Length);
             slSettings.JreLocation = jreHomePath;
         }
 
-        private static bool IsJreFullPath(string path) => path != null && path.EndsWith(WindowsJreSubPath);
+        private static bool IsJreFullPath(string path) => path != null && path.EndsWith(JavaLocationConstants.WindowsJreSubPath);
 
         public SLCoreLaunchParameters LocateExecutable()
         {
@@ -102,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SLCore
                 return null;
             }
 
-            var customJrePath = Path.Combine(slSettings.JreLocation, WindowsJreSubPath);
+            var customJrePath = Path.Combine(slSettings.JreLocation, JavaLocationConstants.WindowsJreSubPath);
             if (fileSystem.File.Exists(customJrePath))
             {
                 logger.LogVerbose(string.Format(Resources.Strings.SlCoreLocator_UsingCustomJreLocation, customJrePath));
