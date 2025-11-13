@@ -74,7 +74,8 @@ public class SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider
             throw new ArgumentNullException(nameof(project));
         }
 
-        var projectDir = Path.GetDirectoryName(GetProjectFilePath(project));
+        var projectFilePath = GetProjectFilePath(project);
+        var projectDir = Path.GetDirectoryName(projectFilePath);
         var hierarchy = project as IVsHierarchy;
 
         return
@@ -87,8 +88,14 @@ public class SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider
                         {// sometimes random sdk files are included as parts of project items
                             return null;
                         }
-                        if (name != null && name.Length > 0 && !Path.IsPathRooted(name))
+                        if (name is { Length: > 0 } && !Path.IsPathRooted(name))
                         {
+                            if (projectDir == null)
+                            {
+                                log.LogVerbose("Could not build path for {0} in {1}, ignoring", name, projectFilePath);
+                                return null;
+                            }
+
                             name = Path.Combine(projectDir, name);
                         }
                         return name;
