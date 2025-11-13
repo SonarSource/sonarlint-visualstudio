@@ -51,7 +51,7 @@ public class ServerCertificateInvalidNotification(
             SLCoreStrings.ServerCertificateInfobar_CertificateInvalidMessage,
             [
                 new NotificationAction(SLCoreStrings.ServerCertificateInfobar_LearnMore, _ => browserService.Navigate(DocumentationLinks.SslCertificate), false),
-                new NotificationAction(SLCoreStrings.ServerCertificateInfobar_ShowLogs, _ => outputWindowService.Show(), false)
+                new NotificationAction(SLCoreStrings.Infobar_ShowLogs, _ => outputWindowService.Show(), false)
             ],
-            showOncePerSession:false);
+            showOncePerSession: false);
 }

@@ -61,15 +61,13 @@ public class SloopRestartFailedNotificationService(
         notificationService.ShowNotification(notification);
     }
 
-
-    private void AddShowLogsAction(List<NotificationAction> actions) => actions.Add(new NotificationAction("Show Logs", _ => outputWindowService.Show(), false));
-
+    private void AddShowLogsAction(List<NotificationAction> actions) => actions.Add(new NotificationAction(SLCoreStrings.Infobar_ShowLogs, _ => outputWindowService.Show(), false));
 
     private void AddUseAutoDetectedIfNeeded(Action restartAction, List<NotificationAction> actions)
     {
         if (!locator.IsCustomJreSet() && locator.IsGlobalJreAvailable())
         {
-            actions.Add(new NotificationAction("Use detected JRE", _ =>
+            actions.Add(new NotificationAction(SLCoreStrings.SloopRestartFailedNotificationService_UseAutoDetected, _ =>
             {
                 locator.SetCustomJreToGlobal();
                 restartAction();
@@ -77,5 +75,6 @@ public class SloopRestartFailedNotificationService(
         }
     }
 
-    private static void AddRestartAction(Action restartAction, List<NotificationAction> actions) => actions.Add(new NotificationAction(SLCoreStrings.SloopRestartFailedNotificationService_Restart, _ => restartAction(), true));
+    private static void AddRestartAction(Action restartAction, List<NotificationAction> actions) =>
+        actions.Add(new NotificationAction(SLCoreStrings.SloopRestartFailedNotificationService_Restart, _ => restartAction(), true));
 }
