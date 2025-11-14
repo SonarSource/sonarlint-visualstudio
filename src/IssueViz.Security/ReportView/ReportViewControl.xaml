@@ -391,7 +391,7 @@
                 <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}"
                           Click="ChangeHotspotStatusMenuItem_OnClick"
                           Style="{StaticResource ChangeStatusMenuItemStyle}"
-                          IsEnabled="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }" />
+                          IsEnabled="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }" />      
                 <MenuItem Click="ViewHotspotInBrowser_OnClick"
                           Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}"
@@ -414,6 +414,10 @@
             </ContextMenu>
 
             <ContextMenu x:Key="IssuesContextMenu">
+                <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}"
+                          Click="ChangeIssueStatusMenuItem_OnClick"
+                          Style="{StaticResource ChangeStatusMenuItemStyle}"
+                          IsEnabled="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }" />
                 <MenuItem Click="ViewIssueInBrowser_OnClick"
                           Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}"
