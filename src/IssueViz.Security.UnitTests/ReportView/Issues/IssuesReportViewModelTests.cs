@@ -55,6 +55,7 @@ public class IssuesReportViewModelTests
         MefTestHelpers.CheckTypeCanBeImported<IssuesReportViewModel, IIssuesReportViewModel>(
             MefTestHelpers.CreateExport<ILocalIssuesStore>(),
             MefTestHelpers.CreateExport<IShowInBrowserService>(),
+            MefTestHelpers.CreateExport<IMuteIssuesService>(),
             MefTestHelpers.CreateExport<IThreadHandling>()
         );
 

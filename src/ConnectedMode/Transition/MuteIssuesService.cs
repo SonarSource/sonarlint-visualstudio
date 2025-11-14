@@ -54,21 +54,18 @@ internal class MuteIssuesService(
             {
                 await MuteIssueAsync(issue);
                 logger.WriteLine(Resources.MuteIssue_HaveMuted);
-                return true;
             }
             catch (MuteIssueException.MuteIssueCommentFailedException)
             {
                 messageBox.Show(Resources.MuteIssue_MessageBox_AddCommentFailed, Resources.MuteIssue_WarningCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
-                return true;
             }
             catch (MuteIssueException.MuteIssueCancelledException)
             {
-                return false;
+                // do nothing
             }
             catch (MuteIssueException ex)
             {
                 messageBox.Show(ex.Message, Resources.MuteIssue_FailureCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                return false;
             }
         }).Forget();
 
