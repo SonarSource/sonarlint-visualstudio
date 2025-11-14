@@ -46,7 +46,7 @@ internal interface IReportViewModel
 }
 
 internal class
-ReportViewModel : ServerViewModel, IReportViewModel
+    ReportViewModel : ServerViewModel, IReportViewModel
 {
     private readonly IHotspotsReportViewModel hotspotsReportViewModel;
     private readonly IDependencyRisksReportViewModel dependencyRisksReportViewModel;
@@ -86,6 +86,8 @@ ReportViewModel : ServerViewModel, IReportViewModel
         this.documentTracker = documentTracker;
         this.threadHandling = threadHandling;
         this.issuesReportViewModel = issuesReportViewModel;
+        AllGroupViewModels = new ObservableCollection<IGroupViewModel>();
+        FilteredGroupViewModels = new ObservableCollection<IGroupViewModel>();
 
         hotspotsReportViewModel.IssuesChanged += HotspotsViewModel_IssuesChanged;
         dependencyRisksReportViewModel.DependencyRisksChanged += DependencyRisksViewModel_DependencyRisksChanged;
@@ -107,7 +109,7 @@ ReportViewModel : ServerViewModel, IReportViewModel
                 return;
             }
 
-            AllGroupViewModels.Add(new GroupFileViewModel(e.Document.FullPath, []));
+            AllGroupViewModels.Add(new GroupFileViewModel(e.Document.FullPath, taintsReportViewModel.GetIssueViewModels().Where(x => x.FilePath == e.Document.FullPath).ToList()));
             ApplyFilter();
         });
 
@@ -119,18 +121,12 @@ ReportViewModel : ServerViewModel, IReportViewModel
                 return;
             }
 
-            if (group.AllIssues.Any(x => x.IssueType == IssueType.TaintVulnerability))
-            {
-                // todo https://sonarsource.atlassian.net/browse/SLVS-2620 taints are global, not based on open file events
-                return;
-            }
-
             AllGroupViewModels.Remove(group);
             ApplyFilter();
         });
 
-    public ObservableCollection<IGroupViewModel> AllGroupViewModels { get; private set; }
-    public ObservableCollection<IGroupViewModel> FilteredGroupViewModels { get; private set; }
+    public ObservableCollection<IGroupViewModel> AllGroupViewModels { get; }
+    public ObservableCollection<IGroupViewModel> FilteredGroupViewModels { get; }
     public bool HasAnyGroups => AllGroupViewModels.Any();
     public bool HasFilteredGroups => FilteredGroupViewModels.Any(x => x.FilteredIssues.Any());
     // this indicates whether to show the 'too restrictive filters' warning, we only want to do that if filtered issues are 0 but prefiltered are not
@@ -153,9 +149,8 @@ ReportViewModel : ServerViewModel, IReportViewModel
         }
     }
 
-    private void InitializeViewModels()
+    internal void InitializeViewModels()
     {
-        AllGroupViewModels = new ObservableCollection<IGroupViewModel>();
         foreach (var openDocument in documentTracker.GetOpenDocuments())
         {
             AllGroupViewModels.Add(new GroupFileViewModel(openDocument.FullPath, []));
@@ -164,7 +159,6 @@ ReportViewModel : ServerViewModel, IReportViewModel
         InitializeDependencyRisks();
         UpdateAddedIssueViewModels(hotspotsReportViewModel.GetIssueViewModels().Concat(taintsReportViewModel.GetIssueViewModels()).Concat(issuesReportViewModel.GetIssueViewModels()));
 
-        FilteredGroupViewModels = new ObservableCollection<IGroupViewModel>();
         ApplyFilter();
     }
 
@@ -196,7 +190,14 @@ ReportViewModel : ServerViewModel, IReportViewModel
         RaisePropertyChanged(nameof(HasNoFilteredIssuesForGroupsWithIssues));
     }
 
-    protected override void HandleBindingChange(BindingConfiguration newBinding) => ResetFilters();
+    protected override void HandleBindingChange(BindingConfiguration newBinding)
+    {
+        // todo https://sonarsource.atlassian.net/browse/SLVS-2620 taints are global, not based on open file events.
+        // remove this clear logic as it is only needed due to taints being raised for files without TBIT, which don't trigger close event
+        AllGroupViewModels.Clear();
+        FilteredGroupViewModels.Clear();
+        ResetFilters();
+    }
 
     protected override void Dispose(bool disposing)
     {

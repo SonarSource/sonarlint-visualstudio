@@ -30,6 +30,7 @@ using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
+using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
@@ -376,6 +377,8 @@ public class FilteringTests
     public void BindingChange_ResetsToDefaultFilters()
     {
         activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(BindingConfiguration.Standalone));
+
+        testSubject.InitializeViewModels(); // todo https://sonarsource.atlassian.net/browse/SLVS-2620 binding change force clears issue list
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(4);
         VerifyIsExpectedGroup(TsFilePath, tsTaintHigh);
