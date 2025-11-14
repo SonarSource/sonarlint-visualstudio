@@ -33,6 +33,7 @@ public class ServerViewModelTest
     public void TestInitialize()
     {
         activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
+        activeSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
         testSubject = CreateTestSubject();
     }
 
@@ -124,6 +125,45 @@ public class ServerViewModelTest
         testSubject.Dispose();
 
         activeSolutionBoundTracker.ReceivedWithAnyArgs(1).SolutionBindingChanged -= Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
+    }
+
+    [TestMethod]
+    public void Ctor_InitializesIsCloudAndIsConnectedMode_CloudBinding()
+    {
+        var bindingConfig = CreateBindingConfiguration(new ServerConnection.SonarCloud("myOrg"), SonarLintMode.Connected);
+        activeSolutionBoundTracker.CurrentConfiguration.Returns(bindingConfig);
+        activeSolutionBoundTracker.ClearReceivedCalls();
+
+        var vm = CreateTestSubject();
+
+        vm.IsCloud.Should().BeTrue();
+        vm.IsConnectedMode.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void Ctor_InitializesIsCloudAndIsConnectedMode_ServerBinding()
+    {
+        var bindingConfig = CreateBindingConfiguration(new ServerConnection.SonarQube(new Uri("C:\\")), SonarLintMode.Connected);
+        activeSolutionBoundTracker.CurrentConfiguration.Returns(bindingConfig);
+        activeSolutionBoundTracker.ClearReceivedCalls();
+
+        var vm = CreateTestSubject();
+
+        vm.IsCloud.Should().BeFalse();
+        vm.IsConnectedMode.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void Ctor_InitializesIsCloudAndIsConnectedMode_Standalone()
+    {
+        var bindingConfig = new BindingConfiguration(null, SonarLintMode.Standalone, string.Empty);
+        activeSolutionBoundTracker.CurrentConfiguration.Returns(bindingConfig);
+        activeSolutionBoundTracker.ClearReceivedCalls();
+
+        var vm = CreateTestSubject();
+
+        vm.IsCloud.Should().BeFalse();
+        vm.IsConnectedMode.Should().BeFalse();
     }
 
     private ServerViewModel CreateTestSubject(Action<BindingConfiguration> bindingProcessing = null) => new TestServerViewModel(activeSolutionBoundTracker, bindingProcessing ?? (_ => { }));

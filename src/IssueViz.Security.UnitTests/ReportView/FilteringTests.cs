@@ -76,6 +76,7 @@ public class FilteringTests
     public void Initialize()
     {
         activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
+        activeSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
         dependencyRisksStore = Substitute.For<IDependencyRisksStore>();
         hotspotsReportViewModel = Substitute.For<IHotspotsReportViewModel>();
         taintsReportViewModel = Substitute.For<ITaintsReportViewModel>();
