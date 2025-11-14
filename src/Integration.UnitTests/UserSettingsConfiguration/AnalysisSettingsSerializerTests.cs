@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -118,7 +118,7 @@ public class AnalysisSettingsSerializerTests
             """
             {
                 'UnknownData' : 'will be dropped on save',
-            
+
                 'sonarlint.rules': {
                     'typescript:S2685': {
                         'Level': 'On',
@@ -136,7 +136,7 @@ public class AnalysisSettingsSerializerTests
                         'severity': 'Blocker'
                     }
                 },
-            
+
                 'More UnknownData' : 'will also be dropped on save',
             }
             """;
