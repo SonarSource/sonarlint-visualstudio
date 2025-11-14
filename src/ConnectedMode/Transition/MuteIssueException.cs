@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.ConnectedMode.Transition;
 
-public class MuteIssueException : Exception
+internal class MuteIssueException : Exception
 {
     private MuteIssueException()
     {

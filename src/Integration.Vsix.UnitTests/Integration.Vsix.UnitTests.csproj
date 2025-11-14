@@ -39,5 +39,9 @@
     <ProjectReference Include="..\Integration\Integration.csproj" />
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Remove="Analysis\RoslynIssueLineHashCalculatorTests.cs" />
+  </ItemGroup>
 
 </Project>

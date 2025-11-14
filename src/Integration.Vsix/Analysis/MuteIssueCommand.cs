@@ -28,7 +28,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using MessageBox = SonarLint.VisualStudio.Core.MessageBox;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
@@ -39,10 +38,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private readonly IErrorListHelper errorListHelper;
         private readonly IMuteIssuesService muteIssuesService;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private readonly IThreadHandling threadHandling;
         private readonly ILogger logger;
-        private readonly IMessageBox messageBox;
-        private readonly IRoslynIssueLineHashCalculator roslynIssueLineHashCalculator;
         // Strictly speaking we are allowing rules from known repos to be disabled,
         // not "all rules for language X".  However, since we are in control of the
         // rules/repos that are installed in  VSIX, checking the repo key is good
@@ -67,11 +63,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             IMenuCommandService commandService = (IMenuCommandService)await package.GetServiceAsync(typeof(IMenuCommandService));
             Instance = new MuteIssueCommand(commandService,
                 await package.GetMefServiceAsync<IErrorListHelper>(),
-                await package.GetMefServiceAsync<IRoslynIssueLineHashCalculator>(),
                 await package.GetMefServiceAsync<IMuteIssuesService>(),
                 await package.GetMefServiceAsync<IActiveSolutionBoundTracker>(),
-                await package.GetMefServiceAsync<IThreadHandling>(),
-                new MessageBox(),
                 logger,
                 await package.GetMefServiceAsync<ILanguageProvider>());
         }
@@ -79,11 +72,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         internal MuteIssueCommand(
             IMenuCommandService menuCommandService,
             IErrorListHelper errorListHelper,
-            IRoslynIssueLineHashCalculator roslynIssueLineHashCalculator,
             IMuteIssuesService muteIssuesService,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
-            IThreadHandling threadHandling,
-            IMessageBox messageBox,
             ILogger logger,
             ILanguageProvider languageProvider)
         {
@@ -97,12 +87,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
 
             this.errorListHelper = errorListHelper ?? throw new ArgumentNullException(nameof(errorListHelper));
-            this.roslynIssueLineHashCalculator = roslynIssueLineHashCalculator ?? throw new ArgumentNullException(nameof(roslynIssueLineHashCalculator));
             this.muteIssuesService = muteIssuesService ?? throw new ArgumentNullException(nameof(muteIssuesService));
             this.activeSolutionBoundTracker = activeSolutionBoundTracker ?? throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
-            this.threadHandling = threadHandling ?? throw new ArgumentNullException(nameof(threadHandling));
             this.logger = logger?.ForContext(nameof(MuteIssueCommand)) ?? throw new ArgumentNullException(nameof(logger));
-            this.messageBox = messageBox ?? throw new ArgumentNullException(nameof(messageBox));
 
             SupportedRepos = languageProvider.AllKnownLanguages.Select(x => x.RepoInfo.Key).ToList();
 
@@ -131,22 +118,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         {
             try
             {
-                if (!TryGetNonRoslynIssue(out var issue) && !TryGetRoslynIssue(out issue))
+                if (!TryGetIssue(out var issue))
                 {
                     return;
                 }
 
-                threadHandling
-                    .RunOnBackgroundThread(() =>
-                    {
-                        if (issue is IFilterableRoslynIssue roslynIssue)
-                        {
-                            roslynIssueLineHashCalculator.UpdateRoslynIssueWithLineHash(roslynIssue);
-                        }
-
-                        return MuteIssueAsync(issue);
-                    })
-                    .Forget();
+                muteIssuesService.ResolveIssueWithDialog(issue);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -154,43 +131,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
         }
 
-        private bool TryGetNonRoslynIssue(out IFilterableIssue issue) => errorListHelper.TryGetIssueFromSelectedRow(out issue);
-
-        private bool TryGetRoslynIssue(out IFilterableIssue issue)
-        {
-            issue = null;
-
-            if (errorListHelper.TryGetRoslynIssueFromSelectedRow(out var roslynIssue))
-            {
-                issue = roslynIssue;
-            }
-
-            return issue != null;
-        }
-
-        private async Task<bool> MuteIssueAsync(IFilterableIssue issue)
-        {
-            try
-            {
-                await muteIssuesService.ResolveIssueWithDialogAsync(issue);
-                logger.WriteLine(AnalysisStrings.MuteIssue_HaveMuted);
-                return true;
-            }
-            catch (MuteIssueException.MuteIssueCommentFailedException)
-            {
-                messageBox.Show(AnalysisStrings.MuteIssue_MessageBox_AddCommentFailed, AnalysisStrings.MuteIssue_WarningCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
-                return true;
-            }
-            catch (MuteIssueException.MuteIssueCancelledException)
-            {
-                return false;
-            }
-            catch (MuteIssueException ex)
-            {
-                messageBox.Show(ex.Message, AnalysisStrings.MuteIssue_FailureCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                return false;
-            }
-        }
+        private bool TryGetIssue(out IFilterableIssue issue) => errorListHelper.TryGetIssueFromSelectedRow(out issue);
 
         private bool IsSupportedSonarRule(SonarCompositeRuleId rule) => SupportedRepos.Contains(rule.RepoKey);
     }

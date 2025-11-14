@@ -116,128 +116,20 @@ public class ErrorListHelperTests
     }
 
     [TestMethod]
-    public void TryGetRoslynIssueFromSelectedRow_SingleRoslynIssue_IssueReturned()
-    {
-        var path = "filepath";
-        var line = 12;
-        var column = 101;
-        var errorCode = "javascript:S333";
-        var issueHandle = CreateIssueHandle(111,
-            new Dictionary<string, object>
-            {
-                { StandardTableKeyNames.BuildTool, "SonarLint" },
-                { StandardTableKeyNames.ErrorCode, errorCode },
-                { StandardTableKeyNames.DocumentName, path },
-                { StandardTableKeyNames.Line, line },
-                { StandardTableKeyNames.Column, column }
-            });
-        MockErrorList(issueHandle);
-
-        var result = testSubject.TryGetRoslynIssueFromSelectedRow(out var issue);
-
-        result.Should().BeTrue();
-        issue.RuleId.Should().BeSameAs(errorCode);
-        issue.FilePath.Should().BeSameAs(path);
-        issue.StartLine.Should().Be(line + 1);
-        issue.RoslynStartLine.Should().Be(line + 1);
-        issue.RoslynStartColumn.Should().Be(column + 1);
-        issue.LineHash.Should().BeNull();
-    }
-
-    [TestMethod]
-    public void TryGetRoslynIssueFromSelectedRow_NonSonarIssue_NothingReturned()
-    {
-        var issueHandle = CreateIssueHandle(111,
-            new Dictionary<string, object>
-            {
-                { StandardTableKeyNames.BuildTool, "Not SonarLint" },
-                { StandardTableKeyNames.ErrorCode, "javascript:S333" },
-                { StandardTableKeyNames.DocumentName, "filepath" },
-                { StandardTableKeyNames.Line, 1 },
-                { StandardTableKeyNames.Column, 2 }
-            });
-        MockErrorList(issueHandle);
-
-        var result = testSubject.TryGetRoslynIssueFromSelectedRow(out _);
-
-        result.Should().BeFalse();
-    }
-
-    [TestMethod]
-    public void TryGetRoslynIssueFromSelectedRow_NoFilePath_NothingReturned()
-    {
-        var issueHandle = CreateIssueHandle(111,
-            new Dictionary<string, object>
-            {
-                { StandardTableKeyNames.BuildTool, "SonarLint" },
-                { StandardTableKeyNames.ErrorCode, "javascript:S333" },
-                { StandardTableKeyNames.Line, 1 }, { StandardTableKeyNames.Column, 2 }
-            });
-        MockErrorList(issueHandle);
-
-        var result = testSubject.TryGetRoslynIssueFromSelectedRow(out _);
-
-        result.Should().BeFalse();
-    }
-
-    [TestMethod]
-    public void TryGetRoslynIssueFromSelectedRow_NoStartLine_NothingReturned()
-    {
-        var issueHandle = CreateIssueHandle(111,
-            new Dictionary<string, object>
-            {
-                { StandardTableKeyNames.BuildTool, "SonarLint" },
-                { StandardTableKeyNames.ErrorCode, "javascript:S333" },
-                { StandardTableKeyNames.DocumentName, "filepath" },
-                { StandardTableKeyNames.Column, 2 }
-            });
-        MockErrorList(issueHandle);
-
-        var result = testSubject.TryGetRoslynIssueFromSelectedRow(out _);
-
-        result.Should().BeFalse();
-    }
-
-    [TestMethod]
-    public void TryGetRoslynIssueFromSelectedRow_NoStartColumn_NothingReturned()
-    {
-        var issueHandle = CreateIssueHandle(111,
-            new Dictionary<string, object>
-            {
-                { StandardTableKeyNames.BuildTool, "SonarLint" },
-                { StandardTableKeyNames.ErrorCode, "javascript:S333" },
-                { StandardTableKeyNames.DocumentName, "filepath" },
-                { StandardTableKeyNames.Line, 1 }
-            });
-        MockErrorList(issueHandle);
-
-        var result = testSubject.TryGetRoslynIssueFromSelectedRow(out _);
-
-        result.Should().BeFalse();
-    }
-
-    [TestMethod]
-    [DataRow("S666", "csharpsquid", "S666", "SonarAnalyzer.CSharp", null)]
-    [DataRow("S667", "csharpsquid", "S667", "SonarAnalyzer.Enterprise.CSharp", null)]
-    [DataRow("S666", "vbnet", "S666", "SonarAnalyzer.VisualBasic", null)]
-    [DataRow("S234", "vbnet", "S234", "SonarAnalyzer.VisualBasic", null)]
-    [DataRow("S234", "vbnet", "S234", "SonarAnalyzer.Enterprise.VisualBasic", null)]
-    [DataRow("c:S111", "c", "S111", "SonarLint", null)]
-    [DataRow("cpp:S222", "cpp", "S222", "SonarLint", null)]
-    [DataRow("javascript:S333", "javascript", "S333", "SonarLint", null)]
-    [DataRow("typescript:S444", "typescript", "S444", "SonarLint", null)]
-    [DataRow("secrets:S555", "secrets", "S555", "SonarLint", null)]
-    [DataRow("foo:bar", "foo", "bar", "SonarLint", null)]
-    [DataRow("S666", "csharpsquid", "S666", null, "https://rules.sonarsource.com/csharp/RSPEC-666/")]
-    [DataRow("S666", "vbnet", "S666", null, "https://rules.sonarsource.com/vbnet/RSPEC-666/")]
-    [DataRow("S234", "vbnet", "S234", null, "https://rules.sonarsource.com/vbnet/RSPEC-234/")]
-    public void TryGetRuleIdFromSelectedRow_SingleSonarIssue_ErrorCodeReturned(string fullRuleKey, string expectedRepo, string expectedRule, string buildTool, string helpLink)
+    [DataRow("csharpsquid:S666", "csharpsquid", "S666", "SonarLint")]
+    [DataRow("vbnet:S666", "vbnet", "S666", "SonarLint")]
+    [DataRow("c:S111", "c", "S111", "SonarLint")]
+    [DataRow("cpp:S222", "cpp", "S222", "SonarLint")]
+    [DataRow("javascript:S333", "javascript", "S333", "SonarLint")]
+    [DataRow("typescript:S444", "typescript", "S444", "SonarLint")]
+    [DataRow("secrets:S555", "secrets", "S555", "SonarLint")]
+    [DataRow("foo:bar", "foo", "bar", "SonarLint")]
+    public void TryGetRuleIdFromSelectedRow_SingleSonarIssue_ErrorCodeReturned(string fullRuleKey, string expectedRepo, string expectedRule, string buildTool)
     {
         // Arrange
         var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
         {
             { StandardTableKeyNames.BuildTool, buildTool },
-            { StandardTableKeyNames.HelpLink, helpLink },
             { StandardTableKeyNames.ErrorCode, fullRuleKey }
         });
         MockErrorList(issueHandle);
@@ -250,28 +142,21 @@ public class ErrorListHelperTests
     }
 
     [TestMethod]
-    [DataRow("S666", "csharpsquid", "S666", "SonarAnalyzer.CSharp", null)]
-    [DataRow("S667", "csharpsquid", "S667", "SonarAnalyzer.Enterprise.CSharp", null)]
-    [DataRow("S666", "vbnet", "S666", "SonarAnalyzer.VisualBasic", null)]
-    [DataRow("S234", "vbnet", "S234", "SonarAnalyzer.VisualBasic", null)]
-    [DataRow("S234", "vbnet", "S234", "SonarAnalyzer.Enterprise.VisualBasic", null)]
-    [DataRow("c:S111", "c", "S111", "SonarLint", null)]
-    [DataRow("cpp:S222", "cpp", "S222", "SonarLint", null)]
-    [DataRow("javascript:S333", "javascript", "S333", "SonarLint", null)]
-    [DataRow("typescript:S444", "typescript", "S444", "SonarLint", null)]
-    [DataRow("secrets:S555", "secrets", "S555", "SonarLint", null)]
-    [DataRow("foo:bar", "foo", "bar", "SonarLint", null)]
-    [DataRow("S666", "csharpsquid", "S666", null, "https://rules.sonarsource.com/csharp/RSPEC-666/")]
-    [DataRow("S666", "vbnet", "S666", null, "https://rules.sonarsource.com/vbnet/RSPEC-666/")]
-    [DataRow("S234", "vbnet", "S234", null, "https://rules.sonarsource.com/vbnet/RSPEC-234/")]
-    public void TryGetRuleId_FromHandle_ErrorCodeReturned(string fullRuleKey, string expectedRepo, string expectedRule, string buildTool, string helpLink)
+    [DataRow("csharpsquid:S666", "csharpsquid", "S666", "SonarLint")]
+    [DataRow("vbnet:S666", "vbnet", "S666", "SonarLint")]
+    [DataRow("c:S111", "c", "S111", "SonarLint")]
+    [DataRow("cpp:S222", "cpp", "S222", "SonarLint")]
+    [DataRow("javascript:S333", "javascript", "S333", "SonarLint")]
+    [DataRow("typescript:S444", "typescript", "S444", "SonarLint")]
+    [DataRow("secrets:S555", "secrets", "S555", "SonarLint")]
+    [DataRow("foo:bar", "foo", "bar", "SonarLint")]
+    public void TryGetRuleId_FromHandle_ErrorCodeReturned(string fullRuleKey, string expectedRepo, string expectedRule, string buildTool)
     {
         // Note: this is a copy of TryGetRuleIdFromSelectedRow_SingleSonarIssue_ErrorCodeReturned,
         //       but without the serviceProvider and IErrorList setup
         var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
         {
             { StandardTableKeyNames.BuildTool, buildTool },
-            { StandardTableKeyNames.HelpLink, helpLink },
             { StandardTableKeyNames.ErrorCode, fullRuleKey }
         });
 

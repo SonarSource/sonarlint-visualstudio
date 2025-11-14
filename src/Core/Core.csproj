@@ -50,6 +50,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <Compile Remove="Suppressions\FilterableRoslynIssue.cs" />
   </ItemGroup>
 
   <ItemGroup>

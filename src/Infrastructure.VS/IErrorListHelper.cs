@@ -58,11 +58,11 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         /// <returns>True if issue is present in the provided row</returns>
         bool TryGetFilterableIssue(ITableEntryHandle handle, out IFilterableIssue issue);
 
-        /// <summary>
-        /// Extracts <see cref="IFilterableRoslynIssue"/> from error code, line number and file path. Does not calculate line hash.
-        /// </summary>
-        /// <returns>True if error code is of sonar issue, line number and file path are available. False otherwise or if multiple rows selected</returns>
-        bool TryGetRoslynIssueFromSelectedRow(out IFilterableRoslynIssue filterableRoslynIssue);
+        // /// <summary>
+        // /// Extracts <see cref="IFilterableRoslynIssue"/> from error code, line number and file path. Does not calculate line hash.
+        // /// </summary>
+        // /// <returns>True if error code is of sonar issue, line number and file path are available. False otherwise or if multiple rows selected</returns>
+        // bool TryGetRoslynIssueFromSelectedRow(out IFilterableRoslynIssue filterableRoslynIssue);
 
         /// <summary>
         /// Similarly to <see cref="TryGetRuleIdFromSelectedRow"/>, this method extracts the rule id, however, it also fetches suppression state from the same row

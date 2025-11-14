@@ -429,11 +429,20 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This issue is already resolved on the server. It will be removed from the Error List after the next SonarQube for Visual Studio analysis..
+        ///   Looks up a localized string similar to Mute Issue Failure.
         /// </summary>
-        internal static string MuteIssue_ErrorIssueAlreadyResolved {
+        internal static string MuteIssue_FailureCaption {
             get {
-                return ResourceManager.GetString("MuteIssue_ErrorIssueAlreadyResolved", resourceCulture);
+                return ResourceManager.GetString("MuteIssue_FailureCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Issue {0} resolved.
+        /// </summary>
+        internal static string MuteIssue_HaveMuted {
+            get {
+                return ResourceManager.GetString("MuteIssue_HaveMuted", resourceCulture);
             }
         }
         
@@ -443,6 +452,15 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         internal static string MuteIssue_IssueNotFound {
             get {
                 return ResourceManager.GetString("MuteIssue_IssueNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Issue is resolved but an error occured while adding the comment, please refer to the logs for more information..
+        /// </summary>
+        internal static string MuteIssue_MessageBox_AddCommentFailed {
+            get {
+                return ResourceManager.GetString("MuteIssue_MessageBox_AddCommentFailed", resourceCulture);
             }
         }
         
@@ -461,6 +479,15 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         internal static string MuteIssue_NotPermitted {
             get {
                 return ResourceManager.GetString("MuteIssue_NotPermitted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mute Issue Warning.
+        /// </summary>
+        internal static string MuteIssue_WarningCaption {
+            get {
+                return ResourceManager.GetString("MuteIssue_WarningCaption", resourceCulture);
             }
         }
         
