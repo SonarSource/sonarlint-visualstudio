@@ -239,6 +239,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
+    <Compile Remove="Analysis\RoslynIssueLineHashCalculator.cs" />
   </ItemGroup>
 
   <!-- ***************************************** -->
