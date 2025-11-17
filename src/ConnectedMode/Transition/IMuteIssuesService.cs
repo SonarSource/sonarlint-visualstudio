@@ -24,6 +24,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Transition
 {
     public interface IMuteIssuesService
     {
-        Task ResolveIssueWithDialogAsync(IFilterableIssue issue);
+        void ResolveIssueWithDialog(IFilterableIssue issue);
     }
 }

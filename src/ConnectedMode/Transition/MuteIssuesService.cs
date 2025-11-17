@@ -19,6 +19,8 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Windows;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Suppressions;
@@ -38,15 +40,37 @@ internal class MuteIssuesService(
     IMuteIssuesWindowService muteIssuesWindowService,
     IActiveConfigScopeTracker activeConfigScopeTracker,
     ISLCoreServiceProvider slCoreServiceProvider,
+    IMessageBox messageBox,
     ILogger logger,
     IThreadHandling threadHandling)
     : IMuteIssuesService
 {
     private readonly ILogger logger = logger.ForContext(nameof(MuteIssuesService));
 
-    public async Task ResolveIssueWithDialogAsync(IFilterableIssue issue)
+    public void ResolveIssueWithDialog(IFilterableIssue issue) =>
+        threadHandling.RunOnBackgroundThread(async () =>
+        {
+            try
+            {
+                await ResolveIssueWithDialogAsync(issue);
+                logger.WriteLine(Resources.MuteIssue_HaveMuted);
+            }
+            catch (MuteIssueException.MuteIssueCommentFailedException)
+            {
+                messageBox.Show(Resources.MuteIssue_MessageBox_AddCommentFailed, Resources.MuteIssue_WarningCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            catch (MuteIssueException.MuteIssueCancelledException)
+            {
+                // do nothing
+            }
+            catch (MuteIssueException ex)
+            {
+                messageBox.Show(ex.Message, Resources.MuteIssue_FailureCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+            }
+        }).Forget();
+
+    private async Task ResolveIssueWithDialogAsync(IFilterableIssue issue)
     {
-        threadHandling.ThrowIfOnUIThread();
         var issueServerKey = GetIssueServerKey(issue);
         var currentConfigScope = activeConfigScopeTracker.Current;
         CheckIsInConnectedMode(currentConfigScope);

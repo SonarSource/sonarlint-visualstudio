@@ -100,30 +100,6 @@ public class ErrorListHelper(IVsUIServiceOperation vSServiceOperation) : IErrorL
         return result;
     }
 
-    public bool TryGetRoslynIssueFromSelectedRow(out IFilterableRoslynIssue filterableRoslynIssue)
-    {
-        IFilterableRoslynIssue outIssue = null;
-
-        var result = vSServiceOperation.Execute<SVsErrorList, IErrorList, bool>(errorList =>
-        {
-            string errorCode;
-            if (TryGetSelectedSnapshotAndIndex(errorList, out var snapshot, out var index)
-                && (errorCode = FindErrorCodeForEntry(snapshot, index)) != null
-                && TryGetValue(snapshot, index, StandardTableKeyNames.DocumentName, out string filePath)
-                && TryGetValue(snapshot, index, StandardTableKeyNames.Line, out int line)
-                && TryGetValue(snapshot, index, StandardTableKeyNames.Column, out int column))
-            {
-                outIssue = new FilterableRoslynIssue(errorCode, filePath, line + 1, column + 1 /* error list issues are 0-based and we use 1-based line & column numbers */);
-            }
-
-            return outIssue != null;
-        });
-
-        filterableRoslynIssue = outIssue;
-
-        return result;
-    }
-
     private static bool IsSuppressed(ITableEntryHandle handle) =>
         handle.TryGetSnapshot(out var snapshot, out var index)
         && TryGetValue(snapshot, index, StandardTableKeyNames.SuppressionState, out SuppressionState suppressionState)
@@ -136,44 +112,12 @@ public class ErrorListHelper(IVsUIServiceOperation vSServiceOperation) : IErrorL
             return null;
         }
 
-        if (TryGetValue(snapshot, index, StandardTableKeyNames.BuildTool, out string buildTool))
+        if (!TryGetValue(snapshot, index, StandardTableKeyNames.BuildTool, out string buildTool))
         {
-            // For CSharp and VisualBasic the buildTool returns the name of the analyzer package.
-            // The prefix is required for roslyn languages as the error code is in style "S111" meaning
-            // unlike other languages it has no repository prefix.
-            return buildTool switch
-            {
-                "SonarAnalyzer.CSharp" => $"{Language.CSharp.RepoInfo.Key}:{errorCode}",
-                "SonarAnalyzer.Enterprise.CSharp" => $"{Language.CSharp.RepoInfo.Key}:{errorCode}",
-                "SonarAnalyzer.VisualBasic" => $"{Language.VBNET.RepoInfo.Key}:{errorCode}",
-                "SonarAnalyzer.Enterprise.VisualBasic" => $"{Language.VBNET.RepoInfo.Key}:{errorCode}",
-                "SonarLint" => errorCode,
-                _ => null
-            };
+            return null;
         }
 
-        if (TryGetValue(snapshot, index, StandardTableKeyNames.HelpLink, out string helpLink))
-        {
-            if (helpLink.Contains("rules.sonarsource.com/csharp/"))
-            {
-                return $"{Language.CSharp.RepoInfo.Key}:{errorCode}";
-            }
-
-            if (helpLink.Contains("rules.sonarsource.com/vbnet/"))
-            {
-                return $"{Language.VBNET.RepoInfo.Key}:{errorCode}";
-            }
-        }
-
-        return null;
-    }
-
-    private static bool TryGetSelectedSnapshotAndIndex(IErrorList errorList, out ITableEntriesSnapshot snapshot, out int index)
-    {
-        snapshot = default;
-        index = default;
-
-        return TryGetSelectedTableEntry(errorList, out var handle) && handle.TryGetSnapshot(out snapshot, out index);
+        return buildTool == "SonarLint" ? errorCode : null;
     }
 
     private static bool TryGetSelectedTableEntry(IErrorList errorList, out ITableEntryHandle handle)

@@ -20,9 +20,11 @@
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Issues;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 
@@ -34,6 +36,7 @@ internal interface IIssuesReportViewModel : IDisposable
     event EventHandler<IssuesChangedEventArgs> IssuesChanged;
 
     void ShowIssueInBrowser(IAnalysisIssue issue);
+    void ChangeStatus(IAnalysisIssueVisualization issue);
 
     void ShowIssueVisualization();
 }
@@ -41,11 +44,17 @@ internal interface IIssuesReportViewModel : IDisposable
 [Export(typeof(IIssuesReportViewModel))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method:ImportingConstructor]
-internal sealed class IssuesReportViewModel(ILocalIssuesStore localIssuesStore, IShowInBrowserService showInBrowserService, IThreadHandling threadHandling) : IssuesReportViewModelBase(localIssuesStore, threadHandling), IIssuesReportViewModel
+internal sealed class IssuesReportViewModel(
+    ILocalIssuesStore localIssuesStore,
+    IShowInBrowserService showInBrowserService,
+    IMuteIssuesService muteIssuesService,
+    IThreadHandling threadHandling) : IssuesReportViewModelBase(localIssuesStore, threadHandling), IIssuesReportViewModel
 {
     public IEnumerable<IIssueViewModel> GetIssueViewModels() => localIssuesStore.GetAll().Select(x => new IssueViewModel(x));
 
     public void ShowIssueInBrowser(IAnalysisIssue issue) => showInBrowserService.ShowIssue(issue.IssueServerKey);
+
+    public void ChangeStatus(IAnalysisIssueVisualization issue) => muteIssuesService.ResolveIssueWithDialog(issue);
 
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     public void ShowIssueVisualization() => ToolWindowNavigator.Instance.ShowIssueVisualizationToolWindow();

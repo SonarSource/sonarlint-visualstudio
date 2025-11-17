@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
@@ -36,6 +37,7 @@ public class IssuesReportViewModelTests
     private IssuesReportViewModel testSubject;
     private IShowInBrowserService showInBrowserService;
     private IThreadHandling threadHandling;
+    private IMuteIssuesService muteIssuesService;
 
     [TestInitialize]
     public void TestInitialize()
@@ -43,8 +45,9 @@ public class IssuesReportViewModelTests
         localIssuesStore = Substitute.For<ILocalIssuesStore>();
         showInBrowserService = Substitute.For<IShowInBrowserService>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+        muteIssuesService = Substitute.For<IMuteIssuesService>();
 
-        testSubject = new IssuesReportViewModel(localIssuesStore, showInBrowserService, threadHandling);
+        testSubject = new IssuesReportViewModel(localIssuesStore, showInBrowserService, muteIssuesService, threadHandling);
     }
 
     [TestMethod]
@@ -52,6 +55,7 @@ public class IssuesReportViewModelTests
         MefTestHelpers.CheckTypeCanBeImported<IssuesReportViewModel, IIssuesReportViewModel>(
             MefTestHelpers.CreateExport<ILocalIssuesStore>(),
             MefTestHelpers.CreateExport<IShowInBrowserService>(),
+            MefTestHelpers.CreateExport<IMuteIssuesService>(),
             MefTestHelpers.CreateExport<IThreadHandling>()
         );
 
@@ -97,7 +101,7 @@ public class IssuesReportViewModelTests
     }
 
     [TestMethod]
-    public void ShowIssueInBrowser_CallsServiceWithCorrectArgumentAndSendTelemetry()
+    public void ShowIssueInBrowser_CallsServiceWithCorrectArgument()
     {
         var issue = Substitute.For<IAnalysisIssue>();
         issue.IssueServerKey.Returns("key");
@@ -105,6 +109,16 @@ public class IssuesReportViewModelTests
         testSubject.ShowIssueInBrowser(issue);
 
         showInBrowserService.Received(1).ShowIssue(issue.IssueServerKey);
+    }
+
+    [TestMethod]
+    public void ChangeStatus_CallsServiceWithCorrectArgument()
+    {
+        var issue = Substitute.For<IAnalysisIssueVisualization>();
+
+        testSubject.ChangeStatus(issue);
+
+        muteIssuesService.Received(1).ResolveIssueWithDialog(issue);
     }
 
     private static IAnalysisIssueVisualization CreateMockedIssue(string filePath)
