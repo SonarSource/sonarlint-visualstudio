@@ -82,8 +82,11 @@ jobs:
           versionProps=$(cat build/Version.props)
           sonarProjectVersion=$(echo "$versionProps" | sed -n 's:.*<MainVersion>\(.*\)</MainVersion>.*:\1:p')
           PROJECT_VERSION="${sonarProjectVersion}.${BUILD_NUMBER}"
+          PROJECT_VERSION_WITHOUT_BUILD_NUMBER="${sonarProjectVersion}"
           echo "PROJECT_VERSION=${PROJECT_VERSION}" >> $GITHUB_ENV
-          echo "${PROJECT_VERSION}"
+          echo "PROJECT_VERSION_WITHOUT_BUILD_NUMBER=${PROJECT_VERSION_WITHOUT_BUILD_NUMBER}" >> $GITHUB_ENV
+          echo "PROJECT_VERSION: ${PROJECT_VERSION}"
+          echo "PROJECT_VERSION_WITHOUT_BUILD_NUMBER: $PROJECT_VERSION_WITHOUT_BUILD_NUMBER"
           msbuild.exe build/ChangeVersion.proj -p:Sha1=${GITHUB_SHA} -p:BranchName=${BRANCH_NAME} -p:BuildNumber=${BUILD_NUMBER} -p:BuildConfiguration=Release
           msbuild.exe build/DownloadDependencies -p:VsVersion=17.0 -p:VsTargetVersion=2022
           dotnet restore "SonarQube.VisualStudio.sln" --locked-mode
@@ -106,8 +109,7 @@ jobs:
           SONAR_URL: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_URL }}
           SONAR_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_TOKEN }}
           COVERAGE_FILE: ${{ github.workspace }}/coverage.xml
-        run: |
-          .github/scripts/sonarqube-analysis.sh
+        run: .github/scripts/sonarqube-analysis.sh
 
       - name: Build Unsigned
         if: ${{ github.ref_name != 'master' && !startsWith(github.ref_name, 'branch-') && !startsWith(github.ref_name, 'sign-') }}
