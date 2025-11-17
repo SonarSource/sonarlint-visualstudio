@@ -19,11 +19,12 @@
  */
 
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-internal abstract class ServerViewModel : ViewModelBase, IDisposable
+internal abstract class ServerViewModel : ViewModelBase, IDisposable, IRequireInitialization
 {
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private bool isCloud;
@@ -49,20 +50,20 @@ internal abstract class ServerViewModel : ViewModelBase, IDisposable
         }
     }
 
-    protected abstract void HandleBindingChange(BindingConfiguration newBinding);
+    public IInitializationProcessor InitializationProcessor { get; }
 
-    protected ServerViewModel(IActiveSolutionBoundTracker activeSolutionBoundTracker)
+    protected ServerViewModel(IActiveSolutionBoundTracker activeSolutionBoundTracker, IInitializationProcessorFactory initializationProcessorFactory)
     {
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
-        activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
-        UpdateConnectedModeState(activeSolutionBoundTracker.CurrentConfiguration);
+
+        InitializationProcessor = initializationProcessorFactory.CreateAndStart<ServerViewModel>([activeSolutionBoundTracker], () =>
+        {
+            activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
+            UpdateConnectedModeState(activeSolutionBoundTracker.CurrentConfiguration);
+        });
     }
 
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
+    protected abstract void HandleBindingChange(BindingConfiguration newBinding);
 
     protected virtual void Dispose(bool disposing)
     {
@@ -86,4 +87,10 @@ internal abstract class ServerViewModel : ViewModelBase, IDisposable
     }
 
     private static bool IsCurrentConfigurationToCloud(BindingConfiguration bindingConfiguration) => bindingConfiguration?.Project?.ServerConnection is ServerConnection.SonarCloud;
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 }

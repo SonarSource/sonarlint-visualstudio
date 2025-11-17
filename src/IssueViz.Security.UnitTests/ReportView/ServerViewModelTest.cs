@@ -18,38 +18,43 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView;
 
 [TestClass]
 public class ServerViewModelTest
 {
+    private IRequireInitialization[] dependencies;
     private IActiveSolutionBoundTracker activeSolutionBoundTracker;
+    private IInitializationProcessorFactory initializationProcessorFactory;
+    private static TestLogger logger;
+    private static NoOpThreadHandler noOpThreadHandler;
     private ServerViewModel testSubject;
 
     [TestInitialize]
     public void TestInitialize()
     {
         activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
+        dependencies = [activeSolutionBoundTracker];
         activeSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
-        testSubject = CreateTestSubject();
+        noOpThreadHandler = Substitute.ForPartsOf<NoOpThreadHandler>();
+        logger = Substitute.ForPartsOf<TestLogger>();
+        initializationProcessorFactory = CreateDefaultInitialization();
+
+        testSubject = CreateTestSubject(initializationProcessorFactory);
     }
 
     [TestMethod]
-    public void Ctor_RegistersToEvents() => activeSolutionBoundTracker.ReceivedWithAnyArgs(1).SolutionBindingChanged += Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
-
-    [TestMethod]
-    public void Ctor_InitializesIsCloud()
+    public void Ctor_RegistersToEvents()
     {
-        activeSolutionBoundTracker.CurrentConfiguration.Returns(CreateBindingConfiguration(new ServerConnection.SonarCloud("myOrg"), SonarLintMode.Connected));
-        activeSolutionBoundTracker.ClearReceivedCalls();
-
-        var hotspotsControlViewModel = CreateTestSubject();
-
-        _ = activeSolutionBoundTracker.Received(1).CurrentConfiguration;
-        hotspotsControlViewModel.IsCloud.Should().BeTrue();
+        initializationProcessorFactory.Received()
+            .Create<ServerViewModel>(Arg.Is<IReadOnlyCollection<IRequireInitialization>>(x => x.SequenceEqual(dependencies)), Arg.Any<Func<IThreadHandling, Task>>());
+        activeSolutionBoundTracker.ReceivedWithAnyArgs(1).SolutionBindingChanged += Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
     }
 
     [TestMethod]
@@ -112,7 +117,7 @@ public class ServerViewModelTest
         var cloudBindingConfiguration = CreateBindingConfiguration(new ServerConnection.SonarQube(new Uri("C:\\")), SonarLintMode.Connected);
         testSubject?.Dispose();
         var bindingHandler = Substitute.For<Action<BindingConfiguration>>();
-        testSubject = CreateTestSubject(bindingHandler);
+        testSubject = CreateTestSubject(CreateDefaultInitialization(), bindingHandler);
 
         activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(cloudBindingConfiguration));
 
@@ -134,7 +139,7 @@ public class ServerViewModelTest
         activeSolutionBoundTracker.CurrentConfiguration.Returns(bindingConfig);
         activeSolutionBoundTracker.ClearReceivedCalls();
 
-        var vm = CreateTestSubject();
+        var vm = CreateTestSubject(CreateDefaultInitialization());
 
         vm.IsCloud.Should().BeTrue();
         vm.IsConnectedMode.Should().BeTrue();
@@ -147,7 +152,7 @@ public class ServerViewModelTest
         activeSolutionBoundTracker.CurrentConfiguration.Returns(bindingConfig);
         activeSolutionBoundTracker.ClearReceivedCalls();
 
-        var vm = CreateTestSubject();
+        var vm = CreateTestSubject(CreateDefaultInitialization());
 
         vm.IsCloud.Should().BeFalse();
         vm.IsConnectedMode.Should().BeTrue();
@@ -160,18 +165,20 @@ public class ServerViewModelTest
         activeSolutionBoundTracker.CurrentConfiguration.Returns(bindingConfig);
         activeSolutionBoundTracker.ClearReceivedCalls();
 
-        var vm = CreateTestSubject();
+        var vm = CreateTestSubject(CreateDefaultInitialization());
 
         vm.IsCloud.Should().BeFalse();
         vm.IsConnectedMode.Should().BeFalse();
     }
 
-    private ServerViewModel CreateTestSubject(Action<BindingConfiguration> bindingProcessing = null) => new TestServerViewModel(activeSolutionBoundTracker, bindingProcessing ?? (_ => { }));
+    private ServerViewModel CreateTestSubject(IInitializationProcessorFactory init, Action<BindingConfiguration> bindingProcessing = null) => new TestServerViewModel(activeSolutionBoundTracker, bindingProcessing ?? (_ => { }), init);
+
+    private static IInitializationProcessorFactory CreateDefaultInitialization() => MockableInitializationProcessor.CreateFactory<ServerViewModel>(noOpThreadHandler, logger);
 
     private static BindingConfiguration CreateBindingConfiguration(ServerConnection serverConnection, SonarLintMode mode) =>
         new(new BoundServerProject("my solution", "my project", serverConnection), mode, string.Empty);
 
-    private class TestServerViewModel(IActiveSolutionBoundTracker activeSolutionBoundTracker, Action<BindingConfiguration> bindingProcessing) : ServerViewModel(activeSolutionBoundTracker)
+    private class TestServerViewModel(IActiveSolutionBoundTracker activeSolutionBoundTracker, Action<BindingConfiguration> bindingProcessing, IInitializationProcessorFactory initializationProcessorFactory) : ServerViewModel(activeSolutionBoundTracker, initializationProcessorFactory)
     {
         protected override void HandleBindingChange(BindingConfiguration newBinding) => bindingProcessing(newBinding);
     }

@@ -1006,7 +1006,8 @@ public class ReportViewModelTest
             activeDocumentLocator,
             activeDocumentTracker,
             documentTracker,
-            threadHandling);
+            threadHandling,
+            MockableInitializationProcessor.CreateFactory<ServerViewModel>(Substitute.ForPartsOf<NoOpThreadHandler>(), Substitute.For<ILogger>()));
         reportViewModel.PropertyChanged += eventHandler;
         testSubject = reportViewModel;
     }

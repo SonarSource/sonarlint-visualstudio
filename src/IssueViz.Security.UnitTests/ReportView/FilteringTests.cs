@@ -412,7 +412,8 @@ public class FilteringTests
             activeDocumentLocator,
             activeDocumentTracker,
             documentTracker,
-            threadHandling);
+            threadHandling,
+            MockableInitializationProcessor.CreateFactory<ServerViewModel>(Substitute.ForPartsOf<NoOpThreadHandler>(), Substitute.For<ILogger>()));
         reportViewModel.PropertyChanged += eventHandler;
         testSubject = reportViewModel;
         MockStatusFilter(DisplayStatus.Any); // tests were written with this assumption, changing the tests would take too much time
@@ -494,7 +495,6 @@ public class FilteringTests
 
     private static IDependencyRisk CreateDependencyRisk(
         Guid? id = null,
-        bool isResolved = false,
         DependencyRiskImpactSeverity severity = default,
         DependencyRiskStatus status = default)
     {

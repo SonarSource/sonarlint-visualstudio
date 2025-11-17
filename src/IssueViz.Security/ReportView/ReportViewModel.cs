@@ -23,6 +23,7 @@ using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
@@ -74,7 +75,8 @@ internal class
         IActiveDocumentLocator activeDocumentLocator,
         IActiveDocumentTracker activeDocumentTracker,
         IDocumentTracker documentTracker,
-        IThreadHandling threadHandling) : base(activeSolutionBoundTracker)
+        IThreadHandling threadHandling,
+        IInitializationProcessorFactory initializationProcessorFactory) : base(activeSolutionBoundTracker, initializationProcessorFactory)
     {
         this.hotspotsReportViewModel = hotspotsReportViewModel;
         this.dependencyRisksReportViewModel = dependencyRisksReportViewModel;
