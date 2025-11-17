@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
@@ -74,7 +75,8 @@ internal sealed partial class ReportViewControl : UserControl
         IActiveDocumentLocator activeDocumentLocator,
         IActiveDocumentTracker activeDocumentTracker,
         IDocumentTracker documentTracker,
-        IThreadHandling threadHandling)
+        IThreadHandling threadHandling,
+        IInitializationProcessorFactory initializationProcessorFactory)
     {
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.browserService = browserService;
@@ -94,7 +96,8 @@ internal sealed partial class ReportViewControl : UserControl
             activeDocumentLocator,
             activeDocumentTracker,
             documentTracker,
-            threadHandling);
+            threadHandling,
+            initializationProcessorFactory);
         InitializeComponent();
     }
 

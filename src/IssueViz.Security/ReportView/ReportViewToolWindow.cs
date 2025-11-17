@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
@@ -62,7 +63,8 @@ internal class ReportViewToolWindow : ToolWindowPane
             componentModel?.GetService<IActiveDocumentLocator>(),
             componentModel?.GetService<IActiveDocumentTracker>(),
             componentModel?.GetService<IDocumentTracker>(),
-            componentModel?.GetService<IThreadHandling>()
+            componentModel?.GetService<IThreadHandling>(),
+            componentModel?.GetService<IInitializationProcessorFactory>()
         );
     }
 }
