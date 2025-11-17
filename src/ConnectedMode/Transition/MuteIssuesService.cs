@@ -52,7 +52,7 @@ internal class MuteIssuesService(
         {
             try
             {
-                await MuteIssueAsync(issue);
+                await ResolveIssueWithDialogAsync(issue);
                 logger.WriteLine(Resources.MuteIssue_HaveMuted);
             }
             catch (MuteIssueException.MuteIssueCommentFailedException)
@@ -69,7 +69,7 @@ internal class MuteIssuesService(
             }
         }).Forget();
 
-    private async Task MuteIssueAsync(IFilterableIssue issue)
+    private async Task ResolveIssueWithDialogAsync(IFilterableIssue issue)
     {
         var issueServerKey = GetIssueServerKey(issue);
         var currentConfigScope = activeConfigScopeTracker.Current;
