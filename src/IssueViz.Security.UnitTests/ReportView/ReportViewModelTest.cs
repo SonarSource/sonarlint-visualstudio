@@ -982,16 +982,6 @@ public class ReportViewModelTest
         VerifyExpectedGroups(false);
     }
 
-    [TestMethod]
-    public void BindingChange_ClearsGroups()
-    {
-        // todo https://sonarsource.atlassian.net/browse/SLVS-2620 binding change force clears issue list
-        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(BindingConfiguration.Standalone));
-
-        testSubject.AllGroupViewModels.Should().HaveCount(0);
-        testSubject.FilteredGroupViewModels.Should().HaveCount(0);
-    }
-
     private void CreateTestSubject()
     {
         var reportViewModel = new ReportViewModel(activeSolutionBoundTracker,

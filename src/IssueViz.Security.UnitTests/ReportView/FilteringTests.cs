@@ -378,8 +378,6 @@ public class FilteringTests
     {
         activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(BindingConfiguration.Standalone));
 
-        testSubject.InitializeViewModels(); // todo https://sonarsource.atlassian.net/browse/SLVS-2620 binding change force clears issue list
-
         testSubject.FilteredGroupViewModels.Should().HaveCount(4);
         VerifyIsExpectedGroup(TsFilePath, tsTaintHigh);
         VerifyIsExpectedGroup(CsharpFilePath, csharpHotspotInfo);
