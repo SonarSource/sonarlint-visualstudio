@@ -111,12 +111,6 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
                 return null;
             }
 
-            if (textRangeDto is { startLine: 1, startLineOffset: 0, endLine: 1, endLineOffset: 0 })
-            {
-                // todo https://sonarsource.atlassian.net/browse/SLVS-2695 Roslyn Integration: File-level issues should be reported with `null` TextRange for consistency
-                return null;
-            }
-
             return new TextRange(textRangeDto.startLine,
                 textRangeDto.endLine,
                 textRangeDto.startLineOffset,
