@@ -265,27 +265,6 @@ public class RaiseFindingToAnalysisIssueConverterTests
         issue.PrimaryLocation.Message.Should().Be(primaryMessage);
     }
 
-    /// <summary>
-    /// File level issues do not have a TextRange
-    /// </summary>
-    // todo https://sonarsource.atlassian.net/browse/SLVS-2695 Roslyn Integration: File-level issues should be reported with `null` TextRange for consistency
-    [TestMethod]
-    public void GetAnalysisIssues_TextRangeDtoIsEmptySpanAtTheBeginning_ConvertsCorrectly()
-    {
-        const string primaryMessage = "PrimaryMessage1";
-        var issue1 = CreateRaisedHotspotDto(
-            id: IssueWithFlowsAndQuickFixesUseCase.Issue1Id,
-            primaryMessage: primaryMessage,
-            textRange: new TextRangeDto(1, 0, 1, 0));
-
-        var analysisIssues = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedFindingDto> { issue1 }).ToList();
-
-        var issue = analysisIssues.SingleOrDefault() as AnalysisIssue;
-        issue.Should().NotBeNull();
-        issue.PrimaryLocation.TextRange.Should().BeNull();
-        issue.PrimaryLocation.Message.Should().Be(primaryMessage);
-    }
-
     [TestMethod]
     public void GetAnalysisIssues_IssueWithQuickFixSplitIntoTwoFileEdits_ReturnsIssueWithSingleQuickFix()
     {
