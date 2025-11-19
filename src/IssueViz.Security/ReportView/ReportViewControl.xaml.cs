@@ -101,20 +101,6 @@ internal sealed partial class ReportViewControl : UserControl
         InitializeComponent();
     }
 
-    private void TreeViewItem_OnPreviewMouseUp(object sender, MouseButtonEventArgs e)
-    {
-        if (sender is TreeViewItem treeViewItem && IsOriginalClickedTreeViewItem(e.OriginalSource as FrameworkElement, treeViewItem))
-        {
-            treeViewItem.IsExpanded = !treeViewItem.IsExpanded;
-        }
-    }
-
-    /// <summary>
-    /// Make sure that the original source of the mouse event is the same as the TreeViewItem that was clicked.
-    /// This is to prevent handling the click event when the mouse is released on a child element of the TreeViewItem
-    /// </summary>
-    private static bool IsOriginalClickedTreeViewItem(FrameworkElement originalSource, TreeViewItem treeViewItem) => FindParentOfType<TreeViewItem>(originalSource) == treeViewItem;
-
     private static T FindParentOfType<T>(FrameworkElement element) where T : FrameworkElement
     {
         if (element == null)
@@ -187,24 +173,25 @@ internal sealed partial class ReportViewControl : UserControl
 
     private void ClearFiltersHyperlink(object sender, RequestNavigateEventArgs e) => ClearAllFilters_OnClick(sender, e);
 
-    private void TreeViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-    {
-        NavigateToLocation((sender as FrameworkElement)?.DataContext as IAnalysisIssueViewModel);
-    }
 
-    private void NavigateToLocation(IAnalysisIssueViewModel analysisIssueViewModel)
+    private void TreeViewItem_PreviewMouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (analysisIssueViewModel != null)
+        if (e.ClickCount % 2 == 0)
         {
-            ExecuteCommandIfValid(ReportViewModel.NavigateToLocationCommand, analysisIssueViewModel);
+            NavigateToLocation(ReportViewModel.SelectedItem ?? (sender as FrameworkElement)?.DataContext);
+            e.Handled = true; // setting as handled to prevent the default TreeViewItem behavior of toggling the expansion state
         }
     }
 
-    private static void ExecuteCommandIfValid(ICommand command, object parameter)
+    private void NavigateToLocation(object context)
     {
-        if (command.CanExecute(parameter))
+        if (context is IAnalysisIssueViewModel analysisIssueViewModel)
         {
-            command.Execute(parameter);
+            ReportViewModel.Navigate(analysisIssueViewModel);
+        }
+        else if (context is IGroupViewModel groupViewModel)
+        {
+            ReportViewModel.Navigate(groupViewModel);
         }
     }
 

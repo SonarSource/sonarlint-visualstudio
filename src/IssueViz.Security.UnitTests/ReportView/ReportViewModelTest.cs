@@ -107,7 +107,6 @@ public class ReportViewModelTest
     public void Class_InitializesProperties()
     {
         testSubject.NavigateToRuleDescriptionCommand.Should().BeSameAs(navigateToRuleDescriptionCommand);
-        testSubject.NavigateToLocationCommand.Should().NotBeNull();
     }
 
     [TestMethod]
@@ -895,32 +894,24 @@ public class ReportViewModelTest
     }
 
     [TestMethod]
-    public void NavigateToLocationCommand_NullParameter_CanExecuteReturnsFalse() => testSubject.NavigateToLocationCommand.CanExecute(null).Should().BeFalse();
-
-    [TestMethod]
-    public void NavigateToLocationCommand_NotAnalysisIssueViewModelParameter_CanExecuteReturnsFalse()
-    {
-        var viewModel = Substitute.For<IIssueViewModel>();
-
-        testSubject.NavigateToLocationCommand.CanExecute(viewModel).Should().BeFalse();
-    }
-
-    [TestMethod]
-    public void NavigateToLocationCommand_AnalysisIssueViewModelParameter_CanExecuteReturnsTrue()
+    public void NavigateToIssueLocation_NavigatesToLocation()
     {
         var analysisIssueViewModel = Substitute.For<IAnalysisIssueViewModel>();
 
-        testSubject.NavigateToLocationCommand.CanExecute(analysisIssueViewModel).Should().BeTrue();
-    }
-
-    [TestMethod]
-    public void NavigateToLocationCommand_NavigatesToLocation()
-    {
-        var analysisIssueViewModel = Substitute.For<IAnalysisIssueViewModel>();
-
-        testSubject.NavigateToLocationCommand.Execute(analysisIssueViewModel);
+        testSubject.Navigate(analysisIssueViewModel);
 
         locationNavigator.Received(1).TryNavigatePartial(analysisIssueViewModel.Issue);
+    }
+
+    [TestMethod]
+    public void NavigateToFile_NavigatesToLocation()
+    {
+        const string filePath = "file path";
+        var groupFileViewModel = new GroupFileViewModel(filePath, []);
+
+        testSubject.Navigate(groupFileViewModel);
+
+        locationNavigator.Received(1).TryNavigateFile(filePath);
     }
 
     [TestMethod]

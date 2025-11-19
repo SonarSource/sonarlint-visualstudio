@@ -29,6 +29,7 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
@@ -49,6 +50,7 @@ internal interface IReportViewModel
 internal class
     ReportViewModel : ServerViewModel, IReportViewModel
 {
+    private readonly ILocationNavigator locationNavigator;
     private readonly IHotspotsReportViewModel hotspotsReportViewModel;
     private readonly IDependencyRisksReportViewModel dependencyRisksReportViewModel;
     private readonly IIssuesReportViewModel issuesReportViewModel;
@@ -78,6 +80,7 @@ internal class
         IThreadHandling threadHandling,
         IInitializationProcessorFactory initializationProcessorFactory) : base(activeSolutionBoundTracker, initializationProcessorFactory)
     {
+        this.locationNavigator = locationNavigator;
         this.hotspotsReportViewModel = hotspotsReportViewModel;
         this.dependencyRisksReportViewModel = dependencyRisksReportViewModel;
         this.taintsReportViewModel = taintsReportViewModel;
@@ -88,6 +91,7 @@ internal class
         this.documentTracker = documentTracker;
         this.threadHandling = threadHandling;
         this.issuesReportViewModel = issuesReportViewModel;
+        NavigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
         AllGroupViewModels = new ObservableCollection<IGroupViewModel>();
         FilteredGroupViewModels = new ObservableCollection<IGroupViewModel>();
 
@@ -99,7 +103,6 @@ internal class
         documentTracker.DocumentClosed += DocumentTracker_DocumentClosed;
 
         InitializeActiveDocument();
-        InitializeCommands(navigateToRuleDescriptionCommand, locationNavigator);
         InitializeViewModels();
     }
 
@@ -134,7 +137,6 @@ internal class
     // this indicates whether to show the 'too restrictive filters' warning, we only want to do that if filtered issues are 0 but prefiltered are not
     public bool HasNoFilteredIssuesForGroupsWithIssues => AllGroupViewModels.Any() && FilteredGroupViewModels.All(x => !x.FilteredIssues.Any() && x.PreFilteredIssues.Any());
     public INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; set; }
-    public ICommand NavigateToLocationCommand { get; set; }
     public ReportViewFilterViewModel ReportViewFilter { get; } = new();
 
     public IIssueViewModel SelectedItem
@@ -315,18 +317,6 @@ internal class
     private IGroupViewModel GetGroupViewModelOfIssueViewModel(string filePath) =>
         AllGroupViewModels.FirstOrDefault(groupVm => groupVm is GroupFileViewModel && filePath == ((GroupFileViewModel)groupVm).FilePath);
 
-    private void InitializeCommands(
-        INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
-        ILocationNavigator locationNavigator)
-    {
-        NavigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
-        NavigateToLocationCommand = new DelegateCommand(parameter =>
-        {
-            var analysisIssueViewModel = (IAnalysisIssueViewModel)parameter;
-            locationNavigator.TryNavigate(analysisIssueViewModel.Issue);
-        }, parameter => parameter is IAnalysisIssueViewModel);
-    }
-
     private void InitializeActiveDocument()
     {
         activeDocumentFilePath = activeDocumentLocator.FindActiveDocument()?.FilePath;
@@ -354,5 +344,17 @@ internal class
         {
             FilteredGroupViewModels.Add(groupViewModel);
         }
+    }
+
+    public void Navigate(IAnalysisIssueViewModel analysisIssueViewModel) => locationNavigator.TryNavigate(analysisIssueViewModel.Issue);
+
+    public void Navigate(IGroupViewModel groupViewModel)
+    {
+        if (groupViewModel is not GroupFileViewModel fileViewModel)
+        {
+            return;
+        }
+
+        locationNavigator.TryNavigateFile(fileViewModel.FilePath);
     }
 }

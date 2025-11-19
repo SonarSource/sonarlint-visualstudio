@@ -36,6 +36,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 
     public interface ILocationNavigator
     {
+        NavigationResult TryNavigateFile(string filePath);
         NavigationResult TryNavigatePartial(IAnalysisIssueLocationVisualization locationVisualization);
     }
 
@@ -55,6 +56,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             this.logger = logger;
         }
 
+        public NavigationResult TryNavigateFile(string filePath)
+        {
+            if (filePath == null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            return TryOpenFile(filePath, out _) ? NavigationResult.OpenedFile : NavigationResult.Failed;
+        }
+
         public NavigationResult TryNavigatePartial(IAnalysisIssueLocationVisualization locationVisualization)
         {
             if (locationVisualization == null)
@@ -62,14 +73,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
                 throw new ArgumentNullException(nameof(locationVisualization));
             }
 
-            if (!TryOpenFile(locationVisualization, out var textView))
+            if (TryOpenFile(locationVisualization.CurrentFilePath, out var textView))
             {
-                return NavigationResult.Failed;
+                return TryNavigateIssueLocation(locationVisualization, textView)
+                    ? NavigationResult.OpenedLocation
+                    : NavigationResult.OpenedFile;
             }
 
-            return TryNavigateIssueLocation(locationVisualization, textView)
-                ? NavigationResult.OpenedLocation
-                : NavigationResult.OpenedFile;
+            locationVisualization.InvalidateSpan();
+            return NavigationResult.Failed;
         }
 
         private bool TryNavigateIssueLocation(IAnalysisIssueLocationVisualization locationVisualization, ITextView textView)
@@ -92,19 +104,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             return false;
         }
 
-        private bool TryOpenFile(IAnalysisIssueLocationVisualization locationVisualization, out ITextView textView)
+        private bool TryOpenFile(string filePath, out ITextView textView)
         {
             textView = default;
 
             try
             {
-                textView = documentNavigator.Open(locationVisualization.CurrentFilePath);
+                textView = documentNavigator.Open(filePath);
                 return true;
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Resources.ERR_OpenDocumentException, locationVisualization.CurrentFilePath, ex.Message);
-                locationVisualization.InvalidateSpan();
+                logger.WriteLine(Resources.ERR_OpenDocumentException, filePath, ex.Message);
                 return false;
             }
         }
