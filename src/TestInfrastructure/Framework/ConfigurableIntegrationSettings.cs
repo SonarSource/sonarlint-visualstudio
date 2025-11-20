@@ -27,6 +27,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
         public DaemonLogLevel DaemonLogLevel { get; set; }
         public string JreLocation { get; set; }
         public bool ShowCloudRegion { get; set; }
+        public CredentialStoreType CredentialStoreType { get; set; }
 
         public bool IsActivateMoreEnabled { get; set; }
     }

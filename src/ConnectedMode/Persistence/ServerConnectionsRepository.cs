@@ -52,11 +52,12 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository, IServ
     public ServerConnectionsRepository(
         IJsonFileHandler jsonFileHandle,
         IServerConnectionModelMapper serverConnectionModelMapper,
-        ICredentialStoreService credentialStoreService,
+        ISolutionBindingCredentialsLoader credentialsLoader,
+        IEnvironmentVariableProvider environmentVariables,
         ILogger logger) : this(jsonFileHandle,
         serverConnectionModelMapper,
-        new SolutionBindingCredentialsLoader(credentialStoreService),
-        EnvironmentVariableProvider.Instance,
+        credentialsLoader,
+        environmentVariables,
         new FileSystem(),
         logger)
     {
