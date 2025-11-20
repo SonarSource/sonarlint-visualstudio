@@ -204,6 +204,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Collapse all.
+        /// </summary>
+        public static string CollapseAllButtonTooltip {
+            get {
+                return ResourceManager.GetString("CollapseAllButtonTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Comment is required..
         /// </summary>
         public static string CommentRequiredErrorMessage {
@@ -281,6 +290,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string ERR_ShowToolWindow_Exception {
             get {
                 return ResourceManager.GetString("ERR_ShowToolWindow_Exception", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expand all.
+        /// </summary>
+        public static string ExpandAllButtonTooltip {
+            get {
+                return ResourceManager.GetString("ExpandAllButtonTooltip", resourceCulture);
             }
         }
         

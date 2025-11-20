@@ -393,7 +393,7 @@
                 <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}"
                           Click="ChangeHotspotStatusMenuItem_OnClick"
                           Style="{StaticResource ChangeStatusMenuItemStyle}"
-                          IsEnabled="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }" />      
+                          IsEnabled="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }" />
                 <MenuItem Click="ViewHotspotInBrowser_OnClick"
                           Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}"
@@ -441,10 +441,12 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
             <ColumnDefinition Name="Table" Width="*" />
         </Grid.ColumnDefinitions>
 
-        <Grid Grid.Row="0" Background="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarGradientBeginKey}}"
+        <Grid Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0"
+              Background="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarGradientBeginKey}}"
               DataContext="{Binding Path=ReportViewFilter}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -454,6 +456,7 @@
 
             <Grid Grid.Row="0" Grid.Column="0" Margin="5,0">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
@@ -614,13 +617,23 @@
 
             </Grid>
         </Grid>
+        
+        <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Vertical" Margin="7,0,0,5">
+            <Button Style="{StaticResource FilterButtonStyle}" Click="CollapseAllButton_OnClick" ToolTip="{x:Static res:Resources.CollapseAllButtonTooltip}">
+                <imaging:CrispImage Moniker="{x:Static vsimagecatalog:KnownMonikers.CollapseAll}" />
+            </Button>
+            <Button Style="{StaticResource FilterButtonStyle}" Click="ExpandAllButton_OnClick" ToolTip="{x:Static res:Resources.ExpandAllButtonTooltip}">
+                <imaging:CrispImage Moniker="{x:Static vsimagecatalog:KnownMonikers.ExpandAll}" />
+            </Button>
+        </StackPanel>
 
-        <TreeView Grid.Row="1" Grid.Column="0" Margin="0,5"
-                  ItemsSource="{Binding Path=FilteredGroupViewModels}"
-                  SelectedItemChanged="TreeView_OnSelectedItemChanged"
-                  VirtualizingStackPanel.IsVirtualizing="True"
-                  VirtualizingStackPanel.VirtualizationMode="Recycling"
-                  ScrollViewer.CanContentScroll="True">
+        <TreeView
+            Grid.Row="1" Grid.Column="1" Margin="0,5"
+            ItemsSource="{Binding Path=FilteredGroupViewModels}"
+            SelectedItemChanged="TreeView_OnSelectedItemChanged"
+            VirtualizingStackPanel.IsVirtualizing="True"
+            VirtualizingStackPanel.VirtualizationMode="Recycling"
+            ScrollViewer.CanContentScroll="True">
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type dependencyRisks:GroupDependencyRiskViewModel}"
                                           ItemsSource="{Binding FilteredIssues}">
@@ -884,7 +897,7 @@
             </TreeView.Resources>
         </TreeView>
 
-        <Grid Grid.Row="1" Background="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBackgroundKey}}"
+        <Grid Grid.Column="1" Grid.Row="1" Background="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBackgroundKey}}"
               Panel.ZIndex="1000"
               Visibility="{Binding Path=HasNoFilteredIssuesForGroupsWithIssues, Converter={StaticResource TrueToVisibleConverter}}">
             <StackPanel VerticalAlignment="Center">
@@ -902,7 +915,7 @@
             </StackPanel>
         </Grid>
 
-        <Grid Grid.Row="1" Background="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBackgroundKey}}"
+        <Grid Grid.Column="1" Grid.Row="1" Background="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBackgroundKey}}"
               Panel.ZIndex="1001"
               Visibility="{Binding Path=HasAnyGroups, Converter={StaticResource TrueToCollapsedConverter}}">
 

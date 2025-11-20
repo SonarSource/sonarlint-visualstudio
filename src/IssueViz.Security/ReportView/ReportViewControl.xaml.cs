@@ -295,4 +295,16 @@ internal sealed partial class ReportViewControl : UserControl
     private void Control_OnFilterChanged(object sender, EventArgs e) => ReportViewModel.ApplyFilter();
 
     private void ClearAllFilters_OnClick(object sender, RoutedEventArgs e) => ReportViewModel.ResetFilters();
+
+    private void CollapseAllButton_OnClick(object sender, RoutedEventArgs e) => SetGroupsExpansionState(false);
+
+    private void ExpandAllButton_OnClick(object sender, RoutedEventArgs e) => SetGroupsExpansionState(true);
+
+    private void SetGroupsExpansionState(bool isExpanded)
+    {
+        foreach (var groupViewModel in ReportViewModel.AllGroupViewModels)
+        {
+            groupViewModel.IsExpanded = isExpanded;
+        }
+    }
 }

@@ -431,4 +431,10 @@ Please check the logs for more details.</value>
   <data name="FilterNotAvailableInStandaloneMode">
     This filter is only available in Connected Mode
   </data>
+  <data name="CollapseAllButtonTooltip" xml:space="preserve">
+    <value>Collapse all</value>
+  </data>
+  <data name="ExpandAllButtonTooltip" xml:space="preserve">
+    <value>Expand all</value>
+  </data>
 </root>
