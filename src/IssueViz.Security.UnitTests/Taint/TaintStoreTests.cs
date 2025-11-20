@@ -666,9 +666,12 @@ public class TaintStoreTests
     public void Dispose_Called_EventHandlersUnsubscribed()
     {
         testSubject.Dispose();
-        documentTracker.DocumentOpened -= Arg.Any<EventHandler<DocumentEventArgs>>();
-        documentTracker.DocumentClosed -= Arg.Any<EventHandler<DocumentEventArgs>>();
-        documentTracker.OpenDocumentRenamed -= Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
+        testSubject.Dispose();
+        testSubject.Dispose();
+
+        documentTracker.Received(1).DocumentOpened -= Arg.Any<EventHandler<DocumentEventArgs>>();
+        documentTracker.Received(1).DocumentClosed -= Arg.Any<EventHandler<DocumentEventArgs>>();
+        documentTracker.Received(1).OpenDocumentRenamed -= Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
     }
 
     private Func<IssuesChangedEventArgs> CaptureIssuesChangedEventArgs()

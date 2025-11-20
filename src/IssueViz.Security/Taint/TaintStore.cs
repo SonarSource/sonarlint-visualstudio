@@ -72,6 +72,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
         private readonly object locker = new();
 
+        private bool disposed;
+
         private string configurationScope;
         private Dictionary<Guid, IAnalysisIssueVisualization> taintVulnerabilities = new();
         private readonly IDocumentTracker documentTracker;
@@ -300,6 +302,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
         public void Dispose()
         {
+            if (disposed)
+            {
+                return;
+            }
+
+            disposed = true;
             documentTracker.DocumentOpened -= DocumentTracker_DocumentClosed;
             documentTracker.DocumentClosed -= DocumentTracker_DocumentOpened;
             documentTracker.OpenDocumentRenamed -= DocumentTracker_OpenDocumentRenamed;
