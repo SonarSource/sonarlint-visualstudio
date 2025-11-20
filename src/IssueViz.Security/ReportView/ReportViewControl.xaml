@@ -41,8 +41,8 @@
 
             <!-- Default ToggleButton template for Expander arrow -->
             <ControlTemplate x:Key="ExpanderToggleButton" TargetType="ToggleButton">
-                <Grid Margin="10,0,0,0">
-                    <Path x:Name="Arrow" Fill="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}"
+                <Grid Margin="5,0,0,0" Background="Transparent">
+                    <Path x:Name="Arrow" Margin="5, 0" Fill="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}"
                           Data="M 0 0 L 8 4 L 0 8 Z" VerticalAlignment="Center" HorizontalAlignment="Center" />
                 </Grid>
                 <ControlTemplate.Triggers>
@@ -63,8 +63,7 @@
             <Style TargetType="TreeViewItem">
                 <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}" />
-                <EventSetter Event="PreviewMouseUp" Handler="TreeViewItem_OnPreviewMouseUp" />
-                <EventSetter Event="MouseDoubleClick" Handler="TreeViewItem_MouseDoubleClick" />
+                <EventSetter Event="PreviewMouseLeftButtonDown" Handler="TreeViewItem_PreviewMouseDown" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="TreeViewItem">
@@ -84,11 +83,11 @@
                                         SnapsToDevicePixels="true"
                                         Margin="{TemplateBinding Margin}">
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <ToggleButton x:Name="ExpanderArrow" Width="16" Height="16" Margin="2,0,2,0"
-                                                      IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                                        <ToggleButton x:Name="ExpanderArrow" Margin="2,0,2,0"
+                                                      IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
                                                       Visibility="{Binding HasItems, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource FalseToHiddenConverter}}"
                                                       Template="{StaticResource ExpanderToggleButton}" Cursor="Hand" />
-                                        <ContentPresenter x:Name="Header" ContentSource="Header" Margin="5,0,0,0"
+                                        <ContentPresenter x:Name="Header" ContentSource="Header" 
                                                           VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Border>
