@@ -181,7 +181,14 @@ internal sealed partial class ReportViewControl : UserControl
         }
     }
 
-    private void TreeView_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) => ReportViewModel.SelectedItem = e.NewValue as IIssueViewModel;
+    private void TreeView_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+    {
+        if (e.NewValue is null)
+        {
+            return;
+        }
+        ReportViewModel.SelectedItem = e.NewValue as IIssueViewModel;
+    }
 
     private void Hyperlink_OnRequestNavigate(object sender, RequestNavigateEventArgs e) => browserService.Navigate(e.Uri.AbsoluteUri);
 
