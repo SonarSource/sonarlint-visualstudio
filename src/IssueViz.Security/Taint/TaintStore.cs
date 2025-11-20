@@ -19,13 +19,14 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 {
-    public interface ITaintStore : IIssuesStore
+    public interface ITaintStore : IIssuesStore, IDisposable
     {
         /// <summary>
         /// Removes all existing visualizations and initializes the store to the given collection & configuration scope.
@@ -71,8 +72,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
         private readonly object locker = new();
 
+        private bool disposed;
+
         private string configurationScope;
         private Dictionary<Guid, IAnalysisIssueVisualization> taintVulnerabilities = new();
+        private readonly IDocumentTracker documentTracker;
+
+        [ImportingConstructor]
+        public TaintStore(IDocumentTracker documentTracker)
+        {
+            this.documentTracker = documentTracker;
+            documentTracker.DocumentClosed += DocumentTracker_DocumentClosed;
+            documentTracker.DocumentOpened += DocumentTracker_DocumentOpened;
+            documentTracker.OpenDocumentRenamed += DocumentTracker_OpenDocumentRenamed;
+        }
+
+        private void DocumentTracker_OpenDocumentRenamed(object sender, DocumentRenamedEventArgs e) => HandleTaintFileClosed(e.OldFilePath);
+
+        private void DocumentTracker_DocumentOpened(object sender, DocumentEventArgs e) => HandleTaintFileOpened(e.Document.FullPath);
+
+        private void DocumentTracker_DocumentClosed(object sender, DocumentEventArgs e) => HandleTaintFileClosed(e.Document.FullPath);
 
         public string ConfigurationScope
         {
@@ -89,7 +108,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         {
             lock (locker)
             {
-                return taintVulnerabilities.Values.ToList();
+                return GetTaintsFromOpenFiles(taintVulnerabilities.Values).ToList();
             }
         }
 
@@ -113,7 +132,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 configurationScope = newConfigurationScope;
 
                 diffRemoved.AddRange(oldVulnerabilities.Values);
-                diffAdded.AddRange(taintVulnerabilities.Values);
+                diffAdded.AddRange(GetTaintsFromOpenFiles(taintVulnerabilities.Values));
             }
 
             NotifyIssuesChanged(diffRemoved, diffAdded);
@@ -150,6 +169,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 HandleClosed(taintVulnerabilitiesUpdate.Closed, diffRemoved);
                 HandleUpdated(taintVulnerabilitiesUpdate.Updated, diffRemoved, diffAdded);
                 HandleAdded(taintVulnerabilitiesUpdate.Added, diffAdded);
+                diffAdded = GetTaintsFromOpenFiles(diffAdded).ToList();
             }
 
             if (diffRemoved.Count != 0 || diffAdded.Count != 0)
@@ -157,6 +177,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 NotifyIssuesChanged(diffRemoved, diffAdded);
             }
         }
+
+        private IEnumerable<IAnalysisIssueVisualization> GetTaintsFromOpenFiles(IEnumerable<IAnalysisIssueVisualization> taints) =>
+            documentTracker.GetOpenDocuments().Select(x => x.FullPath).ToHashSet() is { Count: > 0 } openFiles ? taints.Where(x => openFiles.Contains(x.CurrentFilePath)) : [];
+
+        private static IEnumerable<IAnalysisIssueVisualization> GetTaintsFromOpenFile(IEnumerable<IAnalysisIssueVisualization> taints, string filePath) =>
+            taints.Where(x => x.CurrentFilePath == filePath);
 
         private static void ValidateUpdate(TaintVulnerabilitiesUpdate taintVulnerabilitiesUpdate)
         {
@@ -212,6 +238,32 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             }
         }
 
+        private void HandleTaintFileOpened(string filePath)
+        {
+            List<IAnalysisIssueVisualization> analysisIssueVisualizations;
+            lock (locker)
+            {
+                analysisIssueVisualizations = GetTaintsFromOpenFile(taintVulnerabilities.Values, filePath).ToList();
+            }
+            if (analysisIssueVisualizations.Any())
+            {
+                NotifyIssuesChanged([], analysisIssueVisualizations);
+            }
+        }
+
+        private void HandleTaintFileClosed(string filePath)
+        {
+            List<IAnalysisIssueVisualization> analysisIssueVisualizations;
+            lock (locker)
+            {
+                analysisIssueVisualizations = GetTaintsFromOpenFile(taintVulnerabilities.Values, filePath).ToList();
+            }
+            if (analysisIssueVisualizations.Any())
+            {
+                NotifyIssuesChanged(analysisIssueVisualizations, []);
+            }
+        }
+
         private void NotifyIssuesChanged(
             IReadOnlyCollection<IAnalysisIssueVisualization> removedIssues,
             IReadOnlyCollection<IAnalysisIssueVisualization> addedIssues) =>
@@ -247,5 +299,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 .Where(x => ((ITaintIssue)x.Value.Issue).IssueServerKey == issueKey)
                 .Select(x => x.Value)
                 .FirstOrDefault();
+
+        public void Dispose()
+        {
+            if (disposed)
+            {
+                return;
+            }
+
+            disposed = true;
+            documentTracker.DocumentOpened -= DocumentTracker_DocumentClosed;
+            documentTracker.DocumentClosed -= DocumentTracker_DocumentOpened;
+            documentTracker.OpenDocumentRenamed -= DocumentTracker_OpenDocumentRenamed;
+        }
     }
 }
