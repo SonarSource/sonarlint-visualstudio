@@ -194,7 +194,14 @@ internal class
         RaisePropertyChanged(nameof(HasNoFilteredIssuesForGroupsWithIssues));
     }
 
-    protected override void HandleBindingChange(BindingConfiguration newBinding) => ResetFilters();
+    protected override void HandleBindingChange(BindingConfiguration newBinding)
+    {
+        // todo https://sonarsource.atlassian.net/browse/SLVS-2620 taints are global, not based on open file events.
+        // remove this clear logic as it is only needed due to taints being raised for files without TBIT, which don't trigger close event
+        AllGroupViewModels.Clear();
+        FilteredGroupViewModels.Clear();
+        ResetFilters();
+    }
 
     protected override void Dispose(bool disposing)
     {
