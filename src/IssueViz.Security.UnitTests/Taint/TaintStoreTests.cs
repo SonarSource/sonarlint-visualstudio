@@ -18,7 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core;
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
@@ -31,40 +32,41 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint;
 public class TaintStoreTests
 {
     private ITaintStore testSubject;
-    private IDocumentTracker documentTracker;
 
-    private const string DefaultFilePath = "default path";
+    [TestMethod]
+    public void MefCtor_CheckExports()
+    {
+        var batch = new CompositionBatch();
+
+        var storeImport = new SingleObjectImporter<ITaintStore>();
+        var issuesStoreImport = new SingleObjectImporter<IIssuesStore>();
+        batch.AddPart(storeImport);
+        batch.AddPart(issuesStoreImport);
+
+        var catalog = new TypeCatalog(typeof(TaintStore));
+        using var container = new CompositionContainer(catalog);
+        container.Compose(batch);
+
+        storeImport.Import.Should().NotBeNull();
+        issuesStoreImport.Import.Should().NotBeNull();
+
+        storeImport.Import.Should().BeSameAs(issuesStoreImport.Import);
+    }
 
     [TestInitialize]
     public void TestInitialize()
     {
-        documentTracker = Substitute.For<IDocumentTracker>();
-        documentTracker.GetOpenDocuments().Returns([new Document(DefaultFilePath, [])]);
-        testSubject = new TaintStore(documentTracker);
-    }
-
-    [TestMethod]
-    public void MefCtor_CheckExports() => MefTestHelpers.CheckTypeCanBeImported<TaintStore, ITaintStore>(MefTestHelpers.CreateExport<IDocumentTracker>());
-
-    [TestMethod]
-    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<TaintStore>();
-
-    [TestMethod]
-    public void Ctor_Called_EventHandlersSubscribed()
-    {
-        documentTracker.Received().DocumentClosed += Arg.Any<EventHandler<DocumentEventArgs>>();
-        documentTracker.Received().DocumentOpened += Arg.Any<EventHandler<DocumentEventArgs>>();
-        documentTracker.Received().OpenDocumentRenamed += Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
+        testSubject = new TaintStore();
     }
 
     [TestMethod]
     public void GetAll_ReturnsImmutableInstance()
     {
-        var oldItems = new[] { SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath) };
+        var oldItems = new[] { SetupIssueViz(), SetupIssueViz() };
         testSubject.Set(oldItems, "config scope");
 
         var issuesList1 = testSubject.GetAll();
-        testSubject.Update(new TaintVulnerabilitiesUpdate("config scope", [SetupIssueViz(DefaultFilePath)], [], []));
+        testSubject.Update(new TaintVulnerabilitiesUpdate("config scope", [SetupIssueViz()], [], []));
         var issuesList2 = testSubject.GetAll();
 
         issuesList1.Count.Should().Be(2);
@@ -90,7 +92,7 @@ public class TaintStoreTests
     [TestMethod]
     public void Set_NoSubscribersToIssuesChangedEvent_NoException()
     {
-        Action act = () => testSubject.Set(new[] { SetupIssueViz(DefaultFilePath) }, "some config scope");
+        Action act = () => testSubject.Set(new[] { SetupIssueViz() }, "some config scope");
 
         act.Should().NotThrow();
     }
@@ -123,7 +125,7 @@ public class TaintStoreTests
     public void Set_NoPreviousItems_HasNewItems_CollectionChangedAndEventRaised()
     {
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
-        var newItems = new[] { SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath) };
+        var newItems = new[] { SetupIssueViz(), SetupIssueViz() };
 
         testSubject.Set(newItems, "some config scope");
 
@@ -134,7 +136,7 @@ public class TaintStoreTests
     [TestMethod]
     public void Set_HasPreviousItems_NoNewItems_CollectionChangedAndEventRaised()
     {
-        var oldItems = new[] { SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath) };
+        var oldItems = new[] { SetupIssueViz(), SetupIssueViz() };
         testSubject.Set(oldItems, "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
@@ -147,11 +149,11 @@ public class TaintStoreTests
     [TestMethod]
     public void Set_HasPreviousItems_HasNewItems_CollectionChangedAndEventRaised()
     {
-        var oldItems = new[] { SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath) };
+        var oldItems = new[] { SetupIssueViz(), SetupIssueViz() };
         testSubject.Set(oldItems, "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
-        var newItems = new[] { SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath) };
+        var newItems = new[] { SetupIssueViz(), SetupIssueViz() };
         testSubject.Set(newItems, "some config scope");
 
         testSubject.GetAll().Should().BeEquivalentTo(newItems);
@@ -161,11 +163,11 @@ public class TaintStoreTests
     [TestMethod]
     public void Set_HasPreviousItems_HasSomeNewItems_CollectionChangedAndEventRaised()
     {
-        var issueViz1 = SetupIssueViz(DefaultFilePath);
+        var issueViz1 = SetupIssueViz();
         var issueViz2Id = Guid.NewGuid();
-        var issueViz2 = SetupIssueViz(DefaultFilePath, issueViz2Id);
-        var issueViz2NewObject = SetupIssueViz(DefaultFilePath, issueViz2Id);
-        var issueViz3 = SetupIssueViz(DefaultFilePath);
+        var issueViz2 = SetupIssueViz(issueViz2Id);
+        var issueViz2NewObject = SetupIssueViz(issueViz2Id);
+        var issueViz3 = SetupIssueViz();
 
         var oldItems = new[] { issueViz1, issueViz2 };
         testSubject.Set(oldItems, "some config scope");
@@ -181,7 +183,7 @@ public class TaintStoreTests
     [TestMethod]
     public void Set_HasItems_NoConfigScope_Throws()
     {
-        var issueViz1 = SetupIssueViz(DefaultFilePath);
+        var issueViz1 = SetupIssueViz();
 
         var act = () => testSubject.Set([issueViz1], null);
 
@@ -223,7 +225,7 @@ public class TaintStoreTests
         var eventHandlerMock = Substitute.For<EventHandler<IssuesChangedEventArgs>>();
         testSubject.IssuesChanged += eventHandlerMock;
 
-        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [SetupIssueViz(DefaultFilePath)], [], []));
+        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [SetupIssueViz()], [], []));
 
         eventHandlerMock.DidNotReceiveWithAnyArgs().Invoke(default, default);
     }
@@ -231,7 +233,7 @@ public class TaintStoreTests
     [TestMethod]
     public void Update_ClosedIssues_Removed()
     {
-        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath)];
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(), SetupIssueViz(), SetupIssueViz()];
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
@@ -244,7 +246,7 @@ public class TaintStoreTests
     [TestMethod]
     public void Update_ClosedIssues_PartiallyPresent_Removed()
     {
-        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath)];
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(), SetupIssueViz(), SetupIssueViz()];
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
@@ -257,7 +259,7 @@ public class TaintStoreTests
     [TestMethod]
     public void Update_ClosedIssues_NotPresent_Ignored()
     {
-        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath)];
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(), SetupIssueViz(), SetupIssueViz()];
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var eventHandlerMock = CreateEventHandlerMock();
 
@@ -270,9 +272,9 @@ public class TaintStoreTests
     [TestMethod]
     public void Update_UpdatedIssues_Replaced()
     {
-        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath)];
-        var updated1 = SetupIssueViz(DefaultFilePath, analysisIssueVisualizations[0].IssueId);
-        var updated2 = SetupIssueViz(DefaultFilePath, analysisIssueVisualizations[2].IssueId);
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(), SetupIssueViz(), SetupIssueViz()];
+        var updated1 = SetupIssueViz(analysisIssueVisualizations[0].IssueId);
+        var updated2 = SetupIssueViz(analysisIssueVisualizations[2].IssueId);
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
@@ -285,9 +287,9 @@ public class TaintStoreTests
     [TestMethod]
     public void Update_UpdatedIssues_PartiallyPresent_Replaced()
     {
-        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath)];
-        var updated1 = SetupIssueViz(DefaultFilePath, analysisIssueVisualizations[0].IssueId);
-        var updated2 = SetupIssueViz(DefaultFilePath);
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(), SetupIssueViz(), SetupIssueViz()];
+        var updated1 = SetupIssueViz(analysisIssueVisualizations[0].IssueId);
+        var updated2 = SetupIssueViz();
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
@@ -300,9 +302,9 @@ public class TaintStoreTests
     [TestMethod]
     public void Update_UpdatedIssues_NotPresent_Ignored()
     {
-        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath)];
-        var updated1 = SetupIssueViz(DefaultFilePath);
-        var updated2 = SetupIssueViz(DefaultFilePath);
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(), SetupIssueViz(), SetupIssueViz()];
+        var updated1 = SetupIssueViz();
+        var updated2 = SetupIssueViz();
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var eventHandlerMock = CreateEventHandlerMock();
 
@@ -316,9 +318,9 @@ public class TaintStoreTests
     public void Update_UpdatedIssues_ChangedId_MatchedByIssueKeyAndReplaced()
     {
         const string serverKey = "taint-1";
-        var taintWithChangedId = SetupIssueViz(DefaultFilePath, issueKey: serverKey);
-        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [taintWithChangedId, SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath)];
-        var updated = SetupIssueViz(DefaultFilePath, issueKey: serverKey);
+        var taintWithChangedId = SetupIssueViz(issueKey: serverKey);
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [taintWithChangedId, SetupIssueViz(), SetupIssueViz()];
+        var updated = SetupIssueViz(issueKey: serverKey);
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
@@ -332,9 +334,9 @@ public class TaintStoreTests
     [TestMethod]
     public void Update_AddedIssues_Adds()
     {
-        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath)];
-        var added1 = SetupIssueViz(DefaultFilePath);
-        var added2 = SetupIssueViz(DefaultFilePath);
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(), SetupIssueViz(), SetupIssueViz()];
+        var added1 = SetupIssueViz();
+        var added2 = SetupIssueViz();
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
@@ -347,9 +349,9 @@ public class TaintStoreTests
     [TestMethod]
     public void Update_AddedIssues_PartiallyPresent_AddsMissing()
     {
-        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath)];
-        var added1 = SetupIssueViz(DefaultFilePath, analysisIssueVisualizations[0].IssueId);
-        var added2 = SetupIssueViz(DefaultFilePath);
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(), SetupIssueViz(), SetupIssueViz()];
+        var added1 = SetupIssueViz(analysisIssueVisualizations[0].IssueId);
+        var added2 = SetupIssueViz();
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
@@ -362,9 +364,9 @@ public class TaintStoreTests
     [TestMethod]
     public void Update_AddedIssues_AllPresent_Ignored()
     {
-        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath), SetupIssueViz(DefaultFilePath)];
-        var added1 = SetupIssueViz(DefaultFilePath, analysisIssueVisualizations[0].IssueId);
-        var added2 = SetupIssueViz(DefaultFilePath, analysisIssueVisualizations[2].IssueId);
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(), SetupIssueViz(), SetupIssueViz()];
+        var added1 = SetupIssueViz(analysisIssueVisualizations[0].IssueId);
+        var added2 = SetupIssueViz(analysisIssueVisualizations[2].IssueId);
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var eventHandlerMock = CreateEventHandlerMock();
 
@@ -377,11 +379,11 @@ public class TaintStoreTests
     [TestMethod]
     public void Update_Complex_RemovesUpdatesAndAdds()
     {
-        var added = SetupIssueViz(DefaultFilePath);
-        var toUpdate = SetupIssueViz(DefaultFilePath);
-        var updated = SetupIssueViz(DefaultFilePath, toUpdate.IssueId);
-        var toRemove = SetupIssueViz(DefaultFilePath);
-        var notTouched = SetupIssueViz(DefaultFilePath);
+        var added = SetupIssueViz();
+        var toUpdate = SetupIssueViz();
+        var updated = SetupIssueViz(toUpdate.IssueId);
+        var toRemove = SetupIssueViz();
+        var notTouched = SetupIssueViz();
         List<IAnalysisIssueVisualization> analysisIssueVisualizations = [toUpdate, toRemove, notTouched];
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
@@ -395,8 +397,8 @@ public class TaintStoreTests
     [TestMethod]
     public void Update_CloseAndUpdateSameIssue_RemovesAndIgnoresUpdate()
     {
-        var original = SetupIssueViz(DefaultFilePath);
-        var updated = SetupIssueViz(DefaultFilePath, original.IssueId);
+        var original = SetupIssueViz();
+        var updated = SetupIssueViz(original.IssueId);
         var remove = original.IssueId!.Value;
         testSubject.Set([original], "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
@@ -410,9 +412,9 @@ public class TaintStoreTests
     [TestMethod]
     public void Update_UpdateAndAddSameIssue_UpdatesAndIgnoresAdd()
     {
-        var original = SetupIssueViz(DefaultFilePath);
-        var updated = SetupIssueViz(DefaultFilePath, original.IssueId);
-        var add = SetupIssueViz(DefaultFilePath, original.IssueId);
+        var original = SetupIssueViz();
+        var updated = SetupIssueViz(original.IssueId);
+        var add = SetupIssueViz(original.IssueId);
         testSubject.Set([original], "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
@@ -425,9 +427,9 @@ public class TaintStoreTests
     [TestMethod]
     public void Update_RemoveAndAddSameIssue_Updates()
     {
-        var original = SetupIssueViz(DefaultFilePath);
+        var original = SetupIssueViz();
         var remove = original.IssueId!.Value;
-        var add = SetupIssueViz(DefaultFilePath, original.IssueId);
+        var add = SetupIssueViz(original.IssueId);
         testSubject.Set([original], "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
@@ -435,243 +437,6 @@ public class TaintStoreTests
 
         testSubject.GetAll().Should().BeEquivalentTo(add);
         receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([original], [add]));
-    }
-
-    [TestMethod]
-    public void HandleTaintFileOpened_FileWithNoTaints_NoEventRaised()
-    {
-        var eventHandlerMock = Substitute.For<EventHandler<IssuesChangedEventArgs>>();
-        testSubject.IssuesChanged += eventHandlerMock;
-
-        documentTracker.DocumentOpened += Raise.EventWith(new DocumentEventArgs(new Document(DefaultFilePath, [])));
-
-        eventHandlerMock.DidNotReceiveWithAnyArgs().Invoke(default, default);
-    }
-
-    [TestMethod]
-    public void HandleTaintFileOpened_FileWithTaints_EventRaisedWithAddedIssues()
-    {
-        var taint = SetupIssueViz(DefaultFilePath);
-        testSubject.Set([taint], "scope");
-        var receivedEventGetter = CaptureIssuesChangedEventArgs();
-
-        documentTracker.DocumentOpened += Raise.EventWith(new DocumentEventArgs(new Document(DefaultFilePath, [])));
-
-        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([], [taint]));
-    }
-
-    [TestMethod]
-    public void HandleTaintFileClosed_FileWithNoTaints_NoEventRaised()
-    {
-        var eventHandlerMock = Substitute.For<EventHandler<IssuesChangedEventArgs>>();
-        testSubject.IssuesChanged += eventHandlerMock;
-
-        documentTracker.DocumentClosed += Raise.EventWith(new DocumentEventArgs(new Document(DefaultFilePath, [])));
-
-        eventHandlerMock.DidNotReceiveWithAnyArgs().Invoke(default, default);
-    }
-
-    [TestMethod]
-    public void HandleTaintFileClosed_FileWithTaints_EventRaisedWithRemovedIssues()
-    {
-        var taint = SetupIssueViz(DefaultFilePath);
-        testSubject.Set([taint], "scope");
-        var receivedEventGetter = CaptureIssuesChangedEventArgs();
-
-        documentTracker.DocumentClosed += Raise.EventWith(new DocumentEventArgs(new Document(DefaultFilePath, [])));
-
-        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([taint], []));
-    }
-
-    [TestMethod]
-    public void HandleTaintFileRenamed_FileWithNoTaints_NoEventRaised()
-    {
-        var eventHandlerMock = Substitute.For<EventHandler<IssuesChangedEventArgs>>();
-        testSubject.IssuesChanged += eventHandlerMock;
-        var doc = new Document(DefaultFilePath, []);
-        var args = new DocumentRenamedEventArgs(doc, DefaultFilePath);
-
-        documentTracker.OpenDocumentRenamed += Raise.EventWith(args);
-
-        eventHandlerMock.DidNotReceiveWithAnyArgs().Invoke(default, default);
-    }
-
-    [TestMethod]
-    public void HandleTaintFileRenamed_FileWithTaints_EventRaisedWithRemovedIssues()
-    {
-        var taint = SetupIssueViz(DefaultFilePath);
-        testSubject.Set([taint], "scope");
-        var receivedEventGetter = CaptureIssuesChangedEventArgs();
-        var doc = new Document("new file path", []);
-
-        documentTracker.OpenDocumentRenamed += Raise.EventWith(new DocumentRenamedEventArgs(doc, DefaultFilePath));
-
-        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([taint], []));
-    }
-
-    [TestMethod]
-    public void GetAll_NoOpenFiles_ReturnsEmpty()
-    {
-        documentTracker.GetOpenDocuments().Returns([]);
-        var taint = SetupIssueViz(DefaultFilePath);
-        testSubject.Set([taint], "scope");
-
-        var result = testSubject.GetAll();
-
-        result.Should().BeEmpty();
-    }
-
-    [TestMethod]
-    public void GetAll_SomeTaintsNotInOpenFiles_ReturnsOnlyMatchingTaints()
-    {
-        var taint1 = SetupIssueViz(DefaultFilePath);
-        const string otherfileCs = "otherfile.cs";
-        var taint2 = SetupIssueViz(otherfileCs);
-        testSubject.Set([taint1, taint2], "scope");
-
-        var result = testSubject.GetAll();
-
-        result.Should().BeEquivalentTo(taint1);
-
-        documentTracker.GetOpenDocuments().Returns([new Document(DefaultFilePath, []), new Document(otherfileCs, [])]);
-
-        result = testSubject.GetAll();
-
-        result.Should().BeEquivalentTo(taint1, taint2);
-    }
-
-    [TestMethod]
-    public void Update_AddTaintForClosedFile_NoEventRaisedAndNotInGetAll()
-    {
-        documentTracker.GetOpenDocuments().Returns([]);
-        var taint = SetupIssueViz(DefaultFilePath);
-        var eventHandlerMock = Substitute.For<EventHandler<IssuesChangedEventArgs>>();
-        testSubject.Set([], "scope");
-        testSubject.IssuesChanged += eventHandlerMock;
-
-        testSubject.Update(new TaintVulnerabilitiesUpdate("scope", [taint], [], []));
-
-        eventHandlerMock.DidNotReceiveWithAnyArgs().Invoke(default, default);
-        testSubject.GetAll().Should().BeEmpty();
-    }
-
-    [TestMethod]
-    public void Update_AddTaintsForMixedOpenAndClosedFiles_EventRaisedWithOnlyOpenFileTaints()
-    {
-        var closedFile = "closed.cs";
-        var openTaint = SetupIssueViz(DefaultFilePath);
-        var closedTaint = SetupIssueViz(closedFile);
-        testSubject.Set([], "scope");
-        var receivedEventGetter = CaptureIssuesChangedEventArgs();
-
-        testSubject.Update(new TaintVulnerabilitiesUpdate("scope", [openTaint, closedTaint], [], []));
-
-        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([], [openTaint]));
-        testSubject.GetAll().Should().BeEquivalentTo(openTaint);
-    }
-
-    [TestMethod]
-    public void Update_UpdateTaintForClosedFile_NoEventRaisedAndNoChangeInGetAll()
-    {
-        documentTracker.GetOpenDocuments().Returns([]);
-        var taint = SetupIssueViz(DefaultFilePath);
-        testSubject.Set([taint], "scope");
-        var receivedEventGetter = CaptureIssuesChangedEventArgs();
-        var updatedTaint = SetupIssueViz(DefaultFilePath, taint.IssueId);
-
-        testSubject.Update(new TaintVulnerabilitiesUpdate("scope", [], [updatedTaint], []));
-
-        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([taint], []));
-        testSubject.GetAll().Should().BeEmpty();
-    }
-
-    [TestMethod]
-    public void Update_UpdateTaintForOpenFile_EventRaisedAndTaintUpdatedInGetAll()
-    {
-        var taint = SetupIssueViz(DefaultFilePath);
-        testSubject.Set([taint], "scope");
-        var receivedEventGetter = CaptureIssuesChangedEventArgs();
-        var updatedTaint = SetupIssueViz(DefaultFilePath, taint.IssueId);
-
-        testSubject.Update(new TaintVulnerabilitiesUpdate("scope", [], [updatedTaint], []));
-
-        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([taint], [updatedTaint]));
-        testSubject.GetAll().Should().BeEquivalentTo(updatedTaint);
-    }
-
-    [TestMethod]
-    public void Update_RemoveTaintForClosedFile_EventRaisedAndTaintRemovedFromGetAll()
-    {
-        documentTracker.GetOpenDocuments().Returns([]);
-        var taint = SetupIssueViz(DefaultFilePath);
-        testSubject.Set([taint], "scope");
-        var receivedEventGetter = CaptureIssuesChangedEventArgs();
-
-        testSubject.Update(new TaintVulnerabilitiesUpdate("scope", [], [], [taint.IssueId!.Value]));
-
-        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([taint], []));
-        testSubject.GetAll().Should().BeEmpty();
-    }
-
-    [TestMethod]
-    public void Update_RemoveTaintForOpenFile_EventRaisedAndTaintRemovedFromGetAll()
-    {
-        var taint = SetupIssueViz(DefaultFilePath);
-        testSubject.Set([taint], "scope");
-        var receivedEventGetter = CaptureIssuesChangedEventArgs();
-
-        testSubject.Update(new TaintVulnerabilitiesUpdate("scope", [], [], [taint.IssueId!.Value]));
-
-        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([taint], []));
-        testSubject.GetAll().Should().BeEmpty();
-    }
-
-    [TestMethod]
-    public void Update_AddUpdateRemoveTaints_MixedOpenAndClosedFiles_EventReflectsOnlyOpenFileChanges()
-    {
-        var closedFile = "closed.cs";
-        var openTaint = SetupIssueViz(DefaultFilePath);
-        var closedTaint = SetupIssueViz(closedFile);
-        testSubject.Set([openTaint, closedTaint], "scope");
-        var receivedEventGetter = CaptureIssuesChangedEventArgs();
-        var newOpenTaint = SetupIssueViz(DefaultFilePath);
-        var updatedOpenTaint = SetupIssueViz(DefaultFilePath, openTaint.IssueId);
-        var updatedClosedTaint = SetupIssueViz(closedFile, closedTaint.IssueId);
-
-        testSubject.Update(new TaintVulnerabilitiesUpdate("scope", [newOpenTaint], [updatedOpenTaint, updatedClosedTaint], [closedTaint.IssueId!.Value]));
-
-        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([openTaint, closedTaint], [newOpenTaint, updatedOpenTaint]));
-        testSubject.GetAll().Should().BeEquivalentTo(newOpenTaint, updatedOpenTaint);
-    }
-
-    [TestMethod]
-    public void Set_RespectsOpenFilesForAddedIssues_ButAllRemovedIssuesReported()
-    {
-        var closedFile = "closed.cs";
-        var openFileIssue = SetupIssueViz(DefaultFilePath);
-        var closedFileIssue = SetupIssueViz(closedFile);
-        testSubject.Set([openFileIssue, closedFileIssue], "scope");
-        var receivedEventGetter = CaptureIssuesChangedEventArgs();
-        var newOpenFileIssue = SetupIssueViz(DefaultFilePath);
-        var newClosedFileIssue = SetupIssueViz(closedFile);
-
-        testSubject.Set([newOpenFileIssue, newClosedFileIssue], "scope");
-
-        var eventArgs = receivedEventGetter();
-        eventArgs.RemovedIssues.Should().BeEquivalentTo(openFileIssue, closedFileIssue);
-        eventArgs.AddedIssues.Should().BeEquivalentTo(newOpenFileIssue);
-    }
-
-    [TestMethod]
-    public void Dispose_Called_EventHandlersUnsubscribed()
-    {
-        testSubject.Dispose();
-        testSubject.Dispose();
-        testSubject.Dispose();
-
-        documentTracker.Received(1).DocumentOpened -= Arg.Any<EventHandler<DocumentEventArgs>>();
-        documentTracker.Received(1).DocumentClosed -= Arg.Any<EventHandler<DocumentEventArgs>>();
-        documentTracker.Received(1).OpenDocumentRenamed -= Arg.Any<EventHandler<DocumentRenamedEventArgs>>();
     }
 
     private Func<IssuesChangedEventArgs> CaptureIssuesChangedEventArgs()
@@ -689,7 +454,7 @@ public class TaintStoreTests
         return eventHandlerMock;
     }
 
-    private static IAnalysisIssueVisualization SetupIssueViz(string filePath, Guid? id = null, string issueKey = null)
+    private static IAnalysisIssueVisualization SetupIssueViz(Guid? id = null, string issueKey = null)
     {
         id ??= Guid.NewGuid();
         issueKey ??= Guid.NewGuid().ToString();
@@ -699,7 +464,6 @@ public class TaintStoreTests
         var taintIssue = Substitute.For<ITaintIssue>();
         taintIssue.IssueServerKey.Returns(issueKey);
         issueViz.Issue.Returns(taintIssue);
-        issueViz.CurrentFilePath.Returns(filePath);
 
         return issueViz;
     }
