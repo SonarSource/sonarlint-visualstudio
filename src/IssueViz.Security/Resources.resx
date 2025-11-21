@@ -150,23 +150,14 @@
   <data name="NavigateToTaintTooltip" xml:space="preserve">
     <value>Use double-click or Enter to navigate to the taint vulnerability.</value>
   </data>
-  <data name="HotspotsControl_NotOnServerTooltip" xml:space="preserve">
-    <value>Security Hotspot does not exist on the server.</value>
+  <data name="ReportView_NotOnServerTooltip" xml:space="preserve">
+    <value>Finding does not exist on the server.</value>
   </data>
-  <data name="HotspotsControl_PriorityColumnHeader" xml:space="preserve">
-    <value>Priority</value>
+  <data name="ReportView_SonarCloudTooltip" xml:space="preserve">
+    <value>Finding exists on SonarQube Cloud.</value>
   </data>
-  <data name="HotspotsControl_ReviewHotspotTooltip" xml:space="preserve">
-    <value>Review Security Hotspot</value>
-  </data>
-  <data name="HotspotsControl_ServerStatusColumnHeader" xml:space="preserve">
-    <value>Server status</value>
-  </data>
-  <data name="HotspotsControl_SonarCloudTooltip" xml:space="preserve">
-    <value>Security Hotspot exists on SonarQube Cloud.</value>
-  </data>
-  <data name="HotspotsControl_SonarQubeTooltip" xml:space="preserve">
-    <value>Security Hotspot exists on SonarQube Server.</value>
+  <data name="ReportView_SonarQubeTooltip" xml:space="preserve">
+    <value>Finding exists on SonarQube Server.</value>
   </data>
   <data name="HotspotsToolWindowCaption" xml:space="preserve">
     <value>SonarQube Security Hotspots</value>
