@@ -34,6 +34,7 @@ public interface IIssueViewModel
     IssueType IssueType { get; }
     DisplayStatus Status { get; }
     bool IsOnNewCode { get; }
+    bool IsServerIssue { get; }
 }
 
 /// <summary>
