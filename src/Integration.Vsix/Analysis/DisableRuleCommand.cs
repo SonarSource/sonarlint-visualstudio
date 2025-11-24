@@ -148,14 +148,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             {
                 if (errorListHelper.TryGetRuleIdFromSelectedRow(out ruleId))
                 {
-                    globalUserSettingsUpdater.DisableRule(ruleId.ErrorListErrorCode);
-                    logger.WriteLine(AnalysisStrings.DisableRule_DisabledRule, ruleId.ErrorListErrorCode);
+                    globalUserSettingsUpdater.DisableRule(ruleId.Id);
+                    logger.WriteLine(AnalysisStrings.DisableRule_DisabledRule, ruleId.Id);
                 }
                 Debug.Assert(ruleId != null, "Not expecting Execute to be called if the SonarLint error code cannot be determined");
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(AnalysisStrings.DisableRule_ErrorDisablingRule, ruleId?.ErrorListErrorCode ?? AnalysisStrings.DisableRule_UnknownErrorCode, ex.Message);
+                logger.WriteLine(AnalysisStrings.DisableRule_ErrorDisablingRule, ruleId?.Id ?? AnalysisStrings.DisableRule_UnknownErrorCode, ex.Message);
             }
         }
 

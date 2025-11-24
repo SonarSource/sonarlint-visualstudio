@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Education
 
         public void ShowRuleDescription(SonarCompositeRuleId ruleId)
         {
-            var helpLink = ruleHelpLinkProvider.GetHelpLink(ruleId.ErrorListErrorCode);
+            var helpLink = ruleHelpLinkProvider.GetHelpLink(ruleId);
             vsBrowserService.Navigate(helpLink);
         }
     }

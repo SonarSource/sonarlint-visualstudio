@@ -340,7 +340,7 @@ public class AnalysisIssueVisualizationConverterTests
     {
         var issue = new AnalysisIssue(
             Guid.NewGuid(),
-            Guid.NewGuid().ToString(),
+            $"any:{Guid.NewGuid().ToString()}",
             Guid.NewGuid().ToString(),
             false,
             true,
@@ -359,7 +359,7 @@ public class AnalysisIssueVisualizationConverterTests
     {
         var issue = new AnalysisIssue(
             Guid.NewGuid(),
-            Guid.NewGuid().ToString(),
+            $"any:{Guid.NewGuid().ToString()}",
             Guid.NewGuid().ToString(),
             isResolved,
             isOnNewCode,

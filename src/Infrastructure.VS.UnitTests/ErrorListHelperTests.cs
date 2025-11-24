@@ -22,6 +22,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests;
@@ -62,8 +63,6 @@ public class ErrorListHelperTests
         var issueHandle = CreateIssueHandle(111,
             new Dictionary<string, object>
             {
-                { StandardTableKeyNames.BuildTool, "SonarLint" },
-                { StandardTableKeyNames.ErrorCode, "javascript:S333" },
                 { SonarLintTableControlConstants.IssueVizColumnName, issueMock }
             });
         MockErrorList(issueHandle);
@@ -80,8 +79,6 @@ public class ErrorListHelperTests
         var issueHandle = CreateIssueHandle(111,
             new Dictionary<string, object>
             {
-                { StandardTableKeyNames.BuildTool, "SonarLint" },
-                { StandardTableKeyNames.ErrorCode, "javascript:S333" },
                 { SonarLintTableControlConstants.IssueVizColumnName, null }
             });
         MockErrorList(issueHandle);
@@ -104,7 +101,7 @@ public class ErrorListHelperTests
         var jsIssueHandle = CreateIssueHandle(222,
             new Dictionary<string, object>
             {
-                { StandardTableKeyNames.BuildTool, "SonarLint.CSharp" },
+                { StandardTableKeyNames.BuildTool, "SonarLint" },
                 { StandardTableKeyNames.ErrorCode, "csharpsquid:S222" },
                 { SonarLintTableControlConstants.IssueVizColumnName, Substitute.For<IAnalysisIssueVisualization>() }
             });
@@ -124,13 +121,13 @@ public class ErrorListHelperTests
     [DataRow("typescript:S444", "typescript", "S444", "SonarLint")]
     [DataRow("secrets:S555", "secrets", "S555", "SonarLint")]
     [DataRow("foo:bar", "foo", "bar", "SonarLint")]
-    public void TryGetRuleIdFromSelectedRow_SingleSonarIssue_ErrorCodeReturned(string fullRuleKey, string expectedRepo, string expectedRule, string buildTool)
+    public void TryGetRuleIdFromSelectedRow_SingleSonarIssue_ErrorCodeReturned(string fullRuleId, string expectedRepo, string expectedRule, string buildTool)
     {
-        // Arrange
+        var expectedRuleId = SonarCompositeRuleId.TryParse(fullRuleId, out var id) ? id : throw new ArgumentException(nameof(fullRuleId));
+        issueMock.SonarRuleId.Returns(expectedRuleId);
         var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
         {
-            { StandardTableKeyNames.BuildTool, buildTool },
-            { StandardTableKeyNames.ErrorCode, fullRuleKey }
+            { SonarLintTableControlConstants.IssueVizColumnName, issueMock }
         });
         MockErrorList(issueHandle);
 
@@ -150,14 +147,15 @@ public class ErrorListHelperTests
     [DataRow("typescript:S444", "typescript", "S444", "SonarLint")]
     [DataRow("secrets:S555", "secrets", "S555", "SonarLint")]
     [DataRow("foo:bar", "foo", "bar", "SonarLint")]
-    public void TryGetRuleId_FromHandle_ErrorCodeReturned(string fullRuleKey, string expectedRepo, string expectedRule, string buildTool)
+    public void TryGetRuleId_FromHandle_ErrorCodeReturned(string fullRuleId, string expectedRepo, string expectedRule, string buildTool)
     {
         // Note: this is a copy of TryGetRuleIdFromSelectedRow_SingleSonarIssue_ErrorCodeReturned,
         //       but without the serviceProvider and IErrorList setup
+        var expectedRuleId = SonarCompositeRuleId.TryParse(fullRuleId, out var id) ? id : throw new ArgumentException(nameof(fullRuleId));
+        issueMock.SonarRuleId.Returns(expectedRuleId);
         var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
         {
-            { StandardTableKeyNames.BuildTool, buildTool },
-            { StandardTableKeyNames.ErrorCode, fullRuleKey }
+            { SonarLintTableControlConstants.IssueVizColumnName, issueMock }
         });
 
         var result = testSubject.TryGetRuleId(issueHandle, out var ruleId);
@@ -168,33 +166,23 @@ public class ErrorListHelperTests
     }
 
     [TestMethod]
-    public void TryGetRuleIdFromSelectedRow_NonStandardErrorCode_NoException_ErrorCodeNotReturned()
-    {
-        var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
-        {
-            { StandardTableKeyNames.BuildTool, "SonarLint" },
-            { StandardTableKeyNames.ErrorCode, ":" } // should not happen
-        });
-        MockErrorList(issueHandle);
-
-        var result = testSubject.TryGetRuleIdFromSelectedRow(out var errorCode);
-
-        result.Should().BeFalse();
-        errorCode.Should().BeNull();
-    }
-
-    [TestMethod]
     public void TryGetRuleIdFromSelectedRow_MultipleItemsSelected_ErrorCodeNotReturned()
     {
+        var issueMock1 = Substitute.For<IAnalysisIssueVisualization>();
+        var issueMock2 = Substitute.For<IAnalysisIssueVisualization>();
+        issueMock1.SonarRuleId.Returns(new SonarCompositeRuleId("cpp", "S222"));
+        issueMock2.SonarRuleId.Returns(new SonarCompositeRuleId("csharpsquid", "S222"));
         var cppIssueHandle = CreateIssueHandle(111, new Dictionary<string, object>
         {
             { StandardTableKeyNames.BuildTool, "SonarLint" },
-            { StandardTableKeyNames.ErrorCode, "cpp:S222" }
+            { StandardTableKeyNames.ErrorCode, "cpp:S222" },
+            { SonarLintTableControlConstants.IssueVizColumnName, issueMock }
         });
         var jsIssueHandle = CreateIssueHandle(222, new Dictionary<string, object>
         {
-            { StandardTableKeyNames.BuildTool, "SonarLint.CSharp" },
-            { StandardTableKeyNames.ErrorCode, "csharpsquid:S222" }
+            { StandardTableKeyNames.BuildTool, "SonarLint" },
+            { StandardTableKeyNames.ErrorCode, "csharpsquid:S222" },
+            { SonarLintTableControlConstants.IssueVizColumnName, issueMock }
         });
         MockErrorList(cppIssueHandle, jsIssueHandle);
 
@@ -210,7 +198,8 @@ public class ErrorListHelperTests
         var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
         {
             { StandardTableKeyNames.BuildTool, new object() },
-            { StandardTableKeyNames.ErrorCode, "cpp:S333" }
+            { StandardTableKeyNames.ErrorCode, "cpp:S333" },
+            { SonarLintTableControlConstants.IssueVizColumnName, null }
         });
         MockErrorList(issueHandle);
 
@@ -232,7 +221,8 @@ public class ErrorListHelperTests
         {
             { StandardTableKeyNames.BuildTool, buildTool },
             { StandardTableKeyNames.HelpLink, helpLink },
-            { StandardTableKeyNames.ErrorCode, fullRuleKey }
+            { StandardTableKeyNames.ErrorCode, fullRuleKey },
+            { SonarLintTableControlConstants.IssueVizColumnName, null },
         });
 
         var result = testSubject.TryGetRuleId(issueHandle, out var errorCode);
@@ -244,10 +234,10 @@ public class ErrorListHelperTests
     [TestMethod]
     public void TryGetRuleIdAndSuppressionStateFromSelectedRow_NoSuppressionState_ReturnsIsNotSuppressed()
     {
+        issueMock.SonarRuleId.Returns(new SonarCompositeRuleId("cpp", "S222"));
         var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
         {
-            { StandardTableKeyNames.BuildTool, "SonarLint" },
-            { StandardTableKeyNames.ErrorCode, "cpp:S222" }
+            { SonarLintTableControlConstants.IssueVizColumnName, issueMock }
         });
         MockErrorList(issueHandle);
 
@@ -263,11 +253,11 @@ public class ErrorListHelperTests
     [DataRow(SuppressionState.Active, false)]
     public void TryGetRuleIdAndSuppressionStateFromSelectedRow_NoSuppressionState_ReturnsIsNotSuppressed(SuppressionState suppressionState, bool expectedSuppression)
     {
+        issueMock.SonarRuleId.Returns(new SonarCompositeRuleId("cpp", "S222"));
         var issueHandle = CreateIssueHandle(111,
             new Dictionary<string, object>
             {
-                { StandardTableKeyNames.BuildTool, "SonarLint" },
-                { StandardTableKeyNames.ErrorCode, "cpp:S222" },
+                { SonarLintTableControlConstants.IssueVizColumnName, issueMock },
                 { StandardTableKeyNames.SuppressionState, suppressionState }
             });
         MockErrorList(issueHandle);
@@ -284,8 +274,6 @@ public class ErrorListHelperTests
         var issueHandle = CreateIssueHandle(111,
             new Dictionary<string, object>
             {
-                { StandardTableKeyNames.BuildTool, "SonarLint" },
-                { StandardTableKeyNames.ErrorCode, "javascript:S333" },
                 { SonarLintTableControlConstants.IssueVizColumnName, issueMock }
             });
         MockErrorList(issueHandle);
@@ -302,8 +290,6 @@ public class ErrorListHelperTests
         var issueHandle = CreateIssueHandle(111,
             new Dictionary<string, object>
             {
-                { StandardTableKeyNames.BuildTool, "SonarLint" },
-                { StandardTableKeyNames.ErrorCode, "javascript:S333" },
                 { SonarLintTableControlConstants.IssueVizColumnName, null }
             });
         MockErrorList(issueHandle);

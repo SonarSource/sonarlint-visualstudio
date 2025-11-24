@@ -21,6 +21,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.Text;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppressions;
 
@@ -28,6 +29,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models;
 
 public interface IAnalysisIssueVisualization : IAnalysisIssueLocationVisualization, IFilterableIssue
 {
+
     IReadOnlyList<IAnalysisIssueFlowVisualization> Flows { get; }
 
     IAnalysisIssueBase Issue { get; }
@@ -56,8 +58,10 @@ internal class AnalysisIssueVisualization : IAnalysisIssueVisualization
         CurrentFilePath = issue.PrimaryLocation.FilePath;
         Span = span;
         QuickFixes = quickFixes;
+        SonarRuleId = SonarCompositeRuleId.TryParse(issue.RuleKey, out var id) ? id : throw new ArgumentException(nameof(issue.RuleKey));
     }
 
+    public SonarCompositeRuleId SonarRuleId { get; }
     public IReadOnlyList<IAnalysisIssueFlowVisualization> Flows { get; }
     public IReadOnlyList<IQuickFixApplication> QuickFixes { get; }
     public IAnalysisIssueBase Issue { get; }

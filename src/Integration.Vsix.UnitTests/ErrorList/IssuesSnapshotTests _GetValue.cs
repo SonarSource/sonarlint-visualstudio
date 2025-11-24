@@ -20,6 +20,7 @@
 
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Vsix;
@@ -131,7 +132,7 @@ public class IssuesSnapshotTests_GetValue
     public void GetValue_Message() => GetValue(StandardTableKeyNames.Text).Should().Be(issue.PrimaryLocation.Message);
 
     [TestMethod]
-    public void GetValue_ErrorCode() => GetValue(StandardTableKeyNames.ErrorCode).Should().Be(issue.RuleKey);
+    public void GetValue_ErrorCode() => GetValue(StandardTableKeyNames.ErrorCode).Should().Be(issueViz.SonarRuleId.RuleKey);
 
     [TestMethod]
     public void GetValue_Severity() => GetValue(StandardTableKeyNames.ErrorSeverity).Should().NotBeNull();
@@ -226,6 +227,8 @@ public class IssuesSnapshotTests_GetValue
     private static IAnalysisIssueVisualization CreateIssueViz(IAnalysisIssue issue, SnapshotSpan snapshotSpan)
     {
         var issueVizMock = new Mock<IAnalysisIssueVisualization>();
+        var ruleId = SonarCompositeRuleId.TryParse(issue.RuleKey, out var id) ? id : throw new ArgumentException(nameof(issue.RuleKey));
+        issueVizMock.Setup(x => x.SonarRuleId).Returns(ruleId);
         issueVizMock.Setup(x => x.Issue).Returns(issue);
         issueVizMock.Setup(x => x.IsResolved).Returns(issue.IsResolved);
         issueVizMock.Setup(x => x.Location).Returns(new DummyAnalysisIssueLocation { FilePath = "any.txt" });

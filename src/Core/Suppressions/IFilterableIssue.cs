@@ -31,7 +31,9 @@ namespace SonarLint.VisualStudio.Core.Suppressions
         /// Nullable due to the fact that some issues do not come from SlCore (e.g. Roslyn)
         /// </summary>
         Guid? IssueId { get; }
+        [Obsolete("Use SonarRuleId instead")]
         string RuleId { get; }
+        SonarCompositeRuleId SonarRuleId { get; }
         string FilePath { get; }
         string LineHash { get; }
         int? StartLine { get; }

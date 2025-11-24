@@ -20,6 +20,7 @@
 
 using System.ComponentModel;
 using Microsoft.VisualStudio.Text;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -150,7 +151,7 @@ public class AnalysisIssueVisualizationTests
 
         var filterable = (IFilterableIssue)issueVisualizationWithEmptySpan;
         filterable.IssueId.Should().Be(issue.Id);
-        filterable.RuleId.Should().Be(issue.RuleKey);
+        filterable.SonarRuleId.Should().BeEquivalentTo(SonarCompositeRuleId.TryParse(issue.RuleKey, out var id) ? id : null);
         filterable.FilePath.Should().Be(issue.PrimaryLocation.FilePath);
         filterable.StartLine.Should().Be(issue.PrimaryLocation.TextRange.StartLine);
         filterable.LineHash.Should().Be(issue.PrimaryLocation.TextRange.LineHash);
@@ -169,7 +170,7 @@ public class AnalysisIssueVisualizationTests
     {
         var id = Guid.NewGuid();
         issue.Id.Returns(id);
-        issue.RuleKey.Returns("my key");
+        issue.RuleKey.Returns("my:key");
         issue.PrimaryLocation.FilePath.Returns("x:\\aaa.foo");
         issue.PrimaryLocation.TextRange.StartLine.Returns(999);
         issue.PrimaryLocation.TextRange.LineHash.Returns("hash");

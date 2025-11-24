@@ -52,8 +52,8 @@ public class ErrorListHelper(IVsUIServiceOperation vSServiceOperation) : IErrorL
             return false;
         }
 
-        var errorCode = FindErrorCodeForEntry(snapshot, index);
-        return SonarCompositeRuleId.TryParse(errorCode, out ruleId);
+        ruleId = FindErrorCodeForEntry(snapshot, index);
+        return ruleId != null;
     }
 
     public bool TryGetRuleIdAndSuppressionStateFromSelectedRow(out SonarCompositeRuleId ruleId, out bool isSuppressed)
@@ -105,20 +105,10 @@ public class ErrorListHelper(IVsUIServiceOperation vSServiceOperation) : IErrorL
         && TryGetValue(snapshot, index, StandardTableKeyNames.SuppressionState, out SuppressionState suppressionState)
         && suppressionState == SuppressionState.Suppressed;
 
-    private static string FindErrorCodeForEntry(ITableEntriesSnapshot snapshot, int index)
-    {
-        if (!TryGetValue(snapshot, index, StandardTableKeyNames.ErrorCode, out string errorCode))
-        {
-            return null;
-        }
-
-        if (!TryGetValue(snapshot, index, StandardTableKeyNames.BuildTool, out string buildTool))
-        {
-            return null;
-        }
-
-        return buildTool == "SonarLint" ? errorCode : null;
-    }
+    private static SonarCompositeRuleId FindErrorCodeForEntry(ITableEntriesSnapshot snapshot, int index) =>
+        TryGetValue(snapshot, index, SonarLintTableControlConstants.IssueVizColumnName, out IFilterableIssue issue)
+            ? issue?.SonarRuleId
+            : null;
 
     private static bool TryGetSelectedTableEntry(IErrorList errorList, out ITableEntryHandle handle)
     {
