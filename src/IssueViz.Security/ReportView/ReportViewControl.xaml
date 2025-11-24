@@ -63,7 +63,7 @@
                 </Style.Setters>
             </Style>
 
-            <ControlTemplate x:Key="BaseTreeViewItemTemplate" TargetType="TreeViewItem">
+            <ControlTemplate x:Key="NonExpandableTreeViewItemTemplate" TargetType="TreeViewItem">
                 <ContentPresenter x:Name="Header" 
                                   ContentSource="Header"
                                   Margin="22, 0, 0, 0"
@@ -146,17 +146,13 @@
             <Style x:Key="NonExpandableTreeViewItemStyle" TargetType="TreeViewItem">
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}" />
                 <EventSetter Event="PreviewMouseLeftButtonDown" Handler="TreeViewItem_PreviewMouseDown" />
-                <Setter Property="Template" Value="{StaticResource BaseTreeViewItemTemplate}"/>
+                <Setter Property="Template" Value="{StaticResource NonExpandableTreeViewItemTemplate}"/>
             </Style>
             
             <Style  x:Key="ExpandableTreeViewItemStyle" TargetType="TreeViewItem" BasedOn="{StaticResource NonExpandableTreeViewItemStyle}">
                 <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                 <Setter Property="Template" Value="{StaticResource ExpandableTreeViewItemTemplate}"/>
             </Style>
-            
-            <!-- Style for expandable tree items is set globally (couldn't figure out a way to do it explicitly),
-             while style for leaf items is set by expandable item's ItemContainerStyle-->
-            <Style TargetType="TreeViewItem" BasedOn="{StaticResource ExpandableTreeViewItemStyle}"></Style>
 
             <Style x:Key="IssueTextBlockStyle" TargetType="TextBlock">
                 <Setter Property="VerticalAlignment" Value="Center" />
@@ -707,14 +703,17 @@
         <TreeView
             Grid.Row="1" Grid.Column="1" Margin="0,5"
             ItemsSource="{Binding Path=FilteredGroupViewModels}"
+            ItemContainerStyle="{StaticResource ExpandableTreeViewItemStyle}"
             SelectedItemChanged="TreeView_OnSelectedItemChanged"
             VirtualizingStackPanel.IsVirtualizing="True"
             VirtualizingStackPanel.VirtualizationMode="Recycling"
             ScrollViewer.CanContentScroll="True">
+            <!-- Top-level TreeViewItem-s are expandable, so we set ItemContainerStyle="{StaticResource ExpandableTreeViewItemStyle}"-->
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type dependencyRisks:GroupDependencyRiskViewModel}"
                                           ItemsSource="{Binding FilteredIssues}"
                                           ItemContainerStyle="{StaticResource NonExpandableTreeViewItemStyle}">
+                    <!-- Children of this group are individual issues so we set ItemContainerStyle="{StaticResource NonExpandableTreeViewItemStyle}"-->
                     <Grid Cursor="Hand">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -735,6 +734,7 @@
                 <HierarchicalDataTemplate DataType="{x:Type reportView:GroupFileViewModel}"
                                           ItemsSource="{Binding FilteredIssues}"
                                           ItemContainerStyle="{StaticResource NonExpandableTreeViewItemStyle}">
+                    <!-- Children of this group are individual issues so we set ItemContainerStyle="{StaticResource NonExpandableTreeViewItemStyle}"-->
                     <Grid Cursor="Hand">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
