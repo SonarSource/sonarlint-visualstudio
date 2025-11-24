@@ -59,4 +59,5 @@ internal class DependencyRiskViewModel(IDependencyRisk dependencyRisk)
         _ => DisplayStatus.Open
     };
     public bool IsOnNewCode => true;
+    public bool IsServerIssue => true;
 }

@@ -24,6 +24,8 @@
                 <ResourceDictionary Source="../SharedUI/SharedResources.xaml" />
                 <ResourceDictionary Source="Hotspots/HotspotSeverity.xaml" />
                 <ResourceDictionary Source="Filters/Filter.xaml" />
+                <ResourceDictionary
+                    Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/LogoImages.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <!--  Converters  -->
@@ -42,7 +44,8 @@
             <!-- Default ToggleButton template for Expander arrow -->
             <ControlTemplate x:Key="ExpanderToggleButton" TargetType="ToggleButton">
                 <Grid Margin="5,0,0,0" Background="Transparent">
-                    <Path x:Name="Arrow" Margin="5, 0" Fill="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}"
+                    <Path x:Name="Arrow" Margin="5, 0"
+                          Fill="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}"
                           Data="M 0 0 L 8 4 L 0 8 Z" VerticalAlignment="Center" HorizontalAlignment="Center" />
                 </Grid>
                 <ControlTemplate.Triggers>
@@ -60,65 +63,95 @@
                 </Style.Setters>
             </Style>
 
-            <Style TargetType="TreeViewItem">
-                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+            <ControlTemplate x:Key="NonExpandableTreeViewItemTemplate" TargetType="TreeViewItem">
+                <ContentPresenter x:Name="Header" 
+                                  ContentSource="Header"
+                                  Margin="22, 0, 0, 0"
+                                  VerticalAlignment="Center" />
+                
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Foreground"
+                                Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveTextBrushKey}}" />
+                        <Setter Property="Background"
+                                Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveBrushKey}}" />
+                    </Trigger>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions>
+                            <Condition Property="IsSelected" Value="True" />
+                            <Condition Property="Selector.IsSelectionActive" Value="False" />
+                        </MultiTrigger.Conditions>
+                        <MultiTrigger.Setters>
+                            <Setter Property="Foreground"
+                                    Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveTextBrushKey}}" />
+                            <Setter Property="Background"
+                                    Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveBrushKey}}" />
+                        </MultiTrigger.Setters>
+                    </MultiTrigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+
+            <ControlTemplate x:Key="ExpandableTreeViewItemTemplate" TargetType="TreeViewItem">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Border Name="Bd" Grid.ColumnSpan="2"
+                            Background="{TemplateBinding Background}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            SnapsToDevicePixels="true"
+                            Margin="{TemplateBinding Margin}">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <ToggleButton x:Name="ExpanderArrow" Margin="2,0,2,0"
+                                          IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                          Visibility="{Binding HasItems, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource FalseToHiddenConverter}}"
+                                          Template="{StaticResource ExpanderToggleButton}" Cursor="Hand" />
+                            <ContentPresenter x:Name="Header" ContentSource="Header"
+                                              VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                    <ItemsPresenter Grid.Row="1" Grid.Column="0" x:Name="ItemsHost" Margin="0,0,0,0" />
+                </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsExpanded" Value="False">
+                        <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed" />
+                    </Trigger>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Foreground"
+                                Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveTextBrushKey}}" />
+                        <Setter Property="Background"
+                                Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveBrushKey}}" />
+                    </Trigger>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions>
+                            <Condition Property="IsSelected" Value="True" />
+                            <Condition Property="Selector.IsSelectionActive" Value="False" />
+                        </MultiTrigger.Conditions>
+                        <MultiTrigger.Setters>
+                            <Setter Property="Foreground"
+                                    Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveTextBrushKey}}" />
+                            <Setter Property="Background"
+                                    Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveBrushKey}}" />
+                        </MultiTrigger.Setters>
+                    </MultiTrigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+
+            <Style x:Key="NonExpandableTreeViewItemStyle" TargetType="TreeViewItem">
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}" />
                 <EventSetter Event="PreviewMouseLeftButtonDown" Handler="TreeViewItem_PreviewMouseDown" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="TreeViewItem">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <Border Name="Bd" Grid.ColumnSpan="2"
-                                        Background="{TemplateBinding Background}"
-                                        BorderThickness="{TemplateBinding BorderThickness}"
-                                        BorderBrush="{TemplateBinding BorderBrush}"
-                                        SnapsToDevicePixels="true"
-                                        Margin="{TemplateBinding Margin}">
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <ToggleButton x:Name="ExpanderArrow" Margin="2,0,2,0"
-                                                      IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
-                                                      Visibility="{Binding HasItems, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource FalseToHiddenConverter}}"
-                                                      Template="{StaticResource ExpanderToggleButton}" Cursor="Hand" />
-                                        <ContentPresenter x:Name="Header" ContentSource="Header" 
-                                                          VerticalAlignment="Center" />
-                                    </StackPanel>
-                                </Border>
-                                <ItemsPresenter Grid.Row="1" Grid.Column="0" x:Name="ItemsHost" Margin="15,0,0,0" />
-                            </Grid>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsSelected" Value="True">
-                                    <Setter Property="Foreground"
-                                            Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveTextBrushKey}}" />
-                                    <Setter Property="Background"
-                                            Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveBrushKey}}" />
-                                </Trigger>
-                                <MultiTrigger>
-                                    <MultiTrigger.Conditions>
-                                        <Condition Property="IsSelected" Value="True" />
-                                        <Condition Property="Selector.IsSelectionActive" Value="False" />
-                                    </MultiTrigger.Conditions>
-                                    <MultiTrigger.Setters>
-                                        <Setter Property="Foreground"
-                                                Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveTextBrushKey}}" />
-                                        <Setter Property="Background"
-                                                Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveBrushKey}}" />
-                                    </MultiTrigger.Setters>
-                                </MultiTrigger>
-                                <Trigger Property="IsExpanded" Value="False">
-                                    <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed" />
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
+                <Setter Property="Template" Value="{StaticResource NonExpandableTreeViewItemTemplate}"/>
+            </Style>
+            
+            <Style  x:Key="ExpandableTreeViewItemStyle" TargetType="TreeViewItem" BasedOn="{StaticResource NonExpandableTreeViewItemStyle}">
+                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                <Setter Property="Template" Value="{StaticResource ExpandableTreeViewItemTemplate}"/>
             </Style>
 
             <Style x:Key="IssueTextBlockStyle" TargetType="TextBlock">
@@ -298,6 +331,45 @@
 
             <Style TargetType="{x:Type ComboBox}"
                    BasedOn="{StaticResource {x:Static vsShell:VsResourceKeys.ComboBoxStyleKey}}" />
+
+            <Style x:Key="IsOnServerImage" TargetType="Image">
+                <Style.Triggers>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding IsServerIssue}" Value="True" />
+                            <Condition
+                                Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=ReportViewModel.IsCloud}"
+                                Value="True" />
+                        </MultiDataTrigger.Conditions>
+
+                        <Setter Property="Visibility" Value="Visible" />
+                        <Setter Property="ToolTipService.ToolTip"
+                                Value="{x:Static res:Resources.ReportView_SonarCloudTooltip}" />
+                        <Setter Property="Source" Value="{StaticResource SonarCloudIconDrawingImage}" />
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding IsServerIssue}" Value="True" />
+                            <Condition
+                                Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=ReportViewModel.IsCloud}"
+                                Value="False" />
+                        </MultiDataTrigger.Conditions>
+
+                        <Setter Property="Visibility" Value="Visible" />
+                        <Setter Property="ToolTipService.ToolTip"
+                                Value="{x:Static res:Resources.ReportView_SonarQubeTooltip}" />
+                        <Setter Property="Source" Value="{StaticResource SonarQubeIconDrawingImage}" />
+                    </MultiDataTrigger>
+
+                    <DataTrigger Binding="{Binding IsServerIssue}" Value="False">
+                        <Setter Property="Opacity" Value="0" />
+                        <!-- use opacity instead of visibility to make the tooltip appear -->
+                        <Setter Property="Source" Value="{StaticResource SonarQubeIconDrawingImage}" />
+                        <Setter Property="ToolTipService.ToolTip"
+                                Value="{x:Static res:Resources.ReportView_NotOnServerTooltip}" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
 
             <Style x:Key="SeverityImage" TargetType="Image">
                 <Setter Property="Source">
@@ -616,12 +688,14 @@
 
             </Grid>
         </Grid>
-        
+
         <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Vertical" Margin="7,0,0,5">
-            <Button Style="{StaticResource FilterButtonStyle}" Click="CollapseAllButton_OnClick" ToolTip="{x:Static res:Resources.CollapseAllButtonTooltip}">
+            <Button Style="{StaticResource FilterButtonStyle}" Click="CollapseAllButton_OnClick"
+                    ToolTip="{x:Static res:Resources.CollapseAllButtonTooltip}">
                 <imaging:CrispImage Moniker="{x:Static vsimagecatalog:KnownMonikers.CollapseAll}" />
             </Button>
-            <Button Style="{StaticResource FilterButtonStyle}" Click="ExpandAllButton_OnClick" ToolTip="{x:Static res:Resources.ExpandAllButtonTooltip}">
+            <Button Style="{StaticResource FilterButtonStyle}" Click="ExpandAllButton_OnClick"
+                    ToolTip="{x:Static res:Resources.ExpandAllButtonTooltip}">
                 <imaging:CrispImage Moniker="{x:Static vsimagecatalog:KnownMonikers.ExpandAll}" />
             </Button>
         </StackPanel>
@@ -629,13 +703,17 @@
         <TreeView
             Grid.Row="1" Grid.Column="1" Margin="0,5"
             ItemsSource="{Binding Path=FilteredGroupViewModels}"
+            ItemContainerStyle="{StaticResource ExpandableTreeViewItemStyle}"
             SelectedItemChanged="TreeView_OnSelectedItemChanged"
             VirtualizingStackPanel.IsVirtualizing="True"
             VirtualizingStackPanel.VirtualizationMode="Recycling"
             ScrollViewer.CanContentScroll="True">
+            <!-- Top-level TreeViewItem-s are expandable, so we set ItemContainerStyle="{StaticResource ExpandableTreeViewItemStyle}"-->
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type dependencyRisks:GroupDependencyRiskViewModel}"
-                                          ItemsSource="{Binding FilteredIssues}">
+                                          ItemsSource="{Binding FilteredIssues}"
+                                          ItemContainerStyle="{StaticResource NonExpandableTreeViewItemStyle}">
+                    <!-- Children of this group are individual issues so we set ItemContainerStyle="{StaticResource NonExpandableTreeViewItemStyle}"-->
                     <Grid Cursor="Hand">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -654,7 +732,9 @@
                     </Grid>
                 </HierarchicalDataTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type reportView:GroupFileViewModel}"
-                                          ItemsSource="{Binding FilteredIssues}">
+                                          ItemsSource="{Binding FilteredIssues}"
+                                          ItemContainerStyle="{StaticResource NonExpandableTreeViewItemStyle}">
+                    <!-- Children of this group are individual issues so we set ItemContainerStyle="{StaticResource NonExpandableTreeViewItemStyle}"-->
                     <Grid Cursor="Hand">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -683,18 +763,18 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Image Grid.Column="0" Height="17" VerticalAlignment="Center"
+                        <Image Grid.Column="0" Height="16" VerticalAlignment="Center"
+                               Style="{StaticResource IsOnServerImage}" />
+                        <Image Grid.Column="1" Height="17" VerticalAlignment="Center"
                                Style="{StaticResource SeverityImage}" />
-                        <TextBlock Grid.Column="1" Text="{Binding DependencyRisk.PackageName, StringFormat={}{0}:}"
+                        <TextBlock Grid.Column="2" Text="{Binding DependencyRisk.PackageName, StringFormat={}{0}:}"
                                    Margin="2,0,0,0"
                                    Style="{StaticResource IssueTextBlockStyle}" />
-                        <TextBlock Grid.Column="2" Text="{Binding DependencyRisk.PackageVersion}" Margin="0,0,1,0"
+                        <TextBlock Grid.Column="3" Text="{Binding DependencyRisk.PackageVersion}" Margin="0,0,1,0"
                                    Style="{StaticResource IssueTextBlockStyle}" />
 
-                        <Grid Grid.Column="3" VerticalAlignment="Center">
+                        <Grid Grid.Column="4" VerticalAlignment="Center">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
@@ -753,8 +833,11 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Image Grid.Column="0" Height="15" VerticalAlignment="Center">
+                        <Image Grid.Column="0" Height="16" VerticalAlignment="Center"
+                               Style="{StaticResource IsOnServerImage}" />
+                        <Image Grid.Column="1" Height="15" VerticalAlignment="Center">
                             <Image.Source>
                                 <MultiBinding
                                     Converter="{StaticResource EnumToImageSourceConverter}"
@@ -773,16 +856,17 @@
                                 </MultiBinding>
                             </Image.ToolTip>
                         </Image>
-                        <TextBlock Grid.Column="1"
+                        <TextBlock Grid.Column="2"
                                    Margin="2,0,0,2"
                                    Style="{StaticResource LocationTextBlockStyle}">
                             <Run Text="{Binding Line, Mode=OneWay, StringFormat={}({0}\,}" />
                             <Run Text="{Binding Path=Column, Mode=OneWay, StringFormat={}{0})}" />
                         </TextBlock>
-                        <TextBlock Grid.Column="2" Text="{Binding Title}" Margin="5,0,0,0"
+                        <TextBlock Grid.Column="3" Text="{Binding Title}" Margin="5,0,0,0"
                                    Style="{StaticResource IssueTextBlockStyle}" />
-                        <TextBlock Grid.Column="3" Margin="5,0,0,0"
-                                   Style="{StaticResource IssueTextBlockStyle}">
+                        <TextBlock Grid.Column="4" Margin="5,0,0,0"
+                                   Style="{StaticResource IssueTextBlockStyle}"
+                                   VerticalAlignment="Bottom">
                             <Hyperlink Style="{StaticResource RuleKeyLinkStyle}"
                                        Command="{Binding DataContext.NavigateToRuleDescriptionCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}">
                                 <Hyperlink.CommandParameter>
@@ -796,7 +880,7 @@
                                            Style="{StaticResource CellTextBlockStyle}" />
                             </Hyperlink>
                         </TextBlock>
-                        <TextBlock Grid.Column="4"
+                        <TextBlock Grid.Column="5"
                                    Text="{Binding IssueType, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}"
                                    Margin="5,0,0,0"
                                    Style="{StaticResource IssueTypeTextBlockStyle}" />
@@ -815,19 +899,23 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Image Grid.Column="0" Height="17" VerticalAlignment="Center"
+                        <Image Grid.Column="0" Height="16" VerticalAlignment="Center"
+                               Style="{StaticResource IsOnServerImage}" />
+                        <Image Grid.Column="1" Height="17" VerticalAlignment="Center"
                                Style="{StaticResource SeverityImage}" />
-                        <TextBlock Grid.Column="1"
+                        <TextBlock Grid.Column="2"
                                    Margin="2,0,0,2"
                                    Style="{StaticResource LocationTextBlockStyle}">
                             <Run Text="{Binding Line, Mode=OneWay, StringFormat={}({0}\,}" />
                             <Run Text="{Binding Path=Column, Mode=OneWay, StringFormat={}{0})}" />
                         </TextBlock>
-                        <TextBlock Grid.Column="2" Text="{Binding Title}" Margin="5,0,0,0"
+                        <TextBlock Grid.Column="3" Text="{Binding Title}" Margin="5,0,0,0"
                                    Style="{StaticResource IssueTextBlockStyle}" />
-                        <TextBlock Grid.Column="3" Margin="5,0,0,0"
-                                   Style="{StaticResource IssueTextBlockStyle}">
+                        <TextBlock Grid.Column="4" Margin="5,0,0,0"
+                                   Style="{StaticResource IssueTextBlockStyle}"
+                                   VerticalAlignment="Bottom">
                             <Hyperlink Style="{StaticResource RuleKeyLinkStyle}"
                                        Command="{Binding DataContext.NavigateToRuleDescriptionCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}">
                                 <Hyperlink.CommandParameter>
@@ -841,7 +929,7 @@
                                            Style="{StaticResource CellTextBlockStyle}" />
                             </Hyperlink>
                         </TextBlock>
-                        <TextBlock Grid.Column="4"
+                        <TextBlock Grid.Column="5"
                                    Text="{Binding IssueType, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}"
                                    Margin="5,0,0,0"
                                    Style="{StaticResource IssueTypeTextBlockStyle}" />
@@ -860,19 +948,23 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Image Grid.Column="0" Height="17" VerticalAlignment="Center"
+                        <Image Grid.Column="0" Height="16" VerticalAlignment="Center"
+                               Style="{StaticResource IsOnServerImage}" />
+                        <Image Grid.Column="1" Height="17" VerticalAlignment="Center"
                                Style="{StaticResource SeverityImage}" />
-                        <TextBlock Grid.Column="1"
+                        <TextBlock Grid.Column="2"
                                    Margin="2,0,0,2"
                                    Style="{StaticResource LocationTextBlockStyle}">
                             <Run Text="{Binding Line, Mode=OneWay, StringFormat={}({0}\,}" />
                             <Run Text="{Binding Path=Column, Mode=OneWay, StringFormat={}{0})}" />
                         </TextBlock>
-                        <TextBlock Grid.Column="2" Text="{Binding Title}" Margin="5,0,0,0"
+                        <TextBlock Grid.Column="3" Text="{Binding Title}" Margin="5,0,0,0"
                                    Style="{StaticResource IssueTextBlockStyle}" />
-                        <TextBlock Grid.Column="3" Margin="5,0,0,0"
-                                   Style="{StaticResource IssueTextBlockStyle}">
+                        <TextBlock Grid.Column="4" Margin="5,0,0,0"
+                                   Style="{StaticResource IssueTextBlockStyle}"
+                                   VerticalAlignment="Bottom">
                             <Hyperlink Style="{StaticResource RuleKeyLinkStyle}"
                                        Command="{Binding DataContext.NavigateToRuleDescriptionCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}">
                                 <Hyperlink.CommandParameter>
@@ -886,7 +978,7 @@
                                            Style="{StaticResource CellTextBlockStyle}" />
                             </Hyperlink>
                         </TextBlock>
-                        <TextBlock Grid.Column="4"
+                        <TextBlock Grid.Column="5"
                                    Text="{Binding IssueType, Converter={StaticResource PascalCaseEnumToSpacedStringConverter}}"
                                    Margin="5,0,0,0"
                                    Style="{StaticResource IssueTypeTextBlockStyle}" />
@@ -896,7 +988,8 @@
             </TreeView.Resources>
         </TreeView>
 
-        <Grid Grid.Column="1" Grid.Row="1" Background="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBackgroundKey}}"
+        <Grid Grid.Column="1" Grid.Row="1"
+              Background="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBackgroundKey}}"
               Panel.ZIndex="1000"
               Visibility="{Binding Path=HasNoFilteredIssuesForGroupsWithIssues, Converter={StaticResource TrueToVisibleConverter}}">
             <StackPanel VerticalAlignment="Center">
@@ -914,7 +1007,8 @@
             </StackPanel>
         </Grid>
 
-        <Grid Grid.Column="1" Grid.Row="1" Background="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBackgroundKey}}"
+        <Grid Grid.Column="1" Grid.Row="1"
+              Background="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBackgroundKey}}"
               Panel.ZIndex="1001"
               Visibility="{Binding Path=HasAnyGroups, Converter={StaticResource TrueToCollapsedConverter}}">
 

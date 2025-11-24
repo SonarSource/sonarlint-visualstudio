@@ -420,65 +420,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Security Hotspot does not exist on the server..
-        /// </summary>
-        public static string HotspotsControl_NotOnServerTooltip {
-            get {
-                return ResourceManager.GetString("HotspotsControl_NotOnServerTooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Open Documents.
         /// </summary>
         public static string HotspotsControl_OpenDocumentsFilter {
             get {
                 return ResourceManager.GetString("HotspotsControl_OpenDocumentsFilter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Priority.
-        /// </summary>
-        public static string HotspotsControl_PriorityColumnHeader {
-            get {
-                return ResourceManager.GetString("HotspotsControl_PriorityColumnHeader", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Review Security Hotspot.
-        /// </summary>
-        public static string HotspotsControl_ReviewHotspotTooltip {
-            get {
-                return ResourceManager.GetString("HotspotsControl_ReviewHotspotTooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Server status.
-        /// </summary>
-        public static string HotspotsControl_ServerStatusColumnHeader {
-            get {
-                return ResourceManager.GetString("HotspotsControl_ServerStatusColumnHeader", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Security Hotspot exists on SonarQube Cloud..
-        /// </summary>
-        public static string HotspotsControl_SonarCloudTooltip {
-            get {
-                return ResourceManager.GetString("HotspotsControl_SonarCloudTooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Security Hotspot exists on SonarQube Server..
-        /// </summary>
-        public static string HotspotsControl_SonarQubeTooltip {
-            get {
-                return ResourceManager.GetString("HotspotsControl_SonarQubeTooltip", resourceCulture);
             }
         }
         
@@ -614,6 +560,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string NoFindingsToDisplayTitle {
             get {
                 return ResourceManager.GetString("NoFindingsToDisplayTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finding does not exist on the server..
+        /// </summary>
+        public static string ReportView_NotOnServerTooltip {
+            get {
+                return ResourceManager.GetString("ReportView_NotOnServerTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finding exists on SonarQube Cloud..
+        /// </summary>
+        public static string ReportView_SonarCloudTooltip {
+            get {
+                return ResourceManager.GetString("ReportView_SonarCloudTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finding exists on SonarQube Server..
+        /// </summary>
+        public static string ReportView_SonarQubeTooltip {
+            get {
+                return ResourceManager.GetString("ReportView_SonarQubeTooltip", resourceCulture);
             }
         }
         
