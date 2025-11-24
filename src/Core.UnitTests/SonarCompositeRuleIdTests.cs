@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [DataRow("my repo", "my rule", "my repo:my rule")]
         public void GetFullErrorCode_ConcatenatesWithColon(string repoKey, string ruleKey, string expected)
         {
-            var result = SonarCompositeRuleId.GetFullId(repoKey, ruleKey);
+            var result = SonarCompositeRuleId.GetRuleId(repoKey, ruleKey);
 
             result.Should().Be(expected);
         }
