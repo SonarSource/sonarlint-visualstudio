@@ -194,7 +194,7 @@ public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, ITh
             try
             {
                 var slCoreResponse = await connectionConfigurationSlCoreService.ValidateConnectionAsync(validateConnectionParams);
-                return new ResponseStatus(slCoreResponse.success);
+                return new ResponseStatus(slCoreResponse.success, slCoreResponse.message);
             }
             catch (Exception ex)
             {
