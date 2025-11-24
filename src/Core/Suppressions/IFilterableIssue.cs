@@ -32,6 +32,7 @@ namespace SonarLint.VisualStudio.Core.Suppressions
         /// </summary>
         Guid? IssueId { get; }
         string RuleId { get; }
+        SonarCompositeRuleId SonarRuleId { get; }
         string FilePath { get; }
         string LineHash { get; }
         int? StartLine { get; }

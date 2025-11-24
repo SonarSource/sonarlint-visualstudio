@@ -169,7 +169,7 @@ public class AnalysisIssueVisualizationTests
     {
         var id = Guid.NewGuid();
         issue.Id.Returns(id);
-        issue.RuleKey.Returns("my key");
+        issue.RuleKey.Returns("my:key");
         issue.PrimaryLocation.FilePath.Returns("x:\\aaa.foo");
         issue.PrimaryLocation.TextRange.StartLine.Returns(999);
         issue.PrimaryLocation.TextRange.LineHash.Returns("hash");

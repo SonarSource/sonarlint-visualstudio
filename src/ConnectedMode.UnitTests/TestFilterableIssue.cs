@@ -19,6 +19,7 @@
  */
 
 using System;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Suppressions;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests;
@@ -27,6 +28,7 @@ internal class TestFilterableIssue : IFilterableIssue
 {
     public Guid? IssueId { get; set; }
     public string RuleId { get; set; }
+    public SonarCompositeRuleId SonarRuleId { get; set; }
     public string LineHash { get; set; }
     public int? StartLine { get; set; }
     public string FilePath { get; set; }

@@ -40,7 +40,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [DataRow("Web:SOMETHING", "https://rules.sonarsource.com/html/RSPEC-SOMETHING")]
         public void GetHelpLink(string ruleKey, string expectedLink)
         {
-            var helpLink = new RuleHelpLinkProvider().GetHelpLink(ruleKey);
+            var ruleId = SonarCompositeRuleId.TryParse(ruleKey, out var id) ? id : null;
+            var helpLink = new RuleHelpLinkProvider().GetHelpLink(ruleId);
 
             helpLink.Should().Be(expectedLink);
         }

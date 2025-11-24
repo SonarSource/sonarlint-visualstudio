@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             const string ruleUrl = "some url";
 
             var helpLinkProvider = new Mock<IRuleHelpLinkProvider>();
-            helpLinkProvider.Setup(x => x.GetHelpLink("xxx:yyy")).Returns(ruleUrl);
+            helpLinkProvider.Setup(x => x.GetHelpLink(ruleId)).Returns(ruleUrl);
 
             var browserService = new Mock<IBrowserService>();
 

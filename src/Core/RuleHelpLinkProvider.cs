@@ -22,12 +22,12 @@ namespace SonarLint.VisualStudio.Core
 {
     public interface IRuleHelpLinkProvider
     {
-        string GetHelpLink(string ruleKey);
+        string GetHelpLink(SonarCompositeRuleId ruleId);
     }
 
     public class RuleHelpLinkProvider : IRuleHelpLinkProvider
     {
-        public string GetHelpLink(string ruleKey)
+        public string GetHelpLink(SonarCompositeRuleId ruleId)
         {
             // ruleKey is in format "javascript:S1234" (or javascript:SOMETHING for legacy keys)
             // NB: there are some "common" rules that are implemented on the server-side. We do
@@ -35,12 +35,8 @@ namespace SonarLint.VisualStudio.Core
             // to be documented on the rule site anyway).
             //   e.g. common-c:DuplicatedBlocks, common-cpp:FailedUnitTests
 
-            var colonIndex = ruleKey.IndexOf(':');
-            var repoKey = ruleKey.Substring(0, colonIndex);
-            var ruleId = ruleKey.Substring(colonIndex + 1);
-
-            var languageFolderName = GetWebsiteFolderName(repoKey);
-            var webSiteRuleId = GetWebsiteRuleId(ruleId);
+            var languageFolderName = GetWebsiteFolderName(ruleId.RepoKey);
+            var webSiteRuleId = GetWebsiteRuleId(ruleId.RuleKey);
 
             return $"https://rules.sonarsource.com/{languageFolderName}/{webSiteRuleId}";
         }

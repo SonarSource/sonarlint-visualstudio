@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         public void TryParse_Valid_ReturnExpecteed(string errorCode, string expectedRepo, string expectedRule)
         {
             SonarCompositeRuleId.TryParse(errorCode, out var result).Should().BeTrue();
-            result.ErrorListErrorCode.Should().Be(errorCode);
+            result.Id.Should().Be(errorCode);
             result.RepoKey.Should().Be(expectedRepo);
             result.RuleKey.Should().Be(expectedRule);
         }
@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             var actual = new SonarCompositeRuleId("my repo", "my rule");
             actual.RepoKey.Should().Be("my repo");
             actual.RuleKey.Should().Be("my rule");
-            actual.ErrorListErrorCode.Should().Be("my repo:my rule");
+            actual.Id.Should().Be("my repo:my rule");
         }
 
         [TestMethod]
@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [DataRow("my repo", "my rule", "my repo:my rule")]
         public void GetFullErrorCode_ConcatenatesWithColon(string repoKey, string ruleKey, string expected)
         {
-            var result = SonarCompositeRuleId.GetFullErrorCode(repoKey, ruleKey);
+            var result = SonarCompositeRuleId.GetFullId(repoKey, ruleKey);
 
             result.Should().Be(expected);
         }

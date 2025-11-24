@@ -215,7 +215,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case StandardTableKeyNames.ErrorCode:
-                    content = issue.RuleKey;
+                    content = issueViz.SonarRuleId.RuleKey;
                     return true;
 
                 case StandardTableKeyNames.ErrorRank:
@@ -227,12 +227,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case StandardTableKeyNames.ErrorCodeToolTip:
-                    content = $"Open description of rule {issue.RuleKey}";
+                    content = $"Open description of rule {issueViz.SonarRuleId.Id}";
                     return true;
 
                 case StandardTableKeyNames.HelpLink:
-                    string ruleKey = issue.RuleKey;
-                    content = ruleHelpLinkProvider.GetHelpLink(ruleKey);
+                    content = ruleHelpLinkProvider.GetHelpLink(issueViz.SonarRuleId);
                     return true;
 
                 case StandardTableKeyNames.ProjectName:
