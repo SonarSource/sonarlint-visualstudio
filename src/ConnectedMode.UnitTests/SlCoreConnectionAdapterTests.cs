@@ -125,6 +125,7 @@ public class SlCoreConnectionAdapterTests
         var response = await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, new TokenCredentialsModel("myToken".CreateSecureString()));
 
         response.Success.Should().Be(success);
+        response.WarningText.Should().Be(message);
     }
 
     [TestMethod]
