@@ -260,7 +260,7 @@ public class TextBufferIssueTrackerTests
     ];
     private static object[][] OnTextBufferChangedOnBackground_UpdatesIfNotWhitespace_Params =>
     [
-        [EmptyAndWhitespaceChanges, false],
+        [EmptyAndWhitespaceChanges, true], // false -> true https://sonarsource.atlassian.net/browse/SLVS-2714
         [NonEmptyChanges, true]
     ];
     [DynamicData(nameof(OnTextBufferChangedOnBackground_UpdatesIfNotWhitespace_Params))]

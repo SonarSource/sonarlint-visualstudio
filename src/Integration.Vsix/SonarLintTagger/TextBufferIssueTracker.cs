@@ -197,15 +197,5 @@ internal sealed class TextBufferIssueTracker : IFileState, ITagger<IErrorTag>
         issueConsumerStorage.Set(FilePath, issueConsumer);
     }
 
-    private void TextBuffer_OnChangedOnBackground(object sender, TextContentChangedEventArgs e)
-    {
-        var normalizedTextChangeCollection = e.Changes;
-
-        if (normalizedTextChangeCollection.All(x => string.IsNullOrWhiteSpace(x.NewText) && string.IsNullOrWhiteSpace(x.OldText)))
-        {
-            return;
-        }
-
-        documentTrackerUpdater.OnDocumentUpdated(this);
-    }
+    private void TextBuffer_OnChangedOnBackground(object sender, TextContentChangedEventArgs e) => documentTrackerUpdater.OnDocumentUpdated(this);
 }
