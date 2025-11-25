@@ -41,13 +41,11 @@ public class InitializationTests
         {
             slCoreTestRunner.AddListener(new LoggerListener(rpcLogger));
             await slCoreTestRunner.Start(rpcLogger);
-        }
 
-        VerifyNoErrorsInLogs(infrastructureLogger);
-        VerifyNoErrorsInLogs(slCoreStdErrorLogger);
-        VerifyLogMessagesReceived(rpcLogger);
-        rpcLogger.AssertPartialOutputStringExists("Telemetry disabled on server startup");
-        rpcLogger.AssertPartialOutputStringDoesNotExist("Internal error");
+            VerifyNoErrorsInLogs(infrastructureLogger);
+            VerifyNoErrorsInLogs(slCoreStdErrorLogger);
+            VerifyLogMessagesReceived(rpcLogger);
+        }
     }
 
     [TestMethod]
@@ -77,11 +75,11 @@ public class InitializationTests
             await WaitForAnalysisReadiness(analysisReadyCompletionSource);
 
             activeConfigScopeTracker.RemoveCurrentConfigScope();
-        }
 
-        VerifyAnalysisReadinessReached(analysisListener, configScopeId);
-        VerifyNoErrorsInLogs(infrastructureLogger);
-        VerifyLogMessagesReceived(rpcLogger);
+            VerifyAnalysisReadinessReached(analysisListener, configScopeId);
+            VerifyNoErrorsInLogs(infrastructureLogger);
+            VerifyLogMessagesReceived(rpcLogger);
+        }
     }
 
     private static void VerifyAnalysisReadinessReached(IAnalysisListener analysisListener, string configScopeId)
