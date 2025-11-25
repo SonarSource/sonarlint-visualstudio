@@ -258,20 +258,20 @@ public class TextBufferIssueTrackerTests
         CreateTextChange("", ""),
         CreateTextChange("\r\n", "\t\nSOMETEXT"),
     ];
-    private static object[][] OnTextBufferChangedOnBackground_UpdatesIfNotWhitespace_Params =>
+    private static object[][] OnTextBufferChangedOnBackground_Updates_Params =>
     [
-        [EmptyAndWhitespaceChanges, true], // false -> true https://sonarsource.atlassian.net/browse/SLVS-2714
-        [NonEmptyChanges, true]
+        [EmptyAndWhitespaceChanges],
+        [NonEmptyChanges]
     ];
-    [DynamicData(nameof(OnTextBufferChangedOnBackground_UpdatesIfNotWhitespace_Params))]
+    [DynamicData(nameof(OnTextBufferChangedOnBackground_Updates_Params))]
     [DataTestMethod]
-    public void OnTextBufferChangedOnBackground_UpdatesIfNotWhitespace(List<ITextChange> changes, bool didUpdate)
+    public void OnTextBufferChangedOnBackground_Updates(List<ITextChange> changes)
     {
         ClearMocks();
         mockedJavascriptDocumentFooJs.TextBuffer.CurrentSnapshot.Version.Changes.Returns(new TestableNormalizedTextChangeCollection(changes));
         RaiseTextBufferChangedOnBackground(currentTextBuffer: mockDocumentTextBuffer, CreateTextSnapshotMock());
 
-        documentTrackerUpdater.Received(didUpdate ? 1 : 0).OnDocumentUpdated(testSubject);
+        documentTrackerUpdater.Received(1).OnDocumentUpdated(testSubject);
         VerifyMetadataNotUpdated();
         VerifyIssueConsumerNotCreated();
         VerifyIssueConsumerNotRemoved();
