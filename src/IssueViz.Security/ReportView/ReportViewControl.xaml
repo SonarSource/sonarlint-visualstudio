@@ -64,11 +64,19 @@
             </Style>
 
             <ControlTemplate x:Key="NonExpandableTreeViewItemTemplate" TargetType="TreeViewItem">
-                <ContentPresenter x:Name="Header" 
-                                  ContentSource="Header"
-                                  Margin="22, 0, 0, 0"
-                                  VerticalAlignment="Center" />
-                
+                <Grid Margin="22, 0, 0, 0">
+                    <Border Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            SnapsToDevicePixels="true"
+                            Margin="{TemplateBinding Margin}">
+                    <ContentPresenter x:Name="Header"
+                                      ContentSource="Header"
+                                      VerticalAlignment="Center" />
+                    </Border>
+                </Grid>
+
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsSelected" Value="True">
                         <Setter Property="Foreground"
@@ -146,12 +154,13 @@
             <Style x:Key="NonExpandableTreeViewItemStyle" TargetType="TreeViewItem">
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}" />
                 <EventSetter Event="PreviewMouseLeftButtonDown" Handler="TreeViewItem_PreviewMouseDown" />
-                <Setter Property="Template" Value="{StaticResource NonExpandableTreeViewItemTemplate}"/>
+                <Setter Property="Template" Value="{StaticResource NonExpandableTreeViewItemTemplate}" />
             </Style>
-            
-            <Style  x:Key="ExpandableTreeViewItemStyle" TargetType="TreeViewItem" BasedOn="{StaticResource NonExpandableTreeViewItemStyle}">
+
+            <Style x:Key="ExpandableTreeViewItemStyle" TargetType="TreeViewItem"
+                   BasedOn="{StaticResource NonExpandableTreeViewItemStyle}">
                 <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-                <Setter Property="Template" Value="{StaticResource ExpandableTreeViewItemTemplate}"/>
+                <Setter Property="Template" Value="{StaticResource ExpandableTreeViewItemTemplate}" />
             </Style>
 
             <Style x:Key="IssueTextBlockStyle" TargetType="TextBlock">
