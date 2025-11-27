@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using System.Security;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -37,11 +38,13 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
     internal class CredentialsListener : ICredentialsListener
     {
         private readonly ISolutionBindingCredentialsLoader credentialsLoader;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
-        public CredentialsListener(ISolutionBindingCredentialsLoader credentialsLoader)
+        public CredentialsListener(ISolutionBindingCredentialsLoader credentialsLoader, ILogger logger)
         {
             this.credentialsLoader = credentialsLoader;
+            this.logger = logger;
         }
 
         public Task<GetCredentialsResponse> GetCredentialsAsync(GetCredentialsParams parameters)
@@ -61,12 +64,14 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 
             if (credentials is ITokenCredentials tokenCredentials)
             {
-                return Task.FromResult(new GetCredentialsResponse(new TokenDto(tokenCredentials.Token.ToUnsecureString())));
+                var unsecureString = tokenCredentials.Token.ToUnsecureString();
+                logger.WriteLine("Token ends with {0}", unsecureString.Substring(unsecureString.Length - 2, 2));
+                return Task.FromResult(new GetCredentialsResponse(new TokenDto(unsecureString)));
             }
             else if (credentials is IUsernameAndPasswordCredentials usernamePasswordCredentials)
             {
                 return Task.FromResult(new GetCredentialsResponse(new UsernamePasswordDto(
-                    usernamePasswordCredentials.UserName, 
+                    usernamePasswordCredentials.UserName,
                     usernamePasswordCredentials.Password.ToUnsecureString())));
             }
 
