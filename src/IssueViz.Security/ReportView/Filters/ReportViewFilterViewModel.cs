@@ -35,7 +35,7 @@ public enum DisplayStatus
     Any
 }
 
-internal class ReportViewFilterViewModel : ViewModelBase
+internal class ReportViewFilterViewModel : ViewModelBase, IDisposable
 {
     private readonly IFocusOnNewCodeServiceUpdater focusOnNewCodeService;
     private LocationFilterViewModel selectedLocationFilter;
@@ -103,7 +103,7 @@ internal class ReportViewFilterViewModel : ViewModelBase
     {
         SelectedLocationFilter = GetDefaultLocationFilter();
         this.focusOnNewCodeService = focusOnNewCodeService;
-        focusOnNewCodeService.Changed += FocusOnNewCodeServiceOnChanged;
+        focusOnNewCodeService.Changed += FocusOnNewCodeService_Changed;
         InitializeAsync().Forget();
     }
 
@@ -113,7 +113,7 @@ internal class ReportViewFilterViewModel : ViewModelBase
         SelectedNewCodeFilterChanged();
     }
 
-    private void FocusOnNewCodeServiceOnChanged(object sender, NewCodeStatusChangedEventArgs e) => SelectedNewCodeFilterChanged();
+    private void FocusOnNewCodeService_Changed(object sender, NewCodeStatusChangedEventArgs e) => SelectedNewCodeFilterChanged();
 
     private void SelectedNewCodeFilterChanged() => RaisePropertyChanged(nameof(SelectedNewCodeFilter));
 
@@ -125,5 +125,10 @@ internal class ReportViewFilterViewModel : ViewModelBase
         SelectedLocationFilter = GetDefaultLocationFilter();
         SelectedSeverityFilter = DisplaySeverity.Info;
         SelectedStatusFilter = DisplayStatus.Open;
+    }
+
+    public void Dispose()
+    {
+        focusOnNewCodeService.Changed -= FocusOnNewCodeService_Changed;
     }
 }

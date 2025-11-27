@@ -58,7 +58,6 @@ internal class
     private readonly IActiveDocumentTracker activeDocumentTracker;
     private readonly IDocumentTracker documentTracker;
     private readonly IThreadHandling threadHandling;
-    private readonly IFocusOnNewCodeServiceUpdater focusOnNewCodeService;
     private IIssueViewModel selectedItem;
     private string activeDocumentFilePath;
 
@@ -89,11 +88,10 @@ internal class
         this.activeDocumentTracker = activeDocumentTracker;
         this.documentTracker = documentTracker;
         this.threadHandling = threadHandling;
-        this.focusOnNewCodeService = focusOnNewCodeService;
         this.issuesReportViewModel = issuesReportViewModel;
         NavigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
         AllGroupViewModels = new ObservableCollection<IGroupViewModel>();
-        ReportViewFilter = new ReportViewFilterViewModel(this.focusOnNewCodeService);
+        ReportViewFilter = new ReportViewFilterViewModel(focusOnNewCodeService);
         FilteredGroupViewModels = new ObservableCollection<IGroupViewModel>();
 
         hotspotsReportViewModel.IssuesChanged += HotspotsViewModel_IssuesChanged;
@@ -222,6 +220,8 @@ internal class
 
         documentTracker.DocumentOpened -= DocumentTracker_DocumentOpened;
         documentTracker.DocumentClosed -= DocumentTracker_DocumentClosed;
+
+        ReportViewFilter.Dispose();
 
         foreach (var groupViewModel in AllGroupViewModels)
         {

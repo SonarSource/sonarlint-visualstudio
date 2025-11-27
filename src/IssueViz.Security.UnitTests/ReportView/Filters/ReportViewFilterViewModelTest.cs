@@ -201,4 +201,12 @@ public class ReportViewFilterViewModelTest
         testSubject.SelectedStatusFilter.Should().Be(DisplayStatus.Open);
         testSubject.SelectedNewCodeFilter.Should().Be(focusOnNewCodeState);
     }
+
+    [TestMethod]
+    public void Dispose_Unsubscribes()
+    {
+        testSubject.Dispose();
+
+        focusOnNewCodeService.Received().Changed -= Arg.Any<EventHandler<NewCodeStatusChangedEventArgs>>();
+    }
 }
