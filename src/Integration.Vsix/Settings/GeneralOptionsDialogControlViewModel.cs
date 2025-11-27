@@ -29,9 +29,11 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
     private string jreLocation;
     private DaemonLogLevel selectedDaemonLogLevel;
     private bool isActivateMoreEnabled;
-    private readonly ISonarLintSettings slSettings;
-    private readonly IBrowserService browserService;
     private bool showCloudRegion;
+    private bool isFocusOnNewCodeEnabled;
+    private readonly ISonarLintSettings slSettings;
+    private readonly IFocusOnNewCodeServiceUpdater focusOnNewCodeServiceUpdater;
+    private readonly IBrowserService browserService;
 
     public ICommand OpenSettingsFileCommand { get; }
     public IEnumerable<DaemonLogLevel> DaemonLogLevels { get; } = Enum.GetValues(typeof(DaemonLogLevel)).Cast<DaemonLogLevel>();
@@ -76,20 +78,36 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         }
     }
 
+    public bool IsFocusOnNewCodeEnabled
+    {
+        get => isFocusOnNewCodeEnabled;
+        set
+        {
+            isFocusOnNewCodeEnabled = value;
+            RaisePropertyChanged();
+        }
+    }
+
     public GeneralOptionsDialogControlViewModel(
         ISonarLintSettings slSettings,
+        IFocusOnNewCodeServiceUpdater focusOnNewCodeServiceUpdater,
         IBrowserService browserService,
         ICommand openSettingsFileCommand)
     {
         OpenSettingsFileCommand = openSettingsFileCommand ?? throw new ArgumentNullException(nameof(openSettingsFileCommand));
         this.browserService = browserService ?? throw new ArgumentNullException(nameof(browserService));
+        focusOnNewCodeServiceUpdater.Changed += FocusOnNewCodeServiceUpdaterOnChanged;
 
         this.slSettings = slSettings;
+        this.focusOnNewCodeServiceUpdater = focusOnNewCodeServiceUpdater;
         SelectedDaemonLogLevel = slSettings.DaemonLogLevel;
         IsActivateMoreEnabled = slSettings.IsActivateMoreEnabled;
         JreLocation = slSettings.JreLocation;
         ShowCloudRegion = slSettings.ShowCloudRegion;
+        IsFocusOnNewCodeEnabled = focusOnNewCodeServiceUpdater.Current.IsEnabled;
     }
+
+    private void FocusOnNewCodeServiceUpdaterOnChanged(object sender, NewCodeStatusChangedEventArgs e) => IsFocusOnNewCodeEnabled = e.NewStatus.IsEnabled;
 
     public void SaveSettings()
     {
@@ -97,6 +115,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         slSettings.IsActivateMoreEnabled = IsActivateMoreEnabled;
         slSettings.JreLocation = JreLocation?.Trim();
         slSettings.ShowCloudRegion = ShowCloudRegion;
+        focusOnNewCodeServiceUpdater.Set(IsFocusOnNewCodeEnabled);
     }
 
     internal void ViewInBrowser(string url) => browserService.Navigate(url);
