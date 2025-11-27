@@ -19,24 +19,29 @@
  */
 
 using System.Diagnostics.CodeAnalysis;
+using SonarLint.VisualStudio.Core.Initialization;
 
 namespace SonarLint.VisualStudio.Core;
 
-public interface IFocusOnNewCodeService
+public interface IFocusOnNewCodeService : IRequireInitialization
 {
     FocusOnNewCodeStatus Current { get; }
-
     event EventHandler<NewCodeStatusChangedEventArgs> Changed;
 }
 
-[ExcludeFromCodeCoverage]
-public class NewCodeStatusChangedEventArgs : EventArgs
+public interface IFocusOnNewCodeServiceUpdater : IFocusOnNewCodeService
 {
-    public FocusOnNewCodeStatus NewStatus { get; init; }
+    void Set(bool isEnabled);
 }
 
 [ExcludeFromCodeCoverage]
-public class FocusOnNewCodeStatus
+public class NewCodeStatusChangedEventArgs(FocusOnNewCodeStatus newStatus) : EventArgs
 {
-    public bool IsEnabled { get; }
+    public FocusOnNewCodeStatus NewStatus { get; } = newStatus;
+}
+
+[ExcludeFromCodeCoverage]
+public class FocusOnNewCodeStatus(bool isEnabled)
+{
+    public bool IsEnabled { get; } = isEnabled;
 }
