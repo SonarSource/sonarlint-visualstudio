@@ -65,6 +65,12 @@ internal sealed class SonarLintSettings : ISonarLintSettings, IDisposable
         set => SetValue(nameof(ShowCloudRegion), value);
     }
 
+    public bool IsFocusOnNewCodeEnabled
+    {
+        get => GetValueOrDefault(nameof(IsFocusOnNewCodeEnabled), false);
+        set => SetValue(nameof(IsFocusOnNewCodeEnabled), value);
+    }
+
     public void Dispose() => disposed = true;
 
     internal bool GetValueOrDefault(string key, bool defaultValue)
