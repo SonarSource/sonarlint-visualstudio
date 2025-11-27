@@ -35,7 +35,7 @@ public enum DisplayStatus
     Any
 }
 
-internal class ReportViewFilterViewModel : ViewModelBase, IDisposable
+internal sealed class ReportViewFilterViewModel : ViewModelBase, IDisposable
 {
     private readonly IFocusOnNewCodeServiceUpdater focusOnNewCodeService;
     private LocationFilterViewModel selectedLocationFilter;
