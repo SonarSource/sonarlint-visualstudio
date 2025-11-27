@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -42,7 +42,7 @@ internal class HttpConfigurationListener : IHttpConfigurationListener
     public HttpConfigurationListener(ILogger logger,
         ICertificateChainValidator chainValidator,
         ICertificateDtoConverter certificateDtoConverter,
-        ISystemProxyDetector proxySettingsDetector, 
+        ISystemProxyDetector proxySettingsDetector,
         IServerCertificateInvalidNotification certificateInvalidNotification)
     {
         this.logger = logger.ForContext(SLCoreStrings.SLCoreName, "Http");
