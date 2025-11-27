@@ -580,7 +580,6 @@
                         Grid.Column="1"
                         Content="Focus on New Code"
                         IsChecked="{Binding SelectedNewCodeFilter, Mode=TwoWay}"
-                        IsEnabled="{Binding ReportViewModel.IsConnectedMode, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}"
                         ToolTipService.ShowOnDisabled="True"
                         Style="{StaticResource FilterCheckBoxStyle}"
                         VerticalAlignment="Center"

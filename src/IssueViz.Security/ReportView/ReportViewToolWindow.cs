@@ -64,7 +64,7 @@ internal class ReportViewToolWindow : ToolWindowPane
             componentModel?.GetService<IActiveDocumentTracker>(),
             componentModel?.GetService<IDocumentTracker>(),
             componentModel?.GetService<IThreadHandling>(),
-            componentModel?.GetService<IInitializationProcessorFactory>()
-        );
+            componentModel?.GetService<IInitializationProcessorFactory>(),
+            componentModel?.GetService<IFocusOnNewCodeServiceUpdater>());
     }
 }
