@@ -18,11 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
@@ -35,15 +35,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
         private readonly IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService;
         private readonly ITaggableBufferIndicator taggableBufferIndicator;
         private readonly IErrorTagTooltipProvider errorTagTooltipProvider;
+        private readonly IFocusOnNewCodeService focusOnNewCodeService;
 
         [ImportingConstructor]
         public ErrorTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
             ITaggableBufferIndicator taggableBufferIndicator,
-            IErrorTagTooltipProvider errorTagTooltipProvider)
+            IErrorTagTooltipProvider errorTagTooltipProvider,
+            IFocusOnNewCodeService focusOnNewCodeService)
         {
             this.bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
             this.taggableBufferIndicator = taggableBufferIndicator;
             this.errorTagTooltipProvider = errorTagTooltipProvider;
+            this.focusOnNewCodeService = focusOnNewCodeService;
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
@@ -65,7 +68,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
         private ErrorTagger Create(ITextBuffer buffer)
         {
             var aggregator = bufferTagAggregatorFactoryService.CreateTagAggregator<IIssueLocationTag>(buffer);
-            return new ErrorTagger(aggregator, buffer, errorTagTooltipProvider);
+            return new ErrorTagger(aggregator, buffer, errorTagTooltipProvider, focusOnNewCodeService);
         }
     }
 }
