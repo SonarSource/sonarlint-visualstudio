@@ -41,7 +41,7 @@ public class GeneralOptionsDialogControlViewModelTests
         openSettingsFileCommand = Substitute.For<ICommand>();
         browserService = Substitute.For<IBrowserService>();
         focusOnNewCodeService = Substitute.For<IFocusOnNewCodeServiceUpdater>();
-        focusOnNewCodeService.Current.Returns(new FocusOnNewCodeStatus(false)); // todo
+        focusOnNewCodeService.Current.Returns(new FocusOnNewCodeStatus(false));
         testSubject = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, browserService, openSettingsFileCommand);
     }
 
