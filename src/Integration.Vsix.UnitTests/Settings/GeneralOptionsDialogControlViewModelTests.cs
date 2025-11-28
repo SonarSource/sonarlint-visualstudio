@@ -31,6 +31,7 @@ public class GeneralOptionsDialogControlViewModelTests
     private ISonarLintSettings settings;
     private ICommand openSettingsFileCommand;
     private IBrowserService browserService;
+    private IFocusOnNewCodeServiceUpdater focusOnNewCodeService;
     private const string JreLocation = "C:/jrePath";
 
     [TestInitialize]
@@ -39,20 +40,22 @@ public class GeneralOptionsDialogControlViewModelTests
         settings = Substitute.For<ISonarLintSettings>();
         openSettingsFileCommand = Substitute.For<ICommand>();
         browserService = Substitute.For<IBrowserService>();
-        testSubject = new GeneralOptionsDialogControlViewModel(settings, browserService, openSettingsFileCommand);
+        focusOnNewCodeService = Substitute.For<IFocusOnNewCodeServiceUpdater>();
+        focusOnNewCodeService.Current.Returns(new FocusOnNewCodeStatus(false));
+        testSubject = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, browserService, openSettingsFileCommand);
     }
 
     [TestMethod]
     public void Ctor_OpenSettingsFileCommandNull_ThrowsException()
     {
-        Action act = () => _ = new GeneralOptionsDialogControlViewModel(settings, browserService, null);
+        Action act = () => _ = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, browserService, null);
         act.Should().Throw<ArgumentNullException>(nameof(openSettingsFileCommand));
     }
 
     [TestMethod]
     public void Ctor_BrowserServiceNull_ThrowsException()
     {
-        Action act = () => _ = new GeneralOptionsDialogControlViewModel(settings, null, openSettingsFileCommand);
+        Action act = () => _ = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, null, openSettingsFileCommand);
         act.Should().Throw<ArgumentNullException>(nameof(browserService));
     }
 
@@ -100,6 +103,17 @@ public class GeneralOptionsDialogControlViewModelTests
 
         _ = settings.Received().ShowCloudRegion;
         testSubject.ShowCloudRegion = expectedShowRegion;
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void Ctor_SetsIsFocusOnNewCodeEnabled_FromService(bool expected)
+    {
+        var focusStatus = new FocusOnNewCodeStatus(expected);
+        focusOnNewCodeService.Current.Returns(focusStatus);
+        testSubject = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, browserService, openSettingsFileCommand);
+        testSubject.IsFocusOnNewCodeEnabled.Should().Be(expected);
     }
 
     [TestMethod]
@@ -160,6 +174,26 @@ public class GeneralOptionsDialogControlViewModelTests
         testSubject.SaveSettings();
 
         settings.Received().ShowCloudRegion = expectedShowCloudRegion;
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void SaveSettings_CallsFocusOnNewCodeServiceSet(bool isEnabled)
+    {
+        testSubject.IsFocusOnNewCodeEnabled = isEnabled;
+        testSubject.SaveSettings();
+        focusOnNewCodeService.Received(1).Set(isEnabled);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void FocusOnNewCodeServiceUpdaterOnChanged_UpdatesIsFocusOnNewCodeEnabled(bool newValue)
+    {
+        var eventArgs = new NewCodeStatusChangedEventArgs(new FocusOnNewCodeStatus(newValue));
+        focusOnNewCodeService.Changed += Raise.EventWith(focusOnNewCodeService, eventArgs);
+        testSubject.IsFocusOnNewCodeEnabled.Should().Be(newValue);
     }
 
     [TestMethod]

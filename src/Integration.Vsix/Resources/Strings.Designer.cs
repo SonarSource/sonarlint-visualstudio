@@ -19,7 +19,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -156,6 +156,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         public static string Analysis_ErrorUpdatingAnalysisState {
             get {
                 return ResourceManager.GetString("Analysis_ErrorUpdatingAnalysisState", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analysis Scope.
+        /// </summary>
+        public static string AnalysisScopeHeader {
+            get {
+                return ResourceManager.GetString("AnalysisScopeHeader", resourceCulture);
             }
         }
         
@@ -426,6 +435,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         public static string FileExclusionsPage_PatternExamples {
             get {
                 return ResourceManager.GetString("FileExclusionsPage_PatternExamples", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Focus on New Code.
+        /// </summary>
+        public static string FocusOnNewCodeCheckbox {
+            get {
+                return ResourceManager.GetString("FocusOnNewCodeCheckbox", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use Connected Mode to benefit from an accurate new code definition based on your SonarQube (Server, Cloud) settings.
+        ///Without Connected Mode, any code added or changed in the last 30 days is considered new code..
+        /// </summary>
+        public static string FocusOnNewCodeTooltip {
+            get {
+                return ResourceManager.GetString("FocusOnNewCodeTooltip", resourceCulture);
             }
         }
         
