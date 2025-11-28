@@ -103,7 +103,7 @@ internal sealed class SLCoreInstanceHandler : ISLCoreInstanceHandler
         try
         {
             logger.WriteLine(SLCoreStrings.SLCoreHandler_StartingInstance);
-            currentInstanceHandle.Initialize();
+            await currentInstanceHandle.InitializeAsync();
             await currentInstanceHandle.ShutdownTask;
         }
         catch (Exception e)

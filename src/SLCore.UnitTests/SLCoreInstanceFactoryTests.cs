@@ -50,6 +50,7 @@ public class SLCoreInstanceFactoryTests
             MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<ISLCoreRuleSettingsProvider>(),
             MefTestHelpers.CreateExport<IEsLintBridgeLocator>(),
+            MefTestHelpers.CreateExport<IFocusOnNewCodeService>(),
             MefTestHelpers.CreateExport<ISlCoreTelemetryMigrationProvider>());
     }
 
@@ -76,6 +77,7 @@ public class SLCoreInstanceFactoryTests
         var threadHandling = Substitute.For<IThreadHandling>();
         var slCoreRuleSettingsProvider = Substitute.For<ISLCoreRuleSettingsProvider>();
         var telemetryMigrationProvider = Substitute.For<ISlCoreTelemetryMigrationProvider>();
+        var focusOnNewCodeService = Substitute.For<IFocusOnNewCodeService>();
 
         var testSubject = new SLCoreInstanceFactory(
             islCoreRpcFactory,
@@ -91,6 +93,7 @@ public class SLCoreInstanceFactoryTests
             slCoreRuleSettingsProvider,
             telemetryMigrationProvider,
             esLintBridgeLocator,
+            focusOnNewCodeService,
             threadHandling);
 
         testSubject.CreateInstance().Should().NotBeNull();

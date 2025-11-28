@@ -72,6 +72,7 @@ public class SLCoreInstanceHandleTests
     private ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider;
     private SLCoreInstanceHandle testSubject;
     private ISlCoreTelemetryMigrationProvider telemetryMigrationProvider;
+    private IFocusOnNewCodeService focusOnNewCodeService;
 
     [TestInitialize]
     public void TestInitialize()
@@ -90,6 +91,8 @@ public class SLCoreInstanceHandleTests
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         slCoreRuleSettingsProvider = Substitute.For<ISLCoreRuleSettingsProvider>();
         telemetryMigrationProvider = Substitute.For<ISlCoreTelemetryMigrationProvider>();
+        focusOnNewCodeService = Substitute.For<IFocusOnNewCodeService>();
+        focusOnNewCodeService.Current.Returns(new FocusOnNewCodeStatus(false));
 
         testSubject = new SLCoreInstanceHandle(
             slCoreRpcFactory,
@@ -105,6 +108,7 @@ public class SLCoreInstanceHandleTests
             configScopeUpdater,
             slCoreRuleSettingsProvider,
             telemetryMigrationProvider,
+            focusOnNewCodeService,
             threadHandling);
     }
 
@@ -116,7 +120,7 @@ public class SLCoreInstanceHandleTests
         var exception = new Exception(exceptionMessage);
         rpcManager.When(x => x.Initialize(Arg.Any<InitializeParams>())).Throw(exception);
 
-        var act = () => testSubject.Initialize();
+        var act = () => testSubject.InitializeAsync();
 
         act.Should().ThrowExactly<Exception>().WithMessage(exceptionMessage);
     }
@@ -124,7 +128,7 @@ public class SLCoreInstanceHandleTests
     [DataTestMethod]
     [DataRow("some/node/path", "vsix/esLintBridge")]
     [DataRow(null, null)]
-    public void Initialize_SuccessfullyInitializesInCorrectOrder(string nodeJsPath, string esLintBridgePath)
+    public async Task Initialize_SuccessfullyInitializesInCorrectOrder(string nodeJsPath, string esLintBridgePath)
     {
         SetUpLanguages([], []);
         SetUpFullConfiguration(out _);
@@ -133,7 +137,7 @@ public class SLCoreInstanceHandleTests
         var telemetryMigrationDto = new TelemetryMigrationDto(default, default, default);
         telemetryMigrationProvider.Get().Returns(telemetryMigrationDto);
 
-        testSubject.Initialize();
+        await testSubject.InitializeAsync();
 
         Received.InOrder(() =>
         {
@@ -170,7 +174,7 @@ public class SLCoreInstanceHandleTests
         SetUpLanguages(standalone, connected);
         SetUpFullConfiguration(out _);
 
-        testSubject.Initialize();
+        testSubject.InitializeAsync();
 
         var initializeParams = (InitializeParams)rpcManager.ReceivedCalls().Single().GetArguments().Single()!;
         initializeParams.enabledLanguagesInStandaloneMode.Should().BeSameAs(standalone);
@@ -183,7 +187,7 @@ public class SLCoreInstanceHandleTests
         SetUpFullConfiguration(out _);
         slCoreRuleSettingsProvider.GetSLCoreRuleSettings().Returns(new Dictionary<string, StandaloneRuleConfigDto>() { { "rule1", new StandaloneRuleConfigDto(true, []) } });
 
-        testSubject.Initialize();
+        testSubject.InitializeAsync();
 
         rpcManager.Received(1).Initialize(Arg.Is<InitializeParams>(param => param.standaloneRuleConfigByKey.SequenceEqual(slCoreRuleSettingsProvider.GetSLCoreRuleSettings())));
     }
@@ -194,7 +198,7 @@ public class SLCoreInstanceHandleTests
         SetUpLanguages([], []);
 
         SetUpFullConfiguration(out var rpc);
-        testSubject.Initialize();
+        testSubject.InitializeAsync();
 
         rpcManager.ClearReceivedCalls();
         testSubject.Dispose();
@@ -215,7 +219,7 @@ public class SLCoreInstanceHandleTests
 
         SetUpFullConfiguration(out var rpc);
         rpcManager.When(x => x.Shutdown()).Do(_ => throw new Exception());
-        testSubject.Initialize();
+        testSubject.InitializeAsync();
 
         rpcManager.ClearReceivedCalls();
         var act = () => testSubject.Dispose();
@@ -229,7 +233,7 @@ public class SLCoreInstanceHandleTests
         SetUpLanguages([], []);
 
         SetUpFullConfiguration(out var rpc);
-        testSubject.Initialize();
+        testSubject.InitializeAsync();
 
         rpcManager.ClearSubstitute();
         rpcManager.ClearReceivedCalls();
