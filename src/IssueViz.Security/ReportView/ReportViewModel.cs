@@ -19,8 +19,6 @@
  */
 
 using System.Collections.ObjectModel;
-using System.Windows.Input;
-using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Initialization;
@@ -29,7 +27,6 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
-using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
@@ -77,6 +74,7 @@ internal class
         IActiveDocumentLocator activeDocumentLocator,
         IActiveDocumentTracker activeDocumentTracker,
         IDocumentTracker documentTracker,
+        IFocusOnNewCodeServiceUpdater focusOnNewCodeService,
         IThreadHandling threadHandling,
         IInitializationProcessorFactory initializationProcessorFactory) : base(activeSolutionBoundTracker, initializationProcessorFactory)
     {
@@ -93,6 +91,7 @@ internal class
         this.issuesReportViewModel = issuesReportViewModel;
         NavigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
         AllGroupViewModels = new ObservableCollection<IGroupViewModel>();
+        ReportViewFilter = new ReportViewFilterViewModel(focusOnNewCodeService);
         FilteredGroupViewModels = new ObservableCollection<IGroupViewModel>();
 
         hotspotsReportViewModel.IssuesChanged += HotspotsViewModel_IssuesChanged;
@@ -136,8 +135,8 @@ internal class
     public bool HasFilteredGroups => FilteredGroupViewModels.Any(x => x.FilteredIssues.Any());
     // this indicates whether to show the 'too restrictive filters' warning, we only want to do that if filtered issues are 0 but prefiltered are not
     public bool HasNoFilteredIssuesForGroupsWithIssues => AllGroupViewModels.Any() && FilteredGroupViewModels.All(x => !x.FilteredIssues.Any() && x.PreFilteredIssues.Any());
-    public INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; set; }
-    public ReportViewFilterViewModel ReportViewFilter { get; } = new();
+    public INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; }
+    public ReportViewFilterViewModel ReportViewFilter { get; }
 
     public IIssueViewModel SelectedItem
     {
@@ -221,6 +220,8 @@ internal class
 
         documentTracker.DocumentOpened -= DocumentTracker_DocumentOpened;
         documentTracker.DocumentClosed -= DocumentTracker_DocumentClosed;
+
+        ReportViewFilter.Dispose();
 
         foreach (var groupViewModel in AllGroupViewModels)
         {
