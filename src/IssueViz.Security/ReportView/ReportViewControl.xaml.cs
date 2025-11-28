@@ -76,7 +76,8 @@ internal sealed partial class ReportViewControl : UserControl
         IActiveDocumentTracker activeDocumentTracker,
         IDocumentTracker documentTracker,
         IThreadHandling threadHandling,
-        IInitializationProcessorFactory initializationProcessorFactory)
+        IInitializationProcessorFactory initializationProcessorFactory,
+        IFocusOnNewCodeServiceUpdater focusOnNewCodeServiceUpdater)
     {
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.browserService = browserService;
@@ -96,8 +97,7 @@ internal sealed partial class ReportViewControl : UserControl
             activeDocumentLocator,
             activeDocumentTracker,
             documentTracker,
-            threadHandling,
-            initializationProcessorFactory);
+            focusOnNewCodeServiceUpdater, threadHandling, initializationProcessorFactory);
         InitializeComponent();
     }
 
