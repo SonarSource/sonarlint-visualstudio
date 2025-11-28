@@ -437,4 +437,14 @@ E.g. C:\Program Files\Java\jdk-17</value>
   <data name="GlobalJreProvider_ErrorFindingJava" xml:space="preserve">
     <value>Error finding Java using {0}: {1}</value>
   </data>
+  <data name="AnalysisScopeHeader" xml:space="preserve">
+    <value>Analysis Scope</value>
+  </data>
+  <data name="FocusOnNewCodeCheckbox" xml:space="preserve">
+    <value>Focus on New Code</value>
+  </data>
+  <data name="FocusOnNewCodeTooltip" xml:space="preserve">
+    <value>Use Connected Mode to benefit from an accurate new code definition based on your SonarQube (Server, Cloud) settings.
+Without Connected Mode, any code added or changed in the last 30 days is considered new code.</value>
+  </data>
 </root>
