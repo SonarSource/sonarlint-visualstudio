@@ -99,7 +99,7 @@ internal static class TaggerTestHelper
     }
 
     public static IAnalysisIssueVisualization CreateIssueViz(ITextSnapshot snapshot, Span span,
-        string locationMessage, string ruleKey = null, bool isResolved = false)
+        string locationMessage, string ruleKey = null, bool isResolved = false, bool isOnNewCode = false)
     {
         var issueVizMock = new Mock<IAnalysisIssueVisualization>();
         var snapshotSpan = new SnapshotSpan(snapshot, span);
@@ -113,6 +113,7 @@ internal static class TaggerTestHelper
                 IsResolved = isResolved
             });
         issueVizMock.Setup(x => x.IsResolved).Returns(isResolved);
+        issueVizMock.Setup(x => x.IsOnNewCode).Returns(isOnNewCode);
         return issueVizMock.Object;
     }
 
