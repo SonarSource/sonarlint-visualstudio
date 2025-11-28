@@ -19,6 +19,8 @@
  */
 
 using System.ComponentModel;
+using NSubstitute.ClearExtensions;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
@@ -27,13 +29,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportVie
 [TestClass]
 public class ReportViewFilterViewModelTest
 {
+    private IFocusOnNewCodeServiceUpdater focusOnNewCodeService;
     private ReportViewFilterViewModel testSubject;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        testSubject = new ReportViewFilterViewModel();
+        focusOnNewCodeService = Substitute.For<IFocusOnNewCodeServiceUpdater>();
+        CreateTestSubject();
     }
+
+    private void CreateTestSubject() => testSubject = new ReportViewFilterViewModel(focusOnNewCodeService);
 
     [TestMethod]
     public void Ctor_InitializesLocationFilters()
@@ -91,6 +97,23 @@ public class ReportViewFilterViewModelTest
     }
 
     [TestMethod]
+    public void Ctor_SubscribesForNewCodeUpdatesAndWaitsForServiceInitialization()
+    {
+        focusOnNewCodeService.ClearSubstitute();
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        var tcs = new TaskCompletionSource<byte>();
+        focusOnNewCodeService.InitializationProcessor.InitializeAsync().Returns(tcs.Task);
+
+        CreateTestSubject();
+        testSubject.PropertyChanged += eventHandler;
+        tcs.SetResult(0);
+
+        focusOnNewCodeService.Received(1).Changed += Arg.Any<EventHandler<NewCodeStatusChangedEventArgs>>();
+        focusOnNewCodeService.Received().InitializationProcessor.InitializeAsync();
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.SelectedNewCodeFilter)));
+    }
+
+    [TestMethod]
     public void SelectedLocationFilter_RaisesEvents()
     {
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
@@ -134,20 +157,36 @@ public class ReportViewFilterViewModelTest
         eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.SelectedSeverityFilter)));
     }
 
-    [TestMethod]
-    public void SelectedNewCodeFilter_RaisesEvents()
+    [DataTestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void SelectedNewCodeFilter_DoesNotRaiseEventsDirectly(bool focusOnNewCodeState)
     {
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 
-        testSubject.SelectedNewCodeFilter = true;
+        testSubject.SelectedNewCodeFilter = focusOnNewCodeState;
+
+        focusOnNewCodeService.Received().Set(focusOnNewCodeState);
+    }
+
+    [DataTestMethod]
+    public void SelectedNewCodeFilter_FocusOnNewCodeUpdated_RaisesEvent()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+
+        focusOnNewCodeService.Changed += Raise.EventWith(new NewCodeStatusChangedEventArgs(new FocusOnNewCodeStatus(true)));
 
         eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.SelectedNewCodeFilter)));
     }
 
-    [TestMethod]
-    public void ClearAll_SetsAllFiltersToDefaultValued()
+    [DataTestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ClearAll_SetsAllFiltersToDefaultValued(bool focusOnNewCodeState)
     {
+        focusOnNewCodeService.Current.Returns(new FocusOnNewCodeStatus(focusOnNewCodeState));
         testSubject.IssueTypeFilters.ToList().ForEach(vm => vm.IsSelected = false);
         testSubject.SelectedLocationFilter = testSubject.LocationFilters.Single(f => f.LocationFilter == LocationFilter.CurrentDocument);
         testSubject.SelectedSeverityFilter = DisplaySeverity.Info;
@@ -160,6 +199,14 @@ public class ReportViewFilterViewModelTest
         testSubject.SelectedLocationFilter.LocationFilter.Should().Be(LocationFilter.OpenDocuments);
         testSubject.SelectedSeverityFilter.Should().Be(DisplaySeverity.Info);
         testSubject.SelectedStatusFilter.Should().Be(DisplayStatus.Open);
-        testSubject.SelectedNewCodeFilter.Should().BeFalse();
+        testSubject.SelectedNewCodeFilter.Should().Be(focusOnNewCodeState);
+    }
+
+    [TestMethod]
+    public void Dispose_Unsubscribes()
+    {
+        testSubject.Dispose();
+
+        focusOnNewCodeService.Received().Changed -= Arg.Any<EventHandler<NewCodeStatusChangedEventArgs>>();
     }
 }
