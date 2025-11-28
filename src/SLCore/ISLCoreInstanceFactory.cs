@@ -54,6 +54,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
     private readonly ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider;
     private readonly ISlCoreTelemetryMigrationProvider telemetryMigrationProvider;
     private readonly IEsLintBridgeLocator esLintBridgeLocator;
+    private readonly IFocusOnNewCodeService focusOnNewCodeService;
 
     [ImportingConstructor]
     public SLCoreInstanceFactory(
@@ -70,6 +71,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
         ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider,
         ISlCoreTelemetryMigrationProvider telemetryMigrationProvider,
         IEsLintBridgeLocator esLintBridgeLocator,
+        IFocusOnNewCodeService focusOnNewCodeService,
         IThreadHandling threadHandling)
     {
         this.slCoreRpcFactory = slCoreRpcFactory;
@@ -85,6 +87,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
         this.slCoreRuleSettingsProvider = slCoreRuleSettingsProvider;
         this.telemetryMigrationProvider = telemetryMigrationProvider;
         this.esLintBridgeLocator = esLintBridgeLocator;
+        this.focusOnNewCodeService = focusOnNewCodeService;
         this.threadHandling = threadHandling;
     }
 
@@ -103,5 +106,6 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
             configScopeUpdater,
             slCoreRuleSettingsProvider,
             telemetryMigrationProvider,
+            focusOnNewCodeService,
             threadHandling);
 }
