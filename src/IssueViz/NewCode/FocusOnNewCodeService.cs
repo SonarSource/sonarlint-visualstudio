@@ -19,10 +19,15 @@
  */
 
 using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.SLCore;
+using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Service.NewCode;
 
-namespace SonarLint.VisualStudio.Core;
+namespace SonarLint.VisualStudio.IssueVisualization.NewCode;
 
 [Export(typeof(IFocusOnNewCodeService))]
 [Export(typeof(IFocusOnNewCodeServiceUpdater))]
@@ -30,11 +35,18 @@ namespace SonarLint.VisualStudio.Core;
 public class FocusOnNewCodeService : IFocusOnNewCodeServiceUpdater
 {
     private readonly ISonarLintSettings sonarLintSettings;
+    private readonly ISLCoreServiceProvider slCoreServiceProvider;
+    private readonly IThreadHandling threadHandling;
 
     [ImportingConstructor]
-    public FocusOnNewCodeService(ISonarLintSettings sonarLintSettings, IInitializationProcessorFactory initializationProcessorFactory)
+    public FocusOnNewCodeService(ISonarLintSettings sonarLintSettings,
+        IInitializationProcessorFactory initializationProcessorFactory,
+        ISLCoreServiceProvider slCoreServiceProvider,
+        IThreadHandling threadHandling)
     {
         this.sonarLintSettings = sonarLintSettings;
+        this.slCoreServiceProvider = slCoreServiceProvider;
+        this.threadHandling = threadHandling;
         InitializationProcessor = initializationProcessorFactory.CreateAndStart<FocusOnNewCodeService>([], () =>
         {
             // sonarLintSettings needs UI thread to initialize settings storage, so the first property access may not be free-threaded
@@ -49,8 +61,18 @@ public class FocusOnNewCodeService : IFocusOnNewCodeServiceUpdater
     {
         sonarLintSettings.IsFocusOnNewCodeEnabled = isEnabled;
         Current = new(sonarLintSettings.IsFocusOnNewCodeEnabled);
+        NotifySlCoreNewCodeToggled();
         Changed?.Invoke(this, new(Current));
     }
+
+    private void NotifySlCoreNewCodeToggled() =>
+        threadHandling.RunOnBackgroundThread(() =>
+        {
+            if (slCoreServiceProvider.TryGetTransientService(out INewCodeSLCoreService newCodeService))
+            {
+                newCodeService.DidToggleFocus();
+            }
+        }).Forget();
 
     public event EventHandler<NewCodeStatusChangedEventArgs> Changed;
 }

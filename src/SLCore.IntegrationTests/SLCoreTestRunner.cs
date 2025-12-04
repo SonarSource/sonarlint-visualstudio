@@ -124,6 +124,9 @@ public sealed class SLCoreTestRunner : IDisposable
             noOpActiveSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
             var noOpConfigScopeUpdater = Substitute.For<IConfigScopeUpdater>();
 
+            var focusOnNewCodeService = Substitute.For<IFocusOnNewCodeService>();
+            focusOnNewCodeService.Current.Returns(new FocusOnNewCodeStatus(false));
+
             slCoreInstanceHandle = new SLCoreInstanceHandle(new SLCoreRpcFactory(slCoreTestProcessFactory, slCoreLocator,
                     new SLCoreJsonRpcFactory(new RpcMethodNameTransformer()),
                     new RpcDebugger(new FileSystem(), Path.Combine(privateFolder, "logrpc.log")),
@@ -141,6 +144,7 @@ public sealed class SLCoreTestRunner : IDisposable
                 noOpConfigScopeUpdater,
                 slCoreRulesSettingsProvider,
                 Substitute.For<ISlCoreTelemetryMigrationProvider>(),
+                focusOnNewCodeService,
                 new NoOpThreadHandler());
 
             await InitializeAndWaitForSloopLog(testLogger);
@@ -157,7 +161,7 @@ public sealed class SLCoreTestRunner : IDisposable
         EventHandler eventHandler = (_, _) => tcs.TrySetResult(true);
         slCoreLogger.LogMessageAdded += eventHandler;
 
-        slCoreInstanceHandle.Initialize();
+        await slCoreInstanceHandle.InitializeAsync();
 
         try
         {
