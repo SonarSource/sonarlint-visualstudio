@@ -24,14 +24,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.LibGit2SharpWrappers
 {
     internal class CommitWrapper : Commit
     {
+        private readonly ObjectId id;
+
         internal CommitWrapper(byte commitID)
         {
             var bytes = new byte[20];
             bytes[0] = commitID;
 
-            Id = new ObjectId(bytes);
+            id = new ObjectId(bytes);
         }
 
-        public override ObjectId Id { get; }
+        public override ObjectId Id => id;
     }
 }
