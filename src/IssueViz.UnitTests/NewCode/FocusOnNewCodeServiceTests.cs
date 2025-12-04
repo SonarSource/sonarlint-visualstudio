@@ -19,11 +19,15 @@
  */
 
 using System.ComponentModel.Composition.Primitives;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.IssueVisualization.NewCode;
+using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Service.NewCode;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Core.UnitTests;
+namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.NewCode;
 
 [TestClass]
 public class FocusOnNewCodeServiceTests
@@ -31,6 +35,9 @@ public class FocusOnNewCodeServiceTests
     private ISonarLintSettings sonarLintSettings;
     private NoOpThreadHandler threadHandling;
     private IInitializationProcessorFactory initializationProcessorFactory;
+    private NoOpThreadHandler threadHandler;
+    private ISLCoreServiceProvider serviceProvider;
+    private INewCodeSLCoreService newCodeSlCoreService;
     private FocusOnNewCodeService testSubject;
 
     [TestInitialize]
@@ -42,7 +49,11 @@ public class FocusOnNewCodeServiceTests
         sonarLintSettings.IsFocusOnNewCodeEnabled.Returns(isEnabled);
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<FocusOnNewCodeService>(threadHandling, Substitute.ForPartsOf<TestLogger>());
-        testSubject = new FocusOnNewCodeService(sonarLintSettings, initializationProcessorFactory);
+        threadHandler = Substitute.ForPartsOf<NoOpThreadHandler>();
+        serviceProvider = Substitute.For<ISLCoreServiceProvider>();
+        newCodeSlCoreService = Substitute.For<INewCodeSLCoreService>();
+        SetUpSlCoreService(true);
+        testSubject = new FocusOnNewCodeService(sonarLintSettings, initializationProcessorFactory, serviceProvider, threadHandler);
         testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
     }
 
@@ -52,7 +63,9 @@ public class FocusOnNewCodeServiceTests
         Export[] exports =
         [
             MefTestHelpers.CreateExport<ISonarLintSettings>(),
-            MefTestHelpers.CreateExport<IInitializationProcessorFactory>()
+            MefTestHelpers.CreateExport<IInitializationProcessorFactory>(),
+            MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
+            MefTestHelpers.CreateExport<IThreadHandling>(),
         ];
 
         MefTestHelpers.CheckTypeCanBeImported<FocusOnNewCodeService, IFocusOnNewCodeService>(exports);
@@ -79,6 +92,7 @@ public class FocusOnNewCodeServiceTests
             _ = sonarLintSettings.IsFocusOnNewCodeEnabled; // this doesn't actually assert anything due to how NSub works, but is left here to make the test easier to understand
             testSubject.InitializationProcessor.InitializeAsync(); // from CreateTestSubject
         });
+        serviceProvider.DidNotReceiveWithAnyArgs().TryGetTransientService(out Arg.Any<INewCodeSLCoreService>());
     }
 
     [DataTestMethod]
@@ -95,4 +109,31 @@ public class FocusOnNewCodeServiceTests
         testSubject.Current.IsEnabled.Should().Be(isEnabled);
         handler.Received(1).Invoke(testSubject, Arg.Is<NewCodeStatusChangedEventArgs>(e => e.NewStatus.IsEnabled == isEnabled));
     }
+
+    [DataTestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void Set_NotifiesSlCore(bool isSlCoreInitialized)
+    {
+        SetUpSlCoreService(isSlCoreInitialized);
+
+        testSubject.Set(true);
+
+        Received.InOrder(() =>
+        {
+            threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+            serviceProvider.TryGetTransientService(out Arg.Any<INewCodeSLCoreService>());
+            if (isSlCoreInitialized)
+            {
+                newCodeSlCoreService.DidToggleFocus();
+            }
+        });
+    }
+
+    private void SetUpSlCoreService(bool isInitialized) =>
+        serviceProvider.TryGetTransientService(out Arg.Any<INewCodeSLCoreService>()).Returns(info =>
+        {
+            info[0] = newCodeSlCoreService;
+            return isInitialized;
+        });
 }
