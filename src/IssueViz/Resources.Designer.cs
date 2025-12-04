@@ -177,6 +177,33 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Focus on New Code definition not available: {0}.
+        /// </summary>
+        public static string FocusOnNewCodeDefinitionUnavailableLogTemplate {
+            get {
+                return ResourceManager.GetString("FocusOnNewCodeDefinitionUnavailableLogTemplate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Focus on New Code is unavailable.
+        /// </summary>
+        public static string FocusOnNewCodeNotAvailableDescription {
+            get {
+                return ResourceManager.GetString("FocusOnNewCodeNotAvailableDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Focus on New Code.
+        /// </summary>
+        public static string FocusOnNewCodeServiceLogContext {
+            get {
+                return ResourceManager.GetString("FocusOnNewCodeServiceLogContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarQube: Hide Issue Visualization ({0}).
         /// </summary>
         public static string HideIssueVisualizationCommandText {
