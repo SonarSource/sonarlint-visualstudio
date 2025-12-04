@@ -71,9 +71,9 @@
                             BorderBrush="{TemplateBinding BorderBrush}"
                             SnapsToDevicePixels="true"
                             Margin="{TemplateBinding Margin}">
-                    <ContentPresenter x:Name="Header"
-                                      ContentSource="Header"
-                                      VerticalAlignment="Center" />
+                        <ContentPresenter x:Name="Header"
+                                          ContentSource="Header"
+                                          VerticalAlignment="Center" />
                     </Border>
                 </Grid>
 
@@ -126,6 +126,7 @@
                     </Border>
                     <ItemsPresenter Grid.Row="1" Grid.Column="0" x:Name="ItemsHost" Margin="0,0,0,0" />
                 </Grid>
+
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsExpanded" Value="False">
                         <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed" />
@@ -280,14 +281,46 @@
                 </Setter>
             </Style>
 
-            <Style x:Key="FilterCheckBoxStyle" TargetType="CheckBox">
+            <Style x:Key="FocusOnNewCodeDefinition" TargetType="TextBlock">
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
+                <Setter Property="VerticalAlignment" Value="Center"></Setter>
+            </Style>
+
+            <Style x:Key="NewCodeCheckBoxStyle" TargetType="CheckBox">
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Bottom" />
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
+                <Setter Property="IsEnabled" Value="{Binding ReportViewFilter.SelectedNewCodeFilterSupported}" />
+                <Setter Property="IsChecked" Value="{Binding ReportViewFilter.SelectedNewCodeFilter, Mode=TwoWay}" />
+                <Setter Property="ToolTip" Value="{x:Static res:Resources.FocusOnNewCodeTooltipGeneric}"/>
+                <Setter Property="Content" Value="{x:Static res:Resources.FocusOnNewCodeText}"/>
                 <Style.Triggers>
                     <Trigger Property="IsEnabled" Value="False">
                         <Setter Property="Opacity" Value="0.5" />
-                        <Setter Property="ToolTip"
-                                Value="{x:Static res:Resources.FilterNotAvailableInStandaloneMode}" />
                     </Trigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ReportViewFilter.SelectedNewCodeFilterSupported}" Value="False" />
+                            <Condition Binding="{Binding IsConnectedMode}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter Property="ToolTip" Value="{x:Static res:Resources.FocusOnNewCodeTooltipNotSupported}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ReportViewFilter.SelectedNewCodeFilterSupported}" Value="True" />
+                            <Condition Binding="{Binding IsConnectedMode}" Value="True" />
+                            <Condition Binding="{Binding IsCloud}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter Property="ToolTip" Value="{x:Static res:Resources.FocusOnNewCodeTooltipConnectedCloud}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ReportViewFilter.SelectedNewCodeFilterSupported}" Value="True" />
+                            <Condition Binding="{Binding IsConnectedMode}" Value="True" />
+                            <Condition Binding="{Binding IsCloud}" Value="False" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter Property="ToolTip" Value="{x:Static res:Resources.FocusOnNewCodeTooltipConnectedServer}"/>
+                    </MultiDataTrigger>
                 </Style.Triggers>
             </Style>
 
@@ -541,6 +574,7 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
@@ -577,13 +611,12 @@
                     </Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Style="{StaticResource FilterSeparatorBorderStyle}" />
                     <CheckBox
+                        DataContext="{Binding ReportViewModel,
+                            RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}"
                         Grid.Column="1"
-                        Content="Focus on New Code"
-                        IsChecked="{Binding SelectedNewCodeFilter, Mode=TwoWay}"
+                        Content="{x:Static res:Resources.FocusOnNewCodeText}"
                         ToolTipService.ShowOnDisabled="True"
-                        Style="{StaticResource FilterCheckBoxStyle}"
-                        VerticalAlignment="Center"
-                        VerticalContentAlignment="Bottom"
+                        Style="{StaticResource NewCodeCheckBoxStyle}"
                         Margin="5,0"
                         Checked="Control_OnFilterChanged"
                         Unchecked="Control_OnFilterChanged">
@@ -641,6 +674,27 @@
                     </TextBlock>
                 </Grid>
 
+                <Grid
+                    Grid.Column="6"
+                    Margin="5, 0">
+                    <TextBlock
+                        Text="{Binding ReportViewModel.ReportViewFilter.SelectedNewCodeFilterDescription,
+                            RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}"
+                        Visibility="{Binding ReportViewModel.ReportViewFilter.SelectedNewCodeFilter,
+                            RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}, 
+                            Converter={StaticResource TrueToVisibleConverter}}"
+                        ToolTip="{x:Static res:Resources.NewCodeDefinitionTooltip}"
+                        Style="{StaticResource FocusOnNewCodeDefinition}">
+                    </TextBlock>
+                    <TextBlock
+                        Text="{x:Static res:Resources.FromOverallCodeText}"
+                        Visibility="{Binding ReportViewModel.ReportViewFilter.SelectedNewCodeFilter,
+                            RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}, 
+                            Converter={StaticResource TrueToCollapsedConverter}}"
+                        ToolTip="{x:Static res:Resources.ActivateFocusOnNewCodeTooltip}"
+                        Style="{StaticResource FocusOnNewCodeDefinition}">
+                    </TextBlock>
+                </Grid>
             </Grid>
 
             <Grid Grid.Row="1" Grid.Column="0"

@@ -428,4 +428,29 @@ Please check the logs for more details.</value>
   <data name="ExpandAllButtonTooltip" xml:space="preserve">
     <value>Expand all</value>
   </data>
+  <data name="FocusOnNewCodeTooltipGeneric" xml:space="preserve">
+    <value>Use Connected Mode to benefit from an accurate New Code Definition based on your SonarQube (Server, Cloud) settings.
+Without Connected Mode, any code added or changed in the last 30 days is considered New Code.</value>
+  </data>
+  <data name="FocusOnNewCodeTooltipConnectedCloud">
+    <value>New Code Definition based on your SonarQube Cloud settings.</value>
+  </data>
+  <data name="FocusOnNewCodeTooltipConnectedServer">
+    <value>New Code Definition based on your SonarQube Server settings.</value>
+  </data>
+  <data name="FocusOnNewCodeTooltipNotSupported">
+    <value>Focus on New Code is not available for the current SonarQube Server.</value>
+  </data>
+  <data name="FocusOnNewCodeText" xml:space="preserve">
+    <value>Focus on New Code</value>
+  </data>
+  <data name="FromOverallCodeText" xml:space="preserve">
+    <value>From Overall Code</value>
+  </data>
+  <data name="NewCodeDefinitionTooltip" xml:space="preserve">
+    <value>New Code Definition</value>
+  </data>
+  <data name="ActivateFocusOnNewCodeTooltip" xml:space="preserve">
+    <value>Activate Focus on New Code to view only new issues</value>
+  </data>
 </root>
