@@ -19,7 +19,10 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Reflection;
 using Microsoft.VisualStudio.Threading;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore;
@@ -30,10 +33,27 @@ using SonarLint.VisualStudio.SLCore.Service.File;
 
 namespace SonarLint.VisualStudio.Integration.LocalServices;
 
+public class IgnoreContent : DefaultContractResolver
+{
+    protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+    {
+        var property = base.CreateProperty(member, memberSerialization);
+        if (property.PropertyName?.ToLower().Contains("content") ?? false)
+        {
+            property.ShouldSerialize = i => false;
+            property.Ignored = true;
+        }
+
+        return property;
+    }
+}
+
 [Export(typeof(IFileTracker))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class FileTracker : IFileTracker
 {
+    private JsonSerializerSettings settings = new JsonSerializerSettings() { ContractResolver = new IgnoreContent() };
+
     private readonly ISLCoreServiceProvider serviceProvider;
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly IThreadHandling threadHandling;
@@ -52,7 +72,7 @@ public class FileTracker : IFileTracker
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.threadHandling = threadHandling;
         this.clientFileDtoFactory = clientFileDtoFactory;
-        this.logger = logger.ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.FileSubsystem_LogContext, SLCoreStrings.FileTracker_LogContext);
+        this.logger = logger.ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.FileSubsystem_LogContext, SLCoreStrings.FileTracker_LogContext).ForVerboseContext("FILE SYSTEM INVESTIGATION");
     }
 
     public void AddFiles(params SourceFile[] addedFiles)
@@ -73,27 +93,39 @@ public class FileTracker : IFileTracker
 
     private void NotifySlCoreFilesChanged(string[] removedFiles, SourceFile[] addedOrChangedFiles)
     {
-        if (!serviceProvider.TryGetTransientService(out IFileRpcSLCoreService fileRpcSlCoreService))
+        try
         {
-            logger.LogVerbose(SLCoreStrings.ServiceProviderNotInitialized);
-            return;
-        }
+            logger.LogVerbose(new MessageLevelContext {VerboseContext = [nameof(addedOrChangedFiles)]}, JsonConvert.SerializeObject(addedOrChangedFiles, Formatting.Indented, settings));
+            logger.LogVerbose(new MessageLevelContext {VerboseContext = [nameof(removedFiles)]}, JsonConvert.SerializeObject(removedFiles, Formatting.Indented, settings));
 
-        if (activeConfigScopeTracker.Current is not { RootPath: not null } configScope)
-        {
-            logger.LogVerbose(SLCoreStrings.ConfigScopeNotInitialized);
-            return;
-        }
+            if (!serviceProvider.TryGetTransientService(out IFileRpcSLCoreService fileRpcSlCoreService))
+            {
+                logger.LogVerbose(SLCoreStrings.ServiceProviderNotInitialized);
+                return;
+            }
 
-        var clientFiles = addedOrChangedFiles.Select(sourceFile => clientFileDtoFactory.CreateOrNull(configScope.Id, configScope.RootPath, sourceFile)).Where(x => x is not null).ToList();
-        var removedFileUris = removedFiles.Select(f => new FileUri(f)).ToList();
+            if (activeConfigScopeTracker.Current is not { RootPath: not null } configScope)
+            {
+                logger.LogVerbose(SLCoreStrings.ConfigScopeNotInitialized);
+                return;
+            }
 
-        /*  we're only sending changed files here as it is complicated to implement the proper tracking of added files
+            var clientFiles = addedOrChangedFiles.Select(sourceFile => clientFileDtoFactory.CreateOrNull(configScope.Id, configScope.RootPath, sourceFile)).Where(x => x is not null).ToList();
+            var removedFileUris = removedFiles.Select(f => new FileUri(f)).ToList();
+
+            /*  we're only sending changed files here as it is complicated to implement the proper tracking of added files
             AND `changed` files that were actually added are recognized as added by SLCore
             https://github.com/SonarSource/sonarlint-core/pull/1163/files#diff-070e6ef952d4a71245d92ea8f281c5a56050e8992179cde3955d4b1530dff664R152 */
-        if (removedFileUris.Any() || clientFiles.Any())
+            if (removedFileUris.Any() || clientFiles.Any())
+            {
+                var didUpdateFileSystemParams = new DidUpdateFileSystemParams(removedFileUris, [], clientFiles);
+                logger.LogVerbose(new MessageLevelContext {VerboseContext = [nameof(didUpdateFileSystemParams)]}, JsonConvert.SerializeObject(didUpdateFileSystemParams, Formatting.Indented, settings));
+                fileRpcSlCoreService.DidUpdateFileSystem(didUpdateFileSystemParams);
+            }
+        }
+        catch (Exception e)
         {
-            fileRpcSlCoreService.DidUpdateFileSystem(new DidUpdateFileSystemParams(removedFileUris, [], clientFiles));
+            logger.LogVerbose(e.ToString());
         }
     }
 }
