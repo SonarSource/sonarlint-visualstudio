@@ -183,7 +183,7 @@ public class GeneralOptionsDialogControlViewModelTests
     {
         testSubject.IsFocusOnNewCodeEnabled = isEnabled;
         testSubject.SaveSettings();
-        focusOnNewCodeService.Received(1).Set(isEnabled);
+        focusOnNewCodeService.Received(1).SetPreference(isEnabled);
     }
 
     [TestMethod]

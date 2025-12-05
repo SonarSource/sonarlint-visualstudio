@@ -38,6 +38,7 @@ public enum DisplayStatus
 internal sealed class ReportViewFilterViewModel : ViewModelBase, IDisposable
 {
     private readonly IFocusOnNewCodeServiceUpdater focusOnNewCodeService;
+    private readonly IThreadHandling threadHandling;
     private LocationFilterViewModel selectedLocationFilter;
     private DisplaySeverity selectedSeverityFilter = DisplaySeverity.Info;
     private DisplayStatus selectedStatusFilter = DisplayStatus.Open;
@@ -76,7 +77,7 @@ internal sealed class ReportViewFilterViewModel : ViewModelBase, IDisposable
     public bool SelectedNewCodeFilter
     {
         get => focusOnNewCodeService.Current.IsEnabled;
-        set => focusOnNewCodeService.Set(value);
+        set => focusOnNewCodeService.SetPreference(value);
     }
 
     public DisplaySeverity SelectedSeverityFilter
@@ -99,10 +100,11 @@ internal sealed class ReportViewFilterViewModel : ViewModelBase, IDisposable
         }
     }
 
-    public ReportViewFilterViewModel(IFocusOnNewCodeServiceUpdater focusOnNewCodeService)
+    public ReportViewFilterViewModel(IFocusOnNewCodeServiceUpdater focusOnNewCodeService, IThreadHandling threadHandling)
     {
         SelectedLocationFilter = GetDefaultLocationFilter();
         this.focusOnNewCodeService = focusOnNewCodeService;
+        this.threadHandling = threadHandling;
         focusOnNewCodeService.Changed += FocusOnNewCodeService_Changed;
         InitializeAsync().Forget();
     }
@@ -113,7 +115,8 @@ internal sealed class ReportViewFilterViewModel : ViewModelBase, IDisposable
         SelectedNewCodeFilterChanged();
     }
 
-    private void FocusOnNewCodeService_Changed(object sender, NewCodeStatusChangedEventArgs e) => SelectedNewCodeFilterChanged();
+    private void FocusOnNewCodeService_Changed(object sender, NewCodeStatusChangedEventArgs e) =>
+        threadHandling.RunOnUIThreadAsync(SelectedNewCodeFilterChanged).Forget();
 
     private void SelectedNewCodeFilterChanged() => RaisePropertyChanged(nameof(SelectedNewCodeFilter));
 

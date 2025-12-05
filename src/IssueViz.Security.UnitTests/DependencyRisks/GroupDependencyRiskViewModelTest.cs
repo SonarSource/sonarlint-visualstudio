@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.DependencyRisks;
 
@@ -49,7 +50,7 @@ public class GroupDependencyRiskViewModelTest
     {
         focusOnNewCodeService = Substitute.For<IFocusOnNewCodeServiceUpdater>();
         focusOnNewCodeService.Current.Returns(new FocusOnNewCodeStatus(false));
-        reportViewFilterViewModel = new(focusOnNewCodeService);
+        reportViewFilterViewModel = new(focusOnNewCodeService, Substitute.ForPartsOf<NoOpThreadHandler>());
         dependencyRisksStore = Substitute.For<IDependencyRisksStore>();
         testSubject = new(dependencyRisksStore);
         eventHandler = Substitute.For<PropertyChangedEventHandler>();
