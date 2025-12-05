@@ -11,7 +11,8 @@
     <!-- sonar-javascript-plugin -->
     <EmbeddedSonarJSAnalyzerVersion>11.7.0.36965</EmbeddedSonarJSAnalyzerVersion>
     <EmbeddedEsLintBridgeVersion>1.0.0</EmbeddedEsLintBridgeVersion>
-    <EmbeddedSonarHtmlAnalyzerVersion>3.20.0.6289</EmbeddedSonarHtmlAnalyzerVersion>
+    <!-- sonar-html-plugin -->
+    <EmbeddedSonarHtmlAnalyzerVersion>3.21.0.7002</EmbeddedSonarHtmlAnalyzerVersion>
     <EmbeddedSonarSecretsJarVersion>2.33.0.9826</EmbeddedSonarSecretsJarVersion>
     <EmbeddedSonarSqvsRoslynJarVersion>1.0.0.169</EmbeddedSonarSqvsRoslynJarVersion>
     <!-- SLOOP: Binaries for SonarLint Out Of Process -->
