@@ -64,7 +64,7 @@
             </Style>
 
             <ControlTemplate x:Key="NonExpandableTreeViewItemTemplate" TargetType="TreeViewItem">
-                <Grid Margin="22, 0, 0, 0">
+                <Grid>
                     <Border Name="Bd"
                             Background="{TemplateBinding Background}"
                             BorderThickness="{TemplateBinding BorderThickness}"
@@ -101,15 +101,11 @@
 
             <ControlTemplate x:Key="ExpandableTreeViewItemTemplate" TargetType="TreeViewItem">
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <Border Name="Bd" Grid.ColumnSpan="2"
+                    <Border Name="Bd"
                             Background="{TemplateBinding Background}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             BorderBrush="{TemplateBinding BorderBrush}"
@@ -124,7 +120,7 @@
                                               VerticalAlignment="Center" />
                         </StackPanel>
                     </Border>
-                    <ItemsPresenter Grid.Row="1" Grid.Column="0" x:Name="ItemsHost" Margin="0,0,0,0" />
+                    <ItemsPresenter x:Name="ItemsHost" Grid.Row="1" Margin="28, 0, 0, 0" />
                 </Grid>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsExpanded" Value="False">
@@ -173,6 +169,11 @@
                 <Setter Property="Margin" Value="2,0" />
             </Style>
 
+            <Style x:Key="GroupRunStyle" TargetType="Run">
+                <Setter Property="FontSize"
+                        Value="{DynamicResource {x:Static vsShell:VsFonts.Environment111PercentFontSizeKey}}" />
+            </Style>
+
             <Style x:Key="TypeTextBoxStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
                 <Setter Property="VerticalAlignment" Value="Center" />
                 <Setter Property="FontStyle" Value="Italic" />
@@ -204,6 +205,14 @@
             <Style x:Key="LocationTextBlockStyle" TargetType="TextBlock"
                    BasedOn="{StaticResource ThemeAwareTextBlockStyle}">
                 <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="FontSize"
+                        Value="{DynamicResource {x:Static vsShell:VsFonts.Environment90PercentFontSizeKey}}" />
+                <Setter Property="Foreground"
+                        Value="{DynamicResource {x:Static vsShell:VsBrushes.InactiveCaptionTextKey}}" />
+            </Style>
+
+
+            <Style x:Key="LocationRunStyle" TargetType="Run">
                 <Setter Property="FontSize"
                         Value="{DynamicResource {x:Static vsShell:VsFonts.Environment90PercentFontSizeKey}}" />
                 <Setter Property="Foreground"
@@ -754,11 +763,14 @@
                         <imaging:CrispImage Grid.Column="0"
                                             VerticalAlignment="Bottom"
                                             Moniker="{Binding FilePath, Converter={StaticResource FileNameToMonikerConverter}}" />
-                        <TextBlock Grid.Column="1" Text="{Binding Title}"
-                                   Style="{StaticResource GroupTextBlockStyle}" />
-                        <TextBlock Grid.Column="2" Margin="3,0,0,0"
-                                   Text="{Binding Converter={StaticResource GroupToIssueCountTextConverter}}"
-                                   Style="{StaticResource LocationTextBlockStyle}" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource ThemeAwareTextBlockStyle}"
+                                   VerticalAlignment="Bottom">
+                            <Run Text="{Binding Title, Mode=OneWay}"
+                                 Style="{StaticResource GroupRunStyle}" />
+                            <Run
+                                Text="{Binding Converter={StaticResource GroupToIssueCountTextConverter}, Mode=OneWay}"
+                                Style="{StaticResource LocationRunStyle}" />
+                        </TextBlock>
                     </Grid>
                 </HierarchicalDataTemplate>
 
@@ -874,8 +886,7 @@
                         <TextBlock Grid.Column="3" Text="{Binding Title}" Margin="5,0,0,0"
                                    Style="{StaticResource IssueTextBlockStyle}" />
                         <TextBlock Grid.Column="4" Margin="5,0,0,0"
-                                   Style="{StaticResource IssueTextBlockStyle}"
-                                   VerticalAlignment="Bottom">
+                                   Style="{StaticResource IssueTextBlockStyle}">
                             <Hyperlink Style="{StaticResource RuleKeyLinkStyle}"
                                        Command="{Binding DataContext.NavigateToRuleDescriptionCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}">
                                 <Hyperlink.CommandParameter>
@@ -923,8 +934,7 @@
                         <TextBlock Grid.Column="3" Text="{Binding Title}" Margin="5,0,0,0"
                                    Style="{StaticResource IssueTextBlockStyle}" />
                         <TextBlock Grid.Column="4" Margin="5,0,0,0"
-                                   Style="{StaticResource IssueTextBlockStyle}"
-                                   VerticalAlignment="Bottom">
+                                   Style="{StaticResource IssueTextBlockStyle}">
                             <Hyperlink Style="{StaticResource RuleKeyLinkStyle}"
                                        Command="{Binding DataContext.NavigateToRuleDescriptionCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}">
                                 <Hyperlink.CommandParameter>
@@ -972,8 +982,7 @@
                         <TextBlock Grid.Column="3" Text="{Binding Title}" Margin="5,0,0,0"
                                    Style="{StaticResource IssueTextBlockStyle}" />
                         <TextBlock Grid.Column="4" Margin="5,0,0,0"
-                                   Style="{StaticResource IssueTextBlockStyle}"
-                                   VerticalAlignment="Bottom">
+                                   Style="{StaticResource IssueTextBlockStyle}">
                             <Hyperlink Style="{StaticResource RuleKeyLinkStyle}"
                                        Command="{Binding DataContext.NavigateToRuleDescriptionCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}">
                                 <Hyperlink.CommandParameter>
