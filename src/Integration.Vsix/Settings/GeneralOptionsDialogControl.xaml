@@ -40,7 +40,7 @@
                     <imaging:CrispImage Moniker="{x:Static vsimagecatalog:KnownMonikers.StatusHelpOutline}"
                                         Margin="5, 0">
                         <imaging:CrispImage.ToolTip>
-                            <TextBlock Text="{x:Static res:Strings.FocusOnNewCodeTooltip}" />
+                            <TextBlock Text="{x:Static res:Strings.FocusOnNewCodeTooltipGeneric}" />
                         </imaging:CrispImage.ToolTip>
                     </imaging:CrispImage>
                 </StackPanel>

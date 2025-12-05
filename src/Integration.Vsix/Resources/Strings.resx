@@ -443,8 +443,8 @@ E.g. C:\Program Files\Java\jdk-17</value>
   <data name="FocusOnNewCodeCheckbox" xml:space="preserve">
     <value>Focus on New Code</value>
   </data>
-  <data name="FocusOnNewCodeTooltip" xml:space="preserve">
-    <value>Use Connected Mode to benefit from an accurate new code definition based on your SonarQube (Server, Cloud) settings.
-Without Connected Mode, any code added or changed in the last 30 days is considered new code.</value>
+  <data name="FocusOnNewCodeTooltipGeneric" xml:space="preserve">
+    <value>Use Connected Mode to benefit from an accurate New Code Definition based on your SonarQube (Server, Cloud) settings.
+Without Connected Mode, any code added or changed in the last 30 days is considered New Code.</value>
   </data>
 </root>
