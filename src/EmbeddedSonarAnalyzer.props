@@ -6,8 +6,8 @@
     <!-- Note: Guide on how to update the analyzers is on the xtranet! -->
     <!-- sonar-csharp-enterprise-plugin & sonar-vbnet-enterprise-plugin -->
     <EmbeddedSonarAnalyzerVersion>10.16.1.129956</EmbeddedSonarAnalyzerVersion>
-    
-    <EmbeddedSonarCFamilyAnalyzerVersion>6.74.0.91793</EmbeddedSonarCFamilyAnalyzerVersion>
+    <!-- sonar-cfamily-plugin -->
+    <EmbeddedSonarCFamilyAnalyzerVersion>6.75.1.93101</EmbeddedSonarCFamilyAnalyzerVersion>
     <EmbeddedSonarJSAnalyzerVersion>11.6.0.36606</EmbeddedSonarJSAnalyzerVersion>
     <EmbeddedSonarHtmlAnalyzerVersion>3.20.0.6289</EmbeddedSonarHtmlAnalyzerVersion>
     <EmbeddedSonarSecretsJarVersion>2.33.0.9826</EmbeddedSonarSecretsJarVersion>
