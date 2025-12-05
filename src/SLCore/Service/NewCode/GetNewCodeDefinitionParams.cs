@@ -18,16 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Integration;
+namespace SonarLint.VisualStudio.SLCore.Service.NewCode;
 
-namespace SonarLint.VisualStudio.TestInfrastructure
-{
-    public class ConfigurableSonarLintSettings : ISonarLintSettings
-    {
-        public DaemonLogLevel DaemonLogLevel { get; set; }
-        public string JreLocation { get; set; }
-        public bool ShowCloudRegion { get; set; }
-
-        public bool IsActivateMoreEnabled { get; set; }
-    }
-}
+public record GetNewCodeDefinitionParams(string configScopeId);

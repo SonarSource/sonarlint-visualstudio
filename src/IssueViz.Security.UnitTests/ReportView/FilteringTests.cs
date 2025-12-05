@@ -72,6 +72,7 @@ public class FilteringTests
     private IDocumentTracker documentTracker;
     private IThreadHandling threadHandling;
     private ReportViewModel testSubject;
+    private IFocusOnNewCodeServiceUpdater focusOnNewCodeService;
 
     [TestInitialize]
     public void Initialize()
@@ -98,6 +99,8 @@ public class FilteringTests
         taintsReportViewModel.GetIssueViewModels().Returns([csharpTaintLow, tsTaintHigh]);
         issuesReportViewModel.GetIssueViewModels().Returns([csharpIssueHigh, cppIssueMedium]);
         dependencyRisksReportViewModel.GetDependencyRisksGroup().Returns(dependencyRiskGroup);
+        focusOnNewCodeService = Substitute.For<IFocusOnNewCodeServiceUpdater>();
+        focusOnNewCodeService.Current.Returns(new FocusOnNewCodeStatus(false));
         CreateTestSubject();
         ClearCallsForReportsViewModels();
     }
@@ -412,6 +415,7 @@ public class FilteringTests
             activeDocumentLocator,
             activeDocumentTracker,
             documentTracker,
+            focusOnNewCodeService,
             threadHandling,
             MockableInitializationProcessor.CreateFactory<ServerViewModel>(Substitute.ForPartsOf<NoOpThreadHandler>(), Substitute.For<ILogger>()));
         reportViewModel.PropertyChanged += eventHandler;
@@ -508,7 +512,7 @@ public class FilteringTests
 
     private void MockSeverityFilter(DisplaySeverity displaySeverity) => testSubject.ReportViewFilter.SelectedSeverityFilter = displaySeverity;
 
-    private void MockNewCodeFilter(bool  isOnNewCode) => testSubject.ReportViewFilter.SelectedNewCodeFilter = isOnNewCode;
+    private void MockNewCodeFilter(bool isOnNewCode) => focusOnNewCodeService.Current.Returns(new FocusOnNewCodeStatus(isOnNewCode));
 
     private void MockStatusFilter(DisplayStatus displayStatus) => testSubject.ReportViewFilter.SelectedStatusFilter = displayStatus;
 

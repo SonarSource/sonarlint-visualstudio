@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2025 SonarSource Sàrl
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,23 +18,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Integration
-{
-    public enum DaemonLogLevel { Verbose, Info, Minimal };
+using System.Diagnostics.CodeAnalysis;
+using SonarLint.VisualStudio.Core.Initialization;
 
-    public interface ISonarLintSettings
-    {
-        /// <summary>
-        /// True if support for analysing additional languages is enabled.
-        /// </summary>
-        /// <remarks>
-        /// Note: this setting is no longer used or user-settable now that the JS analysis is NodeJS-based.
-        /// Ticket #2307 covers removing the setting and cleaning up the non-NodeJS daemon.
-        /// </remarks>
-        bool IsActivateMoreEnabled { get; set; }
-        DaemonLogLevel DaemonLogLevel { get; set; }
-        string JreLocation { get; set; }
-        bool ShowCloudRegion { get; set; }
-        bool IsFocusOnNewCodeEnabled { get; set; }
-    }
+namespace SonarLint.VisualStudio.Core;
+
+public interface IFocusOnNewCodeService : IRequireInitialization
+{
+    FocusOnNewCodeStatus Current { get; }
+    event EventHandler<NewCodeStatusChangedEventArgs> Changed;
 }
+
+public interface IFocusOnNewCodeServiceUpdater : IFocusOnNewCodeService
+{
+    void SetPreference(bool isEnabled);
+}
+
+[ExcludeFromCodeCoverage]
+public class NewCodeStatusChangedEventArgs(FocusOnNewCodeStatus newStatus) : EventArgs
+{
+    public FocusOnNewCodeStatus NewStatus { get; } = newStatus;
+}
+
+[ExcludeFromCodeCoverage]
+public record FocusOnNewCodeStatus(bool IsEnabled, bool IsSupported = false, string Description = "");

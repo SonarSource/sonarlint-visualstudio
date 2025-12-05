@@ -19,8 +19,10 @@
  */
 
 using System.ComponentModel;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView;
 
@@ -33,14 +35,18 @@ public class GroupFileViewModelTest
     private readonly IIssueViewModel taintHigh = CreateMockedIssueType(IssueType.TaintVulnerability, DisplaySeverity.High, DisplayStatus.Open, true);
     private readonly IIssueViewModel taintMedium = CreateMockedIssueType(IssueType.TaintVulnerability, DisplaySeverity.Medium, DisplayStatus.Resolved, false);
     private readonly IIssueViewModel taintBlocker = CreateMockedIssueType(IssueType.TaintVulnerability, DisplaySeverity.Blocker, DisplayStatus.Resolved, true);
-    private readonly ReportViewFilterViewModel reportViewFilterViewModel = new();
+    private ReportViewFilterViewModel reportViewFilterViewModel;
     private List<IIssueViewModel> allIssues;
     private PropertyChangedEventHandler eventHandler;
+    private IFocusOnNewCodeServiceUpdater focusOnNewCodeService;
     private GroupFileViewModel testSubject;
 
     [TestInitialize]
     public void TestInitialize()
     {
+        focusOnNewCodeService = Substitute.For<IFocusOnNewCodeServiceUpdater>();
+        focusOnNewCodeService.Current.Returns(new FocusOnNewCodeStatus(false));
+        reportViewFilterViewModel = new(focusOnNewCodeService, Substitute.ForPartsOf<NoOpThreadHandler>());
         allIssues = [hotspotInfo, hotspotLow, taintMedium, taintHigh, taintBlocker];
         testSubject = new GroupFileViewModel(filePath, allIssues);
         eventHandler = Substitute.For<PropertyChangedEventHandler>();
@@ -315,7 +321,7 @@ public class GroupFileViewModelTest
 
     private void MockSeverityFilter(DisplaySeverity displaySeverity) => reportViewFilterViewModel.SelectedSeverityFilter = displaySeverity;
 
-    private void MockNewCodeFilter(bool isOnNewCode) => reportViewFilterViewModel.SelectedNewCodeFilter = isOnNewCode;
+    private void MockNewCodeFilter(bool isOnNewCode) => focusOnNewCodeService.Current.Returns(new FocusOnNewCodeStatus(isOnNewCode));
 
     private void MockStatusFilter(DisplayStatus displayStatus) => reportViewFilterViewModel.SelectedStatusFilter = displayStatus;
 

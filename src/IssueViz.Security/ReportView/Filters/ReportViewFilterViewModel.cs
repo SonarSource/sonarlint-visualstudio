@@ -19,6 +19,8 @@
  */
 
 using System.Collections.ObjectModel;
+using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
@@ -33,13 +35,14 @@ public enum DisplayStatus
     Any
 }
 
-internal class ReportViewFilterViewModel : ViewModelBase
+internal sealed class ReportViewFilterViewModel : ViewModelBase, IDisposable
 {
+    private readonly IFocusOnNewCodeServiceUpdater focusOnNewCodeService;
+    private readonly IThreadHandling threadHandling;
     private LocationFilterViewModel selectedLocationFilter;
     private DisplaySeverity selectedSeverityFilter = DisplaySeverity.Info;
     private DisplayStatus selectedStatusFilter = DisplayStatus.Open;
     private bool showAdvancedFilters;
-    private bool selectedNewCodeFilter;
 
     public ObservableCollection<LocationFilterViewModel> LocationFilters { get; } =
     [
@@ -73,12 +76,18 @@ internal class ReportViewFilterViewModel : ViewModelBase
 
     public bool SelectedNewCodeFilter
     {
-        get => selectedNewCodeFilter;
-        set
-        {
-            selectedNewCodeFilter = value;
-            RaisePropertyChanged();
-        }
+        get => focusOnNewCodeService.Current.IsEnabled;
+        set => focusOnNewCodeService.SetPreference(value);
+    }
+
+    public bool SelectedNewCodeFilterSupported
+    {
+        get => focusOnNewCodeService.Current.IsSupported;
+    }
+
+    public string SelectedNewCodeFilterDescription
+    {
+        get => focusOnNewCodeService.Current.Description;
     }
 
     public DisplaySeverity SelectedSeverityFilter
@@ -101,9 +110,29 @@ internal class ReportViewFilterViewModel : ViewModelBase
         }
     }
 
-    public ReportViewFilterViewModel()
+    public ReportViewFilterViewModel(IFocusOnNewCodeServiceUpdater focusOnNewCodeService, IThreadHandling threadHandling)
     {
         SelectedLocationFilter = GetDefaultLocationFilter();
+        this.focusOnNewCodeService = focusOnNewCodeService;
+        this.threadHandling = threadHandling;
+        focusOnNewCodeService.Changed += FocusOnNewCodeService_Changed;
+        InitializeAsync().Forget();
+    }
+
+    private async Task InitializeAsync()
+    {
+        await focusOnNewCodeService.InitializationProcessor.InitializeAsync();
+        SelectedNewCodeFilterChanged();
+    }
+
+    private void FocusOnNewCodeService_Changed(object sender, NewCodeStatusChangedEventArgs e) =>
+        threadHandling.RunOnUIThreadAsync(SelectedNewCodeFilterChanged).Forget();
+
+    private void SelectedNewCodeFilterChanged()
+    {
+        RaisePropertyChanged(nameof(SelectedNewCodeFilter));
+        RaisePropertyChanged(nameof(SelectedNewCodeFilterSupported));
+        RaisePropertyChanged(nameof(SelectedNewCodeFilterDescription));
     }
 
     private LocationFilterViewModel GetDefaultLocationFilter() => LocationFilters.Single(x => x.LocationFilter == LocationFilter.OpenDocuments);
@@ -114,6 +143,10 @@ internal class ReportViewFilterViewModel : ViewModelBase
         SelectedLocationFilter = GetDefaultLocationFilter();
         SelectedSeverityFilter = DisplaySeverity.Info;
         SelectedStatusFilter = DisplayStatus.Open;
-        SelectedNewCodeFilter = false;
+    }
+
+    public void Dispose()
+    {
+        focusOnNewCodeService.Changed -= FocusOnNewCodeService_Changed;
     }
 }

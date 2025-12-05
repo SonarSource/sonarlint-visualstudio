@@ -18,23 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Integration
-{
-    public enum DaemonLogLevel { Verbose, Info, Minimal };
+using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Protocol;
 
-    public interface ISonarLintSettings
-    {
-        /// <summary>
-        /// True if support for analysing additional languages is enabled.
-        /// </summary>
-        /// <remarks>
-        /// Note: this setting is no longer used or user-settable now that the JS analysis is NodeJS-based.
-        /// Ticket #2307 covers removing the setting and cleaning up the non-NodeJS daemon.
-        /// </remarks>
-        bool IsActivateMoreEnabled { get; set; }
-        DaemonLogLevel DaemonLogLevel { get; set; }
-        string JreLocation { get; set; }
-        bool ShowCloudRegion { get; set; }
-        bool IsFocusOnNewCodeEnabled { get; set; }
-    }
+namespace SonarLint.VisualStudio.SLCore.Service.NewCode;
+
+[JsonRpcClass("newCode")]
+public interface INewCodeSLCoreService : ISLCoreService
+{
+    void DidToggleFocus();
+
+    Task<GetNewCodeDefinitionResponse> GetNewCodeDefinitionAsync(GetNewCodeDefinitionParams parameters);
 }

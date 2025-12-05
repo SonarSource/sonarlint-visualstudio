@@ -311,6 +311,34 @@ public class SonarLintSettingsTests
         showCloudRegion.Should().BeFalse();
     }
 
+    [TestMethod]
+    public void IsFocusOnNewCodeEnabled_DefaultValue_ShouldBeFalse()
+    {
+        testSubject.IsFocusOnNewCodeEnabled.Should().BeFalse();
+        store.Received().GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsFocusOnNewCodeEnabled), false);
+    }
+
+    [TestMethod]
+    public void IsFocusOnNewCodeEnabled_SetValue_GetsAndSetsCorrectly()
+    {
+        store.GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsFocusOnNewCodeEnabled), false).Returns(true);
+
+        testSubject.IsFocusOnNewCodeEnabled = true;
+        var value = testSubject.IsFocusOnNewCodeEnabled;
+
+        value.Should().BeTrue();
+        store.Received().SetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsFocusOnNewCodeEnabled), true);
+    }
+
+    [TestMethod]
+    public void IsFocusOnNewCodeEnabled_WhenDisposed_ReturnsDefault()
+    {
+        MockComDetachedTestSubject();
+        testSubject.IsFocusOnNewCodeEnabled = true;
+        var value = testSubject.IsFocusOnNewCodeEnabled;
+        value.Should().BeFalse();
+    }
+
     private void MockComDetachedTestSubject()
     {
         var comException = new InvalidComObjectException("COM object that has been separated from its underlying RCW cannot be used.");

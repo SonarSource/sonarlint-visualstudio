@@ -63,6 +63,7 @@ public class ReportViewModelTest
     private IActiveDocumentLocator activeDocumentLocator;
     private IActiveDocumentTracker activeDocumentTracker;
     private IDocumentTracker documentTracker;
+    private IFocusOnNewCodeServiceUpdater focusOnNewCodeService;
 
     [TestInitialize]
     public void Initialize()
@@ -88,6 +89,8 @@ public class ReportViewModelTest
         hotspotsReportViewModel.GetIssueViewModels().Returns([]);
         taintsReportViewModel.GetIssueViewModels().Returns([]);
         issuesReportViewModel.GetIssueViewModels().Returns([]);
+        focusOnNewCodeService = Substitute.For<IFocusOnNewCodeServiceUpdater>();
+        focusOnNewCodeService.Current.Returns(new FocusOnNewCodeStatus(false));
 
         CreateTestSubject();
     }
@@ -997,6 +1000,7 @@ public class ReportViewModelTest
             activeDocumentLocator,
             activeDocumentTracker,
             documentTracker,
+            focusOnNewCodeService,
             threadHandling,
             MockableInitializationProcessor.CreateFactory<ServerViewModel>(Substitute.ForPartsOf<NoOpThreadHandler>(), Substitute.For<ILogger>()));
         reportViewModel.PropertyChanged += eventHandler;

@@ -60,6 +60,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Activate Focus on New Code to view only new issues.
+        /// </summary>
+        public static string ActivateFocusOnNewCodeTooltip {
+            get {
+                return ResourceManager.GetString("ActivateFocusOnNewCodeTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error when changing dependency risk status: {0}.
         /// </summary>
         public static string ChangeDependencyRisk_Error_ChangingStatus {
@@ -339,6 +348,61 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Focus on New Code.
+        /// </summary>
+        public static string FocusOnNewCodeText {
+            get {
+                return ResourceManager.GetString("FocusOnNewCodeText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Code Definition based on your SonarQube Cloud settings..
+        /// </summary>
+        public static string FocusOnNewCodeTooltipConnectedCloud {
+            get {
+                return ResourceManager.GetString("FocusOnNewCodeTooltipConnectedCloud", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Code Definition based on your SonarQube Server settings..
+        /// </summary>
+        public static string FocusOnNewCodeTooltipConnectedServer {
+            get {
+                return ResourceManager.GetString("FocusOnNewCodeTooltipConnectedServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use Connected Mode to benefit from an accurate New Code Definition based on your SonarQube (Server, Cloud) settings.
+        ///Without Connected Mode, any code added or changed in the last 30 days is considered New Code..
+        /// </summary>
+        public static string FocusOnNewCodeTooltipGeneric {
+            get {
+                return ResourceManager.GetString("FocusOnNewCodeTooltipGeneric", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Focus on New Code is not available for the current SonarQube Server..
+        /// </summary>
+        public static string FocusOnNewCodeTooltipNotSupported {
+            get {
+                return ResourceManager.GetString("FocusOnNewCodeTooltipNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to From Overall Code.
+        /// </summary>
+        public static string FromOverallCodeText {
+            get {
+                return ResourceManager.GetString("FromOverallCodeText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Hide advanced filters.
         /// </summary>
         public static string HideAdvancedFiltersTooltip {
@@ -515,6 +579,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string NavigateToTaintTooltip {
             get {
                 return ResourceManager.GetString("NavigateToTaintTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Code Definition.
+        /// </summary>
+        public static string NewCodeDefinitionTooltip {
+            get {
+                return ResourceManager.GetString("NewCodeDefinitionTooltip", resourceCulture);
             }
         }
         

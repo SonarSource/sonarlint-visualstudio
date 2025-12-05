@@ -19,10 +19,12 @@
  */
 
 using System.ComponentModel;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.DependencyRisks;
 
@@ -32,7 +34,8 @@ public class GroupDependencyRiskViewModelTest
     private GroupDependencyRiskViewModel testSubject;
     private IDependencyRisksStore dependencyRisksStore;
     private PropertyChangedEventHandler eventHandler;
-    private readonly ReportViewFilterViewModel reportViewFilterViewModel = new();
+    private IFocusOnNewCodeServiceUpdater focusOnNewCodeService;
+    private ReportViewFilterViewModel reportViewFilterViewModel;
     private readonly IDependencyRisk riskInfo = CreateDependencyRisk(severity: DependencyRiskImpactSeverity.Info);
     private readonly IDependencyRisk riskLow = CreateDependencyRisk(status: DependencyRiskStatus.Open, severity: DependencyRiskImpactSeverity.Low);
     private readonly IDependencyRisk riskMedium = CreateDependencyRisk(status: DependencyRiskStatus.Confirmed, severity: DependencyRiskImpactSeverity.Medium);
@@ -45,6 +48,9 @@ public class GroupDependencyRiskViewModelTest
     [TestInitialize]
     public void Initialize()
     {
+        focusOnNewCodeService = Substitute.For<IFocusOnNewCodeServiceUpdater>();
+        focusOnNewCodeService.Current.Returns(new FocusOnNewCodeStatus(false));
+        reportViewFilterViewModel = new(focusOnNewCodeService, Substitute.ForPartsOf<NoOpThreadHandler>());
         dependencyRisksStore = Substitute.For<IDependencyRisksStore>();
         testSubject = new(dependencyRisksStore);
         eventHandler = Substitute.For<PropertyChangedEventHandler>();

@@ -18,23 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Integration
-{
-    public enum DaemonLogLevel { Verbose, Info, Minimal };
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Service.NewCode;
 
-    public interface ISonarLintSettings
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.NewCode;
+
+[TestClass]
+public class GetNewCodeDefinitionParamsTests
+{
+
+    [TestMethod]
+    public void Serializes_Correctly()
     {
-        /// <summary>
-        /// True if support for analysing additional languages is enabled.
-        /// </summary>
-        /// <remarks>
-        /// Note: this setting is no longer used or user-settable now that the JS analysis is NodeJS-based.
-        /// Ticket #2307 covers removing the setting and cleaning up the non-NodeJS daemon.
-        /// </remarks>
-        bool IsActivateMoreEnabled { get; set; }
-        DaemonLogLevel DaemonLogLevel { get; set; }
-        string JreLocation { get; set; }
-        bool ShowCloudRegion { get; set; }
-        bool IsFocusOnNewCodeEnabled { get; set; }
+        var original = new GetNewCodeDefinitionParams("my config scope id");
+
+        var actual = JsonConvert.SerializeObject(original, Formatting.Indented);
+
+        var expected =
+            """
+            {
+              "configScopeId": "my config scope id"
+            }
+            """;
+        actual.Should().Be(expected);
     }
 }

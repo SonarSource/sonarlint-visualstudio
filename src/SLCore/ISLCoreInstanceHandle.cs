@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.SLCore;
 
 internal interface ISLCoreInstanceHandle : IDisposable
 {
-    void Initialize();
+    Task InitializeAsync();
 
     Task ShutdownTask { get; }
 }
@@ -54,6 +54,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
     private readonly ISLCoreEmbeddedPluginProvider slCoreEmbeddedPluginJarProvider;
     private readonly ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider;
     private readonly ISlCoreTelemetryMigrationProvider telemetryMigrationProvider;
+    private readonly IFocusOnNewCodeService focusOnNewCodeService;
     private readonly IEsLintBridgeLocator esLintBridgeLocator;
     private readonly INodeLocationProvider nodeLocator;
     private readonly IThreadHandling threadHandling;
@@ -74,6 +75,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         IConfigScopeUpdater configScopeUpdater,
         ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider,
         ISlCoreTelemetryMigrationProvider telemetryMigrationProvider,
+        IFocusOnNewCodeService focusOnNewCodeService,
         IThreadHandling threadHandling)
     {
         this.slCoreRpcFactory = slCoreRpcFactory;
@@ -89,12 +91,15 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         this.threadHandling = threadHandling;
         this.slCoreRuleSettingsProvider = slCoreRuleSettingsProvider;
         this.telemetryMigrationProvider = telemetryMigrationProvider;
+        this.focusOnNewCodeService = focusOnNewCodeService;
         this.esLintBridgeLocator = esLintBridgeLocator;
     }
 
-    public void Initialize()
+    public async Task InitializeAsync()
     {
         threadHandling.ThrowIfOnUIThread();
+
+        await focusOnNewCodeService.InitializationProcessor.InitializeAsync();
 
         SLCoreRpc = slCoreRpcFactory.StartNewRpcInstance();
 
@@ -116,7 +121,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             serverConnectionConfigurations.Values.OfType<SonarCloudConnectionConfigurationDto>().ToList(),
             sonarlintUserHome,
             standaloneRuleConfigByKey: slCoreRuleSettingsProvider.GetSLCoreRuleSettings(),
-            isFocusOnNewCode: false,
+            isFocusOnNewCode: focusOnNewCodeService.Current.IsEnabled,
             constantsProvider.TelemetryConstants,
             telemetryMigrationProvider.Get(),
             new LanguageSpecificRequirements(new JsTsRequirementsDto(nodeLocator.Get(), esLintBridgeLocator.Get())),
@@ -124,7 +129,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
 
         slCoreRpcManager.Initialize(initializationParams);
 
-        UpdateConfigurationScopeForCurrentSolutionAsync().Forget();
+        await UpdateConfigurationScopeForCurrentSolutionAsync();
     }
 
     private async Task UpdateConfigurationScopeForCurrentSolutionAsync()
