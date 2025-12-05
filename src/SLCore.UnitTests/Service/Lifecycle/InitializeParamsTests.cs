@@ -43,7 +43,6 @@ public class InitializeParamsTests
                 BackendCapability.SERVER_SENT_EVENTS,
                 BackendCapability.FULL_SYNCHRONIZATION,
                 BackendCapability.TELEMETRY,
-                BackendCapability.MONITORING,
                 BackendCapability.ISSUE_STREAMING,
             ],
             "storageRoot",
@@ -87,7 +86,6 @@ public class InitializeParamsTests
                                           "SERVER_SENT_EVENTS",
                                           "FULL_SYNCHRONIZATION",
                                           "TELEMETRY",
-                                          "MONITORING",
                                           "ISSUE_STREAMING"
                                         ],
                                         "storageRoot": "storageRoot",
