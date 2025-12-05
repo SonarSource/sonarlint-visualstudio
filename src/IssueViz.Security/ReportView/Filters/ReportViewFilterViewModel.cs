@@ -80,6 +80,16 @@ internal sealed class ReportViewFilterViewModel : ViewModelBase, IDisposable
         set => focusOnNewCodeService.SetPreference(value);
     }
 
+    public bool SelectedNewCodeFilterSupported
+    {
+        get => focusOnNewCodeService.Current.IsSupported;
+    }
+
+    public string SelectedNewCodeFilterDescription
+    {
+        get => focusOnNewCodeService.Current.Description;
+    }
+
     public DisplaySeverity SelectedSeverityFilter
     {
         get => selectedSeverityFilter;
@@ -118,7 +128,12 @@ internal sealed class ReportViewFilterViewModel : ViewModelBase, IDisposable
     private void FocusOnNewCodeService_Changed(object sender, NewCodeStatusChangedEventArgs e) =>
         threadHandling.RunOnUIThreadAsync(SelectedNewCodeFilterChanged).Forget();
 
-    private void SelectedNewCodeFilterChanged() => RaisePropertyChanged(nameof(SelectedNewCodeFilter));
+    private void SelectedNewCodeFilterChanged()
+    {
+        RaisePropertyChanged(nameof(SelectedNewCodeFilter));
+        RaisePropertyChanged(nameof(SelectedNewCodeFilterSupported));
+        RaisePropertyChanged(nameof(SelectedNewCodeFilterDescription));
+    }
 
     private LocationFilterViewModel GetDefaultLocationFilter() => LocationFilters.Single(x => x.LocationFilter == LocationFilter.OpenDocuments);
 
