@@ -177,4 +177,13 @@
   <data name="QuickFixSuggestedAction_LogContext" xml:space="preserve">
     <value>Quick Fix</value>
   </data>
+  <data name="FocusOnNewCodeNotAvailableDescription" xml:space="preserve">
+    <value>Focus on New Code is unavailable</value>
+  </data>
+  <data name="FocusOnNewCodeServiceLogContext" xml:space="preserve">
+    <value>Focus on New Code</value>
+  </data>
+  <data name="FocusOnNewCodeDefinitionUnavailableLogTemplate" xml:space="preserve">
+    <value>Focus on New Code definition not available: {0}</value>
+  </data>
 </root>

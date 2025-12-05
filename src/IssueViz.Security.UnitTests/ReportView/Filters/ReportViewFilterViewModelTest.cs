@@ -23,6 +23,7 @@ using NSubstitute.ClearExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView.Filters;
 
@@ -30,6 +31,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportVie
 public class ReportViewFilterViewModelTest
 {
     private IFocusOnNewCodeServiceUpdater focusOnNewCodeService;
+    private NoOpThreadHandler threadHandling;
     private ReportViewFilterViewModel testSubject;
 
     [TestInitialize]
@@ -39,7 +41,11 @@ public class ReportViewFilterViewModelTest
         CreateTestSubject();
     }
 
-    private void CreateTestSubject() => testSubject = new ReportViewFilterViewModel(focusOnNewCodeService);
+    private void CreateTestSubject()
+    {
+        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+        testSubject = new ReportViewFilterViewModel(focusOnNewCodeService, threadHandling);
+    }
 
     [TestMethod]
     public void Ctor_InitializesLocationFilters()
@@ -167,7 +173,7 @@ public class ReportViewFilterViewModelTest
 
         testSubject.SelectedNewCodeFilter = focusOnNewCodeState;
 
-        focusOnNewCodeService.Received().Set(focusOnNewCodeState);
+        focusOnNewCodeService.Received().SetPreference(focusOnNewCodeState);
     }
 
     [DataTestMethod]
@@ -178,6 +184,7 @@ public class ReportViewFilterViewModelTest
 
         focusOnNewCodeService.Changed += Raise.EventWith(new NewCodeStatusChangedEventArgs(new FocusOnNewCodeStatus(true)));
 
+        threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
         eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.SelectedNewCodeFilter)));
     }
 

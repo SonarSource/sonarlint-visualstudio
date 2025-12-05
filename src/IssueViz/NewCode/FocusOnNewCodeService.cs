@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.SLCore;
@@ -34,38 +35,118 @@ namespace SonarLint.VisualStudio.IssueVisualization.NewCode;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class FocusOnNewCodeService : IFocusOnNewCodeServiceUpdater
 {
+    private readonly object lockObject = new();
     private readonly ISonarLintSettings sonarLintSettings;
     private readonly ISLCoreServiceProvider slCoreServiceProvider;
+    private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly IThreadHandling threadHandling;
+    private readonly ILogger logger;
+    private readonly (string FocusOnNewCodeNotAvailable, bool) unavailableNewCode = (Resources.FocusOnNewCodeNotAvailableDescription, true);
 
     [ImportingConstructor]
-    public FocusOnNewCodeService(ISonarLintSettings sonarLintSettings,
+    public FocusOnNewCodeService(
+        ISonarLintSettings sonarLintSettings,
         IInitializationProcessorFactory initializationProcessorFactory,
         ISLCoreServiceProvider slCoreServiceProvider,
-        IThreadHandling threadHandling)
+        IActiveConfigScopeTracker activeConfigScopeTracker,
+        IThreadHandling threadHandling,
+        ILogger logger)
     {
         this.sonarLintSettings = sonarLintSettings;
         this.slCoreServiceProvider = slCoreServiceProvider;
+        this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.threadHandling = threadHandling;
-        InitializationProcessor = initializationProcessorFactory.CreateAndStart<FocusOnNewCodeService>([], () =>
+        this.logger = logger.ForContext(Resources.FocusOnNewCodeServiceLogContext);
+        InitializationProcessor = initializationProcessorFactory.CreateAndStart<FocusOnNewCodeService>([], async _ =>
         {
             // sonarLintSettings needs UI thread to initialize settings storage, so the first property access may not be free-threaded
-            Current = new(sonarLintSettings.IsFocusOnNewCodeEnabled);
+            activeConfigScopeTracker.CurrentConfigurationScopeChanged += ActiveConfigScopeTracker_CurrentConfigurationScopeChanged;
+            await RefreshCurrentStatusAsync();
         });
     }
 
     public IInitializationProcessor InitializationProcessor { get; }
-    public FocusOnNewCodeStatus Current { get; private set; } = new(default);
+    public FocusOnNewCodeStatus Current { get; private set; } = new(default, default, string.Empty);
+    public event EventHandler<NewCodeStatusChangedEventArgs> Changed;
 
-    public void Set(bool isEnabled)
+    public void SetPreference(bool isEnabled)
     {
         sonarLintSettings.IsFocusOnNewCodeEnabled = isEnabled;
-        Current = new(sonarLintSettings.IsFocusOnNewCodeEnabled);
-        NotifySlCoreNewCodeToggled();
-        Changed?.Invoke(this, new(Current));
+        FocusOnNewCodeStatus updated;
+        lock (lockObject)
+        {
+            updated = Current with { IsEnabled = isEnabled };
+            Current = updated;
+        }
+        NotifySlCorePreferenceChanged();
+        NotifyStatusChanged(updated);
     }
 
-    private void NotifySlCoreNewCodeToggled() =>
+    private async Task<FocusOnNewCodeStatus> RefreshCurrentStatusAsync()
+    {
+        var newStatus = await GetNewStatusAsync();
+        lock (lockObject)
+        {
+            if (newStatus == Current)
+            {
+                return null;
+            }
+
+            Current = newStatus;
+            return newStatus;
+        }
+    }
+
+    private void ActiveConfigScopeTracker_CurrentConfigurationScopeChanged(object sender, ConfigurationScopeChangedEventArgs e) =>
+        RefreshCurrentStatusAndNotifyAsync().Forget();
+
+    private async Task RefreshCurrentStatusAndNotifyAsync()
+    {
+        if (await RefreshCurrentStatusAsync() is {} updated)
+        {
+            NotifyStatusChanged(updated);
+        }
+    }
+
+    private async Task<FocusOnNewCodeStatus> GetNewStatusAsync()
+    {
+        var isEnabled = sonarLintSettings.IsFocusOnNewCodeEnabled;
+        var (description, isSupported) = await SafeGetNewCodeDefinitionAsync();
+        var newStatus = new FocusOnNewCodeStatus(isEnabled, isSupported, description);
+        return newStatus;
+    }
+
+    private async Task<(string description, bool isSupported)> SafeGetNewCodeDefinitionAsync()
+    {
+        try
+        {
+            if (activeConfigScopeTracker.Current is not { Id: { } configScopeId })
+            {
+                return GetNewCodeUnavailable(SLCoreStrings.ConfigScopeNotInitialized);
+            }
+            if (!slCoreServiceProvider.TryGetTransientService(out INewCodeSLCoreService newCodeService))
+            {
+                return GetNewCodeUnavailable(SLCoreStrings.ServiceProviderNotInitialized);
+            }
+
+            var (description, isSupported) = await newCodeService.GetNewCodeDefinitionAsync(new(configScopeId));
+            return (description, isSupported);
+        }
+        catch (Exception e)
+        {
+            return GetNewCodeUnavailable(e.ToString());
+        }
+    }
+
+    private (string description, bool isSupported) GetNewCodeUnavailable(string reason)
+    {
+        logger.WriteLine(Resources.FocusOnNewCodeDefinitionUnavailableLogTemplate, reason);
+        return unavailableNewCode;
+    }
+
+    private void NotifyStatusChanged(FocusOnNewCodeStatus updated) => Changed?.Invoke(this, new(updated));
+
+    private void NotifySlCorePreferenceChanged() =>
         threadHandling.RunOnBackgroundThread(() =>
         {
             if (slCoreServiceProvider.TryGetTransientService(out INewCodeSLCoreService newCodeService))
@@ -73,6 +154,4 @@ public class FocusOnNewCodeService : IFocusOnNewCodeServiceUpdater
                 newCodeService.DidToggleFocus();
             }
         }).Forget();
-
-    public event EventHandler<NewCodeStatusChangedEventArgs> Changed;
 }

@@ -22,6 +22,7 @@ using System.ComponentModel;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView;
 
@@ -45,7 +46,7 @@ public class GroupFileViewModelTest
     {
         focusOnNewCodeService = Substitute.For<IFocusOnNewCodeServiceUpdater>();
         focusOnNewCodeService.Current.Returns(new FocusOnNewCodeStatus(false));
-        reportViewFilterViewModel = new(focusOnNewCodeService);
+        reportViewFilterViewModel = new(focusOnNewCodeService, Substitute.ForPartsOf<NoOpThreadHandler>());
         allIssues = [hotspotInfo, hotspotLow, taintMedium, taintHigh, taintBlocker];
         testSubject = new GroupFileViewModel(filePath, allIssues);
         eventHandler = Substitute.For<PropertyChangedEventHandler>();
