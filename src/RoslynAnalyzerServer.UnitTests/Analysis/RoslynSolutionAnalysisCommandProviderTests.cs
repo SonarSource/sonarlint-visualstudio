@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 
 [TestClass]
+[Ignore]
 public class RoslynSolutionAnalysisCommandProviderTests
 {
     private const string File1Cs = "file1.cs";

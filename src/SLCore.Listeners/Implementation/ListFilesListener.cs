@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using System.IO;
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
@@ -43,9 +44,22 @@ public class ListFilesListener(
     ILogger logger)
     : IListFilesListener
 {
-    private readonly ILogger logger = logger.ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.FileSubsystem_LogContext, SLCoreStrings.ListFiles_LogContext);
+    private readonly ILogger logger = logger.ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.FileSubsystem_LogContext, SLCoreStrings.ListFiles_LogContext).ForVerboseContext("FILE SYSTEM INVESTIGATION");
 
-    public Task<ListFilesResponse> ListFilesAsync(ListFilesParams parameters) => Task.FromResult(new ListFilesResponse(GetFilesList(parameters)));
+    public Task<ListFilesResponse> ListFilesAsync(ListFilesParams parameters)
+    {
+        try
+        {
+            var listFilesResponse = new ListFilesResponse(GetFilesList(parameters));
+            logger.LogVerbose(JsonConvert.SerializeObject(listFilesResponse, Formatting.Indented));
+            return Task.FromResult(listFilesResponse);
+        }
+        catch (Exception e)
+        {
+            logger.LogVerbose(e.ToString());
+            throw;
+        }
+    }
 
     private List<ClientFileDto> GetFilesList(ListFilesParams parameters)
     {
