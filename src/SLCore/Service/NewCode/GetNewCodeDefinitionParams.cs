@@ -18,15 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
-
 namespace SonarLint.VisualStudio.SLCore.Service.NewCode;
 
-[JsonRpcClass("newCode")]
-public interface INewCodeSLCoreService : ISLCoreService
-{
-    void DidToggleFocus();
-
-    Task<GetNewCodeDefinitionResponse> GetNewCodeDefinitionAsync(GetNewCodeDefinitionParams parameters);
-}
+public record GetNewCodeDefinitionParams(string configScopeId);

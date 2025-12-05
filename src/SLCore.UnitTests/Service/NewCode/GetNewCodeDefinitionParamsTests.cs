@@ -18,15 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Service.NewCode;
 
-namespace SonarLint.VisualStudio.SLCore.Service.NewCode;
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.NewCode;
 
-[JsonRpcClass("newCode")]
-public interface INewCodeSLCoreService : ISLCoreService
+[TestClass]
+public class GetNewCodeDefinitionParamsTests
 {
-    void DidToggleFocus();
 
-    Task<GetNewCodeDefinitionResponse> GetNewCodeDefinitionAsync(GetNewCodeDefinitionParams parameters);
+    [TestMethod]
+    public void Serializes_Correctly()
+    {
+        var original = new GetNewCodeDefinitionParams("my config scope id");
+
+        var actual = JsonConvert.SerializeObject(original, Formatting.Indented);
+
+        var expected =
+            """
+            {
+              "configScopeId": "my config scope id"
+            }
+            """;
+        actual.Should().Be(expected);
+    }
 }
