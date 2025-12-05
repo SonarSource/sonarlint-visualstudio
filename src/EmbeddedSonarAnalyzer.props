@@ -13,7 +13,8 @@
     <EmbeddedEsLintBridgeVersion>1.0.0</EmbeddedEsLintBridgeVersion>
     <!-- sonar-html-plugin -->
     <EmbeddedSonarHtmlAnalyzerVersion>3.21.0.7002</EmbeddedSonarHtmlAnalyzerVersion>
-    <EmbeddedSonarSecretsJarVersion>2.33.0.9826</EmbeddedSonarSecretsJarVersion>
+    <!-- sonar-text-plugin -->
+    <EmbeddedSonarSecretsJarVersion>2.34.0.9939</EmbeddedSonarSecretsJarVersion>
     <EmbeddedSonarSqvsRoslynJarVersion>1.0.0.169</EmbeddedSonarSqvsRoslynJarVersion>
     <!-- SLOOP: Binaries for SonarLint Out Of Process -->
     <EmbeddedSloopVersion>10.37.1.83894</EmbeddedSloopVersion>
