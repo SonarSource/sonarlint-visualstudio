@@ -19,6 +19,7 @@
  */
 
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
@@ -27,6 +28,7 @@ internal interface IRoslynProjectWrapper
 {
     string Name { get; }
     bool SupportsCompilation { get; }
+    Project RoslynProject { get; }
     AnalyzerOptions RoslynAnalyzerOptions { get; }
     IRoslynSolutionWrapper Solution { get; }
 

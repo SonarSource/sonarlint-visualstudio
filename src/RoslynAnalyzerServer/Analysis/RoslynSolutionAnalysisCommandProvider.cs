@@ -53,6 +53,23 @@ internal class RoslynSolutionAnalysisCommandProvider(
             {
                 result.Add(new RoslynProjectAnalysisRequest(project, commands));
             }
+            else
+            {
+                var filePathsInProject = project.RoslynProject.Documents.Select(document => document.FilePath);
+                logger.LogVerbose(new MessageLevelContext
+                    {
+                        VerboseContext =
+                        [
+                            "NO PROJECT INVESTIGATION"
+                        ]
+                    },
+                    "Project {0} did not produce analysis commands for files [{1}]; Only contains other files: \r\n[\r\n{2}\r\n]",
+                    project.Name,
+                    string.Join(", ",
+                        filePaths),
+                    string.Join(",\r\n",
+                        filePathsInProject));
+            }
         }
 
         if (!result.Any())
