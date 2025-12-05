@@ -91,7 +91,7 @@ internal class
         this.issuesReportViewModel = issuesReportViewModel;
         NavigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
         AllGroupViewModels = new ObservableCollection<IGroupViewModel>();
-        ReportViewFilter = new ReportViewFilterViewModel(focusOnNewCodeService);
+        ReportViewFilter = new ReportViewFilterViewModel(focusOnNewCodeService, threadHandling);
         FilteredGroupViewModels = new ObservableCollection<IGroupViewModel>();
 
         hotspotsReportViewModel.IssuesChanged += HotspotsViewModel_IssuesChanged;

@@ -31,7 +31,7 @@ public interface IFocusOnNewCodeService : IRequireInitialization
 
 public interface IFocusOnNewCodeServiceUpdater : IFocusOnNewCodeService
 {
-    void Set(bool isEnabled);
+    void SetPreference(bool isEnabled);
 }
 
 [ExcludeFromCodeCoverage]
@@ -41,7 +41,4 @@ public class NewCodeStatusChangedEventArgs(FocusOnNewCodeStatus newStatus) : Eve
 }
 
 [ExcludeFromCodeCoverage]
-public class FocusOnNewCodeStatus(bool isEnabled)
-{
-    public bool IsEnabled { get; } = isEnabled;
-}
+public record FocusOnNewCodeStatus(bool IsEnabled, bool IsSupported = false, string Description = "");

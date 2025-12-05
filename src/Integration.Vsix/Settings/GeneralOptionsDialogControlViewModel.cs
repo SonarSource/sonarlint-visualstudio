@@ -115,7 +115,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         slSettings.IsActivateMoreEnabled = IsActivateMoreEnabled;
         slSettings.JreLocation = JreLocation?.Trim();
         slSettings.ShowCloudRegion = ShowCloudRegion;
-        focusOnNewCodeServiceUpdater.Set(IsFocusOnNewCodeEnabled);
+        focusOnNewCodeServiceUpdater.SetPreference(IsFocusOnNewCodeEnabled);
     }
 
     internal void ViewInBrowser(string url) => browserService.Navigate(url);
