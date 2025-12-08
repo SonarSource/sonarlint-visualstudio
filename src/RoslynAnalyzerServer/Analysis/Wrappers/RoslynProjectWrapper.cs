@@ -19,6 +19,7 @@
  */
 
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -42,7 +43,7 @@ internal class RoslynProjectWrapper(Project project, IRoslynSolutionWrapper solu
         var doc = project.Documents
             .Where(path => path != null)
             .FirstOrDefault(candidatePath =>
-                candidatePath.FilePath!.Equals(filePath) || IsAssociatedGeneratedFile(filePath, candidatePath.FilePath));
+                candidatePath.FilePath!.Equals(filePath, StringComparison.InvariantCultureIgnoreCase) || IsAssociatedGeneratedFile(filePath, candidatePath.FilePath));
 
         if (doc != null)
         {
@@ -57,5 +58,5 @@ internal class RoslynProjectWrapper(Project project, IRoslynSolutionWrapper solu
 
     // cshtml razor files are converted into .\file.cshtml.<random chars>.g.cs OR .\file.vbhtml.<random chars>.g.vb files when included in the compilation
     private static bool IsAssociatedGeneratedFile(string razorFilePath, string candidateDocumentPath) =>
-        candidateDocumentPath.StartsWith(razorFilePath) && (candidateDocumentPath.EndsWith(".g.cs") || candidateDocumentPath.EndsWith(".g.vb"));
+        candidateDocumentPath.StartsWith(razorFilePath, StringComparison.InvariantCultureIgnoreCase) && (candidateDocumentPath.EndsWith(".g.cs") || candidateDocumentPath.EndsWith(".g.vb"));
 }
