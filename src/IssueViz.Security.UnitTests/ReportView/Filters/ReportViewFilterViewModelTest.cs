@@ -186,6 +186,22 @@ public class ReportViewFilterViewModelTest
 
         threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
         eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.SelectedNewCodeFilter)));
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.SelectedNewCodeFilterSupported)));
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.SelectedNewCodeFilterDescription)));
+    }
+
+    [DataTestMethod]
+    [DataRow(true, true, "yes yes")]
+    [DataRow(true, false, "yes no")]
+    [DataRow(false, true, "no yes")]
+    [DataRow(false, false, "no no")]
+    public void SelectedNewCode_PropertiesReturnValueFromService(bool focusOnNewCodeState, bool isNewCodeSupportedState, string newCodeDescription)
+    {
+        focusOnNewCodeService.Current.Returns(new FocusOnNewCodeStatus(focusOnNewCodeState, isNewCodeSupportedState, newCodeDescription));
+
+        testSubject.SelectedNewCodeFilter.Should().Be(focusOnNewCodeState);
+        testSubject.SelectedNewCodeFilterSupported.Should().Be(isNewCodeSupportedState);
+        testSubject.SelectedNewCodeFilterDescription.Should().Be(newCodeDescription);
     }
 
     [DataTestMethod]
