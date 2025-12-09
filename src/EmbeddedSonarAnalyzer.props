@@ -15,7 +15,7 @@
     <EmbeddedSonarHtmlAnalyzerVersion>3.22.0.7011</EmbeddedSonarHtmlAnalyzerVersion>
     <!-- sonar-text-plugin -->
     <EmbeddedSonarSecretsJarVersion>2.34.0.9939</EmbeddedSonarSecretsJarVersion>
-    <EmbeddedSonarSqvsRoslynJarVersion>1.0.0.169</EmbeddedSonarSqvsRoslynJarVersion>
+    <EmbeddedSonarSqvsRoslynJarVersion>1.1.0.235</EmbeddedSonarSqvsRoslynJarVersion>
     <!-- SLOOP: Binaries for SonarLint Out Of Process -->
     <EmbeddedSloopVersion>10.38.0.83993</EmbeddedSloopVersion>
   </PropertyGroup>
