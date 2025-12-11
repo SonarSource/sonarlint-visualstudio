@@ -22,11 +22,12 @@ namespace SonarLint.VisualStudio.Core;
 
 public record PluginInfo
 {
-    public PluginInfo(string pluginKey, string filePattern, bool isEnabledForAnalysis = true)
+    public PluginInfo(string pluginKey, string filePattern, bool isEnabledForAnalysis = true, bool isEnabledInStandaloneMode = true)
     {
         Key = pluginKey ?? throw new ArgumentNullException(nameof(pluginKey));
         FilePattern = filePattern;
         IsEnabledForAnalysis = isEnabledForAnalysis;
+        IsEnabledInStandaloneMode = isEnabledInStandaloneMode;
     }
 
     public string Key { get; }
@@ -37,4 +38,6 @@ public record PluginInfo
     public string FilePattern { get; }
 
     public bool IsEnabledForAnalysis { get; }
+
+    public bool IsEnabledInStandaloneMode { get; }
 }

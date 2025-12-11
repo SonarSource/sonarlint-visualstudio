@@ -33,7 +33,9 @@
     <ItemGroup>
       <SourceJars Include="$(JarDownloadDir)\sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar" />
       <SourceJars Include="$(JarDownloadDir)\sonar-csharp-enterprise-plugin-$(EmbeddedSonarAnalyzerVersion).jar" />
+      <SourceJars Include="$(JarDownloadDir)\sonar-csharp-plugin-$(EmbeddedSonarAnalyzerVersion).jar" />
       <SourceJars Include="$(JarDownloadDir)\sonar-vbnet-enterprise-plugin-$(EmbeddedSonarAnalyzerVersion).jar" />
+      <SourceJars Include="$(JarDownloadDir)\sonar-vbnet-plugin-$(EmbeddedSonarAnalyzerVersion).jar" />
       <SourceJars Include="$(JarDownloadDir)\sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar" />
       <SourceJars Include="$(JarDownloadDir)\sonar-html-plugin-$(EmbeddedSonarHtmlAnalyzerVersion).jar" />
       <SourceJars Include="$(JarDownloadDir)\sonar-text-plugin-$(EmbeddedSonarSecretsJarVersion).jar" />

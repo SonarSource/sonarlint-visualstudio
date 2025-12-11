@@ -83,9 +83,23 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <OssSonarVBNetPluginFileNameWithoutExtension>sonar-vbnet-plugin-$(EmbeddedSonarAnalyzerVersion)</OssSonarVBNetPluginFileNameWithoutExtension>
+    <OssSonarVBNetPluginFileName>$(OssSonarVBNetPluginFileNameWithoutExtension).jar</OssSonarVBNetPluginFileName>
+    <OssSonarVBNetPluginDownloadPath>$(JarDownloadDir)\$(OssSonarVBNetPluginFileName)</OssSonarVBNetPluginDownloadPath>
+    <OssSonarVBNetPluginRemoteUrl>https://repox.jfrog.io/ui/native/sonarsource/org/sonarsource/dotnet/sonar-vbnet-plugin/$(EmbeddedSonarAnalyzerVersion)/$(OssSonarVBNetPluginFileName)</OssSonarVBNetPluginRemoteUrl>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <EnterpriseSonarCSharpPluginFileNameWithoutExtension>sonar-csharp-enterprise-plugin-$(EmbeddedSonarAnalyzerVersion)</EnterpriseSonarCSharpPluginFileNameWithoutExtension>
     <EnterpriseSonarCSharpPluginFileName>$(EnterpriseSonarCSharpPluginFileNameWithoutExtension).jar</EnterpriseSonarCSharpPluginFileName>
     <EnterpriseSonarCSharpPluginDownloadPath>$(JarDownloadDir)\$(EnterpriseSonarCSharpPluginFileName)</EnterpriseSonarCSharpPluginDownloadPath>
     <EnterpriseSonarCSharpPluginRemoteUrl>https://repox.jfrog.io/artifactory/sonarsource/com/sonarsource/dotnet/sonar-csharp-enterprise-plugin/$(EmbeddedSonarAnalyzerVersion)/$(EnterpriseSonarCSharpPluginFileName)</EnterpriseSonarCSharpPluginRemoteUrl>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <OssSonarCSharpPluginFileNameWithoutExtension>sonar-csharp-plugin-$(EmbeddedSonarAnalyzerVersion)</OssSonarCSharpPluginFileNameWithoutExtension>
+    <OssSonarCSharpPluginFileName>$(OssSonarCSharpPluginFileNameWithoutExtension).jar</OssSonarCSharpPluginFileName>
+    <OssSonarCSharpPluginDownloadPath>$(JarDownloadDir)\$(OssSonarCSharpPluginFileName)</OssSonarCSharpPluginDownloadPath>
+    <OssSonarCSharpPluginRemoteUrl>https://repox.jfrog.io/artifactory/sonarsource/org/sonarsource/dotnet/sonar-csharp-plugin/$(EmbeddedSonarAnalyzerVersion)/$(OssSonarCSharpPluginFileName)</OssSonarCSharpPluginRemoteUrl>
   </PropertyGroup>
 </Project>

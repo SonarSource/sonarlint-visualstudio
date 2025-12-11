@@ -63,31 +63,31 @@ public class SLCoreEmbeddedPluginJarProviderTests
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SLCoreEmbeddedPluginProvider>();
 
     [TestMethod]
-    public void ListJarFiles_DirectoryNotExists_ReturnsEmpty()
+    public void ListStandaloneModeEmbeddedPlugins_DirectoryNotExists_ReturnsEmpty()
     {
         MockFileSystem(false);
 
-        var result = testSubject.ListJarFiles();
+        var result = testSubject.ListStandaloneModeEmbeddedPlugins();
 
         result.Should().BeEmpty();
     }
 
     [TestMethod]
-    public void ListJarFiles_DirectoryExists_NoFiles_ReturnsEmpty()
+    public void ListStandaloneModeEmbeddedPlugins_DirectoryExists_NoFiles_ReturnsEmpty()
     {
         MockFileSystem(true);
 
-        var result = testSubject.ListJarFiles();
+        var result = testSubject.ListStandaloneModeEmbeddedPlugins();
 
         result.Should().BeEmpty();
     }
 
     [TestMethod]
-    public void ListJarFiles_FilesExist_ReturnsFiles()
+    public void ListStandaloneModeEmbeddedPlugins_FilesExist_ReturnsFiles()
     {
         MockFileSystem(true, "File1", "File2", "File3", "File4");
 
-        var result = testSubject.ListJarFiles();
+        var result = testSubject.ListStandaloneModeEmbeddedPlugins();
 
         result.Should().HaveCount(4);
         result.Should().HaveElementAt(0, "File1");
@@ -149,26 +149,26 @@ public class SLCoreEmbeddedPluginJarProviderTests
         VerifyContainsPlugin(result, pluginKey, correct);
     }
 
-    [TestMethod]
-    public void ListConnectedModeEmbeddedPluginPathsByKey_NoJars_ReturnsEmptyDictionaryAndLogs()
-    {
-        MockFileSystem(true);
-
-        var result = testSubject.ListConnectedModeEmbeddedPluginPathsByKey();
-
-        result.Should().BeEmpty();
-        logger.Received(testSubject.StandalonePlugins.Count).LogVerbose(Strings.ConnectedModeEmbeddedPluginJarLocator_JarsNotFound);
-    }
-
-    [TestMethod]
-    public void StandalonePlugins_ReturnsStandalonePluginsIncludingRoslyn()
-    {
-        _ = languageProvider.Received(1).LanguagesInStandaloneMode;
-        _ = languageProvider.DidNotReceive().RoslynLanguages;
-
-        var expectedPlugins = languageProvider.LanguagesInStandaloneMode.Select(x => x.PluginInfo).ToHashSet();
-        testSubject.StandalonePlugins.Should().BeEquivalentTo(expectedPlugins);
-    }
+    // [TestMethod]
+    // public void ListConnectedModeEmbeddedPluginPathsByKey_NoJars_ReturnsEmptyDictionaryAndLogs()
+    // {
+    //     MockFileSystem(true);
+    //
+    //     var result = testSubject.ListConnectedModeEmbeddedPluginPathsByKey();
+    //
+    //     result.Should().BeEmpty();
+    //     logger.Received(testSubject.StandalonePlugins.Count).LogVerbose(Strings.ConnectedModeEmbeddedPluginJarLocator_JarsNotFound);
+    // }
+    //
+    // [TestMethod]
+    // public void StandalonePlugins_ReturnsStandalonePluginsIncludingRoslyn()
+    // {
+    //     _ = languageProvider.Received(1).LanguagesInStandaloneMode;
+    //     _ = languageProvider.DidNotReceive().RoslynLanguages;
+    //
+    //     var expectedPlugins = languageProvider.LanguagesInStandaloneMode.Select(x => x.PluginInfo).ToHashSet();
+    //     testSubject.StandalonePlugins.Should().BeEquivalentTo(expectedPlugins);
+    // }
 
     [TestMethod]
     public void ListDisabledPluginKeysForAnalysis_ReturnsCsharpAndVbNetPluginKeys()

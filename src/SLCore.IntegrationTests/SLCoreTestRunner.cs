@@ -111,7 +111,7 @@ public sealed class SLCoreTestRunner : IDisposable
             connectionProvider.GetServerConnections().Returns(new Dictionary<string, ServerConnectionConfigurationDtoBase>());
 
             var jarProvider = Substitute.For<ISLCoreEmbeddedPluginProvider>();
-            jarProvider.ListJarFiles().Returns(DependencyLocator.AnalyzerPlugins);
+            jarProvider.ListStandaloneModeEmbeddedPlugins().Returns(DependencyLocator.AnalyzerPlugins);
             jarProvider.ListDisabledPluginKeysForAnalysis().Returns([Language.CSharp.AdditionalPlugins.Single().Key, Language.VBNET.AdditionalPlugins.Single().Key]);
 
             var compatibleNodeLocator = Substitute.For<INodeLocationProvider>();

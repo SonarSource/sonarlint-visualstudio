@@ -53,7 +53,9 @@
     <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(HtmlPluginDownloadPath) --url $(HtmlPluginRemoteUrl)" />
     <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(SonarTextPluginDownloadPath) --url $(SonarTextPluginRemoteUrl)" />
     <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(EnterpriseSonarCSharpPluginDownloadPath) --url $(EnterpriseSonarCSharpPluginRemoteUrl)" />
+    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(OssSonarCSharpPluginDownloadPath) --url $(OssSonarCSharpPluginRemoteUrl)" />
     <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(EnterpriseSonarVBNetPluginDownloadPath) --url $(EnterpriseSonarVBNetPluginRemoteUrl)" />
+    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(OssSonarVBNetPluginDownloadPath) --url $(OssSonarVBNetPluginRemoteUrl)" />
     <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(SonarSqvsRoslynPluginDownloadPath) --url $(SonarSqvsRoslynPluginRemoteUrl)" />
   </Target>
 

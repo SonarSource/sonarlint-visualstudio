@@ -22,7 +22,9 @@ namespace SonarLint.VisualStudio.SLCore.Configuration;
 
 public interface ISLCoreEmbeddedPluginProvider
 {
-    List<string> ListJarFiles();
+    // List<string> ListJarFiles();
+
+    List<string> ListStandaloneModeEmbeddedPlugins();
 
     Dictionary<string, string> ListConnectedModeEmbeddedPluginPathsByKey();
 

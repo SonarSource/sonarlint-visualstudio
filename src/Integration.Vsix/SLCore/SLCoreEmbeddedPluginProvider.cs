@@ -42,8 +42,6 @@ public class SLCoreEmbeddedPluginProvider : ISLCoreEmbeddedPluginProvider
     private readonly ILanguageProvider languageProvider;
     private readonly IVsixRootLocator vsixRootLocator;
 
-    internal HashSet<PluginInfo> StandalonePlugins { get; }
-
     [ImportingConstructor]
     public SLCoreEmbeddedPluginProvider(IVsixRootLocator vsixRootLocator, ILogger logger, ILanguageProvider languageProvider) : this(vsixRootLocator, new FileSystem(), logger, languageProvider) { }
 
@@ -57,10 +55,9 @@ public class SLCoreEmbeddedPluginProvider : ISLCoreEmbeddedPluginProvider
         this.fileSystem = fileSystem;
         this.logger = logger;
         this.languageProvider = languageProvider;
-        StandalonePlugins = languageProvider.LanguagesInStandaloneMode.Select(x => x.PluginInfo).ToHashSet();
     }
 
-    public List<string> ListJarFiles()
+    private List<string> ListJarFiles()
     {
         var jarFolderPath = Path.Combine(vsixRootLocator.GetVsixRoot(), JarFolderName);
 
@@ -71,13 +68,34 @@ public class SLCoreEmbeddedPluginProvider : ISLCoreEmbeddedPluginProvider
         return new List<string>();
     }
 
+    public List<string> ListStandaloneModeEmbeddedPlugins()
+    {
+        var pluginPaths = new HashSet<string>();
+        var embeddedPluginFilePaths = ListJarFiles();
+
+        foreach (var plugin in GetAllEmbeddedPluginInfos().Where(x => x.IsEnabledInStandaloneMode))
+        {
+            if (GetPathByPluginKey(embeddedPluginFilePaths, plugin.Key, plugin.FilePattern) is { } pluginFilePath)
+            {
+                pluginPaths.Add(pluginFilePath);
+            }
+        }
+
+        return pluginPaths.ToList();
+    }
+
     public Dictionary<string, string> ListConnectedModeEmbeddedPluginPathsByKey()
     {
         var connectedModeEmbeddedPluginPathsByKey = new Dictionary<string, string>();
         var embeddedPluginFilePaths = ListJarFiles();
 
-        foreach (var plugin in StandalonePlugins)
+        foreach (var plugin in GetAllEmbeddedPluginInfos())
         {
+            if (connectedModeEmbeddedPluginPathsByKey.ContainsKey(plugin.Key))
+            {
+                continue;
+            }
+
             if (GetPathByPluginKey(embeddedPluginFilePaths, plugin.Key, plugin.FilePattern) is { } pluginFilePath)
             {
                 connectedModeEmbeddedPluginPathsByKey.Add(plugin.Key, pluginFilePath);
@@ -87,11 +105,25 @@ public class SLCoreEmbeddedPluginProvider : ISLCoreEmbeddedPluginProvider
         return connectedModeEmbeddedPluginPathsByKey;
     }
 
-    public List<string> ListDisabledPluginKeysForAnalysis()
+    public List<string> ListDisabledPluginKeysForAnalysis() =>
+        GetAllEmbeddedPluginInfos().Where(p => !p.IsEnabledForAnalysis).Select(p => p.Key).ToList();
+
+    private IEnumerable<PluginInfo> GetAllEmbeddedPluginInfos()
     {
-        var allPlugins = languageProvider.LanguagesInStandaloneMode.Where(x => x.AdditionalPlugins != null).SelectMany(x => x.AdditionalPlugins).ToHashSet();
-        allPlugins.UnionWith(StandalonePlugins);
-        return allPlugins.Where(p => !p.IsEnabledForAnalysis).Select(p => p.Key).ToList();
+        foreach (var language in languageProvider.LanguagesInStandaloneMode)
+        {
+            yield return language.PluginInfo;
+
+            if (language.AdditionalPlugins is null)
+            {
+                continue;
+            }
+
+            foreach (var languageAdditionalPlugin in language.AdditionalPlugins)
+            {
+                yield return languageAdditionalPlugin;
+            }
+        }
     }
 
     private string GetPathByPluginKey(List<string> pluginFilePaths, string pluginKey, string pluginNameRegexPattern)

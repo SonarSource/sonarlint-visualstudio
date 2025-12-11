@@ -112,7 +112,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             constantsProvider.BackendCapabilities,
             storageRoot,
             workDir,
-            embeddedPluginPaths: slCoreEmbeddedPluginJarProvider.ListJarFiles(),
+            embeddedPluginPaths: slCoreEmbeddedPluginJarProvider.ListStandaloneModeEmbeddedPlugins(),
             connectedModeEmbeddedPluginPathsByKey: slCoreEmbeddedPluginJarProvider.ListConnectedModeEmbeddedPluginPathsByKey(),
             enabledLanguagesInStandaloneMode: slCoreLanguageProvider.LanguagesInStandaloneMode,
             extraEnabledLanguagesInConnectedMode: slCoreLanguageProvider.ExtraLanguagesInConnectedMode,

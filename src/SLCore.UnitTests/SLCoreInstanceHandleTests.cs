@@ -268,7 +268,7 @@ public class SLCoreInstanceHandleTests
         {
             { SonarQubeConnection1.connectionId, SonarQubeConnection1 }, { SonarQubeConnection2.connectionId, SonarQubeConnection2 }, { SonarCloudConnection.connectionId, SonarCloudConnection }
         });
-        jarProvider.ListJarFiles().Returns(JarList);
+        jarProvider.ListStandaloneModeEmbeddedPlugins().Returns(JarList);
         jarProvider.ListConnectedModeEmbeddedPluginPathsByKey().Returns(ConnectedModeJarList);
         jarProvider.ListDisabledPluginKeysForAnalysis().Returns(DisabledAnalysisPluginKeys);
         activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration(Binding, SonarLintMode.Connected, "dir"));
