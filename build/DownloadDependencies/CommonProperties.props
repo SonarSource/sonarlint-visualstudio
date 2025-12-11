@@ -86,7 +86,7 @@
     <OssSonarVBNetPluginFileNameWithoutExtension>sonar-vbnet-plugin-$(EmbeddedSonarAnalyzerVersion)</OssSonarVBNetPluginFileNameWithoutExtension>
     <OssSonarVBNetPluginFileName>$(OssSonarVBNetPluginFileNameWithoutExtension).jar</OssSonarVBNetPluginFileName>
     <OssSonarVBNetPluginDownloadPath>$(JarDownloadDir)\$(OssSonarVBNetPluginFileName)</OssSonarVBNetPluginDownloadPath>
-    <OssSonarVBNetPluginRemoteUrl>https://repox.jfrog.io/ui/native/sonarsource/org/sonarsource/dotnet/sonar-vbnet-plugin/$(EmbeddedSonarAnalyzerVersion)/$(OssSonarVBNetPluginFileName)</OssSonarVBNetPluginRemoteUrl>
+    <OssSonarVBNetPluginRemoteUrl>https://repox.jfrog.io/artifactory/sonarsource/org/sonarsource/dotnet/sonar-vbnet-plugin/$(EmbeddedSonarAnalyzerVersion)/$(OssSonarVBNetPluginFileName)</OssSonarVBNetPluginRemoteUrl>
   </PropertyGroup>
 
   <PropertyGroup>
