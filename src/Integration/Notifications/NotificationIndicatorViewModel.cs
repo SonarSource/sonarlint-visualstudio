@@ -172,5 +172,10 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
             NotificationEvents.Count, NotificationEvents.Count == 1 ? "" : "s");
     }
 
-    private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args) => IsCloud = args.Configuration?.Project?.ServerConnection is ServerConnection.SonarCloud;
+    private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args)
+    {
+        IsIconVisible = args.Configuration?.Project?.ServerConnection != null;
+        IsCloud = args.Configuration?.Project?.ServerConnection is ServerConnection.SonarCloud;
+        AreNotificationsEnabled = args.Configuration?.Project?.ServerConnection?.Settings.IsSmartNotificationsEnabled ?? false;
+    }
 }
