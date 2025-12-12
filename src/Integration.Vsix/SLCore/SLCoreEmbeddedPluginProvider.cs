@@ -89,7 +89,7 @@ public class SLCoreEmbeddedPluginProvider : ISLCoreEmbeddedPluginProvider
         var connectedModeEmbeddedPluginPathsByKey = new Dictionary<string, string>();
         var embeddedPluginFilePaths = ListJarFiles();
 
-        foreach (var plugin in GetAllEmbeddedPluginInfos().Where(x => x.IsEnabledInStandaloneMode))
+        foreach (var plugin in languageProvider.LanguagesInStandaloneMode.Select(x => x.PluginInfo))
         {
             if (connectedModeEmbeddedPluginPathsByKey.ContainsKey(plugin.Key))
             {
