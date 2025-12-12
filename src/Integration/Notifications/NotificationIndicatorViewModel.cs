@@ -23,6 +23,7 @@ using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.SmartNotification;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.Infrastructure.VS;
@@ -33,6 +34,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications;
 
 public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificationIndicatorViewModel, IDisposable
 {
+    private readonly ISmartNotificationService smartNotificationService;
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly ITimer autocloseTimer;
     private readonly IThreadHandling threadHandling;
@@ -48,22 +50,26 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
 
     public ICommand ClearUnreadEventsCommand { get; }
 
-    public NotificationIndicatorViewModel(IBrowserService vsBrowserService, IActiveSolutionBoundTracker activeSolutionBoundTracker)
-        : this(vsBrowserService, activeSolutionBoundTracker, ThreadHandling.Instance,
-            new TimerWrapper { AutoReset = false, Interval = 3000 /* 3 sec */ }) =>
-        this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+    public NotificationIndicatorViewModel(ISmartNotificationService smartNotificationService, IBrowserService vsBrowserService, IActiveSolutionBoundTracker activeSolutionBoundTracker)
+        : this(smartNotificationService, vsBrowserService, activeSolutionBoundTracker, ThreadHandling.Instance, new TimerWrapper { AutoReset = false, Interval = 3000 /* 3 sec */ })
+    {
+        // Nothing to do
+    }
 
     // For testing
     internal NotificationIndicatorViewModel(
+        ISmartNotificationService smartNotificationService,
         IBrowserService vsBrowserService,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IThreadHandling threadHandling,
         ITimer autocloseTimer)
     {
+        this.smartNotificationService = smartNotificationService;
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.threadHandling = threadHandling;
         this.autocloseTimer = autocloseTimer;
 
+        smartNotificationService.NotificationReceived += OnNotificationReceived;
         activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
         NotificationEvents = [];
         text = BuildToolTipText();
@@ -79,7 +85,11 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
         });
     }
 
-    public void Dispose() => activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
+    public void Dispose()
+    {
+        smartNotificationService.NotificationReceived -= OnNotificationReceived;
+        activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
+    }
 
     public ICommand NavigateToNotification { get; }
 
@@ -170,6 +180,12 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
 
         return string.Format("You have {0} unread event{1}.",
             NotificationEvents.Count, NotificationEvents.Count == 1 ? "" : "s");
+    }
+
+    private void OnNotificationReceived(object sender, NotificationReceivedEventArgs args)
+    {
+        var notification = args.Notification;
+        SetNotificationEvents([new SonarQubeNotification(notification.Category, notification.Text, new Uri(notification.Link), DateTimeOffset.Now)]);
     }
 
     private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args)

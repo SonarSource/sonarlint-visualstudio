@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.SmartNotification;
 using SonarLint.VisualStudio.Integration.MefServices;
 using SonarLint.VisualStudio.Integration.Notifications;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
@@ -84,8 +85,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // Creating the tracker might indirectly cause UI-related MEF components to be
                 // created, so this needs to be done on the UI thread just in case.
                 activeSolutionBoundTracker = this.GetMefService<IActiveSolutionBoundTracker>();
+                var smartNotificationService = this.GetMefService<ISmartNotificationService>();
 
-                notificationIndicatorViewModel = new NotificationIndicatorViewModel(vsBrowserService, activeSolutionBoundTracker);
+                notificationIndicatorViewModel = new NotificationIndicatorViewModel(smartNotificationService, vsBrowserService, activeSolutionBoundTracker);
 
                 // A bound solution might already have completed loading. If so, we need to
                 // trigger the load of the options from the solution file
