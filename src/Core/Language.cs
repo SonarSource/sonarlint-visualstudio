@@ -39,8 +39,10 @@ namespace SonarLint.VisualStudio.Core
     {
         private const string VersionNumberPattern = "(\\d+\\.\\d+\\.\\d+\\.\\d+)\\";
         private static readonly PluginInfo SqvsRoslynPlugin = new("sqvsroslyn", $"sonarqube-ide-visualstudio-roslyn-plugin-{VersionNumberPattern}.jar");
-        private static readonly PluginInfo CSharpPlugin = new("csharpenterprise", $"sonar-csharp-enterprise-plugin-{VersionNumberPattern}.jar", isEnabledForAnalysis: false);
-        private static readonly PluginInfo VbNetPlugin = new("vbnetenterprise", $"sonar-vbnet-enterprise-plugin-{VersionNumberPattern}.jar", isEnabledForAnalysis: false);
+        private static readonly PluginInfo CSharpEnterprisePlugin = new("csharpenterprise", $"sonar-csharp-enterprise-plugin-{VersionNumberPattern}.jar", isEnabledForAnalysis: false);
+        private static readonly PluginInfo CSharpOssPlugin = new("csharp", $"sonar-csharp-plugin-{VersionNumberPattern}.jar", isEnabledForAnalysis: false);
+        private static readonly PluginInfo VbNetEnterprisePlugin = new("vbnetenterprise", $"sonar-vbnet-enterprise-plugin-{VersionNumberPattern}.jar", isEnabledForAnalysis: false);
+        private static readonly PluginInfo VbNetOssPlugin = new("vbnet", $"sonar-vbnet-plugin-{VersionNumberPattern}.jar", isEnabledForAnalysis: false);
         private static readonly PluginInfo SecretsPlugin = new("text", $"sonar-text-plugin-{VersionNumberPattern}.jar");
         private static readonly PluginInfo CFamilyPlugin = new("cpp", $"sonar-cfamily-plugin-{VersionNumberPattern}.jar");
         private static readonly PluginInfo JavascriptPlugin = new("javascript", $"sonar-javascript-plugin-{VersionNumberPattern}.jar");
@@ -64,9 +66,9 @@ namespace SonarLint.VisualStudio.Core
 
         public static readonly Language Unknown = new();
         public static readonly RoslynLanguage CSharp = new("CSharp", CoreStrings.CSharpLanguageName, "cs", SqvsRoslynPlugin, CSharpRepo,
-            settingsFileName: "sonarlint_csharp.globalconfig", roslynDllIdentifier: ".CSharp.", CSharpSecurityRepo, additionalPlugins: [CSharpPlugin]);
+            settingsFileName: "sonarlint_csharp.globalconfig", roslynDllIdentifier: ".CSharp.", CSharpSecurityRepo, additionalPlugins: [CSharpEnterprisePlugin, CSharpOssPlugin]);
         public static readonly RoslynLanguage VBNET = new("VB", CoreStrings.VBNetLanguageName, "vbnet", SqvsRoslynPlugin, VbNetRepo, settingsFileName: "sonarlint_vb.globalconfig", roslynDllIdentifier: ".VisualBasic.",
-            additionalPlugins: [VbNetPlugin]);
+            additionalPlugins: [VbNetEnterprisePlugin, VbNetOssPlugin]);
         public static readonly Language Cpp = new("C++", CoreStrings.CppLanguageName, "cpp", CFamilyPlugin, CppRepo);
         public static readonly Language C = new("C", "C", "c", CFamilyPlugin, CRepo);
         public static readonly Language Js = new("Js", "JavaScript", "js", JavascriptPlugin, JsRepo, JsSecurityRepo);
