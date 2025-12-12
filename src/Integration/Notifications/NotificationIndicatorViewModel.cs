@@ -185,7 +185,7 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
     private void OnNotificationReceived(object sender, NotificationReceivedEventArgs args)
     {
         var notification = args.Notification;
-        SetNotificationEvents([new SonarQubeNotification(notification.Category, notification.Text, new Uri(notification.Link), DateTimeOffset.Now)]);
+        SetNotificationEvents([new SonarQubeNotification(notification.Category, notification.Text, new Uri(notification.Link), notification.Date)]);
     }
 
     private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args)

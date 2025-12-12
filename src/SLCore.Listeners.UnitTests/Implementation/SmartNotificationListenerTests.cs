@@ -51,7 +51,8 @@ public class SmartNotificationListenerTests
                 actual.Link == slCoreSmartNotificationParams.link &&
                 actual.Category == slCoreSmartNotificationParams.category &&
                 actual.ConnectionId == slCoreSmartNotificationParams.connectionId &&
-                actual.ScopeIds.SetEquals(slCoreSmartNotificationParams.scopeIds)
+                actual.ScopeIds.SetEquals(slCoreSmartNotificationParams.scopeIds) &&
+                actual.Date <= DateTimeOffset.Now
             ));
     }
 }

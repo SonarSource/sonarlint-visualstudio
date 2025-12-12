@@ -31,5 +31,5 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 public class SmartNotificationListener(ISmartNotificationService smartNotificationService) : ISmartNotificationListener
 {
     public void ShowSmartNotification(ShowSmartNotificationParams parameters) =>
-        smartNotificationService.ShowSmartNotification(new SmartNotification(parameters.text, parameters.link, parameters.scopeIds, parameters.category, parameters.connectionId));
+        smartNotificationService.ShowSmartNotification(new SmartNotification(parameters.text, parameters.link, parameters.scopeIds, parameters.category, parameters.connectionId, DateTimeOffset.Now));
 }

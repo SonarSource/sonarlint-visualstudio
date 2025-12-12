@@ -236,7 +236,7 @@ public class NotificationIndicatorViewModelTests
     {
         testSubject.AreNotificationsEnabled = true;
         testSubject.IsIconVisible = true;
-        var smartNotification = new SmartNotification("Test message", "http://localhost:9000/project", ["scope1"], "QUALITY_GATE", "connectionId");
+        var smartNotification = new SmartNotification("Test message", "http://localhost:9000/project", ["scope1"], "QUALITY_GATE", "connectionId", DateTimeOffset.Now);
 
         smartNotificationService.NotificationReceived += Raise.EventWith(new NotificationReceivedEventArgs(smartNotification));
 

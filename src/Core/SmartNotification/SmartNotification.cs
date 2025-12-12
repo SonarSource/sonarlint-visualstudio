@@ -20,4 +20,4 @@
 
 namespace SonarLint.VisualStudio.Core.SmartNotification;
 
-public record SmartNotification(string Text, string Link, HashSet<string> ScopeIds, string Category, string ConnectionId);
+public record SmartNotification(string Text, string Link, HashSet<string> ScopeIds, string Category, string ConnectionId, DateTimeOffset Date);

@@ -38,7 +38,7 @@ public class SmartNotificationServiceTests
     {
         var service = new SmartNotificationService();
         Core.SmartNotification.SmartNotification receivedNotification = null;
-        var expectedNotification = new Core.SmartNotification.SmartNotification("A notification", "http://localhost:9000/project/overview", ["SCOPE_ID1"], "CATEGORY", "http://localhost:9000");
+        var expectedNotification = new Core.SmartNotification.SmartNotification("A notification", "http://localhost:9000/project/overview", ["SCOPE_ID1"], "CATEGORY", "http://localhost:9000", DateTimeOffset.Now);
         service.NotificationReceived += (_, args) => { receivedNotification = args.Notification; };
 
         service.ShowSmartNotification(expectedNotification);
