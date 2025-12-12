@@ -35,11 +35,6 @@ public interface ISonarQubeService
 
     void Disconnect();
 
-    Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(
-        string projectKey,
-        DateTimeOffset eventsSince,
-        CancellationToken token);
-
     /// <summary>
     ///     Returns the URI to view the specified issue on the server
     /// </summary>
