@@ -24,16 +24,15 @@ using SonarLint.VisualStudio.Core.SmartNotification;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Notifications;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Notifications;
 
 [TestClass]
 public class NotificationIndicatorViewModelTests
 {
-    private static readonly SonarQubeNotification[] TestEvents =
+    private static readonly SmartNotification[] TestEvents =
     [
-        new("foo", "foo", new Uri("http://foo.com"), new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.FromHours(2)))
+        new("foo", "http://foo.com", ["SCOPE_ID"], "foo", "connectionId", new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.FromHours(2)))
     ];
     private ISmartNotificationService smartNotificationService;
     private IActiveSolutionBoundTracker activeSolutionBoundTracker;
@@ -197,7 +196,7 @@ public class NotificationIndicatorViewModelTests
 
         testSubject.NavigateToNotification.Execute(notification);
 
-        browserService.Received(1).Navigate("http://localhost:2000/");
+        browserService.Received(1).Navigate("http://localhost:2000");
     }
 
     [TestMethod]
@@ -242,8 +241,8 @@ public class NotificationIndicatorViewModelTests
 
         testSubject.NotificationEvents.Should().HaveCount(1);
         testSubject.NotificationEvents[0].Category.Should().Be("QUALITY_GATE");
-        testSubject.NotificationEvents[0].Message.Should().Be("Test message");
-        testSubject.NotificationEvents[0].Link.Should().Be(new Uri("http://localhost:9000/project"));
+        testSubject.NotificationEvents[0].Text.Should().Be("Test message");
+        testSubject.NotificationEvents[0].Link.Should().Be("http://localhost:9000/project");
         testSubject.HasUnreadEvents.Should().BeTrue();
     }
 
@@ -329,9 +328,9 @@ public class NotificationIndicatorViewModelTests
     private static BindingConfiguration CreateBindingConfiguration(ServerConnection serverConnection, SonarLintMode mode) =>
         new(new BoundServerProject("my solution", "my project", serverConnection), mode, string.Empty);
 
-    private static SonarQubeNotification CreateNotification(string category, string url = "http://localhost") => new(category, "test", new Uri(url), DateTimeOffset.Now);
+    private static SmartNotification CreateNotification(string category, string url = "http://localhost") => new("test", url, [], category, "connectionId", DateTimeOffset.Now);
 
-    private void SetupModelWithNotifications(bool areEnabled, bool areVisible, SonarQubeNotification[] events)
+    private void SetupModelWithNotifications(bool areEnabled, bool areVisible, SmartNotification[] events)
     {
         testSubject.AreNotificationsEnabled = areEnabled;
         testSubject.IsIconVisible = areVisible;

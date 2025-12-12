@@ -18,9 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.Windows.Input;
-using SonarQube.Client.Models;
+using SonarLint.VisualStudio.Core.SmartNotification;
 
 namespace SonarLint.VisualStudio.Integration.Notifications
 {
@@ -38,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
         bool IsCloud { get; set; }
 
-        void SetNotificationEvents(IEnumerable<SonarQubeNotification> events);
+        void SetNotificationEvents(IEnumerable<SmartNotification> events);
 
         ICommand NavigateToNotification { get; }
     }

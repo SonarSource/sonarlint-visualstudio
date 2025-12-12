@@ -28,7 +28,6 @@ using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.WPF;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Notifications;
 
@@ -46,7 +45,7 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
 
     private string text;
 
-    public ObservableCollection<SonarQubeNotification> NotificationEvents { get; }
+    public ObservableCollection<SmartNotification> NotificationEvents { get; }
 
     public ICommand ClearUnreadEventsCommand { get; }
 
@@ -79,8 +78,8 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
 
         NavigateToNotification = new DelegateCommand(parameter =>
         {
-            var notification = (SonarQubeNotification)parameter;
-            vsBrowserService.Navigate(notification.Link.ToString());
+            var notification = (SmartNotification) parameter;
+            vsBrowserService.Navigate(notification.Link);
             IsToolTipVisible = false;
         });
     }
@@ -143,7 +142,7 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
         set => SetAndRaisePropertyChanged(ref isCloud, value);
     }
 
-    public void SetNotificationEvents(IEnumerable<SonarQubeNotification> events)
+    public void SetNotificationEvents(IEnumerable<SmartNotification> events)
     {
         if (events == null ||
             !events.Any() ||
@@ -184,8 +183,7 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
 
     private void OnNotificationReceived(object sender, NotificationReceivedEventArgs args)
     {
-        var notification = args.Notification;
-        SetNotificationEvents([new SonarQubeNotification(notification.Category, notification.Text, new Uri(notification.Link), notification.Date)]);
+        SetNotificationEvents([args.Notification]);
     }
 
     private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args)
