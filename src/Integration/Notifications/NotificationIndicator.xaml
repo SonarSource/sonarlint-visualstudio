@@ -105,7 +105,7 @@
                                     <Run Text="{Binding Date, StringFormat=G, Mode=OneWay}" FontWeight="DemiBold" FontSize="10" Foreground="Gray" />
                                     <LineBreak FontSize="16" />
 
-                                    <Run Text="{Binding Message, Mode=OneWay}" />
+                                    <Run Text="{Binding Text, Mode=OneWay}" />
                                     <Hyperlink Command="{Binding DataContext.NavigateToNotification, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" 
                                                CommandParameter="{Binding}">more...</Hyperlink>
                                 </TextBlock>

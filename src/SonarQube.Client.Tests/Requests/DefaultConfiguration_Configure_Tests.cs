@@ -36,7 +36,6 @@ public class DefaultConfiguration_Configure_Tests
         {
             "Registered SonarQube.Client.Api.V2_10.GetVersionRequest for 2.1",
             "Registered SonarQube.Client.Api.V3_30.ValidateCredentialsRequest for 3.3",
-            "Registered SonarQube.Client.Api.V6_60.GetNotificationsRequest for 6.6",
         };
 
         DefaultConfiguration.ConfigureSonarQube(new RequestFactory(logger));
@@ -56,7 +55,6 @@ public class DefaultConfiguration_Configure_Tests
         {
             "Registered SonarQube.Client.Api.V2_10.GetVersionRequest",
             "Registered SonarQube.Client.Api.V3_30.ValidateCredentialsRequest",
-            "Registered SonarQube.Client.Api.V6_60.GetNotificationsRequest",
         };
 
         DefaultConfiguration.ConfigureSonarCloud(new UnversionedRequestFactory(logger));
@@ -73,7 +71,6 @@ public class DefaultConfiguration_Configure_Tests
         var testSubject = DefaultConfiguration.ConfigureSonarQube(new RequestFactory(new TestLogger()));
         var serverInfo = new ServerInfo(null /* latest */, ServerType.SonarQube);
 
-        testSubject.Create<IGetNotificationsRequest>(serverInfo).Should().NotBeNull();
         testSubject.Create<IGetVersionRequest>(serverInfo).Should().NotBeNull();
         testSubject.Create<IValidateCredentialsRequest>(serverInfo).Should().NotBeNull();
     }
@@ -84,7 +81,6 @@ public class DefaultConfiguration_Configure_Tests
         var testSubject = DefaultConfiguration.ConfigureSonarCloud(new UnversionedRequestFactory(new TestLogger()));
         var serverInfo = new ServerInfo(null /* latest */, ServerType.SonarQube);
 
-        testSubject.Create<IGetNotificationsRequest>(serverInfo).Should().NotBeNull();
         testSubject.Create<IGetVersionRequest>(serverInfo).Should().NotBeNull();
         testSubject.Create<IValidateCredentialsRequest>(serverInfo).Should().NotBeNull();
     }
