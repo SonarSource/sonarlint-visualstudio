@@ -20,8 +20,6 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -48,9 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// SonarLintNotifications GUID string.
         /// </summary>
         public const string PackageGuidString = "c26b6802-dd9c-4a49-b8a5-0ad8ef04c579";
-        private const string NotificationDataKey = "NotificationEventData";
 
-        private readonly IFormatter formatter = new BinaryFormatter();
         private NotificationIndicator notificationIcon;
 
         private IActiveSolutionBoundTracker activeSolutionBoundTracker;
@@ -70,15 +66,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // Working on background thread...
             Debug.Assert(!ThreadHelper.CheckAccess());
 
-            var sonarqubeService = await this.GetMefServiceAsync<ISonarQubeService>();
             logger = await this.GetMefServiceAsync<ILogger>();
             logger.WriteLine(Strings.Notifications_Initializing);
 
-            AddOptionKey(NotificationDataKey);
-
             var vsBrowserService = await this.GetMefServiceAsync<IBrowserService>();
 
-            // Initialising the UI elements has to be on the main thread
+            // Initializing the UI elements has to be on the main thread
             await JoinableTaskFactory.SwitchToMainThreadAsync();
             SafePerformOpOnUIThread(() =>
             {
@@ -86,16 +79,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // created, so this needs to be done on the UI thread just in case.
                 activeSolutionBoundTracker = this.GetMefService<IActiveSolutionBoundTracker>();
                 var smartNotificationService = this.GetMefService<ISmartNotificationService>();
-
                 notificationIndicatorViewModel = new NotificationIndicatorViewModel(smartNotificationService, vsBrowserService, activeSolutionBoundTracker);
-
-                // A bound solution might already have completed loading. If so, we need to
-                // trigger the load of the options from the solution file
-                if (activeSolutionBoundTracker.CurrentConfiguration.Mode != SonarLintMode.Standalone)
-                {
-                    var solutionPersistence = (IVsSolutionPersistence) GetService(typeof(SVsSolutionPersistence));
-                    solutionPersistence.LoadPackageUserOpts(this, NotificationDataKey);
-                }
 
                 PerformUIInitialisation();
                 logger.WriteLine(Strings.Notifications_InitializationComplete);
