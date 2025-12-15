@@ -23,16 +23,17 @@ using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.SmartNotification;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.WPF;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Notifications;
 
 public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificationIndicatorViewModel, IDisposable
 {
+    private readonly ISmartNotificationService smartNotificationService;
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly ITimer autocloseTimer;
     private readonly IThreadHandling threadHandling;
@@ -44,26 +45,30 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
 
     private string text;
 
-    public ObservableCollection<SonarQubeNotification> NotificationEvents { get; }
+    public ObservableCollection<SmartNotification> NotificationEvents { get; }
 
     public ICommand ClearUnreadEventsCommand { get; }
 
-    public NotificationIndicatorViewModel(IBrowserService vsBrowserService, IActiveSolutionBoundTracker activeSolutionBoundTracker)
-        : this(vsBrowserService, activeSolutionBoundTracker, ThreadHandling.Instance,
-            new TimerWrapper { AutoReset = false, Interval = 3000 /* 3 sec */ }) =>
-        this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+    public NotificationIndicatorViewModel(ISmartNotificationService smartNotificationService, IBrowserService vsBrowserService, IActiveSolutionBoundTracker activeSolutionBoundTracker)
+        : this(smartNotificationService, vsBrowserService, activeSolutionBoundTracker, ThreadHandling.Instance, new TimerWrapper { AutoReset = false, Interval = 3000 /* 3 sec */ })
+    {
+        // Nothing to do
+    }
 
     // For testing
     internal NotificationIndicatorViewModel(
+        ISmartNotificationService smartNotificationService,
         IBrowserService vsBrowserService,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IThreadHandling threadHandling,
         ITimer autocloseTimer)
     {
+        this.smartNotificationService = smartNotificationService;
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.threadHandling = threadHandling;
         this.autocloseTimer = autocloseTimer;
 
+        smartNotificationService.NotificationReceived += OnNotificationReceived;
         activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
         NotificationEvents = [];
         text = BuildToolTipText();
@@ -73,13 +78,17 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
 
         NavigateToNotification = new DelegateCommand(parameter =>
         {
-            var notification = (SonarQubeNotification)parameter;
-            vsBrowserService.Navigate(notification.Link.ToString());
+            var notification = (SmartNotification) parameter;
+            vsBrowserService.Navigate(notification.Link);
             IsToolTipVisible = false;
         });
     }
 
-    public void Dispose() => activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
+    public void Dispose()
+    {
+        smartNotificationService.NotificationReceived -= OnNotificationReceived;
+        activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
+    }
 
     public ICommand NavigateToNotification { get; }
 
@@ -133,7 +142,7 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
         set => SetAndRaisePropertyChanged(ref isCloud, value);
     }
 
-    public void SetNotificationEvents(IEnumerable<SonarQubeNotification> events)
+    public void SetNotificationEvents(IEnumerable<SmartNotification> events)
     {
         if (events == null ||
             !events.Any() ||
@@ -172,5 +181,15 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
             NotificationEvents.Count, NotificationEvents.Count == 1 ? "" : "s");
     }
 
-    private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args) => IsCloud = args.Configuration?.Project?.ServerConnection is ServerConnection.SonarCloud;
+    private void OnNotificationReceived(object sender, NotificationReceivedEventArgs args)
+    {
+        SetNotificationEvents([args.Notification]);
+    }
+
+    private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args)
+    {
+        IsIconVisible = args.Configuration?.Project?.ServerConnection != null;
+        IsCloud = args.Configuration?.Project?.ServerConnection is ServerConnection.SonarCloud;
+        AreNotificationsEnabled = args.Configuration?.Project?.ServerConnection?.Settings.IsSmartNotificationsEnabled ?? false;
+    }
 }

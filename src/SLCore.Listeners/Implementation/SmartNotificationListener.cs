@@ -18,26 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Client.Models;
+using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core.SmartNotification;
+using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Listener.SmartNotification;
 
-namespace SonarQube.Client;
+namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 
-public interface ISonarQubeService
+[Export(typeof(ISLCoreListener))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+public class SmartNotificationListener(ISmartNotificationService smartNotificationService) : ISmartNotificationListener
 {
-    bool IsConnected { get; }
-
-    /// <summary>
-    ///     Returns <see cref="ServerInfo" /> that the service is connected to at this moment. Subsequent calls can result in different values.
-    /// </summary>
-    ServerInfo GetServerInfo();
-
-    Task ConnectAsync(ConnectionInformation connection, CancellationToken token);
-
-    void Disconnect();
-
-    /// <summary>
-    ///     Returns the URI to view the specified issue on the server
-    /// </summary>
-    /// <remarks>The method does not check whether the project or issue exists or not</remarks>
-    Uri GetViewIssueUrl(string projectKey, string issueKey);
+    public void ShowSmartNotification(ShowSmartNotificationParams parameters) =>
+        smartNotificationService.ShowSmartNotification(new SmartNotification(parameters.text, parameters.link, parameters.scopeIds, parameters.category, parameters.connectionId, DateTimeOffset.Now));
 }

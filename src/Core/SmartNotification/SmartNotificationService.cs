@@ -18,26 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.ComponentModel.Composition;
 
-namespace SonarQube.Client.Models
+namespace SonarLint.VisualStudio.Core.SmartNotification;
+
+[Export(typeof(ISmartNotificationService))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+public class SmartNotificationService : ISmartNotificationService
 {
-    public class SonarQubeNotification
-    {
-        public string Category { get; }
+    public event EventHandler<NotificationReceivedEventArgs> NotificationReceived;
 
-        public string Message { get; }
-
-        public Uri Link { get; }
-
-        public DateTimeOffset Date { get; }
-
-        public SonarQubeNotification(string category, string message, Uri link, DateTimeOffset date)
-        {
-            Category = category;
-            Message = message;
-            Link = link;
-            Date = date;
-        }
-    }
+    public void ShowSmartNotification(SmartNotification notification) => NotificationReceived?.Invoke(this, new NotificationReceivedEventArgs(notification));
 }

@@ -107,18 +107,6 @@ public class SonarQubeService : ISonarQubeService, IDisposable
         requestFactory = null;
     }
 
-    public async Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(
-        string projectKey,
-        DateTimeOffset eventsSince,
-        CancellationToken token) =>
-        await InvokeCheckedRequestAsync<IGetNotificationsRequest, SonarQubeNotification[]>(
-            request =>
-            {
-                request.ProjectKey = projectKey;
-                request.EventsSince = eventsSince;
-            },
-            token);
-
     public Uri GetViewIssueUrl(string projectKey, string issueKey)
     {
         EnsureIsConnected();

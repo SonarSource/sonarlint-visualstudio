@@ -18,18 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
+namespace SonarLint.VisualStudio.Core.SmartNotification;
 
-namespace SonarLint.VisualStudio.Integration.Notifications
+public interface ISmartNotificationService
 {
-    public interface ISonarQubeNotificationService
-    {
-        Task StartAsync(string projectKey, NotificationData notificationData);
+    event EventHandler<NotificationReceivedEventArgs> NotificationReceived;
 
-        void Stop();
+    void ShowSmartNotification(SmartNotification notification);
+}
 
-        NotificationData GetNotificationData();
-
-        INotificationIndicatorViewModel Model { get; }
-    }
+public class NotificationReceivedEventArgs(SmartNotification notification) : EventArgs
+{
+    public SmartNotification Notification { get; set; } = notification;
 }

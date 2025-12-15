@@ -18,26 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Client.Models;
+namespace SonarLint.VisualStudio.Core.SmartNotification;
 
-namespace SonarQube.Client;
-
-public interface ISonarQubeService
-{
-    bool IsConnected { get; }
-
-    /// <summary>
-    ///     Returns <see cref="ServerInfo" /> that the service is connected to at this moment. Subsequent calls can result in different values.
-    /// </summary>
-    ServerInfo GetServerInfo();
-
-    Task ConnectAsync(ConnectionInformation connection, CancellationToken token);
-
-    void Disconnect();
-
-    /// <summary>
-    ///     Returns the URI to view the specified issue on the server
-    /// </summary>
-    /// <remarks>The method does not check whether the project or issue exists or not</remarks>
-    Uri GetViewIssueUrl(string projectKey, string issueKey);
-}
+public record SmartNotification(string Text, string Link, HashSet<string> ScopeIds, string Category, string ConnectionId, DateTimeOffset Date);

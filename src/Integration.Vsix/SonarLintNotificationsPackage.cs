@@ -19,20 +19,17 @@
  */
 
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Core.SmartNotification;
 using SonarLint.VisualStudio.Integration.MefServices;
 using SonarLint.VisualStudio.Integration.Notifications;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarQube.Client;
-
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -49,67 +46,52 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// SonarLintNotifications GUID string.
         /// </summary>
         public const string PackageGuidString = "c26b6802-dd9c-4a49-b8a5-0ad8ef04c579";
-        private const string NotificationDataKey = "NotificationEventData";
 
-        private readonly IFormatter formatter = new BinaryFormatter();
         private NotificationIndicator notificationIcon;
 
         private IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private ISonarQubeNotificationService notifications;
+        private INotificationIndicatorViewModel notificationIndicatorViewModel;
         private ILogger logger;
-        private NotificationData notificationData;
         private bool disposed;
         private ISharedBindingSuggestionService suggestSharedBindingGoldBar;
 
-        protected override System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+        protected override Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             JoinableTaskFactory.RunAsync(InitAsync);
-            return System.Threading.Tasks.Task.CompletedTask;
+            return Task.CompletedTask;
         }
 
-        private async System.Threading.Tasks.Task InitAsync()
+        private async Task InitAsync()
         {
             // Working on background thread...
             Debug.Assert(!ThreadHelper.CheckAccess());
 
-            var sonarqubeService = await this.GetMefServiceAsync<ISonarQubeService>();
             logger = await this.GetMefServiceAsync<ILogger>();
-            logger.WriteLine(Resources.Strings.Notifications_Initializing);
+            logger.WriteLine(Strings.Notifications_Initializing);
 
-            AddOptionKey(NotificationDataKey);
+            var vsBrowserService = await this.GetMefServiceAsync<IBrowserService>();
 
-            var vsBrowserService = await this.GetMefServiceAsync<Core.IBrowserService>();
-
-            // Initialising the UI elements has to be on the main thread
+            // Initializing the UI elements has to be on the main thread
             await JoinableTaskFactory.SwitchToMainThreadAsync();
             SafePerformOpOnUIThread(() =>
             {
                 // Creating the tracker might indirectly cause UI-related MEF components to be
                 // created, so this needs to be done on the UI thread just in case.
                 activeSolutionBoundTracker = this.GetMefService<IActiveSolutionBoundTracker>();
-
-                notifications = new SonarQubeNotificationService(sonarqubeService,
-                    new NotificationIndicatorViewModel(vsBrowserService, activeSolutionBoundTracker), new TimerWrapper { Interval = 60000 }, logger);
-
-                // A bound solution might already have completed loading. If so, we need to
-                // trigger the load of the options from the solution file
-                if (activeSolutionBoundTracker.CurrentConfiguration.Mode != SonarLintMode.Standalone)
-                {
-                    var solutionPersistence = (IVsSolutionPersistence)this.GetService(typeof(SVsSolutionPersistence));
-                    solutionPersistence.LoadPackageUserOpts(this, NotificationDataKey);
-                }
+                var smartNotificationService = this.GetMefService<ISmartNotificationService>();
+                notificationIndicatorViewModel = new NotificationIndicatorViewModel(smartNotificationService, vsBrowserService, activeSolutionBoundTracker);
 
                 PerformUIInitialisation();
-                logger.WriteLine(Resources.Strings.Notifications_InitializationComplete);
+                logger.WriteLine(Strings.Notifications_InitializationComplete);
 
                 suggestSharedBindingGoldBar = this.GetMefService<ISharedBindingSuggestionService>();
                 suggestSharedBindingGoldBar.Suggest();
             });
         }
+
         private void PerformUIInitialisation()
         {
-            notificationIcon = new NotificationIndicator();
-            notificationIcon.DataContext = notifications.Model;
+            notificationIcon = new NotificationIndicator { DataContext = notificationIndicatorViewModel };
 
             // The package is now loaded asynchronously, so a solution might have
             // finished loading before this package is initialized
@@ -131,14 +113,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (bindingConfiguration.Mode != SonarLintMode.Standalone)
             {
-                logger.WriteLine(Resources.Strings.Notifications_Connected);
+                logger.WriteLine(Strings.Notifications_Connected);
                 VisualStudioStatusBarHelper.AddStatusBarIcon(notificationIcon);
-                notifications.StartAsync(bindingConfiguration.Project.ServerProjectKey, notificationData);
             }
             else
             {
-                logger.WriteLine(Resources.Strings.Notifications_NotConnected);
-                notifications.Stop();
+                logger.WriteLine(Strings.Notifications_NotConnected);
                 VisualStudioStatusBarHelper.RemoveStatusBarIcon(notificationIcon);
             }
         }
@@ -155,37 +135,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
 
             suggestSharedBindingGoldBar?.Dispose();
-            (notifications as IDisposable)?.Dispose();
             disposed = true;
-        }
-
-        protected override void OnSaveOptions(string key, Stream stream)
-        {
-            if (key == NotificationDataKey)
-            {
-                logger.WriteLine(Resources.Strings.Notifications_SavingSettings);
-                formatter.Serialize(stream, notifications.GetNotificationData());
-            }
-        }
-
-        protected override void OnLoadOptions(string key, Stream stream)
-        {
-            // Note: when the package is loaded asynchronously, a solution might
-            // already be loaded in which case this method will not be called by VS.
-            // In that case we manually trigger the load using the IVsSolutionPersistence
-            // service.
-            if (key == NotificationDataKey)
-            {
-                try
-                {
-                    logger.WriteLine(Resources.Strings.Notifications_LoadingSettings);
-                    notificationData = formatter.Deserialize(stream) as NotificationData;
-                }
-                catch (Exception ex)
-                {
-                    logger.WriteLine($"Failed to read notification data: {ex.Message}");
-                }
-            }
         }
 
         private void SafePerformOpOnUIThread(Action op)
@@ -198,7 +148,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Resources.Strings.Notifications_ERROR, ex.Message);
+                logger.WriteLine(Strings.Notifications_ERROR, ex.Message);
             }
         }
     }

@@ -18,16 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using SonarQube.Client.Models;
-using SonarQube.Client.Requests;
+using SonarLint.VisualStudio.SLCore.Core;
 
-namespace SonarQube.Client.Api
+namespace SonarLint.VisualStudio.SLCore.Listener.SmartNotification;
+
+public interface ISmartNotificationListener : ISLCoreListener
 {
-    public interface IGetNotificationsRequest : IRequest<SonarQubeNotification[]>
-    {
-        string ProjectKey { get; set; }
-
-        DateTimeOffset EventsSince { get; set; }
-    }
+    void ShowSmartNotification(ShowSmartNotificationParams parameters);
 }
