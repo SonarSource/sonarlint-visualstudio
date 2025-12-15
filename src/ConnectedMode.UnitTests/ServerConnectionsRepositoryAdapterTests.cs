@@ -390,6 +390,21 @@ public class ServerConnectionsRepositoryAdapterTests
         serverConnectionWithInvalidTokenRepository.Received(1).HasInvalidToken(sonarQube.Id);
     }
 
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void TryUpdateSettingsById_ReturnsStatusFromRepository(bool expectedStatus)
+    {
+        const string connectionId = "http://localhost:9000/";
+        var settings = new ServerConnectionSettings(true);
+        serverConnectionsRepository.TryUpdateSettingsById(connectionId, settings).Returns(expectedStatus);
+
+        var succeeded = testSubject.TryUpdateSettingsById(connectionId, settings);
+
+        succeeded.Should().Be(expectedStatus);
+        serverConnectionsRepository.Received(1).TryUpdateSettingsById(connectionId, settings);
+    }
+
     private static SonarCloud CreateSonarCloudServerConnection(bool isSmartNotificationsEnabled = true, CloudServerRegion region = null) =>
         new("myOrg", region, new ServerConnectionSettings(isSmartNotificationsEnabled), Substitute.For<IConnectionCredentials>());
 

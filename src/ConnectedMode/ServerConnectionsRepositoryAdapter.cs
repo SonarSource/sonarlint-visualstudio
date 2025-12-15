@@ -45,6 +45,8 @@ public interface IServerConnectionsRepositoryAdapter
     void AddConnectionWithInvalidToken(Connection connection);
 
     bool HasInvalidToken(Connection connection);
+
+    bool TryUpdateSettingsById(string connectionId, ServerConnectionSettings settings);
 }
 
 [Export(typeof(IServerConnectionsRepositoryAdapter))]
@@ -93,6 +95,9 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
         var connectionId = connectionInfo.GetServerIdFromConnectionInfo();
         return serverConnectionsRepository.TryDelete(connectionId);
     }
+
+    public bool TryUpdateSettingsById(string connectionId, ServerConnectionSettings settings) =>
+        serverConnectionsRepository.TryUpdateSettingsById(connectionId, settings);
 
     private static IConnectionCredentials MapCredentials(ICredentialsModel credentialsModel)
     {
