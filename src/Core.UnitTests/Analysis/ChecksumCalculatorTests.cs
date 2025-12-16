@@ -18,11 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarQube.Client.Tests
+namespace SonarLint.VisualStudio.Core.UnitTests.Analysis
 {
     [TestClass]
     public class ChecksumCalculatorTests

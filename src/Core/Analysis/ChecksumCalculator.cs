@@ -23,7 +23,7 @@ using System.Text.RegularExpressions;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Utilities.Encoders;
 
-namespace SonarQube.Client
+namespace SonarLint.VisualStudio.Core.Analysis
 {
     public interface IChecksumCalculator
     {

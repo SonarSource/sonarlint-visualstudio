@@ -24,7 +24,6 @@ using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarQube.Client.Models;
 using static SonarLint.VisualStudio.ConnectedMode.UI.WindowExtensions;
 
 namespace SonarLint.VisualStudio.Integration.Transition

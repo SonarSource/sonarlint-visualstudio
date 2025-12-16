@@ -1375,7 +1375,6 @@
           "SonarLint.VisualStudio.RoslynAnalyzerServer": "[1.0.0, )",
           "SonarLint.VisualStudio.SLCore": "[1.0.0, )",
           "SonarLint.VisualStudio.SLCore.Listeners": "[1.0.0, )",
-          "SonarQube.Client": "[1.0.0, )",
           "System.IO.Abstractions": "[9.0.4, )",
           "System.Threading.Channels": "[7.0.0, )"
         }
@@ -1439,7 +1438,6 @@
           "SonarLint.VisualStudio.ConnectedMode": "[1.0.0, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
-          "SonarQube.Client": "[1.0.0, )",
           "StrongNamer": "[0.0.8, )",
           "System.IO.Abstractions": "[9.0.4, )"
         }
@@ -1462,7 +1460,6 @@
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
           "SonarLint.VisualStudio.Integration": "[1.0.0, )",
-          "SonarQube.Client": "[1.0.0, )",
           "StrongNamer": "[0.0.8, )",
           "System.IO.Abstractions.TestingHelpers": "[9.0.4, )"
         }
@@ -1473,8 +1470,7 @@
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
-          "SonarLint.VisualStudio.SLCore": "[1.0.0, )",
-          "SonarQube.Client": "[1.0.0, )"
+          "SonarLint.VisualStudio.SLCore": "[1.0.0, )"
         }
       },
       "SonarLint.VisualStudio.IssueVisualization.Security": {
@@ -1510,14 +1506,6 @@
           "SonarLint.VisualStudio.IssueVisualization.Security": "[1.0.0, )",
           "SonarLint.VisualStudio.RoslynAnalyzerServer": "[1.0.0, )",
           "SonarLint.VisualStudio.SLCore": "[1.0.0, )"
-        }
-      },
-      "sonarqube.client": {
-        "type": "Project",
-        "dependencies": {
-          "Newtonsoft.Json": "[13.0.3, )",
-          "SonarLint.VisualStudio.Core": "[1.0.0, )",
-          "System.Net.Http": "[4.0.0, )"
         }
       }
     }

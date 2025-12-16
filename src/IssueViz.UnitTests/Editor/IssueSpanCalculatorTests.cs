@@ -20,9 +20,9 @@
 
 using Microsoft.VisualStudio.Text;
 using Moq;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 {

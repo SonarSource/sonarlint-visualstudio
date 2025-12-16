@@ -19,10 +19,11 @@
  */
 
 using Newtonsoft.Json;
-using SonarQube.Client.Models;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 
 namespace SonarLint.VisualStudio.Core.Binding
 {
+    [Obsolete("Use BoundServerProject instead")]
     public class BoundSonarQubeProject
     {
         public BoundSonarQubeProject()

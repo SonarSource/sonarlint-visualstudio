@@ -69,9 +69,6 @@
   </ItemGroup>
 
   <ItemGroup Label="Project references">
-    <ProjectReference Include="..\SonarQube.Client\SonarQube.Client.csproj">
-      <Name>SonarQube.Client.2015</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ConnectedMode\ConnectedMode.csproj">
       <Project>{0BE551DB-3C46-42A5-BB38-DA80E83F8ABD}</Project>
       <Name>ConnectedMode</Name>

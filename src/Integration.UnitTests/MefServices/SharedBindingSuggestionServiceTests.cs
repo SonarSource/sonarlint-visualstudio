@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode;
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.UI;
@@ -25,7 +26,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.MefServices;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.MefServices;
 
@@ -79,7 +79,7 @@ public class SharedBindingSuggestionServiceTests
 
         testSubject.Suggest();
 
-        suggestSharedBindingGoldBar.Received(1).Show(ServerType.SonarQube, Arg.Any<Action>());
+        suggestSharedBindingGoldBar.Received(1).Show(ConnectionServerType.SonarQube, Arg.Any<Action>());
     }
 
     [TestMethod]
@@ -90,7 +90,7 @@ public class SharedBindingSuggestionServiceTests
 
         testSubject.Suggest();
 
-        suggestSharedBindingGoldBar.DidNotReceive().Show(ServerType.SonarQube, Arg.Any<Action>());
+        suggestSharedBindingGoldBar.DidNotReceive().Show(ConnectionServerType.SonarQube, Arg.Any<Action>());
     }
 
     [TestMethod]
@@ -100,7 +100,7 @@ public class SharedBindingSuggestionServiceTests
 
         testSubject.Suggest();
 
-        suggestSharedBindingGoldBar.DidNotReceive().Show(ServerType.SonarQube, Arg.Any<Action>());
+        suggestSharedBindingGoldBar.DidNotReceive().Show(ConnectionServerType.SonarQube, Arg.Any<Action>());
     }
 
     [TestMethod]
@@ -111,7 +111,7 @@ public class SharedBindingSuggestionServiceTests
 
         RaiseActiveSolutionChanged(true);
 
-        suggestSharedBindingGoldBar.Received(1).Show(ServerType.SonarQube, Arg.Any<Action>());
+        suggestSharedBindingGoldBar.Received(1).Show(ConnectionServerType.SonarQube, Arg.Any<Action>());
     }
 
     [TestMethod]
@@ -119,7 +119,7 @@ public class SharedBindingSuggestionServiceTests
     {
         RaiseActiveSolutionChanged(false);
 
-        suggestSharedBindingGoldBar.DidNotReceive().Show(Arg.Any<ServerType>(), Arg.Any<Action>());
+        suggestSharedBindingGoldBar.DidNotReceive().Show(Arg.Any<ConnectionServerType>(), Arg.Any<Action>());
     }
 
     [TestMethod]
@@ -148,7 +148,7 @@ public class SharedBindingSuggestionServiceTests
         MockSharedBindingConfigExists(config);
         MockSolutionMode(SonarLintMode.Standalone);
         Action showAction = null;
-        suggestSharedBindingGoldBar.When(x => x.Show(ServerType.SonarQube, Arg.Any<Action>())).Do(callInfo =>
+        suggestSharedBindingGoldBar.When(x => x.Show(ConnectionServerType.SonarQube, Arg.Any<Action>())).Do(callInfo =>
         {
             showAction = callInfo.Arg<Action>();
         });

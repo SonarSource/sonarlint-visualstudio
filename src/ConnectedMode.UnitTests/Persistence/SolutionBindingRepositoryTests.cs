@@ -22,8 +22,8 @@ using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence;
 

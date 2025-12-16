@@ -25,7 +25,6 @@ using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIdeHotspots;
 

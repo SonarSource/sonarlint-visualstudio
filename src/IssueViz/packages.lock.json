@@ -1121,14 +1121,6 @@
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "StreamJsonRpc": "[2.6.121, )"
         }
-      },
-      "sonarqube.client": {
-        "type": "Project",
-        "dependencies": {
-          "Newtonsoft.Json": "[13.0.3, )",
-          "SonarLint.VisualStudio.Core": "[1.0.0, )",
-          "System.Net.Http": "[4.0.0, )"
-        }
       }
     }
   }

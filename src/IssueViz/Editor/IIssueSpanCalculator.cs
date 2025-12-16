@@ -21,7 +21,6 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor
 {

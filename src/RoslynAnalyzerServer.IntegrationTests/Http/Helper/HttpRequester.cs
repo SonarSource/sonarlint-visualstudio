@@ -2,6 +2,7 @@
 using System.Security;
 using System.Text;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 using SonarLint.VisualStudio.SLCore.Common.Models;

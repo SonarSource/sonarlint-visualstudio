@@ -20,7 +20,6 @@
 
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 {
@@ -53,10 +52,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         }
 
         [TestMethod]
-        public void GetServerType_NoOrganization_ReturnsQube() => sonarQubeModel.GetServerType().Should().Be(ServerType.SonarQube);
+        public void GetServerType_NoOrganization_ReturnsQube() => sonarQubeModel.GetServerType().Should().Be(ConnectionServerType.SonarQube);
 
         [TestMethod]
-        public void GetServerType_HasOrganization_ReturnsCloud() => sonarCloudModel.GetServerType().Should().Be(ServerType.SonarCloud);
+        public void GetServerType_HasOrganization_ReturnsCloud() => sonarCloudModel.GetServerType().Should().Be(ConnectionServerType.SonarCloud);
 
         [TestMethod]
         public void CreateConnectionInfo_NoOrganization_ReturnsQube()

@@ -169,7 +169,7 @@ public class BindingControllerAdapterTests
         var fakeSolutionName = "solution name";
         solutionInfoProvider.GetSolutionNameAsync().Returns(fakeSolutionName);
         var exception = new Exception("some exception");
-        bindingController.BindAsync(Arg.Any<BoundServerProject>(), cancellationTokenSource.Token).ThrowsAsync(exception);
+        bindingController.When( x=> x.Bind(Arg.Any<BoundServerProject>())).Throw(exception);
 
         var result = await testSubject.ValidateAndBindAsync(request, uiManager, cancellationTokenSource.Token);
 
@@ -191,8 +191,7 @@ public class BindingControllerAdapterTests
         result.Should().Be(BindingResult.Success);
         testLogger.AssertNoOutputMessages();
         bindingController.Received()
-            .BindAsync(Arg.Is<BoundServerProject>(x => x.LocalBindingKey == fakeSolutionName && x.ServerConnection == fakeConnection && x.ServerProjectKey == request.ProjectKey),
-                cancellationTokenSource.Token);
+            .Bind(Arg.Is<BoundServerProject>(x => x.LocalBindingKey == fakeSolutionName && x.ServerConnection == fakeConnection && x.ServerProjectKey == request.ProjectKey));
     }
 
     [DataRow(true)]
@@ -230,7 +229,7 @@ public class BindingControllerAdapterTests
 
     private void VerifyDidNotAskForNewConnection() => uiManager.DidNotReceiveWithAnyArgs().ShowTrustConnectionDialogAsync(default, default);
 
-    private void VerifyBindingNotAttempted() => bindingController.DidNotReceiveWithAnyArgs().BindAsync(default, default);
+    private void VerifyBindingNotAttempted() => bindingController.DidNotReceiveWithAnyArgs().Bind(default);
 
     private void VerifyConnectionTrustAsked(BindingRequest.Shared request) => uiManager.Received().ShowTrustConnectionDialogAsync(Arg.Is<ServerConnection>(x => x.Id == request.ConnectionId), null);
 

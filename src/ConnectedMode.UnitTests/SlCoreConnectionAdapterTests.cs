@@ -25,6 +25,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration.TestInfrastructure;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Common.Models;
@@ -33,7 +34,6 @@ using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Connection;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests;
 

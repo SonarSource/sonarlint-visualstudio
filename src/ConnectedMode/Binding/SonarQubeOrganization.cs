@@ -18,13 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Client.Models;
-
-namespace SonarQube.Client.Helpers
+namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
-    internal static class SonarQubeIssueTransitionExtensions
+    [Obsolete("Use ServerConnection instead")]
+    public class SonarQubeOrganization(string key, string name)
     {
-        public static string TransitionToLowerCaseString(this SonarQubeIssueTransition transition) =>
-            transition.ToString().ToLowerInvariant();
+        public string Key { get; } = key;
+        public string Name { get; } = name;
     }
 }

@@ -29,7 +29,6 @@ using SonarLint.VisualStudio.Core.SmartNotification;
 using SonarLint.VisualStudio.Integration.MefServices;
 using SonarLint.VisualStudio.Integration.Notifications;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
-using SonarQube.Client;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
