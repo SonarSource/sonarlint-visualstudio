@@ -90,6 +90,8 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
             vsBrowserService.Navigate(notification.Link);
             IsToolTipVisible = false;
         });
+
+        UpdateViewModel(activeSolutionBoundTracker.CurrentConfiguration);
     }
 
     public void Dispose()
@@ -200,9 +202,11 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
 
     private void OnNotificationReceived(object sender, NotificationReceivedEventArgs args) => AddNotification(args.Notification);
 
-    private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args)
+    private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args) => UpdateViewModel(args.Configuration);
+
+    private void UpdateViewModel(BindingConfiguration configuration)
     {
-        var newConnectionId = args.Configuration?.Project?.ServerConnection?.Id;
+        var newConnectionId = configuration?.Project?.ServerConnection?.Id;
 
         if (currentConnectionId != newConnectionId)
         {
@@ -210,9 +214,9 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
         }
 
         currentConnectionId = newConnectionId;
-        IsIconVisible = args.Configuration?.Project?.ServerConnection != null;
-        IsCloud = args.Configuration?.Project?.ServerConnection is ServerConnection.SonarCloud;
-        areNotificationsEnabled = args.Configuration?.Project?.ServerConnection?.Settings.IsSmartNotificationsEnabled ?? false;
+        IsIconVisible = configuration?.Project?.ServerConnection != null;
+        IsCloud = configuration?.Project?.ServerConnection is ServerConnection.SonarCloud;
+        areNotificationsEnabled = configuration?.Project?.ServerConnection?.Settings.IsSmartNotificationsEnabled ?? false;
         RaisePropertyChanged(nameof(AreNotificationsEnabled));
     }
 
