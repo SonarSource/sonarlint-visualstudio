@@ -22,7 +22,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Persistence
+namespace SonarLint.VisualStudio.Core.Helpers
 {
     [ExcludeFromCodeCoverage]
     public static class SecureStringHelper

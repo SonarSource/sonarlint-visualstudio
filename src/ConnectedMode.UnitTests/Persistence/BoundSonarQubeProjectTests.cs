@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
+using SecureStringHelper = SonarLint.VisualStudio.Core.Helpers.SecureStringHelper;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -36,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var serverUri = new Uri("https://finding-nemo.org");
             var projectKey = "MyProject Key";
-            var testSubject = new BoundSonarQubeProject(serverUri, projectKey, "projectName", new UsernameAndPasswordCredentials("used", "pwd".ToSecureString()));
+            var testSubject = new BoundSonarQubeProject(serverUri, projectKey, "projectName", new UsernameAndPasswordCredentials("used", SecureStringHelper.ToSecureString("pwd")));
 
             // Act (serialize + de-serialize)
             string data = JsonHelper.Serialize(testSubject);
@@ -55,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var serverUri = new Uri("https://finding-nemo.org");
             var projectKey = "MyProject Key";
-            var testSubject = new BoundSonarQubeProject(serverUri, projectKey, "projectName", new UsernameAndPasswordCredentials("used", "pwd".ToSecureString()));
+            var testSubject = new BoundSonarQubeProject(serverUri, projectKey, "projectName", new UsernameAndPasswordCredentials("used", SecureStringHelper.ToSecureString("pwd")));
 
             // Act (serialize + de-serialize)
             string data = JsonHelper.Serialize(testSubject);

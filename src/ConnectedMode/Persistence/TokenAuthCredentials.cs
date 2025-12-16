@@ -20,6 +20,7 @@
 
 using System.Security;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Helpers;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 

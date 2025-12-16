@@ -21,6 +21,7 @@
 using System.Net;
 using System.Text;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Adapters;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
