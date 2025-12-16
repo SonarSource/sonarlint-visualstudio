@@ -37,7 +37,9 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
         bool IsCloud { get; set; }
 
-        void SetNotificationEvents(IEnumerable<SmartNotification> events);
+        void ClearNotifications();
+
+        void AddNotification(SmartNotification notification);
 
         ICommand NavigateToNotification { get; }
     }

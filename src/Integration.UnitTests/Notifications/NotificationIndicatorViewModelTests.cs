@@ -31,10 +31,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Notifications;
 [TestClass]
 public class NotificationIndicatorViewModelTests
 {
-    private static readonly SmartNotification[] TestEvents =
-    [
-        new("foo", "http://foo.com", ["SCOPE_ID"], "foo", "connectionId", new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.FromHours(2)))
-    ];
+    private static readonly SmartNotification TestNotification =
+        new("foo", "http://foo.com", ["SCOPE_ID"], "foo", "connectionId", new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.FromHours(2)));
     private ISmartNotificationService smartNotificationService;
     private IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private IBrowserService browserService;
@@ -148,7 +146,7 @@ public class NotificationIndicatorViewModelTests
         testSubject.IsIconVisible = true;
         testSubject.AreNotificationsEnabled = true;
         testSubject.IsToolTipVisible = true;
-        testSubject.SetNotificationEvents(TestEvents);
+        testSubject.AddNotification(TestNotification);
 
         monitor.Should().RaisePropertyChangeFor(x => x.IsToolTipVisible);
 
@@ -156,40 +154,45 @@ public class NotificationIndicatorViewModelTests
     }
 
     [TestMethod]
-    public void SetNotificationEvents_SetEvents_SetsHasUnreadEvents()
+    public void AddNotification_SetsHasUnreadEvents()
     {
-        SetupModelWithNotifications(false, false, TestEvents);
+        SetupModelWithNotification(false, false, TestNotification);
         testSubject.HasUnreadEvents.Should().BeFalse();
 
-        SetupModelWithNotifications(false, true, TestEvents);
+        SetupModelWithNotification(false, true, TestNotification);
         testSubject.HasUnreadEvents.Should().BeFalse();
 
-        SetupModelWithNotifications(true, false, TestEvents);
+        SetupModelWithNotification(true, false, TestNotification);
         testSubject.HasUnreadEvents.Should().BeFalse();
 
-        SetupModelWithNotifications(true, true, []);
+        SetupModelWithNotification(true, true, null);
         testSubject.HasUnreadEvents.Should().BeFalse();
 
-        SetupModelWithNotifications(true, true, null);
-        testSubject.HasUnreadEvents.Should().BeFalse();
-
-        SetupModelWithNotifications(true, true, TestEvents);
+        SetupModelWithNotification(true, true, TestNotification);
         testSubject.HasUnreadEvents.Should().BeTrue();
     }
 
     [TestMethod]
-    public void HasUnreadEvents_RunOnUIThread()
+    public void AddNotification_RunOnUIThread()
     {
         var mockThreadHandling = Substitute.For<IThreadHandling>();
-        var notificationViewModel = new NotificationIndicatorViewModel(smartNotificationService, browserService, activeSolutionBoundTracker, serverConnectionsRepositoryAdapter, mockThreadHandling, timer);
+        var notificationViewModel
+            = new NotificationIndicatorViewModel(smartNotificationService, browserService, activeSolutionBoundTracker, serverConnectionsRepositoryAdapter, mockThreadHandling, timer);
         notificationViewModel.IsIconVisible = true;
         RaiseBindingChangedWithSmartNotificationsEnabled(notificationViewModel, true);
 
-        var events = new[] { CreateNotification("category1") };
+        var notification = CreateNotification("category1");
 
-        notificationViewModel.SetNotificationEvents(events);
+        Action capturedAction = null;
+        mockThreadHandling.WhenForAnyArgs(x => x.RunOnUIThread(Arg.Any<Action>())).Do(callInfo => capturedAction = callInfo.Arg<Action>());
+        notificationViewModel.AddNotification(notification);
+        notificationViewModel.NotificationEvents.Should().HaveCount(0);
 
-        mockThreadHandling.Received(1).RunOnUIThread(Arg.Any<Action>());
+        capturedAction.Invoke();
+        notificationViewModel.NotificationEvents.Should().HaveCount(1);
+
+        // 1 invocation from ClearNotification and 1 from AddNotification
+        mockThreadHandling.Received(2).RunOnUIThread(Arg.Any<Action>());
     }
 
     [TestMethod]
@@ -216,12 +219,27 @@ public class NotificationIndicatorViewModelTests
     [TestMethod]
     public void ClearUnreadEventsCommand_Sets_HasUnreadEvents_False()
     {
-        SetupModelWithNotifications(true, true, TestEvents);
+        SetupModelWithNotification(true, true, TestNotification);
         testSubject.HasUnreadEvents.Should().BeTrue();
 
         testSubject.ClearUnreadEventsCommand.Execute(null);
 
         testSubject.HasUnreadEvents.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void ClearNotifications_ClearsCollectionAndResetsState()
+    {
+        SetupModelWithNotification(true, true, TestNotification);
+        testSubject.HasUnreadEvents.Should().BeTrue();
+        testSubject.IsToolTipVisible.Should().BeTrue();
+        testSubject.NotificationEvents.Should().HaveCount(1);
+
+        testSubject.ClearNotifications();
+
+        testSubject.NotificationEvents.Should().BeEmpty();
+        testSubject.HasUnreadEvents.Should().BeFalse();
+        testSubject.IsToolTipVisible.Should().BeFalse();
     }
 
     [TestMethod]
@@ -391,12 +409,12 @@ public class NotificationIndicatorViewModelTests
 
     private static SmartNotification CreateNotification(string category, string url = "http://localhost") => new("test", url, [], category, "connectionId", DateTimeOffset.Now);
 
-    private void SetupModelWithNotifications(bool areEnabled, bool areVisible, SmartNotification[] events)
+    private void SetupModelWithNotification(bool areEnabled, bool areVisible, SmartNotification notification)
     {
         RaiseBindingChangedWithSmartNotificationsEnabled(testSubject, areEnabled);
         testSubject.IsIconVisible = areVisible;
 
-        testSubject.SetNotificationEvents(events);
+        testSubject.AddNotification(notification);
     }
 
     private void RaiseBindingChangedWithSmartNotificationsEnabled(NotificationIndicatorViewModel viewModel, bool isEnabled)

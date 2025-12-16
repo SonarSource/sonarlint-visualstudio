@@ -155,10 +155,17 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
         set => SetAndRaisePropertyChanged(ref isCloud, value);
     }
 
-    public void SetNotificationEvents(IEnumerable<SmartNotification> events)
+    public void ClearNotifications() =>
+        threadHandling.RunOnUIThread(() =>
+        {
+            NotificationEvents.Clear();
+            HasUnreadEvents = false;
+            IsToolTipVisible = false;
+        });
+
+    public void AddNotification(SmartNotification notification)
     {
-        if (events == null ||
-            !events.Any() ||
+        if (notification == null ||
             !AreNotificationsEnabled ||
             !isVisible)
         {
@@ -167,13 +174,7 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
 
         threadHandling.RunOnUIThread(() =>
         {
-            NotificationEvents.Clear();
-
-            foreach (var ev in events)
-            {
-                NotificationEvents.Add(ev);
-            }
-
+            NotificationEvents.Add(notification);
             HasUnreadEvents = true;
             IsToolTipVisible = true;
             autocloseTimer.Start();
@@ -194,7 +195,11 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
             NotificationEvents.Count, NotificationEvents.Count == 1 ? "" : "s");
     }
 
-    private void OnNotificationReceived(object sender, NotificationReceivedEventArgs args) => SetNotificationEvents([args.Notification]);
+    private void OnNotificationReceived(object sender, NotificationReceivedEventArgs args)
+    {
+        ClearNotifications();
+        AddNotification(args.Notification);
+    }
 
     private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args)
     {
