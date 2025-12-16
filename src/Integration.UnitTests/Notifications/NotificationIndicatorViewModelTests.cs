@@ -268,6 +268,22 @@ public class NotificationIndicatorViewModelTests
     }
 
     [TestMethod]
+    public void NotificationReceived_MultipleNotifications_AccumulatesNotifications()
+    {
+        testSubject.AreNotificationsEnabled = true;
+        testSubject.IsIconVisible = true;
+        var notification1 = new SmartNotification("First message", "http://localhost:9000/project1", ["scope1"], "QUALITY_GATE", "connectionId", DateTimeOffset.Now);
+        var notification2 = new SmartNotification("Second message", "http://localhost:9000/project2", ["scope2"], "NEW_ISSUES", "connectionId", DateTimeOffset.Now);
+
+        smartNotificationService.NotificationReceived += Raise.EventWith(new NotificationReceivedEventArgs(notification1));
+        smartNotificationService.NotificationReceived += Raise.EventWith(new NotificationReceivedEventArgs(notification2));
+
+        testSubject.NotificationEvents.Should().HaveCount(2);
+        testSubject.NotificationEvents[0].Text.Should().Be("First message");
+        testSubject.NotificationEvents[1].Text.Should().Be("Second message");
+    }
+
+    [TestMethod]
     [DataRow(SonarLintMode.Connected)]
     [DataRow(SonarLintMode.LegacyConnected)]
     public void SolutionBindingChanged_BindingToCloud_IsCloudIsTrue(SonarLintMode sonarLintMode)
@@ -402,6 +418,40 @@ public class NotificationIndicatorViewModelTests
         activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(bindingConfiguration));
 
         serverConnectionsRepositoryAdapter.DidNotReceive().TryUpdateSettingsById(Arg.Any<string>(), Arg.Any<ServerConnectionSettings>());
+    }
+
+    [TestMethod]
+    public void SolutionBindingChanged_DifferentConnectionId_ClearsNotifications()
+    {
+        var serverConnection1 = new ServerConnection.SonarQube(new Uri("http://localhost:9000"), new ServerConnectionSettings(true));
+        var bindingConfiguration1 = CreateBindingConfiguration(serverConnection1, SonarLintMode.Connected);
+        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(bindingConfiguration1));
+        testSubject.IsIconVisible = true;
+        testSubject.AddNotification(TestNotification);
+        testSubject.NotificationEvents.Should().HaveCount(1);
+
+        var serverConnection2 = new ServerConnection.SonarQube(new Uri("http://localhost:9001"), new ServerConnectionSettings(true));
+        var bindingConfiguration2 = CreateBindingConfiguration(serverConnection2, SonarLintMode.Connected);
+        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(bindingConfiguration2));
+
+        testSubject.NotificationEvents.Should().BeEmpty();
+        testSubject.HasUnreadEvents.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void SolutionBindingChanged_SameConnectionId_DoesNotClearNotifications()
+    {
+        var serverConnection = new ServerConnection.SonarQube(new Uri("http://localhost:9000"), new ServerConnectionSettings(true));
+        var bindingConfiguration = CreateBindingConfiguration(serverConnection, SonarLintMode.Connected);
+        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(bindingConfiguration));
+        testSubject.IsIconVisible = true;
+        testSubject.AddNotification(TestNotification);
+        testSubject.NotificationEvents.Should().HaveCount(1);
+
+        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(bindingConfiguration));
+
+        testSubject.NotificationEvents.Should().HaveCount(1);
+        testSubject.HasUnreadEvents.Should().BeTrue();
     }
 
     private static BindingConfiguration CreateBindingConfiguration(ServerConnection serverConnection, SonarLintMode mode) =>

@@ -195,15 +195,18 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
             NotificationEvents.Count, NotificationEvents.Count == 1 ? "" : "s");
     }
 
-    private void OnNotificationReceived(object sender, NotificationReceivedEventArgs args)
-    {
-        ClearNotifications();
-        AddNotification(args.Notification);
-    }
+    private void OnNotificationReceived(object sender, NotificationReceivedEventArgs args) => AddNotification(args.Notification);
 
     private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args)
     {
-        currentConnectionId = args.Configuration?.Project?.ServerConnection?.Id;
+        var newConnectionId = args.Configuration?.Project?.ServerConnection?.Id;
+
+        if (currentConnectionId != newConnectionId)
+        {
+            ClearNotifications();
+        }
+
+        currentConnectionId = newConnectionId;
         IsIconVisible = args.Configuration?.Project?.ServerConnection != null;
         IsCloud = args.Configuration?.Project?.ServerConnection is ServerConnection.SonarCloud;
         areNotificationsEnabled = args.Configuration?.Project?.ServerConnection?.Settings.IsSmartNotificationsEnabled ?? false;
