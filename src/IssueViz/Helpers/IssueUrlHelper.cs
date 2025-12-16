@@ -18,30 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Net;
-using System.Net.Http;
+using SonarLint.VisualStudio.Core.Binding;
 
-namespace SonarQube.Client.Requests
+namespace SonarLint.VisualStudio.IssueVisualization.Helpers;
+
+public static class IssueUrlHelper
 {
-    public struct Result<TValue>
+    private const string ViewIssueRelativeUrl = "project/issues?id={0}&issues={1}&open={1}";
+
+    public static Uri GetViewIssueUrl(BoundServerProject boundServerProject, string issueKey)
     {
-        private readonly HttpResponseMessage response;
-
-        public TValue Value { get; }
-        public HttpStatusCode StatusCode { get; }
-        public bool IsSuccess { get; }
-
-        public Result(HttpResponseMessage response, TValue value)
+        if (boundServerProject == null)
         {
-            this.response = response;
-            IsSuccess = response.IsSuccessStatusCode;
-            StatusCode = response.StatusCode;
-            Value = value;
+            throw new ArgumentNullException(nameof(boundServerProject));
+        }
+        if (issueKey == null)
+        {
+            throw new ArgumentNullException(nameof(issueKey));
         }
 
-        public void EnsureSuccess()
-        {
-            response.EnsureSuccessStatusCode();
-        }
+        return new Uri(boundServerProject.ServerConnection.ServerUri, string.Format(ViewIssueRelativeUrl, boundServerProject.ServerProjectKey, issueKey));
     }
 }

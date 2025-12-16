@@ -17,14 +17,13 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\SonarQube.Client\SonarQube.Client.csproj" />
     <ProjectReference Include="..\IssueViz\IssueViz.csproj" />
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="PresentationCore" />
-    <Compile Remove="..\TestInfrastructure\TestParallelization.cs"/>
+    <Compile Remove="..\TestInfrastructure\TestParallelization.cs" />
   </ItemGroup>
 
 </Project>

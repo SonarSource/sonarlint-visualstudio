@@ -29,7 +29,6 @@ using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Issue;
 using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Transition;
 
@@ -83,7 +82,6 @@ internal class MuteIssuesService(
     }
 
     private static string GetIssueServerKey(IFilterableIssue issue) =>
-        // TODO by https://sonarsource.atlassian.net/browse/SLVS-2419 remove handling of different type of issues
         ((IAnalysisIssueVisualization)issue).Issue.IssueServerKey;
 
     private async Task<MuteIssuesWindowResponse> PromptMuteIssueResolutionAsync(IEnumerable<ResolutionStatus> allowedStatuses)

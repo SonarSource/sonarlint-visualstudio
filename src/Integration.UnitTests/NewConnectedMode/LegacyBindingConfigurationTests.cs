@@ -20,7 +20,6 @@
 
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

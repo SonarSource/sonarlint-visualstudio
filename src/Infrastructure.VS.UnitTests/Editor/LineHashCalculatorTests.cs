@@ -22,8 +22,8 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS.Editor;
-using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests.Editor
 {

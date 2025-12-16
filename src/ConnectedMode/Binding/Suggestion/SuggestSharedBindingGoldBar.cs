@@ -21,13 +21,12 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
-using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion
 {
     internal interface ISuggestSharedBindingGoldBar
     {
-        void Show(ServerType serverType, Action onConnectHandler);
+        void Show(ConnectionServerType serverType, Action onConnectHandler);
 
         void Close();
     }
@@ -56,7 +55,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion
             this.browserService = browserService;
         }
 
-        public void Show(ServerType serverType, Action onConnectHandler)
+        public void Show(ConnectionServerType serverType, Action onConnectHandler)
         {
             var notification = new Notification(
                 id: string.Format(IdTemplate, solutionInfoProvider.GetSolutionName()),

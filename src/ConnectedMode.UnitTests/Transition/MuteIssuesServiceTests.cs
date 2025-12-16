@@ -31,7 +31,6 @@ using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Issue;
 using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition;
 

@@ -19,9 +19,7 @@
  */
 
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
-using SonarQube.Client.Models;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 

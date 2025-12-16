@@ -23,10 +23,6 @@ using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarQube.Client;
-using SonarQube.Client.Helpers;
-using SonarQube.Client.Models;
-using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding;
 
@@ -37,7 +33,6 @@ public class UnintrusiveBindingControllerTests
     private static readonly UsernameAndPasswordCredentials ValidToken = new("TOKEN", new SecureString());
     private static readonly BoundServerProject AnyBoundProject = new("any", "any", new ServerConnection.SonarCloud("any", credentials: ValidToken));
     private IActiveSolutionChangedHandler activeSolutionChangedHandler;
-    private ISonarQubeService sonarQubeService;
     private UnintrusiveBindingController testSubject;
     private ISolutionBindingRepository solutionBindingRepository;
     private IConfigurationPersister configurationPersister;
@@ -45,11 +40,10 @@ public class UnintrusiveBindingControllerTests
     [TestInitialize]
     public void TestInitialize()
     {
-        sonarQubeService = Substitute.For<ISonarQubeService>();
         activeSolutionChangedHandler = Substitute.For<IActiveSolutionChangedHandler>();
         solutionBindingRepository = Substitute.For<ISolutionBindingRepository>();
         configurationPersister = Substitute.For<IConfigurationPersister>();
-        testSubject = new UnintrusiveBindingController(sonarQubeService, activeSolutionChangedHandler, solutionBindingRepository, configurationPersister);
+        testSubject = new UnintrusiveBindingController(activeSolutionChangedHandler, solutionBindingRepository, configurationPersister);
     }
 
     [TestMethod]
@@ -58,35 +52,15 @@ public class UnintrusiveBindingControllerTests
     [TestMethod]
     public void MefCtor_IBindingController_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<UnintrusiveBindingController, IBindingController>(
-            MefTestHelpers.CreateExport<ISonarQubeService>(),
             MefTestHelpers.CreateExport<IActiveSolutionChangedHandler>(),
             MefTestHelpers.CreateExport<ISolutionBindingRepository>(),
             MefTestHelpers.CreateExport<IConfigurationPersister>()
         );
 
     [TestMethod]
-    public async Task BindAsync_EstablishesConnection()
+    public void Bind_NotifiesBindingChanged()
     {
-        var projectToBind = new BoundServerProject(
-            "local-key",
-            "server-key",
-            new ServerConnection.SonarCloud("organization", credentials: ValidToken));
-
-        await testSubject.BindAsync(projectToBind, ACancellationToken);
-
-        await sonarQubeService
-            .Received()
-            .ConnectAsync(
-                Arg.Is<ConnectionInformation>(x => x.ServerUri.Equals("https://sonarcloud.io/")
-                                                   && ((IUsernameAndPasswordCredentials)x.Credentials).UserName.Equals(ValidToken.UserName)
-                                                   && string.IsNullOrEmpty(((IUsernameAndPasswordCredentials)x.Credentials).Password.ToUnsecureString())),
-                ACancellationToken);
-    }
-
-    [TestMethod]
-    public async Task BindAsync_NotifiesBindingChanged()
-    {
-        await testSubject.BindAsync(AnyBoundProject, ACancellationToken);
+        testSubject.Bind(AnyBoundProject);
 
         activeSolutionChangedHandler
             .Received(1)
@@ -94,11 +68,11 @@ public class UnintrusiveBindingControllerTests
     }
 
     [TestMethod]
-    public async Task BindAsync_PersistsBindingInformation()
+    public void Bind_PersistsBindingInformation()
     {
         var cancellationToken = CancellationToken.None;
 
-        await testSubject.BindAsync(AnyBoundProject, cancellationToken);
+        testSubject.Bind(AnyBoundProject);
 
         configurationPersister.Received(1).Persist(AnyBoundProject);
     }
@@ -113,7 +87,6 @@ public class UnintrusiveBindingControllerTests
         Received.InOrder(() =>
         {
             solutionBindingRepository.DeleteBinding(AnyBoundProject.LocalBindingKey);
-            sonarQubeService.Disconnect();
             activeSolutionChangedHandler.HandleBindingChange();
         });
     }

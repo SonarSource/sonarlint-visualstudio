@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,33 +18,39 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Diagnostics;
-using System.Linq;
+using System.IO;
+using System.Text;
+using Newtonsoft.Json;
 
-namespace SonarQube.Client.Tests
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 {
-    /// <summary>
-    /// Some of the tests cover exceptions in which we have asserts as well, we want to ignore those asserts during tests
-    /// </summary>
-    public sealed class AssertIgnoreScope : IDisposable
+    public static class JsonHelper
     {
-        public AssertIgnoreScope()
+        public static T Deserialize<T>(string json)
         {
-            DefaultTraceListener listener = Debug.Listeners.OfType<DefaultTraceListener>().FirstOrDefault();
-            if (listener != null)
+            using (var reader = new StringReader(json))
             {
-                listener.AssertUiEnabled = false;
+                using (var textReader = new JsonTextReader(reader))
+                {
+                    return JsonSerializer.CreateDefault().Deserialize<T>(textReader);
+                }
             }
         }
 
-        public void Dispose()
+        public static string Serialize(object item)
         {
-            DefaultTraceListener listener = Debug.Listeners.OfType<DefaultTraceListener>().FirstOrDefault();
-            if (listener != null)
+            var sb = new StringBuilder();
+            using (var writer = new StringWriter(sb))
             {
-                listener.AssertUiEnabled = true;
+                using (var textWriter = new JsonTextWriter(writer))
+                {
+                    var serializer = JsonSerializer.CreateDefault();
+                    serializer.Formatting = Formatting.Indented;
+                    serializer.Serialize(textWriter, item);
+                }
             }
+
+            return sb.ToString();
         }
     }
 }

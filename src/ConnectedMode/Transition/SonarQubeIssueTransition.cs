@@ -18,36 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using SonarQube.Client.Logging;
-
-namespace SonarQube.Client.Tests.Infra
+namespace SonarLint.VisualStudio.ConnectedMode.Transition
 {
-    public class TestLogger : ILogger
+    /// <summary>
+    /// Supported values for parameter `transition` of api/issues/do_transition
+    /// </summary>
+    public enum SonarQubeIssueTransition
     {
-        public List<string> DebugMessages { get; } = new List<string>();
-        public List<string> ErrorMessages { get; } = new List<string>();
-        public List<string> InfoMessages { get; } = new List<string>();
-        public List<string> WarningMessages { get; } = new List<string>();
-
-        public void Debug(string message)
-        {
-            DebugMessages.Add(message);
-        }
-
-        public void Error(string message)
-        {
-            ErrorMessages.Add(message);
-        }
-
-        public void Info(string message)
-        {
-            InfoMessages.Add(message);
-        }
-
-        public void Warning(string message)
-        {
-            WarningMessages.Add(message);
-        }
+        FalsePositive,
+        WontFix,
+        Accept
     }
 }

@@ -18,11 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Helpers
 {
@@ -39,16 +37,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ShowInBrowserService : IShowInBrowserService
     {
-        private readonly ISonarQubeService sonarQubeService;
         private readonly IConfigurationProvider configurationProvider;
         private readonly IBrowserService vsBrowserService;
 
         [ImportingConstructor]
-        public ShowInBrowserService(ISonarQubeService sonarQubeService,
+        public ShowInBrowserService(
             IConfigurationProvider configurationProvider,
             IBrowserService vsBrowserService)
         {
-            this.sonarQubeService = sonarQubeService;
             this.configurationProvider = configurationProvider;
             this.vsBrowserService = vsBrowserService;
         }
@@ -67,8 +63,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
                 return;
             }
 
-            var projectKey = bindingConfiguration.Project.ServerProjectKey;
-            var viewIssueUrl = sonarQubeService.GetViewIssueUrl(projectKey, issueKey);
+            var project = bindingConfiguration.Project;
+            var viewIssueUrl = IssueUrlHelper.GetViewIssueUrl(project, issueKey);
 
             vsBrowserService.Navigate(viewIssueUrl.ToString());
         }

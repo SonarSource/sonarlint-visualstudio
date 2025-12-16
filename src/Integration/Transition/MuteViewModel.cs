@@ -19,9 +19,9 @@
  */
 
 using System.Collections.ObjectModel;
+using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Transition;
 

@@ -61,7 +61,7 @@ internal class BindingControllerAdapter(
         {
             var localBindingKey = await solutionInfoProvider.GetSolutionNameAsync();
             var boundServerProject = new BoundServerProject(localBindingKey, request.ProjectKey, connection);
-            await bindingController.BindAsync(boundServerProject, token);
+            bindingController.Bind(boundServerProject);
             return BindingResult.Success;
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))

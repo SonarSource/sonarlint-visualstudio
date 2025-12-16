@@ -19,7 +19,7 @@
  */
 
 using Microsoft.VisualStudio.Text;
-using SonarQube.Client;
+using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Editor
 {

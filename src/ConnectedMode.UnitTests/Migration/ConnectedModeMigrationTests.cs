@@ -25,8 +25,6 @@ using SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.ConnectedModeMigr
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarQube.Client;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 {
@@ -48,7 +46,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 MefTestHelpers.CreateExport<IFileProvider>(),
                 MefTestHelpers.CreateExport<IFileCleaner>(),
                 MefTestHelpers.CreateExport<IVsAwareFileSystem>(),
-                MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IConfigurationPersister>(),
                 MefTestHelpers.CreateExport<ISharedBindingConfigProvider>(),
                 MefTestHelpers.CreateExport<ILogger>(),
@@ -208,36 +205,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             await testSubject.MigrateAsync(AnyBoundProject, progressListener.Object, false, CancellationToken.None);
 
             progressMessages.Should().NotBeEmpty();
-        }
-
-        [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public async Task Migrate_ConnectToSonarQubeIfNeeded_MigrationSucceeds_DisconnectedNotCalled(bool isAlreadyConnectedToServer)
-        {
-            var sonarQubeService = CreateSonarQubeService(isAlreadyConnectedToServer);
-
-            var testSubject = CreateTestSubject(sonarQubeService: sonarQubeService.Object);
-            await testSubject.MigrateAsync(AnyBoundProject, null, false, CancellationToken.None);
-
-            sonarQubeService.Verify(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(), CancellationToken.None), !isAlreadyConnectedToServer ? Times.Once : Times.Never);
-            sonarQubeService.Verify(x => x.Disconnect(), Times.Never);
-        }
-
-        [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public async Task Migrate_DisconnectToSonarQubeIfNeeded__MigrationFails_NonCritical_HandledAndThrown(bool isAlreadyConnectedToServer)
-        {
-            var sonarQubeService = CreateSonarQubeService(isAlreadyConnectedToServer);
-            var logger = new Mock<ILogger>();
-            logger.Setup(x => x.WriteLine(It.IsAny<string>())).Throws(new InvalidCastException("thrown from test"));
-
-            var testSubject = CreateTestSubject(sonarQubeService: sonarQubeService.Object, logger: logger.Object);
-            Func<Task> act = async () => { await testSubject.MigrateAsync(AnyBoundProject, null, false, CancellationToken.None); };
-
-            await act.Should().ThrowAsync<InvalidCastException>();
-            sonarQubeService.Verify(x => x.Disconnect(), !isAlreadyConnectedToServer ? Times.Once : Times.Never);
         }
 
         [TestMethod]
@@ -457,7 +424,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             IFileCleaner fileCleaner = null,
             IVsAwareFileSystem fileSystem = null,
             IMigrationSettingsProvider settingsProvider = null,
-            ISonarQubeService sonarQubeService = null,
             IConfigurationPersister configurationPersister = null,
             ISharedBindingConfigProvider sharedBindingConfigProvider = null,
             ILogger logger = null,
@@ -469,7 +435,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             fileProvider ??= Mock.Of<IFileProvider>();
             fileCleaner ??= Mock.Of<IFileCleaner>();
             fileSystem ??= Mock.Of<IVsAwareFileSystem>();
-            sonarQubeService ??= Mock.Of<ISonarQubeService>();
             configurationPersister ??= Mock.Of<IConfigurationPersister>();
             settingsProvider ??= CreateSettingsProvider(DefaultTestLegacySettings).Object;
             sharedBindingConfigProvider ??= Mock.Of<ISharedBindingConfigProvider>();
@@ -484,7 +449,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 fileProvider,
                 fileCleaner,
                 fileSystem,
-                sonarQubeService,
                 configurationPersister,
                 sharedBindingConfigProvider,
                 logger,
@@ -501,14 +465,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 .Returns(Task.FromResult<IEnumerable<string>>(filesToReturn));
 
             return fileProvider;
-        }
-
-        private static Mock<ISonarQubeService> CreateSonarQubeService(bool isAlreadyConnectedToServer)
-        {
-            var sonarQubeService = new Mock<ISonarQubeService>();
-            sonarQubeService.Setup(x => x.IsConnected).Returns(isAlreadyConnectedToServer);
-
-            return sonarQubeService;
         }
 
         private static Mock<IMigrationSettingsProvider> CreateSettingsProvider(LegacySettings settingsToReturn = null)

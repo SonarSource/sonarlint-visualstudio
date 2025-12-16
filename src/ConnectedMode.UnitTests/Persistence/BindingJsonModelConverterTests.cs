@@ -18,11 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarQube.Client.Models;
 using IConnectionCredentials = SonarLint.VisualStudio.Core.Binding.IConnectionCredentials;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence;

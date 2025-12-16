@@ -18,15 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
-using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
 {
@@ -37,7 +33,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<ShowInBrowserService, IShowInBrowserService>(
-                MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IConfigurationProvider>(),
                 MefTestHelpers.CreateExport<IBrowserService>());
         }
@@ -60,38 +55,31 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
             var configurationProvider = new Mock<IConfigurationProvider>();
             configurationProvider.Setup(x => x.GetConfiguration()).Returns(BindingConfiguration.Standalone);
 
-            var sonarQubeService = new Mock<ISonarQubeService>();
             var browserService = new Mock<IBrowserService>();
 
-            var testSubject = CreateTestSubject(sonarQubeService.Object, configurationProvider.Object, browserService.Object);
+            var testSubject = CreateTestSubject(configurationProvider.Object, browserService.Object);
             testSubject.ShowIssue("issue");
 
-            sonarQubeService.Invocations.Count.Should().Be(0);
             browserService.Invocations.Count.Should().Be(0);
         }
 
         [TestMethod]
         public void ShowIssue_InConnectedMode_BrowserOpened()
         {
-            const string projectKey = "project key";
-            const string issueKey = "issue key";
+            const string projectKey = "project_key";
+            const string issueKey = "issue_key";
 
             var configurationProvider = new Mock<IConfigurationProvider>();
             configurationProvider
                 .Setup(x => x.GetConfiguration())
                 .Returns(new BindingConfiguration(new BoundServerProject("solution", projectKey, new ServerConnection.SonarQube(new Uri("http://bound"))), SonarLintMode.Connected, null));
 
-            var sonarQubeService = new Mock<ISonarQubeService>();
-            sonarQubeService
-                .Setup(x => x.GetViewIssueUrl(projectKey, issueKey))
-                .Returns(new Uri("http://localhost:123/expected/issue?id=1"));
-
             var browserService = new Mock<IBrowserService>();
 
-            var testSubject = CreateTestSubject(sonarQubeService.Object, configurationProvider.Object, browserService.Object);
+            var testSubject = CreateTestSubject(configurationProvider.Object, browserService.Object);
             testSubject.ShowIssue(issueKey);
 
-            browserService.Verify(x=> x.Navigate("http://localhost:123/expected/issue?id=1"), Times.Once);
+            browserService.Verify(x=> x.Navigate("http://bound/project/issues?id=project_key&issues=issue_key&open=issue_key"), Times.Once);
             browserService.VerifyNoOtherCalls();
         }
 
@@ -121,15 +109,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
             browserService.VerifyNoOtherCalls();
         }
 
-        private ShowInBrowserService CreateTestSubject(ISonarQubeService sonarQubeService = null,
+        private ShowInBrowserService CreateTestSubject(
             IConfigurationProvider configurationProvider = null,
             IBrowserService browserService = null)
         {
-            sonarQubeService ??= Mock.Of<ISonarQubeService>();
             configurationProvider ??= Mock.Of<IConfigurationProvider>();
             browserService ??= Mock.Of<IBrowserService>();
 
-            return new ShowInBrowserService(sonarQubeService, configurationProvider, browserService);
+            return new ShowInBrowserService(configurationProvider, browserService);
         }
     }
 }

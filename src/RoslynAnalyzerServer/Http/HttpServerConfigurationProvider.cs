@@ -23,6 +23,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Security;
 using System.Security.Cryptography;
+using SonarLint.VisualStudio.Core.Helpers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Http;
 

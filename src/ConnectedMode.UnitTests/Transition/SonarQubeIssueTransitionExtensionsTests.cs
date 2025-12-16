@@ -20,7 +20,6 @@
 
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition;
 

@@ -21,45 +21,27 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarQube.Client;
-using SonarQube.Client.Models;
-using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     public interface IBindingController
     {
-        Task BindAsync(BoundServerProject project, CancellationToken cancellationToken);
+        void Bind(BoundServerProject project);
 
         bool Unbind(string localBindingKey);
     }
 
     [Export(typeof(IBindingController))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
-    internal class UnintrusiveBindingController : IBindingController
+    [method: ImportingConstructor]
+    internal class UnintrusiveBindingController(
+        IActiveSolutionChangedHandler activeSolutionChangedHandler,
+        ISolutionBindingRepository solutionBindingRepository,
+        IConfigurationPersister configurationPersister)
+        : IBindingController
     {
-        private readonly ISonarQubeService sonarQubeService;
-        private readonly IActiveSolutionChangedHandler activeSolutionChangedHandler;
-        private readonly IConfigurationPersister configurationPersister;
-        private readonly ISolutionBindingRepository solutionBindingRepository;
-
-        [ImportingConstructor]
-        public UnintrusiveBindingController(
-            ISonarQubeService sonarQubeService,
-            IActiveSolutionChangedHandler activeSolutionChangedHandler,
-            ISolutionBindingRepository solutionBindingRepository,
-            IConfigurationPersister configurationPersister)
+        public void Bind(BoundServerProject project)
         {
-            this.sonarQubeService = sonarQubeService;
-            this.activeSolutionChangedHandler = activeSolutionChangedHandler;
-            this.configurationPersister = configurationPersister;
-            this.solutionBindingRepository = solutionBindingRepository;
-        }
-
-        public async Task BindAsync(BoundServerProject project, CancellationToken cancellationToken)
-        {
-            var connectionInformation = new ConnectionInformation(project.ServerConnection.ServerUri, project.ServerConnection.Credentials);
-            await sonarQubeService.ConnectAsync(connectionInformation, cancellationToken);
             configurationPersister.Persist(project);
             activeSolutionChangedHandler.HandleBindingChange();
         }
@@ -69,7 +51,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             var bindingDeleted = solutionBindingRepository.DeleteBinding(localBindingKey);
             if (bindingDeleted)
             {
-                sonarQubeService.Disconnect();
                 activeSolutionChangedHandler.HandleBindingChange();
             }
             return bindingDeleted;

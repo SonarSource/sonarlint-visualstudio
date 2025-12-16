@@ -28,7 +28,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Initialization;
-using SonarQube.Client;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration
@@ -49,7 +48,6 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IServiceProvider serviceProvider;
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly IConfigurationProvider configurationProvider;
-        private readonly ISonarQubeService sonarQubeService;
         private readonly IConfigScopeUpdater configScopeUpdater;
         private readonly ILogger logger;
         private IVsMonitorSelection vsMonitorSelection;
@@ -67,14 +65,12 @@ namespace SonarLint.VisualStudio.Integration
             IConfigScopeUpdater configScopeUpdater,
             ILogger logger,
             IConfigurationProvider configurationProvider,
-            ISonarQubeService sonarQubeService,
             IInitializationProcessorFactory initializationProcessorFactory)
         {
             this.serviceProvider = serviceProvider;
             solutionTracker = activeSolutionTracker;
             this.logger = logger;
             this.configurationProvider = configurationProvider;
-            this.sonarQubeService = sonarQubeService;
             this.configScopeUpdater = configScopeUpdater;
             InitializationProcessor = initializationProcessorFactory.Create<ActiveSolutionBoundTracker>(
                 [solutionTracker],
@@ -94,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration
                 vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
             });
 
-            await HandleActiveSolutionChangeAsync();
+            HandleActiveSolutionChange();
 
             if (disposed)
             {
@@ -115,12 +111,12 @@ namespace SonarLint.VisualStudio.Integration
             RaiseAnalyzersChangedIfBindingChanged(newBindingConfiguration);
         }
 
-        private async void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs args)
+        private void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs args)
         {
             // An exception here will crash VS
             try
             {
-                await HandleActiveSolutionChangeAsync();
+                HandleActiveSolutionChange();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -128,40 +124,11 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private async Task HandleActiveSolutionChangeAsync()
+        private void HandleActiveSolutionChange()
         {
             var newBindingConfiguration = configurationProvider.GetConfiguration();
 
-            var connectionUpdatedSuccessfully = await UpdateConnectionAsync(newBindingConfiguration);
-
-            RaiseAnalyzersChangedIfBindingChanged(connectionUpdatedSuccessfully ? newBindingConfiguration : BindingConfiguration.Standalone);
-        }
-
-        private async Task<bool> UpdateConnectionAsync(BindingConfiguration bindingConfiguration)
-        {
-            if (sonarQubeService.IsConnected)
-            {
-                sonarQubeService.Disconnect();
-            }
-
-            Debug.Assert(!sonarQubeService.IsConnected,
-                $"{nameof(SonarQubeService)} should always be disconnected at this point");
-
-            if (!bindingConfiguration.Mode.IsInAConnectedMode())
-            {
-                // The Standalone mode has no connection so there is nothing to update, thus nothing to fail
-                return true;
-            }
-
-            var boundProject = bindingConfiguration.Project;
-            var connectionInformation = boundProject.CreateConnectionInformation();
-            var isConnected = await WebServiceHelper.SafeServiceCallAsync(async () =>
-            {
-                await sonarQubeService.ConnectAsync(connectionInformation, CancellationToken.None);
-                return sonarQubeService.IsConnected;
-            }, logger);
-
-            return isConnected;
+            RaiseAnalyzersChangedIfBindingChanged(newBindingConfiguration);
         }
 
         private void RaiseAnalyzersChangedIfBindingChanged(BindingConfiguration newBindingConfiguration)
