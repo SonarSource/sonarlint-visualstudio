@@ -23,7 +23,6 @@ using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding.Suggestion;
 
@@ -55,7 +54,7 @@ public class SuggestSharedBindingGoldBarTests
 
         var testSubject = CreateTestSubject(notificationServiceMock.Object, doNotShowAgainMock.Object, solutionInfoProviderMock.Object);
 
-        testSubject.Show(ServerType.SonarQube, () => { });
+        testSubject.Show(ConnectionServerType.SonarQube, () => { });
 
         solutionInfoProviderMock.Verify(x => x.GetSolutionName(), Times.Once);
         notificationServiceMock.Verify(x => x.ShowNotification(It.IsAny<INotification>()), Times.Once);
@@ -63,7 +62,7 @@ public class SuggestSharedBindingGoldBarTests
         var notification = (INotification)notificationServiceMock.Invocations.Single().Arguments.First();
 
         notification.Id.Should().NotBeNull();
-        notification.Message.Should().Be(string.Format(BindingStrings.SharedBindingSuggestionMainText, ServerType.SonarQube));
+        notification.Message.Should().Be(string.Format(BindingStrings.SharedBindingSuggestionMainText, ConnectionServerType.SonarQube));
         var notificationActions = notification.Actions.ToArray();
         notificationActions.Should().HaveCount(3);
         notificationActions[0].CommandText.Should().Be(BindingStrings.SharedBindingSuggestionConnectOptionText);
@@ -76,18 +75,18 @@ public class SuggestSharedBindingGoldBarTests
     }
 
     [DataTestMethod]
-    [DataRow(ServerType.SonarQube)]
-    [DataRow(ServerType.SonarCloud)]
-    public void Show_GeneratesMessageBasedOnServerType(ServerType serverType)
+    [DataRow(ConnectionServerType.SonarQube)]
+    [DataRow(ConnectionServerType.SonarCloud)]
+    public void Show_GeneratesMessageBasedOnConnectionServerType(ConnectionServerType ConnectionServerType)
     {
         var notificationServiceMock = new Mock<INotificationService>();
 
         var testSubject = CreateTestSubject(notificationServiceMock.Object);
 
-        testSubject.Show(serverType, null);
+        testSubject.Show(ConnectionServerType, null);
 
         var notification = (INotification)notificationServiceMock.Invocations.Single().Arguments.First();
-        notification.Message.Should().Be(string.Format(BindingStrings.SharedBindingSuggestionMainText, serverType));
+        notification.Message.Should().Be(string.Format(BindingStrings.SharedBindingSuggestionMainText, ConnectionServerType));
     }
 
     [DataTestMethod]

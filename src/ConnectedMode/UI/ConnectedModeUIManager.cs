@@ -21,11 +21,11 @@
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.TrustConnection;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
 

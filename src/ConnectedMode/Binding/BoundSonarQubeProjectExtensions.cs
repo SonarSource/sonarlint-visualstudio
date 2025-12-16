@@ -19,7 +19,6 @@
  */
 
 using SonarLint.VisualStudio.Core.Binding;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
@@ -37,31 +36,5 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             new(localBindingKey ?? throw new ArgumentNullException(nameof(localBindingKey)),
                 boundProject?.ProjectKey ?? throw new ArgumentNullException(nameof(boundProject)),
                 connection ?? throw new ArgumentNullException(nameof(connection)));
-
-        public static ConnectionInformation CreateConnectionInformation(this BoundSonarQubeProject binding)
-        {
-            if (binding == null)
-            {
-                throw new ArgumentNullException(nameof(binding));
-            }
-
-            var connection = new ConnectionInformation(binding.ServerUri, binding.Credentials);
-
-            connection.Organization = binding.Organization;
-            return connection;
-        }
-
-        public static ConnectionInformation CreateConnectionInformation(this BoundServerProject binding)
-        {
-            if (binding == null)
-            {
-                throw new ArgumentNullException(nameof(binding));
-            }
-
-            var connection = new ConnectionInformation(binding.ServerConnection.ServerUri, binding.ServerConnection.Credentials);
-
-            connection.Organization = binding.ServerConnection is ServerConnection.SonarCloud sc ? new SonarQubeOrganization(sc.OrganizationKey, null) : null;
-            return connection;
-        }
     }
 }

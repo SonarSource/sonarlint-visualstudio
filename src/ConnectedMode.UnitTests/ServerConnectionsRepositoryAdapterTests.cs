@@ -22,7 +22,6 @@ using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarQube.Client.Helpers;
 using static SonarLint.VisualStudio.Core.Binding.ServerConnection;
 using IConnectionCredentials = SonarLint.VisualStudio.Core.Binding.IConnectionCredentials;
 

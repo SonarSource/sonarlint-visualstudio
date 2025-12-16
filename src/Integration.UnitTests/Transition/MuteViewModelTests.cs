@@ -19,8 +19,8 @@
  */
 
 using System.ComponentModel;
+using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Integration.Transition;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Transition;
 

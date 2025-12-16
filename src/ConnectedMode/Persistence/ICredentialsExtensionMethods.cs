@@ -20,7 +20,6 @@
 
 using Microsoft.Alm.Authentication;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 

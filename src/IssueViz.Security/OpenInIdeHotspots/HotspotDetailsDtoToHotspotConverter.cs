@@ -24,7 +24,6 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
-using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots;
 

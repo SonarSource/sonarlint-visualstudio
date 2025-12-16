@@ -20,7 +20,6 @@
 
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Shared
 {
@@ -43,14 +42,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
 
     public static class SharedBindingConfigModelExtensions
     {
-        public static ServerType? GetServerType(this SharedBindingConfigModel sharedBindingConfig)
+        public static ConnectionServerType? GetServerType(this SharedBindingConfigModel sharedBindingConfig)
         {
             if (sharedBindingConfig == null)
             {
                 return null;
             }
 
-            return sharedBindingConfig.IsSonarCloud() ? ServerType.SonarCloud : ServerType.SonarQube;
+            return sharedBindingConfig.IsSonarCloud() ? ConnectionServerType.SonarCloud : ConnectionServerType.SonarQube;
         }
 
         public static ConnectionInfo CreateConnectionInfo(this SharedBindingConfigModel sharedBindingConfig) =>
