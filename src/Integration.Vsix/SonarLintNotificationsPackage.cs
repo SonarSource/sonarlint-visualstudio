@@ -23,6 +23,7 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.ConnectedMode;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SmartNotification;
@@ -78,7 +79,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // created, so this needs to be done on the UI thread just in case.
                 activeSolutionBoundTracker = this.GetMefService<IActiveSolutionBoundTracker>();
                 var smartNotificationService = this.GetMefService<ISmartNotificationService>();
-                notificationIndicatorViewModel = new NotificationIndicatorViewModel(smartNotificationService, vsBrowserService, activeSolutionBoundTracker);
+                var serverConnectionsRepositoryAdapter = this.GetMefService<IServerConnectionsRepositoryAdapter>();
+                notificationIndicatorViewModel = new NotificationIndicatorViewModel(smartNotificationService, vsBrowserService, activeSolutionBoundTracker, serverConnectionsRepositoryAdapter);
 
                 PerformUIInitialisation();
                 logger.WriteLine(Strings.Notifications_InitializationComplete);

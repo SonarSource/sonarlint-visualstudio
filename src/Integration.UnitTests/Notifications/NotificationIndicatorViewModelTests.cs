@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SmartNotification;
@@ -37,6 +38,7 @@ public class NotificationIndicatorViewModelTests
     private ISmartNotificationService smartNotificationService;
     private IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private IBrowserService browserService;
+    private IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter;
     private NotificationIndicatorViewModel testSubject;
     private IThreadHandling threadHandling;
     private ITimer timer;
@@ -48,8 +50,9 @@ public class NotificationIndicatorViewModelTests
         smartNotificationService = Substitute.For<ISmartNotificationService>();
         browserService = Substitute.For<IBrowserService>();
         activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
+        serverConnectionsRepositoryAdapter = Substitute.For<IServerConnectionsRepositoryAdapter>();
         threadHandling = new NoOpThreadHandler();
-        testSubject = new NotificationIndicatorViewModel(smartNotificationService, browserService, activeSolutionBoundTracker, threadHandling, timer);
+        testSubject = new NotificationIndicatorViewModel(smartNotificationService, browserService, activeSolutionBoundTracker, serverConnectionsRepositoryAdapter, threadHandling, timer);
     }
 
     [TestMethod]
@@ -178,9 +181,9 @@ public class NotificationIndicatorViewModelTests
     public void HasUnreadEvents_RunOnUIThread()
     {
         var mockThreadHandling = Substitute.For<IThreadHandling>();
-        var notificationViewModel = new NotificationIndicatorViewModel(smartNotificationService, browserService, activeSolutionBoundTracker, mockThreadHandling, timer);
-        notificationViewModel.AreNotificationsEnabled = true;
+        var notificationViewModel = new NotificationIndicatorViewModel(smartNotificationService, browserService, activeSolutionBoundTracker, serverConnectionsRepositoryAdapter, mockThreadHandling, timer);
         notificationViewModel.IsIconVisible = true;
+        RaiseBindingChangedWithSmartNotificationsEnabled(notificationViewModel, true);
 
         var events = new[] { CreateNotification("category1") };
 
@@ -325,6 +328,64 @@ public class NotificationIndicatorViewModelTests
         testSubject.AreNotificationsEnabled.Should().BeFalse();
     }
 
+    [TestMethod]
+    public void AreNotificationsEnabled_WhenToggled_UpdatesSettings()
+    {
+        var serverConnection = new ServerConnection.SonarQube(new Uri("http://localhost"), new ServerConnectionSettings(false));
+        var bindingConfiguration = CreateBindingConfiguration(serverConnection, SonarLintMode.Connected);
+        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(bindingConfiguration));
+
+        testSubject.AreNotificationsEnabled = true;
+
+        serverConnectionsRepositoryAdapter.Received(1).TryUpdateSettingsById(serverConnection.Id, Arg.Is<ServerConnectionSettings>(s => s.IsSmartNotificationsEnabled == true));
+    }
+
+    [TestMethod]
+    public void AreNotificationsEnabled_WhenToggledOff_UpdatesSettings()
+    {
+        var serverConnection = new ServerConnection.SonarQube(new Uri("http://localhost"), new ServerConnectionSettings(true));
+        var bindingConfiguration = CreateBindingConfiguration(serverConnection, SonarLintMode.Connected);
+        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(bindingConfiguration));
+
+        testSubject.AreNotificationsEnabled = false;
+
+        serverConnectionsRepositoryAdapter.Received(1).TryUpdateSettingsById(serverConnection.Id, Arg.Is<ServerConnectionSettings>(s => s.IsSmartNotificationsEnabled == false));
+    }
+
+    [TestMethod]
+    public void AreNotificationsEnabled_WhenSetToSameValue_DoesNotUpdateSettings()
+    {
+        var serverConnection = new ServerConnection.SonarQube(new Uri("http://localhost"), new ServerConnectionSettings(true));
+        var bindingConfiguration = CreateBindingConfiguration(serverConnection, SonarLintMode.Connected);
+        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(bindingConfiguration));
+
+        testSubject.AreNotificationsEnabled = true;
+
+        serverConnectionsRepositoryAdapter.DidNotReceive().TryUpdateSettingsById(Arg.Any<string>(), Arg.Any<ServerConnectionSettings>());
+    }
+
+    [TestMethod]
+    public void AreNotificationsEnabled_WhenNoConnectionId_DoesNotUpdateSettings()
+    {
+        var standaloneConfiguration = new BindingConfiguration(null, SonarLintMode.Standalone, string.Empty);
+        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(standaloneConfiguration));
+
+        testSubject.AreNotificationsEnabled = true;
+
+        serverConnectionsRepositoryAdapter.DidNotReceive().TryUpdateSettingsById(Arg.Any<string>(), Arg.Any<ServerConnectionSettings>());
+    }
+
+    [TestMethod]
+    public void SolutionBindingChanged_DoesNotUpdateSettings()
+    {
+        var serverConnection = new ServerConnection.SonarQube(new Uri("http://localhost"), new ServerConnectionSettings(true));
+        var bindingConfiguration = CreateBindingConfiguration(serverConnection, SonarLintMode.Connected);
+
+        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(bindingConfiguration));
+
+        serverConnectionsRepositoryAdapter.DidNotReceive().TryUpdateSettingsById(Arg.Any<string>(), Arg.Any<ServerConnectionSettings>());
+    }
+
     private static BindingConfiguration CreateBindingConfiguration(ServerConnection serverConnection, SonarLintMode mode) =>
         new(new BoundServerProject("my solution", "my project", serverConnection), mode, string.Empty);
 
@@ -332,9 +393,16 @@ public class NotificationIndicatorViewModelTests
 
     private void SetupModelWithNotifications(bool areEnabled, bool areVisible, SmartNotification[] events)
     {
-        testSubject.AreNotificationsEnabled = areEnabled;
+        RaiseBindingChangedWithSmartNotificationsEnabled(testSubject, areEnabled);
         testSubject.IsIconVisible = areVisible;
 
         testSubject.SetNotificationEvents(events);
+    }
+
+    private void RaiseBindingChangedWithSmartNotificationsEnabled(NotificationIndicatorViewModel viewModel, bool isEnabled)
+    {
+        var serverConnection = new ServerConnection.SonarQube(new Uri("http://localhost"), new ServerConnectionSettings(isEnabled));
+        var bindingConfiguration = CreateBindingConfiguration(serverConnection, SonarLintMode.Connected);
+        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(bindingConfiguration));
     }
 }

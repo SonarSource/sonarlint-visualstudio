@@ -21,6 +21,7 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
+using SonarLint.VisualStudio.ConnectedMode;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SmartNotification;
@@ -35,6 +36,7 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
 {
     private readonly ISmartNotificationService smartNotificationService;
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+    private readonly IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter;
     private readonly ITimer autocloseTimer;
     private readonly IThreadHandling threadHandling;
     private bool areNotificationsEnabled;
@@ -42,6 +44,7 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
     private bool isCloud;
     private bool isToolTipVisible;
     private bool isVisible;
+    private string currentConnectionId;
 
     private string text;
 
@@ -49,8 +52,8 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
 
     public ICommand ClearUnreadEventsCommand { get; }
 
-    public NotificationIndicatorViewModel(ISmartNotificationService smartNotificationService, IBrowserService vsBrowserService, IActiveSolutionBoundTracker activeSolutionBoundTracker)
-        : this(smartNotificationService, vsBrowserService, activeSolutionBoundTracker, ThreadHandling.Instance, new TimerWrapper { AutoReset = false, Interval = 3000 /* 3 sec */ })
+    public NotificationIndicatorViewModel(ISmartNotificationService smartNotificationService, IBrowserService vsBrowserService, IActiveSolutionBoundTracker activeSolutionBoundTracker, IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter)
+        : this(smartNotificationService, vsBrowserService, activeSolutionBoundTracker, serverConnectionsRepositoryAdapter, ThreadHandling.Instance, new TimerWrapper { AutoReset = false, Interval = 3000 /* 3 sec */ })
     {
         // Nothing to do
     }
@@ -60,11 +63,13 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
         ISmartNotificationService smartNotificationService,
         IBrowserService vsBrowserService,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
+        IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter,
         IThreadHandling threadHandling,
         ITimer autocloseTimer)
     {
         this.smartNotificationService = smartNotificationService;
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+        this.serverConnectionsRepositoryAdapter = serverConnectionsRepositoryAdapter;
         this.threadHandling = threadHandling;
         this.autocloseTimer = autocloseTimer;
 
@@ -118,7 +123,15 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
     public bool AreNotificationsEnabled
     {
         get => areNotificationsEnabled;
-        set => SetAndRaisePropertyChanged(ref areNotificationsEnabled, value);
+        set
+        {
+            if (areNotificationsEnabled == value)
+            {
+                return;
+            }
+            SetAndRaisePropertyChanged(ref areNotificationsEnabled, value);
+            UpdateSmartNotificationsSettings(value);
+        }
     }
 
     public bool IsToolTipVisible
@@ -181,15 +194,22 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
             NotificationEvents.Count, NotificationEvents.Count == 1 ? "" : "s");
     }
 
-    private void OnNotificationReceived(object sender, NotificationReceivedEventArgs args)
-    {
-        SetNotificationEvents([args.Notification]);
-    }
+    private void OnNotificationReceived(object sender, NotificationReceivedEventArgs args) => SetNotificationEvents([args.Notification]);
 
     private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args)
     {
+        currentConnectionId = args.Configuration?.Project?.ServerConnection?.Id;
         IsIconVisible = args.Configuration?.Project?.ServerConnection != null;
         IsCloud = args.Configuration?.Project?.ServerConnection is ServerConnection.SonarCloud;
-        AreNotificationsEnabled = args.Configuration?.Project?.ServerConnection?.Settings.IsSmartNotificationsEnabled ?? false;
+        areNotificationsEnabled = args.Configuration?.Project?.ServerConnection?.Settings.IsSmartNotificationsEnabled ?? false;
+        RaisePropertyChanged(nameof(AreNotificationsEnabled));
+    }
+
+    private void UpdateSmartNotificationsSettings(bool isEnabled)
+    {
+        if (currentConnectionId != null)
+        {
+            serverConnectionsRepositoryAdapter.TryUpdateSettingsById(currentConnectionId, new ServerConnectionSettings(isEnabled));
+        }
     }
 }
