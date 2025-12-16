@@ -66,8 +66,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
         [TestMethod]
         public void ShowIssue_InConnectedMode_BrowserOpened()
         {
-            const string projectKey = "project key";
-            const string issueKey = "issue key";
+            const string projectKey = "project_key";
+            const string issueKey = "issue_key";
 
             var configurationProvider = new Mock<IConfigurationProvider>();
             configurationProvider
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
             var testSubject = CreateTestSubject(configurationProvider.Object, browserService.Object);
             testSubject.ShowIssue(issueKey);
 
-            browserService.Verify(x=> x.Navigate("http://localhost:123/expected/issue?id=1"), Times.Once);
+            browserService.Verify(x=> x.Navigate("http://bound/project/issues?id=project_key&issues=issue_key&open=issue_key"), Times.Once);
             browserService.VerifyNoOtherCalls();
         }
 
