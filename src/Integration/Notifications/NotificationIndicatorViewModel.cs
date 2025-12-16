@@ -52,6 +52,8 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
 
     public ICommand ClearUnreadEventsCommand { get; }
 
+    public ICommand ClearNotificationsCommand { get; }
+
     public NotificationIndicatorViewModel(ISmartNotificationService smartNotificationService, IBrowserService vsBrowserService, IActiveSolutionBoundTracker activeSolutionBoundTracker, IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter)
         : this(smartNotificationService, vsBrowserService, activeSolutionBoundTracker, serverConnectionsRepositoryAdapter, ThreadHandling.Instance, new TimerWrapper { AutoReset = false, Interval = 3000 /* 3 sec */ })
     {
@@ -80,6 +82,7 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
 
         autocloseTimer.Elapsed += OnAutocloseTimerElapsed;
         ClearUnreadEventsCommand = new RelayCommand(() => HasUnreadEvents = false);
+        ClearNotificationsCommand = new RelayCommand(ClearNotifications);
 
         NavigateToNotification = new DelegateCommand(parameter =>
         {

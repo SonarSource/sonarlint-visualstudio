@@ -228,6 +228,21 @@ public class NotificationIndicatorViewModelTests
     }
 
     [TestMethod]
+    public void ClearNotificationsCommand_ClearsCollectionAndResetsState()
+    {
+        SetupModelWithNotification(true, true, TestNotification);
+        testSubject.HasUnreadEvents.Should().BeTrue();
+        testSubject.IsToolTipVisible.Should().BeTrue();
+        testSubject.NotificationEvents.Should().HaveCount(1);
+
+        testSubject.ClearNotificationsCommand.Execute(null);
+
+        testSubject.NotificationEvents.Should().BeEmpty();
+        testSubject.HasUnreadEvents.Should().BeFalse();
+        testSubject.IsToolTipVisible.Should().BeFalse();
+    }
+
+    [TestMethod]
     public void ClearNotifications_ClearsCollectionAndResetsState()
     {
         SetupModelWithNotification(true, true, TestNotification);
