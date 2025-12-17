@@ -11,17 +11,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportVie
 [TestClass]
 public class TaintViewModelTest
 {
-    [TestMethod]
-    public void Ctor_InitializesPropertiesAsExpected()
+    [DataTestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void Ctor_InitializesPropertiesAsExpected(bool isSolutionLevelTaintDisplay)
     {
         var analysisIssueVisualization = CreateMockedTaint("csharp:101",
             Guid.NewGuid(),
             1,
             66,
             "remove todo comment",
-            "myClass.cs");
+            @"C:\a\myClass.cs");
 
-        var testSubject = new TaintViewModel(analysisIssueVisualization);
+        var testSubject = new TaintViewModel(analysisIssueVisualization, isSolutionLevelTaintDisplay);
 
         testSubject.TaintIssue.Should().Be(analysisIssueVisualization.Issue);
         testSubject.RuleId.Should().Be(analysisIssueVisualization.SonarRuleId.Id);
@@ -30,9 +32,26 @@ public class TaintViewModelTest
         testSubject.Column.Should().Be(analysisIssueVisualization.Issue.PrimaryLocation.TextRange.StartLineOffset);
         testSubject.Title.Should().Be(analysisIssueVisualization.Issue.PrimaryLocation.Message);
         testSubject.FilePath.Should().Be(analysisIssueVisualization.Issue.PrimaryLocation.FilePath);
+        testSubject.FileDisplayName.Should().Be("myClass.cs");
+        testSubject.IsSolutionLevelTaintDisplay.Should().Be(isSolutionLevelTaintDisplay);
         testSubject.Issue.Should().Be(analysisIssueVisualization);
         testSubject.IssueType.Should().Be(IssueType.TaintVulnerability);
         testSubject.Status.Should().Be(DisplayStatus.Open);
+    }
+
+    [TestMethod]
+    public void IsSolutionLevelTaintDisplay_DefaultValue_False()
+    {
+        var analysisIssueVisualization = CreateMockedTaint("csharp:101",
+            Guid.NewGuid(),
+            1,
+            66,
+            "remove todo comment",
+            @"C:\a\myClass.cs");
+
+        var testSubject = new TaintViewModel(analysisIssueVisualization);
+
+        testSubject.IsSolutionLevelTaintDisplay.Should().BeFalse();
     }
 
     [DataTestMethod]

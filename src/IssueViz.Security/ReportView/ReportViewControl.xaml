@@ -204,10 +204,7 @@
             </Style>
 
             <Style x:Key="LocationTextBlockStyle" TargetType="TextBlock"
-                   BasedOn="{StaticResource ThemeAwareTextBlockStyle}">
-                <Setter Property="VerticalAlignment" Value="Center" />
-                <Setter Property="FontSize"
-                        Value="{DynamicResource {x:Static vsShell:VsFonts.Environment90PercentFontSizeKey}}" />
+                   BasedOn="{StaticResource IssueTextBlockStyle}">
                 <Setter Property="Foreground"
                         Value="{DynamicResource {x:Static vsShell:VsBrushes.InactiveCaptionTextKey}}" />
             </Style>
@@ -937,7 +934,7 @@
                             </Image.ToolTip>
                         </Image>
                         <TextBlock Grid.Column="2"
-                                   Margin="2,0,0,2"
+                                   Margin="2,0,0,0"
                                    Style="{StaticResource LocationTextBlockStyle}">
                             <Run Text="{Binding Line, Mode=OneWay, StringFormat={}({0}\,}" />
                             <Run Text="{Binding Path=Column, Mode=OneWay, StringFormat={}{0})}" />
@@ -985,8 +982,18 @@
                         <Image Grid.Column="1" Height="17" VerticalAlignment="Center"
                                Style="{StaticResource SeverityImage}" />
                         <TextBlock Grid.Column="2"
-                                   Margin="2,0,0,2"
-                                   Style="{StaticResource LocationTextBlockStyle}">
+                                   Margin="2,0,0,0"
+                                   Style="{StaticResource LocationTextBlockStyle}"
+                                   Visibility="{Binding IsSolutionLevelTaintDisplay, Converter={StaticResource TrueToVisibleConverter}}">
+                            <Run Text="{Binding FileDisplayName, Mode=OneWay}" />
+                            <Run Text="{Binding Line, Mode=OneWay, StringFormat={}({0}\,}" />
+                            <Run Text="{Binding Path=Column, Mode=OneWay, StringFormat={}{0})}" />
+                        </TextBlock>
+                        <!-- Can't set visibility on (the first) Run, setting Text to empty leaves an ugly gap, working around that by copy-pasting the block with different visibility -->
+                        <TextBlock Grid.Column="2"
+                                   Margin="2,0,0,0"
+                                   Style="{StaticResource LocationTextBlockStyle}"
+                                   Visibility="{Binding IsSolutionLevelTaintDisplay, Converter={StaticResource TrueToCollapsedConverter}}">
                             <Run Text="{Binding Line, Mode=OneWay, StringFormat={}({0}\,}" />
                             <Run Text="{Binding Path=Column, Mode=OneWay, StringFormat={}{0})}" />
                         </TextBlock>
@@ -1033,7 +1040,7 @@
                         <Image Grid.Column="1" Height="17" VerticalAlignment="Center"
                                Style="{StaticResource SeverityImage}" />
                         <TextBlock Grid.Column="2"
-                                   Margin="2,0,0,2"
+                                   Margin="2,0,0,0"
                                    Style="{StaticResource LocationTextBlockStyle}">
                             <Run Text="{Binding Line, Mode=OneWay, StringFormat={}({0}\,}" />
                             <Run Text="{Binding Path=Column, Mode=OneWay, StringFormat={}{0})}" />
