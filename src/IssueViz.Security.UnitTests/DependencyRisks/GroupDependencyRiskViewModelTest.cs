@@ -285,6 +285,44 @@ public class GroupDependencyRiskViewModelTest
         ReceivedEvent(nameof(testSubject.IsExpanded));
     }
 
+
+    [TestMethod]
+    public void ApplyFilter_SortsFilteredIssuesBySeverityLineAndColumn()
+    {
+        var sortedIssues = new List<IIssueViewModel>
+        {
+            CreateMockedIssue(DisplaySeverity.Blocker, null, null),
+            CreateMockedIssue(DisplaySeverity.Blocker, 1, 1),
+            CreateMockedIssue(DisplaySeverity.Blocker, 1, 2),
+            CreateMockedIssue(DisplaySeverity.Medium, 1, 1),
+            CreateMockedIssue(DisplaySeverity.Info, 1, 2),
+            CreateMockedIssue(DisplaySeverity.Info, 10, 1),
+        };
+
+        testSubject.AllIssues.Clear();
+        testSubject.AllIssues.Add(sortedIssues[2]);
+        testSubject.AllIssues.Add(sortedIssues[3]);
+        testSubject.AllIssues.Add(sortedIssues[1]);
+        testSubject.AllIssues.Add(sortedIssues[5]);
+        testSubject.AllIssues.Add(sortedIssues[0]);
+        testSubject.AllIssues.Add(sortedIssues[4]);
+        testSubject.ApplyFilter(reportViewFilterViewModel);
+
+        testSubject.FilteredIssues.Should().BeEquivalentTo(sortedIssues, options => options.WithStrictOrdering());
+    }
+
+    private static IIssueViewModel CreateMockedIssue(
+        DisplaySeverity severity,
+        int? line,
+        int? column)
+    {
+        var mockIssue = Substitute.For<IIssueViewModel>();
+        mockIssue.DisplaySeverity.Returns(severity);
+        mockIssue.Line.Returns(line);
+        mockIssue.Column.Returns(column);
+        return mockIssue;
+    }
+
     private void VerifyUpdatedBothRiskLists()
     {
         dependencyRisksStore.Received().GetAll();
