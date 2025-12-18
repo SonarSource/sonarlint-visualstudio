@@ -260,7 +260,7 @@ internal class
     {
         var currentHotspotViewModels = AllGroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is HotspotViewModel).Cast<HotspotViewModel>();
         var addedHotspotsViewModels = e.AddedIssues.Select(viz => new HotspotViewModel(LocalHotspot.ToLocalHotspot(viz))).ToList();
-        var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(vm.IsSameAnalysisIssue)).ToList();
+        var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(x => x.IssueId == vm.RuleInfo?.IssueId)).ToList();
         UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
     }
 
@@ -268,7 +268,7 @@ internal class
     {
         var addedHotspotsViewModels = e.AddedIssues.Select(viz => new TaintViewModel(viz)).ToList();
         var currentHotspotViewModels = AllGroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is TaintViewModel).Cast<TaintViewModel>();
-        var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(vm.IsSameAnalysisIssue)).ToList();
+        var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(x => x.IssueId == vm.RuleInfo?.IssueId)).ToList();
         UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
     }
 
@@ -278,7 +278,7 @@ internal class
         // if refactoring: wrap issues into viewmodels before proxying the event because it owns issue conversion to viewmodels
         var addedHotspotsViewModels = e.AddedIssues.Select(viz => new IssueViewModel(viz)).ToList();
         var currentHotspotViewModels = AllGroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is IssueViewModel).Cast<IssueViewModel>();
-        var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(vm.IsSameAnalysisIssue)).ToList();
+        var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(x => x.IssueId == vm.RuleInfo?.IssueId)).ToList();
         UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
     }
 

@@ -195,7 +195,7 @@ public class IssueDetailDtoToAnalysisIssueConverterTests
                     1)),
             "some\\path");
 
-        issue.Id.Should().BeNull();
+        issue.Id.Should().BeEmpty();
         issue.IssueServerKey.Should().Be("issueKey");
         issue.IsResolved.Should().BeFalse();
     }

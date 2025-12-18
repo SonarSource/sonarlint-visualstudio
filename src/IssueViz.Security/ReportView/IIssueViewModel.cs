@@ -60,6 +60,4 @@ public enum IssueType
 public interface IAnalysisIssueViewModel : IIssueViewModel
 {
     IAnalysisIssueVisualization Issue { get; }
-
-    bool IsSameAnalysisIssue(IAnalysisIssueVisualization analysisIssueVisualization);
 }

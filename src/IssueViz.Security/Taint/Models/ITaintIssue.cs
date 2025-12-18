@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
         private static readonly IReadOnlyList<IAnalysisIssueFlow> EmptyFlows = Array.Empty<IAnalysisIssueFlow>();
 
         public TaintIssue(
-            Guid? id,
+            Guid id,
             string issueServerKey,
             bool isResolved,
             bool isOnNewCode,
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
             }
         }
 
-        public Guid? Id { get; }
+        public Guid Id { get; }
         public bool IsOnNewCode { get; }
         public string IssueServerKey { get; }
         public string RuleKey { get; }

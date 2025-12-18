@@ -52,50 +52,6 @@ public class AnalysisIssueViewModelBaseTest
     }
 
     [TestMethod]
-    [DataRow("931CF6A0-A479-4566-929B-FC6D3AB3D3EA", "serverKey")]
-    [DataRow(null, "serverKey")]
-    [DataRow(null, null)]
-    public void IsSameAnalysisIssue_SameIdAndServerKey_ReturnsTrue(string issueId, string serverKey)
-    {
-        var analysisIssueVisualization1 = CreateMockedIssue(GetGuid(issueId), serverKey);
-        var analysisIssueVisualization2 = CreateMockedIssue(analysisIssueVisualization1.Issue.Id, analysisIssueVisualization1.Issue.IssueServerKey);
-
-        CreateTestSubject(analysisIssueVisualization1).IsSameAnalysisIssue(analysisIssueVisualization2).Should().BeTrue();
-    }
-
-    [TestMethod]
-    public void IsSameAnalysisIssue_SameReference_ReturnsTrue()
-    {
-        var analysisIssueVisualization1 = CreateMockedIssue(Guid.NewGuid(), "E2670BAB-4B1E-49C2-8641-7B77CE2A6DBF");
-
-        CreateTestSubject(analysisIssueVisualization1).IsSameAnalysisIssue(analysisIssueVisualization1).Should().BeTrue();
-    }
-
-    [TestMethod]
-    [DataRow("931CF6A0-A479-4566-929B-FC6D3AB3D3EA", "E2670BAB-4B1E-49C2-8641-7B77CE2A6DBF")]
-    [DataRow(null, "931CF6A0-A479-4566-929B-FC6D3AB3D3EA")]
-    public void IsSameAnalysisIssue_DifferentId_ReturnsFalse(string issueId1, string issueId2)
-    {
-        var serverKey = Guid.NewGuid().ToString();
-        var analysisIssueVisualization1 = CreateMockedIssue(GetGuid(issueId1), serverKey);
-        var analysisIssueVisualization2 = CreateMockedIssue(GetGuid(issueId2), serverKey);
-
-        CreateTestSubject(analysisIssueVisualization1).IsSameAnalysisIssue(analysisIssueVisualization2).Should().BeFalse();
-    }
-
-    [TestMethod]
-    [DataRow("931CF6A0-A479-4566-929B-FC6D3AB3D3EA", "E2670BAB-4B1E-49C2-8641-7B77CE2A6DBF")]
-    [DataRow(null, "931CF6A0-A479-4566-929B-FC6D3AB3D3EA")]
-    public void IsSameAnalysisIssue_DifferentServerKey_ReturnsFalse(string serverKey1, string serverKey2)
-    {
-        var issueId = Guid.NewGuid();
-        var analysisIssueVisualization1 = CreateMockedIssue(issueId, serverKey1);
-        var analysisIssueVisualization2 = CreateMockedIssue(issueId, serverKey2);
-
-        CreateTestSubject(analysisIssueVisualization1).IsSameAnalysisIssue(analysisIssueVisualization2).Should().BeFalse();
-    }
-
-    [TestMethod]
     public void HasSecondaryLocations_NoFlows_ReturnsFalse()
     {
         var issue = CreateMockedIssue(Guid.NewGuid(), "any");
@@ -166,7 +122,7 @@ public class AnalysisIssueViewModelBaseTest
     }
 
     private static IAnalysisIssueVisualization CreateMockedIssue(
-        Guid? issueId,
+        Guid issueId,
         string serverKey)
     {
         var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
@@ -178,5 +134,5 @@ public class AnalysisIssueViewModelBaseTest
         return analysisIssueVisualization;
     }
 
-    private static Guid? GetGuid(string issueId) => issueId == null ? null : Guid.Parse(issueId);
+    private static Guid GetGuid(string issueId) => issueId == null ? default : Guid.Parse(issueId);
 }

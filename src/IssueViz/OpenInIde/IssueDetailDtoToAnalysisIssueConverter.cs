@@ -44,7 +44,7 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
 
     public IAnalysisIssueBase Convert(IssueDetailDto issueDetailDto, string rootPath)
     {
-        return new ServerIssue(Id: null,
+        return new ServerIssue(default,
             issueDetailDto.ruleKey,
             IsResolved: false,
             IsOnNewCode: true,
@@ -72,7 +72,7 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
     }
 
     private sealed record ServerIssue(
-        Guid? Id,
+        Guid Id,
         string RuleKey,
         bool IsResolved,
         bool IsOnNewCode,

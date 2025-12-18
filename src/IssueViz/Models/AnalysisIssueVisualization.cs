@@ -99,7 +99,7 @@ internal class AnalysisIssueVisualization : IAnalysisIssueVisualization
 
     public event PropertyChangedEventHandler PropertyChanged;
 
-    public Guid? IssueId => Issue.Id;
+    public Guid IssueId => Issue.Id;
     string IFilterableIssue.RuleId => Issue.RuleKey;
 
     string IFilterableIssue.FilePath => CurrentFilePath;
