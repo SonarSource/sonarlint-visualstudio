@@ -523,6 +523,10 @@
             </ContextMenu>
 
             <ContextMenu x:Key="TaintContextMenu">
+                <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}"
+                          Click="ChangeTaintStatusMenuItem_OnClick"
+                          Style="{StaticResource ChangeStatusMenuItemStyle}"
+                          IsEnabled="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }" />
                 <MenuItem Click="ViewTaintInBrowser_OnClick"
                           Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}"

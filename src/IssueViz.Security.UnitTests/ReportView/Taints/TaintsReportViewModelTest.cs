@@ -18,12 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
-using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
@@ -37,6 +37,7 @@ public class TaintsReportViewModelTest
     private ITaintStore localTaintsStore;
     private TaintsReportViewModel testSubject;
     private IShowInBrowserService showInBrowserService;
+    private IMuteIssuesService muteIssuesService;
     private ITelemetryManager telemetryManager;
     private IThreadHandling threadHandling;
 
@@ -45,10 +46,11 @@ public class TaintsReportViewModelTest
     {
         localTaintsStore = Substitute.For<ITaintStore>();
         showInBrowserService = Substitute.For<IShowInBrowserService>();
+        muteIssuesService = Substitute.For<IMuteIssuesService>();
         telemetryManager = Substitute.For<ITelemetryManager>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
 
-        testSubject = new TaintsReportViewModel(localTaintsStore, showInBrowserService, telemetryManager, threadHandling);
+        testSubject = new TaintsReportViewModel(localTaintsStore, showInBrowserService, muteIssuesService, telemetryManager, threadHandling);
     }
 
     [TestMethod]
@@ -56,6 +58,7 @@ public class TaintsReportViewModelTest
         MefTestHelpers.CheckTypeCanBeImported<TaintsReportViewModel, ITaintsReportViewModel>(
             MefTestHelpers.CreateExport<ITaintStore>(),
             MefTestHelpers.CreateExport<IShowInBrowserService>(),
+            MefTestHelpers.CreateExport<IMuteIssuesService>(),
             MefTestHelpers.CreateExport<ITelemetryManager>(),
             MefTestHelpers.CreateExport<IThreadHandling>()
         );
@@ -112,6 +115,16 @@ public class TaintsReportViewModelTest
 
         showInBrowserService.Received(1).ShowIssue(taintIssue.IssueServerKey);
         telemetryManager.Received(1).TaintIssueInvestigatedRemotely();
+    }
+
+    [TestMethod]
+    public void ChangeStatus_CallsServiceWithCorrectArgumentAndTaintFlag()
+    {
+        var issue = Substitute.For<IAnalysisIssueVisualization>();
+
+        testSubject.ChangeStatus(issue);
+
+        muteIssuesService.Received(1).ResolveIssueWithDialog(issue, isTaintIssue: true);
     }
 
     private static IAnalysisIssueVisualization CreateMockedTaint(string filePath)

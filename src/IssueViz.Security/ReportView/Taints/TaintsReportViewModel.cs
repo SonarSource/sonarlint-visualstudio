@@ -21,9 +21,11 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
@@ -36,6 +38,8 @@ internal interface ITaintsReportViewModel : IDisposable
 
     void ShowIssueVisualization();
 
+    void ChangeStatus(IAnalysisIssueVisualization issue);
+
     IEnumerable<IIssueViewModel> GetIssueViewModels();
 
     event EventHandler<IssuesChangedEventArgs> IssuesChanged;
@@ -47,6 +51,7 @@ internal interface ITaintsReportViewModel : IDisposable
 internal sealed class TaintsReportViewModel(
     ITaintStore taintsStore,
     IShowInBrowserService showInBrowserService,
+    IMuteIssuesService muteIssuesService,
     ITelemetryManager telemetryManager,
     IThreadHandling threadHandling)
     : IssuesReportViewModelBase(taintsStore, threadHandling), ITaintsReportViewModel
@@ -59,6 +64,8 @@ internal sealed class TaintsReportViewModel(
 
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     public void ShowIssueVisualization() => ToolWindowNavigator.Instance.ShowIssueVisualizationToolWindow();
+
+    public void ChangeStatus(IAnalysisIssueVisualization issue) => muteIssuesService.ResolveIssueWithDialog(issue, isTaintIssue: true);
 
     public IEnumerable<IIssueViewModel> GetIssueViewModels() => taintsStore.GetAll().Select(x => new TaintViewModel(x));
 }

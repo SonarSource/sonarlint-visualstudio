@@ -46,12 +46,12 @@ internal class MuteIssuesService(
 {
     private readonly ILogger logger = logger.ForContext(nameof(MuteIssuesService));
 
-    public void ResolveIssueWithDialog(IFilterableIssue issue) =>
+    public void ResolveIssueWithDialog(IFilterableIssue issue, bool isTaintIssue = false) =>
         threadHandling.RunOnBackgroundThread(async () =>
         {
             try
             {
-                await ResolveIssueWithDialogAsync(issue);
+                await ResolveIssueWithDialogAsync(issue, isTaintIssue);
                 logger.WriteLine(Resources.MuteIssue_HaveMuted);
             }
             catch (MuteIssueException.MuteIssueCommentFailedException)
@@ -68,7 +68,7 @@ internal class MuteIssuesService(
             }
         }).Forget();
 
-    private async Task ResolveIssueWithDialogAsync(IFilterableIssue issue)
+    private async Task ResolveIssueWithDialogAsync(IFilterableIssue issue, bool isTaintIssue)
     {
         var issueServerKey = GetIssueServerKey(issue);
         var currentConfigScope = activeConfigScopeTracker.Current;
@@ -77,7 +77,7 @@ internal class MuteIssuesService(
 
         var allowedStatuses = await GetAllowedStatusesAsync(currentConfigScope.ConnectionId, issueServerKey);
         var windowResponse = await PromptMuteIssueResolutionAsync(allowedStatuses);
-        await MuteIssueAsync(currentConfigScope.Id, issueServerKey, windowResponse.IssueTransition.Value);
+        await MuteIssueAsync(currentConfigScope.Id, issueServerKey, windowResponse.IssueTransition.Value, isTaintIssue);
         await AddCommentAsync(currentConfigScope.Id, issueServerKey, windowResponse.Comment);
     }
 
@@ -158,7 +158,8 @@ internal class MuteIssuesService(
     private async Task MuteIssueAsync(
         string configurationScopeId,
         string issueServerKey,
-        SonarQubeIssueTransition transition)
+        SonarQubeIssueTransition transition,
+        bool isTaintIssue)
     {
         try
         {
@@ -168,7 +169,7 @@ internal class MuteIssuesService(
                 configurationScopeId,
                 issueServerKey,
                 transition.ToSlCoreResolutionStatus(),
-                false // Muting taints are not supported yet
+                isTaintIssue
             ));
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
