@@ -45,7 +45,7 @@ internal class HotspotDetailsDtoToHotspotConverter : IHotspotDetailsDtoToHotspot
 
     public IAnalysisIssueBase Convert(HotspotDetailsDto hotspotDetailsDto, string rootPath)
     {
-        return new Hotspot(id: default,
+        return new Hotspot(id: Guid.Empty,
             hotspotDetailsDto.key,
             isResolved: false,
             isOnNewCode: true,

@@ -44,7 +44,7 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
 
     public IAnalysisIssueBase Convert(IssueDetailDto issueDetailDto, string rootPath)
     {
-        return new ServerIssue(default,
+        return new ServerIssue(Guid.Empty,
             issueDetailDto.ruleKey,
             IsResolved: false,
             IsOnNewCode: true,
