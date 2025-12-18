@@ -48,9 +48,6 @@ internal abstract class AnalysisIssueViewModelBase : ViewModelBase, IAnalysisIss
 
     public bool IsServerIssue => Issue.Issue.IssueServerKey is not null;
 
-    public bool IsSameAnalysisIssue(IAnalysisIssueVisualization analysisIssueVisualization) =>
-        Issue.Issue.Id == analysisIssueVisualization.Issue.Id && Issue.Issue.IssueServerKey == analysisIssueVisualization.Issue.IssueServerKey;
-
     protected static DisplaySeverity? GetDisplaySeverity(SoftwareQualitySeverity? softwareQualitySeverity)
     {
         if (!softwareQualitySeverity.HasValue)

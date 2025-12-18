@@ -572,7 +572,7 @@ public class ReportViewModelTest
         InitializeTestSubjectWithInitialGroup(myfileCs);
 
         taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
-            new IssuesChangedEventArgs([CreateTaintVisualization(existingTaint.Issue.Id, "notExistingKey", myfileCs)], []));
+            new IssuesChangedEventArgs([CreateTaintVisualization(Guid.NewGuid(), "notExistingKey", myfileCs)], []));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
         VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[0], existingTaint);
@@ -1050,10 +1050,11 @@ public class ReportViewModelTest
 
     private static LocalHotspot CreateMockedHotspot() => new(Substitute.For<IAnalysisIssueVisualization>(), default, default);
 
-    private static IAnalysisIssueVisualization CreateHotspotVisualization(Guid? id, string serverKey, string filePath)
+    private static IAnalysisIssueVisualization CreateHotspotVisualization(Guid id, string serverKey, string filePath)
     {
         var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
         analysisIssueVisualization.Issue.Returns(Substitute.For<IAnalysisHotspotIssue>());
+        analysisIssueVisualization.IssueId.Returns(id);
         analysisIssueVisualization.Issue.Id.Returns(id);
         analysisIssueVisualization.Issue.IssueServerKey.Returns(serverKey);
         analysisIssueVisualization.Issue.PrimaryLocation.FilePath.Returns(filePath);
@@ -1066,21 +1067,23 @@ public class ReportViewModelTest
 
     private static IIssueViewModel CreateIssueViewModel(IAnalysisIssueVisualization issue) => new IssueViewModel(issue);
 
-    private static IAnalysisIssueVisualization CreateTaintVisualization(Guid? id, string serverKey, string filePath)
+    private static IAnalysisIssueVisualization CreateTaintVisualization(Guid id, string serverKey, string filePath)
     {
         var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
         analysisIssueVisualization.Issue.Returns(Substitute.For<ITaintIssue>());
+        analysisIssueVisualization.IssueId.Returns(id);
         analysisIssueVisualization.Issue.Id.Returns(id);
         analysisIssueVisualization.Issue.IssueServerKey.Returns(serverKey);
         analysisIssueVisualization.Issue.PrimaryLocation.FilePath.Returns(filePath);
         return analysisIssueVisualization;
     }
 
-    private static IAnalysisIssueVisualization CreateIssueVisualization(Guid? id, string filePath)
+    private static IAnalysisIssueVisualization CreateIssueVisualization(Guid id, string filePath)
     {
         var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
         analysisIssueVisualization.Issue.Returns(Substitute.For<IAnalysisIssue>());
         analysisIssueVisualization.Issue.Id.Returns(id);
+        analysisIssueVisualization.IssueId.Returns(id);
         analysisIssueVisualization.Issue.PrimaryLocation.FilePath.Returns(filePath);
         return analysisIssueVisualization;
     }

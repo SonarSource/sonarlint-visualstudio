@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
         /// <summary>
         /// The id of the issue that comes from SlCore
         /// </summary>
-        Guid? Id { get; }
+        Guid Id { get; }
 
         string RuleKey { get; }
 

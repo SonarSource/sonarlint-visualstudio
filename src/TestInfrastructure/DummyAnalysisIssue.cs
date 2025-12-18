@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure;
 // Properties are settable to simplify creating test instances
 public class DummyAnalysisIssue : IAnalysisIssue
 {
-    public Guid? Id { get; set; }
+    public Guid Id { get; set; }
 
     public string RuleKey { get; set; }
 

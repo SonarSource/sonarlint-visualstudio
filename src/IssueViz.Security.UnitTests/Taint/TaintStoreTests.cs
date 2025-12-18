@@ -237,7 +237,7 @@ public class TaintStoreTests
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
-        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [], [analysisIssueVisualizations[0].IssueId!.Value, analysisIssueVisualizations[2].IssueId!.Value]));
+        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [], [analysisIssueVisualizations[0].IssueId, analysisIssueVisualizations[2].IssueId]));
 
         testSubject.GetAll().Should().BeEquivalentTo(analysisIssueVisualizations[1]);
         receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([analysisIssueVisualizations[0], analysisIssueVisualizations[2]], []));
@@ -250,7 +250,7 @@ public class TaintStoreTests
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
-        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [], [analysisIssueVisualizations[0].IssueId!.Value, Guid.NewGuid()]));
+        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [], [analysisIssueVisualizations[0].IssueId, Guid.NewGuid()]));
 
         testSubject.GetAll().Should().BeEquivalentTo(analysisIssueVisualizations.Skip(1));
         receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([analysisIssueVisualizations[0]], []));
@@ -388,7 +388,7 @@ public class TaintStoreTests
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
-        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [added], [updated], [toRemove.IssueId!.Value]));
+        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [added], [updated], [toRemove.IssueId]));
 
         testSubject.GetAll().Should().BeEquivalentTo(added, updated, notTouched);
         receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([toUpdate, toRemove], [added, updated]));
@@ -399,7 +399,7 @@ public class TaintStoreTests
     {
         var original = SetupIssueViz();
         var updated = SetupIssueViz(original.IssueId);
-        var remove = original.IssueId!.Value;
+        var remove = original.IssueId;
         testSubject.Set([original], "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
@@ -428,7 +428,7 @@ public class TaintStoreTests
     public void Update_RemoveAndAddSameIssue_Updates()
     {
         var original = SetupIssueViz();
-        var remove = original.IssueId!.Value;
+        var remove = original.IssueId;
         var add = SetupIssueViz(original.IssueId);
         testSubject.Set([original], "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();

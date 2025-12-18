@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
     }
 
     internal class Hotspot(
-        Guid? id,
+        Guid id,
         string issueServerKey,
         bool isResolved,
         bool isOnNewCode,
@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
     {
         private static readonly IReadOnlyList<IAnalysisIssueFlow> EmptyFlows = Array.Empty<IAnalysisIssueFlow>();
 
-        public Guid? Id { get; } = id;
+        public Guid Id { get; } = id;
         public string RuleKey => Rule.RuleKey;
         public IHotspotRule Rule { get; } = rule;
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; } = flows ?? EmptyFlows;

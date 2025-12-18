@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             lock (locker)
             {
                 var oldVulnerabilities = taintVulnerabilities;
-                taintVulnerabilities = issueVisualizations.ToDictionary(x => x.IssueId!.Value, x => x);
+                taintVulnerabilities = issueVisualizations.ToDictionary(x => x.IssueId, x => x);
                 configurationScope = newConfigurationScope;
 
                 diffRemoved.AddRange(oldVulnerabilities.Values);
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 throw new ArgumentNullException(nameof(issueVisualizations));
             }
 
-            Debug.Assert(issueVisualizations.All(x => x.IssueId.HasValue));
+            Debug.Assert(issueVisualizations.All(x => x.IssueId != Guid.Empty));
 
             if (string.IsNullOrEmpty(newConfigurationScope))
             {
@@ -165,20 +165,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 throw new ArgumentNullException(nameof(taintVulnerabilitiesUpdate));
             }
 
-            Debug.Assert(taintVulnerabilitiesUpdate.Added.All(x => x.IssueId.HasValue));
-            Debug.Assert(taintVulnerabilitiesUpdate.Updated.All(x => x.IssueId.HasValue));
+            Debug.Assert(taintVulnerabilitiesUpdate.Added.All(x => x.IssueId != Guid.Empty));
+            Debug.Assert(taintVulnerabilitiesUpdate.Updated.All(x => x.IssueId != Guid.Empty));
         }
 
         private void HandleAdded(IEnumerable<IAnalysisIssueVisualization> added, List<IAnalysisIssueVisualization> diffAdded)
         {
             foreach (var addedVulnerability in added)
             {
-                if (taintVulnerabilities.ContainsKey(addedVulnerability.IssueId!.Value))
+                if (taintVulnerabilities.ContainsKey(addedVulnerability.IssueId))
                 {
                     Debug.Fail("Taint Update: attempting to add a Vulnerability with the same id that already exists");
                     continue;
                 }
-                taintVulnerabilities[addedVulnerability.IssueId!.Value] = addedVulnerability;
+                taintVulnerabilities[addedVulnerability.IssueId] = addedVulnerability;
                 diffAdded.Add(addedVulnerability);
             }
         }
@@ -192,7 +192,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 {
                     continue;
                 }
-                taintVulnerabilities[updatedVulnerability.IssueId!.Value] = updatedVulnerability;
+                taintVulnerabilities[updatedVulnerability.IssueId] = updatedVulnerability;
                 diffRemoved.Add(outdatedVulnerability);
                 diffAdded.Add(updatedVulnerability);
             }
@@ -222,7 +222,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
         private IAnalysisIssueVisualization MatchToCached(IAnalysisIssueVisualization taintVulnerability)
         {
-            if (taintVulnerabilities.TryGetValue(taintVulnerability.IssueId!.Value, out var outdatedVulnerabilityByIssueId))
+            if (taintVulnerabilities.TryGetValue(taintVulnerability.IssueId, out var outdatedVulnerabilityByIssueId))
             {
                 return outdatedVulnerabilityByIssueId;
             }
@@ -234,7 +234,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 // Taint was not found by issue id, but was found by server key
                 // This is a workaround for situations when the issue id randomly changes
                 // In this case, remove the cached non-existing one to re-align the cache with the new one
-                taintVulnerabilities.Remove(outdatedVulnerabilityByServerKey.IssueId!.Value);
+                taintVulnerabilities.Remove(outdatedVulnerabilityByServerKey.IssueId);
                 return outdatedVulnerabilityByServerKey;
             }
 

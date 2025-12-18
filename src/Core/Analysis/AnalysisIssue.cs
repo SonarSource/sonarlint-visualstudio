@@ -21,7 +21,7 @@
 namespace SonarLint.VisualStudio.Core.Analysis
 {
     public class AnalysisIssue(
-        Guid? id,
+        Guid id,
         string ruleKey,
         string issueServerKey,
         bool isResolved,
@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
         private static readonly IReadOnlyList<IAnalysisIssueFlow> EmptyFlows = [];
         private static readonly IReadOnlyList<IQuickFixBase> EmptyFixes = [];
 
-        public Guid? Id { get; } = id;
+        public Guid Id { get; } = id;
 
         public string RuleKey { get; } = ruleKey;
 
@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
     }
 
     public class AnalysisHotspotIssue(
-        Guid? id,
+        Guid id,
         string ruleKey,
         string issueServerKey,
         bool isResolved,
