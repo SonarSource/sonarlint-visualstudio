@@ -202,6 +202,20 @@ public class MuteIssuesServiceTests
     }
 
     [TestMethod]
+    public void ResolveIssueWithDialog_WhenIsTaintIssue_ShouldPassTaintFlagToChangeStatus()
+    {
+        MuteIssuePermitted();
+        MockIssueAcceptedInWindow();
+
+        testSubject.ResolveIssueWithDialog(nonRoslynIssue, isTaintIssue: true);
+
+        issueSlCoreService.Received().ChangeStatusAsync(Arg.Is<ChangeIssueStatusParams>(x =>
+            x.issueKey == AnIssueServerKey
+            && x.configurationScopeId == "CONFIG_SCOPE_ID"
+            && x.isTaintIssue));
+    }
+
+    [TestMethod]
     public void ResolveIssueWithDialog_WhenWindowResponseHasComment_ShouldAddComment()
     {
         MuteIssuePermitted();

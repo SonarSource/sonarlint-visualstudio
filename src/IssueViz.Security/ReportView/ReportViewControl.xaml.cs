@@ -241,6 +241,16 @@ internal sealed partial class ReportViewControl : UserControl
         IssuesReportViewModel.ChangeStatus(issueViewModel.Issue);
     }
 
+    private void ChangeTaintStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { DataContext: TaintViewModel taintViewModel })
+        {
+            return;
+        }
+
+        TaintsReportViewModel.ChangeStatus(taintViewModel.Issue);
+    }
+
     private void ViewTaintInBrowser_OnClick(object sender, RoutedEventArgs e)
     {
         if (ReportViewModel.SelectedItem is TaintViewModel taintViewModel)
