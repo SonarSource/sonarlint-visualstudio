@@ -173,7 +173,7 @@ public class SLCoreEmbeddedPluginJarProviderTests
     [TestMethod]
     public void ListDisabledPluginKeysForAnalysis_ReturnsCsharpAndVbNetPluginKeys()
     {
-        List<string> expectedPluginKeys = ["csharpenterprise", "vbnetenterprise"];
+        List<string> expectedPluginKeys = ["csharpenterprise", "csharp", "vbnetenterprise", "vbnet"];
 
         var result = testSubject.ListDisabledPluginKeysForAnalysis();
 
