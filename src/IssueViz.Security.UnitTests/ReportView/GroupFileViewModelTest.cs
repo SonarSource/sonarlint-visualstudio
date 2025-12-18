@@ -30,11 +30,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportVie
 public class GroupFileViewModelTest
 {
     private const string filePath = "c:\\myDir\\myFile.cs";
-    private readonly IIssueViewModel hotspotInfo = CreateMockedIssueType(IssueType.SecurityHotspot, DisplaySeverity.Info, DisplayStatus.Open, true);
-    private readonly IIssueViewModel hotspotLow = CreateMockedIssueType(IssueType.SecurityHotspot, DisplaySeverity.Low, DisplayStatus.Resolved, false);
-    private readonly IIssueViewModel taintHigh = CreateMockedIssueType(IssueType.TaintVulnerability, DisplaySeverity.High, DisplayStatus.Open, true);
-    private readonly IIssueViewModel taintMedium = CreateMockedIssueType(IssueType.TaintVulnerability, DisplaySeverity.Medium, DisplayStatus.Resolved, false);
-    private readonly IIssueViewModel taintBlocker = CreateMockedIssueType(IssueType.TaintVulnerability, DisplaySeverity.Blocker, DisplayStatus.Resolved, true);
+    private readonly IIssueViewModel hotspotInfo = CreateMockedIssue(IssueType.SecurityHotspot, DisplaySeverity.Info, DisplayStatus.Open, true);
+    private readonly IIssueViewModel hotspotLow = CreateMockedIssue(IssueType.SecurityHotspot, DisplaySeverity.Low, DisplayStatus.Resolved, false);
+    private readonly IIssueViewModel taintHigh = CreateMockedIssue(IssueType.TaintVulnerability, DisplaySeverity.High, DisplayStatus.Open, true);
+    private readonly IIssueViewModel taintMedium = CreateMockedIssue(IssueType.TaintVulnerability, DisplaySeverity.Medium, DisplayStatus.Resolved, false);
+    private readonly IIssueViewModel taintBlocker = CreateMockedIssue(IssueType.TaintVulnerability, DisplaySeverity.Blocker, DisplayStatus.Resolved, true);
     private ReportViewFilterViewModel reportViewFilterViewModel;
     private List<IIssueViewModel> allIssues;
     private PropertyChangedEventHandler eventHandler;
@@ -299,7 +299,44 @@ public class GroupFileViewModelTest
         ReceivedEvent(nameof(testSubject.IsExpanded));
     }
 
-    private static IIssueViewModel CreateMockedIssueType(
+    [TestMethod]
+    public void ApplyFilter_SortsFilteredIssuesBySeverityLineAndColumn()
+    {
+        var sortedIssues = new List<IIssueViewModel>
+        {
+            CreateMockedIssue(DisplaySeverity.Blocker, null, null),
+            CreateMockedIssue(DisplaySeverity.Blocker, 1, 1),
+            CreateMockedIssue(DisplaySeverity.Blocker, 1, 2),
+            CreateMockedIssue(DisplaySeverity.Medium, 1, 1),
+            CreateMockedIssue(DisplaySeverity.Info, 1, 2),
+            CreateMockedIssue(DisplaySeverity.Info, 10, 1),
+        };
+
+        testSubject.AllIssues.Clear();
+        testSubject.AllIssues.Add(sortedIssues[2]);
+        testSubject.AllIssues.Add(sortedIssues[3]);
+        testSubject.AllIssues.Add(sortedIssues[1]);
+        testSubject.AllIssues.Add(sortedIssues[5]);
+        testSubject.AllIssues.Add(sortedIssues[0]);
+        testSubject.AllIssues.Add(sortedIssues[4]);
+        testSubject.ApplyFilter(reportViewFilterViewModel);
+
+        testSubject.FilteredIssues.Should().BeEquivalentTo(sortedIssues, options => options.WithStrictOrdering());
+    }
+
+    private static IIssueViewModel CreateMockedIssue(
+        DisplaySeverity severity,
+        int? line,
+        int? column)
+    {
+        var mockIssue = Substitute.For<IIssueViewModel>();
+        mockIssue.DisplaySeverity.Returns(severity);
+        mockIssue.Line.Returns(line);
+        mockIssue.Column.Returns(column);
+        return mockIssue;
+    }
+
+    private static IIssueViewModel CreateMockedIssue(
         IssueType issueType,
         DisplaySeverity severity,
         DisplayStatus status,

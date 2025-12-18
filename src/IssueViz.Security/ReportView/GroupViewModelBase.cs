@@ -56,7 +56,11 @@ internal abstract class GroupViewModelBase(string title, string filePath) : View
         issuesToShow.ToList().ForEach(issue => FilteredIssues.Add(issue));
     }
 
-    private static IEnumerable<IIssueViewModel> OrderIssues(IEnumerable<IIssueViewModel> issuesToShow) => issuesToShow.OrderByDescending(vm => vm.DisplaySeverity, DisplaySeverityComparer.Instance);
+    private static IEnumerable<IIssueViewModel> OrderIssues(IEnumerable<IIssueViewModel> issuesToShow) =>
+        issuesToShow
+            .OrderByDescending(vm => vm.DisplaySeverity, DisplaySeverityComparer.Instance)
+            .ThenBy(vm => vm.Line)
+            .ThenBy(vm => vm.Column);
 
     private static IEnumerable<IIssueViewModel> PreFilter(ReportViewFilterViewModel reportViewFilter, IEnumerable<IIssueViewModel> issuesToShow)
     {
