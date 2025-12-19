@@ -320,6 +320,8 @@ internal sealed class SonarErrorListDataSource :
     private void InternalRefreshAffectedFiles(IEnumerable<string> affectedFilePaths, bool notifyListeners)
     {
         var affectedSnapshotFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var addedIssues = new List<IAnalysisIssueVisualization>();
+        var removedIssues = new List<IAnalysisIssueVisualization>();
         lock (sinks)
         {
             foreach (var factory in factories)
@@ -330,6 +332,8 @@ internal sealed class SonarErrorListDataSource :
                 if (isSnapshotAffected)
                 {
                     factory.UpdateSnapshot(factory.CurrentSnapshot.GetUpdatedSnapshot());
+                    removedIssues.AddRange(oldSnapshot.Issues);
+                    addedIssues.AddRange(factory.CurrentSnapshot.Issues);
                     InternalRefreshErrorList(factory);
 
                     if (notifyListeners)
@@ -360,6 +364,10 @@ internal sealed class SonarErrorListDataSource :
         if (notifyListeners && affectedSnapshotFiles.Count > 0)
         {
             NotifyIssuesChanged(affectedSnapshotFiles);
+        }
+        if (removedIssues.Count > 0 || addedIssues.Count > 0)
+        {
+            NotifyIssueStoreIssuesChanged(removedIssues.ToArray(), addedIssues.ToArray());
         }
     }
 

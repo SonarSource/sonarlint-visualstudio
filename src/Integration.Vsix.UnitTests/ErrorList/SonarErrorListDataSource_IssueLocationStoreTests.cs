@@ -399,6 +399,95 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         }
 
         [TestMethod]
+        public void Refresh_AffectedFactory_RaisesIssueStoreIssuesChangedWithCorrectIssues()
+            => RefreshImpl_AffectedFactory_RaisesIssueStoreIssuesChangedWithCorrectIssues(CallRefresh);
+
+        [TestMethod]
+        public void RefreshOnBufferChanged_AffectedFactory_RaisesIssueStoreIssuesChangedWithCorrectIssues()
+            => RefreshImpl_AffectedFactory_RaisesIssueStoreIssuesChangedWithCorrectIssues(
+                (testSubject, filePath) => testSubject.RefreshOnBufferChanged(filePath));
+
+        private static void RefreshImpl_AffectedFactory_RaisesIssueStoreIssuesChangedWithCorrectIssues(RefreshImplTestOperation testOp)
+        {
+            var testSubject = CreateTestSubject();
+
+            var oldIssue = Substitute.For<IAnalysisIssueVisualization>();
+            var newIssue = Substitute.For<IAnalysisIssueVisualization>();
+            var factory = CreateFactoryWithOldAndNewIssues("match.txt", [oldIssue], [newIssue]);
+            testSubject.AddFactory(factory);
+
+            var issueStoreEventHandler = AddIssueStoreEventHandler(testSubject);
+
+            testOp(testSubject, "match.txt");
+
+            issueStoreEventHandler.Received(1).Invoke(
+                Arg.Any<object>(),
+                Arg.Is<IssueVisualization.Security.IssuesStore.IssuesChangedEventArgs>(x =>
+                    x.RemovedIssues.Contains(oldIssue) &&
+                    x.AddedIssues.Contains(newIssue)));
+        }
+
+        [TestMethod]
+        public void Refresh_OnlyAffectedFactoriesContributeToEvent()
+            => RefreshImpl_OnlyAffectedFactoriesContributeToEvent(CallRefresh);
+
+        [TestMethod]
+        public void RefreshOnBufferChanged_OnlyAffectedFactoriesContributeToEvent()
+            => RefreshImpl_OnlyAffectedFactoriesContributeToEvent(
+                (testSubject, filePath) => testSubject.RefreshOnBufferChanged(filePath));
+
+        private static void RefreshImpl_OnlyAffectedFactoriesContributeToEvent(RefreshImplTestOperation testOp)
+        {
+            var testSubject = CreateTestSubject();
+
+            var affectedOldIssue = Substitute.For<IAnalysisIssueVisualization>();
+            var affectedNewIssue = Substitute.For<IAnalysisIssueVisualization>();
+            var unaffectedIssue = Substitute.For<IAnalysisIssueVisualization>();
+
+            var affectedFactory = CreateFactoryWithOldAndNewIssues("match.txt", [affectedOldIssue], [affectedNewIssue]);
+            var unaffectedFactory = CreateFactoryWithOldAndNewIssues("other.txt", [unaffectedIssue], [unaffectedIssue]);
+
+            testSubject.AddFactory(affectedFactory);
+            testSubject.AddFactory(unaffectedFactory);
+
+            var issueStoreEventHandler = AddIssueStoreEventHandler(testSubject);
+
+            testOp(testSubject, "match.txt");
+
+            issueStoreEventHandler.Received(1).Invoke(
+                Arg.Any<object>(),
+                Arg.Is<IssueVisualization.Security.IssuesStore.IssuesChangedEventArgs>(x =>
+                    x.RemovedIssues.Contains(affectedOldIssue) &&
+                    x.AddedIssues.Contains(affectedNewIssue) &&
+                    !x.RemovedIssues.Contains(unaffectedIssue) &&
+                    !x.AddedIssues.Contains(unaffectedIssue)));
+        }
+
+        [TestMethod]
+        public void Refresh_NoAffectedFactories_DoesNotRaiseEvent()
+            => RefreshImpl_NoAffectedFactories_DoesNotRaiseEvent(CallRefresh);
+
+        [TestMethod]
+        public void RefreshOnBufferChanged_NoAffectedFactories_DoesNotRaiseEvent()
+            => RefreshImpl_NoAffectedFactories_DoesNotRaiseEvent(
+                (testSubject, filePath) => testSubject.RefreshOnBufferChanged(filePath));
+
+        private static void RefreshImpl_NoAffectedFactories_DoesNotRaiseEvent(RefreshImplTestOperation testOp)
+        {
+            var testSubject = CreateTestSubject();
+
+            var existingIssue = Substitute.For<IAnalysisIssueVisualization>();
+            var unaffectedFactory = CreateFactoryWithOldAndNewIssues("other.txt", [existingIssue], [existingIssue]);
+            testSubject.AddFactory(unaffectedFactory);
+
+            var issueStoreEventHandler = AddIssueStoreEventHandler(testSubject);
+
+            testOp(testSubject, "nomatch.txt");
+
+            issueStoreEventHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
+        }
+
+        [TestMethod]
         public void Contains_NullArg_Throws()
         {
             var testSubject = CreateTestSubject();
@@ -491,6 +580,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 
             var snapshotFactory = new Mock<IIssuesSnapshotFactory>();
             snapshotFactory.Setup(x => x.CurrentSnapshot).Returns(snapshotMock);
+
+            return snapshotFactory.Object;
+        }
+
+        private static IIssuesSnapshotFactory CreateFactoryWithOldAndNewIssues(
+            string filePath,
+            IAnalysisIssueVisualization[] oldIssues,
+            IAnalysisIssueVisualization[] newIssues)
+        {
+            var oldSnapshot = Substitute.For<IIssuesSnapshot>();
+            oldSnapshot.FilesInSnapshot.Returns([filePath]);
+            oldSnapshot.Issues.Returns(oldIssues);
+
+            var newSnapshot = Substitute.For<IIssuesSnapshot>();
+            newSnapshot.FilesInSnapshot.Returns([filePath]);
+            newSnapshot.Issues.Returns(newIssues);
+
+            oldSnapshot.GetUpdatedSnapshot().Returns(newSnapshot);
+
+            var snapshotFactory = new Mock<IIssuesSnapshotFactory>();
+            snapshotFactory.SetupGet(x => x.CurrentSnapshot).Returns(oldSnapshot);
+            snapshotFactory
+                .Setup(x => x.UpdateSnapshot(newSnapshot))
+                .Callback(() => snapshotFactory.SetupGet(x => x.CurrentSnapshot).Returns(newSnapshot));
 
             return snapshotFactory.Object;
         }
