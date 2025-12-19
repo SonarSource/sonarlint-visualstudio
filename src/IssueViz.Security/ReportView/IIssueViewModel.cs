@@ -25,11 +25,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
 public interface IIssueViewModel
 {
+    Guid Id { get; }
     int? Line { get; }
     int? Column { get; }
     string Title { get; }
     string FilePath { get; }
-    RuleInfoViewModel RuleInfo { get; }
+    string RuleId { get; }
     DisplaySeverity DisplaySeverity { get; }
     IssueType IssueType { get; }
     DisplayStatus Status { get; }

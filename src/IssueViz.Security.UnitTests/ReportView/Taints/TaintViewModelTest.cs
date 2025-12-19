@@ -1,4 +1,5 @@
-﻿using SonarLint.VisualStudio.Core.Analysis;
+﻿using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
@@ -23,8 +24,8 @@ public class TaintViewModelTest
         var testSubject = new TaintViewModel(analysisIssueVisualization);
 
         testSubject.TaintIssue.Should().Be(analysisIssueVisualization.Issue);
-        testSubject.RuleInfo.RuleKey.Should().Be(analysisIssueVisualization.RuleId);
-        testSubject.RuleInfo.IssueId.Should().Be(analysisIssueVisualization.IssueId);
+        testSubject.RuleId.Should().Be(analysisIssueVisualization.SonarRuleId.Id);
+        testSubject.Id.Should().Be(analysisIssueVisualization.IssueId);
         testSubject.Line.Should().Be(analysisIssueVisualization.Issue.PrimaryLocation.TextRange.StartLine);
         testSubject.Column.Should().Be(analysisIssueVisualization.Issue.PrimaryLocation.TextRange.StartLineOffset);
         testSubject.Title.Should().Be(analysisIssueVisualization.Issue.PrimaryLocation.Message);
@@ -115,7 +116,8 @@ public class TaintViewModelTest
         string filePath)
     {
         var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
-        analysisIssueVisualization.RuleId.Returns(ruleId);
+        SonarCompositeRuleId.TryParse(ruleId, out var sonarRuleId).Should().BeTrue();
+        analysisIssueVisualization.SonarRuleId.Returns(sonarRuleId);
         analysisIssueVisualization.IssueId.Returns(issueId);
 
         var analysisIssueBase = Substitute.For<ITaintIssue>();

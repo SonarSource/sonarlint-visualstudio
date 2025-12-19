@@ -42,7 +42,7 @@ internal interface ITaintsReportViewModel : IDisposable
 
     IEnumerable<IIssueViewModel> GetIssueViewModels();
 
-    event EventHandler<IssuesChangedEventArgs> IssuesChanged;
+    event EventHandler<ViewModelAnalysisIssuesChangedEventArgs> IssuesChanged;
 }
 
 [Export(typeof(ITaintsReportViewModel))]
@@ -67,5 +67,7 @@ internal sealed class TaintsReportViewModel(
 
     public void ChangeStatus(IAnalysisIssueVisualization issue) => muteIssuesService.ResolveIssueWithDialog(issue, isTaintIssue: true);
 
-    public IEnumerable<IIssueViewModel> GetIssueViewModels() => taintsStore.GetAll().Select(x => new TaintViewModel(x));
+    public IEnumerable<IIssueViewModel> GetIssueViewModels() => taintsStore.GetAll().Select(CreateViewModel);
+
+    protected override IIssueViewModel CreateViewModel(IAnalysisIssueVisualization issue) => new TaintViewModel(issue);
 }

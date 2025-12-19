@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
@@ -93,15 +94,23 @@ public class TaintsReportViewModelTest
     [TestMethod]
     public void HotspotsChanged_RaisedOnStoreIssuesChanged()
     {
-        var eventHandler = Substitute.For<EventHandler<IssuesChangedEventArgs>>();
+        var eventHandler = Substitute.For<EventHandler<ViewModelAnalysisIssuesChangedEventArgs>>();
         testSubject.IssuesChanged += eventHandler;
+        var addedIssue = CreateMockedTaint("addedFile.cs");
+        var removedIssue = CreateMockedTaint("removedFile.cs");
+        var removedId = removedIssue.IssueId;
+        var eventArgs = new IssuesChangedEventArgs([removedIssue], [addedIssue]);
 
-        localTaintsStore.IssuesChanged += Raise.Event<EventHandler<IssuesChangedEventArgs>>(null, null);
+        localTaintsStore.IssuesChanged += Raise.Event<EventHandler<IssuesChangedEventArgs>>(null, eventArgs);
 
         Received.InOrder(() =>
         {
             threadHandling.RunOnUIThread(Arg.Any<Action>());
-            eventHandler.Invoke(Arg.Any<object>(), Arg.Any<IssuesChangedEventArgs>());
+            eventHandler.Invoke(Arg.Any<object>(), Arg.Is<ViewModelAnalysisIssuesChangedEventArgs>(args =>
+                args.AddedIssues.Count == 1
+                && args.RemovedIssues.Count == 1
+                && args.AddedIssues.OfType<IAnalysisIssueViewModel>().Single().Issue == addedIssue
+                && args.RemovedIssues.Single() == removedId));
         });
     }
 

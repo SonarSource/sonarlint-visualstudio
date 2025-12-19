@@ -301,18 +301,19 @@
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
                 <Setter Property="IsEnabled" Value="{Binding ReportViewFilter.SelectedNewCodeFilterSupported}" />
                 <Setter Property="IsChecked" Value="{Binding ReportViewFilter.SelectedNewCodeFilter, Mode=TwoWay}" />
-                <Setter Property="ToolTip" Value="{x:Static res:Resources.FocusOnNewCodeTooltipGeneric}"/>
-                <Setter Property="Content" Value="{x:Static res:Resources.FocusOnNewCodeText}"/>
+                <Setter Property="ToolTip" Value="{x:Static res:Resources.FocusOnNewCodeTooltipGeneric}" />
+                <Setter Property="Content" Value="{x:Static res:Resources.FocusOnNewCodeText}" />
                 <Style.Triggers>
                     <Trigger Property="IsEnabled" Value="False">
                         <Setter Property="Opacity" Value="0.5" />
                     </Trigger>
                     <MultiDataTrigger>
                         <MultiDataTrigger.Conditions>
-                            <Condition Binding="{Binding ReportViewFilter.SelectedNewCodeFilterSupported}" Value="False" />
+                            <Condition Binding="{Binding ReportViewFilter.SelectedNewCodeFilterSupported}"
+                                       Value="False" />
                             <Condition Binding="{Binding IsConnectedMode}" Value="True" />
                         </MultiDataTrigger.Conditions>
-                        <Setter Property="ToolTip" Value="{x:Static res:Resources.FocusOnNewCodeTooltipNotSupported}"/>
+                        <Setter Property="ToolTip" Value="{x:Static res:Resources.FocusOnNewCodeTooltipNotSupported}" />
                     </MultiDataTrigger>
                     <MultiDataTrigger>
                         <MultiDataTrigger.Conditions>
@@ -320,7 +321,7 @@
                             <Condition Binding="{Binding IsConnectedMode}" Value="True" />
                             <Condition Binding="{Binding IsCloud}" Value="True" />
                         </MultiDataTrigger.Conditions>
-                        <Setter Property="ToolTip" Value="{x:Static res:Resources.FocusOnNewCodeTooltipConnectedCloud}"/>
+                        <Setter Property="ToolTip" Value="{x:Static res:Resources.FocusOnNewCodeTooltipConnectedCloud}" />
                     </MultiDataTrigger>
                     <MultiDataTrigger>
                         <MultiDataTrigger.Conditions>
@@ -328,7 +329,8 @@
                             <Condition Binding="{Binding IsConnectedMode}" Value="True" />
                             <Condition Binding="{Binding IsCloud}" Value="False" />
                         </MultiDataTrigger.Conditions>
-                        <Setter Property="ToolTip" Value="{x:Static res:Resources.FocusOnNewCodeTooltipConnectedServer}"/>
+                        <Setter Property="ToolTip"
+                                Value="{x:Static res:Resources.FocusOnNewCodeTooltipConnectedServer}" />
                     </MultiDataTrigger>
                 </Style.Triggers>
             </Style>
@@ -949,11 +951,11 @@
                                 <Hyperlink.CommandParameter>
                                     <MultiBinding
                                         Converter="{StaticResource NavigateToRuleDescriptionCommandConverter}">
-                                        <Binding Path=".RuleInfo.RuleKey" />
-                                        <Binding Path=".RuleInfo.IssueId" />
+                                        <Binding Path=".RuleId" />
+                                        <Binding Path=".Id" />
                                     </MultiBinding>
                                 </Hyperlink.CommandParameter>
-                                <TextBlock Text="{Binding RuleInfo.RuleKey}"
+                                <TextBlock Text="{Binding .RuleId}"
                                            Style="{StaticResource CellTextBlockStyle}" />
                             </Hyperlink>
                         </TextBlock>
@@ -997,11 +999,11 @@
                                 <Hyperlink.CommandParameter>
                                     <MultiBinding
                                         Converter="{StaticResource NavigateToRuleDescriptionCommandConverter}">
-                                        <Binding Path=".RuleInfo.RuleKey" />
-                                        <Binding Path=".RuleInfo.IssueId" />
+                                        <Binding Path=".RuleId" />
+                                        <Binding Path=".Id" />
                                     </MultiBinding>
                                 </Hyperlink.CommandParameter>
-                                <TextBlock Text="{Binding RuleInfo.RuleKey}"
+                                <TextBlock Text="{Binding .RuleId}"
                                            Style="{StaticResource CellTextBlockStyle}" />
                             </Hyperlink>
                         </TextBlock>
@@ -1045,11 +1047,11 @@
                                 <Hyperlink.CommandParameter>
                                     <MultiBinding
                                         Converter="{StaticResource NavigateToRuleDescriptionCommandConverter}">
-                                        <Binding Path=".RuleInfo.RuleKey" />
-                                        <Binding Path=".RuleInfo.IssueId" />
+                                        <Binding Path=".RuleId" />
+                                        <Binding Path=".Id" />
                                     </MultiBinding>
                                 </Hyperlink.CommandParameter>
-                                <TextBlock Text="{Binding RuleInfo.RuleKey}"
+                                <TextBlock Text="{Binding .RuleId}"
                                            Style="{StaticResource CellTextBlockStyle}" />
                             </Hyperlink>
                         </TextBlock>

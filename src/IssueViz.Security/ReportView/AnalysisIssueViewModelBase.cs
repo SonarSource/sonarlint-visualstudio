@@ -25,24 +25,19 @@ using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-internal abstract class AnalysisIssueViewModelBase : ViewModelBase, IAnalysisIssueViewModel
+internal abstract class AnalysisIssueViewModelBase(IAnalysisIssueVisualization analysisIssueVisualization) : ViewModelBase, IAnalysisIssueViewModel
 {
-    protected AnalysisIssueViewModelBase(IAnalysisIssueVisualization analysisIssueVisualization)
-    {
-        Issue = analysisIssueVisualization;
-        RuleInfo = new RuleInfoViewModel(Issue.RuleId, Issue.IssueId);
-    }
-
+    public Guid Id => Issue.IssueId;
     public int? Line => Issue.Issue.PrimaryLocation.TextRange.StartLine;
     public int? Column => Issue.Issue.PrimaryLocation.TextRange.StartLineOffset;
     public string Title => Issue.Issue.PrimaryLocation.Message;
     public string FilePath => Issue.Issue.PrimaryLocation.FilePath;
-    public RuleInfoViewModel RuleInfo { get; }
+    public string RuleId => Issue.SonarRuleId.Id;
     public abstract DisplaySeverity DisplaySeverity { get; }
     public abstract IssueType IssueType { get; }
     public abstract DisplayStatus Status { get; }
     public bool IsOnNewCode => Issue.IsOnNewCode;
-    public IAnalysisIssueVisualization Issue { get; }
+    public IAnalysisIssueVisualization Issue { get; } = analysisIssueVisualization;
 
     public bool HasSecondaryLocations => Issue.Flows?.Any(x => x.Locations?.Any() ?? false) ?? false;
 

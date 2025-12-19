@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
@@ -42,8 +43,8 @@ public class AnalysisIssueViewModelBaseTest
         var testSubject = CreateTestSubject(analysisIssueVisualization);
 
         testSubject.Issue.Should().Be(analysisIssueVisualization);
-        testSubject.RuleInfo.RuleKey.Should().Be(analysisIssueVisualization.RuleId);
-        testSubject.RuleInfo.IssueId.Should().Be(analysisIssueVisualization.IssueId);
+        testSubject.RuleId.Should().Be(analysisIssueVisualization.SonarRuleId.Id);
+        testSubject.Id.Should().Be(analysisIssueVisualization.IssueId);
         testSubject.Line.Should().Be(analysisIssueVisualization.Issue.PrimaryLocation.TextRange.StartLine);
         testSubject.Column.Should().Be(analysisIssueVisualization.Issue.PrimaryLocation.TextRange.StartLineOffset);
         testSubject.Title.Should().Be(analysisIssueVisualization.Issue.PrimaryLocation.Message);
@@ -108,7 +109,8 @@ public class AnalysisIssueViewModelBaseTest
         string filePath)
     {
         var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
-        analysisIssueVisualization.RuleId.Returns(ruleId);
+        SonarCompositeRuleId.TryParse(ruleId, out var sonarRuleId).Should().BeTrue();
+        analysisIssueVisualization.SonarRuleId.Returns(sonarRuleId);
         analysisIssueVisualization.IssueId.Returns(issueId);
 
         var analysisIssueBase = Substitute.For<IAnalysisIssueBase>();
