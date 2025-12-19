@@ -27,7 +27,7 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView;
 
 [TestClass]
-public class GroupFileViewModelTest
+public class GroupFileViewModelTests
 {
     private const string filePath = "c:\\myDir\\myFile.cs";
     private readonly IIssueViewModel hotspotInfo = CreateMockedIssue(IssueType.SecurityHotspot, DisplaySeverity.Info, DisplayStatus.Open, true);

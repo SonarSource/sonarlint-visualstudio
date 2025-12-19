@@ -107,41 +107,32 @@ public class DependencyRisksReportViewModelTest
     }
 
     [TestMethod]
-    public void GetDependencyRisksGroup_ReturnsGroup_WhenNotFixedRisksExist()
+    public void GetDependencyRiskViewModels_ReturnsNonFixed_WhenNotFixedRisksExist()
     {
         var risk1 = CreateDependencyRisk();
         var risk2 = CreateDependencyRisk(isFixed: true);
         var risk3 = CreateDependencyRisk();
         dependencyRisksStore.GetAll().Returns([risk1, risk2, risk3]);
 
-        var group = testSubject.GetDependencyRisksGroup();
-
-        group.Should().NotBeNull();
-        group.AllIssues.Should().HaveCount(2);
-        group.AllIssues.Should().AllBeOfType<DependencyRiskViewModel>();
-        group.AllIssues.Cast<DependencyRiskViewModel>().Select(vm => vm.DependencyRisk).Should().Contain([risk1, risk3]);
+        testSubject.GetDependencyRiskViewModels().Cast<DependencyRiskViewModel>().Select(x => x.DependencyRisk).Should().BeEquivalentTo([risk1, risk3]);
     }
 
     [TestMethod]
-    public void GetDependencyRisksGroup_ReturnsNull_WhenAllRisksAreFixed()
+    public void GetDependencyRiskViewModels_ReturnsEmpty_WhenAllRisksAreFixed()
     {
         var fixedRisk = CreateDependencyRisk(isFixed: true);
         var fixedRisk2 = CreateDependencyRisk(isFixed: true);
         dependencyRisksStore.GetAll().Returns([fixedRisk, fixedRisk2]);
 
-        var group = testSubject.GetDependencyRisksGroup();
-
-        group.Should().BeNull();
+        testSubject.GetDependencyRiskViewModels().Should().BeEmpty();
     }
 
     [TestMethod]
-    public void GetDependencyRisksGroup_ReturnsNull_WhenNoRisks()
+    public void GetDependencyRiskViewModels_ReturnsEmpty_WhenNoRisks()
     {
         dependencyRisksStore.GetAll().Returns([]);
 
-        var group = testSubject.GetDependencyRisksGroup();
-
-        group.Should().BeNull();
+        testSubject.GetDependencyRiskViewModels().Should().BeEmpty();
     }
 
     [TestMethod]

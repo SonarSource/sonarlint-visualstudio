@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.ObjectModel;
-using System.IO;
-
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-internal sealed class GroupFileViewModel(string filePath, List<IIssueViewModel> issues) : GroupViewModelBase(Path.GetFileName(filePath), filePath, issues);
+internal sealed class SolutionFindingsGroupViewModel() : GroupViewModelBase(Resources.SolutionFindingsGroupTitle, null, []);

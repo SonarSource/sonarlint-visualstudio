@@ -242,7 +242,7 @@ Please check the logs for more details.</value>
   <data name="ReportViewToolWindowCaption" xml:space="preserve">
     <value>SonarQube Report</value>
   </data>
-  <data name="DependencyRisksGroupTitle" xml:space="preserve">
+  <data name="SolutionFindingsGroupTitle" xml:space="preserve">
     <value>Solution findings</value>
   </data>
   <data name="DisplaySeverityTooltip" xml:space="preserve">

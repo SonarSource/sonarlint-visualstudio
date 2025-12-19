@@ -249,15 +249,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Solution findings.
-        /// </summary>
-        public static string DependencyRisksGroupTitle {
-            get {
-                return ResourceManager.GetString("DependencyRisksGroupTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Dependency Risk.
         /// </summary>
         public static string DependencyRiskSingular {
@@ -905,6 +896,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string ShowIssueVisualizationMenuItemHeader {
             get {
                 return ResourceManager.GetString("ShowIssueVisualizationMenuItemHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Solution findings.
+        /// </summary>
+        public static string SolutionFindingsGroupTitle {
+            get {
+                return ResourceManager.GetString("SolutionFindingsGroupTitle", resourceCulture);
             }
         }
         

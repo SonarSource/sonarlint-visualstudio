@@ -18,9 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.ObjectModel;
-using System.IO;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView;
 
-internal sealed class GroupFileViewModel(string filePath, List<IIssueViewModel> issues) : GroupViewModelBase(Path.GetFileName(filePath), filePath, issues);
+[TestClass]
+public class SolutionFindingsViewModelTests
+{
+    private SolutionFindingsGroupViewModel testSubject;
+
+    [TestInitialize]
+    public void Initialize() => testSubject = new();
+
+    [TestMethod]
+    public void InheritsFromGroupBase() => testSubject.Should().BeAssignableTo<GroupViewModelBase>(); // effectively the same tests as GroupFileViewModelTests.cs
+
+    [TestMethod]
+    public void SolutionLevelSpecificDisplayPropertiesAreSet()
+    {
+        testSubject.FilePath.Should().BeNull();
+        testSubject.Title.Should().Be(Resources.SolutionFindingsGroupTitle);
+    }
+}

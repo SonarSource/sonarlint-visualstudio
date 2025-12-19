@@ -28,13 +28,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 
 internal interface IDependencyRisksReportViewModel : IDisposable
 {
-    IGroupViewModel GetDependencyRisksGroup();
-
     Task ChangeDependencyRiskStatusAsync(IDependencyRisk dependencyRisk, DependencyRiskTransition? selectedTransition, string getNormalizedComment);
 
     void ShowDependencyRiskInBrowser(IDependencyRisk dependencyRisk);
 
     event EventHandler DependencyRisksChanged;
+
+    IEnumerable<IIssueViewModel> GetDependencyRiskViewModels();
 }
 
 [Export(typeof(IDependencyRisksReportViewModel))]
@@ -67,12 +67,7 @@ internal sealed class DependencyRisksReportViewModel : IDependencyRisksReportVie
 
     public event EventHandler DependencyRisksChanged;
 
-    public IGroupViewModel GetDependencyRisksGroup()
-    {
-        var groupDependencyRisk = new GroupDependencyRiskViewModel(dependencyRisksStore);
-        groupDependencyRisk.InitializeRisks();
-        return groupDependencyRisk.AllIssues.Any() ? groupDependencyRisk : null;
-    }
+    public IEnumerable<IIssueViewModel> GetDependencyRiskViewModels() => dependencyRisksStore.GetAll().Where(x => x.Status != DependencyRiskStatus.Fixed).Select(x => new DependencyRiskViewModel(x));
 
     public async Task ChangeDependencyRiskStatusAsync(IDependencyRisk dependencyRisk, DependencyRiskTransition? selectedTransition, string getNormalizedComment)
     {

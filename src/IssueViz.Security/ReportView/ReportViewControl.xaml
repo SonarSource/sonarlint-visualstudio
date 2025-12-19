@@ -787,7 +787,7 @@
             ScrollViewer.CanContentScroll="True">
             <!-- Top-level TreeViewItem-s are expandable, so we set ItemContainerStyle="{StaticResource ExpandableTreeViewItemStyle}"-->
             <TreeView.Resources>
-                <HierarchicalDataTemplate DataType="{x:Type dependencyRisks:GroupDependencyRiskViewModel}"
+                <HierarchicalDataTemplate DataType="{x:Type reportView:SolutionFindingsGroupViewModel}"
                                           ItemsSource="{Binding FilteredIssues}"
                                           ItemContainerStyle="{StaticResource NonExpandableTreeViewItemStyle}">
                     <!-- Children of this group are individual issues so we set ItemContainerStyle="{StaticResource NonExpandableTreeViewItemStyle}"-->
