@@ -23,229 +23,191 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint;
+
+[Export(typeof(ITaintStore))]
+[Export(typeof(IIssuesStore))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal sealed class TaintStore : ITaintStore
 {
-    public interface ITaintStore : IIssuesStore
+    public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
+
+    private readonly object locker = new();
+
+    private string configurationScope;
+    private Dictionary<Guid, IAnalysisIssueVisualization> taintVulnerabilities = new();
+
+    public string ConfigurationScope
     {
-        /// <summary>
-        /// Removes all existing visualizations and initializes the store to the given collection & configuration scope.
-        /// Can be called multiple times.
-        /// </summary>
-        void Set(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope);
-
-        /// <summary>
-        /// Removes all existing visualizations and resets the configurations scope.
-        /// Can be called multiple times.
-        /// </summary>
-        void Reset();
-
-        /// <summary>
-        /// Returns current configuration scope id. Null if store is Reset
-        /// </summary>
-        string ConfigurationScope { get; }
-
-        /// <summary>
-        /// Applies updates to current store. If store is Reset or configuration scope is different, update is ignored.
-        /// </summary>
-        void Update(TaintVulnerabilitiesUpdate taintVulnerabilitiesUpdate);
-    }
-
-    public class TaintVulnerabilitiesUpdate(
-        string configurationScope,
-        IEnumerable<IAnalysisIssueVisualization> added,
-        IEnumerable<IAnalysisIssueVisualization> updated,
-        IEnumerable<Guid> closed)
-    {
-        public string ConfigurationScope { get; } = !string.IsNullOrEmpty(configurationScope) ? configurationScope : throw new ArgumentNullException(nameof(configurationScope));
-        public IEnumerable<IAnalysisIssueVisualization> Added { get; } = added ?? throw new ArgumentNullException(nameof(added));
-        public IEnumerable<IAnalysisIssueVisualization> Updated { get; } = updated ?? throw new ArgumentNullException(nameof(updated));
-        public IEnumerable<Guid> Closed { get; } = closed ?? throw new ArgumentNullException(nameof(closed));
-    }
-
-    [Export(typeof(ITaintStore))]
-    [Export(typeof(IIssuesStore))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class TaintStore : ITaintStore
-    {
-        public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
-
-        private readonly object locker = new();
-
-        private string configurationScope;
-        private Dictionary<Guid, IAnalysisIssueVisualization> taintVulnerabilities = new();
-
-        public string ConfigurationScope
-        {
-            get
-            {
-                lock (locker)
-                {
-                    return configurationScope;
-                }
-            }
-        }
-
-        public IReadOnlyCollection<IAnalysisIssueVisualization> GetAll()
+        get
         {
             lock (locker)
             {
-                return taintVulnerabilities.Values.ToList();
+                return configurationScope;
             }
         }
+    }
 
-        public void Reset() => SetInternal([], null);
-
-        public void Set(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope)
+    public IReadOnlyCollection<IAnalysisIssueVisualization> GetAll()
+    {
+        lock (locker)
         {
-            ValidateSet(issueVisualizations, newConfigurationScope);
-            SetInternal(issueVisualizations, newConfigurationScope);
+            return taintVulnerabilities.Values.ToList();
+        }
+    }
+
+    public void Reset() => SetInternal([], null);
+
+    public void Set(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope)
+    {
+        ValidateSet(issueVisualizations, newConfigurationScope);
+        SetInternal(issueVisualizations, newConfigurationScope);
+    }
+
+    private void SetInternal(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope)
+    {
+        List<IAnalysisIssueVisualization> diffRemoved = [];
+        List<IAnalysisIssueVisualization> diffAdded = [];
+
+        lock (locker)
+        {
+            var oldVulnerabilities = taintVulnerabilities;
+            taintVulnerabilities = issueVisualizations.ToDictionary(x => x.IssueId, x => x);
+            configurationScope = newConfigurationScope;
+
+            diffRemoved.AddRange(oldVulnerabilities.Values);
+            diffAdded.AddRange(taintVulnerabilities.Values);
         }
 
-        private void SetInternal(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope)
-        {
-            List<IAnalysisIssueVisualization> diffRemoved = [];
-            List<IAnalysisIssueVisualization> diffAdded = [];
+        NotifyIssuesChanged(diffRemoved, diffAdded);
+    }
 
-            lock (locker)
+    private static void ValidateSet(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope)
+    {
+        if (issueVisualizations == null)
+        {
+            throw new ArgumentNullException(nameof(issueVisualizations));
+        }
+
+        Debug.Assert(issueVisualizations.All(x => x.IssueId != Guid.Empty));
+
+        if (string.IsNullOrEmpty(newConfigurationScope))
+        {
+            throw new ArgumentNullException(nameof(newConfigurationScope));
+        }
+    }
+
+    public void Update(TaintVulnerabilitiesUpdate taintVulnerabilitiesUpdate)
+    {
+        ValidateUpdate(taintVulnerabilitiesUpdate);
+
+        List<IAnalysisIssueVisualization> diffRemoved = [];
+        List<IAnalysisIssueVisualization> diffAdded = [];
+        lock (locker)
+        {
+            if (taintVulnerabilitiesUpdate.ConfigurationScope != configurationScope)
             {
-                var oldVulnerabilities = taintVulnerabilities;
-                taintVulnerabilities = issueVisualizations.ToDictionary(x => x.IssueId, x => x);
-                configurationScope = newConfigurationScope;
-
-                diffRemoved.AddRange(oldVulnerabilities.Values);
-                diffAdded.AddRange(taintVulnerabilities.Values);
+                return;
             }
 
+            HandleClosed(taintVulnerabilitiesUpdate.Closed, diffRemoved);
+            HandleUpdated(taintVulnerabilitiesUpdate.Updated, diffRemoved, diffAdded);
+            HandleAdded(taintVulnerabilitiesUpdate.Added, diffAdded);
+        }
+
+        if (diffRemoved.Count != 0 || diffAdded.Count != 0)
+        {
             NotifyIssuesChanged(diffRemoved, diffAdded);
         }
-
-        private static void ValidateSet(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope)
-        {
-            if (issueVisualizations == null)
-            {
-                throw new ArgumentNullException(nameof(issueVisualizations));
-            }
-
-            Debug.Assert(issueVisualizations.All(x => x.IssueId != Guid.Empty));
-
-            if (string.IsNullOrEmpty(newConfigurationScope))
-            {
-                throw new ArgumentNullException(nameof(newConfigurationScope));
-            }
-        }
-
-        public void Update(TaintVulnerabilitiesUpdate taintVulnerabilitiesUpdate)
-        {
-            ValidateUpdate(taintVulnerabilitiesUpdate);
-
-            List<IAnalysisIssueVisualization> diffRemoved = [];
-            List<IAnalysisIssueVisualization> diffAdded = [];
-            lock (locker)
-            {
-                if (taintVulnerabilitiesUpdate.ConfigurationScope != configurationScope)
-                {
-                    return;
-                }
-
-                HandleClosed(taintVulnerabilitiesUpdate.Closed, diffRemoved);
-                HandleUpdated(taintVulnerabilitiesUpdate.Updated, diffRemoved, diffAdded);
-                HandleAdded(taintVulnerabilitiesUpdate.Added, diffAdded);
-            }
-
-            if (diffRemoved.Count != 0 || diffAdded.Count != 0)
-            {
-                NotifyIssuesChanged(diffRemoved, diffAdded);
-            }
-        }
-
-        private static void ValidateUpdate(TaintVulnerabilitiesUpdate taintVulnerabilitiesUpdate)
-        {
-            if (taintVulnerabilitiesUpdate == null)
-            {
-                throw new ArgumentNullException(nameof(taintVulnerabilitiesUpdate));
-            }
-
-            Debug.Assert(taintVulnerabilitiesUpdate.Added.All(x => x.IssueId != Guid.Empty));
-            Debug.Assert(taintVulnerabilitiesUpdate.Updated.All(x => x.IssueId != Guid.Empty));
-        }
-
-        private void HandleAdded(IEnumerable<IAnalysisIssueVisualization> added, List<IAnalysisIssueVisualization> diffAdded)
-        {
-            foreach (var addedVulnerability in added)
-            {
-                if (taintVulnerabilities.ContainsKey(addedVulnerability.IssueId))
-                {
-                    Debug.Fail("Taint Update: attempting to add a Vulnerability with the same id that already exists");
-                    continue;
-                }
-                taintVulnerabilities[addedVulnerability.IssueId] = addedVulnerability;
-                diffAdded.Add(addedVulnerability);
-            }
-        }
-
-        private void HandleUpdated(IEnumerable<IAnalysisIssueVisualization> updated, List<IAnalysisIssueVisualization> diffRemoved, List<IAnalysisIssueVisualization> diffAdded)
-        {
-            foreach (var updatedVulnerability in updated)
-            {
-                var outdatedVulnerability = MatchToCached(updatedVulnerability);
-                if (outdatedVulnerability == null)
-                {
-                    continue;
-                }
-                taintVulnerabilities[updatedVulnerability.IssueId] = updatedVulnerability;
-                diffRemoved.Add(outdatedVulnerability);
-                diffAdded.Add(updatedVulnerability);
-            }
-        }
-
-        private void HandleClosed(IEnumerable<Guid> removed, List<IAnalysisIssueVisualization> diffRemoved)
-        {
-            foreach (var removedId in removed)
-            {
-                if (!taintVulnerabilities.TryGetValue(removedId, out var removedVulnerability))
-                {
-                    Debug.Fail("Taint Update: attempting to remove a non-existent Vulnerability");
-                    continue;
-                }
-                taintVulnerabilities.Remove(removedId);
-                diffRemoved.Add(removedVulnerability);
-            }
-        }
-
-        private void NotifyIssuesChanged(
-            IReadOnlyCollection<IAnalysisIssueVisualization> removedIssues,
-            IReadOnlyCollection<IAnalysisIssueVisualization> addedIssues) =>
-            // Hacky workaround for #4066 - always raise the event, even if
-            // the set of added/removed files is empty.
-            // See also #4070.
-            IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(removedIssues, addedIssues));
-
-        private IAnalysisIssueVisualization MatchToCached(IAnalysisIssueVisualization taintVulnerability)
-        {
-            if (taintVulnerabilities.TryGetValue(taintVulnerability.IssueId, out var outdatedVulnerabilityByIssueId))
-            {
-                return outdatedVulnerabilityByIssueId;
-            }
-
-            var issueKey = ((ITaintIssue)taintVulnerability.Issue).IssueServerKey;
-            var outdatedVulnerabilityByServerKey = MatchByServerKey(issueKey);
-            if (outdatedVulnerabilityByServerKey != null)
-            {
-                // Taint was not found by issue id, but was found by server key
-                // This is a workaround for situations when the issue id randomly changes
-                // In this case, remove the cached non-existing one to re-align the cache with the new one
-                taintVulnerabilities.Remove(outdatedVulnerabilityByServerKey.IssueId);
-                return outdatedVulnerabilityByServerKey;
-            }
-
-            Debug.Fail("Taint Update: attempting to update a non-existent Vulnerability");
-            return null;
-        }
-
-        private IAnalysisIssueVisualization MatchByServerKey(string issueKey) =>
-            taintVulnerabilities
-                .Where(x => ((ITaintIssue)x.Value.Issue).IssueServerKey == issueKey)
-                .Select(x => x.Value)
-                .FirstOrDefault();
     }
+
+    private static void ValidateUpdate(TaintVulnerabilitiesUpdate taintVulnerabilitiesUpdate)
+    {
+        if (taintVulnerabilitiesUpdate == null)
+        {
+            throw new ArgumentNullException(nameof(taintVulnerabilitiesUpdate));
+        }
+
+        Debug.Assert(taintVulnerabilitiesUpdate.Added.All(x => x.IssueId != Guid.Empty));
+        Debug.Assert(taintVulnerabilitiesUpdate.Updated.All(x => x.IssueId != Guid.Empty));
+    }
+
+    private void HandleAdded(IEnumerable<IAnalysisIssueVisualization> added, List<IAnalysisIssueVisualization> diffAdded)
+    {
+        foreach (var addedVulnerability in added)
+        {
+            if (taintVulnerabilities.ContainsKey(addedVulnerability.IssueId))
+            {
+                Debug.Fail("Taint Update: attempting to add a Vulnerability with the same id that already exists");
+                continue;
+            }
+            taintVulnerabilities[addedVulnerability.IssueId] = addedVulnerability;
+            diffAdded.Add(addedVulnerability);
+        }
+    }
+
+    private void HandleUpdated(IEnumerable<IAnalysisIssueVisualization> updated, List<IAnalysisIssueVisualization> diffRemoved, List<IAnalysisIssueVisualization> diffAdded)
+    {
+        foreach (var updatedVulnerability in updated)
+        {
+            var outdatedVulnerability = MatchToCached(updatedVulnerability);
+            if (outdatedVulnerability == null)
+            {
+                continue;
+            }
+            taintVulnerabilities[updatedVulnerability.IssueId] = updatedVulnerability;
+            diffRemoved.Add(outdatedVulnerability);
+            diffAdded.Add(updatedVulnerability);
+        }
+    }
+
+    private void HandleClosed(IEnumerable<Guid> removed, List<IAnalysisIssueVisualization> diffRemoved)
+    {
+        foreach (var removedId in removed)
+        {
+            if (!taintVulnerabilities.TryGetValue(removedId, out var removedVulnerability))
+            {
+                Debug.Fail("Taint Update: attempting to remove a non-existent Vulnerability");
+                continue;
+            }
+            taintVulnerabilities.Remove(removedId);
+            diffRemoved.Add(removedVulnerability);
+        }
+    }
+
+    private void NotifyIssuesChanged(
+        IReadOnlyCollection<IAnalysisIssueVisualization> removedIssues,
+        IReadOnlyCollection<IAnalysisIssueVisualization> addedIssues) =>
+        // Hacky workaround for #4066 - always raise the event, even if
+        // the set of added/removed files is empty.
+        // See also #4070.
+        IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(removedIssues, addedIssues));
+
+    private IAnalysisIssueVisualization MatchToCached(IAnalysisIssueVisualization taintVulnerability)
+    {
+        if (taintVulnerabilities.TryGetValue(taintVulnerability.IssueId, out var outdatedVulnerabilityByIssueId))
+        {
+            return outdatedVulnerabilityByIssueId;
+        }
+
+        var issueKey = ((ITaintIssue)taintVulnerability.Issue).IssueServerKey;
+        var outdatedVulnerabilityByServerKey = MatchByServerKey(issueKey);
+        if (outdatedVulnerabilityByServerKey != null)
+        {
+            // Taint was not found by issue id, but was found by server key
+            // This is a workaround for situations when the issue id randomly changes
+            // In this case, remove the cached non-existing one to re-align the cache with the new one
+            taintVulnerabilities.Remove(outdatedVulnerabilityByServerKey.IssueId);
+            return outdatedVulnerabilityByServerKey;
+        }
+
+        Debug.Fail("Taint Update: attempting to update a non-existent Vulnerability");
+        return null;
+    }
+
+    private IAnalysisIssueVisualization MatchByServerKey(string issueKey) =>
+        taintVulnerabilities
+            .Where(x => ((ITaintIssue)x.Value.Issue).IssueServerKey == issueKey)
+            .Select(x => x.Value)
+            .FirstOrDefault();
 }
