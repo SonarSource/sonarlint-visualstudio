@@ -24,7 +24,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-internal abstract class GroupViewModelBase(string title, string filePath) : ViewModelBase, IGroupViewModel
+internal class GroupViewModelBase(string title, string filePath, List<IIssueViewModel> issues) : ViewModelBase, IGroupViewModel
 {
     private bool isExpanded = true;
     public string Title { get; } = title;
@@ -40,9 +40,9 @@ internal abstract class GroupViewModelBase(string title, string filePath) : View
         }
     }
 
-    public abstract List<IIssueViewModel> AllIssues { get; }
-    public abstract List<IIssueViewModel> PreFilteredIssues { get; protected set; }
-    public abstract ObservableCollection<IIssueViewModel> FilteredIssues { get; }
+    public List<IIssueViewModel> AllIssues { get; } = issues;
+    public List<IIssueViewModel> PreFilteredIssues { get; protected set; } = issues;
+    public ObservableCollection<IIssueViewModel> FilteredIssues { get; } = new(issues);
 
     public void ApplyFilter(ReportViewFilterViewModel reportViewFilter)
     {

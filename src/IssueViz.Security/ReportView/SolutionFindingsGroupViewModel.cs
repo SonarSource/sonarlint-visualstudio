@@ -18,20 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.ObjectModel;
-
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 
-internal sealed class SolutionFindingsGroupViewModel : GroupViewModelBase
-{
-    private readonly List<IIssueViewModel> issues = new();
-
-    public SolutionFindingsGroupViewModel() : base(Resources.DependencyRisksGroupTitle, null)
-    {
-        PreFilteredIssues = issues;
-        FilteredIssues = new ObservableCollection<IIssueViewModel>(issues);
-    }
-    public override List<IIssueViewModel> AllIssues => issues;
-    public override List<IIssueViewModel> PreFilteredIssues { get; protected set; }
-    public override ObservableCollection<IIssueViewModel> FilteredIssues { get; }
-}
+internal sealed class SolutionFindingsGroupViewModel() : GroupViewModelBase(Resources.SolutionFindingsGroupTitle, null, []);

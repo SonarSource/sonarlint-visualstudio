@@ -802,6 +802,28 @@ public class ReportViewModelTest
     }
 
     [TestMethod]
+    public void TaintsChanged_SolutionLevelTaints_HandlesAddedAndRemovedInSingleEvent()
+    {
+        var taint1Visualization = CreateTaintVisualization(Guid.NewGuid(), "taintKey1", filePath: null);
+        var taint2Visualization = CreateTaintVisualization(Guid.NewGuid(), "taintKey2", filePath: null);
+        var taint1 = CreateTaintViewModel(taint1Visualization);
+        var taint2 = CreateTaintViewModel(taint2Visualization);
+        taintsReportViewModel.GetIssueViewModels().Returns([taint1]);
+        dependencyRisksReportViewModel.GetDependencyRiskViewModels().Returns([]);
+        CreateTestSubject();
+        ClearCallsForReportsViewModels();
+
+        taintsReportViewModel.IssuesChanged += Raise.EventWith(
+            testSubject,
+            new ViewModelAnalysisIssuesChangedEventArgs([taint2], [taint1.Id])
+        );
+
+        testSubject.FilteredGroupViewModels.Should().HaveCount(1);
+        VerifyExpectedGroupFileViewModel(testSubject.FilteredGroupViewModels[0] as SolutionFindingsGroupViewModel, taint2);
+        VerifyHasGroupsUpdated();
+    }
+
+    [TestMethod]
     public void HasGroups_ReturnsTrue_WhenThereAreRisks()
     {
         var initialRisk = CreateDependencyRiskViewModel(CreateDependencyRisk());
