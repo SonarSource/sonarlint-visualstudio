@@ -40,9 +40,23 @@ public class IssueTypeFilterToTextConverter : IMultiValueConverter
             return null;
         }
 
-        var count = reportViewModel.FilteredGroupViewModels.SelectMany(group => group.FilteredIssues).Count(vm => vm.IssueType == issueTypeFilterViewModel.IssueType);
-        var totalCount = reportViewModel.AllGroupViewModels.SelectMany(group => group.PreFilteredIssues).Count(vm => vm.IssueType == issueTypeFilterViewModel.IssueType);
+        var count = GetUniqueIssues(reportViewModel.FilteredGroupViewModels.SelectMany(group => group.FilteredIssues)).Count(vm => vm.IssueType == issueTypeFilterViewModel.IssueType);
+        var totalCount = GetUniqueIssues(reportViewModel.AllGroupViewModels.SelectMany(group => group.PreFilteredIssues)).Count(vm => vm.IssueType == issueTypeFilterViewModel.IssueType);
         return IssueCountHelper.FormatString(count, totalCount, GetResourceByKey(issueTypeFilterViewModel.IssueType + SingularSuffix), GetResourceByKey(issueTypeFilterViewModel.IssueType + PluralSuffix));
+    }
+
+    private static IEnumerable<IIssueViewModel> GetUniqueIssues(IEnumerable<IIssueViewModel> issues)
+    {
+        var unique = new Dictionary<Guid, IIssueViewModel>();
+        foreach (var issue in issues)
+        {
+            if (!unique.ContainsKey(issue.Id))
+            {
+                unique.Add(issue.Id, issue);
+            }
+        }
+
+        return unique.Values;
     }
 
     private static string GetResourceByKey(string resourceKey) => Resources.ResourceManager.GetString(resourceKey) ?? string.Empty;

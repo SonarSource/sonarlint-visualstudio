@@ -146,6 +146,32 @@ public class IssueTypeFilterToTextConverterTest
     }
 
     [TestMethod]
+    public void Convert_IssuesWithNonUniqueIds_CountsUniqueIssuesOnly()
+    {
+        var duplicateId = Guid.NewGuid();
+        var issue1 = Substitute.For<IIssueViewModel>();
+        issue1.IssueType.Returns(IssueType.TaintVulnerability);
+        issue1.Id.Returns(duplicateId);
+        var issue2 = Substitute.For<IIssueViewModel>();
+        issue2.IssueType.Returns(IssueType.TaintVulnerability);
+        issue2.Id.Returns(duplicateId); // Same ID as issue1
+        var issue3 = Substitute.For<IIssueViewModel>();
+        issue3.IssueType.Returns(IssueType.TaintVulnerability);
+        issue3.Id.Returns(Guid.NewGuid());
+
+        var groupVm = Substitute.For<IGroupViewModel>();
+        var filteredIssues = new ObservableCollection<IIssueViewModel>(new[] { issue1, issue2, issue3 });
+        groupVm.PreFilteredIssues.Returns(filteredIssues.ToList());
+        groupVm.FilteredIssues.Returns(filteredIssues);
+        reportViewModel.FilteredGroupViewModels.Returns([groupVm]);
+        reportViewModel.AllGroupViewModels.Returns([groupVm]);
+        MockIssueTypeFilter(IssueType.TaintVulnerability);
+
+        var result = testSubject.Convert([issueTypeFilterViewModel, reportViewModel], null, null, null);
+        result.Should().Be("2 Taint Vulnerabilities");
+    }
+
+    [TestMethod]
     public void ConvertBack_ThrowsNotImplementedException()
     {
         Action act = () => testSubject.ConvertBack("value", null, null, null);
@@ -200,6 +226,7 @@ public class IssueTypeFilterToTextConverterTest
     {
         var issueViewModel = Substitute.For<IIssueViewModel>();
         issueViewModel.IssueType.Returns(issueType);
+        issueViewModel.Id.Returns(Guid.NewGuid());
         return issueViewModel;
     }
 }
