@@ -14,7 +14,8 @@
     <!-- sonar-html-plugin -->
     <EmbeddedSonarHtmlAnalyzerVersion>3.22.0.7011</EmbeddedSonarHtmlAnalyzerVersion>
     <!-- sonar-text-plugin -->
-    <EmbeddedSonarSecretsJarVersion>2.34.0.9939</EmbeddedSonarSecretsJarVersion>
+    <EmbeddedSonarSecretsJarVersion>2.36.0.10152</EmbeddedSonarSecretsJarVersion>
+    <!-- sonarqube-ide-visualstudio-roslyn --> 
     <EmbeddedSonarSqvsRoslynJarVersion>1.1.0.235</EmbeddedSonarSqvsRoslynJarVersion>
     <!-- SLOOP: Binaries for SonarLint Out Of Process -->
     <EmbeddedSloopVersion>10.39.0.84080</EmbeddedSloopVersion>
