@@ -28,8 +28,6 @@ using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
-using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Issues;
@@ -94,10 +92,10 @@ internal class
         ReportViewFilter = new ReportViewFilterViewModel(focusOnNewCodeService, threadHandling);
         FilteredGroupViewModels = new ObservableCollection<IGroupViewModel>();
 
-        hotspotsReportViewModel.IssuesChanged += HotspotsViewModel_IssuesChanged;
+        hotspotsReportViewModel.IssuesChanged += ViewModel_AnalysisIssuesChanged;
         dependencyRisksReportViewModel.DependencyRisksChanged += DependencyRisksViewModel_DependencyRisksChanged;
-        taintsReportViewModel.IssuesChanged += TaintViewModel_IssuesChanged;
-        issuesReportViewModel.IssuesChanged += IssuesReportViewModel_IssuesChanged;
+        taintsReportViewModel.IssuesChanged += ViewModel_AnalysisIssuesChanged;
+        issuesReportViewModel.IssuesChanged += ViewModel_AnalysisIssuesChanged;
         documentTracker.DocumentOpened += DocumentTracker_DocumentOpened;
         documentTracker.DocumentClosed += DocumentTracker_DocumentClosed;
 
@@ -160,7 +158,7 @@ internal class
         }
 
         InitializeDependencyRisks();
-        UpdateAddedIssueViewModels(hotspotsReportViewModel.GetIssueViewModels().Concat(taintsReportViewModel.GetIssueViewModels()).Concat(issuesReportViewModel.GetIssueViewModels()));
+        UpdateFileLevelAddedIssueViewModels(hotspotsReportViewModel.GetIssueViewModels().Concat(taintsReportViewModel.GetIssueViewModels()).Concat(issuesReportViewModel.GetIssueViewModels()));
 
         ApplyFilter();
     }
@@ -204,16 +202,16 @@ internal class
 
     protected override void Dispose(bool disposing)
     {
-        hotspotsReportViewModel.IssuesChanged -= HotspotsViewModel_IssuesChanged;
+        hotspotsReportViewModel.IssuesChanged -= ViewModel_AnalysisIssuesChanged;
         hotspotsReportViewModel.Dispose();
 
         dependencyRisksReportViewModel.DependencyRisksChanged -= DependencyRisksViewModel_DependencyRisksChanged;
         dependencyRisksReportViewModel.Dispose();
 
-        taintsReportViewModel.IssuesChanged -= TaintViewModel_IssuesChanged;
+        taintsReportViewModel.IssuesChanged -= ViewModel_AnalysisIssuesChanged;
         taintsReportViewModel.Dispose();
 
-        issuesReportViewModel.IssuesChanged -= IssuesReportViewModel_IssuesChanged;
+        issuesReportViewModel.IssuesChanged -= ViewModel_AnalysisIssuesChanged;
         issuesReportViewModel.Dispose();
 
         activeDocumentTracker.ActiveDocumentChanged -= OnActiveDocumentChanged;
@@ -256,51 +254,25 @@ internal class
         ApplyFilter();
     }
 
-    private void HotspotsViewModel_IssuesChanged(object sender, IssuesChangedEventArgs e)
-    {
-        var currentHotspotViewModels = AllGroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is HotspotViewModel).Cast<HotspotViewModel>();
-        var addedHotspotsViewModels = e.AddedIssues.Select(viz => new HotspotViewModel(LocalHotspot.ToLocalHotspot(viz))).ToList();
-        var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(x => x.IssueId == vm.RuleInfo?.IssueId)).ToList();
-        UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
-    }
+    private void ViewModel_AnalysisIssuesChanged(object sender, ViewModelAnalysisIssuesChangedEventArgs e) =>
+        UpdateChangedIssues(e.AddedIssues, e.RemovedIssues);
 
-    private void TaintViewModel_IssuesChanged(object sender, IssuesChangedEventArgs e)
+    private void UpdateChangedIssues(IEnumerable<IIssueViewModel> addedIssueViewModels, HashSet<Guid> removedIssues)
     {
-        var addedHotspotsViewModels = e.AddedIssues.Select(viz => new TaintViewModel(viz)).ToList();
-        var currentHotspotViewModels = AllGroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is TaintViewModel).Cast<TaintViewModel>();
-        var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(x => x.IssueId == vm.RuleInfo?.IssueId)).ToList();
-        UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
-    }
-
-    private void IssuesReportViewModel_IssuesChanged(object sender, IssuesChangedEventArgs e)
-    {
-        // if refactoring: fix copypaste
-        // if refactoring: wrap issues into viewmodels before proxying the event because it owns issue conversion to viewmodels
-        var addedHotspotsViewModels = e.AddedIssues.Select(viz => new IssueViewModel(viz)).ToList();
-        var currentHotspotViewModels = AllGroupViewModels.SelectMany(group => group.AllIssues).Where(vm => vm is IssueViewModel).Cast<IssueViewModel>();
-        var removedHotspotViewModels = currentHotspotViewModels.Where(vm => e.RemovedIssues.Any(x => x.IssueId == vm.RuleInfo?.IssueId)).ToList();
-        UpdateChangedIssues(addedHotspotsViewModels, removedHotspotViewModels);
-    }
-
-    private void UpdateChangedIssues(IReadOnlyCollection<IIssueViewModel> addedIssueViewModels, IReadOnlyCollection<IIssueViewModel> removedIssues)
-    {
-        UpdateDeletedIssueViewModels(removedIssues);
-        UpdateAddedIssueViewModels(addedIssueViewModels);
+        UpdateFileLevelDeletedIssueViewModels(removedIssues);
+        UpdateFileLevelAddedIssueViewModels(addedIssueViewModels);
         ApplyFilter();
     }
 
-    private void UpdateDeletedIssueViewModels(IReadOnlyCollection<IIssueViewModel> removedIssues)
+    private void UpdateFileLevelDeletedIssueViewModels(HashSet<Guid> removedIssues)
     {
-        foreach (var removedIssueVm in removedIssues)
+        foreach (var group in AllGroupViewModels.Where(x => x is not GroupDependencyRiskViewModel))
         {
-            if (GetGroupViewModelOfIssueViewModel(removedIssueVm.FilePath) is { } group)
-            {
-                group.AllIssues.Remove(removedIssueVm);
-            }
+            group.AllIssues.RemoveAll(x => removedIssues.Contains(x.Id));
         }
     }
 
-    private void UpdateAddedIssueViewModels(IEnumerable<IIssueViewModel> addedIssueViewModels)
+    private void UpdateFileLevelAddedIssueViewModels(IEnumerable<IIssueViewModel> addedIssueViewModels)
     {
         foreach (var addedIssueViewModel in addedIssueViewModels)
         {

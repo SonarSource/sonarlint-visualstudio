@@ -96,15 +96,23 @@ public class HotspotsReportViewModelTest
     [TestMethod]
     public void HotspotsChanged_RaisedOnStoreIssuesChanged()
     {
-        var eventHandler = Substitute.For<EventHandler<IssuesChangedEventArgs>>();
+        var eventHandler = Substitute.For<EventHandler<ViewModelAnalysisIssuesChangedEventArgs>>();
         testSubject.IssuesChanged += eventHandler;
+        var addedHotspot = CreateMockedHotspot("addedFile.cs", "addedKey");
+        var removedHotspot = CreateMockedHotspot("removedFile.cs", "removedKey");
+        var removedId = removedHotspot.Visualization.IssueId;
+        var eventArgs = new IssuesChangedEventArgs([removedHotspot.Visualization], [addedHotspot.Visualization]);
 
-        localHotspotsStore.IssuesChanged += Raise.Event<EventHandler<IssuesChangedEventArgs>>(null, null);
+        localHotspotsStore.IssuesChanged += Raise.Event<EventHandler<IssuesChangedEventArgs>>(null, eventArgs);
 
         Received.InOrder(() =>
         {
             threadHandling.RunOnUIThread(Arg.Any<Action>());
-            eventHandler.Invoke(Arg.Any<object>(), Arg.Any<IssuesChangedEventArgs>());
+            eventHandler.Invoke(Arg.Any<object>(), Arg.Is<ViewModelAnalysisIssuesChangedEventArgs>(args =>
+                args.AddedIssues.Count == 1
+                && args.RemovedIssues.Count == 1
+                && args.AddedIssues.OfType<HotspotViewModel>().Single().LocalHotspot.Visualization == addedHotspot.Visualization
+                && args.RemovedIssues.Single() == removedId));
         });
     }
 
@@ -192,26 +200,16 @@ public class HotspotsReportViewModelTest
     private static LocalHotspot CreateMockedHotspot(string filePath, string hotspotKey = null)
     {
         var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
-        var analysisIssueBase = Substitute.For<IAnalysisIssueBase>();
+        var analysisIssueBase = Substitute.For<IAnalysisHotspotIssue>();
         analysisIssueBase.PrimaryLocation.FilePath.Returns(filePath);
         analysisIssueVisualization.Issue.Returns(analysisIssueBase);
+        analysisIssueVisualization.IssueId.Returns(Guid.NewGuid());
         analysisIssueVisualization.Issue.IssueServerKey.Returns(hotspotKey);
 
         return new LocalHotspot(analysisIssueVisualization, default, default);
     }
 
     private void MockHotspotsInStore(params LocalHotspot[] hotspots) => localHotspotsStore.GetAllLocalHotspots().Returns(hotspots);
-
-    private static void VerifyExpectedHotspotGroupViewModel(GroupFileViewModel groupFileVm, params LocalHotspot[] expectedHotspots)
-    {
-        groupFileVm.Should().NotBeNull();
-        groupFileVm.FilePath.Should().Be(expectedHotspots[0].Visualization.Issue.PrimaryLocation.FilePath);
-        groupFileVm.AllIssues.Should().HaveCount(expectedHotspots.Length);
-        foreach (var expectedHotspot in expectedHotspots)
-        {
-            groupFileVm.AllIssues.Should().ContainSingle(vm => ((HotspotViewModel)vm).LocalHotspot == expectedHotspot);
-        }
-    }
 
     private void MockChangeStatusPermitted(string hotspotKey, List<HotspotStatus> allowedStatuses) =>
         reviewHotspotsService.CheckReviewHotspotPermittedAsync(hotspotKey).Returns(new ReviewHotspotPermittedArgs(allowedStatuses));

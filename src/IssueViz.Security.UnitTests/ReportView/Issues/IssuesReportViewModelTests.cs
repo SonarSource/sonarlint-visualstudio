@@ -25,6 +25,7 @@ using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Issues;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Issues;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -88,15 +89,23 @@ public class IssuesReportViewModelTests
     [TestMethod]
     public void IssuesChanged_RaisedOnStoreIssuesChanged()
     {
-        var eventHandler = Substitute.For<EventHandler<IssuesChangedEventArgs>>();
+        var eventHandler = Substitute.For<EventHandler<ViewModelAnalysisIssuesChangedEventArgs>>();
         testSubject.IssuesChanged += eventHandler;
+        var addedIssue = CreateMockedIssue("addedFile.cs");
+        var removedIssue = CreateMockedIssue("removedFile.cs");
+        var removedId = removedIssue.IssueId;
+        var eventArgs = new IssuesChangedEventArgs([removedIssue], [addedIssue]);
 
-        localIssuesStore.IssuesChanged += Raise.Event<EventHandler<IssuesChangedEventArgs>>(null, null);
+        localIssuesStore.IssuesChanged += Raise.Event<EventHandler<IssuesChangedEventArgs>>(null, eventArgs);
 
         Received.InOrder(() =>
         {
             threadHandling.RunOnUIThread(Arg.Any<Action>());
-            eventHandler.Invoke(Arg.Any<object>(), Arg.Any<IssuesChangedEventArgs>());
+            eventHandler.Invoke(Arg.Any<object>(), Arg.Is<ViewModelAnalysisIssuesChangedEventArgs>(args =>
+                args.AddedIssues.Count == 1
+                && args.RemovedIssues.Count == 1
+                && args.AddedIssues.OfType<IAnalysisIssueViewModel>().Single().Issue == addedIssue
+                && args.RemovedIssues.Single() == removedId));
         });
     }
 
@@ -127,6 +136,7 @@ public class IssuesReportViewModelTests
         var analysisIssueBase = Substitute.For<IAnalysisIssue>();
         analysisIssueBase.PrimaryLocation.FilePath.Returns(filePath);
         analysisIssueVisualization.Issue.Returns(analysisIssueBase);
+        analysisIssueVisualization.IssueId.Returns(Guid.NewGuid());
         return analysisIssueVisualization;
     }
 

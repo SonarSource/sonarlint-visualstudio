@@ -24,6 +24,7 @@ using System.Windows;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.ReviewHotspot;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
@@ -38,7 +39,7 @@ internal interface IHotspotsReportViewModel : IDisposable
 
     Task<bool> ChangeHotspotStatusAsync(HotspotViewModel selectedHotspotViewModel, HotspotStatus newStatus);
 
-    event EventHandler<IssuesChangedEventArgs> IssuesChanged;
+    event EventHandler<ViewModelAnalysisIssuesChangedEventArgs> IssuesChanged;
 
     IEnumerable<IIssueViewModel> GetIssueViewModels();
 }
@@ -88,4 +89,6 @@ internal sealed class HotspotsReportViewModel(
     }
 
     public IEnumerable<IIssueViewModel> GetIssueViewModels() => hotspotsStore.GetAllLocalHotspots().Select(x => new HotspotViewModel(x));
+
+    protected override IIssueViewModel CreateViewModel(IAnalysisIssueVisualization issue) => new HotspotViewModel(LocalHotspot.ToLocalHotspot(issue));
 }

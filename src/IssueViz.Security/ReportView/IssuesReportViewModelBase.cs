@@ -18,11 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
+
+public class ViewModelAnalysisIssuesChangedEventArgs(IReadOnlyCollection<IIssueViewModel> addedIssues, HashSet<Guid> removedIssues)
+    : EventArgs
+{
+    public HashSet<Guid> RemovedIssues { get; } = removedIssues;
+
+    public IReadOnlyCollection<IIssueViewModel> AddedIssues { get; } = addedIssues;
+}
 
 internal abstract class IssuesReportViewModelBase : IDisposable
 {
@@ -37,9 +45,17 @@ internal abstract class IssuesReportViewModelBase : IDisposable
         issuesStore.IssuesChanged += IssueStore_OnIssuesChanged;
     }
 
-    public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
+    public event EventHandler<ViewModelAnalysisIssuesChangedEventArgs> IssuesChanged;
 
-    private void IssueStore_OnIssuesChanged(object sender, IssuesChangedEventArgs e) => threadHandling.RunOnUIThread(() => IssuesChanged?.Invoke(this, e));
+    private void IssueStore_OnIssuesChanged(object sender, IssuesChangedEventArgs e)
+    {
+        var added = e.AddedIssues.Select(CreateViewModel).ToList();
+        var removed = e.RemovedIssues.Select(x => x.IssueId).ToHashSet();
+
+        threadHandling.RunOnUIThread(() => IssuesChanged?.Invoke(this, new ViewModelAnalysisIssuesChangedEventArgs(added, removed)));
+    }
+
+    protected abstract IIssueViewModel CreateViewModel(IAnalysisIssueVisualization issue);
 
     public void Dispose()
     {

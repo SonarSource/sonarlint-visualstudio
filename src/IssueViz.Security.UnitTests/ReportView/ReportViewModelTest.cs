@@ -101,9 +101,10 @@ public class ReportViewModelTest
     [TestMethod]
     public void Class_SubscribesToEvents()
     {
-        hotspotsReportViewModel.Received(1).IssuesChanged += Arg.Any<EventHandler<IssuesChangedEventArgs>>();
+        hotspotsReportViewModel.Received(1).IssuesChanged += Arg.Any<EventHandler<ViewModelAnalysisIssuesChangedEventArgs>>();
         dependencyRisksStore.Received(1).DependencyRisksChanged += Arg.Any<EventHandler>();
-        taintsReportViewModel.Received(1).IssuesChanged += Arg.Any<EventHandler<IssuesChangedEventArgs>>();
+        taintsReportViewModel.Received(1).IssuesChanged += Arg.Any<EventHandler<ViewModelAnalysisIssuesChangedEventArgs>>();
+        issuesReportViewModel.Received(1).IssuesChanged += Arg.Any<EventHandler<ViewModelAnalysisIssuesChangedEventArgs>>();
     }
 
     [TestMethod]
@@ -182,10 +183,12 @@ public class ReportViewModelTest
         testSubject.Dispose();
 
         dependencyRisksStore.Received(1).DependencyRisksChanged -= Arg.Any<EventHandler>();
-        hotspotsReportViewModel.Received(1).IssuesChanged -= Arg.Any<EventHandler<IssuesChangedEventArgs>>();
+        hotspotsReportViewModel.Received(1).IssuesChanged -= Arg.Any<EventHandler<ViewModelAnalysisIssuesChangedEventArgs>>();
         hotspotsReportViewModel.Received(1).Dispose();
-        taintsReportViewModel.Received(1).IssuesChanged -= Arg.Any<EventHandler<IssuesChangedEventArgs>>();
+        taintsReportViewModel.Received(1).IssuesChanged -= Arg.Any<EventHandler<ViewModelAnalysisIssuesChangedEventArgs>>();
         taintsReportViewModel.Received(1).Dispose();
+        issuesReportViewModel.Received(1).IssuesChanged -= Arg.Any<EventHandler<ViewModelAnalysisIssuesChangedEventArgs>>();
+        issuesReportViewModel.Received(1).Dispose();
         activeDocumentTracker.Received(1).ActiveDocumentChanged -= Arg.Any<EventHandler<ActiveDocumentChangedEventArgs>>();
     }
 
@@ -364,7 +367,8 @@ public class ReportViewModelTest
         var hotspot = CreateHotspotVisualization(Guid.NewGuid(), "serverKey", filePath: "myFile.cs");
         var hotspot2 = CreateHotspotVisualization(Guid.NewGuid(), "serverKey2", filePath: "myFile.cs");
 
-        hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [hotspot, hotspot2]));
+        hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
+            new ViewModelAnalysisIssuesChangedEventArgs([CreateHotspotViewModel(hotspot), CreateHotspotViewModel(hotspot2)], []));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
         VerifyExpectedGroupFileViewModel(testSubject.FilteredGroupViewModels[0] as GroupFileViewModel, hotspot, hotspot2);
@@ -383,7 +387,8 @@ public class ReportViewModelTest
         InitializeTestSubjectWithInitialGroup(filePath);
         var newHotspotSameFile = CreateHotspotVisualization(Guid.NewGuid(), "serverKey", filePath);
 
-        hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [newHotspotSameFile]));
+        hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
+            new ViewModelAnalysisIssuesChangedEventArgs([CreateHotspotViewModel(newHotspotSameFile)], []));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
         VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[0], existingHotspot, newHotspotSameFile);
@@ -402,7 +407,8 @@ public class ReportViewModelTest
         InitializeTestSubjectWithInitialGroup(filePath);
         var newHotspotDifferentFile = CreateHotspotVisualization(Guid.NewGuid(), "serverKey", "myFile2.cs");
 
-        hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [newHotspotDifferentFile]));
+        hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
+            new ViewModelAnalysisIssuesChangedEventArgs([CreateHotspotViewModel(newHotspotDifferentFile)], []));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(2);
         VerifyExpectedGroupFileViewModel(testSubject.FilteredGroupViewModels[0] as GroupFileViewModel, existingHotspot);
@@ -422,7 +428,7 @@ public class ReportViewModelTest
         InitializeTestSubjectWithInitialGroup(filePath);
 
         hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
-            new IssuesChangedEventArgs([CreateHotspotVisualization(existingHotspot.Issue.Id, existingHotspot.Issue.IssueServerKey, filePath)], []));
+            new ViewModelAnalysisIssuesChangedEventArgs([], [existingHotspot.Issue.Id]));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
         VerifyExpectedGroupFileViewModel(testSubject.FilteredGroupViewModels[0] as GroupFileViewModel);
@@ -442,7 +448,7 @@ public class ReportViewModelTest
         InitializeTestSubjectWithInitialGroup(filePath);
 
         hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
-            new IssuesChangedEventArgs([CreateHotspotVisualization(existingHotspot.Issue.Id, existingHotspot.Issue.IssueServerKey, filePath)], []));
+            new ViewModelAnalysisIssuesChangedEventArgs([], [existingHotspot.Issue.Id]));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
         VerifyExpectedGroupFileViewModel(testSubject.FilteredGroupViewModels[0] as GroupFileViewModel, existingHotspot2);
@@ -459,7 +465,7 @@ public class ReportViewModelTest
         InitializeTestSubjectWithInitialGroup(filePath);
 
         hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
-            new IssuesChangedEventArgs([CreateHotspotVisualization(existingHotspot.Issue.Id, "notExistingKey", filePath)], []));
+            new ViewModelAnalysisIssuesChangedEventArgs([], [Guid.NewGuid()]));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
         VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[0]);
@@ -475,7 +481,8 @@ public class ReportViewModelTest
         var taint = CreateTaintVisualization(Guid.NewGuid(), "serverKey", filePath: "myFile.cs");
         var taint2 = CreateTaintVisualization(Guid.NewGuid(), "serverKey", filePath: "myFile.cs");
 
-        taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [taint, taint2]));
+        taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
+            new ViewModelAnalysisIssuesChangedEventArgs([CreateTaintViewModel(taint), CreateTaintViewModel(taint2)], []));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
         VerifyExpectedGroupFileViewModel(testSubject.FilteredGroupViewModels[0] as GroupFileViewModel, taint, taint2);
@@ -494,7 +501,8 @@ public class ReportViewModelTest
         InitializeTestSubjectWithInitialGroup(filePath);
         var newTaintSameFile = CreateTaintVisualization(Guid.NewGuid(), "serverKey", filePath);
 
-        taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [newTaintSameFile]));
+        taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
+            new ViewModelAnalysisIssuesChangedEventArgs([CreateTaintViewModel(newTaintSameFile)], []));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
         VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[0], existingTaint, newTaintSameFile);
@@ -513,7 +521,8 @@ public class ReportViewModelTest
         InitializeTestSubjectWithInitialGroup(filePath);
         var newTaintDifferentFile = CreateTaintVisualization(Guid.NewGuid(), "serverKey", "myFile2.cs");
 
-        taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [newTaintDifferentFile]));
+        taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
+            new ViewModelAnalysisIssuesChangedEventArgs([CreateTaintViewModel(newTaintDifferentFile)], []));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(2);
         VerifyExpectedGroupFileViewModel(testSubject.FilteredGroupViewModels[0] as GroupFileViewModel, existingTaint);
@@ -533,7 +542,7 @@ public class ReportViewModelTest
         InitializeTestSubjectWithInitialGroup(filePath);
 
         taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
-            new IssuesChangedEventArgs([CreateTaintVisualization(existingTaint.Issue.Id, existingTaint.Issue.IssueServerKey, filePath)], []));
+            new ViewModelAnalysisIssuesChangedEventArgs([], [existingTaint.Issue.Id]));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
         VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[0]);
@@ -553,7 +562,7 @@ public class ReportViewModelTest
         InitializeTestSubjectWithInitialGroup(filePath);
 
         taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
-            new IssuesChangedEventArgs([CreateTaintVisualization(existingTaint.Issue.Id, existingTaint.Issue.IssueServerKey, filePath)], []));
+            new ViewModelAnalysisIssuesChangedEventArgs([], [existingTaint.Issue.Id]));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
         VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[0], existingTaint2);
@@ -572,7 +581,7 @@ public class ReportViewModelTest
         InitializeTestSubjectWithInitialGroup(myfileCs);
 
         taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
-            new IssuesChangedEventArgs([CreateTaintVisualization(Guid.NewGuid(), "notExistingKey", myfileCs)], []));
+            new ViewModelAnalysisIssuesChangedEventArgs([], [Guid.NewGuid()]));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
         VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[0], existingTaint);
@@ -588,7 +597,8 @@ public class ReportViewModelTest
         var issue = CreateIssueVisualization(Guid.NewGuid(), filePath: "myFile.cs");
         var issue2 = CreateIssueVisualization(Guid.NewGuid(), filePath: "myFile.cs");
 
-        issuesReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [issue, issue2]));
+        issuesReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
+            new ViewModelAnalysisIssuesChangedEventArgs([CreateIssueViewModel(issue), CreateIssueViewModel(issue2)], []));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
         VerifyExpectedGroupFileViewModel(testSubject.FilteredGroupViewModels[0] as GroupFileViewModel, issue, issue2);
@@ -606,7 +616,8 @@ public class ReportViewModelTest
         InitializeTestSubjectWithInitialGroup(filePath);
         var newIssueSameFile = CreateIssueVisualization(Guid.NewGuid(), filePath);
 
-        issuesReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [newIssueSameFile]));
+        issuesReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
+            new ViewModelAnalysisIssuesChangedEventArgs([CreateIssueViewModel(newIssueSameFile)], []));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
         VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[0], existingIssue, newIssueSameFile);
@@ -624,7 +635,8 @@ public class ReportViewModelTest
         InitializeTestSubjectWithInitialGroup(filePath);
         var newIssueDifferentFile = CreateIssueVisualization(Guid.NewGuid(), "myFile2.cs");
 
-        issuesReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [newIssueDifferentFile]));
+        issuesReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
+            new ViewModelAnalysisIssuesChangedEventArgs([CreateIssueViewModel(newIssueDifferentFile)], []));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(2);
         VerifyExpectedGroupFileViewModel(testSubject.FilteredGroupViewModels[0] as GroupFileViewModel, existingIssue);
@@ -643,7 +655,7 @@ public class ReportViewModelTest
         InitializeTestSubjectWithInitialGroup(filePath);
 
         issuesReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
-            new IssuesChangedEventArgs([CreateIssueVisualization(existingIssue.Issue.Id, filePath)], []));
+            new ViewModelAnalysisIssuesChangedEventArgs([], [existingIssue.Issue.Id]));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
         VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[0]);
@@ -662,7 +674,7 @@ public class ReportViewModelTest
         InitializeTestSubjectWithInitialGroup(filePath);
 
         issuesReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
-            new IssuesChangedEventArgs([CreateIssueVisualization(existingIssue.Issue.Id, filePath)], []));
+            new ViewModelAnalysisIssuesChangedEventArgs([], [existingIssue.Issue.Id]));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
         VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[0], existingIssue2);
@@ -680,7 +692,7 @@ public class ReportViewModelTest
         InitializeTestSubjectWithInitialGroup(myfileCs);
 
         issuesReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
-            new IssuesChangedEventArgs([CreateIssueVisualization(Guid.NewGuid(), myfileCs)], []));
+            new ViewModelAnalysisIssuesChangedEventArgs([], [Guid.NewGuid()]));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
         VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[0], existingIssue);
@@ -697,9 +709,12 @@ public class ReportViewModelTest
         var taint = CreateTaintVisualization(Guid.NewGuid(), "any", myfileCs);
         InitializeTestSubjectWithInitialGroup(myfileCs);
 
-        issuesReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [issue]));
-        hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [hotspot]));
-        taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject, new IssuesChangedEventArgs([], [taint]));
+        issuesReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
+            new ViewModelAnalysisIssuesChangedEventArgs([CreateIssueViewModel(issue)], []));
+        hotspotsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
+            new ViewModelAnalysisIssuesChangedEventArgs([CreateHotspotViewModel(hotspot)], []));
+        taintsReportViewModel.IssuesChanged += Raise.EventWith(testSubject,
+            new ViewModelAnalysisIssuesChangedEventArgs([CreateTaintViewModel(taint)], []));
 
         testSubject.FilteredGroupViewModels.Should().HaveCount(1);
         VerifyExpectedGroupFileViewModel((GroupFileViewModel)testSubject.FilteredGroupViewModels[0], issue, hotspot, taint);

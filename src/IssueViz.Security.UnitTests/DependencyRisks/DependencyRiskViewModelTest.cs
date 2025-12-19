@@ -99,14 +99,16 @@ public class DependencyRiskViewModelTest
     {
         var dependencyRisk = CreateMockedDependencyRisk();
         dependencyRisk.VulnerabilityId.Returns("CVE-2025-123");
+        dependencyRisk.Id.Returns(Guid.NewGuid());
 
         var testSubject = new DependencyRiskViewModel(dependencyRisk);
 
+        testSubject.Id.Should().Be(dependencyRisk.Id);
         testSubject.Title.Should().Be(dependencyRisk.VulnerabilityId);
         testSubject.Line.Should().BeNull();
         testSubject.Column.Should().BeNull();
         testSubject.FilePath.Should().BeNull();
-        testSubject.RuleInfo.Should().BeNull();
+        testSubject.RuleId.Should().BeNull();
     }
 
     [DataTestMethod]

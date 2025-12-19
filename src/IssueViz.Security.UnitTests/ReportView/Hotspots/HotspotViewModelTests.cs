@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
@@ -45,8 +46,8 @@ public class HotspotViewModelTests
     public void Ctor_InitializesPropertiesAsExpected()
     {
         testSubject.LocalHotspot.Should().Be(hotspot);
-        testSubject.RuleInfo.RuleKey.Should().Be(hotspot.Visualization.RuleId);
-        testSubject.RuleInfo.IssueId.Should().Be(hotspot.Visualization.IssueId);
+        testSubject.RuleId.Should().Be(hotspot.Visualization.SonarRuleId.Id);
+        testSubject.Id.Should().Be(hotspot.Visualization.IssueId);
         testSubject.Line.Should().Be(hotspot.Visualization.Issue.PrimaryLocation.TextRange.StartLine);
         testSubject.Column.Should().Be(hotspot.Visualization.Issue.PrimaryLocation.TextRange.StartLineOffset);
         testSubject.Title.Should().Be(hotspot.Visualization.Issue.PrimaryLocation.Message);
@@ -127,7 +128,8 @@ public class HotspotViewModelTests
         string filePath)
     {
         var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
-        analysisIssueVisualization.RuleId.Returns(ruleId);
+        SonarCompositeRuleId.TryParse(ruleId, out var sonarRuleId).Should().BeTrue();
+        analysisIssueVisualization.SonarRuleId.Returns(sonarRuleId);
         analysisIssueVisualization.IssueId.Returns(issueId);
 
         var analysisIssueBase = Substitute.For<IAnalysisIssueBase>();

@@ -33,11 +33,12 @@ internal class DependencyRiskViewModel(IDependencyRisk dependencyRisk)
     public bool IsResolved { get; } = dependencyRisk.Status is DependencyRiskStatus.Accepted or DependencyRiskStatus.Safe;
 
     public IDependencyRisk DependencyRisk { get; } = dependencyRisk;
+    public Guid Id => DependencyRisk.Id;
     public int? Line => null;
     public int? Column => null;
     public string Title => DependencyRisk.VulnerabilityId;
     public string FilePath => null;
-    public RuleInfoViewModel RuleInfo => null;
+    public string RuleId => null;
     public DisplaySeverity DisplaySeverity { get; } = dependencyRisk.Severity switch
     {
         DependencyRiskImpactSeverity.Info => DisplaySeverity.Info,

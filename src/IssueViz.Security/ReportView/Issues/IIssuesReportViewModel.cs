@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Issues;
 internal interface IIssuesReportViewModel : IDisposable
 {
     IEnumerable<IIssueViewModel> GetIssueViewModels();
-    event EventHandler<IssuesChangedEventArgs> IssuesChanged;
+    event EventHandler<ViewModelAnalysisIssuesChangedEventArgs> IssuesChanged;
 
     void ShowIssueInBrowser(IAnalysisIssue issue);
     void ChangeStatus(IAnalysisIssueVisualization issue);
@@ -58,4 +58,6 @@ internal sealed class IssuesReportViewModel(
 
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     public void ShowIssueVisualization() => ToolWindowNavigator.Instance.ShowIssueVisualizationToolWindow();
+
+    protected override IIssueViewModel CreateViewModel(IAnalysisIssueVisualization issue) => new IssueViewModel(issue);
 }
