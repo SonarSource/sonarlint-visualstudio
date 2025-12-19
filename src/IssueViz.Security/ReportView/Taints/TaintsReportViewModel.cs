@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
@@ -26,7 +25,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
@@ -45,16 +43,15 @@ internal interface ITaintsReportViewModel : IDisposable
     event EventHandler<ViewModelAnalysisIssuesChangedEventArgs> IssuesChanged;
 }
 
-[Export(typeof(ITaintsReportViewModel))]
-[PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-internal sealed class TaintsReportViewModel(
-    ITaintStore taintsStore,
+internal interface IFileAwareTaintsReportViewModel : ITaintsReportViewModel;
+
+internal abstract class TaintsReportViewModelBase(
+    ITaintStoreReader taintsStore,
     IShowInBrowserService showInBrowserService,
     IMuteIssuesService muteIssuesService,
     ITelemetryManager telemetryManager,
     IThreadHandling threadHandling)
-    : IssuesReportViewModelBase(taintsStore, threadHandling), ITaintsReportViewModel
+    : IssuesReportViewModelBase(taintsStore, threadHandling)
 {
     public void ShowTaintInBrowser(ITaintIssue taintIssue)
     {
@@ -71,3 +68,25 @@ internal sealed class TaintsReportViewModel(
 
     protected override IIssueViewModel CreateViewModel(IAnalysisIssueVisualization issue) => new TaintViewModel(issue);
 }
+
+[Export(typeof(ITaintsReportViewModel))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+internal sealed class TaintsReportViewModel(
+    ITaintStore taintsStore,
+    IShowInBrowserService showInBrowserService,
+    IMuteIssuesService muteIssuesService,
+    ITelemetryManager telemetryManager,
+    IThreadHandling threadHandling)
+    : TaintsReportViewModelBase(taintsStore, showInBrowserService, muteIssuesService, telemetryManager, threadHandling), ITaintsReportViewModel;
+
+[Export(typeof(IFileAwareTaintsReportViewModel))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+internal sealed class FileAwareTaintsReportViewModel(
+    IFileAwareTaintStore taintsStore,
+    IShowInBrowserService showInBrowserService,
+    IMuteIssuesService muteIssuesService,
+    ITelemetryManager telemetryManager,
+    IThreadHandling threadHandling)
+    : TaintsReportViewModelBase(taintsStore, showInBrowserService, muteIssuesService, telemetryManager, threadHandling), IFileAwareTaintsReportViewModel;

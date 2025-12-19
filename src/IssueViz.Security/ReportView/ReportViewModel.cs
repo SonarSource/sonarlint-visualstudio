@@ -50,12 +50,14 @@ internal class
     private readonly IDependencyRisksReportViewModel dependencyRisksReportViewModel;
     private readonly IIssuesReportViewModel issuesReportViewModel;
     private readonly ITaintsReportViewModel taintsReportViewModel;
+    private readonly IFileAwareTaintsReportViewModel fileAwareTaintsReportViewModel;
     private readonly ITelemetryManager telemetryManager;
     private readonly IIssueSelectionService selectionService;
     private readonly IActiveDocumentLocator activeDocumentLocator;
     private readonly IActiveDocumentTracker activeDocumentTracker;
     private readonly IDocumentTracker documentTracker;
     private readonly IThreadHandling threadHandling;
+    private readonly SolutionFindingsGroupViewModel solutionFindingsGroupViewModel = new();
     private IIssueViewModel selectedItem;
     private string activeDocumentFilePath;
 
@@ -66,6 +68,7 @@ internal class
         IHotspotsReportViewModel hotspotsReportViewModel,
         IDependencyRisksReportViewModel dependencyRisksReportViewModel,
         ITaintsReportViewModel taintsReportViewModel,
+        IFileAwareTaintsReportViewModel fileAwareTaintsReportViewModel,
         IIssuesReportViewModel issuesReportViewModel,
         ITelemetryManager telemetryManager,
         IIssueSelectionService selectionService,
@@ -80,6 +83,7 @@ internal class
         this.hotspotsReportViewModel = hotspotsReportViewModel;
         this.dependencyRisksReportViewModel = dependencyRisksReportViewModel;
         this.taintsReportViewModel = taintsReportViewModel;
+        this.fileAwareTaintsReportViewModel = fileAwareTaintsReportViewModel;
         this.telemetryManager = telemetryManager;
         this.selectionService = selectionService;
         this.activeDocumentLocator = activeDocumentLocator;
@@ -94,7 +98,8 @@ internal class
 
         hotspotsReportViewModel.IssuesChanged += ViewModel_AnalysisIssuesChanged;
         dependencyRisksReportViewModel.DependencyRisksChanged += DependencyRisksViewModel_DependencyRisksChanged;
-        taintsReportViewModel.IssuesChanged += ViewModel_AnalysisIssuesChanged;
+        fileAwareTaintsReportViewModel.IssuesChanged += ViewModel_AnalysisIssuesChanged;
+        taintsReportViewModel.IssuesChanged += TaintReportViewModel_IssuesChanged;
         issuesReportViewModel.IssuesChanged += ViewModel_AnalysisIssuesChanged;
         documentTracker.DocumentOpened += DocumentTracker_DocumentOpened;
         documentTracker.DocumentClosed += DocumentTracker_DocumentClosed;
@@ -157,22 +162,23 @@ internal class
             AllGroupViewModels.Add(new GroupFileViewModel(openDocument.FullPath, []));
         }
 
-        InitializeDependencyRisks();
-        UpdateFileLevelAddedIssueViewModels(hotspotsReportViewModel.GetIssueViewModels().Concat(taintsReportViewModel.GetIssueViewModels()).Concat(issuesReportViewModel.GetIssueViewModels()));
+        InitializeSolutionLevelFindings();
+        UpdateFileLevelAddedIssueViewModels(hotspotsReportViewModel.GetIssueViewModels().Concat(fileAwareTaintsReportViewModel.GetIssueViewModels()).Concat(issuesReportViewModel.GetIssueViewModels()));
 
         ApplyFilter();
     }
 
-    private void InitializeDependencyRisks()
+    private void InitializeSolutionLevelFindings()
     {
-        var groupDependencyRisk = dependencyRisksReportViewModel.GetDependencyRisksGroup();
-        if (groupDependencyRisk != null)
+        foreach (var dependencyRiskViewModel in dependencyRisksReportViewModel.GetDependencyRiskViewModels())
         {
-            AllGroupViewModels.Add(groupDependencyRisk);
+            solutionFindingsGroupViewModel.AllIssues.Add(dependencyRiskViewModel);
         }
-        RaisePropertyChanged(nameof(HasAnyGroups));
-        RaisePropertyChanged(nameof(HasFilteredGroups));
-        RaisePropertyChanged(nameof(HasNoFilteredIssuesForGroupsWithIssues));
+        foreach (var taint in taintsReportViewModel.GetIssueViewModels())
+        {
+            solutionFindingsGroupViewModel.AllIssues.Add(taint);
+        }
+        UpdateSolutionFindingsState();
     }
 
     internal void ResetFilters()
@@ -196,6 +202,7 @@ internal class
         // todo https://sonarsource.atlassian.net/browse/SLVS-2620 taints are global, not based on open file events.
         // remove this clear logic as it is only needed due to taints being raised for files without TBIT, which don't trigger close event
         AllGroupViewModels.Clear();
+        solutionFindingsGroupViewModel.AllIssues.Clear();
         FilteredGroupViewModels.Clear();
         ResetFilters();
     }
@@ -208,8 +215,11 @@ internal class
         dependencyRisksReportViewModel.DependencyRisksChanged -= DependencyRisksViewModel_DependencyRisksChanged;
         dependencyRisksReportViewModel.Dispose();
 
-        taintsReportViewModel.IssuesChanged -= ViewModel_AnalysisIssuesChanged;
+        taintsReportViewModel.IssuesChanged -= TaintReportViewModel_IssuesChanged;
         taintsReportViewModel.Dispose();
+
+        fileAwareTaintsReportViewModel.IssuesChanged -= ViewModel_AnalysisIssuesChanged;
+        fileAwareTaintsReportViewModel.Dispose();
 
         issuesReportViewModel.IssuesChanged -= ViewModel_AnalysisIssuesChanged;
         issuesReportViewModel.Dispose();
@@ -246,12 +256,38 @@ internal class
 
     private void DependencyRisksViewModel_DependencyRisksChanged(object sender, EventArgs e)
     {
-        if (AllGroupViewModels.SingleOrDefault(vm => vm is GroupDependencyRiskViewModel) is { } groupDependencyRiskViewModel)
+        solutionFindingsGroupViewModel.AllIssues.RemoveAll(x => x.IssueType == IssueType.DependencyRisk);
+        foreach (var dependencyRiskViewModel in dependencyRisksReportViewModel.GetDependencyRiskViewModels())
         {
-            AllGroupViewModels.Remove(groupDependencyRiskViewModel);
+            solutionFindingsGroupViewModel.AllIssues.Add(dependencyRiskViewModel);
         }
-        InitializeDependencyRisks();
+        UpdateSolutionFindingsState();
         ApplyFilter();
+    }
+
+    private void TaintReportViewModel_IssuesChanged(object sender, ViewModelAnalysisIssuesChangedEventArgs e)
+    {
+        solutionFindingsGroupViewModel.AllIssues.RemoveAll(x => e.RemovedIssues.Contains(x.Id));
+        foreach (var issueViewModel in e.AddedIssues)
+        {
+            solutionFindingsGroupViewModel.AllIssues.Add(issueViewModel);
+        }
+        UpdateSolutionFindingsState();
+        ApplyFilter();
+    }
+
+    private void UpdateSolutionFindingsState()
+    {
+        var contains = AllGroupViewModels.Contains(solutionFindingsGroupViewModel);
+        var any = solutionFindingsGroupViewModel.AllIssues.Any();
+        if (any && !contains)
+        {
+            AllGroupViewModels.Insert(0, solutionFindingsGroupViewModel);
+        }
+        else if (!any && contains)
+        {
+            AllGroupViewModels.Remove(solutionFindingsGroupViewModel);
+        }
     }
 
     private void ViewModel_AnalysisIssuesChanged(object sender, ViewModelAnalysisIssuesChangedEventArgs e) =>
@@ -266,7 +302,7 @@ internal class
 
     private void UpdateFileLevelDeletedIssueViewModels(HashSet<Guid> removedIssues)
     {
-        foreach (var group in AllGroupViewModels.Where(x => x is not GroupDependencyRiskViewModel))
+        foreach (var group in AllGroupViewModels.Where(x => x != solutionFindingsGroupViewModel))
         {
             group.AllIssues.RemoveAll(x => removedIssues.Contains(x.Id));
         }

@@ -26,13 +26,12 @@ using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.DependencyRisks;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView;
 
 [TestClass]
-public class GroupDependencyRiskViewModelTest
+public class SolutionFindingsViewModelTest
 {
-    private GroupDependencyRiskViewModel testSubject;
-    private IDependencyRisksStore dependencyRisksStore;
+    private SolutionFindingsGroupViewModel testSubject;
     private PropertyChangedEventHandler eventHandler;
     private IFocusOnNewCodeServiceUpdater focusOnNewCodeService;
     private ReportViewFilterViewModel reportViewFilterViewModel;
@@ -41,8 +40,6 @@ public class GroupDependencyRiskViewModelTest
     private readonly IDependencyRisk riskMedium = CreateDependencyRisk(status: DependencyRiskStatus.Confirmed, severity: DependencyRiskImpactSeverity.Medium);
     private readonly IDependencyRisk riskHigh = CreateDependencyRisk(status: DependencyRiskStatus.Accepted, severity: DependencyRiskImpactSeverity.High);
     private readonly IDependencyRisk riskBlocker = CreateDependencyRisk(status: DependencyRiskStatus.Safe, severity: DependencyRiskImpactSeverity.Blocker);
-    private readonly IDependencyRisk fixedRisk = CreateDependencyRisk(status: DependencyRiskStatus.Fixed);
-    private IDependencyRisk[] risksOld;
     private IDependencyRisk[] risks;
 
     [TestInitialize]
@@ -51,12 +48,12 @@ public class GroupDependencyRiskViewModelTest
         focusOnNewCodeService = Substitute.For<IFocusOnNewCodeServiceUpdater>();
         focusOnNewCodeService.Current.Returns(new FocusOnNewCodeStatus(false));
         reportViewFilterViewModel = new(focusOnNewCodeService, Substitute.ForPartsOf<NoOpThreadHandler>());
-        dependencyRisksStore = Substitute.For<IDependencyRisksStore>();
-        testSubject = new(dependencyRisksStore);
+        testSubject = new();
         eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
-        risksOld = [CreateDependencyRisk(), CreateDependencyRisk()];
         risks = [riskInfo, riskLow, riskMedium, riskHigh, riskBlocker];
+
+        // todo tests with taints
     }
 
     [TestMethod]
@@ -66,32 +63,6 @@ public class GroupDependencyRiskViewModelTest
         testSubject.AllIssues.Should().BeEmpty();
         testSubject.FilteredIssues.Should().NotBeSameAs(testSubject.AllIssues);
         testSubject.FilteredIssues.Should().BeEmpty();
-    }
-
-    [TestMethod]
-    public void InitializeRisks_InitializesRisks()
-    {
-        MockRisksInStore(risksOld);
-
-        testSubject.InitializeRisks();
-
-        VerifyRisks(risksOld);
-        VerifyFilteredRisks(risksOld);
-        VerifyUpdatedBothRiskLists();
-    }
-
-    [TestMethod]
-    public void InitializeRisks_FixedRisks_FilteredRisksDoNotContainRisksAlreadyFixed()
-    {
-        var risksWithFixed = risks.ToList();
-        risksWithFixed.Add(fixedRisk);
-        MockRisksInStore(risksWithFixed.ToArray());
-
-        testSubject.InitializeRisks();
-
-        testSubject.AllIssues.Should().NotContain(vm => ((DependencyRiskViewModel)vm).DependencyRisk.Status == DependencyRiskStatus.Fixed);
-        VerifyRisks(risks);
-        VerifyFilteredRisks(risks);
     }
 
     [TestMethod]
@@ -323,17 +294,13 @@ public class GroupDependencyRiskViewModelTest
         return mockIssue;
     }
 
-    private void VerifyUpdatedBothRiskLists()
-    {
-        dependencyRisksStore.Received().GetAll();
-        ReceivedEvent(nameof(testSubject.FilteredIssues));
-    }
-
     private void SetInitialRisks(IDependencyRisk[] state)
     {
-        MockRisksInStore(state);
-        testSubject.InitializeRisks();
-        dependencyRisksStore.ClearReceivedCalls();
+        testSubject.AllIssues.Clear();
+        foreach (var dependencyRisk in state)
+        {
+            testSubject.AllIssues.Add(new DependencyRiskViewModel(dependencyRisk));
+        }
         eventHandler.ClearReceivedCalls();
     }
 
@@ -343,7 +310,6 @@ public class GroupDependencyRiskViewModelTest
 
     private void ReceivedEvent(string eventName, int count = 1) => eventHandler.Received(count).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == eventName));
 
-    private void MockRisksInStore(params IDependencyRisk[] dependencyRisks) => dependencyRisksStore.GetAll().Returns(dependencyRisks);
 
     private static IDependencyRisk CreateDependencyRisk(Guid? id = null, DependencyRiskStatus status = DependencyRiskStatus.Open, DependencyRiskImpactSeverity severity = default)
     {

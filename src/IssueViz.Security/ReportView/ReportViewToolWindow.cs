@@ -55,6 +55,7 @@ internal class ReportViewToolWindow : ToolWindowPane
             componentModel?.GetService<IHotspotsReportViewModel>(),
             componentModel?.GetService<IDependencyRisksReportViewModel>(),
             componentModel?.GetService<ITaintsReportViewModel>(),
+            componentModel?.GetService<IFileAwareTaintsReportViewModel>(),
             componentModel?.GetService<IIssuesReportViewModel>(),
             componentModel?.GetService<INavigateToRuleDescriptionCommand>(),
             componentModel?.GetService<ILocationNavigator>(),
