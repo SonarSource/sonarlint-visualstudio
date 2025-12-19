@@ -365,7 +365,10 @@ internal sealed class SonarErrorListDataSource :
         {
             NotifyIssuesChanged(affectedSnapshotFiles);
         }
-        NotifyIssueStoreIssuesChanged(removedIssues.ToArray(), addedIssues.ToArray());
+        if (removedIssues.Count > 0 || addedIssues.Count > 0)
+        {
+            NotifyIssueStoreIssuesChanged(removedIssues.ToArray(), addedIssues.ToArray());
+        }
     }
 
     public bool Contains(IAnalysisIssueVisualization issueVisualization)

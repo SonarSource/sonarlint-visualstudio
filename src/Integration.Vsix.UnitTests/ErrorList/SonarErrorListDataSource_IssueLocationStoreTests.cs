@@ -464,15 +464,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         }
 
         [TestMethod]
-        public void Refresh_NoAffectedFactories_RaisesEventWithEmptyCollections()
-            => RefreshImpl_NoAffectedFactories_RaisesEventWithEmptyCollections(CallRefresh);
+        public void Refresh_NoAffectedFactories_DoesNotRaiseEvent()
+            => RefreshImpl_NoAffectedFactories_DoesNotRaiseEvent(CallRefresh);
 
         [TestMethod]
-        public void RefreshOnBufferChanged_NoAffectedFactories_RaisesEventWithEmptyCollections()
-            => RefreshImpl_NoAffectedFactories_RaisesEventWithEmptyCollections(
+        public void RefreshOnBufferChanged_NoAffectedFactories_DoesNotRaiseEvent()
+            => RefreshImpl_NoAffectedFactories_DoesNotRaiseEvent(
                 (testSubject, filePath) => testSubject.RefreshOnBufferChanged(filePath));
 
-        private static void RefreshImpl_NoAffectedFactories_RaisesEventWithEmptyCollections(RefreshImplTestOperation testOp)
+        private static void RefreshImpl_NoAffectedFactories_DoesNotRaiseEvent(RefreshImplTestOperation testOp)
         {
             var testSubject = CreateTestSubject();
 
@@ -484,11 +484,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 
             testOp(testSubject, "nomatch.txt");
 
-            issueStoreEventHandler.Received(1).Invoke(
-                Arg.Any<object>(),
-                Arg.Is<IssueVisualization.Security.IssuesStore.IssuesChangedEventArgs>(x =>
-                    x.RemovedIssues.Count == 0 &&
-                    x.AddedIssues.Count == 0));
+            issueStoreEventHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
         }
 
         [TestMethod]
