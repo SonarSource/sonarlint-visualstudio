@@ -36,6 +36,7 @@ internal abstract class AnalysisIssueViewModelBase(IAnalysisIssueVisualization a
     public abstract DisplaySeverity DisplaySeverity { get; }
     public abstract IssueType IssueType { get; }
     public abstract DisplayStatus Status { get; }
+    public bool IsResolved => Issue.IsResolved;
     public bool IsOnNewCode => Issue.IsOnNewCode;
     public IAnalysisIssueVisualization Issue { get; } = analysisIssueVisualization;
 

@@ -34,6 +34,7 @@ public interface IIssueViewModel
     DisplaySeverity DisplaySeverity { get; }
     IssueType IssueType { get; }
     DisplayStatus Status { get; }
+    bool IsResolved { get; }
     bool IsOnNewCode { get; }
     bool IsServerIssue { get; }
 }
