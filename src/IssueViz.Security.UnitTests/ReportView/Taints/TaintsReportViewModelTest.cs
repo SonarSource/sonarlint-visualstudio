@@ -36,11 +36,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportVie
 public class TaintsReportViewModelTest
 {
     private ITaintStore localTaintsStore;
-    private TaintsReportViewModel testSubject;
     private IShowInBrowserService showInBrowserService;
     private IMuteIssuesService muteIssuesService;
     private ITelemetryManager telemetryManager;
     private IThreadHandling threadHandling;
+    private TaintsReportViewModel testSubject;
 
     [TestInitialize]
     public void TestInitialize()
@@ -89,10 +89,11 @@ public class TaintsReportViewModelTest
         var issues = testSubject.GetIssueViewModels();
 
         issues.Select(x => ((TaintViewModel)x).Issue).Should().BeEquivalentTo(taints);
+        issues.Select(x => ((TaintViewModel)x).IsSolutionLevelTaintDisplay).Should().AllBeEquivalentTo(true);
     }
 
     [TestMethod]
-    public void HotspotsChanged_RaisedOnStoreIssuesChanged()
+    public void IssuesChanged_RaisedOnStoreIssuesChanged()
     {
         var eventHandler = Substitute.For<EventHandler<ViewModelAnalysisIssuesChangedEventArgs>>();
         testSubject.IssuesChanged += eventHandler;
@@ -109,7 +110,8 @@ public class TaintsReportViewModelTest
             eventHandler.Invoke(Arg.Any<object>(), Arg.Is<ViewModelAnalysisIssuesChangedEventArgs>(args =>
                 args.AddedIssues.Count == 1
                 && args.RemovedIssues.Count == 1
-                && args.AddedIssues.OfType<IAnalysisIssueViewModel>().Single().Issue == addedIssue
+                && args.AddedIssues.OfType<TaintViewModel>().Single().Issue == addedIssue
+                && args.AddedIssues.OfType<TaintViewModel>().Single().IsSolutionLevelTaintDisplay
                 && args.RemovedIssues.Single() == removedId));
         });
     }

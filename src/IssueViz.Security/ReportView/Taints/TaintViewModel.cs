@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.IO;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
@@ -28,10 +29,12 @@ internal class TaintViewModel : AnalysisIssueViewModelBase
 {
     public ITaintIssue TaintIssue => (ITaintIssue)Issue.Issue;
 
-    public TaintViewModel(IAnalysisIssueVisualization analysisIssueVisualization) : base(analysisIssueVisualization)
+    public TaintViewModel(IAnalysisIssueVisualization analysisIssueVisualization, bool isSolutionLevelTaintDisplay = false) : base(analysisIssueVisualization)
     {
         DisplaySeverity = GetDisplaySeverity();
+        IsSolutionLevelTaintDisplay = isSolutionLevelTaintDisplay;
         Status = analysisIssueVisualization.IsResolved ? DisplayStatus.Resolved : DisplayStatus.Open;
+        FileDisplayName = Path.GetFileName(FilePath);
     }
 
     private DisplaySeverity GetDisplaySeverity() => GetDisplaySeverity(TaintIssue.HighestSoftwareQualitySeverity) ?? GetDisplaySeverity(TaintIssue.Severity) ?? DisplaySeverity.Info;
@@ -39,4 +42,6 @@ internal class TaintViewModel : AnalysisIssueViewModelBase
     public override DisplaySeverity DisplaySeverity { get; }
     public override IssueType IssueType => IssueType.TaintVulnerability;
     public override DisplayStatus Status { get; }
+    public bool IsSolutionLevelTaintDisplay { get; }
+    public string FileDisplayName { get; }
 }

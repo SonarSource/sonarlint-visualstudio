@@ -65,8 +65,6 @@ internal abstract class TaintsReportViewModelBase(
     public void ChangeStatus(IAnalysisIssueVisualization issue) => muteIssuesService.ResolveIssueWithDialog(issue, isTaintIssue: true);
 
     public IEnumerable<IIssueViewModel> GetIssueViewModels() => taintsStore.GetAll().Select(CreateViewModel);
-
-    protected override IIssueViewModel CreateViewModel(IAnalysisIssueVisualization issue) => new TaintViewModel(issue);
 }
 
 [Export(typeof(ITaintsReportViewModel))]
@@ -78,7 +76,10 @@ internal sealed class TaintsReportViewModel(
     IMuteIssuesService muteIssuesService,
     ITelemetryManager telemetryManager,
     IThreadHandling threadHandling)
-    : TaintsReportViewModelBase(taintsStore, showInBrowserService, muteIssuesService, telemetryManager, threadHandling), ITaintsReportViewModel;
+    : TaintsReportViewModelBase(taintsStore, showInBrowserService, muteIssuesService, telemetryManager, threadHandling), ITaintsReportViewModel
+{
+    protected override IIssueViewModel CreateViewModel(IAnalysisIssueVisualization issue) => new TaintViewModel(issue, true);
+}
 
 [Export(typeof(IFileAwareTaintsReportViewModel))]
 [PartCreationPolicy(CreationPolicy.Shared)]
@@ -89,4 +90,7 @@ internal sealed class FileAwareTaintsReportViewModel(
     IMuteIssuesService muteIssuesService,
     ITelemetryManager telemetryManager,
     IThreadHandling threadHandling)
-    : TaintsReportViewModelBase(taintsStore, showInBrowserService, muteIssuesService, telemetryManager, threadHandling), IFileAwareTaintsReportViewModel;
+    : TaintsReportViewModelBase(taintsStore, showInBrowserService, muteIssuesService, telemetryManager, threadHandling), IFileAwareTaintsReportViewModel
+{
+    protected override IIssueViewModel CreateViewModel(IAnalysisIssueVisualization issue) => new TaintViewModel(issue);
+}
