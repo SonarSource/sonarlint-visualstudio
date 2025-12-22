@@ -59,6 +59,7 @@ internal class GroupViewModelBase(string title, string filePath, List<IIssueView
     private static IEnumerable<IIssueViewModel> OrderIssues(IEnumerable<IIssueViewModel> issuesToShow) =>
         issuesToShow
             .OrderByDescending(vm => vm.DisplaySeverity, DisplaySeverityComparer.Instance)
+            .ThenBy(vm => vm.FilePath, StringComparer.OrdinalIgnoreCase)
             .ThenBy(vm => vm.Line)
             .ThenBy(vm => vm.Column);
 
