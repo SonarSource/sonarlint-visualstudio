@@ -304,21 +304,24 @@ public class GroupFileViewModelTests
     {
         var sortedIssues = new List<IIssueViewModel>
         {
-            CreateMockedIssue(DisplaySeverity.Blocker, null, null),
-            CreateMockedIssue(DisplaySeverity.Blocker, 1, 1),
-            CreateMockedIssue(DisplaySeverity.Blocker, 1, 2),
-            CreateMockedIssue(DisplaySeverity.Medium, 1, 1),
-            CreateMockedIssue(DisplaySeverity.Info, 1, 2),
-            CreateMockedIssue(DisplaySeverity.Info, 10, 1),
+            CreateMockedIssue(DisplaySeverity.Blocker, null, null, null),
+            CreateMockedIssue(DisplaySeverity.Blocker, @"a.cs", 1, 1),
+            CreateMockedIssue(DisplaySeverity.Blocker, @"A.cs", 1, 2),
+            CreateMockedIssue(DisplaySeverity.Blocker, @"a.cs", 2, 3),
+            CreateMockedIssue(DisplaySeverity.Medium, @"a.cs", 1, 1),
+            CreateMockedIssue(DisplaySeverity.Info, @"a.cs", 10, 1),
+            CreateMockedIssue(DisplaySeverity.Info, @"b.cs", 1, 2),
         };
 
         testSubject.AllIssues.Clear();
+        // shuffle
         testSubject.AllIssues.Add(sortedIssues[2]);
         testSubject.AllIssues.Add(sortedIssues[3]);
         testSubject.AllIssues.Add(sortedIssues[1]);
         testSubject.AllIssues.Add(sortedIssues[5]);
         testSubject.AllIssues.Add(sortedIssues[0]);
         testSubject.AllIssues.Add(sortedIssues[4]);
+        testSubject.AllIssues.Add(sortedIssues[6]);
         testSubject.ApplyFilter(reportViewFilterViewModel);
 
         testSubject.FilteredIssues.Should().BeEquivalentTo(sortedIssues, options => options.WithStrictOrdering());
@@ -326,11 +329,13 @@ public class GroupFileViewModelTests
 
     private static IIssueViewModel CreateMockedIssue(
         DisplaySeverity severity,
+        string filePath,
         int? line,
         int? column)
     {
         var mockIssue = Substitute.For<IIssueViewModel>();
         mockIssue.DisplaySeverity.Returns(severity);
+        mockIssue.FilePath.Returns(filePath);
         mockIssue.Line.Returns(line);
         mockIssue.Column.Returns(column);
         return mockIssue;
