@@ -37,6 +37,7 @@ public class TaintViewModelTest
         testSubject.Issue.Should().Be(analysisIssueVisualization);
         testSubject.IssueType.Should().Be(IssueType.TaintVulnerability);
         testSubject.Status.Should().Be(DisplayStatus.Open);
+        testSubject.IsResolved.Should().BeFalse();
     }
 
     [TestMethod]
@@ -79,6 +80,7 @@ public class TaintViewModelTest
         var testSubject = new TaintViewModel(taintIssue);
 
         testSubject.Status.Should().Be(expectedStatus);
+        testSubject.IsResolved.Should().Be(isResolved);
     }
 
     [DataTestMethod]

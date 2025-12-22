@@ -468,6 +468,19 @@
                     </Trigger>
                 </Style.Triggers>
             </Style>
+            
+            <Style x:Key="ChangeStatusMenuItemStyleDisableResolved" TargetType="MenuItem" BasedOn="{StaticResource ChangeStatusMenuItemStyle}">
+                <Setter Property="IsEnabled" Value="False"></Setter>
+                <Style.Triggers>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu}}" Value="True" />
+                            <Condition Binding="{Binding DataContext.IsResolved, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu}}" Value="False" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter Property="IsEnabled" Value="True"></Setter>
+                    </MultiDataTrigger>
+                </Style.Triggers>
+            </Style>
 
             <!--  Control templates  -->
             <ControlTemplate x:Key="IssueTypeFilterControlTemplate" TargetType="ContentControl">
@@ -524,8 +537,7 @@
             <ContextMenu x:Key="TaintContextMenu">
                 <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}"
                           Click="ChangeTaintStatusMenuItem_OnClick"
-                          Style="{StaticResource ChangeStatusMenuItemStyle}"
-                          IsEnabled="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }" />
+                          Style="{StaticResource ChangeStatusMenuItemStyleDisableResolved}"/>
                 <MenuItem Click="ViewTaintInBrowser_OnClick"
                           Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}"
@@ -543,8 +555,7 @@
             <ContextMenu x:Key="IssuesContextMenu">
                 <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}"
                           Click="ChangeIssueStatusMenuItem_OnClick"
-                          Style="{StaticResource ChangeStatusMenuItemStyle}"
-                          IsEnabled="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu} }" />
+                          Style="{StaticResource ChangeStatusMenuItemStyleDisableResolved}"/>
                 <MenuItem Click="ViewIssueInBrowser_OnClick"
                           Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}"
