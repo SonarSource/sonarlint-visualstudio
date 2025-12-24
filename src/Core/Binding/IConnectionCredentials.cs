@@ -22,21 +22,15 @@ using System.Security;
 
 namespace SonarLint.VisualStudio.Core.Binding;
 
-public interface IConnectionCredentials : IDisposable, ICloneable
-{
-}
+public interface IConnectionCredentials : IDisposable, ICloneable;
 
 public interface IUsernameAndPasswordCredentials : IConnectionCredentials
 {
-    public string UserName { get; }
-    public SecureString Password { get; }
+    string UserName { get; }
+    SecureString Password { get; }
 }
 
 public interface ITokenCredentials : IConnectionCredentials
 {
-    public SecureString Token { get; }
-}
-
-public interface INoCredentials : IConnectionCredentials
-{
+    SecureString Token { get; }
 }

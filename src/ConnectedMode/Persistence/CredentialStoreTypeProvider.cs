@@ -18,13 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Binding;
+namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 
-public record ConnectionCredentials(string Username, string Password = null);
-
-public interface ICredentialProvider
+public interface ICredentialStoreTypeProvider
 {
-    ConnectionCredentials GetCredentials(Uri uri);
+    CredentialStoreType CredentialStoreType { get; }
+}
+
+[Export(typeof(ICredentialStoreTypeProvider))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+public class CredentialStoreTypeProvider(ISonarLintSettings sonarLintSettings) : ICredentialStoreTypeProvider
+{
+    public CredentialStoreType CredentialStoreType => sonarLintSettings.CredentialStoreType;
 }

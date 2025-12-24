@@ -23,31 +23,28 @@ using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 {
     [TestClass]
-    public class SolutionBindingCredentialsLoaderTests
+    public class DefaultBindingCredentialsLoaderTests
     {
         private ICredentialStoreService store;
         private Uri mockUri;
-        private SolutionBindingCredentialsLoader testSubject;
+        private DefaultBindingCredentialsLoader testSubject;
 
         [TestInitialize]
         public void Setup()
         {
             store = Substitute.For<ICredentialStoreService>();
             mockUri = new Uri("http://sonarsource.com");
-            testSubject = new SolutionBindingCredentialsLoader(store);
+            testSubject = new DefaultBindingCredentialsLoader(store);
         }
 
         [TestMethod]
-        public void Ctor_NullStore_Exception()
-        {
-            Action act = () => new SolutionBindingCredentialsLoader(null);
-
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("store");
-        }
+        public void StoreType_Dpapi() =>
+            testSubject.StoreType.Should().Be(CredentialStoreType.Default);
 
         [TestMethod]
         public void Load_ServerUriIsNull_Null()

@@ -28,46 +28,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 [Export(typeof(ISolutionBindingRepository))]
 [Export(typeof(ILegacySolutionBindingRepository))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySolutionBindingRepository
+[method: ImportingConstructor]
+internal class SolutionBindingRepository(
+    IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider,
+    IBindingJsonModelConverter bindingJsonModelConverter,
+    IServerConnectionsRepository serverConnectionsRepository,
+    ISolutionBindingCredentialsLoader credentialsLoader,
+    ISolutionBindingFileLoader solutionBindingFileLoader,
+    ILogger logger)
+    : ISolutionBindingRepository, ILegacySolutionBindingRepository
 {
-    private readonly IBindingJsonModelConverter bindingJsonModelConverter;
-    private readonly ISolutionBindingCredentialsLoader credentialsLoader;
-    private readonly ILogger logger;
-    private readonly IServerConnectionsRepository serverConnectionsRepository;
-    private readonly ISolutionBindingFileLoader solutionBindingFileLoader;
-    private readonly IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider;
-
-    [ImportingConstructor]
-    public SolutionBindingRepository(
-        IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider,
-        IBindingJsonModelConverter bindingJsonModelConverter,
-        IServerConnectionsRepository serverConnectionsRepository,
-        ICredentialStoreService credentialStoreService,
-        ILogger logger)
-        : this(unintrusiveBindingPathProvider,
-            bindingJsonModelConverter,
-            serverConnectionsRepository,
-            new SolutionBindingFileLoader(logger),
-            new SolutionBindingCredentialsLoader(credentialStoreService),
-            logger)
-    {
-    }
-
-    internal /* for testing */ SolutionBindingRepository(
-        IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider,
-        IBindingJsonModelConverter bindingJsonModelConverter,
-        IServerConnectionsRepository serverConnectionsRepository,
-        ISolutionBindingFileLoader solutionBindingFileLoader,
-        ISolutionBindingCredentialsLoader credentialsLoader,
-        ILogger logger)
-    {
-        this.unintrusiveBindingPathProvider = unintrusiveBindingPathProvider;
-        this.serverConnectionsRepository = serverConnectionsRepository;
-        this.bindingJsonModelConverter = bindingJsonModelConverter;
-        this.solutionBindingFileLoader = solutionBindingFileLoader ?? throw new ArgumentNullException(nameof(solutionBindingFileLoader));
-        this.credentialsLoader = credentialsLoader ?? throw new ArgumentNullException(nameof(credentialsLoader));
-        this.logger = logger;
-    }
+    private readonly ISolutionBindingCredentialsLoader credentialsLoader = credentialsLoader ?? throw new ArgumentNullException(nameof(credentialsLoader));
+    private readonly ISolutionBindingFileLoader solutionBindingFileLoader = solutionBindingFileLoader ?? throw new ArgumentNullException(nameof(solutionBindingFileLoader));
 
     BoundSonarQubeProject ILegacySolutionBindingRepository.Read(string configFilePath)
     {

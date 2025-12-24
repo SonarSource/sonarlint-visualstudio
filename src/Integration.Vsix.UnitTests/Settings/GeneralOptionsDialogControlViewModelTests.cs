@@ -205,4 +205,25 @@ public class GeneralOptionsDialogControlViewModelTests
 
         browserService.Received(1).Navigate(urlToNavigate);
     }
+
+    [TestMethod]
+    [DataRow(CredentialStoreType.Default)]
+    [DataRow(CredentialStoreType.DPAPI)]
+    public void Ctor_SetsCredentialStoreTypeToValueFromSettings(CredentialStoreType expectedType)
+    {
+        settings.CredentialStoreType.Returns(expectedType);
+        _ = settings.Received().CredentialStoreType;
+        testSubject.CredentialStoreType = expectedType;
+        testSubject.CredentialStoreType.Should().Be(expectedType);
+    }
+
+    [TestMethod]
+    [DataRow(CredentialStoreType.Default)]
+    [DataRow(CredentialStoreType.DPAPI)]
+    public void SaveSettings_SavesCredentialStoreTypeToSettings(CredentialStoreType expectedType)
+    {
+        testSubject.CredentialStoreType = expectedType;
+        testSubject.SaveSettings();
+        settings.Received().CredentialStoreType = expectedType;
+    }
 }

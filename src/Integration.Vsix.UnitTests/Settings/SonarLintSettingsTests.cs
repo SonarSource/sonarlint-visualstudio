@@ -125,7 +125,7 @@ public class SonarLintSettingsTests
     {
         testSubject.SetValue(propertyName, valueToSet);
 
-        CheckPropertySet(propertyName, valueToSet);
+        CheckPropertySet(propertyName, (bool)valueToSet);
     }
 
     [TestMethod]
@@ -318,16 +318,26 @@ public class SonarLintSettingsTests
         store.Received().GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsFocusOnNewCodeEnabled), false);
     }
 
-    [TestMethod]
-    public void IsFocusOnNewCodeEnabled_SetValue_GetsAndSetsCorrectly()
+    [DataTestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void IsFocusOnNewCodeEnabled_Should(bool value)
     {
-        store.GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsFocusOnNewCodeEnabled), false).Returns(true);
+        store.GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsFocusOnNewCodeEnabled), false).Returns(value);
 
-        testSubject.IsFocusOnNewCodeEnabled = true;
-        var value = testSubject.IsFocusOnNewCodeEnabled;
+        testSubject.IsFocusOnNewCodeEnabled.Should().Be(value);
 
-        value.Should().BeTrue();
-        store.Received().SetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsFocusOnNewCodeEnabled), true);
+        store.Received().GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsFocusOnNewCodeEnabled), false);
+    }
+
+    [DataTestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void IsFocusOnNewCodeEnabled_SetValue_SetsCorrectly(bool value)
+    {
+        testSubject.IsFocusOnNewCodeEnabled = value;
+
+        store.Received().SetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsFocusOnNewCodeEnabled), value);
     }
 
     [TestMethod]
@@ -337,6 +347,44 @@ public class SonarLintSettingsTests
         testSubject.IsFocusOnNewCodeEnabled = true;
         var value = testSubject.IsFocusOnNewCodeEnabled;
         value.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void CredentialStoreType_DefaultValue_ShouldBeDefault()
+    {
+        testSubject.CredentialStoreType.Should().Be(CredentialStoreType.Default);
+        store.Received().GetInt32(SonarLintSettings.SettingsRoot, nameof(testSubject.CredentialStoreType), (int)CredentialStoreType.Default);
+    }
+
+    [DataTestMethod]
+    [DataRow(CredentialStoreType.Default)]
+    [DataRow(CredentialStoreType.DPAPI)]
+    public void CredentialStoreType_Should(CredentialStoreType value)
+    {
+        store.GetInt32(SonarLintSettings.SettingsRoot, nameof(testSubject.CredentialStoreType), (int)CredentialStoreType.Default).Returns((int)value);
+
+        testSubject.CredentialStoreType.Should().Be(value);
+
+        store.Received().GetInt32(SonarLintSettings.SettingsRoot, nameof(testSubject.CredentialStoreType), (int)CredentialStoreType.Default);
+    }
+
+    [DataTestMethod]
+    [DataRow(CredentialStoreType.Default)]
+    [DataRow(CredentialStoreType.DPAPI)]
+    public void CredentialStoreType_SetValue_SetsCorrectly(CredentialStoreType value)
+    {
+        testSubject.CredentialStoreType = value;
+
+        store.Received().SetInt32(SonarLintSettings.SettingsRoot, nameof(testSubject.CredentialStoreType), (int)value);
+    }
+
+    [TestMethod]
+    public void CredentialStoreType_WhenDisposed_ReturnsDefault()
+    {
+        MockComDetachedTestSubject();
+        testSubject.CredentialStoreType = CredentialStoreType.DPAPI;
+        var value = testSubject.CredentialStoreType;
+        value.Should().Be(CredentialStoreType.Default);
     }
 
     private void MockComDetachedTestSubject()
