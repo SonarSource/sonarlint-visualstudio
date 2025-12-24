@@ -41,7 +41,7 @@ public class AggregatingSolutionBindingCredentialsLoader : ISolutionBindingCrede
         ILogger logger)
     {
         this.credentialStoreTypeProvider = credentialStoreTypeProvider;
-        this.logger = logger.ForVerboseContext(nameof(AggregatingSolutionBindingCredentialsLoader));
+        this.logger = logger.ForContext(PersistenceStrings.CredentialsLoader_LogContext).ForVerboseContext(nameof(AggregatingSolutionBindingCredentialsLoader));
         solutionBindingCredentialsLoaderImpls = impls.ToDictionary(x => x.StoreType, y => y);
     }
 
