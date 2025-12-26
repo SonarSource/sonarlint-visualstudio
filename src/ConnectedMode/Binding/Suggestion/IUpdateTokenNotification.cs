@@ -75,6 +75,11 @@ internal class UpdateTokenNotification(
             messageBox.Show(string.Format(BindingStrings.UpdateTokenSuccessfullyMessageBoxText, connection.Info.Id), BindingStrings.UpdateTokenSuccessfullyMessageBoxCaption, MessageBoxButton.OK,
                 MessageBoxImage.Information);
         }
+        else if (result == false) // todo result is false also on Cancel, not ideal...
+        {
+            messageBox.Show(string.Format(BindingStrings.UpdateTokenUnsuccessfullyMessageBoxText, connection.Info.Id), BindingStrings.UpdateTokenUnsuccessfullyMessageBoxCaption, MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
     }
 
     private void OnDismissHandler() => notificationService.CloseNotification();
