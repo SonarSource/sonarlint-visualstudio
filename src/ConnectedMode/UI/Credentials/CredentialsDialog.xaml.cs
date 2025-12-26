@@ -60,7 +60,7 @@ public partial class CredentialsDialog : Window
         ConfirmationBtn.Content = withNextButton ? UiResources.NextButton : UiResources.OkButton;
     }
 
-    protected virtual Task BeforeWindowCloseWithSuccessAsync() => Task.CompletedTask;
+    protected virtual Task<ResponseStatus> BeforeWindowCloseWithAcceptAsync() => Task.FromResult(new ResponseStatus(true));
 
     private void TokenPasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e) => ViewModel.Token = TokenBox.SecurePassword;
 
@@ -71,13 +71,13 @@ public partial class CredentialsDialog : Window
         {
             return;
         }
-        await CloseWindowWithSuccessAsync();
+        await CloseWindowOnAcceptAsync();
     }
 
-    private async Task CloseWindowWithSuccessAsync()
+    private async Task CloseWindowOnAcceptAsync()
     {
-        await BeforeWindowCloseWithSuccessAsync();
-        DialogResult = true;
+        var x = await BeforeWindowCloseWithAcceptAsync(); //todo pass response status
+        DialogResult = x.Success;
         Close();
     }
 
@@ -105,7 +105,7 @@ public partial class CredentialsDialog : Window
         {
             TokenBox.Password = responseWithData.ResponseData;
             ConnectedModeUiServices.IdeWindowService.BringToFront();
-            await CloseWindowWithSuccessAsync();
+            await CloseWindowOnAcceptAsync();
         }
         else
         {
