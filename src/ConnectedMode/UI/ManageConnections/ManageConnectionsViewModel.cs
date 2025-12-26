@@ -70,10 +70,11 @@ internal class ManageConnectionsViewModel(
     internal async Task EditConnectionWithProgressAsync(ConnectionViewModel connectionViewModel)
     {
         var validationParams = new TaskToPerformParams<ResponseStatus>(
-            async () => await EditCredentialsAsync(connectionViewModel),
+            () => EditCredentialsAsync(connectionViewModel),
             UiResources.UpdatingConnectionCredentialsProgressText,
             UiResources.UpdatingConnectionCredentialsFailedText,
-            string.Format(UiResources.UpdatingConnectionCredentialsSucceededText, connectionViewModel.Connection.Info.Id));
+            string.Format(UiResources.UpdatingConnectionCredentialsSucceededText, connectionViewModel.Connection.Info.Id),
+            UiResources.UpdatingConnectionCredentialsFailedWithReasonTextTemplate);
         await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
     }
 
@@ -147,7 +148,7 @@ internal class ManageConnectionsViewModel(
     {
         var result = await ConnectedModeUiManager.ShowEditCredentialsDialogAsync(connectionViewModel.Connection);
         connectionViewModel.RefreshInvalidToken();
-        return new ResponseStatus(result == true);
+        return new ResponseStatus(result.DialogResult == true && result.OperationStatus.Success, result.OperationStatus.WarningText); // todo https://sonarsource.atlassian.net/browse/SLVS-2802 support 'canceled' state when cancel button is clicked
     }
 
     private bool DeleteBindings(List<string> bindingKeys)

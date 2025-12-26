@@ -30,7 +30,7 @@ internal class EditCredentialsViewModel(
     IProgressReporterViewModel progressReporterViewModel)
     : CredentialsViewModel(connection.Info, connectedModeServices.SlCoreConnectionAdapter, progressReporterViewModel)
 {
-    internal async Task UpdateConnectionCredentialsWithProgressAsync()
+    internal async Task<ResponseStatus> UpdateConnectionCredentialsWithProgressAsync()
     {
         var validationParams = new TaskToPerformParams<ResponseStatus>(
             UpdateConnectionCredentialsAsync,
@@ -40,24 +40,26 @@ internal class EditCredentialsViewModel(
 
         if (!response.Success)
         {
-            return;
+            return response;
         }
 
         var boundServerProject = connectedModeServices.ConfigurationProvider.GetConfiguration()?.Project;
-        if (boundServerProject != null && connection.Info.IsSameAs(boundServerProject.ServerConnection))
+        if (boundServerProject == null || !connection.Info.IsSameAs(boundServerProject.ServerConnection))
         {
-            var refreshBinding = new TaskToPerformParams<ResponseStatus>(
-                async () => await RebindAsync(boundServerProject.ServerProjectKey, boundServerProject.ServerConnection.Id),
-                UiResources.RebindingProgressText,
-                UiResources.RebindingFailedText);
-            await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(refreshBinding);
+            return new ResponseStatus(true); // no need to update the current binding, success
         }
+
+        var refreshBinding = new TaskToPerformParams<ResponseStatus>(
+            async () => await RebindAsync(boundServerProject.ServerProjectKey, boundServerProject.ServerConnection.Id),
+            UiResources.RebindingProgressText,
+            UiResources.RebindingFailedText);
+        return await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(refreshBinding);
     }
 
     internal Task<ResponseStatus> UpdateConnectionCredentialsAsync()
     {
         var success = connectedModeServices.ServerConnectionsRepositoryAdapter.TryUpdateCredentials(connection, GetCredentialsModel());
-        return Task.FromResult(new ResponseStatus(success));
+        return Task.FromResult(new ResponseStatus(success)); // todo https://sonarsource.atlassian.net/browse/SLVS-2800 propagate warning text
     }
 
     internal async Task<ResponseStatus> RebindAsync(string serverProjectKey, string serverConnectionId)

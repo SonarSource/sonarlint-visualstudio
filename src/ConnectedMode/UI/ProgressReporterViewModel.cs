@@ -41,9 +41,10 @@ public interface ITaskToPerformParams<T> where T : IResponseStatus
     public Action<T> AfterFailure { get; }
     public Func<Task<T>> TaskToPerform { get; }
     public string ProgressStatus { get; }
-    public string WarningText { get; }
+    public string DefaultWarningText { get; }
     public string SuccessText { get; }
     public T FailureResponse { get; }
+    string WarningTextWithReasonTemplate { get; }
 }
 
 public class ProgressReporterViewModel(ILogger logger) : ViewModelBase, IProgressReporterViewModel
@@ -137,7 +138,21 @@ public class ProgressReporterViewModel(ILogger logger) : ViewModelBase, IProgres
 
     private void OnFailure<T>(ITaskToPerformParams<T> parameters, T response, bool clearPreviousState) where T : IResponseStatus
     {
-        UpdateWarning(response?.WarningText ?? parameters.WarningText, clearPreviousState);
+        string warningText;
+        if (response.WarningText == null)
+        {
+            warningText = parameters.DefaultWarningText;
+        }
+        else if (parameters.WarningTextWithReasonTemplate == null)
+        {
+            warningText = response.WarningText;
+        }
+        else
+        {
+            warningText = string.Format(parameters.WarningTextWithReasonTemplate, response.WarningText);
+        }
+
+        UpdateWarning(warningText, clearPreviousState);
         parameters.AfterFailure?.Invoke(response);
     }
 
@@ -158,7 +173,8 @@ public class TaskToPerformParams<T>(
     Func<Task<T>> taskToPerform,
     string progressStatus,
     string warningText,
-    string successText = null) : ITaskToPerformParams<T>
+    string successText = null,
+    string warningTextWithReasonTemplate = null) : ITaskToPerformParams<T>
     where T : IResponseStatus, new()
 {
     public Action AfterProgressUpdated { get; init; }
@@ -166,7 +182,8 @@ public class TaskToPerformParams<T>(
     public Action<T> AfterFailure { get; init; }
     public Func<Task<T>> TaskToPerform { get; } = taskToPerform;
     public string ProgressStatus { get; } = progressStatus;
-    public string WarningText { get; } = warningText;
+    public string DefaultWarningText { get; } = warningText;
     public string SuccessText { get; } = successText;
+    public string WarningTextWithReasonTemplate { get; } = warningTextWithReasonTemplate;
     public T FailureResponse { get; } = new();
 }

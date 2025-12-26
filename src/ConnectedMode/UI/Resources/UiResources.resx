@@ -384,6 +384,9 @@
   <data name="UpdatingConnectionCredentialsFailedText" xml:space="preserve">
     <value>Failed to update the connection, please make sure that the credentials are correct.</value>
   </data>
+  <data name="UpdatingConnectionCredentialsFailedWithReasonTextTemplate" xml:space="preserve">
+    <value>Failed to update the connection: {0}</value>
+  </data>
   <data name="RebindingProgressText" xml:space="preserve">
     <value>Refreshing binding...</value>
   </data>

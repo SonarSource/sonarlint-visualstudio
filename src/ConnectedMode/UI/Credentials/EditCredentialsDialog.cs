@@ -40,5 +40,6 @@ public class EditCredentialsDialog : CredentialsDialog
     private static EditCredentialsViewModel CreateViewModel(IConnectedModeUIManager connectedModeUiManager, IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBinding, Connection connection) =>
         new(connection, connectedModeUiManager, connectedModeServices, connectedModeBinding, new ProgressReporterViewModel(connectedModeServices.Logger));
 
-    protected override async Task BeforeWindowCloseWithSuccessAsync() => await editConnectionTokenViewModel.UpdateConnectionCredentialsWithProgressAsync();
+    protected override Task<ResponseStatus> BeforeWindowCloseWithAcceptAsync() =>
+        editConnectionTokenViewModel.UpdateConnectionCredentialsWithProgressAsync();
 }

@@ -77,7 +77,7 @@ public class TrustConnectionViewModelTests
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.TaskToPerform == trustSonarCloudConnectionViewModel.CreateNewConnectionAsync &&
                     x.ProgressStatus == UiResources.CreatingConnectionProgressText &&
-                    x.WarningText == UiResources.CreatingConnectionFailedText));
+                    x.DefaultWarningText == UiResources.CreatingConnectionFailedText));
     }
 
     [TestMethod]

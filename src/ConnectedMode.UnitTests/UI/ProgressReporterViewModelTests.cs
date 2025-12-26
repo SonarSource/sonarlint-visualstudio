@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel;
+using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 
@@ -136,7 +137,7 @@ public class ProgressReporterViewModelTests
         });
         testSubject.ProgressStatus.Should().BeNull();
         testSubject.SuccessMessage.Should().Be(successText);
-        _ = parameters.DidNotReceive().WarningText;
+        _ = parameters.DidNotReceive().DefaultWarningText;
     }
 
     [TestMethod]
@@ -167,7 +168,7 @@ public class ProgressReporterViewModelTests
     {
         var warningText = "warning";
         var parameters = GetTaskWithResponse(false);
-        parameters.WarningText.Returns(warningText);
+        parameters.DefaultWarningText.Returns(warningText);
 
         await testSubject.ExecuteTaskWithProgressAsync(parameters);
 
@@ -176,7 +177,7 @@ public class ProgressReporterViewModelTests
             _ = parameters.ProgressStatus;
             parameters.AfterProgressUpdated();
             parameters.TaskToPerform();
-            _ = parameters.WarningText;
+            _ = parameters.DefaultWarningText;
             parameters.AfterFailure(Arg.Any<IResponseStatus>());
             parameters.AfterProgressUpdated();
         });
@@ -191,7 +192,7 @@ public class ProgressReporterViewModelTests
         var warningText = "warning";
         var taskWarningText = "warning 2";
         var parameters = GetTaskWithResponse(false, warningText, taskWarningText);
-        parameters.WarningText.Returns(warningText);
+        parameters.WarningTextWithReasonTemplate.ReturnsNull();
 
         await testSubject.ExecuteTaskWithProgressAsync(parameters);
 
@@ -204,6 +205,53 @@ public class ProgressReporterViewModelTests
             parameters.AfterProgressUpdated();
         });
         testSubject.Warning.Should().Be(taskWarningText);
+        testSubject.ProgressStatus.Should().BeNull();
+        testSubject.SuccessMessage.Should().BeNull();
+    }
+
+    [TestMethod]
+    public async Task ExecuteTaskWithProgressAsync_TaskWithFailureResponseAndCustomWarningTemplate_WorkflowIsCorrect()
+    {
+        var warningText = "warning";
+        var warningTemplate = "template: {0}";
+        var taskWarningText = "warning 2";
+        var parameters = GetTaskWithResponse(false, warningText, taskWarningText);
+        parameters.WarningTextWithReasonTemplate.Returns(warningTemplate);
+
+        await testSubject.ExecuteTaskWithProgressAsync(parameters);
+
+        Received.InOrder(() =>
+        {
+            _ = parameters.ProgressStatus;
+            parameters.AfterProgressUpdated();
+            parameters.TaskToPerform();
+            parameters.AfterFailure(Arg.Any<IResponseStatus>());
+            parameters.AfterProgressUpdated();
+        });
+        testSubject.Warning.Should().Be(string.Format(warningTemplate, taskWarningText));
+        testSubject.ProgressStatus.Should().BeNull();
+        testSubject.SuccessMessage.Should().BeNull();
+    }
+
+    [TestMethod]
+    public async Task ExecuteTaskWithProgressAsync_TaskWithFailureResponseAndCustomWarningTemplate_NoTaskLevelWarning_WorkflowIsCorrect()
+    {
+        var warningText = "warning";
+        var warningTemplate = "template: {0}";
+        var parameters = GetTaskWithResponse(false, warningText);
+        parameters.WarningTextWithReasonTemplate.Returns(warningTemplate);
+
+        await testSubject.ExecuteTaskWithProgressAsync(parameters);
+
+        Received.InOrder(() =>
+        {
+            _ = parameters.ProgressStatus;
+            parameters.AfterProgressUpdated();
+            parameters.TaskToPerform();
+            parameters.AfterFailure(Arg.Any<IResponseStatus>());
+            parameters.AfterProgressUpdated();
+        });
+        testSubject.Warning.Should().Be(warningText);
         testSubject.ProgressStatus.Should().BeNull();
         testSubject.SuccessMessage.Should().BeNull();
     }
@@ -225,7 +273,7 @@ public class ProgressReporterViewModelTests
         var warningText = "warning";
         var parameters = Substitute.For<ITaskToPerformParams<IResponseStatus>>();
         testSubject.ProgressStatus = "In progress...";
-        parameters.WarningText.Returns(warningText);
+        parameters.DefaultWarningText.Returns(warningText);
 
         var response = await ExecuteTaskThatThrows(parameters);
 
@@ -310,7 +358,7 @@ public class ProgressReporterViewModelTests
         var parameters = Substitute.For<ITaskToPerformParams<IResponseStatus>>();
         var taskResponse = Substitute.For<IResponseStatus>();
         parameters.TaskToPerform().Returns(taskResponse);
-        parameters.WarningText.Returns(warningText);
+        parameters.DefaultWarningText.Returns(warningText);
         parameters.SuccessText.Returns(successText);
         taskResponse.Success.Returns(success);
         taskResponse.WarningText.Returns(responseWarningText);

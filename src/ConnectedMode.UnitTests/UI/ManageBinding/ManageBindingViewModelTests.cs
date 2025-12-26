@@ -314,7 +314,7 @@ public class ManageBindingViewModelTests
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.TaskToPerform == testSubject.UnbindAsync &&
                     x.ProgressStatus == UiResources.UnbindingInProgressText &&
-                    x.WarningText == UiResources.UnbindingFailedText &&
+                    x.DefaultWarningText == UiResources.UnbindingFailedText &&
                     x.SuccessText == UiResources.UnbindingSucceededText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated));
     }
@@ -700,7 +700,7 @@ public class ManageBindingViewModelTests
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.TaskToPerform == testSubject.ReloadConnectionDataAsync
                     && x.ProgressStatus == UiResources.LoadingConnectionsText
-                    && x.WarningText == UiResources.LoadingConnectionsFailedText
+                    && x.DefaultWarningText == UiResources.LoadingConnectionsFailedText
                     && x.AfterProgressUpdated == testSubject.OnProgressUpdated));
     }
 
@@ -716,7 +716,7 @@ public class ManageBindingViewModelTests
                 Arg.Is<TaskToPerformParams<ResponseStatusWithData<BindingResult>>>(x =>
                     x.TaskToPerform == testSubject.DisplayBindStatusAsync
                     && x.ProgressStatus == UiResources.FetchingBindingStatusText
-                    && x.WarningText == UiResources.FetchingBindingStatusFailedText
+                    && x.DefaultWarningText == UiResources.FetchingBindingStatusFailedText
                     && x.AfterProgressUpdated == testSubject.OnProgressUpdated),
                 false);
     }
@@ -734,7 +734,7 @@ public class ManageBindingViewModelTests
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.TaskToPerform == testSubject.CheckForSharedBindingAsync &&
                     x.ProgressStatus == UiResources.CheckingForSharedBindingText &&
-                    x.WarningText == UiResources.CheckingForSharedBindingFailedText &&
+                    x.DefaultWarningText == UiResources.CheckingForSharedBindingFailedText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated),
                 false);
     }
@@ -752,7 +752,7 @@ public class ManageBindingViewModelTests
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.TaskToPerform == testSubject.CheckForSharedBindingAsync &&
                     x.ProgressStatus == UiResources.CheckingForSharedBindingText &&
-                    x.WarningText == UiResources.CheckingForSharedBindingFailedText &&
+                    x.DefaultWarningText == UiResources.CheckingForSharedBindingFailedText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated),
                 false);
     }
@@ -944,7 +944,7 @@ public class ManageBindingViewModelTests
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatusWithData<BindingResult>>>(x =>
                     x.ProgressStatus == UiResources.BindingInProgressText
-                    && x.WarningText == UiResources.BindingFailedText
+                    && x.DefaultWarningText == UiResources.BindingFailedText
                     && x.SuccessText == UiResources.BindingSucceededText
                     && x.AfterProgressUpdated == testSubject.OnProgressUpdated));
     }
@@ -1102,7 +1102,7 @@ public class ManageBindingViewModelTests
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatusWithData<string>>>(x =>
                     x.ProgressStatus == UiResources.ExportingBindingConfigurationProgressText &&
-                    x.WarningText == UiResources.ExportBindingConfigurationWarningText &&
+                    x.DefaultWarningText == UiResources.ExportBindingConfigurationWarningText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated));
         messageBox.DidNotReceiveWithAnyArgs().Show(default, default, default, default);
     }
@@ -1119,7 +1119,7 @@ public class ManageBindingViewModelTests
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatusWithData<string>>>(x =>
                     x.ProgressStatus == UiResources.ExportingBindingConfigurationProgressText &&
-                    x.WarningText == UiResources.ExportBindingConfigurationWarningText &&
+                    x.DefaultWarningText == UiResources.ExportBindingConfigurationWarningText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated));
         progressReporterViewModel.SuccessMessage.Should().Be(string.Format(UiResources.ExportBindingConfigurationMessageBoxTextSuccess, filePath));
         connectedModeBindingServices.SharedBindingConfigProvider.Received(1).GetSharedBinding();
