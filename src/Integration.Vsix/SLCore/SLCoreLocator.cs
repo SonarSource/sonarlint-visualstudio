@@ -84,7 +84,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SLCore
         public SLCoreLaunchParameters LocateExecutable()
         {
             var vsixRoot = vsixRootLocator.GetVsixRoot();
-
             return new (GetCustomJrePathFromSettings() ?? GetEmbeddedJrePath(vsixRoot),
                 $"-classpath \"{Path.Combine(vsixRoot, basePathInsideVsix, LibSubPath)}\" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli");
         }

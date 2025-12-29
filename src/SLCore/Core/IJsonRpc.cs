@@ -18,8 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.IO;
+using StreamJsonRpc.Protocol;
 using StreamJsonRpc;
+using SonarLint.VisualStudio.SLCore.Monitoring;
 
 namespace SonarLint.VisualStudio.SLCore.Core;
 
@@ -44,8 +47,17 @@ internal interface IJsonRpc
 /// </summary>
 internal class JsonRpcWrapper : JsonRpc, IJsonRpc
 {
-    public JsonRpcWrapper(Stream sendingStream, Stream receivingStream) : base(sendingStream, receivingStream)
+    private readonly IMonitoringService monitoringService;
+
+    public JsonRpcWrapper(Stream sendingStream, Stream receivingStream, IMonitoringService monitoringService) : base(sendingStream, receivingStream)
     {
+        this.monitoringService = monitoringService;
         TraceSource.Listeners.Clear(); // we don't want tracing unless IRpcDebugger is enabled
+    }
+
+    protected override JsonRpcError.ErrorDetail CreateErrorDetails(JsonRpcRequest request, Exception exception)
+    {
+        monitoringService.ReportException(exception, $"JsonRpcWrapper.CreateErrorDetails:{request.Method ?? "unknown"}");
+        return base.CreateErrorDetails(request, exception);
     }
 }

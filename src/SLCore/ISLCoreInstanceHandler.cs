@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.SLCore.Monitoring;
 using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.SLCore;
@@ -38,6 +39,7 @@ internal sealed class SLCoreInstanceHandler : ISLCoreInstanceHandler
     private readonly IAliveConnectionTracker aliveConnectionTracker;
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly ISLCoreInstanceFactory slCoreInstanceFactory;
+    private readonly IMonitoringService monitoringService;
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
     internal /* for testing */ ISLCoreInstanceHandle currentInstanceHandle = null;
@@ -48,12 +50,14 @@ internal sealed class SLCoreInstanceHandler : ISLCoreInstanceHandler
     public SLCoreInstanceHandler(ISLCoreInstanceFactory slCoreInstanceFactory,
         IAliveConnectionTracker aliveConnectionTracker,
         IActiveConfigScopeTracker activeConfigScopeTracker,
+        IMonitoringService monitoringService,
         IThreadHandling threadHandling,
         ILogger logger)
     {
         this.aliveConnectionTracker = aliveConnectionTracker;
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.slCoreInstanceFactory = slCoreInstanceFactory;
+        this.monitoringService = monitoringService;
         this.threadHandling = threadHandling;
         this.logger = logger;
     }
@@ -104,6 +108,7 @@ internal sealed class SLCoreInstanceHandler : ISLCoreInstanceHandler
         {
             logger.WriteLine(SLCoreStrings.SLCoreHandler_StartingInstance);
             await currentInstanceHandle.InitializeAsync();
+            monitoringService.Init();
             await currentInstanceHandle.ShutdownTask;
         }
         catch (Exception e)

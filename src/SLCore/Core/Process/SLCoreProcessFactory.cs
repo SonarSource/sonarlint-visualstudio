@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.SLCore.Configuration;
+using SonarLint.VisualStudio.SLCore.Monitoring;
 
 namespace SonarLint.VisualStudio.SLCore.Core.Process;
 
@@ -28,15 +29,17 @@ namespace SonarLint.VisualStudio.SLCore.Core.Process;
 internal class SLCoreProcessFactory : ISLCoreProcessFactory
 {
     private readonly ISLCoreErrorLoggerFactory slCoreErrorLoggerFactory;
+    private readonly IMonitoringService monitoringService;
 
     [ImportingConstructor]
-    public SLCoreProcessFactory(ISLCoreErrorLoggerFactory slCoreErrorLoggerFactory)
+    public SLCoreProcessFactory(ISLCoreErrorLoggerFactory slCoreErrorLoggerFactory, IMonitoringService monitoringService)
     {
         this.slCoreErrorLoggerFactory = slCoreErrorLoggerFactory;
+        this.monitoringService = monitoringService;
     }
 
     public ISLCoreProcess StartNewProcess(SLCoreLaunchParameters slCoreLaunchParameters)
     {
-        return new SLCoreProcess(slCoreLaunchParameters, slCoreErrorLoggerFactory);
+        return new SLCoreProcess(slCoreLaunchParameters, slCoreErrorLoggerFactory, monitoringService);
     }
 }
