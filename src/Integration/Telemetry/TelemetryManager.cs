@@ -30,22 +30,10 @@ namespace SonarLint.VisualStudio.Integration.Telemetry;
 [Export(typeof(ITelemetryManager))]
 [Export(typeof(IQuickFixesTelemetryManager))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class TelemetryManager : ITelemetryManager,
-    IQuickFixesTelemetryManager,
-    IDisposable
+[method: ImportingConstructor]
+internal sealed class TelemetryManager(ISlCoreTelemetryHelper telemetryHelper) : ITelemetryManager,
+    IQuickFixesTelemetryManager
 {
-    private readonly IKnownUIContexts knownUiContexts;
-    private readonly ISlCoreTelemetryHelper telemetryHelper;
-
-    [ImportingConstructor]
-    public TelemetryManager(ISlCoreTelemetryHelper telemetryHelper, IKnownUIContexts knownUIContexts)
-    {
-        this.telemetryHelper = telemetryHelper;
-        knownUiContexts = knownUIContexts;
-        knownUiContexts.CSharpProjectContextChanged += OnCSharpProjectContextChanged;
-        knownUiContexts.VBProjectContextChanged += OnVBProjectContextChanged;
-    }
-
     public void QuickFixApplied(string ruleId) =>
         telemetryHelper.Notify(telemetryService =>
             telemetryService.AddQuickFixAppliedForRule(new AddQuickFixAppliedForRuleParams(ruleId)));
@@ -90,30 +78,4 @@ internal sealed class TelemetryManager : ITelemetryManager,
     public void TaintIssueInvestigatedRemotely() => telemetryHelper.Notify(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedRemotely());
 
     public void LinkClicked(string linkId) => telemetryHelper.Notify(telemetryService => telemetryService.HelpAndFeedbackLinkClicked(new HelpAndFeedbackClickedParams(linkId)));
-
-    public void Dispose()
-    {
-        knownUiContexts.CSharpProjectContextChanged -= OnCSharpProjectContextChanged;
-        knownUiContexts.VBProjectContextChanged -= OnVBProjectContextChanged;
-    }
-
-    private void OnCSharpProjectContextChanged(object sender, UIContextChangedEventArgs e)
-    {
-        if (e.Activated)
-        {
-            LanguageAnalyzed(TimeSpan.Zero, Language.CS);
-        }
-    }
-
-    private void OnVBProjectContextChanged(object sender, UIContextChangedEventArgs e)
-    {
-        if (e.Activated)
-        {
-            LanguageAnalyzed(TimeSpan.Zero, Language.VBNET);
-        }
-    }
-
-    private void LanguageAnalyzed(TimeSpan analysisTime, Language language) =>
-        telemetryHelper.Notify(telemetryService =>
-            telemetryService.AnalysisDoneOnSingleLanguage(new AnalysisDoneOnSingleLanguageParams(language, (int)Math.Round(analysisTime.TotalMilliseconds))));
 }

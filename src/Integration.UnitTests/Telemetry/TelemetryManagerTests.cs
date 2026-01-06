@@ -34,28 +34,24 @@ public class TelemetryManagerTests
     private TelemetryManager telemetryManager;
     private ISlCoreTelemetryHelper telemetryHandler;
     private ITelemetrySLCoreService telemetryService;
-    private IKnownUIContexts knownUiContexts;
 
     [TestInitialize]
     public void TestInitialize()
     {
         telemetryHandler = Substitute.For<ISlCoreTelemetryHelper>();
         MockTelemetryService();
-        knownUiContexts = Substitute.For<IKnownUIContexts>();
 
-        telemetryManager = new TelemetryManager(telemetryHandler, knownUiContexts);
+        telemetryManager = new TelemetryManager(telemetryHandler);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<TelemetryManager, ITelemetryManager>(
-            MefTestHelpers.CreateExport<ISlCoreTelemetryHelper>(),
-            MefTestHelpers.CreateExport<IKnownUIContexts>());
+            MefTestHelpers.CreateExport<ISlCoreTelemetryHelper>());
 
         MefTestHelpers.CheckTypeCanBeImported<TelemetryManager, IQuickFixesTelemetryManager>(
-            MefTestHelpers.CreateExport<ISlCoreTelemetryHelper>(),
-            MefTestHelpers.CreateExport<IKnownUIContexts>());
+            MefTestHelpers.CreateExport<ISlCoreTelemetryHelper>());
     }
 
     [TestMethod]
@@ -133,26 +129,6 @@ public class TelemetryManagerTests
             telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
             telemetryService.AddQuickFixAppliedForRule(Arg.Is<AddQuickFixAppliedForRuleParams>(a => a.ruleKey == "myrule"));
         });
-    }
-
-    [DataTestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public void CSharpUIContext_SendsCSharpAnalysisUpdate(bool activated)
-    {
-        knownUiContexts.CSharpProjectContextChanged += Raise.EventWith(new UIContextChangedEventArgs(activated));
-
-        telemetryService.Received(activated ? 1 : 0).AnalysisDoneOnSingleLanguage(Arg.Is<AnalysisDoneOnSingleLanguageParams>(a => a.language == Language.CS));
-    }
-
-    [DataTestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public void VBNetUIContext_SendsVBNetAnalysisUpdate(bool activated)
-    {
-        knownUiContexts.VBProjectContextChanged += Raise.EventWith(new UIContextChangedEventArgs(activated));
-
-        telemetryService.Received(activated ? 1 : 0).AnalysisDoneOnSingleLanguage(Arg.Is<AnalysisDoneOnSingleLanguageParams>(a => a.language == Language.VBNET));
     }
 
     [TestMethod]

@@ -32,15 +32,11 @@ public interface ITelemetrySLCoreService : ISLCoreService
 
     void DisableTelemetry();
 
-    void AnalysisDoneOnSingleLanguage(AnalysisDoneOnSingleLanguageParams parameters);
-
     void DevNotificationsClicked(DevNotificationsClickedParams parameters);
 
     void TaintVulnerabilitiesInvestigatedLocally();
 
     void TaintVulnerabilitiesInvestigatedRemotely();
-
-    void AddReportedRules(AddReportedRulesParams parameters);
 
     void AddQuickFixAppliedForRule(AddQuickFixAppliedForRuleParams parameters);
 
