@@ -118,7 +118,7 @@ public class ProjectSelectionViewModelTests
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatusWithData<List<ServerProject>>>>(x =>
                     x.ProgressStatus == UiResources.SearchingProjectInProgressText &&
-                    x.WarningText == UiResources.SearchingProjectFailedText));
+                    x.DefaultWarningText == UiResources.SearchingProjectFailedText));
     }
 
     [TestMethod]
@@ -187,7 +187,7 @@ public class ProjectSelectionViewModelTests
                 Arg.Is<TaskToPerformParams<ResponseStatusWithData<List<ServerProject>>>>(x =>
                     x.TaskToPerform == testSubject.AdapterGetAllProjectsAsync &&
                     x.ProgressStatus == UiResources.LoadingProjectsProgressText &&
-                    x.WarningText == UiResources.LoadingProjectsFailedText &&
+                    x.DefaultWarningText == UiResources.LoadingProjectsFailedText &&
                     x.AfterSuccess == testSubject.InitProjects));
     }
 
@@ -301,7 +301,7 @@ public class ProjectSelectionViewModelTests
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatusWithData<ServerProject>>>(x =>
                     x.ProgressStatus == UiResources.FetchingProjectInfoProgressText &&
-                    x.WarningText == UiResources.FetchingProjectInfoFailedText));
+                    x.DefaultWarningText == UiResources.FetchingProjectInfoFailedText));
     }
 
     [TestMethod]

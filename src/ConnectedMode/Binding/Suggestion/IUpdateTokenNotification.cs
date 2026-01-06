@@ -69,13 +69,30 @@ internal class UpdateTokenNotification(
 
     private async Task OnUpdateTokenHandlerAsync(Connection connection)
     {
-        var result = await connectedModeUiManager.ShowEditCredentialsDialogAsync(connection);
-        if (result == true)
+        switch (await connectedModeUiManager.ShowEditCredentialsDialogAsync(connection))
         {
-            messageBox.Show(string.Format(BindingStrings.UpdateTokenSuccessfullyMessageBoxText, connection.Info.Id), BindingStrings.UpdateTokenSuccessfullyMessageBoxCaption, MessageBoxButton.OK,
-                MessageBoxImage.Information);
+            case { DialogResult: true, OperationStatus.Success: true }:
+                ShowSuccessMessage(connection);
+                return;
+            case { DialogResult: true, OperationStatus: {Success: false, WarningText: var warningText } }:
+                ShowFailureMessage(connection, warningText);
+                return;
         }
     }
+
+    private void ShowFailureMessage(Connection connection, string warningText) =>
+        messageBox.Show(
+            string.Format(BindingStrings.UpdateTokenUnsuccessfullyMessageBoxText, connection.Info.Id, warningText ?? BindingStrings.UpdateTokenUnsuccessfullyCheckLogsText),
+            BindingStrings.UpdateTokenUnsuccessfullyMessageBoxCaption,
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+
+    private void ShowSuccessMessage(Connection connection) =>
+        messageBox.Show(
+            string.Format(BindingStrings.UpdateTokenSuccessfullyMessageBoxText, connection.Info.Id),
+            BindingStrings.UpdateTokenSuccessfullyMessageBoxCaption,
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
 
     private void OnDismissHandler() => notificationService.CloseNotification();
 }

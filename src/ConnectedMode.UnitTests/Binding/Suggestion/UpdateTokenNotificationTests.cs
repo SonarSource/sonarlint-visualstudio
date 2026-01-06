@@ -95,7 +95,7 @@ public class UpdateTokenNotificationTests
     public void Show_EditCredentialsCommand_EditingCredentialsSucceeds_ShowsMessage()
     {
         MockServerConnection(serverConnection);
-        MockShowEditCredentialsDialog(success: true);
+        MockShowEditCredentialsDialog(dialogResult: true, new ResponseStatus(true));
 
         testSubject.Show(serverConnection.Id);
         InvokeNotificationCommand(BindingStrings.UpdateTokenNotificationEditCredentialsOptionText);
@@ -105,11 +105,29 @@ public class UpdateTokenNotificationTests
             MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
+    [DataTestMethod]
+    [DataRow(null)]
+    [DataRow("warning test")]
+    public void Show_EditCredentialsCommand_EditingCredentialsFails_ShowsMessage(string warningText)
+    {
+        MockServerConnection(serverConnection);
+        MockShowEditCredentialsDialog(dialogResult: true, new ResponseStatus(false, warningText));
+
+        testSubject.Show(serverConnection.Id);
+        InvokeNotificationCommand(BindingStrings.UpdateTokenNotificationEditCredentialsOptionText);
+
+        messageBox.Received(1).Show(
+            string.Format(BindingStrings.UpdateTokenUnsuccessfullyMessageBoxText, serverConnection.ToConnection().Info.Id, warningText ?? BindingStrings.UpdateTokenUnsuccessfullyCheckLogsText),
+            BindingStrings.UpdateTokenUnsuccessfullyMessageBoxCaption,
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
+    }
+
     [TestMethod]
     public void Show_EditCredentialsCommand_EditingCredentialsFails_DoesNotShowMessage()
     {
         MockServerConnection(serverConnection);
-        MockShowEditCredentialsDialog(success: false);
+        MockShowEditCredentialsDialog(dialogResult: false, default);
 
         testSubject.Show(serverConnection.Id);
         InvokeNotificationCommand(BindingStrings.UpdateTokenNotificationEditCredentialsOptionText);
@@ -157,6 +175,6 @@ public class UpdateTokenNotificationTests
             return serverConnectionToReturn != null;
         });
 
-    private void MockShowEditCredentialsDialog(bool success) =>
-        connectedModeUiManager.ShowEditCredentialsDialogAsync(Arg.Is<Connection>(connection => connection.Info.Id == serverConnection.ToConnection().Info.Id)).Returns(success);
+    private void MockShowEditCredentialsDialog(bool dialogResult, ResponseStatus responseStatus) =>
+        connectedModeUiManager.ShowEditCredentialsDialogAsync(Arg.Is<Connection>(connection => connection.Info.Id == serverConnection.ToConnection().Info.Id)).Returns((dialogResult, responseStatus));
 }

@@ -32,6 +32,7 @@ public partial class CredentialsDialog : Window
     private readonly IConnectedModeServices connectedModeServices;
 
     public CredentialsViewModel ViewModel { get; }
+    public ResponseStatus Result { get; private set; }
     public IConnectedModeUIServices ConnectedModeUiServices { get; }
 
     public CredentialsDialog(
@@ -60,7 +61,7 @@ public partial class CredentialsDialog : Window
         ConfirmationBtn.Content = withNextButton ? UiResources.NextButton : UiResources.OkButton;
     }
 
-    protected virtual Task BeforeWindowCloseWithSuccessAsync() => Task.CompletedTask;
+    protected virtual Task<ResponseStatus> BeforeWindowCloseWithAcceptAsync() => Task.FromResult(new ResponseStatus(true));
 
     private void TokenPasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e) => ViewModel.Token = TokenBox.SecurePassword;
 
@@ -71,12 +72,12 @@ public partial class CredentialsDialog : Window
         {
             return;
         }
-        await CloseWindowWithSuccessAsync();
+        await CloseWindowOnAcceptAsync();
     }
 
-    private async Task CloseWindowWithSuccessAsync()
+    private async Task CloseWindowOnAcceptAsync()
     {
-        await BeforeWindowCloseWithSuccessAsync();
+        Result = await BeforeWindowCloseWithAcceptAsync();
         DialogResult = true;
         Close();
     }
@@ -105,7 +106,7 @@ public partial class CredentialsDialog : Window
         {
             TokenBox.Password = responseWithData.ResponseData;
             ConnectedModeUiServices.IdeWindowService.BringToFront();
-            await CloseWindowWithSuccessAsync();
+            await CloseWindowOnAcceptAsync();
         }
         else
         {

@@ -183,7 +183,7 @@ public class OrganizationSelectionViewModelTests
                 Arg.Is<TaskToPerformParams<ResponseStatusWithData<List<OrganizationDisplay>>>>(x =>
                     x.TaskToPerform == testSubject.AdapterLoadOrganizationsAsync &&
                     x.ProgressStatus == UiResources.LoadingOrganizationsProgressText &&
-                    x.WarningText == UiResources.LoadingOrganizationsFailedText &&
+                    x.DefaultWarningText == UiResources.LoadingOrganizationsFailedText &&
                     x.AfterSuccess == testSubject.UpdateOrganizations));
     }
 
@@ -257,7 +257,7 @@ public class OrganizationSelectionViewModelTests
             .ExecuteTaskWithProgressAsync(Arg.Is<ITaskToPerformParams<ResponseStatus>>(x =>
                 IsExpectedSlCoreAdapterValidateConnectionAsync(x.TaskToPerform, organizationKey, region) &&
                 x.ProgressStatus == UiResources.ValidatingConnectionProgressText &&
-                x.WarningText == warningText));
+                x.DefaultWarningText == warningText));
     }
 
     [TestMethod]

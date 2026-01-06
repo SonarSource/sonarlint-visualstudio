@@ -150,8 +150,17 @@
   <data name="UpdateTokenSuccessfullyMessageBoxCaption" xml:space="preserve">
     <value>Credentials Updated Successfully</value>
   </data>
+  <data name="UpdateTokenUnsuccessfullyMessageBoxCaption" xml:space="preserve">
+    <value>Credentials Not Updated</value>
+  </data>
   <data name="UpdateTokenSuccessfullyMessageBoxText" xml:space="preserve">
     <value>The credentials of the connection "{0}" have been updated successfully</value>
+  </data>
+  <data name="UpdateTokenUnsuccessfullyMessageBoxText" xml:space="preserve">
+    <value>The credentials of the connection "{0}" were not updated: {1}.</value>
+  </data>
+  <data name="UpdateTokenUnsuccessfullyCheckLogsText" xml:space="preserve">
+    <value>Please check logs for more details</value>
   </data>
   <data name="UpdateTokenNotificationText" xml:space="preserve">
     <value>The token used for the server connection "{0}" is invalid, please update the credentials.</value>

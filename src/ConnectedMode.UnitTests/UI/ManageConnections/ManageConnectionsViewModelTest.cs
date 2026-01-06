@@ -91,7 +91,7 @@ public class ManageConnectionsViewModelTest
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.RemovingConnectionText &&
-                    x.WarningText == UiResources.RemovingConnectionFailedText &&
+                    x.DefaultWarningText == UiResources.RemovingConnectionFailedText &&
                     x.SuccessText == string.Format(UiResources.RemovingConnectionSucceededText, twoConnections[0].Info.Id)));
     }
 
@@ -281,7 +281,7 @@ public class ManageConnectionsViewModelTest
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.TaskToPerform == testSubject.InitializeConnectionViewModelsAsync &&
                     x.ProgressStatus == UiResources.LoadingConnectionsText &&
-                    x.WarningText == UiResources.LoadingConnectionsFailedText));
+                    x.DefaultWarningText == UiResources.LoadingConnectionsFailedText));
     }
 
     [TestMethod]
@@ -307,7 +307,7 @@ public class ManageConnectionsViewModelTest
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.CreatingConnectionProgressText &&
-                    x.WarningText == UiResources.CreatingConnectionFailedText &&
+                    x.DefaultWarningText == UiResources.CreatingConnectionFailedText &&
                     x.SuccessText == string.Format(UiResources.CreatingConnectionSucceededText, connectionToAdd.Info.Id)));
     }
 
@@ -368,7 +368,7 @@ public class ManageConnectionsViewModelTest
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatusWithData<List<string>>>>(x =>
                     x.ProgressStatus == UiResources.CalculatingConnectionReferencesText &&
-                    x.WarningText == UiResources.CalculatingConnectionReferencesFailedText));
+                    x.DefaultWarningText == UiResources.CalculatingConnectionReferencesFailedText));
     }
 
     [TestMethod]
@@ -503,21 +503,24 @@ public class ManageConnectionsViewModelTest
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.UpdatingConnectionCredentialsProgressText &&
-                    x.WarningText == UiResources.UpdatingConnectionCredentialsFailedText &&
+                    x.DefaultWarningText == UiResources.UpdatingConnectionCredentialsFailedText &&
                     x.SuccessText == string.Format(UiResources.UpdatingConnectionCredentialsSucceededText, connectionViewModel.Connection.Info.Id)));
     }
 
     [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public async Task EditCredentialsAsync_ReturnsResponseFromEditCredentialsDialog(bool credentialsEdited)
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    [DataRow(true, true)]
+    [DataRow(false, false)]
+    public async Task EditCredentialsAsync_ReturnsResponseFromEditCredentialsDialog(bool credentialsEdited, bool credentialsSaved)
     {
         var connectionViewModel = CreateConnectionViewModel(twoConnections[0]);
-        connectedModeUIManager.ShowEditCredentialsDialogAsync(connectionViewModel.Connection).Returns(credentialsEdited);
+        connectedModeUIManager.ShowEditCredentialsDialogAsync(connectionViewModel.Connection)
+            .Returns(Task.FromResult<(bool?, ResponseStatus)>((credentialsEdited, new ResponseStatus(credentialsSaved))));
 
         var responseStatus = await testSubject.EditCredentialsAsync(connectionViewModel);
 
-        responseStatus.Success.Should().Be(credentialsEdited);
+        responseStatus.Success.Should().Be(credentialsEdited && credentialsSaved);
         await connectedModeUIManager.Received(1).ShowEditCredentialsDialogAsync(connectionViewModel.Connection);
     }
 
@@ -525,6 +528,7 @@ public class ManageConnectionsViewModelTest
     public async Task EditCredentialsAsync_RefreshesConnectionViewModelProperty()
     {
         var connectionViewModel = CreateConnectionViewModel(twoConnections[0]);
+        connectedModeUIManager.ShowEditCredentialsDialogAsync(connectionViewModel.Connection).Returns(Task.FromResult<(bool?, ResponseStatus)>((true, new ResponseStatus(true))));
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         connectionViewModel.PropertyChanged += eventHandler;
 
@@ -585,7 +589,7 @@ public class ManageConnectionsViewModelTest
 
     private static SonarCloud CreateSonarCloudServerConnection(Connection sonarCloud) => new(sonarCloud.Info.Id);
 
-    private static ServerConnection.SonarQube CreateSonarQubeServerConnection(Connection sonarQube) => new(new Uri(sonarQube.Info.Id));
+    private static SonarQube CreateSonarQubeServerConnection(Connection sonarQube) => new(new Uri(sonarQube.Info.Id));
 
     private void MockDeleteBinding(string localBindingKey, bool success) => connectedModeBindingServices.SolutionBindingRepository.DeleteBinding(localBindingKey).Returns(success);
 

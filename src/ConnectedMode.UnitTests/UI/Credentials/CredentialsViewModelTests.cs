@@ -156,7 +156,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
                 .ExecuteTaskWithProgressAsync(Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.TaskToPerform == testSubject.AdapterValidateConnectionAsync &&
                     x.ProgressStatus == UiResources.ValidatingConnectionProgressText &&
-                    x.WarningText == UiResources.ValidatingConnectionFailedText &&
+                    x.DefaultWarningText == UiResources.ValidatingConnectionFailedText &&
                     x.AfterProgressUpdated == testSubject.AfterProgressStatusUpdated));
         }
 
@@ -206,7 +206,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
                 .ExecuteTaskWithProgressAsync(Arg.Is<TaskToPerformParams<ResponseStatusWithData<string>>>(x =>
                     x.TaskToPerform == testSubject.GenerateTokenAsync &&
                     x.ProgressStatus == UiResources.GeneratingTokenProgressText &&
-                    x.WarningText == UiResources.GeneratingTokenFailedText &&
+                    x.DefaultWarningText == UiResources.GeneratingTokenFailedText &&
                     x.AfterProgressUpdated == testSubject.AfterProgressStatusUpdated));
         }
 

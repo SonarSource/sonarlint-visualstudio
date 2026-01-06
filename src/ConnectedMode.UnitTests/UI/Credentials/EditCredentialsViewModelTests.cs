@@ -64,7 +64,7 @@ public class EditCredentialsViewModelTests
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.TaskToPerform == testSubject.UpdateConnectionCredentialsAsync &&
                     x.ProgressStatus == UiResources.UpdatingConnectionCredentialsProgressText &&
-                    x.WarningText == UiResources.UpdatingConnectionCredentialsFailedText));
+                    x.DefaultWarningText == UiResources.UpdatingConnectionCredentialsFailedText));
     }
 
     [TestMethod]
@@ -79,7 +79,7 @@ public class EditCredentialsViewModelTests
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.RebindingProgressText &&
-                    x.WarningText == UiResources.RebindingFailedText));
+                    x.DefaultWarningText == UiResources.RebindingFailedText));
     }
 
     [TestMethod]
@@ -94,7 +94,7 @@ public class EditCredentialsViewModelTests
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.RebindingProgressText &&
-                    x.WarningText == UiResources.RebindingFailedText));
+                    x.DefaultWarningText == UiResources.RebindingFailedText));
     }
 
     [TestMethod]
@@ -109,7 +109,7 @@ public class EditCredentialsViewModelTests
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.RebindingProgressText &&
-                    x.WarningText == UiResources.RebindingFailedText));
+                    x.DefaultWarningText == UiResources.RebindingFailedText));
     }
 
     [TestMethod]
@@ -126,7 +126,7 @@ public class EditCredentialsViewModelTests
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.RebindingProgressText &&
-                    x.WarningText == UiResources.RebindingFailedText));
+                    x.DefaultWarningText == UiResources.RebindingFailedText));
     }
 
     [TestMethod]
@@ -140,7 +140,7 @@ public class EditCredentialsViewModelTests
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<ResponseStatus>>(x =>
                     x.ProgressStatus == UiResources.RebindingProgressText &&
-                    x.WarningText == UiResources.RebindingFailedText));
+                    x.DefaultWarningText == UiResources.RebindingFailedText));
     }
 
     [TestMethod]
