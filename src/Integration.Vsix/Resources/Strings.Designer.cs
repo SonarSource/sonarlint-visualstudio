@@ -18,7 +18,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -281,6 +281,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         public static string ConnectedModeEmbeddedPluginJarLocator_MultipleJars {
             get {
                 return ResourceManager.GetString("ConnectedModeEmbeddedPluginJarLocator_MultipleJars", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DPAPI storage may help if you&apos;re facing credential storage errors with the Default storage.
+        /// </summary>
+        public static string CredentialStorageDpapiHelpText {
+            get {
+                return ResourceManager.GetString("CredentialStorageDpapiHelpText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Credential storage (VisualStudio restart is recommended):.
+        /// </summary>
+        public static string CredentialStorageLabel {
+            get {
+                return ResourceManager.GetString("CredentialStorageLabel", resourceCulture);
             }
         }
         

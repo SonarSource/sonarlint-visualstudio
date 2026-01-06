@@ -25,6 +25,7 @@ using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Persistence;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.TestInfrastructure;
 using static SonarLint.VisualStudio.Core.Binding.ServerConnection;
 
@@ -34,10 +35,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence;
 public class ServerConnectionsRepositoryTests
 {
     private readonly SonarCloud sonarCloudServerConnection = new("myOrganization", new ServerConnectionSettings(true), Substitute.For<IConnectionCredentials>());
-    private readonly ServerConnection.SonarQube sonarQubeServerConnection = new(new Uri("http://localhost"), new ServerConnectionSettings(true), Substitute.For<IConnectionCredentials>());
+    private readonly SonarQube sonarQubeServerConnection = new(new Uri("http://localhost"), new ServerConnectionSettings(true), Substitute.For<IConnectionCredentials>());
     private ISolutionBindingCredentialsLoader credentialsLoader;
     private IEnvironmentVariableProvider environmentVariableProvider;
-    private IFileSystem fileSystem;
+    private IFileSystemService fileSystem;
     private IJsonFileHandler jsonFileHandler;
     private ILogger logger;
     private IServerConnectionModelMapper serverConnectionModelMapper;
@@ -51,7 +52,7 @@ public class ServerConnectionsRepositoryTests
         credentialsLoader = Substitute.For<ISolutionBindingCredentialsLoader>();
         environmentVariableProvider = Substitute.For<IEnvironmentVariableProvider>();
         logger = Substitute.For<ILogger>();
-        fileSystem = Substitute.For<IFileSystem>();
+        fileSystem = Substitute.For<IFileSystemService>();
 
         testSubject = new ServerConnectionsRepository(jsonFileHandler, serverConnectionModelMapper, credentialsLoader, environmentVariableProvider, fileSystem, logger);
     }
@@ -61,7 +62,9 @@ public class ServerConnectionsRepositoryTests
         MefTestHelpers.CheckTypeCanBeImported<ServerConnectionsRepository, IServerConnectionsRepository>(
             MefTestHelpers.CreateExport<IJsonFileHandler>(),
             MefTestHelpers.CreateExport<IServerConnectionModelMapper>(),
-            MefTestHelpers.CreateExport<ICredentialStoreService>(),
+            MefTestHelpers.CreateExport<ISolutionBindingCredentialsLoader>(),
+            MefTestHelpers.CreateExport<IEnvironmentVariableProvider>(),
+            MefTestHelpers.CreateExport<IFileSystemService>(),
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
@@ -69,7 +72,9 @@ public class ServerConnectionsRepositoryTests
         MefTestHelpers.CheckTypeCanBeImported<ServerConnectionsRepository, IServerConnectionWithInvalidTokenRepository>(
             MefTestHelpers.CreateExport<IJsonFileHandler>(),
             MefTestHelpers.CreateExport<IServerConnectionModelMapper>(),
-            MefTestHelpers.CreateExport<ICredentialStoreService>(),
+            MefTestHelpers.CreateExport<ISolutionBindingCredentialsLoader>(),
+            MefTestHelpers.CreateExport<IEnvironmentVariableProvider>(),
+            MefTestHelpers.CreateExport<IFileSystemService>(),
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
