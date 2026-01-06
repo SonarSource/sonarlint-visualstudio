@@ -168,12 +168,6 @@
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.7" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="CredentialStore2\MasterPasswordDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </None>
-  </ItemGroup>
-
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
 </Project>
