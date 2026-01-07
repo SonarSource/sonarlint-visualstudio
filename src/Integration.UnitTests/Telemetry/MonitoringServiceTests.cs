@@ -34,7 +34,7 @@ public class MonitoringServiceTests
     private IVsInfoProvider vsInfoProvider;
     private IThreadHandling threadHandling;
     private TestLogger logger;
-    private MonitoringService.ISentrySdk sentrySdk;
+    private ISentrySdk sentrySdk;
 
     private MonitoringService testSubject;
 
@@ -44,7 +44,7 @@ public class MonitoringServiceTests
         telemetryHelper = Substitute.For<ISlCoreTelemetryHelper>();
         vsInfoProvider = Substitute.For<IVsInfoProvider>();
         threadHandling = Substitute.For<IThreadHandling>();
-        sentrySdk = Substitute.For<MonitoringService.ISentrySdk>();
+        sentrySdk = Substitute.For<ISentrySdk>();
         logger = new TestLogger();
 
         threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>() )
@@ -175,6 +175,20 @@ public class MonitoringServiceTests
         sentrySdk.DidNotReceive().Init(Arg.Any<Action<SentryOptions>>());
         sentrySdk.DidNotReceive().Close();
         sentrySdk.DidNotReceive().CaptureException(Arg.Any<Exception>());
+    }
+
+    [TestMethod]
+    public void ReportException_WhenCaptureThrows_LogsAndDoesNotRethrow()
+    {
+        telemetryHelper.GetStatus().Returns(SlCoreTelemetryStatus.Enabled);
+        testSubject.Init();
+
+        sentrySdk.When(x => x.CaptureException(Arg.Any<Exception>()))
+            .Do(_ => throw new InvalidOperationException("Sentry failure"));
+
+        testSubject.ReportException(new InvalidOperationException("original"), "ctx");
+
+        logger.AssertPartialOutputStringExists("Failed to report exception to Sentry");
     }
 
     private sealed class NoOpDisposable : IDisposable
