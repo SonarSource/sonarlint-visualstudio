@@ -44,6 +44,8 @@ internal class GetFileExclusionsListener(ILogger logger, IUserSettingsProvider u
             return new GetFileExclusionsResponse([]);
         }
 
+        throw new InvalidOperationException("TEST: GetFileExclusionsListener.GetFileExclusionsFromSettings");
+
         var fileExclusions = userSettingsProvider.UserSettings.AnalysisSettings.NormalizedFileExclusions.ToArray();
         return new GetFileExclusionsResponse([.. fileExclusions]);
     }
