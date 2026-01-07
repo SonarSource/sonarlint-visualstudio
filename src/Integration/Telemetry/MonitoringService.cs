@@ -77,9 +77,9 @@ internal sealed class MonitoringService(
             }
 
             active = false;
-        }
 
-        sentrySdk.Close();
+            sentrySdk.Close();
+        }
     }
 
     public void Reinit()
@@ -90,9 +90,9 @@ internal sealed class MonitoringService(
             {
                 return;
             }
-        }
 
-        InitializeSentry();
+            InitializeSentry();
+        }
     }
 
     public void ReportException(Exception exception, string context)
@@ -103,48 +103,45 @@ internal sealed class MonitoringService(
             {
                 return;
             }
-        }
 
-        try
-        {
-            using (sentrySdk.PushScope())
+            try
             {
-                sentrySdk.ConfigureScope(scope => scope.SetTag("slvs_context", context));
-                sentrySdk.CaptureException(exception);
+                using (sentrySdk.PushScope())
+                {
+                    sentrySdk.ConfigureScope(scope => scope.SetTag("slvs_context", context));
+                    sentrySdk.CaptureException(exception);
+                }
             }
-        }
-        catch (Exception ex)
-        {
-            logger.LogVerbose($"Failed to report exception to Sentry: {ex.Message}");
+            catch (Exception ex)
+            {
+                logger.LogVerbose($"Failed to report exception to Sentry: {ex.Message}");
+            }
         }
     }
 
     private void InitializeSentry()
     {
-        try
+        lock (stateLock)
         {
-            sentrySdk.Init(options =>
+            try
             {
-                options.Dsn = ClientDsn;
-                options.Release = VersionHelper.SonarLintVersion;
-                options.Environment = dogfoodingService.IsDogfoodingEnvironment ? "dogfood" : "production";
-                options.DefaultTags["ideVersion"] = vsInfoProvider.Version?.DisplayVersion ?? "unknown";
-                options.DefaultTags["platform"] = Environment.OSVersion.Platform.ToString();
-                options.DefaultTags["architecture"] = Environment.Is64BitOperatingSystem ? "x64" : "x86";
-                options.AddInAppInclude("SonarLint.VisualStudio");
-            });
+                sentrySdk.Init(options =>
+                {
+                    options.Dsn = ClientDsn;
+                    options.Release = VersionHelper.SonarLintVersion;
+                    options.Environment = dogfoodingService.IsDogfoodingEnvironment ? "dogfood" : "production";
+                    options.DefaultTags["ideVersion"] = vsInfoProvider.Version?.DisplayVersion ?? "unknown";
+                    options.DefaultTags["platform"] = Environment.OSVersion.Platform.ToString();
+                    options.DefaultTags["architecture"] = Environment.Is64BitOperatingSystem ? "x64" : "x86";
+                    options.AddInAppInclude("SonarLint.VisualStudio");
+                });
 
-            lock (stateLock)
-            {
                 active = true;
             }
-        }
-        catch (Exception ex)
-        {
-            logger.LogVerbose($"Failed to initialize Sentry: {ex.Message}");
-
-            lock (stateLock)
+            catch (Exception ex)
             {
+                logger.LogVerbose($"Failed to initialize Sentry: {ex.Message}");
+
                 active = false;
             }
         }

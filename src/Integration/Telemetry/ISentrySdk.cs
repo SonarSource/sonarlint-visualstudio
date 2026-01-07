@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Sentry;
 
 namespace SonarLint.VisualStudio.Integration.Telemetry;
@@ -35,6 +36,7 @@ internal interface ISentrySdk
 
 [Export(typeof(ISentrySdk))]
 [PartCreationPolicy(CreationPolicy.Shared)]
+[ExcludeFromCodeCoverage]
 internal sealed class SentrySdkAdapter : ISentrySdk
 {
     public IDisposable PushScope() => SentrySdk.PushScope();
