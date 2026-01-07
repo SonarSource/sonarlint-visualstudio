@@ -59,7 +59,7 @@ internal class EditCredentialsViewModel(
     internal Task<ResponseStatus> UpdateConnectionCredentialsAsync()
     {
         var success = connectedModeServices.ServerConnectionsRepositoryAdapter.TryUpdateCredentials(connection, GetCredentialsModel());
-        return Task.FromResult(new ResponseStatus(success)); // todo https://sonarsource.atlassian.net/browse/SLVS-2800 propagate warning text
+        return Task.FromResult(success ? new ResponseStatus(true) : new ResponseStatus(false, UiResources.SaveCredentialsFailedText));
     }
 
     internal async Task<ResponseStatus> RebindAsync(string serverProjectKey, string serverConnectionId)

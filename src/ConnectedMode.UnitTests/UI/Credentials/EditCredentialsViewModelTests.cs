@@ -156,6 +156,17 @@ public class EditCredentialsViewModelTests
         serverConnectionsRepositoryAdapter.Received(1).TryUpdateCredentials(sonarQubeConnection, Arg.Is<TokenCredentialsModel>(x => x.Token == testSubject.Token));
     }
 
+    [TestMethod]
+    public async Task UpdateConnectionCredentialsWithProgressAsync_WhenCredentialsSaveFails_ReportsHelpfulErrorMessage()
+    {
+        serverConnectionsRepositoryAdapter.TryUpdateCredentials(sonarQubeConnection, Arg.Any<ICredentialsModel>()).Returns(false);
+
+        var actual = await testSubject.UpdateConnectionCredentialsAsync();
+
+        actual.Success.Should().Be(false);
+        actual.WarningText.Should().Be(UiResources.SaveCredentialsFailedText);
+    }
+
     [DataTestMethod]
     [DataRow(true)]
     [DataRow(false)]
