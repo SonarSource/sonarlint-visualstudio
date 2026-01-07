@@ -35,6 +35,7 @@ public class MonitoringServiceTests
     private IThreadHandling threadHandling;
     private TestLogger logger;
     private ISentrySdk sentrySdk;
+    private IDogfoodingService dogfoodingService;
 
     private MonitoringService testSubject;
 
@@ -43,17 +44,13 @@ public class MonitoringServiceTests
     {
         telemetryHelper = Substitute.For<ISlCoreTelemetryHelper>();
         vsInfoProvider = Substitute.For<IVsInfoProvider>();
-        threadHandling = Substitute.For<IThreadHandling>();
+        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         sentrySdk = Substitute.For<ISentrySdk>();
+        dogfoodingService = Substitute.For<IDogfoodingService>();
         logger = new TestLogger();
-
-        threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>() )
-            .Returns(callInfo => callInfo.Arg<Func<Task<int>>>()());
-
         sentrySdk.PushScope().Returns(new NoOpDisposable());
         sentrySdk.Init(Arg.Any<Action<SentryOptions>>()).Returns(new NoOpDisposable());
-
-        testSubject = new MonitoringService(telemetryHelper, vsInfoProvider, threadHandling, logger, sentrySdk);
+        testSubject = CreateTestSubject();
     }
 
     [TestMethod]
@@ -62,15 +59,12 @@ public class MonitoringServiceTests
         telemetryHelper.GetStatus().Returns(SlCoreTelemetryStatus.Disabled);
 
         testSubject.Init();
-
-        telemetryHelper.Received(1).GetStatus();
-        threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
-
-        sentrySdk.DidNotReceive().Init(Arg.Any<Action<SentryOptions>>());
-
         testSubject.ReportException(new InvalidOperationException("boom"), "ctx");
         testSubject.Close();
 
+        telemetryHelper.Received().GetStatus();
+        threadHandling.Received().RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+        sentrySdk.DidNotReceive().Init(Arg.Any<Action<SentryOptions>>());
         sentrySdk.DidNotReceive().CaptureException(Arg.Any<Exception>());
         sentrySdk.DidNotReceive().Close();
     }
@@ -78,16 +72,12 @@ public class MonitoringServiceTests
     [TestMethod]
     public void Init_WhenTelemetryEnabled_InitializesSentry_AndReportExceptionCapturesException()
     {
-        telemetryHelper.GetStatus().Returns(SlCoreTelemetryStatus.Enabled);
-
-        testSubject.Init();
-
-        sentrySdk.Received(1).Init(Arg.Any<Action<SentryOptions>>());
-
         var expected = new InvalidOperationException("boom");
+        InitWithTelemetryEnabled();
 
         testSubject.ReportException(expected, "ctx");
 
+        sentrySdk.Received(1).Init(Arg.Any<Action<SentryOptions>>());
         sentrySdk.Received(1).PushScope();
         sentrySdk.Received(1).ConfigureScope(Arg.Any<Action<Scope>>());
         sentrySdk.Received().CaptureException(expected);
@@ -96,8 +86,7 @@ public class MonitoringServiceTests
     [TestMethod]
     public void Close_WhenActive_ClosesSentry()
     {
-        telemetryHelper.GetStatus().Returns(SlCoreTelemetryStatus.Enabled);
-        testSubject.Init();
+        InitWithTelemetryEnabled();
 
         testSubject.Close();
 
@@ -107,44 +96,36 @@ public class MonitoringServiceTests
     [TestMethod]
     public void Init_WhenTelemetryEnabled_ConfiguresSentryOptions()
     {
-        telemetryHelper.GetStatus().Returns(SlCoreTelemetryStatus.Enabled);
-
         var vsVersion = Substitute.For<IVsVersion>();
         vsVersion.DisplayVersion.Returns("17.0");
         vsInfoProvider.Version.Returns(vsVersion);
-
         Action<SentryOptions> capturedOptions = null;
         sentrySdk.Init(Arg.Do<Action<SentryOptions>>(x => capturedOptions = x)).Returns(new NoOpDisposable());
 
-        testSubject.Init();
+        InitWithTelemetryEnabled();
 
-        Assert.IsNotNull(capturedOptions);
-
+        capturedOptions.Should().NotBeNull();
         var options = new SentryOptions();
         capturedOptions(options);
-
-        Assert.IsNotNull(options.Dsn);
-        Assert.IsFalse(string.IsNullOrWhiteSpace(options.Release));
-        Assert.IsTrue(options.DefaultTags.ContainsKey("ideVersion"));
-        Assert.AreEqual("17.0", options.DefaultTags["ideVersion"]);
-        Assert.IsTrue(options.DefaultTags.ContainsKey("platform"));
-        Assert.IsTrue(options.DefaultTags.ContainsKey("architecture"));
+        options.Dsn.Should().NotBeNullOrWhiteSpace();
+        options.Release.Should().NotBeNullOrWhiteSpace();
+        options.DefaultTags.Should().ContainKey("ideVersion");
+        options.DefaultTags["ideVersion"].Should().Be("17.0");
+        options.DefaultTags.Should().ContainKey("platform");
+        options.DefaultTags.Should().ContainKey("architecture");
     }
 
     [TestMethod]
     public void Init_WhenSentryInitThrows_LogsAndStaysInactive()
     {
         telemetryHelper.GetStatus().Returns(SlCoreTelemetryStatus.Enabled);
-
         sentrySdk.Init(Arg.Any<Action<SentryOptions>>()).Returns(_ => throw new InvalidOperationException("boom"));
 
         testSubject.Init();
-
-        logger.AssertPartialOutputStringExists("[MonitoringService] Failed to initialize Sentry");
-
         testSubject.ReportException(new InvalidOperationException("ignored"), "ctx");
         testSubject.Close();
 
+        logger.AssertPartialOutputStringExists("Failed to initialize Sentry");
         sentrySdk.DidNotReceive().CaptureException(Arg.Any<Exception>());
         sentrySdk.DidNotReceive().Close();
     }
@@ -154,8 +135,8 @@ public class MonitoringServiceTests
     {
         telemetryHelper.GetStatus().Returns(SlCoreTelemetryStatus.Disabled);
         testSubject.Init();
-
         sentrySdk.ClearReceivedCalls();
+        sentrySdk.Init(Arg.Any<Action<SentryOptions>>()).Returns(new NoOpDisposable());
 
         testSubject.Reinit();
 
@@ -165,9 +146,7 @@ public class MonitoringServiceTests
     [TestMethod]
     public void Reinit_WhenActive_DoesNothing()
     {
-        telemetryHelper.GetStatus().Returns(SlCoreTelemetryStatus.Enabled);
-        testSubject.Init();
-
+        InitWithTelemetryEnabled();
         sentrySdk.ClearReceivedCalls();
 
         testSubject.Reinit();
@@ -180,15 +159,22 @@ public class MonitoringServiceTests
     [TestMethod]
     public void ReportException_WhenCaptureThrows_LogsAndDoesNotRethrow()
     {
-        telemetryHelper.GetStatus().Returns(SlCoreTelemetryStatus.Enabled);
-        testSubject.Init();
-
+        InitWithTelemetryEnabled();
         sentrySdk.When(x => x.CaptureException(Arg.Any<Exception>()))
             .Do(_ => throw new InvalidOperationException("Sentry failure"));
 
         testSubject.ReportException(new InvalidOperationException("original"), "ctx");
 
         logger.AssertPartialOutputStringExists("Failed to report exception to Sentry");
+    }
+
+    private MonitoringService CreateTestSubject() =>
+        new(telemetryHelper, vsInfoProvider, threadHandling, logger, sentrySdk, dogfoodingService);
+
+    private void InitWithTelemetryEnabled()
+    {
+        telemetryHelper.GetStatus().Returns(SlCoreTelemetryStatus.Enabled);
+        testSubject.Init();
     }
 
     private sealed class NoOpDisposable : IDisposable

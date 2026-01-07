@@ -37,7 +37,8 @@ internal sealed class MonitoringService(
     IVsInfoProvider vsInfoProvider,
     IThreadHandling threadHandling,
     ILogger logger,
-    ISentrySdk sentrySdk) : IMonitoringService
+    ISentrySdk sentrySdk,
+    IDogfoodingService dogfoodingService) : IMonitoringService
 {
     private const string ClientDsn = "https://654099e8f0967df586fda7753c66211e@o1316750.ingest.us.sentry.io/4510622904877056";
 
@@ -126,7 +127,7 @@ internal sealed class MonitoringService(
             {
                 options.Dsn = ClientDsn;
                 options.Release = VersionHelper.SonarLintVersion;
-                options.Environment = IsDogfoodingEnvironment() ? "dogfood" : "production";
+                options.Environment = dogfoodingService.IsDogfoodingEnvironment ? "dogfood" : "production";
                 options.DefaultTags["ideVersion"] = vsInfoProvider.Version?.DisplayVersion ?? "unknown";
                 options.DefaultTags["platform"] = Environment.OSVersion.Platform.ToString();
                 options.DefaultTags["architecture"] = Environment.Is64BitOperatingSystem ? "x64" : "x86";
@@ -149,6 +150,4 @@ internal sealed class MonitoringService(
         }
     }
 
-    private static bool IsDogfoodingEnvironment() =>
-        "1" == Environment.GetEnvironmentVariable("SONARSOURCE_DOGFOODING");
 }
