@@ -57,7 +57,7 @@ internal class JsonRpcWrapper : JsonRpc, IJsonRpc
 
     protected override JsonRpcError.ErrorDetail CreateErrorDetails(JsonRpcRequest request, Exception exception)
     {
-        var errorDetail = base.CreateErrorDetails(request, exception);
+        var errorDetail = CreateBaseErrorDetails(request, exception);
 
         if (errorDetail.Code == JsonRpcErrorCode.InternalError)
         {
@@ -66,4 +66,7 @@ internal class JsonRpcWrapper : JsonRpc, IJsonRpc
 
         return errorDetail;
     }
+
+    protected virtual JsonRpcError.ErrorDetail CreateBaseErrorDetails(JsonRpcRequest request, Exception exception) =>
+        base.CreateErrorDetails(request, exception);
 }

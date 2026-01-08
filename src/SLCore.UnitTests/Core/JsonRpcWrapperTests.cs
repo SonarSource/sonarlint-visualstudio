@@ -36,7 +36,8 @@ public class JsonRpcWrapperTests
         var monitoringService = Substitute.For<IMonitoringService>();
         using var sending = new MemoryStream();
         using var receiving = new MemoryStream();
-        var testSubject = new TestableJsonRpcWrapper(sending, receiving, monitoringService);
+        var testSubject = new TestableJsonRpcWrapper(sending, receiving, monitoringService,
+            () => new JsonRpcError.ErrorDetail { Code = JsonRpcErrorCode.InternalError });
         var request = new JsonRpcRequest { Method = "getFileExclusions" };
         var expected = new InvalidOperationException("boom");
 
@@ -52,7 +53,8 @@ public class JsonRpcWrapperTests
         var monitoringService = Substitute.For<IMonitoringService>();
         using var sending = new MemoryStream();
         using var receiving = new MemoryStream();
-        var testSubject = new TestableJsonRpcWrapper(sending, receiving, monitoringService);
+        var testSubject = new TestableJsonRpcWrapper(sending, receiving, monitoringService,
+            () => new JsonRpcError.ErrorDetail { Code = JsonRpcErrorCode.InternalError });
         var request = new JsonRpcRequest();
         var expected = new InvalidOperationException("boom");
 
@@ -68,24 +70,37 @@ public class JsonRpcWrapperTests
         var monitoringService = Substitute.For<IMonitoringService>();
         using var sending = new MemoryStream();
         using var receiving = new MemoryStream();
-        var testSubject = new TestableJsonRpcWrapper(sending, receiving, monitoringService);
+        var testSubject = new TestableJsonRpcWrapper(sending, receiving, monitoringService,
+            () => new JsonRpcError.ErrorDetail { Code = JsonRpcErrorCode.InvocationError });
         var request = new JsonRpcRequest { Method = "someMethod" };
         var operationCanceled = new OperationCanceledException("cancelled");
 
         var result = testSubject.InvokeCreateErrorDetails(request, operationCanceled);
 
-        result.Code.Should().Be(JsonRpcErrorCode.RequestCanceled);
+        result.Code.Should().Be(JsonRpcErrorCode.InvocationError);
         monitoringService.DidNotReceive().ReportException(Arg.Any<Exception>(), Arg.Any<string>());
     }
 
     private sealed class TestableJsonRpcWrapper : JsonRpcWrapper
     {
+        private readonly Func<JsonRpcError.ErrorDetail> createBaseErrorDetails;
+
         public TestableJsonRpcWrapper(Stream sendingStream, Stream receivingStream, IMonitoringService monitoringService)
             : base(sendingStream, receivingStream, monitoringService)
         {
         }
 
+        public TestableJsonRpcWrapper(Stream sendingStream, Stream receivingStream, IMonitoringService monitoringService,
+            Func<JsonRpcError.ErrorDetail> createBaseErrorDetails)
+            : base(sendingStream, receivingStream, monitoringService)
+        {
+            this.createBaseErrorDetails = createBaseErrorDetails;
+        }
+
         public JsonRpcError.ErrorDetail InvokeCreateErrorDetails(JsonRpcRequest request, Exception exception)
             => base.CreateErrorDetails(request, exception);
+
+        protected override JsonRpcError.ErrorDetail CreateBaseErrorDetails(JsonRpcRequest request, Exception exception) =>
+            createBaseErrorDetails?.Invoke() ?? base.CreateBaseErrorDetails(request, exception);
     }
 }
