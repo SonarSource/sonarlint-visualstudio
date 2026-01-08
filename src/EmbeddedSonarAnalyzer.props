@@ -18,6 +18,6 @@
     <!-- sonarqube-ide-visualstudio-roslyn --> 
     <EmbeddedSonarSqvsRoslynJarVersion>1.1.0.235</EmbeddedSonarSqvsRoslynJarVersion>
     <!-- SLOOP: Binaries for SonarLint Out Of Process -->
-    <EmbeddedSloopVersion>10.40.0.84108</EmbeddedSloopVersion>
+    <EmbeddedSloopVersion>10.41.0.84136</EmbeddedSloopVersion>
   </PropertyGroup>
 </Project>
