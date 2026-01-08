@@ -114,6 +114,28 @@
           "System.Text.Json": "8.0.5"
         }
       },
+      "StreamJsonRpc": {
+        "type": "Direct",
+        "requested": "[2.8.28, )",
+        "resolved": "2.8.28",
+        "contentHash": "i2hKUXJSLEoWpPqQNyISqLDqmFHMiyasjTC/PrrHNWhQyauFeVoebSct3E4OTUzRC1DYjVJ9AMiVbp/uVYLnjQ==",
+        "dependencies": {
+          "MessagePack": "2.2.85",
+          "Microsoft.Bcl.AsyncInterfaces": "5.0.0",
+          "Microsoft.VisualStudio.Threading": "16.9.60",
+          "Nerdbank.Streams": "2.6.81",
+          "Newtonsoft.Json": "12.0.2",
+          "System.Collections.Immutable": "5.0.0",
+          "System.Diagnostics.DiagnosticSource": "5.0.1",
+          "System.IO.Pipelines": "5.0.1",
+          "System.Memory": "4.5.4",
+          "System.Net.Http": "4.3.4",
+          "System.Net.WebSockets": "4.3.0",
+          "System.Reflection.Emit": "4.7.0",
+          "System.Threading.Tasks.Dataflow": "5.0.0",
+          "System.Threading.Tasks.Extensions": "4.5.4"
+        }
+      },
       "StrongNamer": {
         "type": "Direct",
         "requested": "[0.0.8, )",
@@ -868,27 +890,6 @@
         "contentHash": "c1WK5n8poXt1fafyuS+ntL5w0tc3P/r4F7+aeUaLYTp2/YoQB8XUpQFWqytZdtu7EAuMXoZ14T7jh7Vl+M4ZfQ==",
         "dependencies": {
           "Microsoft.VisualStudio.Interop": "17.0.31902.203"
-        }
-      },
-      "StreamJsonRpc": {
-        "type": "Transitive",
-        "resolved": "2.8.28",
-        "contentHash": "i2hKUXJSLEoWpPqQNyISqLDqmFHMiyasjTC/PrrHNWhQyauFeVoebSct3E4OTUzRC1DYjVJ9AMiVbp/uVYLnjQ==",
-        "dependencies": {
-          "MessagePack": "2.2.85",
-          "Microsoft.Bcl.AsyncInterfaces": "5.0.0",
-          "Microsoft.VisualStudio.Threading": "16.9.60",
-          "Nerdbank.Streams": "2.6.81",
-          "Newtonsoft.Json": "12.0.2",
-          "System.Collections.Immutable": "5.0.0",
-          "System.Diagnostics.DiagnosticSource": "5.0.1",
-          "System.IO.Pipelines": "5.0.1",
-          "System.Memory": "4.5.4",
-          "System.Net.Http": "4.3.4",
-          "System.Net.WebSockets": "4.3.0",
-          "System.Reflection.Emit": "4.7.0",
-          "System.Threading.Tasks.Dataflow": "5.0.0",
-          "System.Threading.Tasks.Extensions": "4.5.4"
         }
       },
       "System.Buffers": {

@@ -26,6 +26,8 @@ using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Core.VsInfo;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.SLCore.Monitoring;
+using StreamJsonRpc;
+using StreamJsonRpc.Protocol;
 
 namespace SonarLint.VisualStudio.Integration.Telemetry;
 
@@ -108,7 +110,11 @@ internal sealed class MonitoringService(
             {
                 using (sentrySdk.PushScope())
                 {
-                    sentrySdk.ConfigureScope(scope => scope.SetTag("slvs_context", context));
+                    sentrySdk.ConfigureScope(scope =>
+                    {
+                        scope.SetTag("slvs_context", context);
+                        TryAddCommonErrorData(scope, exception);
+                    });
                     sentrySdk.CaptureException(exception);
                 }
             }
@@ -117,6 +123,24 @@ internal sealed class MonitoringService(
                 logger.LogVerbose($"Failed to report exception to Sentry: {ex.Message}");
             }
         }
+    }
+
+    private static void TryAddCommonErrorData(Sentry.Scope scope, Exception exception)
+    {
+        if (exception is not LocalRpcException localRpcException)
+        {
+            return;
+        }
+
+        if (localRpcException.ErrorData is not CommonErrorData commonErrorData)
+        {
+            return;
+        }
+
+        scope.SetExtra("rpc.errorData.typeName", commonErrorData.TypeName);
+        scope.SetExtra("rpc.errorData.message", commonErrorData.Message);
+        scope.SetExtra("rpc.errorData.stackTrace", commonErrorData.StackTrace);
+        scope.SetExtra("rpc.errorData.hResult", commonErrorData.HResult);
     }
 
     private void InitializeSentry()
