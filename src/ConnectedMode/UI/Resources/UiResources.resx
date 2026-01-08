@@ -517,4 +517,7 @@ Please commit this file to share it with other contributors. See documentation f
   <data name="InvalidTokenForSelectedConnectionWarningText" xml:space="preserve">
     <value>The token for the selected connection is invalid.</value>
   </data>
+  <data name="SaveCredentialsFailedText" xml:space="preserve">
+    <value>Your token could not be saved. Please try switching the storage method to DPAPI under SonarQube &gt; Options &gt; Credentials storage. If the problem persists, please check the SonarQube logs or visit our community forum for further assistance.</value>
+  </data>
 </root>

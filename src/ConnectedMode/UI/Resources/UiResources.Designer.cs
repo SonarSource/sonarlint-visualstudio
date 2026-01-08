@@ -898,6 +898,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your token could not be saved. Please try switching the storage method to DPAPI under SonarQube &gt; Options &gt; Credentials storage. If the problem persists, please check the SonarQube logs or visit our community forum for further assistance..
+        /// </summary>
+        public static string SaveCredentialsFailedText {
+            get {
+                return ResourceManager.GetString("SaveCredentialsFailedText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Search for project....
         /// </summary>
         public static string SearchForProjectPlaceholder {
