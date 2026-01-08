@@ -57,7 +57,13 @@ internal class JsonRpcWrapper : JsonRpc, IJsonRpc
 
     protected override JsonRpcError.ErrorDetail CreateErrorDetails(JsonRpcRequest request, Exception exception)
     {
-        monitoringService.ReportException(exception, $"JsonRpcWrapper.CreateErrorDetails:{request.Method ?? "unknown"}");
-        return base.CreateErrorDetails(request, exception);
+        var errorDetail = base.CreateErrorDetails(request, exception);
+
+        if (errorDetail.Code == JsonRpcErrorCode.InternalError)
+        {
+            monitoringService.ReportException(exception, $"JsonRpcWrapper.CreateErrorDetails:{request.Method ?? "unknown"}");
+        }
+
+        return errorDetail;
     }
 }

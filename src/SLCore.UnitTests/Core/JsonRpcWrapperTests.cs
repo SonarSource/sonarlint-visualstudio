@@ -31,38 +31,51 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Core;
 public class JsonRpcWrapperTests
 {
     [TestMethod]
-    public void CreateErrorDetails_ReportsException_WithMethodName()
+    public void CreateErrorDetails_InternalError_ReportsException_WithMethodName()
     {
         var monitoringService = Substitute.For<IMonitoringService>();
         using var sending = new MemoryStream();
         using var receiving = new MemoryStream();
         var testSubject = new TestableJsonRpcWrapper(sending, receiving, monitoringService);
-
-        var request = new JsonRpcRequest
-        {
-            Method = "getFileExclusions"
-        };
+        var request = new JsonRpcRequest { Method = "getFileExclusions" };
         var expected = new InvalidOperationException("boom");
 
-        _ = testSubject.InvokeCreateErrorDetails(request, expected);
+        var result = testSubject.InvokeCreateErrorDetails(request, expected);
 
+        result.Code.Should().Be(JsonRpcErrorCode.InternalError);
         monitoringService.Received(1).ReportException(expected, "JsonRpcWrapper.CreateErrorDetails:getFileExclusions");
     }
 
     [TestMethod]
-    public void CreateErrorDetails_NullMethod_ReportsException_WithUnknownMethod()
+    public void CreateErrorDetails_InternalError_NullMethod_ReportsException_WithUnknownMethod()
     {
         var monitoringService = Substitute.For<IMonitoringService>();
         using var sending = new MemoryStream();
         using var receiving = new MemoryStream();
         var testSubject = new TestableJsonRpcWrapper(sending, receiving, monitoringService);
-
         var request = new JsonRpcRequest();
         var expected = new InvalidOperationException("boom");
 
-        _ = testSubject.InvokeCreateErrorDetails(request, expected);
+        var result = testSubject.InvokeCreateErrorDetails(request, expected);
 
+        result.Code.Should().Be(JsonRpcErrorCode.InternalError);
         monitoringService.Received(1).ReportException(expected, "JsonRpcWrapper.CreateErrorDetails:unknown");
+    }
+
+    [TestMethod]
+    public void CreateErrorDetails_NonInternalError_DoesNotReportException()
+    {
+        var monitoringService = Substitute.For<IMonitoringService>();
+        using var sending = new MemoryStream();
+        using var receiving = new MemoryStream();
+        var testSubject = new TestableJsonRpcWrapper(sending, receiving, monitoringService);
+        var request = new JsonRpcRequest { Method = "someMethod" };
+        var operationCanceled = new OperationCanceledException("cancelled");
+
+        var result = testSubject.InvokeCreateErrorDetails(request, operationCanceled);
+
+        result.Code.Should().Be(JsonRpcErrorCode.RequestCanceled);
+        monitoringService.DidNotReceive().ReportException(Arg.Any<Exception>(), Arg.Any<string>());
     }
 
     private sealed class TestableJsonRpcWrapper : JsonRpcWrapper
