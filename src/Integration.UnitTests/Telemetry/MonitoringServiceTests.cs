@@ -19,6 +19,7 @@
  */
 
 using Sentry;
+using Sentry.Protocol;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Core.VsInfo;
@@ -81,6 +82,104 @@ public class MonitoringServiceTests
         sentrySdk.Received(1).PushScope();
         sentrySdk.Received(1).ConfigureScope(Arg.Any<Action<Scope>>());
         sentrySdk.Received().CaptureException(expected);
+    }
+
+    [TestMethod]
+    public void ReportException_SetsContextAndExplicitCaptureTag()
+    {
+        InitWithTelemetryEnabled();
+        Action<Scope> configureScope = null;
+        sentrySdk.ConfigureScope(Arg.Do<Action<Scope>>(x => configureScope = x));
+
+        testSubject.ReportException(new InvalidOperationException("boom"), "ctx");
+
+        configureScope.Should().NotBeNull();
+        var scope = new Scope(new SentryOptions());
+        configureScope(scope);
+        scope.Tags.ContainsKey("slvs_context").Should().BeTrue();
+        scope.Tags["slvs_context"].Should().Be("ctx");
+        scope.Tags.ContainsKey(MonitoringService.ExplicitCaptureTag).Should().BeTrue();
+        scope.Tags[MonitoringService.ExplicitCaptureTag].Should().Be("true");
+    }
+
+    [TestMethod]
+    public void FilterSentryEvent_WhenExplicitCapture_ReturnsEvent()
+    {
+        var sentryEvent = new SentryEvent();
+        sentryEvent.SetTag(MonitoringService.ExplicitCaptureTag, "true");
+
+        var result = MonitoringService.FilterSentryEvent(sentryEvent);
+
+        result.Should().BeSameAs(sentryEvent);
+    }
+
+    [TestMethod]
+    public void FilterSentryEvent_WhenUnhandledWithSonarLintFrame_ReturnsEvent()
+    {
+        var sentryEvent = new SentryEvent
+        {
+            SentryExceptions = new[]
+            {
+                new SentryException
+                {
+                    Mechanism = new Mechanism { Handled = false },
+                    Stacktrace = new SentryStackTrace
+                    {
+                        Frames = new[] { new SentryStackFrame { Module = "SonarLint.VisualStudio.SLCore.Listeners" } }
+                    }
+                }
+            }
+        };
+
+        var result = MonitoringService.FilterSentryEvent(sentryEvent);
+
+        result.Should().BeSameAs(sentryEvent);
+    }
+
+    [TestMethod]
+    public void FilterSentryEvent_WhenUnhandledWithoutSonarFrames_ReturnsNull()
+    {
+        var sentryEvent = new SentryEvent
+        {
+            SentryExceptions = new[]
+            {
+                new SentryException
+                {
+                    Mechanism = new Mechanism { Handled = false },
+                    Stacktrace = new SentryStackTrace
+                    {
+                        Frames = new[] { new SentryStackFrame { Module = "Other.Assembly" } }
+                    }
+                }
+            }
+        };
+
+        var result = MonitoringService.FilterSentryEvent(sentryEvent);
+
+        result.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void FilterSentryEvent_WhenHandled_ReturnsNull()
+    {
+        var sentryEvent = new SentryEvent
+        {
+            SentryExceptions = new[]
+            {
+                new SentryException
+                {
+                    Mechanism = new Mechanism { Handled = true },
+                    Stacktrace = new SentryStackTrace
+                    {
+                        Frames = new[] { new SentryStackFrame { Module = "SonarLint.VisualStudio.SLCore.Listeners" } }
+                    }
+                }
+            }
+        };
+
+        var result = MonitoringService.FilterSentryEvent(sentryEvent);
+
+        result.Should().BeNull();
     }
 
     [TestMethod]

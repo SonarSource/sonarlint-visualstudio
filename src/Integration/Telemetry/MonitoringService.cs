@@ -18,9 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
+using Sentry;
+using Sentry.Protocol;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Core.VsInfo;
@@ -41,6 +42,7 @@ internal sealed class MonitoringService(
     IDogfoodingService dogfoodingService) : IMonitoringService
 {
     private const string ClientDsn = "https://654099e8f0967df586fda7753c66211e@o1316750.ingest.us.sentry.io/4510622904877056";
+    internal const string ExplicitCaptureTag = "slvs_explicit_capture";
 
     private readonly ILogger logger = logger.ForVerboseContext(nameof(MonitoringService));
     private readonly object stateLock = new();
@@ -108,7 +110,11 @@ internal sealed class MonitoringService(
             {
                 using (sentrySdk.PushScope())
                 {
-                    sentrySdk.ConfigureScope(scope => scope.SetTag("slvs_context", context));
+                    sentrySdk.ConfigureScope(scope =>
+                    {
+                        scope.SetTag("slvs_context", context);
+                        scope.SetTag(ExplicitCaptureTag, "true");
+                    });
                     sentrySdk.CaptureException(exception);
                 }
             }
@@ -134,6 +140,7 @@ internal sealed class MonitoringService(
                     options.DefaultTags["platform"] = Environment.OSVersion.Platform.ToString();
                     options.DefaultTags["architecture"] = Environment.Is64BitOperatingSystem ? "x64" : "x86";
                     options.AddInAppInclude("SonarLint.VisualStudio");
+                    options.SetBeforeSend((@event, _) => FilterSentryEvent(@event));
                 });
 
                 active = true;
@@ -145,6 +152,40 @@ internal sealed class MonitoringService(
                 active = false;
             }
         }
+    }
+
+    internal static SentryEvent FilterSentryEvent(SentryEvent @event)
+    {
+        if (@event == null)
+        {
+            return null;
+        }
+
+        if (@event.Tags.TryGetValue(ExplicitCaptureTag, out var explicitCapture) &&
+            string.Equals(explicitCapture, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return @event;
+        }
+
+        var sentryExceptions = (@event.SentryExceptions ?? Enumerable.Empty<SentryException>()).ToList();
+
+        var isUnhandled = sentryExceptions.Any(x => x.Mechanism?.Handled == false);
+        if (!isUnhandled)
+        {
+            return null;
+        }
+
+        var containsSonarFrame = sentryExceptions
+            .SelectMany(x => x.Stacktrace?.Frames ?? Array.Empty<SentryStackFrame>())
+            .Any(frame =>
+                (!string.IsNullOrEmpty(frame.Module) &&
+                 (frame.Module.StartsWith("SonarLint", StringComparison.OrdinalIgnoreCase) ||
+                  frame.Module.StartsWith("SonarQube", StringComparison.OrdinalIgnoreCase))) ||
+                (!string.IsNullOrEmpty(frame.Package) &&
+                 (frame.Package.StartsWith("SonarLint", StringComparison.OrdinalIgnoreCase) ||
+                  frame.Package.StartsWith("SonarQube", StringComparison.OrdinalIgnoreCase))));
+
+        return containsSonarFrame ? @event : null;
     }
 
 }
