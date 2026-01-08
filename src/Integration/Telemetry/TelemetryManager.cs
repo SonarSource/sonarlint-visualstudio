@@ -71,13 +71,27 @@ internal sealed class TelemetryManager(ISlCoreTelemetryHelper telemetryHelper, I
     public void OptIn()
     {
         telemetryHelper.Notify(telemetryService => telemetryService.EnableTelemetry());
-        monitoringService.Reinit();
+        try
+        {
+            monitoringService.Reinit();
+        }
+        catch (Exception e)
+        {
+            //Swallow errors for not supported VS versions
+        }
     }
 
     public void OptOut()
     {
         telemetryHelper.Notify(telemetryService => telemetryService.DisableTelemetry());
-        monitoringService.Close();
+        try
+        {
+            monitoringService.Close();
+        }
+        catch (Exception e)
+        {
+            //Swallow errors for not supported VS versions
+        }
     }
 
     public void TaintIssueInvestigatedLocally() => telemetryHelper.Notify(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedLocally());

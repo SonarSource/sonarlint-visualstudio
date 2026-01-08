@@ -108,7 +108,14 @@ internal sealed class SLCoreInstanceHandler : ISLCoreInstanceHandler
         {
             logger.WriteLine(SLCoreStrings.SLCoreHandler_StartingInstance);
             await currentInstanceHandle.InitializeAsync();
-            monitoringService.Init();
+            try
+            {
+                monitoringService.Init();
+            }
+            catch (Exception e)
+            {
+                //Swallow errors for not supported VS versions
+            }
             await currentInstanceHandle.ShutdownTask;
         }
         catch (Exception e)

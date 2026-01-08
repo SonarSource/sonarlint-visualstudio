@@ -61,7 +61,14 @@ internal class JsonRpcWrapper : JsonRpc, IJsonRpc
 
         if (errorDetail.Code == JsonRpcErrorCode.InternalError)
         {
-            monitoringService.ReportException(exception, $"JsonRpcWrapper.CreateErrorDetails:{request.Method ?? "unknown"}");
+            try
+            {
+                monitoringService.ReportException(exception, $"JsonRpcWrapper.CreateErrorDetails:{request.Method ?? "unknown"}");
+            }
+            catch (Exception e)
+            {
+                //Swallow errors for not supported VS versions
+            }
         }
 
         return errorDetail;

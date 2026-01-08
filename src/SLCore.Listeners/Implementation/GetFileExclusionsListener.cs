@@ -38,26 +38,6 @@ internal class GetFileExclusionsListener(ILogger logger, IUserSettingsProvider u
 
     private GetFileExclusionsResponse GetFileExclusionsFromSettings(GetFileExclusionsParams parameters)
     {
-        var exception = new StreamJsonRpc.LocalRpcException("TEST: force internal error")
-        {
-            ErrorCode = (int)StreamJsonRpc.Protocol.JsonRpcErrorCode.InternalError,
-            ErrorData = new StreamJsonRpc.Protocol.CommonErrorData
-            {
-                TypeName = "org.sonarsource.slcore.TestException",
-                Message = "TEST: fake remote exception details",
-                StackTrace = "at org.sonarsource.slcore.TestClass.testMethod(TestClass.java:42)\n" +
-                             "at org.sonarsource.slcore.AnotherClass.call(AnotherClass.java:7)",
-                HResult = unchecked((int)0x80131500),
-            },
-        };
-
-        var remoteStackTraceField = typeof(Exception).GetField("_remoteStackTraceString", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-        remoteStackTraceField?.SetValue(exception,
-            "at org.sonarsource.slcore.TestClass.testMethod(TestClass.java:42)" + Environment.NewLine +
-            "at org.sonarsource.slcore.AnotherClass.call(AnotherClass.java:7)" + Environment.NewLine);
-
-        throw exception;
-
         if (activeConfigScopeTracker.Current?.Id is var activeConfigScope && activeConfigScope != parameters.configurationScopeId)
         {
             logger.WriteLine(SLCoreStrings.ConfigurationScopeMismatch, parameters.configurationScopeId, activeConfigScope);
