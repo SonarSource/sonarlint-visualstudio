@@ -1555,7 +1555,7 @@
           "SonarLint.VisualStudio.ConnectedMode": "[1.0.0, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
-          "StreamJsonRpc": "[2.6.121, )",
+          "StreamJsonRpc": "[2.8.28, )",
           "StrongNamer": "[0.0.8, )",
           "System.IO.Abstractions": "[9.0.4, )"
         }
@@ -1595,7 +1595,7 @@
         "type": "Project",
         "dependencies": {
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
-          "StreamJsonRpc": "[2.6.121, )"
+          "StreamJsonRpc": "[2.8.28, )"
         }
       }
     }
