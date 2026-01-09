@@ -19,7 +19,9 @@
  */
 
 using System.IO;
+using SonarLint.VisualStudio.SLCore.Monitoring;
 using StreamJsonRpc;
+using StreamJsonRpc.Protocol;
 
 namespace SonarLint.VisualStudio.SLCore.Core;
 
@@ -44,8 +46,34 @@ internal interface IJsonRpc
 /// </summary>
 internal class JsonRpcWrapper : JsonRpc, IJsonRpc
 {
-    public JsonRpcWrapper(Stream sendingStream, Stream receivingStream) : base(sendingStream, receivingStream)
+    private readonly IMonitoringService monitoringService;
+
+    public JsonRpcWrapper(Stream sendingStream, Stream receivingStream, IMonitoringService monitoringService) : base(sendingStream, receivingStream)
     {
+        this.monitoringService = monitoringService;
         TraceSource.Listeners.Clear(); // we don't want tracing unless IRpcDebugger is enabled
     }
+
+    protected override JsonRpcError.ErrorDetail CreateErrorDetails(JsonRpcRequest request, Exception exception)
+    {
+        var errorDetail = CreateBaseErrorDetails(request, exception);
+
+        if (errorDetail.Code == JsonRpcErrorCode.InternalError ||
+            errorDetail.Code == JsonRpcErrorCode.InvalidParams)
+        {
+            try
+            {
+                monitoringService.ReportException(exception, $"JsonRpcWrapper.CreateErrorDetails:{request.Method ?? "unknown"}");
+            }
+            catch (Exception e)
+            {
+                //Swallow errors for not supported VS versions
+            }
+        }
+
+        return errorDetail;
+    }
+
+    protected virtual JsonRpcError.ErrorDetail CreateBaseErrorDetails(JsonRpcRequest request, Exception exception) =>
+        base.CreateErrorDetails(request, exception);
 }

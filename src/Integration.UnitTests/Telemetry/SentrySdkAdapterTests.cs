@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,25 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core.Process;
-using SonarLint.VisualStudio.SLCore.Monitoring;
+using SonarLint.VisualStudio.Integration.Telemetry;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.SLCore.UnitTests.Core.Process;
+namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry;
 
 [TestClass]
-public class SLCoreProcessFactoryTests
+public class SentrySdkAdapterTests
 {
     [TestMethod]
-    public void MefCtor_CheckIsExported()
-    {
-        MefTestHelpers.CheckTypeCanBeImported<SLCoreProcessFactory, ISLCoreProcessFactory>(
-            MefTestHelpers.CreateExport<ISLCoreErrorLoggerFactory>(),
-            MefTestHelpers.CreateExport<IMonitoringService>());
-    }
-
-    [TestMethod]
-    public void MefCtor_CheckIsSingleton()
-    {
-        MefTestHelpers.CheckIsSingletonMefComponent<SLCoreProcessFactory>();
-    }
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<SentrySdkAdapter, ISentrySdk>();
 }

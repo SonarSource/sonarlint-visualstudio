@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,28 +18,34 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.SLCore.Configuration;
-using SonarLint.VisualStudio.SLCore.Monitoring;
+using System.Diagnostics.CodeAnalysis;
+using Sentry;
 
-namespace SonarLint.VisualStudio.SLCore.Core.Process;
+namespace SonarLint.VisualStudio.Integration.Telemetry;
 
-[Export(typeof(ISLCoreProcessFactory))]
-[PartCreationPolicy(CreationPolicy.Shared)]
-internal class SLCoreProcessFactory : ISLCoreProcessFactory
+internal interface ISentrySdk
 {
-    private readonly ISLCoreErrorLoggerFactory slCoreErrorLoggerFactory;
-    private readonly IMonitoringService monitoringService;
+    IDisposable PushScope();
+    void ConfigureScope(Action<Scope> configureScope);
+    IDisposable Init(Action<SentryOptions> options);
+    void CaptureException(Exception exception);
+    void Close();
+}
 
-    [ImportingConstructor]
-    public SLCoreProcessFactory(ISLCoreErrorLoggerFactory slCoreErrorLoggerFactory, IMonitoringService monitoringService)
-    {
-        this.slCoreErrorLoggerFactory = slCoreErrorLoggerFactory;
-        this.monitoringService = monitoringService;
-    }
+[Export(typeof(ISentrySdk))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[ExcludeFromCodeCoverage]
+internal sealed class SentrySdkAdapter : ISentrySdk
+{
+    public IDisposable PushScope() => SentrySdk.PushScope();
 
-    public ISLCoreProcess StartNewProcess(SLCoreLaunchParameters slCoreLaunchParameters)
-    {
-        return new SLCoreProcess(slCoreLaunchParameters, slCoreErrorLoggerFactory, monitoringService);
-    }
+    public void ConfigureScope(Action<Scope> configureScope) => SentrySdk.ConfigureScope(configureScope);
+
+    public IDisposable Init(Action<SentryOptions> options) => SentrySdk.Init(options);
+
+    public void CaptureException(Exception exception) => SentrySdk.CaptureException(exception);
+
+    public void Close() => SentrySdk.Close();
 }
