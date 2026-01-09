@@ -18,13 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration.Telemetry;
+using SonarLint.VisualStudio.SLCore.Monitoring;
 using SonarLint.VisualStudio.SLCore.Service.Telemetry;
 using SonarLint.VisualStudio.SLCore.Service.Telemetry.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
-using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry;
 
@@ -34,24 +33,28 @@ public class TelemetryManagerTests
     private TelemetryManager telemetryManager;
     private ISlCoreTelemetryHelper telemetryHandler;
     private ITelemetrySLCoreService telemetryService;
+    private IMonitoringService monitoringService;
 
     [TestInitialize]
     public void TestInitialize()
     {
         telemetryHandler = Substitute.For<ISlCoreTelemetryHelper>();
+        monitoringService = Substitute.For<IMonitoringService>();
         MockTelemetryService();
 
-        telemetryManager = new TelemetryManager(telemetryHandler);
+        telemetryManager = new TelemetryManager(telemetryHandler, monitoringService);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<TelemetryManager, ITelemetryManager>(
-            MefTestHelpers.CreateExport<ISlCoreTelemetryHelper>());
+            MefTestHelpers.CreateExport<ISlCoreTelemetryHelper>(),
+            MefTestHelpers.CreateExport<IMonitoringService>());
 
         MefTestHelpers.CheckTypeCanBeImported<TelemetryManager, IQuickFixesTelemetryManager>(
-            MefTestHelpers.CreateExport<ISlCoreTelemetryHelper>());
+            MefTestHelpers.CreateExport<ISlCoreTelemetryHelper>(),
+            MefTestHelpers.CreateExport<IMonitoringService>());
     }
 
     [TestMethod]
@@ -80,6 +83,7 @@ public class TelemetryManagerTests
         {
             telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
             telemetryService.DisableTelemetry();
+            monitoringService.Close();
         });
     }
 
@@ -92,6 +96,7 @@ public class TelemetryManagerTests
         {
             telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
             telemetryService.EnableTelemetry();
+            monitoringService.Reinit();
         });
     }
 

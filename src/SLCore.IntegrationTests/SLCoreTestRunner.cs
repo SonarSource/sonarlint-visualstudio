@@ -38,6 +38,7 @@ using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using SonarLint.VisualStudio.SLCore.State;
+using SonarLint.VisualStudio.SLCore.Monitoring;
 
 namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
@@ -65,7 +66,9 @@ public sealed class SLCoreTestRunner : IDisposable
 
         SetUpLocalFolders();
 
-        slCoreTestProcessFactory = new SLCoreProcessFactory(new SLCoreErrorLoggerFactory(slCoreStdErrorLogger, new NoOpThreadHandler()));
+        slCoreTestProcessFactory = new SLCoreProcessFactory(
+            new SLCoreErrorLoggerFactory(slCoreStdErrorLogger, new NoOpThreadHandler()),
+            Substitute.For<IMonitoringService>());
     }
 
     public void AddListener(ISLCoreListener listener)
