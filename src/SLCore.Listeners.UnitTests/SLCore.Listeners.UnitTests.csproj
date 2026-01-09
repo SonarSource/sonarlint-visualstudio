@@ -14,9 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="StreamJsonRpc" Version="2.6.121">
-      <NoWarn>NU1605</NoWarn>
-    </PackageReference>
+    <PackageReference Include="StreamJsonRpc" Version="2.8.28" />
   </ItemGroup>
 
 </Project>
