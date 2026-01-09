@@ -21,6 +21,7 @@
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.SLCore.Monitoring;
 using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests;
@@ -35,6 +36,7 @@ public class SLCoreInstanceHandlerTests
             MefTestHelpers.CreateExport<ISLCoreInstanceFactory>(),
             MefTestHelpers.CreateExport<IAliveConnectionTracker>(),
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
+            MefTestHelpers.CreateExport<IMonitoringService>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<ILogger>());
     }
@@ -211,11 +213,13 @@ public class SLCoreInstanceHandlerTests
         slCoreInstanceFactory = Substitute.For<ISLCoreInstanceFactory>();
         aliveConnectionTracker = Substitute.For<IAliveConnectionTracker>();
         activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
+        var monitoringService = Substitute.For<IMonitoringService>();
         threadHandling = Substitute.For<IThreadHandling>();
         logger = new TestLogger();
         return new SLCoreInstanceHandler(slCoreInstanceFactory,
             aliveConnectionTracker,
             activeConfigScopeTracker,
+            monitoringService,
             threadHandling,
             logger);
     }

@@ -19,16 +19,19 @@
  */
 
 using SonarLint.VisualStudio.SLCore.Configuration;
+using SonarLint.VisualStudio.SLCore.Monitoring;
 
 namespace SonarLint.VisualStudio.SLCore.Core.Process;
 
 internal sealed class SLCoreProcess : ISLCoreProcess
 {
     private readonly ISLCoreErrorLogger errorLogger;
+    private readonly IMonitoringService monitoringService;
     private readonly System.Diagnostics.Process process;
 
-    public SLCoreProcess(SLCoreLaunchParameters launchParameters, ISLCoreErrorLoggerFactory slCoreErrorLoggerFactory)
+    public SLCoreProcess(SLCoreLaunchParameters launchParameters, ISLCoreErrorLoggerFactory slCoreErrorLoggerFactory, IMonitoringService monitoringService)
     {
+        this.monitoringService = monitoringService;
         var processStartInfo = new ProcessStartInfo(launchParameters.PathToExecutable, launchParameters.LaunchArguments)
         {
             CreateNoWindow = true,
@@ -53,7 +56,7 @@ internal sealed class SLCoreProcess : ISLCoreProcess
 
     public IJsonRpc AttachJsonRpc(IRpcDebugger rpcDebugger)
     {
-        var jsonRpcWrapper = new JsonRpcWrapper(process.StandardInput.BaseStream, process.StandardOutput.BaseStream);
+        var jsonRpcWrapper = new JsonRpcWrapper(process.StandardInput.BaseStream, process.StandardOutput.BaseStream, monitoringService);
 
         rpcDebugger.SetUpDebugger(jsonRpcWrapper);
 

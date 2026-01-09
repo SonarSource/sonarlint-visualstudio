@@ -30,6 +30,8 @@
     <!-- We use BouncyCastle nuget package for its MD5 implementation, since the Framework MD5 throws an exception on FIPS-enabled machines. -->
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
+    <PackageReference Include="Sentry" Version="6.0.0" />
+    <PackageReference Include="StreamJsonRpc" Version="2.8.28" />
   </ItemGroup>
 
   <ItemGroup>

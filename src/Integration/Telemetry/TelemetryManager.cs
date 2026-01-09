@@ -19,11 +19,10 @@
  */
 
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.SLCore.Monitoring;
 using SonarLint.VisualStudio.SLCore.Service.Telemetry;
 using SonarLint.VisualStudio.SLCore.Service.Telemetry.Models;
-using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
 namespace SonarLint.VisualStudio.Integration.Telemetry;
 
@@ -31,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Telemetry;
 [Export(typeof(IQuickFixesTelemetryManager))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal sealed class TelemetryManager(ISlCoreTelemetryHelper telemetryHelper) : ITelemetryManager,
+internal sealed class TelemetryManager(ISlCoreTelemetryHelper telemetryHelper, IMonitoringService monitoringService) : ITelemetryManager,
     IQuickFixesTelemetryManager
 {
     public void QuickFixApplied(string ruleId) =>
@@ -69,9 +68,31 @@ internal sealed class TelemetryManager(ISlCoreTelemetryHelper telemetryHelper) :
 
     public SlCoreTelemetryStatus GetStatus() => telemetryHelper.GetStatus();
 
-    public void OptIn() => telemetryHelper.Notify(telemetryService => telemetryService.EnableTelemetry());
+    public void OptIn()
+    {
+        telemetryHelper.Notify(telemetryService => telemetryService.EnableTelemetry());
+        try
+        {
+            monitoringService.Reinit();
+        }
+        catch (Exception e)
+        {
+            //Swallow errors for not supported VS versions
+        }
+    }
 
-    public void OptOut() => telemetryHelper.Notify(telemetryService => telemetryService.DisableTelemetry());
+    public void OptOut()
+    {
+        telemetryHelper.Notify(telemetryService => telemetryService.DisableTelemetry());
+        try
+        {
+            monitoringService.Close();
+        }
+        catch (Exception e)
+        {
+            //Swallow errors for not supported VS versions
+        }
+    }
 
     public void TaintIssueInvestigatedLocally() => telemetryHelper.Notify(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedLocally());
 
