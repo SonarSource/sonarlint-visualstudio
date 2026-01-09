@@ -158,6 +158,8 @@ internal sealed class MonitoringService(
                     options.DefaultTags["platform"] = Environment.OSVersion.Platform.ToString();
                     options.DefaultTags["architecture"] = Environment.Is64BitOperatingSystem ? "x64" : "x86";
                     options.AddInAppInclude("SonarLint.VisualStudio");
+                    options.DisableAppDomainUnhandledExceptionCapture();
+                    options.DisableUnobservedTaskExceptionCapture();
                 });
 
                 active = true;
