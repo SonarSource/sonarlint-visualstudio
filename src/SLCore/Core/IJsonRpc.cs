@@ -18,11 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO;
-using StreamJsonRpc.Protocol;
-using StreamJsonRpc;
 using SonarLint.VisualStudio.SLCore.Monitoring;
+using StreamJsonRpc;
+using StreamJsonRpc.Protocol;
 
 namespace SonarLint.VisualStudio.SLCore.Core;
 
@@ -59,7 +58,8 @@ internal class JsonRpcWrapper : JsonRpc, IJsonRpc
     {
         var errorDetail = CreateBaseErrorDetails(request, exception);
 
-        if (errorDetail.Code == JsonRpcErrorCode.InternalError)
+        if (errorDetail.Code == JsonRpcErrorCode.InternalError ||
+            errorDetail.Code == JsonRpcErrorCode.InvalidParams)
         {
             try
             {

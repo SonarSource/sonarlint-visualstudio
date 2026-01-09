@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO;
-using NSubstitute;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Monitoring;
 using StreamJsonRpc.Protocol;
@@ -65,7 +63,24 @@ public class JsonRpcWrapperTests
     }
 
     [TestMethod]
-    public void CreateErrorDetails_NonInternalError_DoesNotReportException()
+    public void CreateErrorDetails_InvalidParams_ReportsException()
+    {
+        var monitoringService = Substitute.For<IMonitoringService>();
+        using var sending = new MemoryStream();
+        using var receiving = new MemoryStream();
+        var testSubject = new TestableJsonRpcWrapper(sending, receiving, monitoringService,
+            () => new JsonRpcError.ErrorDetail { Code = JsonRpcErrorCode.InvalidParams });
+        var request = new JsonRpcRequest { Method = "getFileExclusions" };
+        var expected = new ArgumentException("invalid param");
+
+        var result = testSubject.InvokeCreateErrorDetails(request, expected);
+
+        result.Code.Should().Be(JsonRpcErrorCode.InvalidParams);
+        monitoringService.Received(1).ReportException(expected, "JsonRpcWrapper.CreateErrorDetails:getFileExclusions");
+    }
+
+    [TestMethod]
+    public void CreateErrorDetails_InvocationError_DoesNotReportException()
     {
         var monitoringService = Substitute.For<IMonitoringService>();
         using var sending = new MemoryStream();
