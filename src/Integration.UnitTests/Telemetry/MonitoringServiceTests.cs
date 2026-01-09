@@ -24,6 +24,8 @@ using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Core.VsInfo;
 using SonarLint.VisualStudio.Integration.Telemetry;
 using SonarLint.VisualStudio.TestInfrastructure;
+using StreamJsonRpc;
+using StreamJsonRpc.Protocol;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry;
 
@@ -166,6 +168,81 @@ public class MonitoringServiceTests
         testSubject.ReportException(new InvalidOperationException("original"), "ctx");
 
         logger.AssertPartialOutputStringExists("Failed to report exception to Sentry");
+    }
+
+    [TestMethod]
+    public void ReportException_WhenLocalRpcExceptionWithCommonErrorData_SetsExtras()
+    {
+        InitWithTelemetryEnabled();
+        Scope capturedScope = null;
+        sentrySdk.When(x => x.ConfigureScope(Arg.Any<Action<Scope>>()))
+            .Do(ci =>
+            {
+                capturedScope = new Scope(new SentryOptions());
+                ci.Arg<Action<Scope>>()(capturedScope);
+            });
+
+        var innerException = new InvalidOperationException("inner error");
+        var commonErrorData = new CommonErrorData(innerException);
+        var localRpcException = new LocalRpcException("rpc failed") { ErrorCode = (int)JsonRpcErrorCode.InternalError, ErrorData = commonErrorData };
+
+        testSubject.ReportException(localRpcException, "rpc_context");
+
+        capturedScope.Should().NotBeNull();
+        capturedScope.Extra.ContainsKey("rpc.errorData.typeName").Should().BeTrue();
+        capturedScope.Extra["rpc.errorData.typeName"].Should().Be(commonErrorData.TypeName);
+        capturedScope.Extra.ContainsKey("rpc.errorData.message").Should().BeTrue();
+        capturedScope.Extra["rpc.errorData.message"].Should().Be(commonErrorData.Message);
+        capturedScope.Extra.ContainsKey("rpc.errorData.stackTrace").Should().BeTrue();
+        capturedScope.Extra["rpc.errorData.stackTrace"].Should().Be(commonErrorData.StackTrace);
+        capturedScope.Extra.ContainsKey("rpc.errorData.hResult").Should().BeTrue();
+        capturedScope.Extra["rpc.errorData.hResult"].Should().Be(commonErrorData.HResult);
+    }
+
+    [TestMethod]
+    public void ReportException_WhenNotLocalRpcException_DoesNotSetErrorDataExtras()
+    {
+        InitWithTelemetryEnabled();
+        Scope capturedScope = null;
+        sentrySdk.When(x => x.ConfigureScope(Arg.Any<Action<Scope>>()))
+            .Do(ci =>
+            {
+                capturedScope = new Scope(new SentryOptions());
+                ci.Arg<Action<Scope>>()(capturedScope);
+            });
+
+        var regularException = new InvalidOperationException("regular error");
+
+        testSubject.ReportException(regularException, "ctx");
+
+        capturedScope.Should().NotBeNull();
+        capturedScope.Extra.ContainsKey("rpc.errorData.typeName").Should().BeFalse();
+        capturedScope.Extra.ContainsKey("rpc.errorData.message").Should().BeFalse();
+        capturedScope.Extra.ContainsKey("rpc.errorData.stackTrace").Should().BeFalse();
+        capturedScope.Extra.ContainsKey("rpc.errorData.hResult").Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void ReportException_WhenLocalRpcExceptionWithoutCommonErrorData_DoesNotSetErrorDataExtras()
+    {
+        InitWithTelemetryEnabled();
+        Scope capturedScope = null;
+        sentrySdk.When(x => x.ConfigureScope(Arg.Any<Action<Scope>>()))
+            .Do(ci =>
+            {
+                capturedScope = new Scope(new SentryOptions());
+                ci.Arg<Action<Scope>>()(capturedScope);
+            });
+
+        var localRpcException = new LocalRpcException("rpc failed") { ErrorCode = (int)JsonRpcErrorCode.InternalError, ErrorData = "some string data" };
+
+        testSubject.ReportException(localRpcException, "rpc_context");
+
+        capturedScope.Should().NotBeNull();
+        capturedScope.Extra.ContainsKey("rpc.errorData.typeName").Should().BeFalse();
+        capturedScope.Extra.ContainsKey("rpc.errorData.message").Should().BeFalse();
+        capturedScope.Extra.ContainsKey("rpc.errorData.stackTrace").Should().BeFalse();
+        capturedScope.Extra.ContainsKey("rpc.errorData.hResult").Should().BeFalse();
     }
 
     private MonitoringService CreateTestSubject() =>
