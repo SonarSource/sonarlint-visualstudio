@@ -29,7 +29,7 @@
                    Foreground="Gray"
                    TextWrapping="Wrap"
                    >
-            <Run Text="By sharing anonymous SonarQube for Visual Studio usage statistics, you help us understand how SonarQube for Visual Studio is used so we can improve the plugin to work even better for you. We don't collect source code, IP addresses, or any personally identifying information. And we don't share the data with anyone else." />
+            <Run Text="By sharing anonymous SonarQube for Visual Studio usage statistics and error data, you help us understand how SonarQube for Visual Studio is used so we can improve the plugin to work even better for you. This data is aggregated and does not contain source code, IP addresses, or any personally identifying information. And we don't share the data with anyone else. Uncheck this box to opt-out of this collection." />
             <LineBreak />
             <Hyperlink>
                 <TextBlock Text="See a sample of data" />
@@ -45,7 +45,7 @@
         <CheckBox x:Name="ShareAnonymousData"
                   Grid.Row="2"
                   Margin="10,5"
-                  Content="Share anonymous SonarQube for Visual Studio statistics" />
+                  Content="Share anonymous SonarQube for Visual Studio usage data" />
         <TextBlock x:Name="BackendStartedText" Grid.Row="3" Margin="10,5" Foreground="Brown" TextWrapping="Wrap">*This setting is not active until the SonarQube for Visual Studio backend has started</TextBlock>
     </Grid>
 </UserControl>
