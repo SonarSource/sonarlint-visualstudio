@@ -29,7 +29,7 @@
                    Foreground="Gray"
                    TextWrapping="Wrap"
                    >
-            <Run Text="By sharing anonymous SonarQube for Visual Studio usage statistics and error data, you help us understand how SonarQube for Visual Studio is used so we can improve the plugin to work even better for you. This data is aggregated and does not contain source code, IP addresses, or any personally identifying information. And we don't share the data with anyone else. Uncheck this box to opt-out of this collection." />
+            <Run Text="By sharing anonymous SonarQube for Visual Studio usage statistics and error data, you help us understand how SonarQube for Visual Studio is used so we can improve the plugin to work even better for you. This data is aggregated and does not contain source code, IP addresses, or any personally identifying information. We utilize Sentry for crash tracking. Uncheck this box to opt-out of this collection." />
             <LineBreak />
             <Hyperlink>
                 <TextBlock Text="See a sample of data" />
