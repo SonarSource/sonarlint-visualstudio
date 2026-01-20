@@ -16,7 +16,7 @@
     <!-- sonar-text-plugin -->
     <EmbeddedSonarSecretsJarVersion>2.38.0.10279</EmbeddedSonarSecretsJarVersion>
     <!-- sonarqube-ide-visualstudio-roslyn --> 
-    <EmbeddedSonarSqvsRoslynJarVersion>1.1.0.235</EmbeddedSonarSqvsRoslynJarVersion>
+    <EmbeddedSonarSqvsRoslynJarVersion>1.2.0.364</EmbeddedSonarSqvsRoslynJarVersion>
     <!-- SLOOP: Binaries for SonarLint Out Of Process -->
     <EmbeddedSloopVersion>10.42.0.84187</EmbeddedSloopVersion>
   </PropertyGroup>
