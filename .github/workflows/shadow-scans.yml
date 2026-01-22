@@ -57,8 +57,7 @@ jobs:
         run: |
           versionProps=$(cat build/Version.props)
           sonarProjectVersion=$(echo "$versionProps" | sed -n 's:.*<MainVersion>\(.*\)</MainVersion>.*:\1:p')
-          PROJECT_VERSION_WITHOUT_BUILD_NUMBER="${sonarProjectVersion}"
-          echo "PROJECT_VERSION_WITHOUT_BUILD_NUMBER=${PROJECT_VERSION_WITHOUT_BUILD_NUMBER}" >> $GITHUB_ENV
+          export PROJECT_VERSION_WITHOUT_BUILD_NUMBER="${sonarProjectVersion}"
           msbuild.exe build/ChangeVersion.proj -p:Sha1=${GITHUB_SHA} -p:BranchName=${BRANCH_NAME} -p:BuildNumber=${BUILD_NUMBER} -p:BuildConfiguration=Release
           msbuild.exe build/DownloadDependencies -p:VsVersion=17.0 -p:VsTargetVersion=2022
           dotnet restore "SonarQube.VisualStudio.sln" --locked-mode
