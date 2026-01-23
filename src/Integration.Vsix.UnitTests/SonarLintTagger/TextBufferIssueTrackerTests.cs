@@ -40,6 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger;
 public class TextBufferIssueTrackerTests
 {
     private const string InitialFilePath = "foo.js";
+    private const string InitialCanonicalFilePath = "foo.js";
     private const string TextContent = "file content";
     private readonly AnalysisLanguage[] javascriptLanguage = [AnalysisLanguage.Javascript];
     private readonly AnalysisLanguage[] typescriptLanguage = [AnalysisLanguage.TypeScript];
@@ -52,6 +53,7 @@ public class TextBufferIssueTrackerTests
     private ISonarErrorListDataSource mockSonarErrorDataSource;
     private ISonarLanguageRecognizer languageRecognizer;
     private IDocumentTrackerUpdater documentTrackerUpdater;
+    private ICanonicalFilePathProvider canonicalFilePathProvider;
     private TextBufferIssueTracker testSubject;
     private IVsProjectInfoProvider vsProjectInfoProvider;
     private IIssueConsumerFactory issueConsumerFactory;
@@ -74,9 +76,11 @@ public class TextBufferIssueTrackerTests
         mockedJavascriptDocumentFooJs = CreateDocumentMock(InitialFilePath, mockDocumentTextBuffer);
         MockGetDocumentProjectInfo(mockedJavascriptDocumentFooJs.FilePath, initialProjectInfo);
         languageRecognizer.Detect(mockedJavascriptDocumentFooJs.FilePath, initialMockContentType).Returns(javascriptLanguage);
+        canonicalFilePathProvider = Substitute.For<ICanonicalFilePathProvider>();
+        canonicalFilePathProvider.GetCanonicalPath(InitialFilePath).Returns(InitialCanonicalFilePath);
         testSubject =  new(documentTrackerUpdater,
             mockedJavascriptDocumentFooJs, languageRecognizer,
-            mockSonarErrorDataSource, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage, logger);;
+            mockSonarErrorDataSource, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage, canonicalFilePathProvider, logger);;
     }
 
     [TestMethod]
@@ -112,7 +116,7 @@ public class TextBufferIssueTrackerTests
     public void Ctor_UpdatesAnalysisStateAndCreatesIssueConsumer()
     {
         documentTrackerUpdater.Received(1).OnDocumentOpened(testSubject);
-        VerifyMetadataUpdated(mockedJavascriptDocumentFooJs.FilePath, initialMockContentType, javascriptLanguage);
+        VerifyMetadataUpdated(mockedJavascriptDocumentFooJs.FilePath, InitialCanonicalFilePath, initialMockContentType, javascriptLanguage);
         VerifyIssueConsumerNotCreated();
     }
 
@@ -127,7 +131,7 @@ public class TextBufferIssueTrackerTests
         testSubject.Dispose();
 
         documentTrackerUpdater.Received(1).OnDocumentClosed(testSubject);
-        VerifyIssueConsumerRemoved(InitialFilePath);
+        VerifyIssueConsumerRemoved(InitialCanonicalFilePath);
         VerifySingletonManagerDoesNotExist(mockDocumentTextBuffer);
         CheckFactoryWasUnregisteredFromDataSource(testSubject.Factory, times: 1);
         mockedJavascriptDocumentFooJs.Received(1).FileActionOccurred -= Arg.Any<EventHandler<TextDocumentFileActionEventArgs>>();
@@ -145,7 +149,7 @@ public class TextBufferIssueTrackerTests
         RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
 
         documentTrackerUpdater.Received(1).OnDocumentSaved(testSubject);
-        VerifyMetadataUpdated(mockedJavascriptDocumentFooJs.FilePath, csharpContentType, csharpLanguage);
+        VerifyMetadataUpdated(mockedJavascriptDocumentFooJs.FilePath, InitialCanonicalFilePath, csharpContentType, csharpLanguage);
         VerifyIssueConsumerNotCreated();
         VerifyIssueConsumerNotRemoved();
     }
@@ -164,6 +168,8 @@ public class TextBufferIssueTrackerTests
     public void WhenFileIsRenamed_LastAnalysisFilePathIsUpdated()
     {
         var newFilePath = "newName.ts";
+        var newCanonicalFilePath = "newName.ts";
+        canonicalFilePathProvider.GetCanonicalPath(newFilePath).Returns(newCanonicalFilePath);
         var newTypescriptContentType = Substitute.For<IContentType>();
         languageRecognizer.Detect(newFilePath, newTypescriptContentType).Returns(typescriptLanguage);
         mockedJavascriptDocumentFooJs.FilePath.Returns(newFilePath);
@@ -172,10 +178,10 @@ public class TextBufferIssueTrackerTests
         RaiseFileRenamedEvent(mockedJavascriptDocumentFooJs, newFilePath);
 
         testSubject.FilePath.Should().Be(newFilePath);
-        documentTrackerUpdater.Received(1).OnOpenDocumentRenamed(testSubject, InitialFilePath);
-        VerifyMetadataUpdated(newFilePath, newTypescriptContentType, typescriptLanguage);
+        documentTrackerUpdater.Received(1).OnOpenDocumentRenamed(testSubject, InitialCanonicalFilePath);
+        VerifyMetadataUpdated(newFilePath, newCanonicalFilePath, newTypescriptContentType, typescriptLanguage);
         VerifyIssueConsumerNotCreated();
-        VerifyIssueConsumerRemoved(InitialFilePath);
+        VerifyIssueConsumerRemoved(InitialCanonicalFilePath);
     }
 
     private static object[][] ProjectInfos =>
@@ -186,42 +192,44 @@ public class TextBufferIssueTrackerTests
     ];
     [DynamicData(nameof(ProjectInfos))]
     [DataTestMethod]
-    public void UpdateAnalysisState_UpdatedMetadata_CreatesIssueConsumerWithNewSnapshot(string projectName, Guid projectGuid)
+    public void UpdateAnalysisState_WithUpdatedMetadata_CreatesIssueConsumerWithNewSnapshot(string projectName, Guid projectGuid)
     {
         var newTypescriptContentType = Substitute.For<IContentType>();
         var newProjectInfo = (projectName, projectGuid);
         var newTextSnapshot = CreateTextSnapshotMock();
         var issueConsumer = Substitute.For<IIssueConsumer>();
         const string newFilePath = "newName.ts";
-        MockGetDocumentProjectInfo(newFilePath, newProjectInfo);
+        const string newCanonicalFilePath = "newCanonicalName.ts";
+        canonicalFilePathProvider.GetCanonicalPath(newFilePath).Returns(newCanonicalFilePath);
         mockedJavascriptDocumentFooJs.FilePath.Returns(newFilePath);
         mockedJavascriptDocumentFooJs.TextBuffer.ContentType.Returns(newTypescriptContentType);
         mockedJavascriptDocumentFooJs.TextBuffer.CurrentSnapshot.Returns(newTextSnapshot);
-        MockIssueConsumerFactory(mockedJavascriptDocumentFooJs, newFilePath, newTextSnapshot, newProjectInfo, issueConsumer);
+        MockGetDocumentProjectInfo(newCanonicalFilePath, newProjectInfo);
+        MockIssueConsumerFactory(mockedJavascriptDocumentFooJs, newCanonicalFilePath, newTextSnapshot, newProjectInfo, issueConsumer);
         RaiseFileRenamedEvent(mockedJavascriptDocumentFooJs, newFilePath); // force metadata update
         ClearMocks();
 
         var updateAnalysisState = testSubject.UpdateFileState();
 
-        updateAnalysisState.FilePath.Should().Be(newFilePath);
+        updateAnalysisState.FilePath.Should().Be(newCanonicalFilePath);
         updateAnalysisState.TextSnapshot.Should().Be(newTextSnapshot);
         VerifyCreateIssueConsumerWasCalled(mockedJavascriptDocumentFooJs, newProjectInfo, issueConsumer, updateAnalysisState);
-        VerifyMetadataNotUpdated();
+        VerifyMetadataNotUpdated(); // UpdateFileState uses latest metadata, but doesn't trigger an update
     }
 
     [TestMethod]
     public void UpdateAnalysisState_CreatesIssueConsumerWithInitialSnapshot()
     {
         var issueConsumer = Substitute.For<IIssueConsumer>();
-        MockIssueConsumerFactory(mockedJavascriptDocumentFooJs, InitialFilePath, initialTextSnapshot, initialProjectInfo, issueConsumer);
+        MockIssueConsumerFactory(mockedJavascriptDocumentFooJs, InitialCanonicalFilePath, initialTextSnapshot, initialProjectInfo, issueConsumer);
         ClearMocks();
 
         var updateAnalysisState = testSubject.UpdateFileState();
 
-        updateAnalysisState.FilePath.Should().Be(InitialFilePath);
+        updateAnalysisState.FilePath.Should().Be(InitialCanonicalFilePath);
         updateAnalysisState.TextSnapshot.Should().BeSameAs(initialTextSnapshot);
         VerifyCreateIssueConsumerWasCalled(mockedJavascriptDocumentFooJs, initialProjectInfo, issueConsumer, updateAnalysisState);
-        VerifyIssueConsumerRemoved(InitialFilePath);
+        VerifyIssueConsumerRemoved(InitialCanonicalFilePath);
         VerifyMetadataNotUpdated();
     }
 
@@ -349,13 +357,14 @@ public class TextBufferIssueTrackerTests
 
     private void MockGetDocumentProjectInfo(string filePath, (string projectName, Guid projectGuid) projectInfo) => vsProjectInfoProvider.GetDocumentProjectInfo(filePath).Returns(projectInfo);
 
-    private void VerifyMetadataUpdated(string filePath, IContentType contentType, IEnumerable<AnalysisLanguage> detectedLanguages)
+    private void VerifyMetadataUpdated(string filePath, string canonicalFilePath, IContentType contentType, IEnumerable<AnalysisLanguage> detectedLanguages)
     {
-        languageRecognizer.Received(1).Detect(filePath, contentType);
+        canonicalFilePathProvider.Received(1).GetCanonicalPath(filePath);
+        languageRecognizer.Received(1).Detect(canonicalFilePath, contentType);
         languageRecognizer.ClearReceivedCalls();
-        vsProjectInfoProvider.Received(1).GetDocumentProjectInfo(filePath);
+        vsProjectInfoProvider.Received(1).GetDocumentProjectInfo(canonicalFilePath);
         vsProjectInfoProvider.ClearReceivedCalls();
-        testSubject.FilePath.Should().Be(filePath);
+        testSubject.FilePath.Should().Be(canonicalFilePath);
         testSubject.DetectedLanguages.Should().BeEquivalentTo(detectedLanguages);
     }
 
@@ -392,6 +401,7 @@ public class TextBufferIssueTrackerTests
         issueConsumerStorage.ClearReceivedCalls();
         issueConsumerFactory.ClearReceivedCalls();
         vsProjectInfoProvider.ClearReceivedCalls();
+        canonicalFilePathProvider.ClearReceivedCalls();
     }
 
     private static void RaiseTextBufferChangedOnBackground(ITextBuffer currentTextBuffer, ITextSnapshot newTextSnapshot)

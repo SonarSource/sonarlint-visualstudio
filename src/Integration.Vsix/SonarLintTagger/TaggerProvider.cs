@@ -71,6 +71,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
 
     private readonly ISonarLanguageRecognizer languageRecognizer;
     private readonly ILogger logger;
+    private readonly ICanonicalFilePathProvider canonicalFilePathProvider;
     private readonly IThreadHandling threadHandling;
 
     private readonly ISonarErrorListDataSource sonarErrorDataSource;
@@ -95,6 +96,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
         IAnalyzer analyzer,
         ILogger logger,
         IInitializationProcessorFactory initializationProcessorFactory,
+        ICanonicalFilePathProvider canonicalFilePathProvider,
         IThreadHandling threadHandling)
     {
         this.sonarErrorDataSource = sonarErrorDataSource;
@@ -107,6 +109,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
         this.taggableBufferIndicator = taggableBufferIndicator;
         this.fileStateManager = fileStateManager;
         this.logger = logger;
+        this.canonicalFilePathProvider = canonicalFilePathProvider;
         this.threadHandling = threadHandling;
 
         InitializationProcessor = initializationProcessorFactory.CreateAndStart<TaggerProvider>(
@@ -179,6 +182,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
             vsProjectInfoProvider,
             issueConsumerFactory,
             issueConsumerStorage,
+            canonicalFilePathProvider,
             logger);
 
     #endregion IViewTaggerProvider members

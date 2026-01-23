@@ -40,6 +40,7 @@ public class ListFilesListener(
     ISharedBindingConfigProvider sharedBindingConfigProvider,
     IActiveConfigScopeTracker activeConfigScopeTracker,
     IClientFileDtoFactory clientFileDtoFactory,
+    ICanonicalFilePathsCache canonicalFilePathsCache,
     ILogger logger)
     : IListFilesListener
 {
@@ -69,6 +70,7 @@ public class ListFilesListener(
             return [];
         }
 
+        canonicalFilePathsCache.Add(workspaceFilesPaths);
         return GetClientFilesDtos(parameters, workspaceRootPath, AddExtraFiles(workspaceFilesPaths));
     }
 

@@ -54,6 +54,7 @@ public class TaggerProviderTests
     private IIssueConsumerStorage issueConsumerStorage;
     private IAnalyzer analyzer;
     private IInitializationProcessorFactory initializationProcessorFactory;
+    private ICanonicalFilePathProvider canonicalFilePathProvider;
     private IThreadHandling threadHandling;
     private IFileStateManager fileStateManager;
 
@@ -88,6 +89,8 @@ public class TaggerProviderTests
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
 
         fileStateManager = Substitute.For<IFileStateManager>();
+        canonicalFilePathProvider = Substitute.For<ICanonicalFilePathProvider>();
+        canonicalFilePathProvider.GetCanonicalPath(Arg.Any<string>()).Returns(info => info.Arg<string>());
 
         testSubject = CreateAndInitializeTestSubject();
     }
@@ -121,6 +124,7 @@ public class TaggerProviderTests
         MefTestHelpers.CreateExport<IAnalyzer>(),
         MefTestHelpers.CreateExport<ILogger>(),
         MefTestHelpers.CreateExport<IInitializationProcessorFactory>(),
+        MefTestHelpers.CreateExport<ICanonicalFilePathProvider>(),
         MefTestHelpers.CreateExport<IThreadHandling>(),
     ];
 
@@ -266,66 +270,6 @@ public class TaggerProviderTests
         tagger1.Should().NotBe(tagger2);
     }
 
-    // todo add to analysis queue tests
-    // [TestMethod]
-    // [DataRow(null)]
-    // [DataRow(new string[] { })]
-    // public void FilterIssueTrackersByPath_NullOrEmptyPaths_AllTrackersReturned(string[] filePaths)
-    // {
-    //     var trackers = CreateMockedIssueTrackers("any", "any2");
-    //
-    //     var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers, filePaths);
-    //
-    //     actual.Should().BeEquivalentTo(trackers);
-    // }
-    //
-    // [TestMethod]
-    // public void FilterIssueTrackersByPath_WithPaths_NoMatches_EmptyListReturned()
-    // {
-    //     var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp");
-    //
-    //     var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
-    //         new string[] { "no matches", "file1.wrongextension" });
-    //
-    //     actual.Should().BeEmpty();
-    // }
-    //
-    // [TestMethod]
-    // public void FilterIssueTrackersByPath_WithPaths_SingleMatch_SingleTrackerReturned()
-    // {
-    //     var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
-    //
-    //     var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
-    //         new string[] { "file1.txt" });
-    //
-    //     actual.Should().BeEquivalentTo(trackers[0]);
-    // }
-    //
-    // [TestMethod]
-    // public void FilterIssueTrackersByPath_WithPaths_MultipleMatches_MultipleTrackersReturned()
-    // {
-    //     var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
-    //
-    //     var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
-    //         new string[]
-    //         {
-    //             "file1.txt", "D:\\BBB\\FILE3.xxx" // match should be case-insensitive
-    //         });
-    //
-    //     actual.Should().BeEquivalentTo(trackers[0], trackers[2]);
-    // }
-    //
-    // [TestMethod]
-    // public void FilterIssueTrackersByPath_WithPaths_AllMatched_AllTrackersReturned()
-    // {
-    //     var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
-    //
-    //     var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
-    //         new string[] { "unmatchedFile1.cs", "file1.txt", "c:\\aaa\\file2.cpp", "unmatchedfile2.cpp", "d:\\bbb\\file3.xxx" });
-    //
-    //     actual.Should().BeEquivalentTo(trackers);
-    // }
-
     [TestMethod]
     public void AddIssueTracker_AddsNewFileToFileTracker()
     {
@@ -337,7 +281,7 @@ public class TaggerProviderTests
 
         testSubject.OnDocumentOpened(issueTracker);
 
-        fileStateManager.Renamed(issueTracker);
+        fileStateManager.Received().Opened(issueTracker);
         eventHandler.Received(1).Invoke(Arg.Any<object>(),
             Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == filePath && x.Document.DetectedLanguages == DetectedLanguagesJsTs));
     }
@@ -353,7 +297,7 @@ public class TaggerProviderTests
 
         testSubject.OnDocumentClosed(issueTracker);
 
-        fileStateManager.Renamed(issueTracker);
+        fileStateManager.Received().Closed(issueTracker);
         eventHandler.Received(1).Invoke(Arg.Any<object>(),
             Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == filePath && x.Document.DetectedLanguages == DetectedLanguagesJsTs));
     }
@@ -369,7 +313,7 @@ public class TaggerProviderTests
 
         testSubject.OnDocumentSaved(issueTracker);
 
-        fileStateManager.Renamed(issueTracker);
+        fileStateManager.Received().ContentSaved(issueTracker);
         eventHandler.Received(1).Invoke(Arg.Any<object>(),
             Arg.Is<DocumentEventArgs>(x => x.Document.FullPath == filePath && x.Document.DetectedLanguages == DetectedLanguagesJsTs));
     }
@@ -386,7 +330,7 @@ public class TaggerProviderTests
 
         testSubject.OnOpenDocumentRenamed(issueTracker, oldName);
 
-        fileStateManager.Renamed(issueTracker);
+        fileStateManager.Received().Renamed(issueTracker);
         eventHandler.Received(1).Invoke(Arg.Any<object>(),
             Arg.Is<DocumentRenamedEventArgs>(x => x.Document.FullPath == newName && x.OldFilePath == oldName && x.Document.DetectedLanguages == DetectedLanguagesJsTs));
     }
@@ -522,7 +466,7 @@ public class TaggerProviderTests
         var taggerProvider = new TaggerProvider(
             mockSonarErrorDataSource, dummyDocumentFactoryService, serviceProvider,
             mockSonarLanguageRecognizer, mockAnalysisRequester, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage,
-            mockTaggableBufferIndicator, fileStateManager, analyzer, logger, initializationProcessorFactory, threadHandling);
+            mockTaggableBufferIndicator, fileStateManager, analyzer, logger, initializationProcessorFactory, canonicalFilePathProvider, threadHandling);
         taggerProvider.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
         return taggerProvider;
     }

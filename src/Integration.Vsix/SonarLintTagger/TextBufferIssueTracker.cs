@@ -52,6 +52,7 @@ internal sealed class TextBufferIssueTracker : IFileState, ITagger<IErrorTag>
     private readonly ISonarLanguageRecognizer languageRecognizer;
     private readonly IIssueConsumerFactory issueConsumerFactory;
     private readonly IIssueConsumerStorage issueConsumerStorage;
+    private readonly ICanonicalFilePathProvider canonicalFilePathProvider;
     private readonly ILogger logger;
     private readonly ISonarErrorListDataSource sonarErrorDataSource;
     private readonly ITextBuffer textBuffer;
@@ -70,6 +71,7 @@ internal sealed class TextBufferIssueTracker : IFileState, ITagger<IErrorTag>
         IVsProjectInfoProvider vsProjectInfoProvider,
         IIssueConsumerFactory issueConsumerFactory,
         IIssueConsumerStorage issueConsumerStorage,
+        ICanonicalFilePathProvider canonicalFilePathProvider,
         ILogger logger)
     {
         this.documentTrackerUpdater = documentTrackerUpdater;
@@ -79,6 +81,7 @@ internal sealed class TextBufferIssueTracker : IFileState, ITagger<IErrorTag>
         this.vsProjectInfoProvider = vsProjectInfoProvider;
         this.issueConsumerFactory = issueConsumerFactory;
         this.issueConsumerStorage = issueConsumerStorage;
+        this.canonicalFilePathProvider = canonicalFilePathProvider;
         this.logger = logger;
         logger.ForContext(nameof(TextBufferIssueTracker));
 
@@ -184,9 +187,9 @@ internal sealed class TextBufferIssueTracker : IFileState, ITagger<IErrorTag>
 
     private void UpdateMetadata(string filePath)
     {
-        FilePath = filePath;
+        FilePath = canonicalFilePathProvider.GetCanonicalPath(filePath);
         (projectName, projectGuid) = vsProjectInfoProvider.GetDocumentProjectInfo(FilePath);
-        DetectedLanguages = languageRecognizer.Detect(filePath, textBuffer.ContentType);
+        DetectedLanguages = languageRecognizer.Detect(FilePath, textBuffer.ContentType);
     }
 
     private void RemoveIssueConsumer(string filePath) => issueConsumerStorage.Remove(filePath);
