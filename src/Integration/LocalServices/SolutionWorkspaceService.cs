@@ -84,15 +84,17 @@ public class SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider
                     id =>
                     {
                         project.GetMkDocument((uint)id, out var name);
+                        log.LogVerbose("'{0}' <> '{1}'", name, projectDir);
                         if (name != null && projectDir != null && !name.StartsWith(projectDir))
                         {// sometimes random sdk files are included as parts of project items
+                            log.LogVerbose("Path '{0}' is not rooted in '{1}', ignoring", name, projectDir);
                             return null;
                         }
                         if (name is { Length: > 0 } && !Path.IsPathRooted(name))
                         {
                             if (projectDir == null)
                             {
-                                log.LogVerbose("Could not build path for {0} in {1}, ignoring", name, projectFilePath);
+                                log.LogVerbose("Could not build path for '{0}' in '{1}', ignoring", name, projectFilePath);
                                 return null;
                             }
 
@@ -122,6 +124,8 @@ public class SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider
              itemID = NextSibling(hierarchy, itemID))
         {
             result.Add(itemID);
+            hierarchy.GetProperty((uint)itemID, (int)__VSHPROPID.VSHPROPID_Caption, out object prop1);
+            hierarchy.GetProperty((uint)itemID, (int)__VSHPROPID.VSHPROPID_Name, out object prop2);
             result.AddRange(ChildrenOf(hierarchy, itemID));
         }
 
