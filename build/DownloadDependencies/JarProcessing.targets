@@ -49,16 +49,16 @@
   </Target>
 
   <Target Name="DownloadRepoxJars">
-    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(JavaScriptPluginDownloadPath) --url $(JavascriptPluginRemoteUrl)" />
-    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(HtmlPluginDownloadPath) --url $(HtmlPluginRemoteUrl)" />
-    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(SonarTextPluginDownloadPath) --url $(SonarTextPluginRemoteUrl)" />
-    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(EnterpriseSonarCSharpPluginDownloadPath) --url $(EnterpriseSonarCSharpPluginRemoteUrl)" />
-    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(EnterpriseSonarVBNetPluginDownloadPath) --url $(EnterpriseSonarVBNetPluginRemoteUrl)" />
-    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(SonarSqvsRoslynPluginDownloadPath) --url $(SonarSqvsRoslynPluginRemoteUrl)" />
+    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -fsSL -C - --create-dirs --output $(JavaScriptPluginDownloadPath) --url $(JavascriptPluginRemoteUrl)" />
+    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -fsSL -C - --create-dirs --output $(HtmlPluginDownloadPath) --url $(HtmlPluginRemoteUrl)" />
+    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -fsSL -C - --create-dirs --output $(SonarTextPluginDownloadPath) --url $(SonarTextPluginRemoteUrl)" />
+    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -fsSL -C - --create-dirs --output $(EnterpriseSonarCSharpPluginDownloadPath) --url $(EnterpriseSonarCSharpPluginRemoteUrl)" />
+    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -fsSL -C - --create-dirs --output $(EnterpriseSonarVBNetPluginDownloadPath) --url $(EnterpriseSonarVBNetPluginRemoteUrl)" />
+    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -fsSL -C - --create-dirs --output $(SonarSqvsRoslynPluginDownloadPath) --url $(SonarSqvsRoslynPluginRemoteUrl)" />
   </Target>
 
   <Target Name ="DownloadSloop">
-    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(SloopBinaryDownloadPath) --url $(SloopBinaryRemoteUrl)" />
+    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -fsSL -C - --create-dirs --output $(SloopBinaryDownloadPath) --url $(SloopBinaryRemoteUrl)" />
   </Target>
 
   <Target Name="UnzipSloop">
