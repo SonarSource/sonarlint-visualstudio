@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Integration.LocalServices;
 
 [Export(typeof(ICanonicalFilePathsCache))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class CanonicalFilePathsCache : ICanonicalFilePathsCache
+public sealed class CanonicalFilePathsCache : ICanonicalFilePathsCache
 {
     private readonly IActiveSolutionTracker activeSolutionTracker;
     private bool disposed;
