@@ -124,8 +124,6 @@ public class SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider
              itemID = NextSibling(hierarchy, itemID))
         {
             result.Add(itemID);
-            hierarchy.GetProperty((uint)itemID, (int)__VSHPROPID.VSHPROPID_Caption, out object prop1);
-            hierarchy.GetProperty((uint)itemID, (int)__VSHPROPID.VSHPROPID_Name, out object prop2);
             result.AddRange(ChildrenOf(hierarchy, itemID));
         }
 
