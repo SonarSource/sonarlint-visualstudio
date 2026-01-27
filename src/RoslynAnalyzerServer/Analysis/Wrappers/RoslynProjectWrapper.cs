@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -29,6 +30,7 @@ internal class RoslynProjectWrapper(Project project, IRoslynSolutionWrapper solu
 {
     public string Name => project.Name;
     public bool SupportsCompilation => project.SupportsCompilation;
+    public ImmutableDictionary<string, ReportDiagnostic>? SpecificDiagnosticOptions => project.CompilationOptions?.SpecificDiagnosticOptions;
     public IRoslynSolutionWrapper Solution => solution;
     public AnalyzerOptions RoslynAnalyzerOptions  => project.AnalyzerOptions;
 
