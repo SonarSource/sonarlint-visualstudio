@@ -62,7 +62,8 @@ public class RoslynProjectCompilationProviderTests
         SetUpAnalyzers();
         SetUpCodeFixProviders();
         diagnosticOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty
-            .Add("SomeId", ReportDiagnostic.Warn);
+            .Add("SomeId", ReportDiagnostic.Warn)
+            .Add("SomeOtherId", ReportDiagnostic.Error);
         configurations = ImmutableDictionary<RoslynLanguage, RoslynAnalysisConfiguration>.Empty
             .Add(Language.CSharp, new RoslynAnalysisConfiguration(
                 sonarLintXml,
@@ -103,6 +104,18 @@ public class RoslynProjectCompilationProviderTests
                 && options.ReportSuppressedDiagnostics == false
                 && options.LogAnalyzerExecutionTime == false),
             configurations[Language.CSharp]);
+    }
+
+    [TestMethod]
+    public async Task GetProjectCompilationAsync_ProjectHasOverridesForDiagnosticOptions_OverridesQualityProfileWithProjectSettings()
+    {
+        project.SpecificDiagnosticOptions.Returns(ImmutableDictionary.Create<string, ReportDiagnostic>().Add("SomeId", ReportDiagnostic.Suppress));
+
+        var result = await testSubject.GetProjectCompilationAsync(project, configurations, CancellationToken.None);
+
+        result.Should().Be(compilationWithAnalyzers);
+        compilation.Received(1).WithOptions(Arg.Is<CompilationOptions>(options =>
+            options.SpecificDiagnosticOptions["SomeId"] == ReportDiagnostic.Suppress && options.SpecificDiagnosticOptions["SomeOtherId"] == ReportDiagnostic.Error));
     }
 
     [TestMethod]

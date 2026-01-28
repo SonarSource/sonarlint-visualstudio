@@ -45,7 +45,7 @@ internal class RoslynProjectCompilationProvider(ILogger logger) : IRoslynProject
         var analysisConfigurationForLanguage = sonarRoslynAnalysisConfigurations[compilation.Language];
 
         return ApplyAnalyzersAndAdditionalFile(
-            ApplyDiagnosticOptions(compilation, analysisConfigurationForLanguage),
+            ApplyDiagnosticOptions(project, compilation, analysisConfigurationForLanguage),
             project,
             analysisConfigurationForLanguage);
     }
@@ -73,11 +73,27 @@ internal class RoslynProjectCompilationProvider(ILogger logger) : IRoslynProject
     }
 
     private static IRoslynCompilationWrapper ApplyDiagnosticOptions(
+        IRoslynProjectWrapper project,
         IRoslynCompilationWrapper compilation,
         RoslynAnalysisConfiguration analysisConfigurationForLanguage)
     {
-        var compilationOptions = compilation.RoslynCompilationOptions.WithSpecificDiagnosticOptions(analysisConfigurationForLanguage.DiagnosticOptions);
+        var compilationOptions = compilation.RoslynCompilationOptions.WithSpecificDiagnosticOptions(OverrideQualityProfileWithProjectSettings(project, analysisConfigurationForLanguage.DiagnosticOptions));
         return compilation.WithOptions(compilationOptions);
+    }
+
+    private static ImmutableDictionary<string, ReportDiagnostic> OverrideQualityProfileWithProjectSettings(IRoslynProjectWrapper project, ImmutableDictionary<string, ReportDiagnostic> analysisConfigurationForLanguage)
+    {
+        if (project.SpecificDiagnosticOptions is null)
+        {
+            return analysisConfigurationForLanguage;
+        }
+
+        var result = analysisConfigurationForLanguage;
+        foreach (var option in project.SpecificDiagnosticOptions)
+        {
+            result = result.SetItem(option.Key, option.Value);
+        }
+        return result;
     }
 
     private void OnAnalyzerException(Exception arg1, DiagnosticAnalyzer arg2, Diagnostic arg3) =>
