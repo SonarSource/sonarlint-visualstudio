@@ -46,7 +46,7 @@ public class OpenInIdeConverterImplementationTests
         MefTestHelpers.CheckIsSingletonMefComponent<OpenInIdeConverterImplementation>();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(typeof(NullReferenceException), false)]
     [DataRow(typeof(ArgumentException), false)]
     [DataRow(typeof(DivideByZeroException), true)]
@@ -71,7 +71,7 @@ public class OpenInIdeConverterImplementationTests
         }
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(typeof(NullReferenceException), false)]
     [DataRow(typeof(ArgumentException), false)]
     [DataRow(typeof(DivideByZeroException), true)]

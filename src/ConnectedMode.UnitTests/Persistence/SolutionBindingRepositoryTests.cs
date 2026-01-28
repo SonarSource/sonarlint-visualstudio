@@ -141,7 +141,7 @@ public class SolutionBindingRepositoryTests
         actual.Should().BeNull();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null)]
     [DataRow("")]
     public void Write_ConfigFilePathIsNull_ReturnsFalse(string filePath)
@@ -150,7 +150,7 @@ public class SolutionBindingRepositoryTests
         actual.Should().Be(false);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null)]
     [DataRow("")]
     public void Write_ConfigFilePathIsNull_FileNotWritten(string filePath)
@@ -178,7 +178,7 @@ public class SolutionBindingRepositoryTests
         solutionBindingFileLoader.DidNotReceiveWithAnyArgs().Save(default, default);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void Write_EventTriggered_DependingOnFileWriteStatus(bool triggered)
