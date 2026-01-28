@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -102,7 +98,7 @@ public class OpenInIdeConverterImplementationTests
     }
 
     [TestMethod]
-    public void TryConvertIssue_VisualisationConverterThrows_ExceptionHandledDependingOnSeverity()
+    public void TryConvertIssue_Success()
     {
         var dtoToIssueConverter = Substitute.For<IOpenInIdeIssueToAnalysisIssueConverter<IOpenInIdeIssue>>();
         var testSubject = CreateTestSubject(out var visualizationConverter, out var logger);
@@ -128,7 +124,7 @@ public class OpenInIdeConverterImplementationTests
     private OpenInIdeConverterImplementation CreateTestSubject(out IAnalysisIssueVisualizationConverter issueToVisualizationConverter, out TestLogger logger)
     {
         issueToVisualizationConverter = Substitute.For<IAnalysisIssueVisualizationConverter>();
-        logger = new();
+        logger = new(logVerbose:false);
         return new(issueToVisualizationConverter, logger);
     }
 }
