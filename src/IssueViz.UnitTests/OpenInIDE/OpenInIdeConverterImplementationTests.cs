@@ -36,6 +36,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.OpenInIDE;
 [TestClass]
 public class OpenInIdeConverterImplementationTests
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
@@ -113,6 +115,10 @@ public class OpenInIdeConverterImplementationTests
         testSubject.TryConvert(dto, rootPath, dtoToIssueConverter, out var visualization).Should().BeTrue();
 
         visualization.Should().BeSameAs(analysisIssueVisualization);
+        foreach (var outputString in logger.OutputStrings)
+        {
+            TestContext.WriteLine(outputString);
+        }
         logger.AssertNoOutputMessages();
     }
 
