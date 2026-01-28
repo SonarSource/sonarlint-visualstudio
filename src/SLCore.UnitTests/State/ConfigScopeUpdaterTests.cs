@@ -141,7 +141,9 @@ public class ConfigScopeUpdaterTests
             .Do(_ => throw new InvalidOperationException("Some other message"));
         solutionInfoProviderMock.GetSolutionName().Returns("sln");
 
-        Assert.ThrowsException<InvalidOperationException>(() => testSubject.UpdateConfigScopeForCurrentSolution(null));
+        Action act = () => testSubject.UpdateConfigScopeForCurrentSolution(null);
+
+        act.Should().Throw<InvalidOperationException>();
         slCoreHandlerMock.DidNotReceive().ShowNotificationIfNeeded();
     }
 

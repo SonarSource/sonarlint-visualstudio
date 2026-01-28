@@ -18,12 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Runtime.CompilerServices;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
@@ -136,16 +132,14 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             // TODO
         }
 
-        private static async Task RunOnUIThread(Action op)
-        {
-            await Task.Run(() =>
+        private static ConfiguredTaskAwaitable RunOnUIThread(Action op) =>
+            Task.Run(() =>
             {
                 ThreadHelper.SetCurrentThreadAsUIThread();
                 op();
-            });
-        }
+            }).ConfigureAwait(false);
 
-        private static async Task RunOnBackgroundThread(Action op)
+        private static ConfiguredTaskAwaitable RunOnBackgroundThread(Action op)
         {
             // Other tests could have called ThreadHelper.SetCurrentThreadAsUIThread(), so
             // we have no idea which thread is currently considered to be the UI thread.
@@ -153,10 +147,10 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             // To make this test reliable, we set this current thread to the UIThread,
             // then run the check on another thread.
             ThreadHelper.SetCurrentThreadAsUIThread();
-            await Task.Run(() =>
+            return Task.Run(() =>
             {
                 op();
-            });
+            }).ConfigureAwait(false);
         }
 
         private static bool Throws(Action op)

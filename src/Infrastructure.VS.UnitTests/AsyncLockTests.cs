@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core.Synchronization;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests;
@@ -30,6 +25,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests;
 [TestClass]
 public class AsyncLockTests
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public async Task SmokeTest()
     {
@@ -38,7 +35,7 @@ public class AsyncLockTests
         var numbers = new List<int> { 0 };
         var threadNumbers = new List<int>();
 
-        await Task.WhenAll(Enumerable.Range(0, 10).Select(number => Task.Run(() => AddIncrement(numbers, threadNumbers, number, testSubject))));
+        await Task.WhenAll(Enumerable.Range(0, 10).Select(number => Task.Run(() => AddIncrement(numbers, threadNumbers, number, testSubject), TestContext.CancellationToken))).ConfigureAwait(false);
 
         threadNumbers.Should().NotBeAscendingInOrder(); // checks multiple threads actually ran in parallel and not in sequence
         numbers.Should().BeInAscendingOrder(); // checks threads were correctly synchronized

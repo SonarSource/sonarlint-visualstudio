@@ -13,9 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup Label="Test framework">
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
-    <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
-    <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
+    <PackageReference Include="MSTest" Version="4.0.2" />
 
     <!-- WARNING! Check before updating to a new version of Moq - any privacy issues? See https://github.com/moq/moq/issues/1372 -->
     <PackageReference Include="Moq" Version="4.18.2" />

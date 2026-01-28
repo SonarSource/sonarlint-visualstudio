@@ -129,8 +129,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var actual = this.testSubject.GetSolutionProjects().ToArray();
 
             // Assert
-            CollectionAssert.AreEqual(new[] { csProject, vbProject, otherProject }, actual,
-                "Unexpected projects: {0}", string.Join(", ", actual.Select(p => p.Name)));
+            CollectionAssert.AreEqual(new[] { csProject, vbProject, otherProject }, actual);
         }
 
         [TestMethod]
