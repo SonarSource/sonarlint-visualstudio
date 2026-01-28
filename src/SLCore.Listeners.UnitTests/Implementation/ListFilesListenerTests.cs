@@ -38,8 +38,10 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
         private IClientFileDtoFactory clientFileDtoFactory;
         private ListFilesListener testSubject;
         private ISharedBindingConfigProvider sharedBindingConfigProvider;
+        private ICanonicalFilePathsCache canonicalFilePathsCache;
         private TestLogger logger;
         private const string ConfigScopeId = "Some ID";
+        private static readonly string[] DefaultFiles = ["C:\\Code\\Project\\File1.js", "C:\\Code\\Project\\File2.js", "C:\\Code\\Project\\Folder1\\File3.js"];
 
         [TestInitialize]
         public void TestInitialize()
@@ -52,7 +54,8 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             clientFileDtoFactory = Substitute.For<IClientFileDtoFactory>();
             sharedBindingConfigProvider = Substitute.For<ISharedBindingConfigProvider>();
             logger = Substitute.ForPartsOf<TestLogger>();
-            testSubject = new ListFilesListener(folderWorkspaceService, solutionWorkspaceService, gitWorkspaceService, sharedBindingConfigProvider, activeConfigScopeTracker, clientFileDtoFactory, logger);
+            canonicalFilePathsCache = Substitute.For<ICanonicalFilePathsCache>();
+            testSubject = new ListFilesListener(folderWorkspaceService, solutionWorkspaceService, gitWorkspaceService, sharedBindingConfigProvider, activeConfigScopeTracker, clientFileDtoFactory, canonicalFilePathsCache, logger);
         }
 
         [TestMethod]
@@ -64,6 +67,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
                 MefTestHelpers.CreateExport<ISharedBindingConfigProvider>(),
                 MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
                 MefTestHelpers.CreateExport<IClientFileDtoFactory>(),
+                MefTestHelpers.CreateExport<ICanonicalFilePathsCache>(),
                 MefTestHelpers.CreateExport<ILogger>());
 
         [TestMethod]
@@ -155,6 +159,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "C:\\", gitRepoRoot);
             gitWorkspaceService.Received(1).GetRepoRoot();
             sharedBindingConfigProvider.Received().GetSharedBindingFilePathOrNull();
+            canonicalFilePathsCache.Received().Add(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(DefaultFiles)));
         }
 
         [TestMethod]
@@ -264,7 +269,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
         private List<ClientFileDto> SetUpSolutionFiles(string rootPath = "C:\\", string[] filePaths = null)
         {
             SetUpFolderWorkSpaceService(null);
-            filePaths ??= ["C:\\Code\\Project\\File1.js", "C:\\Code\\Project\\File2.js", "C:\\Code\\Project\\Folder1\\File3.js"];
+            filePaths ??= DefaultFiles;
             var clientFileDtos = SetUpDefaultDtosForFiles(filePaths, rootPath);
             SetUpSolutionWorkspaceService(filePaths);
             return clientFileDtos;
