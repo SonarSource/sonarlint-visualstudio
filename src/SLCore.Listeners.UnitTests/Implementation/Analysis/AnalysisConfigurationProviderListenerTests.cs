@@ -96,11 +96,15 @@ public class AnalysisConfigurationProviderListenerTests
         result.baseDir.Should().Be(expectedBaseDir);
     }
 
-    [DataRow(null, [new string[0]])]
-    [DataRow("", [new string[0]])]
-    [DataRow("configScopeId", [new[] { @"C:\file1" }])]
-    [DataRow("configScopeId123", [new[] { @"C:\file1", @"D:\file" }])]
-    [DataTestMethod]
+    public static IEnumerable<object[]> InferredAnalysisPropertiesCases => new[]
+    {
+        new object[] { null, Array.Empty<string>() },
+        new object[] { "", Array.Empty<string>() },
+        new object[] { "configScopeId", new[] { @"C:\\file1" } },
+        new object[] { "configScopeId123", new[] { @"C:\\file1", @"D:\\file" } },
+    };
+    [DynamicData(nameof(InferredAnalysisPropertiesCases))]
+    [TestMethod]
     public void GetInferredAnalysisProperties_AnyValue_ReturnsHttpServerConfiguration(string configScopeId, string[] files)
     {
         var expectedProperties = new Dictionary<string, string> { { "prop1", "val1" } };

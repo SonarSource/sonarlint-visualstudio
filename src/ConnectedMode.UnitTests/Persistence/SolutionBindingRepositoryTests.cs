@@ -161,12 +161,19 @@ public class SolutionBindingRepositoryTests
     }
 
     [TestMethod]
-    public void Write_ProjectIsNull_Exception() => Assert.ThrowsException<ArgumentNullException>(() => testSubject.Write(MockFilePath, null));
+    public void Write_ProjectIsNull_Exception()
+    {
+        Action act = () => testSubject.Write(MockFilePath, null);
+
+        act.Should().Throw<ArgumentNullException>();
+    }
 
     [TestMethod]
     public void Write_ProjectIsNull_FileNotWritten()
     {
-        Assert.ThrowsException<ArgumentNullException>(() => testSubject.Write(MockFilePath, null));
+        Action act = () => testSubject.Write(MockFilePath, null);
+
+        act.Should().Throw<ArgumentNullException>();
 
         solutionBindingFileLoader.DidNotReceiveWithAnyArgs().Save(default, default);
     }

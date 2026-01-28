@@ -58,7 +58,7 @@ public class SingleFileMonitorFactoryTests
     [TestMethod]
     public void Create_ValidArguments_ReturnsInstance()
     {
-        var filePathToMonitor = Path.Combine(TestContext.TestDir, $"{nameof(SingleFileMonitorFactoryTests)}.cs");
+        var filePathToMonitor = Path.Combine(TestContext.TestRunDirectory, $"{nameof(SingleFileMonitorFactoryTests)}.cs");
 
         var singleFileMonitor =  testSubject.Create(filePathToMonitor);
 

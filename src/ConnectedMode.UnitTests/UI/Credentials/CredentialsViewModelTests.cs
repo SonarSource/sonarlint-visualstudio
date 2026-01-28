@@ -140,7 +140,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [DataRow(false)]
         public async Task ValidateConnectionAsync_ReturnsResponseFromSlCore(bool success)
         {
-            progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus>>()).Returns(new ResponseStatus(success));
+            var responseStatus = new ResponseStatus(success);
+            progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus>>()).Returns(responseStatus);
 
             var response = await testSubject.ValidateConnectionAsync();
 
@@ -150,6 +151,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [TestMethod]
         public async Task ValidateConnectionAsync_ReturnsResponseFromSlCore()
         {
+            var responseStatus = new ResponseStatus(true);
+            progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<ResponseStatus>>()).Returns(responseStatus);
+
             await testSubject.ValidateConnectionAsync();
 
             await progressReporterViewModel.Received(1)
