@@ -80,26 +80,23 @@ public class SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider
 
         return
             ChildrenOf(hierarchy, VSConstants.VSITEMID.Root)
-                .Select(
-                    id =>
+                .Select(id =>
+                {
+                    if (project.GetMkDocument((uint)id, out var name) == VSConstants.S_OK)
                     {
-                        project.GetMkDocument((uint)id, out var name);
-                        if (name != null && projectDir != null && !name.StartsWith(projectDir))
-                        {// sometimes random sdk files are included as parts of project items
-                            return null;
-                        }
-                        if (name is { Length: > 0 } && !Path.IsPathRooted(name))
+                        if (name is { Length: > 0 } && Path.IsPathRooted(name))
                         {
-                            if (projectDir == null)
-                            {
-                                log.LogVerbose("Could not build path for {0} in {1}, ignoring", name, projectFilePath);
-                                return null;
-                            }
-
-                            name = Path.Combine(projectDir, name);
+                            return name;
                         }
-                        return name;
-                    });
+                        if (projectDir != null)
+                        {
+                            return Path.Combine(projectDir, name);
+                        }
+
+                        log.LogVerbose("Could not build path for {0} in {1}, ignoring", name, projectFilePath);
+                    }
+                    return null;
+                });
     }
 
     [ExcludeFromCodeCoverage]
@@ -115,6 +112,11 @@ public class SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider
     [ExcludeFromCodeCoverage]
     private IEnumerable<VSConstants.VSITEMID> ChildrenOf(IVsHierarchy hierarchy, VSConstants.VSITEMID rootID)
     {
+        if (hierarchy.GetProperty((uint)rootID, (int)__VSHPROPID.VSHPROPID_Caption, out var caption) == VSConstants.S_OK && (string)caption == "External Dependencies")
+        {
+            return [];
+        }
+
         var result = new List<VSConstants.VSITEMID>();
 
         for (var itemID = FirstChild(hierarchy, rootID);
