@@ -25,4 +25,6 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Promote;
 public interface IPromoteListener : ISLCoreListener
 {
     void PromoteExtraEnabledLanguagesInConnectedMode(PromoteExtraEnabledLanguagesInConnectedModeParams parameters);
+
+    Task<ShowMessageRequestResponse> ShowMessageRequestAsync(ShowMessageRequestParams parameters);
 }

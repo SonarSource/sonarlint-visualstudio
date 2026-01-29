@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.ConnectedMode.Promote;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Promote;
@@ -29,19 +30,22 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation;
 public class PromoteListenerTests
 {
     private IPromoteNotification promoteNotification;
+    private IShowMessageNotification showMessageNotification;
     private PromoteListener testSubject;
 
     [TestInitialize]
     public void TestInitialize()
     {
         promoteNotification = Substitute.For<IPromoteNotification>();
-        testSubject = new PromoteListener(promoteNotification);
+        showMessageNotification = Substitute.For<IShowMessageNotification>();
+        testSubject = new PromoteListener(promoteNotification, showMessageNotification);
     }
 
     [TestMethod]
     public void MefCtor_CheckExports() =>
         MefTestHelpers.CheckTypeCanBeImported<PromoteListener, ISLCoreListener>(
-            MefTestHelpers.CreateExport<IPromoteNotification>());
+            MefTestHelpers.CreateExport<IPromoteNotification>(),
+            MefTestHelpers.CreateExport<IShowMessageNotification>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<PromoteListener>();
@@ -56,5 +60,32 @@ public class PromoteListenerTests
         promoteNotification.Received().PromoteConnectedMode(
             Arg.Is("CONFIGURATION_SCOPE_ID"),
             Arg.Is<List<VisualStudio.Core.Language>>(x => x.Count == 1 && x[0] == VisualStudio.Core.Language.TSql));
+    }
+
+    [DataTestMethod]
+    [DataRow(MessageType.INFO, "Test message", 2, "key1")]
+    [DataRow(MessageType.ERROR, "Error message", 3, "action2")]
+    [DataRow(MessageType.WARNING, "Warning message", 1, null)]
+    public async Task ShowMessageRequestAsync_WithMultipleActions_PassesAllActionsToNotification(MessageType messageType, string message, int actionCount, string returnedKey)
+    {
+        var actions = CreateActions(actionCount);
+        var parameters = new ShowMessageRequestParams(messageType, message, actions);
+        showMessageNotification.ShowAsync(Arg.Any<string>(), Arg.Any<List<MessageActionItem>>()).Returns(Task.FromResult(returnedKey));
+
+        var result = await testSubject.ShowMessageRequestAsync(parameters);
+
+        await showMessageNotification.Received().ShowAsync(message, actions);
+        result.selectedKey.Should().Be(returnedKey);
+        result.closedByUser.Should().BeFalse();
+    }
+
+    private static List<MessageActionItem> CreateActions(int count)
+    {
+        var actions = new List<MessageActionItem>();
+        for (int i = 0; i < count; i++)
+        {
+            actions.Add(new MessageActionItem($"action{i + 1}", $"Action {i + 1}", i == 0));
+        }
+        return actions;
     }
 }

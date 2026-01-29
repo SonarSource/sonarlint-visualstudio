@@ -28,17 +28,19 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
         bool ShowOncePerSession { get; }
         bool CloseOnSolutionClose { get; }
+        Action OnClose { get; }
     }
 
     public class Notification : INotification
     {
-        public Notification(string id, string message, IEnumerable<INotificationAction> actions, bool showOncePerSession = true, bool closeOnSolutionClose = true)
+        public Notification(string id, string message, IEnumerable<INotificationAction> actions, bool showOncePerSession = true, bool closeOnSolutionClose = true, Action onClose = null)
         {
             Id = id ?? throw new ArgumentNullException(nameof(id));
             Message = message ?? throw new ArgumentNullException(nameof(message));
             Actions = actions ?? throw new ArgumentNullException(nameof(actions));
             ShowOncePerSession = showOncePerSession;
             CloseOnSolutionClose = closeOnSolutionClose;
+            OnClose = onClose;
         }
 
         public string Id { get; }
@@ -46,5 +48,6 @@ namespace SonarLint.VisualStudio.Core.Notifications
         public IEnumerable<INotificationAction> Actions { get; }
         public bool ShowOncePerSession { get; }
         public bool CloseOnSolutionClose { get; }
+        public Action OnClose { get; }
     }
 }
