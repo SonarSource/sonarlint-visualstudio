@@ -1540,6 +1540,7 @@
         "type": "Project",
         "dependencies": {
           "SonarLint.VisualStudio.ConnectedMode": "[1.0.0, )",
+          "SonarLint.VisualStudio.Integration": "[1.0.0, )",
           "SonarLint.VisualStudio.IssueVisualization.Security": "[1.0.0, )",
           "SonarLint.VisualStudio.RoslynAnalyzerServer": "[1.0.0, )",
           "SonarLint.VisualStudio.SLCore": "[1.0.0, )"

@@ -405,23 +405,34 @@ public class NotificationServiceTests
         logger.AssertNoOutputMessages();
     }
 
+    [TestMethod]
+    public void CloseNotification_InvokesOnCloseCallback()
+    {
+        var onCloseCallback = Substitute.For<Action>();
+        ShowNotification(onClose: onCloseCallback);
+
+        testSubject.CloseNotification();
+
+        onCloseCallback.Received(1).Invoke();
+    }
+
     private void AllowRunningUiThreadActions()
     {
         threadHandling.RunOnUIThreadAsync(Arg.Do<Action>(arg => arg()));
     }
 
-    private AttachedNotification ShowNotification(string id = null, bool oncePerSession = true, bool disabled = false, bool closeOnSolutionClose = true, params INotificationAction[] actions)
+    private AttachedNotification ShowNotification(string id = null, bool oncePerSession = true, bool disabled = false, bool closeOnSolutionClose = true, Action onClose = null, params INotificationAction[] actions)
     {
-        var notification = CreateNotification(id, oncePerSession, disabled, closeOnSolutionClose, actions);
+        var notification = CreateNotification(id, oncePerSession, disabled, closeOnSolutionClose, onClose, actions);
         var attachedNotification = AttachNotification(notification);
         testSubject.ShowNotification(notification);
         return attachedNotification;
     }
 
-    private INotification CreateNotification(string id = null, bool oncePerSession = true, bool disabled = false, bool closeOnSolutionClose = true, params INotificationAction[] actions)
+    private INotification CreateNotification(string id = null, bool oncePerSession = true, bool disabled = false, bool closeOnSolutionClose = true, Action onClose = null, params INotificationAction[] actions)
     {
         var notificationId = id ?? Guid.NewGuid().ToString();
-        var notification = new Notification(notificationId, notificationId, actions, oncePerSession, closeOnSolutionClose);
+        var notification = new Notification(notificationId, notificationId, actions, oncePerSession, closeOnSolutionClose, onClose);
 
         disabledNotificationsStorage.IsNotificationDisabled(notificationId).Returns(disabled);
 

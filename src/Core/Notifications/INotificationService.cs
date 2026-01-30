@@ -153,6 +153,7 @@ internal sealed class NotificationService : INotificationService
 
         activeNotification.InfoBar.ButtonClick -= CurrentInfoBar_ButtonClick;
         activeNotification.InfoBar.Closed -= CurrentInfoBar_Closed;
+        activeNotification.Notification.OnClose?.Invoke();
         activeNotification = null;
     }
 

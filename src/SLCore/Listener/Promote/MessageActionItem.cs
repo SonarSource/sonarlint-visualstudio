@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,24 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+namespace SonarLint.VisualStudio.SLCore.Listener.Promote;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
-
-[JsonConverter(typeof(StringEnumConverter))]
-public enum BackendCapability
-{
-    SMART_NOTIFICATIONS,
-    PROJECT_SYNCHRONIZATION,
-    EMBEDDED_SERVER,
-    SECURITY_HOTSPOTS,
-    SERVER_SENT_EVENTS,
-    DATAFLOW_BUG_DETECTION,
-    FULL_SYNCHRONIZATION,
-    TELEMETRY,
-    MONITORING,
-    ISSUE_STREAMING,
-    SCA_SYNCHRONIZATION,
-    PROMOTIONAL_CAMPAIGNS
-}
+public record MessageActionItem(string key, string displayText, bool isPrimaryAction);
