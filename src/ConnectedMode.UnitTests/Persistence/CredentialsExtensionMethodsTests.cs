@@ -29,7 +29,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence;
 public class CredentialsExtensionMethodsTests
 {
     [TestMethod]
-    public void ToCredential_NullCredentials_Throws() => Assert.ThrowsException<NotSupportedException>(() => ((IConnectionCredentials)null).ToCredential());
+    public void ToCredential_NullCredentials_Throws()
+    {
+        Action act = () => ((IConnectionCredentials)null).ToCredential();
+
+        act.Should().Throw<NotSupportedException>();
+    }
 
     [TestMethod]
     public void ToCredential_BasicAuthCredentials_ReturnsExpected()

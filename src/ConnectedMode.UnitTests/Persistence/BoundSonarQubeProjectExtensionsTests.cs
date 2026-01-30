@@ -96,8 +96,12 @@ public class BoundSonarQubeProjectExtensionsTests
         var boundProject = new BoundSonarQubeProject { ProjectKey = "project-key" };
         var connection = new ServerConnection.SonarCloud("org-key");
 
-        Assert.ThrowsException<ArgumentNullException>(() => boundProject.FromBoundSonarQubeProject(null, connection));
-        Assert.ThrowsException<ArgumentNullException>(() => ((BoundSonarQubeProject)null).FromBoundSonarQubeProject("local", connection));
-        Assert.ThrowsException<ArgumentNullException>(() => boundProject.FromBoundSonarQubeProject("local", null));
+        Action actNullLocalBindingKey = () => boundProject.FromBoundSonarQubeProject(null, connection);
+        Action actNullBoundProject = () => ((BoundSonarQubeProject)null).FromBoundSonarQubeProject("local", connection);
+        Action actNullConnection = () => boundProject.FromBoundSonarQubeProject("local", null);
+
+        actNullLocalBindingKey.Should().Throw<ArgumentNullException>();
+        actNullBoundProject.Should().Throw<ArgumentNullException>();
+        actNullConnection.Should().Throw<ArgumentNullException>();
     }
 }
