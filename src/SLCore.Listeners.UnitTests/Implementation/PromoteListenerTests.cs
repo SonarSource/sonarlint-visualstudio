@@ -62,7 +62,7 @@ public class PromoteListenerTests
             Arg.Is<List<VisualStudio.Core.Language>>(x => x.Count == 1 && x[0] == VisualStudio.Core.Language.TSql));
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(MessageType.INFO, "Test message", 2, "key1")]
     [DataRow(MessageType.ERROR, "Error message", 3, "action2")]
     [DataRow(MessageType.WARNING, "Warning message", 1, null)]
