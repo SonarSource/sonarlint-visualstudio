@@ -9,7 +9,7 @@
     <!-- sonar-cfamily-plugin -->
     <EmbeddedSonarCFamilyAnalyzerVersion>6.77.0.95488</EmbeddedSonarCFamilyAnalyzerVersion>
     <!-- sonar-javascript-plugin -->
-    <EmbeddedSonarJSAnalyzerVersion>11.7.1.36988</EmbeddedSonarJSAnalyzerVersion>
+    <EmbeddedSonarJSAnalyzerVersion>11.8.0.37897</EmbeddedSonarJSAnalyzerVersion>
     <EmbeddedEsLintBridgeVersion>1.0.0</EmbeddedEsLintBridgeVersion>
     <!-- sonar-html-plugin -->
     <EmbeddedSonarHtmlAnalyzerVersion>3.22.0.7011</EmbeddedSonarHtmlAnalyzerVersion>
