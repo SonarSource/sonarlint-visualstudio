@@ -30,19 +30,18 @@ namespace SonarLint.VisualStudio.Integration;
 
 [Export(typeof(ISolutionWorkspaceService))]
 [PartCreationPolicy(CreationPolicy.Shared)]
+[ExcludeFromCodeCoverage]
 [method: ImportingConstructor]
 public class SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider, ILogger log, IVsUIServiceOperation vsUiServiceOperation)
     : ISolutionWorkspaceService
 {
     public bool IsSolutionWorkSpace() => !solutionInfoProvider.IsFolderWorkspace();
 
-    [ExcludeFromCodeCoverage]
     public IReadOnlyCollection<string> ListFiles() =>
         IsSolutionWorkSpace()
             ? vsUiServiceOperation.Execute<SVsSolution, IVsSolution, IReadOnlyCollection<string>>(GetAllFilesInSolution)
             : [];
 
-    [ExcludeFromCodeCoverage]
     private IReadOnlyCollection<string> GetAllFilesInSolution(IVsSolution solution) =>
         GetLoadedProjects(solution)
             .SelectMany(AllItemsInProject)
@@ -53,7 +52,6 @@ public class SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider
             .Where(x => !x.Contains("\\node_modules\\"))
             .ToHashSet(StringComparer.InvariantCultureIgnoreCase); // move filtering closer to path extraction to avoid processing unnecessary items)
 
-    [ExcludeFromCodeCoverage]
     private IEnumerable<IVsProject> GetLoadedProjects(IVsSolution solution)
     {
         var guid = Guid.Empty;
@@ -66,7 +64,6 @@ public class SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider
         }
     }
 
-    [ExcludeFromCodeCoverage]
     private IEnumerable<string> AllItemsInProject(IVsProject project)
     {
         if (project is null)
@@ -99,7 +96,6 @@ public class SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider
                 });
     }
 
-    [ExcludeFromCodeCoverage]
     private string GetProjectFilePath(IVsProject project)
     {
         var path = string.Empty;
@@ -109,7 +105,6 @@ public class SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider
         return path;
     }
 
-    [ExcludeFromCodeCoverage]
     private IEnumerable<VSConstants.VSITEMID> ChildrenOf(IVsHierarchy hierarchy, VSConstants.VSITEMID rootID)
     {
         if (hierarchy.GetProperty((uint)rootID, (int)__VSHPROPID.VSHPROPID_Caption, out var caption) == VSConstants.S_OK && (string)caption == "External Dependencies")
@@ -130,7 +125,6 @@ public class SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider
         return result;
     }
 
-    [ExcludeFromCodeCoverage]
     private VSConstants.VSITEMID FirstChild(IVsHierarchy hierarchy, VSConstants.VSITEMID rootID)
     {
         try
@@ -148,7 +142,6 @@ public class SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider
         return VSConstants.VSITEMID.Nil;
     }
 
-    [ExcludeFromCodeCoverage]
     private VSConstants.VSITEMID NextSibling(IVsHierarchy hierarchy, VSConstants.VSITEMID firstID)
     {
         try
