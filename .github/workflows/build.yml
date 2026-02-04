@@ -121,13 +121,9 @@ jobs:
       # ===== PoC: Install Sign CLI (can be removed after testing) =====
       - name: Install Sign CLI (PoC)
         if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'sign-') }}
-        shell: pwsh
+        shell: powershell
         run: |
-          Write-Host "🧪 Installing Sign CLI for PoC test..."
           dotnet tool install sign --global
-          Write-Host "DEBUG: USERPROFILE = $env:USERPROFILE"
-          Write-Host "DEBUG: Tool path = $env:USERPROFILE\.dotnet\tools"
-          Get-ChildItem "$env:USERPROFILE\.dotnet\tools" -ErrorAction SilentlyContinue
           "$env:USERPROFILE\.dotnet\tools" | Out-File -FilePath $env:GITHUB_PATH -Append
 
       - name: Build Signed
@@ -164,33 +160,18 @@ jobs:
       # ===== PoC: Test Sign CLI (can be removed after testing) =====
       - name: Sign CLI PoC Test
         if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'sign-') }}
-        shell: pwsh
+        shell: powershell
         env:
           SM_CERT_FP: ${{ fromJSON(steps.secrets.outputs.vault).SM_CERT_FP }}
           SM_KP: key_1361216169
         run: |
-          Write-Host ""
-          Write-Host "🧪 PoC: Testing Sign CLI with DigiCert KSP..."
-          
-          # Debug info
-          Write-Host "DEBUG: PATH = $env:PATH"
-          Write-Host "DEBUG: Looking for sign.exe..."
           $signPath = "$env:USERPROFILE\.dotnet\tools\sign.exe"
-          Write-Host "DEBUG: Expected path: $signPath"
-          Write-Host "DEBUG: File exists: $(Test-Path $signPath)"
-          
-          # Prepare fingerprint (remove colons if present)
           $cleanFp = $env:SM_CERT_FP -replace ':', ''
-          Write-Host "DEBUG: Certificate fingerprint ready"
           
-          # Make a copy of the VSIX
           $vsixOriginal = "binaries/SonarLint.VSIX-$env:PROJECT_VERSION-2022.vsix"
           $vsixCopy = "binaries/SonarLint.VSIX-$env:PROJECT_VERSION-2022-signcli.vsix"
           Copy-Item $vsixOriginal $vsixCopy
-          Write-Host "Copied VSIX for Sign CLI test"
           
-          # Sign with Sign CLI using full path
-          Write-Host "Signing with Sign CLI..."
           try {
             & $signPath code certificate-store $vsixCopy `
               -cfp $cleanFp `
@@ -198,22 +179,18 @@ jobs:
               -k $env:SM_KP `
               -u "http://timestamp.digicert.com" `
               -v
-            Write-Host "✅ Sign CLI: SUCCESS"
+            Write-Host "Sign CLI completed"
           } catch {
-            Write-Host "⚠️ Sign CLI failed: $_"
+            Write-Host "Sign CLI error: $_"
           }
           
-          # Verify using Sign CLI (signtool can't verify VSIX format)
-          Write-Host ""
-          Write-Host "📋 Verification - checking signature inside VSIX..."
-          # Extract and check signature.p7s exists
           $tempDir = New-Item -ItemType Directory -Path "$env:TEMP\vsix-check" -Force
           Expand-Archive -Path $vsixCopy -DestinationPath $tempDir -Force
           if (Test-Path "$tempDir\package\services\digital-signature\xml-signature\*") {
-            Write-Host "✅ Digital signature found in VSIX package"
+            Write-Host "Digital signature found in VSIX package"
             Get-ChildItem "$tempDir\package\services\digital-signature" -Recurse | ForEach-Object { Write-Host "  - $($_.FullName)" }
           } else {
-            Write-Host "❌ No digital signature found in VSIX package"
+            Write-Host "No digital signature found in VSIX package"
           }
           Remove-Item $tempDir -Recurse -Force
       # ===== End PoC =====
