@@ -117,6 +117,15 @@ jobs:
         run: |
           msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=false -p:DeployExtension=false -p:Sha1="${GITHUB_SHA}" -p:BuildNumber="${BUILD_NUMBER}" -p:Configuration=Release
 
+      # ===== PoC: Install Sign CLI (can be removed after testing) =====
+      - name: Install Sign CLI (PoC)
+        if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'sign-') }}
+        shell: bash
+        run: |
+          echo "🧪 Installing Sign CLI for PoC test..."
+          dotnet tool install sign --global || echo "Sign CLI already installed"
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
       - name: Build Signed
         if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'sign-') }}
         shell: bash
@@ -139,14 +148,25 @@ jobs:
           smctl windows certsync
           msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=true -p:AssemblyOriginatorKeyFile="${SONARSOURCE_SNK_FILE}" -p:DeployExtension=false -p:Sha1="${GITHUB_SHA}" -p:BuildNumber="${BUILD_NUMBER}" -p:Configuration=Release
           nuget sign "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix" -HashAlgorithm SHA256 -CertificateFingerprint ${SM_CERT_FP} -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
-          
-          # ===== PoC: Test Sign CLI (can be removed after testing) =====
+          sbomname="SonarLint.visualstudio.sbom-${PROJECT_VERSION}-2022.json"
+          echo "${SIGN_KEY}" | gpg --batch --passphrase "${SIGN_PASSPHRASE}" --allow-secret-key-import --import
+          gpg --list-secret-keys
+          dotnet CycloneDX "SonarQube.VisualStudio.sln" -t -j -o binaries
+          cd binaries
+          mv bom.json $sbomname
+          gpg --pinentry-mode loopback --passphrase "${SIGN_PASSPHRASE}" --armor --detach-sig --default-key infra@sonarsource.com "$sbomname"
+          echo "signed $sbomname"
+
+      # ===== PoC: Test Sign CLI (can be removed after testing) =====
+      - name: Sign CLI PoC Test
+        if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'sign-') }}
+        shell: bash
+        env:
+          SM_CERT_FP: ${{ fromJSON(steps.secrets.outputs.vault).SM_CERT_FP }}
+          SM_KP: key_1361216169
+        run: |
           echo ""
           echo "🧪 PoC: Testing Sign CLI with DigiCert KSP..."
-          
-          # Install Sign CLI
-          dotnet tool install sign --global || echo "Sign CLI already installed"
-          export PATH="$PATH:$HOME/.dotnet/tools"
           
           # Prepare fingerprint (remove colons if present)
           CLEAN_FP=$(echo "${SM_CERT_FP}" | tr -d ':')
@@ -167,22 +187,15 @@ jobs:
           echo "📋 Verification Results:"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "1. NuGet sign (current method):"
-          signtool verify "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix" && echo "✅ NuGet: VERIFIED" || echo "❌ NuGet: NOT VERIFIED"
+          echo "File: binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix"
+          signtool verify /pa "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix" && echo "✅ NuGet: VERIFIED" || echo "❌ NuGet: NOT VERIFIED"
           
           echo ""
           echo "2. Sign CLI (PoC test):"
-          signtool verify "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022-signcli.vsix" && echo "✅ Sign CLI: VERIFIED" || echo "❌ Sign CLI: NOT VERIFIED"
+          echo "File: binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022-signcli.vsix"
+          signtool verify /pa "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022-signcli.vsix" && echo "✅ Sign CLI: VERIFIED" || echo "❌ Sign CLI: NOT VERIFIED"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          # ===== End PoC =====
-          
-          sbomname="SonarLint.visualstudio.sbom-${PROJECT_VERSION}-2022.json"
-          echo "${SIGN_KEY}" | gpg --batch --passphrase "${SIGN_PASSPHRASE}" --allow-secret-key-import --import
-          gpg --list-secret-keys
-          dotnet CycloneDX "SonarQube.VisualStudio.sln" -t -j -o binaries
-          cd binaries
-          mv bom.json $sbomname
-          gpg --pinentry-mode loopback --passphrase "${SIGN_PASSPHRASE}" --armor --detach-sig --default-key infra@sonarsource.com "$sbomname"
-          echo "signed $sbomname"
+      # ===== End PoC =====
 
       - name: Test with Coverage
         shell: bash
