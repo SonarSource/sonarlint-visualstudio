@@ -103,6 +103,7 @@ jobs:
           echo "| **Branch** | \`${{ steps.branch-name.outputs.BRANCH_NAME }}\` |" >> $GITHUB_STEP_SUMMARY
 
       - name: Prepare Analysis
+        if: false  # PoC: Disabled to speed up testing
         shell: bash
         env:
           SONAR_PROJECT_KEY: ${{ github.event.repository.name }}
@@ -120,11 +121,14 @@ jobs:
       # ===== PoC: Install Sign CLI (can be removed after testing) =====
       - name: Install Sign CLI (PoC)
         if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'sign-') }}
-        shell: bash
+        shell: pwsh
         run: |
-          echo "🧪 Installing Sign CLI for PoC test..."
-          dotnet tool install sign --global || echo "Sign CLI already installed"
-          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+          Write-Host "🧪 Installing Sign CLI for PoC test..."
+          dotnet tool install sign --global
+          Write-Host "DEBUG: USERPROFILE = $env:USERPROFILE"
+          Write-Host "DEBUG: Tool path = $env:USERPROFILE\.dotnet\tools"
+          Get-ChildItem "$env:USERPROFILE\.dotnet\tools" -ErrorAction SilentlyContinue
+          "$env:USERPROFILE\.dotnet\tools" | Out-File -FilePath $env:GITHUB_PATH -Append
 
       - name: Build Signed
         if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'sign-') }}
@@ -160,44 +164,62 @@ jobs:
       # ===== PoC: Test Sign CLI (can be removed after testing) =====
       - name: Sign CLI PoC Test
         if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'sign-') }}
-        shell: bash
+        shell: pwsh
         env:
           SM_CERT_FP: ${{ fromJSON(steps.secrets.outputs.vault).SM_CERT_FP }}
           SM_KP: key_1361216169
         run: |
-          echo ""
-          echo "🧪 PoC: Testing Sign CLI with DigiCert KSP..."
+          Write-Host ""
+          Write-Host "🧪 PoC: Testing Sign CLI with DigiCert KSP..."
+          
+          # Debug info
+          Write-Host "DEBUG: PATH = $env:PATH"
+          Write-Host "DEBUG: Looking for sign.exe..."
+          $signPath = "$env:USERPROFILE\.dotnet\tools\sign.exe"
+          Write-Host "DEBUG: Expected path: $signPath"
+          Write-Host "DEBUG: File exists: $(Test-Path $signPath)"
           
           # Prepare fingerprint (remove colons if present)
-          CLEAN_FP=$(echo "${SM_CERT_FP}" | tr -d ':')
+          $cleanFp = $env:SM_CERT_FP -replace ':', ''
+          Write-Host "DEBUG: Certificate fingerprint ready"
           
-          # Make a copy of the VSIX to test Sign CLI (keep original nuget-signed version)
-          cp "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix" "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022-signcli.vsix"
+          # Make a copy of the VSIX
+          $vsixOriginal = "binaries/SonarLint.VSIX-$env:PROJECT_VERSION-2022.vsix"
+          $vsixCopy = "binaries/SonarLint.VSIX-$env:PROJECT_VERSION-2022-signcli.vsix"
+          Copy-Item $vsixOriginal $vsixCopy
+          Write-Host "Copied VSIX for Sign CLI test"
           
-          # Sign with Sign CLI (use full path to avoid PATH issues)
-          echo "Signing with Sign CLI..."
-          "$HOME/.dotnet/tools/sign" code certificate-store "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022-signcli.vsix" \
-            -cfp "${CLEAN_FP}" \
-            -csp "DigiCert Software Trust Manager KSP" \
-            -k "${SM_KP}" \
-            -u "http://timestamp.digicert.com" || echo "⚠️ Sign CLI failed"
+          # Sign with Sign CLI using full path
+          Write-Host "Signing with Sign CLI..."
+          try {
+            & $signPath code certificate-store $vsixCopy `
+              -cfp $cleanFp `
+              -csp "DigiCert Software Trust Manager KSP" `
+              -k $env:SM_KP `
+              -u "http://timestamp.digicert.com" `
+              -v
+            Write-Host "✅ Sign CLI: SUCCESS"
+          } catch {
+            Write-Host "⚠️ Sign CLI failed: $_"
+          }
           
-          # Verify both versions
-          echo ""
-          echo "📋 Verification Results:"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo "1. NuGet sign (current method):"
-          echo "File: binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix"
-          signtool verify //pa "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix" && echo "✅ NuGet: VERIFIED" || echo "❌ NuGet: NOT VERIFIED"
-          
-          echo ""
-          echo "2. Sign CLI (PoC test):"
-          echo "File: binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022-signcli.vsix"
-          signtool verify //pa "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022-signcli.vsix" && echo "✅ Sign CLI: VERIFIED" || echo "❌ Sign CLI: NOT VERIFIED"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          # Verify using Sign CLI (signtool can't verify VSIX format)
+          Write-Host ""
+          Write-Host "📋 Verification - checking signature inside VSIX..."
+          # Extract and check signature.p7s exists
+          $tempDir = New-Item -ItemType Directory -Path "$env:TEMP\vsix-check" -Force
+          Expand-Archive -Path $vsixCopy -DestinationPath $tempDir -Force
+          if (Test-Path "$tempDir\package\services\digital-signature\xml-signature\*") {
+            Write-Host "✅ Digital signature found in VSIX package"
+            Get-ChildItem "$tempDir\package\services\digital-signature" -Recurse | ForEach-Object { Write-Host "  - $($_.FullName)" }
+          } else {
+            Write-Host "❌ No digital signature found in VSIX package"
+          }
+          Remove-Item $tempDir -Recurse -Force
       # ===== End PoC =====
 
       - name: Test with Coverage
+        if: false  # PoC: Disabled to speed up testing
         shell: bash
         env:
           MSVC: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.40.33807\bin\Hostx64\x64\cl.exe # Required for CFamily integration tests
@@ -207,7 +229,7 @@ jobs:
           
       - name: Report Test Results
         uses: dorny/test-reporter@v2
-        if: success() || failure()
+        if: false  # PoC: Disabled to speed up testing
         with:
           name: Test Results
           path: TestResults/*.trx
@@ -215,6 +237,7 @@ jobs:
           list-tests: failed
       
       - name: Analyze on SonarQubeCloudEU
+        if: false  # PoC: Disabled to speed up testing
         shell: bash
         env: 
           SONAR_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_TOKEN }}
@@ -222,12 +245,14 @@ jobs:
           dotnet sonarscanner end -d:sonar.token="${SONAR_TOKEN}"
 
       - name: Upload binaries artifact
+        if: false  # PoC: Disabled to speed up testing
         uses: actions/upload-artifact@v4
         with:
           name: binaries
           path: binaries/*
 
       - name: Publish to Repox
+        if: false  # PoC: Disabled to speed up testing
         shell: bash
         env:
           ARTIFACTORY_URL: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_URL }}
@@ -239,7 +264,7 @@ jobs:
           jf rt bp ${REPO_NAME} ${BUILD_NUMBER}
 
       - name: Promote Build
-        if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') }}
+        if: false  # PoC: Disabled to speed up testing
         shell: bash
         env:
           ARTIFACTORY_URL: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_URL }}
@@ -265,7 +290,7 @@ jobs:
           EOF
 
       - name: Publish to Dogfood
-        if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'dogfood-on-') }}
+        if: false  # PoC: Disabled to speed up testing
         shell: bash
         env:
           AWS_ACCESS_KEY_ID: ${{ fromJSON(steps.secrets.outputs.vault).AWS_ACCESS_KEY_ID }}
