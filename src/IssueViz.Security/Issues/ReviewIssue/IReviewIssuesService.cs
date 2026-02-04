@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,21 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
+using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Issue;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Issues.ReviewIssue;
 
-[JsonRpcClass("issue")]
-public interface IIssueSLCoreService : ISLCoreService
+internal interface IReviewIssuesService
 {
-    Task<GetEffectiveIssueDetailsResponse> GetEffectiveIssueDetailsAsync(GetEffectiveIssueDetailsParams parameters);
+    Task<bool> ReviewIssueAsync(string issueKey, ResolutionStatus newStatus, string comment, bool isTaint = false);
 
-    Task ChangeStatusAsync(ChangeIssueStatusParams parameters);
+    Task<IReviewIssuePermissionArgs> CheckReviewIssuePermittedAsync(string issueKey);
 
-    Task<CheckStatusChangePermittedResponse> CheckStatusChangePermittedAsync(CheckStatusChangePermittedParams parameters);
-
-    Task AddCommentAsync(AddIssueCommentParams parameters);
-
-    Task<ReopenIssueResponse> ReopenIssueAsync(ReopenIssueParams parameters);
+    Task<bool> ReopenIssueAsync(string issueKey, bool isTaint = false);
 }
+
+internal interface IReviewIssuePermissionArgs
+{
+}
+
+internal record ReviewIssuePermittedArgs(IEnumerable<ResolutionStatus> AllowedStatuses) : IReviewIssuePermissionArgs;
+internal record ReviewIssueNotPermittedArgs(string Reason) : IReviewIssuePermissionArgs;

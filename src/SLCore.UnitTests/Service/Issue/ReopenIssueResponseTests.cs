@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,21 +18,34 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Service.Issue;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Issue;
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Issue;
 
-[JsonRpcClass("issue")]
-public interface IIssueSLCoreService : ISLCoreService
+[TestClass]
+public class ReopenIssueResponseTests
 {
-    Task<GetEffectiveIssueDetailsResponse> GetEffectiveIssueDetailsAsync(GetEffectiveIssueDetailsParams parameters);
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void Deserialized_AsExpected(bool success)
+    {
+        var expected = new ReopenIssueResponse(success);
 
-    Task ChangeStatusAsync(ChangeIssueStatusParams parameters);
+        var serialized = $$"""
+                          {
+                            success: {{success.ToString().ToLower()}}
+                          }
+                          """;
 
-    Task<CheckStatusChangePermittedResponse> CheckStatusChangePermittedAsync(CheckStatusChangePermittedParams parameters);
+        var actual = JsonConvert.DeserializeObject<ReopenIssueResponse>(serialized);
 
-    Task AddCommentAsync(AddIssueCommentParams parameters);
-
-    Task<ReopenIssueResponse> ReopenIssueAsync(ReopenIssueParams parameters);
+        actual
+            .Should()
+            .BeEquivalentTo(expected,
+                options =>
+                    options
+                        .ComparingByMembers<ReopenIssueResponse>());
+    }
 }

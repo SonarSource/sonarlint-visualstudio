@@ -18,12 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.ConnectedMode.Transition;
+using System.Windows;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Issues;
+using SonarLint.VisualStudio.IssueVisualization.Security.Issues.ReviewIssue;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Issues;
@@ -38,7 +39,8 @@ public class IssuesReportViewModelTests
     private IssuesReportViewModel testSubject;
     private IShowInBrowserService showInBrowserService;
     private IThreadHandling threadHandling;
-    private IMuteIssuesService muteIssuesService;
+    private IReviewIssuesService reviewIssuesService;
+    private IMessageBox messageBox;
 
     [TestInitialize]
     public void TestInitialize()
@@ -46,9 +48,10 @@ public class IssuesReportViewModelTests
         localIssuesStore = Substitute.For<ILocalIssuesStore>();
         showInBrowserService = Substitute.For<IShowInBrowserService>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
-        muteIssuesService = Substitute.For<IMuteIssuesService>();
+        reviewIssuesService = Substitute.For<IReviewIssuesService>();
+        messageBox = Substitute.For<IMessageBox>();
 
-        testSubject = new IssuesReportViewModel(localIssuesStore, showInBrowserService, muteIssuesService, threadHandling);
+        testSubject = new IssuesReportViewModel(localIssuesStore, showInBrowserService, reviewIssuesService, messageBox, threadHandling);
     }
 
     [TestMethod]
@@ -56,7 +59,8 @@ public class IssuesReportViewModelTests
         MefTestHelpers.CheckTypeCanBeImported<IssuesReportViewModel, IIssuesReportViewModel>(
             MefTestHelpers.CreateExport<ILocalIssuesStore>(),
             MefTestHelpers.CreateExport<IShowInBrowserService>(),
-            MefTestHelpers.CreateExport<IMuteIssuesService>(),
+            MefTestHelpers.CreateExport<IReviewIssuesService>(),
+            MefTestHelpers.CreateExport<IMessageBox>(),
             MefTestHelpers.CreateExport<IThreadHandling>()
         );
 
@@ -121,13 +125,123 @@ public class IssuesReportViewModelTests
     }
 
     [TestMethod]
-    public void ChangeStatus_CallsServiceWithCorrectArgument()
+    public async Task GetAllowedStatusesAsync_NullViewModel_ShowsErrorAndReturnsNull()
     {
-        var issue = Substitute.For<IAnalysisIssueVisualization>();
+        var result = await testSubject.GetAllowedStatusesAsync(null);
 
-        testSubject.ChangeStatus(issue);
+        result.Should().BeNull();
+        messageBox.Received(1).Show(
+            Arg.Is<string>(s => s.Contains(Resources.ReviewIssueWindow_NoStatusSelectedFailureMessage)),
+            Resources.ReviewIssueWindow_FailureTitle,
+            Arg.Any<MessageBoxButton>(),
+            MessageBoxImage.Error);
+    }
 
-        muteIssuesService.Received(1).ResolveIssueWithDialog(issue);
+    [TestMethod]
+    public async Task GetAllowedStatusesAsync_ServiceReturnsPermitted_ReturnsAllowedStatuses()
+    {
+        var issueKey = "test-key";
+        var issueViewModel = CreateIssueViewModel(issueKey);
+        var allowedStatuses = new[] { SonarLint.VisualStudio.SLCore.Service.Issue.Models.ResolutionStatus.ACCEPT };
+        reviewIssuesService.CheckReviewIssuePermittedAsync(issueKey)
+            .Returns(new ReviewIssuePermittedArgs(allowedStatuses));
+
+        var result = await testSubject.GetAllowedStatusesAsync(issueViewModel);
+
+        result.Should().BeEquivalentTo(allowedStatuses);
+        messageBox.DidNotReceive().Show(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<MessageBoxButton>(), Arg.Any<MessageBoxImage>());
+    }
+
+    [TestMethod]
+    public async Task GetAllowedStatusesAsync_ServiceReturnsNotPermitted_ShowsErrorAndReturnsNull()
+    {
+        var issueKey = "test-key";
+        var issueViewModel = CreateIssueViewModel(issueKey);
+        var reason = "Not allowed";
+        reviewIssuesService.CheckReviewIssuePermittedAsync(issueKey)
+            .Returns(new ReviewIssueNotPermittedArgs(reason));
+
+        var result = await testSubject.GetAllowedStatusesAsync(issueViewModel);
+
+        result.Should().BeNull();
+        messageBox.Received(1).Show(
+            Arg.Is<string>(s => s.Contains(reason)),
+            Resources.ReviewIssueWindow_FailureTitle,
+            Arg.Any<MessageBoxButton>(),
+            MessageBoxImage.Error);
+    }
+
+    [TestMethod]
+    public async Task ChangeIssueStatusAsync_Success_ReturnsTrue()
+    {
+        var issueKey = "test-key";
+        var issueViewModel = CreateIssueViewModel(issueKey);
+        var status = SonarLint.VisualStudio.SLCore.Service.Issue.Models.ResolutionStatus.ACCEPT;
+        var comment = "test comment";
+        reviewIssuesService.ReviewIssueAsync(issueKey, status, comment).Returns(true);
+
+        var result = await testSubject.ChangeIssueStatusAsync(issueViewModel, status, comment);
+
+        result.Should().BeTrue();
+        messageBox.DidNotReceive().Show(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<MessageBoxButton>(), Arg.Any<MessageBoxImage>());
+    }
+
+    [TestMethod]
+    public async Task ChangeIssueStatusAsync_Failure_ShowsErrorAndReturnsFalse()
+    {
+        var issueKey = "test-key";
+        var issueViewModel = CreateIssueViewModel(issueKey);
+        var status = SonarLint.VisualStudio.SLCore.Service.Issue.Models.ResolutionStatus.ACCEPT;
+        var comment = "test comment";
+        reviewIssuesService.ReviewIssueAsync(issueKey, status, comment).Returns(false);
+
+        var result = await testSubject.ChangeIssueStatusAsync(issueViewModel, status, comment);
+
+        result.Should().BeFalse();
+        messageBox.Received(1).Show(
+            Resources.ReviewIssueWindow_ReviewFailureMessage,
+            Resources.ReviewIssueWindow_FailureTitle,
+            Arg.Any<MessageBoxButton>(),
+            MessageBoxImage.Error);
+    }
+
+    [TestMethod]
+    public async Task ReopenIssueAsync_Success_ReturnsTrue()
+    {
+        var issueKey = "test-key";
+        var issueViewModel = CreateIssueViewModel(issueKey);
+        reviewIssuesService.ReopenIssueAsync(issueKey).Returns(true);
+
+        var result = await testSubject.ReopenIssueAsync(issueViewModel);
+
+        result.Should().BeTrue();
+        messageBox.DidNotReceive().Show(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<MessageBoxButton>(), Arg.Any<MessageBoxImage>());
+    }
+
+    [TestMethod]
+    public async Task ReopenIssueAsync_Failure_ShowsErrorAndReturnsFalse()
+    {
+        var issueKey = "test-key";
+        var issueViewModel = CreateIssueViewModel(issueKey);
+        reviewIssuesService.ReopenIssueAsync(issueKey).Returns(false);
+
+        var result = await testSubject.ReopenIssueAsync(issueViewModel);
+
+        result.Should().BeFalse();
+        messageBox.Received(1).Show(
+            Resources.ReviewIssueWindow_ReviewFailureMessage,
+            Resources.ReviewIssueWindow_FailureTitle,
+            Arg.Any<MessageBoxButton>(),
+            MessageBoxImage.Error);
+    }
+
+    private static IssueViewModel CreateIssueViewModel(string issueKey)
+    {
+        var analysisIssue = Substitute.For<IAnalysisIssue>();
+        analysisIssue.IssueServerKey.Returns(issueKey);
+        var issueVisualization = Substitute.For<IAnalysisIssueVisualization>();
+        issueVisualization.Issue.Returns(analysisIssue);
+        return new IssueViewModel(issueVisualization);
     }
 
     private static IAnalysisIssueVisualization CreateMockedIssue(string filePath)

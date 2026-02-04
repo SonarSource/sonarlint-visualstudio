@@ -36,12 +36,14 @@ using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Security.Issues;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Issues;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
+using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 using HotspotViewModel = SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots.HotspotViewModel;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
@@ -233,14 +235,31 @@ internal sealed partial class ReportViewControl : UserControl
         }
     }
 
-    private void ChangeIssueStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
+    private async void ChangeIssueStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { DataContext: IssueViewModel issueViewModel } ||
+            await IssuesReportViewModel.GetAllowedStatusesAsync(issueViewModel) is not { } allowedStatuses)
+        {
+            return;
+        }
+
+        var changeIssueStatusViewModel = new ChangeIssueStatusViewModel(null, allowedStatuses);
+        var dialog = new ChangeStatusWindow(changeIssueStatusViewModel, browserService, activeSolutionBoundTracker);
+        if (dialog.ShowDialog(Application.Current.MainWindow) is true)
+        {
+            var newStatus = changeIssueStatusViewModel.SelectedStatusViewModel.GetCurrentStatus<ResolutionStatus>();
+            await IssuesReportViewModel.ChangeIssueStatusAsync(issueViewModel, newStatus, changeIssueStatusViewModel.GetNormalizedComment());
+        }
+    }
+
+    private async void ReopenIssueMenuItem_OnClick(object sender, RoutedEventArgs e)
     {
         if (sender is not MenuItem { DataContext: IssueViewModel issueViewModel })
         {
             return;
         }
 
-        IssuesReportViewModel.ChangeStatus(issueViewModel.Issue);
+        await IssuesReportViewModel.ReopenIssueAsync(issueViewModel);
     }
 
     private void ChangeTaintStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
