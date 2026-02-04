@@ -136,7 +136,7 @@ public class ReviewIssuesServiceTests
     [TestMethod]
     public async Task ReviewIssueAsync_ChangeStatusThrows_ReturnsFalseAndLogs()
     {
-        issueSlCoreService.ChangeStatusAsync(Arg.Any<ChangeIssueStatusParams>()).Throws(new Exception("test error"));
+        issueSlCoreService.ChangeStatusAsync(Arg.Any<ChangeIssueStatusParams>()).ThrowsAsync(new Exception("test error"));
 
         var result = await testSubject.ReviewIssueAsync(IssueKey, ResolutionStatus.ACCEPT, Comment);
 
@@ -197,7 +197,7 @@ public class ReviewIssuesServiceTests
     [TestMethod]
     public async Task ReopenIssueAsync_Throws_ReturnsFalseAndLogs()
     {
-        issueSlCoreService.ReopenIssueAsync(Arg.Any<ReopenIssueParams>()).Throws(new Exception("test error"));
+        issueSlCoreService.ReopenIssueAsync(Arg.Any<ReopenIssueParams>()).ThrowsAsync(new Exception("test error"));
 
         var result = await testSubject.ReopenIssueAsync(IssueKey);
 
@@ -250,7 +250,7 @@ public class ReviewIssuesServiceTests
     public async Task CheckReviewIssuePermittedAsync_Throws_ReturnsNotPermittedAndLogs()
     {
         issueSlCoreService.CheckStatusChangePermittedAsync(Arg.Any<CheckStatusChangePermittedParams>())
-            .Throws(new Exception("test error"));
+            .ThrowsAsync(new Exception("test error"));
 
         var result = await testSubject.CheckReviewIssuePermittedAsync(IssueKey);
 
