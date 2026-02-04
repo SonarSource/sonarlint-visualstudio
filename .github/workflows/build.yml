@@ -174,9 +174,9 @@ jobs:
           # Make a copy of the VSIX to test Sign CLI (keep original nuget-signed version)
           cp "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix" "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022-signcli.vsix"
           
-          # Sign with Sign CLI
+          # Sign with Sign CLI (use full path to avoid PATH issues)
           echo "Signing with Sign CLI..."
-          sign code certificate-store "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022-signcli.vsix" \
+          "$HOME/.dotnet/tools/sign" code certificate-store "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022-signcli.vsix" \
             -cfp "${CLEAN_FP}" \
             -csp "DigiCert Software Trust Manager KSP" \
             -k "${SM_KP}" \
@@ -188,12 +188,12 @@ jobs:
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "1. NuGet sign (current method):"
           echo "File: binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix"
-          signtool verify /pa "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix" && echo "✅ NuGet: VERIFIED" || echo "❌ NuGet: NOT VERIFIED"
+          signtool verify //pa "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix" && echo "✅ NuGet: VERIFIED" || echo "❌ NuGet: NOT VERIFIED"
           
           echo ""
           echo "2. Sign CLI (PoC test):"
           echo "File: binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022-signcli.vsix"
-          signtool verify /pa "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022-signcli.vsix" && echo "✅ Sign CLI: VERIFIED" || echo "❌ Sign CLI: NOT VERIFIED"
+          signtool verify //pa "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022-signcli.vsix" && echo "✅ Sign CLI: VERIFIED" || echo "❌ Sign CLI: NOT VERIFIED"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
       # ===== End PoC =====
 
