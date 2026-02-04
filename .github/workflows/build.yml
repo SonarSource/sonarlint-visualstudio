@@ -139,6 +139,42 @@ jobs:
           smctl windows certsync
           msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=true -p:AssemblyOriginatorKeyFile="${SONARSOURCE_SNK_FILE}" -p:DeployExtension=false -p:Sha1="${GITHUB_SHA}" -p:BuildNumber="${BUILD_NUMBER}" -p:Configuration=Release
           nuget sign "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix" -HashAlgorithm SHA256 -CertificateFingerprint ${SM_CERT_FP} -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
+          
+          # ===== PoC: Test Sign CLI (can be removed after testing) =====
+          echo ""
+          echo "🧪 PoC: Testing Sign CLI with DigiCert KSP..."
+          
+          # Install Sign CLI
+          dotnet tool install sign --global || echo "Sign CLI already installed"
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          
+          # Prepare fingerprint (remove colons if present)
+          CLEAN_FP=$(echo "${SM_CERT_FP}" | tr -d ':')
+          
+          # Make a copy of the VSIX to test Sign CLI (keep original nuget-signed version)
+          cp "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix" "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022-signcli.vsix"
+          
+          # Sign with Sign CLI
+          echo "Signing with Sign CLI..."
+          sign code certificate-store "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022-signcli.vsix" \
+            -cfp "${CLEAN_FP}" \
+            -csp "DigiCert Software Trust Manager KSP" \
+            -k "${SM_KP}" \
+            -u "http://timestamp.digicert.com" || echo "⚠️ Sign CLI failed"
+          
+          # Verify both versions
+          echo ""
+          echo "📋 Verification Results:"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "1. NuGet sign (current method):"
+          signtool verify "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix" && echo "✅ NuGet: VERIFIED" || echo "❌ NuGet: NOT VERIFIED"
+          
+          echo ""
+          echo "2. Sign CLI (PoC test):"
+          signtool verify "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022-signcli.vsix" && echo "✅ Sign CLI: VERIFIED" || echo "❌ Sign CLI: NOT VERIFIED"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          # ===== End PoC =====
+          
           sbomname="SonarLint.visualstudio.sbom-${PROJECT_VERSION}-2022.json"
           echo "${SIGN_KEY}" | gpg --batch --passphrase "${SIGN_PASSPHRASE}" --allow-secret-key-import --import
           gpg --list-secret-keys
