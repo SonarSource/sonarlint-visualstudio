@@ -43,6 +43,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Issues;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 using HotspotViewModel = SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots.HotspotViewModel;
@@ -318,14 +319,45 @@ internal sealed partial class ReportViewControl : UserControl
         }
     }
 
-    private void ChangeTaintStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
+    private async void ChangeTaintStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuItem { DataContext: TaintViewModel taintViewModel })
+        try
         {
-            return;
-        }
+            if (sender is not MenuItem { DataContext: TaintViewModel taintViewModel } ||
+                await TaintsReportViewModel.GetAllowedStatusesAsync(taintViewModel) is not { } allowedStatuses)
+            {
+                return;
+            }
 
-        TaintsReportViewModel.ChangeStatus(taintViewModel.Issue);
+            var changeTaintStatusViewModel = new ChangeTaintStatusViewModel(null, allowedStatuses);
+            var response = changeStatusWindowService.Show(changeTaintStatusViewModel);
+            if (response.Result)
+            {
+                var newStatus = changeTaintStatusViewModel.SelectedStatusViewModel.GetCurrentStatus<ResolutionStatus>();
+                await TaintsReportViewModel.ChangeTaintStatusAsync(taintViewModel, newStatus, changeTaintStatusViewModel.GetNormalizedComment());
+            }
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            // suppress
+        }
+    }
+
+    private async void ReopenTaintMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is not MenuItem { DataContext: TaintViewModel taintViewModel })
+            {
+                return;
+            }
+
+            await TaintsReportViewModel.ReopenTaintAsync(taintViewModel);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            // suppress
+        }
     }
 
     private void ViewTaintInBrowser_OnClick(object sender, RoutedEventArgs e)

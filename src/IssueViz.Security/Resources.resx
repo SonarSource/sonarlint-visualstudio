@@ -494,4 +494,7 @@ Please check the logs for more details.</value>
   <data name="ReopenIssueMenuItem" xml:space="preserve">
     <value>Reopen Issue</value>
   </data>
+  <data name="ReopenTaintMenuItem" xml:space="preserve">
+    <value>Reopen Issue</value>
+  </data>
 </root>

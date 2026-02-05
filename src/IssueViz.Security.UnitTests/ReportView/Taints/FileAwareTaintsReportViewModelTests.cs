@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Issues.ReviewIssue;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
@@ -37,7 +38,8 @@ public class FileAwareTaintsReportViewModelTests
 {
     private IFileAwareTaintStore localTaintsStore;
     private IShowInBrowserService showInBrowserService;
-    private IMuteIssuesService muteIssuesService;
+    private IReviewIssuesService reviewIssuesService;
+    private IMessageBox messageBox;
     private ITelemetryManager telemetryManager;
     private IThreadHandling threadHandling;
     private FileAwareTaintsReportViewModel testSubject;
@@ -47,11 +49,12 @@ public class FileAwareTaintsReportViewModelTests
     {
         localTaintsStore = Substitute.For<IFileAwareTaintStore>();
         showInBrowserService = Substitute.For<IShowInBrowserService>();
-        muteIssuesService = Substitute.For<IMuteIssuesService>();
+        reviewIssuesService = Substitute.For<IReviewIssuesService>();
+        messageBox = Substitute.For<IMessageBox>();
         telemetryManager = Substitute.For<ITelemetryManager>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
 
-        testSubject = new FileAwareTaintsReportViewModel(localTaintsStore, showInBrowserService, muteIssuesService, telemetryManager, threadHandling);
+        testSubject = new FileAwareTaintsReportViewModel(localTaintsStore, showInBrowserService, reviewIssuesService, messageBox, telemetryManager, threadHandling);
     }
 
     [TestMethod]
@@ -59,7 +62,8 @@ public class FileAwareTaintsReportViewModelTests
         MefTestHelpers.CheckTypeCanBeImported<FileAwareTaintsReportViewModel, IFileAwareTaintsReportViewModel>(
             MefTestHelpers.CreateExport<IFileAwareTaintStore>(),
             MefTestHelpers.CreateExport<IShowInBrowserService>(),
-            MefTestHelpers.CreateExport<IMuteIssuesService>(),
+            MefTestHelpers.CreateExport<IReviewIssuesService>(),
+            MefTestHelpers.CreateExport<IMessageBox>(),
             MefTestHelpers.CreateExport<ITelemetryManager>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
 

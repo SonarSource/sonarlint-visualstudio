@@ -664,6 +664,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reopen Issue.
+        /// </summary>
+        public static string ReopenTaintMenuItem {
+            get {
+                return ResourceManager.GetString("ReopenTaintMenuItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Finding does not exist on the server..
         /// </summary>
         public static string ReportView_NotOnServerTooltip {

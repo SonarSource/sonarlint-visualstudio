@@ -551,6 +551,9 @@
                 <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}"
                           Click="ChangeTaintStatusMenuItem_OnClick"
                           Style="{StaticResource ChangeStatusMenuItemStyleDisableResolved}"/>
+                <MenuItem Header="{x:Static res:Resources.ReopenTaintMenuItem}"
+                          Click="ReopenTaintMenuItem_OnClick"
+                          Style="{StaticResource ReopenIssueMenuItemStyle}"/>
                 <MenuItem Click="ViewTaintInBrowser_OnClick"
                           Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}"
