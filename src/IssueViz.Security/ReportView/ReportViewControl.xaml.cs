@@ -55,6 +55,7 @@ internal sealed partial class ReportViewControl : UserControl
 
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly IBrowserService browserService;
+    private readonly IChangeStatusWindowService changeStatusWindowService;
 
     public ReportViewModel ReportViewModel { get; }
     public IHotspotsReportViewModel HotspotsReportViewModel { get; }
@@ -66,6 +67,7 @@ internal sealed partial class ReportViewControl : UserControl
     public ReportViewControl(
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IBrowserService browserService,
+        IChangeStatusWindowService changeStatusWindowService,
         IHotspotsReportViewModel hotspotsReportViewModel,
         IDependencyRisksReportViewModel dependencyRisksReportViewModel,
         ITaintsReportViewModel taintsReportViewModel,
@@ -84,6 +86,7 @@ internal sealed partial class ReportViewControl : UserControl
     {
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.browserService = browserService;
+        this.changeStatusWindowService = changeStatusWindowService;
         HotspotsReportViewModel = hotspotsReportViewModel;
         DependencyRisksReportViewModel = dependencyRisksReportViewModel;
         TaintsReportViewModel = taintsReportViewModel;
@@ -165,10 +168,14 @@ internal sealed partial class ReportViewControl : UserControl
             }
 
             var changeStatusViewModel = new ChangeDependencyRiskStatusViewModel(selectedDependencyRiskViewModel.DependencyRisk.Transitions);
-            var dialog = new ChangeStatusWindow(changeStatusViewModel, browserService, activeSolutionBoundTracker);
-            if (dialog.ShowDialog(Application.Current.MainWindow) is true)
+
+            var response = changeStatusWindowService.Show(changeStatusViewModel);
+
+            if (response.Result)
             {
-                await DependencyRisksReportViewModel.ChangeDependencyRiskStatusAsync(selectedDependencyRiskViewModel.DependencyRisk, changeStatusViewModel.GetSelectedTransition(),
+                await DependencyRisksReportViewModel.ChangeDependencyRiskStatusAsync(
+                    selectedDependencyRiskViewModel.DependencyRisk,
+                    changeStatusViewModel.GetSelectedTransition(),
                     changeStatusViewModel.GetNormalizedComment());
             }
         }
@@ -238,15 +245,23 @@ internal sealed partial class ReportViewControl : UserControl
                 return;
             }
 
-            var changeHotspotStatusViewModel = new ChangeHotspotStatusViewModel(hotspotViewModel.LocalHotspot.HotspotStatus, allowedStatuses);
-            var dialog = new ChangeStatusWindow(changeHotspotStatusViewModel, browserService, activeSolutionBoundTracker);
-            if (dialog.ShowDialog(Application.Current.MainWindow) is true)
+            var changeHotspotStatusViewModel = new ChangeHotspotStatusViewModel(
+                hotspotViewModel.LocalHotspot.HotspotStatus,
+                allowedStatuses);
+
+            var response = changeStatusWindowService.Show(changeHotspotStatusViewModel);
+
+            if (response.Result)
             {
-                var newStatus = changeHotspotStatusViewModel.SelectedStatusViewModel.GetCurrentStatus<HotspotStatus>();
-                var wasChanged = await HotspotsReportViewModel.ChangeHotspotStatusAsync(hotspotViewModel, newStatus);
+                var newStatus = response.SelectedStatus.GetCurrentStatus<HotspotStatus>();
+                var wasChanged = await HotspotsReportViewModel.ChangeHotspotStatusAsync(
+                    hotspotViewModel,
+                    newStatus);
+
                 if (wasChanged && newStatus is HotspotStatus.Fixed or HotspotStatus.Safe)
                 {
-                    ReportViewModel.FilteredGroupViewModels.ToList().ForEach(vm => vm.AllIssues.Remove(hotspotViewModel));
+                    ReportViewModel.FilteredGroupViewModels.ToList()
+                        .ForEach(vm => vm.AllIssues.Remove(hotspotViewModel));
                 }
             }
         }
@@ -267,11 +282,16 @@ internal sealed partial class ReportViewControl : UserControl
             }
 
             var changeIssueStatusViewModel = new ChangeIssueStatusViewModel(null, allowedStatuses);
-            var dialog = new ChangeStatusWindow(changeIssueStatusViewModel, browserService, activeSolutionBoundTracker);
-            if (dialog.ShowDialog(Application.Current.MainWindow) is true)
+
+            var response = changeStatusWindowService.Show(changeIssueStatusViewModel);
+
+            if (response.Result)
             {
-                var newStatus = changeIssueStatusViewModel.SelectedStatusViewModel.GetCurrentStatus<ResolutionStatus>();
-                await IssuesReportViewModel.ChangeIssueStatusAsync(issueViewModel, newStatus, changeIssueStatusViewModel.GetNormalizedComment());
+                var newStatus = response.SelectedStatus.GetCurrentStatus<ResolutionStatus>();
+                await IssuesReportViewModel.ChangeIssueStatusAsync(
+                    issueViewModel,
+                    newStatus,
+                    changeIssueStatusViewModel.GetNormalizedComment());
             }
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
