@@ -19,7 +19,6 @@
  */
 
 using System.Windows;
-using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
@@ -86,185 +85,265 @@ public class MuteIssuesServiceTests
     }
 
     [TestMethod]
-    [DataRow(null)]
-    [DataRow("")]
-    public void ResolveIssueWithDialog_WhenIssueServerKeyIsNull_LogsAndShowsMessageBox(string issueServerKey)
+    [DataRow(null, true)]
+    [DataRow(null, false)]
+    [DataRow("", true)]
+    [DataRow("", false)]
+    public void ResolveIssueWithDialog_WhenIssueServerKeyIsNull_LogsAndShowsMessageBox(string issueServerKey, bool isTaint)
     {
-        testSubject.ResolveIssueWithDialog(issueServerKey, false);
+        testSubject.ResolveIssueWithDialog(issueServerKey, isTaint);
 
         AssertMessageBoxShown(Resources.MuteIssue_IssueNotFound);
         logger.AssertPartialOutputStrings(Resources.MuteIssue_IssueNotFound);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenConfigScopeIsNotSet_LogsAndShowsMessageBox()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenConfigScopeIsNotSet_LogsAndShowsMessageBox(bool isTaint)
     {
         activeConfigScopeTracker.Current.ReturnsNull();
 
-        testSubject.ResolveIssueWithDialog(AnIssueServerKey, false);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
         AssertMessageBoxShown(Resources.MuteIssue_NotInConnectedMode);
         logger.AssertPartialOutputStrings(Resources.MuteIssue_NotInConnectedMode);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenNotInConnectedMode_LogsAndShowsMessageBox()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenNotInConnectedMode_LogsAndShowsMessageBox(bool isTaint)
     {
         NotInConnectedMode();
 
-        testSubject.ResolveIssueWithDialog(AnIssueServerKey, false);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
         AssertMessageBoxShown(Resources.MuteIssue_NotInConnectedMode);
         logger.AssertPartialOutputStrings(Resources.MuteIssue_NotInConnectedMode);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenServiceProviderNotInitialized_LogsAndShowsMessageBox()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenServiceProviderNotInitialized_LogsAndShowsMessageBox(bool isTaint)
     {
         reviewIssuesService.CheckReviewIssuePermittedAsync(AnIssueServerKey)
             .Returns(Task.FromResult<IReviewIssuePermissionArgs>(new ReviewIssueNotPermittedArgs(SLCoreStrings.ServiceProviderNotInitialized)));
 
-        testSubject.ResolveIssueWithDialog(AnIssueServerKey, false);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
-        AssertMessageBoxShown(SLCoreStrings.ServiceProviderNotInitialized);
+        AssertMessageBoxShown(string.Format(Resources.MuteIssue_NotPermitted, AnIssueServerKey, SLCoreStrings.ServiceProviderNotInitialized));
         logger.AssertPartialOutputStringExists(string.Format(Resources.MuteIssue_NotPermitted, AnIssueServerKey, SLCoreStrings.ServiceProviderNotInitialized));
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenFailedToGetAllowedStatuses_LogsAndShowsMessageBox()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenFailedToGetAllowedStatuses_LogsAndShowsMessageBox(bool isTaint)
     {
         reviewIssuesService.CheckReviewIssuePermittedAsync(AnIssueServerKey)
             .Returns(Task.FromResult<IReviewIssuePermissionArgs>(new ReviewIssueNotPermittedArgs("Some error")));
 
-        testSubject.ResolveIssueWithDialog(AnIssueServerKey, false);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
-        AssertMessageBoxShown("Some error");
+        AssertMessageBoxShown(string.Format(Resources.MuteIssue_NotPermitted, AnIssueServerKey, "Some error"));
         logger.AssertPartialOutputStrings(string.Format(Resources.MuteIssue_NotPermitted, AnIssueServerKey, "Some error"));
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenNotPermitted_LogsAndShowsMessageBoxWithReason()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenNotPermitted_LogsAndShowsMessageBoxWithReason(bool isTaint)
     {
         reviewIssuesService.CheckReviewIssuePermittedAsync(AnIssueServerKey)
             .Returns(Task.FromResult<IReviewIssuePermissionArgs>(new ReviewIssueNotPermittedArgs("Some reason")));
 
-        testSubject.ResolveIssueWithDialog(AnIssueServerKey, false);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
-        AssertMessageBoxShown("Some reason");
+        AssertMessageBoxShown(string.Format(Resources.MuteIssue_NotPermitted, AnIssueServerKey, "Some reason"));
         logger.AssertPartialOutputStrings(string.Format(Resources.MuteIssue_NotPermitted, AnIssueServerKey, "Some reason"));
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenValidationsArePassed_GetsAllowedStatuses()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenValidationsArePassed_GetsAllowedStatuses(bool isTaint)
     {
         MuteIssuePermitted();
 
-        testSubject.ResolveIssueWithDialog(AnIssueServerKey, false);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
         reviewIssuesService.Received().CheckReviewIssuePermittedAsync(AnIssueServerKey);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenWindowResponseResultIsFalse_Cancels()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenWindowResponseResultIsFalse_Cancels(bool isTaint)
     {
         MuteIssuePermitted();
         CancelResolutionStatusWindow();
 
-        testSubject.ResolveIssueWithDialog(AnIssueServerKey, false);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
         reviewIssuesService.DidNotReceiveWithAnyArgs().ReviewIssueAsync(default, default, default, default);
     }
 
     [TestMethod]
-    [DataRow(ResolutionStatus.ACCEPT)]
-    [DataRow(ResolutionStatus.WONT_FIX)]
-    [DataRow(ResolutionStatus.FALSE_POSITIVE)]
-    public void ResolveIssueWithDialog_WhenWindowResponseResultIsTrue_ShouldMuteIssue(ResolutionStatus resolutionStatus)
+    [DataRow(ResolutionStatus.ACCEPT, true)]
+    [DataRow(ResolutionStatus.ACCEPT, false)]
+    [DataRow(ResolutionStatus.WONT_FIX, true)]
+    [DataRow(ResolutionStatus.WONT_FIX, false)]
+    [DataRow(ResolutionStatus.FALSE_POSITIVE, true)]
+    [DataRow(ResolutionStatus.FALSE_POSITIVE, false)]
+    public void ResolveIssueWithDialog_WhenWindowResponseResultIsTrue_ShouldMuteIssue(ResolutionStatus resolutionStatus, bool isTaint)
     {
         MuteIssuePermitted();
         MockIssueStatusChangedInWindow(resolutionStatus);
-        reviewIssuesService.ReviewIssueAsync(AnIssueServerKey, resolutionStatus, null, false).Returns(true);
+        reviewIssuesService.ReviewIssueAsync(AnIssueServerKey, resolutionStatus, null, isTaint).Returns(true);
 
-        testSubject.ResolveIssueWithDialog(AnIssueServerKey, false);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
-        reviewIssuesService.Received().ReviewIssueAsync(AnIssueServerKey, resolutionStatus, null, false);
+        reviewIssuesService.Received().ReviewIssueAsync(AnIssueServerKey, resolutionStatus, null, isTaint);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenIsTaintIssue_ShouldPassTaintFlagToChangeStatus()
-    {
-        MuteIssuePermitted();
-        MockIssueAcceptedInWindow();
-        reviewIssuesService.ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, null, true).Returns(true);
-
-        testSubject.ResolveIssueWithDialog(AnIssueServerKey, true);
-
-        reviewIssuesService.Received().ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, null, true);
-    }
-
-    [TestMethod]
-    public void ResolveIssueWithDialog_WhenWindowResponseHasComment_ShouldAddComment()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenWindowResponseHasComment_ShouldAddComment(bool isTaint)
     {
         MuteIssuePermitted();
         const string comment = "No you are not an issue, you are a feature";
         MockIssueAcceptedInWindow(comment);
-        reviewIssuesService.ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, comment, false).Returns(true);
+        reviewIssuesService.ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, comment, isTaint).Returns(true);
 
-        testSubject.ResolveIssueWithDialog(AnIssueServerKey, false);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
-        reviewIssuesService.Received().ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, comment, false);
+        reviewIssuesService.Received().ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, comment, isTaint);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenReviewIssueFails_LogsAndShowsMessageBox()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenReviewIssueFails_DoesNotShowMessageBox(bool isTaint)
     {
         MuteIssuePermitted();
         const string comment = "No you are not an issue, you are a feature";
         MockIssueAcceptedInWindow(comment);
-        reviewIssuesService.ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, comment, false).Returns(false);
+        reviewIssuesService.ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, comment, isTaint).Returns(false);
 
-        testSubject.ResolveIssueWithDialog(AnIssueServerKey, false);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
-        AssertMessageBoxShown(Resources.MuteIssue_AnErrorOccurred);
-        logger.AssertPartialOutputStrings(string.Format(Resources.MuteIssue_AnErrorOccurred, AnIssueServerKey, "See previous log entries"));
+        messageBox.DidNotReceiveWithAnyArgs().Show(default, default, default, default);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenWindowResponseDoesNotHaveComment_ShouldMuteWithoutComment()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenWindowResponseDoesNotHaveComment_ShouldMuteWithoutComment(bool isTaint)
     {
         MuteIssuePermitted();
         MockIssueAcceptedInWindow();
-        reviewIssuesService.ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, null, false).Returns(true);
+        reviewIssuesService.ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, null, isTaint).Returns(true);
 
-        testSubject.ResolveIssueWithDialog(AnIssueServerKey, false);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
-        reviewIssuesService.Received().ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, null, false);
+        reviewIssuesService.Received().ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, null, isTaint);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenWindowResponseHasEmptyComment_ShouldMuteWithoutComment()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenWindowResponseHasEmptyComment_ShouldMuteWithoutComment(bool isTaint)
     {
         MuteIssuePermitted();
         const string commentWithJustSpacesAndNewLine = " \n ";
         MockIssueAcceptedInWindow(commentWithJustSpacesAndNewLine);
-        reviewIssuesService.ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, null, false).Returns(true);
+        reviewIssuesService.ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, null, isTaint).Returns(true);
 
-        testSubject.ResolveIssueWithDialog(AnIssueServerKey, false);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
-        reviewIssuesService.Received().ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, null, false);
+        reviewIssuesService.Received().ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, null, isTaint);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenMuteIssueFails_LogsAndShowsMessageBox()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenMuteIssueFails_DoesNotShowMessageBox(bool isTaint)
     {
         MuteIssuePermitted();
         MockIssueAcceptedInWindow();
-        reviewIssuesService.ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, null, false).Returns(false);
+        reviewIssuesService.ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, null, isTaint).Returns(false);
 
-        testSubject.ResolveIssueWithDialog(AnIssueServerKey, false);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
-        AssertMessageBoxShown(Resources.MuteIssue_AnErrorOccurred);
-        logger.AssertPartialOutputStrings(string.Format(Resources.MuteIssue_AnErrorOccurred, AnIssueServerKey, "See previous log entries"));
+        messageBox.DidNotReceiveWithAnyArgs().Show(default, default, default, default);
+    }
+
+    [TestMethod]
+    [DataRow(null, true)]
+    [DataRow(null, false)]
+    [DataRow("", true)]
+    [DataRow("", false)]
+    public void ReopenIssue_WhenIssueServerKeyIsNull_LogsAndShowsMessageBox(string issueServerKey, bool isTaint)
+    {
+        testSubject.ReopenIssue(issueServerKey, isTaint);
+
+        AssertMessageBoxShown(Resources.MuteIssue_IssueNotFound);
+        logger.AssertPartialOutputStrings(Resources.MuteIssue_IssueNotFound);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ReopenIssue_WhenConfigScopeIsNotSet_LogsAndShowsMessageBox(bool isTaint)
+    {
+        activeConfigScopeTracker.Current.ReturnsNull();
+
+        testSubject.ReopenIssue(AnIssueServerKey, isTaint);
+
+        AssertMessageBoxShown(Resources.MuteIssue_NotInConnectedMode);
+        logger.AssertPartialOutputStrings(Resources.MuteIssue_NotInConnectedMode);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ReopenIssue_WhenNotInConnectedMode_LogsAndShowsMessageBox(bool isTaint)
+    {
+        NotInConnectedMode();
+
+        testSubject.ReopenIssue(AnIssueServerKey, isTaint);
+
+        AssertMessageBoxShown(Resources.MuteIssue_NotInConnectedMode);
+        logger.AssertPartialOutputStrings(Resources.MuteIssue_NotInConnectedMode);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ReopenIssue_WhenValidationsArePassed_CallsReopenIssueAsync(bool isTaint)
+    {
+        reviewIssuesService.ReopenIssueAsync(AnIssueServerKey, isTaint).Returns(true);
+
+        testSubject.ReopenIssue(AnIssueServerKey, isTaint);
+
+        reviewIssuesService.Received().ReopenIssueAsync(AnIssueServerKey, isTaint);
+
+        logger.AssertPartialOutputStrings(Resources.ReopenIssue_Success);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ReopenIssue_WhenReopenIssueAsyncFails_DoesNotShowMessageBox(bool isTaint)
+    {
+        reviewIssuesService.ReopenIssueAsync(AnIssueServerKey, isTaint).Returns(false);
+
+        testSubject.ReopenIssue(AnIssueServerKey, isTaint);
+
+        messageBox.DidNotReceiveWithAnyArgs().Show(default, default, default, default);
     }
 
     private void NotInConnectedMode() => activeConfigScopeTracker.Current.Returns(new Core.ConfigurationScope.ConfigurationScope("CONFIG_SCOPE_ID"));
@@ -325,5 +404,5 @@ public class MuteIssuesServiceTests
         nonRoslynIssue.FilePath.Returns("C:\\somePath.cs");
     }
 
-    private void AssertMessageBoxShown(string message) => messageBox.Received(1).Show(message, Resources.MuteIssue_FailureCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+    private void AssertMessageBoxShown(string message) => messageBox.Received(1).Show(message, Resources.MuteIssue_StatusChangeFailure, MessageBoxButton.OK, MessageBoxImage.Exclamation);
 }
