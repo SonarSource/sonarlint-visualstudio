@@ -25,7 +25,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Navigation;
 using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
-using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
@@ -37,15 +36,11 @@ using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
-using SonarLint.VisualStudio.IssueVisualization.Security.Issues;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Issues;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
-using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
-using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
-using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 using HotspotViewModel = SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots.HotspotViewModel;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
@@ -55,7 +50,6 @@ internal sealed partial class ReportViewControl : UserControl
 {
     public static readonly Uri ClearAllFiltersUri = new Uri("sonarlint://clearfilters");
 
-    private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly IBrowserService browserService;
     private readonly IChangeStatusWindowService changeStatusWindowService;
 
@@ -86,7 +80,6 @@ internal sealed partial class ReportViewControl : UserControl
         IInitializationProcessorFactory initializationProcessorFactory,
         IFocusOnNewCodeServiceUpdater focusOnNewCodeServiceUpdater)
     {
-        this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.browserService = browserService;
         this.changeStatusWindowService = changeStatusWindowService;
         HotspotsReportViewModel = hotspotsReportViewModel;

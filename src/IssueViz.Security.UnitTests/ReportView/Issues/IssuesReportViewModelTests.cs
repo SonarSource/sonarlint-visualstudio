@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
@@ -26,7 +25,6 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Issues;
-using SonarLint.VisualStudio.IssueVisualization.Security.Issues.ReviewIssue;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Issues;
@@ -41,9 +39,7 @@ public class IssuesReportViewModelTests
     private IssuesReportViewModel testSubject;
     private IShowInBrowserService showInBrowserService;
     private IThreadHandling threadHandling;
-    private IReviewIssuesService reviewIssuesService;
     private IMuteIssuesService muteIssuesService;
-    private IMessageBox messageBox;
 
     [TestInitialize]
     public void TestInitialize()
@@ -51,11 +47,9 @@ public class IssuesReportViewModelTests
         localIssuesStore = Substitute.For<ILocalIssuesStore>();
         showInBrowserService = Substitute.For<IShowInBrowserService>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
-        reviewIssuesService = Substitute.For<IReviewIssuesService>();
         muteIssuesService = Substitute.For<IMuteIssuesService>();
-        messageBox = Substitute.For<IMessageBox>();
 
-        testSubject = new IssuesReportViewModel(localIssuesStore, showInBrowserService, reviewIssuesService, muteIssuesService, messageBox, threadHandling);
+        testSubject = new IssuesReportViewModel(localIssuesStore, showInBrowserService, muteIssuesService, threadHandling);
     }
 
     [TestMethod]
@@ -63,9 +57,7 @@ public class IssuesReportViewModelTests
         MefTestHelpers.CheckTypeCanBeImported<IssuesReportViewModel, IIssuesReportViewModel>(
             MefTestHelpers.CreateExport<ILocalIssuesStore>(),
             MefTestHelpers.CreateExport<IShowInBrowserService>(),
-            MefTestHelpers.CreateExport<IReviewIssuesService>(),
             MefTestHelpers.CreateExport<IMuteIssuesService>(),
-            MefTestHelpers.CreateExport<IMessageBox>(),
             MefTestHelpers.CreateExport<IThreadHandling>()
         );
 

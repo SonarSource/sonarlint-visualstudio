@@ -20,17 +20,13 @@
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Windows;
-using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.Issues.ReviewIssue;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
-using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 
@@ -53,9 +49,7 @@ internal interface IFileAwareTaintsReportViewModel : ITaintsReportViewModel;
 internal abstract class TaintsReportViewModelBase(
     ITaintStoreReader taintsStore,
     IShowInBrowserService showInBrowserService,
-    IReviewIssuesService reviewIssuesService,
     IMuteIssuesService muteIssuesService,
-    IMessageBox messageBox,
     ITelemetryManager telemetryManager,
     IThreadHandling threadHandling)
     : IssuesReportViewModelBase(taintsStore, threadHandling)
@@ -98,12 +92,10 @@ internal abstract class TaintsReportViewModelBase(
 internal sealed class TaintsReportViewModel(
     ITaintStore taintsStore,
     IShowInBrowserService showInBrowserService,
-    IReviewIssuesService reviewIssuesService,
     IMuteIssuesService muteIssuesService,
-    IMessageBox messageBox,
     ITelemetryManager telemetryManager,
     IThreadHandling threadHandling)
-    : TaintsReportViewModelBase(taintsStore, showInBrowserService, reviewIssuesService, muteIssuesService, messageBox, telemetryManager, threadHandling), ITaintsReportViewModel
+    : TaintsReportViewModelBase(taintsStore, showInBrowserService, muteIssuesService, telemetryManager, threadHandling), ITaintsReportViewModel
 {
     protected override IIssueViewModel CreateViewModel(IAnalysisIssueVisualization issue) => new TaintViewModel(issue, true);
 }
@@ -114,12 +106,10 @@ internal sealed class TaintsReportViewModel(
 internal sealed class FileAwareTaintsReportViewModel(
     IFileAwareTaintStore taintsStore,
     IShowInBrowserService showInBrowserService,
-    IReviewIssuesService reviewIssuesService,
     IMuteIssuesService muteIssuesService,
-    IMessageBox messageBox,
     ITelemetryManager telemetryManager,
     IThreadHandling threadHandling)
-    : TaintsReportViewModelBase(taintsStore, showInBrowserService, reviewIssuesService, muteIssuesService, messageBox, telemetryManager, threadHandling), IFileAwareTaintsReportViewModel
+    : TaintsReportViewModelBase(taintsStore, showInBrowserService, muteIssuesService, telemetryManager, threadHandling), IFileAwareTaintsReportViewModel
 {
     protected override IIssueViewModel CreateViewModel(IAnalysisIssueVisualization issue) => new TaintViewModel(issue);
 }

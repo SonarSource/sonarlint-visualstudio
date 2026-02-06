@@ -57,7 +57,7 @@ public class FileAwareTaintsReportViewModelTests
         telemetryManager = Substitute.For<ITelemetryManager>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
 
-        testSubject = new FileAwareTaintsReportViewModel(localTaintsStore, showInBrowserService, reviewIssuesService, muteIssuesService, messageBox, telemetryManager, threadHandling);
+        testSubject = new FileAwareTaintsReportViewModel(localTaintsStore, showInBrowserService, muteIssuesService, telemetryManager, threadHandling);
     }
 
     [TestMethod]

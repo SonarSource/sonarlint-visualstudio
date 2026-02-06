@@ -18,20 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.Issues.ReviewIssue;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
-using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportView.Taints;
@@ -41,9 +38,7 @@ public class TaintsReportViewModelTest
 {
     private ITaintStore localTaintsStore;
     private IShowInBrowserService showInBrowserService;
-    private IReviewIssuesService reviewIssuesService;
     private IMuteIssuesService muteIssuesService;
-    private IMessageBox messageBox;
     private ITelemetryManager telemetryManager;
     private IThreadHandling threadHandling;
     private TaintsReportViewModel testSubject;
@@ -53,13 +48,11 @@ public class TaintsReportViewModelTest
     {
         localTaintsStore = Substitute.For<ITaintStore>();
         showInBrowserService = Substitute.For<IShowInBrowserService>();
-        reviewIssuesService = Substitute.For<IReviewIssuesService>();
         muteIssuesService = Substitute.For<IMuteIssuesService>();
-        messageBox = Substitute.For<IMessageBox>();
         telemetryManager = Substitute.For<ITelemetryManager>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
 
-        testSubject = new TaintsReportViewModel(localTaintsStore, showInBrowserService, reviewIssuesService, muteIssuesService, messageBox, telemetryManager, threadHandling);
+        testSubject = new TaintsReportViewModel(localTaintsStore, showInBrowserService, muteIssuesService, telemetryManager, threadHandling);
     }
 
     [TestMethod]
@@ -67,9 +60,7 @@ public class TaintsReportViewModelTest
         MefTestHelpers.CheckTypeCanBeImported<TaintsReportViewModel, ITaintsReportViewModel>(
             MefTestHelpers.CreateExport<ITaintStore>(),
             MefTestHelpers.CreateExport<IShowInBrowserService>(),
-            MefTestHelpers.CreateExport<IReviewIssuesService>(),
             MefTestHelpers.CreateExport<IMuteIssuesService>(),
-            MefTestHelpers.CreateExport<IMessageBox>(),
             MefTestHelpers.CreateExport<ITelemetryManager>(),
             MefTestHelpers.CreateExport<IThreadHandling>()
         );

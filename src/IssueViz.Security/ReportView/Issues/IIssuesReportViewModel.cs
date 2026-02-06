@@ -21,7 +21,6 @@
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
-using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -51,9 +50,7 @@ internal interface IIssuesReportViewModel : IDisposable
 internal sealed class IssuesReportViewModel(
     ILocalIssuesStore localIssuesStore,
     IShowInBrowserService showInBrowserService,
-    IReviewIssuesService reviewIssuesService,
     IMuteIssuesService muteIssuesService,
-    IMessageBox messageBox,
     IThreadHandling threadHandling) : IssuesReportViewModelBase(localIssuesStore, threadHandling), IIssuesReportViewModel
 {
     public IEnumerable<IIssueViewModel> GetIssueViewModels() => localIssuesStore.GetAll().Select(x => new IssueViewModel(x));
