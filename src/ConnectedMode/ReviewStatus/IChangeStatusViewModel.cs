@@ -18,13 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 
-public interface IStatusViewModel
+namespace SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
+
+public interface IChangeStatusViewModel : IDataErrorInfo
 {
-    string Title { get; }
-    string Description { get; }
-    bool IsCommentRequired { get; }
-
-    T GetCurrentStatus<T>() where T : struct, Enum;
+    IStatusViewModel SelectedStatusViewModel { get; set; }
+    ObservableCollection<IStatusViewModel> AllStatusViewModels { get; }
+    string Comment { get; set; }
+    bool ShowComment { get; }
+    bool IsSubmitButtonEnabled { get; }
 }

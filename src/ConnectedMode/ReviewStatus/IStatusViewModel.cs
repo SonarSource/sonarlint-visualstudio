@@ -1,6 +1,6 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,14 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
+namespace SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
-
-[ExcludeFromCodeCoverage]
-public class ChangeStatusWindowResponse
+public interface IStatusViewModel
 {
-    public bool Result { get; set; }
-    public IStatusViewModel SelectedStatus { get; set; }
-    public string Comment { get; set; }
+    string Title { get; }
+    string Description { get; }
+    bool IsCommentRequired { get; }
+
+    T GetCurrentStatus<T>() where T : struct, Enum;
 }

@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
+namespace SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 
 public interface IChangeStatusWindowService
 {

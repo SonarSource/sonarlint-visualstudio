@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using static SonarLint.VisualStudio.ConnectedMode.UI.WindowExtensions;

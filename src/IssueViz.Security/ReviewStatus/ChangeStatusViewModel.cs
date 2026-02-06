@@ -19,6 +19,7 @@
  */
 
 using System.Collections.ObjectModel;
+using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
