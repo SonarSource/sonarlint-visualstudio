@@ -205,7 +205,7 @@ public class MuteIssueCommandTests
 
         testSubjectMenuCommand.Invoke();
 
-        muteIssuesService.Received(1).ResolveIssueWithDialog(issue);
+        muteIssuesService.Received(1).ResolveIssueWithDialog(issue.IssueServerKey, false);
     }
 
     [TestMethod]

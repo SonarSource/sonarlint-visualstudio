@@ -18,24 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Suppressions
+using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
+
+namespace SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
+
+public interface IChangeIssueStatusViewModelFactory
 {
-    /// <summary>
-    /// Describes a single issue with the properties required for
-    /// it to be compared against server-side issues by the issues filter
-    /// </summary>
-    public interface IFilterableIssue
-    {
-        /// <summary>
-        /// The id of the issue that comes from SlCore
-        /// </summary>
-        Guid IssueId { get; }
-        string IssueServerKey { get; }
-        [Obsolete("Use SonarRuleId instead")]
-        string RuleId { get; }
-        SonarCompositeRuleId SonarRuleId { get; }
-        string FilePath { get; }
-        string LineHash { get; }
-        int? StartLine { get; }
-    }
+    IChangeStatusViewModel CreateForIssue(ResolutionStatus? currentStatus, IEnumerable<ResolutionStatus> allowedStatuses);
 }

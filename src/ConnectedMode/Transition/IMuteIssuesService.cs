@@ -18,12 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Suppressions;
+namespace SonarLint.VisualStudio.ConnectedMode.Transition;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Transition
+public interface IMuteIssuesService
 {
-    public interface IMuteIssuesService
-    {
-        void ResolveIssueWithDialog(IFilterableIssue issue, bool isTaintIssue = false);
-    }
+    void ResolveIssueWithDialog(string issueServerKey, bool isTaintIssue);
 }

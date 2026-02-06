@@ -30,4 +30,6 @@ public interface IChangeStatusViewModel : IDataErrorInfo
     string Comment { get; set; }
     bool ShowComment { get; }
     bool IsSubmitButtonEnabled { get; }
+
+    string GetNormalizedComment();
 }

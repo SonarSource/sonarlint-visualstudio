@@ -39,6 +39,4 @@ internal class ChangeIssueStatusViewModel(ResolutionStatus? currentStatus, IEnum
 
     private static List<StatusViewModel<ResolutionStatus>> GetAllowedStatuses(IEnumerable<ResolutionStatus> allowedStatuses) =>
         StatusViewModels.Where(vm => allowedStatuses.Any(status => vm.GetCurrentStatus<ResolutionStatus>() == status)).ToList();
-
-    public string GetNormalizedComment() => string.IsNullOrWhiteSpace(Comment) ? null : Comment.Trim();
 }

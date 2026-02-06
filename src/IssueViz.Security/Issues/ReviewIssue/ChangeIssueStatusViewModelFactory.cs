@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,22 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Issues.ReviewIssue;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Issues;
 
-internal interface IReviewIssuesService
+[Export(typeof(IChangeIssueStatusViewModelFactory))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal class ChangeIssueStatusViewModelFactory : IChangeIssueStatusViewModelFactory
 {
-    Task<bool> ReviewIssueAsync(string issueKey, ResolutionStatus newStatus, string comment, bool isTaint = false);
-
-    Task<IReviewIssuePermissionArgs> CheckReviewIssuePermittedAsync(string issueKey);
-
-    Task<bool> ReopenIssueAsync(string issueKey, bool isTaint = false);
+    public IChangeStatusViewModel CreateForIssue(ResolutionStatus? currentStatus, IEnumerable<ResolutionStatus> allowedStatuses) => new ChangeIssueStatusViewModel(currentStatus,  allowedStatuses);
 }
-
-internal interface IReviewIssuePermissionArgs
-{
-}
-
-internal record ReviewIssuePermittedArgs(IEnumerable<ResolutionStatus> AllowedStatuses) : IReviewIssuePermissionArgs;
-internal record ReviewIssueNotPermittedArgs(string Reason) : IReviewIssuePermissionArgs;

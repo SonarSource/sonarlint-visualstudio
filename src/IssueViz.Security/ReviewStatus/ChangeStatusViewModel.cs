@@ -93,4 +93,6 @@ public class ChangeStatusViewModel<T> : ViewModelBase, IChangeStatusViewModel wh
         }
         SelectedStatusViewModel = AllStatusViewModels.FirstOrDefault(x => Equals(x.GetCurrentStatus<T>(), currentStatus));
     }
+
+    public string GetNormalizedComment() => string.IsNullOrWhiteSpace(Comment) ? null : Comment.Trim();
 }

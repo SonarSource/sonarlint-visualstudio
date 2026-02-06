@@ -19,6 +19,7 @@
  */
 
 using NSubstitute.ExceptionExtensions;
+using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.IssueVisualization.Security.Issues.ReviewIssue;
