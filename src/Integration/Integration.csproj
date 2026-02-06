@@ -54,14 +54,13 @@
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <Compile Remove="Transition\MuteIssuesWindowService.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <None Remove="Notifications\NotificationIndicator.xaml" />
     <None Remove="Progress\ProgressControl.xaml" />
-    <None Remove="Transition\MuteWindowDialog.xaml" />
     <Page Include="Notifications\NotificationIndicator.xaml" />
-    <Page Include="Transition\MuteWindowDialog.xaml" />
   </ItemGroup>
 
   <ItemGroup>
