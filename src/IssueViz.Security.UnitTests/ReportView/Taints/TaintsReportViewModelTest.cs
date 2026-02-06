@@ -138,6 +138,62 @@ public class TaintsReportViewModelTest
         telemetryManager.Received(1).TaintIssueInvestigatedRemotely();
     }
 
+    [TestMethod]
+    public void ResolveIssueWithDialog_WithValidTaint_CallsMuteIssuesService()
+    {
+        var taintVm = CreateTaintViewModel("taint-key-123");
+
+        testSubject.ResolveIssueWithDialog(taintVm);
+
+        muteIssuesService.Received(1).ResolveIssueWithDialog("taint-key-123", true);
+    }
+
+    [TestMethod]
+    public void ReopenIssue_WithValidTaint_CallsMuteIssuesService()
+    {
+        var taintVm = CreateTaintViewModel("taint-key-456");
+
+        testSubject.ReopenIssue(taintVm);
+
+        muteIssuesService.Received(1).ReopenIssue("taint-key-456", true);
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialog_WhenIssueServerKeyIsNull_DoesNotCallService()
+    {
+        var taintVm = CreateTaintViewModel(null);
+
+        testSubject.ResolveIssueWithDialog(taintVm);
+
+        muteIssuesService.DidNotReceive().ResolveIssueWithDialog(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
+    [TestMethod]
+    public void ReopenIssue_WhenIssueServerKeyIsNull_DoesNotCallService()
+    {
+        var taintVm = CreateTaintViewModel(null);
+
+        testSubject.ReopenIssue(taintVm);
+
+        muteIssuesService.DidNotReceive().ReopenIssue(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialog_WhenTaintViewModelIsNull_DoesNotCallService()
+    {
+        testSubject.ResolveIssueWithDialog(null);
+
+        muteIssuesService.DidNotReceive().ResolveIssueWithDialog(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
+    [TestMethod]
+    public void ReopenIssue_WhenTaintViewModelIsNull_DoesNotCallService()
+    {
+        testSubject.ReopenIssue(null);
+
+        muteIssuesService.DidNotReceive().ReopenIssue(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
     private static TaintViewModel CreateTaintViewModel(string issueKey)
     {
         var taintIssue = Substitute.For<ITaintIssue>();

@@ -129,6 +129,62 @@ public class IssuesReportViewModelTests
         showInBrowserService.Received(1).ShowIssue(issue.IssueServerKey);
     }
 
+    [TestMethod]
+    public void ResolveIssueWithDialog_WithValidIssue_CallsMuteIssuesService()
+    {
+        var issueVm = CreateIssueViewModel("server-key-123");
+
+        testSubject.ResolveIssueWithDialog(issueVm);
+
+        muteIssuesService.Received(1).ResolveIssueWithDialog("server-key-123", false);
+    }
+
+    [TestMethod]
+    public void ReopenIssue_WithValidIssue_CallsMuteIssuesService()
+    {
+        var issueVm = CreateIssueViewModel("server-key-456");
+
+        testSubject.ReopenIssue(issueVm);
+
+        muteIssuesService.Received(1).ReopenIssue("server-key-456", false);
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialog_WhenIssueServerKeyIsNull_DoesNotCallService()
+    {
+        var issueVm = CreateIssueViewModel(null);
+
+        testSubject.ResolveIssueWithDialog(issueVm);
+
+        muteIssuesService.DidNotReceive().ResolveIssueWithDialog(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
+    [TestMethod]
+    public void ReopenIssue_WhenIssueServerKeyIsNull_DoesNotCallService()
+    {
+        var issueVm = CreateIssueViewModel(null);
+
+        testSubject.ReopenIssue(issueVm);
+
+        muteIssuesService.DidNotReceive().ReopenIssue(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialog_WhenIssueViewModelIsNull_DoesNotCallService()
+    {
+        testSubject.ResolveIssueWithDialog(null);
+
+        muteIssuesService.DidNotReceive().ResolveIssueWithDialog(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
+    [TestMethod]
+    public void ReopenIssue_WhenIssueViewModelIsNull_DoesNotCallService()
+    {
+        testSubject.ReopenIssue(null);
+
+        muteIssuesService.DidNotReceive().ReopenIssue(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
     private static IssueViewModel CreateIssueViewModel(string issueKey)
     {
         var analysisIssue = Substitute.For<IAnalysisIssue>();

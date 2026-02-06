@@ -116,6 +116,53 @@ public class FileAwareTaintsReportViewModelTests
         });
     }
 
+    [TestMethod]
+    public void ResolveIssueWithDialog_WithValidTaint_CallsMuteIssuesService()
+    {
+        var taintVm = CreateTaintViewModel("taint-key-789");
+
+        testSubject.ResolveIssueWithDialog(taintVm);
+
+        muteIssuesService.Received(1).ResolveIssueWithDialog("taint-key-789", true);
+    }
+
+    [TestMethod]
+    public void ReopenIssue_WithValidTaint_CallsMuteIssuesService()
+    {
+        var taintVm = CreateTaintViewModel("taint-key-abc");
+
+        testSubject.ReopenIssue(taintVm);
+
+        muteIssuesService.Received(1).ReopenIssue("taint-key-abc", true);
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialog_WhenIssueServerKeyIsNull_DoesNotCallService()
+    {
+        var taintVm = CreateTaintViewModel(null);
+
+        testSubject.ResolveIssueWithDialog(taintVm);
+
+        muteIssuesService.DidNotReceive().ResolveIssueWithDialog(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
+    [TestMethod]
+    public void ReopenIssue_WhenTaintViewModelIsNull_DoesNotCallService()
+    {
+        testSubject.ReopenIssue(null);
+
+        muteIssuesService.DidNotReceive().ReopenIssue(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
+    private static TaintViewModel CreateTaintViewModel(string issueKey)
+    {
+        var taintIssue = Substitute.For<ITaintIssue>();
+        taintIssue.IssueServerKey.Returns(issueKey);
+        var issueVisualization = Substitute.For<IAnalysisIssueVisualization>();
+        issueVisualization.Issue.Returns(taintIssue);
+        return new TaintViewModel(issueVisualization);
+    }
+
     private static IAnalysisIssueVisualization CreateMockedTaint(string filePath)
     {
         var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
