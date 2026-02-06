@@ -59,7 +59,6 @@ jobs:
             development/aws/sts/downloads secret_key | AWS_SECRET_ACCESS_KEY;
             development/aws/sts/downloads security_token | AWS_SESSION_TOKEN;
             development/github/token/{REPO_OWNER_NAME_DASH}-promotion token | GITHUB_PROMOTION_TOKEN;
-            development/kv/data/slack token | SLACK_BOT_TOKEN;
 
       - uses: SonarSource/ci-github-actions/get-build-number@v1
 
@@ -228,18 +227,3 @@ jobs:
           PrivateGalleryCreator.exe --input=binaries --terminate --source="https://binaries.sonarsource.com/SonarLint-for-VisualStudio/dogfood/${PROJECT_VERSION}/" --output=/tmp/dogfood/feed.xml
           cp binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix /tmp/dogfood/${PROJECT_VERSION}/
           .github/scripts/publish-dogfood-site.sh /tmp/dogfood
-
-      - name: Slack Notification on Failure
-        if: failure()
-        uses: slackapi/slack-github-action@v2.1.1
-        with:
-          method: chat.postMessage
-          token: ${{ fromJSON(steps.secrets.outputs.vault).SLACK_BOT_TOKEN }}
-          payload: |
-            channel: squad-ide-visualstudio-bots
-            text: "Job failed in ${{ github.repository }}"
-            blocks:
-              - type: "section"
-                text:
-                  type: "mrkdwn"
-                  text: ":x: *Repository:* ${{ github.repository }}\n*Branch:* ${{ steps.branch-name.outputs.BRANCH_NAME }}\n*Workflow:* ${{ github.workflow }}\n*Run:* <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|#${{ github.run_number }}>"
