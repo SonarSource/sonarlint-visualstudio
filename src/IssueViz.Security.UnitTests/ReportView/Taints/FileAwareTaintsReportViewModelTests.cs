@@ -65,9 +65,7 @@ public class FileAwareTaintsReportViewModelTests
         MefTestHelpers.CheckTypeCanBeImported<FileAwareTaintsReportViewModel, IFileAwareTaintsReportViewModel>(
             MefTestHelpers.CreateExport<IFileAwareTaintStore>(),
             MefTestHelpers.CreateExport<IShowInBrowserService>(),
-            MefTestHelpers.CreateExport<IReviewIssuesService>(),
             MefTestHelpers.CreateExport<IMuteIssuesService>(),
-            MefTestHelpers.CreateExport<IMessageBox>(),
             MefTestHelpers.CreateExport<ITelemetryManager>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
 
