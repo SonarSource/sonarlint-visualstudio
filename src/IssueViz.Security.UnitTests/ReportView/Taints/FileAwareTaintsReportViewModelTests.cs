@@ -40,6 +40,7 @@ public class FileAwareTaintsReportViewModelTests
     private IFileAwareTaintStore localTaintsStore;
     private IShowInBrowserService showInBrowserService;
     private IReviewIssuesService reviewIssuesService;
+    private IMuteIssuesService muteIssuesService;
     private IMessageBox messageBox;
     private ITelemetryManager telemetryManager;
     private IThreadHandling threadHandling;
@@ -51,11 +52,12 @@ public class FileAwareTaintsReportViewModelTests
         localTaintsStore = Substitute.For<IFileAwareTaintStore>();
         showInBrowserService = Substitute.For<IShowInBrowserService>();
         reviewIssuesService = Substitute.For<IReviewIssuesService>();
+        muteIssuesService = Substitute.For<IMuteIssuesService>();
         messageBox = Substitute.For<IMessageBox>();
         telemetryManager = Substitute.For<ITelemetryManager>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
 
-        testSubject = new FileAwareTaintsReportViewModel(localTaintsStore, showInBrowserService, reviewIssuesService, messageBox, telemetryManager, threadHandling);
+        testSubject = new FileAwareTaintsReportViewModel(localTaintsStore, showInBrowserService, reviewIssuesService, muteIssuesService, messageBox, telemetryManager, threadHandling);
     }
 
     [TestMethod]
@@ -64,6 +66,7 @@ public class FileAwareTaintsReportViewModelTests
             MefTestHelpers.CreateExport<IFileAwareTaintStore>(),
             MefTestHelpers.CreateExport<IShowInBrowserService>(),
             MefTestHelpers.CreateExport<IReviewIssuesService>(),
+            MefTestHelpers.CreateExport<IMuteIssuesService>(),
             MefTestHelpers.CreateExport<IMessageBox>(),
             MefTestHelpers.CreateExport<ITelemetryManager>(),
             MefTestHelpers.CreateExport<IThreadHandling>());

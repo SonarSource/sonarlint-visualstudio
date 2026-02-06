@@ -61,6 +61,20 @@ internal class MuteIssuesService(
             }
         }).Forget();
 
+    public void ReopenIssue(string issueServerKey, bool isTaintIssue) =>
+        threadHandling.RunOnBackgroundThread(async () =>
+        {
+            try
+            {
+                await ReopenIssueAsync(issueServerKey, isTaintIssue);
+                logger.WriteLine(Resources.ReopenIssue_Success);
+            }
+            catch (ReopenIssueException ex)
+            {
+                messageBox.Show(ex.Message, Resources.ReopenIssue_FailureCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+            }
+        }).Forget();
+
     private async Task ResolveIssueWithDialogAsync(string issueServerKey, bool isTaintIssue)
     {
         var currentConfigScope = activeConfigScopeTracker.Current;
@@ -151,4 +165,21 @@ internal class MuteIssuesService(
             throw new MuteIssueException(Resources.MuteIssue_AnErrorOccurred);
         }
     }
+
+    private async Task ReopenIssueAsync(string issueServerKey, bool isTaintIssue)
+    {
+        var currentConfigScope = activeConfigScopeTracker.Current;
+        CheckIsInConnectedMode(currentConfigScope);
+        CheckIssueServerKeyNotNullOrEmpty(issueServerKey);
+
+        var success = await reviewIssuesService.ReopenIssueAsync(issueServerKey, isTaintIssue);
+
+        if (!success)
+        {
+            logger.WriteLine(Resources.ReopenIssue_AnErrorOccurred, issueServerKey);
+            throw new ReopenIssueException(Resources.ReopenIssue_AnErrorOccurred);
+        }
+    }
 }
+
+internal class ReopenIssueException(string message) : Exception(message);

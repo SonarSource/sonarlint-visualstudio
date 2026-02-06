@@ -22,13 +22,12 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
+using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Issues;
-using SonarLint.VisualStudio.IssueVisualization.Security.Issues.ReviewIssue;
-using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Issues;
@@ -39,9 +38,9 @@ internal interface IIssuesReportViewModel : IDisposable
     event EventHandler<ViewModelAnalysisIssuesChangedEventArgs> IssuesChanged;
 
     void ShowIssueInBrowser(IAnalysisIssue issue);
-    Task<IEnumerable<ResolutionStatus>> GetAllowedStatusesAsync(IssueViewModel selectedIssueViewModel);
-    Task<bool> ChangeIssueStatusAsync(IssueViewModel selectedIssueViewModel, ResolutionStatus newStatus, string comment);
-    Task<bool> ReopenIssueAsync(IssueViewModel selectedIssueViewModel);
+
+    void ResolveIssueWithDialog(IssueViewModel issueViewModel);
+    void ReopenIssue(IssueViewModel issueViewModel);
 
     void ShowIssueVisualization();
 }
@@ -53,6 +52,7 @@ internal sealed class IssuesReportViewModel(
     ILocalIssuesStore localIssuesStore,
     IShowInBrowserService showInBrowserService,
     IReviewIssuesService reviewIssuesService,
+    IMuteIssuesService muteIssuesService,
     IMessageBox messageBox,
     IThreadHandling threadHandling) : IssuesReportViewModelBase(localIssuesStore, threadHandling), IIssuesReportViewModel
 {
@@ -60,41 +60,24 @@ internal sealed class IssuesReportViewModel(
 
     public void ShowIssueInBrowser(IAnalysisIssue issue) => showInBrowserService.ShowIssue(issue.IssueServerKey);
 
-    public async Task<IEnumerable<ResolutionStatus>> GetAllowedStatusesAsync(IssueViewModel selectedIssueViewModel)
+    public void ResolveIssueWithDialog(IssueViewModel issueViewModel)
     {
-        var response = selectedIssueViewModel == null
-            ? new ReviewIssueNotPermittedArgs(Resources.ReviewIssueWindow_NoStatusSelectedFailureMessage)
-            : await reviewIssuesService.CheckReviewIssuePermittedAsync(selectedIssueViewModel.Issue.Issue.IssueServerKey);
-        switch (response)
+        if (issueViewModel?.Issue?.Issue?.IssueServerKey is not { } issueServerKey)
         {
-            case ReviewIssuePermittedArgs reviewIssuePermittedArgs:
-                return reviewIssuePermittedArgs.AllowedStatuses;
-            case ReviewIssueNotPermittedArgs reviewIssueNotPermittedArgs:
-                messageBox.Show(string.Format(Resources.ReviewIssueWindow_CheckReviewPermittedFailureMessage, reviewIssueNotPermittedArgs.Reason), Resources.ReviewIssueWindow_FailureTitle,
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-                break;
+            return;
         }
-        return null;
+
+        muteIssuesService.ResolveIssueWithDialog(issueServerKey, isTaintIssue: false);
     }
 
-    public async Task<bool> ChangeIssueStatusAsync(IssueViewModel selectedIssueViewModel, ResolutionStatus newStatus, string comment)
+    public void ReopenIssue(IssueViewModel issueViewModel)
     {
-        var wasChanged = await reviewIssuesService.ReviewIssueAsync(selectedIssueViewModel.Issue.Issue.IssueServerKey, newStatus, comment);
-        if (!wasChanged)
+        if (issueViewModel?.Issue?.Issue?.IssueServerKey is not { } issueServerKey)
         {
-            messageBox.Show(Resources.ReviewIssueWindow_ReviewFailureMessage, Resources.ReviewIssueWindow_FailureTitle, MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
         }
-        return wasChanged;
-    }
 
-    public async Task<bool> ReopenIssueAsync(IssueViewModel selectedIssueViewModel)
-    {
-        var wasReopened = await reviewIssuesService.ReopenIssueAsync(selectedIssueViewModel.Issue.Issue.IssueServerKey);
-        if (!wasReopened)
-        {
-            messageBox.Show(Resources.ReviewIssueWindow_ReviewFailureMessage, Resources.ReviewIssueWindow_FailureTitle, MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-        return wasReopened;
+        muteIssuesService.ReopenIssue(issueServerKey, isTaintIssue: false);
     }
 
     [ExcludeFromCodeCoverage] // UI, not really unit-testable

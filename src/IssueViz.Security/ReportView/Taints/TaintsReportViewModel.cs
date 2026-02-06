@@ -40,11 +40,8 @@ internal interface ITaintsReportViewModel : IDisposable
 
     void ShowIssueVisualization();
 
-    Task<IEnumerable<ResolutionStatus>> GetAllowedStatusesAsync(TaintViewModel selectedTaintViewModel);
-
-    Task<bool> ChangeTaintStatusAsync(TaintViewModel selectedTaintViewModel, ResolutionStatus newStatus, string comment);
-
-    Task<bool> ReopenTaintAsync(TaintViewModel selectedTaintViewModel);
+    void ResolveIssueWithDialog(TaintViewModel taintViewModel);
+    void ReopenIssue(TaintViewModel taintViewModel);
 
     IEnumerable<IIssueViewModel> GetIssueViewModels();
 
@@ -57,6 +54,7 @@ internal abstract class TaintsReportViewModelBase(
     ITaintStoreReader taintsStore,
     IShowInBrowserService showInBrowserService,
     IReviewIssuesService reviewIssuesService,
+    IMuteIssuesService muteIssuesService,
     IMessageBox messageBox,
     ITelemetryManager telemetryManager,
     IThreadHandling threadHandling)
@@ -71,41 +69,24 @@ internal abstract class TaintsReportViewModelBase(
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     public void ShowIssueVisualization() => ToolWindowNavigator.Instance.ShowIssueVisualizationToolWindow();
 
-    public async Task<IEnumerable<ResolutionStatus>> GetAllowedStatusesAsync(TaintViewModel selectedTaintViewModel)
+    public void ResolveIssueWithDialog(TaintViewModel taintViewModel)
     {
-        var response = selectedTaintViewModel == null
-            ? new ReviewIssueNotPermittedArgs(Resources.ReviewIssueWindow_NoStatusSelectedFailureMessage)
-            : await reviewIssuesService.CheckReviewIssuePermittedAsync(selectedTaintViewModel.TaintIssue.IssueServerKey);
-        switch (response)
+        if (taintViewModel?.TaintIssue?.IssueServerKey is not { } issueServerKey)
         {
-            case ReviewIssuePermittedArgs reviewIssuePermittedArgs:
-                return reviewIssuePermittedArgs.AllowedStatuses;
-            case ReviewIssueNotPermittedArgs reviewIssueNotPermittedArgs:
-                messageBox.Show(string.Format(Resources.ReviewIssueWindow_CheckReviewPermittedFailureMessage, reviewIssueNotPermittedArgs.Reason), Resources.ReviewIssueWindow_FailureTitle,
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-                break;
+            return;
         }
-        return null;
+
+        muteIssuesService.ResolveIssueWithDialog(issueServerKey, isTaintIssue: true);
     }
 
-    public async Task<bool> ChangeTaintStatusAsync(TaintViewModel selectedTaintViewModel, ResolutionStatus newStatus, string comment)
+    public void ReopenIssue(TaintViewModel taintViewModel)
     {
-        var wasChanged = await reviewIssuesService.ReviewIssueAsync(selectedTaintViewModel.TaintIssue.IssueServerKey, newStatus, comment, isTaint: true);
-        if (!wasChanged)
+        if (taintViewModel?.TaintIssue?.IssueServerKey is not { } issueServerKey)
         {
-            messageBox.Show(Resources.ReviewIssueWindow_ReviewFailureMessage, Resources.ReviewIssueWindow_FailureTitle, MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
         }
-        return wasChanged;
-    }
 
-    public async Task<bool> ReopenTaintAsync(TaintViewModel selectedTaintViewModel)
-    {
-        var wasReopened = await reviewIssuesService.ReopenIssueAsync(selectedTaintViewModel.TaintIssue.IssueServerKey, isTaint: true);
-        if (!wasReopened)
-        {
-            messageBox.Show(Resources.ReviewIssueWindow_ReviewFailureMessage, Resources.ReviewIssueWindow_FailureTitle, MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-        return wasReopened;
+        muteIssuesService.ReopenIssue(issueServerKey, isTaintIssue: true);
     }
 
     public IEnumerable<IIssueViewModel> GetIssueViewModels() => taintsStore.GetAll().Select(CreateViewModel);
@@ -118,10 +99,11 @@ internal sealed class TaintsReportViewModel(
     ITaintStore taintsStore,
     IShowInBrowserService showInBrowserService,
     IReviewIssuesService reviewIssuesService,
+    IMuteIssuesService muteIssuesService,
     IMessageBox messageBox,
     ITelemetryManager telemetryManager,
     IThreadHandling threadHandling)
-    : TaintsReportViewModelBase(taintsStore, showInBrowserService, reviewIssuesService, messageBox, telemetryManager, threadHandling), ITaintsReportViewModel
+    : TaintsReportViewModelBase(taintsStore, showInBrowserService, reviewIssuesService, muteIssuesService, messageBox, telemetryManager, threadHandling), ITaintsReportViewModel
 {
     protected override IIssueViewModel CreateViewModel(IAnalysisIssueVisualization issue) => new TaintViewModel(issue, true);
 }
@@ -133,10 +115,11 @@ internal sealed class FileAwareTaintsReportViewModel(
     IFileAwareTaintStore taintsStore,
     IShowInBrowserService showInBrowserService,
     IReviewIssuesService reviewIssuesService,
+    IMuteIssuesService muteIssuesService,
     IMessageBox messageBox,
     ITelemetryManager telemetryManager,
     IThreadHandling threadHandling)
-    : TaintsReportViewModelBase(taintsStore, showInBrowserService, reviewIssuesService, messageBox, telemetryManager, threadHandling), IFileAwareTaintsReportViewModel
+    : TaintsReportViewModelBase(taintsStore, showInBrowserService, reviewIssuesService, muteIssuesService, messageBox, telemetryManager, threadHandling), IFileAwareTaintsReportViewModel
 {
     protected override IIssueViewModel CreateViewModel(IAnalysisIssueVisualization issue) => new TaintViewModel(issue);
 }

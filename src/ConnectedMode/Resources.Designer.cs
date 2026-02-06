@@ -555,6 +555,33 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An error occurred while reopening the issue [issueKey: {0}].
+        /// </summary>
+        internal static string ReopenIssue_AnErrorOccurred {
+            get {
+                return ResourceManager.GetString("ReopenIssue_AnErrorOccurred", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reopen Issue Failed.
+        /// </summary>
+        internal static string ReopenIssue_FailureCaption {
+            get {
+                return ResourceManager.GetString("ReopenIssue_FailureCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Issue {0} reopened.
+        /// </summary>
+        internal static string ReopenIssue_Success {
+            get {
+                return ResourceManager.GetString("ReopenIssue_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Roslyn Suppressions.
         /// </summary>
         internal static string RoslynSuppressionsLogContext {

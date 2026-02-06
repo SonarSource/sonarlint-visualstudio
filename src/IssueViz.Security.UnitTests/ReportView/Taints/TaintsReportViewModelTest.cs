@@ -42,6 +42,7 @@ public class TaintsReportViewModelTest
     private ITaintStore localTaintsStore;
     private IShowInBrowserService showInBrowserService;
     private IReviewIssuesService reviewIssuesService;
+    private IMuteIssuesService muteIssuesService;
     private IMessageBox messageBox;
     private ITelemetryManager telemetryManager;
     private IThreadHandling threadHandling;
@@ -53,11 +54,12 @@ public class TaintsReportViewModelTest
         localTaintsStore = Substitute.For<ITaintStore>();
         showInBrowserService = Substitute.For<IShowInBrowserService>();
         reviewIssuesService = Substitute.For<IReviewIssuesService>();
+        muteIssuesService = Substitute.For<IMuteIssuesService>();
         messageBox = Substitute.For<IMessageBox>();
         telemetryManager = Substitute.For<ITelemetryManager>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
 
-        testSubject = new TaintsReportViewModel(localTaintsStore, showInBrowserService, reviewIssuesService, messageBox, telemetryManager, threadHandling);
+        testSubject = new TaintsReportViewModel(localTaintsStore, showInBrowserService, reviewIssuesService, muteIssuesService, messageBox, telemetryManager, threadHandling);
     }
 
     [TestMethod]
@@ -66,6 +68,7 @@ public class TaintsReportViewModelTest
             MefTestHelpers.CreateExport<ITaintStore>(),
             MefTestHelpers.CreateExport<IShowInBrowserService>(),
             MefTestHelpers.CreateExport<IReviewIssuesService>(),
+            MefTestHelpers.CreateExport<IMuteIssuesService>(),
             MefTestHelpers.CreateExport<IMessageBox>(),
             MefTestHelpers.CreateExport<ITelemetryManager>(),
             MefTestHelpers.CreateExport<IThreadHandling>()
@@ -133,117 +136,6 @@ public class TaintsReportViewModelTest
 
         showInBrowserService.Received(1).ShowIssue(taintIssue.IssueServerKey);
         telemetryManager.Received(1).TaintIssueInvestigatedRemotely();
-    }
-
-    [TestMethod]
-    public async Task GetAllowedStatusesAsync_NullViewModel_ShowsErrorAndReturnsNull()
-    {
-        var result = await testSubject.GetAllowedStatusesAsync(null);
-
-        result.Should().BeNull();
-        messageBox.Received(1).Show(
-            Arg.Is<string>(s => s.Contains(Resources.ReviewIssueWindow_NoStatusSelectedFailureMessage)),
-            Resources.ReviewIssueWindow_FailureTitle,
-            Arg.Any<MessageBoxButton>(),
-            MessageBoxImage.Error);
-    }
-
-    [TestMethod]
-    public async Task GetAllowedStatusesAsync_ServiceReturnsPermitted_ReturnsAllowedStatuses()
-    {
-        var issueKey = "test-key";
-        var taintViewModel = CreateTaintViewModel(issueKey);
-        var allowedStatuses = new[] { ResolutionStatus.ACCEPT };
-        reviewIssuesService.CheckReviewIssuePermittedAsync(issueKey)
-            .Returns(new ReviewIssuePermittedArgs(allowedStatuses));
-
-        var result = await testSubject.GetAllowedStatusesAsync(taintViewModel);
-
-        result.Should().BeEquivalentTo(allowedStatuses);
-        messageBox.DidNotReceive().Show(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<MessageBoxButton>(), Arg.Any<MessageBoxImage>());
-    }
-
-    [TestMethod]
-    public async Task GetAllowedStatusesAsync_ServiceReturnsNotPermitted_ShowsErrorAndReturnsNull()
-    {
-        var issueKey = "test-key";
-        var taintViewModel = CreateTaintViewModel(issueKey);
-        var reason = "Not allowed";
-        reviewIssuesService.CheckReviewIssuePermittedAsync(issueKey)
-            .Returns(new ReviewIssueNotPermittedArgs(reason));
-
-        var result = await testSubject.GetAllowedStatusesAsync(taintViewModel);
-
-        result.Should().BeNull();
-        messageBox.Received(1).Show(
-            Arg.Is<string>(s => s.Contains(reason)),
-            Resources.ReviewIssueWindow_FailureTitle,
-            Arg.Any<MessageBoxButton>(),
-            MessageBoxImage.Error);
-    }
-
-    [TestMethod]
-    public async Task ChangeTaintStatusAsync_Success_ReturnsTrue()
-    {
-        var issueKey = "test-key";
-        var taintViewModel = CreateTaintViewModel(issueKey);
-        var status = ResolutionStatus.ACCEPT;
-        var comment = "test comment";
-        reviewIssuesService.ReviewIssueAsync(issueKey, status, comment, isTaint: true).Returns(true);
-
-        var result = await testSubject.ChangeTaintStatusAsync(taintViewModel, status, comment);
-
-        result.Should().BeTrue();
-        messageBox.DidNotReceive().Show(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<MessageBoxButton>(), Arg.Any<MessageBoxImage>());
-    }
-
-    [TestMethod]
-    public async Task ChangeTaintStatusAsync_Failure_ShowsErrorAndReturnsFalse()
-    {
-        var issueKey = "test-key";
-        var taintViewModel = CreateTaintViewModel(issueKey);
-        var status = ResolutionStatus.ACCEPT;
-        var comment = "test comment";
-        reviewIssuesService.ReviewIssueAsync(issueKey, status, comment, isTaint: true).Returns(false);
-
-        var result = await testSubject.ChangeTaintStatusAsync(taintViewModel, status, comment);
-
-        result.Should().BeFalse();
-        messageBox.Received(1).Show(
-            Resources.ReviewIssueWindow_ReviewFailureMessage,
-            Resources.ReviewIssueWindow_FailureTitle,
-            Arg.Any<MessageBoxButton>(),
-            MessageBoxImage.Error);
-    }
-
-    [TestMethod]
-    public async Task ReopenTaintAsync_Success_ReturnsTrue()
-    {
-        var issueKey = "test-key";
-        var taintViewModel = CreateTaintViewModel(issueKey);
-        reviewIssuesService.ReopenIssueAsync(issueKey, isTaint: true).Returns(true);
-
-        var result = await testSubject.ReopenTaintAsync(taintViewModel);
-
-        result.Should().BeTrue();
-        messageBox.DidNotReceive().Show(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<MessageBoxButton>(), Arg.Any<MessageBoxImage>());
-    }
-
-    [TestMethod]
-    public async Task ReopenTaintAsync_Failure_ShowsErrorAndReturnsFalse()
-    {
-        var issueKey = "test-key";
-        var taintViewModel = CreateTaintViewModel(issueKey);
-        reviewIssuesService.ReopenIssueAsync(issueKey, isTaint: true).Returns(false);
-
-        var result = await testSubject.ReopenTaintAsync(taintViewModel);
-
-        result.Should().BeFalse();
-        messageBox.Received(1).Show(
-            Resources.ReviewIssueWindow_ReviewFailureMessage,
-            Resources.ReviewIssueWindow_FailureTitle,
-            Arg.Any<MessageBoxButton>(),
-            MessageBoxImage.Error);
     }
 
     private static TaintViewModel CreateTaintViewModel(string issueKey)

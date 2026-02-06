@@ -348,4 +348,13 @@
   <data name="MuteIssue_WarningCaption" xml:space="preserve">
     <value>Mute Issue Warning</value>
   </data>
+  <data name="ReopenIssue_Success" xml:space="preserve">
+    <value>Issue {0} reopened</value>
+  </data>
+  <data name="ReopenIssue_FailureCaption" xml:space="preserve">
+    <value>Reopen Issue Failed</value>
+  </data>
+  <data name="ReopenIssue_AnErrorOccurred" xml:space="preserve">
+    <value>An error occurred while reopening the issue [issueKey: {0}]</value>
+  </data>
 </root>

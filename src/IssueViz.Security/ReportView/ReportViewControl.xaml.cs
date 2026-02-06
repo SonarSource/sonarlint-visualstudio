@@ -273,36 +273,7 @@ internal sealed partial class ReportViewControl : UserControl
         }
     }
 
-    private async void ChangeIssueStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            if (sender is not MenuItem { DataContext: IssueViewModel issueViewModel } ||
-                await IssuesReportViewModel.GetAllowedStatusesAsync(issueViewModel) is not { } allowedStatuses)
-            {
-                return;
-            }
-
-            var changeIssueStatusViewModel = new ChangeIssueStatusViewModel(null, allowedStatuses);
-
-            var response = changeStatusWindowService.Show(changeIssueStatusViewModel);
-
-            if (response.Result)
-            {
-                var newStatus = response.SelectedStatus.GetCurrentStatus<ResolutionStatus>();
-                await IssuesReportViewModel.ChangeIssueStatusAsync(
-                    issueViewModel,
-                    newStatus,
-                    changeIssueStatusViewModel.GetNormalizedComment());
-            }
-        }
-        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-        {
-            // suppress
-        }
-    }
-
-    private async void ReopenIssueMenuItem_OnClick(object sender, RoutedEventArgs e)
+    private void ChangeIssueStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
     {
         try
         {
@@ -311,7 +282,7 @@ internal sealed partial class ReportViewControl : UserControl
                 return;
             }
 
-            await IssuesReportViewModel.ReopenIssueAsync(issueViewModel);
+            IssuesReportViewModel.ResolveIssueWithDialog(issueViewModel);
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
@@ -319,23 +290,16 @@ internal sealed partial class ReportViewControl : UserControl
         }
     }
 
-    private async void ChangeTaintStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
+    private void ReopenIssueMenuItem_OnClick(object sender, RoutedEventArgs e)
     {
         try
         {
-            if (sender is not MenuItem { DataContext: TaintViewModel taintViewModel } ||
-                await TaintsReportViewModel.GetAllowedStatusesAsync(taintViewModel) is not { } allowedStatuses)
+            if (sender is not MenuItem { DataContext: IssueViewModel issueViewModel })
             {
                 return;
             }
 
-            var changeTaintStatusViewModel = new ChangeIssueStatusViewModel(null, allowedStatuses);
-            var response = changeStatusWindowService.Show(changeTaintStatusViewModel);
-            if (response.Result)
-            {
-                var newStatus = changeTaintStatusViewModel.SelectedStatusViewModel.GetCurrentStatus<ResolutionStatus>();
-                await TaintsReportViewModel.ChangeTaintStatusAsync(taintViewModel, newStatus, changeTaintStatusViewModel.GetNormalizedComment());
-            }
+            IssuesReportViewModel.ReopenIssue(issueViewModel);
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
@@ -343,7 +307,7 @@ internal sealed partial class ReportViewControl : UserControl
         }
     }
 
-    private async void ReopenTaintMenuItem_OnClick(object sender, RoutedEventArgs e)
+    private void ChangeTaintStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
     {
         try
         {
@@ -352,7 +316,24 @@ internal sealed partial class ReportViewControl : UserControl
                 return;
             }
 
-            await TaintsReportViewModel.ReopenTaintAsync(taintViewModel);
+            TaintsReportViewModel.ResolveIssueWithDialog(taintViewModel);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            // suppress
+        }
+    }
+
+    private void ReopenTaintMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is not MenuItem { DataContext: TaintViewModel taintViewModel })
+            {
+                return;
+            }
+
+            TaintsReportViewModel.ReopenIssue(taintViewModel);
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
