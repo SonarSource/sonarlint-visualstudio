@@ -18,12 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus
+using System.Diagnostics.CodeAnalysis;
+
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
+
+[ExcludeFromCodeCoverage]
+public class ChangeStatusWindowResponse
 {
-    public class ChangeStatusWindowResponse
-    {
-        public bool Result { get; set; }
-        public IStatusViewModel SelectedStatus { get; set; }
-        public string Comment { get; set; }
-    }
+    public bool Result { get; set; }
+    public IStatusViewModel SelectedStatus { get; set; }
+    public string Comment { get; set; }
 }

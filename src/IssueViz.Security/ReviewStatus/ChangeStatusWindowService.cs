@@ -25,28 +25,27 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using static SonarLint.VisualStudio.ConnectedMode.UI.WindowExtensions;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
+
+[Export(typeof(IChangeStatusWindowService))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+internal class ChangeStatusWindowService(
+    IActiveSolutionBoundTracker activeSolutionBoundTracker,
+    IBrowserService browserService) : IChangeStatusWindowService
 {
-    [Export(typeof(IChangeStatusWindowService))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    [method: ImportingConstructor]
-    internal class ChangeStatusWindowService(
-        IActiveSolutionBoundTracker activeSolutionBoundTracker,
-        IBrowserService browserService) : IChangeStatusWindowService
+    [ExcludeFromCodeCoverage]
+    public ChangeStatusWindowResponse Show(IChangeStatusViewModel viewModel)
     {
-        [ExcludeFromCodeCoverage]
-        public ChangeStatusWindowResponse Show(IChangeStatusViewModel viewModel)
+        var dialog = new ChangeStatusWindow(viewModel, browserService, activeSolutionBoundTracker);
+
+        var dialogResult = dialog.ShowDialog(Application.Current.MainWindow);
+
+        return new ChangeStatusWindowResponse
         {
-            var dialog = new ChangeStatusWindow(viewModel, browserService, activeSolutionBoundTracker);
-
-            var dialogResult = dialog.ShowDialog(Application.Current.MainWindow);
-
-            return new ChangeStatusWindowResponse
-            {
-                Result = dialogResult.GetValueOrDefault(),
-                SelectedStatus = viewModel.SelectedStatusViewModel,
-                Comment = viewModel.Comment
-            };
-        }
+            Result = dialogResult.GetValueOrDefault(),
+            SelectedStatus = viewModel.SelectedStatusViewModel,
+            Comment = viewModel.Comment
+        };
     }
 }
