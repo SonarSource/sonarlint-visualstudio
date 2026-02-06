@@ -329,7 +329,7 @@ internal sealed partial class ReportViewControl : UserControl
                 return;
             }
 
-            var changeTaintStatusViewModel = new ChangeTaintStatusViewModel(null, allowedStatuses);
+            var changeTaintStatusViewModel = new ChangeIssueStatusViewModel(null, allowedStatuses);
             var response = changeStatusWindowService.Show(changeTaintStatusViewModel);
             if (response.Result)
             {
