@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,24 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.ConnectedMode.Transition;
-using SonarLint.VisualStudio.Integration.Transition;
+using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Transition;
+namespace SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 
-[TestClass]
-public class StatusViewModelTests
+public interface IReviewIssuesService
 {
-    [TestMethod]
-    [DataRow(SonarQubeIssueTransition.FalsePositive, "false positive", "description1")]
-    [DataRow(SonarQubeIssueTransition.WontFix, "won't fix", "description2")]
-    [DataRow(SonarQubeIssueTransition.Accept, "accept", "description\ndescription2")]
-    public void Ctor_InitializesProperties(SonarQubeIssueTransition transition, string title, string description)
-    {
-        var testSubject = new StatusViewModel(transition, title, description);
+    Task<bool> ReviewIssueAsync(string issueKey, ResolutionStatus newStatus, string comment, bool isTaint = false);
 
-        testSubject.Transition.Should().Be(transition);
-        testSubject.Title.Should().Be(title);
-        testSubject.Description.Should().Be(description);
-    }
+    Task<IReviewIssuePermissionArgs> CheckReviewIssuePermittedAsync(string issueKey);
+
+    Task<bool> ReopenIssueAsync(string issueKey, bool isTaint = false);
 }
+
+public interface IReviewIssuePermissionArgs;
+
+public record ReviewIssuePermittedArgs(IEnumerable<ResolutionStatus> AllowedStatuses) : IReviewIssuePermissionArgs;
+public record ReviewIssueNotPermittedArgs(string Reason) : IReviewIssuePermissionArgs;

@@ -123,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                     return;
                 }
 
-                muteIssuesService.ResolveIssueWithDialog(issue);
+                muteIssuesService.ResolveIssueWithDialog(issue.IssueServerKey, false);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {

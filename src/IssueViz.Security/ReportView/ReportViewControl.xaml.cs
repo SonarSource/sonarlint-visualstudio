@@ -24,7 +24,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Navigation;
-using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
@@ -40,7 +40,6 @@ using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Issues;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
-using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 using HotspotViewModel = SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots.HotspotViewModel;
 
@@ -51,8 +50,8 @@ internal sealed partial class ReportViewControl : UserControl
 {
     public static readonly Uri ClearAllFiltersUri = new Uri("sonarlint://clearfilters");
 
-    private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly IBrowserService browserService;
+    private readonly IChangeStatusWindowService changeStatusWindowService;
 
     public ReportViewModel ReportViewModel { get; }
     public IHotspotsReportViewModel HotspotsReportViewModel { get; }
@@ -64,6 +63,7 @@ internal sealed partial class ReportViewControl : UserControl
     public ReportViewControl(
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IBrowserService browserService,
+        IChangeStatusWindowService changeStatusWindowService,
         IHotspotsReportViewModel hotspotsReportViewModel,
         IDependencyRisksReportViewModel dependencyRisksReportViewModel,
         ITaintsReportViewModel taintsReportViewModel,
@@ -80,8 +80,8 @@ internal sealed partial class ReportViewControl : UserControl
         IInitializationProcessorFactory initializationProcessorFactory,
         IFocusOnNewCodeServiceUpdater focusOnNewCodeServiceUpdater)
     {
-        this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.browserService = browserService;
+        this.changeStatusWindowService = changeStatusWindowService;
         HotspotsReportViewModel = hotspotsReportViewModel;
         DependencyRisksReportViewModel = dependencyRisksReportViewModel;
         TaintsReportViewModel = taintsReportViewModel;
@@ -155,17 +155,28 @@ internal sealed partial class ReportViewControl : UserControl
 
     private async void ChangeScaStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
     {
-        if (ReportViewModel.SelectedItem is not DependencyRiskViewModel selectedDependencyRiskViewModel)
+        try
         {
-            return;
-        }
+            if (ReportViewModel.SelectedItem is not DependencyRiskViewModel selectedDependencyRiskViewModel)
+            {
+                return;
+            }
 
-        var changeStatusViewModel = new ChangeDependencyRiskStatusViewModel(selectedDependencyRiskViewModel.DependencyRisk.Transitions);
-        var dialog = new ChangeStatusWindow(changeStatusViewModel, browserService, activeSolutionBoundTracker);
-        if (dialog.ShowDialog(Application.Current.MainWindow) is true)
+            var changeStatusViewModel = new ChangeDependencyRiskStatusViewModel(selectedDependencyRiskViewModel.DependencyRisk.Transitions);
+
+            var response = changeStatusWindowService.Show(changeStatusViewModel);
+
+            if (response.Result)
+            {
+                await DependencyRisksReportViewModel.ChangeDependencyRiskStatusAsync(
+                    selectedDependencyRiskViewModel.DependencyRisk,
+                    changeStatusViewModel.GetSelectedTransition(),
+                    changeStatusViewModel.GetNormalizedComment());
+            }
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            await DependencyRisksReportViewModel.ChangeDependencyRiskStatusAsync(selectedDependencyRiskViewModel.DependencyRisk, changeStatusViewModel.GetSelectedTransition(),
-                changeStatusViewModel.GetNormalizedComment());
+            // suppress
         }
     }
 
@@ -206,51 +217,121 @@ internal sealed partial class ReportViewControl : UserControl
 
     private async void ViewHotspotInBrowser_OnClick(object sender, RoutedEventArgs e)
     {
-        if (ReportViewModel.SelectedItem is HotspotViewModel hotspotViewModel)
+        try
         {
-            await HotspotsReportViewModel.ShowHotspotInBrowserAsync(hotspotViewModel.LocalHotspot);
+            if (ReportViewModel.SelectedItem is HotspotViewModel hotspotViewModel)
+            {
+                await HotspotsReportViewModel.ShowHotspotInBrowserAsync(hotspotViewModel.LocalHotspot);
+            }
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            // suppress
         }
     }
 
     private async void ChangeHotspotStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuItem { DataContext: HotspotViewModel hotspotViewModel } ||
-            await HotspotsReportViewModel.GetAllowedStatusesAsync(hotspotViewModel) is not { } allowedStatuses)
+        try
         {
-            return;
-        }
-
-        var changeHotspotStatusViewModel = new ChangeHotspotStatusViewModel(hotspotViewModel.LocalHotspot.HotspotStatus, allowedStatuses);
-        var dialog = new ChangeStatusWindow(changeHotspotStatusViewModel, browserService, activeSolutionBoundTracker);
-        if (dialog.ShowDialog(Application.Current.MainWindow) is true)
-        {
-            var newStatus = changeHotspotStatusViewModel.SelectedStatusViewModel.GetCurrentStatus<HotspotStatus>();
-            var wasChanged = await HotspotsReportViewModel.ChangeHotspotStatusAsync(hotspotViewModel, newStatus);
-            if (wasChanged && newStatus is HotspotStatus.Fixed or HotspotStatus.Safe)
+            if (sender is not MenuItem { DataContext: HotspotViewModel hotspotViewModel } ||
+                await HotspotsReportViewModel.GetAllowedStatusesAsync(hotspotViewModel) is not { } allowedStatuses)
             {
-                ReportViewModel.FilteredGroupViewModels.ToList().ForEach(vm => vm.AllIssues.Remove(hotspotViewModel));
+                return;
             }
+
+            var changeHotspotStatusViewModel = new ChangeHotspotStatusViewModel(
+                hotspotViewModel.LocalHotspot.HotspotStatus,
+                allowedStatuses);
+
+            var response = changeStatusWindowService.Show(changeHotspotStatusViewModel);
+
+            if (response.Result)
+            {
+                var newStatus = response.SelectedStatus.GetCurrentStatus<HotspotStatus>();
+                var wasChanged = await HotspotsReportViewModel.ChangeHotspotStatusAsync(
+                    hotspotViewModel,
+                    newStatus);
+
+                if (wasChanged && newStatus is HotspotStatus.Fixed or HotspotStatus.Safe)
+                {
+                    ReportViewModel.FilteredGroupViewModels.ToList()
+                        .ForEach(vm => vm.AllIssues.Remove(hotspotViewModel));
+                }
+            }
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            // suppress
         }
     }
 
     private void ChangeIssueStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuItem { DataContext: IssueViewModel issueViewModel })
+        try
         {
-            return;
-        }
+            if (sender is not MenuItem { DataContext: IssueViewModel issueViewModel })
+            {
+                return;
+            }
 
-        IssuesReportViewModel.ChangeStatus(issueViewModel.Issue);
+            IssuesReportViewModel.ResolveIssueWithDialog(issueViewModel);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            // suppress
+        }
+    }
+
+    private void ReopenIssueMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is not MenuItem { DataContext: IssueViewModel issueViewModel })
+            {
+                return;
+            }
+
+            IssuesReportViewModel.ReopenIssue(issueViewModel);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            // suppress
+        }
     }
 
     private void ChangeTaintStatusMenuItem_OnClick(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuItem { DataContext: TaintViewModel taintViewModel })
+        try
         {
-            return;
-        }
+            if (sender is not MenuItem { DataContext: TaintViewModel taintViewModel })
+            {
+                return;
+            }
 
-        TaintsReportViewModel.ChangeStatus(taintViewModel.Issue);
+            TaintsReportViewModel.ResolveIssueWithDialog(taintViewModel);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            // suppress
+        }
+    }
+
+    private void ReopenTaintMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (sender is not MenuItem { DataContext: TaintViewModel taintViewModel })
+            {
+                return;
+            }
+
+            TaintsReportViewModel.ReopenIssue(taintViewModel);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            // suppress
+        }
     }
 
     private void ViewTaintInBrowser_OnClick(object sender, RoutedEventArgs e)

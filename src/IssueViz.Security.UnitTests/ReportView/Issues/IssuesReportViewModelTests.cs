@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -121,13 +122,68 @@ public class IssuesReportViewModelTests
     }
 
     [TestMethod]
-    public void ChangeStatus_CallsServiceWithCorrectArgument()
+    public void ResolveIssueWithDialog_WithValidIssue_CallsMuteIssuesService()
     {
-        var issue = Substitute.For<IAnalysisIssueVisualization>();
+        var issueVm = CreateIssueViewModel("server-key-123");
 
-        testSubject.ChangeStatus(issue);
+        testSubject.ResolveIssueWithDialog(issueVm);
 
-        muteIssuesService.Received(1).ResolveIssueWithDialog(issue);
+        muteIssuesService.Received(1).ResolveIssueWithDialog("server-key-123", false);
+    }
+
+    [TestMethod]
+    public void ReopenIssue_WithValidIssue_CallsMuteIssuesService()
+    {
+        var issueVm = CreateIssueViewModel("server-key-456");
+
+        testSubject.ReopenIssue(issueVm);
+
+        muteIssuesService.Received(1).ReopenIssue("server-key-456", false);
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialog_WhenIssueServerKeyIsNull_DoesNotCallService()
+    {
+        var issueVm = CreateIssueViewModel(null);
+
+        testSubject.ResolveIssueWithDialog(issueVm);
+
+        muteIssuesService.DidNotReceive().ResolveIssueWithDialog(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
+    [TestMethod]
+    public void ReopenIssue_WhenIssueServerKeyIsNull_DoesNotCallService()
+    {
+        var issueVm = CreateIssueViewModel(null);
+
+        testSubject.ReopenIssue(issueVm);
+
+        muteIssuesService.DidNotReceive().ReopenIssue(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialog_WhenIssueViewModelIsNull_DoesNotCallService()
+    {
+        testSubject.ResolveIssueWithDialog(null);
+
+        muteIssuesService.DidNotReceive().ResolveIssueWithDialog(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
+    [TestMethod]
+    public void ReopenIssue_WhenIssueViewModelIsNull_DoesNotCallService()
+    {
+        testSubject.ReopenIssue(null);
+
+        muteIssuesService.DidNotReceive().ReopenIssue(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
+    private static IssueViewModel CreateIssueViewModel(string issueKey)
+    {
+        var analysisIssue = Substitute.For<IAnalysisIssue>();
+        analysisIssue.IssueServerKey.Returns(issueKey);
+        var issueVisualization = Substitute.For<IAnalysisIssueVisualization>();
+        issueVisualization.Issue.Returns(analysisIssue);
+        return new IssueViewModel(issueVisualization);
     }
 
     private static IAnalysisIssueVisualization CreateMockedIssue(string filePath)

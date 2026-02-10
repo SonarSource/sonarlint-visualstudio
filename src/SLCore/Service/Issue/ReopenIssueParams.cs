@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,14 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.ConnectedMode.Transition;
-using SonarLint.VisualStudio.Core.WPF;
+namespace SonarLint.VisualStudio.SLCore.Service.Issue;
 
-namespace SonarLint.VisualStudio.Integration.Transition;
-
-public class StatusViewModel(SonarQubeIssueTransition transition, string title, string description) : ViewModelBase
-{
-    public SonarQubeIssueTransition Transition { get; } = transition;
-    public string Title { get; } = title;
-    public string Description { get; } = description;
-}
+public record ReopenIssueParams(string configurationScopeId, string issueId, bool isTaintIssue);

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,24 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Suppressions
+using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
+using SonarLint.VisualStudio.TestInfrastructure;
+
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReviewStatus;
+
+[TestClass]
+public class ChangeStatusWindowServiceTests
 {
-    /// <summary>
-    /// Describes a single issue with the properties required for
-    /// it to be compared against server-side issues by the issues filter
-    /// </summary>
-    public interface IFilterableIssue
-    {
-        /// <summary>
-        /// The id of the issue that comes from SlCore
-        /// </summary>
-        Guid IssueId { get; }
-        string IssueServerKey { get; }
-        [Obsolete("Use SonarRuleId instead")]
-        string RuleId { get; }
-        SonarCompositeRuleId SonarRuleId { get; }
-        string FilePath { get; }
-        string LineHash { get; }
-        int? StartLine { get; }
-    }
+    [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<ChangeStatusWindowService, IChangeStatusWindowService>(
+            MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
+            MefTestHelpers.CreateExport<IBrowserService>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() =>
+        MefTestHelpers.CheckIsSingletonMefComponent<ChangeStatusWindowService>();
 }

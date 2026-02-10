@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,25 +18,34 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.ConnectedMode.Transition;
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Service.Issue;
 
-internal class MuteIssueException : Exception
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Issue;
+
+[TestClass]
+public class ReopenIssueResponseTests
 {
-    private MuteIssueException()
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void Deserialized_AsExpected(bool success)
     {
+        var expected = new ReopenIssueResponse(success);
+
+        var serialized = $$"""
+                          {
+                            success: {{success.ToString().ToLower()}}
+                          }
+                          """;
+
+        var actual = JsonConvert.DeserializeObject<ReopenIssueResponse>(serialized);
+
+        actual
+            .Should()
+            .BeEquivalentTo(expected,
+                options =>
+                    options
+                        .ComparingByMembers<ReopenIssueResponse>());
     }
-
-    public MuteIssueException(string message)
-        : base(message)
-    {
-    }
-
-    public MuteIssueException(Exception ex)
-        : base(ex.Message, ex.InnerException)
-    {
-    }
-
-    public class MuteIssueCancelledException : MuteIssueException;
-
-    public class MuteIssueCommentFailedException : MuteIssueException;
 }

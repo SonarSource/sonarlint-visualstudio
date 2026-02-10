@@ -174,9 +174,6 @@
   <data name="ReviewHotspotWindow_AcknowledgeTitle" xml:space="preserve">
     <value>Acknowledged</value>
   </data>
-  <data name="ReviewHotspotWindow_CancelButton" xml:space="preserve">
-    <value>Cancel</value>
-  </data>
   <data name="ReviewHotspotWindow_ReviewFailureMessage" xml:space="preserve">
     <value>An error occurred while reviewing the hotspot. The status has not been changed.
 Please check the logs for more details.</value>
@@ -203,11 +200,14 @@ Please check the logs for more details.</value>
   <data name="ReviewHotspotWindow_SafeTitle" xml:space="preserve">
     <value>Safe</value>
   </data>
-  <data name="ReviewHotspotWindow_SubmitButton" xml:space="preserve">
+  <data name="ChangeStatusWindow_Title" xml:space="preserve">
+    <value>Change Status on SonarQube (Server, Cloud)</value>
+  </data>
+  <data name="ChangeStatusWindow_SubmitButton" xml:space="preserve">
     <value>Submit</value>
   </data>
-  <data name="ReviewHotspotWindow_Title" xml:space="preserve">
-    <value>Change Security Hotspot Status on SonarQube (Server, Cloud)</value>
+  <data name="ChangeStatusWindow_CancelButton" xml:space="preserve">
+    <value>Cancel</value>
   </data>
   <data name="ReviewHotspotWindow_ToReviewContent" xml:space="preserve">
     <value>This security hotspot needs to be reviewed to assess whether the code poses a risk.</value>
@@ -452,5 +452,49 @@ Without Connected Mode, any code added or changed in the last 30 days is conside
   </data>
   <data name="ActivateFocusOnNewCodeTooltip" xml:space="preserve">
     <value>Activate Focus on New Code to view only new issues</value>
+  </data>
+  <data name="ReviewIssueService_AnErrorOccurred" xml:space="preserve">
+    <value>An error occurred while reviewing issue: {0}.</value>
+  </data>
+  <data name="ReviewIssueService_NotPermitted" xml:space="preserve">
+    <value>Reviewing issue was not permitted due to: {0}.</value>
+  </data>
+  <data name="ReviewIssueWindow_AcceptTitle" xml:space="preserve">
+    <value>Accept</value>
+  </data>
+  <data name="ReviewIssueWindow_AcceptContent" xml:space="preserve">
+    <value>This issue will not be fixed.</value>
+  </data>
+  <data name="ReviewIssueWindow_WontFixTitle" xml:space="preserve">
+    <value>Won't Fix</value>
+  </data>
+  <data name="ReviewIssueWindow_WontFixContent" xml:space="preserve">
+    <value>This issue won't be fixed as it is not relevant in this context.</value>
+  </data>
+  <data name="ReviewIssueWindow_FalsePositiveTitle" xml:space="preserve">
+    <value>False Positive</value>
+  </data>
+  <data name="ReviewIssueWindow_FalsePositiveContent" xml:space="preserve">
+    <value>This issue is a false alarm and can be ignored.</value>
+  </data>
+  <data name="ReviewIssueWindow_ReviewFailureMessage" xml:space="preserve">
+    <value>An error occurred while reviewing the issue. The status has not been changed.
+Please check the logs for more details.</value>
+  </data>
+  <data name="ReviewIssueWindow_CheckReviewPermittedFailureMessage" xml:space="preserve">
+    <value>The issue can not be reviewed due to the following error: {0}
+Please check the logs for more details.</value>
+  </data>
+  <data name="ReviewIssueWindow_NoStatusSelectedFailureMessage" xml:space="preserve">
+    <value>No status has been selected.</value>
+  </data>
+  <data name="ReviewIssueWindow_FailureTitle" xml:space="preserve">
+    <value>Review Issue Failure</value>
+  </data>
+  <data name="ReopenIssueMenuItem" xml:space="preserve">
+    <value>Reopen Issue</value>
+  </data>
+  <data name="ReopenTaintMenuItem" xml:space="preserve">
+    <value>Reopen Issue</value>
   </data>
 </root>

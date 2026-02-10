@@ -18,12 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.ConnectedMode.Transition
+using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
+using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
+
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Issues;
+
+[Export(typeof(IChangeIssueStatusViewModelFactory))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal class ChangeIssueStatusViewModelFactory : IChangeIssueStatusViewModelFactory
 {
-    public class MuteIssuesWindowResponse
-    {
-        public bool Result { get; set; }
-        public SonarQubeIssueTransition? IssueTransition { get; set; }
-        public string Comment { get; set; }
-    }
+    public IChangeStatusViewModel CreateForIssue(ResolutionStatus? currentStatus, IEnumerable<ResolutionStatus> allowedStatuses) => new ChangeIssueStatusViewModel(currentStatus,  allowedStatuses);
 }

@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel;
+using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 

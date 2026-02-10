@@ -177,6 +177,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
+        public static string ChangeStatusWindow_CancelButton {
+            get {
+                return ResourceManager.GetString("ChangeStatusWindow_CancelButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add a comment:.
         /// </summary>
         public static string ChangeStatusWindow_CommentLabel {
@@ -200,6 +209,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string ChangeStatusWindow_FormattingHelpLink {
             get {
                 return ResourceManager.GetString("ChangeStatusWindow_FormattingHelpLink", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Submit.
+        /// </summary>
+        public static string ChangeStatusWindow_SubmitButton {
+            get {
+                return ResourceManager.GetString("ChangeStatusWindow_SubmitButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Change Status on SonarQube (Server, Cloud).
+        /// </summary>
+        public static string ChangeStatusWindow_Title {
+            get {
+                return ResourceManager.GetString("ChangeStatusWindow_Title", resourceCulture);
             }
         }
         
@@ -628,6 +655,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reopen Issue.
+        /// </summary>
+        public static string ReopenIssueMenuItem {
+            get {
+                return ResourceManager.GetString("ReopenIssueMenuItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reopen Issue.
+        /// </summary>
+        public static string ReopenTaintMenuItem {
+            get {
+                return ResourceManager.GetString("ReopenTaintMenuItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Finding does not exist on the server..
         /// </summary>
         public static string ReportView_NotOnServerTooltip {
@@ -718,15 +763,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cancel.
-        /// </summary>
-        public static string ReviewHotspotWindow_CancelButton {
-            get {
-                return ResourceManager.GetString("ReviewHotspotWindow_CancelButton", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The hotspot can not be reviewed due to the following error: {0}
         ///Please check the logs for more details..
         /// </summary>
@@ -801,24 +837,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Submit.
-        /// </summary>
-        public static string ReviewHotspotWindow_SubmitButton {
-            get {
-                return ResourceManager.GetString("ReviewHotspotWindow_SubmitButton", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Change Security Hotspot Status on SonarQube (Server, Cloud).
-        /// </summary>
-        public static string ReviewHotspotWindow_Title {
-            get {
-                return ResourceManager.GetString("ReviewHotspotWindow_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to This security hotspot needs to be reviewed to assess whether the code poses a risk..
         /// </summary>
         public static string ReviewHotspotWindow_ToReviewContent {
@@ -833,6 +851,116 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         public static string ReviewHotspotWindow_ToReviewTitle {
             get {
                 return ResourceManager.GetString("ReviewHotspotWindow_ToReviewTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred while reviewing issue: {0}..
+        /// </summary>
+        public static string ReviewIssueService_AnErrorOccurred {
+            get {
+                return ResourceManager.GetString("ReviewIssueService_AnErrorOccurred", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reviewing issue was not permitted due to: {0}..
+        /// </summary>
+        public static string ReviewIssueService_NotPermitted {
+            get {
+                return ResourceManager.GetString("ReviewIssueService_NotPermitted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This issue will not be fixed..
+        /// </summary>
+        public static string ReviewIssueWindow_AcceptContent {
+            get {
+                return ResourceManager.GetString("ReviewIssueWindow_AcceptContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Accept.
+        /// </summary>
+        public static string ReviewIssueWindow_AcceptTitle {
+            get {
+                return ResourceManager.GetString("ReviewIssueWindow_AcceptTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The issue can not be reviewed due to the following error: {0}
+        ///Please check the logs for more details..
+        /// </summary>
+        public static string ReviewIssueWindow_CheckReviewPermittedFailureMessage {
+            get {
+                return ResourceManager.GetString("ReviewIssueWindow_CheckReviewPermittedFailureMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Review Issue Failure.
+        /// </summary>
+        public static string ReviewIssueWindow_FailureTitle {
+            get {
+                return ResourceManager.GetString("ReviewIssueWindow_FailureTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This issue is a false alarm and can be ignored..
+        /// </summary>
+        public static string ReviewIssueWindow_FalsePositiveContent {
+            get {
+                return ResourceManager.GetString("ReviewIssueWindow_FalsePositiveContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to False Positive.
+        /// </summary>
+        public static string ReviewIssueWindow_FalsePositiveTitle {
+            get {
+                return ResourceManager.GetString("ReviewIssueWindow_FalsePositiveTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No status has been selected..
+        /// </summary>
+        public static string ReviewIssueWindow_NoStatusSelectedFailureMessage {
+            get {
+                return ResourceManager.GetString("ReviewIssueWindow_NoStatusSelectedFailureMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred while reviewing the issue. The status has not been changed.
+        ///Please check the logs for more details..
+        /// </summary>
+        public static string ReviewIssueWindow_ReviewFailureMessage {
+            get {
+                return ResourceManager.GetString("ReviewIssueWindow_ReviewFailureMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This issue won&apos;t be fixed as it is not relevant in this context..
+        /// </summary>
+        public static string ReviewIssueWindow_WontFixContent {
+            get {
+                return ResourceManager.GetString("ReviewIssueWindow_WontFixContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Won&apos;t Fix.
+        /// </summary>
+        public static string ReviewIssueWindow_WontFixTitle {
+            get {
+                return ResourceManager.GetString("ReviewIssueWindow_WontFixTitle", resourceCulture);
             }
         }
         

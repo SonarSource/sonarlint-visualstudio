@@ -22,6 +22,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Initialization;
@@ -34,6 +35,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Issues;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
+using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
@@ -52,6 +54,7 @@ internal class ReportViewToolWindow : ToolWindowPane
         Content = new ReportViewControl(
             componentModel?.GetService<IActiveSolutionBoundTracker>(),
             componentModel?.GetService<IBrowserService>(),
+            componentModel?.GetService<IChangeStatusWindowService>(),
             componentModel?.GetService<IHotspotsReportViewModel>(),
             componentModel?.GetService<IDependencyRisksReportViewModel>(),
             componentModel?.GetService<ITaintsReportViewModel>(),

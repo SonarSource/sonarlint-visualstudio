@@ -18,15 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.ConnectedMode.Transition
+namespace SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
+
+public interface IStatusViewModel
 {
-    /// <summary>
-    /// Supported values for parameter `transition` of api/issues/do_transition
-    /// </summary>
-    public enum SonarQubeIssueTransition
-    {
-        FalsePositive,
-        WontFix,
-        Accept
-    }
+    string Title { get; }
+    string Description { get; }
+    bool IsCommentRequired { get; }
+
+    T GetCurrentStatus<T>() where T : struct, Enum;
 }

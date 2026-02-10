@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
@@ -129,13 +130,68 @@ public class TaintsReportViewModelTest
     }
 
     [TestMethod]
-    public void ChangeStatus_CallsServiceWithCorrectArgumentAndTaintFlag()
+    public void ResolveIssueWithDialog_WithValidTaint_CallsMuteIssuesService()
     {
-        var issue = Substitute.For<IAnalysisIssueVisualization>();
+        var taintVm = CreateTaintViewModel("taint-key-123");
 
-        testSubject.ChangeStatus(issue);
+        testSubject.ResolveIssueWithDialog(taintVm);
 
-        muteIssuesService.Received(1).ResolveIssueWithDialog(issue, isTaintIssue: true);
+        muteIssuesService.Received(1).ResolveIssueWithDialog("taint-key-123", true);
+    }
+
+    [TestMethod]
+    public void ReopenIssue_WithValidTaint_CallsMuteIssuesService()
+    {
+        var taintVm = CreateTaintViewModel("taint-key-456");
+
+        testSubject.ReopenIssue(taintVm);
+
+        muteIssuesService.Received(1).ReopenIssue("taint-key-456", true);
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialog_WhenIssueServerKeyIsNull_DoesNotCallService()
+    {
+        var taintVm = CreateTaintViewModel(null);
+
+        testSubject.ResolveIssueWithDialog(taintVm);
+
+        muteIssuesService.DidNotReceive().ResolveIssueWithDialog(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
+    [TestMethod]
+    public void ReopenIssue_WhenIssueServerKeyIsNull_DoesNotCallService()
+    {
+        var taintVm = CreateTaintViewModel(null);
+
+        testSubject.ReopenIssue(taintVm);
+
+        muteIssuesService.DidNotReceive().ReopenIssue(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialog_WhenTaintViewModelIsNull_DoesNotCallService()
+    {
+        testSubject.ResolveIssueWithDialog(null);
+
+        muteIssuesService.DidNotReceive().ResolveIssueWithDialog(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
+    [TestMethod]
+    public void ReopenIssue_WhenTaintViewModelIsNull_DoesNotCallService()
+    {
+        testSubject.ReopenIssue(null);
+
+        muteIssuesService.DidNotReceive().ReopenIssue(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
+    private static TaintViewModel CreateTaintViewModel(string issueKey)
+    {
+        var taintIssue = Substitute.For<ITaintIssue>();
+        taintIssue.IssueServerKey.Returns(issueKey);
+        var issueVisualization = Substitute.For<IAnalysisIssueVisualization>();
+        issueVisualization.Issue.Returns(taintIssue);
+        return new TaintViewModel(issueVisualization, true);
     }
 
     private static IAnalysisIssueVisualization CreateMockedTaint(string filePath)

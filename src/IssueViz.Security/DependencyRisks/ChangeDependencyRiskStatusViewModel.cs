@@ -42,8 +42,6 @@ internal class ChangeDependencyRiskStatusViewModel(IEnumerable<DependencyRiskTra
 
     public DependencyRiskTransition? GetSelectedTransition() => SelectedStatusViewModel?.GetCurrentStatus<DependencyRiskTransition>();
 
-    public string GetNormalizedComment() => string.IsNullOrWhiteSpace(Comment) ? null : Comment.Trim();
-
     private static List<StatusViewModel<DependencyRiskTransition>> GetAllowedStatuses(IEnumerable<DependencyRiskTransition> allowedStatuses) =>
         AllDependencyRiskStatusViewModels.Where(vm => allowedStatuses.Any(hotspotStatus => vm.GetCurrentStatus<DependencyRiskTransition>() == hotspotStatus)).ToList();
 }

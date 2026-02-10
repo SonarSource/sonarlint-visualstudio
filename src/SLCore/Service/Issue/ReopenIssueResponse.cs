@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,24 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.ConnectedMode.Transition;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.Transition;
-using SonarLint.VisualStudio.TestInfrastructure;
+namespace SonarLint.VisualStudio.SLCore.Service.Issue;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Transition
-{
-    [TestClass]
-    public class MuteIssuesWindowServiceTests
-    {
-        [TestMethod]
-        public void MefCtor_CheckIsExported() =>
-            MefTestHelpers.CheckTypeCanBeImported<MuteIssuesWindowService, IMuteIssuesWindowService>(
-                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
-                MefTestHelpers.CreateExport<IBrowserService>());
-
-        [TestMethod]
-        public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<MuteIssuesWindowService>();
-    }
-}
+public record ReopenIssueResponse(bool success);

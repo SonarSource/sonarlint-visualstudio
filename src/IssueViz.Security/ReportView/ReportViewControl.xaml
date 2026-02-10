@@ -470,14 +470,27 @@
             </Style>
             
             <Style x:Key="ChangeStatusMenuItemStyleDisableResolved" TargetType="MenuItem" BasedOn="{StaticResource ChangeStatusMenuItemStyle}">
-                <Setter Property="IsEnabled" Value="False"></Setter>
+                <Setter Property="Visibility" Value="Collapsed"></Setter>
                 <Style.Triggers>
                     <MultiDataTrigger>
                         <MultiDataTrigger.Conditions>
                             <Condition Binding="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu}}" Value="True" />
                             <Condition Binding="{Binding DataContext.IsResolved, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu}}" Value="False" />
                         </MultiDataTrigger.Conditions>
-                        <Setter Property="IsEnabled" Value="True"></Setter>
+                        <Setter Property="Visibility" Value="Visible"></Setter>
+                    </MultiDataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="ReopenIssueMenuItemStyle" TargetType="MenuItem" BasedOn="{StaticResource ChangeStatusMenuItemStyle}">
+                <Setter Property="Visibility" Value="Collapsed"></Setter>
+                <Style.Triggers>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding DataContext.IsServerIssue, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu}}" Value="True" />
+                            <Condition Binding="{Binding DataContext.IsResolved, RelativeSource={RelativeSource FindAncestor, AncestorType=ContextMenu}}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter Property="Visibility" Value="Visible"></Setter>
                     </MultiDataTrigger>
                 </Style.Triggers>
             </Style>
@@ -538,6 +551,9 @@
                 <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}"
                           Click="ChangeTaintStatusMenuItem_OnClick"
                           Style="{StaticResource ChangeStatusMenuItemStyleDisableResolved}"/>
+                <MenuItem Header="{x:Static res:Resources.ReopenTaintMenuItem}"
+                          Click="ReopenTaintMenuItem_OnClick"
+                          Style="{StaticResource ReopenIssueMenuItemStyle}"/>
                 <MenuItem Click="ViewTaintInBrowser_OnClick"
                           Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}"
@@ -556,6 +572,9 @@
                 <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}"
                           Click="ChangeIssueStatusMenuItem_OnClick"
                           Style="{StaticResource ChangeStatusMenuItemStyleDisableResolved}"/>
+                <MenuItem Header="{x:Static res:Resources.ReopenIssueMenuItem}"
+                          Click="ReopenIssueMenuItem_OnClick"
+                          Style="{StaticResource ReopenIssueMenuItemStyle}"/>
                 <MenuItem Click="ViewIssueInBrowser_OnClick"
                           Loaded="ShowMenuItemInBrowserMenuItem_OnLoaded"
                           Style="{StaticResource ViewIssueInBrowserMenuItemStyle}"

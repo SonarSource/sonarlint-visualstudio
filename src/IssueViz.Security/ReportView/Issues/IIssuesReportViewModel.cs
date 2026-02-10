@@ -20,13 +20,14 @@
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Issues;
-using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
+using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Issues;
 
@@ -36,7 +37,9 @@ internal interface IIssuesReportViewModel : IDisposable
     event EventHandler<ViewModelAnalysisIssuesChangedEventArgs> IssuesChanged;
 
     void ShowIssueInBrowser(IAnalysisIssue issue);
-    void ChangeStatus(IAnalysisIssueVisualization issue);
+
+    void ResolveIssueWithDialog(IssueViewModel issueViewModel);
+    void ReopenIssue(IssueViewModel issueViewModel);
 
     void ShowIssueVisualization();
 }
@@ -54,7 +57,25 @@ internal sealed class IssuesReportViewModel(
 
     public void ShowIssueInBrowser(IAnalysisIssue issue) => showInBrowserService.ShowIssue(issue.IssueServerKey);
 
-    public void ChangeStatus(IAnalysisIssueVisualization issue) => muteIssuesService.ResolveIssueWithDialog(issue);
+    public void ResolveIssueWithDialog(IssueViewModel issueViewModel)
+    {
+        if (issueViewModel?.Issue?.Issue?.IssueServerKey is not { } issueServerKey)
+        {
+            return;
+        }
+
+        muteIssuesService.ResolveIssueWithDialog(issueServerKey, isTaintIssue: false);
+    }
+
+    public void ReopenIssue(IssueViewModel issueViewModel)
+    {
+        if (issueViewModel?.Issue?.Issue?.IssueServerKey is not { } issueServerKey)
+        {
+            return;
+        }
+
+        muteIssuesService.ReopenIssue(issueServerKey, isTaintIssue: false);
+    }
 
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     public void ShowIssueVisualization() => ToolWindowNavigator.Instance.ShowIssueVisualizationToolWindow();

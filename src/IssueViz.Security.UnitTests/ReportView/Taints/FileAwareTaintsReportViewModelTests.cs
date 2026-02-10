@@ -18,11 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Issues.ReviewIssue;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
@@ -37,7 +39,9 @@ public class FileAwareTaintsReportViewModelTests
 {
     private IFileAwareTaintStore localTaintsStore;
     private IShowInBrowserService showInBrowserService;
+    private IReviewIssuesService reviewIssuesService;
     private IMuteIssuesService muteIssuesService;
+    private IMessageBox messageBox;
     private ITelemetryManager telemetryManager;
     private IThreadHandling threadHandling;
     private FileAwareTaintsReportViewModel testSubject;
@@ -47,7 +51,9 @@ public class FileAwareTaintsReportViewModelTests
     {
         localTaintsStore = Substitute.For<IFileAwareTaintStore>();
         showInBrowserService = Substitute.For<IShowInBrowserService>();
+        reviewIssuesService = Substitute.For<IReviewIssuesService>();
         muteIssuesService = Substitute.For<IMuteIssuesService>();
+        messageBox = Substitute.For<IMessageBox>();
         telemetryManager = Substitute.For<ITelemetryManager>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
 
@@ -106,6 +112,53 @@ public class FileAwareTaintsReportViewModelTests
                 && !args.AddedIssues.OfType<TaintViewModel>().Single().IsSolutionLevelTaintDisplay
                 && args.RemovedIssues.Single() == removedId));
         });
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialog_WithValidTaint_CallsMuteIssuesService()
+    {
+        var taintVm = CreateTaintViewModel("taint-key-789");
+
+        testSubject.ResolveIssueWithDialog(taintVm);
+
+        muteIssuesService.Received(1).ResolveIssueWithDialog("taint-key-789", true);
+    }
+
+    [TestMethod]
+    public void ReopenIssue_WithValidTaint_CallsMuteIssuesService()
+    {
+        var taintVm = CreateTaintViewModel("taint-key-abc");
+
+        testSubject.ReopenIssue(taintVm);
+
+        muteIssuesService.Received(1).ReopenIssue("taint-key-abc", true);
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialog_WhenIssueServerKeyIsNull_DoesNotCallService()
+    {
+        var taintVm = CreateTaintViewModel(null);
+
+        testSubject.ResolveIssueWithDialog(taintVm);
+
+        muteIssuesService.DidNotReceive().ResolveIssueWithDialog(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
+    [TestMethod]
+    public void ReopenIssue_WhenTaintViewModelIsNull_DoesNotCallService()
+    {
+        testSubject.ReopenIssue(null);
+
+        muteIssuesService.DidNotReceive().ReopenIssue(Arg.Any<string>(), Arg.Any<bool>());
+    }
+
+    private static TaintViewModel CreateTaintViewModel(string issueKey)
+    {
+        var taintIssue = Substitute.For<ITaintIssue>();
+        taintIssue.IssueServerKey.Returns(issueKey);
+        var issueVisualization = Substitute.For<IAnalysisIssueVisualization>();
+        issueVisualization.Issue.Returns(taintIssue);
+        return new TaintViewModel(issueVisualization);
     }
 
     private static IAnalysisIssueVisualization CreateMockedTaint(string filePath)

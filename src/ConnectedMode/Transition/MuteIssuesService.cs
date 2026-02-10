@@ -21,13 +21,9 @@
 using System.ComponentModel.Composition;
 using System.Windows;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
-using SonarLint.VisualStudio.Core.Suppressions;
-using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.SLCore;
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Service.Issue;
 using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Transition;
@@ -36,9 +32,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Transition;
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
 internal class MuteIssuesService(
-    IMuteIssuesWindowService muteIssuesWindowService,
+    IChangeStatusWindowService changeStatusWindowService,
+    IReviewIssuesService reviewIssuesService,
+    IChangeIssueStatusViewModelFactory changeIssueStatusViewModelFactory,
     IActiveConfigScopeTracker activeConfigScopeTracker,
-    ISLCoreServiceProvider slCoreServiceProvider,
     IMessageBox messageBox,
     ILogger logger,
     IThreadHandling threadHandling)
@@ -46,153 +43,139 @@ internal class MuteIssuesService(
 {
     private readonly ILogger logger = logger.ForContext(nameof(MuteIssuesService));
 
-    public void ResolveIssueWithDialog(IFilterableIssue issue, bool isTaintIssue = false) =>
+    public void ResolveIssueWithDialog(string issueServerKey, bool isTaintIssue) =>
         threadHandling.RunOnBackgroundThread(async () =>
         {
             try
             {
-                await ResolveIssueWithDialogAsync(issue, isTaintIssue);
-                logger.WriteLine(Resources.MuteIssue_HaveMuted);
+                if (await ResolveIssueWithDialogAsync(issueServerKey, isTaintIssue))
+                {
+                    logger.WriteLine(Resources.MuteIssue_HaveMuted);
+                }
             }
-            catch (MuteIssueException.MuteIssueCommentFailedException)
+            catch (Exception ex)
             {
-                messageBox.Show(Resources.MuteIssue_MessageBox_AddCommentFailed, Resources.MuteIssue_WarningCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
-            catch (MuteIssueException.MuteIssueCancelledException)
-            {
-                // do nothing
-            }
-            catch (MuteIssueException ex)
-            {
-                messageBox.Show(ex.Message, Resources.MuteIssue_FailureCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                logger.WriteLine(ex.ToString());
+                Show(Resources.MuteIssue_FailedError);
             }
         }).Forget();
 
-    private async Task ResolveIssueWithDialogAsync(IFilterableIssue issue, bool isTaintIssue)
-    {
-        var issueServerKey = GetIssueServerKey(issue);
-        var currentConfigScope = activeConfigScopeTracker.Current;
-        CheckIsInConnectedMode(currentConfigScope);
-        CheckIssueServerKeyNotNullOrEmpty(issueServerKey);
-
-        var allowedStatuses = await GetAllowedStatusesAsync(currentConfigScope.ConnectionId, issueServerKey);
-        var windowResponse = await PromptMuteIssueResolutionAsync(allowedStatuses);
-        await MuteIssueAsync(currentConfigScope.Id, issueServerKey, windowResponse.IssueTransition.Value, isTaintIssue);
-        await AddCommentAsync(currentConfigScope.Id, issueServerKey, windowResponse.Comment);
-    }
-
-    private static string GetIssueServerKey(IFilterableIssue issue) =>
-        ((IAnalysisIssueVisualization)issue).Issue.IssueServerKey;
-
-    private async Task<MuteIssuesWindowResponse> PromptMuteIssueResolutionAsync(IEnumerable<ResolutionStatus> allowedStatuses)
-    {
-        MuteIssuesWindowResponse windowResponse = null;
-        var allowedTransitions = allowedStatuses.Select(s => s.ToSonarQubeIssueTransition());
-        await threadHandling.RunOnUIThreadAsync(() => windowResponse = muteIssuesWindowService.Show(allowedTransitions));
-
-        if (windowResponse.Result)
+    public void ReopenIssue(string issueServerKey, bool isTaintIssue) =>
+        threadHandling.RunOnBackgroundThread(async () =>
         {
-            return windowResponse;
+            try
+            {
+                if (await ReopenIssueAsync(issueServerKey, isTaintIssue))
+                {
+                    logger.WriteLine(Resources.ReopenIssue_Success);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.WriteLine(ex.ToString());
+                Show(Resources.MuteIssue_FailedError);
+            }
+        }).Forget();
+
+    private async Task<bool> ResolveIssueWithDialogAsync(string issueServerKey, bool isTaintIssue)
+    {
+        var currentConfigScope = activeConfigScopeTracker.Current;
+        if (!CheckIsInConnectedMode(currentConfigScope) || !CheckIssueServerKeyNotNullOrEmpty(issueServerKey))
+        {
+            return false;
         }
 
-        throw new MuteIssueException.MuteIssueCancelledException();
+        var allowedStatuses = await GetAllowedStatusesAsync(issueServerKey);
+        if (allowedStatuses is { Count: 0 })
+        {
+            return false;
+        }
+
+        var promptMuteIssueResolutionAsync = await PromptMuteIssueResolutionAsync(allowedStatuses);
+        if (promptMuteIssueResolutionAsync is null)
+        {
+            return false;
+        }
+
+        var (status, comment) = promptMuteIssueResolutionAsync!.Value;
+        return await reviewIssuesService.ReviewIssueAsync(
+            issueServerKey,
+            status,
+            comment,
+            isTaintIssue);
     }
 
-    private void CheckIssueServerKeyNotNullOrEmpty(string issueServerKey)
+    private async Task<(ResolutionStatus status, string comment)?> PromptMuteIssueResolutionAsync(
+        IEnumerable<ResolutionStatus> allowedStatuses)
     {
-        if (issueServerKey is { Length: > 0 })
+        ChangeStatusWindowResponse windowResponse = null;
+        var viewModel = changeIssueStatusViewModelFactory.CreateForIssue(null, allowedStatuses);
+
+        await threadHandling.RunOnUIThreadAsync(() =>
+            windowResponse = changeStatusWindowService.Show(viewModel));
+
+        if (!windowResponse.Result)
         {
-            return;
+            return null;
+        }
+
+        var selectedStatus = windowResponse.SelectedStatus.GetCurrentStatus<ResolutionStatus>();
+        var normalizedComment = viewModel.GetNormalizedComment();
+
+        return (selectedStatus, normalizedComment);
+    }
+
+    private bool CheckIssueServerKeyNotNullOrEmpty(string issueServerKey)
+    {
+        if (!string.IsNullOrWhiteSpace(issueServerKey))
+        {
+            return true;
         }
 
         logger.WriteLine(Resources.MuteIssue_IssueNotFound);
-        throw new MuteIssueException(Resources.MuteIssue_IssueNotFound);
+        Show(Resources.MuteIssue_IssueNotFound);
+        return false;
     }
 
-    private void CheckIsInConnectedMode(Core.ConfigurationScope.ConfigurationScope currentConfigScope)
+    private bool CheckIsInConnectedMode(Core.ConfigurationScope.ConfigurationScope currentConfigScope)
     {
         if (currentConfigScope is { Id: not null, ConnectionId: not null })
         {
-            return;
+            return true;
         }
 
         logger.WriteLine(Resources.MuteIssue_NotInConnectedMode);
-        throw new MuteIssueException(Resources.MuteIssue_NotInConnectedMode);
+        Show(Resources.MuteIssue_NotInConnectedMode);
+        return false;
     }
 
-    private IIssueSLCoreService GetIssueSlCoreService()
+    private async Task<List<ResolutionStatus>> GetAllowedStatusesAsync(string issueServerKey)
     {
-        if (slCoreServiceProvider.TryGetTransientService(out IIssueSLCoreService issueSlCoreService))
-        {
-            return issueSlCoreService;
-        }
+        var permissionArgs = await reviewIssuesService.CheckReviewIssuePermittedAsync(issueServerKey);
 
-        logger.WriteLine(SLCoreStrings.ServiceProviderNotInitialized);
-        throw new MuteIssueException(SLCoreStrings.ServiceProviderNotInitialized);
+        switch (permissionArgs)
+        {
+            case ReviewIssuePermittedArgs permitted:
+                return permitted.AllowedStatuses.ToList();
+            case ReviewIssueNotPermittedArgs notPermitted:
+                logger.WriteLine(Resources.MuteIssue_NotPermitted, issueServerKey, notPermitted.Reason);
+                Show(string.Format(Resources.MuteIssue_NotPermitted, issueServerKey, notPermitted.Reason));
+                return [];
+            default:
+                throw new InvalidOperationException("Unknown permissions status");
+        }
     }
 
-    private async Task<List<ResolutionStatus>> GetAllowedStatusesAsync(string connectionId, string issueServerKey)
+    private async Task<bool> ReopenIssueAsync(string issueServerKey, bool isTaintIssue)
     {
-        CheckStatusChangePermittedResponse response;
-        try
+        var currentConfigScope = activeConfigScopeTracker.Current;
+        if (CheckIsInConnectedMode(currentConfigScope) && CheckIssueServerKeyNotNullOrEmpty(issueServerKey))
         {
-            var issueSlCoreService = GetIssueSlCoreService();
-            var checkStatusChangePermittedParams = new CheckStatusChangePermittedParams(connectionId, issueServerKey);
-            response = await issueSlCoreService.CheckStatusChangePermittedAsync(checkStatusChangePermittedParams);
-        }
-        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-        {
-            logger.WriteLine(Resources.MuteIssue_AnErrorOccurred, issueServerKey, ex.Message);
-            throw new MuteIssueException(ex);
+            return await reviewIssuesService.ReopenIssueAsync(issueServerKey, isTaintIssue);
         }
 
-        if (!response.permitted)
-        {
-            logger.WriteLine(Resources.MuteIssue_NotPermitted, issueServerKey, response.notPermittedReason);
-            throw new MuteIssueException(response.notPermittedReason);
-        }
-
-        return response.allowedStatuses;
+        return false;
     }
 
-    private async Task MuteIssueAsync(
-        string configurationScopeId,
-        string issueServerKey,
-        SonarQubeIssueTransition transition,
-        bool isTaintIssue)
-    {
-        try
-        {
-            var issueSlCoreService = GetIssueSlCoreService();
-            await issueSlCoreService.ChangeStatusAsync(new ChangeIssueStatusParams
-            (
-                configurationScopeId,
-                issueServerKey,
-                transition.ToSlCoreResolutionStatus(),
-                isTaintIssue
-            ));
-        }
-        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-        {
-            logger.WriteLine(Resources.MuteIssue_AnErrorOccurred, issueServerKey, ex.Message);
-            throw new MuteIssueException(ex);
-        }
-    }
-
-    private async Task AddCommentAsync(string configurationScopeId, string issueServerKey, string comment)
-    {
-        try
-        {
-            var issueSlCoreService = GetIssueSlCoreService();
-            if (comment?.Trim() is { Length: > 0 })
-            {
-                await issueSlCoreService.AddCommentAsync(new AddIssueCommentParams(configurationScopeId, issueServerKey, comment));
-            }
-        }
-        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-        {
-            logger.WriteLine(Resources.MuteIssue_AddCommentFailed, issueServerKey, ex.Message);
-            throw new MuteIssueException.MuteIssueCommentFailedException();
-        }
-    }
+    private void Show(string reason) => messageBox.Show(reason, Resources.MuteIssue_StatusChangeFailure, MessageBoxButton.OK, MessageBoxImage.Exclamation);
 }

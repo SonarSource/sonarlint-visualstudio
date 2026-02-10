@@ -33,4 +33,6 @@ public interface IIssueSLCoreService : ISLCoreService
     Task<CheckStatusChangePermittedResponse> CheckStatusChangePermittedAsync(CheckStatusChangePermittedParams parameters);
 
     Task AddCommentAsync(AddIssueCommentParams parameters);
+
+    Task<ReopenIssueResponse> ReopenIssueAsync(ReopenIssueParams parameters);
 }

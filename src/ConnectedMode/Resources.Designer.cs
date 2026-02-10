@@ -429,11 +429,11 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Mute Issue Failure.
+        ///   Looks up a localized string similar to An error occurred while changing status of the issue. Check logs for more information..
         /// </summary>
-        internal static string MuteIssue_FailureCaption {
+        internal static string MuteIssue_FailedError {
             get {
-                return ResourceManager.GetString("MuteIssue_FailureCaption", resourceCulture);
+                return ResourceManager.GetString("MuteIssue_FailedError", resourceCulture);
             }
         }
         
@@ -456,15 +456,6 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Issue is resolved but an error occured while adding the comment, please refer to the logs for more information..
-        /// </summary>
-        internal static string MuteIssue_MessageBox_AddCommentFailed {
-            get {
-                return ResourceManager.GetString("MuteIssue_MessageBox_AddCommentFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Issue muting is only supported in connected mode.
         /// </summary>
         internal static string MuteIssue_NotInConnectedMode {
@@ -483,11 +474,11 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Mute Issue Warning.
+        ///   Looks up a localized string similar to Issue Status Change Failure.
         /// </summary>
-        internal static string MuteIssue_WarningCaption {
+        internal static string MuteIssue_StatusChangeFailure {
             get {
-                return ResourceManager.GetString("MuteIssue_WarningCaption", resourceCulture);
+                return ResourceManager.GetString("MuteIssue_StatusChangeFailure", resourceCulture);
             }
         }
         
@@ -551,6 +542,15 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         internal static string PromoteSonarQubeCloud {
             get {
                 return ResourceManager.GetString("PromoteSonarQubeCloud", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Issue {0} reopened.
+        /// </summary>
+        internal static string ReopenIssue_Success {
+            get {
+                return ResourceManager.GetString("ReopenIssue_Success", resourceCulture);
             }
         }
         

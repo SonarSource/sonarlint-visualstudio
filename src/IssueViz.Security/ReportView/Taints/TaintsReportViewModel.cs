@@ -36,7 +36,8 @@ internal interface ITaintsReportViewModel : IDisposable
 
     void ShowIssueVisualization();
 
-    void ChangeStatus(IAnalysisIssueVisualization issue);
+    void ResolveIssueWithDialog(TaintViewModel taintViewModel);
+    void ReopenIssue(TaintViewModel taintViewModel);
 
     IEnumerable<IIssueViewModel> GetIssueViewModels();
 
@@ -62,7 +63,25 @@ internal abstract class TaintsReportViewModelBase(
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     public void ShowIssueVisualization() => ToolWindowNavigator.Instance.ShowIssueVisualizationToolWindow();
 
-    public void ChangeStatus(IAnalysisIssueVisualization issue) => muteIssuesService.ResolveIssueWithDialog(issue, isTaintIssue: true);
+    public void ResolveIssueWithDialog(TaintViewModel taintViewModel)
+    {
+        if (taintViewModel?.TaintIssue?.IssueServerKey is not { } issueServerKey)
+        {
+            return;
+        }
+
+        muteIssuesService.ResolveIssueWithDialog(issueServerKey, isTaintIssue: true);
+    }
+
+    public void ReopenIssue(TaintViewModel taintViewModel)
+    {
+        if (taintViewModel?.TaintIssue?.IssueServerKey is not { } issueServerKey)
+        {
+            return;
+        }
+
+        muteIssuesService.ReopenIssue(issueServerKey, isTaintIssue: true);
+    }
 
     public IEnumerable<IIssueViewModel> GetIssueViewModels() => taintsStore.GetAll().Select(CreateViewModel);
 }

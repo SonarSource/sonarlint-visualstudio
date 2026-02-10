@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -21,28 +21,32 @@
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
-using SonarLint.VisualStudio.ConnectedMode.Transition;
+using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using static SonarLint.VisualStudio.ConnectedMode.UI.WindowExtensions;
 
-namespace SonarLint.VisualStudio.Integration.Transition
-{
-    [Export(typeof(IMuteIssuesWindowService))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    [method: ImportingConstructor]
-    internal class MuteIssuesWindowService(IActiveSolutionBoundTracker activeSolutionBoundTracker, IBrowserService browserService) : IMuteIssuesWindowService
-    {
-        [ExcludeFromCodeCoverage]
-        public MuteIssuesWindowResponse Show(IEnumerable<SonarQubeIssueTransition> allowedTransitions)
-        {
-            var dialog = new MuteWindowDialog(activeSolutionBoundTracker, browserService, allowedTransitions) { Owner = Application.Current.MainWindow };
-            var dialogResult = dialog.ShowDialog(Application.Current.MainWindow);
+namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 
-            return new MuteIssuesWindowResponse
-            {
-                Result = dialogResult.GetValueOrDefault(), IssueTransition = dialog.ViewModel.SelectedStatusViewModel?.Transition, Comment = dialog.ViewModel?.Comment
-            };
-        }
+[Export(typeof(IChangeStatusWindowService))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+internal class ChangeStatusWindowService(
+    IActiveSolutionBoundTracker activeSolutionBoundTracker,
+    IBrowserService browserService) : IChangeStatusWindowService
+{
+    [ExcludeFromCodeCoverage]
+    public ChangeStatusWindowResponse Show(IChangeStatusViewModel viewModel)
+    {
+        var dialog = new ChangeStatusWindow(viewModel, browserService, activeSolutionBoundTracker);
+
+        var dialogResult = dialog.ShowDialog(Application.Current.MainWindow);
+
+        return new ChangeStatusWindowResponse
+        {
+            Result = dialogResult.GetValueOrDefault(),
+            SelectedStatus = viewModel.SelectedStatusViewModel,
+            Comment = viewModel.Comment
+        };
     }
 }

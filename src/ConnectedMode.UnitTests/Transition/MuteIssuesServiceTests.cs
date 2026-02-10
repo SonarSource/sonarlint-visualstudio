@@ -19,16 +19,14 @@
  */
 
 using System.Windows;
-using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReturnsExtensions;
+using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.SLCore;
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Service.Issue;
 using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -41,42 +39,38 @@ public class MuteIssuesServiceTests
     private readonly IAnalysisIssueVisualization nonRoslynIssue = Substitute.For<IAnalysisIssueVisualization>();
 
     private MuteIssuesService testSubject;
-    private IMuteIssuesWindowService muteIssuesWindowService;
+    private IChangeStatusWindowService changeStatusWindowService;
+    private IReviewIssuesService reviewIssuesService;
+    private IChangeIssueStatusViewModelFactory changeIssueStatusViewModelFactory;
     private IActiveConfigScopeTracker activeConfigScopeTracker;
-    private ISLCoreServiceProvider slCoreServiceProvider;
     private IMessageBox messageBox;
     private TestLogger logger;
     private IThreadHandling threadHandling;
-    private IIssueSLCoreService issueSlCoreService;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        muteIssuesWindowService = Substitute.For<IMuteIssuesWindowService>();
+        changeStatusWindowService = Substitute.For<IChangeStatusWindowService>();
+        reviewIssuesService = Substitute.For<IReviewIssuesService>();
+        changeIssueStatusViewModelFactory = Substitute.For<IChangeIssueStatusViewModelFactory>();
         activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
-        slCoreServiceProvider = Substitute.For<ISLCoreServiceProvider>();
         logger = Substitute.ForPartsOf<TestLogger>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         messageBox = Substitute.For<IMessageBox>();
-        issueSlCoreService = Substitute.For<IIssueSLCoreService>();
-        testSubject = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, messageBox, logger,
+        testSubject = new MuteIssuesService(changeStatusWindowService, reviewIssuesService, changeIssueStatusViewModelFactory, activeConfigScopeTracker, messageBox, logger,
             threadHandling);
 
         MockNonRoslynIssue();
         activeConfigScopeTracker.Current.Returns(new Core.ConfigurationScope.ConfigurationScope("CONFIG_SCOPE_ID", RootPath: "C:\\", ConnectionId: "CONNECTION_ID"));
-        slCoreServiceProvider.TryGetTransientService(out IIssueSLCoreService _).Returns(call =>
-        {
-            call[0] = issueSlCoreService;
-            return true;
-        });
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<MuteIssuesService, IMuteIssuesService>(
-            MefTestHelpers.CreateExport<IMuteIssuesWindowService>(),
+            MefTestHelpers.CreateExport<IChangeStatusWindowService>(),
+            MefTestHelpers.CreateExport<IReviewIssuesService>(),
+            MefTestHelpers.CreateExport<IChangeIssueStatusViewModelFactory>(),
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
-            MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
             MefTestHelpers.CreateExport<IMessageBox>(),
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
@@ -91,218 +85,316 @@ public class MuteIssuesServiceTests
     }
 
     [TestMethod]
-    [DataRow(null)]
-    [DataRow("")]
-    public void ResolveIssueWithDialog_WhenIssueServerKeyIsNull_LogsAndShowsMessageBox(string issueServerKey)
+    [DataRow(null, true)]
+    [DataRow(null, false)]
+    [DataRow("", true)]
+    [DataRow("", false)]
+    public void ResolveIssueWithDialog_WhenIssueServerKeyIsNull_LogsAndShowsMessageBox(string issueServerKey, bool isTaint)
     {
-        nonRoslynIssue.Issue.IssueServerKey.Returns(issueServerKey);
-
-        testSubject.ResolveIssueWithDialog(nonRoslynIssue);
+        testSubject.ResolveIssueWithDialog(issueServerKey, isTaint);
 
         AssertMessageBoxShown(Resources.MuteIssue_IssueNotFound);
         logger.AssertPartialOutputStrings(Resources.MuteIssue_IssueNotFound);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenConfigScopeIsNotSet_LogsAndShowsMessageBox()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenConfigScopeIsNotSet_LogsAndShowsMessageBox(bool isTaint)
     {
         activeConfigScopeTracker.Current.ReturnsNull();
 
-        testSubject.ResolveIssueWithDialog(nonRoslynIssue);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
         AssertMessageBoxShown(Resources.MuteIssue_NotInConnectedMode);
         logger.AssertPartialOutputStrings(Resources.MuteIssue_NotInConnectedMode);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenNotInConnectedMode_LogsAndShowsMessageBox()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenNotInConnectedMode_LogsAndShowsMessageBox(bool isTaint)
     {
         NotInConnectedMode();
 
-        testSubject.ResolveIssueWithDialog(nonRoslynIssue);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
         AssertMessageBoxShown(Resources.MuteIssue_NotInConnectedMode);
         logger.AssertPartialOutputStrings(Resources.MuteIssue_NotInConnectedMode);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenServiceProviderNotInitialized_LogsAndShowsMessageBox()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenServiceProviderNotInitialized_LogsAndShowsMessageBox(bool isTaint)
     {
-        ServiceProviderNotInitialized();
+        reviewIssuesService.CheckReviewIssuePermittedAsync(AnIssueServerKey)
+            .Returns(Task.FromResult<IReviewIssuePermissionArgs>(new ReviewIssueNotPermittedArgs(SLCoreStrings.ServiceProviderNotInitialized)));
 
-        testSubject.ResolveIssueWithDialog(nonRoslynIssue);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
-        AssertMessageBoxShown(SLCoreStrings.ServiceProviderNotInitialized);
-        logger.AssertPartialOutputStringExists(SLCoreStrings.ServiceProviderNotInitialized);
+        AssertMessageBoxShown(string.Format(Resources.MuteIssue_NotPermitted, AnIssueServerKey, SLCoreStrings.ServiceProviderNotInitialized));
+        logger.AssertPartialOutputStringExists(string.Format(Resources.MuteIssue_NotPermitted, AnIssueServerKey, SLCoreStrings.ServiceProviderNotInitialized));
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenFailedToGetAllowedStatuses_LogsAndShowsMessageBox()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenFailedToGetAllowedStatuses_LogsAndShowsMessageBox(bool isTaint)
     {
-        issueSlCoreService.CheckStatusChangePermittedAsync(Arg.Any<CheckStatusChangePermittedParams>()).ThrowsAsync(_ => throw new Exception("Some error"));
+        reviewIssuesService.CheckReviewIssuePermittedAsync(AnIssueServerKey)
+            .Returns(Task.FromResult<IReviewIssuePermissionArgs>(new ReviewIssueNotPermittedArgs("Some error")));
 
-        testSubject.ResolveIssueWithDialog(nonRoslynIssue);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
-        AssertMessageBoxShown("Some error");
-        logger.AssertPartialOutputStrings("Some error");
+        AssertMessageBoxShown(string.Format(Resources.MuteIssue_NotPermitted, AnIssueServerKey, "Some error"));
+        logger.AssertPartialOutputStrings(string.Format(Resources.MuteIssue_NotPermitted, AnIssueServerKey, "Some error"));
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenNotPermitted_LogsAndShowsMessageBoxWithReason()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenNotPermitted_LogsAndShowsMessageBoxWithReason(bool isTaint)
     {
-        var notPermittedResponse = new CheckStatusChangePermittedResponse(permitted: false, notPermittedReason: "Some reason", allowedStatuses: []);
-        issueSlCoreService.CheckStatusChangePermittedAsync(Arg.Any<CheckStatusChangePermittedParams>()).Returns(notPermittedResponse);
+        reviewIssuesService.CheckReviewIssuePermittedAsync(AnIssueServerKey)
+            .Returns(Task.FromResult<IReviewIssuePermissionArgs>(new ReviewIssueNotPermittedArgs("Some reason")));
 
-        testSubject.ResolveIssueWithDialog(nonRoslynIssue);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
-        AssertMessageBoxShown("Some reason");
+        AssertMessageBoxShown(string.Format(Resources.MuteIssue_NotPermitted, AnIssueServerKey, "Some reason"));
         logger.AssertPartialOutputStrings(string.Format(Resources.MuteIssue_NotPermitted, AnIssueServerKey, "Some reason"));
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenValidationsArePassed_GetsAllowedStatuses()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenValidationsArePassed_GetsAllowedStatuses(bool isTaint)
     {
         MuteIssuePermitted();
 
-        testSubject.ResolveIssueWithDialog(nonRoslynIssue);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
-        issueSlCoreService.Received().CheckStatusChangePermittedAsync(Arg.Is<CheckStatusChangePermittedParams>(x =>
-            x.connectionId == "CONNECTION_ID"
-            && x.issueKey == AnIssueServerKey));
+        reviewIssuesService.Received().CheckReviewIssuePermittedAsync(AnIssueServerKey);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenWindowResponseResultIsFalse_Cancels()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenWindowResponseResultIsFalse_Cancels(bool isTaint)
     {
         MuteIssuePermitted();
         CancelResolutionStatusWindow();
 
-        testSubject.ResolveIssueWithDialog(nonRoslynIssue);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
-        issueSlCoreService.DidNotReceiveWithAnyArgs().ChangeStatusAsync(default);
-        issueSlCoreService.DidNotReceiveWithAnyArgs().AddCommentAsync(default);
+        reviewIssuesService.DidNotReceiveWithAnyArgs().ReviewIssueAsync(default, default, default, default);
     }
 
     [TestMethod]
-    [DataRow(ResolutionStatus.ACCEPT, SonarQubeIssueTransition.Accept)]
-    [DataRow(ResolutionStatus.WONT_FIX, SonarQubeIssueTransition.WontFix)]
-    [DataRow(ResolutionStatus.FALSE_POSITIVE, SonarQubeIssueTransition.FalsePositive)]
-    public void ResolveIssueWithDialog_WhenWindowResponseResultIsTrue_ShouldMuteIssue(ResolutionStatus resolutionStatus, SonarQubeIssueTransition transition)
+    [DataRow(ResolutionStatus.ACCEPT, true)]
+    [DataRow(ResolutionStatus.ACCEPT, false)]
+    [DataRow(ResolutionStatus.WONT_FIX, true)]
+    [DataRow(ResolutionStatus.WONT_FIX, false)]
+    [DataRow(ResolutionStatus.FALSE_POSITIVE, true)]
+    [DataRow(ResolutionStatus.FALSE_POSITIVE, false)]
+    public void ResolveIssueWithDialog_WhenWindowResponseResultIsTrue_ShouldMuteIssue(ResolutionStatus resolutionStatus, bool isTaint)
     {
         MuteIssuePermitted();
-        muteIssuesWindowService.Show(Arg.Any<IEnumerable<SonarQubeIssueTransition>>()).Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = transition });
+        MockIssueStatusChangedInWindow(resolutionStatus);
+        reviewIssuesService.ReviewIssueAsync(AnIssueServerKey, resolutionStatus, null, isTaint).Returns(true);
 
-        testSubject.ResolveIssueWithDialog(nonRoslynIssue);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
-        issueSlCoreService.Received().ChangeStatusAsync(Arg.Is<ChangeIssueStatusParams>(x =>
-            x.issueKey == AnIssueServerKey
-            && x.newStatus == resolutionStatus
-            && x.configurationScopeId == "CONFIG_SCOPE_ID"
-            && !x.isTaintIssue));
+        reviewIssuesService.Received().ReviewIssueAsync(AnIssueServerKey, resolutionStatus, null, isTaint);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenIsTaintIssue_ShouldPassTaintFlagToChangeStatus()
-    {
-        MuteIssuePermitted();
-        MockIssueAcceptedInWindow();
-
-        testSubject.ResolveIssueWithDialog(nonRoslynIssue, isTaintIssue: true);
-
-        issueSlCoreService.Received().ChangeStatusAsync(Arg.Is<ChangeIssueStatusParams>(x =>
-            x.issueKey == AnIssueServerKey
-            && x.configurationScopeId == "CONFIG_SCOPE_ID"
-            && x.isTaintIssue));
-    }
-
-    [TestMethod]
-    public void ResolveIssueWithDialog_WhenWindowResponseHasComment_ShouldAddComment()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenWindowResponseHasComment_ShouldAddComment(bool isTaint)
     {
         MuteIssuePermitted();
         const string comment = "No you are not an issue, you are a feature";
         MockIssueAcceptedInWindow(comment);
+        reviewIssuesService.ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, comment, isTaint).Returns(true);
 
-        testSubject.ResolveIssueWithDialog(nonRoslynIssue);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
-        Received.InOrder(() =>
-        {
-            threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
-            issueSlCoreService.ChangeStatusAsync(Arg.Is<ChangeIssueStatusParams>(x => x.issueKey == AnIssueServerKey));
-            issueSlCoreService.AddCommentAsync(Arg.Is<AddIssueCommentParams>(x => x.issueKey == AnIssueServerKey && x.text == comment));
-        });
+        reviewIssuesService.Received().ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, comment, isTaint);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenWindowResponseHasCommentButFails_LogsAndShowsCommentFailedMessageBox()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenReviewIssueFails_DoesNotShowMessageBox(bool isTaint)
     {
         MuteIssuePermitted();
         const string comment = "No you are not an issue, you are a feature";
         MockIssueAcceptedInWindow(comment);
-        issueSlCoreService.AddCommentAsync(Arg.Any<AddIssueCommentParams>()).ThrowsAsync(new Exception("Some error"));
+        reviewIssuesService.ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, comment, isTaint).Returns(false);
 
-        testSubject.ResolveIssueWithDialog(nonRoslynIssue);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
-        AssertCommentFailedMessageBoxShown();
-        logger.AssertPartialOutputStringExists(string.Format(Resources.MuteIssue_AddCommentFailed, AnIssueServerKey, "Some error"));
+        messageBox.DidNotReceiveWithAnyArgs().Show(default, default, default, default);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenWindowResponseDoesNotHaveComment_ShouldMuteWithoutComment()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenWindowResponseDoesNotHaveComment_ShouldMuteWithoutComment(bool isTaint)
     {
         MuteIssuePermitted();
         MockIssueAcceptedInWindow();
+        reviewIssuesService.ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, null, isTaint).Returns(true);
 
-        testSubject.ResolveIssueWithDialog(nonRoslynIssue);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
-        AssertMuteIssueWithoutComment();
+        reviewIssuesService.Received().ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, null, isTaint);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenWindowResponseHasEmptyComment_ShouldMuteWithoutComment()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenWindowResponseHasEmptyComment_ShouldMuteWithoutComment(bool isTaint)
     {
         MuteIssuePermitted();
         const string commentWithJustSpacesAndNewLine = " \n ";
         MockIssueAcceptedInWindow(commentWithJustSpacesAndNewLine);
+        reviewIssuesService.ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, null, isTaint).Returns(true);
 
-        testSubject.ResolveIssueWithDialog(nonRoslynIssue);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
-        AssertMuteIssueWithoutComment();
+        reviewIssuesService.Received().ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, null, isTaint);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialog_WhenMuteIssueFails_LogsAndShowsMessageBox()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ResolveIssueWithDialog_WhenMuteIssueFails_DoesNotShowMessageBox(bool isTaint)
     {
         MuteIssuePermitted();
         MockIssueAcceptedInWindow();
-        issueSlCoreService.ChangeStatusAsync(Arg.Any<ChangeIssueStatusParams>()).Returns(call => throw new Exception("Some error"));
+        reviewIssuesService.ReviewIssueAsync(AnIssueServerKey, ResolutionStatus.ACCEPT, null, isTaint).Returns(false);
 
-        testSubject.ResolveIssueWithDialog(nonRoslynIssue);
+        testSubject.ResolveIssueWithDialog(AnIssueServerKey, isTaint);
 
-        AssertMessageBoxShown("Some error");
-        logger.AssertPartialOutputStrings("Some error");
+        messageBox.DidNotReceiveWithAnyArgs().Show(default, default, default, default);
+    }
+
+    [TestMethod]
+    [DataRow(null, true)]
+    [DataRow(null, false)]
+    [DataRow("", true)]
+    [DataRow("", false)]
+    public void ReopenIssue_WhenIssueServerKeyIsNull_LogsAndShowsMessageBox(string issueServerKey, bool isTaint)
+    {
+        testSubject.ReopenIssue(issueServerKey, isTaint);
+
+        AssertMessageBoxShown(Resources.MuteIssue_IssueNotFound);
+        logger.AssertPartialOutputStrings(Resources.MuteIssue_IssueNotFound);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ReopenIssue_WhenConfigScopeIsNotSet_LogsAndShowsMessageBox(bool isTaint)
+    {
+        activeConfigScopeTracker.Current.ReturnsNull();
+
+        testSubject.ReopenIssue(AnIssueServerKey, isTaint);
+
+        AssertMessageBoxShown(Resources.MuteIssue_NotInConnectedMode);
+        logger.AssertPartialOutputStrings(Resources.MuteIssue_NotInConnectedMode);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ReopenIssue_WhenNotInConnectedMode_LogsAndShowsMessageBox(bool isTaint)
+    {
+        NotInConnectedMode();
+
+        testSubject.ReopenIssue(AnIssueServerKey, isTaint);
+
+        AssertMessageBoxShown(Resources.MuteIssue_NotInConnectedMode);
+        logger.AssertPartialOutputStrings(Resources.MuteIssue_NotInConnectedMode);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ReopenIssue_WhenValidationsArePassed_CallsReopenIssueAsync(bool isTaint)
+    {
+        reviewIssuesService.ReopenIssueAsync(AnIssueServerKey, isTaint).Returns(true);
+
+        testSubject.ReopenIssue(AnIssueServerKey, isTaint);
+
+        reviewIssuesService.Received().ReopenIssueAsync(AnIssueServerKey, isTaint);
+
+        logger.AssertPartialOutputStrings(Resources.ReopenIssue_Success);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void ReopenIssue_WhenReopenIssueAsyncFails_DoesNotShowMessageBox(bool isTaint)
+    {
+        reviewIssuesService.ReopenIssueAsync(AnIssueServerKey, isTaint).Returns(false);
+
+        testSubject.ReopenIssue(AnIssueServerKey, isTaint);
+
+        messageBox.DidNotReceiveWithAnyArgs().Show(default, default, default, default);
     }
 
     private void NotInConnectedMode() => activeConfigScopeTracker.Current.Returns(new Core.ConfigurationScope.ConfigurationScope("CONFIG_SCOPE_ID"));
 
-    private void ServiceProviderNotInitialized() => slCoreServiceProvider.TryGetTransientService(out Arg.Any<ISLCoreService>()).ReturnsForAnyArgs(false);
-
     private void MuteIssuePermitted()
     {
-        var permittedResponse = new CheckStatusChangePermittedResponse(permitted: true, notPermittedReason: null, allowedStatuses: [ResolutionStatus.ACCEPT, ResolutionStatus.FALSE_POSITIVE]);
-        issueSlCoreService.CheckStatusChangePermittedAsync(Arg.Any<CheckStatusChangePermittedParams>()).Returns(permittedResponse);
+        reviewIssuesService.CheckReviewIssuePermittedAsync(AnIssueServerKey)
+            .Returns(Task.FromResult<IReviewIssuePermissionArgs>(
+                new ReviewIssuePermittedArgs([ResolutionStatus.ACCEPT, ResolutionStatus.FALSE_POSITIVE])));
+
+        var mockViewModel = Substitute.For<IChangeStatusViewModel>();
+        changeIssueStatusViewModelFactory.CreateForIssue(Arg.Any<ResolutionStatus?>(), Arg.Any<IEnumerable<ResolutionStatus>>())
+            .Returns(mockViewModel);
     }
 
-    private void CancelResolutionStatusWindow() => muteIssuesWindowService.Show(Arg.Any<IEnumerable<SonarQubeIssueTransition>>()).Returns(new MuteIssuesWindowResponse { Result = false });
-
-    private void AssertMuteIssueWithoutComment()
+    private void CancelResolutionStatusWindow()
     {
-        issueSlCoreService.Received().ChangeStatusAsync(Arg.Is<ChangeIssueStatusParams>(x => x.issueKey == AnIssueServerKey));
-        issueSlCoreService.DidNotReceiveWithAnyArgs().AddCommentAsync(Arg.Any<AddIssueCommentParams>());
+        changeStatusWindowService.Show(Arg.Any<IChangeStatusViewModel>())
+            .Returns(new ChangeStatusWindowResponse { Result = false });
     }
 
-    private void MockIssueAcceptedInWindow(string comment = null) =>
-        muteIssuesWindowService.Show(Arg.Any<IEnumerable<SonarQubeIssueTransition>>())
-            .Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept, Comment = comment });
+    private void MockIssueAcceptedInWindow(string comment = null)
+    {
+        var statusViewModel = Substitute.For<IStatusViewModel>();
+        statusViewModel.GetCurrentStatus<ResolutionStatus>().Returns(ResolutionStatus.ACCEPT);
+
+        var viewModel = Substitute.For<IChangeStatusViewModel>();
+        var normalizedComment = string.IsNullOrWhiteSpace(comment) ? null : comment;
+        viewModel.GetNormalizedComment().Returns(normalizedComment);
+
+        changeIssueStatusViewModelFactory.CreateForIssue(Arg.Any<ResolutionStatus?>(), Arg.Any<IEnumerable<ResolutionStatus>>())
+            .Returns(viewModel);
+
+        changeStatusWindowService.Show(Arg.Any<IChangeStatusViewModel>())
+            .Returns(new ChangeStatusWindowResponse { Result = true, SelectedStatus = statusViewModel });
+    }
+
+    private void MockIssueStatusChangedInWindow(ResolutionStatus status)
+    {
+        var statusViewModel = Substitute.For<IStatusViewModel>();
+        statusViewModel.GetCurrentStatus<ResolutionStatus>().Returns(status);
+
+        var viewModel = Substitute.For<IChangeStatusViewModel>();
+        viewModel.GetNormalizedComment().Returns((string)null);
+
+        changeIssueStatusViewModelFactory.CreateForIssue(Arg.Any<ResolutionStatus?>(), Arg.Any<IEnumerable<ResolutionStatus>>())
+            .Returns(viewModel);
+
+        changeStatusWindowService.Show(Arg.Any<IChangeStatusViewModel>())
+            .Returns(new ChangeStatusWindowResponse { Result = true, SelectedStatus = statusViewModel });
+    }
 
     private void MockNonRoslynIssue()
     {
@@ -312,8 +404,5 @@ public class MuteIssuesServiceTests
         nonRoslynIssue.FilePath.Returns("C:\\somePath.cs");
     }
 
-    private void AssertMessageBoxShown(string message) => messageBox.Received(1).Show(message, Resources.MuteIssue_FailureCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
-
-    private void AssertCommentFailedMessageBoxShown() =>
-        messageBox.Received(1).Show(Resources.MuteIssue_MessageBox_AddCommentFailed, Resources.MuteIssue_WarningCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
+    private void AssertMessageBoxShown(string message) => messageBox.Received(1).Show(message, Resources.MuteIssue_StatusChangeFailure, MessageBoxButton.OK, MessageBoxImage.Exclamation);
 }

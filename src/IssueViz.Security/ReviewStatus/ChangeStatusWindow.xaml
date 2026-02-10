@@ -12,7 +12,7 @@
     xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
     xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI;assembly=SonarLint.VisualStudio.ConnectedMode"
     x:Name="ReviewHotspotWindowName"
-    Title="{x:Static security:Resources.ReviewHotspotWindow_Title}">
+    Title="{x:Static security:Resources.ChangeStatusWindow_Title}">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -123,10 +123,10 @@
             </Grid.ColumnDefinitions>
 
             <Button Grid.Column="0" IsDefault="True"
-                    Content="{x:Static security:Resources.ReviewHotspotWindow_SubmitButton}"
+                    Content="{x:Static security:Resources.ChangeStatusWindow_SubmitButton}"
                     IsEnabled="{Binding Path=IsSubmitButtonEnabled, Mode=OneWay}" Click="Submit_Click" />
             <Button Grid.Column="1" IsCancel="True"
-                    Content="{x:Static security:Resources.ReviewHotspotWindow_CancelButton}" />
+                    Content="{x:Static security:Resources.ChangeStatusWindow_CancelButton}" />
         </Grid>
     </Grid>
 </Window>

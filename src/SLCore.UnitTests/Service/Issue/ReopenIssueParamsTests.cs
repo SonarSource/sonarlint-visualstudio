@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,10 +18,29 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.ConnectedMode.Transition
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Service.Issue;
+
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Issue;
+
+[TestClass]
+public class ReopenIssueParamsTests
 {
-    public interface IMuteIssuesWindowService
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void Serialized_AsExpected(bool isTaintIssue)
     {
-        MuteIssuesWindowResponse Show(IEnumerable<SonarQubeIssueTransition> allowedTransitions);
+        var expected = $$"""
+                        {
+                          "configurationScopeId": "CONFIG_SCOPE_ID",
+                          "issueId": "ISSUE_ID",
+                          "isTaintIssue": {{(isTaintIssue ? "true" : "false")}}
+                        }
+                        """;
+
+        var reopenIssueParams = new ReopenIssueParams("CONFIG_SCOPE_ID", "ISSUE_ID", isTaintIssue);
+
+        JsonConvert.SerializeObject(reopenIssueParams, Formatting.Indented).Should().Be(expected);
     }
 }

@@ -157,6 +157,7 @@ public class TaintViewModelTest
         var taintIssue = Substitute.For<ITaintIssue>();
         taintIssue.Severity.Returns(severity);
         taintIssue.HighestSoftwareQualitySeverity.Returns(softwareQualitySeverity);
+        taintIssue.IsResolved.Returns(isResolved);
         analysisIssueVisualization.IsResolved.Returns(isResolved);
         analysisIssueVisualization.Issue.Returns(taintIssue);
 

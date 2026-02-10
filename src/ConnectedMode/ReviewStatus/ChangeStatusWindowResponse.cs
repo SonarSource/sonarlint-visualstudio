@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,16 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.ObjectModel;
-using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
+namespace SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 
-public interface IChangeStatusViewModel : IDataErrorInfo
+[ExcludeFromCodeCoverage]
+public class ChangeStatusWindowResponse
 {
-    IStatusViewModel SelectedStatusViewModel { get; set; }
-    ObservableCollection<IStatusViewModel> AllStatusViewModels { get; }
+    public bool Result { get; set; }
+    public IStatusViewModel SelectedStatus { get; set; }
     public string Comment { get; set; }
-    public bool ShowComment { get; }
-    bool IsSubmitButtonEnabled { get; }
 }
