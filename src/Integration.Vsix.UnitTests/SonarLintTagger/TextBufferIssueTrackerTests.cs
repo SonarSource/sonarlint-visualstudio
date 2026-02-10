@@ -191,7 +191,7 @@ public class TextBufferIssueTrackerTests
         [null, Guid.Empty]
     ];
     [DynamicData(nameof(ProjectInfos))]
-    [DataTestMethod]
+    [TestMethod]
     public void UpdateAnalysisState_WithUpdatedMetadata_CreatesIssueConsumerWithNewSnapshot(string projectName, Guid projectGuid)
     {
         var newTypescriptContentType = Substitute.For<IContentType>();
@@ -272,7 +272,7 @@ public class TextBufferIssueTrackerTests
         [NonEmptyChanges]
     ];
     [DynamicData(nameof(OnTextBufferChangedOnBackground_Updates_Params))]
-    [DataTestMethod]
+    [TestMethod]
     public void OnTextBufferChangedOnBackground_Updates(List<ITextChange> changes)
     {
         ClearMocks();

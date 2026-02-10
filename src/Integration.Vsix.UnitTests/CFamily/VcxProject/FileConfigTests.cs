@@ -178,7 +178,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
         }
 
 
-        [DataTestMethod]
+        [TestMethod]
         public void TryGet_Full_Cmd_ForNonCFile()
         {
             // Arrange

@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Core;
 [TestClass]
 public class SLCoreJsonRpcTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void IsAlive_UpdatesOnCompletion(bool triggerCompletion)

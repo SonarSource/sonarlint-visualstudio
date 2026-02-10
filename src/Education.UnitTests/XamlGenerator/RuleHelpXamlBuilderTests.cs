@@ -39,7 +39,7 @@ public class RuleHelpXamlBuilderTests
             MefTestHelpers.CreateExport<IRichRuleHelpXamlBuilder>());
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void Create_ChoosesCorrectLayoutBuilder(bool isExtendedRule)

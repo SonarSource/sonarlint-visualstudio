@@ -75,7 +75,7 @@ public class BindingControllerAdapterTests
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<BindingControllerAdapter>();
 
     [DynamicData(nameof(RequestsWithNullProjectKey))]
-    [DataTestMethod]
+    [TestMethod]
     public async Task ValidateAndBindAsync_NoProjectKey_ReturnsNoProjectKeyResult(BindingRequest request)
     {
         var result = await testSubject.ValidateAndBindAsync(request, uiManager, cancellationTokenSource.Token);
@@ -86,7 +86,7 @@ public class BindingControllerAdapterTests
     }
 
     [DynamicData(nameof(NonSharedRequests))]
-    [DataTestMethod]
+    [TestMethod]
     public async Task ValidateAndBindAsync_NonSharedRequest_NoConnection_ReturnsNoConnectionResult(BindingRequest request)
     {
         SetUpConnectionSequence(request, null as ServerConnection);
@@ -100,7 +100,7 @@ public class BindingControllerAdapterTests
     }
 
     [DynamicData(nameof(SharedRequests))]
-    [DataTestMethod]
+    [TestMethod]
     public async Task ValidateAndBindAsync_SharedRequest_NewConnectionNotTrusted_ReturnsNoConnectionResult(BindingRequest.Shared request)
     {
         SetUpConnectionSequence(request, null as ServerConnection);
@@ -115,7 +115,7 @@ public class BindingControllerAdapterTests
     }
 
     [DynamicData(nameof(SharedRequests))]
-    [DataTestMethod]
+    [TestMethod]
     public async Task ValidateAndBindAsync_SharedRequest_NewConnectionTrustedButIsNotSaved_ReturnsNoConnectionResult(BindingRequest.Shared request)
     {
         SetUpConnectionSequence(request, null as ServerConnection);
@@ -130,7 +130,7 @@ public class BindingControllerAdapterTests
     }
 
     [DynamicData(nameof(SharedRequests))]
-    [DataTestMethod]
+    [TestMethod]
     public async Task ValidateAndBindAsync_SharedRequest_NewConnectionTrustedButSavedWithoutCredentials_ReturnsNoCredentialsResult(BindingRequest.Shared request)
     {
         var fakeConnection = new ServerConnection.SonarCloud("any org", credentials: null);
@@ -146,7 +146,7 @@ public class BindingControllerAdapterTests
     }
 
     [DynamicData(nameof(Requests))]
-    [DataTestMethod]
+    [TestMethod]
     public async Task ValidateAndBindAsync_NoCredentials_ReturnsNoCredentialsResult(BindingRequest request)
     {
         var fakeConnection = new ServerConnection.SonarCloud("any org", credentials: null);
@@ -161,7 +161,7 @@ public class BindingControllerAdapterTests
     }
 
     [DynamicData(nameof(Requests))]
-    [DataTestMethod]
+    [TestMethod]
     public async Task ValidateAndBindAsync_BindingThrows_ReturnsFailedResult(BindingRequest request)
     {
         var fakeConnection = new ServerConnection.SonarCloud("any org", credentials: Substitute.For<IConnectionCredentials>());
@@ -178,7 +178,7 @@ public class BindingControllerAdapterTests
     }
 
     [DynamicData(nameof(Requests))]
-    [DataTestMethod]
+    [TestMethod]
     public async Task ValidateAndBindAsync_Success_ReturnsSuccessResult(BindingRequest request)
     {
         var fakeConnection = new ServerConnection.SonarCloud("any org", credentials: Substitute.For<IConnectionCredentials>());
@@ -196,7 +196,7 @@ public class BindingControllerAdapterTests
 
     [DataRow(true)]
     [DataRow(false)]
-    [DataTestMethod]
+    [TestMethod]
     public void UnbindCurrentSolution_UsesSolutionName(bool expectedResult)
     {
         var solutionName = "solution name";
@@ -217,7 +217,7 @@ public class BindingControllerAdapterTests
 
     [DataRow(true)]
     [DataRow(false)]
-    [DataTestMethod]
+    [TestMethod]
     public void Unbind_KeyProvided_UsesProvidedKey(bool expectedResult)
     {
         var solutionName = "solution name";

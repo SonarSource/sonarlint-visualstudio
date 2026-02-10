@@ -74,7 +74,7 @@ public class FocusOnNewCodeServiceTests
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<FocusOnNewCodeService>();
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true, false, "not supported")]
     [DataRow(true, true, "from this version")]
     [DataRow(false, false, "not supported")]
@@ -103,7 +103,7 @@ public class FocusOnNewCodeServiceTests
         });
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void Ctor_ConfigurationScopeNotSet_InitializesCorrectly(bool isEnabled)
@@ -122,7 +122,7 @@ public class FocusOnNewCodeServiceTests
         logger.AssertPartialOutputStringExists(string.Format(Resources.FocusOnNewCodeDefinitionUnavailableLogTemplate, SLCoreStrings.ConfigScopeNotInitialized));
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void Ctor_ServiceProviderNotInitialized_InitializesCorrectly(bool isEnabled)
@@ -141,7 +141,7 @@ public class FocusOnNewCodeServiceTests
         logger.AssertPartialOutputStringExists(string.Format(Resources.FocusOnNewCodeDefinitionUnavailableLogTemplate, SLCoreStrings.ServiceProviderNotInitialized));
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void Ctor_NewCodeDefinitionServiceThrows_InitializesCorrectly(bool isEnabled)
@@ -161,7 +161,7 @@ public class FocusOnNewCodeServiceTests
         logger.AssertPartialOutputStringExists(testException);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void SetPreference_UpdatesSettingAndRaisesEvent(bool isEnabled)
@@ -176,7 +176,7 @@ public class FocusOnNewCodeServiceTests
         handler.Received(1).Invoke(testSubject, Arg.Is<NewCodeStatusChangedEventArgs>(e => e.NewStatus.IsEnabled == isEnabled));
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void SetPreference_NotifiesSlCore(bool isSlCoreInitialized)
@@ -197,7 +197,7 @@ public class FocusOnNewCodeServiceTests
         });
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void ConfigurationScopeChanged_RefreshesStatusAndNotifies(bool configScopeUpdateType)
@@ -214,7 +214,7 @@ public class FocusOnNewCodeServiceTests
         handler.Received(1).Invoke(testSubject, Arg.Any<NewCodeStatusChangedEventArgs>());
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void ConfigurationScopeChanged_ConfigurationScopeNotSet_InitializesCorrectly(bool isEnabled)
@@ -235,7 +235,7 @@ public class FocusOnNewCodeServiceTests
         handler.Received(1).Invoke(testSubject, Arg.Any<NewCodeStatusChangedEventArgs>());
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void ConfigurationScopeChanged_ServiceProviderNotInitialized_InitializesCorrectly(bool isEnabled)
@@ -256,7 +256,7 @@ public class FocusOnNewCodeServiceTests
         handler.Received(1).Invoke(testSubject, Arg.Any<NewCodeStatusChangedEventArgs>());
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void ConfigurationScopeChanged_NewCodeDefinitionServiceThrows_InitializesCorrectly(bool isEnabled)

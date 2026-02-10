@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.DependencyRisks;
 public class ListAllDependencyRisksParamsTests
 {
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("scope 1")]
     [DataRow("other scope 2")]
     public void Serialized_AsExpected(string configurationScopeId)

@@ -49,7 +49,7 @@ public class LanguageFlagsProviderTests
             .GetLanguageConfiguration("Default", "stdc23", "stdcpp20")
             .Should().Be(("/TC", "/std:c23"));
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("CppCode")]
     [DataRow("CCode")]
     [DataRow("Default")]
@@ -58,7 +58,7 @@ public class LanguageFlagsProviderTests
             .GetLanguageConfiguration("CompileAsC", "stdc23", "stdcpp20")
             .Should().Be(("/TC", "/std:c23"));
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("CppCode")]
     [DataRow("CCode")]
     [DataRow("Default")]

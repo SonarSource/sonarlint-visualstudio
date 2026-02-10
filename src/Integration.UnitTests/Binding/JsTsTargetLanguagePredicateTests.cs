@@ -34,7 +34,7 @@ public class JsTsTargetLanguagePredicateTests
         JsTsTargetLanguagePredicate.Instance.Should().NotBeNull();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(AnalysisLanguage.CascadingStyleSheets, "css", false)]
     [DataRow(AnalysisLanguage.RoslynFamily, "cs", false)]
     [DataRow(AnalysisLanguage.Javascript, "vue", true)]

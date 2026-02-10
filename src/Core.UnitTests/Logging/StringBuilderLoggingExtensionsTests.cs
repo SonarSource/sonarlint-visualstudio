@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Logging;
 [TestClass]
 public class StringBuilderLoggingExtensionsTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null, "", "[] ")]
     [DataRow(null, null, "[] ")]
     [DataRow(null, "a", "[a] ")]
@@ -40,7 +40,7 @@ public class StringBuilderLoggingExtensionsTests
     [DataRow("msg", "prefix msg")]
     [DataRow("msg {0}", "prefix msg {0}")]
     [DataRow("", "prefix ")]
-    [DataTestMethod]
+    [TestMethod]
     public void AppendMessage_NoParameters_AppendsAsIs(string message, string expected) =>
         new StringBuilder("prefix ").AppendMessage(message, []).ToString().Should().Be(expected);
 

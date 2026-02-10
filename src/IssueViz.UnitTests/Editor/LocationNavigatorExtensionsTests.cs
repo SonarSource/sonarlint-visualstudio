@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor;
 [TestClass]
 public class LocationNavigatorExtensionsTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(NavigationResult.Failed, false)]
     [DataRow(NavigationResult.OpenedFile, false)]
     [DataRow(NavigationResult.OpenedLocation, true)]

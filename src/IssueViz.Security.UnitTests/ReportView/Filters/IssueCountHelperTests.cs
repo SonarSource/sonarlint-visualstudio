@@ -31,7 +31,7 @@ public class IssueCountHelperTests
     [DataRow(0, 2, "0 of 2 b")]
     [DataRow(1, 2, "1 of 2 b")]
     [DataRow(2, 2, "2 b")]
-    [DataTestMethod]
+    [TestMethod]
     public void FormatString_ReturnsExpectedValue(int filtered, int total, string expectedValue)
     {
         var singular = "a";

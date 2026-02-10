@@ -39,7 +39,7 @@ public class DeleteConnectionDialogViewModelTests
         testSubject.ProjectsToUnbind.Should().BeSameAs(projectsToUnbind);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     public void DisplayProjectList_MultipleProjectsToUnbind_ReturnsTrue()
     {
         var projects = new[] { "proj key", "my sol" };
@@ -48,7 +48,7 @@ public class DeleteConnectionDialogViewModelTests
         testSubject.DisplayProjectList.Should().BeTrue();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     public void DisplayProjectList_ProjectsIsNull_ReturnsFalse()
     {
         var testSubject = new DeleteConnectionDialogViewModel(null, new ConnectionInfo(default, default));
@@ -56,7 +56,7 @@ public class DeleteConnectionDialogViewModelTests
         testSubject.DisplayProjectList.Should().BeFalse();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     public void DisplayProjectList_NoProjectsToUnbind_ReturnsFalse()
     {
         var testSubject = new DeleteConnectionDialogViewModel([], new ConnectionInfo(default, default));

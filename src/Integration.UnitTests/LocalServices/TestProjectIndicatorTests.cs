@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             actual.Should().BeFalse();
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
         public void IsTestProject_OneIndicator_IndicatorHasResponse_IndicatorResponse(bool indicatorResponse)
@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             actual.Should().Be(false);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
         public void IsTestProject_TwoIndicators_FirstIndicatorHasResponse_SecondIndicatorNotCalled(bool firstIndicatorResponse)
@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             secondIndicator.Verify(x=> x.IsTestProject(It.IsAny<Project>()), Times.Never());
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
         public void IsTestProject_TwoIndicators_FirstIndicatorHasNoResponse_SecondIndicatorHasResponse_SecondIndicatorResponse(bool secondIndicatorResponse)

@@ -318,7 +318,7 @@ public class SonarLintSettingsTests
         store.Received().GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsFocusOnNewCodeEnabled), false);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void IsFocusOnNewCodeEnabled_Should(bool value)
@@ -330,7 +330,7 @@ public class SonarLintSettingsTests
         store.Received().GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsFocusOnNewCodeEnabled), false);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void IsFocusOnNewCodeEnabled_SetValue_SetsCorrectly(bool value)
@@ -356,7 +356,7 @@ public class SonarLintSettingsTests
         store.Received().GetInt32(SonarLintSettings.SettingsRoot, nameof(testSubject.CredentialStoreType), (int)CredentialStoreType.Default);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(CredentialStoreType.Default)]
     [DataRow(CredentialStoreType.DPAPI)]
     public void CredentialStoreType_Should(CredentialStoreType value)
@@ -368,7 +368,7 @@ public class SonarLintSettingsTests
         store.Received().GetInt32(SonarLintSettings.SettingsRoot, nameof(testSubject.CredentialStoreType), (int)CredentialStoreType.Default);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(CredentialStoreType.Default)]
     [DataRow(CredentialStoreType.DPAPI)]
     public void CredentialStoreType_SetValue_SetsCorrectly(CredentialStoreType value)

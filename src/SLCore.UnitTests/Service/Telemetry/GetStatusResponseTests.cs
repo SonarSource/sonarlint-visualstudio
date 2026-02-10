@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Telemetry;
 public class GetStatusResponseTests
 {
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void Deserialized_AsExpected(bool isEnabled)

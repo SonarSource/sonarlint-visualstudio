@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers
             testData.SomeDateTimeOffset.Offset.Should().Be(TimeSpan.Zero);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(253402300799999L + 1)]
         [DataRow(-62135596800000L - 1)]
         public void DeserializeObject_TimestampOutOfRange_Throws(long timestamp)
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers
         }
 
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(typeof(DateTimeOffset), true)]
         [DataRow(typeof(long), false)]
         public void CanConvert_AcceptsOnlyDateTimeOffset(Type type, bool canConvert)

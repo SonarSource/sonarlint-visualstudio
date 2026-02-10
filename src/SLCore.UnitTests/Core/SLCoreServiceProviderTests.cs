@@ -216,7 +216,7 @@ public class SLCoreServiceProviderTests
 
     [DataRow(true)]
     [DataRow(false)]
-    [DataTestMethod]
+    [TestMethod]
     public void TryGetTransientService_WithoutInitialize_ReturnsFalse(bool isAlive)
     {
         SetUpConnectionState(rpcMock, isAlive);
@@ -333,7 +333,7 @@ public class SLCoreServiceProviderTests
 
     [DataRow(true)]
     [DataRow(false)]
-    [DataTestMethod]
+    [TestMethod]
     public void Shutdown_ConnectionAlive_CallsLifecycleShutdown(bool isInitialized)
     {
         SetUpConnectionState(rpcMock, true);
@@ -347,7 +347,7 @@ public class SLCoreServiceProviderTests
 
     [DataRow(true)]
     [DataRow(false)]
-    [DataTestMethod]
+    [TestMethod]
     public void Shutdown_ServiceNotAvailable_DoesNotThrow(bool isInitialized)
     {
         SetUpConnectionState(rpcMock, true);
@@ -362,7 +362,7 @@ public class SLCoreServiceProviderTests
 
     [DataRow(true)]
     [DataRow(false)]
-    [DataTestMethod]
+    [TestMethod]
     public void Shutdown_ConnectionNotAlive_DoesNotCallShutdownAndDoesNotThrow(bool isInitialized)
     {
         SetUpConnectionState(rpcMock, true);

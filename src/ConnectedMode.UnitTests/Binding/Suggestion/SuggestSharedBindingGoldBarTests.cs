@@ -74,7 +74,7 @@ public class SuggestSharedBindingGoldBarTests
         notification.ShowOncePerSession.Should().Be(false);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(ConnectionServerType.SonarQube)]
     [DataRow(ConnectionServerType.SonarCloud)]
     public void Show_GeneratesMessageBasedOnConnectionServerType(ConnectionServerType ConnectionServerType)
@@ -89,7 +89,7 @@ public class SuggestSharedBindingGoldBarTests
         notification.Message.Should().Be(string.Format(BindingStrings.SharedBindingSuggestionMainText, ConnectionServerType));
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("Solution1")]
     [DataRow("MyPetProject")]
     public void Show_GeneratesIdBasedOnSolutionName(string solutionName)

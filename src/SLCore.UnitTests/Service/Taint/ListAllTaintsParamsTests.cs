@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Taint;
 [TestClass]
 public class ListAllTaintsParamsTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("scope 1", false)]
     [DataRow("other scope 2", true)]
     public void Serialized_AsExpected(string configurationScopeId, bool shouldRefresh)

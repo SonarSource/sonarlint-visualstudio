@@ -29,7 +29,7 @@ public class FixSuggestionResolvedParamsTests
 {
     [DataRow("sgstid", FixSuggestionStatus.ACCEPTED, null, """{"suggestionId":"sgstid","status":"ACCEPTED","snippetIndex":null}""")]
     [DataRow("sgstid2", FixSuggestionStatus.DECLINED, 12, """{"suggestionId":"sgstid2","status":"DECLINED","snippetIndex":12}""")]
-    [DataTestMethod]
+    [TestMethod]
     public void SerializedAsExpected(string suggestionId, FixSuggestionStatus status, int? index, string expectedSerialized)
     {
         JsonConvert.SerializeObject(new FixSuggestionResolvedParams(suggestionId, status, index)).Should().Be(expectedSerialized);

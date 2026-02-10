@@ -75,7 +75,7 @@ public class AnalysisIssueViewModelBaseTest
 
     [DataRow("key", true)]
     [DataRow(null, false)]
-    [DataTestMethod]
+    [TestMethod]
     public void IsServerIssue_ReturnsBasedOnServerKey(string serverKey, bool isServerIssue)
     {
         var issue = CreateMockedIssue(Guid.NewGuid(), serverKey);
@@ -85,7 +85,7 @@ public class AnalysisIssueViewModelBaseTest
 
     [DataRow(true)]
     [DataRow(false)]
-    [DataTestMethod]
+    [TestMethod]
     public void IsOnNewCode_ReturnsBasedOnIssue(bool isOnNewCode)
     {
         var issue = CreateMockedIssue(Guid.NewGuid(), "any");

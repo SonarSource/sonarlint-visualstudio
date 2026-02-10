@@ -86,7 +86,7 @@ public class ContextualRuleDescriptionTabTests
     [DataRow(Context1, 0)]
     [DataRow(DefaultContext, 1)]
     [DataRow(Context2, 2)]
-    [DataTestMethod]
+    [TestMethod]
     public void ProduceVisualNode_PrefersSelectedContext(string context, int expectedIndex)
     {
         var testSubject = new ContextualRuleDescriptionTab("title",

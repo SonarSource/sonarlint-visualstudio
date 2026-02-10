@@ -52,7 +52,7 @@ public class DiagnosticToRoslynIssueConverterTests
         [Language.VBNET, "S1234", "test message", "c:\\test\\file.vb", 0, 0, 3, 4]
     ];
 
-    [DataTestMethod]
+    [TestMethod]
     [DynamicData(nameof(TestData))]
     public void ConvertToSonarDiagnostic_ConvertsDiagnosticCorrectly(
         Language language,
@@ -98,7 +98,7 @@ public class DiagnosticToRoslynIssueConverterTests
         ]
     ];
 
-    [DataTestMethod]
+    [TestMethod]
     [DynamicData(nameof(SecondaryLocationTestData))]
     public void ConvertToSonarDiagnostic_WithSecondaryLocations_ConvertsCorrectly(
         ImmutableDictionary<string, string?>? properties,

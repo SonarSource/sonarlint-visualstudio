@@ -109,7 +109,7 @@ public class MuteIssueCommandTests
         testSubjectMenuCommand.Enabled.Should().BeFalse();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("java:S111")]
     public void QueryStatus_NotSupportedIssue_Invisible(string errorCode)
     {

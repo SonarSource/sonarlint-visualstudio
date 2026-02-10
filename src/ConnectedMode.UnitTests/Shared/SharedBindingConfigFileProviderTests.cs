@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         [DataRow("""{"sonarCloudOrganization":"Some Organisation","region": "EU","projectKey":"projectKey"}""", "EU")]
         [DataRow("""{"SonarCloudOrganization":"Some Organisation","Region": "US","ProjectKey":"projectKey"}""", "US")]
         [DataRow("""{"sonarCloudOrganization":"Some Organisation","region": "US","projectKey":"projectKey"}""", "US")]
-        [DataTestMethod]
+        [TestMethod]
         public void Read_SCConfig_Reads(string configFileContent, string region)
         {
             string filePath = "Some Path";
@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 
         [DataRow("""{"SonarQubeUri":"not URI","ProjectKey":"projectKey"}""")]
         [DataRow("""{"sonarQubeUri":"not URI","projectKey":"projectKey"}""")]
-        [DataTestMethod]
+        [TestMethod]
         public void Read_InvalidUri_ReturnsNull(string configFileContent)
         {
             var filePath = "Some Path";
@@ -221,7 +221,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
             }
             """,
             "US")]
-        [DataTestMethod]
+        [TestMethod]
         public void Write_SCConfig_NonDefaultRegion_Writes(string configFileContent, string region)
         {
             var config = new SharedBindingConfigModel() { Organization = "Some Organisation", ProjectKey = "projectKey", Region = region };
@@ -287,7 +287,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 
         [DataRow(true)]
         [DataRow(false)]
-        [DataTestMethod]
+        [TestMethod]
         public void Exists_CallsFileSystemExists(bool exists)
         {
             const string filePath = "C:\\Solution\\.sonarlint\\Solution.json";

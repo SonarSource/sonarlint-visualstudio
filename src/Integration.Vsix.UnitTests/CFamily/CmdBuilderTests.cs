@@ -234,7 +234,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             cmdBuilder.GetFullCmd().Should().Be(cmd);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(false, "", "", "")]
         [DataRow(true, "", "", "")]
         [DataRow(false, "compileAsFlagValue", "", "compileAsFlagValue ")]

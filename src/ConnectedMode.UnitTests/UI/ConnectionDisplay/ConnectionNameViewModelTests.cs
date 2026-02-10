@@ -87,7 +87,7 @@ public class ConnectionNameViewModelTests
     }
 
     [DynamicData(nameof(Regions))]
-    [DataTestMethod]
+    [TestMethod]
     public void DisplayName_SonarCloud_NoId_HasRegion_ReturnsUrl(CloudServerRegion region)
     {
         testSubject.ConnectionInfo = new ConnectionInfo(null, ConnectionServerType.SonarCloud, region);
@@ -120,7 +120,7 @@ public class ConnectionNameViewModelTests
     }
 
     [DynamicData(nameof(Regions))]
-    [DataTestMethod]
+    [TestMethod]
     public void DisplayRegion_SonarCloud_NoId_DisplaysRegion(CloudServerRegion region)
     {
         testSubject.ConnectionInfo = new ConnectionInfo(null, ConnectionServerType.SonarCloud, region);
@@ -130,7 +130,7 @@ public class ConnectionNameViewModelTests
     }
 
     [DynamicData(nameof(Regions))]
-    [DataTestMethod]
+    [TestMethod]
     public void DisplayRegion_SonarCloud_HasId_DisplaysRegion(CloudServerRegion region)
     {
         testSubject.ConnectionInfo = new ConnectionInfo(Id, ConnectionServerType.SonarCloud, region);
@@ -156,7 +156,7 @@ public class ConnectionNameViewModelTests
     }
 
     [DynamicData(nameof(Regions))]
-    [DataTestMethod]
+    [TestMethod]
     public void ShouldDisplayRegion_ShowCloudRegionSettingUnchecked_ReturnsFalse(CloudServerRegion region)
     {
         testSubject.ConnectionInfo = new ConnectionInfo(Id, ConnectionServerType.SonarCloud, region);
@@ -166,7 +166,7 @@ public class ConnectionNameViewModelTests
     }
 
     [DynamicData(nameof(Regions))]
-    [DataTestMethod]
+    [TestMethod]
     public void ShouldDisplayRegion_ShowCloudRegionSettingChecked_ReturnsTrue(CloudServerRegion region)
     {
         testSubject.ConnectionInfo = new ConnectionInfo(Id, ConnectionServerType.SonarCloud, region);

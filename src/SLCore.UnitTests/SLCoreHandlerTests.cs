@@ -90,7 +90,7 @@ public class SLCoreHandlerTests
         notificationService.DidNotReceiveWithAnyArgs().Show(default);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(1)]
     [DataRow(3)]
     [DataRow(10)]
@@ -122,7 +122,7 @@ public class SLCoreHandlerTests
         instanceHandler.Received().Dispose();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(1)]
     [DataRow(3)]
     [DataRow(10)]

@@ -42,7 +42,7 @@ public class BindingConfigurationTests
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("project");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("")]
     [DataRow(null)]
     public void StaticCreator_InvalidArgs_NullDirectoryPath_Throws(string directoryPath)

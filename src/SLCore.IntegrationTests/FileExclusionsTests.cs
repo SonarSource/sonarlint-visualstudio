@@ -39,7 +39,7 @@ public class FileExclusionsTests
     [ClassCleanup]
     public static void ClassCleanup() => sharedFileAnalysisTestsRunner.Dispose();
 
-    [DataTestMethod]
+    [TestMethod]
     [DynamicData(nameof(TestingFiles))]
     public async Task CurrentFileExcluded_CurrentFileNotAnalyzed(ITestingFile testingFile)
     {
@@ -52,7 +52,7 @@ public class FileExclusionsTests
         await fileExclusionsListener.Received().GetFileExclusionsAsync(Arg.Is<GetFileExclusionsParams>(p => p.configurationScopeId == configScope));
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DynamicData(nameof(TestingFiles))]
     public async Task OtherFileExcluded_RunsAnalysisOnCurrentFile(ITestingFile testingFile)
     {

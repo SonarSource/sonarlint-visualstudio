@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint;
 [TestClass]
 public class TaintVulnerabilitiesUpdateTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null)]
     [DataRow("")]
     public void Ctor_ConfigScope_NullOrEmpty_Throws(string configScope)

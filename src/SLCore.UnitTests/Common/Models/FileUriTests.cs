@@ -63,7 +63,7 @@ public class FileUriTests
         testSubject.Should().Be(reference);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"C:\file1.cs", @"C:\file1.cs", true)]
     [DataRow(@"C:\file1.cs", @"C:\file2.cs", false)]
     [DataRow(@"C:\my folder\file1.cs", @"C:\my folder\file1.cs", true)]

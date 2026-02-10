@@ -51,7 +51,7 @@ public class PluginListenerTests
         MefTestHelpers.CheckIsSingletonMefComponent<PluginListener>();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(Language.TS, "minversion", "currentversion")]
     [DataRow(Language.JS, "min.version", null)]
     public void DidSkipLoadingPlugin_NodeJs_CallsNotificationService(Language language, string minVersion, string currentVersion)

@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Visualization;
 [TestClass]
 public class IOpenInIdeIssueTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void Issue_ReturnsType_DependingOnIsTaintProperty(bool isTaint)

@@ -39,7 +39,7 @@ public class RelativePathHelperTests
     [DataRow("C:\\one\\two\\three\\", "C:\\file.json", "..\\..\\..\\file.json")]
     [DataRow("C:\\one\\two\\", "D:\\one\\two\\file.json", null)]
     [DataRow("\\\\network\\one\\two\\three\\", "\\\\network\\file.json", "..\\..\\..\\file.json")]
-    [DataTestMethod]
+    [TestMethod]
     public void GetRelativePathToRootFolder_ReturnsExpectedValues(string root, string file, string expected) => RelativePathHelper.GetRelativePathToRootFolder(root, file).Should().Be(expected);
 
     [TestMethod]
@@ -61,7 +61,7 @@ public class RelativePathHelperTests
     [DataRow(".\\path\\123")]
     [DataRow("..\\path\\123")]
     [DataRow("notnetwork\\one\\two\\three\\")]
-    [DataTestMethod]
+    [TestMethod]
     public void GetRelativePathToRootFolder_RootPathRelative_Throws(string path)
     {
         var act = () => RelativePathHelper.GetRelativePathToRootFolder(path, "C:\\path\\123\\file.json");
@@ -79,7 +79,7 @@ public class RelativePathHelperTests
     [DataRow(".\\path\\123\\file.json")]
     [DataRow("..\\path\\123\\file.json")]
     [DataRow("notnetwork\\one\\two\\three.json")]
-    [DataTestMethod]
+    [TestMethod]
     public void GetRelativePathToRootFolder_FilePathRelative_Throws(string path)
     {
         var act = () => RelativePathHelper.GetRelativePathToRootFolder("C:\\path\\", path);

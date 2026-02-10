@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             actual.Should().BeNull();
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("", null)]
         [DataRow("test\\", null)]
         [DataRow("\\asd\\.!@#$%sdftest234234@~!sdasd\\", null)]

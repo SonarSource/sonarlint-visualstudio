@@ -33,7 +33,7 @@ public class ConnectionInfoTests
         connectionInfo.CloudServerRegion.Should().Be(CloudServerRegion.Eu);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DynamicData(nameof(GetCloudServerRegions), DynamicDataSourceType.Method)]
     public void Ctor_SonarCloudWithRegion_SetsRegion(CloudServerRegion region)
     {
@@ -42,7 +42,7 @@ public class ConnectionInfoTests
         connectionInfo.CloudServerRegion.Should().Be(region);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DynamicData(nameof(GetCloudServerRegions), DynamicDataSourceType.Method)]
     public void Ctor_SonarQubeWithRegion_IgnoresRegion(CloudServerRegion region)
     {

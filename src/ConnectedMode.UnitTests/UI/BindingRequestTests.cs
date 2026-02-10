@@ -31,7 +31,7 @@ public class BindingRequestTests
     [DataRow("some project", "some connection")]
     [DataRow(null, "some connection 2")]
     [DataRow("some project 2", null)]
-    [DataTestMethod]
+    [TestMethod]
     public void Manual_AllPropertiesReturnExpectedValues(string projectKey, string connectionId)
     {
         var testSubject = new BindingRequest.Manual(projectKey, connectionId);
@@ -42,7 +42,7 @@ public class BindingRequestTests
     }
 
     [DynamicData(nameof(SharedBindings))]
-    [DataTestMethod]
+    [TestMethod]
     public void Shared_AllPropertiesReturnExpectedValues(SharedBindingConfigModel model, string expectedProjectKey, string expectedConnectionId)
     {
         var testSubject = new BindingRequest.Shared(model);
@@ -54,7 +54,7 @@ public class BindingRequestTests
     }
 
     [DynamicData(nameof(AssistedBindingSubtypes))]
-    [DataTestMethod]
+    [TestMethod]
     public void Assisted_AllPropertiesReturnExpectedValues(string connectionId, string projectKey, bool isShared)
     {
         var dto = new AssistBindingParams(connectionId, projectKey, default, isShared);

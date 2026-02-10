@@ -247,7 +247,7 @@ public class ErrorListHelperTests
         isSuppressed.Should().BeFalse();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(SuppressionState.Suppressed, true)]
     [DataRow(SuppressionState.NotApplicable, false)]
     [DataRow(SuppressionState.Active, false)]

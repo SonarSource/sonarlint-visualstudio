@@ -42,7 +42,7 @@ public class OpenIssueInIdeHandlerTests
         MefTestHelpers.CheckIsSingletonMefComponent<OpenIssueInIdeHandler>();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void Show_CallsBaseHandler(bool isTaint)

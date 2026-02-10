@@ -38,7 +38,7 @@ public class SonarLintSettingsLoggerSettingsProviderTests
     [DataRow(DaemonLogLevel.Verbose, true)]
     [DataRow(DaemonLogLevel.Info, false)]
     [DataRow(DaemonLogLevel.Minimal, false)]
-    [DataTestMethod]
+    [TestMethod]
     public void IsVerboseEnabled_IsThreadIdEnabled_ReturnsFor(DaemonLogLevel logLevel, bool isVerbose)
     {
         sonarLintSettings.DaemonLogLevel.Returns(logLevel);

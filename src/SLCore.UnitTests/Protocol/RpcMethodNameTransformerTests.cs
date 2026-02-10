@@ -40,7 +40,7 @@ public class RpcMethodNameTransformerTests
         MefTestHelpers.CheckIsSingletonMefComponent<RpcMethodNameTransformer>();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("Method", "method")]
     [DataRow("MyMethod", "myMethod")]
     [DataRow("MyLovelyMethod", "myLovelyMethod")]
@@ -58,7 +58,7 @@ public class RpcMethodNameTransformerTests
         transformer(methodName).Should().Be(expectedMethodName);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("Method", $"{Prefix}/method")]
     [DataRow("MyMethod", $"{Prefix}/myMethod")]
     [DataRow("MyLovelyMethod", $"{Prefix}/myLovelyMethod")]

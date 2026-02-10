@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             logger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.ConfigurationScopeMismatch, ConfigScopeId, "Not Matching Id"));
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("C:\\Code\\Project", "C:\\Code\\Project\\")]
         [DataRow("C:\\Code\\Project\\", "C:\\Code\\Project\\")]
         public async Task ListFilesAsync_FolderWorkSpace_UsesFolderWorkspaceService(string root, string notmalizedRoot)
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             sharedBindingConfigProvider.Received().GetSharedBindingFilePathOrNull();
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("C:\\Code\\My Project", "C:\\Code\\My Project\\File1.js", "C:\\Code\\My Project\\")] // supports whitespace
         [DataRow("C:\\привет", "C:\\привет\\project\\file1.js", "C:\\привет\\")] // supports localized
         [DataRow("\\\\servername\\work", "\\\\servername\\work\\project\\file2.js", "\\\\servername\\work\\")] // supports UNC
@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             sharedBindingConfigProvider.Received().GetSharedBindingFilePathOrNull();
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("C:\\Code\\My Project\\File1.js", "C:\\Code\\My Project\\My Favorite File2.js", "C:\\", null)] // supports whitespace
         [DataRow("C:\\Code\\My Project\\File1.js", "C:\\Code\\My Project\\My Favorite File2.js", "C:\\", "some path")]
         [DataRow("C:\\привет\\project\\file1.js", "C:\\привет\\project\\file2.js", "C:\\", "C:\\привет\\")] // supports localized

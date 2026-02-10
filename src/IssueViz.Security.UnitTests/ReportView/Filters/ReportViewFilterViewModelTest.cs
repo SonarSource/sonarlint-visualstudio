@@ -163,7 +163,7 @@ public class ReportViewFilterViewModelTest
         eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.SelectedSeverityFilter)));
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void SelectedNewCodeFilter_DoesNotRaiseEventsDirectly(bool focusOnNewCodeState)
@@ -176,7 +176,7 @@ public class ReportViewFilterViewModelTest
         focusOnNewCodeService.Received().SetPreference(focusOnNewCodeState);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     public void SelectedNewCodeFilter_FocusOnNewCodeUpdated_RaisesEvent()
     {
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
@@ -190,7 +190,7 @@ public class ReportViewFilterViewModelTest
         eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == nameof(testSubject.SelectedNewCodeFilterDescription)));
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true, true, "yes yes")]
     [DataRow(true, false, "yes no")]
     [DataRow(false, true, "no yes")]
@@ -204,7 +204,7 @@ public class ReportViewFilterViewModelTest
         testSubject.SelectedNewCodeFilterDescription.Should().Be(newCodeDescription);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void ClearAll_SetsAllFiltersToDefaultValued(bool focusOnNewCodeState)

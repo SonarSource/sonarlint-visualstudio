@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.DependencyRisks;
 [TestClass]
 public class OpenDependencyRiskInBrowserParamsTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("config-scope-1", "71814600-2924-4b88-9e1a-1af0b46f8d48")]
     [DataRow("other-config-scope", "ea425b61-af22-48ac-98e1-78b644d34876")]
     public void Serialized_AsExpected(string configScopeId, string dependencyRiskKeyString)

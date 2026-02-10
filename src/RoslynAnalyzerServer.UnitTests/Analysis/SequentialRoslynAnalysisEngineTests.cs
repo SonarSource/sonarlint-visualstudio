@@ -100,7 +100,7 @@ public class SequentialRoslynAnalysisEngineTests
         [Language.VBNET]
     ];
 
-    [DataTestMethod]
+    [TestMethod]
     [DynamicData(nameof(RoslynLanguages))]
     public async Task AnalyzeAsync_SingleProjectWithSingleAnalysisCommand_ReturnsDiagnostics(Language language)
     {

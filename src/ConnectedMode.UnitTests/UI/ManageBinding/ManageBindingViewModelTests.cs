@@ -1006,7 +1006,7 @@ public class ManageBindingViewModelTests
 
     [DataRow(true)]
     [DataRow(false)]
-    [DataTestMethod]
+    [TestMethod]
     public async Task PerformBindingAsync_Assisted_Succeeds(bool isFromShared)
     {
         var bindingRequest = new Assisted(new AssistBindingParams("any", "any", default, isFromShared));
@@ -1036,7 +1036,7 @@ public class ManageBindingViewModelTests
     }
 
     [DynamicData(nameof(FailedBindingResults))]
-    [DataTestMethod]
+    [TestMethod]
     public async Task PerformBindingAsync_Fails_ReturnsResult(object resultObject)
     {
         var bindingResult = (BindingResult)resultObject;
@@ -1126,7 +1126,7 @@ public class ManageBindingViewModelTests
     }
 
     [DynamicData(nameof(SonarCloudRegions))]
-    [DataTestMethod]
+    [TestMethod]
     public async Task ExportBindingConfigurationAsync_SonarCloud_Success_SavesBinding(CloudServerRegion region)
     {
         const string serverProjectKey = "SomeServerProject";

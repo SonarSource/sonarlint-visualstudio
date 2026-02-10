@@ -62,7 +62,7 @@ public class AnalysisListenerTests
         testLogger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.AnalysisReadinessUpdate, SLCoreStrings.ConfigScopeConflict));
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void DidChangeAnalysisReadiness_Successful_LogsState(bool isReady)
