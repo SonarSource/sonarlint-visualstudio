@@ -31,7 +31,7 @@ public class SourceFileTests
         sourceFile.Encoding.Should().Be("utf-8");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("windows-1250")]
     [DataRow("windows-1251")]
     [DataRow("windows-1252")]

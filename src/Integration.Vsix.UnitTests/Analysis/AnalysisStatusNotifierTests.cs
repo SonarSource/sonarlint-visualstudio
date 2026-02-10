@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
 
         [DataRow(true)]
         [DataRow(false)]
-        [DataTestMethod]
+        [TestMethod]
         public void AnalysisProgressed_LogToOutputWindow(bool isIntermediate)
         {
             const string filePath = "c:\\test\\foo-started.cpp";

@@ -102,7 +102,7 @@ public class OrganizationSelectionViewModelTests
         testSubject.IsValidSelectedOrganization.Should().BeFalse();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null)]
     [DataRow("")]
     [DataRow("      ")]
@@ -113,7 +113,7 @@ public class OrganizationSelectionViewModelTests
         testSubject.IsValidSelectedOrganization.Should().BeFalse();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("mykey")]
     [DataRow("my key")]
     public void IsValidSelectedOrganization_OrganizationWithValidKey_ReturnsTrue(string key)
@@ -123,7 +123,7 @@ public class OrganizationSelectionViewModelTests
         testSubject.IsValidSelectedOrganization.Should().BeTrue();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("key", null, true)]
     [DataRow("key", "name", true)]
     [DataRow(null, null, false)]

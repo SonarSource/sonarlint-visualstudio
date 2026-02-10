@@ -134,7 +134,7 @@ public class SolutionBindingFileLoaderTests
         act.Should().ThrowExactly<StackOverflowException>();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("")]
     [DataRow(null)]
     public void Load_FilePathIsNull_Null(string filePath)

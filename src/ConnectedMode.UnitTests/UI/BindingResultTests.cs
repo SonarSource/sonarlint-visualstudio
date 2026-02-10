@@ -27,14 +27,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI;
 public class BindingResultTests
 {
     [DynamicData(nameof(ResultValues))]
-    [DataTestMethod]
+    [TestMethod]
     public void BindingResult_VerificationFailed_ReferToSameInstances(object baseProperty, object actualProperty)
     {
         baseProperty.Should().BeSameAs(actualProperty);
     }
 
     [DynamicData(nameof(ResultProperties))]
-    [DataTestMethod]
+    [TestMethod]
     public void BindingResult_HasExpectedProperties(object result, string warningText, bool isSuccessful)
     {
         ((BindingResult)result).ProblemDescription.Should().Be(warningText);

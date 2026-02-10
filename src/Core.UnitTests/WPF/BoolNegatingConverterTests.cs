@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.WPF;
 [TestClass]
 public class BoolNegatingConverterTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void Convert_BooleanToNegative(bool value)

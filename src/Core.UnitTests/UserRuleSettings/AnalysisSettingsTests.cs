@@ -93,7 +93,7 @@ public class AnalysisSettingsTests
         solutionAnalysisSettings.NormalizedFileExclusions.Should().BeEquivalentTo("**/a/file1.cpp", "**/obj/*", "**/file2.cpp");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"*", @"**/*")]
     [DataRow(@"?", @"**/?")]
     [DataRow(@"path", @"**/path")]
@@ -117,7 +117,7 @@ public class AnalysisSettingsTests
         solutionAnalysisSettings.NormalizedFileExclusions.Should().BeEquivalentTo(expected);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DynamicData(nameof(GetInvalidPaths))]
     public void AnalysisSettings_NormalizedFileExclusions_ContainsInvalidPathCharacters_DoesNotCrashAndDoesNotNormalize(string invalidPath)
     {

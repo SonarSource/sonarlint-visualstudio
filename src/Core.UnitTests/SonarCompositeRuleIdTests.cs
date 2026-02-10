@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 
         public static object[][] ReposAndLanguages => LanguageProvider.Instance.AllKnownLanguages.Select(x => new object[] { x.RepoInfo.Key, x }).ToArray();
 
-        [DataTestMethod]
+        [TestMethod]
         [DynamicData(nameof(ReposAndLanguages))]
         public void Language_MatchesBasedOnRepoKey(string repoKey, Language language)
         {
@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             testSubject.Language.Should().Be(language);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         public void Language_UnknownRepo_ReturnsUnknownLanguage()
         {
             var testSubject = new SonarCompositeRuleId("not a sonar language", "S1234");

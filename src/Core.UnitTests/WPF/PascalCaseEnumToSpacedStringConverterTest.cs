@@ -30,7 +30,7 @@ public class PascalCaseEnumToSpacedStringConverterTest
     [TestInitialize]
     public void TestInitialize() => testSubject = new PascalCaseEnumToSpacedStringConverter();
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(TestEnum.Value1, "Value1")]
     [DataRow(TestEnum.TwoWords, "Two Words")]
     [DataRow(TestEnum.ThreeWordsHere, "Three Words Here")]

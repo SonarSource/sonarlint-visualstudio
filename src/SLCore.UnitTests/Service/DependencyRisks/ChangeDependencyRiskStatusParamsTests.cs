@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.DependencyRisks;
 [TestClass]
 public class ChangeDependencyRiskStatusParamsTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("other-scope", "ea425b61-af22-48ac-98e1-78b644d34876", DependencyRiskTransition.ACCEPT, "Accepting this risk")]
     [DataRow("project-scope", "247010fe-26de-4bf3-bed6-b12a8e8b13c6", DependencyRiskTransition.FIXED, "Fixed in version 2.0")]
     [DataRow("global-scope", "3baae21a-7c43-44bc-a675-deb71d2b3e18", DependencyRiskTransition.REOPEN, "")]
@@ -46,7 +46,7 @@ public class ChangeDependencyRiskStatusParamsTests
         actual.Should().Be(expected);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("scope-id", "71814600-2924-4b88-9e1a-1af0b46f8d48", DependencyRiskTransition.CONFIRM)]
     [DataRow("folder-scope", "1a3a6fe9-f984-4a77-a06a-d824fe10f319", DependencyRiskTransition.SAFE)]
     [DataRow("other-scope", "ea425b61-af22-48ac-98e1-78b644d34876", DependencyRiskTransition.FIXED)]

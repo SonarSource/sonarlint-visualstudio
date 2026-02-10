@@ -45,7 +45,7 @@ public class CredentialStoreTypeProviderTests
     public void MefCtor_CheckIsSingleton() =>
         MefTestHelpers.CheckIsSingletonMefComponent<CredentialStoreTypeProvider>();
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(CredentialStoreType.Default)]
     [DataRow(CredentialStoreType.DPAPI)]
     public void CredentialStoreType_ReturnsFromPreferences(CredentialStoreType type)

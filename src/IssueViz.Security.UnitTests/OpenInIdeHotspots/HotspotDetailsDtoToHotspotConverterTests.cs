@@ -183,7 +183,7 @@ public class HotspotDetailsDtoToHotspotConverterTests
         hotspot.Rule.FixRecommendations.Should().BeSameAs(hotspotRuleDto.fixRecommendations);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("LOW", HotspotPriority.Low)]
     [DataRow("low", HotspotPriority.Low)]
     [DataRow("lOw", HotspotPriority.Low)]

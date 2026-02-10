@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Protocol;
 [TestClass]
 public class EitherJsonConverterTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(typeof(object), false)]
     [DataRow(typeof(Either<ConflictingObject.ConflictingLeft, ConflictingObject.ConflictingRight>), false)]
     [DataRow(typeof(Either<SimpleObject.LeftOption, ConflictingObject.ConflictingRight>), false)]

@@ -135,7 +135,7 @@ public class HttpConfigurationListenerTests
         logger.Received(1).WriteLine(SLCoreStrings.UnknowProxyType, unknownScheme);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public async Task CheckServerTrustedAsync_SingleCertificate_ConvertsAndValidates(bool validationResult)
@@ -148,7 +148,7 @@ public class HttpConfigurationListenerTests
         response.trusted.Should().Be(validationResult);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public async Task CheckServerTrustedAsync_MultipleCertificates_ConvertsAndValidates(bool validationResult)

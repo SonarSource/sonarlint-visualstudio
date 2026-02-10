@@ -50,7 +50,7 @@ public class DogfoodingServiceTests
     [DataRow("0", false)]
     [DataRow("1", true)]
     [DataRow("2", false)]
-    [DataTestMethod]
+    [TestMethod]
     public void IsDogfooding_ReturnsAsExpected(string dogfoodingEnvVarValue, bool expectedStatus)
     {
         environmentVariableProvider.TryGet("SONARSOURCE_DOGFOODING").Returns(dogfoodingEnvVarValue);

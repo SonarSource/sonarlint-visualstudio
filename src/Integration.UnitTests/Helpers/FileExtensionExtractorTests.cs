@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers;
 [TestClass]
 public class FileExtensionExtractorTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("file.cs", "cs")]
     [DataRow("File.ScsS", "scss")]
     [DataRow("file.json", "json")]

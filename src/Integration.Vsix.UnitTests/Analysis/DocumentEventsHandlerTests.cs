@@ -609,7 +609,7 @@ public class DocumentEventsHandlerTests
         vcxCompilationDatabaseUpdater.DidNotReceiveWithAnyArgs().AddFileAsync(default);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(CompilationDatabaseType.CMake)]
     [DataRow(null)]
     public void ActiveCompilationDatabaseTracker_DatabaseChanged_WhenDatabaseNotVcx_DoesNotUpdateCompilationDatabase(CompilationDatabaseType? databaseType)

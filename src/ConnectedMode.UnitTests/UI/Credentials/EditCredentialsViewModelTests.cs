@@ -167,7 +167,7 @@ public class EditCredentialsViewModelTests
         actual.WarningText.Should().Be(UiResources.SaveCredentialsFailedText);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public async Task RebindAsync_CallsBindingControllerAdapter(bool success)

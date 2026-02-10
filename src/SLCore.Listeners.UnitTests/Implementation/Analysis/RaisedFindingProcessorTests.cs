@@ -96,7 +96,7 @@ public class RaisedFindingProcessorTests
         analysisStatusNotifier.ReceivedCalls().Should().BeEmpty();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void RaiseFindings_PublishFindings(bool isIntermediate)
@@ -138,7 +138,7 @@ public class RaisedFindingProcessorTests
 
     [DataRow(true)]
     [DataRow(false)]
-    [DataTestMethod]
+    [TestMethod]
     public void RaiseFindings_MultipleFiles_PublishFindingsForEachFile(bool isIntermediate)
     {
         var analysisId = Guid.NewGuid();

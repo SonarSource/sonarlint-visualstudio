@@ -96,7 +96,7 @@ public class ConfigurationScopeDotnetAnalyzerIndicatorTests
         testLogger.AssertPartialOutputStringExists(exceptionMessage);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public async Task ShouldUseEnterpriseCSharpAnalyzerAsync_ServiceReturns_ReturnsSameValue(bool toReturn)

@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             MefTestHelpers.CheckTypeCanBeImported<IssueSpanCalculator, IIssueSpanCalculator>();
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(100, 1)]
         [DataRow(101, 100)]
         public void CalculateSpan_IssueStartLineIsOutsideOfSnapshot_ReturnsEmptySpan(int issueStartLine, int bufferLineCount)

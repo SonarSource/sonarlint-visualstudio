@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding;
 [TestClass]
 public class BoundServerProjectTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null)]
     [DataRow("")]
     [DataRow(" ")]
@@ -36,7 +36,7 @@ public class BoundServerProjectTests
         act.Should().Throw<ArgumentNullException>();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null)]
     [DataRow("")]
     [DataRow(" ")]

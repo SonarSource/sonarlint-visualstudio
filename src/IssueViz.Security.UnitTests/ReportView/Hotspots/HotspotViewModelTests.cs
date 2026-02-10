@@ -56,7 +56,7 @@ public class HotspotViewModelTests
         testSubject.IssueType.Should().Be(IssueType.SecurityHotspot);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(HotspotPriority.Low, DisplaySeverity.Low)]
     [DataRow(HotspotPriority.Medium, DisplaySeverity.Medium)]
     [DataRow(HotspotPriority.High, DisplaySeverity.High)]
@@ -69,7 +69,7 @@ public class HotspotViewModelTests
         hotspotViewModel.DisplaySeverity.Should().Be(expectedSeverity);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     public void Ctor_UnknownSeverity_ReturnsInfo()
     {
         var mockedHotspot = CreateMockedHotspot((HotspotPriority)666);
@@ -79,7 +79,7 @@ public class HotspotViewModelTests
         hotspotViewModel.DisplaySeverity.Should().Be(DisplaySeverity.Info);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(HotspotStatus.ToReview, DisplayStatus.Open)]
     [DataRow(HotspotStatus.Acknowledged, DisplayStatus.Open)]
     [DataRow(HotspotStatus.Fixed, DisplayStatus.Resolved)]
@@ -93,7 +93,7 @@ public class HotspotViewModelTests
         hotspotViewModel.Status.Should().Be(expectedStatus);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     public void Ctor_UnknownStatus_DefaultsToOpen()
     {
         var mockedHotspot = CreateMockedHotspot(default, (HotspotStatus)666);

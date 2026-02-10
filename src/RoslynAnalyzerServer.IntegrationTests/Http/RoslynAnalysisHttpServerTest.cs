@@ -121,7 +121,7 @@ public class RoslynAnalysisHttpServerTest
         serverStarter2.MockedLogger.Received(1).LogVerbose(Arg.Any<MessageLevelContext>(), Resources.HttpRequestTimedOut, Arg.Any<int>());
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public async Task Cancel_ReturnsExpectedResult(bool isCanceled)

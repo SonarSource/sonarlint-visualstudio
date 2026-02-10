@@ -58,7 +58,7 @@ public class ManualOrganizationSelectionViewModelTests
         testSubject.OrganizationKey.Should().Be("key");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null, false)]
     [DataRow("", false)]
     [DataRow("       ", false)]

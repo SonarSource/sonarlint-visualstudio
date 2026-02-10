@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CSharpVB.StandaloneMode;
 [TestClass]
 public class StandaloneRoslynRuleStatusTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true, RuleAction.Warning)]
     [DataRow(false, RuleAction.None)]
     public void Properties_ReturnExpectedValues(bool isEnabled, RuleAction action)

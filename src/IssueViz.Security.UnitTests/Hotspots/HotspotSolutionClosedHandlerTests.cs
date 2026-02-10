@@ -49,7 +49,7 @@ public class HotspotSolutionClosedHandlerTests
     [DataRow(SonarLintMode.Connected, false)]
     [DataRow(SonarLintMode.LegacyConnected, false)]
     [DataRow(SonarLintMode.Standalone, true)]
-    [DataTestMethod]
+    [TestMethod]
     public void SolutionEventRaised_ClearsDependingOnMode(SonarLintMode mode, bool shouldBeCleared)
     {
         var localHotspotStoreUpdaterMock = new Mock<ILocalHotspotsStoreUpdater>();
@@ -62,7 +62,7 @@ public class HotspotSolutionClosedHandlerTests
         localHotspotStoreUpdaterMock.Verify(x => x.Clear(), shouldBeCleared ? Times.Once : Times.Never);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     public void SolutionEventRaised_HandledOnBackgroundThread()
     {
         var callSequence = new List<string>();

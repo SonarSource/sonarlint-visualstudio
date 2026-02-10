@@ -74,7 +74,7 @@ public class ListUserOrganizationsParamsTests
                                     "region": "US"
                                   }
                                   """)]
-    [DataTestMethod]
+    [TestMethod]
     public void Ctor_TokenIsUsed_SerializeAsExpected(SonarCloudRegion region, string expectedString)
     {
         var testSubject = new ListUserOrganizationsParams(new TokenDto("mytoken"), region);

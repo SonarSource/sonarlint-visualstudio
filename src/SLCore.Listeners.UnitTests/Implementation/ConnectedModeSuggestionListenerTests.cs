@@ -194,7 +194,7 @@ public class ConnectedModeSuggestionListenerTests
 
     [DataRow(true)]
     [DataRow(false)]
-    [DataTestMethod]
+    [TestMethod]
     public async Task AssistBindingAsync_BindingSucceeds_ReturnsSuccess(bool isShared)
     {
         var assistBindingParams = new AssistBindingParams("a-connection", "a-project", ConfigScopeId, isShared);
@@ -209,7 +209,7 @@ public class ConnectedModeSuggestionListenerTests
 
     [DataRow(true)]
     [DataRow(false)]
-    [DataTestMethod]
+    [TestMethod]
     public async Task AssistBindingAsync_BindingFails_ReturnsFailed(bool isShared)
     {
         var assistBindingParams = new AssistBindingParams("a-connection", "a-project", ConfigScopeId, isShared);

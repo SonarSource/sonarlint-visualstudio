@@ -63,7 +63,7 @@ public class TelemetryManagerTests
         MefTestHelpers.CheckIsSingletonMefComponent<TelemetryManager>();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(SlCoreTelemetryStatus.Unavailable)]
     [DataRow(SlCoreTelemetryStatus.Disabled)]
     [DataRow(SlCoreTelemetryStatus.Enabled)]

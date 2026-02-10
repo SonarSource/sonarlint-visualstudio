@@ -48,7 +48,7 @@ public class RuleInfoConverterTests
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<RuleInfoConverter>();
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(IssueSeverity.INFO, RuleIssueSeverity.Info)]
     [DataRow(IssueSeverity.MAJOR, RuleIssueSeverity.Major)]
     [DataRow(IssueSeverity.BLOCKER, RuleIssueSeverity.Blocker)]
@@ -70,7 +70,7 @@ public class RuleInfoConverterTests
         ruleInfo.Severity.Should().Be(expected);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(RuleType.CODE_SMELL, RuleIssueType.CodeSmell)]
     [DataRow(RuleType.VULNERABILITY, RuleIssueType.Vulnerability)]
     [DataRow(RuleType.BUG, RuleIssueType.Bug)]
@@ -91,7 +91,7 @@ public class RuleInfoConverterTests
         ruleInfo.IssueType.Should().Be(expected);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(CleanCodeAttribute.CONVENTIONAL, RuleCleanCodeAttribute.Conventional)]
     [DataRow(CleanCodeAttribute.FORMATTED, RuleCleanCodeAttribute.Formatted)]
     [DataRow(CleanCodeAttribute.IDENTIFIABLE, RuleCleanCodeAttribute.Identifiable)]
@@ -264,7 +264,7 @@ public class RuleInfoConverterTests
             null));
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(IssueSeverity.INFO, RuleIssueSeverity.Info)]
     [DataRow(IssueSeverity.MAJOR, RuleIssueSeverity.Major)]
     [DataRow(IssueSeverity.BLOCKER, RuleIssueSeverity.Blocker)]
@@ -279,7 +279,7 @@ public class RuleInfoConverterTests
         ruleInfo.Severity.Should().Be(expected);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(RuleType.CODE_SMELL, RuleIssueType.CodeSmell)]
     [DataRow(RuleType.VULNERABILITY, RuleIssueType.Vulnerability)]
     [DataRow(RuleType.BUG, RuleIssueType.Bug)]
@@ -293,7 +293,7 @@ public class RuleInfoConverterTests
         ruleInfo.IssueType.Should().Be(expected);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(CleanCodeAttribute.CONVENTIONAL, RuleCleanCodeAttribute.Conventional)]
     [DataRow(CleanCodeAttribute.FORMATTED, RuleCleanCodeAttribute.Formatted)]
     [DataRow(CleanCodeAttribute.IDENTIFIABLE, RuleCleanCodeAttribute.Identifiable)]
@@ -415,7 +415,7 @@ public class RuleInfoConverterTests
             null));
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("key1")]
     [DataRow("key 1 2 3")]
     [DataRow(null)]

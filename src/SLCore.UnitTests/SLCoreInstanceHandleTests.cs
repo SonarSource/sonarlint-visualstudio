@@ -125,7 +125,7 @@ public class SLCoreInstanceHandleTests
         act.Should().ThrowExactly<Exception>().WithMessage(exceptionMessage);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("some/node/path", "vsix/esLintBridge")]
     [DataRow(null, null)]
     public async Task Initialize_SuccessfullyInitializesInCorrectOrder(string nodeJsPath, string esLintBridgePath)

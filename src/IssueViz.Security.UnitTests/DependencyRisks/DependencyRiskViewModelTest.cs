@@ -52,7 +52,7 @@ public class DependencyRiskViewModelTest
         testSubject.IsTransitionAllowed.Should().BeTrue();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(DependencyRiskImpactSeverity.Info, DisplaySeverity.Info)]
     [DataRow(DependencyRiskImpactSeverity.Low, DisplaySeverity.Low)]
     [DataRow(DependencyRiskImpactSeverity.Medium, DisplaySeverity.Medium)]
@@ -68,7 +68,7 @@ public class DependencyRiskViewModelTest
         testSubject.DisplaySeverity.Should().Be(expectedSeverity);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     public void Ctor_UnknownSeverity_ReturnsInfo()
     {
         var dependencyRisk = CreateMockedDependencyRisk();
@@ -79,7 +79,7 @@ public class DependencyRiskViewModelTest
         testSubject.DisplaySeverity.Should().Be(DisplaySeverity.Info);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(DependencyRiskStatus.Open, false)]
     [DataRow(DependencyRiskStatus.Confirmed, false)]
     [DataRow(DependencyRiskStatus.Accepted, true)]
@@ -111,7 +111,7 @@ public class DependencyRiskViewModelTest
         testSubject.RuleId.Should().BeNull();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(DependencyRiskStatus.Open, DisplayStatus.Open)]
     [DataRow(DependencyRiskStatus.Confirmed, DisplayStatus.Open)]
     [DataRow(DependencyRiskStatus.Accepted, DisplayStatus.Resolved)]
@@ -127,7 +127,7 @@ public class DependencyRiskViewModelTest
         testSubject.Status.Should().Be(expectedStatus);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     public void Ctor_UnknownStatus_DefaultsToOpen()
     {
         var dependencyRisk = CreateMockedDependencyRisk();

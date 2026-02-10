@@ -70,7 +70,7 @@ public class ActiveSolutionTrackerTests
         testLogger.Received().ForContext(Strings.ActiveSolutionTracker_LogContext);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null)]
     [DataRow("A Solution")]
     public void ActiveSolutionTracker_InitializesCorrectly(string name)

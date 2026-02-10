@@ -219,7 +219,7 @@ public class LoggerBaseTests
 
     [DataRow(true)]
     [DataRow(false)]
-    [DataTestMethod]
+    [TestMethod]
     public void WriteLine_Context_AddsContextProperty(bool isVerboseEnabled)
     {
         settingsProvider.IsVerboseEnabled.Returns(isVerboseEnabled);
@@ -232,7 +232,7 @@ public class LoggerBaseTests
 
     [DataRow(true)]
     [DataRow(false)]
-    [DataTestMethod]
+    [TestMethod]
     public void WriteLineFormatted_Context_AddsContextProperty(bool isVerboseEnabled)
     {
         settingsProvider.IsVerboseEnabled.Returns(isVerboseEnabled);

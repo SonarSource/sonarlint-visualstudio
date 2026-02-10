@@ -140,7 +140,7 @@ public class TaintIssueToIssueVisualizationConverterTests
             ));
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(IssueSeverity.INFO, AnalysisIssueSeverity.Info)]
     [DataRow(IssueSeverity.MINOR, AnalysisIssueSeverity.Minor)]
     [DataRow(IssueSeverity.CRITICAL, AnalysisIssueSeverity.Critical)]
@@ -178,7 +178,7 @@ public class TaintIssueToIssueVisualizationConverterTests
         issueVizConverter.DidNotReceiveWithAnyArgs().Convert(default);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(ImpactSeverity.BLOCKER, SoftwareQualitySeverity.Blocker)]
     [DataRow(ImpactSeverity.HIGH, SoftwareQualitySeverity.High)]
     [DataRow(ImpactSeverity.MEDIUM, SoftwareQualitySeverity.Medium)]
@@ -206,7 +206,7 @@ public class TaintIssueToIssueVisualizationConverterTests
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(new[] { ImpactSeverity.LOW, ImpactSeverity.LOW, ImpactSeverity.LOW }, SoftwareQualitySeverity.Low)]
     [DataRow(new[] { ImpactSeverity.LOW, ImpactSeverity.LOW, ImpactSeverity.INFO }, SoftwareQualitySeverity.Low)]
     [DataRow(new[] { ImpactSeverity.LOW, ImpactSeverity.MEDIUM, ImpactSeverity.LOW }, SoftwareQualitySeverity.Medium)]

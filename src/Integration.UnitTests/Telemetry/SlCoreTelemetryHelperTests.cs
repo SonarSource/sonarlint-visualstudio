@@ -77,7 +77,7 @@ public class SlCoreTelemetryHelperTests
         testLogger.OutputStrings.Should().BeEmpty();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void GetStatus_ServiceAvailable_ReturnsServiceCallResult(bool result)

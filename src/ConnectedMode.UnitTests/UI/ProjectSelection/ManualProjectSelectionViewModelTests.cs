@@ -58,7 +58,7 @@ public class ManualProjectSelectionViewModelTests
         testSubject.ProjectKey.Should().Be("key");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null, false)]
     [DataRow("", false)]
     [DataRow("       ", false)]

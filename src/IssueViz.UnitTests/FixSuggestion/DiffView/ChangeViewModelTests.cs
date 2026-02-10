@@ -68,7 +68,7 @@ public class ChangeViewModelTests
 
     [DataRow(true)]
     [DataRow(false)]
-    [DataTestMethod]
+    [TestMethod]
     public void IsSelected_ModifiesValueOfUnderlyingModel(bool isSelected)
     {
         testSubject.IsSelected = isSelected;
@@ -91,7 +91,7 @@ public class ChangeViewModelTests
     [DataRow(false, true, false)]
     [DataRow(true, false, false)]
     [DataRow(false, false, false)]
-    [DataTestMethod]
+    [TestMethod]
     public void Finalize_ReturnsExpected(bool isSelected, bool dialogResult, bool expectedFinalized)
     {
         testSubject.IsSelected = isSelected;

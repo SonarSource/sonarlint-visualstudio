@@ -56,7 +56,7 @@ public class ClientFileDtoFactoryTests
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<ClientFileDtoFactory>();
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"C:\user\projectA\directoryA\file.cs", @"C:\", @"user\projectA\directoryA\file.cs")]
     [DataRow(@"C:\user\projectA\directoryA\file.cs", @"C:\user\projectA\", @"directoryA\file.cs")]
     [DataRow(@"C:\user\projectA\directoryA\file.cs", @"C:\user\projectA\directoryA\", @"file.cs")]

@@ -45,7 +45,7 @@ public class TransientSonarCloudConnectionDtoTests
                                                   "region": "EU"
                                                 }
                                                 """)]
-    [DataTestMethod]
+    [TestMethod]
     public void Serialized_Token_AsExpected(string organization, SonarCloudRegion region, string expected) =>
         JsonConvert.SerializeObject(new TransientSonarCloudConnectionDto(organization, new TokenDto("abctoken"), region), Formatting.Indented).Should().Be(expected);
 
@@ -69,7 +69,7 @@ public class TransientSonarCloudConnectionDtoTests
                                                   "region": "EU"
                                                 }
                                                 """)]
-    [DataTestMethod]
+    [TestMethod]
     public void Serialized_UsernameAndPassword_AsExpected(string organization, SonarCloudRegion region, string expected) =>
         JsonConvert.SerializeObject(new TransientSonarCloudConnectionDto(organization, new UsernamePasswordDto("usr", "pwd"), region), Formatting.Indented).Should().Be(expected);
 }

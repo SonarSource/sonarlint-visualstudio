@@ -45,7 +45,7 @@ public class CanonicalFilePathsCacheTests
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<CanonicalFilePathsCache>();
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("C:/file1.txt")]
     [DataRow("C:/FiLe1.tXt")]
     [DataRow("C:/FILE1.TXT")]
@@ -58,7 +58,7 @@ public class CanonicalFilePathsCacheTests
         ValidateFilePathCached(filePath, canonicalFilePath);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("C:/a.txt", "C:/a.txt")]
     [DataRow("C:/A.tXt", "C:/a.txt")]
     [DataRow("C:/A.TXT", "C:/A.txt")]

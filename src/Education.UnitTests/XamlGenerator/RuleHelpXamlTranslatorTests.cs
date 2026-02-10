@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
             result.Should().Be(expectedText);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(1)]
         [DataRow(2)]
         [DataRow(3)]

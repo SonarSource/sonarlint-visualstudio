@@ -81,7 +81,7 @@ public class ChangeDependencyRiskStatusViewModelTest
         result.Should().Be(DependencyRiskTransition.Accept);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null, null)]
     [DataRow("", null)]
     [DataRow("   \t\n  ", null)]

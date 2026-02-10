@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis.Wrapper
 [TestClass]
 public class WorkspaceChangeIndicatorTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(WorkspaceChangeKind.DocumentAdded, true)]
     [DataRow(WorkspaceChangeKind.DocumentRemoved, true)]
     [DataRow(WorkspaceChangeKind.DocumentReloaded, true)]

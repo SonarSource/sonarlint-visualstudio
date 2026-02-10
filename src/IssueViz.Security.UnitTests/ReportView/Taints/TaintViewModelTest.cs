@@ -11,7 +11,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.ReportVie
 [TestClass]
 public class TaintViewModelTest
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void Ctor_InitializesPropertiesAsExpected(bool isSolutionLevelTaintDisplay)
@@ -55,7 +55,7 @@ public class TaintViewModelTest
         testSubject.IsSolutionLevelTaintDisplay.Should().BeFalse();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(AnalysisIssueSeverity.Info, DisplaySeverity.Info)]
     [DataRow(AnalysisIssueSeverity.Minor, DisplaySeverity.Low)]
     [DataRow(AnalysisIssueSeverity.Major, DisplaySeverity.Medium)]
@@ -70,7 +70,7 @@ public class TaintViewModelTest
         testSubject.DisplaySeverity.Should().Be(expectedSeverity);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true, DisplayStatus.Resolved)]
     [DataRow(false, DisplayStatus.Open)]
     public void Ctor_Status_ReturnsCorrectValueBasedOnIsResloved(bool isResolved, DisplayStatus expectedStatus)
@@ -83,7 +83,7 @@ public class TaintViewModelTest
         testSubject.IsResolved.Should().Be(isResolved);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     public void Ctor_TaintHasSeverity_UnknownSeverity_ReturnsInfo()
     {
         var taintIssue = CreateMockedTaint((AnalysisIssueSeverity)666);
@@ -93,7 +93,7 @@ public class TaintViewModelTest
         testSubject.DisplaySeverity.Should().Be(DisplaySeverity.Info);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(SoftwareQualitySeverity.Info, DisplaySeverity.Info)]
     [DataRow(SoftwareQualitySeverity.Low, DisplaySeverity.Low)]
     [DataRow(SoftwareQualitySeverity.Medium, DisplaySeverity.Medium)]
@@ -108,7 +108,7 @@ public class TaintViewModelTest
         testSubject.DisplaySeverity.Should().Be(expectedSeverity);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     public void Ctor_TaintHasSoftwareQualitySeverity_UnknownSeverity_ReturnsInfo()
     {
         var taintIssue = CreateMockedTaint(softwareQualitySeverity: (SoftwareQualitySeverity)666);
@@ -118,7 +118,7 @@ public class TaintViewModelTest
         testSubject.DisplaySeverity.Should().Be(DisplaySeverity.Info);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     public void Ctor_TaintHasNoSoftwareQualitySeverityAndNoSeverity_ReturnsInfo()
     {
         var taintIssue = CreateMockedTaint(severity: null, softwareQualitySeverity: null);

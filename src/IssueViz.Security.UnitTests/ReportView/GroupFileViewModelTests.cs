@@ -130,7 +130,7 @@ public class GroupFileViewModelTests
 
     [DataRow(true, 3)]
     [DataRow(false, 5)]
-    [DataTestMethod]
+    [TestMethod]
     public void ApplyFilter_NewCodeSelected_AppliesAccordingly(bool isOnNewCode, int filteredCount)
     {
         MockNewCodeFilter(isOnNewCode);

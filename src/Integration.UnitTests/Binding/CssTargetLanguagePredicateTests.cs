@@ -34,7 +34,7 @@ public class CssTargetLanguagePredicateTests
         CssTargetLanguagePredicate.Instance.Should().NotBeNull();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(AnalysisLanguage.CascadingStyleSheets, "css", true)]
     [DataRow(AnalysisLanguage.CascadingStyleSheets, "scss", true)]
     [DataRow(AnalysisLanguage.CascadingStyleSheets, "less", true)]

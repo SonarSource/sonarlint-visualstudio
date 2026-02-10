@@ -105,7 +105,7 @@ public class UpdateTokenNotificationTests
             MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null)]
     [DataRow("warning test")]
     public void Show_EditCredentialsCommand_EditingCredentialsFails_ShowsMessage(string warningText)

@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.NodeJS.Notifications
                 MefTestHelpers.CreateExport<IBrowserService>());
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(Language.JS, "321", "123", "123")]
         [DataRow(Language.CSS, "99.00.11", "9876.5432", "9876.5432")]
         [DataRow(Language.JS, "321", null, "Not found")]
