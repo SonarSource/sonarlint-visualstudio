@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
@@ -42,8 +41,7 @@ public class QuickFixActionsSourceProviderTests
         MefTestHelpers.CheckTypeCanBeImported<QuickFixActionsSourceProvider, ISuggestedActionsSourceProvider>(
             MefTestHelpers.CreateExport<IBufferTagAggregatorFactoryService>(),
             MefTestHelpers.CreateExport<ILightBulbBroker>(),
-            MefTestHelpers.CreateExport<IQuickFixesTelemetryManager>(),
-            MefTestHelpers.CreateExport<IMessageBox>(),
+            MefTestHelpers.CreateExport<IQuickFixApplicationLogic>(),
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
     }
@@ -103,8 +101,7 @@ public class QuickFixActionsSourceProviderTests
         return new QuickFixActionsSourceProvider(
             bufferTagAggregatorFactoryService.Object,
             lightBulbBroker,
-            Mock.Of<IQuickFixesTelemetryManager>(),
-            Substitute.For<IMessageBox>(),
+            Substitute.For<IQuickFixApplicationLogic>(),
             Mock.Of<ILogger>(),
             new NoOpThreadHandler());
     }

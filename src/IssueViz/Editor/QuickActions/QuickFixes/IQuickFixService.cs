@@ -18,34 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Text;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
 
-internal class QuickFixSuggestedAction(
-    IQuickFixApplication quickFixApplication,
-    ITextBuffer textBuffer,
-    IAnalysisIssueVisualization issueViz,
-    IQuickFixApplicationLogic quickFixApplicationLogic,
-    IThreadHandling threadHandling)
-    : BaseSuggestedAction
+public interface IQuickFixService
 {
-    public override string DisplayText => Resources.ProductNameCommandPrefix + quickFixApplication.Message;
+    bool CanBeApplied(IQuickFixApplication quickFix, string filePath);
 
-    public override void Invoke(CancellationToken cancellationToken)
-    {
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return;
-        }
-
-        threadHandling.Run(async () =>
-        {
-            await threadHandling.SwitchToMainThreadAsync();
-            await quickFixApplicationLogic.ApplyAsync(quickFixApplication, textBuffer.CurrentSnapshot, issueViz, cancellationToken);
-            return 0;
-        });
-    }
+    Task<bool> ApplyAsync(IQuickFixApplication quickFix, string filePath,
+        IAnalysisIssueVisualization issueViz, CancellationToken cancellationToken = default);
 }

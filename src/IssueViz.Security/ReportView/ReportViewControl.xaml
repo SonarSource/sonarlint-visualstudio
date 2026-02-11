@@ -568,7 +568,7 @@
                 </MenuItem>
             </ContextMenu>
 
-            <ContextMenu x:Key="IssuesContextMenu">
+            <ContextMenu x:Key="IssuesContextMenu" Opened="IssuesContextMenu_OnOpened">
                 <MenuItem Header="{x:Static res:Resources.ChangeStatusMenuItem}"
                           Click="ChangeIssueStatusMenuItem_OnClick"
                           Style="{StaticResource ChangeStatusMenuItemStyleDisableResolved}"/>

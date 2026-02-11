@@ -30,6 +30,7 @@ using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
@@ -69,6 +70,7 @@ internal class ReportViewToolWindow : ToolWindowPane
             componentModel?.GetService<IDocumentTracker>(),
             componentModel?.GetService<IThreadHandling>(),
             componentModel?.GetService<IInitializationProcessorFactory>(),
-            componentModel?.GetService<IFocusOnNewCodeServiceUpdater>());
+            componentModel?.GetService<IFocusOnNewCodeServiceUpdater>(),
+            componentModel?.GetService<IQuickFixService>());
     }
 }

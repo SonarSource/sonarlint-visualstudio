@@ -24,6 +24,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Navigation;
+using Microsoft.VisualStudio.Imaging;
 using SonarLint.VisualStudio.ConnectedMode.ReviewStatus;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -33,7 +34,9 @@ using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFixes;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Filters;
@@ -49,9 +52,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 internal sealed partial class ReportViewControl : UserControl
 {
     public static readonly Uri ClearAllFiltersUri = new Uri("sonarlint://clearfilters");
+    private const string QuickFixItemTag = "QuickFixItem";
 
     private readonly IBrowserService browserService;
     private readonly IChangeStatusWindowService changeStatusWindowService;
+    private readonly IQuickFixService quickFixService;
 
     public ReportViewModel ReportViewModel { get; }
     public IHotspotsReportViewModel HotspotsReportViewModel { get; }
@@ -78,10 +83,12 @@ internal sealed partial class ReportViewControl : UserControl
         IDocumentTracker documentTracker,
         IThreadHandling threadHandling,
         IInitializationProcessorFactory initializationProcessorFactory,
-        IFocusOnNewCodeServiceUpdater focusOnNewCodeServiceUpdater)
+        IFocusOnNewCodeServiceUpdater focusOnNewCodeServiceUpdater,
+        IQuickFixService quickFixService)
     {
         this.browserService = browserService;
         this.changeStatusWindowService = changeStatusWindowService;
+        this.quickFixService = quickFixService;
         HotspotsReportViewModel = hotspotsReportViewModel;
         DependencyRisksReportViewModel = dependencyRisksReportViewModel;
         TaintsReportViewModel = taintsReportViewModel;
@@ -393,5 +400,86 @@ internal sealed partial class ReportViewControl : UserControl
         {
             groupViewModel.IsExpanded = isExpanded;
         }
+    }
+
+    private void IssuesContextMenu_OnOpened(object sender, RoutedEventArgs e)
+    {
+        if (sender is not ContextMenu contextMenu)
+        {
+            return;
+        }
+
+        RemoveQuickFixMenuItems(contextMenu);
+
+        if (contextMenu.DataContext is not IssueViewModel issueViewModel)
+        {
+            return;
+        }
+
+        var issue = issueViewModel.Issue;
+        var quickFixes = issue.QuickFixes;
+        if (quickFixes == null || !quickFixes.Any())
+        {
+            return;
+        }
+
+        var applicableFixes = quickFixes
+            .Where(fix => quickFixService.CanBeApplied(fix, issueViewModel.FilePath))
+            .ToList();
+
+        if (!applicableFixes.Any())
+        {
+            return;
+        }
+
+        var insertIndex = FindQuickFixInsertIndex(contextMenu);
+        contextMenu.Items.Insert(insertIndex++, new Separator { Tag = QuickFixItemTag });
+
+        foreach (var fix in applicableFixes)
+        {
+            var menuItem = CreateQuickFixMenuItem(fix, issue, issueViewModel.FilePath);
+            contextMenu.Items.Insert(insertIndex++, menuItem);
+        }
+    }
+
+    private static void RemoveQuickFixMenuItems(ContextMenu contextMenu)
+    {
+        var itemsToRemove = contextMenu.Items
+            .OfType<FrameworkElement>()
+            .Where(item => QuickFixItemTag.Equals(item.Tag))
+            .ToList();
+
+        foreach (var item in itemsToRemove)
+        {
+            contextMenu.Items.Remove(item);
+        }
+    }
+
+    private static int FindQuickFixInsertIndex(ContextMenu contextMenu)
+    {
+        // Insert quick fix items at the end of the menu
+        return contextMenu.Items.Count;
+    }
+
+    private MenuItem CreateQuickFixMenuItem(IQuickFixApplication fix, IAnalysisIssueVisualization issueViz, string filePath)
+    {
+        var menuItem = new MenuItem
+        {
+            Header = "Fix: " + fix.Message,
+            Tag = QuickFixItemTag,
+            Icon = new CrispImage { Moniker = KnownMonikers.IntellisenseLightBulb }
+        };
+        menuItem.Click += async (s, args) =>
+        {
+            try
+            {
+                await quickFixService.ApplyAsync(fix, filePath, issueViz);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                // suppress
+            }
+        };
+        return menuItem;
     }
 }

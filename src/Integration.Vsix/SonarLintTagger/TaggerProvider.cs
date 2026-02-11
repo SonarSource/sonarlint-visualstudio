@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Initialization;
+using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
@@ -57,11 +58,12 @@ internal interface IDocumentTrackerUpdater
 /// </remarks>
 [Export(typeof(ITaggerProvider))]
 [Export(typeof(IDocumentTracker))]
+[Export(typeof(IDocumentTrackerEx))]
 [TagType(typeof(IErrorTag))]
 [ContentType("text")]
 [TextViewRole(PredefinedTextViewRoles.Document)]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, IDocumentTracker, IDocumentTrackerUpdater, IDisposable
+internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, IDocumentTracker, IDocumentTrackerEx, IDocumentTrackerUpdater, IDisposable
 {
     internal static readonly Type SingletonManagerPropertyCollectionKey = typeof(SingletonDisposableTaggerManager<IErrorTag>);
     private readonly IAnalysisRequester analysisRequester;
@@ -234,4 +236,11 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
         }).Forget();
 
     #endregion IDocumentTracker methods
+
+    #region IDocumentTrackerEx methods
+
+    public bool TryGetCurrentSnapshot(string filePath, out ITextSnapshot snapshot) =>
+        fileStateManager.TryGetCurrentSnapshot(filePath, out snapshot);
+
+    #endregion IDocumentTrackerEx methods
 }

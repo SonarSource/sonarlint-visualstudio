@@ -20,6 +20,7 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Text;
 using Document = SonarLint.VisualStudio.Core.Document;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
@@ -39,6 +40,8 @@ internal interface IFileStateManager
     void ContentSaved(IFileState file);
 
     void ContentChanged(IFileState file);
+
+    bool TryGetCurrentSnapshot(string filePath, out ITextSnapshot snapshot);
 }
 
 internal interface IAnalysisStateProvider
@@ -121,6 +124,22 @@ internal class FileStateManager(ILiveAnalysisStateFactory liveAnalysisStateFacto
                 state = CreateAnalysisState(file);
             }
             state.HandleLiveAnalysisEvent(performLinkedAnalysis);
+        }
+    }
+
+    public bool TryGetCurrentSnapshot(string filePath, out ITextSnapshot snapshot)
+    {
+        lock (locker)
+        {
+            var fileState = states.Keys.FirstOrDefault(fs => fs.FilePath == filePath);
+            if (fileState != null)
+            {
+                var fileSnapshot = fileState.UpdateFileState();
+                snapshot = fileSnapshot?.TextSnapshot;
+                return snapshot != null;
+            }
+            snapshot = null;
+            return false;
         }
     }
 }
