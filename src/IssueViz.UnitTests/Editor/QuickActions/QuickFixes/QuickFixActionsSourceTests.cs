@@ -361,8 +361,7 @@ public class QuickFixActionsSourceTests
             bufferTagAggregatorFactoryService.Object,
             textView,
             textBuffer,
-            Mock.Of<IQuickFixesTelemetryManager>(),
-            Substitute.For<IMessageBox>(),
+            Substitute.For<IQuickFixApplicationLogic>(),
             logger,
             threadHandling);
     }
