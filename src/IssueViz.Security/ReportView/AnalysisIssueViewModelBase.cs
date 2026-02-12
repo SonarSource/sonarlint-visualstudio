@@ -28,8 +28,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
 internal abstract class AnalysisIssueViewModelBase(IAnalysisIssueVisualization analysisIssueVisualization) : ViewModelBase, IAnalysisIssueViewModel
 {
     public Guid Id => Issue.IssueId;
-    public int? Line => Issue.Issue.PrimaryLocation.TextRange.StartLine;
-    public int? Column => Issue.Issue.PrimaryLocation.TextRange.StartLineOffset;
+    public int? Line => Issue.Issue.PrimaryLocation.TextRange?.StartLine;
+    public int? Column => Issue.Issue.PrimaryLocation.TextRange?.StartLineOffset;
     public string Title => Issue.Issue.PrimaryLocation.Message;
     public string FilePath => Issue.Issue.PrimaryLocation.FilePath;
     public string RuleId => Issue.SonarRuleId.Id;
