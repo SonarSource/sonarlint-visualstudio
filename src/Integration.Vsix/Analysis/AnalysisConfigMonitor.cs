@@ -24,7 +24,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
-using SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
 using SonarLint.VisualStudio.SLCore.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis;
@@ -41,13 +40,11 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor
     private readonly ILogger logger;
     private readonly IThreadHandling threadHandling;
     private readonly ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater;
-    private readonly IStandaloneRoslynSettingsUpdater roslynSettingsUpdater;
 
     [ImportingConstructor]
     public AnalysisConfigMonitor(
         IUserSettingsProvider userSettingsProvider,
         ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater,
-        IStandaloneRoslynSettingsUpdater roslynSettingsUpdater,
         ILogger logger,
         IThreadHandling threadHandling,
         IInitializationProcessorFactory initializationProcessorFactory)
@@ -56,7 +53,6 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor
         this.logger = logger;
         this.threadHandling = threadHandling;
         this.slCoreRuleSettingsUpdater = slCoreRuleSettingsUpdater;
-        this.roslynSettingsUpdater = roslynSettingsUpdater;
 
         InitializationProcessor = initializationProcessorFactory.CreateAndStart<AnalysisConfigMonitor>(
             [userSettingsProvider],
@@ -67,7 +63,6 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor
                     return;
                 }
                 userSettingsProvider.SettingsChanged += OnUserSettingsChanged;
-                roslynSettingsUpdater.Update(userSettingsProvider.UserSettings);
             });
     }
 
@@ -78,7 +73,6 @@ internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor
         logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
         threadHandling.RunOnBackgroundThread(() =>
             {
-                roslynSettingsUpdater.Update(userSettingsProvider.UserSettings);
                 slCoreRuleSettingsUpdater.UpdateStandaloneRulesConfiguration();
             }
         ).Forget();
