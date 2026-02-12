@@ -32,12 +32,15 @@ namespace SonarLint.VisualStudio.Education.Controls
         private readonly IEducation education;
         private readonly ILogger logger;
 
+        public RuleHelpUserControlViewModel ViewModel { get; }
+
         internal RuleHelpUserControl(IBrowserService browserService, IEducation education, ILogger logger)
         {
             this.browserService = browserService;
             this.education = education;
             this.logger = logger;
 
+            ViewModel = new RuleHelpUserControlViewModel();
             InitializeComponent();
         }
 

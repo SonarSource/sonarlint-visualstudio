@@ -88,7 +88,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly string projectName;
         private readonly Guid projectGuid;
         private readonly IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter;
-        private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
 
         private readonly IList<IAnalysisIssueVisualization> issues;
         private readonly IReadOnlyCollection<IAnalysisIssueVisualization> readonlyIssues;
@@ -116,11 +115,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         private IssuesSnapshot(Guid snapshotId, string projectName, Guid projectGuid, string filePath, IEnumerable<IAnalysisIssueVisualization> issues)
-            : this(snapshotId, projectName, projectGuid, filePath, issues, new AnalysisSeverityToVsSeverityConverter(), new RuleHelpLinkProvider())
+            : this(snapshotId, projectName, projectGuid, filePath, issues, new AnalysisSeverityToVsSeverityConverter())
         {
         }
 
-        private IssuesSnapshot(Guid snapshotId, string projectName, Guid projectGuid, string filePath, IEnumerable<IAnalysisIssueVisualization> issues, IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter, IRuleHelpLinkProvider ruleHelpLinkProvider)
+        private IssuesSnapshot(Guid snapshotId, string projectName, Guid projectGuid, string filePath, IEnumerable<IAnalysisIssueVisualization> issues, IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter)
         {
             var areAllIssuesAnalysisIssues = issues.All(x => x.Issue is IAnalysisIssue);
 
@@ -135,7 +134,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.projectGuid = projectGuid;
             this.versionNumber = GetNextVersionNumber();
             this.toVsSeverityConverter = toVsSeverityConverter;
-            this.ruleHelpLinkProvider = ruleHelpLinkProvider;
             this.issues = new List<IAnalysisIssueVisualization>(issues);
             this.readonlyIssues = new ReadOnlyCollection<IAnalysisIssueVisualization>(this.issues);
 
@@ -231,7 +229,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case StandardTableKeyNames.HelpLink:
-                    content = ruleHelpLinkProvider.GetHelpLink(issueViz.SonarRuleId);
+                    content = "https://sonarcloud.io/"; // null here makes the hyperlink inactive, the content is just a placeholder and is not the actual link that is opened
                     return true;
 
                 case StandardTableKeyNames.ProjectName:

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -20,30 +20,84 @@
 
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Core.UnitTests
 {
     [TestClass]
     public class RuleHelpLinkProviderTests
     {
-        [TestMethod]
-        [DataRow("javascript:123", "https://rules.sonarsource.com/javascript/RSPEC-123")]
-        [DataRow("javascript:SOMETHING", "https://rules.sonarsource.com/javascript/RSPEC-SOMETHING")]
-        [DataRow("c:456", "https://rules.sonarsource.com/c/RSPEC-456")]
-        [DataRow("c:NonEmptyCaseWithoutBreak", "https://rules.sonarsource.com/c/RSPEC-NonEmptyCaseWithoutBreak")]
-        [DataRow("cpp:PPIncludeNonStandardCharacters", "https://rules.sonarsource.com/cpp/RSPEC-PPIncludeNonStandardCharacters")]
-        [DataRow("php:101112", "https://rules.sonarsource.com/php/RSPEC-101112")]
-        [DataRow("roslyn.sonaranalyzer.security.cs:S2076", "https://rules.sonarsource.com/csharp/RSPEC-2076")]
-        [DataRow("roslyn.sonaranalyzer.security.cs:SOMETHING", "https://rules.sonarsource.com/csharp/RSPEC-SOMETHING")]
-        [DataRow("csharpsquid:S1234", "https://rules.sonarsource.com/csharp/RSPEC-1234")]
-        [DataRow("csharpsquid:SOMETHING", "https://rules.sonarsource.com/csharp/RSPEC-SOMETHING")]
-        [DataRow("Web:SOMETHING", "https://rules.sonarsource.com/html/RSPEC-SOMETHING")]
-        public void GetHelpLink(string ruleKey, string expectedLink)
-        {
-            var ruleId = SonarCompositeRuleId.TryParse(ruleKey, out var id) ? id : null;
-            var helpLink = new RuleHelpLinkProvider().GetHelpLink(ruleId);
+        private IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private RuleHelpLinkProvider testSubject;
 
-            helpLink.Should().Be(expectedLink);
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
+            testSubject = new RuleHelpLinkProvider(activeSolutionBoundTracker);
+        }
+
+        [TestMethod]
+        public void GetHelpLink_NotBound_ReturnsNull()
+        {
+            activeSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
+
+            var ruleId = new SonarCompositeRuleId("csharpsquid", "S1234");
+
+            var result = testSubject.GetHelpLink(ruleId);
+
+            result.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void GetHelpLink_NullConfiguration_ReturnsNull()
+        {
+            activeSolutionBoundTracker.CurrentConfiguration.Returns((BindingConfiguration)null);
+
+            var ruleId = new SonarCompositeRuleId("csharpsquid", "S1234");
+
+            var result = testSubject.GetHelpLink(ruleId);
+
+            result.Should().BeNull();
+        }
+
+        [TestMethod]
+        [DataRow("csharpsquid", "S1234", "cs")]
+        [DataRow("roslyn.sonaranalyzer.security.cs", "S2076", "cs")]
+        [DataRow("javascript", "S123", "js")]
+        [DataRow("cpp", "S456", "cpp")]
+        public void GetHelpLink_BoundToSonarCloud_ReturnsCorrectUrl(string repoKey, string ruleKey, string expectedLanguageKey)
+        {
+            var sonarCloud = new ServerConnection.SonarCloud("my-org", CloudServerRegion.Eu);
+            var boundProject = new BoundServerProject("local", "server-project", sonarCloud);
+            var configuration = BindingConfiguration.CreateBoundConfiguration(boundProject, SonarLintMode.Connected, "c:\\config");
+            activeSolutionBoundTracker.CurrentConfiguration.Returns(configuration);
+
+            var ruleId = new SonarCompositeRuleId(repoKey, ruleKey);
+
+            var result = testSubject.GetHelpLink(ruleId);
+
+            result.Should().Be($"https://sonarcloud.io/organizations/my-org/rules?languages={expectedLanguageKey}&open={repoKey}%3A{ruleKey}&q={ruleKey}");
+        }
+
+        [TestMethod]
+        [DataRow("csharpsquid", "S1234", "cs")]
+        [DataRow("roslyn.sonaranalyzer.security.cs", "S2076", "cs")]
+        [DataRow("javascript", "S123", "js")]
+        [DataRow("cpp", "S456", "cpp")]
+        public void GetHelpLink_BoundToSonarQube_ReturnsCorrectUrl(string repoKey, string ruleKey, string expectedLanguageKey)
+        {
+            var sonarQube = new ServerConnection.SonarQube(new Uri("https://mysonarqube.com/"));
+            var boundProject = new BoundServerProject("local", "server-project", sonarQube);
+            var configuration = BindingConfiguration.CreateBoundConfiguration(boundProject, SonarLintMode.Connected, "c:\\config");
+            activeSolutionBoundTracker.CurrentConfiguration.Returns(configuration);
+
+            var ruleId = new SonarCompositeRuleId(repoKey, ruleKey);
+
+            var result = testSubject.GetHelpLink(ruleId);
+
+            result.Should().Be($"https://mysonarqube.com/coding_rules?languages={expectedLanguageKey}&open={repoKey}%3A{ruleKey}&q={ruleKey}");
         }
     }
 }

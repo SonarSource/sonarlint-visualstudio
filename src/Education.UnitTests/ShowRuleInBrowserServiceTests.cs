@@ -32,7 +32,8 @@ namespace SonarLint.VisualStudio.Education.UnitTests
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<ShowRuleInBrowserService, IShowRuleInBrowser>(
-                MefTestHelpers.CreateExport<IBrowserService>());
+                MefTestHelpers.CreateExport<IBrowserService>(),
+                MefTestHelpers.CreateExport<IRuleHelpLinkProvider>());
         }
 
         [TestMethod]

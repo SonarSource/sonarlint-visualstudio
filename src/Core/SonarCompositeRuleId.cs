@@ -48,7 +48,8 @@ public class SonarCompositeRuleId
         RepoKey = repoKey ?? throw new ArgumentNullException(nameof(repoKey));
         RuleKey = ruleKey ?? throw new ArgumentNullException(nameof(ruleKey));
         Id = GetRuleId(repoKey, ruleKey);
-        Language = LanguageProvider.Instance.AllKnownLanguages.FirstOrDefault(x => x.RepoInfo.Key == repoKey) ?? Language.Unknown;
+        Language = LanguageProvider.Instance.AllKnownLanguages.FirstOrDefault(x => x.HasRepoKey(repoKey))
+                   ?? Language.Unknown;
     }
 
     public static string GetRuleId(string repoKey, string ruleKey) => repoKey + Separator + ruleKey;

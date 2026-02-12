@@ -94,6 +94,8 @@ public class EducationTests
     [TestMethod]
     public void ShowRuleHelp_FailedToDisplayRule_RuleIsShownInBrowser()
     {
+        toolWindowService.GetToolWindow<RuleHelpToolWindow, IRuleHelpToolWindow>().Returns(ruleDescriptionToolWindow);
+        showRuleInBrowser.ShowRuleDescription(knownRule).Returns(true);
         ruleHelpXamlBuilder.When(x => x.Create(ruleInfo)).Do(x => throw new Exception("some layout error"));
 
         testSubject.ShowRuleHelp(knownRule, null);
@@ -104,13 +106,29 @@ public class EducationTests
     }
 
     [TestMethod]
-    public void ShowRuleHelp_UnknownRule_RuleIsShownInBrowser()
+    public void ShowRuleHelp_UnknownRule_BrowserSucceeds_PlaceholderShownInToolWindow()
     {
+        toolWindowService.GetToolWindow<RuleHelpToolWindow, IRuleHelpToolWindow>().Returns(ruleDescriptionToolWindow);
+        showRuleInBrowser.ShowRuleDescription(unknownRule).Returns(true);
+
         testSubject.ShowRuleHelp(unknownRule, null);
 
         VerifyGetsRuleInfoForCorrectRuleId(unknownRule);
         VerifyRuleShownInBrowser(unknownRule);
-        VerifyNotAttemptsBuildRule();
+        VerifyRuleDescriptionInBrowserPlaceholderShown();
+    }
+
+    [TestMethod]
+    public void ShowRuleHelp_UnknownRule_BrowserFails_ErrorPlaceholderShownInToolWindow()
+    {
+        toolWindowService.GetToolWindow<RuleHelpToolWindow, IRuleHelpToolWindow>().Returns(ruleDescriptionToolWindow);
+        showRuleInBrowser.ShowRuleDescription(unknownRule).Returns(false);
+
+        testSubject.ShowRuleHelp(unknownRule, null);
+
+        VerifyGetsRuleInfoForCorrectRuleId(unknownRule);
+        VerifyRuleShownInBrowser(unknownRule);
+        VerifyCannotShowRuleDescriptionPlaceholderShown();
     }
 
     [TestMethod]
@@ -133,14 +151,23 @@ public class EducationTests
 
     private void VerifyAttemptsToBuildRuleButFails()
     {
-        ruleHelpXamlBuilder.ReceivedCalls().Should().HaveCount(1);
-        toolWindowService.ReceivedCalls().Should().HaveCount(1);
+        ruleHelpXamlBuilder.Received(1).Create(ruleInfo);
+        ruleDescriptionToolWindow.Received(1).ShowRuleDescriptionInBrowser(knownRule);
+        VerifyToolWindowShown();
     }
 
-    private void VerifyNotAttemptsBuildRule()
+    private void VerifyRuleDescriptionInBrowserPlaceholderShown()
     {
         ruleHelpXamlBuilder.ReceivedCalls().Should().HaveCount(0);
-        toolWindowService.ReceivedCalls().Should().HaveCount(0);
+        ruleDescriptionToolWindow.Received(1).ShowRuleDescriptionInBrowser(unknownRule);
+        VerifyToolWindowShown();
+    }
+
+    private void VerifyCannotShowRuleDescriptionPlaceholderShown()
+    {
+        ruleHelpXamlBuilder.ReceivedCalls().Should().HaveCount(0);
+        ruleDescriptionToolWindow.Received(1).ShowCannotShowRuleDescription(unknownRule);
+        VerifyToolWindowShown();
     }
 
     private void VerifyRuleIsDisplayedInIde(FlowDocument flowDocument)

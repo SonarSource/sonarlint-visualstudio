@@ -31,6 +31,8 @@ namespace SonarLint.VisualStudio.Education
     public interface IRuleHelpToolWindow
     {
         void UpdateContent(FlowDocument newContent);
+        void ShowCannotShowRuleDescription(SonarCompositeRuleId ruleId);
+        void ShowRuleDescriptionInBrowser(SonarCompositeRuleId ruleId);
     }
 
     [Guid(ToolWindowIdAsString)]
@@ -49,7 +51,17 @@ namespace SonarLint.VisualStudio.Education
 
         public void UpdateContent(FlowDocument newContent)
         {
-            control.docViewer.Document = newContent;
+            control.ViewModel.ShowRuleDescription(newContent);
+        }
+
+        public void ShowCannotShowRuleDescription(SonarCompositeRuleId ruleId)
+        {
+            control.ViewModel.ShowCannotShowRuleDescription(ruleId);
+        }
+
+        public void ShowRuleDescriptionInBrowser(SonarCompositeRuleId ruleId)
+        {
+            control.ViewModel.ShowRuleDescriptionInBrowser(ruleId);
         }
     }
 }

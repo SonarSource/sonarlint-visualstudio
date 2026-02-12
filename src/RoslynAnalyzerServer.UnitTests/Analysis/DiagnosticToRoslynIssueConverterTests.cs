@@ -76,7 +76,7 @@ public class DiagnosticToRoslynIssueConverterTests
             message,
             fileUri,
             expectedTextRange);
-        var expectedRuleId = $"{language.RepoInfo.Key}:{ruleId}";
+        var expectedRuleId = $"{language.RepoKey}:{ruleId}";
         var expectedDiagnostic = new RoslynIssue(
             expectedRuleId,
             expectedLocation);

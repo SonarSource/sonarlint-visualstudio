@@ -305,7 +305,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var testSubject = CreateDisableRuleMenuCommand(languageProvider.Object);
 
             languageProvider.Verify(x => x.LanguagesInStandaloneMode, Times.Once);
-            testSubject.SupportedRepos.Should().BeEquivalentTo([Language.CSharp.RepoInfo.Key, Language.Cpp.RepoInfo.Key]);
+            testSubject.SupportedRepos.Should().BeEquivalentTo([Language.CSharp.RepoKey, Language.Cpp.RepoKey]);
         }
 
         private static MenuCommand CreateDisableRuleMenuCommand(

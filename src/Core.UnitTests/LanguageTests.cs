@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
     public class LanguageTests
     {
         private readonly PluginInfo pluginInfo = new("pluginKey", "filePattern");
-        private readonly RepoInfo repoInfo = new("repoKey");
+        private const string RepoKey = "repoKey";
 
         [TestMethod]
         public void Language_Ctor_ArgChecks()
@@ -36,25 +36,25 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 
             // Act + Assert
             // Nulls
-            Action act = () => new Language(name, null, serverLanguageKey, pluginInfo, repoInfo);
+            Action act = () => new Language(name, null, serverLanguageKey, pluginInfo, RepoKey);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("name");
 
-            act = () => new Language(null, key, serverLanguageKey, pluginInfo, repoInfo);
+            act = () => new Language(null, key, serverLanguageKey, pluginInfo, RepoKey);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
 
-            act = () => new Language(name, key, null, pluginInfo, repoInfo);
+            act = () => new Language(name, key, null, pluginInfo, RepoKey);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverLanguageKey");
 
-            act = () => new Language(name, key, serverLanguageKey, null, repoInfo, repoInfo);
+            act = () => new Language(name, key, serverLanguageKey, null, RepoKey, RepoKey);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("pluginInfo");
 
             act = () => new Language(name, key, serverLanguageKey, pluginInfo, null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("repoInfo");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("repoKey");
 
-            act = () => new Language(name, key, serverLanguageKey, pluginInfo, repoInfo, securityRepoInfo: null);
+            act = () => new Language(name, key, serverLanguageKey, pluginInfo, RepoKey, securityRepoKey: null);
             act.Should().NotThrow<ArgumentNullException>();
 
-            act = () => new Language(name, key, serverLanguageKey, pluginInfo, repoInfo, additionalPlugins: null);
+            act = () => new Language(name, key, serverLanguageKey, pluginInfo, RepoKey, additionalPlugins: null);
             act.Should().NotThrow<ArgumentNullException>();
         }
 
@@ -69,9 +69,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         public void Language_Equality()
         {
             // Arrange
-            var lang1a = new Language("Language 1", "lang1", "a", pluginInfo, repoInfo);
-            var lang1b = new Language("Language 1", "lang1 XXX", "b", pluginInfo, repoInfo);
-            var lang2 = new Language("Language 2", "lang2", "c", pluginInfo, repoInfo);
+            var lang1a = new Language("Language 1", "lang1", "a", pluginInfo, RepoKey);
+            var lang1b = new Language("Language 1", "lang1 XXX", "b", pluginInfo, RepoKey);
+            var lang2 = new Language("Language 2", "lang2", "c", pluginInfo, RepoKey);
 
             // Act + Assert
             lang1b.Should().Be(lang1a, "Languages with the same ids should be equal");
@@ -79,39 +79,39 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         }
 
         [TestMethod]
-        public void Language_HasExpectedRepoInfo()
+        public void Language_HasExpectedRepoKey()
         {
-            LanguageHasExpectedRepoInfo(Language.CSharp, "csharpsquid", "csharp");
-            LanguageHasExpectedRepoInfo(Language.VBNET, "vbnet", "vbnet");
-            LanguageHasExpectedRepoInfo(Language.Cpp, "cpp", "cpp");
-            LanguageHasExpectedRepoInfo(Language.C, "c", "c");
-            LanguageHasExpectedRepoInfo(Language.Js, "javascript", "javascript");
-            LanguageHasExpectedRepoInfo(Language.Ts, "typescript", "typescript");
-            LanguageHasExpectedRepoInfo(Language.Css, "css", "css");
-            LanguageHasExpectedRepoInfo(Language.Html, "Web", "html");
-            LanguageHasExpectedRepoInfo(Language.Secrets, "secrets", "secrets");
-            LanguageHasExpectedRepoInfo(Language.Text, "text", "text");
-            LanguageHasExpectedRepoInfo(Language.TSql, "tsql", "tsql");
+            Language.CSharp.RepoKey.Should().Be("csharpsquid");
+            Language.VBNET.RepoKey.Should().Be("vbnet");
+            Language.Cpp.RepoKey.Should().Be("cpp");
+            Language.C.RepoKey.Should().Be("c");
+            Language.Js.RepoKey.Should().Be("javascript");
+            Language.Ts.RepoKey.Should().Be("typescript");
+            Language.Css.RepoKey.Should().Be("css");
+            Language.Html.RepoKey.Should().Be("Web");
+            Language.Secrets.RepoKey.Should().Be("secrets");
+            Language.Text.RepoKey.Should().Be("text");
+            Language.TSql.RepoKey.Should().Be("tsql");
 
-            DoesNotHaveRepoInfo(Language.Unknown.RepoInfo);
+            Language.Unknown.RepoKey.Should().BeNull();
         }
 
         [TestMethod]
-        public void Language_HasExpectedSecurityRepoInfo()
+        public void Language_HasExpectedSecurityRepoKey()
         {
-            LanguageHasExpectedSecurityRepoInfo(Language.CSharp, "roslyn.sonaranalyzer.security.cs", "csharp");
-            LanguageHasExpectedSecurityRepoInfo(Language.Js, "jssecurity", "javascript");
-            LanguageHasExpectedSecurityRepoInfo(Language.Ts, "tssecurity", "typescript");
+            Language.CSharp.SecurityRepoKey.Should().Be("roslyn.sonaranalyzer.security.cs");
+            Language.Js.SecurityRepoKey.Should().Be("jssecurity");
+            Language.Ts.SecurityRepoKey.Should().Be("tssecurity");
 
-            DoesNotHaveRepoInfo(Language.VBNET.SecurityRepoInfo);
-            DoesNotHaveRepoInfo(Language.Cpp.SecurityRepoInfo);
-            DoesNotHaveRepoInfo(Language.C.SecurityRepoInfo);
-            DoesNotHaveRepoInfo(Language.Css.SecurityRepoInfo);
-            DoesNotHaveRepoInfo(Language.Html.SecurityRepoInfo);
-            DoesNotHaveRepoInfo(Language.Secrets.SecurityRepoInfo);
-            DoesNotHaveRepoInfo(Language.Text.SecurityRepoInfo);
-            DoesNotHaveRepoInfo(Language.TSql.SecurityRepoInfo);
-            DoesNotHaveRepoInfo(Language.Unknown.SecurityRepoInfo);
+            Language.VBNET.SecurityRepoKey.Should().BeNull();
+            Language.Cpp.SecurityRepoKey.Should().BeNull();
+            Language.C.SecurityRepoKey.Should().BeNull();
+            Language.Css.SecurityRepoKey.Should().BeNull();
+            Language.Html.SecurityRepoKey.Should().BeNull();
+            Language.Secrets.SecurityRepoKey.Should().BeNull();
+            Language.Text.SecurityRepoKey.Should().BeNull();
+            Language.TSql.SecurityRepoKey.Should().BeNull();
+            Language.Unknown.SecurityRepoKey.Should().BeNull();
         }
 
         [TestMethod]
@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [DataRow("repoKey", "keyToCheck")]
         public void HasRepoKey_RepoOrSecurityRepoHasKey_ReturnsTrue(string repoKey, string securityRepoKey)
         {
-            var language = new Language("xxx", "dummy language", "LanguageX", pluginInfo, new RepoInfo(repoKey), new RepoInfo(securityRepoKey));
+            var language = new Language("xxx", "dummy language", "LanguageX", pluginInfo, repoKey, securityRepoKey);
 
             language.HasRepoKey("keyToCheck").Should().BeTrue();
         }
@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [TestMethod]
         public void HasRepoKey_RepoNorSecurityRepoHasKey_ReturnsFalse()
         {
-            var language = new Language("xxx", "dummy language", "LanguageX", pluginInfo, new RepoInfo("myRepoKey"), new RepoInfo("mySecurityRepoKey"));
+            var language = new Language("xxx", "dummy language", "LanguageX", pluginInfo, "myRepoKey", "mySecurityRepoKey");
 
             language.HasRepoKey("keyToCheck").Should().BeFalse();
         }
@@ -186,19 +186,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests
                                                                  x.FilePattern == expectedPlugin.FilePattern &&
                                                                  x.IsEnabledForAnalysis == expectedPlugin.IsEnabledForAnalysis);
             }
-        }
-
-        private static void LanguageHasExpectedRepoInfo(Language language, string repoKey, string folderName) => HasExpectedRepoInfo(language.RepoInfo, repoKey, folderName);
-
-        private static void LanguageHasExpectedSecurityRepoInfo(Language language, string repoKey, string folderName) => HasExpectedRepoInfo(language.SecurityRepoInfo, repoKey, folderName);
-
-        private static void DoesNotHaveRepoInfo(RepoInfo repoInfo) => repoInfo.Should().BeNull();
-
-        private static void HasExpectedRepoInfo(RepoInfo repoInfo, string repoKey, string folderName)
-        {
-            repoInfo.Should().NotBeNull();
-            repoInfo.Key.Should().Be(repoKey);
-            repoInfo.FolderName.Should().Be(folderName);
         }
 
         private static void LanguageHasExpectedServerLanguageKey(Language language, string key) => language.ServerLanguageKey.Should().Be(key);

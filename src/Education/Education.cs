@@ -76,41 +76,42 @@ internal class Education : IEducation
 
     private async Task ShowRuleHelpAsync(SonarCompositeRuleId ruleId, Guid? issueId)
     {
-        await threadHandling.SwitchToBackgroundThread();
+        IRuleInfo fullRuleInfo = null;
+        await threadHandling.RunOnBackgroundThread(async () =>
+        {
+            fullRuleInfo = await ruleMetadataProvider.GetRuleInfoAsync(ruleId, issueId);
 
-        var ruleInfo = await ruleMetadataProvider.GetRuleInfoAsync(ruleId, issueId);
+        });
 
         await threadHandling.RunOnUIThreadAsync(() =>
         {
-            if (ruleInfo == null)
+            ruleHelpToolWindow ??= toolWindowService.GetToolWindow<RuleHelpToolWindow, IRuleHelpToolWindow>();
+            if (fullRuleInfo == null || !ShowInIde(fullRuleInfo))
             {
-                showRuleInBrowser.ShowRuleDescription(ruleId);
+                if (showRuleInBrowser.ShowRuleDescription(ruleId))
+                {
+                    ruleHelpToolWindow.ShowRuleDescriptionInBrowser(ruleId);
+                }
+                else
+                {
+                    ruleHelpToolWindow.ShowCannotShowRuleDescription(ruleId);
+                }
             }
-            else
-            {
-                ShowRuleInIde(ruleInfo, ruleId);
-            }
+            toolWindowService.Show(RuleHelpToolWindow.ToolWindowId);
         });
     }
 
-    private void ShowRuleInIde(IRuleInfo ruleInfo, SonarCompositeRuleId ruleId)
+    private bool ShowInIde(IRuleInfo ruleInfo)
     {
-        threadHandling.ThrowIfNotOnUIThread();
-        // Lazily fetch the tool window from a UI thread
-        ruleHelpToolWindow ??= toolWindowService.GetToolWindow<RuleHelpToolWindow, IRuleHelpToolWindow>();
-
         try
         {
-            var flowDocument = ruleHelpXamlBuilder.Create(ruleInfo);
-
-            ruleHelpToolWindow.UpdateContent(flowDocument);
-
-            toolWindowService.Show(RuleHelpToolWindow.ToolWindowId);
+            ruleHelpToolWindow.UpdateContent(ruleHelpXamlBuilder.Create(ruleInfo));
+            return true;
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
             logger.WriteLine(string.Format(Resources.ERR_RuleHelpToolWindow_Exception, ex));
-            showRuleInBrowser.ShowRuleDescription(ruleId);
+            return false;
         }
     }
 }

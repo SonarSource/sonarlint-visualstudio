@@ -131,7 +131,7 @@ public class SonarLintXmlProviderTests
         bool isActive = true,
         Dictionary<string, string>? parameters = null) =>
         new(
-            new SonarCompositeRuleId(Language.CSharp.RepoInfo.Key, ruleKey),
+            new SonarCompositeRuleId(Language.CSharp.RepoKey, ruleKey),
             isActive,
             parameters);
 }
