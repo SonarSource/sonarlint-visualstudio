@@ -18,13 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Windows.Documents;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Education.Controls;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Education
 {
@@ -36,6 +35,7 @@ namespace SonarLint.VisualStudio.Education
     }
 
     [Guid(ToolWindowIdAsString)]
+    [ExcludeFromCodeCoverage]
     internal class RuleHelpToolWindow : ToolWindowPane, IRuleHelpToolWindow
     {
         private const string ToolWindowIdAsString = "9E74B368-9FC3-47B0-A1C7-2DBA3A2C1762";

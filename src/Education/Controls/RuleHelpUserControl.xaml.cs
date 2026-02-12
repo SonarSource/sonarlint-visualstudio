@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows.Controls;
 using System.Windows.Navigation;
 using SonarLint.VisualStudio.Core;
@@ -26,6 +26,7 @@ using EducationResx = SonarLint.VisualStudio.Education.Resources;
 
 namespace SonarLint.VisualStudio.Education.Controls
 {
+    [ExcludeFromCodeCoverage]
     public sealed partial class RuleHelpUserControl : UserControl
     {
         private readonly IBrowserService browserService;
