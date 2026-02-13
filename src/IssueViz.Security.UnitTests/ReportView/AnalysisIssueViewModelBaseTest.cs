@@ -94,6 +94,22 @@ public class AnalysisIssueViewModelBaseTest
         CreateTestSubject(issue).IsOnNewCode.Should().Be(isOnNewCode);
     }
 
+    [TestMethod]
+    public void Line_TextRangeIsNull_ReturnsNull()
+    {
+        var issue = CreateMockedIssueWithNullTextRange();
+
+        CreateTestSubject(issue).Line.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void Column_TextRangeIsNull_ReturnsNull()
+    {
+        var issue = CreateMockedIssueWithNullTextRange();
+
+        CreateTestSubject(issue).Column.Should().BeNull();
+    }
+
     /// <summary>
     /// To prevent adding the tests in all the subclasses we test the base class via any of its child classes.
     /// </summary>
@@ -136,5 +152,15 @@ public class AnalysisIssueViewModelBaseTest
         return analysisIssueVisualization;
     }
 
-    private static Guid GetGuid(string issueId) => issueId == null ? default : Guid.Parse(issueId);
+    private static IAnalysisIssueVisualization CreateMockedIssueWithNullTextRange()
+    {
+        var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
+        var analysisIssueBase = Substitute.For<IAnalysisIssueBase>();
+        var primaryLocation = Substitute.For<IAnalysisIssueLocation>();
+        primaryLocation.TextRange.Returns((ITextRange)null);
+        analysisIssueBase.PrimaryLocation.Returns(primaryLocation);
+        analysisIssueVisualization.Issue.Returns(analysisIssueBase);
+
+        return analysisIssueVisualization;
+    }
 }

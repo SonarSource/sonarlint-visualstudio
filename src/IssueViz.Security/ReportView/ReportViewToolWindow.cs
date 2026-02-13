@@ -35,7 +35,6 @@ using SonarLint.VisualStudio.IssueVisualization.Security.DependencyRisks;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Issues;
 using SonarLint.VisualStudio.IssueVisualization.Security.ReportView.Taints;
-using SonarLint.VisualStudio.IssueVisualization.Security.ReviewStatus;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.ReportView;
@@ -69,6 +68,7 @@ internal class ReportViewToolWindow : ToolWindowPane
             componentModel?.GetService<IDocumentTracker>(),
             componentModel?.GetService<IThreadHandling>(),
             componentModel?.GetService<IInitializationProcessorFactory>(),
-            componentModel?.GetService<IFocusOnNewCodeServiceUpdater>());
+            componentModel?.GetService<IFocusOnNewCodeServiceUpdater>(),
+            componentModel?.GetService<ILogger>());
     }
 }

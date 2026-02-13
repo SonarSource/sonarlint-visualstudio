@@ -52,6 +52,7 @@ internal sealed partial class ReportViewControl : UserControl
 
     private readonly IBrowserService browserService;
     private readonly IChangeStatusWindowService changeStatusWindowService;
+    private readonly ILogger logger;
 
     public ReportViewModel ReportViewModel { get; }
     public IHotspotsReportViewModel HotspotsReportViewModel { get; }
@@ -78,10 +79,12 @@ internal sealed partial class ReportViewControl : UserControl
         IDocumentTracker documentTracker,
         IThreadHandling threadHandling,
         IInitializationProcessorFactory initializationProcessorFactory,
-        IFocusOnNewCodeServiceUpdater focusOnNewCodeServiceUpdater)
+        IFocusOnNewCodeServiceUpdater focusOnNewCodeServiceUpdater,
+        ILogger logger)
     {
         this.browserService = browserService;
         this.changeStatusWindowService = changeStatusWindowService;
+        this.logger = logger.ForVerboseContext(nameof(ReportViewControl));
         HotspotsReportViewModel = hotspotsReportViewModel;
         DependencyRisksReportViewModel = dependencyRisksReportViewModel;
         TaintsReportViewModel = taintsReportViewModel;
@@ -123,15 +126,32 @@ internal sealed partial class ReportViewControl : UserControl
 
     private void ViewDependencyRiskInBrowser_OnClick(object sender, RoutedEventArgs e)
     {
-        if (ReportViewModel.SelectedItem is not DependencyRiskViewModel selectedDependencyRiskViewModel)
+        try
         {
-            return;
-        }
+            if (ReportViewModel.SelectedItem is not DependencyRiskViewModel selectedDependencyRiskViewModel)
+            {
+                return;
+            }
 
-        DependencyRisksReportViewModel.ShowDependencyRiskInBrowser(selectedDependencyRiskViewModel.DependencyRisk);
+            DependencyRisksReportViewModel.ShowDependencyRiskInBrowser(selectedDependencyRiskViewModel.DependencyRisk);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.LogVerbose(ex.Message);
+        }
     }
 
-    private void DependencyRiskContextMenu_OnLoaded(object sender, RoutedEventArgs e) => SetDataContextToReportViewModel<ContextMenu>(sender);
+    private void DependencyRiskContextMenu_OnLoaded(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            SetDataContextToReportViewModel<ContextMenu>(sender);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.LogVerbose(ex.Message);
+        }
+    }
 
     private void SetDataContextToReportViewModel<T>(object sender) where T : FrameworkElement
     {
@@ -143,13 +163,30 @@ internal sealed partial class ReportViewControl : UserControl
         }
     }
 
-    private void ShowMenuItemInBrowserMenuItem_OnLoaded(object sender, RoutedEventArgs e) => SetDataContextToReportViewModel<MenuItem>(sender);
+    private void ShowMenuItemInBrowserMenuItem_OnLoaded(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            SetDataContextToReportViewModel<MenuItem>(sender);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.LogVerbose(ex.Message);
+        }
+    }
 
     private void TreeViewItem_OnMouseRightButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (sender is FrameworkElement element && FindParentOfType<TreeViewItem>(element) is { } treeViewItem)
+        try
         {
-            treeViewItem.IsSelected = true;
+            if (sender is FrameworkElement element && FindParentOfType<TreeViewItem>(element) is { } treeViewItem)
+            {
+                treeViewItem.IsSelected = true;
+            }
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.LogVerbose(ex.Message);
         }
     }
 
@@ -176,30 +213,64 @@ internal sealed partial class ReportViewControl : UserControl
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            // suppress
+            logger.LogVerbose(ex.Message);
         }
     }
 
     private void TreeView_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
     {
-        if (e.NewValue is null)
+        try
         {
-            return;
+            if (e.NewValue is null)
+            {
+                return;
+            }
+            ReportViewModel.SelectedItem = e.NewValue as IIssueViewModel;
         }
-        ReportViewModel.SelectedItem = e.NewValue as IIssueViewModel;
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.LogVerbose(ex.Message);
+        }
     }
 
-    private void Hyperlink_OnRequestNavigate(object sender, RequestNavigateEventArgs e) => browserService.Navigate(e.Uri.AbsoluteUri);
+    private void Hyperlink_OnRequestNavigate(object sender, RequestNavigateEventArgs e)
+    {
+        try
+        {
+            browserService.Navigate(e.Uri.AbsoluteUri);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.LogVerbose(ex.Message);
+        }
+    }
 
-    private void ClearFiltersHyperlink(object sender, RequestNavigateEventArgs e) => ClearAllFilters_OnClick(sender, e);
+    private void ClearFiltersHyperlink(object sender, RequestNavigateEventArgs e)
+    {
+        try
+        {
+            ClearAllFilters_OnClick(sender, e);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.LogVerbose(ex.Message);
+        }
+    }
 
 
     private void TreeViewItem_PreviewMouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (e.ClickCount % 2 == 0)
+        try
         {
-            NavigateToLocation(ReportViewModel.SelectedItem ?? (sender as FrameworkElement)?.DataContext);
-            e.Handled = true; // setting as handled to prevent the default TreeViewItem behavior of toggling the expansion state
+            if (e.ClickCount % 2 == 0)
+            {
+                NavigateToLocation(ReportViewModel.SelectedItem ?? (sender as FrameworkElement)?.DataContext);
+                e.Handled = true; // setting as handled to prevent the default TreeViewItem behavior of toggling the expansion state
+            }
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.LogVerbose(ex.Message);
         }
     }
 
@@ -226,7 +297,7 @@ internal sealed partial class ReportViewControl : UserControl
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            // suppress
+            logger.LogVerbose(ex.Message);
         }
     }
 
@@ -262,7 +333,7 @@ internal sealed partial class ReportViewControl : UserControl
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            // suppress
+            logger.LogVerbose(ex.Message);
         }
     }
 
@@ -279,7 +350,7 @@ internal sealed partial class ReportViewControl : UserControl
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            // suppress
+            logger.LogVerbose(ex.Message);
         }
     }
 
@@ -296,7 +367,7 @@ internal sealed partial class ReportViewControl : UserControl
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            // suppress
+            logger.LogVerbose(ex.Message);
         }
     }
 
@@ -313,7 +384,7 @@ internal sealed partial class ReportViewControl : UserControl
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            // suppress
+            logger.LogVerbose(ex.Message);
         }
     }
 
@@ -330,62 +401,147 @@ internal sealed partial class ReportViewControl : UserControl
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            // suppress
+            logger.LogVerbose(ex.Message);
         }
     }
 
     private void ViewTaintInBrowser_OnClick(object sender, RoutedEventArgs e)
     {
-        if (ReportViewModel.SelectedItem is TaintViewModel taintViewModel)
+        try
         {
-            TaintsReportViewModel.ShowTaintInBrowser(taintViewModel.TaintIssue);
+            if (ReportViewModel.SelectedItem is TaintViewModel taintViewModel)
+            {
+                TaintsReportViewModel.ShowTaintInBrowser(taintViewModel.TaintIssue);
+            }
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.LogVerbose(ex.Message);
         }
     }
 
     private void ShowIssueVisualizationForTaint_OnClick(object sender, RoutedEventArgs e)
     {
-        if (ReportViewModel.SelectedItem is TaintViewModel taintViewModel)
+        try
         {
-            NavigateToLocation(taintViewModel);
-            TaintsReportViewModel.ShowIssueVisualization();
+            if (ReportViewModel.SelectedItem is TaintViewModel taintViewModel)
+            {
+                NavigateToLocation(taintViewModel);
+                TaintsReportViewModel.ShowIssueVisualization();
+            }
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.LogVerbose(ex.Message);
         }
     }
 
     private void ViewIssueInBrowser_OnClick(object sender, RoutedEventArgs e)
     {
-        if (ReportViewModel.SelectedItem is IssueViewModel issueViewModel)
+        try
         {
-            IssuesReportViewModel.ShowIssueInBrowser(issueViewModel.AnalysisIssue);
+            if (ReportViewModel.SelectedItem is IssueViewModel issueViewModel)
+            {
+                IssuesReportViewModel.ShowIssueInBrowser(issueViewModel.AnalysisIssue);
+            }
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.LogVerbose(ex.Message);
         }
     }
 
     private void ShowIssueVisualizationForIssue_OnClick(object sender, RoutedEventArgs e)
     {
-        if (ReportViewModel.SelectedItem is IssueViewModel issueViewModel)
+        try
         {
-            NavigateToLocation(issueViewModel);
-            IssuesReportViewModel.ShowIssueVisualization();
+            if (ReportViewModel.SelectedItem is IssueViewModel issueViewModel)
+            {
+                NavigateToLocation(issueViewModel);
+                IssuesReportViewModel.ShowIssueVisualization();
+            }
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.LogVerbose(ex.Message);
         }
     }
 
     private void IssueTypeFilterButton_OnClick(object sender, RoutedEventArgs e)
     {
-        if (sender is FrameworkElement { DataContext: IssueTypeFilterViewModel vm })
+        try
         {
-            vm.IsSelected = !vm.IsSelected;
-            Control_OnFilterChanged(sender, e);
+            if (sender is FrameworkElement { DataContext: IssueTypeFilterViewModel vm })
+            {
+                vm.IsSelected = !vm.IsSelected;
+                Control_OnFilterChanged(sender, e);
+            }
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.LogVerbose(ex.Message);
         }
     }
 
-    private void ShowAdvancedFilters_Click(object sender, RoutedEventArgs e) => ReportViewModel.ReportViewFilter.ShowAdvancedFilters = !ReportViewModel.ReportViewFilter.ShowAdvancedFilters;
+    private void ShowAdvancedFilters_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            ReportViewModel.ReportViewFilter.ShowAdvancedFilters = !ReportViewModel.ReportViewFilter.ShowAdvancedFilters;
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.LogVerbose(ex.Message);
+        }
+    }
 
-    private void Control_OnFilterChanged(object sender, EventArgs e) => ReportViewModel.ApplyFilter();
+    private void Control_OnFilterChanged(object sender, EventArgs e)
+    {
+        try
+        {
+            ReportViewModel.ApplyFilter();
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.LogVerbose(ex.Message);
+        }
+    }
 
-    private void ClearAllFilters_OnClick(object sender, RoutedEventArgs e) => ReportViewModel.ResetFilters();
+    private void ClearAllFilters_OnClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            ReportViewModel.ResetFilters();
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.LogVerbose(ex.Message);
+        }
+    }
 
-    private void CollapseAllButton_OnClick(object sender, RoutedEventArgs e) => SetGroupsExpansionState(false);
+    private void CollapseAllButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            SetGroupsExpansionState(false);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.LogVerbose(ex.Message);
+        }
+    }
 
-    private void ExpandAllButton_OnClick(object sender, RoutedEventArgs e) => SetGroupsExpansionState(true);
+    private void ExpandAllButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            SetGroupsExpansionState(true);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.LogVerbose(ex.Message);
+        }
+    }
 
     private void SetGroupsExpansionState(bool isExpanded)
     {
