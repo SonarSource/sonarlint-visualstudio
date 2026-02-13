@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             result.Should().Be(expected);
         }
 
-        public static object[][] ReposAndLanguages => LanguageProvider.Instance.AllKnownLanguages.Select(x => new object[] { x.RepoInfo.Key, x }).ToArray();
+        public static object[][] ReposAndLanguages => LanguageProvider.Instance.AllKnownLanguages.Select(x => new object[] { x.RepoKey, x }).ToArray();
 
         [TestMethod]
         [DynamicData(nameof(ReposAndLanguages))]

@@ -62,7 +62,7 @@ internal class RoslynAnalysisProfilesProvider : IRoslynAnalysisProfilesProvider
                 continue;
             }
 
-            foreach (var ruleId in kvp.Value.SupportedRuleKeys.Select(ruleKey => new SonarCompositeRuleId(language.RepoInfo.Key, ruleKey)))
+            foreach (var ruleId in kvp.Value.SupportedRuleKeys.Select(ruleKey => new SonarCompositeRuleId(language.RepoKey, ruleKey)))
             {
                 analysisProfile.Rules.Add(activeRulesById.TryGetValue(ruleId.Id, out var activeRule)
                     ? new RoslynRuleConfiguration(ruleId, true, activeRule.Parameters)

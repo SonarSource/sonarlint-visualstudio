@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Education
 {
@@ -33,32 +34,25 @@ namespace SonarLint.VisualStudio.Education
         /// <summary>
         /// Navigates to rules.sonarsource.com to show the help for the specified rule
         /// </summary>
-        void ShowRuleDescription(SonarCompositeRuleId ruleId);
+        bool ShowRuleDescription(SonarCompositeRuleId ruleId);
     }
 
     [Export(typeof(IShowRuleInBrowser))]
-    internal class ShowRuleInBrowserService : IShowRuleInBrowser
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    [method: ImportingConstructor]
+    internal class ShowRuleInBrowserService(
+        IBrowserService vsBrowserService,
+        IRuleHelpLinkProvider ruleHelpLinkProvider) : IShowRuleInBrowser
     {
-        private readonly IBrowserService vsBrowserService;
-        private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
-
-        [ImportingConstructor]
-        public ShowRuleInBrowserService(IBrowserService vsBrowserService)
-            : this(vsBrowserService, new RuleHelpLinkProvider())
-        {
-        }
-
-        internal /* for testing */ ShowRuleInBrowserService(IBrowserService vsBrowserService,
-            IRuleHelpLinkProvider ruleHelpLinkProvider)
-        {
-            this.vsBrowserService = vsBrowserService;
-            this.ruleHelpLinkProvider = ruleHelpLinkProvider;
-        }
-
-        public void ShowRuleDescription(SonarCompositeRuleId ruleId)
+        public bool ShowRuleDescription(SonarCompositeRuleId ruleId)
         {
             var helpLink = ruleHelpLinkProvider.GetHelpLink(ruleId);
+            if (helpLink == null)
+            {
+                return false;
+            }
             vsBrowserService.Navigate(helpLink);
+            return true;
         }
     }
 }

@@ -182,7 +182,7 @@ public class IssuesSnapshotTests_GetValue
     public void GetValue_HelpLink()
     {
         issue.RuleKey = "javascript:123";
-        GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/javascript/RSPEC-123");
+        GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://sonarcloud.io/");
     }
 
     [TestMethod]

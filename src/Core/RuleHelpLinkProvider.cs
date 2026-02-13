@@ -18,6 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
+using System.Web;
+using SonarLint.VisualStudio.Core.Binding;
+
 namespace SonarLint.VisualStudio.Core
 {
     public interface IRuleHelpLinkProvider
@@ -25,50 +29,25 @@ namespace SonarLint.VisualStudio.Core
         string GetHelpLink(SonarCompositeRuleId ruleId);
     }
 
-    public class RuleHelpLinkProvider : IRuleHelpLinkProvider
+    [Export(typeof(IRuleHelpLinkProvider))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    [method: ImportingConstructor]
+    public class RuleHelpLinkProvider(IActiveSolutionBoundTracker activeSolutionBoundTracker) : IRuleHelpLinkProvider
     {
-        public string GetHelpLink(SonarCompositeRuleId ruleId)
-        {
+        public string GetHelpLink(SonarCompositeRuleId ruleId) =>
             // ruleKey is in format "javascript:S1234" (or javascript:SOMETHING for legacy keys)
             // NB: there are some "common" rules that are implemented on the server-side. We do
             // need to handle these case as they will never be raised in the IDE (and don't seem
             // to be documented on the rule site anyway).
             //   e.g. common-c:DuplicatedBlocks, common-cpp:FailedUnitTests
-
-            var languageFolderName = GetWebsiteFolderName(ruleId.RepoKey);
-            var webSiteRuleId = GetWebsiteRuleId(ruleId.RuleKey);
-
-            return $"https://rules.sonarsource.com/{languageFolderName}/{webSiteRuleId}";
-        }
-
-        private static string GetWebsiteFolderName(string repoKey)
-        {
-            var language = LanguageProvider.Instance.AllKnownLanguages.FirstOrDefault(lang => lang.HasRepoKey(repoKey));
-
-            if (language?.SecurityRepoInfo?.Key == repoKey)
+            activeSolutionBoundTracker.CurrentConfiguration?.Project?.ServerConnection switch
             {
-                return language?.SecurityRepoInfo?.FolderName;
-            }
+                ServerConnection.SonarCloud sc => BuildRuleHelpUri(sc.Id, "rules", ruleId),
+                ServerConnection.SonarQube sq => BuildRuleHelpUri(sq.Id, "coding_rules", ruleId),
+                _ => null
+            };
 
-            return language?.RepoInfo.FolderName ?? repoKey;
-        }
-
-        private static string GetWebsiteRuleId(string ruleId)
-        {
-            // Website ruleId should be "RSPEC-1234" (or RSPEC-SOMETHING for legacy keys)
-            string webSiteId;
-            if (ruleId.Length > 1 &&
-                ruleId[0] == 'S' &&
-                char.IsDigit(ruleId[1]))
-            {
-                webSiteId = ruleId.Substring(1);
-            }
-            else
-            {
-                webSiteId = ruleId; // assume it's a legacy key
-            }
-
-            return "RSPEC-" + webSiteId;
-        }
+        private static string BuildRuleHelpUri(string baseUri, string path, SonarCompositeRuleId ruleId) =>
+            $"{baseUri.TrimEnd('/')}/{path}?languages={Uri.EscapeDataString(ruleId.Language.ServerLanguageKey)}&open={Uri.EscapeDataString(ruleId.Id)}&q={Uri.EscapeDataString(ruleId.RuleKey)}";
     }
 }

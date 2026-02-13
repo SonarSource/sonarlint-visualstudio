@@ -104,7 +104,7 @@ public class RoslynAnalysisProfilesProviderTests
         string ruleKey,
         Dictionary<string, string>? parameters = null,
         bool isActive = true) =>
-        new(new SonarCompositeRuleId(language.RepoInfo.Key, ruleKey),
+        new(new SonarCompositeRuleId(language.RepoKey, ruleKey),
             isActive,
             parameters);
 

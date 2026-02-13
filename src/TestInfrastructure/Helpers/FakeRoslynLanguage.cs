@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -22,7 +22,7 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.TestInfrastructure.Helpers;
 
-public class FakeRoslynLanguage(string key) : RoslynLanguage(key, key, key, new PluginInfo(key, key), new RepoInfo(key), key, key, new RepoInfo(key, key))
+public class FakeRoslynLanguage(string key) : RoslynLanguage(key, key, key, new PluginInfo(key, key), key, key, key, key)
 {
     public static RoslynLanguage Instance = new FakeRoslynLanguage("fakeroslyn");
 }

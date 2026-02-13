@@ -332,7 +332,7 @@ public class RoslynAnalysisConfigurationProviderTests
         Language language,
         string ruleKey,
         bool isActive = true) =>
-        new(new SonarCompositeRuleId(language.RepoInfo.Key, ruleKey),
+        new(new SonarCompositeRuleId(language.RepoKey, ruleKey),
             isActive,
             []);
 

@@ -20,22 +20,9 @@
 
 namespace SonarLint.VisualStudio.Core;
 
-public record RepoInfo
+public static class CommunityLinks
 {
-    public RepoInfo(string repoKey, string folderName = null)
-    {
-        Key = repoKey ?? throw new ArgumentNullException(nameof(repoKey));
-        FolderName = folderName ?? repoKey;
-    }
+    public const string SqvsCommunityTopic = "https://community.sonarsource.com/c/sl/visual-studio/35";
 
-    /// <summary>
-    /// The repository key (a.k.a repoKey) of the rules for this language.
-    /// </summary>
-    public string Key { get; }
-
-    /// <summary>
-    /// The rules for each language are in a separate folder in the rules website.
-    /// For some languages, the folder name happens to match the repo key. The property provides the name to use in cases where they are not the same.
-    /// </summary>
-    public string FolderName { get; }
+    public static readonly Uri SqvsCommunityTopicUri = new(SqvsCommunityTopic);
 }

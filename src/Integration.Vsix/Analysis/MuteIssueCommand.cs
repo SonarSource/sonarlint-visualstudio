@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             this.activeSolutionBoundTracker = activeSolutionBoundTracker ?? throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
             this.logger = logger?.ForContext(nameof(MuteIssueCommand)) ?? throw new ArgumentNullException(nameof(logger));
 
-            SupportedRepos = languageProvider.AllKnownLanguages.Select(x => x.RepoInfo.Key).ToList();
+            SupportedRepos = languageProvider.AllKnownLanguages.Select(x => x.RepoKey).ToList();
 
             var menuCommandID = new CommandID(CommandSet, CommandId);
             menuItem = new OleMenuCommand(Execute, null, QueryStatus, menuCommandID);

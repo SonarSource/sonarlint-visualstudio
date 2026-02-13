@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -49,35 +49,20 @@ namespace SonarLint.VisualStudio.Core
         private static readonly PluginInfo HtmlPlugin = new("web", $"sonar-html-plugin-{VersionNumberPattern}.jar");
         private static readonly PluginInfo TsqlPlugin = new("tsql", null);
 
-        private static readonly RepoInfo CSharpRepo = new("csharpsquid", "csharp");
-        private static readonly RepoInfo CSharpSecurityRepo = new("roslyn.sonaranalyzer.security.cs", "csharp");
-        private static readonly RepoInfo VbNetRepo = new("vbnet");
-        private static readonly RepoInfo CppRepo = new("cpp");
-        private static readonly RepoInfo CRepo = new("c");
-        private static readonly RepoInfo JsRepo = new("javascript");
-        private static readonly RepoInfo JsSecurityRepo = new("jssecurity", "javascript");
-        private static readonly RepoInfo TsRepo = new("typescript");
-        private static readonly RepoInfo TsSecurityRepo = new("tssecurity", "typescript");
-        private static readonly RepoInfo CssRepo = new("css");
-        private static readonly RepoInfo HtmlRepo = new("Web", "html"); //See https://github.com/SonarSource/sonarlint-visualstudio/issues/4586.
-        private static readonly RepoInfo SecretsRepo = new("secrets");
-        private static readonly RepoInfo TextRepo = new("text");
-        private static readonly RepoInfo TsqlRepo = new("tsql");
-
         public static readonly Language Unknown = new();
-        public static readonly RoslynLanguage CSharp = new("CSharp", CoreStrings.CSharpLanguageName, "cs", SqvsRoslynPlugin, CSharpRepo,
-            settingsFileName: "sonarlint_csharp.globalconfig", roslynDllIdentifier: ".CSharp.", CSharpSecurityRepo, additionalPlugins: [CSharpEnterprisePlugin, CSharpOssPlugin]);
-        public static readonly RoslynLanguage VBNET = new("VB", CoreStrings.VBNetLanguageName, "vbnet", SqvsRoslynPlugin, VbNetRepo, settingsFileName: "sonarlint_vb.globalconfig", roslynDllIdentifier: ".VisualBasic.",
+        public static readonly RoslynLanguage CSharp = new("CSharp", CoreStrings.CSharpLanguageName, "cs", SqvsRoslynPlugin, "csharpsquid",
+            settingsFileName: "sonarlint_csharp.globalconfig", roslynDllIdentifier: ".CSharp.", "roslyn.sonaranalyzer.security.cs", additionalPlugins: [CSharpEnterprisePlugin, CSharpOssPlugin]);
+        public static readonly RoslynLanguage VBNET = new("VB", CoreStrings.VBNetLanguageName, "vbnet", SqvsRoslynPlugin, "vbnet", settingsFileName: "sonarlint_vb.globalconfig", roslynDllIdentifier: ".VisualBasic.",
             additionalPlugins: [VbNetEnterprisePlugin, VbNetOssPlugin]);
-        public static readonly Language Cpp = new("C++", CoreStrings.CppLanguageName, "cpp", CFamilyPlugin, CppRepo);
-        public static readonly Language C = new("C", "C", "c", CFamilyPlugin, CRepo);
-        public static readonly Language Js = new("Js", "JavaScript", "js", JavascriptPlugin, JsRepo, JsSecurityRepo);
-        public static readonly Language Ts = new("Ts", "TypeScript", "ts", JavascriptPlugin, TsRepo, TsSecurityRepo);
-        public static readonly Language Css = new("Css", "CSS", "css", JavascriptPlugin, CssRepo);
-        public static readonly Language Html = new("Html", "HTML", "web", HtmlPlugin, HtmlRepo);
-        public static readonly Language Secrets = new("Secrets", "Secrets", "secrets", SecretsPlugin, SecretsRepo);
-        public static readonly Language Text = new("Text", "Text", "text", SecretsPlugin, TextRepo);
-        public static readonly Language TSql = new("TSql", "T-SQL", "tsql", TsqlPlugin, TsqlRepo);
+        public static readonly Language Cpp = new("C++", CoreStrings.CppLanguageName, "cpp", CFamilyPlugin, "cpp");
+        public static readonly Language C = new("C", "C", "c", CFamilyPlugin, "c");
+        public static readonly Language Js = new("Js", "JavaScript", "js", JavascriptPlugin, "javascript", "jssecurity");
+        public static readonly Language Ts = new("Ts", "TypeScript", "ts", JavascriptPlugin, "typescript", "tssecurity");
+        public static readonly Language Css = new("Css", "CSS", "css", JavascriptPlugin, "css");
+        public static readonly Language Html = new("Html", "HTML", "web", HtmlPlugin, "Web"); //See https://github.com/SonarSource/sonarlint-visualstudio/issues/4586.
+        public static readonly Language Secrets = new("Secrets", "Secrets", "secrets", SecretsPlugin, "secrets");
+        public static readonly Language Text = new("Text", "Text", "text", SecretsPlugin, "text");
+        public static readonly Language TSql = new("TSql", "T-SQL", "tsql", TsqlPlugin, "tsql");
 
         /// <summary>
         /// A stable identifier for this language.
@@ -104,12 +89,15 @@ namespace SonarLint.VisualStudio.Core
         /// </summary>
         public PluginInfo[] AdditionalPlugins { get; }
 
-        public RepoInfo RepoInfo { get; }
+        /// <summary>
+        /// The repository key (a.k.a repoKey) of the rules for this language.
+        /// </summary>
+        public string RepoKey { get; }
 
         /// <summary>
-        /// Nullable, the repository info for the security rules (i.e. hotspots) for this language
+        /// Nullable, the repository key for the security rules (i.e. hotspots) for this language
         /// </summary>
-        public RepoInfo SecurityRepoInfo { get; }
+        public string SecurityRepoKey { get; }
 
         /// <summary>
         /// Private constructor reserved for the <seealso cref="Unknown"/>.
@@ -125,8 +113,8 @@ namespace SonarLint.VisualStudio.Core
             string name,
             string serverLanguageKey,
             PluginInfo pluginInfo,
-            RepoInfo repoInfo,
-            RepoInfo securityRepoInfo = null,
+            string repoKey,
+            string securityRepoKey = null,
             PluginInfo[] additionalPlugins = null)
         {
             if (string.IsNullOrWhiteSpace(id))
@@ -144,8 +132,8 @@ namespace SonarLint.VisualStudio.Core
             AdditionalPlugins = additionalPlugins;
             ServerLanguageKey = serverLanguageKey ?? throw new ArgumentNullException(nameof(serverLanguageKey));
             PluginInfo = pluginInfo ?? throw new ArgumentNullException(nameof(pluginInfo));
-            RepoInfo = repoInfo ?? throw new ArgumentNullException(nameof(repoInfo));
-            SecurityRepoInfo = securityRepoInfo;
+            RepoKey = repoKey ?? throw new ArgumentNullException(nameof(repoKey));
+            SecurityRepoKey = securityRepoKey;
         }
 
         #region IEquatable<Language> and Equals
@@ -175,7 +163,7 @@ namespace SonarLint.VisualStudio.Core
 
         public override string ToString() => Name;
 
-        public bool HasRepoKey(string repoKey) => RepoInfo.Key == repoKey || SecurityRepoInfo?.Key == repoKey;
+        public bool HasRepoKey(string repoKey) => RepoKey == repoKey || SecurityRepoKey == repoKey;
     }
 
     /// <summary>
@@ -199,12 +187,12 @@ namespace SonarLint.VisualStudio.Core
             string name,
             string serverLanguageKey,
             PluginInfo pluginInfo,
-            RepoInfo repoInfo,
+            string repoKey,
             string settingsFileName,
             string roslynDllIdentifier,
-            RepoInfo securityRepoInfo = null,
+            string securityRepoKey = null,
             PluginInfo[] additionalPlugins = null)
-            : base(id, name, serverLanguageKey, pluginInfo, repoInfo, securityRepoInfo, additionalPlugins)
+            : base(id, name, serverLanguageKey, pluginInfo, repoKey, securityRepoKey, additionalPlugins)
         {
             SettingsFileNameAndExtension = settingsFileName;
             RoslynDllIdentifier = roslynDllIdentifier;
