@@ -22,7 +22,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
-using SonarLint.VisualStudio.Integration.CSharpVB.StandaloneMode;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.SLCore.Analysis;
 
@@ -32,7 +31,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis;
 public class AnalysisConfigMonitorTests
 {
     private TestLogger logger;
-    private IStandaloneRoslynSettingsUpdater roslynSettingsUpdater;
     private ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater;
     private IThreadHandling threadHandling;
     private IUserSettingsProvider userSettingsProviderMock;
@@ -45,7 +43,6 @@ public class AnalysisConfigMonitorTests
         userSettingsProviderMock = Substitute.For<IUserSettingsProvider>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
         slCoreRuleSettingsUpdater = Substitute.For<ISLCoreRuleSettingsUpdater>();
-        roslynSettingsUpdater = Substitute.For<IStandaloneRoslynSettingsUpdater>();
         logger = new TestLogger();
     }
 
@@ -56,7 +53,6 @@ public class AnalysisConfigMonitorTests
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<ISLCoreRuleSettingsUpdater>(),
-            MefTestHelpers.CreateExport<IStandaloneRoslynSettingsUpdater>(),
             MefTestHelpers.CreateExport<IInitializationProcessorFactory>());
 
     [TestMethod]
@@ -80,7 +76,6 @@ public class AnalysisConfigMonitorTests
             createdInitializationProcessor.InitializeAsync();
             _ = userSettingsProviderMock.UserSettings;
             userSettingsProviderMock.SettingsChanged += Arg.Any<EventHandler>();
-            roslynSettingsUpdater.Update(userSettings);
             createdInitializationProcessor.InitializeAsync(); // called as part of the CreateAndInitializeTestSubject method
         });
     }
@@ -99,7 +94,6 @@ public class AnalysisConfigMonitorTests
     public void WhenUserSettingsChange_UpdatesRoslynAndSlCoreSettings()
     {
         _ = CreateAndInitializeTestSubject();
-        roslynSettingsUpdater.ClearReceivedCalls();
         threadHandling.ClearReceivedCalls();
 
         var userSettings = SimulateUserSettingsChanged();
@@ -107,7 +101,6 @@ public class AnalysisConfigMonitorTests
         Received.InOrder(() =>
         {
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
-            roslynSettingsUpdater.Update(userSettings);
             slCoreRuleSettingsUpdater.UpdateStandaloneRulesConfiguration();
         });
         logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
@@ -117,14 +110,12 @@ public class AnalysisConfigMonitorTests
     public void WhenDisposed_EventsAreIgnored()
     {
         var testSubject = CreateAndInitializeTestSubject();
-        roslynSettingsUpdater.ClearReceivedCalls();
 
         // Act
         testSubject.Dispose();
 
         // Raise events and check they are ignored
         SimulateUserSettingsChanged();
-        roslynSettingsUpdater.DidNotReceiveWithAnyArgs().Update(default);
         slCoreRuleSettingsUpdater.DidNotReceiveWithAnyArgs().UpdateStandaloneRulesConfiguration();
     }
 
@@ -160,7 +151,6 @@ public class AnalysisConfigMonitorTests
         return new AnalysisConfigMonitor(
             userSettingsProviderMock,
             slCoreRuleSettingsUpdater,
-            roslynSettingsUpdater,
             logger,
             threadHandling,
             initializationProcessorFactory);
@@ -172,7 +162,6 @@ public class AnalysisConfigMonitorTests
         var testSubject = new AnalysisConfigMonitor(
             userSettingsProviderMock,
             slCoreRuleSettingsUpdater,
-            roslynSettingsUpdater,
             logger,
             threadHandling,
             initializationProcessorFactory);
