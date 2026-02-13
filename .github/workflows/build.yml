@@ -141,7 +141,7 @@ jobs:
           sbomname="SonarLint.visualstudio.sbom-${PROJECT_VERSION}-2022.json"
           echo "${SIGN_KEY}" | gpg --batch --passphrase "${SIGN_PASSPHRASE}" --allow-secret-key-import --import
           gpg --list-secret-keys
-          dotnet CycloneDX "SonarQube.VisualStudio.sln" -t -j -o binaries
+          dotnet CycloneDX "SonarQube.VisualStudio.sln" -t -F Json -o binaries
           cd binaries
           mv bom.json $sbomname
           gpg --pinentry-mode loopback --passphrase "${SIGN_PASSPHRASE}" --armor --detach-sig --default-key infra@sonarsource.com "$sbomname"
