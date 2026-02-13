@@ -850,7 +850,9 @@
                                             VerticalAlignment="Bottom"
                                             Moniker="{Binding FilePath, Converter={StaticResource FileNameToMonikerConverter}}" />
                         <TextBlock Grid.Column="1" Style="{StaticResource ThemeAwareTextBlockStyle}"
-                                   VerticalAlignment="Bottom">
+                                   VerticalAlignment="Bottom"
+                                   ToolTip="{Binding FilePath}"
+                                   ToolTipService.IsEnabled="True">
                             <Run Text="{Binding Title, Mode=OneWay}"
                                  Style="{StaticResource GroupRunStyle}" />
                             <Run
