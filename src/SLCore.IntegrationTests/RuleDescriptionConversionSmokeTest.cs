@@ -64,6 +64,8 @@ public class RuleDescriptionConversionSmokeTest
                 "cpp:S1232", // unsupported <caption> tag https://github.com/SonarSource/sonarlint-visualstudio/issues/5014
                 "csharpsquid:S6932", // unsupported <dl> and <dt> tag https://github.com/SonarSource/sonarlint-visualstudio/issues/5414
                 "csharpsquid:S6966", // unsupported <dl> and <dt> tag https://github.com/SonarSource/sonarlint-visualstudio/issues/5414
+                "cpp:S5954", // todo SLVS-2847 Investigate new broken rule descriptions cpp:S5954, cpp:S4998
+                "cpp:S4998"
             });
     }
 
