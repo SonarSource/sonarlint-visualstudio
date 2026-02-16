@@ -7,7 +7,7 @@
     <!-- sonar-csharp-enterprise-plugin & sonar-vbnet-enterprise-plugin -->
     <EmbeddedSonarAnalyzerVersion>10.19.0.132793</EmbeddedSonarAnalyzerVersion>
     <!-- sonar-cfamily-plugin -->
-    <EmbeddedSonarCFamilyAnalyzerVersion>6.77.0.95488</EmbeddedSonarCFamilyAnalyzerVersion>
+    <EmbeddedSonarCFamilyAnalyzerVersion>6.78.0.96395</EmbeddedSonarCFamilyAnalyzerVersion>
     <!-- sonar-javascript-plugin -->
     <EmbeddedSonarJSAnalyzerVersion>11.8.0.37897</EmbeddedSonarJSAnalyzerVersion>
     <EmbeddedEsLintBridgeVersion>1.0.0</EmbeddedEsLintBridgeVersion>
