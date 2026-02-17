@@ -29,6 +29,8 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+
 [ExcludeFromCodeCoverage] // todo SLVS-2466 add roslyn 'integration' tests using AdHocWorkspace
 [Export(typeof(IRoslynWorkspaceWrapper))]
 [PartCreationPolicy(CreationPolicy.Shared)]
@@ -39,6 +41,8 @@ internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
     private readonly IAnalysisRequester analysisRequester;
     private readonly IThreadHandling threadHandling;
     private readonly IWorkspaceChangeIndicator workspaceChangeIndicator;
+    private readonly ITreatWarningsAsErrorsCacheUpdater treatWarningsAsErrorsCacheUpdater;
+    private readonly ITreatWarningsAsErrorsChangeIndicator treatWarningsAsErrorsChangeIndicator;
     private bool disposed;
 
     [method: ImportingConstructor]
@@ -46,6 +50,8 @@ internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
         [Import(typeof(VisualStudioWorkspace))]
         Workspace workspace,
         IWorkspaceChangeIndicator workspaceChangeIndicator,
+        ITreatWarningsAsErrorsCacheUpdater treatWarningsAsErrorsCacheUpdater,
+        ITreatWarningsAsErrorsChangeIndicator treatWarningsAsErrorsChangeIndicator,
         IAnalysisRequester analysisRequester,
         ILogger logger,
         IThreadHandling threadHandling)
@@ -54,8 +60,13 @@ internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
         this.analysisRequester = analysisRequester;
         this.threadHandling = threadHandling;
         this.workspaceChangeIndicator = workspaceChangeIndicator;
+        this.treatWarningsAsErrorsCacheUpdater = treatWarningsAsErrorsCacheUpdater;
+        this.treatWarningsAsErrorsChangeIndicator = treatWarningsAsErrorsChangeIndicator;
         workspace.WorkspaceChanged += WorkspaceOnWorkspaceChanged;
         quickFixApplicationLogger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynQuickFixLogContext);
+
+        // Initialize the cache from the current solution
+        treatWarningsAsErrorsCacheUpdater.UpdateFromSolution(GetCurrentSolution());
     }
 
     public IRoslynSolutionWrapper GetCurrentSolution() => new RoslynSolutionWrapper(workspace.CurrentSolution);
@@ -68,6 +79,8 @@ internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
     // FileStateManager should be deciding which files to queue, by reacting to the event, as it is its responsibility
     private void WorkspaceOnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
     {
+        UpdateTreatWarningsAsErrorsCache(e);
+
         if (workspaceChangeIndicator.IsChangeKindTrivial(e.Kind))
         {
             return;
@@ -83,6 +96,23 @@ internal sealed class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
                 analysisRequester.QueueAnalyzeOpenFiles();
             }
         }).Forget();
+    }
+
+    private void UpdateTreatWarningsAsErrorsCache(WorkspaceChangeEventArgs e)
+    {
+        if (treatWarningsAsErrorsChangeIndicator.RequiresFullSolutionUpdate(e.Kind))
+        {
+            treatWarningsAsErrorsCacheUpdater.UpdateFromSolution(new RoslynSolutionWrapper(e.NewSolution));
+        }
+        else if (treatWarningsAsErrorsChangeIndicator.RequiresProjectUpdate(e.Kind) && e.ProjectId != null)
+        {
+            var project = e.NewSolution.GetProject(e.ProjectId);
+            if (project != null)
+            {
+                var isTreatWarningsAsErrors = project.CompilationOptions?.GeneralDiagnosticOption == ReportDiagnostic.Error;
+                treatWarningsAsErrorsCacheUpdater.UpdateForProject(project.Name, isTreatWarningsAsErrors);
+            }
+        }
     }
 
     public void Dispose()

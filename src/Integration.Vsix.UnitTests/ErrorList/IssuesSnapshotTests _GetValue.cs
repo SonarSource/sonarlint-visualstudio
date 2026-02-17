@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core;
@@ -135,7 +136,26 @@ public class IssuesSnapshotTests_GetValue
     public void GetValue_ErrorCode() => GetValue(StandardTableKeyNames.ErrorCode).Should().Be(issueViz.SonarRuleId.RuleKey);
 
     [TestMethod]
-    public void GetValue_Severity() => GetValue(StandardTableKeyNames.ErrorSeverity).Should().NotBeNull();
+    public void GetValue_Severity_ReturnsPreComputedVsSeverityFromVisualization()
+    {
+        var textSnap = CreateTextSnapshot();
+        var issueWithWarningSeverity = CreateIssueViz(issue, new SnapshotSpan(new SnapshotPoint(textSnap, 25), new SnapshotPoint(textSnap, 27)), __VSERRORCATEGORY.EC_WARNING);
+        var snapshot = CreateIssueSnapshot("MyProject", projectGuid, AFilePath, [issueWithWarningSeverity]);
+
+        snapshot.TryGetValue(0, StandardTableKeyNames.ErrorSeverity, out var content).Should().BeTrue();
+        content.Should().Be(__VSERRORCATEGORY.EC_WARNING);
+    }
+
+    [TestMethod]
+    public void GetValue_Severity_ReturnsErrorSeverityFromVisualization()
+    {
+        var textSnap = CreateTextSnapshot();
+        var issueWithErrorSeverity = CreateIssueViz(issue, new SnapshotSpan(new SnapshotPoint(textSnap, 25), new SnapshotPoint(textSnap, 27)), __VSERRORCATEGORY.EC_ERROR);
+        var snapshot = CreateIssueSnapshot("MyProject", projectGuid, AFilePath, [issueWithErrorSeverity]);
+
+        snapshot.TryGetValue(0, StandardTableKeyNames.ErrorSeverity, out var content).Should().BeTrue();
+        content.Should().Be(__VSERRORCATEGORY.EC_ERROR);
+    }
 
     [TestMethod]
     public void GetValue_BuildTool() => GetValue(StandardTableKeyNames.BuildTool).Should().Be("SonarLint");
@@ -224,7 +244,7 @@ public class IssuesSnapshotTests_GetValue
         content.Should().BeNull();
     }
 
-    private static IAnalysisIssueVisualization CreateIssueViz(IAnalysisIssue issue, SnapshotSpan snapshotSpan)
+    private static IAnalysisIssueVisualization CreateIssueViz(IAnalysisIssue issue, SnapshotSpan snapshotSpan, __VSERRORCATEGORY vsSeverity = __VSERRORCATEGORY.EC_WARNING)
     {
         var issueVizMock = new Mock<IAnalysisIssueVisualization>();
         var ruleId = SonarCompositeRuleId.TryParse(issue.RuleKey, out var id) ? id : throw new ArgumentException(nameof(issue.RuleKey));
@@ -233,6 +253,7 @@ public class IssuesSnapshotTests_GetValue
         issueVizMock.Setup(x => x.IsResolved).Returns(issue.IsResolved);
         issueVizMock.Setup(x => x.Location).Returns(new DummyAnalysisIssueLocation { FilePath = "any.txt" });
         issueVizMock.Setup(x => x.Flows).Returns(Array.Empty<IAnalysisIssueFlowVisualization>());
+        issueVizMock.Setup(x => x.VsSeverity).Returns(vsSeverity);
         issueVizMock.SetupProperty(x => x.Span);
         issueVizMock.Object.Span = snapshotSpan;
         return issueVizMock.Object;

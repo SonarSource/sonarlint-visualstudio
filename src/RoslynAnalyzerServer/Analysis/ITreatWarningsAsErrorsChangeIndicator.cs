@@ -1,6 +1,6 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2025 SonarSource Sàrl
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,25 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal interface IRoslynProjectWrapper
+/// <summary>
+/// Indicates whether workspace changes should trigger a TreatWarningsAsErrors cache update
+/// </summary>
+internal interface ITreatWarningsAsErrorsChangeIndicator
 {
-    string Name { get; }
-    bool SupportsCompilation { get; }
-    AnalyzerOptions RoslynAnalyzerOptions { get; }
-    ImmutableDictionary<string, ReportDiagnostic>? SpecificDiagnosticOptions { get; }
-    ReportDiagnostic? GeneralDiagnosticOption { get; }
-    IRoslynSolutionWrapper Solution { get; }
+    /// <summary>
+    /// Determines if the change kind requires a full solution cache rebuild
+    /// </summary>
+    bool RequiresFullSolutionUpdate(WorkspaceChangeKind changeKind);
 
-    bool ContainsDocument(
-        string filePath,
-        [NotNullWhen(true)]out IRoslynDocumentWrapper? document);
-
-    Task<IRoslynCompilationWrapper> GetCompilationAsync(CancellationToken token);
+    /// <summary>
+    /// Determines if the change kind requires a single project cache update
+    /// </summary>
+    bool RequiresProjectUpdate(WorkspaceChangeKind changeKind);
 }

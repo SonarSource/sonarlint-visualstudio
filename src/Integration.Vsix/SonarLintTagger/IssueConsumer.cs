@@ -64,13 +64,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IAnalysisIssueVisualizationConverter issueToIssueVisualizationConverter;
         private readonly string analysisFilePath;
         private readonly IssueConsumerFactory.IIssueHandler issueHandler;
+        private readonly string projectName;
 
-        public IssueConsumer(ITextSnapshot analysisSnapshot, string analysisFilePath, IssueConsumerFactory.IIssueHandler issueHandler, IAnalysisIssueVisualizationConverter issueToIssueVisualizationConverter)
+        public IssueConsumer(ITextSnapshot analysisSnapshot, string analysisFilePath, IssueConsumerFactory.IIssueHandler issueHandler, IAnalysisIssueVisualizationConverter issueToIssueVisualizationConverter, string projectName)
         {
             this.analysisSnapshot = analysisSnapshot ?? throw new ArgumentNullException(nameof(analysisSnapshot));
             this.analysisFilePath = analysisFilePath ?? throw new ArgumentNullException(nameof(analysisFilePath));
             this.issueHandler = issueHandler ?? throw new ArgumentNullException(nameof(issueHandler));
             this.issueToIssueVisualizationConverter = issueToIssueVisualizationConverter ?? throw new ArgumentNullException(nameof(issueToIssueVisualizationConverter));
+            this.projectName = projectName;
         }
 
         public void SetIssues(string path, IEnumerable<IAnalysisIssue> issues)
@@ -99,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             var analysisIssueVisualizations = findings
                 .Where(IsIssueFileLevelOrInAnalysisSnapshot)
-                .Select(x => issueToIssueVisualizationConverter.Convert(x, analysisSnapshot))
+                .Select(x => issueToIssueVisualizationConverter.Convert(x, analysisSnapshot, projectName))
                 .ToList();
             return analysisIssueVisualizations;
         }

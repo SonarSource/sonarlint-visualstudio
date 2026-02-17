@@ -21,11 +21,9 @@
 using System.Collections.ObjectModel;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -87,7 +85,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         private readonly string projectName;
         private readonly Guid projectGuid;
-        private readonly IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter;
 
         private readonly IList<IAnalysisIssueVisualization> issues;
         private readonly IReadOnlyCollection<IAnalysisIssueVisualization> readonlyIssues;
@@ -115,11 +112,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         private IssuesSnapshot(Guid snapshotId, string projectName, Guid projectGuid, string filePath, IEnumerable<IAnalysisIssueVisualization> issues)
-            : this(snapshotId, projectName, projectGuid, filePath, issues, new AnalysisSeverityToVsSeverityConverter())
-        {
-        }
-
-        private IssuesSnapshot(Guid snapshotId, string projectName, Guid projectGuid, string filePath, IEnumerable<IAnalysisIssueVisualization> issues, IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter)
         {
             var areAllIssuesAnalysisIssues = issues.All(x => x.Issue is IAnalysisIssue);
 
@@ -133,7 +125,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.projectName = projectName;
             this.projectGuid = projectGuid;
             this.versionNumber = GetNextVersionNumber();
-            this.toVsSeverityConverter = toVsSeverityConverter;
             this.issues = new List<IAnalysisIssueVisualization>(issues);
             this.readonlyIssues = new ReadOnlyCollection<IAnalysisIssueVisualization>(this.issues);
 
@@ -205,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case StandardTableKeyNames.ErrorSeverity:
-                    content = toVsSeverityConverter.GetVsSeverity(issue);
+                    content = issueViz.VsSeverity;
                     return true;
 
                 case StandardTableKeyNames.BuildTool:

@@ -46,9 +46,9 @@ public class AnalysisIssueVisualizationTests
         issue = Substitute.For<IAnalysisIssue>();
         MockAnalysisIssue();
 
-        issueVisualizationWithNoSpan = new AnalysisIssueVisualization(null, issue, null, null);
-        issueVisualizationWithEmptySpan = new AnalysisIssueVisualization(null, issue, emptySpan, null);
-        issueVisualizationWithNotEmptySpan = new AnalysisIssueVisualization(null, issue, notEmptySpan, null);
+        issueVisualizationWithNoSpan = new AnalysisIssueVisualization(null, issue, null, null, default);
+        issueVisualizationWithEmptySpan = new AnalysisIssueVisualization(null, issue, emptySpan, null, default);
+        issueVisualizationWithNotEmptySpan = new AnalysisIssueVisualization(null, issue, notEmptySpan, null, default);
     }
 
     [TestMethod]

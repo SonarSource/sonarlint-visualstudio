@@ -41,7 +41,9 @@ public class IssueConsumerFactoryTests
         IIssuesSnapshot publishedIssuesSnapshot = null;
         var validTextDocument = CreateValidTextDocument("updatedfile.txt");
 
-        var testSubject = new IssueConsumerFactory(Substitute.For<IAnalysisIssueVisualizationConverter>(), Substitute.For<ILocalHotspotsStoreUpdater>());
+        var testSubject = new IssueConsumerFactory(
+            Substitute.For<IAnalysisIssueVisualizationConverter>(),
+            Substitute.For<ILocalHotspotsStoreUpdater>());
 
         var consumer = testSubject.Create(validTextDocument,
             "analysisfile.txt",

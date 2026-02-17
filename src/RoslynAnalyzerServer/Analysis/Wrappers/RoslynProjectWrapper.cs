@@ -31,6 +31,7 @@ internal class RoslynProjectWrapper(Project project, IRoslynSolutionWrapper solu
     public string Name => project.Name;
     public bool SupportsCompilation => project.SupportsCompilation;
     public ImmutableDictionary<string, ReportDiagnostic>? SpecificDiagnosticOptions => project.CompilationOptions?.SpecificDiagnosticOptions;
+    public ReportDiagnostic? GeneralDiagnosticOption => project.CompilationOptions?.GeneralDiagnosticOption;
     public IRoslynSolutionWrapper Solution => solution;
     public AnalyzerOptions RoslynAnalyzerOptions  => project.AnalyzerOptions;
 
