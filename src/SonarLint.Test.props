@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup Label="Test framework">
-    <PackageReference Include="MSTest" Version="4.0.2" />
+    <PackageReference Include="MSTest" Version="3.11.1" />
 
     <!-- WARNING! Check before updating to a new version of Moq - any privacy issues? See https://github.com/moq/moq/issues/1372 -->
     <PackageReference Include="Moq" Version="4.18.2" />
