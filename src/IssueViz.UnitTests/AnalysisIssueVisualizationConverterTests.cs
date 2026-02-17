@@ -388,6 +388,7 @@ public class AnalysisIssueVisualizationConverterTests
         var result = testSubject.Convert(nonAnalysisIssue, textSnapshotMock, "MyProject");
 
         result.VsSeverity.Should().Be(__VSERRORCATEGORY.EC_MESSAGE);
+        // Verify that the severity converter was not called (since the issue is not an IAnalysisIssue)
         severityConverter.DidNotReceiveWithAnyArgs().Convert(default, default);
         severityConverter.DidNotReceiveWithAnyArgs().ConvertFromCct(default, default);
     }
