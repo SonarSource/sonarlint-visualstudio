@@ -240,6 +240,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarQube for Visual Studio.
+        /// </summary>
+        public static string BuildEventNotifier_Caption {
+            get {
+                return ResourceManager.GetString("BuildEventNotifier_Caption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube for Visual Studio found {0} Error-level issue(s) in open files. Review them in the Error List....
+        /// </summary>
+        public static string BuildEventNotifier_IssuesFoundMessage {
+            get {
+                return ResourceManager.GetString("BuildEventNotifier_IssuesFoundMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Build Event Notifier.
+        /// </summary>
+        public static string BuildEventNotifier_LogContext {
+            get {
+                return ResourceManager.GetString("BuildEventNotifier_LogContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot find tool window with the specified guid: {0}.
         /// </summary>
         public static string CannotFindToolWindow {
