@@ -49,6 +49,8 @@ internal class RoslynAnalysisConfigurationProvider(
         {
             using (await asyncLock.AcquireAsync())
             {
+                await roslynAnalyzerProvider.InitializationProcessor.InitializeAsync();
+
                 if (!cache.HasValue || cache.Value.Parameters.ShouldInvalidateCache(activeRules, analysisProperties, analyzerInfo))
                 {
                     BuildConfigurations(activeRules, analysisProperties, analyzerInfo);

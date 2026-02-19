@@ -75,8 +75,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private IDocumentEventsHandler documentEventsHandler;
         private ISlCoreUserAnalysisPropertiesSynchronizer slCoreUserAnalysisPropertiesSynchronizer;
         private IAnalysisConfigMonitor analysisConfigMonitor;
-        private IRoslynAnalysisHttpServer roslynAnalysisHttpServer;
         private IBuildEventNotifier buildEventNotifier;
+        private IRoslynEnvironmentInitializer roslynEnvironment;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -124,11 +124,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 projectDocumentsEventsListener = await this.GetMefServiceAsync<IProjectDocumentsEventsListener>();
                 projectDocumentsEventsListener.Initialize();
 
-                var thread = await this.GetMefServiceAsync<IThreadHandling>();
-                var roslynAnalyzerAssemblyLoader = await this.GetMefServiceAsync<IRoslynAnalyzerAssemblyContentsLoader>();
-                roslynAnalysisHttpServer = await this.GetMefServiceAsync<IRoslynAnalysisHttpServer>();
-                thread.RunOnBackgroundThread(() => roslynAnalyzerAssemblyLoader.LoadRoslynAnalyzerAssemblyContentsIfNeeded()).Forget();
-                thread.RunOnBackgroundThread(() => StartRoslynAnalysisHttpServerAsync().ConfigureAwait(false)).Forget();
+                roslynEnvironment = await this.GetMefServiceAsync<IRoslynEnvironmentInitializer>();
+                await  roslynEnvironment.InitializationProcessor.InitializeAsync();
 
                 buildEventNotifier = await this.GetMefServiceAsync<IBuildEventNotifier>();
                 await buildEventNotifier.InitializationProcessor.InitializeAsync();
@@ -148,8 +145,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var bindingToConnectionMigration = await this.GetMefServiceAsync<IBindingToConnectionMigration>();
             await bindingToConnectionMigration.MigrateAllBindingsToServerConnectionsIfNeededAsync();
         }
-
-        private async Task StartRoslynAnalysisHttpServerAsync() => await roslynAnalysisHttpServer.StartListenAsync();
 
         protected override void Dispose(bool disposing)
         {
@@ -173,8 +168,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 slCoreHandler?.Dispose();
                 slCoreHandler = null;
 
-                roslynAnalysisHttpServer.Dispose();
-                roslynAnalysisHttpServer = null;
+                roslynEnvironment?.Dispose();
+                roslynEnvironment = null;
 
                 buildEventNotifier?.Dispose();
                 buildEventNotifier = null;
