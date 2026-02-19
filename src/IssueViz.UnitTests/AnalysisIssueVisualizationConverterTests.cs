@@ -374,7 +374,8 @@ public class AnalysisIssueVisualizationConverterTests
         var result = testSubject.Convert(nonAnalysisIssue, textSnapshotMock, "MyProject");
 
         result.VsSeverity.Should().Be(__VSERRORCATEGORY.EC_MESSAGE);
-        severityConverter.DidNotReceiveWithAnyArgs().GetVsSeverity(Arg.Any<IAnalysisIssue>(), Arg.Any<string>());
+        severityConverter.DidNotReceiveWithAnyArgs().Convert(default, default);
+        severityConverter.DidNotReceiveWithAnyArgs().ConvertFromCct(default, default);
     }
 
     private void AssertConversion(IAnalysisIssueVisualization expectedIssueVisualization, IAnalysisIssueVisualization actualIssueVisualization)
