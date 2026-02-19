@@ -210,4 +210,13 @@
   <data name="AnalysisEngine_DuplicateDiagnostic" xml:space="preserve">
     <value>"Duplicate diagnostic discarded ID: {0}, File: {1}, Line: {2}"</value>
   </data>
+  <data name="SuppressionExclusionConfigGenerator_LogContext" xml:space="preserve">
+    <value>SuppressionExclusionConfig</value>
+  </data>
+  <data name="SuppressionExclusionConfigGenerator_WritingFile" xml:space="preserve">
+    <value>Writing suppression exclusion config file to disk</value>
+  </data>
+  <data name="SuppressionExclusionConfigGenerator_FailedToWrite" xml:space="preserve">
+    <value>Failed to write suppression exclusion config file: {0}</value>
+  </data>
 </root>

@@ -1,6 +1,6 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2025 SonarSource Sàrl
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,26 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Initialization;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 
-internal interface IRoslynAnalyzerProvider : IRequireInitialization
-{
-    ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadAndProcessAnalyzerAssemblies(AnalyzerInfoDto analyzerInfo);
-}
-
-public interface IRoslynAnalyzerAssemblyContentsLoader : IRequireInitialization
-{
-    ImmutableHashSet<string> GetAllSupportedRuleKeys();
-}
-
-internal readonly record struct AnalyzerAssemblyContents(
-    ImmutableArray<DiagnosticAnalyzer> Analyzers,
-    ImmutableHashSet<string> SupportedRuleKeys,
-    ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>> CodeFixProvidersByRuleKey);
+public interface ISuppressionExclusionConfigGenerator : IRequireInitialization;

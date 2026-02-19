@@ -1,0 +1,19 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <!-- 
+      This targets file was added by SonarQube for Visual Studio.
+      If you are no longer using SonarQube for Visual Studio then you can safely delete it.
+      
+      It is only active for builds taking place inside Visual Studio. It does not impact the content of the assembly being built.
+ 
+      Its purpose is to ensure the pragma suppressions do not get wrongly removed by Visual Studio cleanup tool after SQVS versions >= 9.0.
+      
+  -->
+
+    <PropertyGroup Condition="$(BuildingInsideVisualStudio) == 'true'">
+        <_SLVSGeneratedRoslynConfigFile>$(APPDATA)\SonarLint for Visual Studio\suppression_exclusions.globalconfig</_SLVSGeneratedRoslynConfigFile>
+    </PropertyGroup>
+
+    <ItemGroup Condition="$(BuildingInsideVisualStudio) == 'true' AND Exists($(_SLVSGeneratedRoslynConfigFile))">
+        <EditorConfigFiles Condition="Exists($(_SLVSGeneratedRoslynConfigFile))" Include="$(_SLVSGeneratedRoslynConfigFile)" />
+    </ItemGroup>
+</Project>
