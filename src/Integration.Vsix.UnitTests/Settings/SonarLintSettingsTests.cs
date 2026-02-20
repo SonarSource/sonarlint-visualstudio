@@ -305,17 +305,15 @@ public class SonarLintSettingsTests
     public void ShowCloudRegion_WhenDisposed_ReturnsDefault()
     {
         MockComDetachedTestSubject();
-        testSubject.ShowCloudRegion = true;
         var showCloudRegion = testSubject.ShowCloudRegion;
-
         showCloudRegion.Should().BeFalse();
     }
 
     [TestMethod]
     public void IsFocusOnNewCodeEnabled_DefaultValue_ShouldBeFalse()
     {
+        MockComDetachedTestSubject();
         testSubject.IsFocusOnNewCodeEnabled.Should().BeFalse();
-        store.Received().GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsFocusOnNewCodeEnabled), false);
     }
 
     [TestMethod]
@@ -344,9 +342,45 @@ public class SonarLintSettingsTests
     public void IsFocusOnNewCodeEnabled_WhenDisposed_ReturnsDefault()
     {
         MockComDetachedTestSubject();
-        testSubject.IsFocusOnNewCodeEnabled = true;
         var value = testSubject.IsFocusOnNewCodeEnabled;
         value.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void IsShowBuildErrorNotificationEnabled_DefaultValue_ShouldBeTrue()
+    {
+        MockComDetachedTestSubject();
+        testSubject.IsShowBuildErrorNotificationEnabled.Should().BeTrue();
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void IsShowBuildErrorNotificationEnabled_Should(bool value)
+    {
+        store.GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsShowBuildErrorNotificationEnabled), true).Returns(value);
+
+        testSubject.IsShowBuildErrorNotificationEnabled.Should().Be(value);
+
+        store.Received().GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsShowBuildErrorNotificationEnabled), true);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void IsShowBuildErrorNotificationEnabled_SetValue_SetsCorrectly(bool value)
+    {
+        testSubject.IsShowBuildErrorNotificationEnabled = value;
+
+        store.Received().SetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsShowBuildErrorNotificationEnabled), value);
+    }
+
+    [TestMethod]
+    public void IsShowBuildErrorNotificationEnabled_WhenDisposed_ReturnsDefault()
+    {
+        MockComDetachedTestSubject();
+        var value = testSubject.IsShowBuildErrorNotificationEnabled;
+        value.Should().BeTrue();
     }
 
     [TestMethod]

@@ -437,8 +437,8 @@ E.g. C:\Program Files\Java\jdk-17</value>
   <data name="GlobalJreProvider_ErrorFindingJava" xml:space="preserve">
     <value>Error finding Java using {0}: {1}</value>
   </data>
-  <data name="AnalysisScopeHeader" xml:space="preserve">
-    <value>Analysis Scope</value>
+  <data name="AnalysisBehaviorHeader" xml:space="preserve">
+    <value>Analysis Behavior</value>
   </data>
   <data name="FocusOnNewCodeCheckbox" xml:space="preserve">
     <value>Focus on New Code</value>
@@ -452,5 +452,26 @@ Without Connected Mode, any code added or changed in the last 30 days is conside
   </data>
   <data name="CredentialStorageDpapiHelpText" xml:space="preserve">
     <value>DPAPI storage may help if you're facing credential storage errors with the Default storage</value>
+  </data>
+  <data name="BuildEventNotifier_LogContext" xml:space="preserve">
+    <value>Build Event Notifier</value>
+  </data>
+  <data name="BuildEventNotifier_IssuesFoundMessage" xml:space="preserve">
+    <value>SonarQube for Visual Studio found {0} Error-level issue(s) in open files.</value>
+  </data>
+  <data name="BuildEventNotifier_ReviewInErrorList" xml:space="preserve">
+    <value>Review them in the Error List...</value>
+  </data>
+  <data name="BuildEventNotifier_Caption" xml:space="preserve">
+    <value>SonarQube for Visual Studio</value>
+  </data>
+  <data name="BuildEventNotifier_DoNotShowAgain" xml:space="preserve">
+    <value>Do not show again</value>
+  </data>
+  <data name="ShowBuildErrorNotificationCheckbox" xml:space="preserve">
+    <value>Show post-build error notification</value>
+  </data>
+  <data name="ShowBuildErrorNotificationTooltip" xml:space="preserve">
+    <value>Displays a notification after build when warnings are elevated to errors via the TreatWarningsAsErrors MSBuild property.</value>
   </data>
 </root>

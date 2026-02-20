@@ -31,6 +31,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
     private bool isActivateMoreEnabled;
     private bool showCloudRegion;
     private bool isFocusOnNewCodeEnabled;
+    private bool isShowBuildErrorNotificationEnabled;
     private CredentialStoreType credentialStoreType;
     private readonly ISonarLintSettings slSettings;
     private readonly IFocusOnNewCodeServiceUpdater focusOnNewCodeServiceUpdater;
@@ -90,6 +91,16 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         }
     }
 
+    public bool IsShowBuildErrorNotificationEnabled
+    {
+        get => isShowBuildErrorNotificationEnabled;
+        set
+        {
+            isShowBuildErrorNotificationEnabled = value;
+            RaisePropertyChanged();
+        }
+    }
+
     public CredentialStoreType CredentialStoreType
     {
         get => credentialStoreType;
@@ -117,6 +128,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         JreLocation = slSettings.JreLocation;
         ShowCloudRegion = slSettings.ShowCloudRegion;
         IsFocusOnNewCodeEnabled = focusOnNewCodeServiceUpdater.Current.IsEnabled;
+        IsShowBuildErrorNotificationEnabled = slSettings.IsShowBuildErrorNotificationEnabled;
         CredentialStoreType = slSettings.CredentialStoreType;
     }
 
@@ -128,6 +140,7 @@ public class GeneralOptionsDialogControlViewModel : ViewModelBase
         slSettings.IsActivateMoreEnabled = IsActivateMoreEnabled;
         slSettings.JreLocation = JreLocation?.Trim();
         slSettings.ShowCloudRegion = ShowCloudRegion;
+        slSettings.IsShowBuildErrorNotificationEnabled = IsShowBuildErrorNotificationEnabled;
         slSettings.CredentialStoreType = CredentialStoreType;
         focusOnNewCodeServiceUpdater.SetPreference(IsFocusOnNewCodeEnabled);
     }
