@@ -350,6 +350,44 @@ public class SonarLintSettingsTests
     }
 
     [TestMethod]
+    public void IsShowBuildErrorNotificationEnabled_DefaultValue_ShouldBeTrue()
+    {
+        testSubject.IsShowBuildErrorNotificationEnabled.Should().BeTrue();
+        store.Received().GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsShowBuildErrorNotificationEnabled), true);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void IsShowBuildErrorNotificationEnabled_Should(bool value)
+    {
+        store.GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsShowBuildErrorNotificationEnabled), true).Returns(value);
+
+        testSubject.IsShowBuildErrorNotificationEnabled.Should().Be(value);
+
+        store.Received().GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsShowBuildErrorNotificationEnabled), true);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void IsShowBuildErrorNotificationEnabled_SetValue_SetsCorrectly(bool value)
+    {
+        testSubject.IsShowBuildErrorNotificationEnabled = value;
+
+        store.Received().SetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsShowBuildErrorNotificationEnabled), value);
+    }
+
+    [TestMethod]
+    public void IsShowBuildErrorNotificationEnabled_WhenDisposed_ReturnsDefault()
+    {
+        MockComDetachedTestSubject();
+        testSubject.IsShowBuildErrorNotificationEnabled = false;
+        var value = testSubject.IsShowBuildErrorNotificationEnabled;
+        value.Should().BeTrue();
+    }
+
+    [TestMethod]
     public void CredentialStoreType_DefaultValue_ShouldBeDefault()
     {
         testSubject.CredentialStoreType.Should().Be(CredentialStoreType.Default);

@@ -18,30 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
-using System.Windows;
+using SonarLint.VisualStudio.Core.WPF;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Events;
 
-[ExcludeFromCodeCoverage]
-public partial class ErrorNotificationDialog : Window
+public class ErrorNotificationDialogViewModel : ViewModelBase
 {
-    public ErrorNotificationDialogViewModel ViewModel { get; }
+    private bool doNotShowAgain;
 
-    public ErrorNotificationDialog(int errorsCount)
+    public string Message { get; }
+
+    public bool DoNotShowAgain
     {
-        ViewModel = new ErrorNotificationDialogViewModel(errorsCount);
-        InitializeComponent();
+        get => doNotShowAgain;
+        set => SetAndRaisePropertyChanged(ref doNotShowAgain, value);
     }
 
-    private void OkButton_OnClick(object sender, RoutedEventArgs e)
+    public ErrorNotificationDialogViewModel(int errorsCount)
     {
-        DialogResult = true;
-    }
-
-    private void DoNotShowAgainButton_OnClick(object sender, RoutedEventArgs e)
-    {
-        ViewModel.DoNotShowAgain = true;
-        DialogResult = true;
+        Message = string.Format(Strings.BuildEventNotifier_IssuesFoundMessage, errorsCount);
     }
 }

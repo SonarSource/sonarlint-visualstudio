@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Events;
 
-internal interface IBuildEventUIManager
+internal interface IBuildEventUiManager
 {
     bool ShowErrorNotificationDialog(int errorsCount);
 }

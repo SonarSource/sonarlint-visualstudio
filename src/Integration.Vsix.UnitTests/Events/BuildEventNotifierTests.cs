@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Events;
 public class BuildEventNotifierTests
 {
     private ILocalIssuesStore localIssuesStore;
-    private IBuildEventUIManager buildEventUIManager;
+    private IBuildEventUiManager buildEventUIManager;
     private IToolWindowService toolWindowService;
     private IInitializationProcessorFactory initializationProcessorFactory;
     private IVsUIServiceOperation vsUIServiceOperation;
@@ -48,7 +48,7 @@ public class BuildEventNotifierTests
     public void TestInitialize()
     {
         localIssuesStore = Substitute.For<ILocalIssuesStore>();
-        buildEventUIManager = Substitute.For<IBuildEventUIManager>();
+        buildEventUIManager = Substitute.For<IBuildEventUiManager>();
         toolWindowService = Substitute.For<IToolWindowService>();
         vsUIServiceOperation = Substitute.For<IVsUIServiceOperation>();
         testLogger = Substitute.ForPartsOf<TestLogger>();
@@ -59,7 +59,7 @@ public class BuildEventNotifierTests
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<BuildEventNotifier, IBuildEventNotifier>(
             MefTestHelpers.CreateExport<ILocalIssuesStore>(),
-            MefTestHelpers.CreateExport<IBuildEventUIManager>(),
+            MefTestHelpers.CreateExport<IBuildEventUiManager>(),
             MefTestHelpers.CreateExport<IToolWindowService>(),
             MefTestHelpers.CreateExport<IInitializationProcessorFactory>(),
             MefTestHelpers.CreateExport<IVsUIServiceOperation>(),
