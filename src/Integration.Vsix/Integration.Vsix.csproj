@@ -191,6 +191,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Page Include="Events\ErrorNotificationDialog.xaml" />
     <Page Include="Commands\HelpMenu\AboutDialog.xaml" />
     <Page Include="Settings\FileExclusions\AddExclusionDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
