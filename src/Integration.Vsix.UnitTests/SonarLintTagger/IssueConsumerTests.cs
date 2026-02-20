@@ -45,16 +45,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         [TestMethod]
         public void Ctor_InvalidArgs_Throws()
         {
-            Action act = () => new IssueConsumer(null, ValidFilePath, issueHandler, ValidConverter);
+            Action act = () => new IssueConsumer(null, ValidFilePath, issueHandler, ValidConverter, "project");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisSnapshot");
 
-            act = () => new IssueConsumer(ValidTextSnapshot, null, issueHandler, ValidConverter);
+            act = () => new IssueConsumer(ValidTextSnapshot, null, issueHandler, ValidConverter, "project");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisFilePath");
 
-            act = () => new IssueConsumer(ValidTextSnapshot, ValidFilePath, null, ValidConverter);
+            act = () => new IssueConsumer(ValidTextSnapshot, ValidFilePath, null, ValidConverter, "project");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issueHandler");
 
-            act = () => new IssueConsumer(ValidTextSnapshot, ValidFilePath, issueHandler, null);
+            act = () => new IssueConsumer(ValidTextSnapshot, ValidFilePath, issueHandler, null, "project");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issueToIssueVisualizationConverter");
         }
 
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         {
             var issues = new IAnalysisIssue[] { ValidIssue };
 
-            var testSubject = new IssueConsumer(ValidTextSnapshot, "c:\\file1.txt", issueHandler, ValidConverter);
+            var testSubject = new IssueConsumer(ValidTextSnapshot, "c:\\file1.txt", issueHandler, ValidConverter, "project");
 
             testSubject.SetIssues("wrong file", issues);
 
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         {
             var issues = new IAnalysisIssue[] { ValidIssue };
 
-            var testSubject = new IssueConsumer(ValidTextSnapshot, "c:\\file1.txt", issueHandler, ValidConverter);
+            var testSubject = new IssueConsumer(ValidTextSnapshot, "c:\\file1.txt", issueHandler, ValidConverter, "project");
             testSubject.SetHotspots("wrong file", issues);
 
             issueHandler.DidNotReceiveWithAnyArgs().HandleNewIssues(default);
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var issues = new[] { CreateIssue(issueStartLine, issueEndLine) };
             var converter = CreatePassthroughConverter();
 
-            var testSubject = new IssueConsumer(snapshot, ValidFilePath, issueHandler, converter);
+            var testSubject = new IssueConsumer(snapshot, ValidFilePath, issueHandler, converter, "project");
 
             testSubject.SetIssues(ValidFilePath, issues);
 
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var hotspots = new[] { CreateIssue(issueStartLine, issueEndLine) };
             var converter = CreatePassthroughConverter();
 
-            var testSubject = new IssueConsumer(snapshot, ValidFilePath, issueHandler, converter);
+            var testSubject = new IssueConsumer(snapshot, ValidFilePath, issueHandler, converter, "project");
 
             testSubject.SetHotspots(ValidFilePath, hotspots);
 
@@ -140,7 +140,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var issues = new[] { CreateFileLevelIssue() };
             var converter = CreatePassthroughConverter();
 
-            var testSubject = new IssueConsumer(snapshot, ValidFilePath, issueHandler, converter);
+            var testSubject = new IssueConsumer(snapshot, ValidFilePath, issueHandler, converter, "project");
 
             testSubject.SetIssues(ValidFilePath, issues);
 
@@ -154,7 +154,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var hotspots = new[] { CreateFileLevelIssue() };
             var converter = CreatePassthroughConverter();
 
-            var testSubject = new IssueConsumer(snapshot, ValidFilePath, issueHandler, converter);
+            var testSubject = new IssueConsumer(snapshot, ValidFilePath, issueHandler, converter, "project");
 
             testSubject.SetHotspots(ValidFilePath, hotspots);
 
@@ -171,7 +171,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var snapshot = CreateSnapshot(lineCount: 10);
             var converter = CreatePassthroughConverter();
 
-            var testSubject = new IssueConsumer(snapshot, ValidFilePath, issueHandler, converter);
+            var testSubject = new IssueConsumer(snapshot, ValidFilePath, issueHandler, converter, "project");
 
             // 1. First call
             testSubject.SetIssues(ValidFilePath, firstSetOfIssues);
@@ -195,7 +195,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var snapshot = CreateSnapshot(lineCount: 10);
             var converter = CreatePassthroughConverter();
 
-            var testSubject = new IssueConsumer(snapshot, ValidFilePath, issueHandler, converter);
+            var testSubject = new IssueConsumer(snapshot, ValidFilePath, issueHandler, converter, "project");
 
             // 1. First call
             testSubject.SetHotspots(ValidFilePath, firstSetOfHotspots);
@@ -245,8 +245,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Set up an issue converter that just wraps and returns the supplied issues as IssueVisualizations
             var mockIssueConverter = new Mock<IAnalysisIssueVisualizationConverter>();
             mockIssueConverter
-                .Setup(x => x.Convert(It.IsAny<IAnalysisIssue>(), It.IsAny<ITextSnapshot>()))
-                .Returns<IAnalysisIssue, ITextSnapshot>((issue, snapshot) => CreateIssueViz(issue, new SnapshotSpan()));
+                .Setup(x => x.Convert(It.IsAny<IAnalysisIssue>(), It.IsAny<ITextSnapshot>(), It.IsAny<string>()))
+                .Returns<IAnalysisIssue, ITextSnapshot, string>((issue, snapshot, projectName) => CreateIssueViz(issue, new SnapshotSpan()));
 
             return mockIssueConverter.Object;
 

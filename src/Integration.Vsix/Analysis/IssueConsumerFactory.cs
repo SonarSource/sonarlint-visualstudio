@@ -58,7 +58,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private readonly ILocalHotspotsStoreUpdater localHotspotsStore;
 
         [ImportingConstructor]
-        internal IssueConsumerFactory(IAnalysisIssueVisualizationConverter converter, ILocalHotspotsStoreUpdater localHotspotsStore)
+        internal IssueConsumerFactory(
+            IAnalysisIssueVisualizationConverter converter,
+            ILocalHotspotsStoreUpdater localHotspotsStore)
         {
             this.converter = converter;
             this.localHotspotsStore = localHotspotsStore;
@@ -73,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             SnapshotChangedHandler onSnapshotChanged)
         {
             var issueHandler = new IssueHandler(textDocument, projectName, projectGuid, onSnapshotChanged, localHotspotsStore);
-            var issueConsumer = new IssueConsumer(analysisSnapshot, analysisFilePath, issueHandler, converter);
+            var issueConsumer = new IssueConsumer(analysisSnapshot, analysisFilePath, issueHandler, converter, projectName);
 
             return issueConsumer;
         }

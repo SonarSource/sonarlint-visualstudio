@@ -24,8 +24,6 @@ using System.Windows.Data;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
@@ -33,25 +31,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
     [ValueConversion(typeof(IAnalysisIssueVisualization), typeof(ImageMoniker))]
     public class SeverityToMonikerConverter : IValueConverter
     {
-        private readonly IAnalysisSeverityToVsSeverityConverter analysisSeverityToVsSeverityConverter;
-
-        public SeverityToMonikerConverter()
-            : this(new AnalysisSeverityToVsSeverityConverter())
-        {
-        }
-
-        internal SeverityToMonikerConverter(IAnalysisSeverityToVsSeverityConverter analysisSeverityToVsSeverityConverter)
-        {
-            this.analysisSeverityToVsSeverityConverter = analysisSeverityToVsSeverityConverter;
-        }
-
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var issueVis = value as IAnalysisIssueVisualization;
-
-            if (issueVis?.Issue is IAnalysisIssue issue)
+            if (value is IAnalysisIssueVisualization issueViz)
             {
-                switch (analysisSeverityToVsSeverityConverter.GetVsSeverity(issue))
+                switch (issueViz.VsSeverity)
                 {
                     case __VSERRORCATEGORY.EC_ERROR:
                         return KnownMonikers.StatusError;

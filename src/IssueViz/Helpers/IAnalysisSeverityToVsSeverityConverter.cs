@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -26,76 +27,80 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
 {
     public interface IAnalysisSeverityToVsSeverityConverter
     {
-        __VSERRORCATEGORY Convert(AnalysisIssueSeverity? severity);
-        __VSERRORCATEGORY ConvertFromCct(SoftwareQualitySeverity severity);
+        __VSERRORCATEGORY Convert(AnalysisIssueSeverity? severity, string projectName);
+
+        __VSERRORCATEGORY ConvertFromCct(SoftwareQualitySeverity severity, string projectName);
     }
 
+    [Export(typeof(IAnalysisSeverityToVsSeverityConverter))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     public class AnalysisSeverityToVsSeverityConverter : IAnalysisSeverityToVsSeverityConverter
     {
         private readonly IEnvironmentSettings environmentSettings;
+        private readonly ITreatWarningsAsErrorsCache treatWarningsAsErrorsCache;
 
-        public AnalysisSeverityToVsSeverityConverter()
-            : this(new EnvironmentSettings())
+        [ImportingConstructor]
+        public AnalysisSeverityToVsSeverityConverter(ITreatWarningsAsErrorsCache treatWarningsAsErrorsCache) : this(new EnvironmentSettings(), treatWarningsAsErrorsCache)
         {
         }
 
-        internal AnalysisSeverityToVsSeverityConverter(IEnvironmentSettings environmentSettings)
+        internal AnalysisSeverityToVsSeverityConverter(IEnvironmentSettings environmentSettings, ITreatWarningsAsErrorsCache treatWarningsAsErrorsCache)
+
         {
             this.environmentSettings = environmentSettings;
+            this.treatWarningsAsErrorsCache = treatWarningsAsErrorsCache;
         }
 
-        public __VSERRORCATEGORY ConvertFromCct(SoftwareQualitySeverity severity)
+        public __VSERRORCATEGORY ConvertFromCct(SoftwareQualitySeverity severity, string projectName)
         {
-            switch (severity)
+            var result = severity switch
             {
-                case SoftwareQualitySeverity.Medium:
-                case SoftwareQualitySeverity.High:
-                case SoftwareQualitySeverity.Blocker:
-                    return __VSERRORCATEGORY.EC_WARNING;
+                SoftwareQualitySeverity.Medium
+                    or SoftwareQualitySeverity.High
+                    or SoftwareQualitySeverity.Blocker => __VSERRORCATEGORY.EC_WARNING,
+                SoftwareQualitySeverity.Info
+                    or SoftwareQualitySeverity.Low => __VSERRORCATEGORY.EC_MESSAGE,
+                // We don't want to throw here - we're being called by VS to populate
+                // the columns in the error list, and if we're on a UI thread then
+                // we'll crash VS
+                _ => __VSERRORCATEGORY.EC_MESSAGE
+            };
 
-                case SoftwareQualitySeverity.Info:
-                case SoftwareQualitySeverity.Low:
-                    return __VSERRORCATEGORY.EC_MESSAGE;
-
-                default:
-                    // We don't want to throw here - we're being called by VS to populate
-                    // the columns in the error list, and if we're on a UI thread then
-                    // we'll crash VS
-                    return __VSERRORCATEGORY.EC_MESSAGE;
-            }
+            return ApplyTreatWarningsAsErrors(result, projectName);
         }
 
-        public __VSERRORCATEGORY Convert(AnalysisIssueSeverity? severity)
+        public __VSERRORCATEGORY Convert(AnalysisIssueSeverity? severity, string projectName)
         {
-            switch (severity)
+            var result = severity switch
             {
-                case AnalysisIssueSeverity.Info:
-                case AnalysisIssueSeverity.Minor:
-                    return __VSERRORCATEGORY.EC_MESSAGE;
+                AnalysisIssueSeverity.Info
+                    or AnalysisIssueSeverity.Minor => __VSERRORCATEGORY.EC_MESSAGE,
+                AnalysisIssueSeverity.Major
+                    or AnalysisIssueSeverity.Critical => __VSERRORCATEGORY.EC_WARNING,
+                AnalysisIssueSeverity.Blocker => environmentSettings.TreatBlockerSeverityAsError() ? __VSERRORCATEGORY.EC_ERROR : __VSERRORCATEGORY.EC_WARNING,
+                // We don't want to throw here - we're being called by VS to populate
+                // the columns in the error list, and if we're on a UI thread then
+                // we'll crash VS
+                _ => __VSERRORCATEGORY.EC_MESSAGE
+            };
 
-                case AnalysisIssueSeverity.Major:
-                case AnalysisIssueSeverity.Critical:
-                    return __VSERRORCATEGORY.EC_WARNING;
-
-                case AnalysisIssueSeverity.Blocker:
-                    return environmentSettings.TreatBlockerSeverityAsError() ? __VSERRORCATEGORY.EC_ERROR : __VSERRORCATEGORY.EC_WARNING;
-
-                default:
-                    // We don't want to throw here - we're being called by VS to populate
-                    // the columns in the error list, and if we're on a UI thread then
-                    // we'll crash VS
-                    return __VSERRORCATEGORY.EC_MESSAGE;
-            }
+            return ApplyTreatWarningsAsErrors(result, projectName);
         }
+
+        private __VSERRORCATEGORY ApplyTreatWarningsAsErrors(__VSERRORCATEGORY result, string projectName) =>
+            result == __VSERRORCATEGORY.EC_WARNING && (treatWarningsAsErrorsCache?.IsTreatWarningsAsErrorsEnabled(projectName) ?? false)
+                ? __VSERRORCATEGORY.EC_ERROR
+                : result;
     }
 
     public static class AnalysisSeverityToVsSeverityConverterExtensions
     {
         public static __VSERRORCATEGORY GetVsSeverity(
             this IAnalysisSeverityToVsSeverityConverter converter,
-            IAnalysisIssue issue) =>
+            IAnalysisIssue issue,
+            string projectName) =>
             issue.HighestImpact?.Severity != null
-                ? converter.ConvertFromCct(issue.HighestImpact.Severity)
-                : converter.Convert(issue.Severity);
+                ? converter.ConvertFromCct(issue.HighestImpact.Severity, projectName)
+                : converter.Convert(issue.Severity, projectName);
     }
 }

@@ -202,7 +202,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void IndexOf_IfIndexOutOfRange_ReturnsNotFound(int inputIndex, int expected)
         {
             var original = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath,
-                new[] { CreateIssue(), CreateIssue(), CreateIssue() } );
+                new[] { CreateIssue(), CreateIssue(), CreateIssue() });
             var modified = original.CreateUpdatedSnapshot("unimportant change");
 
             // Should not be able to map to an out-of-range index

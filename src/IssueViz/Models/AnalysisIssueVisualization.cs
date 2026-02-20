@@ -20,6 +20,7 @@
 
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -39,6 +40,8 @@ public interface IAnalysisIssueVisualization : IAnalysisIssueLocationVisualizati
     bool IsResolved { get; }
 
     bool IsOnNewCode { get; }
+
+    __VSERRORCATEGORY VsSeverity { get; }
 }
 
 internal class AnalysisIssueVisualization : IAnalysisIssueVisualization
@@ -51,13 +54,15 @@ internal class AnalysisIssueVisualization : IAnalysisIssueVisualization
         IReadOnlyList<IAnalysisIssueFlowVisualization> flows,
         IAnalysisIssueBase issue,
         SnapshotSpan? span,
-        IReadOnlyList<IQuickFixApplication> quickFixes)
+        IReadOnlyList<IQuickFixApplication> quickFixes,
+        __VSERRORCATEGORY vsSeverity)
     {
         Flows = flows;
         Issue = issue;
         CurrentFilePath = issue.PrimaryLocation.FilePath;
         Span = span;
         QuickFixes = quickFixes;
+        VsSeverity = vsSeverity;
         SonarRuleId = SonarCompositeRuleId.TryParse(issue.RuleKey, out var id) ? id : throw new ArgumentException(nameof(issue.RuleKey));
     }
 
@@ -65,6 +70,7 @@ internal class AnalysisIssueVisualization : IAnalysisIssueVisualization
     public IReadOnlyList<IAnalysisIssueFlowVisualization> Flows { get; }
     public IReadOnlyList<IQuickFixApplication> QuickFixes { get; }
     public IAnalysisIssueBase Issue { get; }
+    public __VSERRORCATEGORY VsSeverity { get; }
     public int StepNumber => 0;
     public IAnalysisIssueLocation Location => Issue.PrimaryLocation;
 

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,25 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
-
-internal interface IRoslynProjectWrapper
+namespace SonarLint.VisualStudio.Core
 {
-    string Name { get; }
-    bool SupportsCompilation { get; }
-    AnalyzerOptions RoslynAnalyzerOptions { get; }
-    ImmutableDictionary<string, ReportDiagnostic>? SpecificDiagnosticOptions { get; }
-    ReportDiagnostic? GeneralDiagnosticOption { get; }
-    IRoslynSolutionWrapper Solution { get; }
-
-    bool ContainsDocument(
-        string filePath,
-        [NotNullWhen(true)]out IRoslynDocumentWrapper? document);
-
-    Task<IRoslynCompilationWrapper> GetCompilationAsync(CancellationToken token);
+    /// <summary>
+    /// Cache for tracking which projects have TreatWarningsAsErrors enabled
+    /// </summary>
+    public interface ITreatWarningsAsErrorsCache
+    {
+        /// <summary>
+        /// Returns true if the specified project has TreatWarningsAsErrors enabled
+        /// </summary>
+        bool IsTreatWarningsAsErrorsEnabled(string projectName);
+    }
 }
