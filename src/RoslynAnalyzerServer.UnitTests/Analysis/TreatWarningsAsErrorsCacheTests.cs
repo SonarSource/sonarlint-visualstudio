@@ -1,6 +1,6 @@
 /*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 [TestClass]
 public class TreatWarningsAsErrorsCacheTests
 {
-    private TreatWarningsAsErrorsCache testSubject;
+    private TreatWarningsAsErrorsCache testSubject = null!;
 
     [TestInitialize]
     public void TestInitialize()
