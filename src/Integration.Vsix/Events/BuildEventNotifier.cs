@@ -24,7 +24,6 @@ using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Infrastructure.VS.Initialization;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 using SonarLint.VisualStudio.IssueVisualization.Security.Issues;
@@ -34,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Events;
 
 [Export(typeof(IBuildEventNotifier))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class BuildEventNotifier : IBuildEventNotifier, IVsUpdateSolutionEvents, IVsUpdateSolutionEvents3
+internal sealed class BuildEventNotifier : IBuildEventNotifier, IVsUpdateSolutionEvents
 {
     private readonly ILocalIssuesStore localIssuesStore;
     private readonly IBuildEventUiManager buildEventUIManager;
@@ -63,30 +62,22 @@ internal sealed class BuildEventNotifier : IBuildEventNotifier, IVsUpdateSolutio
 
     public IInitializationProcessor InitializationProcessor { get; }
 
-    private Task InitializeInternalAsync(IThreadHandling threadHandling) =>
-        threadHandling.RunOnUIThreadAsync(() =>
-        {
-            if (isDisposed)
-            {
-                return;
-            }
-            vsUIServiceOperation.Execute<SVsSolutionBuildManager, IVsSolutionBuildManager2>(
-                buildManager =>
-                {
-                    ErrorHandler.ThrowOnFailure(buildManager.AdviseUpdateSolutionEvents(this, out cookie));
-                });
-        });
-
-    #region IVsUpdateSolutionEvents
-
-    int IVsUpdateSolutionEvents.UpdateSolution_Begin(ref int pfCancelUpdate)
+    private async Task InitializeInternalAsync()
     {
-        return VSConstants.S_OK;
+        if (isDisposed)
+        {
+            return;
+        }
+        await vsUIServiceOperation.ExecuteAsync<SVsSolutionBuildManager, IVsSolutionBuildManager2>(buildManager =>
+        {
+            ErrorHandler.ThrowOnFailure(buildManager.AdviseUpdateSolutionEvents(this, out cookie));
+        });
     }
+
+    int IVsUpdateSolutionEvents.UpdateSolution_Begin(ref int pfCancelUpdate) => VSConstants.S_OK;
 
     int IVsUpdateSolutionEvents.UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand)
     {
-        // todo fCancelCommand
         try
         {
             var issues = localIssuesStore.GetAll();
@@ -108,57 +99,27 @@ internal sealed class BuildEventNotifier : IBuildEventNotifier, IVsUpdateSolutio
         return VSConstants.S_OK;
     }
 
-    int IVsUpdateSolutionEvents.UpdateSolution_StartUpdate(ref int pfCancelUpdate)
-    {
-        return VSConstants.S_OK;
-    }
+    int IVsUpdateSolutionEvents.UpdateSolution_StartUpdate(ref int pfCancelUpdate) => VSConstants.S_OK;
 
-    int IVsUpdateSolutionEvents.UpdateSolution_Cancel()
-    {
-        return VSConstants.S_OK;
-    }
+    int IVsUpdateSolutionEvents.UpdateSolution_Cancel() => VSConstants.S_OK;
 
-    int IVsUpdateSolutionEvents.OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
-    {
-        return VSConstants.S_OK;
-    }
-
-    #endregion
-
-    #region IDisposable
-
-    private void Dispose(bool disposing)
-    {
-        if (!isDisposed)
-        {
-            if (disposing && InitializationProcessor.IsFinalized)
-            {
-                vsUIServiceOperation.Execute<SVsSolutionBuildManager, IVsSolutionBuildManager2>(
-                    buildManager =>
-                    {
-                        buildManager.UnadviseUpdateSolutionEvents(cookie);
-                    });
-            }
-
-            isDisposed = true;
-        }
-    }
+    int IVsUpdateSolutionEvents.OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy) => VSConstants.S_OK;
 
     public void Dispose()
     {
-        Dispose(true);
-    }
+        if (isDisposed)
+        {
+            return;
+        }
 
-    #endregion
+        if (InitializationProcessor.IsFinalized)
+        {
+            vsUIServiceOperation.Execute<SVsSolutionBuildManager, IVsSolutionBuildManager2>(buildManager =>
+            {
+                buildManager.UnadviseUpdateSolutionEvents(cookie);
+            });
+        }
 
-    // todo
-    public int OnBeforeActiveSolutionCfgChange(IVsCfg pOldActiveSlnCfg, IVsCfg pNewActiveSlnCfg)
-    {
-        return VSConstants.S_OK;
-    }
-
-    public int OnAfterActiveSolutionCfgChange(IVsCfg pOldActiveSlnCfg, IVsCfg pNewActiveSlnCfg)
-    {
-        return VSConstants.S_OK;
+        isDisposed = true;
     }
 }
