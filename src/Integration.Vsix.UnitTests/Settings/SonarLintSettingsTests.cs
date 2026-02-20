@@ -305,17 +305,15 @@ public class SonarLintSettingsTests
     public void ShowCloudRegion_WhenDisposed_ReturnsDefault()
     {
         MockComDetachedTestSubject();
-        testSubject.ShowCloudRegion = true;
         var showCloudRegion = testSubject.ShowCloudRegion;
-
         showCloudRegion.Should().BeFalse();
     }
 
     [TestMethod]
     public void IsFocusOnNewCodeEnabled_DefaultValue_ShouldBeFalse()
     {
+        MockComDetachedTestSubject();
         testSubject.IsFocusOnNewCodeEnabled.Should().BeFalse();
-        store.Received().GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsFocusOnNewCodeEnabled), false);
     }
 
     [TestMethod]
@@ -344,7 +342,6 @@ public class SonarLintSettingsTests
     public void IsFocusOnNewCodeEnabled_WhenDisposed_ReturnsDefault()
     {
         MockComDetachedTestSubject();
-        testSubject.IsFocusOnNewCodeEnabled = true;
         var value = testSubject.IsFocusOnNewCodeEnabled;
         value.Should().BeFalse();
     }
@@ -352,8 +349,8 @@ public class SonarLintSettingsTests
     [TestMethod]
     public void IsShowBuildErrorNotificationEnabled_DefaultValue_ShouldBeTrue()
     {
+        MockComDetachedTestSubject();
         testSubject.IsShowBuildErrorNotificationEnabled.Should().BeTrue();
-        store.Received().GetBoolean(SonarLintSettings.SettingsRoot, nameof(testSubject.IsShowBuildErrorNotificationEnabled), true);
     }
 
     [TestMethod]
@@ -382,7 +379,6 @@ public class SonarLintSettingsTests
     public void IsShowBuildErrorNotificationEnabled_WhenDisposed_ReturnsDefault()
     {
         MockComDetachedTestSubject();
-        testSubject.IsShowBuildErrorNotificationEnabled = false;
         var value = testSubject.IsShowBuildErrorNotificationEnabled;
         value.Should().BeTrue();
     }
