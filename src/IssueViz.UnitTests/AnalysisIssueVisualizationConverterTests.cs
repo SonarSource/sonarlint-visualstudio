@@ -343,24 +343,38 @@ public class AnalysisIssueVisualizationConverterTests
     {
         var issue = CreateIssue(Path.GetRandomFileName());
         const string projectName = "MyProject";
-        severityConverter.GetVsSeverity(issue, projectName).Returns(__VSERRORCATEGORY.EC_ERROR);
+        severityConverter.ConvertFromCct(issue.HighestImpact.Severity, projectName).Returns(__VSERRORCATEGORY.EC_ERROR);
 
         var result = testSubject.Convert(issue, textSnapshotMock, projectName);
 
         result.VsSeverity.Should().Be(__VSERRORCATEGORY.EC_ERROR);
-        severityConverter.Received(1).GetVsSeverity(issue, projectName);
+        severityConverter.Received(1).ConvertFromCct(issue.HighestImpact.Severity, projectName);
     }
 
     [TestMethod]
     public void Convert_AnalysisIssue_NullProjectName_PassesNullToConverter()
     {
         var issue = CreateIssue(Path.GetRandomFileName());
-        severityConverter.GetVsSeverity(issue, null).Returns(__VSERRORCATEGORY.EC_WARNING);
+        severityConverter.ConvertFromCct(issue.HighestImpact.Severity, null).Returns(__VSERRORCATEGORY.EC_WARNING);
 
         var result = testSubject.Convert(issue, textSnapshotMock, projectName: null);
 
         result.VsSeverity.Should().Be(__VSERRORCATEGORY.EC_WARNING);
-        severityConverter.Received(1).GetVsSeverity(issue, null);
+        severityConverter.Received(1).ConvertFromCct(issue.HighestImpact.Severity, null);
+    }
+
+    [TestMethod]
+    public void Convert_AnalysisIssue_NoHighestImpact_UsesLegacySeverity()
+    {
+        var issue = CreateIssueWithoutHighestImpact(Path.GetRandomFileName());
+        const string projectName = "MyProject";
+        severityConverter.Convert(issue.Severity, projectName).Returns(__VSERRORCATEGORY.EC_ERROR);
+
+        var result = testSubject.Convert(issue, textSnapshotMock, projectName);
+
+        result.VsSeverity.Should().Be(__VSERRORCATEGORY.EC_ERROR);
+        severityConverter.Received(1).Convert(issue.Severity, projectName);
+        severityConverter.DidNotReceiveWithAnyArgs().ConvertFromCct(default, default);
     }
 
     [TestMethod]
@@ -415,6 +429,24 @@ public class AnalysisIssueVisualizationConverterTests
             AnalysisIssueSeverity.Blocker,
             AnalysisIssueType.Bug,
             new Impact(SoftwareQuality.Maintainability, SoftwareQualitySeverity.High),
+            CreateLocation(filePath),
+            flows
+        );
+
+        return issue;
+    }
+
+    private IAnalysisIssue CreateIssueWithoutHighestImpact(string filePath, params IAnalysisIssueFlow[] flows)
+    {
+        var issue = new AnalysisIssue(
+            Guid.NewGuid(),
+            $"any:{Guid.NewGuid().ToString()}",
+            Guid.NewGuid().ToString(),
+            false,
+            true,
+            AnalysisIssueSeverity.Blocker,
+            AnalysisIssueType.Bug,
+            null,
             CreateLocation(filePath),
             flows
         );
