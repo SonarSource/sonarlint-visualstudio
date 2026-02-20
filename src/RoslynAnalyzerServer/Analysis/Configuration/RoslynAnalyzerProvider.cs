@@ -23,6 +23,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
@@ -30,23 +31,31 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 [Export(typeof(IRoslynAnalyzerProvider))]
 [Export(typeof(IRoslynAnalyzerAssemblyContentsLoader))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-internal class RoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersLocator, IRoslynAnalyzerLoader roslynAnalyzerLoader) : IRoslynAnalyzerProvider, IRoslynAnalyzerAssemblyContentsLoader
+internal class RoslynAnalyzerProvider : IRoslynAnalyzerProvider, IRoslynAnalyzerAssemblyContentsLoader
 {
     private ImmutableDictionary<LicensedRoslynLanguage, AnalyzerAssemblyContents>? cachedAnalyzerAssemblyContents;
+    private readonly IEmbeddedDotnetAnalyzersLocator analyzersLocator;
+    private readonly IRoslynAnalyzerLoader roslynAnalyzerLoader;
+
+    [method: ImportingConstructor]
+    public RoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersLocator, IRoslynAnalyzerLoader roslynAnalyzerLoader, IInitializationProcessorFactory initializationProcessorFactory)
+    {
+        this.analyzersLocator = analyzersLocator;
+        this.roslynAnalyzerLoader = roslynAnalyzerLoader;
+        InitializationProcessor = initializationProcessorFactory.CreateAndStart<RoslynAnalyzerProvider>([], LoadRoslynAnalyzerAssemblyContentsIfNeeded);
+    }
+
     private static readonly object LockObj = new();
 
-    public ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadAndProcessAnalyzerAssemblies(AnalyzerInfoDto analyzerInfo)
-    {
-        LoadRoslynAnalyzerAssemblyContentsIfNeeded();
+    public IInitializationProcessor InitializationProcessor { get; }
 
-        return cachedAnalyzerAssemblyContents!
+    public ImmutableDictionary<RoslynLanguage, AnalyzerAssemblyContents> LoadAndProcessAnalyzerAssemblies(AnalyzerInfoDto analyzerInfo) =>
+        cachedAnalyzerAssemblyContents!
             .Where(kvp => FilterByLicense(kvp, analyzerInfo))
             .ToDictionary(kvp => kvp.Key.RoslynLanguage, kvp => kvp.Value)
             .ToImmutableDictionary();
-    }
 
-    public void LoadRoslynAnalyzerAssemblyContentsIfNeeded()
+    internal void LoadRoslynAnalyzerAssemblyContentsIfNeeded()
     {
         lock (LockObj)
         {
@@ -58,6 +67,12 @@ internal class RoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersL
             cachedAnalyzerAssemblyContents = LoadFromAssemblies(analyzerFullPathsByLanguage);
         }
     }
+
+    public ImmutableHashSet<string> GetAllSupportedRuleKeys() =>
+        cachedAnalyzerAssemblyContents!
+            .Values
+            .SelectMany(contents => contents.SupportedRuleKeys)
+            .ToImmutableHashSet();
 
     private static bool FilterByLicense(KeyValuePair<LicensedRoslynLanguage, AnalyzerAssemblyContents> kvp, AnalyzerInfoDto analyzerInfo)
     {
@@ -107,4 +122,5 @@ internal class RoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator analyzersL
             }
         }
     }
+
 }

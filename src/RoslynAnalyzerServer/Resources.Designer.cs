@@ -337,5 +337,32 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
                 return ResourceManager.GetString("RoslynQuickFixLogContext", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to write suppression exclusion config file: {0}.
+        /// </summary>
+        internal static string SuppressionExclusionConfigGenerator_FailedToWrite {
+            get {
+                return ResourceManager.GetString("SuppressionExclusionConfigGenerator_FailedToWrite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SuppressionExclusionConfig.
+        /// </summary>
+        internal static string SuppressionExclusionConfigGenerator_LogContext {
+            get {
+                return ResourceManager.GetString("SuppressionExclusionConfigGenerator_LogContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Writing suppression exclusion config file to disk.
+        /// </summary>
+        internal static string SuppressionExclusionConfigGenerator_WritingFile {
+            get {
+                return ResourceManager.GetString("SuppressionExclusionConfigGenerator_WritingFile", resourceCulture);
+            }
+        }
     }
 }
