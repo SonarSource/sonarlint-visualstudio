@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Windows;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
@@ -38,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Events;
 internal sealed class BuildEventNotifier : IBuildEventNotifier, IVsUpdateSolutionEvents, IVsUpdateSolutionEvents3
 {
     private readonly ILocalIssuesStore localIssuesStore;
-    private readonly IMessageBox messageBox;
+    private readonly IBuildEventUIManager buildEventUIManager;
     private readonly IToolWindowService toolWindowService;
     private readonly IVsUIServiceOperation vsUIServiceOperation;
     private readonly ILogger logger;
@@ -48,14 +47,14 @@ internal sealed class BuildEventNotifier : IBuildEventNotifier, IVsUpdateSolutio
     [ImportingConstructor]
     public BuildEventNotifier(
         ILocalIssuesStore localIssuesStore,
-        IMessageBox messageBox,
+        IBuildEventUIManager buildEventUIManager,
         IToolWindowService toolWindowService,
         IInitializationProcessorFactory initializationProcessorFactory,
         IVsUIServiceOperation vsUIServiceOperation,
         ILogger logger)
     {
         this.localIssuesStore = localIssuesStore;
-        this.messageBox = messageBox;
+        this.buildEventUIManager = buildEventUIManager;
         this.toolWindowService = toolWindowService;
         this.vsUIServiceOperation = vsUIServiceOperation;
         this.logger = logger.ForContext(Strings.BuildEventNotifier_LogContext);
@@ -94,13 +93,8 @@ internal sealed class BuildEventNotifier : IBuildEventNotifier, IVsUpdateSolutio
             var errorCount = issues.Count(i => i.VsSeverity == __VSERRORCATEGORY.EC_ERROR);
             if (errorCount > 0)
             {
-                var result = messageBox.Show(
-                    string.Format(Strings.BuildEventNotifier_IssuesFoundMessage, errorCount),
-                    Strings.BuildEventNotifier_Caption,
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-
-                if (result == MessageBoxResult.OK)
+                var result = buildEventUIManager.ShowErrorNotificationDialog(errorCount);
+                if (result)
                 {
                     toolWindowService.Show(IssueListIds.ErrorListId);
                 }

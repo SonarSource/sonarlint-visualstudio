@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using NSubstitute.ExceptionExtensions;
@@ -38,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Events;
 public class BuildEventNotifierTests
 {
     private ILocalIssuesStore localIssuesStore;
-    private IMessageBox messageBox;
+    private IBuildEventUIManager buildEventUIManager;
     private IToolWindowService toolWindowService;
     private IInitializationProcessorFactory initializationProcessorFactory;
     private IVsUIServiceOperation vsUIServiceOperation;
@@ -49,7 +48,7 @@ public class BuildEventNotifierTests
     public void TestInitialize()
     {
         localIssuesStore = Substitute.For<ILocalIssuesStore>();
-        messageBox = Substitute.For<IMessageBox>();
+        buildEventUIManager = Substitute.For<IBuildEventUIManager>();
         toolWindowService = Substitute.For<IToolWindowService>();
         vsUIServiceOperation = Substitute.For<IVsUIServiceOperation>();
         testLogger = Substitute.ForPartsOf<TestLogger>();
@@ -60,7 +59,7 @@ public class BuildEventNotifierTests
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<BuildEventNotifier, IBuildEventNotifier>(
             MefTestHelpers.CreateExport<ILocalIssuesStore>(),
-            MefTestHelpers.CreateExport<IMessageBox>(),
+            MefTestHelpers.CreateExport<IBuildEventUIManager>(),
             MefTestHelpers.CreateExport<IToolWindowService>(),
             MefTestHelpers.CreateExport<IInitializationProcessorFactory>(),
             MefTestHelpers.CreateExport<IVsUIServiceOperation>(),
@@ -90,18 +89,18 @@ public class BuildEventNotifierTests
     }
 
     [TestMethod]
-    public void UpdateSolutionDone_NoIssues_DoesNotShowMessageBox()
+    public void UpdateSolutionDone_NoIssues_DoesNotShowDialog()
     {
         localIssuesStore.GetAll().Returns([]);
         var testSubject = CreateAndInitializeTestSubject();
 
         InvokeUpdateSolutionDone(testSubject);
 
-        messageBox.DidNotReceiveWithAnyArgs().Show(default, default, default, default);
+        buildEventUIManager.DidNotReceiveWithAnyArgs().ShowErrorNotificationDialog(default);
     }
 
     [TestMethod]
-    public void UpdateSolutionDone_HasErrorIssues_ShowsMessageBox()
+    public void UpdateSolutionDone_HasErrorIssues_ShowsDialog()
     {
         var issues = new[] { CreateIssueWithSeverity(__VSERRORCATEGORY.EC_ERROR) };
         localIssuesStore.GetAll().Returns(issues);
@@ -109,15 +108,11 @@ public class BuildEventNotifierTests
 
         InvokeUpdateSolutionDone(testSubject);
 
-        messageBox.Received(1).Show(
-            string.Format(Strings.BuildEventNotifier_IssuesFoundMessage, 1),
-            Strings.BuildEventNotifier_Caption,
-            MessageBoxButton.OK,
-            MessageBoxImage.Error);
+        buildEventUIManager.Received(1).ShowErrorNotificationDialog(1);
     }
 
     [TestMethod]
-    public void UpdateSolutionDone_HasOnlyNonErrorIssues_DoesNotShowMessageBox()
+    public void UpdateSolutionDone_HasOnlyNonErrorIssues_DoesNotShowDialog()
     {
         var issues = new[]
         {
@@ -129,7 +124,7 @@ public class BuildEventNotifierTests
 
         InvokeUpdateSolutionDone(testSubject);
 
-        messageBox.DidNotReceiveWithAnyArgs().Show(default, default, default, default);
+        buildEventUIManager.DidNotReceiveWithAnyArgs().ShowErrorNotificationDialog(default);
     }
 
     [TestMethod]
@@ -146,11 +141,7 @@ public class BuildEventNotifierTests
 
         InvokeUpdateSolutionDone(testSubject);
 
-        messageBox.Received(1).Show(
-            string.Format(Strings.BuildEventNotifier_IssuesFoundMessage, 3),
-            Arg.Any<string>(),
-            Arg.Any<MessageBoxButton>(),
-            Arg.Any<MessageBoxImage>());
+        buildEventUIManager.Received(1).ShowErrorNotificationDialog(3);
     }
 
     [TestMethod]
@@ -168,11 +159,7 @@ public class BuildEventNotifierTests
 
         InvokeUpdateSolutionDone(testSubject);
 
-        messageBox.Received(1).Show(
-            string.Format(Strings.BuildEventNotifier_IssuesFoundMessage, 2),
-            Arg.Any<string>(),
-            Arg.Any<MessageBoxButton>(),
-            Arg.Any<MessageBoxImage>());
+        buildEventUIManager.Received(1).ShowErrorNotificationDialog(2);
     }
 
     [TestMethod]
@@ -180,8 +167,7 @@ public class BuildEventNotifierTests
     {
         var issues = new[] { CreateIssueWithSeverity(__VSERRORCATEGORY.EC_ERROR) };
         localIssuesStore.GetAll().Returns(issues);
-        messageBox.Show(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<MessageBoxButton>(), Arg.Any<MessageBoxImage>())
-            .Returns(MessageBoxResult.OK);
+        buildEventUIManager.ShowErrorNotificationDialog(Arg.Any<int>()).Returns(true);
         var testSubject = CreateAndInitializeTestSubject();
 
         InvokeUpdateSolutionDone(testSubject);
@@ -302,13 +288,13 @@ public class BuildEventNotifierTests
         var tcs = barrier = new();
         initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<BuildEventNotifier>(
             threadHandling, testLogger, processor => MockableInitializationProcessor.ConfigureWithWait(processor, tcs));
-        return new BuildEventNotifier(localIssuesStore, messageBox, toolWindowService, initializationProcessorFactory, vsUIServiceOperation, testLogger);
+        return new BuildEventNotifier(localIssuesStore, buildEventUIManager, toolWindowService, initializationProcessorFactory, vsUIServiceOperation, testLogger);
     }
 
     private BuildEventNotifier CreateAndInitializeTestSubject()
     {
         initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<BuildEventNotifier>(threadHandling, testLogger);
-        var testSubject = new BuildEventNotifier(localIssuesStore, messageBox, toolWindowService, initializationProcessorFactory, vsUIServiceOperation, testLogger);
+        var testSubject = new BuildEventNotifier(localIssuesStore, buildEventUIManager, toolWindowService, initializationProcessorFactory, vsUIServiceOperation, testLogger);
         testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
         return testSubject;
     }

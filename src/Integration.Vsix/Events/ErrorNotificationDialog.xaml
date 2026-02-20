@@ -1,0 +1,42 @@
+<Window x:Class="SonarLint.VisualStudio.Integration.Vsix.Events.ErrorNotificationDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:res="clr-namespace:SonarLint.VisualStudio.Integration.Vsix.Resources"
+        Title="{x:Static res:Strings.BuildEventNotifier_Caption}"
+        Width="450"
+        ResizeMode="NoResize"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        x:Name="This">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary
+                    Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Window.Style>
+        <Style TargetType="Window" BasedOn="{StaticResource {x:Type Window}}" />
+    </Window.Style>
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Margin="0, 0, 0, 20"
+                   Text="{Binding ElementName=This, Path=Message}" />
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="1" Style="{StaticResource DialogButtonsPanel}">
+                <Button Content="OK"
+                        IsDefault="True"
+                        Click="OkButton_OnClick" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
