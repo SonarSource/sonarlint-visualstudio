@@ -18,30 +18,37 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
-using System.Windows;
+using SonarLint.VisualStudio.Integration.Vsix.Events;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Events;
+namespace SonarLint.VisualStudio.Integration.UnitTests.Events;
 
-[ExcludeFromCodeCoverage]
-public partial class ErrorNotificationDialog : Window
+[TestClass]
+public class ErrorNotificationDialogViewModelTests
 {
-    public ErrorNotificationDialogViewModel ViewModel { get; }
-
-    public ErrorNotificationDialog(int errorsCount)
+    [TestMethod]
+    public void Ctor_SetsMessage()
     {
-        ViewModel = new ErrorNotificationDialogViewModel(errorsCount);
-        InitializeComponent();
+        var testSubject = new ErrorNotificationDialogViewModel(5);
+
+        testSubject.Message.Should().Be(string.Format(Strings.BuildEventNotifier_IssuesFoundMessage, 5));
     }
 
-    private void OkButton_OnClick(object sender, RoutedEventArgs e)
+    [TestMethod]
+    public void DoNotShowAgain_DefaultIsFalse()
     {
-        DialogResult = true;
+        var testSubject = new ErrorNotificationDialogViewModel(1);
+
+        testSubject.DoNotShowAgain.Should().BeFalse();
     }
 
-    private void DoNotShowAgainButton_OnClick(object sender, RoutedEventArgs e)
+    [TestMethod]
+    public void DoNotShowAgain_SetAndGet()
     {
-        ViewModel.DoNotShowAgain = true;
-        DialogResult = true;
+        var testSubject = new ErrorNotificationDialogViewModel(1);
+
+        testSubject.DoNotShowAgain = true;
+
+        testSubject.DoNotShowAgain.Should().BeTrue();
     }
 }

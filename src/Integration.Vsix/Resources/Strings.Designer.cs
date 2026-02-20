@@ -159,11 +159,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Analysis Scope.
+        ///   Looks up a localized string similar to Analysis Behavior.
         /// </summary>
-        public static string AnalysisScopeHeader {
+        public static string AnalysisBehaviorHeader {
             get {
-                return ResourceManager.GetString("AnalysisScopeHeader", resourceCulture);
+                return ResourceManager.GetString("AnalysisBehaviorHeader", resourceCulture);
             }
         }
         
@@ -249,7 +249,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube for Visual Studio found {0} Error-level issue(s) in open files. Review them in the Error List....
+        ///   Looks up a localized string similar to Do not show again.
+        /// </summary>
+        public static string BuildEventNotifier_DoNotShowAgain {
+            get {
+                return ResourceManager.GetString("BuildEventNotifier_DoNotShowAgain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube for Visual Studio found {0} Error-level issue(s) in open files..
         /// </summary>
         public static string BuildEventNotifier_IssuesFoundMessage {
             get {
@@ -263,6 +272,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         public static string BuildEventNotifier_LogContext {
             get {
                 return ResourceManager.GetString("BuildEventNotifier_LogContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Review them in the Error List....
+        /// </summary>
+        public static string BuildEventNotifier_ReviewInErrorList {
+            get {
+                return ResourceManager.GetString("BuildEventNotifier_ReviewInErrorList", resourceCulture);
             }
         }
         
@@ -752,6 +770,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         public static string SettingsFileWillBeCreatedText {
             get {
                 return ResourceManager.GetString("SettingsFileWillBeCreatedText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show post-build error notification.
+        /// </summary>
+        public static string ShowBuildErrorNotificationCheckbox {
+            get {
+                return ResourceManager.GetString("ShowBuildErrorNotificationCheckbox", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Displays a notification after build when warnings are elevated to errors via the TreatWarningsAsErrors MSBuild property..
+        /// </summary>
+        public static string ShowBuildErrorNotificationTooltip {
+            get {
+                return ResourceManager.GetString("ShowBuildErrorNotificationTooltip", resourceCulture);
             }
         }
         

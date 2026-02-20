@@ -36,6 +36,7 @@ namespace SonarLint.VisualStudio.Integration
         string JreLocation { get; set; }
         bool ShowCloudRegion { get; set; }
         bool IsFocusOnNewCodeEnabled { get; set; }
+        bool IsShowBuildErrorNotificationEnabled { get; set; }
         CredentialStoreType CredentialStoreType { get; set; }
     }
 

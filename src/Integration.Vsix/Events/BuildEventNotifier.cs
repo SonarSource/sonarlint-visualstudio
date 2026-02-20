@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Events;
 internal sealed class BuildEventNotifier : IBuildEventNotifier, IVsUpdateSolutionEvents, IVsUpdateSolutionEvents3
 {
     private readonly ILocalIssuesStore localIssuesStore;
-    private readonly IBuildEventUIManager buildEventUIManager;
+    private readonly IBuildEventUiManager buildEventUIManager;
     private readonly IToolWindowService toolWindowService;
     private readonly IVsUIServiceOperation vsUIServiceOperation;
     private readonly ILogger logger;
@@ -47,7 +47,7 @@ internal sealed class BuildEventNotifier : IBuildEventNotifier, IVsUpdateSolutio
     [ImportingConstructor]
     public BuildEventNotifier(
         ILocalIssuesStore localIssuesStore,
-        IBuildEventUIManager buildEventUIManager,
+        IBuildEventUiManager buildEventUIManager,
         IToolWindowService toolWindowService,
         IInitializationProcessorFactory initializationProcessorFactory,
         IVsUIServiceOperation vsUIServiceOperation,

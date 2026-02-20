@@ -33,17 +33,29 @@
             </Grid.RowDefinitions>
 
 
-            <GroupBox Grid.Row="0" Margin="5,0,0,5" Header="{x:Static res:Strings.AnalysisScopeHeader}">
-                <StackPanel Margin="5" Orientation="Horizontal">
-                    <CheckBox
-                        Content="{x:Static res:Strings.FocusOnNewCodeCheckbox}"
-                        IsChecked="{Binding Path=IsFocusOnNewCodeEnabled}" />
-                    <imaging:CrispImage Moniker="{x:Static vsimagecatalog:KnownMonikers.StatusHelpOutline}"
-                                        Margin="5, 0">
-                        <imaging:CrispImage.ToolTip>
-                            <TextBlock Text="{x:Static res:Strings.FocusOnNewCodeTooltipGeneric}" />
-                        </imaging:CrispImage.ToolTip>
-                    </imaging:CrispImage>
+            <GroupBox Grid.Row="0" Margin="5,0,0,5" Header="{x:Static res:Strings.AnalysisBehaviorHeader}">
+                <StackPanel Margin="5">
+                    <StackPanel Orientation="Horizontal">
+                        <CheckBox
+                            Content="{x:Static res:Strings.FocusOnNewCodeCheckbox}"
+                            IsChecked="{Binding Path=IsFocusOnNewCodeEnabled}" />
+                        <imaging:CrispImage Moniker="{x:Static vsimagecatalog:KnownMonikers.StatusHelpOutline}"
+                                            Margin="5, 0">
+                            <imaging:CrispImage.ToolTip>
+                                <TextBlock Text="{x:Static res:Strings.FocusOnNewCodeTooltipGeneric}" />
+                            </imaging:CrispImage.ToolTip>
+                        </imaging:CrispImage>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                        <CheckBox Content="{x:Static res:Strings.ShowBuildErrorNotificationCheckbox}"
+                                  IsChecked="{Binding Path=IsShowBuildErrorNotificationEnabled}" />
+                        <imaging:CrispImage Moniker="{x:Static vsimagecatalog:KnownMonikers.StatusHelpOutline}"
+                                            Margin="5, 0">
+                            <imaging:CrispImage.ToolTip>
+                                <TextBlock Text="{x:Static res:Strings.ShowBuildErrorNotificationTooltip}" />
+                            </imaging:CrispImage.ToolTip>
+                        </imaging:CrispImage>
+                    </StackPanel>
                 </StackPanel>
             </GroupBox>
 
@@ -127,6 +139,7 @@
                           IsChecked="{Binding Path=ShowCloudRegion}"
                           VerticalContentAlignment="Center" />
             </StackPanel>
+
         </Grid>
     </ScrollViewer>
 </UserControl>

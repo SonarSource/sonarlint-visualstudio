@@ -25,22 +25,31 @@ using SonarLint.VisualStudio.ConnectedMode.UI;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Events;
 
-[Export(typeof(IBuildEventUIManager))]
+[Export(typeof(IBuildEventUiManager))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class BuildEventUIManager : IBuildEventUIManager
+[method: ImportingConstructor]
+internal sealed class BuildEventUiManager(ISonarLintSettings settings) : IBuildEventUiManager
 {
-    [ImportingConstructor]
-    public BuildEventUIManager() { }
-
     public bool ShowErrorNotificationDialog(int errorsCount)
     {
-        return ShowDialog(errorsCount) == true;
+        if (!settings.IsShowBuildErrorNotificationEnabled)
+        {
+            return false;
+        }
+
+        var (okClicked, doNotShowAgain) = ShowDialog(errorsCount);
+        if (doNotShowAgain)
+        {
+            settings.IsShowBuildErrorNotificationEnabled = false;
+        }
+        return okClicked;
     }
 
     [ExcludeFromCodeCoverage]
-    private static bool? ShowDialog(int errorsCount)
+    private static (bool okClicked, bool doNotShowAgain) ShowDialog(int errorsCount)
     {
         var dialog = new ErrorNotificationDialog(errorsCount);
-        return dialog.ShowDialog(Application.Current.MainWindow);
+        var result = dialog.ShowDialog(Application.Current.MainWindow) == true;
+        return (result, dialog.ViewModel.DoNotShowAgain);
     }
 }
