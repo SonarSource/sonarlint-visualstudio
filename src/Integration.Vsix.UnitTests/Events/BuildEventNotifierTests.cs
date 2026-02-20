@@ -264,11 +264,12 @@ public class BuildEventNotifierTests
     private void SetupVsUIServiceOperation(IVsSolutionBuildManager2 buildManager)
     {
         vsUIServiceOperation
-            .When(s => s.Execute<SVsSolutionBuildManager, IVsSolutionBuildManager2>(Arg.Any<Action<IVsSolutionBuildManager2>>()))
-            .Do(callback =>
+            .ExecuteAsync<SVsSolutionBuildManager, IVsSolutionBuildManager2>(Arg.Any<Action<IVsSolutionBuildManager2>>())
+            .Returns(info =>
             {
-                var action = callback.Arg<Action<IVsSolutionBuildManager2>>();
+                var action = info.Arg<Action<IVsSolutionBuildManager2>>();
                 action(buildManager);
+                return Task.CompletedTask;
             });
     }
 
