@@ -158,8 +158,10 @@ public class BuildEventNotifierTests
         var testSubject = CreateAndInitializeTestSubject();
 
         testSubject.Dispose();
+        testSubject.Dispose();
+        testSubject.Dispose();
 
-        buildManager.Received().UnadviseUpdateSolutionEvents(Arg.Any<uint>());
+        buildManager.Received(1).UnadviseUpdateSolutionEvents(Arg.Any<uint>());
     }
 
     [TestMethod]
