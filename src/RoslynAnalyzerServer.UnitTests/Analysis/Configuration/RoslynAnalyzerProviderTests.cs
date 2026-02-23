@@ -260,6 +260,75 @@ public class RoslynAnalyzerProviderTests
     }
 
     [TestMethod]
+    public void GetAllSupportedRuleKeys_NoAnalyzers_ReturnsEmptySet()
+    {
+        analyzersLocator.GetAnalyzerFullPathsByLicensedLanguage().Returns(new Dictionary<LicensedRoslynLanguage, List<string>>());
+        InitializeAndPopulateCache();
+
+        var result = testSubject.GetAllSupportedRuleKeys();
+
+        result.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void GetAllSupportedRuleKeys_MultipleLanguages_ReturnsCombinedRuleKeys()
+    {
+        analyzersLocator.GetAnalyzerFullPathsByLicensedLanguage()
+            .Returns(new Dictionary<LicensedRoslynLanguage, List<string>> { { new(Language.CSharp, false), [CsharpAnalyzerPath] }, { new(Language.VBNET, false), [VbAnalyzerPath] } });
+        var csharpAnalyzer = CreateAnalyzerWithDiagnostic("CS001", "CS002");
+        var vbAnalyzer = CreateAnalyzerWithDiagnostic("VB001");
+        roslynAnalyzerLoader.LoadAnalyzerAssembly(CsharpAnalyzerPath).Returns(new LoadedAnalyzerClasses([csharpAnalyzer], []));
+        roslynAnalyzerLoader.LoadAnalyzerAssembly(VbAnalyzerPath).Returns(new LoadedAnalyzerClasses([vbAnalyzer], []));
+        InitializeAndPopulateCache();
+
+        var result = testSubject.GetAllSupportedRuleKeys();
+
+        result.Should().BeEquivalentTo("CS001", "CS002", "VB001");
+    }
+
+    [TestMethod]
+    public void GetAllSupportedRuleKeys_DuplicateKeysAcrossLanguages_ReturnsDistinctKeys()
+    {
+        analyzersLocator.GetAnalyzerFullPathsByLicensedLanguage()
+            .Returns(new Dictionary<LicensedRoslynLanguage, List<string>> { { new(Language.CSharp, false), [CsharpAnalyzerPath] }, { new(Language.VBNET, false), [VbAnalyzerPath] } });
+        var csharpAnalyzer = CreateAnalyzerWithDiagnostic("S001", "S002");
+        var vbAnalyzer = CreateAnalyzerWithDiagnostic("S001", "S003");
+        roslynAnalyzerLoader.LoadAnalyzerAssembly(CsharpAnalyzerPath).Returns(new LoadedAnalyzerClasses([csharpAnalyzer], []));
+        roslynAnalyzerLoader.LoadAnalyzerAssembly(VbAnalyzerPath).Returns(new LoadedAnalyzerClasses([vbAnalyzer], []));
+        InitializeAndPopulateCache();
+
+        var result = testSubject.GetAllSupportedRuleKeys();
+
+        result.Should().BeEquivalentTo("S001", "S002", "S003");
+    }
+
+    [TestMethod]
+    public void GetAllSupportedRuleKeys_IncludesBothBasicAndEnterpriseKeys()
+    {
+        var csharpBasic = CreateAnalyzerWithDiagnostic("CS001");
+        var csharpEnterprise = CreateAnalyzerWithDiagnostic("CSE001");
+        var vbBasic = CreateAnalyzerWithDiagnostic("VB001");
+        var vbEnterprise = CreateAnalyzerWithDiagnostic("VBE001");
+        roslynAnalyzerLoader.LoadAnalyzerAssembly(CsharpAnalyzerPath).Returns(new LoadedAnalyzerClasses([csharpBasic], []));
+        roslynAnalyzerLoader.LoadAnalyzerAssembly(CsharpEnterpriseAnalyzerPath).Returns(new LoadedAnalyzerClasses([csharpEnterprise], []));
+        roslynAnalyzerLoader.LoadAnalyzerAssembly(VbAnalyzerPath).Returns(new LoadedAnalyzerClasses([vbBasic], []));
+        roslynAnalyzerLoader.LoadAnalyzerAssembly(VbEnterpriseAnalyzerPath).Returns(new LoadedAnalyzerClasses([vbEnterprise], []));
+        analyzersLocator.GetAnalyzerFullPathsByLicensedLanguage()
+            .Returns(new Dictionary<LicensedRoslynLanguage, List<string>>
+            {
+                { new(Language.CSharp, false), [CsharpAnalyzerPath] },
+                { new(Language.CSharp, true), [CsharpEnterpriseAnalyzerPath] },
+                { new(Language.VBNET, false), [VbAnalyzerPath] },
+                { new(Language.VBNET, true), [VbEnterpriseAnalyzerPath] },
+            });
+        InitializeAndPopulateCache();
+
+        var result = testSubject.GetAllSupportedRuleKeys();
+
+        result.Should().BeEquivalentTo("CS001", "CSE001", "VB001", "VBE001");
+    }
+
+    [TestMethod]
     public void LoadAndProcessAnalyzerAssemblies_MultipleCalls_AnalyzerAssemblyContentsAreCached()
     {
         MockCodeProvidersForCsharp(CsharpAnalyzer);
