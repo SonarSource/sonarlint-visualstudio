@@ -21,7 +21,7 @@
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Events;
+namespace SonarLint.VisualStudio.Integration.Vsix.Events.Build;
 
 public class ErrorNotificationDialogViewModel : ViewModelBase
 {

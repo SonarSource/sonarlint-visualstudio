@@ -18,32 +18,37 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Integration.Vsix.Events;
-using SonarLint.VisualStudio.TestInfrastructure;
+using SonarLint.VisualStudio.Integration.Vsix.Events.Build;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Events;
+namespace SonarLint.VisualStudio.Integration.UnitTests.Events.Build;
 
 [TestClass]
-public class BuildEventUIManagerTests
+public class ErrorNotificationDialogViewModelTests
 {
     [TestMethod]
-    public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<BuildEventUiManager, IBuildEventUiManager>(
-            MefTestHelpers.CreateExport<ISonarLintSettings>());
-
-    [TestMethod]
-    public void MefCtor_CheckIsSingleton() =>
-        MefTestHelpers.CheckIsSingletonMefComponent<BuildEventUiManager>();
-
-    [TestMethod]
-    public void ShowErrorNotificationDialog_SettingDisabled_ReturnsFalse()
+    public void Ctor_SetsMessage()
     {
-        var settings = Substitute.For<ISonarLintSettings>();
-        settings.IsShowBuildErrorNotificationEnabled.Returns(false);
-        var testSubject = new BuildEventUiManager(settings);
+        var testSubject = new ErrorNotificationDialogViewModel(5);
 
-        var result = testSubject.ShowErrorNotificationDialog(5);
+        testSubject.Message.Should().Be(string.Format(Strings.BuildEventNotifier_IssuesFoundMessage, 5));
+    }
 
-        result.Should().BeFalse();
+    [TestMethod]
+    public void DoNotShowAgain_DefaultIsFalse()
+    {
+        var testSubject = new ErrorNotificationDialogViewModel(1);
+
+        testSubject.DoNotShowAgain.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void DoNotShowAgain_SetAndGet()
+    {
+        var testSubject = new ErrorNotificationDialogViewModel(1);
+
+        testSubject.DoNotShowAgain = true;
+
+        testSubject.DoNotShowAgain.Should().BeTrue();
     }
 }

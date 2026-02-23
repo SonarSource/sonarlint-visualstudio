@@ -19,37 +19,51 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.Windows;
-using SonarLint.VisualStudio.ConnectedMode.UI;
+using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
+using SonarLint.VisualStudio.IssueVisualization.Security.Issues;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Events;
+namespace SonarLint.VisualStudio.Integration.Vsix.Events.Build;
 
 [Export(typeof(IBuildEventUiManager))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal sealed class BuildEventUiManager(ISonarLintSettings settings) : IBuildEventUiManager
+internal sealed class BuildEventUiManager(
+    ISonarLintSettings settings,
+    IErrorNotificationDialogService errorNotificationDialogService,
+    IToolWindowService toolWindowService,
+    ILocalIssuesStore localIssuesStore,
+    IThreadHandling threadHandling) : IBuildEventUiManager
 {
-    public bool ShowErrorNotificationDialog(int errorsCount)
+    public void ShowErrorNotificationDialog()
     {
         if (!settings.IsShowBuildErrorNotificationEnabled)
         {
-            return false;
+            return;
         }
 
-        var (okClicked, doNotShowAgain) = ShowDialog(errorsCount);
-        if (doNotShowAgain)
+        var issues = localIssuesStore.GetAll();
+        var errorCount = issues.Count(i => i.VsSeverity == __VSERRORCATEGORY.EC_ERROR);
+        if (errorCount == 0)
+        {
+            return;
+        }
+
+        (bool okClicked, bool doNotShowAgain) dialogResult = default;
+        threadHandling.RunOnUIThread(() =>
+        {
+            dialogResult = errorNotificationDialogService.ShowDialog(errorCount);
+        });
+
+        if (dialogResult.doNotShowAgain)
         {
             settings.IsShowBuildErrorNotificationEnabled = false;
         }
-        return okClicked;
-    }
 
-    [ExcludeFromCodeCoverage]
-    private static (bool okClicked, bool doNotShowAgain) ShowDialog(int errorsCount)
-    {
-        var dialog = new ErrorNotificationDialog(errorsCount);
-        var result = dialog.ShowDialog(Application.Current.MainWindow) == true;
-        return (result, dialog.ViewModel.DoNotShowAgain);
+        if (dialogResult.okClicked)
+        {
+            toolWindowService.Show(IssueListIds.ErrorListId);
+        }
     }
 }

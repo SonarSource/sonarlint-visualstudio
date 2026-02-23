@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,30 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
-using System.Windows;
+using SonarLint.VisualStudio.Core.Initialization;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Events;
+namespace SonarLint.VisualStudio.Integration.Vsix.Events.Build;
 
-[ExcludeFromCodeCoverage]
-public partial class ErrorNotificationDialog : Window
-{
-    public ErrorNotificationDialogViewModel ViewModel { get; }
-
-    public ErrorNotificationDialog(int errorsCount)
-    {
-        ViewModel = new ErrorNotificationDialogViewModel(errorsCount);
-        InitializeComponent();
-    }
-
-    private void OkButton_OnClick(object sender, RoutedEventArgs e)
-    {
-        DialogResult = true;
-    }
-
-    private void DoNotShowAgainButton_OnClick(object sender, RoutedEventArgs e)
-    {
-        ViewModel.DoNotShowAgain = true;
-        DialogResult = true;
-    }
-}
+internal interface IBuildEventNotifier : IRequireInitialization, IDisposable;

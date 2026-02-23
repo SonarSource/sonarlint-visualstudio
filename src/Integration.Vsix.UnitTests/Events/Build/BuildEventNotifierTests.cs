@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -20,37 +20,28 @@
 
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration.Vsix.Events;
+using SonarLint.VisualStudio.Integration.Vsix.Events.Build;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
-using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
-using SonarLint.VisualStudio.IssueVisualization.Security.Issues;
-using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Events;
+namespace SonarLint.VisualStudio.Integration.UnitTests.Events.Build;
 
 [TestClass]
 public class BuildEventNotifierTests
 {
-    private ILocalIssuesStore localIssuesStore;
-    private IBuildEventUiManager buildEventUIManager;
-    private IToolWindowService toolWindowService;
-    private IInitializationProcessorFactory initializationProcessorFactory;
-    private IVsUIServiceOperation vsUIServiceOperation;
-    private TestLogger testLogger;
-    private NoOpThreadHandler threadHandling;
+    private IBuildEventUiManager buildEventUiManager = null!;
+    private IInitializationProcessorFactory initializationProcessorFactory = null!;
+    private IVsUIServiceOperation vsUiServiceOperation = null!;
+    private TestLogger testLogger = null!;
+    private NoOpThreadHandler threadHandling = null!;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        localIssuesStore = Substitute.For<ILocalIssuesStore>();
-        buildEventUIManager = Substitute.For<IBuildEventUiManager>();
-        toolWindowService = Substitute.For<IToolWindowService>();
-        vsUIServiceOperation = Substitute.For<IVsUIServiceOperation>();
+        buildEventUiManager = Substitute.For<IBuildEventUiManager>();
+        vsUiServiceOperation = Substitute.For<IVsUIServiceOperation>();
         testLogger = Substitute.ForPartsOf<TestLogger>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
     }
@@ -58,9 +49,7 @@ public class BuildEventNotifierTests
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<BuildEventNotifier, IBuildEventNotifier>(
-            MefTestHelpers.CreateExport<ILocalIssuesStore>(),
             MefTestHelpers.CreateExport<IBuildEventUiManager>(),
-            MefTestHelpers.CreateExport<IToolWindowService>(),
             MefTestHelpers.CreateExport<IInitializationProcessorFactory>(),
             MefTestHelpers.CreateExport<IVsUIServiceOperation>(),
             MefTestHelpers.CreateExport<ILogger>());
@@ -81,7 +70,7 @@ public class BuildEventNotifierTests
     public void Initialize_SubscribesToBuildEvents()
     {
         var buildManager = Substitute.For<IVsSolutionBuildManager2>();
-        SetupVsUIServiceOperation(buildManager);
+        SetupVsUiServiceOperation(buildManager);
 
         _ = CreateAndInitializeTestSubject();
 
@@ -89,96 +78,19 @@ public class BuildEventNotifierTests
     }
 
     [TestMethod]
-    public void UpdateSolutionDone_NoIssues_DoesNotShowDialog()
+    public void UpdateSolutionDone_CallsShowErrorNotificationDialog()
     {
-        localIssuesStore.GetAll().Returns([]);
         var testSubject = CreateAndInitializeTestSubject();
 
         InvokeUpdateSolutionDone(testSubject);
 
-        buildEventUIManager.DidNotReceiveWithAnyArgs().ShowErrorNotificationDialog(default);
+        buildEventUiManager.Received(1).ShowErrorNotificationDialog();
     }
 
     [TestMethod]
-    public void UpdateSolutionDone_HasErrorIssues_ShowsDialog()
+    public void UpdateSolutionDone_ExceptionThrown_LogsAndContinues()
     {
-        var issues = new[] { CreateIssueWithSeverity(__VSERRORCATEGORY.EC_ERROR) };
-        localIssuesStore.GetAll().Returns(issues);
-        var testSubject = CreateAndInitializeTestSubject();
-
-        InvokeUpdateSolutionDone(testSubject);
-
-        buildEventUIManager.Received(1).ShowErrorNotificationDialog(1);
-    }
-
-    [TestMethod]
-    public void UpdateSolutionDone_HasOnlyNonErrorIssues_DoesNotShowDialog()
-    {
-        var issues = new[]
-        {
-            CreateIssueWithSeverity(__VSERRORCATEGORY.EC_WARNING),
-            CreateIssueWithSeverity(__VSERRORCATEGORY.EC_MESSAGE)
-        };
-        localIssuesStore.GetAll().Returns(issues);
-        var testSubject = CreateAndInitializeTestSubject();
-
-        InvokeUpdateSolutionDone(testSubject);
-
-        buildEventUIManager.DidNotReceiveWithAnyArgs().ShowErrorNotificationDialog(default);
-    }
-
-    [TestMethod]
-    public void UpdateSolutionDone_HasMultipleErrorIssues_ShowsCorrectCount()
-    {
-        var issues = new[]
-        {
-            CreateIssueWithSeverity(__VSERRORCATEGORY.EC_ERROR),
-            CreateIssueWithSeverity(__VSERRORCATEGORY.EC_ERROR),
-            CreateIssueWithSeverity(__VSERRORCATEGORY.EC_ERROR)
-        };
-        localIssuesStore.GetAll().Returns(issues);
-        var testSubject = CreateAndInitializeTestSubject();
-
-        InvokeUpdateSolutionDone(testSubject);
-
-        buildEventUIManager.Received(1).ShowErrorNotificationDialog(3);
-    }
-
-    [TestMethod]
-    public void UpdateSolutionDone_HasMixedSeverityIssues_CountsOnlyErrors()
-    {
-        var issues = new[]
-        {
-            CreateIssueWithSeverity(__VSERRORCATEGORY.EC_ERROR),
-            CreateIssueWithSeverity(__VSERRORCATEGORY.EC_WARNING),
-            CreateIssueWithSeverity(__VSERRORCATEGORY.EC_ERROR),
-            CreateIssueWithSeverity(__VSERRORCATEGORY.EC_MESSAGE)
-        };
-        localIssuesStore.GetAll().Returns(issues);
-        var testSubject = CreateAndInitializeTestSubject();
-
-        InvokeUpdateSolutionDone(testSubject);
-
-        buildEventUIManager.Received(1).ShowErrorNotificationDialog(2);
-    }
-
-    [TestMethod]
-    public void UpdateSolutionDone_UserClicksOk_OpensErrorList()
-    {
-        var issues = new[] { CreateIssueWithSeverity(__VSERRORCATEGORY.EC_ERROR) };
-        localIssuesStore.GetAll().Returns(issues);
-        buildEventUIManager.ShowErrorNotificationDialog(Arg.Any<int>()).Returns(true);
-        var testSubject = CreateAndInitializeTestSubject();
-
-        InvokeUpdateSolutionDone(testSubject);
-
-        toolWindowService.Received(1).Show(IssueListIds.ErrorListId);
-    }
-
-    [TestMethod]
-    public void UpdateSolutionDone_ExceptionDuringIssueCheck_LogsAndContinues()
-    {
-        localIssuesStore.GetAll().Throws(new InvalidOperationException("Test exception"));
+        buildEventUiManager.When(x => x.ShowErrorNotificationDialog()).Do(_ => throw new InvalidOperationException("Test exception"));
         var testSubject = CreateAndInitializeTestSubject();
 
         var result = InvokeUpdateSolutionDone(testSubject);
@@ -242,7 +154,7 @@ public class BuildEventNotifierTests
     public void Dispose_UnsubscribesFromBuildEvents()
     {
         var buildManager = Substitute.For<IVsSolutionBuildManager2>();
-        SetupVsUIServiceOperation(buildManager);
+        SetupVsUiServiceOperation(buildManager);
         var testSubject = CreateAndInitializeTestSubject();
 
         testSubject.Dispose();
@@ -261,16 +173,16 @@ public class BuildEventNotifierTests
         barrier.SetResult(1);
     }
 
-    private void SetupVsUIServiceOperation(IVsSolutionBuildManager2 buildManager)
+    private void SetupVsUiServiceOperation(IVsSolutionBuildManager2 buildManager)
     {
-        vsUIServiceOperation
+        vsUiServiceOperation
             .When(s => s.Execute<SVsSolutionBuildManager, IVsSolutionBuildManager2>(Arg.Any<Action<IVsSolutionBuildManager2>>()))
             .Do(callback =>
             {
                 var action = callback.Arg<Action<IVsSolutionBuildManager2>>();
                 action(buildManager);
             });
-        vsUIServiceOperation
+        vsUiServiceOperation
             .ExecuteAsync<SVsSolutionBuildManager, IVsSolutionBuildManager2>(Arg.Any<Action<IVsSolutionBuildManager2>>())
             .Returns(info =>
             {
@@ -282,35 +194,26 @@ public class BuildEventNotifierTests
 
     private static int InvokeUpdateSolutionBegin(BuildEventNotifier testSubject)
     {
-        int cancel = 0;
+        var cancel = 0;
         return ((IVsUpdateSolutionEvents)testSubject).UpdateSolution_Begin(ref cancel);
     }
 
-    private static int InvokeUpdateSolutionDone(BuildEventNotifier testSubject)
-    {
-        return ((IVsUpdateSolutionEvents)testSubject).UpdateSolution_Done(0, 0, 0);
-    }
+    private static int InvokeUpdateSolutionDone(BuildEventNotifier testSubject) =>
+        ((IVsUpdateSolutionEvents)testSubject).UpdateSolution_Done(0, 0, 0);
 
     private BuildEventNotifier CreateUninitializedTestSubject(out TaskCompletionSource<byte> barrier)
     {
         var tcs = barrier = new();
         initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<BuildEventNotifier>(
             threadHandling, testLogger, processor => MockableInitializationProcessor.ConfigureWithWait(processor, tcs));
-        return new BuildEventNotifier(localIssuesStore, buildEventUIManager, toolWindowService, initializationProcessorFactory, vsUIServiceOperation, testLogger);
+        return new BuildEventNotifier(buildEventUiManager, initializationProcessorFactory, vsUiServiceOperation, testLogger);
     }
 
     private BuildEventNotifier CreateAndInitializeTestSubject()
     {
         initializationProcessorFactory = MockableInitializationProcessor.CreateFactory<BuildEventNotifier>(threadHandling, testLogger);
-        var testSubject = new BuildEventNotifier(localIssuesStore, buildEventUIManager, toolWindowService, initializationProcessorFactory, vsUIServiceOperation, testLogger);
+        var testSubject = new BuildEventNotifier(buildEventUiManager, initializationProcessorFactory, vsUiServiceOperation, testLogger);
         testSubject.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
         return testSubject;
-    }
-
-    private static IAnalysisIssueVisualization CreateIssueWithSeverity(__VSERRORCATEGORY severity)
-    {
-        var issue = Substitute.For<IAnalysisIssueVisualization>();
-        issue.VsSeverity.Returns(severity);
-        return issue;
     }
 }

@@ -31,6 +31,7 @@ using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Events;
+using SonarLint.VisualStudio.Integration.Vsix.Events.Build;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.RoslynAnalyzerServer;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;

@@ -18,9 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Events;
+using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
+using System.Windows;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 
-internal interface IBuildEventUiManager
+namespace SonarLint.VisualStudio.Integration.Vsix.Events.Build;
+
+[Export(typeof(IErrorNotificationDialogService))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[ExcludeFromCodeCoverage]
+internal sealed class ErrorNotificationDialogService : IErrorNotificationDialogService
 {
-    bool ShowErrorNotificationDialog(int errorsCount);
+    public (bool okClicked, bool doNotShowAgain) ShowDialog(int errorsCount)
+    {
+        var dialog = new ErrorNotificationDialog(errorsCount);
+        var result = dialog.ShowDialog(Application.Current.MainWindow) == true;
+        return (result, dialog.ViewModel.DoNotShowAgain);
+    }
 }

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -25,37 +25,29 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Initialization;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
-using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
-using SonarLint.VisualStudio.IssueVisualization.Security.Issues;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Events;
+namespace SonarLint.VisualStudio.Integration.Vsix.Events.Build;
 
 [Export(typeof(IBuildEventNotifier))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal sealed class BuildEventNotifier : IBuildEventNotifier, IVsUpdateSolutionEvents
 {
-    private readonly ILocalIssuesStore localIssuesStore;
-    private readonly IBuildEventUiManager buildEventUIManager;
-    private readonly IToolWindowService toolWindowService;
-    private readonly IVsUIServiceOperation vsUIServiceOperation;
+    private readonly IBuildEventUiManager buildEventUiManager;
+    private readonly IVsUIServiceOperation vsUiServiceOperation;
     private readonly ILogger logger;
     private bool isDisposed;
     private uint cookie;
 
     [ImportingConstructor]
     public BuildEventNotifier(
-        ILocalIssuesStore localIssuesStore,
-        IBuildEventUiManager buildEventUIManager,
-        IToolWindowService toolWindowService,
+        IBuildEventUiManager buildEventUiManager,
         IInitializationProcessorFactory initializationProcessorFactory,
-        IVsUIServiceOperation vsUIServiceOperation,
+        IVsUIServiceOperation vsUiServiceOperation,
         ILogger logger)
     {
-        this.localIssuesStore = localIssuesStore;
-        this.buildEventUIManager = buildEventUIManager;
-        this.toolWindowService = toolWindowService;
-        this.vsUIServiceOperation = vsUIServiceOperation;
+        this.buildEventUiManager = buildEventUiManager;
+        this.vsUiServiceOperation = vsUiServiceOperation;
         this.logger = logger.ForContext(Strings.BuildEventNotifier_LogContext);
         InitializationProcessor = initializationProcessorFactory.CreateAndStart<BuildEventNotifier>([], InitializeInternalAsync);
     }
@@ -68,7 +60,7 @@ internal sealed class BuildEventNotifier : IBuildEventNotifier, IVsUpdateSolutio
         {
             return;
         }
-        await vsUIServiceOperation.ExecuteAsync<SVsSolutionBuildManager, IVsSolutionBuildManager2>(buildManager =>
+        await vsUiServiceOperation.ExecuteAsync<SVsSolutionBuildManager, IVsSolutionBuildManager2>(buildManager =>
         {
             ErrorHandler.ThrowOnFailure(buildManager.AdviseUpdateSolutionEvents(this, out cookie));
         });
@@ -80,16 +72,7 @@ internal sealed class BuildEventNotifier : IBuildEventNotifier, IVsUpdateSolutio
     {
         try
         {
-            var issues = localIssuesStore.GetAll();
-            var errorCount = issues.Count(i => i.VsSeverity == __VSERRORCATEGORY.EC_ERROR);
-            if (errorCount > 0)
-            {
-                var result = buildEventUIManager.ShowErrorNotificationDialog(errorCount);
-                if (result)
-                {
-                    toolWindowService.Show(IssueListIds.ErrorListId);
-                }
-            }
+            buildEventUiManager.ShowErrorNotificationDialog();
         }
         catch (Exception ex)
         {
@@ -114,7 +97,7 @@ internal sealed class BuildEventNotifier : IBuildEventNotifier, IVsUpdateSolutio
 
         if (InitializationProcessor.IsFinalized)
         {
-            vsUIServiceOperation.Execute<SVsSolutionBuildManager, IVsSolutionBuildManager2>(buildManager =>
+            vsUiServiceOperation.Execute<SVsSolutionBuildManager, IVsSolutionBuildManager2>(buildManager =>
             {
                 buildManager.UnadviseUpdateSolutionEvents(cookie);
             });
