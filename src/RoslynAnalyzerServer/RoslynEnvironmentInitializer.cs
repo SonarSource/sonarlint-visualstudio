@@ -29,7 +29,7 @@ public interface IRoslynEnvironmentInitializer : IRequireInitialization, IDispos
 [Export(typeof(IRoslynEnvironmentInitializer))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class RoslynEnvironmentInitializer(
+internal sealed class RoslynEnvironmentInitializer(
     IRoslynAnalysisHttpServer roslynAnalysisHttpServer,
     IRoslynAnalyzerAssemblyContentsLoader analyzerAssemblyContentsLoader,
     ISuppressionExclusionConfigGenerator suppressionExclusionConfigGenerator,
