@@ -219,4 +219,16 @@
   <data name="SuppressionExclusionConfigGenerator_FailedToWrite" xml:space="preserve">
     <value>Failed to write suppression exclusion config file: {0}</value>
   </data>
+  <data name="SQVSPRAGMATitle" xml:space="preserve">
+        <value>Disallowed #pragma warning directive</value><comment>The title of the diagnostic.</comment>
+    </data>
+  <data name="SQVSPRAGMAMessageFormat" xml:space="preserve">
+        <value>Disallowed #pragma warning directive for '{0}'</value><comment>The format-able message the diagnostic displays.</comment>
+    </data>
+  <data name="SQVSPRAGMADescription" xml:space="preserve">
+        <value>Detects disallowed #pragma warning directives for diagnostic IDs in the configured disallow list.</value><comment>An optional longer localizable description of the diagnostic.</comment>
+    </data>
+  <data name="PD0001CodeFixTitle" xml:space="preserve">
+        <value>Remove disallowed #pragma directive</value><comment>The title of the code fix.</comment>
+    </data>
 </root>
