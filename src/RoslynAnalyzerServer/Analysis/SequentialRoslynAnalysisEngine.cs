@@ -18,9 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
@@ -40,17 +45,25 @@ internal class SequentialRoslynAnalysisEngine(
         IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token)
     {
-        var uniqueDiagnostics = new HashSet<RoslynIssue>(DiagnosticDuplicatesComparer.Instance);
+        var uniqueDiagnostics = new HashSet<RoslynIssue>(DiagnosticDuplicatesComparer.Instance); // todo might need non-unique diagnostics for pragma analyzer
+        var nonUniqueDiagnostics = ImmutableArray.Create<Diagnostic>();
         foreach (var projectAnalysisCommands in projectsAnalysis)
         {
             var compilationWithAnalyzers = await projectCompilationProvider.GetProjectCompilationAsync(projectAnalysisCommands, sonarRoslynAnalysisConfigurations, token);
+            var compilationWithAnalyzers2 = await projectCompilationProvider.GetProjectCompilationAsync(projectAnalysisCommands, new Dictionary<RoslynLanguage, RoslynAnalysisConfiguration>
+            {
+                {Language.CSharp, new RoslynAnalysisConfiguration(null, null,
+                    ImmutableArray.Create<DiagnosticAnalyzer>(new DiagnosticAwarePragmaAnalyzer(() => nonUniqueDiagnostics, sonarRoslynAnalysisConfigurations[Language.CSharp].DiagnosticOptions!.Keys.ToImmutableHashSet())),
+                    ImmutableDictionary.Create<string, IReadOnlyCollection<CodeFixProvider>>().Add(DiagnosticAwarePragmaAnalyzer.DiagnosticId, [new PragmaWarningDisableCodeFixProvider()]))}
+            }, token);
 
             // todo SLVS-2467 issue streaming
             foreach (var analysisCommand in projectAnalysisCommands.AnalysisCommands)
             {
                 var diagnostics = await analysisCommand.ExecuteAsync(compilationWithAnalyzers, token);
+                nonUniqueDiagnostics = nonUniqueDiagnostics.AddRange(diagnostics);
 
-                foreach (var diagnostic in diagnostics)
+                foreach (var diagnostic in diagnostics.Where(x => !x.IsSuppressed))
                 {
                     var quickFixes = await quickFixFactory.CreateQuickFixesAsync(
                         diagnostic,
@@ -64,6 +77,20 @@ internal class SequentialRoslynAnalysisEngine(
                     {
                         logger.LogVerbose(Resources.AnalysisEngine_DuplicateDiagnostic, roslynIssue.RuleId, roslynIssue.PrimaryLocation.FileUri.LocalPath, roslynIssue.PrimaryLocation.TextRange.StartLine);
                     }
+                }
+            }
+
+            foreach (var analysisCommand in projectAnalysisCommands.AdditionalCommands)
+            {
+                var diagnostics = await analysisCommand.ExecuteAsync(compilationWithAnalyzers2, token);
+
+                foreach (var diagnostic in diagnostics)
+                {
+                    var quickFixes = await quickFixFactory.CreateQuickFixesAsync(
+                        diagnostic,
+                        projectAnalysisCommands.Project.Solution,
+                        compilationWithAnalyzers.AnalysisConfiguration,
+                        token);
                 }
             }
         }

@@ -27,7 +27,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class DiagnosticAwarePragmaAnalyzer(ImmutableArray<Diagnostic> diagnostics, ImmutableHashSet<string> supportedIds) : DiagnosticAnalyzer
+public class DiagnosticAwarePragmaAnalyzer(Func<ImmutableArray<Diagnostic>> diagnostics, ImmutableHashSet<string> supportedIds) : DiagnosticAnalyzer
 {
     private struct StackEntry
     {
@@ -57,11 +57,11 @@ public class DiagnosticAwarePragmaAnalyzer(ImmutableArray<Diagnostic> diagnostic
         context.RegisterSyntaxTreeAction(ctx => AnalyzeSyntaxTree(ctx, diagnostics, supportedIds));
     }
 
-    private static void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, ImmutableArray<Diagnostic> allDiagnostics,
+    private static void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, Func<ImmutableArray<Diagnostic>> allDiagnostics,
         ImmutableHashSet<string> disallowedIds)
     {
 
-        var treeDiagnostics = allDiagnostics
+        var treeDiagnostics = allDiagnostics()
             .Where(d => d.Location.SourceTree == context.Tree)
             .OrderBy(d => d.Location.SourceSpan.Start)
             .ToList();
