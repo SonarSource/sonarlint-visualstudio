@@ -240,6 +240,15 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove disallowed #pragma directive.
+        /// </summary>
+        internal static string PD0001CodeFixTitle {
+            get {
+                return ResourceManager.GetString("PD0001CodeFixTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to load class {0} from {1}: {2}.
         /// </summary>
         internal static string RoslynAnalysisAnalyzerClassLoaderFailedToLoad {
@@ -335,6 +344,33 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
         internal static string RoslynQuickFixLogContext {
             get {
                 return ResourceManager.GetString("RoslynQuickFixLogContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Detects disallowed #pragma warning directives for diagnostic IDs in the configured disallow list..
+        /// </summary>
+        internal static string SQVSPRAGMADescription {
+            get {
+                return ResourceManager.GetString("SQVSPRAGMADescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disallowed #pragma warning directive for &apos;{0}&apos;.
+        /// </summary>
+        internal static string SQVSPRAGMAMessageFormat {
+            get {
+                return ResourceManager.GetString("SQVSPRAGMAMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disallowed #pragma warning directive.
+        /// </summary>
+        internal static string SQVSPRAGMATitle {
+            get {
+                return ResourceManager.GetString("SQVSPRAGMATitle", resourceCulture);
             }
         }
         
