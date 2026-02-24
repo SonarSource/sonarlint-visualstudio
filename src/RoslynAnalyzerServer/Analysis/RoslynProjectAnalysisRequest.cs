@@ -23,9 +23,10 @@ using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal class RoslynProjectAnalysisRequest(IRoslynProjectWrapper project, IReadOnlyCollection<IRoslynAnalysisCommand> analysisCommands, ImmutableHashSet<string> targetFilePaths)
+internal class RoslynProjectAnalysisRequest(IRoslynProjectWrapper project, IReadOnlyCollection<IRoslynAnalysisCommand> analysisCommands, ImmutableHashSet<string> targetFilePaths, IReadOnlyCollection<IRoslynAnalysisCommand> additionalCommands)
 {
     public IRoslynProjectWrapper Project { get; } = project;
     public IReadOnlyCollection<IRoslynAnalysisCommand> AnalysisCommands { get; } = analysisCommands;
+    public IReadOnlyCollection<IRoslynAnalysisCommand> AdditionalCommands { get; } = additionalCommands;
     public ImmutableHashSet<string> TargetFilePaths { get; } = targetFilePaths;
 }

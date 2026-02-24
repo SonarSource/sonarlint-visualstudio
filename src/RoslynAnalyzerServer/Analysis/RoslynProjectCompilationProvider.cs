@@ -57,17 +57,21 @@ internal class RoslynProjectCompilationProvider(ILogger logger) : IRoslynProject
         RoslynAnalysisConfiguration analysisConfigurationForLanguage)
     {
         var additionalFiles = project.RoslynAnalyzerOptions.AdditionalFiles;
-        var analyzerOptions = project.RoslynAnalyzerOptions.WithAdditionalFiles(additionalFiles
-            .Where(x => Path.GetFileName(x.Path) != analysisConfigurationForLanguage.SonarLintXml.FileName)
-            .Concat([analysisConfigurationForLanguage.SonarLintXml])
-            .ToImmutableArray());
+        var analyzerOptions = project.RoslynAnalyzerOptions;
+        if (analysisConfigurationForLanguage.SonarLintXml is not null)
+        {
+            analyzerOptions = analyzerOptions.WithAdditionalFiles(additionalFiles
+                .Where(x => Path.GetFileName(x.Path) != analysisConfigurationForLanguage.SonarLintXml.FileName)
+                .Concat([analysisConfigurationForLanguage.SonarLintXml])
+                .ToImmutableArray());
+        }
 
         var compilationWithAnalyzersOptions = new CompilationWithAnalyzersOptions(
             analyzerOptions,
             OnAnalyzerException,
             true,
             false,
-            false);
+            true);
 
         return compilation
             .WithAnalyzers(analysisConfigurationForLanguage.Analyzers, compilationWithAnalyzersOptions, analysisConfigurationForLanguage);
@@ -79,6 +83,10 @@ internal class RoslynProjectCompilationProvider(ILogger logger) : IRoslynProject
         RoslynAnalysisConfiguration analysisConfigurationForLanguage,
         ImmutableHashSet<string> targetFilePaths)
     {
+        if (analysisConfigurationForLanguage.DiagnosticOptions is null)
+        {
+            return compilation;
+        }
         var mergedDiagnosticOptions = OverrideQualityProfileWithProjectSettings(project, analysisConfigurationForLanguage.DiagnosticOptions);
         var compilationOptions = compilation.RoslynCompilationOptions
             .WithSpecificDiagnosticOptions(mergedDiagnosticOptions)
@@ -86,7 +94,9 @@ internal class RoslynProjectCompilationProvider(ILogger logger) : IRoslynProject
         return compilation.WithOptions(compilationOptions);
     }
 
-    private static ImmutableDictionary<string, ReportDiagnostic> OverrideQualityProfileWithProjectSettings(IRoslynProjectWrapper project, ImmutableDictionary<string, ReportDiagnostic> analysisConfigurationForLanguage)
+    private static ImmutableDictionary<string, ReportDiagnostic> OverrideQualityProfileWithProjectSettings(
+        IRoslynProjectWrapper project,
+        ImmutableDictionary<string, ReportDiagnostic> analysisConfigurationForLanguage)
     {
         if (project.SpecificDiagnosticOptions is null)
         {
