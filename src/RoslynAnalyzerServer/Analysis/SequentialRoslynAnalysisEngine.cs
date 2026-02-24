@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
@@ -36,6 +37,8 @@ internal class SequentialRoslynAnalysisEngine(
     IDiagnosticToRoslynIssueConverter issueConverter,
     IRoslynProjectCompilationProvider projectCompilationProvider,
     IRoslynQuickFixFactory quickFixFactory,
+    IDiagnosticToAnalysisIssueConverter diagnosticToAnalysisIssueConverter,
+    IAdditionalAnalysisIssueStorage additionalAnalysisIssueStorage,
     ILogger logger) : IRoslynAnalysisEngine
 {
     private readonly ILogger logger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisEngineLogContext);
@@ -80,18 +83,31 @@ internal class SequentialRoslynAnalysisEngine(
                 }
             }
 
+            var additionalIssuesByFile = new Dictionary<string, List<IAnalysisIssue>>();
+
             foreach (var analysisCommand in projectAnalysisCommands.AdditionalCommands)
             {
                 var diagnostics = await analysisCommand.ExecuteAsync(compilationWithAnalyzers2, token);
 
-                foreach (var diagnostic in diagnostics)
+                foreach (var diagnostic in diagnostics.Where(x => !x.IsSuppressed))
                 {
                     var quickFixes = await quickFixFactory.CreateQuickFixesAsync(
                         diagnostic,
                         projectAnalysisCommands.Project.Solution,
-                        compilationWithAnalyzers.AnalysisConfiguration,
+                        compilationWithAnalyzers2.AnalysisConfiguration,
                         token);
+
+                    var analysisIssue = diagnosticToAnalysisIssueConverter.Convert(diagnostic, quickFixes);
+                    var filePath = diagnostic.Location.GetMappedLineSpan().Path;
+                    if (!additionalIssuesByFile.TryGetValue(filePath, out var list))
+                        additionalIssuesByFile[filePath] = list = [];
+                    list.Add(analysisIssue);
                 }
+            }
+
+            foreach (var kvp in additionalIssuesByFile)
+            {
+                additionalAnalysisIssueStorage.Store(kvp.Key, kvp.Value);
             }
         }
 
