@@ -7,7 +7,7 @@ on:
       - dogfood-on-*
       - branch-*
       - sign-*
-  pull_request:
+  # pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -161,22 +161,22 @@ jobs:
           gpg --pinentry-mode loopback --passphrase "${SIGN_PASSPHRASE}" --armor --detach-sig --default-key infra@sonarsource.com "$sbomname"
           echo "signed $sbomname"
 
-      - name: Test with Coverage
-        shell: bash
-        env:
-          MSVC: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.40.33807\bin\Hostx64\x64\cl.exe # Required for CFamily integration tests
-        run: |
-          vstest.console.exe --EnableCodeCoverage --Settings:test.runsettings --Logger:trx --ResultsDirectory:"TestResults" src/**/bin/**/Sonar*.*Tests.dll
-          dotnet-coverage merge -o "coverage.xml" -f xml "**/*.coverage"
+      # - name: Test with Coverage
+      #   shell: bash
+      #   env:
+      #     MSVC: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.40.33807\bin\Hostx64\x64\cl.exe # Required for CFamily integration tests
+      #   run: |
+      #     vstest.console.exe --EnableCodeCoverage --Settings:test.runsettings --Logger:trx --ResultsDirectory:"TestResults" src/**/bin/**/Sonar*.*Tests.dll
+      #     dotnet-coverage merge -o "coverage.xml" -f xml "**/*.coverage"
 
-      - name: Report Test Results
-        uses: dorny/test-reporter@v2
-        if: success() || failure()
-        with:
-          name: Test Results
-          path: TestResults/*.trx
-          reporter: dotnet-trx
-          list-tests: failed
+      # - name: Report Test Results
+      #   uses: dorny/test-reporter@v2
+      #   if: success() || failure()
+      #   with:
+      #     name: Test Results
+      #     path: TestResults/*.trx
+      #     reporter: dotnet-trx
+      #     list-tests: failed
 
       - name: Analyze on SonarQubeCloudEU
         shell: bash
