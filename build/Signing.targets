@@ -1,52 +1,27 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <!-- Targets to handle signing VSIXes and assemblies using a pfx certificate.
-    
+  <!-- Targets to handle signing assemblies using Azure Trusted Signing via Sign CLI.
+
        Usage:
-       The following properties should be set by the caller:
-       * $(pfxCertificatePath)  : full path to the pfx file
-       * $(pfxPassword)         : password to the certificate file
-       * $(pfxSha1)             : the sha1 for the certificate file
-       * @(VSIXesToSign)        : the list of VSIXes to sign
+       The following items should be set by the caller:
        * @(AssembliesToSign)    : the list of assemblies to sign
-       * $(PackagesFolder)      : the folder containing the packages. Defaults to $(NuGetPackageRoot) if not set.
+
+       Prerequisites:
+       * Sign CLI must be installed: dotnet tool install ‑‑global sign ‑‑prerelease
+       * Azure CLI must be authenticated via azure/login (OIDC)
   -->
-  
-  <!-- The vsixsigntool is shipped in a NuGet package. We need to locate the exe file. -->
-  <Target Name="LocateVsixSignToolAndBinaries" >
-    <PropertyGroup>
-      <PackagesFolder Condition=" $(PackagesFolder) == ''">$(NuGetPackageRoot)</PackagesFolder>
-    </PropertyGroup>
-
-    <Message Importance="high" Text="Locating VSIX sign tool..." />
-    <Message Importance="high" Text="  Searching under '$(PackagesFolder)'" />
-
-    <!-- There could be multiple versions of the NuGet package on the machine. We'll select all
-         of the matching exes, and then just pick one. -->
-    <ItemGroup>
-      <VsixSignToolsList Include="$(PackagesFolder)/Microsoft.VSSDK.Vsixsigntool/**/vsixsigntool.exe" />
-    </ItemGroup>
-    <PropertyGroup>
-      <VsixSignToolPath>%(VsixSignToolsList.Identity)</VsixSignToolPath>	
-    </PropertyGroup>
-
-    <Error Condition=" $(VsixSignToolPath) == '' " Text="Unable to locate vsixsigntool.exe. Check that the Microsoft.VSSDK.Vsixsigntool NuGet package is installed." />
-    <Message Importance="high" Text="VSIX signing tool located at $(VsixSignToolPath)" />
-  </Target>
-
-  <Target Name="SignVsixes">
-    <Message Importance="high" Text="Vsix to sign: %(VSIXesToSign.FullPath)" />
-    <CallTarget Targets="ValidateCommonSigningInputs" />
-    <Error Condition="@(VSIXesToSign) == '' " Text="The list of VSIXes to sign is empty." />
-    
-    <Exec Command="$(VsixSignToolPath) sign /f &quot;$(pfxCertificatePath)&quot; /p $(pfxPassword) /sha1 $(pfxSha1) /tr http://timestamp.digicert.com?alg=sha256 /td SHA256 /v &quot;%(VSIXesToSign.Identity)&quot;" />
-  </Target>
+  <PropertyGroup>
+    <TrustedSigningAccount>sonarsource-codesigning</TrustedSigningAccount>
+    <TrustedSigningCertificateProfile>sonarsource-release</TrustedSigningCertificateProfile>
+    <TrustedSigningEndpoint>https://weu.codesigning.azure.net</TrustedSigningEndpoint>
+  </PropertyGroup>
 
   <Target Name="SignAssemblies">
     <Message Importance="high" Text="Assembly to sign: %(AssembliesToSign.FullPath)" />
     <Error Condition=" @(AssembliesToSign) == '' " Text="The list of assemblies to sign is empty." />
 
-    <Exec Command="signtool sign /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /csp &quot;DigiCert Signing Manager KSP&quot; /kc &quot;$(SM_KP)&quot; /f &quot;$(SM_CLIENT_CRT_FILE)&quot; %(AssembliesToSign.FullPath)" />
+    <Exec Command="sign code trusted-signing &quot;%(AssembliesToSign.FullPath)&quot; --trusted-signing-account $(TrustedSigningAccount) --trusted-signing-certificate-profile $(TrustedSigningCertificateProfile) --trusted-signing-endpoint $(TrustedSigningEndpoint)" />
   </Target>
+
 </Project>

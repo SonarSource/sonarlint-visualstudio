@@ -23,14 +23,13 @@ jobs:
   build:
     runs-on: warp-custom-sonarlint-visualstudio
     name: Build
+    environment: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'sign-')) && 'release' || '' }}
     env:
       SONARSOURCE_SNK_FILE: "/tmp/SonarSource.snk"
-      SM_CLIENT_CERT_FILE: "/tmp/digicert_signing_certificate.p12"
-      SM_CLIENT_CRT_FILE: "/tmp/digicert_signing_certificate.crt"
 
     steps:
       - uses: actions/checkout@v5
-        with: 
+        with:
           fetch-depth: '0'
 
       - name: Fetch vault secrets
@@ -45,13 +44,6 @@ jobs:
             development/artifactory/token/{REPO_OWNER_NAME_DASH}-promoter access_token | ARTIFACTORY_PROMOTE_ACCESS_TOKEN;
             development/kv/data/sign key | SIGN_KEY;
             development/kv/data/sign passphrase | SIGN_PASSPHRASE;
-            development/kv/data/sign/digicert apikey | SM_API_KEY;
-            development/kv/data/sign/digicert cert_fp | SM_CERT_FP;
-            development/kv/data/sign/digicert cert | SM_CERT;
-            development/kv/data/sign/digicert client_cert_file_base64 | SM_CLIENT_CERT_FILE_BASE64;
-            development/kv/data/sign/digicert client_cert_password | SM_CLIENT_CERT_PASSWORD;
-            development/kv/data/sign/digicert cert | SM_CLIENT_CRT;
-            development/kv/data/sign/digicert host | SM_HOST;
             development/team/languages/kv/data/strong_named_key SonarSourceSecret_snk | SONARSOURCE_SNK;
             development/kv/data/sonarcloud url | SONAR_URL;
             development/kv/data/sonarcloud token | SONAR_TOKEN;
@@ -89,7 +81,7 @@ jobs:
           msbuild.exe build/ChangeVersion.proj -p:Sha1=${GITHUB_SHA} -p:BranchName=${BRANCH_NAME} -p:BuildNumber=${BUILD_NUMBER} -p:BuildConfiguration=Release
           msbuild.exe build/DownloadDependencies -p:VsVersion=17.0 -p:VsTargetVersion=2022
           dotnet restore "SonarQube.VisualStudio.sln" --locked-mode
-          
+
       - name: Update GitHub Actions Summary
         shell: bash
         run: |
@@ -116,33 +108,55 @@ jobs:
         run: |
           msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=false -p:DeployExtension=false -p:Sha1="${GITHUB_SHA}" -p:BuildNumber="${BUILD_NUMBER}" -p:Configuration=Release
 
+      - name: Install Sign CLI
+        if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'sign-') }}
+        shell: bash
+        env:
+          ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
+          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_ACCESS_TOKEN }}
+        run: dotnet tool install --global sign --prerelease
+
+      - name: Cache Azure CLI installer
+        if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'sign-') }}
+        uses: SonarSource/gh-action_cache@v1
+        with:
+          path: AzureCLI.msi
+          key: ${{ runner.os }}-azure-cli-installer-v1
+
+      - name: Install Azure CLI
+        if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'sign-') }}
+        shell: powershell
+        run: |
+          $ProgressPreference = 'SilentlyContinue'
+          if (-Not (Test-Path AzureCLI.msi)) {
+            Invoke-WebRequest -Uri https://aka.ms/installazurecliwindowsx64 -OutFile AzureCLI.msi
+          }
+          Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet /norestart'
+          echo "C:\Program Files\Microsoft SDKs\Azure\CLI2\wbin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Azure Login (OIDC)
+        if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'sign-') }}
+        uses: azure/login@v2
+        with:
+          client-id: 738042cf-dcfa-484f-8d86-df928078f2ee
+          tenant-id: 75622d57-788f-4dd3-b33c-739f625e6311
+          subscription-id: 05011d2a-e478-46bd-b842-09c8693acccb
+
       - name: Build Signed
         if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'sign-') }}
         shell: bash
         env:
-          SM_API_KEY: ${{ fromJSON(steps.secrets.outputs.vault).SM_API_KEY }}
-          SM_CERT_FP: ${{ fromJSON(steps.secrets.outputs.vault).SM_CERT_FP }}
-          SM_CERT: ${{ fromJSON(steps.secrets.outputs.vault).SM_CERT }}
-          SM_CLIENT_CERT_FILE_BASE64: ${{ fromJSON(steps.secrets.outputs.vault).SM_CLIENT_CERT_FILE_BASE64 }}
-          SM_CLIENT_CERT_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).SM_CLIENT_CERT_PASSWORD }}
-          SM_CLIENT_CRT: ${{ fromJSON(steps.secrets.outputs.vault).SM_CLIENT_CRT }}
-          SM_HOST: ${{ fromJSON(steps.secrets.outputs.vault).SM_HOST }}
-          SM_KP: key_1361216169
           SONARSOURCE_SNK: ${{ fromJSON(steps.secrets.outputs.vault).SONARSOURCE_SNK }}
           SIGN_KEY: ${{ fromJSON(steps.secrets.outputs.vault).SIGN_KEY }}
           SIGN_PASSPHRASE: ${{ fromJSON(steps.secrets.outputs.vault).SIGN_PASSPHRASE }}
         run: |
           echo "${SONARSOURCE_SNK}" | base64 -d > "${SONARSOURCE_SNK_FILE}"
-          echo "${SM_CLIENT_CERT_FILE_BASE64}" | base64 -d > "${SM_CLIENT_CERT_FILE}"
-          echo "${SM_CLIENT_CRT}" > "${SM_CLIENT_CRT_FILE}"
-          smctl windows certsync
           msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=true -p:AssemblyOriginatorKeyFile="${SONARSOURCE_SNK_FILE}" -p:DeployExtension=false -p:Sha1="${GITHUB_SHA}" -p:BuildNumber="${BUILD_NUMBER}" -p:Configuration=Release
-          nuget sign "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix" -HashAlgorithm SHA256 -CertificateFingerprint ${SM_CERT_FP} -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
-          sbomname="SonarLint.visualstudio.sbom-${PROJECT_VERSION}-2022.json"
           echo "${SIGN_KEY}" | gpg --batch --passphrase "${SIGN_PASSPHRASE}" --allow-secret-key-import --import
           gpg --list-secret-keys
           dotnet CycloneDX "SonarQube.VisualStudio.sln" -t -F Json -o binaries
           cd binaries
+          sbomname="SonarLint.visualstudio.sbom-${PROJECT_VERSION}-2022.json"
           mv bom.json $sbomname
           gpg --pinentry-mode loopback --passphrase "${SIGN_PASSPHRASE}" --armor --detach-sig --default-key infra@sonarsource.com "$sbomname"
           echo "signed $sbomname"
@@ -154,7 +168,7 @@ jobs:
         run: |
           vstest.console.exe --EnableCodeCoverage --Settings:test.runsettings --Logger:trx --ResultsDirectory:"TestResults" src/**/bin/**/Sonar*.*Tests.dll
           dotnet-coverage merge -o "coverage.xml" -f xml "**/*.coverage"
-          
+
       - name: Report Test Results
         uses: dorny/test-reporter@v2
         if: success() || failure()
@@ -163,10 +177,10 @@ jobs:
           path: TestResults/*.trx
           reporter: dotnet-trx
           list-tests: failed
-      
+
       - name: Analyze on SonarQubeCloudEU
         shell: bash
-        env: 
+        env:
           SONAR_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_TOKEN }}
         run: |
           dotnet sonarscanner end -d:sonar.token="${SONAR_TOKEN}"
