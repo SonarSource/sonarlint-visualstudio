@@ -72,15 +72,18 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             return new RuleHelpXamlTranslator(xamlWriterFactory, diffTranslator);
         }
 
-        private sealed class RuleHelpXamlTranslator : IRuleHelpXamlTranslator
+        internal sealed class RuleHelpXamlTranslator : IRuleHelpXamlTranslator
         {
             private readonly Dictionary<string, string> diffCodes = new Dictionary<string, string>();
             private readonly List<string> invalidIds = new List<string>();
             private readonly List<string> ids = new List<string>();
             private readonly IDiffTranslator diffTranslator;
             private readonly IXamlWriterFactory xamlWriterFactory;
+            private readonly Dictionary<string, Action> elementHandlers;
             private XmlWriter writer;
             private XmlReader reader;
+
+            internal ICollection<string> SupportedTags => elementHandlers.Keys;
 
             /// <summary>
             /// Stack of currently open XAML elements
@@ -98,6 +101,153 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             {
                 this.xamlWriterFactory = xamlWriterFactory;
                 this.diffTranslator = diffTranslator;
+                elementHandlers = new Dictionary<string, Action>
+                {
+                    ["a"] = () =>
+                    {
+                        WriteInlineElementStart("Hyperlink");
+                        var href = reader.GetAttribute("href");
+                        writer.WriteAttributeString("NavigateUri", href);
+                    },
+                    ["blockquote"] = () =>
+                    {
+                        WriteBlockElementStart("Section");
+                        writer.ApplyStyleToElement(StyleResourceNames.Blockquote_Section);
+                        PushOutputElementInfo("blockquote", false);
+                    },
+                    ["br"] = () =>
+                    {
+                        EnsureCurrentOutputSupportsInlines();
+                        WriteEmptyElement("LineBreak");
+                    },
+                    ["code"] = () =>
+                    {
+                        WriteInlineElementStart("Span");
+                        writer.ApplyStyleToElement(StyleResourceNames.Code_Span);
+                    },
+                    ["em"] = () => WriteInlineElementStart("Italic"),
+                    ["h1"] = () =>
+                    {
+                        WriteBlockElementStart("Paragraph");
+                        writer.ApplyStyleToElement(StyleResourceNames.Heading1_Paragraph);
+                        PushOutputElementInfo("h1", true);
+                    },
+                    ["h2"] = () =>
+                    {
+                        WriteBlockElementStart("Paragraph");
+                        writer.ApplyStyleToElement(StyleResourceNames.Heading2_Paragraph);
+                        PushOutputElementInfo("h2", true);
+                    },
+                    ["h3"] = () =>
+                    {
+                        WriteBlockElementStart("Paragraph");
+                        writer.ApplyStyleToElement(StyleResourceNames.Heading3_Paragraph);
+                        PushOutputElementInfo("h3", true);
+                    },
+                    ["h4"] = () =>
+                    {
+                        WriteBlockElementStart("Paragraph");
+                        writer.ApplyStyleToElement(StyleResourceNames.Heading4_Paragraph);
+                        PushOutputElementInfo("h4", true);
+                    },
+                    ["h5"] = () =>
+                    {
+                        WriteBlockElementStart("Paragraph");
+                        writer.ApplyStyleToElement(StyleResourceNames.Heading5_Paragraph);
+                        PushOutputElementInfo("h5", true);
+                    },
+                    ["h6"] = () =>
+                    {
+                        WriteBlockElementStart("Paragraph");
+                        writer.ApplyStyleToElement(StyleResourceNames.Heading6_Paragraph);
+                        PushOutputElementInfo("h6", true);
+                    },
+                    ["li"] = () =>
+                    {
+                        writer.WriteStartElement("ListItem");
+                        PushOutputElementInfo("li", false);
+                    },
+                    ["ol"] = () =>
+                    {
+                        WriteBlockElementStart("List");
+                        writer.ApplyStyleToElement(StyleResourceNames.OrderedList);
+                        PushOutputElementInfo("ol", false);
+                    },
+                    ["p"] = () =>
+                    {
+                        WriteBlockElementStart("Paragraph");
+                        PushOutputElementInfo("p", true);
+                    },
+                    ["pre"] = () =>
+                    {
+                        WriteBlockElementStart("Section");
+                        writer.WriteAttributeString("xml", "space", null, "preserve");
+                        writer.ApplyStyleToElement(StyleResourceNames.Pre_Section);
+                        PushOutputElementInfo("pre", false);
+                        if (reader.AttributeCount > 0)
+                        {
+                            ProcessDiffCode();
+                        }
+                    },
+                    ["strong"] = () => WriteInlineElementStart("Bold"),
+                    ["ul"] = () =>
+                    {
+                        WriteBlockElementStart("List");
+                        writer.ApplyStyleToElement(StyleResourceNames.UnorderedList);
+                        PushOutputElementInfo("ul", false);
+                    },
+                    ["table"] = () =>
+                    {
+                        WriteBlockElementStart("Table");
+                        writer.ApplyStyleToElement(StyleResourceNames.Table);
+                        PushOutputElementInfo("table", false);
+                    },
+                    ["colgroup"] = () =>
+                    {
+                        writer.WriteStartElement("Table.Columns");
+                        PushOutputElementInfo("colgroup", false);
+                    },
+                    ["col"] = () => WriteEmptyElement("TableColumn"),
+                    ["span"] = () => WriteInlineElementStart("Span"),
+                    ["thead"] = () =>
+                    {
+                        writer.WriteStartElement("TableRowGroup");
+                        writer.ApplyStyleToElement(StyleResourceNames.TableHeaderRowGroup);
+                        PushOutputElementInfo("thead", false);
+                    },
+                    ["tr"] = () =>
+                    {
+                        writer.WriteStartElement("TableRow");
+                        tableAlternateRow = !tableAlternateRow;
+                        PushOutputElementInfo("tr", false);
+                    },
+                    ["th"] = () =>
+                    {
+                        writer.WriteStartElement("TableCell");
+                        writer.ApplyStyleToElement(StyleResourceNames.TableHeaderCell);
+                        PushOutputElementInfo("th", false);
+                    },
+                    ["tbody"] = () =>
+                    {
+                        tableAlternateRow = true;
+                        writer.WriteStartElement("TableRowGroup");
+                        PushOutputElementInfo("tbody", false);
+                    },
+                    ["td"] = () =>
+                    {
+                        writer.WriteStartElement("TableCell");
+                        PushOutputElementInfo("td", false);
+                        var cellStyle = tableAlternateRow
+                            ? StyleResourceNames.TableBodyCellAlternateRow
+                            : StyleResourceNames.TableBodyCell;
+                        writer.ApplyStyleToElement(cellStyle);
+                    },
+                    ["sup"] = () =>
+                    {
+                        WriteInlineElementStart("Span");
+                        writer.WriteAttributeString("BaselineAlignment", "Superscript");
+                    },
+                };
             }
 
             public string TranslateHtmlToXaml(string htmlContent)
@@ -131,6 +281,11 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                                 break;
 
                             case XmlNodeType.EndElement:
+                                if (!elementHandlers.ContainsKey(reader.Name))
+                                {
+                                    break;
+                                }
+
                                 XamlOutputElementInfo xamlOutputElement;
                                 do
                                 {
@@ -179,207 +334,13 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
             private void ProcessElement()
             {
-                switch (reader.Name)
+                if (!elementHandlers.TryGetValue(reader.Name, out var handler))
                 {
-                    case "a":
-                        WriteInlineElementStart("Hyperlink");
-
-                        var href = reader.GetAttribute("href");
-                        writer.WriteAttributeString("NavigateUri", href);
-
-                        break;
-
-                    case "blockquote":
-                        WriteBlockElementStart("Section");
-                        writer.ApplyStyleToElement(StyleResourceNames.Blockquote_Section);
-
-                        PushOutputElementInfo("blockquote", false);
-
-                        break;
-
-                    case "br":
-                        // This is an empty element, so there is nothing to push onto the stack.
-                        EnsureCurrentOutputSupportsInlines();
-                        WriteEmptyElement("LineBreak");
-
-                        break;
-
-                    case "code":
-                        WriteInlineElementStart("Span");
-                        writer.ApplyStyleToElement(StyleResourceNames.Code_Span);
-
-                        break;
-
-                    case "em":
-                        WriteInlineElementStart("Italic");
-                        break;
-
-                    case "h1":
-                        WriteBlockElementStart("Paragraph");
-                        writer.ApplyStyleToElement(StyleResourceNames.Heading1_Paragraph);
-
-                        PushOutputElementInfo("h1", true);
-                        break;
-
-                    case "h2":
-                        WriteBlockElementStart("Paragraph");
-                        writer.ApplyStyleToElement(StyleResourceNames.Heading2_Paragraph);
-
-                        PushOutputElementInfo("h2", true);
-                        break;
-
-                    case "h3":
-                        WriteBlockElementStart("Paragraph");
-                        writer.ApplyStyleToElement(StyleResourceNames.Heading3_Paragraph);
-
-                        PushOutputElementInfo("h3", true);
-                        break;
-
-                    case "h4":
-                        WriteBlockElementStart("Paragraph");
-                        writer.ApplyStyleToElement(StyleResourceNames.Heading4_Paragraph);
-
-                        PushOutputElementInfo("h4", true);
-                        break;
-
-                    case "h5":
-                        WriteBlockElementStart("Paragraph");
-                        writer.ApplyStyleToElement(StyleResourceNames.Heading5_Paragraph);
-
-                        PushOutputElementInfo("h5", true);
-                        break;
-
-                    case "h6":
-                        WriteBlockElementStart("Paragraph");
-                        writer.ApplyStyleToElement(StyleResourceNames.Heading6_Paragraph);
-
-                        PushOutputElementInfo("h6", true);
-                        break;
-
-                    case "li":
-                        writer.WriteStartElement("ListItem");
-                        PushOutputElementInfo("li", false);
-
-                        break;
-
-                    case "ol":
-                        WriteBlockElementStart("List");
-                        writer.ApplyStyleToElement(StyleResourceNames.OrderedList);
-
-                        PushOutputElementInfo("ol", false);
-
-                        break;
-
-                    case "p":
-                        WriteBlockElementStart("Paragraph");
-
-                        PushOutputElementInfo("p", true);
-
-                        break;
-
-                    case "pre":
-                        WriteBlockElementStart("Section");
-                        writer.WriteAttributeString("xml", "space", null, "preserve");
-                        writer.ApplyStyleToElement(StyleResourceNames.Pre_Section);
-
-                        PushOutputElementInfo("pre", false);
-                        if (reader.AttributeCount > 0)
-                        {
-                            ProcessDiffCode();
-                        }
-                        break;
-
-                    case "strong":
-                        WriteInlineElementStart("Bold");
-
-                        break;
-
-                    case "ul":
-                        WriteBlockElementStart("List");
-                        writer.ApplyStyleToElement(StyleResourceNames.UnorderedList);
-
-                        PushOutputElementInfo("ul", false);
-
-                        break;
-
-                    case "table":
-                        WriteBlockElementStart("Table");
-                        writer.ApplyStyleToElement(StyleResourceNames.Table);
-
-                        PushOutputElementInfo("table", false);
-
-                        break;
-
-                    case "colgroup":
-                        writer.WriteStartElement("Table.Columns");
-                        PushOutputElementInfo("colgroup", false);
-
-                        break;
-
-                    case "col":
-                        // This is an empty element, so there is nothing to push onto the stack.
-                        WriteEmptyElement("TableColumn");
-
-                        break;
-
-                    case "span":
-                        WriteInlineElementStart("Span");
-
-                        break;
-
-                    case "thead":
-                        writer.WriteStartElement("TableRowGroup");
-                        writer.ApplyStyleToElement(StyleResourceNames.TableHeaderRowGroup);
-
-                        PushOutputElementInfo("thead", false);
-
-                        break;
-
-                    case "tr":
-                        writer.WriteStartElement("TableRow");
-                        tableAlternateRow = !tableAlternateRow;
-
-                        PushOutputElementInfo("tr", false);
-
-                        break;
-
-                    case "th":
-                        writer.WriteStartElement("TableCell");
-                        writer.ApplyStyleToElement(StyleResourceNames.TableHeaderCell);
-                        PushOutputElementInfo("th", false);
-
-                        break;
-
-                    case "tbody":
-                        tableAlternateRow = true;
-                        writer.WriteStartElement("TableRowGroup");
-                        PushOutputElementInfo("tbody", false);
-
-                        break;
-
-                    case "td":
-                        writer.WriteStartElement("TableCell");
-                        PushOutputElementInfo("td", false);
-
-                        var cellStyle = tableAlternateRow
-                            ? StyleResourceNames.TableBodyCellAlternateRow
-                            : StyleResourceNames.TableBodyCell;
-                        writer.ApplyStyleToElement(cellStyle);
-
-                        break;
-
-                    case "sup":
-                        WriteInlineElementStart("Span");
-                        writer.WriteAttributeString("BaselineAlignment", "Superscript");
-
-                        break;
-
-                    default:
-                        Debug.Fail("Unexpected element type: " + reader.Name);
-                        writer.WriteStartElement(reader.Name);
-                        writer.WriteEndElement();
-                        break;
+                    Debug.Fail("Unexpected element type: " + reader.Name);
+                    return;
                 }
+
+                handler();
             }
 
             private static XmlReader CreateXmlReader(string data)
