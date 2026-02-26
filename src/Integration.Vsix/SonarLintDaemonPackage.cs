@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Integration.CSharpVB;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Events;
@@ -104,6 +105,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 logger.WriteLine(Strings.Daemon_Initializing);
                 logger.WriteLine(Strings.SQVSVersionLog, VersionHelper.SonarLintVersion);
 
+                var importBeforeFileGenerator = await this.GetMefServiceAsync<IImportBeforeFileGenerator>();
+                await importBeforeFileGenerator.InitializationProcessor.InitializeAsync();
+
                 // This migration should be performed before initializing other services, independent if a solution or a folder is opened.
                 await MigrateBindingsToServerConnectionsIfNeededAsync();
 
@@ -125,7 +129,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 projectDocumentsEventsListener.Initialize();
 
                 roslynEnvironment = await this.GetMefServiceAsync<IRoslynEnvironmentInitializer>();
-                await  roslynEnvironment.InitializationProcessor.InitializeAsync();
+                await roslynEnvironment.InitializationProcessor.InitializeAsync();
 
                 buildEventNotifier = await this.GetMefServiceAsync<IBuildEventNotifier>();
                 await buildEventNotifier.InitializationProcessor.InitializeAsync();
