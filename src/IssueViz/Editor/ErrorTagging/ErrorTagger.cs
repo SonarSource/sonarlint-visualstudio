@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -45,7 +46,15 @@ internal class ErrorTagger : FilteringTaggerBase<IIssueLocationTag, IErrorTag>
     protected override TagSpan<IErrorTag> CreateTagSpan(IIssueLocationTag trackedTag, NormalizedSnapshotSpanCollection spans)
     {
         var issueViz = (IAnalysisIssueVisualization) trackedTag.Location;
-        var errorType = focusOnNewCodeService.Current.IsEnabled && !issueViz.IsOnNewCode ? PredefinedErrorTypeNames.HintedSuggestion : PredefinedErrorTypeNames.Warning;
+        string errorType;
+        if (issueViz.VsSeverity == __VSERRORCATEGORY.EC_ERROR)
+        {
+            errorType = PredefinedErrorTypeNames.SyntaxError;
+        }
+        else
+        {
+            errorType = focusOnNewCodeService.Current.IsEnabled && !issueViz.IsOnNewCode ? PredefinedErrorTypeNames.HintedSuggestion : PredefinedErrorTypeNames.Warning;
+        }
         return new TagSpan<IErrorTag>(trackedTag.Location.Span.Value, new SonarErrorTag(errorType, issueViz.Issue, errorTagTooltipProvider));
     }
 
