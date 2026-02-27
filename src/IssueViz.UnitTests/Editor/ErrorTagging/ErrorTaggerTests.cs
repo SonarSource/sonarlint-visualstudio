@@ -171,7 +171,7 @@ public class ErrorTaggerTests
         actual[0].Tag.ErrorType.Should().Be(PredefinedErrorTypeNames.SyntaxError);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void GetTags_WhenSeverityIsError_FocusOnNewCodeDoesNotAffectErrorType(bool isOnNewCode)
