@@ -20,6 +20,7 @@
 
 using System.Windows.Media;
 using System.Windows.Media.TextFormatting;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
@@ -99,7 +100,8 @@ internal static class TaggerTestHelper
     }
 
     public static IAnalysisIssueVisualization CreateIssueViz(ITextSnapshot snapshot, Span span,
-        string locationMessage, string ruleKey = null, bool isResolved = false, bool isOnNewCode = false)
+        string locationMessage, string ruleKey = null, bool isResolved = false, bool isOnNewCode = false,
+        __VSERRORCATEGORY vsSeverity = __VSERRORCATEGORY.EC_WARNING)
     {
         var issueVizMock = new Mock<IAnalysisIssueVisualization>();
         var snapshotSpan = new SnapshotSpan(snapshot, span);
@@ -114,6 +116,7 @@ internal static class TaggerTestHelper
             });
         issueVizMock.Setup(x => x.IsResolved).Returns(isResolved);
         issueVizMock.Setup(x => x.IsOnNewCode).Returns(isOnNewCode);
+        issueVizMock.Setup(x => x.VsSeverity).Returns(vsSeverity);
         return issueVizMock.Object;
     }
 

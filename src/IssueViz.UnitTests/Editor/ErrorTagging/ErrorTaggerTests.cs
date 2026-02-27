@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -154,6 +155,42 @@ public class ErrorTaggerTests
     }
 
     [TestMethod]
+    public void GetTags_WhenSeverityIsError_ErrorTypeIsSyntaxError()
+    {
+        var snapshot = CreateSnapshot(length: 50);
+        var inputSpans = CreateSpanCollectionSpanningWholeSnapshot(snapshot);
+        var tagSpan = CreateTagSpanWithPrimaryLocation(snapshot, new Span(1, 5), vsSeverity: __VSERRORCATEGORY.EC_ERROR);
+        var aggregator = CreateAggregator(tagSpan);
+        var focusOnNewCodeService = Substitute.For<IFocusOnNewCodeService>();
+        focusOnNewCodeService.Current.Returns(new FocusOnNewCodeStatus(false));
+        var testSubject = CreateTestSubject(aggregator, snapshot, focusOnNewCodeService);
+
+        var actual = testSubject.GetTags(inputSpans).ToArray();
+
+        actual.Length.Should().Be(1);
+        actual[0].Tag.ErrorType.Should().Be(PredefinedErrorTypeNames.SyntaxError);
+    }
+
+    [DataTestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void GetTags_WhenSeverityIsError_FocusOnNewCodeDoesNotAffectErrorType(bool isOnNewCode)
+    {
+        var snapshot = CreateSnapshot(length: 50);
+        var inputSpans = CreateSpanCollectionSpanningWholeSnapshot(snapshot);
+        var tagSpan = CreateTagSpanWithPrimaryLocation(snapshot, new Span(1, 5), isOnNewCode: isOnNewCode, vsSeverity: __VSERRORCATEGORY.EC_ERROR);
+        var aggregator = CreateAggregator(tagSpan);
+        var focusOnNewCodeService = Substitute.For<IFocusOnNewCodeService>();
+        focusOnNewCodeService.Current.Returns(new FocusOnNewCodeStatus(true));
+        var testSubject = CreateTestSubject(aggregator, snapshot, focusOnNewCodeService);
+
+        var actual = testSubject.GetTags(inputSpans).ToArray();
+
+        actual.Length.Should().Be(1);
+        actual[0].Tag.ErrorType.Should().Be(PredefinedErrorTypeNames.SyntaxError);
+    }
+
+    [TestMethod]
     public void GetTags_WhenFocusOnNewCodeChanged_NotifyTagger()
     {
         var focusOnNewCodeService = Substitute.For<IFocusOnNewCodeService>();
@@ -190,9 +227,10 @@ public class ErrorTaggerTests
         string message = "",
         string ruleKey = "",
         bool isResolved = false,
-        bool isOnNewCode = false)
+        bool isOnNewCode = false,
+        __VSERRORCATEGORY vsSeverity = __VSERRORCATEGORY.EC_WARNING)
     {
-        var viz = CreateIssueViz(snapshot, span, message, ruleKey, isResolved, isOnNewCode);
+        var viz = CreateIssueViz(snapshot, span, message, ruleKey, isResolved, isOnNewCode, vsSeverity);
         var tag = CreateIssueLocationTag(viz);
         return CreateMappingTagSpan(snapshot, tag, span);
     }
