@@ -207,6 +207,17 @@ public class GeneralOptionsDialogControlViewModelTests
     }
 
     [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void Ctor_SetsIsShowBuildErrorNotificationEnabledToValueFromSettings(bool expected)
+    {
+        settings.IsShowBuildErrorNotificationEnabled.Returns(expected);
+        testSubject = new GeneralOptionsDialogControlViewModel(settings, focusOnNewCodeService, browserService, openSettingsFileCommand);
+
+        testSubject.IsShowBuildErrorNotificationEnabled.Should().Be(expected);
+    }
+
+    [TestMethod]
     [DataRow(CredentialStoreType.Default)]
     [DataRow(CredentialStoreType.DPAPI)]
     public void Ctor_SetsCredentialStoreTypeToValueFromSettings(CredentialStoreType expectedType)
@@ -215,6 +226,18 @@ public class GeneralOptionsDialogControlViewModelTests
         _ = settings.Received().CredentialStoreType;
         testSubject.CredentialStoreType = expectedType;
         testSubject.CredentialStoreType.Should().Be(expectedType);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void SaveSettings_SavesIsShowBuildErrorNotificationEnabledToSettings(bool expected)
+    {
+        testSubject.IsShowBuildErrorNotificationEnabled = expected;
+
+        testSubject.SaveSettings();
+
+        settings.Received().IsShowBuildErrorNotificationEnabled = expected;
     }
 
     [TestMethod]

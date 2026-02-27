@@ -1,0 +1,41 @@
+<Window x:Class="SonarLint.VisualStudio.Integration.Vsix.Events.Build.ErrorNotificationDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:res="clr-namespace:SonarLint.VisualStudio.Integration.Vsix.Resources"
+        Title="{x:Static res:Strings.BuildEventNotifier_Caption}"
+        SizeToContent="WidthAndHeight"
+        MinWidth="450"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        x:Name="This">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary
+                    Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Window.Style>
+        <Style TargetType="Window" BasedOn="{StaticResource {x:Type Window}}" />
+    </Window.Style>
+
+    <Grid Margin="15" DataContext="{Binding ElementName=This, Path=ViewModel}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0"
+                   Text="{Binding Message}" />
+        <TextBlock Grid.Row="1" Margin="0, 0, 0, 20"
+                   Text="{x:Static res:Strings.BuildEventNotifier_ReviewInErrorList}" />
+        <StackPanel Grid.Row="2" Style="{StaticResource DialogButtonsPanel}">
+            <Button Content="{x:Static res:Strings.BuildEventNotifier_DoNotShowAgain}"
+                    Click="DoNotShowAgainButton_OnClick" />
+            <Button Content="OK"
+                    IsDefault="True"
+                    Click="OkButton_OnClick" />
+        </StackPanel>
+    </Grid>
+</Window>

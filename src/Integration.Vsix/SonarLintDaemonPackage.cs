@@ -31,6 +31,7 @@ using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Events;
+using SonarLint.VisualStudio.Integration.Vsix.Events.Build;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.RoslynAnalyzerServer;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
@@ -75,6 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private ISlCoreUserAnalysisPropertiesSynchronizer slCoreUserAnalysisPropertiesSynchronizer;
         private IAnalysisConfigMonitor analysisConfigMonitor;
         private IRoslynAnalysisHttpServer roslynAnalysisHttpServer;
+        private IBuildEventNotifier buildEventNotifier;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -128,6 +130,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 thread.RunOnBackgroundThread(() => roslynAnalyzerAssemblyLoader.LoadRoslynAnalyzerAssemblyContentsIfNeeded()).Forget();
                 thread.RunOnBackgroundThread(() => StartRoslynAnalysisHttpServerAsync().ConfigureAwait(false)).Forget();
 
+                buildEventNotifier = await this.GetMefServiceAsync<IBuildEventNotifier>();
+                await buildEventNotifier.InitializationProcessor.InitializeAsync();
+
                 slCoreHandler = await this.GetMefServiceAsync<ISLCoreHandler>();
                 slCoreHandler.EnableSloop();
             }
@@ -170,6 +175,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 roslynAnalysisHttpServer.Dispose();
                 roslynAnalysisHttpServer = null;
+
+                buildEventNotifier?.Dispose();
+                buildEventNotifier = null;
             }
         }
 

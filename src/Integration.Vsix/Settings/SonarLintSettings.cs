@@ -71,6 +71,12 @@ internal sealed class SonarLintSettings : ISonarLintSettings, IDisposable
         set => SetValue(nameof(IsFocusOnNewCodeEnabled), value);
     }
 
+    public bool IsShowBuildErrorNotificationEnabled
+    {
+        get => GetValueOrDefault(nameof(IsShowBuildErrorNotificationEnabled), true);
+        set => SetValue(nameof(IsShowBuildErrorNotificationEnabled), value);
+    }
+
     public CredentialStoreType CredentialStoreType
     {
         get => (CredentialStoreType)GetValueOrDefault(nameof(CredentialStoreType), (int)CredentialStoreType.Default);

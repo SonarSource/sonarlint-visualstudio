@@ -192,6 +192,7 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Page Include="Commands\HelpMenu\AboutDialog.xaml" />
+    <Page Include="Events\Build\ErrorNotificationDialog.xaml" />
     <Page Include="Settings\FileExclusions\AddExclusionDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
