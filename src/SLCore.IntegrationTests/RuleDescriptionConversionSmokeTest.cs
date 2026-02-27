@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Text.RegularExpressions;
 using System.Windows.Documents;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
@@ -41,6 +42,7 @@ public class RuleDescriptionConversionSmokeTest
     {
         const string configScope = "configscope1";
         var failedRuleDescriptions = new List<string>();
+        var partiallySupportedRuleDescriptions = new List<string>();
         var infrastructureLogger = new TestLogger();
         var slCoreStdErrorLogger = new TestLogger();
         var rpcLogger = new TestLogger();
@@ -48,24 +50,29 @@ public class RuleDescriptionConversionSmokeTest
         slCoreTestRunner.AddListener(new LoggerListener(rpcLogger));
         await slCoreTestRunner.Start(rpcLogger);
 
-        var ruleHelpXamlBuilder = CreateRuleHelpXamlBuilder();
+        var ruleHelpXamlBuilder = CreateRuleHelpXamlBuilder(out var translator, out var translatorWrapper);
         var activeConfigScopeTracker = CreateActiveConfigScopeTracker(slCoreTestRunner, infrastructureLogger);
         var slCoreRuleMetaDataProvider = CreateSlCoreRuleMetaDataProvider(slCoreTestRunner, activeConfigScopeTracker, infrastructureLogger);
         activeConfigScopeTracker.SetCurrentConfigScope(configScope);
         slCoreTestRunner.SLCoreServiceProvider.TryGetTransientService(out IRulesSLCoreService rulesSlCoreService).Should().BeTrue();
 
         // no hotspots are returned from ListAllStandaloneRulesDefinitionsAsync
-        var ruleDescriptions = await GetAllRuleDescriptions(await rulesSlCoreService.ListAllStandaloneRulesDefinitionsAsync(), slCoreRuleMetaDataProvider);
-        CheckRuleDescriptionsOnSTAThread(ruleDescriptions, ruleHelpXamlBuilder, failedRuleDescriptions);
+        var ruleDescriptions = await GetAllRuleDescriptions(await rulesSlCoreService!.ListAllStandaloneRulesDefinitionsAsync(), slCoreRuleMetaDataProvider);
+        CheckRuleDescriptionsOnSTAThread(ruleDescriptions, ruleHelpXamlBuilder, failedRuleDescriptions, translatorWrapper, translator, partiallySupportedRuleDescriptions);
 
         failedRuleDescriptions.Should().BeEquivalentTo(
             new List<string>
             {
-                "cpp:S1232", // unsupported <caption> tag https://github.com/SonarSource/sonarlint-visualstudio/issues/5014
-                "csharpsquid:S6932", // unsupported <dl> and <dt> tag https://github.com/SonarSource/sonarlint-visualstudio/issues/5414
-                "csharpsquid:S6966", // unsupported <dl> and <dt> tag https://github.com/SonarSource/sonarlint-visualstudio/issues/5414
-                "cpp:S5954", // todo SLVS-2847 Investigate new broken rule descriptions cpp:S5954, cpp:S4998
-                "cpp:S4998"
+                "cpp:S1232", // unsupported <caption> tag https://sonarsource.atlassian.net/browse/SLVS-2180
+            });
+        // these rules were checked manually and render fine, even though some tags are not supported
+        partiallySupportedRuleDescriptions.Should().BeEquivalentTo(
+            new List<string>
+            {
+                "cpp:S5954", // unsupported <widget> tag https://sonarsource.atlassian.net/browse/SLVS-2863
+                "cpp:S4998", // unsupported <widget> tag https://sonarsource.atlassian.net/browse/SLVS-2863
+                "csharpsquid:S6932", // unsupported <dl> and <dt> tag https://sonarsource.atlassian.net/browse/SLVS-2274
+                "csharpsquid:S6966" // unsupported <dl> and <dt> tag https://sonarsource.atlassian.net/browse/SLVS-2274
             });
     }
 
@@ -90,11 +97,14 @@ public class RuleDescriptionConversionSmokeTest
     private static void CheckRuleDescriptionsOnSTAThread(
         List<IRuleInfo> ruleDescriptions,
         RuleHelpXamlBuilder ruleHelpXamlBuilder,
-        List<string> failedRuleDescriptions)
+        List<string> failedRuleDescriptions,
+        IRuleHelpXamlTranslator translatorWrapper,
+        RuleHelpXamlTranslatorFactory.RuleHelpXamlTranslator translator,
+        List<string> partiallySupportedRuleDescriptions)
     {
         var thread = new Thread(() =>
         {
-            CheckRuleDescriptions(ruleDescriptions, ruleHelpXamlBuilder, failedRuleDescriptions);
+            CheckRuleDescriptions(ruleDescriptions, ruleHelpXamlBuilder, failedRuleDescriptions, translator, translatorWrapper, partiallySupportedRuleDescriptions);
         });
         // I honestly have no idea why we need this here since the old test worked without it while having the same XAMLs being generated, but w/o this it fails
         thread.SetApartmentState(ApartmentState.STA);
@@ -105,13 +115,31 @@ public class RuleDescriptionConversionSmokeTest
     private static void CheckRuleDescriptions(
         List<IRuleInfo> ruleDescriptions,
         RuleHelpXamlBuilder ruleHelpXamlBuilder,
-        List<string> failedRuleDescriptions)
+        List<string> failedRuleDescriptions,
+        RuleHelpXamlTranslatorFactory.RuleHelpXamlTranslator translator,
+        IRuleHelpXamlTranslator translatorWrapper,
+        List<string> partiallySupportedRuleDescriptions)
     {
         foreach (var ruleDescription in ruleDescriptions)
         {
             try
             {
+                translatorWrapper.ClearReceivedCalls();
                 CheckRuleDescription(ruleHelpXamlBuilder.Create(ruleDescription));
+
+                var capturedHtmls = translatorWrapper.ReceivedCalls().Select(x => x.GetArguments()[0] as string).ToList();
+                var supportedTags = translator.SupportedTags.ToHashSet();
+                var allTags = capturedHtmls.SelectMany(html =>
+                    Regex.Matches(html, @"<([a-zA-Z][a-zA-Z0-9]*)")
+                        .Cast<Match>()
+                        .Select(m => m.Groups[1].Value)).ToHashSet();
+                allTags.ExceptWith(supportedTags);
+                var hasUnsupportedTags = allTags.Any();
+
+                if (hasUnsupportedTags)
+                {
+                    partiallySupportedRuleDescriptions.Add(ruleDescription.FullRuleKey);
+                }
             }
             catch (Exception)
             {
@@ -144,13 +172,18 @@ public class RuleDescriptionConversionSmokeTest
             new NoOpThreadHandler(),
             infrastructureLogger);
 
-    private static RuleHelpXamlBuilder CreateRuleHelpXamlBuilder()
+    private static RuleHelpXamlBuilder CreateRuleHelpXamlBuilder(out RuleHelpXamlTranslatorFactory.RuleHelpXamlTranslator translator, out IRuleHelpXamlTranslator translatorWrapper)
     {
         var xamlWriterFactory = new XamlWriterFactory();
         var xamlGeneratorHelperFactory = new XamlGeneratorHelperFactory();
         var diffTranslator = new DiffTranslator(xamlWriterFactory);
-        var ruleHelpXamlTranslatorFactory = new RuleHelpXamlTranslatorFactory(xamlWriterFactory,
-            diffTranslator);
+        translator = (RuleHelpXamlTranslatorFactory.RuleHelpXamlTranslator)new RuleHelpXamlTranslatorFactory(xamlWriterFactory,
+            diffTranslator).Create();
+        var translatorLocal = translator;
+        translatorWrapper = Substitute.For<IRuleHelpXamlTranslator>();
+        translatorWrapper.TranslateHtmlToXaml(Arg.Any<string>()).Returns(info => translatorLocal.TranslateHtmlToXaml(info[0] as string));
+        var ruleHelpXamlTranslatorFactory = Substitute.For<IRuleHelpXamlTranslatorFactory>();
+        ruleHelpXamlTranslatorFactory.Create().Returns(translatorWrapper);
         return new RuleHelpXamlBuilder(
             new SimpleRuleHelpXamlBuilder(ruleHelpXamlTranslatorFactory,
                 xamlGeneratorHelperFactory,
