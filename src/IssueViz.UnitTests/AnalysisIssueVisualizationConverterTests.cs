@@ -19,11 +19,13 @@
  */
 
 using System.IO;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -37,6 +39,7 @@ public class AnalysisIssueVisualizationConverterTests
 
     private AnalysisIssueVisualizationConverter testSubject;
     private IRoslynQuickFixProvider roslynQuickFixProvider;
+    private IAnalysisSeverityToVsSeverityConverter severityConverter;
 
     [TestInitialize]
     public void TestInitialize()
@@ -44,8 +47,9 @@ public class AnalysisIssueVisualizationConverterTests
         issueSpanCalculatorMock = new Mock<IIssueSpanCalculator>();
         textSnapshotMock = Mock.Of<ITextSnapshot>();
         roslynQuickFixProvider = Substitute.For<IRoslynQuickFixProvider>();
+        severityConverter = Substitute.For<IAnalysisSeverityToVsSeverityConverter>();
 
-        testSubject = new AnalysisIssueVisualizationConverter(issueSpanCalculatorMock.Object, Substitute.For<ISpanTranslator>(), roslynQuickFixProvider);
+        testSubject = new AnalysisIssueVisualizationConverter(issueSpanCalculatorMock.Object, Substitute.For<ISpanTranslator>(), roslynQuickFixProvider, severityConverter);
     }
 
     [TestMethod]
@@ -53,7 +57,8 @@ public class AnalysisIssueVisualizationConverterTests
         MefTestHelpers.CheckTypeCanBeImported<AnalysisIssueVisualizationConverter, IAnalysisIssueVisualizationConverter>(
             MefTestHelpers.CreateExport<IIssueSpanCalculator>(),
             MefTestHelpers.CreateExport<ISpanTranslator>(),
-            MefTestHelpers.CreateExport<IRoslynQuickFixProvider>());
+            MefTestHelpers.CreateExport<IRoslynQuickFixProvider>(),
+            MefTestHelpers.CreateExport<IAnalysisSeverityToVsSeverityConverter>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<AnalysisIssueVisualizationConverter>();
@@ -206,7 +211,8 @@ public class AnalysisIssueVisualizationConverterTests
             [],
             issue,
             issueSpan,
-            []);
+            [],
+            __VSERRORCATEGORY.EC_MESSAGE);
 
         var actualIssueVisualization = testSubject.Convert(issue, textSnapshotMock);
 
@@ -230,7 +236,8 @@ public class AnalysisIssueVisualizationConverterTests
             [expectedFlowVisualization],
             issue,
             issueSpan,
-            []);
+            [],
+            __VSERRORCATEGORY.EC_MESSAGE);
 
         var actualIssueVisualization = testSubject.Convert(issue, textSnapshotMock);
 
@@ -265,7 +272,8 @@ public class AnalysisIssueVisualizationConverterTests
             [expectedFirstFlowVisualization, expectedSecondFlowVisualization],
             issue,
             issueSpan,
-            []);
+            [],
+            __VSERRORCATEGORY.EC_MESSAGE);
 
         var actualIssueVisualization = testSubject.Convert(issue, textSnapshotMock);
 
@@ -296,7 +304,8 @@ public class AnalysisIssueVisualizationConverterTests
             [expectedFlow],
             issue,
             issueSpan,
-            []);
+            [],
+            __VSERRORCATEGORY.EC_MESSAGE);
 
         var actualIssueVisualization = testSubject.Convert(issue, textSnapshotMock);
 
@@ -327,6 +336,60 @@ public class AnalysisIssueVisualizationConverterTests
 
         result.Should().NotBeNull();
         result.IsOnNewCode.Should().Be(isOnNewCode);
+    }
+
+    [TestMethod]
+    public void Convert_AnalysisIssue_VsSeverityIsComputedUsingSeverityConverter()
+    {
+        var issue = CreateIssue(Path.GetRandomFileName());
+        const string projectName = "MyProject";
+        severityConverter.ConvertFromCct(issue.HighestImpact.Severity, projectName).Returns(__VSERRORCATEGORY.EC_ERROR);
+
+        var result = testSubject.Convert(issue, textSnapshotMock, projectName);
+
+        result.VsSeverity.Should().Be(__VSERRORCATEGORY.EC_ERROR);
+        severityConverter.Received(1).ConvertFromCct(issue.HighestImpact.Severity, projectName);
+    }
+
+    [TestMethod]
+    public void Convert_AnalysisIssue_NullProjectName_PassesNullToConverter()
+    {
+        var issue = CreateIssue(Path.GetRandomFileName());
+        severityConverter.ConvertFromCct(issue.HighestImpact.Severity, null).Returns(__VSERRORCATEGORY.EC_WARNING);
+
+        var result = testSubject.Convert(issue, textSnapshotMock, projectName: null);
+
+        result.VsSeverity.Should().Be(__VSERRORCATEGORY.EC_WARNING);
+        severityConverter.Received(1).ConvertFromCct(issue.HighestImpact.Severity, null);
+    }
+
+    [TestMethod]
+    public void Convert_AnalysisIssue_NoHighestImpact_UsesLegacySeverity()
+    {
+        var issue = CreateIssueWithoutHighestImpact(Path.GetRandomFileName());
+        const string projectName = "MyProject";
+        severityConverter.Convert(issue.Severity, projectName).Returns(__VSERRORCATEGORY.EC_ERROR);
+
+        var result = testSubject.Convert(issue, textSnapshotMock, projectName);
+
+        result.VsSeverity.Should().Be(__VSERRORCATEGORY.EC_ERROR);
+        severityConverter.Received(1).Convert(issue.Severity, projectName);
+        severityConverter.DidNotReceiveWithAnyArgs().ConvertFromCct(default, default);
+    }
+
+    [TestMethod]
+    public void Convert_NonAnalysisIssue_VsSeverityIsMessage()
+    {
+        var nonAnalysisIssue = Mock.Of<IAnalysisIssueBase>(x =>
+            x.PrimaryLocation == CreateLocation(Path.GetRandomFileName()) &&
+            x.Flows == Array.Empty<IAnalysisIssueFlow>() &&
+            x.RuleKey == "any:rule");
+
+        var result = testSubject.Convert(nonAnalysisIssue, textSnapshotMock, "MyProject");
+
+        result.VsSeverity.Should().Be(__VSERRORCATEGORY.EC_MESSAGE);
+        severityConverter.DidNotReceiveWithAnyArgs().Convert(default, default);
+        severityConverter.DidNotReceiveWithAnyArgs().ConvertFromCct(default, default);
     }
 
     private void AssertConversion(IAnalysisIssueVisualization expectedIssueVisualization, IAnalysisIssueVisualization actualIssueVisualization)
@@ -366,6 +429,24 @@ public class AnalysisIssueVisualizationConverterTests
             AnalysisIssueSeverity.Blocker,
             AnalysisIssueType.Bug,
             new Impact(SoftwareQuality.Maintainability, SoftwareQualitySeverity.High),
+            CreateLocation(filePath),
+            flows
+        );
+
+        return issue;
+    }
+
+    private IAnalysisIssue CreateIssueWithoutHighestImpact(string filePath, params IAnalysisIssueFlow[] flows)
+    {
+        var issue = new AnalysisIssue(
+            Guid.NewGuid(),
+            $"any:{Guid.NewGuid().ToString()}",
+            Guid.NewGuid().ToString(),
+            false,
+            true,
+            AnalysisIssueSeverity.Blocker,
+            AnalysisIssueType.Bug,
+            null,
             CreateLocation(filePath),
             flows
         );

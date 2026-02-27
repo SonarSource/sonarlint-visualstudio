@@ -19,29 +19,31 @@
  */
 
 using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Models
 {
     public interface IAnalysisIssueVisualizationConverter
     {
-        IAnalysisIssueVisualization Convert(IAnalysisIssueBase issue, ITextSnapshot textSnapshot = null);
+        IAnalysisIssueVisualization Convert(IAnalysisIssueBase issue, ITextSnapshot textSnapshot = null, string projectName = null);
     }
 
     [Export(typeof(IAnalysisIssueVisualizationConverter))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     [method: ImportingConstructor]
-    internal class AnalysisIssueVisualizationConverter(IIssueSpanCalculator issueSpanCalculator, ISpanTranslator spanTranslator, IRoslynQuickFixProvider roslynQuickFixProvider) : IAnalysisIssueVisualizationConverter
+    internal class AnalysisIssueVisualizationConverter(IIssueSpanCalculator issueSpanCalculator, ISpanTranslator spanTranslator, IRoslynQuickFixProvider roslynQuickFixProvider, IAnalysisSeverityToVsSeverityConverter severityConverter) : IAnalysisIssueVisualizationConverter
     {
         private static readonly IReadOnlyList<IAnalysisIssueFlowVisualization> EmptyConvertedFlows = [];
         private static readonly IReadOnlyList<IQuickFixApplication> EmptyConvertedFixes = [];
 
-        public IAnalysisIssueVisualization Convert(IAnalysisIssueBase issue, ITextSnapshot textSnapshot = null)
+        public IAnalysisIssueVisualization Convert(IAnalysisIssueBase issue, ITextSnapshot textSnapshot = null, string projectName = null)
         {
             var issueSpan = textSnapshot == null
                 ? null
@@ -51,7 +53,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
 
             var quickFixes = GetQuickFixVisualizations(issue, textSnapshot);
 
-            var issueVisualization = new AnalysisIssueVisualization(flows, issue, issueSpan, quickFixes);
+            var vsSeverity = issue is IAnalysisIssue analysisIssue
+                ? severityConverter.GetVsSeverity(analysisIssue, projectName)
+                : __VSERRORCATEGORY.EC_MESSAGE;
+
+            var issueVisualization = new AnalysisIssueVisualization(flows, issue, issueSpan, quickFixes, vsSeverity);
 
             if (textSnapshot != null)
             {
