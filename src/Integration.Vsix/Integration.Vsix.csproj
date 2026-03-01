@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
 
   <Import Project="..\SonarLint.Product.props" />
   <Import Project="..\SonarLint.VsPkgRefs.props" />
@@ -262,8 +262,8 @@
     <Message Importance="high" Text="Copying vsix from $(TargetDir)$(TargetVsixContainerName) to $(BinariesFolder)$(TargetVsixContainerName)" />
     <Copy OverwriteReadOnlyFiles="true" SourceFiles="$(TargetDir)$(TargetVsixContainerName)" DestinationFiles="$(BinariesFolder)$(TargetVsixContainerName)" />
 
-    <!--<Message Condition=" $(SignArtifacts) != 'true' " Importance="high" Text="Skipping signing VSIXes - SignArtifacts = '$(SignArtifacts)'" />
-    <CallTarget Condition=" $(SignArtifacts) == 'true' " Targets="LocateVsixSignToolAndBinaries;SignVsixes" />-->
+    <Message Condition=" $(SignArtifacts) != 'true' " Importance="high" Text="Skipping signing VSIX - SignArtifacts = '$(SignArtifacts)'" />
+    <Exec Condition=" $(SignArtifacts) == 'true' " Command="sign code trusted-signing &quot;$(BinariesFolder)$(TargetVsixContainerName)&quot; --trusted-signing-account $(TrustedSigningAccount) --trusted-signing-certificate-profile $(TrustedSigningCertificateProfile) --trusted-signing-endpoint $(TrustedSigningEndpoint)" />
   </Target>
   <!-- ********************************************************** -->
 
