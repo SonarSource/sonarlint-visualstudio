@@ -32,7 +32,45 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          fetch-depth: '0'
+          fetch-depth: "0"
+
+      - name: Import Microsoft test signing certificate chain
+        shell: powershell
+        run: |
+          $certs = @(
+            @{
+              Name = "Microsoft Identity Verification TEST ONLY Root Certificate Authority 2020"
+              Url = "https://www.microsoft.com/pkiops/certs/Microsoft%20Identity%20Verification%20TEST%20ONLY%20Root%20Certificate%20Authority%202020.crt"
+              Thumbprint = "DFA0E53504EF5328FAEC21AD7DF14C10B07C4FCB"
+              StoreName = "Root"
+            },
+            @{
+              Name = "Microsoft Dev ID Verification TEST ONLY Code Signing PCA 2020"
+              Url = "https://www.microsoft.com/pkiops/certs/Microsoft%20Dev%20ID%20Verification%20TEST%20ONLY%20Code%20Signing%20PCA%202020.crt"
+              Thumbprint = "5897D20796AE08FD4280A8E982CB7FAFDF9C1F70"
+              StoreName = "CA"
+            },
+            @{
+              Name = "Microsoft Developer ID Test CS EOC CA 02"
+              Url = "https://www.microsoft.com/pkiops/certs/Microsoft%20Developer%20ID%20Test%20CS%20EOC%20CA%2002(1).crt"
+              Thumbprint = "263E422F340B92D829D0EC7C5FD4BF90FA2E9D36"
+              StoreName = "CA"
+            }
+          )
+
+          foreach ($cert in $certs) {
+            $outFile = Join-Path $env:RUNNER_TEMP ($cert.Thumbprint + ".crt")
+            Invoke-WebRequest -Uri $cert.Url -OutFile $outFile
+            $downloaded = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($outFile)
+            if ($downloaded.Thumbprint -ne $cert.Thumbprint) {
+              throw "Thumbprint mismatch for $($cert.Name). Expected $($cert.Thumbprint), got $($downloaded.Thumbprint)."
+            }
+            $x509Store = New-Object System.Security.Cryptography.X509Certificates.X509Store($cert.StoreName, "LocalMachine")
+            $x509Store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+            $x509Store.Add($downloaded)
+            $x509Store.Close()
+            Write-Host "Imported $($cert.Name) ($($cert.Thumbprint)) into LocalMachine\$($cert.StoreName)"
+          }
 
       - name: Fetch vault secrets
         id: secrets
@@ -65,28 +103,6 @@ jobs:
           else
             echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
           fi
-
-      - name: Import Microsoft PKI root for signing
-        shell: powershell
-        run: |
-          $name = "Microsoft Identity Verification TEST ONLY Root Certificate Authority 2020"
-          $url = "https://www.microsoft.com/pkiops/certs/Microsoft%20Identity%20Verification%20TEST%20ONLY%20Root%20Certificate%20Authority%202020.crt"
-          $thumbprint = "DFA0E53504EF5328FAEC21AD7DF14C10B07C4FCB"
-          $store = "Cert:\CurrentUser\Root"
-
-          $outFile = Join-Path $env:RUNNER_TEMP "$thumbprint.crt"
-          Invoke-WebRequest -Uri $url -OutFile $outFile
-          $downloaded = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($outFile)
-          if ($downloaded.Thumbprint -ne $thumbprint) {
-            throw "Thumbprint mismatch for $name. Expected $thumbprint, got $($downloaded.Thumbprint)."
-          }
-
-          certutil -user -f -addstore Root $outFile | Out-Null
-          $imported = Get-ChildItem $store | Where-Object { $_.Thumbprint -eq $thumbprint }
-          if (-not $imported) {
-            throw "Failed to import $name ($thumbprint) into $store."
-          }
-          Write-Host "Imported $name ($thumbprint) into $store"
 
       - name: Prepare Build
         shell: bash
@@ -156,7 +172,6 @@ jobs:
           tenant-id: 75622d57-788f-4dd3-b33c-739f625e6311
           subscription-id: 05011d2a-e478-46bd-b842-09c8693acccb
 
-
       - name: Build Signed
         shell: bash
         env:
@@ -166,7 +181,7 @@ jobs:
         run: |
           echo "${SONARSOURCE_SNK}" | base64 -d > "${SONARSOURCE_SNK_FILE}"
           mkdir -p binaries
-          MSYS2_ARG_CONV_EXCL="*" msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=true -p:AssemblyOriginatorKeyFile="${SONARSOURCE_SNK_FILE}" -p:TrustedSigningAccount="${TRUSTED_SIGNING_ACCOUNT}" -p:TrustedSigningCertificateProfile="${SIGN_CERT_PROFILE}" -p:DeployExtension=false -p:Sha1="${GITHUB_SHA}" -p:BuildNumber="${BUILD_NUMBER}" -p:Configuration=Release /bl:binaries/msbuild-signing.binlog /fl "/flp:logfile=binaries/msbuild-signing.log;verbosity=diagnostic"
+          msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=true -p:AssemblyOriginatorKeyFile="${SONARSOURCE_SNK_FILE}" -p:TrustedSigningAccount="${TRUSTED_SIGNING_ACCOUNT}" -p:TrustedSigningCertificateProfile="${SIGN_CERT_PROFILE}" -p:DeployExtension=false -p:Sha1="${GITHUB_SHA}" -p:BuildNumber="${BUILD_NUMBER}" -p:Configuration=Release /bl:binaries/msbuild-signing.binlog /fl /flp:logfile=binaries/msbuild-signing.log;verbosity=diagnostic
           echo "${SIGN_KEY}" | gpg --batch --passphrase "${SIGN_PASSPHRASE}" --allow-secret-key-import --import
           gpg --list-secret-keys
           dotnet CycloneDX "SonarQube.VisualStudio.sln" -t -F Json -o binaries
