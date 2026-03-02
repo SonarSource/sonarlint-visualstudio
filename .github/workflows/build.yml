@@ -22,15 +22,12 @@ jobs:
   build:
     runs-on: warp-custom-sonarlint-visualstudio
     name: Build
-    # environment: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'release' || '' }}
+    environment: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'release' || '' }}
     env:
       SONARSOURCE_SNK_FILE: "/tmp/SonarSource.snk"
-      # TRUSTED_SIGNING_ACCOUNT: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'codesigning-release' || 'codesigning-test' }}
-      TRUSTED_SIGNING_ACCOUNT: codesigning-test
-      # SIGN_CERT_PROFILE: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'sonarsource-release' || 'sonarsource-test' }}
-      SIGN_CERT_PROFILE: sonarsource-test
-      # AZURE_CLIENT_ID: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'c1fcac4d-eb47-402c-8318-37d5d87b9335' || '6b33b753-44e5-4afe-8da5-d7f849bd7909' }}
-      AZURE_CLIENT_ID: 6b33b753-44e5-4afe-8da5-d7f849bd7909
+      TRUSTED_SIGNING_ACCOUNT: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'codesigning-release' || 'codesigning-test' }}
+      SIGN_CERT_PROFILE: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'sonarsource-release' || 'sonarsource-test' }}
+      AZURE_CLIENT_ID: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'c1fcac4d-eb47-402c-8318-37d5d87b9335' || '6b33b753-44e5-4afe-8da5-d7f849bd7909' }}
 
     steps:
       - uses: actions/checkout@v5
@@ -98,14 +95,14 @@ jobs:
           echo "| **Build Number** | \`${BUILD_NUMBER}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| **Branch** | \`${{ steps.branch-name.outputs.BRANCH_NAME }}\` |" >> $GITHUB_STEP_SUMMARY
 
-      - name: Prepare Analysis
-        shell: bash
-        env:
-          SONAR_PROJECT_KEY: ${{ github.event.repository.name }}
-          SONAR_URL: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_URL }}
-          SONAR_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_TOKEN }}
-          COVERAGE_FILE: ${{ github.workspace }}/coverage.xml
-        run: .github/scripts/sonarqube-analysis.sh
+      # - name: Prepare Analysis
+      #   shell: bash
+      #   env:
+      #     SONAR_PROJECT_KEY: ${{ github.event.repository.name }}
+      #     SONAR_URL: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_URL }}
+      #     SONAR_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_TOKEN }}
+      #     COVERAGE_FILE: ${{ github.workspace }}/coverage.xml
+      #   run: .github/scripts/sonarqube-analysis.sh
 
       - name: Install Sign CLI
         shell: bash
@@ -145,7 +142,8 @@ jobs:
           SIGN_PASSPHRASE: ${{ fromJSON(steps.secrets.outputs.vault).SIGN_PASSPHRASE }}
         run: |
           echo "${SONARSOURCE_SNK}" | base64 -d > "${SONARSOURCE_SNK_FILE}"
-          msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=true -p:AssemblyOriginatorKeyFile="${SONARSOURCE_SNK_FILE}" -p:TrustedSigningAccount="${TRUSTED_SIGNING_ACCOUNT}" -p:TrustedSigningCertificateProfile="${SIGN_CERT_PROFILE}" -p:DeployExtension=false -p:Sha1="${GITHUB_SHA}" -p:BuildNumber="${BUILD_NUMBER}" -p:Configuration=Release
+          mkdir -p binaries
+          msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=true -p:AssemblyOriginatorKeyFile="${SONARSOURCE_SNK_FILE}" -p:TrustedSigningAccount="${TRUSTED_SIGNING_ACCOUNT}" -p:TrustedSigningCertificateProfile="${SIGN_CERT_PROFILE}" -p:DeployExtension=false -p:Sha1="${GITHUB_SHA}" -p:BuildNumber="${BUILD_NUMBER}" -p:Configuration=Release /bl:binaries/msbuild-signing.binlog /fl /flp:logfile=binaries/msbuild-signing.log;verbosity=diagnostic
           echo "${SIGN_KEY}" | gpg --batch --passphrase "${SIGN_PASSPHRASE}" --allow-secret-key-import --import
           gpg --list-secret-keys
           dotnet CycloneDX "SonarQube.VisualStudio.sln" -t -F Json -o binaries
@@ -154,6 +152,16 @@ jobs:
           mv bom.json $sbomname
           gpg --pinentry-mode loopback --passphrase "${SIGN_PASSPHRASE}" --armor --detach-sig --default-key infra@sonarsource.com "$sbomname"
           echo "signed $sbomname"
+
+      - name: Upload signing diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: signing-diagnostics
+          path: |
+            binaries/msbuild-signing.log
+            binaries/msbuild-signing.binlog
+          if-no-files-found: warn
 
       # - name: Test with Coverage
       #   shell: bash
