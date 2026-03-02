@@ -149,7 +149,11 @@ jobs:
             throw "Thumbprint mismatch for $name. Expected $thumbprint, got $($downloaded.Thumbprint)."
           }
 
-          Import-Certificate -FilePath $outFile -CertStoreLocation $store | Out-Null
+          certutil -user -f -addstore Root $outFile | Out-Null
+          $imported = Get-ChildItem $store | Where-Object { $_.Thumbprint -eq $thumbprint }
+          if (-not $imported) {
+            throw "Failed to import $name ($thumbprint) into $store."
+          }
           Write-Host "Imported $name ($thumbprint) into $store"
 
       - name: Build Signed
