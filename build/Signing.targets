@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <!-- Targets to handle signing assemblies using Azure Trusted Signing via Sign CLI.
+  <!-- Targets to handle signing assemblies using Azure Artifact Signing via Sign CLI.
 
        Usage:
        The following items should be set by the caller:
@@ -21,7 +21,7 @@
     <Message Importance="high" Text="Assembly to sign: %(AssembliesToSign.FullPath)" />
     <Error Condition=" @(AssembliesToSign) == '' " Text="The list of assemblies to sign is empty." />
 
-    <Exec Command="sign code trusted-signing &quot;%(AssembliesToSign.FullPath)&quot; --trusted-signing-account $(TrustedSigningAccount) --trusted-signing-certificate-profile $(TrustedSigningCertificateProfile) --trusted-signing-endpoint $(TrustedSigningEndpoint)" />
+    <Exec Command="sign code artifact-signing &quot;%(AssembliesToSign.FullPath)&quot; --artifact-signing-account $(TrustedSigningAccount) --artifact-signing-certificate-profile $(TrustedSigningCertificateProfile) --artifact-signing-endpoint $(TrustedSigningEndpoint)" />
   </Target>
 
 </Project>
