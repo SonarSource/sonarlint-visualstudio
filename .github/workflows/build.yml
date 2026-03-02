@@ -23,15 +23,14 @@ jobs:
     runs-on: warp-custom-sonarlint-visualstudio
     name: Build
     # environment: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'release' || '' }}
-    environment: release
     env:
       SONARSOURCE_SNK_FILE: "/tmp/SonarSource.snk"
       # TRUSTED_SIGNING_ACCOUNT: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'codesigning-release' || 'codesigning-test' }}
-      TRUSTED_SIGNING_ACCOUNT: codesigning-release
+      TRUSTED_SIGNING_ACCOUNT: codesigning-test
       # SIGN_CERT_PROFILE: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'sonarsource-release' || 'sonarsource-test' }}
-      SIGN_CERT_PROFILE: sonarsource-release
+      SIGN_CERT_PROFILE: sonarsource-test
       # AZURE_CLIENT_ID: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'c1fcac4d-eb47-402c-8318-37d5d87b9335' || '6b33b753-44e5-4afe-8da5-d7f849bd7909' }}
-      AZURE_CLIENT_ID: c1fcac4d-eb47-402c-8318-37d5d87b9335
+      AZURE_CLIENT_ID: 6b33b753-44e5-4afe-8da5-d7f849bd7909
 
     steps:
       - uses: actions/checkout@v5
