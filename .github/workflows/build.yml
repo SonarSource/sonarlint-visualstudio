@@ -65,11 +65,32 @@ jobs:
             if ($downloaded.Thumbprint -ne $cert.Thumbprint) {
               throw "Thumbprint mismatch for $($cert.Name). Expected $($cert.Thumbprint), got $($downloaded.Thumbprint)."
             }
-            $x509Store = New-Object System.Security.Cryptography.X509Certificates.X509Store($cert.StoreName, "LocalMachine")
-            $x509Store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
-            $x509Store.Add($downloaded)
-            $x509Store.Close()
-            Write-Host "Imported $($cert.Name) ($($cert.Thumbprint)) into LocalMachine\$($cert.StoreName)"
+            foreach ($location in @("LocalMachine", "CurrentUser")) {
+              try {
+                $x509Store = New-Object System.Security.Cryptography.X509Certificates.X509Store($cert.StoreName, $location)
+                $x509Store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+                $x509Store.Add($downloaded)
+                $x509Store.Close()
+                Write-Host "Imported $($cert.Name) ($($cert.Thumbprint)) into $location\$($cert.StoreName)"
+              } catch {
+                Write-Warning "Could not import into $location\$($cert.StoreName): $($_.Exception.Message)"
+              }
+            }
+          }
+
+          Write-Host "`n--- Verifying chain for leaf cert issuer ---"
+          $leafIssuerThumbprint = "263E422F340B92D829D0EC7C5FD4BF90FA2E9D36"
+          $leafIssuerFile = Join-Path $env:RUNNER_TEMP "$leafIssuerThumbprint.crt"
+          $leafIssuer = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($leafIssuerFile)
+          $chain = New-Object System.Security.Cryptography.X509Certificates.X509Chain
+          $chain.ChainPolicy.RevocationMode = [System.Security.Cryptography.X509Certificates.X509RevocationMode]::NoCheck
+          $result = $chain.Build($leafIssuer)
+          Write-Host "Chain build result: $result"
+          foreach ($element in $chain.ChainElements) {
+            Write-Host "  $($element.Certificate.Subject) [$($element.Certificate.Thumbprint)]"
+          }
+          foreach ($status in $chain.ChainStatus) {
+            Write-Host "  Status: $($status.StatusInformation)"
           }
 
       - name: Fetch vault secrets
