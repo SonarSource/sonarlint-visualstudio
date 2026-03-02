@@ -12,7 +12,7 @@
        * Azure CLI must be authenticated via azure/login (OIDC)
   -->
   <PropertyGroup>
-    <TrustedSigningAccount>sonarsource-codesigning</TrustedSigningAccount>
+    <TrustedSigningAccount Condition=" '$(TrustedSigningAccount)' == '' ">codesigning-test</TrustedSigningAccount>
     <TrustedSigningCertificateProfile Condition=" '$(TrustedSigningCertificateProfile)' == '' ">sonarsource-test</TrustedSigningCertificateProfile>
     <TrustedSigningEndpoint>https://weu.codesigning.azure.net</TrustedSigningEndpoint>
   </PropertyGroup>
