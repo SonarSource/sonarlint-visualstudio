@@ -161,7 +161,7 @@ jobs:
         run: |
           echo "${SONARSOURCE_SNK}" | base64 -d > "${SONARSOURCE_SNK_FILE}"
           mkdir -p binaries
-          msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=true -p:AssemblyOriginatorKeyFile="${SONARSOURCE_SNK_FILE}" -p:TrustedSigningAccount="${TRUSTED_SIGNING_ACCOUNT}" -p:TrustedSigningCertificateProfile="${SIGN_CERT_PROFILE}" -p:DeployExtension=false -p:Sha1="${GITHUB_SHA}" -p:BuildNumber="${BUILD_NUMBER}" -p:Configuration=Release /bl:binaries/msbuild-signing.binlog /fl /flp:logfile=binaries/msbuild-signing.log;verbosity=diagnostic
+          MSYS2_ARG_CONV_EXCL="*" msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=true -p:AssemblyOriginatorKeyFile="${SONARSOURCE_SNK_FILE}" -p:TrustedSigningAccount="${TRUSTED_SIGNING_ACCOUNT}" -p:TrustedSigningCertificateProfile="${SIGN_CERT_PROFILE}" -p:DeployExtension=false -p:Sha1="${GITHUB_SHA}" -p:BuildNumber="${BUILD_NUMBER}" -p:Configuration=Release /bl:binaries/msbuild-signing.binlog /fl "/flp:logfile=binaries/msbuild-signing.log;verbosity=diagnostic"
           echo "${SIGN_KEY}" | gpg --batch --passphrase "${SIGN_PASSPHRASE}" --allow-secret-key-import --import
           gpg --list-secret-keys
           dotnet CycloneDX "SonarQube.VisualStudio.sln" -t -F Json -o binaries
