@@ -262,7 +262,7 @@
     <Copy OverwriteReadOnlyFiles="true" SourceFiles="$(TargetDir)$(TargetVsixContainerName)" DestinationFiles="$(BinariesFolder)$(TargetVsixContainerName)" />
 
     <Message Condition=" $(SignArtifacts) != 'true' " Importance="high" Text="Skipping signing VSIX - SignArtifacts = '$(SignArtifacts)'" />
-    <Exec Condition=" $(SignArtifacts) == 'true' " Command="sign code artifact-signing &quot;$(BinariesFolder)$(TargetVsixContainerName)&quot; --artifact-signing-account $(TrustedSigningAccount) --artifact-signing-certificate-profile $(TrustedSigningCertificateProfile) --artifact-signing-endpoint $(TrustedSigningEndpoint)" />
+    <Exec Condition=" $(SignArtifacts) == 'true' " Command="&quot;$(SignToolPath)&quot; sign /v /fd SHA256 /tr &quot;http://timestamp.acs.microsoft.com&quot; /td SHA256 /dlib &quot;$(SignToolDlibPath)&quot; /dmdf &quot;$(SigningMetadataJson)&quot; &quot;$(BinariesFolder)$(TargetVsixContainerName)&quot;" />
   </Target>
   <!-- ********************************************************** -->
 

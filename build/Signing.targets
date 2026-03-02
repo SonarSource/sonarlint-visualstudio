@@ -1,27 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <!-- Targets to handle signing assemblies using Azure Artifact Signing via Sign CLI.
+  <!-- Targets to handle signing assemblies using signtool.exe + Azure Trusted Signing dlib.
 
        Usage:
        The following items should be set by the caller:
        * @(AssembliesToSign)    : the list of assemblies to sign
 
        Prerequisites:
-       * Sign CLI must be installed: dotnet tool install ‑‑global sign ‑‑prerelease
+       * Artifact Signing Client Tools MSI must be installed (provides dlib)
        * Azure CLI must be authenticated via azure/login (OIDC)
+       * SigningMetadataJson property must point to a valid metadata.json file
   -->
   <PropertyGroup>
-    <TrustedSigningAccount Condition=" '$(TrustedSigningAccount)' == '' ">codesigning-test</TrustedSigningAccount>
-    <TrustedSigningCertificateProfile Condition=" '$(TrustedSigningCertificateProfile)' == '' ">sonarsource-test</TrustedSigningCertificateProfile>
-    <TrustedSigningEndpoint>https://weu.codesigning.azure.net</TrustedSigningEndpoint>
+    <SignToolPath Condition=" '$(SignToolPath)' == '' ">signtool.exe</SignToolPath>
+    <SignToolDlibPath Condition=" '$(SignToolDlibPath)' == '' ">C:\Program Files\ArtifactSigningClientTools\bin\x64\Azure.CodeSigning.Dlib.dll</SignToolDlibPath>
+    <SigningMetadataJson Condition=" '$(SigningMetadataJson)' == '' ">signing-metadata.json</SigningMetadataJson>
   </PropertyGroup>
 
   <Target Name="SignAssemblies">
     <Message Importance="high" Text="Assembly to sign: %(AssembliesToSign.FullPath)" />
     <Error Condition=" @(AssembliesToSign) == '' " Text="The list of assemblies to sign is empty." />
 
-    <Exec Command="sign code artifact-signing &quot;%(AssembliesToSign.FullPath)&quot; --artifact-signing-account $(TrustedSigningAccount) --artifact-signing-certificate-profile $(TrustedSigningCertificateProfile) --artifact-signing-endpoint $(TrustedSigningEndpoint)" />
+    <Exec Command="&quot;$(SignToolPath)&quot; sign /v /fd SHA256 /tr &quot;http://timestamp.acs.microsoft.com&quot; /td SHA256 /dlib &quot;$(SignToolDlibPath)&quot; /dmdf &quot;$(SigningMetadataJson)&quot; &quot;%(AssembliesToSign.FullPath)&quot;" />
   </Target>
 
 </Project>
