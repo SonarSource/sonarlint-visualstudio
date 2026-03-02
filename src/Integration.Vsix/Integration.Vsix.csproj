@@ -260,9 +260,7 @@
   <Target Name="CopyVsixToBinariesAndSign" AfterTargets="Build" Inputs="$(TargetDir)$(TargetVsixContainerName)" Outputs="$(BinariesFolder)$(TargetVsixContainerName)">
     <Message Importance="high" Text="Copying vsix from $(TargetDir)$(TargetVsixContainerName) to $(BinariesFolder)$(TargetVsixContainerName)" />
     <Copy OverwriteReadOnlyFiles="true" SourceFiles="$(TargetDir)$(TargetVsixContainerName)" DestinationFiles="$(BinariesFolder)$(TargetVsixContainerName)" />
-
-    <Message Condition=" $(SignArtifacts) != 'true' " Importance="high" Text="Skipping signing VSIX - SignArtifacts = '$(SignArtifacts)'" />
-    <Exec Condition=" $(SignArtifacts) == 'true' " Command="&quot;$(SignToolPath)&quot; sign /v /fd SHA256 /tr &quot;http://timestamp.acs.microsoft.com&quot; /td SHA256 /dlib &quot;$(SignToolDlibPath)&quot; /dmdf &quot;$(SigningMetadataJson)&quot; &quot;$(BinariesFolder)$(TargetVsixContainerName)&quot;" />
+    <!-- VSIX signing is done post-build via Sign CLI in the CI workflow (signtool.exe cannot sign OPC/VSIX files) -->
   </Target>
   <!-- ********************************************************** -->
 

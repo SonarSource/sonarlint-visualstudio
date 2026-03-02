@@ -28,6 +28,8 @@ jobs:
       TRUSTED_SIGNING_ACCOUNT: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'codesigning-release' || 'codesigning-test' }}
       SIGN_CERT_PROFILE: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'sonarsource-release' || 'sonarsource-test' }}
       AZURE_CLIENT_ID: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'c1fcac4d-eb47-402c-8318-37d5d87b9335' || '6b33b753-44e5-4afe-8da5-d7f849bd7909' }}
+      AZURE_TENANT_ID: "75622d57-788f-4dd3-b33c-739f625e6311"
+      AZURE_SUBSCRIPTION_ID: "05011d2a-e478-46bd-b842-09c8693acccb"
 
     steps:
       - uses: actions/checkout@v5
@@ -118,28 +120,17 @@ jobs:
             "${TRUSTED_SIGNING_ACCOUNT}" "${SIGN_CERT_PROFILE}" > signing-metadata.json
           echo "SIGNING_METADATA_JSON=$(pwd)/signing-metadata.json" >> $GITHUB_ENV
 
-      - name: Cache Azure CLI installer
-        uses: SonarSource/gh-action_cache@v1
-        with:
-          path: AzureCLI.msi
-          key: ${{ runner.os }}-azure-cli-installer-v1
-
-      - name: Install Azure CLI
+      - name: Get OIDC token for Azure Trusted Signing
         shell: powershell
         run: |
-          $ProgressPreference = 'SilentlyContinue'
-          if (-Not (Test-Path AzureCLI.msi)) {
-            Invoke-WebRequest -Uri https://aka.ms/installazurecliwindowsx64 -OutFile AzureCLI.msi
-          }
-          Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet /norestart'
-          echo "C:\Program Files\Microsoft SDKs\Azure\CLI2\wbin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
-      - name: Azure Login (OIDC)
-        uses: azure/login@v2
-        with:
-          client-id: ${{ env.AZURE_CLIENT_ID }}
-          tenant-id: 75622d57-788f-4dd3-b33c-739f625e6311
-          subscription-id: 05011d2a-e478-46bd-b842-09c8693acccb
+          $response = Invoke-WebRequest `
+            -Uri "$env:ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange" `
+            -Headers @{Authorization = "bearer $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN"} `
+            -UseBasicParsing
+          $token = ($response.Content | ConvertFrom-Json).value
+          $tokenPath = "$env:RUNNER_TEMP\oidc-token.txt"
+          [System.IO.File]::WriteAllText($tokenPath, $token)
+          Add-Content -Path $env:GITHUB_ENV -Value "AZURE_FEDERATED_TOKEN_FILE=$tokenPath"
 
       - name: Build Signed
         shell: bash
@@ -159,6 +150,26 @@ jobs:
           mv bom.json $sbomname
           gpg --pinentry-mode loopback --passphrase "${SIGN_PASSPHRASE}" --armor --detach-sig --default-key infra@sonarsource.com "$sbomname"
           echo "signed $sbomname"
+
+      - name: Sign VSIX
+        shell: powershell
+        run: |
+          # Refresh OIDC token before signing (the initial token may have expired during build)
+          $response = Invoke-WebRequest `
+            -Uri "$env:ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange" `
+            -Headers @{Authorization = "bearer $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN"} `
+            -UseBasicParsing
+          $token = ($response.Content | ConvertFrom-Json).value
+          [System.IO.File]::WriteAllText($env:AZURE_FEDERATED_TOKEN_FILE, $token)
+
+          dotnet tool update --global sign --prerelease
+          $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
+          sign code trusted-signing `
+            "binaries\SonarLint.VSIX-$env:PROJECT_VERSION-2022.vsix" `
+            --trusted-signing-account $env:TRUSTED_SIGNING_ACCOUNT `
+            --trusted-signing-certificate-profile $env:SIGN_CERT_PROFILE `
+            --trusted-signing-endpoint "https://weu.codesigning.azure.net/" `
+            -v information
 
       # - name: Test with Coverage
       #   shell: bash
