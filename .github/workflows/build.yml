@@ -66,6 +66,28 @@ jobs:
             echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
           fi
 
+      - name: Import Microsoft PKI root for signing
+        shell: powershell
+        run: |
+          $name = "Microsoft Identity Verification TEST ONLY Root Certificate Authority 2020"
+          $url = "https://www.microsoft.com/pkiops/certs/Microsoft%20Identity%20Verification%20TEST%20ONLY%20Root%20Certificate%20Authority%202020.crt"
+          $thumbprint = "DFA0E53504EF5328FAEC21AD7DF14C10B07C4FCB"
+          $store = "Cert:\CurrentUser\Root"
+
+          $outFile = Join-Path $env:RUNNER_TEMP "$thumbprint.crt"
+          Invoke-WebRequest -Uri $url -OutFile $outFile
+          $downloaded = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($outFile)
+          if ($downloaded.Thumbprint -ne $thumbprint) {
+            throw "Thumbprint mismatch for $name. Expected $thumbprint, got $($downloaded.Thumbprint)."
+          }
+
+          certutil -user -f -addstore Root $outFile | Out-Null
+          $imported = Get-ChildItem $store | Where-Object { $_.Thumbprint -eq $thumbprint }
+          if (-not $imported) {
+            throw "Failed to import $name ($thumbprint) into $store."
+          }
+          Write-Host "Imported $name ($thumbprint) into $store"
+
       - name: Prepare Build
         shell: bash
         env:
@@ -134,27 +156,6 @@ jobs:
           tenant-id: 75622d57-788f-4dd3-b33c-739f625e6311
           subscription-id: 05011d2a-e478-46bd-b842-09c8693acccb
 
-      - name: Import Microsoft PKI root for signing
-        shell: powershell
-        run: |
-          $name = "Microsoft Identity Verification TEST ONLY Root Certificate Authority 2020"
-          $url = "https://www.microsoft.com/pkiops/certs/Microsoft%20Identity%20Verification%20TEST%20ONLY%20Root%20Certificate%20Authority%202020.crt"
-          $thumbprint = "DFA0E53504EF5328FAEC21AD7DF14C10B07C4FCB"
-          $store = "Cert:\CurrentUser\Root"
-
-          $outFile = Join-Path $env:RUNNER_TEMP "$thumbprint.crt"
-          Invoke-WebRequest -Uri $url -OutFile $outFile
-          $downloaded = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($outFile)
-          if ($downloaded.Thumbprint -ne $thumbprint) {
-            throw "Thumbprint mismatch for $name. Expected $thumbprint, got $($downloaded.Thumbprint)."
-          }
-
-          certutil -user -f -addstore Root $outFile | Out-Null
-          $imported = Get-ChildItem $store | Where-Object { $_.Thumbprint -eq $thumbprint }
-          if (-not $imported) {
-            throw "Failed to import $name ($thumbprint) into $store."
-          }
-          Write-Host "Imported $name ($thumbprint) into $store"
 
       - name: Build Signed
         shell: bash
