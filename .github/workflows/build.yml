@@ -23,9 +23,11 @@ jobs:
   build:
     runs-on: warp-custom-sonarlint-visualstudio
     name: Build
-    environment: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'sign-')) && 'release' || '' }}
+    environment: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'release' || '' }}
     env:
       SONARSOURCE_SNK_FILE: "/tmp/SonarSource.snk"
+      SIGN_CERT_PROFILE: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'sonarsource-release' || 'sonarsource-test' }}
+      AZURE_CLIENT_ID: ${{ (github.ref_name == 'master' || startsWith(github.ref_name, 'branch-')) && 'c1fcac4d-eb47-402c-8318-37d5d87b9335' || '6b33b753-44e5-4afe-8da5-d7f849bd7909' }}
 
     steps:
       - uses: actions/checkout@v5
@@ -102,14 +104,7 @@ jobs:
           COVERAGE_FILE: ${{ github.workspace }}/coverage.xml
         run: .github/scripts/sonarqube-analysis.sh
 
-      - name: Build Unsigned
-        if: ${{ github.ref_name != 'master' && !startsWith(github.ref_name, 'branch-') && !startsWith(github.ref_name, 'sign-') }}
-        shell: bash
-        run: |
-          msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=false -p:DeployExtension=false -p:Sha1="${GITHUB_SHA}" -p:BuildNumber="${BUILD_NUMBER}" -p:Configuration=Release
-
       - name: Install Sign CLI
-        if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'sign-') }}
         shell: bash
         env:
           ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
@@ -117,14 +112,12 @@ jobs:
         run: dotnet tool install --global sign --prerelease
 
       - name: Cache Azure CLI installer
-        if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'sign-') }}
         uses: SonarSource/gh-action_cache@v1
         with:
           path: AzureCLI.msi
           key: ${{ runner.os }}-azure-cli-installer-v1
 
       - name: Install Azure CLI
-        if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'sign-') }}
         shell: powershell
         run: |
           $ProgressPreference = 'SilentlyContinue'
@@ -135,15 +128,13 @@ jobs:
           echo "C:\Program Files\Microsoft SDKs\Azure\CLI2\wbin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Azure Login (OIDC)
-        if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'sign-') }}
         uses: azure/login@v2
         with:
-          client-id: 738042cf-dcfa-484f-8d86-df928078f2ee
+          client-id: ${{ env.AZURE_CLIENT_ID }}
           tenant-id: 75622d57-788f-4dd3-b33c-739f625e6311
           subscription-id: 05011d2a-e478-46bd-b842-09c8693acccb
 
       - name: Build Signed
-        if: ${{ github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'sign-') }}
         shell: bash
         env:
           SONARSOURCE_SNK: ${{ fromJSON(steps.secrets.outputs.vault).SONARSOURCE_SNK }}
@@ -151,7 +142,8 @@ jobs:
           SIGN_PASSPHRASE: ${{ fromJSON(steps.secrets.outputs.vault).SIGN_PASSPHRASE }}
         run: |
           echo "${SONARSOURCE_SNK}" | base64 -d > "${SONARSOURCE_SNK_FILE}"
-          msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=true -p:AssemblyOriginatorKeyFile="${SONARSOURCE_SNK_FILE}" -p:DeployExtension=false -p:Sha1="${GITHUB_SHA}" -p:BuildNumber="${BUILD_NUMBER}" -p:Configuration=Release
+          msbuild.exe "SonarQube.VisualStudio.sln" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=true -p:AssemblyOriginatorKeyFile="${SONARSOURCE_SNK_FILE}" -p:TrustedSigningCertificateProfile="${SIGN_CERT_PROFILE}" -p:DeployExtension=false -p:Sha1="${GITHUB_SHA}" -p:BuildNumber="${BUILD_NUMBER}" -p:Configuration=Release
+          sign code trusted-signing "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix" --trusted-signing-account sonarsource-codesigning --trusted-signing-certificate-profile "${SIGN_CERT_PROFILE}" --trusted-signing-endpoint https://weu.codesigning.azure.net
           echo "${SIGN_KEY}" | gpg --batch --passphrase "${SIGN_PASSPHRASE}" --allow-secret-key-import --import
           gpg --list-secret-keys
           dotnet CycloneDX "SonarQube.VisualStudio.sln" -t -F Json -o binaries
