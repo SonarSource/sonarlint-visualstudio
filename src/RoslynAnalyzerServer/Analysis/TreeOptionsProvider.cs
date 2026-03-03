@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -19,13 +19,26 @@
  */
 
 using System.Collections.Immutable;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
+using Microsoft.CodeAnalysis;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal class RoslynProjectAnalysisRequest(IRoslynProjectWrapper project, IReadOnlyCollection<IRoslynAnalysisCommand> analysisCommands, ImmutableHashSet<string> targetFilePaths)
+internal sealed class TreeOptionsProvider(
+    ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions,
+    ImmutableHashSet<string> targetFilePaths)
+    : SyntaxTreeOptionsProvider
 {
-    public IRoslynProjectWrapper Project { get; } = project;
-    public IReadOnlyCollection<IRoslynAnalysisCommand> AnalysisCommands { get; } = analysisCommands;
-    public ImmutableHashSet<string> TargetFilePaths { get; } = targetFilePaths;
+    public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity)
+    {
+        severity = targetFilePaths.Contains(tree.FilePath) && diagnosticOptions.TryGetValue(diagnosticId, out var value) ? value : ReportDiagnostic.Suppress;
+        return true;
+    }
+
+    public override bool TryGetGlobalDiagnosticValue(string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity)
+    {
+        severity = ReportDiagnostic.Default;
+        return false;
+    }
+
+    public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken cancellationToken) => GeneratedKind.Unknown;
 }

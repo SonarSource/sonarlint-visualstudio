@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
@@ -47,11 +48,12 @@ internal class RoslynSolutionAnalysisCommandProvider(
                 continue;
             }
 
-            var commands = GetCompilationCommandsForProject(filePaths, project);
+            var targetFilePaths = GetTargetFilePathsForProject(filePaths, project).ToImmutableHashSet();
 
-            if (commands.Any())
+            if (targetFilePaths.Count > 0)
             {
-                result.Add(new RoslynProjectAnalysisRequest(project, commands));
+                var command = new RoslynProjectAnalysis(targetFilePaths);
+                result.Add(new RoslynProjectAnalysisRequest(project, [command], targetFilePaths));
             }
         }
 
@@ -63,20 +65,14 @@ internal class RoslynSolutionAnalysisCommandProvider(
         return result;
     }
 
-    private List<IRoslynAnalysisCommand> GetCompilationCommandsForProject(string[] filePaths, IRoslynProjectWrapper project)
+    private static IEnumerable<string> GetTargetFilePathsForProject(string[] filePaths, IRoslynProjectWrapper project)
     {
-        var commands = new List<IRoslynAnalysisCommand>();
-
         foreach (var filePath in filePaths)
         {
-            if (!project.ContainsDocument(filePath, out var document))
+            if (project.ContainsDocument(filePath, out var document))
             {
-                continue;
+                yield return document.FilePath!;
             }
-
-            commands.Add(new RoslynFileSyntaxAnalysis(document.FilePath!, logger));
-            commands.Add(new RoslynFileSemanticAnalysis(document.FilePath!, logger));
         }
-        return commands;
     }
 }

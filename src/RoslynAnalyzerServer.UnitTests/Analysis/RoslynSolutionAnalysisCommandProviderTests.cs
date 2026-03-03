@@ -121,8 +121,8 @@ public class RoslynSolutionAnalysisCommandProviderTests
         result.Should().ContainSingle();
         var command = result.Single();
         command.Project.Should().Be(project2);
-        command.AnalysisCommands.OfType<RoslynFileSyntaxAnalysis>().Should().HaveCount(1);
-        command.AnalysisCommands.OfType<RoslynFileSemanticAnalysis>().Should().HaveCount(1);
+        command.AnalysisCommands.Should().ContainSingle().Which.Should().BeOfType<RoslynProjectAnalysis>();
+        command.TargetFilePaths.Should().BeEquivalentTo(AnalyzedFile1Cs);
     }
 
     [TestMethod]
@@ -138,9 +138,8 @@ public class RoslynSolutionAnalysisCommandProviderTests
 
         var command = result.Single();
         command.Project.Should().Be(project);
-        command.AnalysisCommands.Should().HaveCount(4);
-        ValidateContainsAllTypesOfAnalysisForFile(command, AnalyzedFile1Cs);
-        ValidateContainsAllTypesOfAnalysisForFile(command, AnalyzedFile2Cs);
+        command.AnalysisCommands.Should().ContainSingle().Which.Should().BeOfType<RoslynProjectAnalysis>();
+        command.TargetFilePaths.Should().BeEquivalentTo(AnalyzedFile1Cs, AnalyzedFile2Cs);
     }
 
     [TestMethod]
@@ -161,28 +160,13 @@ public class RoslynSolutionAnalysisCommandProviderTests
 
         result.Should().HaveCount(2);
         result[0].Project.Should().Be(project3);
-        result[0].AnalysisCommands.Should().HaveCount(4);
-        ValidateContainsAllTypesOfAnalysisForFile(result[0], AnalyzedFile1Cs);
-        ValidateContainsAllTypesOfAnalysisForFile(result[0], AnalyzedFile2Cs);
+        result[0].AnalysisCommands.Should().ContainSingle().Which.Should().BeOfType<RoslynProjectAnalysis>();
+        result[0].TargetFilePaths.Should().BeEquivalentTo(AnalyzedFile1Cs, AnalyzedFile2Cs);
         result[1].Project.Should().Be(project4);
-        result[1].AnalysisCommands.Should().HaveCount(4);
-        ValidateContainsAllTypesOfAnalysisForFile(result[1], AnalyzedFile3Cs);
-        ValidateContainsAllTypesOfAnalysisForFile(result[1], AnalyzedFile1Cs);
+        result[1].AnalysisCommands.Should().ContainSingle().Which.Should().BeOfType<RoslynProjectAnalysis>();
+        result[1].TargetFilePaths.Should().BeEquivalentTo(AnalyzedFile3Cs, AnalyzedFile1Cs);
         logger.AssertPartialOutputStringExists("Project project1 does not support compilation");
     }
-
-    private void ValidateContainsAllTypesOfAnalysisForFile(RoslynProjectAnalysisRequest request, string analysisFilePath)
-    {
-        ValidateContainsSyntacticAnalysisForFile(request, analysisFilePath);
-        ValidateContainsSemanticAnalysisForFile(request, analysisFilePath);
-    }
-
-    private void ValidateContainsSyntacticAnalysisForFile(RoslynProjectAnalysisRequest request, string analysisFilePath) =>
-        request.AnalysisCommands.Any(x => x is RoslynFileSyntaxAnalysis semanticAnalysis && semanticAnalysis.AnalysisFilePath == analysisFilePath).Should().BeTrue();
-
-    private void ValidateContainsSemanticAnalysisForFile(RoslynProjectAnalysisRequest request, string analysisFilePath) =>
-        request.AnalysisCommands.Any(x => x is RoslynFileSemanticAnalysis semanticAnalysis && semanticAnalysis.AnalysisFilePath == analysisFilePath).Should().BeTrue();
-
 
     private static IRoslynProjectWrapper CreateProject(string projectName, bool supportsCompilation = true)
     {

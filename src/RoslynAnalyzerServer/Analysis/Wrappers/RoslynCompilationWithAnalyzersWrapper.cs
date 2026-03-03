@@ -36,6 +36,9 @@ internal class RoslynCompilationWithAnalyzersWrapper(CompilationWithAnalyzers co
 
     public SemanticModel? GetSemanticModel(string filePath) => GetSyntaxTree(filePath) is {} syntaxTree ? compilation.Compilation.GetSemanticModel(syntaxTree) : null;
 
+    public Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(CancellationToken token) =>
+        compilation.GetAllDiagnosticsAsync(token);
+
     public Task<ImmutableArray<Diagnostic>> GetAnalyzerSyntaxDiagnosticsAsync(SyntaxTree syntaxTree, CancellationToken token) =>
         compilation.GetAnalyzerSyntaxDiagnosticsAsync(syntaxTree, token);
 

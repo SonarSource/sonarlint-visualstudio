@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -20,19 +20,22 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
-using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal interface IRoslynCompilationWithAnalyzersWrapper
+internal class RoslynProjectAnalysis(IReadOnlyCollection<string> targetFilePaths) : IRoslynAnalysisCommand
 {
-    RoslynLanguage Language { get; }
-    RoslynAnalysisConfiguration AnalysisConfiguration { get; }
-    SyntaxTree? GetSyntaxTree(string filePath);
+    public IReadOnlyCollection<string> TargetFilePaths { get; } = targetFilePaths;
 
-    SemanticModel? GetSemanticModel(string filePath);
+    public async Task<ImmutableArray<Diagnostic>> ExecuteAsync(IRoslynCompilationWithAnalyzersWrapper compilation, CancellationToken token)
+    {
+        var targetFilePathSet = new HashSet<string>(TargetFilePaths, StringComparer.OrdinalIgnoreCase);
 
-    Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(CancellationToken token);
-    Task<ImmutableArray<Diagnostic>> GetAnalyzerSyntaxDiagnosticsAsync(SyntaxTree syntaxTree, CancellationToken token);
-    Task<ImmutableArray<Diagnostic>> GetAnalyzerSemanticDiagnosticsAsync(SemanticModel semanticModel, CancellationToken token);
+        var allDiagnostics = await compilation.GetAllDiagnosticsAsync(token);
+
+        return allDiagnostics
+            .Where(d => d.Location.SourceTree != null && targetFilePathSet.Contains(d.Location.SourceTree.FilePath))
+            .ToImmutableArray();
+    }
 }

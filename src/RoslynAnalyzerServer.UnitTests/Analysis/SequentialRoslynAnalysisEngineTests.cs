@@ -91,7 +91,7 @@ public class SequentialRoslynAnalysisEngineTests
         var result = await testSubject.AnalyzeAsync([CreateProjectRequest(project)], configurations, cancellationToken);
 
         result.Should().BeEmpty();
-        await projectCompilationProvider.Received(1).GetProjectCompilationAsync(project, configurations, cancellationToken);
+        await projectCompilationProvider.Received(1).GetProjectCompilationAsync(Arg.Is<RoslynProjectAnalysisRequest>(r => r.Project == project), configurations, cancellationToken);
     }
 
     public static object[][] RoslynLanguages =>
@@ -224,10 +224,10 @@ public class SequentialRoslynAnalysisEngineTests
         var (project, projectCompilation) = SetupProjectAnalysisRequestAndCompilation(analysisConfiguration);
         var commands = diagnosticsPerCommand.Select(x => SetupCommandWithDiagnostics(projectCompilation, x)).ToArray();
 
-        return (new RoslynProjectAnalysisRequest(project, commands), projectCompilation);
+        return (new RoslynProjectAnalysisRequest(project, commands, []), projectCompilation);
     }
 
-    private RoslynProjectAnalysisRequest CreateProjectRequest(IRoslynProjectWrapper project, params IRoslynAnalysisCommand[] commands) => new(project, commands);
+    private RoslynProjectAnalysisRequest CreateProjectRequest(IRoslynProjectWrapper project, params IRoslynAnalysisCommand[] commands) => new(project, commands, []);
 
     private (IRoslynProjectWrapper project, IRoslynCompilationWithAnalyzersWrapper projectCompilation) SetupProjectAnalysisRequestAndCompilation(
         RoslynAnalysisConfiguration? analysisConfiguration = null)
@@ -269,7 +269,7 @@ public class SequentialRoslynAnalysisEngineTests
     {
         var compilationWithAnalyzers = Substitute.For<IRoslynCompilationWithAnalyzersWrapper>();
         compilationWithAnalyzers.AnalysisConfiguration.Returns(analysisConfiguration);
-        projectCompilationProvider.GetProjectCompilationAsync(project, configurations, cancellationToken)
+        projectCompilationProvider.GetProjectCompilationAsync(Arg.Is<RoslynProjectAnalysisRequest>(r => r.Project == project), configurations, cancellationToken)
             .Returns(compilationWithAnalyzers);
         return compilationWithAnalyzers;
     }
@@ -292,7 +292,7 @@ public class SequentialRoslynAnalysisEngineTests
         Language? language = null)
     {
         projectCompilationProvider.Received(1)
-            .GetProjectCompilationAsync(projectRequest.Project, configurations, cancellationToken).IgnoreAwaitForAssert();
+            .GetProjectCompilationAsync(Arg.Is<RoslynProjectAnalysisRequest>(r => r.Project == projectRequest.Project), configurations, cancellationToken).IgnoreAwaitForAssert();
         foreach (var analysisCommand in projectRequest.AnalysisCommands)
         {
             analysisCommand.Received(1).ExecuteAsync(compilationWithAnalyzers, cancellationToken).IgnoreAwaitForAssert();
