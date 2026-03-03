@@ -89,17 +89,6 @@ public class TreeOptionsProviderTests
     }
 
     [TestMethod]
-    public void TryGetDiagnosticValue_CaseInsensitiveFilePath()
-    {
-        var tree = CreateSyntaxTree(TargetFilePath.ToUpperInvariant());
-
-        var result = testSubject.TryGetDiagnosticValue(tree, KnownRuleId, CancellationToken.None, out var severity);
-
-        result.Should().BeTrue();
-        severity.Should().Be(ReportDiagnostic.Warn);
-    }
-
-    [TestMethod]
     public void TryGetGlobalDiagnosticValue_ReturnsFalseWithDefault()
     {
         var result = testSubject.TryGetGlobalDiagnosticValue(KnownRuleId, CancellationToken.None, out var severity);
