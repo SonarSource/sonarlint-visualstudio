@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.IntegrationTests.Analysis;
 public class TestBadClassNameAnalyzer : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "TEST001";
+    public const string InvalidFilePath = @"C:\TestProject\Invalid.cs";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticId,
@@ -50,6 +51,11 @@ public class TestBadClassNameAnalyzer : DiagnosticAnalyzer
 
     private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
     {
+        if (context.Node.SyntaxTree.FilePath == InvalidFilePath)
+        {
+            throw new NotSupportedException("This file is not supposed to be analyzed, rule (de)activation does not work");
+        }
+
         var classDeclaration = (ClassDeclarationSyntax)context.Node;
         var className = classDeclaration.Identifier.Text;
 

@@ -69,19 +69,37 @@ public class RoslynAnalysisServiceIntegrationTests
     }
 
     [TestMethod]
-    public async Task AnalyzeAsync_MultipleFilesInProject_OnlyReturnsIssuesForRequestedFile()
+    public async Task AnalyzeAsync_MultipleFilesAnalyzed_ReturnsIssuesForAllRequestedFiles()
     {
-        var requestedFilePath = @"C:\TestProject\BadClassName1.cs";
-        var otherFilePath = @"C:\TestProject\BadClassName2.cs";
+        var filePath1 = @"C:\TestProject\BadClassName1.cs";
+        var filePath2 = @"C:\TestProject\BadClassName2.cs";
         using var workspace = CreateWorkspaceWithDocuments(
-            ("public class BadClassName1 { }", requestedFilePath),
-            ("public class BadClassName2 { }", otherFilePath));
+            ("public class BadClassName1 { }", filePath1),
+            ("public class BadClassName2 { }", filePath2));
+        using var testSubject = CreateTestSubject(workspace);
+
+        var request = CreateAnalysisRequest(filePath1, filePath2);
+        var results = (await testSubject.AnalyzeAsync(request, CancellationToken.None)).ToList();
+
+        results.Should().HaveCount(2);
+        results.Select(r => r.PrimaryLocation.FileUri.LocalPath).Should().BeEquivalentTo(filePath1, filePath2);
+    }
+
+    [TestMethod]
+    public async Task AnalyzeAsync_MultipleFilesInProject_OnlyAnalyzesRequestedFile()
+    {
+        var requestedFilePath = @"C:\TestProject\BadClassName.cs";
+        var nonTargetFilePath = TestBadClassNameAnalyzer.InvalidFilePath;
+        using var workspace = CreateWorkspaceWithDocuments(
+            ("public class BadClassName { }", requestedFilePath),
+            ("public class BadNonTarget { }", nonTargetFilePath));
         using var testSubject = CreateTestSubject(workspace);
 
         var request = CreateAnalysisRequest(requestedFilePath);
         var results = (await testSubject.AnalyzeAsync(request, CancellationToken.None)).ToList();
 
         results.Should().ContainSingle();
+        results[0].RuleId.Should().Be("csharpsquid:TEST001");
         results[0].PrimaryLocation.FileUri.LocalPath.Should().Be(requestedFilePath);
     }
 
