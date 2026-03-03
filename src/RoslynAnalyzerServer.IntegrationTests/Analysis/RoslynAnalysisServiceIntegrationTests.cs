@@ -38,6 +38,24 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.IntegrationTests.Analysis;
 [TestClass]
 public class RoslynAnalysisServiceIntegrationTests
 {
+    private TestLogger logger = null!;
+    private IWorkspaceChangeIndicator workspaceChangeIndicator = null!;
+    private ITreatWarningsAsErrorsCacheUpdater treatWarningsAsErrorsCacheUpdater = null!;
+    private ITreatWarningsAsErrorsChangeIndicator treatWarningsAsErrorsChangeIndicator = null!;
+    private IAnalysisRequester analysisRequester = null!;
+    private IThreadHandling threadHandling = null!;
+
+    [TestInitialize]
+    public void TestInitialize()
+    {
+        logger = Substitute.ForPartsOf<TestLogger>();
+        workspaceChangeIndicator = Substitute.For<IWorkspaceChangeIndicator>();
+        treatWarningsAsErrorsCacheUpdater = Substitute.For<ITreatWarningsAsErrorsCacheUpdater>();
+        treatWarningsAsErrorsChangeIndicator = Substitute.For<ITreatWarningsAsErrorsChangeIndicator>();
+        analysisRequester = Substitute.For<IAnalysisRequester>();
+        threadHandling = Substitute.For<IThreadHandling>();
+    }
+
     [TestMethod]
     public async Task AnalyzeAsync_FileWithIssues_ReturnsRoslynIssuesWithCorrectData()
     {
@@ -95,12 +113,20 @@ public class RoslynAnalysisServiceIntegrationTests
             ("public class BadNonTarget { }", nonTargetFilePath));
         using var testSubject = CreateTestSubject(workspace);
 
+        var requestForInvalidFile = CreateAnalysisRequest(TestBadClassNameAnalyzer.InvalidFilePath);
+        var resultsForInvalidFile = (await testSubject.AnalyzeAsync(requestForInvalidFile, CancellationToken.None)).ToList();
+
+        resultsForInvalidFile.Should().BeEmpty();
+        logger.AssertPartialOutputStringExists(TestBadClassNameAnalyzer.InvalidFileErrorMessage);
+        logger.Reset();
+
         var request = CreateAnalysisRequest(requestedFilePath);
         var results = (await testSubject.AnalyzeAsync(request, CancellationToken.None)).ToList();
 
         results.Should().ContainSingle();
         results[0].RuleId.Should().Be("csharpsquid:TEST001");
         results[0].PrimaryLocation.FileUri.LocalPath.Should().Be(requestedFilePath);
+        logger.AssertPartialOutputStringDoesNotExist(TestBadClassNameAnalyzer.InvalidFileErrorMessage);
     }
 
     [TestMethod]
@@ -165,15 +191,14 @@ public class RoslynAnalysisServiceIntegrationTests
         return workspace;
     }
 
-    private static RoslynAnalysisConfiguration CreateTestAnalysisConfiguration()
-    {
-        return new RoslynAnalysisConfiguration(
+    private static RoslynAnalysisConfiguration CreateTestAnalysisConfiguration() =>
+        new(
             new SonarLintXmlConfigurationFile(System.IO.Path.GetTempPath(), "<SonarLintConfiguration></SonarLintConfiguration>"),
             ImmutableDictionary<string, ReportDiagnostic>.Empty
-                .Add(TestBadClassNameAnalyzer.DiagnosticId, ReportDiagnostic.Warn),
+                .Add(TestBadClassNameAnalyzer.DiagnosticId, ReportDiagnostic.Warn)
+                .Add("AD0001", ReportDiagnostic.Error),
             ImmutableArray.Create<DiagnosticAnalyzer>(new TestBadClassNameAnalyzer()),
             ImmutableDictionary<string, IReadOnlyCollection<CodeFixProvider>>.Empty);
-    }
 
     private static IRoslynAnalysisConfigurationProvider CreateMockedConfigurationProvider()
     {
@@ -193,15 +218,8 @@ public class RoslynAnalysisServiceIntegrationTests
         return provider;
     }
 
-    private static RoslynAnalysisService CreateTestSubject(AdhocWorkspace workspace)
+    private RoslynAnalysisService CreateTestSubject(AdhocWorkspace workspace)
     {
-        var logger = Substitute.ForPartsOf<TestLogger>();
-        var workspaceChangeIndicator = Substitute.For<IWorkspaceChangeIndicator>();
-        var treatWarningsAsErrorsCacheUpdater = Substitute.For<ITreatWarningsAsErrorsCacheUpdater>();
-        var treatWarningsAsErrorsChangeIndicator = Substitute.For<ITreatWarningsAsErrorsChangeIndicator>();
-        var analysisRequester = Substitute.For<IAnalysisRequester>();
-        var threadHandling = Substitute.For<IThreadHandling>();
-
         var workspaceWrapper = new RoslynWorkspaceWrapper(
             workspace,
             workspaceChangeIndicator,

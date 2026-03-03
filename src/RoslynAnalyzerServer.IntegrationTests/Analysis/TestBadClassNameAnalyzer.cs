@@ -31,6 +31,7 @@ public class TestBadClassNameAnalyzer : DiagnosticAnalyzer
 {
     public const string DiagnosticId = "TEST001";
     public const string InvalidFilePath = @"C:\TestProject\Invalid.cs";
+    public const string InvalidFileErrorMessage = "This file is not supposed to be analyzed, rule (de)activation does not work";
 
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticId,
@@ -53,7 +54,7 @@ public class TestBadClassNameAnalyzer : DiagnosticAnalyzer
     {
         if (context.Node.SyntaxTree.FilePath == InvalidFilePath)
         {
-            throw new NotSupportedException("This file is not supposed to be analyzed, rule (de)activation does not work");
+            throw new NotSupportedException(InvalidFileErrorMessage);
         }
 
         var classDeclaration = (ClassDeclarationSyntax)context.Node;
