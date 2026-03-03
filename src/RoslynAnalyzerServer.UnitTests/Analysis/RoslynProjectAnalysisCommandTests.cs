@@ -28,7 +28,7 @@ using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 
 [TestClass]
-public class RoslynProjectAnalysisTests
+public class RoslynProjectAnalysisCommandTests
 {
     private const string File1 = @"C:\project\file1.cs";
     private const string File2 = @"C:\project\file2.cs";
@@ -45,7 +45,7 @@ public class RoslynProjectAnalysisTests
     [TestMethod]
     public void Constructor_SetsTargetFilePaths()
     {
-        var testSubject = new RoslynProjectAnalysis([File1, File2]);
+        var testSubject = new RoslynProjectAnalysisCommand([File1, File2]);
 
         testSubject.TargetFilePaths.Should().BeEquivalentTo(File1, File2);
     }
@@ -56,7 +56,7 @@ public class RoslynProjectAnalysisTests
         var diag1 = CreateTestDiagnostic("S001", File1);
         var diag2 = CreateTestDiagnostic("S002", File1);
         SetupGetAllDiagnostics(diag1, diag2);
-        var testSubject = new RoslynProjectAnalysis([File1]);
+        var testSubject = new RoslynProjectAnalysisCommand([File1]);
 
         var result = await testSubject.ExecuteAsync(compilationWrapper, CancellationToken.None);
 
@@ -69,7 +69,7 @@ public class RoslynProjectAnalysisTests
         var diag1 = CreateTestDiagnostic("S001", File1);
         var diag2 = CreateTestDiagnostic("S002", File2);
         SetupGetAllDiagnostics(diag1, diag2);
-        var testSubject = new RoslynProjectAnalysis([File1, File2]);
+        var testSubject = new RoslynProjectAnalysisCommand([File1, File2]);
 
         var result = await testSubject.ExecuteAsync(compilationWrapper, CancellationToken.None);
 
@@ -82,7 +82,7 @@ public class RoslynProjectAnalysisTests
         var targetDiagnostic = CreateTestDiagnostic("S001", File1);
         var nonTargetDiagnostic = CreateTestDiagnostic("S002", NonTargetFile);
         SetupGetAllDiagnostics(targetDiagnostic, nonTargetDiagnostic);
-        var testSubject = new RoslynProjectAnalysis([File1]);
+        var testSubject = new RoslynProjectAnalysisCommand([File1]);
 
         var result = await testSubject.ExecuteAsync(compilationWrapper, CancellationToken.None);
 
@@ -95,7 +95,7 @@ public class RoslynProjectAnalysisTests
         var targetDiagnostic = CreateTestDiagnostic("S001", File1);
         var noLocationDiagnostic = Diagnostic.Create("S003", "category", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 1);
         SetupGetAllDiagnostics(targetDiagnostic, noLocationDiagnostic);
-        var testSubject = new RoslynProjectAnalysis([File1]);
+        var testSubject = new RoslynProjectAnalysisCommand([File1]);
 
         var result = await testSubject.ExecuteAsync(compilationWrapper, CancellationToken.None);
 
@@ -106,7 +106,7 @@ public class RoslynProjectAnalysisTests
     public async Task ExecuteAsync_NoDiagnostics_ReturnsEmpty()
     {
         SetupGetAllDiagnostics();
-        var testSubject = new RoslynProjectAnalysis([File1]);
+        var testSubject = new RoslynProjectAnalysisCommand([File1]);
 
         var result = await testSubject.ExecuteAsync(compilationWrapper, CancellationToken.None);
 
@@ -118,7 +118,7 @@ public class RoslynProjectAnalysisTests
     {
         var expectedToken = new CancellationToken(true);
         SetupGetAllDiagnostics();
-        var testSubject = new RoslynProjectAnalysis([File1]);
+        var testSubject = new RoslynProjectAnalysisCommand([File1]);
 
         await testSubject.ExecuteAsync(compilationWrapper, expectedToken);
 

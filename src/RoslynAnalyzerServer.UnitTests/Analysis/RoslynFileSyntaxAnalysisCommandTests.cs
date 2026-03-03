@@ -29,14 +29,14 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 
 [TestClass]
-public class RoslynFileSyntaxAnalysisTests
+public class RoslynFileSyntaxAnalysisCommandTests
 {
     private const string TestFilePath = "test.cs";
 
     private IRoslynCompilationWithAnalyzersWrapper compilationWrapper = null!;
     private SyntaxTree syntaxTree = null!;
     private TestLogger testLogger = null!;
-    private RoslynFileSyntaxAnalysis testSubject = null!;
+    private RoslynFileSyntaxAnalysisCommand testSubject = null!;
 
     [TestInitialize]
     public void TestInitialize()
@@ -45,7 +45,7 @@ public class RoslynFileSyntaxAnalysisTests
         compilationWrapper = Substitute.For<IRoslynCompilationWithAnalyzersWrapper>();
         syntaxTree = Substitute.For<SyntaxTree>();
 
-        testSubject = new RoslynFileSyntaxAnalysis(TestFilePath, testLogger);
+        testSubject = new RoslynFileSyntaxAnalysisCommand(TestFilePath, testLogger);
     }
 
     [TestMethod]

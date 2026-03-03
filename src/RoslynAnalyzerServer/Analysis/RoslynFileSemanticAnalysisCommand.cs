@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal class RoslynFileSemanticAnalysis(string analysisFilePath, ILogger logger) : IRoslynAnalysisCommand
+internal class RoslynFileSemanticAnalysisCommand(string analysisFilePath, ILogger logger) : IRoslynAnalysisCommand
 {
     public string AnalysisFilePath { get; } = analysisFilePath;
 

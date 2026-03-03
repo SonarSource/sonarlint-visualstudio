@@ -24,18 +24,16 @@ using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal class RoslynProjectAnalysis(IReadOnlyCollection<string> targetFilePaths) : IRoslynAnalysisCommand
+internal class RoslynProjectAnalysisCommand(ImmutableHashSet<string> targetFilePaths) : IRoslynAnalysisCommand
 {
-    public IReadOnlyCollection<string> TargetFilePaths { get; } = targetFilePaths;
+    public ImmutableHashSet<string> TargetFilePaths { get; } = targetFilePaths;
 
     public async Task<ImmutableArray<Diagnostic>> ExecuteAsync(IRoslynCompilationWithAnalyzersWrapper compilation, CancellationToken token)
     {
-        var targetFilePathSet = new HashSet<string>(TargetFilePaths, StringComparer.OrdinalIgnoreCase);
-
         var allDiagnostics = await compilation.GetAllDiagnosticsAsync(token);
 
         return allDiagnostics
-            .Where(d => d.Location.SourceTree != null && targetFilePathSet.Contains(d.Location.SourceTree.FilePath))
+            .Where(d => d.Location.SourceTree != null && TargetFilePaths.Contains(d.Location.SourceTree.FilePath))
             .ToImmutableArray();
     }
 }

@@ -52,7 +52,7 @@ internal class RoslynSolutionAnalysisCommandProvider(
 
             if (targetFilePaths.Count > 0)
             {
-                var command = new RoslynProjectAnalysis(targetFilePaths);
+                var command = new RoslynProjectAnalysisCommand(targetFilePaths);
                 result.Add(new RoslynProjectAnalysisRequest(project, [command], targetFilePaths));
             }
         }
