@@ -240,7 +240,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove disallowed #pragma directive.
+        ///   Looks up a localized string similar to Remove unused #pragma directive.
         /// </summary>
         internal static string PD0001CodeFixTitle {
             get {
@@ -348,7 +348,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Detects disallowed #pragma warning directives for diagnostic IDs in the configured disallow list..
+        ///   Looks up a localized string similar to Detects unused #pragma warning directives for Sonar rules in VisualStudio..
         /// </summary>
         internal static string SQVSPRAGMADescription {
             get {
@@ -357,7 +357,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Disallowed #pragma warning directive for &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Unused #pragma warning directive for &apos;{0}&apos;.
         /// </summary>
         internal static string SQVSPRAGMAMessageFormat {
             get {
@@ -366,7 +366,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Disallowed #pragma warning directive.
+        ///   Looks up a localized string similar to Unused #pragma warning directive.
         /// </summary>
         internal static string SQVSPRAGMATitle {
             get {

@@ -42,14 +42,50 @@ internal class RoslynProjectCompilationProvider(ILogger logger) : IRoslynProject
     {
         var project = projectAnalysisRequest.Project;
         var compilation = await project.GetCompilationAsync(token);
+        var configuration = sonarRoslynAnalysisConfigurations[compilation.Language];
 
-        var analysisConfigurationForLanguage = sonarRoslynAnalysisConfigurations[compilation.Language];
-
-        return ApplyAnalyzersAndAdditionalFile(
-            ApplyDiagnosticOptions(project, compilation, analysisConfigurationForLanguage, projectAnalysisRequest.TargetFilePaths),
-            project,
-            analysisConfigurationForLanguage);
+        return BuildCompilationWithAnalyzers(project, compilation, configuration, projectAnalysisRequest.TargetFilePaths);
     }
+
+    public async Task<(IRoslynCompilationWithAnalyzersWrapper mainCompilation, IRoslynCompilationWithAnalyzersWrapper? additionalCompilation)> GetProjectCompilationsAsync(
+        RoslynProjectAnalysisRequest projectAnalysisRequest,
+        IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> mainConfigurations,
+        IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> additionalConfigurations,
+        CancellationToken token)
+    {
+        var project = projectAnalysisRequest.Project;
+        var compilation = await project.GetCompilationAsync(token);
+
+        var mainConfiguration = mainConfigurations[compilation.Language];
+        var additionalConfiguration = GetAdditionalConfiguration(additionalConfigurations, compilation);
+
+        return (BuildCompilationWithAnalyzers(project, compilation, mainConfiguration, projectAnalysisRequest.TargetFilePaths),
+            additionalConfiguration is not null
+                ? BuildCompilationWithAnalyzers(project, compilation, additionalConfiguration.Value, projectAnalysisRequest.TargetFilePaths)
+                : null);
+    }
+
+    private static RoslynAnalysisConfiguration? GetAdditionalConfiguration(
+        IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> additionalConfigurations,
+        IRoslynCompilationWrapper compilation)
+    {
+        if (additionalConfigurations.TryGetValue(compilation.Language, out var configuration))
+        {
+            return configuration;
+        }
+
+        return null;
+    }
+
+    private IRoslynCompilationWithAnalyzersWrapper BuildCompilationWithAnalyzers(
+        IRoslynProjectWrapper project,
+        IRoslynCompilationWrapper compilation,
+        RoslynAnalysisConfiguration configuration,
+        ImmutableHashSet<string> targetFilePaths) =>
+        ApplyAnalyzersAndAdditionalFile(
+            ApplyDiagnosticOptions(project, compilation, configuration, targetFilePaths),
+            project,
+            configuration);
 
     private IRoslynCompilationWithAnalyzersWrapper ApplyAnalyzersAndAdditionalFile(
         IRoslynCompilationWrapper compilation,
@@ -57,14 +93,10 @@ internal class RoslynProjectCompilationProvider(ILogger logger) : IRoslynProject
         RoslynAnalysisConfiguration analysisConfigurationForLanguage)
     {
         var additionalFiles = project.RoslynAnalyzerOptions.AdditionalFiles;
-        var analyzerOptions = project.RoslynAnalyzerOptions;
-        if (analysisConfigurationForLanguage.SonarLintXml is not null)
-        {
-            analyzerOptions = analyzerOptions.WithAdditionalFiles(additionalFiles
-                .Where(x => Path.GetFileName(x.Path) != analysisConfigurationForLanguage.SonarLintXml.FileName)
-                .Concat([analysisConfigurationForLanguage.SonarLintXml])
-                .ToImmutableArray());
-        }
+        var analyzerOptions = project.RoslynAnalyzerOptions.WithAdditionalFiles(additionalFiles
+            .Where(x => Path.GetFileName(x.Path) != analysisConfigurationForLanguage.SonarLintXml.FileName)
+            .Concat([analysisConfigurationForLanguage.SonarLintXml])
+            .ToImmutableArray());
 
         var compilationWithAnalyzersOptions = new CompilationWithAnalyzersOptions(
             analyzerOptions,
@@ -83,10 +115,6 @@ internal class RoslynProjectCompilationProvider(ILogger logger) : IRoslynProject
         RoslynAnalysisConfiguration analysisConfigurationForLanguage,
         ImmutableHashSet<string> targetFilePaths)
     {
-        if (analysisConfigurationForLanguage.DiagnosticOptions is null)
-        {
-            return compilation;
-        }
         var mergedDiagnosticOptions = OverrideQualityProfileWithProjectSettings(project, analysisConfigurationForLanguage.DiagnosticOptions);
         var compilationOptions = compilation.RoslynCompilationOptions
             .WithSpecificDiagnosticOptions(mergedDiagnosticOptions)
