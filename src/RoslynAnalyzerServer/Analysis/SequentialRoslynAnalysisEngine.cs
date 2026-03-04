@@ -51,16 +51,16 @@ internal class SequentialRoslynAnalysisEngine(
         var nonUniqueDiagnostics = ImmutableArray.Create<Diagnostic>();
         var additionalConfigurations = additionalAnalysisConfigurationFactory.Create(() => nonUniqueDiagnostics, sonarRoslynAnalysisConfigurations);
 
-        foreach (var projectAnalysisCommands in projectsAnalysis)
+        foreach (var projectAnalysisRequest in projectsAnalysis)
         {
             var (compilationWithAnalyzers, compilationWithAdditionalAnalyzers) = await projectCompilationProvider.GetProjectCompilationsAsync(
-                projectAnalysisCommands,
+                projectAnalysisRequest,
                 sonarRoslynAnalysisConfigurations,
                 additionalConfigurations,
                 token);
 
             // todo SLVS-2467 issue streaming
-            foreach (var analysisCommand in projectAnalysisCommands.AnalysisCommands)
+            foreach (var analysisCommand in projectAnalysisRequest.AnalysisCommands)
             {
                 var diagnostics = await analysisCommand.ExecuteAsync(compilationWithAnalyzers, token);
                 nonUniqueDiagnostics = nonUniqueDiagnostics.AddRange(diagnostics);
@@ -69,7 +69,7 @@ internal class SequentialRoslynAnalysisEngine(
                 {
                     var quickFixes = await quickFixFactory.CreateQuickFixesAsync(
                         diagnostic,
-                        projectAnalysisCommands.Project.Solution,
+                        projectAnalysisRequest.Project.Solution,
                         compilationWithAnalyzers.AnalysisConfiguration,
                         token);
 
@@ -85,7 +85,7 @@ internal class SequentialRoslynAnalysisEngine(
 
             if (compilationWithAdditionalAnalyzers is not null)
             {
-                await ProduceAdditionalDiagnosticsAsync(token, projectAnalysisCommands, compilationWithAdditionalAnalyzers);
+                await ProduceAdditionalDiagnosticsAsync(token, projectAnalysisRequest, compilationWithAdditionalAnalyzers);
             }
         }
 

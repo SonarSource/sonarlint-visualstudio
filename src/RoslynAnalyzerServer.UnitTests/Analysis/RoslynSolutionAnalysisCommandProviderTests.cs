@@ -168,6 +168,34 @@ public class RoslynSolutionAnalysisCommandProviderTests
         logger.AssertPartialOutputStringExists("Project project1 does not support compilation");
     }
 
+    [TestMethod]
+    public void GetAnalysisCommandsForCurrentSolution_ProjectWithFiles_AdditionalCommandsContainFileSyntaxCommands()
+    {
+        var project = CreateProject(Project1);
+        SetupContainsDocument(project, File1Cs, AnalyzedFile1Cs);
+        solutionWrapper.Projects.Returns([project]);
+
+        var result = testSubject.GetAnalysisCommandsForCurrentSolution([File1Cs]);
+
+        result.Single().AdditionalCommands.Should().ContainSingle()
+            .Which.Should().BeOfType<RoslynFileSyntaxAnalysisCommand>();
+    }
+
+    [TestMethod]
+    public void GetAnalysisCommandsForCurrentSolution_MultipleFiles_AdditionalCommandsMatchTargetFiles()
+    {
+        var project = CreateProject(Project1);
+        SetupContainsDocument(project, File1Cs, AnalyzedFile1Cs);
+        SetupContainsDocument(project, File2Cs, AnalyzedFile2Cs);
+        solutionWrapper.Projects.Returns([project]);
+
+        var result = testSubject.GetAnalysisCommandsForCurrentSolution([File1Cs, File2Cs]);
+
+        var additionalCommands = result.Single().AdditionalCommands;
+        additionalCommands.Should().HaveCount(2);
+        additionalCommands.Should().AllBeOfType<RoslynFileSyntaxAnalysisCommand>();
+    }
+
     private static IRoslynProjectWrapper CreateProject(string projectName, bool supportsCompilation = true)
     {
         var project = Substitute.For<IRoslynProjectWrapper>();
