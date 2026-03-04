@@ -240,15 +240,6 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove unused #pragma directive.
-        /// </summary>
-        internal static string PD0001CodeFixTitle {
-            get {
-                return ResourceManager.GetString("PD0001CodeFixTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Failed to load class {0} from {1}: {2}.
         /// </summary>
         internal static string RoslynAnalysisAnalyzerClassLoaderFailedToLoad {
@@ -344,6 +335,15 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
         internal static string RoslynQuickFixLogContext {
             get {
                 return ResourceManager.GetString("RoslynQuickFixLogContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unused #pragma directive.
+        /// </summary>
+        internal static string SQVSPRAGMACodeFixTitle {
+            get {
+                return ResourceManager.GetString("SQVSPRAGMACodeFixTitle", resourceCulture);
             }
         }
         

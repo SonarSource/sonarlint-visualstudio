@@ -56,7 +56,7 @@ public class PragmaWarningDisableCodeFixProvider : CodeFixProvider
                 continue;
             }
 
-            var title = Resources.PD0001CodeFixTitle;
+            var title = Resources.SQVSPRAGMACodeFixTitle;
 
             context.RegisterCodeFix(
                 CodeAction.Create(
