@@ -52,6 +52,7 @@ public class TaggerProviderTests
     private IVsProjectInfoProvider vsProjectInfoProvider;
     private IIssueConsumerFactory issueConsumerFactory;
     private IIssueConsumerStorage issueConsumerStorage;
+    private IAdditionalAnalysisIssueStorage additionalAnalysisIssueStorage;
     private IAnalyzer analyzer;
     private IInitializationProcessorFactory initializationProcessorFactory;
     private ICanonicalFilePathProvider canonicalFilePathProvider;
@@ -84,6 +85,7 @@ public class TaggerProviderTests
         vsProjectInfoProvider = Substitute.For<IVsProjectInfoProvider>();
         issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
         issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
+        additionalAnalysisIssueStorage = Substitute.For<IAdditionalAnalysisIssueStorage>();
         analyzer = Substitute.For<IAnalyzer>();
 
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
@@ -119,6 +121,7 @@ public class TaggerProviderTests
         MefTestHelpers.CreateExport<IVsProjectInfoProvider>(),
         MefTestHelpers.CreateExport<IIssueConsumerFactory>(),
         MefTestHelpers.CreateExport<IIssueConsumerStorage>(),
+        MefTestHelpers.CreateExport<IAdditionalAnalysisIssueStorage>(),
         MefTestHelpers.CreateExport<ITaggableBufferIndicator>(),
         MefTestHelpers.CreateExport<IFileStateManager>(),
         MefTestHelpers.CreateExport<IAnalyzer>(),
@@ -466,7 +469,7 @@ public class TaggerProviderTests
         var taggerProvider = new TaggerProvider(
             mockSonarErrorDataSource, dummyDocumentFactoryService, serviceProvider,
             mockSonarLanguageRecognizer, mockAnalysisRequester, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage,
-            mockTaggableBufferIndicator, fileStateManager, analyzer, logger, initializationProcessorFactory, canonicalFilePathProvider, threadHandling);
+            additionalAnalysisIssueStorage, mockTaggableBufferIndicator, fileStateManager, analyzer, logger, initializationProcessorFactory, canonicalFilePathProvider, threadHandling);
         taggerProvider.InitializationProcessor.InitializeAsync().GetAwaiter().GetResult();
         return taggerProvider;
     }
