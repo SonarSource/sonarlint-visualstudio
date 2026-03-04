@@ -27,6 +27,7 @@ public interface IAdditionalAnalysisIssueStorage
 {
     void Store(string filePath, IReadOnlyList<IAnalysisIssue> issues);
     IReadOnlyList<IAnalysisIssue> Get(string filePath);
+    void Remove(string filePath);
 }
 
 [Export(typeof(IAdditionalAnalysisIssueStorage))]
@@ -40,4 +41,7 @@ internal class AdditionalAnalysisIssueStorage : IAdditionalAnalysisIssueStorage
 
     public IReadOnlyList<IAnalysisIssue> Get(string filePath) =>
         storage.TryGetValue(filePath, out var issues) ? issues : [];
+
+    public void Remove(string filePath) =>
+        storage.TryRemove(filePath, out _);
 }

@@ -68,6 +68,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
     private readonly IFileStateManager fileStateManager;
     private readonly IIssueConsumerFactory issueConsumerFactory;
     private readonly IIssueConsumerStorage issueConsumerStorage;
+    private readonly IAdditionalAnalysisIssueStorage additionalAnalysisIssueStorage;
 
     private readonly ISonarLanguageRecognizer languageRecognizer;
     private readonly ILogger logger;
@@ -91,6 +92,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
         IVsProjectInfoProvider vsProjectInfoProvider,
         IIssueConsumerFactory issueConsumerFactory,
         IIssueConsumerStorage issueConsumerStorage,
+        IAdditionalAnalysisIssueStorage additionalAnalysisIssueStorage,
         ITaggableBufferIndicator taggableBufferIndicator,
         IFileStateManager fileStateManager,
         IAnalyzer analyzer,
@@ -104,6 +106,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
         this.vsProjectInfoProvider = vsProjectInfoProvider;
         this.issueConsumerFactory = issueConsumerFactory;
         this.issueConsumerStorage = issueConsumerStorage;
+        this.additionalAnalysisIssueStorage = additionalAnalysisIssueStorage;
         this.languageRecognizer = languageRecognizer;
         this.analysisRequester = analysisRequester;
         this.taggableBufferIndicator = taggableBufferIndicator;
@@ -182,6 +185,7 @@ internal sealed class TaggerProvider : ITaggerProvider, IRequireInitialization, 
             vsProjectInfoProvider,
             issueConsumerFactory,
             issueConsumerStorage,
+            additionalAnalysisIssueStorage,
             canonicalFilePathProvider,
             logger);
 
