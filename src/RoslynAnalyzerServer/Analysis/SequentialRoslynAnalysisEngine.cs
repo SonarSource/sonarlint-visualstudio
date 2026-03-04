@@ -20,13 +20,11 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.IO;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
@@ -39,6 +37,7 @@ internal class SequentialRoslynAnalysisEngine(
     IRoslynQuickFixFactory quickFixFactory,
     IDiagnosticToAnalysisIssueConverter diagnosticToAnalysisIssueConverter,
     IAdditionalAnalysisIssueStorage additionalAnalysisIssueStorage,
+    IAdditionalAnalysisConfigurationFactory additionalAnalysisConfigurationFactory,
     ILogger logger) : IRoslynAnalysisEngine
 {
     private readonly ILogger logger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisEngineLogContext);
@@ -50,15 +49,15 @@ internal class SequentialRoslynAnalysisEngine(
     {
         var uniqueDiagnostics = new HashSet<RoslynIssue>(DiagnosticDuplicatesComparer.Instance); // todo might need non-unique diagnostics for pragma analyzer
         var nonUniqueDiagnostics = ImmutableArray.Create<Diagnostic>();
+        var additionalConfigurations = additionalAnalysisConfigurationFactory.Create(() => nonUniqueDiagnostics, sonarRoslynAnalysisConfigurations);
+
         foreach (var projectAnalysisCommands in projectsAnalysis)
         {
-            var compilationWithAnalyzers = await projectCompilationProvider.GetProjectCompilationAsync(projectAnalysisCommands, sonarRoslynAnalysisConfigurations, token);
-            var compilationWithAnalyzers2 = await projectCompilationProvider.GetProjectCompilationAsync(projectAnalysisCommands, new Dictionary<RoslynLanguage, RoslynAnalysisConfiguration>
-            {
-                {Language.CSharp, new RoslynAnalysisConfiguration(null, null,
-                    ImmutableArray.Create<DiagnosticAnalyzer>(new DiagnosticAwarePragmaAnalyzer(() => nonUniqueDiagnostics, sonarRoslynAnalysisConfigurations[Language.CSharp].DiagnosticOptions!.Keys.ToImmutableHashSet())),
-                    ImmutableDictionary.Create<string, IReadOnlyCollection<CodeFixProvider>>().Add(DiagnosticAwarePragmaAnalyzer.DiagnosticId, [new PragmaWarningDisableCodeFixProvider()]))}
-            }, token);
+            var (compilationWithAnalyzers, compilationWithAdditionalAnalyzers) = await projectCompilationProvider.GetProjectCompilationsAsync(
+                projectAnalysisCommands,
+                sonarRoslynAnalysisConfigurations,
+                additionalConfigurations,
+                token);
 
             // todo SLVS-2467 issue streaming
             foreach (var analysisCommand in projectAnalysisCommands.AnalysisCommands)
@@ -78,39 +77,54 @@ internal class SequentialRoslynAnalysisEngine(
                     // todo SLVS-2468 improve issue merging
                     if (!uniqueDiagnostics.Add(roslynIssue))
                     {
-                        logger.LogVerbose(Resources.AnalysisEngine_DuplicateDiagnostic, roslynIssue.RuleId, roslynIssue.PrimaryLocation.FileUri.LocalPath, roslynIssue.PrimaryLocation.TextRange.StartLine);
+                        logger.LogVerbose(Resources.AnalysisEngine_DuplicateDiagnostic, roslynIssue.RuleId, roslynIssue.PrimaryLocation.FileUri.LocalPath,
+                            roslynIssue.PrimaryLocation.TextRange.StartLine);
                     }
                 }
             }
 
-            var additionalIssuesByFile = new Dictionary<string, List<IAnalysisIssue>>();
-
-            foreach (var analysisCommand in projectAnalysisCommands.AdditionalCommands)
+            if (compilationWithAdditionalAnalyzers is not null)
             {
-                var diagnostics = await analysisCommand.ExecuteAsync(compilationWithAnalyzers2, token);
-
-                foreach (var diagnostic in diagnostics.Where(x => !x.IsSuppressed))
-                {
-                    var quickFixes = await quickFixFactory.CreateQuickFixesAsync(
-                        diagnostic,
-                        projectAnalysisCommands.Project.Solution,
-                        compilationWithAnalyzers2.AnalysisConfiguration,
-                        token);
-
-                    var analysisIssue = diagnosticToAnalysisIssueConverter.Convert(diagnostic, quickFixes);
-                    var filePath = diagnostic.Location.GetMappedLineSpan().Path;
-                    if (!additionalIssuesByFile.TryGetValue(filePath, out var list))
-                        additionalIssuesByFile[filePath] = list = [];
-                    list.Add(analysisIssue);
-                }
-            }
-
-            foreach (var kvp in additionalIssuesByFile)
-            {
-                additionalAnalysisIssueStorage.Store(kvp.Key, kvp.Value);
+                await ProduceAdditionalDiagnosticsAsync(token, projectAnalysisCommands, compilationWithAdditionalAnalyzers);
             }
         }
 
         return uniqueDiagnostics;
+    }
+
+    private async Task ProduceAdditionalDiagnosticsAsync(
+        CancellationToken token,
+        RoslynProjectAnalysisRequest projectAnalysisCommands,
+        IRoslynCompilationWithAnalyzersWrapper compilationWithAdditionalAnalyzers)
+    {
+        var additionalIssuesByFile = new Dictionary<string, List<IAnalysisIssue>>();
+
+        foreach (var analysisCommand in projectAnalysisCommands.AdditionalCommands)
+        {
+            var diagnostics = await analysisCommand.ExecuteAsync(compilationWithAdditionalAnalyzers, token);
+
+            foreach (var diagnostic in diagnostics.Where(x => !x.IsSuppressed))
+            {
+                var quickFixes = await quickFixFactory.CreateQuickFixesAsync(
+                    diagnostic,
+                    projectAnalysisCommands.Project.Solution,
+                    compilationWithAdditionalAnalyzers.AnalysisConfiguration,
+                    token);
+
+                var analysisIssue = diagnosticToAnalysisIssueConverter.Convert(diagnostic, quickFixes);
+                var filePath = diagnostic.Location.GetMappedLineSpan().Path;
+                if (!additionalIssuesByFile.TryGetValue(filePath, out var list))
+                {
+                    additionalIssuesByFile[filePath] = list = [];
+                }
+            // todo these diagnostics may also be duplicated for multi-target projects
+                list.Add(analysisIssue);
+            }
+        }
+
+        foreach (var kvp in additionalIssuesByFile)
+        {
+            additionalAnalysisIssueStorage.Store(kvp.Key, kvp.Value);
+        }
     }
 }

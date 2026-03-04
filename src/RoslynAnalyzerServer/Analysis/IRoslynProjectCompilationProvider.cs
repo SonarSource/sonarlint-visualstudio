@@ -29,4 +29,10 @@ internal interface IRoslynProjectCompilationProvider
         RoslynProjectAnalysisRequest projectAnalysisRequest,
         IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token);
+
+    Task<(IRoslynCompilationWithAnalyzersWrapper mainCompilation, IRoslynCompilationWithAnalyzersWrapper? additionalCompilation)> GetProjectCompilationsAsync(
+        RoslynProjectAnalysisRequest projectAnalysisRequest,
+        IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> mainConfigurations,
+        IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> additionalConfigurations,
+        CancellationToken token);
 }
