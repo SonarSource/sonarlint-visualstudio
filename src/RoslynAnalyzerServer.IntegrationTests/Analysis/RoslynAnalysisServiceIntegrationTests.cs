@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using Language = SonarLint.VisualStudio.Core.Language;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Http.Models;
 using SonarLint.VisualStudio.SLCore.Common.Models;
@@ -241,10 +242,17 @@ public class RoslynAnalysisServiceIntegrationTests
                 Arg.Any<CancellationToken>())
             .Returns(new List<RoslynQuickFix>());
 
+        var diagnosticToAnalysisIssueConverter = Substitute.For<IDiagnosticToAnalysisIssueConverter>();
+        var additionalAnalysisIssueStorage = Substitute.For<IAdditionalAnalysisIssueStorage>();
+        var additionalAnalysisConfigurationFactory = Substitute.For<IAdditionalAnalysisConfigurationFactory>();
+
         var analysisEngine = new SequentialRoslynAnalysisEngine(
             issueConverter,
             compilationProvider,
             quickFixFactory,
+            diagnosticToAnalysisIssueConverter,
+            additionalAnalysisIssueStorage,
+            additionalAnalysisConfigurationFactory,
             logger);
 
         var quickFixStorageWriter = Substitute.For<IRoslynQuickFixStorageWriter>();

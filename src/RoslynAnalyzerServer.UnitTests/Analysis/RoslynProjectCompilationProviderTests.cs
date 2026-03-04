@@ -104,7 +104,7 @@ public class RoslynProjectCompilationProviderTests
                 options.Options != null
                 && options.Options.AdditionalFiles.SequenceEqual(ImmutableArray.Create(existingAdditionalFile, sonarLintXml), null as IEqualityComparer<AdditionalText>)
                 && options.ConcurrentAnalysis == true
-                && options.ReportSuppressedDiagnostics == false
+                && options.ReportSuppressedDiagnostics == true
                 && options.LogAnalyzerExecutionTime == false),
             configurations[Language.CSharp]);
     }
@@ -140,7 +140,7 @@ public class RoslynProjectCompilationProviderTests
                 options.Options != null
                 && options.Options.AdditionalFiles.SequenceEqual(ImmutableArray.Create(existingAdditionalFile, sonarLintXml), null as IEqualityComparer<AdditionalText>)
                 && options.ConcurrentAnalysis == true
-                && options.ReportSuppressedDiagnostics == false
+                && options.ReportSuppressedDiagnostics == true
                 && options.LogAnalyzerExecutionTime == false),
             configurations[Language.CSharp]);
     }
@@ -166,7 +166,7 @@ public class RoslynProjectCompilationProviderTests
             "test exception");
     }
 
-    private RoslynProjectAnalysisRequest CreateRequest() => new(project, [], targetFilePaths);
+    private RoslynProjectAnalysisRequest CreateRequest() => new(project, [], targetFilePaths, []);
 
     private void SetUpAnalyzers()
     {

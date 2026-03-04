@@ -40,6 +40,7 @@ public class RaisedFindingProcessorTests
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<RaisedFindingProcessor, IRaisedFindingProcessor>(
             MefTestHelpers.CreateExport<IRaiseFindingToAnalysisIssueConverter>(),
+            MefTestHelpers.CreateExport<IAdditionalAnalysisIssueStorage>(),
             MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(),
             MefTestHelpers.CreateExport<ILogger>());
 
@@ -187,7 +188,9 @@ public class RaisedFindingProcessorTests
         ILogger logger = null) =>
         new(
             raiseFindingToAnalysisIssueConverter ?? Substitute.For<IRaiseFindingToAnalysisIssueConverter>(),
-            analysisStatusNotifierFactory ?? Substitute.For<IAnalysisStatusNotifierFactory>(), logger ?? new TestLogger());
+            Substitute.For<IAdditionalAnalysisIssueStorage>(),
+            analysisStatusNotifierFactory ?? Substitute.For<IAnalysisStatusNotifierFactory>(),
+            logger ?? new TestLogger());
 
     private static IRaiseFindingToAnalysisIssueConverter CreateConverter(
         FileUri fileUri,
