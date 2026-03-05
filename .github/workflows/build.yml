@@ -52,18 +52,10 @@ jobs:
         id: signing-config
         shell: bash
         run: |
-          if [[ "${GITHUB_REF_NAME}" == "master" || "${GITHUB_REF_NAME}" == branch-* ]]; then
-            echo "account=codesigning-release" >> "$GITHUB_OUTPUT"
-            echo "profile=sonarsource-release" >> "$GITHUB_OUTPUT"
-            echo "client-id=c1fcac4d-eb47-402c-8318-37d5d87b9335" >> "$GITHUB_OUTPUT"
-            echo "is-test-env=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "account=codesigning-test" >> "$GITHUB_OUTPUT"
-            echo "profile=sonarsource-test" >> "$GITHUB_OUTPUT"
-            echo "client-id=6b33b753-44e5-4afe-8da5-d7f849bd7909" >> "$GITHUB_OUTPUT"
-            echo "is-test-env=true" >> "$GITHUB_OUTPUT"
-            echo
-          fi
+          echo "account=codesigning-release" >> "$GITHUB_OUTPUT"
+          echo "profile=sonarsource-release" >> "$GITHUB_OUTPUT"
+          echo "client-id=c1fcac4d-eb47-402c-8318-37d5d87b9335" >> "$GITHUB_OUTPUT"
+          echo "is-test-env=false" >> "$GITHUB_OUTPUT"
           echo "signing-endpoint=https://weu.codesigning.azure.net/" >> "$GITHUB_OUTPUT"
 
       - name: Azure login
