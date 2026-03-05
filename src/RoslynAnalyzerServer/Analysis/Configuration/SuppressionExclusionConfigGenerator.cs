@@ -71,13 +71,20 @@ internal class SuppressionExclusionConfigGenerator : ISuppressionExclusionConfig
 
     private static string BuildConfigContent(ImmutableHashSet<string> ruleKeys)
     {
-        var ruleKeysList = string.Join(",", ruleKeys);
+// temporarily disabling this due to user reports in https://community.sonarsource.com/t/sonarqube-reporting-multiple-global-analyzer-warning-message-in-brand-new-project/178777
 
+//         var ruleKeysList = string.Join(",", ruleKeys);
+//
+//         return $"""
+//                 is_global = true
+//                 global_level = 1999999999
+//
+//                 dotnet_remove_unnecessary_suppression_exclusions = {ruleKeysList}
+//
+//                 """;
         return $"""
                 is_global = true
                 global_level = 1999999999
-
-                dotnet_remove_unnecessary_suppression_exclusions = {ruleKeysList}
 
                 """;
     }
