@@ -102,7 +102,7 @@ public class SequentialRoslynAnalysisEngineTests
 
         result.Should().BeEmpty();
         await projectCompilationProvider.Received(1).GetProjectCompilationsAsync(
-            Arg.Is<RoslynProjectAnalysisRequest>(r => r.Project == project),
+            Arg.Is<ProjectAnalysisRequestScope>(s => s.Project == project),
             configurations,
             Arg.Any<IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration>>(),
             cancellationToken);
@@ -305,7 +305,7 @@ public class SequentialRoslynAnalysisEngineTests
             .Returns(ImmutableArray.Create(additionalDiagnostic));
         var (project, mainCompilation) = SetupProjectAnalysisRequestAndCompilation(additionalCompilation: additionalCompilation);
         var mainCommand = SetupCommandWithDiagnostics(mainCompilation, mainDiagnostic);
-        var request = new RoslynProjectAnalysisRequest(project, [mainCommand], [], [additionalCommand]);
+        var request = new RoslynProjectAnalysisRequest(new ProjectAnalysisRequestScope(project, []), [mainCommand], [additionalCommand]);
 
         var result = await testSubject.AnalyzeAsync([request], configurations, cancellationToken);
 
@@ -340,10 +340,10 @@ public class SequentialRoslynAnalysisEngineTests
         var (project, projectCompilation) = SetupProjectAnalysisRequestAndCompilation(analysisConfiguration);
         var commands = diagnosticsPerCommand.Select(x => SetupCommandWithDiagnostics(projectCompilation, x)).ToArray();
 
-        return (new RoslynProjectAnalysisRequest(project, commands, [], []), projectCompilation);
+        return (new RoslynProjectAnalysisRequest(new ProjectAnalysisRequestScope(project, []), commands, []), projectCompilation);
     }
 
-    private RoslynProjectAnalysisRequest CreateProjectRequest(IRoslynProjectWrapper project, params IRoslynAnalysisCommand[] commands) => new(project, commands, [], []);
+    private RoslynProjectAnalysisRequest CreateProjectRequest(IRoslynProjectWrapper project, params IRoslynAnalysisCommand[] commands) => new(new ProjectAnalysisRequestScope(project, []), commands, []);
 
     private (IRoslynProjectWrapper project, IRoslynCompilationWithAnalyzersWrapper projectCompilation) SetupProjectAnalysisRequestAndCompilation(
         RoslynAnalysisConfiguration? analysisConfiguration = null,
@@ -388,7 +388,7 @@ public class SequentialRoslynAnalysisEngineTests
         var compilationWithAnalyzers = Substitute.For<IRoslynCompilationWithAnalyzersWrapper>();
         compilationWithAnalyzers.AnalysisConfiguration.Returns(analysisConfiguration);
         projectCompilationProvider.GetProjectCompilationsAsync(
-                Arg.Is<RoslynProjectAnalysisRequest>(r => r.Project == project),
+                Arg.Is<ProjectAnalysisRequestScope>(s => s.Project == project),
                 configurations,
                 Arg.Any<IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration>>(),
                 cancellationToken)
@@ -415,7 +415,7 @@ public class SequentialRoslynAnalysisEngineTests
     {
         projectCompilationProvider.Received(1)
             .GetProjectCompilationsAsync(
-                Arg.Is<RoslynProjectAnalysisRequest>(r => r.Project == projectRequest.Project),
+                Arg.Is<ProjectAnalysisRequestScope>(s => s.Project == projectRequest.Scope.Project),
                 configurations,
                 Arg.Any<IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration>>(),
                 cancellationToken).IgnoreAwaitForAssert();
@@ -425,7 +425,7 @@ public class SequentialRoslynAnalysisEngineTests
         }
         foreach (var (diagnostic, roslynQuickFixes) in diagnostics)
         {
-            roslynQuickFixFactory.Received(1).CreateQuickFixesAsync(diagnostic, projectRequest.Project.Solution, compilationWithAnalyzers.AnalysisConfiguration, cancellationToken);
+            roslynQuickFixFactory.Received(1).CreateQuickFixesAsync(diagnostic, projectRequest.Scope.Project.Solution, compilationWithAnalyzers.AnalysisConfiguration, cancellationToken);
             issueConverter.Received(1).ConvertToSonarDiagnostic(diagnostic, Arg.Is<List<RoslynQuickFix>>(x => x.SequenceEqual(roslynQuickFixes)), language ?? Arg.Any<Language>());
         }
     }
@@ -469,7 +469,7 @@ public class SequentialRoslynAnalysisEngineTests
         additionalCommand.ExecuteAsync(additionalCompilation, cancellationToken)
             .Returns(ImmutableArray.Create(diagnostics));
         var (project, _) = SetupProjectAnalysisRequestAndCompilation(additionalCompilation: additionalCompilation);
-        var request = new RoslynProjectAnalysisRequest(project, [], [], [additionalCommand]);
+        var request = new RoslynProjectAnalysisRequest(new ProjectAnalysisRequestScope(project, []), [], [additionalCommand]);
         return (request, additionalCompilation, additionalConfig);
     }
 

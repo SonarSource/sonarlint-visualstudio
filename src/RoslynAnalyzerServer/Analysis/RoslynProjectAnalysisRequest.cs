@@ -18,15 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
-
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal class RoslynProjectAnalysisRequest(IRoslynProjectWrapper project, IReadOnlyCollection<IRoslynAnalysisCommand> analysisCommands, ImmutableHashSet<string> targetFilePaths, IReadOnlyCollection<IRoslynAnalysisCommand> additionalCommands)
+internal class RoslynProjectAnalysisRequest(ProjectAnalysisRequestScope scope, IReadOnlyCollection<IRoslynAnalysisCommand> analysisCommands, IReadOnlyCollection<IRoslynAnalysisCommand> additionalCommands)
 {
-    public IRoslynProjectWrapper Project { get; } = project;
+    public ProjectAnalysisRequestScope Scope { get; } = scope;
     public IReadOnlyCollection<IRoslynAnalysisCommand> AnalysisCommands { get; } = analysisCommands;
     public IReadOnlyCollection<IRoslynAnalysisCommand> AdditionalCommands { get; } = additionalCommands;
-    public ImmutableHashSet<string> TargetFilePaths { get; } = targetFilePaths;
 }

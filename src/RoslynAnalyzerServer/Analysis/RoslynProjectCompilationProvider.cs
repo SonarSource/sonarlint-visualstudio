@@ -36,32 +36,32 @@ internal class RoslynProjectCompilationProvider(ILogger logger) : IRoslynProject
     private readonly ILogger analyzerExceptionLogger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisAnalyzerExceptionLogContext);
 
     public async Task<IRoslynCompilationWithAnalyzersWrapper> GetProjectCompilationAsync(
-        RoslynProjectAnalysisRequest projectAnalysisRequest,
+        ProjectAnalysisRequestScope scope,
         IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token)
     {
-        var project = projectAnalysisRequest.Project;
+        var project = scope.Project;
         var compilation = await project.GetCompilationAsync(token);
         var configuration = sonarRoslynAnalysisConfigurations[compilation.Language];
 
-        return BuildCompilationWithAnalyzers(project, compilation, configuration, projectAnalysisRequest.TargetFilePaths);
+        return BuildCompilationWithAnalyzers(project, compilation, configuration, scope.TargetFilePaths);
     }
 
     public async Task<(IRoslynCompilationWithAnalyzersWrapper mainCompilation, IRoslynCompilationWithAnalyzersWrapper? additionalCompilation)> GetProjectCompilationsAsync(
-        RoslynProjectAnalysisRequest projectAnalysisRequest,
+        ProjectAnalysisRequestScope scope,
         IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> mainConfigurations,
         IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> additionalConfigurations,
         CancellationToken token)
     {
-        var project = projectAnalysisRequest.Project;
+        var project = scope.Project;
         var compilation = await project.GetCompilationAsync(token);
 
         var mainConfiguration = mainConfigurations[compilation.Language];
         var additionalConfiguration = GetAdditionalConfiguration(additionalConfigurations, compilation);
 
-        return (BuildCompilationWithAnalyzers(project, compilation, mainConfiguration, projectAnalysisRequest.TargetFilePaths),
+        return (BuildCompilationWithAnalyzers(project, compilation, mainConfiguration, scope.TargetFilePaths),
             additionalConfiguration is not null
-                ? BuildCompilationWithAnalyzers(project, compilation, additionalConfiguration.Value, projectAnalysisRequest.TargetFilePaths)
+                ? BuildCompilationWithAnalyzers(project, compilation, additionalConfiguration.Value, scope.TargetFilePaths)
                 : null);
     }
 

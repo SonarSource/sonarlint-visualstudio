@@ -95,7 +95,7 @@ public class RoslynProjectCompilationProviderTests
     [TestMethod]
     public async Task GetProjectCompilationAsync_ConfiguresCompilationWithCorrectOptions()
     {
-        var result = await testSubject.GetProjectCompilationAsync(CreateRequest(), configurations, CancellationToken.None);
+        var result = await testSubject.GetProjectCompilationAsync(CreateScope(), configurations, CancellationToken.None);
 
         result.Should().Be(compilationWithAnalyzers);
         compilation.Received(1).WithOptions(Arg.Is<CompilationOptions>(options =>
@@ -118,7 +118,7 @@ public class RoslynProjectCompilationProviderTests
     {
         project.SpecificDiagnosticOptions.Returns(ImmutableDictionary.Create<string, ReportDiagnostic>().Add("SomeId", ReportDiagnostic.Suppress));
 
-        var result = await testSubject.GetProjectCompilationAsync(CreateRequest(), configurations, CancellationToken.None);
+        var result = await testSubject.GetProjectCompilationAsync(CreateScope(), configurations, CancellationToken.None);
 
         result.Should().Be(compilationWithAnalyzers);
         compilation.Received(1).WithOptions(Arg.Is<CompilationOptions>(options =>
@@ -136,7 +136,7 @@ public class RoslynProjectCompilationProviderTests
         compilation.WithAnalyzers(Arg.Any<ImmutableArray<DiagnosticAnalyzer>>(), Arg.Any<CompilationWithAnalyzersOptions>(), configurations[Language.CSharp])
             .Returns(compilationWithAnalyzers);
 
-        await testSubject.GetProjectCompilationAsync(CreateRequest(), configurations, CancellationToken.None);
+        await testSubject.GetProjectCompilationAsync(CreateScope(), configurations, CancellationToken.None);
 
         compilation.Received(1).WithAnalyzers(
             Arg.Any<ImmutableArray<DiagnosticAnalyzer>>(),
@@ -157,7 +157,7 @@ public class RoslynProjectCompilationProviderTests
                 Arg.Any<ImmutableArray<DiagnosticAnalyzer>>(),
                 Arg.Do<CompilationWithAnalyzersOptions>(x => capturedOptions = x), configurations[Language.CSharp])
             .Returns(compilationWithAnalyzers);
-        await testSubject.GetProjectCompilationAsync(CreateRequest(), configurations, CancellationToken.None);
+        await testSubject.GetProjectCompilationAsync(CreateScope(), configurations, CancellationToken.None);
         capturedOptions.Should().NotBeNull();
         var exception = new InvalidOperationException("test exception");
         var diagnostic = Diagnostic.Create("TestId", "TestCategory", "TestMessage", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 1);
@@ -173,7 +173,7 @@ public class RoslynProjectCompilationProviderTests
     [TestMethod]
     public async Task GetProjectCompilationsAsync_AdditionalConfigExists_ReturnsBothCompilations()
     {
-        var result = await testSubject.GetProjectCompilationsAsync(CreateRequest(), configurations, additionalConfigurations, CancellationToken.None);
+        var result = await testSubject.GetProjectCompilationsAsync(CreateScope(), configurations, additionalConfigurations, CancellationToken.None);
 
         result.mainCompilation.Should().Be(compilationWithAnalyzers);
         result.additionalCompilation.Should().Be(additionalCompilationWithAnalyzers);
@@ -184,7 +184,7 @@ public class RoslynProjectCompilationProviderTests
     {
         var emptyAdditionalConfigs = ImmutableDictionary<RoslynLanguage, RoslynAnalysisConfiguration>.Empty;
 
-        var result = await testSubject.GetProjectCompilationsAsync(CreateRequest(), configurations, emptyAdditionalConfigs, CancellationToken.None);
+        var result = await testSubject.GetProjectCompilationsAsync(CreateScope(), configurations, emptyAdditionalConfigs, CancellationToken.None);
 
         result.mainCompilation.Should().Be(compilationWithAnalyzers);
         result.additionalCompilation.Should().BeNull();
@@ -193,7 +193,7 @@ public class RoslynProjectCompilationProviderTests
     [TestMethod]
     public async Task GetProjectCompilationsAsync_MainCompilation_UsesMainConfiguration()
     {
-        await testSubject.GetProjectCompilationsAsync(CreateRequest(), configurations, additionalConfigurations, CancellationToken.None);
+        await testSubject.GetProjectCompilationsAsync(CreateScope(), configurations, additionalConfigurations, CancellationToken.None);
 
         compilation.Received().WithAnalyzers(
             Arg.Is<ImmutableArray<DiagnosticAnalyzer>>(a =>
@@ -205,7 +205,7 @@ public class RoslynProjectCompilationProviderTests
     [TestMethod]
     public async Task GetProjectCompilationsAsync_AdditionalCompilation_UsesAdditionalConfiguration()
     {
-        await testSubject.GetProjectCompilationsAsync(CreateRequest(), configurations, additionalConfigurations, CancellationToken.None);
+        await testSubject.GetProjectCompilationsAsync(CreateScope(), configurations, additionalConfigurations, CancellationToken.None);
 
         compilation.Received().WithAnalyzers(
             Arg.Is<ImmutableArray<DiagnosticAnalyzer>>(a =>
@@ -231,7 +231,7 @@ public class RoslynProjectCompilationProviderTests
             .Returns(additionalCompilationWithAnalyzers);
     }
 
-    private RoslynProjectAnalysisRequest CreateRequest() => new(project, [], targetFilePaths, []);
+    private ProjectAnalysisRequestScope CreateScope() => new(project, targetFilePaths);
 
     private void SetUpAnalyzers()
     {
