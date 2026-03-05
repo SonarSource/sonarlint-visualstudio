@@ -120,9 +120,9 @@ public class RoslynSolutionAnalysisCommandProviderTests
 
         result.Should().ContainSingle();
         var command = result.Single();
-        command.Project.Should().Be(project2);
+        command.Scope.Project.Should().Be(project2);
         command.AnalysisCommands.Should().ContainSingle().Which.Should().BeOfType<RoslynProjectAnalysisCommand>();
-        command.TargetFilePaths.Should().BeEquivalentTo(AnalyzedFile1Cs);
+        command.Scope.TargetFilePaths.Should().BeEquivalentTo(AnalyzedFile1Cs);
     }
 
     [TestMethod]
@@ -137,9 +137,9 @@ public class RoslynSolutionAnalysisCommandProviderTests
         var result = testSubject.GetAnalysisCommandsForCurrentSolution([File1Cs, File2Cs, File3Cs]);
 
         var command = result.Single();
-        command.Project.Should().Be(project);
+        command.Scope.Project.Should().Be(project);
         command.AnalysisCommands.Should().ContainSingle().Which.Should().BeOfType<RoslynProjectAnalysisCommand>();
-        command.TargetFilePaths.Should().BeEquivalentTo(AnalyzedFile1Cs, AnalyzedFile2Cs);
+        command.Scope.TargetFilePaths.Should().BeEquivalentTo(AnalyzedFile1Cs, AnalyzedFile2Cs);
     }
 
     [TestMethod]
@@ -159,12 +159,12 @@ public class RoslynSolutionAnalysisCommandProviderTests
         var result = testSubject.GetAnalysisCommandsForCurrentSolution([File1Cs, File2Cs, File3Cs, File4Cs]);
 
         result.Should().HaveCount(2);
-        result[0].Project.Should().Be(project3);
+        result[0].Scope.Project.Should().Be(project3);
         result[0].AnalysisCommands.Should().ContainSingle().Which.Should().BeOfType<RoslynProjectAnalysisCommand>();
-        result[0].TargetFilePaths.Should().BeEquivalentTo(AnalyzedFile1Cs, AnalyzedFile2Cs);
-        result[1].Project.Should().Be(project4);
+        result[0].Scope.TargetFilePaths.Should().BeEquivalentTo(AnalyzedFile1Cs, AnalyzedFile2Cs);
+        result[1].Scope.Project.Should().Be(project4);
         result[1].AnalysisCommands.Should().ContainSingle().Which.Should().BeOfType<RoslynProjectAnalysisCommand>();
-        result[1].TargetFilePaths.Should().BeEquivalentTo(AnalyzedFile3Cs, AnalyzedFile1Cs);
+        result[1].Scope.TargetFilePaths.Should().BeEquivalentTo(AnalyzedFile3Cs, AnalyzedFile1Cs);
         logger.AssertPartialOutputStringExists("Project project1 does not support compilation");
     }
 

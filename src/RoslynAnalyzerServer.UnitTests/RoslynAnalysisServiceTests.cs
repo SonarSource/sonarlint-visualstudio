@@ -37,7 +37,7 @@ public class RoslynAnalysisServiceTests
     private static readonly List<ActiveRuleDto> DefaultActiveRules = new() { new ActiveRuleDto("sample-rule-id", new Dictionary<string, string> { { "paramKey", "paramValue" } }) };
     private static readonly Dictionary<string, string> DefaultAnalysisProperties = new() { { "sonar.cs.any", "any" } };
     private static readonly Dictionary<RoslynLanguage, RoslynAnalysisConfiguration> DefaultAnalysisConfigurations = new() { { Language.CSharp, new RoslynAnalysisConfiguration() } };
-    private static readonly List<RoslynProjectAnalysisRequest> DefaultProjectAnalysisRequests = new() { new RoslynProjectAnalysisRequest(Substitute.For<IRoslynProjectWrapper>(), [], [], []) };
+    private static readonly List<RoslynProjectAnalysisRequest> DefaultProjectAnalysisRequests = new() { new RoslynProjectAnalysisRequest(new ProjectAnalysisRequestScope(Substitute.For<IRoslynProjectWrapper>(), []), [], []) };
     private static readonly List<RoslynIssue> DefaultIssues = new() { new RoslynIssue("sample-rule-id", new RoslynIssueLocation("any", new FileUri("file:///C:/any.cs"), new RoslynIssueTextRange(1, 1, 1, 1))) };
     private static readonly AnalyzerInfoDto DefaultAnalyzerInfoDto = new(false, false);
     private IRoslynSolutionAnalysisCommandProvider analysisCommandProvider = null!;

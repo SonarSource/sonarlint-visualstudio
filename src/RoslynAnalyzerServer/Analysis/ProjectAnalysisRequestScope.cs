@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -18,21 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core;
+using System.Collections.Immutable;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal interface IRoslynProjectCompilationProvider
+internal class ProjectAnalysisRequestScope(IRoslynProjectWrapper project, ImmutableHashSet<string> targetFilePaths)
 {
-    Task<IRoslynCompilationWithAnalyzersWrapper> GetProjectCompilationAsync(
-        ProjectAnalysisRequestScope scope,
-        IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
-        CancellationToken token);
-
-    Task<(IRoslynCompilationWithAnalyzersWrapper mainCompilation, IRoslynCompilationWithAnalyzersWrapper? additionalCompilation)> GetProjectCompilationsAsync(
-        ProjectAnalysisRequestScope scope,
-        IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> mainConfigurations,
-        IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> additionalConfigurations,
-        CancellationToken token);
+    public IRoslynProjectWrapper Project { get; } = project;
+    public ImmutableHashSet<string> TargetFilePaths { get; } = targetFilePaths;
 }

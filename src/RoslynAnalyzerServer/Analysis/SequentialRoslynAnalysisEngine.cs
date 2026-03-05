@@ -54,7 +54,7 @@ internal class SequentialRoslynAnalysisEngine(
         foreach (var projectAnalysisRequest in projectsAnalysis)
         {
             var (compilationWithAnalyzers, compilationWithAdditionalAnalyzers) = await projectCompilationProvider.GetProjectCompilationsAsync(
-                projectAnalysisRequest,
+                projectAnalysisRequest.Scope,
                 sonarRoslynAnalysisConfigurations,
                 additionalConfigurations,
                 token);
@@ -69,7 +69,7 @@ internal class SequentialRoslynAnalysisEngine(
                 {
                     var quickFixes = await quickFixFactory.CreateQuickFixesAsync(
                         diagnostic,
-                        projectAnalysisRequest.Project.Solution,
+                        projectAnalysisRequest.Scope.Project.Solution,
                         compilationWithAnalyzers.AnalysisConfiguration,
                         token);
 
@@ -107,7 +107,7 @@ internal class SequentialRoslynAnalysisEngine(
             {
                 var quickFixes = await quickFixFactory.CreateQuickFixesAsync(
                     diagnostic,
-                    projectAnalysisCommands.Project.Solution,
+                    projectAnalysisCommands.Scope.Project.Solution,
                     compilationWithAdditionalAnalyzers.AnalysisConfiguration,
                     token);
 

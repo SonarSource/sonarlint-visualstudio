@@ -52,8 +52,9 @@ internal class RoslynSolutionAnalysisCommandProvider(
 
             if (targetFilePaths.Count > 0)
             {
+                var scope = new ProjectAnalysisRequestScope(project, targetFilePaths);
                 var command = new RoslynProjectAnalysisCommand(targetFilePaths);
-                result.Add(new RoslynProjectAnalysisRequest(project, [command], targetFilePaths, targetFilePaths.Select(x => new RoslynFileSyntaxAnalysisCommand(x, logger)).ToList()));
+                result.Add(new RoslynProjectAnalysisRequest(scope, [command], targetFilePaths.Select(x => new RoslynFileSyntaxAnalysisCommand(x, logger)).ToList()));
             }
         }
 
