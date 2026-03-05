@@ -14,6 +14,6 @@
     </PropertyGroup>
 
     <ItemGroup Condition="$(BuildingInsideVisualStudio) == 'true' AND Exists($(_SLVSGeneratedRoslynConfigFile))">
-        <EditorConfigFiles Condition="Exists($(_SLVSGeneratedRoslynConfigFile))" Include="$(_SLVSGeneratedRoslynConfigFile)" />
+        <EditorConfigFiles Condition="Exists($(_SLVSGeneratedRoslynConfigFile))" Include="$(_SLVSGeneratedRoslynConfigFile)" Exclude="@(EditorConfigFiles)"/>
     </ItemGroup>
 </Project>
