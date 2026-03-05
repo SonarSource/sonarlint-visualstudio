@@ -102,6 +102,7 @@ public class SuppressionExclusionConfigGeneratorTests
     }
 
     [TestMethod]
+    [Ignore] // temporarily disabling this due to user reports in https://community.sonarsource.com/t/sonarqube-reporting-multiple-global-analyzer-warning-message-in-brand-new-project/178777
     public void GenerateConfiguration_WritesCorrectConfigFile()
     {
         var ruleKeys = ImmutableHashSet.Create("S1234", "S5678");
@@ -120,6 +121,7 @@ public class SuppressionExclusionConfigGeneratorTests
     }
 
     [TestMethod]
+    [Ignore] // temporarily disabling this due to user reports in https://community.sonarsource.com/t/sonarqube-reporting-multiple-global-analyzer-warning-message-in-brand-new-project/178777
     public void GenerateConfiguration_EmptyRuleKeys_WritesConfigWithEmptyExclusions()
     {
         roslynAnalyzerAssemblyContentsLoader.GetAllSupportedRuleKeys().Returns(ImmutableHashSet<string>.Empty);
