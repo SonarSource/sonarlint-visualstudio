@@ -70,7 +70,7 @@ public class DiagnosticAwarePragmaAnalyzer(Func<ImmutableArray<Diagnostic>> diag
         var stacks = new Dictionary<string, Stack<StackEntry>>(StringComparer.OrdinalIgnoreCase);
         var diagIndex = 0;
 
-        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
+        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true)) // todo check for large files
         {
             var triviaStart = trivia.SpanStart;
             diagIndex = ConsumeDiagnostics(treeDiagnostics, diagIndex, triviaStart, stacks);

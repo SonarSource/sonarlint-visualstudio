@@ -44,7 +44,7 @@ internal class AdditionalAnalysisConfigurationFactory : IAdditionalAnalysisConfi
                 Language.CSharp,
                 new RoslynAnalysisConfiguration(
                     sonarRoslynAnalysisConfigurations[Language.CSharp].SonarLintXml, // strictly speaking this is not needed, but is kept to make fewer changes to compilation provider
-                    diagnosticAwarePragmaAnalyzer.SupportedDiagnostics.ToImmutableDictionary(x => x.Id, _ => ReportDiagnostic.Info),
+                    diagnosticAwarePragmaAnalyzer.SupportedDiagnostics.ToImmutableDictionary(x => x.Id, _ => ReportDiagnostic.Warn),
                     ImmutableArray.Create<DiagnosticAnalyzer>(diagnosticAwarePragmaAnalyzer),
                     ImmutableDictionary.Create<string, IReadOnlyCollection<CodeFixProvider>>()
                         .Add(DiagnosticAwarePragmaAnalyzer.DiagnosticId, [new PragmaWarningDisableCodeFixProvider()]))

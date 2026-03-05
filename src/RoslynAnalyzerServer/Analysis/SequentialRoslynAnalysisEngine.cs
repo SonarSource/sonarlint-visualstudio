@@ -117,7 +117,7 @@ internal class SequentialRoslynAnalysisEngine(
                 {
                     additionalIssuesByFile[filePath] = list = [];
                 }
-            // todo these diagnostics may also be duplicated for multi-target projects
+                // todo these diagnostics may also be duplicated for multi-target projects
                 list.Add(analysisIssue);
             }
         }
