@@ -45,7 +45,7 @@ Check out the [source code on GitHub](https://github.com/SonarSource/sonarlint-v
 
 # **License**
 
-Copyright 2017-2025 SonarSource Sàrl
+Copyright 2017-2026 SonarSource Sàrl
 
 Licensed under the GNU Lesser General Public License, Version 3.0
 
