@@ -49,6 +49,7 @@ internal class SequentialRoslynAnalysisEngine(
         CancellationToken token)
     {
         var uniqueDiagnostics = new HashSet<RoslynIssue>(DiagnosticDuplicatesComparer.Instance);
+        var uniqueAdditionalDiagnostics = new HashSet<RoslynIssue>(DiagnosticDuplicatesComparer.Instance);
         var knownIssuesStore = new CurrentAnalysisIssuesStore();
         var additionalConfigurations = pragmaSuppressionAnalysisConfigurationFactory.Create(knownIssuesStore, sonarRoslynAnalysisConfigurations);
 
@@ -74,7 +75,6 @@ internal class SequentialRoslynAnalysisEngine(
 
             if (compilationWithAdditionalAnalyzers is not null)
             {
-                var uniqueAdditionalDiagnostics = new HashSet<RoslynIssue>(DiagnosticDuplicatesComparer.Instance);
                 await foreach (var (_, issue) in AnalyzeAsync(token, projectAnalysisRequest.Scope, projectAnalysisRequest.AdditionalCommands, compilationWithAdditionalAnalyzers))
                 {
                     if (issue is null)
@@ -83,10 +83,10 @@ internal class SequentialRoslynAnalysisEngine(
                     }
                     uniqueAdditionalDiagnostics.Add(issue);
                 }
-                additionalAnalysisIssueStorage.Add(uniqueAdditionalDiagnostics.Select(diagnosticToAnalysisIssueConverter.Convert));
             }
         }
 
+        additionalAnalysisIssueStorage.Add(uniqueAdditionalDiagnostics.Select(diagnosticToAnalysisIssueConverter.Convert));
         return uniqueDiagnostics;
     }
 
