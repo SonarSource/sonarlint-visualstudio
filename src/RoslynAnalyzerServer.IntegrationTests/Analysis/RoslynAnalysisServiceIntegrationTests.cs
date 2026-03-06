@@ -244,7 +244,7 @@ public class RoslynAnalysisServiceIntegrationTests
 
         var diagnosticToAnalysisIssueConverter = Substitute.For<IDiagnosticToAnalysisIssueConverter>();
         var additionalAnalysisIssueStorage = Substitute.For<IAdditionalAnalysisIssueStorage>();
-        var additionalAnalysisConfigurationFactory = Substitute.For<IAdditionalAnalysisConfigurationFactory>();
+        var additionalAnalysisConfigurationFactory = Substitute.For<IPragmaSuppressionAnalysisConfigurationFactory>();
 
         var analysisEngine = new SequentialRoslynAnalysisEngine(
             issueConverter,

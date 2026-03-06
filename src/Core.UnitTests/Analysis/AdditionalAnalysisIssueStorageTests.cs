@@ -46,34 +46,61 @@ public class AdditionalAnalysisIssueStorageTests
     }
 
     [TestMethod]
-    public void Store_NewKey_ThenGet_ReturnsStoredIssues()
+    public void Add_SingleIssue_ThenGet_ReturnsStoredIssue()
     {
         var testSubject = CreateTestSubject();
-        var issues = new List<IAnalysisIssue> { Substitute.For<IAnalysisIssue>(), Substitute.For<IAnalysisIssue>() };
+        var issue = CreateIssue("file.cs");
 
-        testSubject.Store("file.cs", issues);
+        testSubject.Add([issue]);
 
-        testSubject.Get("file.cs").Should().BeEquivalentTo(issues);
+        testSubject.Get("file.cs").Should().ContainSingle().Which.Should().Be(issue);
     }
 
     [TestMethod]
-    public void Store_ExistingKey_OverwritesPreviousIssues()
+    public void Add_MultipleIssuesSameFile_ThenGet_ReturnsAll()
     {
         var testSubject = CreateTestSubject();
-        var originalIssues = new List<IAnalysisIssue> { Substitute.For<IAnalysisIssue>() };
-        var newIssues = new List<IAnalysisIssue> { Substitute.For<IAnalysisIssue>(), Substitute.For<IAnalysisIssue>() };
+        var issue1 = CreateIssue("file.cs");
+        var issue2 = CreateIssue("file.cs");
 
-        testSubject.Store("file.cs", originalIssues);
-        testSubject.Store("file.cs", newIssues);
+        testSubject.Add([issue1, issue2]);
 
-        testSubject.Get("file.cs").Should().BeEquivalentTo(newIssues);
+        testSubject.Get("file.cs").Should().BeEquivalentTo([issue1, issue2]);
+    }
+
+    [TestMethod]
+    public void Add_IssuesForDifferentFiles_GroupedCorrectly()
+    {
+        var testSubject = CreateTestSubject();
+        var issue1 = CreateIssue("file1.cs");
+        var issue2 = CreateIssue("file2.cs");
+        var issue3 = CreateIssue("file1.cs");
+
+        testSubject.Add([issue1, issue2, issue3]);
+
+        testSubject.Get("file1.cs").Should().BeEquivalentTo([issue1, issue3]);
+        testSubject.Get("file2.cs").Should().ContainSingle().Which.Should().Be(issue2);
+    }
+
+    [TestMethod]
+    public void Add_CalledTwice_Accumulates()
+    {
+        var testSubject = CreateTestSubject();
+        var issue1 = CreateIssue("file.cs");
+        var issue2 = CreateIssue("file.cs");
+
+        testSubject.Add([issue1]);
+        testSubject.Add([issue2]);
+
+        testSubject.Get("file.cs").Should().BeEquivalentTo([issue1, issue2]);
     }
 
     [TestMethod]
     public void Remove_KeyExists_GetReturnsEmpty()
     {
         var testSubject = CreateTestSubject();
-        testSubject.Store("file.cs", new List<IAnalysisIssue> { Substitute.For<IAnalysisIssue>() });
+        var issue = CreateIssue("file.cs");
+        testSubject.Add([issue]);
 
         testSubject.Remove("file.cs");
 
@@ -90,5 +117,14 @@ public class AdditionalAnalysisIssueStorageTests
         act.Should().NotThrow();
     }
 
-    private AdditionalAnalysisIssueStorage CreateTestSubject() => new();
+    private static AdditionalAnalysisIssueStorage CreateTestSubject() => new();
+
+    private static IAnalysisIssue CreateIssue(string filePath)
+    {
+        var issue = Substitute.For<IAnalysisIssue>();
+        var location = Substitute.For<IAnalysisIssueLocation>();
+        location.FilePath.Returns(filePath);
+        issue.PrimaryLocation.Returns(location);
+        return issue;
+    }
 }

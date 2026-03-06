@@ -19,65 +19,76 @@
  */
 
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis;
 using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
 internal interface IDiagnosticToAnalysisIssueConverter
 {
-    IAnalysisIssue Convert(Diagnostic diagnostic, List<RoslynQuickFix> quickFixes);
+    IAnalysisIssue Convert(RoslynIssue roslynIssue);
 }
 
 [Export(typeof(IDiagnosticToAnalysisIssueConverter))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class DiagnosticToAnalysisIssueConverter : IDiagnosticToAnalysisIssueConverter
 {
-    public IAnalysisIssue Convert(Diagnostic diagnostic, List<RoslynQuickFix> quickFixes)
+    public IAnalysisIssue Convert(RoslynIssue roslynIssue)
     {
-        var mappedSpan = diagnostic.Location.GetMappedLineSpan();
-        var primaryLocation = CreateLocation(mappedSpan, diagnostic.GetMessage());
-
-        var flows = CreateFlows(diagnostic);
+        var primaryLocation = CreateLocation(roslynIssue.PrimaryLocation);
+        var flows = CreateFlows(roslynIssue.Flows);
+        var quickFixes = CreateQuickFixes(roslynIssue.QuickFixes);
 
         return new AnalysisIssue(
             id: Guid.NewGuid(),
-            ruleKey: "csharpsquid:" + diagnostic.Id,
+            ruleKey: roslynIssue.RuleId,
             issueServerKey: null,
             isResolved: false,
             isOnNewCode: true,
             severity: null,
             type: null,
-            highestImpact: new Impact(SoftwareQuality.Maintainability, SoftwareQualitySeverity.Low),
+            highestImpact: new Impact(SoftwareQuality.Maintainability, SoftwareQualitySeverity.Medium),
             primaryLocation: primaryLocation,
             flows: flows,
-            fixes: quickFixes.Count > 0
-                ? quickFixes.Cast<IQuickFixBase>().ToList()
-                : []);
+            fixes: quickFixes);
     }
 
-    private static IReadOnlyList<IAnalysisIssueFlow> CreateFlows(Diagnostic diagnostic)
+    private static IReadOnlyList<IAnalysisIssueFlow> CreateFlows(IReadOnlyList<RoslynIssueFlow> flows)
     {
-        if (diagnostic.AdditionalLocations.Count == 0)
+        if (flows.Count == 0)
         {
             return [];
         }
 
-        var locations = diagnostic.AdditionalLocations
-            .Select(loc => CreateLocation(loc.GetMappedLineSpan(), null))
-            .ToList();
-
-        return [new AnalysisIssueFlow(locations)];
+        return flows.Select(flow =>
+            new AnalysisIssueFlow(flow.Locations.Select(CreateLocation).ToList()) as IAnalysisIssueFlow).ToList();
     }
 
-    private static AnalysisIssueLocation CreateLocation(FileLinePositionSpan span, string message)
+    private static AnalysisIssueLocation CreateLocation(RoslynIssueLocation location)
     {
-        var startLine = span.StartLinePosition.Line + 1;
-        var endLine = span.EndLinePosition.Line + 1;
-        var startLineOffset = span.StartLinePosition.Character;
-        var endLineOffset = span.EndLinePosition.Character;
+        var textRange = new TextRange(
+            location.TextRange.StartLine,
+            location.TextRange.EndLine,
+            location.TextRange.StartLineOffset,
+            location.TextRange.EndLineOffset,
+            null);
+        return new AnalysisIssueLocation(location.Message, location.FileUri.LocalPath, textRange);
+    }
 
-        var textRange = new TextRange(startLine, endLine, startLineOffset, endLineOffset, null);
-        return new AnalysisIssueLocation(message, span.Path, textRange);
+    private static IReadOnlyList<IQuickFixBase> CreateQuickFixes(IReadOnlyList<RoslynIssueQuickFix> quickFixes)
+    {
+        if (quickFixes.Count == 0)
+        {
+            return [];
+        }
+
+        var result = new List<IQuickFixBase>();
+        foreach (var quickFix in quickFixes)
+        {
+            if (RoslynQuickFix.TryParse(quickFix.Value, out var parsed))
+            {
+                result.Add(parsed);
+            }
+        }
+        return result;
     }
 }

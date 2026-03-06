@@ -18,11 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
+using SoftwareQuality = SonarLint.VisualStudio.Core.Analysis.SoftwareQuality;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 
@@ -40,21 +40,21 @@ public class DiagnosticToAnalysisIssueConverterTests
         MefTestHelpers.CheckIsSingletonMefComponent<DiagnosticToAnalysisIssueConverter>();
 
     [TestMethod]
-    public void Convert_SetsRuleKeyWithCsharpsquidPrefix()
+    public void Convert_SetsRuleKeyFromRoslynIssue()
     {
-        var diagnostic = CreateDiagnostic("S1234", "message", @"c:\test.cs", 0, 0, 0, 0);
+        var roslynIssue = CreateRoslynIssue("csharpsquid:S1234", "message", @"C:\test.cs", 1, 1, 0, 0);
 
-        var result = testSubject.Convert(diagnostic, []);
+        var result = testSubject.Convert(roslynIssue);
 
         result.RuleKey.Should().Be("csharpsquid:S1234");
     }
 
     [TestMethod]
-    public void Convert_PrimaryLocation_OneBasedLinesAndZeroBasedOffsets()
+    public void Convert_PrimaryLocation_PreservesTextRange()
     {
-        var diagnostic = CreateDiagnostic("S1", "msg", @"c:\test.cs", 5, 5, 3, 10);
+        var roslynIssue = CreateRoslynIssue("csharpsquid:S1", "msg", @"C:\test.cs", 6, 6, 3, 10);
 
-        var result = testSubject.Convert(diagnostic, []);
+        var result = testSubject.Convert(roslynIssue);
 
         result.PrimaryLocation.TextRange.StartLine.Should().Be(6);
         result.PrimaryLocation.TextRange.EndLine.Should().Be(6);
@@ -65,19 +65,19 @@ public class DiagnosticToAnalysisIssueConverterTests
     [TestMethod]
     public void Convert_PrimaryLocation_HasCorrectFilePath()
     {
-        var diagnostic = CreateDiagnostic("S1", "msg", @"c:\test\file.cs", 0, 0, 0, 0);
+        var roslynIssue = CreateRoslynIssue("csharpsquid:S1", "msg", @"C:\test\file.cs", 1, 1, 0, 0);
 
-        var result = testSubject.Convert(diagnostic, []);
+        var result = testSubject.Convert(roslynIssue);
 
-        result.PrimaryLocation.FilePath.Should().Be(@"c:\test\file.cs");
+        result.PrimaryLocation.FilePath.Should().Be(@"C:\test\file.cs");
     }
 
     [TestMethod]
     public void Convert_PrimaryLocation_HasCorrectMessage()
     {
-        var diagnostic = CreateDiagnostic("S1", "expected message", @"c:\test.cs", 0, 0, 0, 0);
+        var roslynIssue = CreateRoslynIssue("csharpsquid:S1", "expected message", @"C:\test.cs", 1, 1, 0, 0);
 
-        var result = testSubject.Convert(diagnostic, []);
+        var result = testSubject.Convert(roslynIssue);
 
         result.PrimaryLocation.Message.Should().Be("expected message");
     }
@@ -85,102 +85,105 @@ public class DiagnosticToAnalysisIssueConverterTests
     [TestMethod]
     public void Convert_HighestImpact_IsMaintainabilityLow()
     {
-        var diagnostic = CreateDiagnostic("S1", "msg", @"c:\test.cs", 0, 0, 0, 0);
+        var roslynIssue = CreateRoslynIssue("csharpsquid:S1", "msg", @"C:\test.cs", 1, 1, 0, 0);
 
-        var result = testSubject.Convert(diagnostic, []);
+        var result = testSubject.Convert(roslynIssue);
 
         result.HighestImpact.Quality.Should().Be(SoftwareQuality.Maintainability);
-        result.HighestImpact.Severity.Should().Be(SoftwareQualitySeverity.Low);
+        result.HighestImpact.Severity.Should().Be(SoftwareQualitySeverity.Medium);
     }
 
     [TestMethod]
-    public void Convert_NoAdditionalLocations_FlowsIsEmpty()
+    public void Convert_NoFlows_FlowsIsEmpty()
     {
-        var diagnostic = CreateDiagnostic("S1", "msg", @"c:\test.cs", 0, 0, 0, 0);
+        var roslynIssue = CreateRoslynIssue("csharpsquid:S1", "msg", @"C:\test.cs", 1, 1, 0, 0);
 
-        var result = testSubject.Convert(diagnostic, []);
+        var result = testSubject.Convert(roslynIssue);
 
         result.Flows.Should().BeEmpty();
     }
 
     [TestMethod]
-    public void Convert_WithAdditionalLocations_CreatesSingleFlowWithLocations()
+    public void Convert_WithFlows_CreatesFlowsWithLocations()
     {
-        var primaryLocation = CreateLocation(@"c:\test.cs", 0, 0, 0, 0);
-        var additionalLocations = new[]
+        var flowLocations = new List<RoslynIssueLocation>
         {
-            CreateLocation(@"c:\test.cs", 10, 10, 5, 15),
-            CreateLocation(@"c:\other.cs", 20, 20, 0, 10)
+            new("secondary1", new FileUri(@"C:\test.cs"), new RoslynIssueTextRange(11, 11, 5, 15)),
+            new("secondary2", new FileUri(@"C:\other.cs"), new RoslynIssueTextRange(21, 21, 0, 10))
         };
-        var diagnostic = CreateDiagnosticWithLocations("S1", "msg", primaryLocation, additionalLocations);
+        var flow = new RoslynIssueFlow(flowLocations);
+        var primaryLocation = new RoslynIssueLocation("msg", new FileUri(@"C:\test.cs"), new RoslynIssueTextRange(1, 1, 0, 0));
+        var roslynIssue = new RoslynIssue("csharpsquid:S1", primaryLocation, [flow]);
 
-        var result = testSubject.Convert(diagnostic, []);
+        var result = testSubject.Convert(roslynIssue);
 
         result.Flows.Should().ContainSingle();
         result.Flows[0].Locations.Should().HaveCount(2);
+        result.Flows[0].Locations[0].FilePath.Should().Be(@"C:\test.cs");
+        result.Flows[0].Locations[0].TextRange.StartLine.Should().Be(11);
+        result.Flows[0].Locations[1].FilePath.Should().Be(@"C:\other.cs");
+        result.Flows[0].Locations[1].TextRange.StartLine.Should().Be(21);
     }
 
     [TestMethod]
-    public void Convert_WithQuickFixes_FixesIncluded()
+    public void Convert_WithQuickFixes_ParsedViaRoundTrip()
     {
-        var diagnostic = CreateDiagnostic("S1", "msg", @"c:\test.cs", 0, 0, 0, 0);
-        var quickFixes = new List<RoslynQuickFix> { new(Guid.NewGuid()), new(Guid.NewGuid()) };
+        var id1 = Guid.NewGuid();
+        var id2 = Guid.NewGuid();
+        var quickFixes = new List<RoslynIssueQuickFix>
+        {
+            new(new RoslynQuickFix(id1).GetStorageValue()),
+            new(new RoslynQuickFix(id2).GetStorageValue())
+        };
+        var primaryLocation = new RoslynIssueLocation("msg", new FileUri(@"C:\test.cs"), new RoslynIssueTextRange(1, 1, 0, 0));
+        var roslynIssue = new RoslynIssue("csharpsquid:S1", primaryLocation, quickFixes: quickFixes);
 
-        var result = testSubject.Convert(diagnostic, quickFixes);
+        var result = testSubject.Convert(roslynIssue);
 
         result.Fixes.Should().HaveCount(2);
+        result.Fixes[0].Should().BeOfType<RoslynQuickFix>().Which.Id.Should().Be(id1);
+        result.Fixes[1].Should().BeOfType<RoslynQuickFix>().Which.Id.Should().Be(id2);
     }
 
     [TestMethod]
     public void Convert_NoQuickFixes_FixesEmpty()
     {
-        var diagnostic = CreateDiagnostic("S1", "msg", @"c:\test.cs", 0, 0, 0, 0);
+        var roslynIssue = CreateRoslynIssue("csharpsquid:S1", "msg", @"C:\test.cs", 1, 1, 0, 0);
 
-        var result = testSubject.Convert(diagnostic, []);
+        var result = testSubject.Convert(roslynIssue);
 
         result.Fixes.Should().BeEmpty();
     }
 
-    private static Diagnostic CreateDiagnostic(
-        string id,
+    [TestMethod]
+    public void Convert_QuickFixWithInvalidStorageValue_IsSkipped()
+    {
+        var validId = Guid.NewGuid();
+        var quickFixes = new List<RoslynIssueQuickFix>
+        {
+            new("invalid-storage-value"),
+            new(new RoslynQuickFix(validId).GetStorageValue())
+        };
+        var primaryLocation = new RoslynIssueLocation("msg", new FileUri(@"C:\test.cs"), new RoslynIssueTextRange(1, 1, 0, 0));
+        var roslynIssue = new RoslynIssue("csharpsquid:S1", primaryLocation, quickFixes: quickFixes);
+
+        var result = testSubject.Convert(roslynIssue);
+
+        result.Fixes.Should().ContainSingle();
+        result.Fixes[0].Should().BeOfType<RoslynQuickFix>().Which.Id.Should().Be(validId);
+    }
+
+    private static RoslynIssue CreateRoslynIssue(
+        string ruleId,
         string message,
         string filePath,
         int startLine,
         int endLine,
-        int startChar,
-        int endChar)
+        int startLineOffset,
+        int endLineOffset)
     {
-        var location = CreateLocation(filePath, startLine, endLine, startChar, endChar);
-        return CreateDiagnosticWithLocations(id, message, location);
+        var textRange = new RoslynIssueTextRange(startLine, endLine, startLineOffset, endLineOffset);
+        var location = new RoslynIssueLocation(message, new FileUri(filePath), textRange);
+        return new RoslynIssue(ruleId, location);
     }
-
-    private static Diagnostic CreateDiagnosticWithLocations(
-        string id,
-        string message,
-        Location location,
-        Location[] additionalLocations = null)
-    {
-        var descriptor = new DiagnosticDescriptor(
-            id,
-            "Any Title",
-            message,
-            "Any Category",
-            default,
-            default);
-
-        return Diagnostic.Create(descriptor, location, additionalLocations: additionalLocations);
-    }
-
-    private static Location CreateLocation(
-        string filePath,
-        int startLine,
-        int endLine,
-        int startChar,
-        int endChar) =>
-        Location.Create(
-            filePath,
-            new TextSpan(0, 1),
-            new LinePositionSpan(
-                new LinePosition(startLine, startChar),
-                new LinePosition(endLine, endChar)));
 }

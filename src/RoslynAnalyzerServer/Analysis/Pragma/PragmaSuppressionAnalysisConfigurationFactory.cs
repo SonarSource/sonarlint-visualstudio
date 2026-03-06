@@ -27,16 +27,16 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 
-[Export(typeof(IAdditionalAnalysisConfigurationFactory))]
+[Export(typeof(IPragmaSuppressionAnalysisConfigurationFactory))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class AdditionalAnalysisConfigurationFactory : IAdditionalAnalysisConfigurationFactory
+internal class PragmaSuppressionAnalysisConfigurationFactory : IPragmaSuppressionAnalysisConfigurationFactory
 {
     public IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> Create(
-        Func<ImmutableArray<Diagnostic>> knownIssuesProvider,
+        ICurrentAnalysisIssuesStore currentAnalysisIssuesStore,
         IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations)
     {
         var diagnosticAwarePragmaAnalyzer = new DiagnosticAwarePragmaAnalyzer(
-            knownIssuesProvider,
+            currentAnalysisIssuesStore.GetAll,
             sonarRoslynAnalysisConfigurations[Language.CSharp].DiagnosticOptions!.Keys.ToImmutableHashSet());
         return new Dictionary<RoslynLanguage, RoslynAnalysisConfiguration>
         {

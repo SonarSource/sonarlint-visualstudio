@@ -20,13 +20,21 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
-using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 
-internal interface IAdditionalAnalysisConfigurationFactory
+internal class CurrentAnalysisIssuesStore : ICurrentAnalysisIssuesStore
 {
-    IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> Create(
-        Func<ImmutableArray<Diagnostic>> knownIssuesProvider,
-        IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations);
+    private ImmutableArray<Diagnostic> diagnostics = ImmutableArray.Create<Diagnostic>();
+
+    public ImmutableArray<Diagnostic> GetAll() => diagnostics;
+
+    public void Add(Diagnostic diagnostic)
+    {
+        if (!diagnostic.IsSuppressed)
+        {
+            return; // at the moment, we only care about suppressed diagnostics
+        }
+        diagnostics = diagnostics.Add(diagnostic);
+    }
 }
