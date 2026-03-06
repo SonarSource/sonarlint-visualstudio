@@ -40,6 +40,7 @@ public class RaisedFindingProcessorTests
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<RaisedFindingProcessor, IRaisedFindingProcessor>(
             MefTestHelpers.CreateExport<IRaiseFindingToAnalysisIssueConverter>(),
+            MefTestHelpers.CreateExport<IAdditionalAnalysisIssueStorage>(),
             MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(),
             MefTestHelpers.CreateExport<ILogger>());
 
@@ -181,13 +182,78 @@ public class RaisedFindingProcessorTests
         notifier2.Received().AnalysisProgressed(analysisId, 1, FindingsType, isIntermediate);
     }
 
+    [TestMethod]
+    public void RaiseFindings_NotIntermediate_AdditionalIssuesExist_MergesIntoPublish()
+    {
+        var additionalIssue = CreateAnalysisIssue("csharpsquid:S200");
+
+        var (publisher, mainIssue) = RaiseNonIntermediateFindingWithAdditionalStorage([additionalIssue]);
+
+        publisher.Received(1).Publish(fileUri.LocalPath,
+            Arg.Is<IEnumerable<IAnalysisIssue>>(x => x.Count() == 2 && x.Contains(mainIssue) && x.Contains(additionalIssue)));
+    }
+
+    [TestMethod]
+    public void RaiseFindings_NotIntermediate_NoAdditionalIssues_PublishesMainOnly()
+    {
+        var (publisher, mainIssue) = RaiseNonIntermediateFindingWithAdditionalStorage([]);
+
+        publisher.Received(1).Publish(fileUri.LocalPath,
+            Arg.Is<IEnumerable<IAnalysisIssue>>(x => x.Count() == 1 && x.Contains(mainIssue)));
+    }
+
+    [TestMethod]
+    public void RaiseFindings_Intermediate_DoesNotQueryAdditionalStorage()
+    {
+        var analysisId = Guid.NewGuid();
+        var raisedFinding = CreateTestFinding("csharpsquid:S100");
+        var findingsByFileUri = new Dictionary<FileUri, List<TestFinding>> { { fileUri, [raisedFinding] } };
+        var raiseFindingParams = new RaiseFindingParams<TestFinding>("CONFIGURATION_ID", findingsByFileUri, true, analysisId);
+        var publisher = CreatePublisher();
+        var additionalStorage = Substitute.For<IAdditionalAnalysisIssueStorage>();
+        var analysisStatusNotifierFactory = CreateAnalysisStatusNotifierFactory(out _, fileUri.LocalPath);
+        var testSubject = CreateTestSubject(
+            analysisStatusNotifierFactory: analysisStatusNotifierFactory,
+            additionalAnalysisIssueStorage: additionalStorage);
+
+        testSubject.RaiseFinding(raiseFindingParams, publisher);
+
+        additionalStorage.DidNotReceiveWithAnyArgs().Get(default!);
+    }
+
+    private (IFindingsPublisher publisher, IAnalysisIssue mainIssue) RaiseNonIntermediateFindingWithAdditionalStorage(
+        IReadOnlyList<IAnalysisIssue> additionalIssues)
+    {
+        var mainIssue = CreateAnalysisIssue("csharpsquid:S100");
+        var raisedFinding = CreateTestFinding("csharpsquid:S100");
+        var findingsByFileUri = new Dictionary<FileUri, List<TestFinding>> { { fileUri, [raisedFinding] } };
+        var raiseFindingParams = new RaiseFindingParams<TestFinding>("CONFIGURATION_ID", findingsByFileUri, false, Guid.NewGuid());
+        var publisher = CreatePublisher();
+        var converter = Substitute.For<IRaiseFindingToAnalysisIssueConverter>();
+        converter.GetAnalysisIssues(fileUri, Arg.Any<IEnumerable<TestFinding>>()).Returns([mainIssue]);
+        var additionalStorage = Substitute.For<IAdditionalAnalysisIssueStorage>();
+        additionalStorage.Get(fileUri.LocalPath).Returns(additionalIssues);
+        var analysisStatusNotifierFactory = CreateAnalysisStatusNotifierFactory(out _, fileUri.LocalPath);
+        var testSubject = CreateTestSubject(
+            raiseFindingToAnalysisIssueConverter: converter,
+            analysisStatusNotifierFactory: analysisStatusNotifierFactory,
+            additionalAnalysisIssueStorage: additionalStorage);
+
+        testSubject.RaiseFinding(raiseFindingParams, publisher);
+
+        return (publisher, mainIssue);
+    }
+
     private RaisedFindingProcessor CreateTestSubject(
         IRaiseFindingToAnalysisIssueConverter raiseFindingToAnalysisIssueConverter = null,
         IAnalysisStatusNotifierFactory analysisStatusNotifierFactory = null,
-        ILogger logger = null) =>
+        ILogger logger = null,
+        IAdditionalAnalysisIssueStorage additionalAnalysisIssueStorage = null) =>
         new(
             raiseFindingToAnalysisIssueConverter ?? Substitute.For<IRaiseFindingToAnalysisIssueConverter>(),
-            analysisStatusNotifierFactory ?? Substitute.For<IAnalysisStatusNotifierFactory>(), logger ?? new TestLogger());
+            additionalAnalysisIssueStorage ?? Substitute.For<IAdditionalAnalysisIssueStorage>(),
+            analysisStatusNotifierFactory ?? Substitute.For<IAnalysisStatusNotifierFactory>(),
+            logger ?? new TestLogger());
 
     private static IRaiseFindingToAnalysisIssueConverter CreateConverter(
         FileUri fileUri,

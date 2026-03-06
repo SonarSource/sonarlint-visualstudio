@@ -52,6 +52,7 @@ internal sealed class TextBufferIssueTracker : IFileState, ITagger<IErrorTag>
     private readonly ISonarLanguageRecognizer languageRecognizer;
     private readonly IIssueConsumerFactory issueConsumerFactory;
     private readonly IIssueConsumerStorage issueConsumerStorage;
+    private readonly IAdditionalAnalysisIssueStorage additionalAnalysisIssueStorage;
     private readonly ICanonicalFilePathProvider canonicalFilePathProvider;
     private readonly ILogger logger;
     private readonly ISonarErrorListDataSource sonarErrorDataSource;
@@ -71,6 +72,7 @@ internal sealed class TextBufferIssueTracker : IFileState, ITagger<IErrorTag>
         IVsProjectInfoProvider vsProjectInfoProvider,
         IIssueConsumerFactory issueConsumerFactory,
         IIssueConsumerStorage issueConsumerStorage,
+        IAdditionalAnalysisIssueStorage additionalAnalysisIssueStorage,
         ICanonicalFilePathProvider canonicalFilePathProvider,
         ILogger logger)
     {
@@ -81,6 +83,7 @@ internal sealed class TextBufferIssueTracker : IFileState, ITagger<IErrorTag>
         this.vsProjectInfoProvider = vsProjectInfoProvider;
         this.issueConsumerFactory = issueConsumerFactory;
         this.issueConsumerStorage = issueConsumerStorage;
+        this.additionalAnalysisIssueStorage = additionalAnalysisIssueStorage;
         this.canonicalFilePathProvider = canonicalFilePathProvider;
         this.logger = logger;
         logger.ForContext(nameof(TextBufferIssueTracker));
@@ -140,7 +143,7 @@ internal sealed class TextBufferIssueTracker : IFileState, ITagger<IErrorTag>
                         var oldFilePath = FilePath;
                         // workaround for issue consumer storage being filepath-based, instead of buffer based.
                         // buffer always has the latest file path, so here we have to clear the old file path, even though it's still the same buffer
-                        issueConsumerStorage.Remove(oldFilePath);
+                        RemoveIssueConsumer(oldFilePath);
                         UpdateMetadata(e.FilePath);
                         documentTrackerUpdater.OnOpenDocumentRenamed(this, oldFilePath);
                         break;
@@ -192,7 +195,11 @@ internal sealed class TextBufferIssueTracker : IFileState, ITagger<IErrorTag>
         DetectedLanguages = languageRecognizer.Detect(FilePath, textBuffer.ContentType);
     }
 
-    private void RemoveIssueConsumer(string filePath) => issueConsumerStorage.Remove(filePath);
+    private void RemoveIssueConsumer(string filePath)
+    {
+        issueConsumerStorage.Remove(filePath);
+        additionalAnalysisIssueStorage.Remove(filePath);
+    }
 
     private void CreateIssueConsumer(FileSnapshot fileSnapshot)
     {
