@@ -77,6 +77,13 @@
           <ButtonText>Solution Settings</ButtonText>
         </Strings>
       </Button>
+      <Button guid="SonarLintCmdSet" id="SupportedLanguagesCommand" priority="0x999A">
+        <Parent guid="SonarLintCmdSet" id="SonarLintConnectedModeGroup"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Supported Languages</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
     
   </Commands>
@@ -92,6 +99,7 @@
       <IDSymbol name="HelpMenu" value="0x1023"/>
       <IDSymbol name="OptionsCommand" value="0x1025"/>
       <IDSymbol name="SolutionSettingsCommand" value="0x1028"/>
+      <IDSymbol name="SupportedLanguagesCommand" value="0x1029"/>
       <IDSymbol name="SonarLintHelpGroup" value="0x1026"/>
       <IDSymbol name="SonarLintConnectedModeGroup" value="0x1027"/>
     </GuidSymbol>
