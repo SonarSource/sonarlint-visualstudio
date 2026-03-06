@@ -21,18 +21,23 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
-namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
+namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal interface IRoslynCompilationWithAnalyzersWrapper
+internal class RoslynFileSemanticAnalysisCommand(string analysisFilePath, ILogger logger) : IRoslynAnalysisCommand
 {
-    RoslynLanguage Language { get; }
-    RoslynAnalysisConfiguration AnalysisConfiguration { get; }
-    SyntaxTree? GetSyntaxTree(string filePath);
+    public string AnalysisFilePath { get; } = analysisFilePath;
 
-    SemanticModel? GetSemanticModel(string filePath);
+    public async Task<ImmutableArray<Diagnostic>> ExecuteAsync(IRoslynCompilationWithAnalyzersWrapper compilation, CancellationToken token)
+    {
+        var semanticModel = compilation.GetSemanticModel(AnalysisFilePath);
+        if (semanticModel == null)
+        {
+            logger.LogVerbose(Resources.AnalysisCommand_NoSemanticModel, AnalysisFilePath);
+            return ImmutableArray<Diagnostic>.Empty;
+        }
 
-    Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(CancellationToken token);
-    Task<ImmutableArray<Diagnostic>> GetAnalyzerSyntaxDiagnosticsAsync(SyntaxTree syntaxTree, CancellationToken token);
-    Task<ImmutableArray<Diagnostic>> GetAnalyzerSemanticDiagnosticsAsync(SemanticModel semanticModel, CancellationToken token);
+        return await compilation.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, token);
+    }
 }

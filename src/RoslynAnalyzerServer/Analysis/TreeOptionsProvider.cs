@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -20,24 +20,25 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
-internal class RoslynFileSemanticAnalysis(string analysisFilePath, ILogger logger) : IRoslynAnalysisCommand
+internal sealed class TreeOptionsProvider(
+    ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions,
+    ImmutableHashSet<string> targetFilePaths)
+    : SyntaxTreeOptionsProvider
 {
-    public string AnalysisFilePath { get; } = analysisFilePath;
-
-    public async Task<ImmutableArray<Diagnostic>> ExecuteAsync(IRoslynCompilationWithAnalyzersWrapper compilation, CancellationToken token)
+    public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity)
     {
-        var semanticModel = compilation.GetSemanticModel(AnalysisFilePath);
-        if (semanticModel == null)
-        {
-            logger.LogVerbose(Resources.AnalysisCommand_NoSemanticModel, AnalysisFilePath);
-            return ImmutableArray<Diagnostic>.Empty;
-        }
-
-        return await compilation.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, token);
+        severity = targetFilePaths.Contains(tree.FilePath) && diagnosticOptions.TryGetValue(diagnosticId, out var value) ? value : ReportDiagnostic.Suppress;
+        return true;
     }
+
+    public override bool TryGetGlobalDiagnosticValue(string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity)
+    {
+        severity = ReportDiagnostic.Default;
+        return false;
+    }
+
+    public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken cancellationToken) => GeneratedKind.Unknown;
 }
