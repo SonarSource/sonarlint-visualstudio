@@ -21,10 +21,9 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
+using static SonarLint.VisualStudio.RoslynAnalyzerServer.IntegrationTests.Analysis.Pragma.PragmaTestHelper;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.IntegrationTests.Analysis.Pragma;
 
@@ -275,85 +274,5 @@ public class DiagnosticAwarePragmaAnalyzerTests
             line: d.Location.GetLineSpan().StartLinePosition.Line));
 
         actual.Should().BeEquivalentTo(expected);
-    }
-
-    private static ImmutableArray<Diagnostic> ExtractTestIssues(SyntaxTree tree)
-    {
-        var root = tree.GetRoot();
-        var diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
-
-        foreach (var trivia in root.DescendantTrivia())
-        {
-            if (!trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
-            {
-                continue;
-            }
-
-            var text = trivia.ToString();
-            const string prefix = "//SimulateIssue:";
-            if (text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-            {
-                var ruleId = text.Substring(prefix.Length).Split(' ')[0];
-                diagnostics.Add(CreateDiagnostic(ruleId, tree, trivia.Span));
-            }
-        }
-
-        return diagnostics.ToImmutable();
-    }
-
-    private static ImmutableHashSet<string> ExtractSupportedIdsFromPragmas(SyntaxTree tree)
-    {
-        var root = tree.GetRoot();
-        var ids = ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var node in root.DescendantNodes(descendIntoTrivia: true))
-        {
-            if (node is PragmaWarningDirectiveTriviaSyntax pragma)
-            {
-                foreach (var errorCode in pragma.ErrorCodes)
-                {
-                    if (errorCode is IdentifierNameSyntax identifier)
-                    {
-                        ids.Add(identifier.Identifier.Text);
-                    }
-                }
-            }
-        }
-
-        return ids.ToImmutable();
-    }
-
-    private static (SyntaxTree tree, ImmutableArray<Diagnostic> testIssues, ImmutableHashSet<string> supportedIds) GetPragmaDiagnosticsForMarkedSource(string source)
-    {
-        var tree = CSharpSyntaxTree.ParseText(source);
-        var testIssues = ExtractTestIssues(tree);
-        var supportedIds = ExtractSupportedIdsFromPragmas(tree);
-        return (tree, testIssues, supportedIds);
-    }
-
-    private static Diagnostic CreateDiagnostic(string ruleId, SyntaxTree tree, TextSpan span)
-    {
-        var descriptor = new DiagnosticDescriptor(ruleId, "Test", "Test", "Test", DiagnosticSeverity.Warning, true);
-        return Diagnostic.Create(descriptor, Location.Create(tree, span));
-    }
-
-    private static async Task<ImmutableArray<Diagnostic>> GetPragmaDiagnosticsAsync(
-        SyntaxTree tree,
-        ImmutableArray<Diagnostic> knownDiagnostics,
-        ImmutableHashSet<string> supportedIds)
-    {
-        var compilation = CSharpCompilation.Create(
-            "TestAssembly",
-            [tree],
-            [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)],
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-
-        var analyzer = new DiagnosticAwarePragmaAnalyzer(() => knownDiagnostics, supportedIds);
-        var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
-        var allDiagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
-
-        return allDiagnostics
-            .Where(d => d.Id == DiagnosticAwarePragmaAnalyzer.DiagnosticId)
-            .ToImmutableArray();
     }
 }
