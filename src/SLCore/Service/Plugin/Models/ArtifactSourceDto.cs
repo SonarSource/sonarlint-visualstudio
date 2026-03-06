@@ -18,21 +18,30 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Common.Models;
-using SonarLint.VisualStudio.SLCore.Core;
+namespace SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Plugin;
-
-public interface IPluginListener : ISLCoreListener
+/// <summary>
+/// Describes where an analyzer plugin artifact was obtained from.
+/// </summary>
+public enum ArtifactSourceDto
 {
-    void DidSkipLoadingPlugin(DidSkipLoadingPluginParams parameters);
-    void DidChangePluginStatuses(DidChangePluginStatusesParams parameters);
-}
+    /// <summary>
+    /// The plugin is bundled with the IDE extension.
+    /// </summary>
+    EMBEDDED,
 
-public record DidSkipLoadingPluginParams(string configurationScopeId, Language language, SkipReason reason, string minVersion, string currentVersion);
+    /// <summary>
+    /// The plugin was downloaded on demand from an external source (e.g. binaries.sonarsource.com).
+    /// </summary>
+    ON_DEMAND,
 
-public enum SkipReason
-{
-    UNSATISFIED_JRE,
-    UNSATISFIED_NODE_JS
+    /// <summary>
+    /// The plugin was synchronized from a SonarQube Server connection.
+    /// </summary>
+    SONARQUBE_SERVER,
+
+    /// <summary>
+    /// The plugin was synchronized from a SonarQube Cloud connection.
+    /// </summary>
+    SONARQUBE_CLOUD
 }

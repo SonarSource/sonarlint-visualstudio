@@ -18,21 +18,31 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Common.Models;
-using SonarLint.VisualStudio.SLCore.Core;
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Service.Plugin;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Plugin;
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Plugin;
 
-public interface IPluginListener : ISLCoreListener
+[TestClass]
+public class GetPluginStatusesParamsTests
 {
-    void DidSkipLoadingPlugin(DidSkipLoadingPluginParams parameters);
-    void DidChangePluginStatuses(DidChangePluginStatusesParams parameters);
-}
+    [TestMethod]
+    public void Serialized_WithConfigurationScopeId_AsExpected()
+    {
+        var param = new GetPluginStatusesParams(configurationScopeId: "my-scope");
 
-public record DidSkipLoadingPluginParams(string configurationScopeId, Language language, SkipReason reason, string minVersion, string currentVersion);
+        var actual = JsonConvert.SerializeObject(param);
 
-public enum SkipReason
-{
-    UNSATISFIED_JRE,
-    UNSATISFIED_NODE_JS
+        actual.Should().Be("""{"configurationScopeId":"my-scope"}""");
+    }
+
+    [TestMethod]
+    public void Serialized_WithNullConfigurationScopeId_AsExpected()
+    {
+        var param = new GetPluginStatusesParams(configurationScopeId: null);
+
+        var actual = JsonConvert.SerializeObject(param);
+
+        actual.Should().Be("""{"configurationScopeId":null}""");
+    }
 }

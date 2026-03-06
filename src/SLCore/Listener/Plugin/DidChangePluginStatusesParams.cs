@@ -18,21 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Common.Models;
-using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Plugin;
 
-public interface IPluginListener : ISLCoreListener
-{
-    void DidSkipLoadingPlugin(DidSkipLoadingPluginParams parameters);
-    void DidChangePluginStatuses(DidChangePluginStatusesParams parameters);
-}
-
-public record DidSkipLoadingPluginParams(string configurationScopeId, Language language, SkipReason reason, string minVersion, string currentVersion);
-
-public enum SkipReason
-{
-    UNSATISFIED_JRE,
-    UNSATISFIED_NODE_JS
-}
+public record DidChangePluginStatusesParams(List<PluginStatusDto> pluginStatuses);
