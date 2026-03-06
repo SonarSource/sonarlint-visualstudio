@@ -226,14 +226,15 @@ public class SequentialRoslynAnalysisEngineTests
     }
 
     [TestMethod]
-    public async Task AnalyzeAsync_NoAdditionalCompilation_DoesNotStoreAdditionalIssues()
+    public async Task AnalyzeAsync_NoAdditionalCompilation_StoresEmptyAdditionalIssues()
     {
         var (diagnostic, _) = SetUpDiagnosticAndConvertedModel("rule1", "message1");
         var (requestForProject, _) = SetupProjectAnalysisRequestAndCompilation([[diagnostic]]);
 
         await testSubject.AnalyzeAsync([requestForProject], configurations, cancellationToken);
 
-        additionalAnalysisIssueStorage.DidNotReceiveWithAnyArgs().Add(default!);
+        EnumerateAddedAdditionalIssuesAndVerifyConvert();
+        diagnosticToAnalysisIssueConverter.DidNotReceiveWithAnyArgs().Convert(default!);
     }
 
 
@@ -321,6 +322,20 @@ public class SequentialRoslynAnalysisEngineTests
         var (request, _, _) = SetupAdditionalAnalysisRequest(diagnostics: [diagnostic1, diagnostic2]);
 
         await testSubject.AnalyzeAsync([request], configurations, cancellationToken);
+
+        EnumerateAddedAdditionalIssuesAndVerifyConvert(roslynIssue);
+    }
+
+    [TestMethod]
+    public async Task AnalyzeAsync_DuplicateAdditionalDiagnosticsAcrossProjects_DeduplicatedBeforeAdding()
+    {
+        var (diagnostic1, roslynIssue, _) = SetUpAdditionalDiagnosticAndConvertedModel("rule1", "msg1");
+        var (request1, _, _) = SetupAdditionalAnalysisRequest(diagnostics: [diagnostic1]);
+        var diagnostic2 = CreateTestDiagnostic("rule1-dup", "msg1 dup");
+        issueConverter.ConvertToSonarDiagnostic(diagnostic2, Arg.Any<List<RoslynQuickFix>>(), Arg.Any<Language>()).Returns(roslynIssue);
+        var (request2, _, _) = SetupAdditionalAnalysisRequest(diagnostics: [diagnostic2]);
+
+        await testSubject.AnalyzeAsync([request1, request2], configurations, cancellationToken);
 
         EnumerateAddedAdditionalIssuesAndVerifyConvert(roslynIssue);
     }
