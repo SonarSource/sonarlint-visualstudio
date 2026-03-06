@@ -109,16 +109,23 @@ public class PragmaWarningDisableCodeFixProvider : CodeFixProvider
             return root;
         }
 
+        var skipFrom = index;
+        if (index > 0 && leadingTrivia[index - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+        {
+            skipFrom = index - 1;
+        }
+
+        var skipTo = index;
+        if (index + 1 < leadingTrivia.Count && leadingTrivia[index + 1].IsKind(SyntaxKind.EndOfLineTrivia))
+        {
+            skipTo = index + 1;
+        }
+
         var newTriviaList = new SyntaxTriviaList();
         for (var i = 0; i < leadingTrivia.Count; i++)
         {
-            if (i == index)
+            if (i >= skipFrom && i <= skipTo)
             {
-                // Skip the pragma trivia and its trailing EndOfLine
-                if (i + 1 < leadingTrivia.Count && leadingTrivia[i + 1].IsKind(SyntaxKind.EndOfLineTrivia))
-                {
-                    i++; // skip the EOL too
-                }
                 continue;
             }
 
