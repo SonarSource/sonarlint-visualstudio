@@ -18,21 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Common.Models;
-using SonarLint.VisualStudio.SLCore.Core;
+namespace SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Plugin;
-
-public interface IPluginListener : ISLCoreListener
-{
-    void DidSkipLoadingPlugin(DidSkipLoadingPluginParams parameters);
-    void DidChangePluginStatuses(DidChangePluginStatusesParams parameters);
-}
-
-public record DidSkipLoadingPluginParams(string configurationScopeId, Language language, SkipReason reason, string minVersion, string currentVersion);
-
-public enum SkipReason
-{
-    UNSATISFIED_JRE,
-    UNSATISFIED_NODE_JS
-}
+/// <param name="pluginName">human-readable name of the language/analyzer (e.g. "Java", "C/C++/Objective-C")</param>
+/// <param name="state">current lifecycle state of the plugin in the backend</param>
+/// <param name="source">where the plugin artifact came from; null when the plugin is not available</param>
+/// <param name="actualVersion">version of the plugin that is currently in use; null when the plugin is not loaded</param>
+/// <param name="overriddenVersion">a local plugin version that was superseded by the one obtained via SQS/SQC sync, if any; null when no override is in effect</param>
+public record PluginStatusDto(string pluginName, PluginStateDto state, ArtifactSourceDto? source, string? actualVersion, string? overriddenVersion);

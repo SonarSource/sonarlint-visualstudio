@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Plugin;
 using SonarLint.VisualStudio.SLCore.NodeJS.Notifications;
@@ -44,4 +45,7 @@ public class PluginListener : IPluginListener
             unsupportedNodeVersionNotificationService.Show(parameters.language.ToString(), parameters.minVersion, parameters.currentVersion);
         }
     }
+
+    [ExcludeFromCodeCoverage] // todo https://sonarsource.atlassian.net/browse/SLVS-2870 Display data from SLCore and handle updates
+    public void DidChangePluginStatuses(DidChangePluginStatusesParams parameters) => throw new NotImplementedException();
 }
