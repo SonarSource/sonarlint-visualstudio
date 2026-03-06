@@ -164,6 +164,210 @@ public class PragmaWarningDisableCodeFixProviderTests
         Normalize(result).Should().Be(Normalize(expected));
     }
 
+    [TestMethod]
+    public async Task ApplyCodeFix_PragmaBetweenSingleLineComments_RemovesPragmaPreservesComments()
+    {
+        var source =
+            """
+            // Comment above
+            #pragma warning disable S1234
+            // Comment below
+            class Foo { }
+            #pragma warning restore S1234
+            """;
+
+        var diagnostics = await GetPragmaDiagnosticsForSourceAsync(source);
+        var result = await ApplyCodeFixAsync(source, diagnostics[0]);
+
+        Normalize(result).Should().Be(Normalize(
+            """
+            // Comment above
+            // Comment below
+            class Foo { }
+            """));
+    }
+
+    [TestMethod]
+    public async Task ApplyCodeFix_PragmaBetweenXmlDocAndClass_RemovesPragmaPreservesDoc()
+    {
+        var source =
+            """
+            /// <summary>Description of Foo</summary>
+            #pragma warning disable S1234
+            class Foo { }
+            #pragma warning restore S1234
+            """;
+
+        var diagnostics = await GetPragmaDiagnosticsForSourceAsync(source);
+        var result = await ApplyCodeFixAsync(source, diagnostics[0]);
+
+        Normalize(result).Should().Be(Normalize(
+            """
+            /// <summary>Description of Foo</summary>
+            class Foo { }
+            """));
+    }
+
+    [TestMethod]
+    public async Task ApplyCodeFix_IndentedPragmaInsideNamespace_RemovesPragmaPreservesIndentation()
+    {
+        var source =
+            """
+            namespace TestNamespace
+            {
+                #pragma warning disable S1234
+                class Foo { }
+                #pragma warning restore S1234
+            }
+            """;
+
+        var diagnostics = await GetPragmaDiagnosticsForSourceAsync(source);
+        var result = await ApplyCodeFixAsync(source, diagnostics[0]);
+
+        Normalize(result).Should().Be(Normalize(
+            """
+            namespace TestNamespace
+            {
+                class Foo { }
+            }
+            """));
+    }
+
+    [TestMethod]
+    public async Task ApplyCodeFix_AdjacentPragmas_RemovesOnlyUnnecessaryPragma()
+    {
+        var source =
+            """
+            #pragma warning disable S1234
+            #pragma warning disable S5678
+            class Foo { //SimulateIssue:S5678 }
+            #pragma warning restore S5678
+            #pragma warning restore S1234
+            """;
+
+        var diagnostics = await GetPragmaDiagnosticsForSourceAsync(source);
+        var diagnostic = diagnostics.First(d =>
+            d.Properties[DiagnosticAwarePragmaAnalyzer.ReportedDiagnosticId] == "S1234");
+        var result = await ApplyCodeFixAsync(source, diagnostic);
+
+        Normalize(result).Should().Be(Normalize(
+            """
+            #pragma warning disable S5678
+            class Foo { //SimulateIssue:S5678 }
+            #pragma warning restore S5678
+            """));
+    }
+
+    [TestMethod]
+    public async Task ApplyCodeFix_PragmaBetweenBlockCommentAndCode_RemovesPragmaPreservesComment()
+    {
+        var source =
+            """
+            /* Block comment */
+            #pragma warning disable S1234
+            class Foo { }
+            #pragma warning restore S1234
+            """;
+
+        var diagnostics = await GetPragmaDiagnosticsForSourceAsync(source);
+        var result = await ApplyCodeFixAsync(source, diagnostics[0]);
+
+        Normalize(result).Should().Be(Normalize(
+            """
+            /* Block comment */
+            class Foo { }
+            """));
+    }
+
+    [TestMethod]
+    public async Task ApplyCodeFix_StackedPragmas_RemovesMiddlePragmaPreservesOthers()
+    {
+        var source =
+            """
+            #pragma warning disable S1111
+            #pragma warning disable S2222
+            #pragma warning disable S3333
+            class Foo {
+                //SimulateIssue:S1111
+                //SimulateIssue:S3333
+            }
+            #pragma warning restore S3333
+            #pragma warning restore S2222
+            #pragma warning restore S1111
+            """;
+
+        var diagnostics = await GetPragmaDiagnosticsForSourceAsync(source);
+        var diagnostic = diagnostics.First(d =>
+            d.Properties[DiagnosticAwarePragmaAnalyzer.ReportedDiagnosticId] == "S2222");
+        var result = await ApplyCodeFixAsync(source, diagnostic);
+
+        Normalize(result).Should().Be(Normalize(
+            """
+            #pragma warning disable S1111
+            #pragma warning disable S3333
+            class Foo {
+                //SimulateIssue:S1111
+                //SimulateIssue:S3333
+            }
+            #pragma warning restore S3333
+            #pragma warning restore S1111
+            """));
+    }
+
+    [TestMethod]
+    public async Task ApplyCodeFix_PragmaInsideRegion_RemovesPragmaPreservesRegion()
+    {
+        var source =
+            """
+            #region MyRegion
+            #pragma warning disable S1234
+            class Foo { }
+            #pragma warning restore S1234
+            #endregion
+            """;
+
+        var diagnostics = await GetPragmaDiagnosticsForSourceAsync(source);
+        var result = await ApplyCodeFixAsync(source, diagnostics[0]);
+
+        Normalize(result).Should().Be(Normalize(
+            """
+            #region MyRegion
+            class Foo { }
+            #endregion
+            """));
+    }
+
+    [TestMethod]
+    public async Task ApplyCodeFix_MultiIdPragmaBetweenComments_RemovesIdPreservesComments()
+    {
+        var source =
+            """
+            // Comment above
+            #pragma warning disable S1234, S5678
+            // Comment below
+            class Foo { //SimulateIssue:S1234 }
+            // Comment above restore
+            #pragma warning restore S1234, S5678
+            // Comment below restore
+            """;
+
+        var diagnostics = await GetPragmaDiagnosticsForSourceAsync(source);
+        var diagnostic = diagnostics.First(d =>
+            d.Properties[DiagnosticAwarePragmaAnalyzer.ReportedDiagnosticId] == "S5678");
+        var result = await ApplyCodeFixAsync(source, diagnostic);
+
+        Normalize(result).Should().Be(Normalize(
+            """
+            // Comment above
+            #pragma warning disable S1234
+            // Comment below
+            class Foo { //SimulateIssue:S1234 }
+            // Comment above restore
+            #pragma warning restore S1234
+            // Comment below restore
+            """));
+    }
+
     private static async Task<ImmutableArray<Diagnostic>> GetPragmaDiagnosticsForSourceAsync(string source)
     {
         var (tree, testIssues, supportedIds) = GetPragmaDiagnosticsForMarkedSource(source);
