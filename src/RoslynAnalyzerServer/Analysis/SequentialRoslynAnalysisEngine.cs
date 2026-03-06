@@ -20,6 +20,7 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -37,7 +38,7 @@ internal class SequentialRoslynAnalysisEngine(
     IRoslynQuickFixFactory quickFixFactory,
     IDiagnosticToAnalysisIssueConverter diagnosticToAnalysisIssueConverter,
     IAdditionalAnalysisIssueStorage additionalAnalysisIssueStorage,
-    IAdditionalAnalysisConfigurationFactory additionalAnalysisConfigurationFactory,
+    IPragmaSuppressionAnalysisConfigurationFactory pragmaSuppressionAnalysisConfigurationFactory,
     ILogger logger) : IRoslynAnalysisEngine
 {
     private readonly ILogger logger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisEngineLogContext);
@@ -47,9 +48,9 @@ internal class SequentialRoslynAnalysisEngine(
         IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token)
     {
-        var uniqueDiagnostics = new HashSet<RoslynIssue>(DiagnosticDuplicatesComparer.Instance); // todo might need non-unique diagnostics for pragma analyzer
-        var nonUniqueDiagnostics = ImmutableArray.Create<Diagnostic>();
-        var additionalConfigurations = additionalAnalysisConfigurationFactory.Create(() => nonUniqueDiagnostics, sonarRoslynAnalysisConfigurations);
+        var uniqueDiagnostics = new HashSet<RoslynIssue>(DiagnosticDuplicatesComparer.Instance);
+        var knownIssuesStore = new CurrentAnalysisIssuesStore();
+        var additionalConfigurations = pragmaSuppressionAnalysisConfigurationFactory.Create(knownIssuesStore, sonarRoslynAnalysisConfigurations);
 
         foreach (var projectAnalysisRequest in projectsAnalysis)
         {
@@ -60,71 +61,62 @@ internal class SequentialRoslynAnalysisEngine(
                 token);
 
             // todo SLVS-2467 issue streaming
-            foreach (var analysisCommand in projectAnalysisRequest.AnalysisCommands)
+            await foreach (var (diagnostic, issue) in AnalyzeAsync(token, projectAnalysisRequest.Scope, projectAnalysisRequest.AnalysisCommands, compilationWithAnalyzers))
             {
-                var diagnostics = await analysisCommand.ExecuteAsync(compilationWithAnalyzers, token);
-                nonUniqueDiagnostics = nonUniqueDiagnostics.AddRange(diagnostics);
-
-                foreach (var diagnostic in diagnostics.Where(x => !x.IsSuppressed))
+                knownIssuesStore.Add(diagnostic);
+                if (issue is not null && !uniqueDiagnostics.Add(issue))
                 {
-                    var quickFixes = await quickFixFactory.CreateQuickFixesAsync(
-                        diagnostic,
-                        projectAnalysisRequest.Scope.Project.Solution,
-                        compilationWithAnalyzers.AnalysisConfiguration,
-                        token);
-
-                    var roslynIssue = issueConverter.ConvertToSonarDiagnostic(diagnostic, quickFixes, compilationWithAnalyzers.Language);
                     // todo SLVS-2468 improve issue merging
-                    if (!uniqueDiagnostics.Add(roslynIssue))
-                    {
-                        logger.LogVerbose(Resources.AnalysisEngine_DuplicateDiagnostic, roslynIssue.RuleId, roslynIssue.PrimaryLocation.FileUri.LocalPath,
-                            roslynIssue.PrimaryLocation.TextRange.StartLine);
-                    }
+                    logger.LogVerbose(Resources.AnalysisEngine_DuplicateDiagnostic, issue.RuleId, issue.PrimaryLocation.FileUri.LocalPath,
+                        issue.PrimaryLocation.TextRange.StartLine);
                 }
             }
 
             if (compilationWithAdditionalAnalyzers is not null)
             {
-                await ProduceAdditionalDiagnosticsAsync(token, projectAnalysisRequest, compilationWithAdditionalAnalyzers);
+                var uniqueAdditionalDiagnostics = new HashSet<RoslynIssue>(DiagnosticDuplicatesComparer.Instance);
+                await foreach (var (_, issue) in AnalyzeAsync(token, projectAnalysisRequest.Scope, projectAnalysisRequest.AdditionalCommands, compilationWithAdditionalAnalyzers))
+                {
+                    if (issue is null)
+                    {
+                        continue;
+                    }
+                    uniqueAdditionalDiagnostics.Add(issue);
+                }
+                additionalAnalysisIssueStorage.Add(uniqueAdditionalDiagnostics.Select(diagnosticToAnalysisIssueConverter.Convert));
             }
         }
 
         return uniqueDiagnostics;
     }
 
-    private async Task ProduceAdditionalDiagnosticsAsync(
-        CancellationToken token,
-        RoslynProjectAnalysisRequest projectAnalysisCommands,
+    private async IAsyncEnumerable<(Diagnostic, RoslynIssue?)> AnalyzeAsync(
+        [EnumeratorCancellation] CancellationToken token, // todo check async enumerable
+        ProjectAnalysisRequestScope scope,
+        IEnumerable<IRoslynAnalysisCommand> analysisCommands,
         IRoslynCompilationWithAnalyzersWrapper compilationWithAdditionalAnalyzers)
     {
-        var additionalIssuesByFile = new Dictionary<string, List<IAnalysisIssue>>();
-
-        foreach (var analysisCommand in projectAnalysisCommands.AdditionalCommands)
+        foreach (var analysisCommand in analysisCommands)
         {
             var diagnostics = await analysisCommand.ExecuteAsync(compilationWithAdditionalAnalyzers, token);
 
-            foreach (var diagnostic in diagnostics.Where(x => !x.IsSuppressed))
+            foreach (var diagnostic in diagnostics)
             {
+                if (diagnostic.IsSuppressed)
+                {
+                    yield return (diagnostic, null); // suppressed issues are not reported as sonar issues
+                    continue;
+                }
+
                 var quickFixes = await quickFixFactory.CreateQuickFixesAsync(
                     diagnostic,
-                    projectAnalysisCommands.Scope.Project.Solution,
+                    scope.Project.Solution,
                     compilationWithAdditionalAnalyzers.AnalysisConfiguration,
                     token);
 
-                var analysisIssue = diagnosticToAnalysisIssueConverter.Convert(diagnostic, quickFixes);
-                var filePath = diagnostic.Location.GetMappedLineSpan().Path;
-                if (!additionalIssuesByFile.TryGetValue(filePath, out var list))
-                {
-                    additionalIssuesByFile[filePath] = list = [];
-                }
-                // todo these diagnostics may also be duplicated for multi-target projects
-                list.Add(analysisIssue);
+                var roslynIssue = issueConverter.ConvertToSonarDiagnostic(diagnostic, quickFixes, compilationWithAdditionalAnalyzers.Language);
+                yield return (diagnostic, roslynIssue);
             }
-        }
-
-        foreach (var kvp in additionalIssuesByFile)
-        {
-            additionalAnalysisIssueStorage.Store(kvp.Key, kvp.Value);
         }
     }
 }

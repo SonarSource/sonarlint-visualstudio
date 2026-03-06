@@ -18,14 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Concurrent;
 using System.ComponentModel.Composition;
 
 namespace SonarLint.VisualStudio.Core.Analysis;
 
 public interface IAdditionalAnalysisIssueStorage
 {
-    void Store(string filePath, IReadOnlyList<IAnalysisIssue> issues);
+    void Add(IEnumerable<IAnalysisIssue> issues);
     IReadOnlyList<IAnalysisIssue> Get(string filePath);
     void Remove(string filePath);
 }
@@ -34,14 +33,38 @@ public interface IAdditionalAnalysisIssueStorage
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class AdditionalAnalysisIssueStorage : IAdditionalAnalysisIssueStorage
 {
-    private readonly ConcurrentDictionary<string, IReadOnlyList<IAnalysisIssue>> storage = new();
+    private readonly Dictionary<string, List<IAnalysisIssue>> storage = new();
+    private readonly object lockObject = new();
 
-    public void Store(string filePath, IReadOnlyList<IAnalysisIssue> issues) =>
-        storage[filePath] = issues;
+    public void Add(IEnumerable<IAnalysisIssue> issues)
+    {
+        lock (lockObject)
+        {
+            foreach (var issue in issues)
+            {
+                var filePath = issue.PrimaryLocation.FilePath;
+                if (!storage.TryGetValue(filePath, out var list))
+                {
+                    storage[filePath] = list = [];
+                }
+                list.Add(issue);
+            }
+        }
+    }
 
-    public IReadOnlyList<IAnalysisIssue> Get(string filePath) =>
-        storage.TryGetValue(filePath, out var issues) ? issues : [];
+    public IReadOnlyList<IAnalysisIssue> Get(string filePath)
+    {
+        lock (lockObject)
+        {
+            return storage.TryGetValue(filePath, out var issues) ? issues : [];
+        }
+    }
 
-    public void Remove(string filePath) =>
-        storage.TryRemove(filePath, out _);
+    public void Remove(string filePath)
+    {
+        lock (lockObject)
+        {
+            storage.Remove(filePath);
+        }
+    }
 }
