@@ -234,7 +234,7 @@ public class PragmaWarningDisableCodeFixProviderTests
     }
 
     [TestMethod]
-    public async Task ApplyCodeFix_AdjacentPragmas_RemovesOnlyUnnecessaryPragma()
+    public async Task ApplyCodeFix_AdjacentPragmas_RemovesOnlyUnnecessaryOuterPragma()
     {
         var source =
             """
@@ -246,8 +246,7 @@ public class PragmaWarningDisableCodeFixProviderTests
             """;
 
         var diagnostics = await GetPragmaDiagnosticsForSourceAsync(source);
-        var diagnostic = diagnostics.First(d =>
-            d.Properties[DiagnosticAwarePragmaAnalyzer.ReportedDiagnosticId] == "S1234");
+        var diagnostic = diagnostics.First();
         var result = await ApplyCodeFixAsync(source, diagnostic);
 
         Normalize(result).Should().Be(Normalize(
@@ -255,6 +254,58 @@ public class PragmaWarningDisableCodeFixProviderTests
             #pragma warning disable S5678
             class Foo { //SimulateIssue:S5678 }
             #pragma warning restore S5678
+            """));
+    }
+
+    [TestMethod]
+    public async Task ApplyCodeFix_AdjacentPragmas_WithExtraCode_RemovesOnlyUnnecessaryOuterPragma()
+    {
+        var source =
+            """
+            class Bar {}
+            #pragma warning disable S1234
+            #pragma warning disable S5678
+            class Foo { //SimulateIssue:S5678 }
+            #pragma warning restore S5678
+            #pragma warning restore S1234
+            class Baz {}
+            """;
+
+        var diagnostics = await GetPragmaDiagnosticsForSourceAsync(source);
+        var diagnostic = diagnostics.First();
+        var result = await ApplyCodeFixAsync(source, diagnostic);
+
+        Normalize(result).Should().Be(Normalize(
+            """
+            class Bar {}
+            #pragma warning disable S5678
+            class Foo { //SimulateIssue:S5678 }
+            #pragma warning restore S5678
+            class Baz {}
+            """));
+    }
+
+    [TestMethod]
+    public async Task ApplyCodeFix_AdjacentPragmas_RemovesOnlyUnnecessaryInnerPragma()
+    {
+        var source =
+            """
+            #pragma warning disable S1234
+            #pragma warning disable S5678
+            class Foo { //SimulateIssue:S1234 }
+            #pragma warning restore S5678
+            #pragma warning restore S1234
+            """;
+
+        var diagnostics = await GetPragmaDiagnosticsForSourceAsync(source);
+        var diagnostic = diagnostics.First();
+        var result = await ApplyCodeFixAsync(source, diagnostic);
+
+        Normalize(result).Should().Be(Normalize(
+            """
+            #pragma warning disable S1234
+            class Foo { //SimulateIssue:S1234 }
+            #pragma warning restore S1234
             """));
     }
 
