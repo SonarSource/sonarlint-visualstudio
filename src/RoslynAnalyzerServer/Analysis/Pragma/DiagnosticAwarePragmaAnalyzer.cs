@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -29,10 +30,10 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class DiagnosticAwarePragmaAnalyzer(Func<ImmutableArray<Diagnostic>> diagnostics, ImmutableHashSet<string> supportedIds) : DiagnosticAnalyzer
 {
-    private struct StackEntry
+    private sealed class StackEntry
     {
-        public Location Location;
-        public bool Marked;
+        public Location Location { get; init; }
+        public bool Unused { get; set; }
     }
 
     public const string DiagnosticId = "SQVSPRAGMA";
@@ -58,10 +59,11 @@ public class DiagnosticAwarePragmaAnalyzer(Func<ImmutableArray<Diagnostic>> diag
         context.RegisterSyntaxTreeAction(ctx => AnalyzeSyntaxTree(ctx, diagnostics, supportedIds));
     }
 
-    private static void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, Func<ImmutableArray<Diagnostic>> allDiagnostics,
-        ImmutableHashSet<string> disallowedIds)
+    private static void AnalyzeSyntaxTree(
+        SyntaxTreeAnalysisContext context,
+        Func<ImmutableArray<Diagnostic>> allDiagnostics,
+        ImmutableHashSet<string> supportedIds)
     {
-
         var treeDiagnostics = allDiagnostics()
             .Where(d => d.Location.SourceTree == context.Tree)
             .OrderBy(d => d.Location.SourceSpan.Start)
@@ -71,28 +73,47 @@ public class DiagnosticAwarePragmaAnalyzer(Func<ImmutableArray<Diagnostic>> diag
         var stacks = new Dictionary<string, Stack<StackEntry>>(StringComparer.OrdinalIgnoreCase);
         var diagIndex = 0;
 
-        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true)) // todo check for large files
+        foreach (var trivia in root.DescendantTrivia(descendIntoChildren: node => node.ContainsDirectives))
         {
             diagIndex = ProcessDiagnosticsUpToCurrentLocation(treeDiagnostics, diagIndex, trivia.SpanStart, stacks);
+
             if (trivia.IsKind(SyntaxKind.PragmaWarningDirectiveTrivia)
                 && trivia.GetStructure() is PragmaWarningDirectiveTriviaSyntax pragma)
             {
                 if (pragma.DisableOrRestoreKeyword.IsKind(SyntaxKind.DisableKeyword))
                 {
-                    HandlePragmaDisable(pragma, disallowedIds, stacks);
+                    HandlePragmaDisable(pragma, supportedIds, stacks);
                 }
                 else if (pragma.DisableOrRestoreKeyword.IsKind(SyntaxKind.RestoreKeyword))
                 {
-                    HandlePragmaRestore(pragma, context, disallowedIds, stacks);
+                    HandlePragmaRestore(pragma, context, supportedIds, stacks);
                 }
             }
         }
 
+        FlushRemaining(context, supportedIds, treeDiagnostics, diagIndex, stacks);
+    }
+
+    private static void FlushRemaining(
+        SyntaxTreeAnalysisContext context,
+        ImmutableHashSet<string> supportedIds,
+        List<Diagnostic> treeDiagnostics,
+        int diagIndex,
+        Dictionary<string, Stack<StackEntry>> stacks)
+    {
         ProcessDiagnosticsUpToCurrentLocation(treeDiagnostics, diagIndex, int.MaxValue, stacks);
 
-        foreach (var id in disallowedIds)
+        foreach (var id in supportedIds)
         {
-            FlushStack(context, stacks, id);
+            if (!stacks.TryGetValue(id, out var stack) || stack.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var entry in stack.Where(entry => entry.Unused))
+            {
+                ReportSinglePragma(context, entry.Location, id);
+            }
         }
     }
 
@@ -102,22 +123,17 @@ public class DiagnosticAwarePragmaAnalyzer(Func<ImmutableArray<Diagnostic>> diag
         int beforePosition,
         Dictionary<string, Stack<StackEntry>> stacks)
     {
-        var i = startIndex;
-        while (i < treeDiagnostics.Count && treeDiagnostics[i].Location.SourceSpan.Start < beforePosition)
+        var currentIndex = startIndex;
+        while (currentIndex < treeDiagnostics.Count && treeDiagnostics[currentIndex].Location.SourceSpan.Start < beforePosition)
         {
-            var diag = treeDiagnostics[i];
-            var ruleId = diag.Id;
-            if (stacks.TryGetValue(ruleId, out var stack) && stack.Count > 0)
+            if (stacks.TryGetValue(treeDiagnostics[currentIndex].Id, out var stack) && stack.Count > 0)
             {
-                var top = stack.Pop();
-                top.Marked = false;
-                stack.Push(top);
+                stack.Peek().Unused = false;
             }
-
-            i++;
+            currentIndex++;
         }
 
-        return i;
+        return currentIndex;
     }
 
     private static void HandlePragmaDisable(
@@ -127,28 +143,16 @@ public class DiagnosticAwarePragmaAnalyzer(Func<ImmutableArray<Diagnostic>> diag
     {
         foreach (var errorCode in pragma.ErrorCodes)
         {
-            if (errorCode is not IdentifierNameSyntax identifier)
+            if (!GetSuppressedDiagnosticId(disallowedIds, errorCode, out var identifier, out var ruleId))
             {
                 continue;
             }
-
-            var ruleId = identifier.Identifier.ValueText;
-            if (!disallowedIds.Contains(ruleId))
-            {
-                continue;
-            }
-
             if (!stacks.TryGetValue(ruleId, out var stack))
             {
                 stack = new Stack<StackEntry>();
                 stacks[ruleId] = stack;
             }
-
-            stack.Push(new StackEntry
-            {
-                Location = identifier.GetLocation(),
-                Marked = true
-            });
+            stack.Push(new StackEntry { Location = identifier.GetLocation(), Unused = true });
         }
     }
 
@@ -160,46 +164,37 @@ public class DiagnosticAwarePragmaAnalyzer(Func<ImmutableArray<Diagnostic>> diag
     {
         foreach (var errorCode in pragma.ErrorCodes)
         {
-            if (errorCode is not IdentifierNameSyntax identifier)
+            if (!GetSuppressedDiagnosticId(disallowedIds, errorCode, out var identifier, out var ruleId))
             {
                 continue;
             }
-
-            var ruleId = identifier.Identifier.ValueText;
-            if (!disallowedIds.Contains(ruleId))
-            {
-                continue;
-            }
-
             if (!stacks.TryGetValue(ruleId, out var stack) || stack.Count == 0)
             {
                 ReportSinglePragma(context, identifier.GetLocation(), ruleId);
             }
-            else
+            else if (stack.Pop() is { Unused: true, Location: var location })
             {
-                var entry = stack.Pop();
-                if (entry.Marked)
-                {
-                    ReportPairedPragma(context, entry.Location, identifier.GetLocation(), ruleId);
-                }
+                ReportPairedPragma(context, location, identifier.GetLocation(), ruleId);
             }
         }
     }
 
-    private static void FlushStack(SyntaxTreeAnalysisContext context,
-        Dictionary<string, Stack<StackEntry>> stacks, string ruleId)
+    private static bool GetSuppressedDiagnosticId(
+        ImmutableHashSet<string> supportedIds,
+        ExpressionSyntax errorCode,
+        [NotNullWhen(true)] out IdentifierNameSyntax? identifierNameSyntax,
+        [NotNullWhen(true)] out string? ruleId)
     {
-        if (!stacks.TryGetValue(ruleId, out var stack) || stack.Count == 0)
+        if (errorCode is not IdentifierNameSyntax identifier)
         {
-            return;
+            identifierNameSyntax = null;
+            ruleId = null;
+            return false;
         }
 
-        foreach (var entry in stack.Where(entry => entry.Marked))
-        {
-            ReportSinglePragma(context, entry.Location, ruleId);
-        }
-
-        stack.Clear();
+        identifierNameSyntax = identifier;
+        ruleId = identifierNameSyntax.Identifier.ValueText;
+        return supportedIds.Contains(ruleId);
     }
 
     private static void ReportPairedPragma(
@@ -208,7 +203,7 @@ public class DiagnosticAwarePragmaAnalyzer(Func<ImmutableArray<Diagnostic>> diag
         Location restoreLocation,
         string ruleId)
     {
-        var properties = GetProperties(ruleId);
+        var properties = CreateProperties(ruleId);
         context.ReportDiagnostic(Diagnostic.Create(
             Rule,
             disableLocation,
@@ -227,10 +222,10 @@ public class DiagnosticAwarePragmaAnalyzer(Func<ImmutableArray<Diagnostic>> diag
         context.ReportDiagnostic(Diagnostic.Create(
             Rule,
             location,
-            GetProperties(ruleId),
+            CreateProperties(ruleId),
             ruleId));
 
-    private static ImmutableDictionary<string, string?> GetProperties(string ruleId) =>
-        ImmutableDictionary<string,  string?>.Empty
+    private static ImmutableDictionary<string, string?> CreateProperties(string ruleId) =>
+        ImmutableDictionary<string, string?>.Empty
             .SetItem(ReportedDiagnosticId, ruleId);
 }

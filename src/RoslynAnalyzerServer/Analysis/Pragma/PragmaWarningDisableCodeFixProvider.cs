@@ -85,7 +85,7 @@ public class PragmaWarningDisableCodeFixProvider : CodeFixProvider
             }
             else
             {
-                editor.ReplaceNode(pragma, RemoveIdentifierFromPragma(pragma, identifier));
+                editor.RemoveNode(identifier);
             }
         }
 
@@ -107,22 +107,5 @@ public class PragmaWarningDisableCodeFixProvider : CodeFixProvider
         }
 
         return (identifier, pragma);
-    }
-
-    private static PragmaWarningDirectiveTriviaSyntax RemoveIdentifierFromPragma(
-        PragmaWarningDirectiveTriviaSyntax pragma, IdentifierNameSyntax identifier)
-    {
-        var errorCodes = pragma.ErrorCodes;
-        var originalLastItem = errorCodes.Last();
-        var newErrorCodes = errorCodes.Remove(identifier);
-
-        if (newErrorCodes.Last() != originalLastItem)
-        {
-            newErrorCodes = newErrorCodes.Replace(
-                newErrorCodes.Last(),
-                newErrorCodes.Last().WithTrailingTrivia(originalLastItem.GetTrailingTrivia()));
-        }
-
-        return pragma.WithErrorCodes(newErrorCodes);
     }
 }
