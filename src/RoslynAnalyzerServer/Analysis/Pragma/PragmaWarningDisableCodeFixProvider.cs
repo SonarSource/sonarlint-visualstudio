@@ -22,8 +22,9 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Text;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 
@@ -45,22 +46,14 @@ public class PragmaWarningDisableCodeFixProvider : CodeFixProvider
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            var node = root.FindNode(diagnostic.Location.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
-            if (node is not IdentifierNameSyntax identifier)
+            if (FindPragmaIdentifier(root, diagnostic.Location.SourceSpan) == null)
             {
                 continue;
             }
-
-            if (identifier.Parent is not PragmaWarningDirectiveTriviaSyntax)
-            {
-                continue;
-            }
-
-            var title = Resources.SQVSPRAGMACodeFixTitle;
 
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    title,
+                    Resources.SQVSPRAGMACodeFixTitle,
                     _ => RemoveIdentifierFromPragmaAsync(context.Document, root, diagnostic),
                     equivalenceKey: DiagnosticAwarePragmaAnalyzer.DiagnosticId),
                 diagnostic);
@@ -72,112 +65,64 @@ public class PragmaWarningDisableCodeFixProvider : CodeFixProvider
         SyntaxNode root,
         Diagnostic diagnostic)
     {
-        var locations = new List<Location> { diagnostic.Location };
-        locations.AddRange(diagnostic.AdditionalLocations);
-        locations.Sort((a, b) => b.SourceSpan.Start.CompareTo(a.SourceSpan.Start));
+        var allLocations = new List<Location> { diagnostic.Location };
+        allLocations.AddRange(diagnostic.AdditionalLocations);
 
-        var currentRoot = root;
-        foreach (var loc in locations)
+        var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+
+        foreach (var loc in allLocations)
         {
-            var node = currentRoot.FindNode(loc.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
-            if (node is not IdentifierNameSyntax identifier)
+            var found = FindPragmaIdentifier(root, loc.SourceSpan);
+            if (found == null)
             {
                 continue;
             }
-            if (identifier.Parent is not PragmaWarningDirectiveTriviaSyntax pragma)
-            {
-                continue;
-            }
+            var (identifier, pragma) = found.Value;
 
-            currentRoot = pragma.ErrorCodes.Count == 1
-                ? RemoveEntirePragmaDirective(currentRoot, pragma)
-                : RemoveIdentifierFromList(currentRoot, pragma, identifier);
+            if (pragma.ErrorCodes.Count == 1)
+            {
+                editor.RemoveNode(pragma);
+            }
+            else
+            {
+                editor.ReplaceNode(pragma, RemoveIdentifierFromPragma(pragma, identifier));
+            }
         }
 
-        return Task.FromResult(document.WithSyntaxRoot(currentRoot));
+        return Task.FromResult(document.WithSyntaxRoot(editor.GetChangedRoot()));
     }
 
-    private static SyntaxNode RemoveEntirePragmaDirective(SyntaxNode root, PragmaWarningDirectiveTriviaSyntax pragma)
+    private static (IdentifierNameSyntax, PragmaWarningDirectiveTriviaSyntax)? FindPragmaIdentifier(
+        SyntaxNode root, TextSpan span)
     {
-        var parentTrivia = pragma.ParentTrivia;
-        var token = parentTrivia.Token;
-        var leadingTrivia = token.LeadingTrivia;
-
-        var index = leadingTrivia.IndexOf(parentTrivia);
-        if (index < 0)
+        var node = root.FindNode(span, findInsideTrivia: true, getInnermostNodeForTie: true);
+        if (node is not IdentifierNameSyntax identifier)
         {
-            return root;
+            return null;
         }
 
-        var skipFrom = index;
-        if (index > 0 && leadingTrivia[index - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+        if (identifier.Parent is not PragmaWarningDirectiveTriviaSyntax pragma)
         {
-            skipFrom = index - 1;
+            return null;
         }
 
-        var skipTo = index;
-        if (index + 1 < leadingTrivia.Count && leadingTrivia[index + 1].IsKind(SyntaxKind.EndOfLineTrivia))
-        {
-            skipTo = index + 1;
-        }
-
-        var newTriviaList = new SyntaxTriviaList();
-        for (var i = 0; i < leadingTrivia.Count; i++)
-        {
-            if (i >= skipFrom && i <= skipTo)
-            {
-                continue;
-            }
-
-            newTriviaList = newTriviaList.Add(leadingTrivia[i]);
-        }
-
-        return root.ReplaceToken(token, token.WithLeadingTrivia(newTriviaList));
+        return (identifier, pragma);
     }
 
-    private static SyntaxNode RemoveIdentifierFromList(
-        SyntaxNode root,
-        PragmaWarningDirectiveTriviaSyntax pragma,
-        IdentifierNameSyntax identifier)
+    private static PragmaWarningDirectiveTriviaSyntax RemoveIdentifierFromPragma(
+        PragmaWarningDirectiveTriviaSyntax pragma, IdentifierNameSyntax identifier)
     {
         var errorCodes = pragma.ErrorCodes;
-        var index = -1;
-        for (var i = 0; i < errorCodes.Count; i++)
+        var originalLastItem = errorCodes.Last();
+        var newErrorCodes = errorCodes.Remove(identifier);
+
+        if (newErrorCodes.Last() != originalLastItem)
         {
-            if (errorCodes[i] == identifier)
-            {
-                index = i;
-                break;
-            }
+            newErrorCodes = newErrorCodes.Replace(
+                newErrorCodes.Last(),
+                newErrorCodes.Last().WithTrailingTrivia(originalLastItem.GetTrailingTrivia()));
         }
 
-        if (index < 0)
-        {
-            return root;
-        }
-
-        var newErrorCodes = SyntaxFactory.SeparatedList<ExpressionSyntax>(
-            errorCodes.Where((_, i) => i != index),
-            errorCodes.GetSeparators().Where((_, i) => i != (index == 0 ? 0 : index - 1)));
-
-        // Preserve trailing trivia on the last item
-        if (newErrorCodes.Count > 0)
-        {
-            var lastItem = newErrorCodes.Last();
-            var originalLastItem = errorCodes[errorCodes.Count - 1];
-            if (lastItem != originalLastItem)
-            {
-                // The last item changed, transfer trailing trivia from the original last item
-                newErrorCodes = newErrorCodes.Replace(
-                    newErrorCodes.Last(),
-                    newErrorCodes.Last().WithTrailingTrivia(originalLastItem.GetTrailingTrivia()));
-            }
-        }
-
-        var newPragma = pragma.WithErrorCodes(newErrorCodes);
-        var oldTrivia = pragma.ParentTrivia;
-        var newTrivia = SyntaxFactory.Trivia(newPragma);
-
-        return root.ReplaceTrivia(oldTrivia, newTrivia);
+        return pragma.WithErrorCodes(newErrorCodes);
     }
 }
