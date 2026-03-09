@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
 
   <Import Project="..\SonarLint.Product.props" />
   <Import Project="..\SonarLint.VsPkgRefs.props" />
@@ -6,7 +6,7 @@
   <!-- The VSSDK targets need to be imported after the Net.Sdk targets which means we  have to import the
        .NET.Sdk targets using Import rather than specifying it as the Sdk in the Project element. -->
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
-  
+
   <Import Project="..\..\build\version.props" />
 
   <PropertyGroup>
@@ -19,7 +19,7 @@
     <RequiresChannels>true</RequiresChannels>
     <RequiresLanguageServices>true</RequiresLanguageServices>
   </PropertyGroup>
-  
+
   <!-- This project references the VCProjectEngine assembly which is VS-version specific, todo https://sonarsource.atlassian.net/browse/SLVS-1973 replace VCProjectEngine dll with nuget -->
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
@@ -261,9 +261,8 @@
   <Target Name="CopyVsixToBinariesAndSign" AfterTargets="Build" Inputs="$(TargetDir)$(TargetVsixContainerName)" Outputs="$(BinariesFolder)$(TargetVsixContainerName)">
     <Message Importance="high" Text="Copying vsix from $(TargetDir)$(TargetVsixContainerName) to $(BinariesFolder)$(TargetVsixContainerName)" />
     <Copy OverwriteReadOnlyFiles="true" SourceFiles="$(TargetDir)$(TargetVsixContainerName)" DestinationFiles="$(BinariesFolder)$(TargetVsixContainerName)" />
-
-    <!--<Message Condition=" $(SignArtifacts) != 'true' " Importance="high" Text="Skipping signing VSIXes - SignArtifacts = '$(SignArtifacts)'" />
-    <CallTarget Condition=" $(SignArtifacts) == 'true' " Targets="LocateVsixSignToolAndBinaries;SignVsixes" />-->
+    <Message Condition=" $(SignArtifacts) != 'true' " Importance="normal" Text="Skipping VSIX signing - SignArtifacts = '$(SignArtifacts)'" />
+    <Exec Condition=" $(SignArtifacts) == 'true' " Command='sign code artifact-signing &quot;%(VSIXesToSign.FullPath)&quot; --artifact-signing-endpoint &quot;$(SIGNING_ENDPOINT)&quot; --artifact-signing-account &quot;$(SIGNING_ACCOUNT)&quot; --artifact-signing-certificate-profile &quot;$(SIGNING_CERTIFICATE_PROFILE)&quot; -v information' />
   </Target>
   <!-- ********************************************************** -->
 
@@ -303,15 +302,15 @@
   <!-- *************************************************************************** -->
   <!-- If the set/versions of referenced assemblies changes the build will fail.
        Check the following:
-       
+
        New dependencies:
        * are they included in the VSIX?
        * if it's a third-party component, do the third-party license statements need to be updated?
-       
+
        New versions of existing dependencies:
        * is the new version of the dependency compatible with the minimum targetted .NET Framework?
        * if it is not already included in the VSIX, does it need to be?
-       
+
        If the dependency changes are ok, then re-run the build specifying "/p:AsmRefUpdateBaseline=true"
        to update the baseline file, then check in the updated baseline with the rest of your changes.
   -->
@@ -362,7 +361,7 @@
     </None>
   </ItemGroup>
 
-  <!-- Target to help debugging the CI build - dumps report differences to the console. 
+  <!-- Target to help debugging the CI build - dumps report differences to the console.
        Note: there will always be differences in the reports since the timestamps will be
        different for each run.
   -->
@@ -391,5 +390,5 @@
 
     <WriteLinesToFile File="$(BaselineWithStrongNames)" Overwrite="true" WriteOnlyWhenDifferent="true" Encoding="UTF-8" Lines="$(NewSignedBaseLineText)" />
   </Target>
-  
+
 </Project>
