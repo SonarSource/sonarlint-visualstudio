@@ -57,7 +57,9 @@ public class PragmaWarningDisableCodeFixProviderTests
         var source =
             """
             #pragma warning disable S1234, S5678
-            class Foo { //SimulateIssue:S1234 }
+            class Foo {
+            //SimulateIssue:S1234
+            }
             #pragma warning restore S1234, S5678
             """;
 
@@ -69,7 +71,9 @@ public class PragmaWarningDisableCodeFixProviderTests
         var expected =
             """
             #pragma warning disable S1234
-            class Foo { //SimulateIssue:S1234 }
+            class Foo {
+            //SimulateIssue:S1234
+            }
             #pragma warning restore S1234
             """;
         Normalize(result).Should().Be(Normalize(expected));
@@ -81,7 +85,9 @@ public class PragmaWarningDisableCodeFixProviderTests
         var source =
             """
             #pragma warning disable S1234, S5678
-            class Foo { //SimulateIssue:S1234 }
+            class Foo {
+            //SimulateIssue:S1234
+            }
             #pragma warning restore S5678
             """;
 
@@ -93,7 +99,9 @@ public class PragmaWarningDisableCodeFixProviderTests
         var expected =
             """
             #pragma warning disable S1234
-            class Foo { //SimulateIssue:S1234 }
+            class Foo {
+            //SimulateIssue:S1234
+            }
             """;
         Normalize(result).Should().Be(Normalize(expected));
     }
@@ -240,7 +248,10 @@ public class PragmaWarningDisableCodeFixProviderTests
             """
             #pragma warning disable S1234
             #pragma warning disable S5678
-            class Foo { //SimulateIssue:S5678 }
+            class Foo
+            {
+            //SimulateIssue:S5678
+            }
             #pragma warning restore S5678
             #pragma warning restore S1234
             """;
@@ -252,7 +263,10 @@ public class PragmaWarningDisableCodeFixProviderTests
         Normalize(result).Should().Be(Normalize(
             """
             #pragma warning disable S5678
-            class Foo { //SimulateIssue:S5678 }
+            class Foo
+            {
+            //SimulateIssue:S5678
+            }
             #pragma warning restore S5678
             """));
     }
@@ -265,7 +279,10 @@ public class PragmaWarningDisableCodeFixProviderTests
             class Bar {}
             #pragma warning disable S1234
             #pragma warning disable S5678
-            class Foo { //SimulateIssue:S5678 }
+            class Foo
+            {
+            //SimulateIssue:S5678
+            }
             #pragma warning restore S5678
             #pragma warning restore S1234
             class Baz {}
@@ -279,7 +296,10 @@ public class PragmaWarningDisableCodeFixProviderTests
             """
             class Bar {}
             #pragma warning disable S5678
-            class Foo { //SimulateIssue:S5678 }
+            class Foo
+            {
+            //SimulateIssue:S5678
+            }
             #pragma warning restore S5678
             class Baz {}
             """));
@@ -292,7 +312,9 @@ public class PragmaWarningDisableCodeFixProviderTests
             """
             #pragma warning disable S1234
             #pragma warning disable S5678
-            class Foo { //SimulateIssue:S1234 }
+            class Foo {
+            //SimulateIssue:S1234
+            }
             #pragma warning restore S5678
             #pragma warning restore S1234
             """;
@@ -304,7 +326,9 @@ public class PragmaWarningDisableCodeFixProviderTests
         Normalize(result).Should().Be(Normalize(
             """
             #pragma warning disable S1234
-            class Foo { //SimulateIssue:S1234 }
+            class Foo {
+            //SimulateIssue:S1234
+            }
             #pragma warning restore S1234
             """));
     }
@@ -396,7 +420,9 @@ public class PragmaWarningDisableCodeFixProviderTests
             // Comment above
             #pragma warning disable S1234, S5678
             // Comment below
-            class Foo { //SimulateIssue:S1234 }
+            class Foo {
+            //SimulateIssue:S1234
+            }
             // Comment above restore
             #pragma warning restore S1234, S5678
             // Comment below restore
@@ -412,7 +438,9 @@ public class PragmaWarningDisableCodeFixProviderTests
             // Comment above
             #pragma warning disable S1234
             // Comment below
-            class Foo { //SimulateIssue:S1234 }
+            class Foo {
+            //SimulateIssue:S1234
+            }
             // Comment above restore
             #pragma warning restore S1234
             // Comment below restore
