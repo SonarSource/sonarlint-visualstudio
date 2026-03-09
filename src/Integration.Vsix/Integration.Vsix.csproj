@@ -210,6 +210,9 @@
     <Page Include="Settings\SolutionSettings\SolutionSettingsDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="SupportedLanguages\SupportedLanguagesDialogWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <VSCTCompile Include="SonarLint.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
