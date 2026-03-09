@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
@@ -20,14 +20,31 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using SonarLint.VisualStudio.SLCore.Service.Plugin.Models;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SupportedLanguages;
 
 [ExcludeFromCodeCoverage]
 internal sealed partial class SupportedLanguagesDialogWindow : Window
 {
+    public SupportedLanguageDialogViewModel ViewModel { get; }
+
     public SupportedLanguagesDialogWindow()
     {
+        ViewModel = new SupportedLanguageDialogViewModel();
         InitializeComponent();
+    }
+
+    private void SetUpConnection_Click(object sender, RoutedEventArgs e)
+    {
+        MessageBox.Show("Set up connection clicked", "Debug");
+    }
+
+    private void RetryButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: PluginStatusDto plugin })
+        {
+            MessageBox.Show($"Retry clicked for: {plugin.pluginName} (state: {plugin.state})", "Debug");
+        }
     }
 }
