@@ -165,12 +165,14 @@ public class DiagnosticAwarePragmaAnalyzerTests
         var (tree, testIssues, supportedIds) = GetPragmaDiagnosticsForMarkedSource(
             """
             #pragma warning disable S1234
+            #pragma warning disable S5678
+            #pragma warning disable S1234
             class Foo { }
             """);
 
         var results = await GetPragmaDiagnosticsAsync(tree, testIssues, supportedIds);
 
-        AssertExpectedPragmaDiagnostics(results, ("S1234", 0));
+        AssertExpectedPragmaDiagnostics(results, ("S1234", 0), ("S5678", 1), ("S1234", 2));
         AssertSinglePragmaProperties(results);
     }
 
@@ -181,11 +183,13 @@ public class DiagnosticAwarePragmaAnalyzerTests
             """
             class Foo { }
             #pragma warning restore S1234
+            #pragma warning restore S5678
+            #pragma warning restore S1234
             """);
 
         var results = await GetPragmaDiagnosticsAsync(tree, testIssues, supportedIds);
 
-        AssertExpectedPragmaDiagnostics(results, ("S1234", 1));
+        AssertExpectedPragmaDiagnostics(results, ("S1234", 1), ("S5678", 2), ("S1234", 3));
         AssertSinglePragmaProperties(results);
     }
 
