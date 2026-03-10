@@ -72,13 +72,10 @@ internal class RaisedFindingProcessor(
             var analysisStatusNotifier = analysisStatusNotifierFactory.Create([localPath]);
             var raisedIssues = fileAndIssues.Value ?? [];
             var mainIssues = raiseFindingToAnalysisIssueConverter.GetAnalysisIssues(fileUri, raisedIssues);
-            if (!parameters.isIntermediatePublication)
+            var additionalIssues = additionalAnalysisIssueStorage.Get(localPath);
+            if (additionalIssues.Count > 0)
             {
-                var additionalIssues = additionalAnalysisIssueStorage.Get(localPath);
-                if (additionalIssues.Count > 0)
-                {
-                    mainIssues = mainIssues.Concat(additionalIssues);
-                }
+                mainIssues = mainIssues.Concat(additionalIssues);
             }
             findingsPublisher.Publish(localPath, mainIssues);
             analysisStatusNotifier.AnalysisProgressed(parameters.analysisId, raisedIssues.Count, findingsPublisher.FindingsType, parameters.isIntermediatePublication);

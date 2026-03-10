@@ -183,45 +183,26 @@ public class RaisedFindingProcessorTests
     }
 
     [TestMethod]
-    public void RaiseFindings_NotIntermediate_AdditionalIssuesExist_MergesIntoPublish()
+    public void RaiseFindings_AdditionalIssuesExist_MergesIntoPublish()
     {
         var additionalIssue = CreateAnalysisIssue("csharpsquid:S200");
 
-        var (publisher, mainIssue) = RaiseNonIntermediateFindingWithAdditionalStorage([additionalIssue]);
+        var (publisher, mainIssue) = RaiseFindingWithAdditionalStorage([additionalIssue]);
 
         publisher.Received(1).Publish(fileUri.LocalPath,
             Arg.Is<IEnumerable<IAnalysisIssue>>(x => x.Count() == 2 && x.Contains(mainIssue) && x.Contains(additionalIssue)));
     }
 
     [TestMethod]
-    public void RaiseFindings_NotIntermediate_NoAdditionalIssues_PublishesMainOnly()
+    public void RaiseFindings_NoAdditionalIssues_PublishesMainOnly()
     {
-        var (publisher, mainIssue) = RaiseNonIntermediateFindingWithAdditionalStorage([]);
+        var (publisher, mainIssue) = RaiseFindingWithAdditionalStorage([]);
 
         publisher.Received(1).Publish(fileUri.LocalPath,
             Arg.Is<IEnumerable<IAnalysisIssue>>(x => x.Count() == 1 && x.Contains(mainIssue)));
     }
 
-    [TestMethod]
-    public void RaiseFindings_Intermediate_DoesNotQueryAdditionalStorage()
-    {
-        var analysisId = Guid.NewGuid();
-        var raisedFinding = CreateTestFinding("csharpsquid:S100");
-        var findingsByFileUri = new Dictionary<FileUri, List<TestFinding>> { { fileUri, [raisedFinding] } };
-        var raiseFindingParams = new RaiseFindingParams<TestFinding>("CONFIGURATION_ID", findingsByFileUri, true, analysisId);
-        var publisher = CreatePublisher();
-        var additionalStorage = Substitute.For<IAdditionalAnalysisIssueStorage>();
-        var analysisStatusNotifierFactory = CreateAnalysisStatusNotifierFactory(out _, fileUri.LocalPath);
-        var testSubject = CreateTestSubject(
-            analysisStatusNotifierFactory: analysisStatusNotifierFactory,
-            additionalAnalysisIssueStorage: additionalStorage);
-
-        testSubject.RaiseFinding(raiseFindingParams, publisher);
-
-        additionalStorage.DidNotReceiveWithAnyArgs().Get(default!);
-    }
-
-    private (IFindingsPublisher publisher, IAnalysisIssue mainIssue) RaiseNonIntermediateFindingWithAdditionalStorage(
+    private (IFindingsPublisher publisher, IAnalysisIssue mainIssue) RaiseFindingWithAdditionalStorage(
         IReadOnlyList<IAnalysisIssue> additionalIssues)
     {
         var mainIssue = CreateAnalysisIssue("csharpsquid:S100");
