@@ -147,6 +147,22 @@
   <data name="SQTooltip" xml:space="preserve">
     <value>Issues found for this rule will have a {0} impact on the {1} of your software.</value>
   </data>
+  <data name="UnusedPragmaRuleName" xml:space="preserve">
+    <value>Unused #pragma warning directive</value>
+  </data>
+  <data name="UnusedPragmaRuleDescription" xml:space="preserve">
+    <value>&lt;p&gt;
+This rule raises an issue when a &lt;code&gt;#pragma warning disable&lt;/code&gt; or &lt;code&gt;#pragma warning restore&lt;/code&gt; directive
+suppresses a Sonar rule that is not raised.
+The unnecessary pragma should be removed.
+A quick fix is available to remove the unused directive.
+&lt;/p&gt;
+&lt;p&gt;
+This rule is similar to
+&lt;a href="https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/ide0079"&gt;IDE0079&lt;/a&gt;
+but applies specifically to Sonar rules.
+&lt;/p&gt;</value>
+  </data>
   <data name="XamlBuilder_UnexpectedNodeError" xml:space="preserve">
     <value>[Education] Error: rule description contains an unexpected node. Node type: {0}, name: {1}, value: {2}</value>
   </data>

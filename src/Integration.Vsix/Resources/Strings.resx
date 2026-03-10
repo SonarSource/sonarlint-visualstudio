@@ -474,4 +474,7 @@ Without Connected Mode, any code added or changed in the last 30 days is conside
   <data name="ShowBuildErrorNotificationTooltip" xml:space="preserve">
     <value>Displays a notification after build when warnings are elevated to errors via the TreatWarningsAsErrors MSBuild property.</value>
   </data>
+  <data name="PragmaAnalysisSeverityLabel" xml:space="preserve">
+    <value>C# Unused pragma disable analysis severity:</value>
+  </data>
 </root>

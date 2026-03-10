@@ -80,7 +80,7 @@ public class TextBufferIssueTrackerTests
         canonicalFilePathProvider.GetCanonicalPath(InitialFilePath).Returns(InitialCanonicalFilePath);
         testSubject =  new(documentTrackerUpdater,
             mockedJavascriptDocumentFooJs, languageRecognizer,
-            mockSonarErrorDataSource, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage, canonicalFilePathProvider, logger);;
+            mockSonarErrorDataSource, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage, canonicalFilePathProvider, logger);
     }
 
     [TestMethod]
@@ -391,9 +391,15 @@ public class TextBufferIssueTrackerTests
         issueConsumerStorage.DidNotReceiveWithAnyArgs().Set(default, default);
     }
 
-    private void VerifyIssueConsumerNotRemoved() => issueConsumerStorage.DidNotReceiveWithAnyArgs().Remove(default);
+    private void VerifyIssueConsumerNotRemoved()
+    {
+        issueConsumerStorage.DidNotReceiveWithAnyArgs().Remove(default);
+    }
 
-    private void VerifyIssueConsumerRemoved(string filePath) => issueConsumerStorage.Received(1).Remove(filePath);
+    private void VerifyIssueConsumerRemoved(string filePath)
+    {
+        issueConsumerStorage.Received(1).Remove(filePath);
+    }
 
     private void ClearMocks()
     {

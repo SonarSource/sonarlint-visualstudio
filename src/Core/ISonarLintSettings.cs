@@ -38,11 +38,19 @@ namespace SonarLint.VisualStudio.Integration
         bool IsFocusOnNewCodeEnabled { get; set; }
         bool IsShowBuildErrorNotificationEnabled { get; set; }
         CredentialStoreType CredentialStoreType { get; set; }
+        PragmaRuleSeverity PragmaRuleSeverity { get; set; }
     }
 
     public enum CredentialStoreType
     {
         Default,
         DPAPI
+    }
+
+    public enum PragmaRuleSeverity
+    {
+        None,
+        Info,
+        Warn
     }
 }
