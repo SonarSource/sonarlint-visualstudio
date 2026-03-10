@@ -21,7 +21,6 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 using static SonarLint.VisualStudio.RoslynAnalyzerServer.IntegrationTests.Analysis.Pragma.PragmaTestHelper;
 
@@ -74,6 +73,7 @@ public class DiagnosticAwarePragmaAnalyzerTests
         var results = await GetPragmaDiagnosticsAsync(tree, testIssues, supportedIds);
 
         AssertExpectedPragmaDiagnostics(results, ("S1234", 0), ("S1234", 2));
+        AssertPairedPragmaProperties(results, 0, 2);
     }
 
     [TestMethod]
@@ -89,6 +89,7 @@ public class DiagnosticAwarePragmaAnalyzerTests
         var results = await GetPragmaDiagnosticsAsync(tree, testIssues, supportedIds);
 
         AssertExpectedPragmaDiagnostics(results, ("S5678", 0), ("S5678", 2));
+        AssertPairedPragmaProperties(results, 0, 2);
     }
 
     [TestMethod]
@@ -121,6 +122,7 @@ public class DiagnosticAwarePragmaAnalyzerTests
         var results = await GetPragmaDiagnosticsAsync(tree, testIssues, supportedIds);
 
         AssertExpectedPragmaDiagnostics(results, ("S5678", 1), ("S5678", 4));
+        AssertPairedPragmaProperties(results, 1, 4);
     }
 
     [TestMethod]
@@ -136,6 +138,7 @@ public class DiagnosticAwarePragmaAnalyzerTests
         var results = await GetPragmaDiagnosticsAsync(tree, testIssues, supportedIds);
 
         AssertExpectedPragmaDiagnostics(results, ("S1234", 0), ("S5678", 0), ("S1234", 2), ("S5678", 2));
+        AssertPairedPragmaProperties(results, 0, 2);
     }
 
     [TestMethod]
@@ -168,6 +171,7 @@ public class DiagnosticAwarePragmaAnalyzerTests
         var results = await GetPragmaDiagnosticsAsync(tree, testIssues, supportedIds);
 
         AssertExpectedPragmaDiagnostics(results, ("S1234", 0));
+        AssertSinglePragmaProperties(results);
     }
 
     [TestMethod]
@@ -182,6 +186,7 @@ public class DiagnosticAwarePragmaAnalyzerTests
         var results = await GetPragmaDiagnosticsAsync(tree, testIssues, supportedIds);
 
         AssertExpectedPragmaDiagnostics(results, ("S1234", 1));
+        AssertSinglePragmaProperties(results);
     }
 
     [TestMethod]
@@ -199,6 +204,7 @@ public class DiagnosticAwarePragmaAnalyzerTests
         var results = await GetPragmaDiagnosticsAsync(tree, testIssues, supportedIds);
 
         AssertExpectedPragmaDiagnostics(results, ("S1234", 0), ("S1234", 4));
+        AssertPairedPragmaProperties(results, 0, 4);
     }
 
     [TestMethod]
@@ -215,6 +221,7 @@ public class DiagnosticAwarePragmaAnalyzerTests
         var results = await GetPragmaDiagnosticsAsync(tree, testIssues, supportedIds);
 
         AssertExpectedPragmaDiagnostics(results, ("S1234", 1), ("S1234", 3));
+        AssertPairedPragmaProperties(results, 1, 3);
     }
 
     [TestMethod]
@@ -247,6 +254,7 @@ public class DiagnosticAwarePragmaAnalyzerTests
         var results = await GetPragmaDiagnosticsAsync(tree, testIssues, supportedIds);
 
         AssertExpectedPragmaDiagnostics(results, ("S1234", 3));
+        AssertSinglePragmaProperties(results);
     }
 
     [TestMethod]
@@ -263,6 +271,7 @@ public class DiagnosticAwarePragmaAnalyzerTests
         var results = await GetPragmaDiagnosticsAsync(tree, testIssues, supportedIds);
 
         AssertExpectedPragmaDiagnostics(results, ("S1234", 3));
+        AssertSinglePragmaProperties(results);
     }
 
     private static void AssertExpectedPragmaDiagnostics(
@@ -274,5 +283,30 @@ public class DiagnosticAwarePragmaAnalyzerTests
             line: d.Location.GetLineSpan().StartLinePosition.Line));
 
         actual.Should().BeEquivalentTo(expected);
+    }
+
+    private static void AssertPairedPragmaProperties(
+        ImmutableArray<Diagnostic> results,
+        int disableLine,
+        int restoreLine)
+    {
+        foreach (var diagnostic in results)
+        {
+            diagnostic.AdditionalLocations.Should().HaveCount(2);
+            diagnostic.AdditionalLocations[0].GetLineSpan().StartLinePosition.Line.Should().Be(disableLine);
+            diagnostic.AdditionalLocations[1].GetLineSpan().StartLinePosition.Line.Should().Be(restoreLine);
+            diagnostic.Properties["0"].Should().Be("#pragma warning disable");
+            diagnostic.Properties["1"].Should().Be("#pragma warning restore");
+        }
+    }
+
+    private static void AssertSinglePragmaProperties(ImmutableArray<Diagnostic> results)
+    {
+        foreach (var diagnostic in results)
+        {
+            diagnostic.AdditionalLocations.Should().BeEmpty();
+            diagnostic.Properties.ContainsKey("0").Should().BeFalse();
+            diagnostic.Properties.ContainsKey("1").Should().BeFalse();
+        }
     }
 }

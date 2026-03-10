@@ -67,8 +67,8 @@ public class PragmaWarningDisableCodeFixProvider : CodeFixProvider
         SyntaxNode root,
         Diagnostic diagnostic)
     {
-        var allLocations = new List<Location> { diagnostic.Location };
-        allLocations.AddRange(diagnostic.AdditionalLocations);
+        var allLocations = new HashSet<Location> { diagnostic.Location };
+        allLocations.UnionWith(diagnostic.AdditionalLocations);
 
         var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 

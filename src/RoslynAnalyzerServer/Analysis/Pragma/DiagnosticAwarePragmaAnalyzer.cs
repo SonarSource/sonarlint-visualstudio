@@ -204,17 +204,17 @@ public class DiagnosticAwarePragmaAnalyzer(Func<ImmutableArray<Diagnostic>> diag
         Location restoreLocation,
         string ruleId)
     {
-        var properties = CreateProperties(ruleId);
+        var properties = CreateProperties(ruleId).SetItem("0", "#pragma warning disable").SetItem("1", "#pragma warning restore");
         context.ReportDiagnostic(Diagnostic.Create(
             Rule,
             disableLocation,
-            additionalLocations: [restoreLocation],
+            additionalLocations: [disableLocation, restoreLocation],
             properties: properties,
             messageArgs: [ruleId]));
         context.ReportDiagnostic(Diagnostic.Create(
             Rule,
             restoreLocation,
-            additionalLocations: [disableLocation],
+            additionalLocations: [disableLocation, restoreLocation],
             properties: properties,
             messageArgs: [ruleId]));
     }
