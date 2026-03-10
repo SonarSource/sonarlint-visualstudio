@@ -119,7 +119,6 @@ public class TaggerProviderTests
         MefTestHelpers.CreateExport<IVsProjectInfoProvider>(),
         MefTestHelpers.CreateExport<IIssueConsumerFactory>(),
         MefTestHelpers.CreateExport<IIssueConsumerStorage>(),
-        MefTestHelpers.CreateExport<IAdditionalAnalysisIssueStorage>(),
         MefTestHelpers.CreateExport<ITaggableBufferIndicator>(),
         MefTestHelpers.CreateExport<IFileStateManager>(),
         MefTestHelpers.CreateExport<IAnalyzer>(),
