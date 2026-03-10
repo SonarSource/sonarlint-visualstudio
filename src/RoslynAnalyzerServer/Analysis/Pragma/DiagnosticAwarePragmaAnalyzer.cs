@@ -24,6 +24,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 
@@ -37,7 +38,7 @@ public class DiagnosticAwarePragmaAnalyzer(Func<ImmutableArray<Diagnostic>> diag
         public void SetAsUsed() => Unused = false;
     }
 
-    public const string DiagnosticId = "SQVSPRAGMA";
+    public const string DiagnosticId = AdditionalRules.UnusedPragmaRuleKey;
     public const string ReportedDiagnosticId = "ReportedRuleId";
     private static readonly DiagnosticDescriptor Rule = new(
         DiagnosticId,
