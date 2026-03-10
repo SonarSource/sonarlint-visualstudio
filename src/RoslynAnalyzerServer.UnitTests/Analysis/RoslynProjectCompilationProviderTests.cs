@@ -49,6 +49,7 @@ public class RoslynProjectCompilationProviderTests
     private TestLogger logger = null!;
     private IRoslynProjectWrapper project = null!;
     private SonarLintXmlConfigurationFile sonarLintXml = null!;
+    private ImmutableHashSet<string> targetFilePaths = null!;
     private RoslynProjectCompilationProvider testSubject = null!;
 
     [TestInitialize]
@@ -71,6 +72,7 @@ public class RoslynProjectCompilationProviderTests
                 analyzers,
                 codeFixProviders));
         SetUpCompilationWithAnalyzers();
+        targetFilePaths = ImmutableHashSet.Create<string>("file1.cs", "file2.cs");
         testSubject = new RoslynProjectCompilationProvider(logger);
     }
 
@@ -89,11 +91,12 @@ public class RoslynProjectCompilationProviderTests
     [TestMethod]
     public async Task GetProjectCompilationAsync_ConfiguresCompilationWithCorrectOptions()
     {
-        var result = await testSubject.GetProjectCompilationAsync(project, configurations, CancellationToken.None);
+        var result = await testSubject.GetProjectCompilationAsync(CreateRequest(), configurations, CancellationToken.None);
 
         result.Should().Be(compilationWithAnalyzers);
         compilation.Received(1).WithOptions(Arg.Is<CompilationOptions>(options =>
-            options.SpecificDiagnosticOptions == diagnosticOptions));
+            options.SpecificDiagnosticOptions == diagnosticOptions
+            && options.SyntaxTreeOptionsProvider is TreeOptionsProvider));
         compilation.Received(1).WithAnalyzers(
             Arg.Is<ImmutableArray<DiagnosticAnalyzer>>(analyzersArg =>
                 analyzersArg.SequenceEqual(analyzers, null as IEqualityComparer<DiagnosticAnalyzer>)),
@@ -111,7 +114,7 @@ public class RoslynProjectCompilationProviderTests
     {
         project.SpecificDiagnosticOptions.Returns(ImmutableDictionary.Create<string, ReportDiagnostic>().Add("SomeId", ReportDiagnostic.Suppress));
 
-        var result = await testSubject.GetProjectCompilationAsync(project, configurations, CancellationToken.None);
+        var result = await testSubject.GetProjectCompilationAsync(CreateRequest(), configurations, CancellationToken.None);
 
         result.Should().Be(compilationWithAnalyzers);
         compilation.Received(1).WithOptions(Arg.Is<CompilationOptions>(options =>
@@ -129,7 +132,7 @@ public class RoslynProjectCompilationProviderTests
         compilation.WithAnalyzers(Arg.Any<ImmutableArray<DiagnosticAnalyzer>>(), Arg.Any<CompilationWithAnalyzersOptions>(), configurations[Language.CSharp])
             .Returns(compilationWithAnalyzers);
 
-        await testSubject.GetProjectCompilationAsync(project, configurations, CancellationToken.None);
+        await testSubject.GetProjectCompilationAsync(CreateRequest(), configurations, CancellationToken.None);
 
         compilation.Received(1).WithAnalyzers(
             Arg.Any<ImmutableArray<DiagnosticAnalyzer>>(),
@@ -150,7 +153,7 @@ public class RoslynProjectCompilationProviderTests
                 Arg.Any<ImmutableArray<DiagnosticAnalyzer>>(),
                 Arg.Do<CompilationWithAnalyzersOptions>(x => capturedOptions = x), configurations[Language.CSharp])
             .Returns(compilationWithAnalyzers);
-        await testSubject.GetProjectCompilationAsync(project, configurations, CancellationToken.None);
+        await testSubject.GetProjectCompilationAsync(CreateRequest(), configurations, CancellationToken.None);
         capturedOptions.Should().NotBeNull();
         var exception = new InvalidOperationException("test exception");
         var diagnostic = Diagnostic.Create("TestId", "TestCategory", "TestMessage", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 1);
@@ -162,6 +165,8 @@ public class RoslynProjectCompilationProviderTests
             "TestId",
             "test exception");
     }
+
+    private RoslynProjectAnalysisRequest CreateRequest() => new(project, [], targetFilePaths);
 
     private void SetUpAnalyzers()
     {

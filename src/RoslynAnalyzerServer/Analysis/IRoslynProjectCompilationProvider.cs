@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
@@ -27,7 +26,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 internal interface IRoslynProjectCompilationProvider
 {
     Task<IRoslynCompilationWithAnalyzersWrapper> GetProjectCompilationAsync(
-        IRoslynProjectWrapper project,
+        RoslynProjectAnalysisRequest projectAnalysisRequest,
         IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token);
 }

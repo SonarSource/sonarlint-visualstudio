@@ -36,16 +36,17 @@ internal class RoslynProjectCompilationProvider(ILogger logger) : IRoslynProject
     private readonly ILogger analyzerExceptionLogger = logger.ForContext(Resources.RoslynLogContext, Resources.RoslynAnalysisLogContext, Resources.RoslynAnalysisAnalyzerExceptionLogContext);
 
     public async Task<IRoslynCompilationWithAnalyzersWrapper> GetProjectCompilationAsync(
-        IRoslynProjectWrapper project,
+        RoslynProjectAnalysisRequest projectAnalysisRequest,
         IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations,
         CancellationToken token)
     {
+        var project = projectAnalysisRequest.Project;
         var compilation = await project.GetCompilationAsync(token);
 
         var analysisConfigurationForLanguage = sonarRoslynAnalysisConfigurations[compilation.Language];
 
         return ApplyAnalyzersAndAdditionalFile(
-            ApplyDiagnosticOptions(project, compilation, analysisConfigurationForLanguage),
+            ApplyDiagnosticOptions(project, compilation, analysisConfigurationForLanguage, projectAnalysisRequest.TargetFilePaths),
             project,
             analysisConfigurationForLanguage);
     }
@@ -75,9 +76,13 @@ internal class RoslynProjectCompilationProvider(ILogger logger) : IRoslynProject
     private static IRoslynCompilationWrapper ApplyDiagnosticOptions(
         IRoslynProjectWrapper project,
         IRoslynCompilationWrapper compilation,
-        RoslynAnalysisConfiguration analysisConfigurationForLanguage)
+        RoslynAnalysisConfiguration analysisConfigurationForLanguage,
+        ImmutableHashSet<string> targetFilePaths)
     {
-        var compilationOptions = compilation.RoslynCompilationOptions.WithSpecificDiagnosticOptions(OverrideQualityProfileWithProjectSettings(project, analysisConfigurationForLanguage.DiagnosticOptions));
+        var mergedDiagnosticOptions = OverrideQualityProfileWithProjectSettings(project, analysisConfigurationForLanguage.DiagnosticOptions);
+        var compilationOptions = compilation.RoslynCompilationOptions
+            .WithSpecificDiagnosticOptions(mergedDiagnosticOptions)
+            .WithSyntaxTreeOptionsProvider(new TreeOptionsProvider(mergedDiagnosticOptions, targetFilePaths));
         return compilation.WithOptions(compilationOptions);
     }
 

@@ -29,12 +29,12 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 
 [TestClass]
-public class RoslynFileSemanticAnalysisTests
+public class RoslynFileSemanticAnalysisCommandTests
 {
     private const string TestFilePath = "c:\\test\\file.cs";
     private IRoslynCompilationWithAnalyzersWrapper compilationWrapper = null!;
     private TestLogger testLogger = null!;
-    private RoslynFileSemanticAnalysis testSubject = null!;
+    private RoslynFileSemanticAnalysisCommand testSubject = null!;
 
     [TestInitialize]
     public void TestInitialize()
@@ -42,7 +42,7 @@ public class RoslynFileSemanticAnalysisTests
         testLogger = Substitute.ForPartsOf<TestLogger>();
         compilationWrapper = Substitute.For<IRoslynCompilationWithAnalyzersWrapper>();
 
-        testSubject = new RoslynFileSemanticAnalysis(TestFilePath, testLogger);
+        testSubject = new RoslynFileSemanticAnalysisCommand(TestFilePath, testLogger);
     }
 
     [TestMethod]
