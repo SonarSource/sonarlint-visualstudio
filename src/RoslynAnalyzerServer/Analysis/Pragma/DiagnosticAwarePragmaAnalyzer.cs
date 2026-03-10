@@ -69,6 +69,11 @@ public class DiagnosticAwarePragmaAnalyzer(Func<ImmutableArray<Diagnostic>> diag
 
         var root = context.Tree.GetRoot(context.CancellationToken);
 
+        if (root.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+        {
+            return;
+        }
+
         foreach (var trivia in root.DescendantTrivia(descendIntoChildren: node => node.ContainsDirectives))
         {
             if (trivia.GetStructure() is not PragmaWarningDirectiveTriviaSyntax pragma)

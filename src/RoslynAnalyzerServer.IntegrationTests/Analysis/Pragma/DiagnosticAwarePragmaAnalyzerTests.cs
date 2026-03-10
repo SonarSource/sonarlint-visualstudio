@@ -82,14 +82,17 @@ public class DiagnosticAwarePragmaAnalyzerTests
         var (tree, testIssues, supportedIds) = GetPragmaDiagnosticsForMarkedSource(
             """
             #pragma warning disable S1234, S5678
-            class Foo { //SimulateIssue:S1234 }
+            class Foo
+            {
+                //SimulateIssue:S1234
+            }
             #pragma warning restore S1234, S5678
             """);
 
         var results = await GetPragmaDiagnosticsAsync(tree, testIssues, supportedIds);
 
-        AssertExpectedPragmaDiagnostics(results, ("S5678", 0), ("S5678", 2));
-        AssertPairedPragmaProperties(results, 0, 2);
+        AssertExpectedPragmaDiagnostics(results, ("S5678", 0), ("S5678", 5));
+        AssertPairedPragmaProperties(results, 0, 5);
     }
 
     [TestMethod]
@@ -98,7 +101,10 @@ public class DiagnosticAwarePragmaAnalyzerTests
         var (tree, testIssues, supportedIds) = GetPragmaDiagnosticsForMarkedSource(
             """
             #pragma warning disable S1234, S5678
-            class Foo { //SimulateIssue:S1234 }
+            class Foo
+            {
+                //SimulateIssue:S1234
+            }
             #pragma warning restore S1234, S5678
             """);
 
@@ -114,15 +120,18 @@ public class DiagnosticAwarePragmaAnalyzerTests
             """
             #pragma warning disable S1234
             #pragma warning disable S5678
-            class Foo { //SimulateIssue:S1234 }
+            class Foo
+            {
+                //SimulateIssue:S1234
+            }
             #pragma warning restore S1234
             #pragma warning restore S5678
             """);
 
         var results = await GetPragmaDiagnosticsAsync(tree, testIssues, supportedIds);
 
-        AssertExpectedPragmaDiagnostics(results, ("S5678", 1), ("S5678", 4));
-        AssertPairedPragmaProperties(results, 1, 4);
+        AssertExpectedPragmaDiagnostics(results, ("S5678", 1), ("S5678", 7));
+        AssertPairedPragmaProperties(results, 1, 7);
     }
 
     [TestMethod]
@@ -200,15 +209,18 @@ public class DiagnosticAwarePragmaAnalyzerTests
             """
             #pragma warning disable S1234
             #pragma warning disable S1234
-            class Foo { //SimulateIssue:S1234 }
+            class Foo
+            {
+                //SimulateIssue:S1234
+            }
             #pragma warning restore S1234
             #pragma warning restore S1234
             """);
 
         var results = await GetPragmaDiagnosticsAsync(tree, testIssues, supportedIds);
 
-        AssertExpectedPragmaDiagnostics(results, ("S1234", 0), ("S1234", 4));
-        AssertPairedPragmaProperties(results, 0, 4);
+        AssertExpectedPragmaDiagnostics(results, ("S1234", 0), ("S1234", 7));
+        AssertPairedPragmaProperties(results, 0, 7);
     }
 
     [TestMethod]
@@ -216,7 +228,10 @@ public class DiagnosticAwarePragmaAnalyzerTests
     {
         var (tree, testIssues, supportedIds) = GetPragmaDiagnosticsForMarkedSource(
             """
-            class Bar { //SimulateIssue:S1234 }
+            class Bar
+            {
+                //SimulateIssue:S1234
+            }
             #pragma warning disable S1234
             class Foo { }
             #pragma warning restore S1234
@@ -224,8 +239,8 @@ public class DiagnosticAwarePragmaAnalyzerTests
 
         var results = await GetPragmaDiagnosticsAsync(tree, testIssues, supportedIds);
 
-        AssertExpectedPragmaDiagnostics(results, ("S1234", 1), ("S1234", 3));
-        AssertPairedPragmaProperties(results, 1, 3);
+        AssertExpectedPragmaDiagnostics(results, ("S1234", 4), ("S1234", 6));
+        AssertPairedPragmaProperties(results, 4, 6);
     }
 
     [TestMethod]
@@ -234,8 +249,14 @@ public class DiagnosticAwarePragmaAnalyzerTests
         var (tree, testIssues, supportedIds) = GetPragmaDiagnosticsForMarkedSource(
             """
             #pragma warning disable S1234
-            class Foo { //SimulateIssue:S1234 }
-            class Bar { //SimulateIssue:S1234 }
+            class Foo
+            {
+                //SimulateIssue:S1234
+            }
+            class Bar
+            {
+                //SimulateIssue:S1234
+            }
             #pragma warning restore S1234
             """);
 
@@ -250,14 +271,17 @@ public class DiagnosticAwarePragmaAnalyzerTests
         var (tree, testIssues, supportedIds) = GetPragmaDiagnosticsForMarkedSource(
             """
             #pragma warning disable S1234
-            class Foo { //SimulateIssue:S1234 }
+            class Foo
+            {
+                //SimulateIssue:S1234
+            }
             #pragma warning restore S1234
             #pragma warning disable S1234
             """);
 
         var results = await GetPragmaDiagnosticsAsync(tree, testIssues, supportedIds);
 
-        AssertExpectedPragmaDiagnostics(results, ("S1234", 3));
+        AssertExpectedPragmaDiagnostics(results, ("S1234", 6));
         AssertSinglePragmaProperties(results);
     }
 
@@ -267,15 +291,33 @@ public class DiagnosticAwarePragmaAnalyzerTests
         var (tree, testIssues, supportedIds) = GetPragmaDiagnosticsForMarkedSource(
             """
             #pragma warning disable S1234
-            class Foo { //SimulateIssue:S1234 }
+            class Foo
+            {
+                //SimulateIssue:S1234
+            }
             #pragma warning restore S1234
             #pragma warning restore S1234
             """);
 
         var results = await GetPragmaDiagnosticsAsync(tree, testIssues, supportedIds);
 
-        AssertExpectedPragmaDiagnostics(results, ("S1234", 3));
+        AssertExpectedPragmaDiagnostics(results, ("S1234", 6));
         AssertSinglePragmaProperties(results);
+    }
+
+    [TestMethod]
+    public async Task AnalyzeSyntaxTree_SyntaxErrors_NoDiagnosticRaised()
+    {
+        var (tree, testIssues, supportedIds) = GetPragmaDiagnosticsForMarkedSource(
+            """
+            #pragma warning disable S1234
+            class Foo {
+            #pragma warning restore S1234
+            """);
+
+        var results = await GetPragmaDiagnosticsAsync(tree, testIssues, supportedIds);
+
+        results.Should().BeEmpty();
     }
 
     private static void AssertExpectedPragmaDiagnostics(
