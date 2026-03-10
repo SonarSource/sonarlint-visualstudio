@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using NSubstitute;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -29,11 +31,20 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 [TestClass]
 public class DiagnosticToAnalysisIssueConverterTests
 {
-    private readonly DiagnosticToAnalysisIssueConverter testSubject = new();
+    private readonly ISonarLintSettings sonarLintSettings = Substitute.For<ISonarLintSettings>();
+    private DiagnosticToAnalysisIssueConverter testSubject = null!;
+
+    [TestInitialize]
+    public void TestInitialize()
+    {
+        sonarLintSettings.PragmaRuleSeverity.Returns(PragmaRuleSeverity.Warn);
+        testSubject = new DiagnosticToAnalysisIssueConverter(sonarLintSettings);
+    }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<DiagnosticToAnalysisIssueConverter, IDiagnosticToAnalysisIssueConverter>();
+        MefTestHelpers.CheckTypeCanBeImported<DiagnosticToAnalysisIssueConverter, IDiagnosticToAnalysisIssueConverter>(
+            MefTestHelpers.CreateExport<ISonarLintSettings>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() =>
@@ -83,13 +94,45 @@ public class DiagnosticToAnalysisIssueConverterTests
     }
 
     [TestMethod]
-    public void Convert_HighestImpact_IsMaintainabilityLow()
+    public void Convert_HighestImpact_QualityIsMaintainability()
     {
         var roslynIssue = CreateRoslynIssue("csharpsquid:S1", "msg", @"C:\test.cs", 1, 1, 0, 0);
 
         var result = testSubject.Convert(roslynIssue);
 
         result.HighestImpact.Quality.Should().Be(SoftwareQuality.Maintainability);
+    }
+
+    [TestMethod]
+    public void Convert_PragmaRuleSeverityWarn_ImpactSeverityIsMedium()
+    {
+        sonarLintSettings.PragmaRuleSeverity.Returns(PragmaRuleSeverity.Warn);
+        var roslynIssue = CreateRoslynIssue("csharpsquid:S1", "msg", @"C:\test.cs", 1, 1, 0, 0);
+
+        var result = testSubject.Convert(roslynIssue);
+
+        result.HighestImpact.Severity.Should().Be(SoftwareQualitySeverity.Medium);
+    }
+
+    [TestMethod]
+    public void Convert_PragmaRuleSeverityInfo_ImpactSeverityIsLow()
+    {
+        sonarLintSettings.PragmaRuleSeverity.Returns(PragmaRuleSeverity.Info);
+        var roslynIssue = CreateRoslynIssue("csharpsquid:S1", "msg", @"C:\test.cs", 1, 1, 0, 0);
+
+        var result = testSubject.Convert(roslynIssue);
+
+        result.HighestImpact.Severity.Should().Be(SoftwareQualitySeverity.Low);
+    }
+
+    [TestMethod]
+    public void Convert_PragmaRuleSeverityNone_ImpactSeverityDefaultsToMedium()
+    {
+        sonarLintSettings.PragmaRuleSeverity.Returns(PragmaRuleSeverity.None);
+        var roslynIssue = CreateRoslynIssue("csharpsquid:S1", "msg", @"C:\test.cs", 1, 1, 0, 0);
+
+        var result = testSubject.Convert(roslynIssue);
+
         result.HighestImpact.Severity.Should().Be(SoftwareQualitySeverity.Medium);
     }
 

@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 
@@ -30,7 +31,8 @@ internal interface IDiagnosticToAnalysisIssueConverter
 
 [Export(typeof(IDiagnosticToAnalysisIssueConverter))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class DiagnosticToAnalysisIssueConverter : IDiagnosticToAnalysisIssueConverter
+[method: ImportingConstructor]
+internal class DiagnosticToAnalysisIssueConverter(ISonarLintSettings sonarLintSettings) : IDiagnosticToAnalysisIssueConverter
 {
     public IAnalysisIssue Convert(RoslynIssue roslynIssue)
     {
@@ -46,11 +48,16 @@ internal class DiagnosticToAnalysisIssueConverter : IDiagnosticToAnalysisIssueCo
             isOnNewCode: true,
             severity: null,
             type: null,
-            highestImpact: new Impact(SoftwareQuality.Maintainability, SoftwareQualitySeverity.Medium),
+            highestImpact: new Impact(SoftwareQuality.Maintainability, GetImpactSeverity()),
             primaryLocation: primaryLocation,
             flows: flows,
             fixes: quickFixes);
     }
+
+    private SoftwareQualitySeverity GetImpactSeverity() =>
+        sonarLintSettings.PragmaRuleSeverity == PragmaRuleSeverity.Info
+            ? SoftwareQualitySeverity.Low
+            : SoftwareQualitySeverity.Medium;
 
     private static IReadOnlyList<IAnalysisIssueFlow> CreateFlows(IReadOnlyList<RoslynIssueFlow> flows)
     {

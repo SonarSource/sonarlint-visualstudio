@@ -45,7 +45,7 @@ public class DiagnosticAwarePragmaAnalyzer(Func<ImmutableArray<Diagnostic>> diag
         new LocalizableResourceString(nameof(Resources.SQVSPRAGMAMessageFormat), Resources.ResourceManager,
             typeof(Resources)),
         "Usage",
-        DiagnosticSeverity.Warning,
+        DiagnosticSeverity.Info,
         isEnabledByDefault: true,
         description: new LocalizableResourceString(nameof(Resources.SQVSPRAGMADescription), Resources.ResourceManager,
             typeof(Resources)));

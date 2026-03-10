@@ -24,20 +24,29 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 
 [Export(typeof(IPragmaSuppressionAnalysisConfigurationFactory))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class PragmaSuppressionAnalysisConfigurationFactory : IPragmaSuppressionAnalysisConfigurationFactory
+[method: ImportingConstructor]
+internal class PragmaSuppressionAnalysisConfigurationFactory(ISonarLintSettings sonarLintSettings)
+    : IPragmaSuppressionAnalysisConfigurationFactory
 {
     public IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> Create(
         ICurrentAnalysisIssuesStore currentAnalysisIssuesStore,
         IReadOnlyDictionary<RoslynLanguage, RoslynAnalysisConfiguration> sonarRoslynAnalysisConfigurations)
     {
+        if (sonarLintSettings.PragmaRuleSeverity == PragmaRuleSeverity.None)
+        {
+            return new Dictionary<RoslynLanguage, RoslynAnalysisConfiguration>();
+        }
+
         var diagnosticAwarePragmaAnalyzer = new DiagnosticAwarePragmaAnalyzer(
             currentAnalysisIssuesStore.GetAll,
             sonarRoslynAnalysisConfigurations[Language.CSharp].DiagnosticOptions!.Keys.ToImmutableHashSet());
+
         return new Dictionary<RoslynLanguage, RoslynAnalysisConfiguration>
         {
             {
