@@ -52,7 +52,6 @@ internal sealed class TextBufferIssueTracker : IFileState, ITagger<IErrorTag>
     private readonly ISonarLanguageRecognizer languageRecognizer;
     private readonly IIssueConsumerFactory issueConsumerFactory;
     private readonly IIssueConsumerStorage issueConsumerStorage;
-    private readonly IAdditionalAnalysisIssueStorage additionalAnalysisIssueStorage;
     private readonly ICanonicalFilePathProvider canonicalFilePathProvider;
     private readonly ILogger logger;
     private readonly ISonarErrorListDataSource sonarErrorDataSource;

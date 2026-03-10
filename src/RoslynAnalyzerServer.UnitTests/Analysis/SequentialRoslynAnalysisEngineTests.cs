@@ -368,7 +368,7 @@ public class SequentialRoslynAnalysisEngineTests
 
     private (IRoslynProjectWrapper project, IRoslynCompilationWithAnalyzersWrapper projectCompilation) SetupProjectAnalysisRequestAndCompilation(
         RoslynAnalysisConfiguration? analysisConfiguration = null,
-        IRoslynCompilationWithAnalyzersWrapper additionalCompilation = null)
+        IRoslynCompilationWithAnalyzersWrapper? additionalCompilation = null)
     {
         var project = Substitute.For<IRoslynProjectWrapper>();
         project.Solution.Returns(solution);
@@ -404,7 +404,7 @@ public class SequentialRoslynAnalysisEngineTests
     private IRoslynCompilationWithAnalyzersWrapper SetupCompilation(
         IRoslynProjectWrapper project,
         RoslynAnalysisConfiguration analysisConfiguration,
-        IRoslynCompilationWithAnalyzersWrapper additionalCompilation = null)
+        IRoslynCompilationWithAnalyzersWrapper? additionalCompilation = null)
     {
         var compilationWithAnalyzers = Substitute.For<IRoslynCompilationWithAnalyzersWrapper>();
         compilationWithAnalyzers.AnalysisConfiguration.Returns(analysisConfiguration);
