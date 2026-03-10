@@ -72,7 +72,6 @@ internal sealed class TextBufferIssueTracker : IFileState, ITagger<IErrorTag>
         IVsProjectInfoProvider vsProjectInfoProvider,
         IIssueConsumerFactory issueConsumerFactory,
         IIssueConsumerStorage issueConsumerStorage,
-        IAdditionalAnalysisIssueStorage additionalAnalysisIssueStorage,
         ICanonicalFilePathProvider canonicalFilePathProvider,
         ILogger logger)
     {
@@ -83,7 +82,6 @@ internal sealed class TextBufferIssueTracker : IFileState, ITagger<IErrorTag>
         this.vsProjectInfoProvider = vsProjectInfoProvider;
         this.issueConsumerFactory = issueConsumerFactory;
         this.issueConsumerStorage = issueConsumerStorage;
-        this.additionalAnalysisIssueStorage = additionalAnalysisIssueStorage;
         this.canonicalFilePathProvider = canonicalFilePathProvider;
         this.logger = logger;
         logger.ForContext(nameof(TextBufferIssueTracker));
@@ -198,7 +196,6 @@ internal sealed class TextBufferIssueTracker : IFileState, ITagger<IErrorTag>
     private void RemoveIssueConsumer(string filePath)
     {
         issueConsumerStorage.Remove(filePath);
-        additionalAnalysisIssueStorage.Remove(filePath);
     }
 
     private void CreateIssueConsumer(FileSnapshot fileSnapshot)

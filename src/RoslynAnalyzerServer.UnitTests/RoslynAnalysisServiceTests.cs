@@ -20,6 +20,7 @@
 
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.TestInfrastructure;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
@@ -46,6 +47,7 @@ public class RoslynAnalysisServiceTests
     private IRoslynAnalysisEngine analysisEngine = null!;
     private IRoslynWorkspaceWrapper workspace = null!;
     private IRoslynQuickFixStorageWriter quickFixStorageWriter = null!;
+    private IAdditionalAnalysisIssueStorage additionalAnalysisIssueStorage = null!;
     private RoslynAnalysisService testSubject = null!;
 
     [TestInitialize]
@@ -56,8 +58,9 @@ public class RoslynAnalysisServiceTests
         analysisConfigurationProvider = Substitute.For<IRoslynAnalysisConfigurationProvider>();
         analysisCommandProvider = Substitute.For<IRoslynSolutionAnalysisCommandProvider>();
         quickFixStorageWriter = Substitute.For<IRoslynQuickFixStorageWriter>();
+        additionalAnalysisIssueStorage = Substitute.For<IAdditionalAnalysisIssueStorage>();
 
-        testSubject = new RoslynAnalysisService(workspace, analysisEngine, quickFixStorageWriter, analysisConfigurationProvider, analysisCommandProvider);
+        testSubject = new RoslynAnalysisService(workspace, analysisEngine, quickFixStorageWriter, additionalAnalysisIssueStorage, analysisConfigurationProvider, analysisCommandProvider);
     }
 
     [TestMethod]
@@ -66,6 +69,7 @@ public class RoslynAnalysisServiceTests
             MefTestHelpers.CreateExport<IRoslynWorkspaceWrapper>(),
             MefTestHelpers.CreateExport<IRoslynAnalysisEngine>(),
             MefTestHelpers.CreateExport<IRoslynQuickFixStorageWriter>(),
+            MefTestHelpers.CreateExport<IAdditionalAnalysisIssueStorage>(),
             MefTestHelpers.CreateExport<IRoslynAnalysisConfigurationProvider>(),
             MefTestHelpers.CreateExport<IRoslynSolutionAnalysisCommandProvider>());
 
@@ -85,6 +89,8 @@ public class RoslynAnalysisServiceTests
 
         quickFixStorageWriter.Received().Clear(filePaths[0]);
         quickFixStorageWriter.Received().Clear(filePaths[1]);
+        additionalAnalysisIssueStorage.Received().Remove(filePaths[0]);
+        additionalAnalysisIssueStorage.Received().Remove(filePaths[1]);
         issues.Should().BeSameAs(DefaultIssues);
     }
 

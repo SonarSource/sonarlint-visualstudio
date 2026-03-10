@@ -262,6 +262,7 @@ public class RoslynAnalysisServiceIntegrationTests
             workspaceWrapper,
             analysisEngine,
             quickFixStorageWriter,
+            additionalAnalysisIssueStorage,
             configurationProvider,
             analysisCommandProvider);
     }

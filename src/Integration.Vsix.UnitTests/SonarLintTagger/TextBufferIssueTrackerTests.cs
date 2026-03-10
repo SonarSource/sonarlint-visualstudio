@@ -58,7 +58,6 @@ public class TextBufferIssueTrackerTests
     private IVsProjectInfoProvider vsProjectInfoProvider;
     private IIssueConsumerFactory issueConsumerFactory;
     private IIssueConsumerStorage issueConsumerStorage;
-    private IAdditionalAnalysisIssueStorage additionalAnalysisIssueStorage;
     private readonly (string projectName, Guid projectGuid) initialProjectInfo = (projectName: "project 1", projectGuid: Guid.NewGuid());
 
     [TestInitialize]
@@ -70,7 +69,6 @@ public class TextBufferIssueTrackerTests
         vsProjectInfoProvider = Substitute.For<IVsProjectInfoProvider>();
         issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
         issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
-        additionalAnalysisIssueStorage = Substitute.For<IAdditionalAnalysisIssueStorage>();
         documentTrackerUpdater = Substitute.For<IDocumentTrackerUpdater>();
         initialMockContentType = Substitute.For<IContentType>();
         initialTextSnapshot = CreateTextSnapshotMock();
@@ -82,7 +80,7 @@ public class TextBufferIssueTrackerTests
         canonicalFilePathProvider.GetCanonicalPath(InitialFilePath).Returns(InitialCanonicalFilePath);
         testSubject =  new(documentTrackerUpdater,
             mockedJavascriptDocumentFooJs, languageRecognizer,
-            mockSonarErrorDataSource, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage, additionalAnalysisIssueStorage, canonicalFilePathProvider, logger);
+            mockSonarErrorDataSource, vsProjectInfoProvider, issueConsumerFactory, issueConsumerStorage, canonicalFilePathProvider, logger);
     }
 
     [TestMethod]
@@ -396,20 +394,17 @@ public class TextBufferIssueTrackerTests
     private void VerifyIssueConsumerNotRemoved()
     {
         issueConsumerStorage.DidNotReceiveWithAnyArgs().Remove(default);
-        additionalAnalysisIssueStorage.DidNotReceiveWithAnyArgs().Remove(default);
     }
 
     private void VerifyIssueConsumerRemoved(string filePath)
     {
         issueConsumerStorage.Received(1).Remove(filePath);
-        additionalAnalysisIssueStorage.Received(1).Remove(filePath);
     }
 
     private void ClearMocks()
     {
         languageRecognizer.ClearReceivedCalls();
         issueConsumerStorage.ClearReceivedCalls();
-        additionalAnalysisIssueStorage.ClearReceivedCalls();
         issueConsumerFactory.ClearReceivedCalls();
         vsProjectInfoProvider.ClearReceivedCalls();
         canonicalFilePathProvider.ClearReceivedCalls();
