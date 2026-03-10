@@ -339,6 +339,33 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove unused #pragma directive.
+        /// </summary>
+        internal static string SQVSPRAGMACodeFixTitle {
+            get {
+                return ResourceManager.GetString("SQVSPRAGMACodeFixTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unused #pragma warning directive for &apos;{0}&apos;.
+        /// </summary>
+        internal static string SQVSPRAGMAMessageFormat {
+            get {
+                return ResourceManager.GetString("SQVSPRAGMAMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unused #pragma warning directive.
+        /// </summary>
+        internal static string SQVSPRAGMATitle {
+            get {
+                return ResourceManager.GetString("SQVSPRAGMATitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to write suppression exclusion config file: {0}.
         /// </summary>
         internal static string SuppressionExclusionConfigGenerator_FailedToWrite {

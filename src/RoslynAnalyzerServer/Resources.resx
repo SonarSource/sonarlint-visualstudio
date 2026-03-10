@@ -219,4 +219,13 @@
   <data name="SuppressionExclusionConfigGenerator_FailedToWrite" xml:space="preserve">
     <value>Failed to write suppression exclusion config file: {0}</value>
   </data>
+  <data name="SQVSPRAGMATitle" xml:space="preserve">
+    <value>Unused #pragma warning directive</value>
+  </data>
+  <data name="SQVSPRAGMAMessageFormat" xml:space="preserve">
+    <value>Unused #pragma warning directive for '{0}'</value>
+  </data>
+  <data name="SQVSPRAGMACodeFixTitle" xml:space="preserve">
+    <value>Remove unused #pragma directive</value>
+  </data>
 </root>
