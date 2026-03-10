@@ -242,15 +242,13 @@ public class RoslynAnalysisServiceIntegrationTests
                 Arg.Any<CancellationToken>())
             .Returns(new List<RoslynQuickFix>());
 
-        var diagnosticToAnalysisIssueConverter = Substitute.For<IDiagnosticToAnalysisIssueConverter>();
-        var additionalAnalysisIssueStorage = Substitute.For<IAdditionalAnalysisIssueStorage>();
+        var additionalAnalysisIssueStorage = Substitute.For<IAdditionalAnalysisIssueStorageWriter>();
         var additionalAnalysisConfigurationFactory = Substitute.For<IPragmaSuppressionAnalysisConfigurationFactory>();
 
         var analysisEngine = new SequentialRoslynAnalysisEngine(
             issueConverter,
             compilationProvider,
             quickFixFactory,
-            diagnosticToAnalysisIssueConverter,
             additionalAnalysisIssueStorage,
             additionalAnalysisConfigurationFactory,
             logger);

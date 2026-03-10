@@ -44,8 +44,7 @@ public class SequentialRoslynAnalysisEngineTests
     private SequentialRoslynAnalysisEngine testSubject = null!;
     private IRoslynQuickFixFactory roslynQuickFixFactory = null!;
     private IRoslynSolutionWrapper solution = null!;
-    private IDiagnosticToAnalysisIssueConverter diagnosticToAnalysisIssueConverter = null!;
-    private IAdditionalAnalysisIssueStorage additionalAnalysisIssueStorage = null!;
+    private IAdditionalAnalysisIssueStorageWriter additionalAnalysisIssueStorage = null!;
     private IPragmaSuppressionAnalysisConfigurationFactory pragmaSuppressionAnalysisConfigurationFactory = null!;
 
     [TestInitialize]
@@ -57,11 +56,10 @@ public class SequentialRoslynAnalysisEngineTests
         roslynQuickFixFactory = Substitute.For<IRoslynQuickFixFactory>();
         roslynQuickFixFactory.CreateQuickFixesAsync(default!, default!, default, default).ReturnsForAnyArgs([]);
         solution = Substitute.For<IRoslynSolutionWrapper>();
-        diagnosticToAnalysisIssueConverter = Substitute.For<IDiagnosticToAnalysisIssueConverter>();
-        additionalAnalysisIssueStorage = Substitute.For<IAdditionalAnalysisIssueStorage>();
+        additionalAnalysisIssueStorage = Substitute.For<IAdditionalAnalysisIssueStorageWriter>();
         pragmaSuppressionAnalysisConfigurationFactory = Substitute.For<IPragmaSuppressionAnalysisConfigurationFactory>();
 
-        testSubject = new SequentialRoslynAnalysisEngine(issueConverter, projectCompilationProvider, roslynQuickFixFactory, diagnosticToAnalysisIssueConverter, additionalAnalysisIssueStorage, pragmaSuppressionAnalysisConfigurationFactory, logger);
+        testSubject = new SequentialRoslynAnalysisEngine(issueConverter, projectCompilationProvider, roslynQuickFixFactory, additionalAnalysisIssueStorage, pragmaSuppressionAnalysisConfigurationFactory, logger);
 
         configurations = ImmutableDictionary.Create<RoslynLanguage, RoslynAnalysisConfiguration>();
         cancellationToken = new CancellationToken();
@@ -73,8 +71,7 @@ public class SequentialRoslynAnalysisEngineTests
             MefTestHelpers.CreateExport<IDiagnosticToRoslynIssueConverter>(),
             MefTestHelpers.CreateExport<IRoslynProjectCompilationProvider>(),
             MefTestHelpers.CreateExport<IRoslynQuickFixFactory>(),
-            MefTestHelpers.CreateExport<IDiagnosticToAnalysisIssueConverter>(),
-            MefTestHelpers.CreateExport<IAdditionalAnalysisIssueStorage>(),
+            MefTestHelpers.CreateExport<IAdditionalAnalysisIssueStorageWriter>(),
             MefTestHelpers.CreateExport<IPragmaSuppressionAnalysisConfigurationFactory>(),
             MefTestHelpers.CreateExport<ILogger>());
 
@@ -233,8 +230,7 @@ public class SequentialRoslynAnalysisEngineTests
 
         await testSubject.AnalyzeAsync([requestForProject], configurations, cancellationToken);
 
-        EnumerateAddedAdditionalIssuesAndVerifyConvert();
-        diagnosticToAnalysisIssueConverter.DidNotReceiveWithAnyArgs().Convert(default!);
+        additionalAnalysisIssueStorage.Received(1).Add(Arg.Is<IEnumerable<RoslynIssue>>(issues => !issues.Any()));
     }
 
 
@@ -254,9 +250,9 @@ public class SequentialRoslynAnalysisEngineTests
     [TestMethod]
     public async Task AnalyzeAsync_AdditionalDiagnostics_ConvertedViaRoslynIssueAndAdded()
     {
-        var (diagnostic1, roslynIssue1, _) = SetUpAdditionalDiagnosticAndConvertedModel("rule1", "msg1", @"C:\file1.cs");
-        var (diagnostic2, roslynIssue2, _) = SetUpAdditionalDiagnosticAndConvertedModel("rule2", "msg2", @"C:\file2.cs");
-        var (diagnostic3, roslynIssue3, _) = SetUpAdditionalDiagnosticAndConvertedModel("rule3", "msg3", @"C:\file1.cs");
+        var (diagnostic1, roslynIssue1) = SetUpAdditionalDiagnosticAndConvertedModel("rule1", "msg1", @"C:\file1.cs");
+        var (diagnostic2, roslynIssue2) = SetUpAdditionalDiagnosticAndConvertedModel("rule2", "msg2", @"C:\file2.cs");
+        var (diagnostic3, roslynIssue3) = SetUpAdditionalDiagnosticAndConvertedModel("rule3", "msg3", @"C:\file1.cs");
         var (request, _, _) = SetupAdditionalAnalysisRequest(diagnostics: [diagnostic1, diagnostic2, diagnostic3]);
 
         await testSubject.AnalyzeAsync([request], configurations, cancellationToken);
@@ -264,13 +260,13 @@ public class SequentialRoslynAnalysisEngineTests
         issueConverter.Received(1).ConvertToSonarDiagnostic(diagnostic1, Arg.Any<List<RoslynQuickFix>>(), Arg.Any<Language>());
         issueConverter.Received(1).ConvertToSonarDiagnostic(diagnostic2, Arg.Any<List<RoslynQuickFix>>(), Arg.Any<Language>());
         issueConverter.Received(1).ConvertToSonarDiagnostic(diagnostic3, Arg.Any<List<RoslynQuickFix>>(), Arg.Any<Language>());
-        EnumerateAddedAdditionalIssuesAndVerifyConvert(roslynIssue1, roslynIssue2, roslynIssue3);
+        VerifyAdditionalIssuesAdded(roslynIssue1, roslynIssue2, roslynIssue3);
     }
 
     [TestMethod]
     public async Task AnalyzeAsync_AdditionalDiagnostics_CreatesQuickFixes()
     {
-        var (diagnostic, _, _) = SetUpAdditionalDiagnosticAndConvertedModel("rule1", "msg");
+        var (diagnostic, _) = SetUpAdditionalDiagnosticAndConvertedModel("rule1", "msg");
         var (request, _, additionalAnalysisConfig) = SetupAdditionalAnalysisRequest(diagnostics: [diagnostic]);
 
         await testSubject.AnalyzeAsync([request], configurations, cancellationToken);
@@ -281,7 +277,7 @@ public class SequentialRoslynAnalysisEngineTests
     [TestMethod]
     public async Task AnalyzeAsync_AdditionalDiagnostics_UsesIssueConverterWithQuickFixes()
     {
-        var (diagnostic, roslynIssue, _) = SetUpAdditionalDiagnosticAndConvertedModel("rule1", "msg");
+        var (diagnostic, roslynIssue) = SetUpAdditionalDiagnosticAndConvertedModel("rule1", "msg");
         var quickFixes = new List<RoslynQuickFix> { new(Guid.NewGuid()) };
         roslynQuickFixFactory.CreateQuickFixesAsync(diagnostic, solution, Arg.Any<RoslynAnalysisConfiguration>(), cancellationToken)
             .Returns(quickFixes);
@@ -290,14 +286,14 @@ public class SequentialRoslynAnalysisEngineTests
         await testSubject.AnalyzeAsync([request], configurations, cancellationToken);
 
         issueConverter.Received(1).ConvertToSonarDiagnostic(diagnostic, quickFixes, Arg.Any<Language>());
-        EnumerateAddedAdditionalIssuesAndVerifyConvert(roslynIssue);
+        VerifyAdditionalIssuesAdded(roslynIssue);
     }
 
     [TestMethod]
     public async Task AnalyzeAsync_BothMainAndAdditionalDiagnostics_ReturnsMainAndAddsAdditional()
     {
         var (mainDiagnostic, mainIssue) = SetUpDiagnosticAndConvertedModel("main-rule", "main message");
-        var (additionalDiagnostic, _, _) = SetUpAdditionalDiagnosticAndConvertedModel("additional-rule", "additional message");
+        var (additionalDiagnostic, _) = SetUpAdditionalDiagnosticAndConvertedModel("additional-rule", "additional message");
         var additionalCompilation = Substitute.For<IRoslynCompilationWithAnalyzersWrapper>();
         additionalCompilation.AnalysisConfiguration.Returns(new RoslynAnalysisConfiguration());
         var additionalCommand = Substitute.For<IRoslynAnalysisCommand>();
@@ -310,26 +306,26 @@ public class SequentialRoslynAnalysisEngineTests
         var result = await testSubject.AnalyzeAsync([request], configurations, cancellationToken);
 
         result.Should().ContainSingle().Which.Should().Be(mainIssue);
-        additionalAnalysisIssueStorage.Received(1).Add(Arg.Any<IEnumerable<IAnalysisIssue>>());
+        additionalAnalysisIssueStorage.Received(1).Add(Arg.Any<IEnumerable<RoslynIssue>>());
     }
 
     [TestMethod]
     public async Task AnalyzeAsync_DuplicateAdditionalDiagnostics_DeduplicatedBeforeAdding()
     {
-        var (diagnostic1, roslynIssue, _) = SetUpAdditionalDiagnosticAndConvertedModel("rule1", "msg1");
+        var (diagnostic1, roslynIssue) = SetUpAdditionalDiagnosticAndConvertedModel("rule1", "msg1");
         var diagnostic2 = CreateTestDiagnostic("rule1-dup", "msg1 dup");
         issueConverter.ConvertToSonarDiagnostic(diagnostic2, Arg.Any<List<RoslynQuickFix>>(), Arg.Any<Language>()).Returns(roslynIssue);
         var (request, _, _) = SetupAdditionalAnalysisRequest(diagnostics: [diagnostic1, diagnostic2]);
 
         await testSubject.AnalyzeAsync([request], configurations, cancellationToken);
 
-        EnumerateAddedAdditionalIssuesAndVerifyConvert(roslynIssue);
+        VerifyAdditionalIssuesAdded(roslynIssue);
     }
 
     [TestMethod]
     public async Task AnalyzeAsync_DuplicateAdditionalDiagnosticsAcrossProjects_DeduplicatedBeforeAdding()
     {
-        var (diagnostic1, roslynIssue, _) = SetUpAdditionalDiagnosticAndConvertedModel("rule1", "msg1");
+        var (diagnostic1, roslynIssue) = SetUpAdditionalDiagnosticAndConvertedModel("rule1", "msg1");
         var (request1, _, _) = SetupAdditionalAnalysisRequest(diagnostics: [diagnostic1]);
         var diagnostic2 = CreateTestDiagnostic("rule1-dup", "msg1 dup");
         issueConverter.ConvertToSonarDiagnostic(diagnostic2, Arg.Any<List<RoslynQuickFix>>(), Arg.Any<Language>()).Returns(roslynIssue);
@@ -337,7 +333,7 @@ public class SequentialRoslynAnalysisEngineTests
 
         await testSubject.AnalyzeAsync([request1, request2], configurations, cancellationToken);
 
-        EnumerateAddedAdditionalIssuesAndVerifyConvert(roslynIssue);
+        VerifyAdditionalIssuesAdded(roslynIssue);
     }
 
     private (Diagnostic diagnostic, RoslynIssue sonarIssue) SetupDiagnosticWithQuickFixes(
@@ -473,7 +469,7 @@ public class SequentialRoslynAnalysisEngineTests
         return Diagnostic.Create(descriptor, location);
     }
 
-    private (Diagnostic diagnostic, RoslynIssue roslynIssue, IAnalysisIssue analysisIssue) SetUpAdditionalDiagnosticAndConvertedModel(
+    private (Diagnostic diagnostic, RoslynIssue roslynIssue) SetUpAdditionalDiagnosticAndConvertedModel(
         string ruleId,
         string message,
         string filePath = @"C:\test.cs")
@@ -481,9 +477,7 @@ public class SequentialRoslynAnalysisEngineTests
         var diagnostic = CreateTestDiagnostic(ruleId, message, filePath);
         var roslynIssue = CreateSonarIssue(ruleId, message, filePath);
         issueConverter.ConvertToSonarDiagnostic(diagnostic, Arg.Any<List<RoslynQuickFix>>(), Arg.Any<Language>()).Returns(roslynIssue);
-        var analysisIssue = Substitute.For<IAnalysisIssue>();
-        diagnosticToAnalysisIssueConverter.Convert(roslynIssue).Returns(analysisIssue);
-        return (diagnostic, roslynIssue, analysisIssue);
+        return (diagnostic, roslynIssue);
     }
 
     private (RoslynProjectAnalysisRequest request, IRoslynCompilationWithAnalyzersWrapper additionalCompilation, RoslynAnalysisConfiguration additionalConfig)
@@ -507,13 +501,9 @@ public class SequentialRoslynAnalysisEngineTests
         return new RoslynIssue(ruleId, location);
     }
 
-    private void EnumerateAddedAdditionalIssuesAndVerifyConvert(params RoslynIssue[] expectedRoslynIssues)
+    private void VerifyAdditionalIssuesAdded(params RoslynIssue[] expectedRoslynIssues)
     {
-        additionalAnalysisIssueStorage.Received(1).Add(Arg.Any<IEnumerable<IAnalysisIssue>>());
-        ((IEnumerable<IAnalysisIssue>)additionalAnalysisIssueStorage.ReceivedCalls().Single().GetArguments()[0])!.ToList();
-        foreach (var roslynIssue in expectedRoslynIssues)
-        {
-            diagnosticToAnalysisIssueConverter.Received(1).Convert(roslynIssue);
-        }
+        additionalAnalysisIssueStorage.Received(1).Add(Arg.Is<IEnumerable<RoslynIssue>>(
+            issues => issues.SequenceEqual(expectedRoslynIssues)));
     }
 }

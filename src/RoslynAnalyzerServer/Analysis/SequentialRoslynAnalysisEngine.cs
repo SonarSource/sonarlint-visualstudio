@@ -23,7 +23,6 @@ using System.ComponentModel.Composition;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Wrappers;
 
@@ -36,8 +35,7 @@ internal class SequentialRoslynAnalysisEngine(
     IDiagnosticToRoslynIssueConverter issueConverter,
     IRoslynProjectCompilationProvider projectCompilationProvider,
     IRoslynQuickFixFactory quickFixFactory,
-    IDiagnosticToAnalysisIssueConverter diagnosticToAnalysisIssueConverter,
-    IAdditionalAnalysisIssueStorage additionalAnalysisIssueStorage,
+    IAdditionalAnalysisIssueStorageWriter additionalAnalysisIssueStorage,
     IPragmaSuppressionAnalysisConfigurationFactory pragmaSuppressionAnalysisConfigurationFactory,
     ILogger logger) : IRoslynAnalysisEngine
 {
@@ -86,7 +84,7 @@ internal class SequentialRoslynAnalysisEngine(
             }
         }
 
-        additionalAnalysisIssueStorage.Add(uniqueAdditionalDiagnostics.Select(diagnosticToAnalysisIssueConverter.Convert));
+        additionalAnalysisIssueStorage.Add(uniqueAdditionalDiagnostics);
         return uniqueDiagnostics;
     }
 
