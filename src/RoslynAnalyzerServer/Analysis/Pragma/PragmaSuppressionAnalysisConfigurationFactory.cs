@@ -46,6 +46,8 @@ internal class PragmaSuppressionAnalysisConfigurationFactory(ISonarLintSettings 
         var diagnosticAwarePragmaAnalyzer = new DiagnosticAwarePragmaAnalyzer(
             currentAnalysisIssuesStore.GetAll,
             sonarRoslynAnalysisConfigurations[Language.CSharp].DiagnosticOptions!.Keys.ToImmutableHashSet());
+        var pragmaWarningDisableCodeFixProvider = new PragmaWarningDisableCodeFixProvider();
+        IReadOnlyCollection<CodeFixProvider> codeFixes = new List<CodeFixProvider> { pragmaWarningDisableCodeFixProvider };
 
         return new Dictionary<RoslynLanguage, RoslynAnalysisConfiguration>
         {
@@ -55,8 +57,7 @@ internal class PragmaSuppressionAnalysisConfigurationFactory(ISonarLintSettings 
                     sonarRoslynAnalysisConfigurations[Language.CSharp].SonarLintXml, // strictly speaking this is not needed, but is kept to make fewer changes to compilation provider
                     diagnosticAwarePragmaAnalyzer.SupportedDiagnostics.ToImmutableDictionary(x => x.Id, _ => ReportDiagnostic.Warn),
                     ImmutableArray.Create<DiagnosticAnalyzer>(diagnosticAwarePragmaAnalyzer),
-                    ImmutableDictionary.Create<string, IReadOnlyCollection<CodeFixProvider>>()
-                        .Add(DiagnosticAwarePragmaAnalyzer.DiagnosticId, [new PragmaWarningDisableCodeFixProvider()]))
+                    pragmaWarningDisableCodeFixProvider.FixableDiagnosticIds.ToImmutableDictionary(x => x, _ => codeFixes))
             }
         };
     }

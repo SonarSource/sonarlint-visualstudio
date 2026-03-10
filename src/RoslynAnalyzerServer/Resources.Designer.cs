@@ -348,15 +348,6 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Detects unused #pragma warning directives for Sonar rules in VisualStudio..
-        /// </summary>
-        internal static string SQVSPRAGMADescription {
-            get {
-                return ResourceManager.GetString("SQVSPRAGMADescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Unused #pragma warning directive for &apos;{0}&apos;.
         /// </summary>
         internal static string SQVSPRAGMAMessageFormat {

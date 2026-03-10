@@ -29,26 +29,26 @@ using SoftwareQuality = SonarLint.VisualStudio.Core.Analysis.SoftwareQuality;
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis;
 
 [TestClass]
-public class DiagnosticToAnalysisIssueConverterTests
+public class RoslynIssueToAnalysisIssueConverterTests
 {
     private readonly ISonarLintSettings sonarLintSettings = Substitute.For<ISonarLintSettings>();
-    private DiagnosticToAnalysisIssueConverter testSubject = null!;
+    private RoslynIssueToAnalysisIssueConverter testSubject = null!;
 
     [TestInitialize]
     public void TestInitialize()
     {
         sonarLintSettings.PragmaRuleSeverity.Returns(PragmaRuleSeverity.Warn);
-        testSubject = new DiagnosticToAnalysisIssueConverter(sonarLintSettings);
+        testSubject = new RoslynIssueToAnalysisIssueConverter(sonarLintSettings);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<DiagnosticToAnalysisIssueConverter, IDiagnosticToAnalysisIssueConverter>(
+        MefTestHelpers.CheckTypeCanBeImported<RoslynIssueToAnalysisIssueConverter, IDiagnosticToAnalysisIssueConverter>(
             MefTestHelpers.CreateExport<ISonarLintSettings>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() =>
-        MefTestHelpers.CheckIsSingletonMefComponent<DiagnosticToAnalysisIssueConverter>();
+        MefTestHelpers.CheckIsSingletonMefComponent<RoslynIssueToAnalysisIssueConverter>();
 
     [TestMethod]
     public void Convert_SetsRuleKeyFromRoslynIssue()
@@ -126,14 +126,14 @@ public class DiagnosticToAnalysisIssueConverterTests
     }
 
     [TestMethod]
-    public void Convert_PragmaRuleSeverityNone_ImpactSeverityDefaultsToMedium()
+    public void Convert_PragmaRuleSeverityNone_ImpactSeverityDefaultsToLow()
     {
         sonarLintSettings.PragmaRuleSeverity.Returns(PragmaRuleSeverity.None);
         var roslynIssue = CreateRoslynIssue("csharpsquid:S1", "msg", @"C:\test.cs", 1, 1, 0, 0);
 
         var result = testSubject.Convert(roslynIssue);
 
-        result.HighestImpact.Severity.Should().Be(SoftwareQualitySeverity.Medium);
+        result.HighestImpact.Severity.Should().Be(SoftwareQualitySeverity.Low);
     }
 
     [TestMethod]

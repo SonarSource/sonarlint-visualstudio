@@ -25,6 +25,8 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Text;
+using SonarLint.VisualStudio.Core;
+using Document = Microsoft.CodeAnalysis.Document;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 
@@ -32,7 +34,7 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 public class PragmaWarningDisableCodeFixProvider : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-        ImmutableArray.Create(DiagnosticAwarePragmaAnalyzer.DiagnosticId);
+        ImmutableArray.Create(AdditionalRules.UnusedPragmaRuleKey);
 
     public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -55,7 +57,7 @@ public class PragmaWarningDisableCodeFixProvider : CodeFixProvider
                 CodeAction.Create(
                     Resources.SQVSPRAGMACodeFixTitle,
                     _ => RemoveIdentifierFromPragmaAsync(context.Document, root, diagnostic),
-                    equivalenceKey: DiagnosticAwarePragmaAnalyzer.DiagnosticId),
+                    equivalenceKey: AdditionalRules.UnusedPragmaRuleKey),
                 diagnostic);
         }
     }

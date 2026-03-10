@@ -225,9 +225,6 @@
   <data name="SQVSPRAGMAMessageFormat" xml:space="preserve">
     <value>Unused #pragma warning directive for '{0}'</value>
   </data>
-  <data name="SQVSPRAGMADescription" xml:space="preserve">
-    <value>Detects unused #pragma warning directives for Sonar rules in VisualStudio.</value>
-  </data>
   <data name="SQVSPRAGMACodeFixTitle" xml:space="preserve">
     <value>Remove unused #pragma directive</value>
   </data>

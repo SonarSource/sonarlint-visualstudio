@@ -32,7 +32,7 @@ internal interface IDiagnosticToAnalysisIssueConverter
 [Export(typeof(IDiagnosticToAnalysisIssueConverter))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class DiagnosticToAnalysisIssueConverter(ISonarLintSettings sonarLintSettings) : IDiagnosticToAnalysisIssueConverter
+internal class RoslynIssueToAnalysisIssueConverter(ISonarLintSettings sonarLintSettings) : IDiagnosticToAnalysisIssueConverter
 {
     public IAnalysisIssue Convert(RoslynIssue roslynIssue)
     {
@@ -55,9 +55,9 @@ internal class DiagnosticToAnalysisIssueConverter(ISonarLintSettings sonarLintSe
     }
 
     private SoftwareQualitySeverity GetImpactSeverity() =>
-        sonarLintSettings.PragmaRuleSeverity == PragmaRuleSeverity.Info
-            ? SoftwareQualitySeverity.Low
-            : SoftwareQualitySeverity.Medium;
+        sonarLintSettings.PragmaRuleSeverity == PragmaRuleSeverity.Warn
+            ? SoftwareQualitySeverity.Medium
+            : SoftwareQualitySeverity.Low;
 
     private static IReadOnlyList<IAnalysisIssueFlow> CreateFlows(IReadOnlyList<RoslynIssueFlow> flows)
     {

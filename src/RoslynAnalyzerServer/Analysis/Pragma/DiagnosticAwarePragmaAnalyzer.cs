@@ -38,18 +38,14 @@ public class DiagnosticAwarePragmaAnalyzer(Func<ImmutableArray<Diagnostic>> diag
         public void SetAsUsed() => Unused = false;
     }
 
-    public const string DiagnosticId = AdditionalRules.UnusedPragmaRuleKey;
     public const string ReportedDiagnosticId = "ReportedRuleId";
     private static readonly DiagnosticDescriptor Rule = new(
-        DiagnosticId,
-        new LocalizableResourceString(nameof(Resources.SQVSPRAGMATitle), Resources.ResourceManager, typeof(Resources)),
-        new LocalizableResourceString(nameof(Resources.SQVSPRAGMAMessageFormat), Resources.ResourceManager,
-            typeof(Resources)),
+        AdditionalRules.UnusedPragmaRuleKey,
+        Resources.SQVSPRAGMATitle,
+        Resources.SQVSPRAGMAMessageFormat,
         "Usage",
         DiagnosticSeverity.Info,
-        isEnabledByDefault: true,
-        description: new LocalizableResourceString(nameof(Resources.SQVSPRAGMADescription), Resources.ResourceManager,
-            typeof(Resources)));
+        isEnabledByDefault: true);
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
         ImmutableArray.Create(Rule);

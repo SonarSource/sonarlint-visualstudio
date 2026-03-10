@@ -24,6 +24,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.IntegrationTests.Analysis.Pragma;
@@ -55,7 +56,7 @@ internal static class PragmaTestHelper
         var allDiagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
 
         return allDiagnostics
-            .Where(d => d.Id == DiagnosticAwarePragmaAnalyzer.DiagnosticId)
+            .Where(d => d.Id == AdditionalRules.UnusedPragmaRuleKey)
             .ToImmutableArray();
     }
 
