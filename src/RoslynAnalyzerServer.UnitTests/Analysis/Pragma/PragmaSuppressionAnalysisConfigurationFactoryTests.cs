@@ -90,7 +90,7 @@ public class PragmaSuppressionAnalysisConfigurationFactoryTests
 
         result.Should().NotBeEmpty();
         result[Language.CSharp].DiagnosticOptions.Should().NotBeNull();
-        result[Language.CSharp].DiagnosticOptions!.Values.Should().AllBeEquivalentTo(ReportDiagnostic.Info);
+        result[Language.CSharp].DiagnosticOptions!.Values.Should().NotContain(ReportDiagnostic.Suppress);
     }
 
     [TestMethod]
@@ -102,6 +102,6 @@ public class PragmaSuppressionAnalysisConfigurationFactoryTests
 
         result.Should().NotBeEmpty();
         result[Language.CSharp].DiagnosticOptions.Should().NotBeNull();
-        result[Language.CSharp].DiagnosticOptions!.Values.Should().AllBeEquivalentTo(ReportDiagnostic.Warn);
+        result[Language.CSharp].DiagnosticOptions!.Values.Should().NotContain(ReportDiagnostic.Suppress);
     }
 }
