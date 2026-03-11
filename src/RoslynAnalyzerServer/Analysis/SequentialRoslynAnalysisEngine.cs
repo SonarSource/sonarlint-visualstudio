@@ -60,7 +60,7 @@ internal class SequentialRoslynAnalysisEngine(
                 token);
 
             // todo SLVS-2467 issue streaming
-            await foreach (var (diagnostic, issue) in AnalyzeAsync(token, projectAnalysisRequest.Scope, projectAnalysisRequest.AnalysisCommands, compilationWithAnalyzers))
+            await foreach (var (diagnostic, issue) in AnalyzeAsync(projectAnalysisRequest.Scope, projectAnalysisRequest.AnalysisCommands, compilationWithAnalyzers, token))
             {
                 knownIssuesStore.Add(diagnostic);
                 if (issue is not null && !uniqueDiagnostics.Add(issue))
@@ -73,7 +73,7 @@ internal class SequentialRoslynAnalysisEngine(
 
             if (compilationWithAdditionalAnalyzers is not null)
             {
-                await foreach (var (_, issue) in AnalyzeAsync(token, projectAnalysisRequest.Scope, projectAnalysisRequest.AdditionalCommands, compilationWithAdditionalAnalyzers))
+                await foreach (var (_, issue) in AnalyzeAsync(projectAnalysisRequest.Scope, projectAnalysisRequest.AdditionalCommands, compilationWithAdditionalAnalyzers, token))
                 {
                     if (issue is null)
                     {
@@ -89,10 +89,10 @@ internal class SequentialRoslynAnalysisEngine(
     }
 
     private async IAsyncEnumerable<(Diagnostic, RoslynIssue?)> AnalyzeAsync(
-        [EnumeratorCancellation] CancellationToken token, // todo check async enumerable
         ProjectAnalysisRequestScope scope,
         IEnumerable<IRoslynAnalysisCommand> analysisCommands,
-        IRoslynCompilationWithAnalyzersWrapper compilationWithAdditionalAnalyzers)
+        IRoslynCompilationWithAnalyzersWrapper compilationWithAdditionalAnalyzers,
+        [EnumeratorCancellation] CancellationToken token)
     {
         foreach (var analysisCommand in analysisCommands)
         {
