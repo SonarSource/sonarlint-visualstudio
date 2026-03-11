@@ -28,8 +28,6 @@ using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-#pragma warning disable CS8625
-
 namespace SonarLint.VisualStudio.RoslynAnalyzerServer.UnitTests.Analysis.Pragma;
 
 [TestClass]
