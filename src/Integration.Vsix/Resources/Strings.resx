@@ -475,6 +475,10 @@ Without Connected Mode, any code added or changed in the last 30 days is conside
     <value>Displays a notification after build when warnings are elevated to errors via the TreatWarningsAsErrors MSBuild property.</value>
   </data>
   <data name="PragmaAnalysisSeverityLabel" xml:space="preserve">
-    <value>C# Unused pragma disable analysis severity:</value>
+    <value>C# Unused pragma suppression analysis severity:</value>
+  </data>
+  <data name="PragmaAnalysisSeverityTooltip" xml:space="preserve">
+    <value>Detects unused #pragma warning disable and restore directives that do not suppress any issues raised by Sonar analyzers. Similar to IDE0079, but applies specifically to Sonar rules.
+Set the severity level for how these findings are reported, or choose None to disable this analysis. TreatWarningsAsErrors is respected by this rule.</value>
   </data>
 </root>
