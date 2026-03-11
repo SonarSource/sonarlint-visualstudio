@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration;
 using Language = SonarLint.VisualStudio.Core.Language;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
@@ -40,29 +41,53 @@ namespace SonarLint.VisualStudio.RoslynAnalyzerServer.IntegrationTests.Analysis;
 public class RoslynAnalysisServiceIntegrationTests
 {
     private TestLogger logger = null!;
-    private IWorkspaceChangeIndicator workspaceChangeIndicator = null!;
-    private ITreatWarningsAsErrorsCacheUpdater treatWarningsAsErrorsCacheUpdater = null!;
-    private ITreatWarningsAsErrorsChangeIndicator treatWarningsAsErrorsChangeIndicator = null!;
-    private IAnalysisRequester analysisRequester = null!;
-    private IThreadHandling threadHandling = null!;
+    private IRoslynWorkspaceWrapper workspaceWrapper = null!;
+    private IAdditionalAnalysisIssueStorageWriter additionalAnalysisIssueStorageWriter = null!;
+    private ISonarLintSettings sonarLintSettings = null!;
+    private RoslynAnalysisService testSubject = null!;
 
     [TestInitialize]
     public void TestInitialize()
     {
         logger = Substitute.ForPartsOf<TestLogger>();
-        workspaceChangeIndicator = Substitute.For<IWorkspaceChangeIndicator>();
-        treatWarningsAsErrorsCacheUpdater = Substitute.For<ITreatWarningsAsErrorsCacheUpdater>();
-        treatWarningsAsErrorsChangeIndicator = Substitute.For<ITreatWarningsAsErrorsChangeIndicator>();
-        analysisRequester = Substitute.For<IAnalysisRequester>();
-        threadHandling = Substitute.For<IThreadHandling>();
+        workspaceWrapper = Substitute.For<IRoslynWorkspaceWrapper>();
+        additionalAnalysisIssueStorageWriter = Substitute.For<IAdditionalAnalysisIssueStorageWriter>();
+        sonarLintSettings = Substitute.For<ISonarLintSettings>();
+        sonarLintSettings.PragmaRuleSeverity.Returns(PragmaRuleSeverity.None);
+
+        var pragmaSuppressionAnalysisConfigurationFactory = new PragmaSuppressionAnalysisConfigurationFactory(sonarLintSettings);
+        var analysisCommandProvider = new RoslynSolutionAnalysisCommandProvider(workspaceWrapper, logger);
+
+        var quickFixFactory = Substitute.For<IRoslynQuickFixFactory>();
+        quickFixFactory.CreateQuickFixesAsync(
+                Arg.Any<Diagnostic>(),
+                Arg.Any<IRoslynSolutionWrapper>(),
+                Arg.Any<RoslynAnalysisConfiguration>(),
+                Arg.Any<CancellationToken>())
+            .Returns(new List<RoslynQuickFix>());
+
+        var analysisEngine = new SequentialRoslynAnalysisEngine(
+            new DiagnosticToRoslynIssueConverter(),
+            new RoslynProjectCompilationProvider(logger),
+            quickFixFactory,
+            additionalAnalysisIssueStorageWriter,
+            pragmaSuppressionAnalysisConfigurationFactory,
+            logger);
+
+        testSubject = new RoslynAnalysisService(
+            workspaceWrapper,
+            analysisEngine,
+            Substitute.For<IRoslynQuickFixStorageWriter>(),
+            additionalAnalysisIssueStorageWriter,
+            CreateMockedConfigurationProvider(),
+            analysisCommandProvider);
     }
 
     [TestMethod]
     public async Task AnalyzeAsync_FileWithIssues_ReturnsRoslynIssuesWithCorrectData()
     {
         var filePath = @"C:\TestProject\BadClassName.cs";
-        using var workspace = CreateWorkspaceWithDocuments(("public class BadClassName { }", filePath));
-        using var testSubject = CreateTestSubject(workspace);
+        SetUpSolution(("public class BadClassName { }", filePath));
 
         var request = CreateAnalysisRequest(filePath);
         var results = (await testSubject.AnalyzeAsync(request, CancellationToken.None)).ToList();
@@ -78,8 +103,7 @@ public class RoslynAnalysisServiceIntegrationTests
     public async Task AnalyzeAsync_CleanFile_ReturnsEmptyResults()
     {
         var filePath = @"C:\TestProject\GoodClassName.cs";
-        using var workspace = CreateWorkspaceWithDocuments(("public class GoodClassName { }", filePath));
-        using var testSubject = CreateTestSubject(workspace);
+        SetUpSolution(("public class GoodClassName { }", filePath));
 
         var request = CreateAnalysisRequest(filePath);
         var results = await testSubject.AnalyzeAsync(request, CancellationToken.None);
@@ -92,10 +116,9 @@ public class RoslynAnalysisServiceIntegrationTests
     {
         var filePath1 = @"C:\TestProject\BadClassName1.cs";
         var filePath2 = @"C:\TestProject\BadClassName2.cs";
-        using var workspace = CreateWorkspaceWithDocuments(
+        SetUpSolution(
             ("public class BadClassName1 { }", filePath1),
             ("public class BadClassName2 { }", filePath2));
-        using var testSubject = CreateTestSubject(workspace);
 
         var request = CreateAnalysisRequest(filePath1, filePath2);
         var results = (await testSubject.AnalyzeAsync(request, CancellationToken.None)).ToList();
@@ -109,10 +132,9 @@ public class RoslynAnalysisServiceIntegrationTests
     {
         var requestedFilePath = @"C:\TestProject\BadClassName.cs";
         var nonTargetFilePath = TestBadClassNameAnalyzer.InvalidFilePath;
-        using var workspace = CreateWorkspaceWithDocuments(
+        SetUpSolution(
             ("public class BadClassName { }", requestedFilePath),
             ("public class BadNonTarget { }", nonTargetFilePath));
-        using var testSubject = CreateTestSubject(workspace);
 
         var requestForInvalidFile = CreateAnalysisRequest(TestBadClassNameAnalyzer.InvalidFilePath);
         var resultsForInvalidFile = (await testSubject.AnalyzeAsync(requestForInvalidFile, CancellationToken.None)).ToList();
@@ -135,8 +157,7 @@ public class RoslynAnalysisServiceIntegrationTests
     {
         var workspaceFilePath = @"C:\TestProject\BadClassName.cs";
         var requestedFilePath = @"C:\TestProject\NotInWorkspace.cs";
-        using var workspace = CreateWorkspaceWithDocuments(("public class BadClassName { }", workspaceFilePath));
-        using var testSubject = CreateTestSubject(workspace);
+        SetUpSolution(("public class BadClassName { }", workspaceFilePath));
 
         var request = CreateAnalysisRequest(requestedFilePath);
         var results = await testSubject.AnalyzeAsync(request, CancellationToken.None);
@@ -148,8 +169,7 @@ public class RoslynAnalysisServiceIntegrationTests
     public async Task AnalyzeAsync_CancelledToken_ThrowsOperationCanceledException()
     {
         var filePath = @"C:\TestProject\BadClassName.cs";
-        using var workspace = CreateWorkspaceWithDocuments(("public class BadClassName { }", filePath));
-        using var testSubject = CreateTestSubject(workspace);
+        SetUpSolution(("public class BadClassName { }", filePath));
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
@@ -157,6 +177,60 @@ public class RoslynAnalysisServiceIntegrationTests
         Func<Task> act = () => testSubject.AnalyzeAsync(request, cts.Token);
 
         await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    [TestMethod]
+    public async Task AnalyzeAsync_FileWithPragmaSuppressedIssue_DoesNotReturnSuppressedIssue()
+    {
+        var filePath = @"C:\TestProject\SuppressedBadClassName.cs";
+        var code = """
+                   #pragma warning disable TEST001
+                   public class BadClassName { }
+                   #pragma warning restore TEST001
+                   """;
+        EnablePragmaAnalysis();
+        SetUpSolution((code, filePath));
+
+        var request = CreateAnalysisRequest(filePath);
+        var results = (await testSubject.AnalyzeAsync(request, CancellationToken.None)).ToList();
+
+        results.Should().BeEmpty();
+        additionalAnalysisIssueStorageWriter.Received(1).Add(Arg.Is<IEnumerable<RoslynIssue>>(x => !x.Any()));
+    }
+
+    [TestMethod]
+    public async Task AnalyzeAsync_FileWithUnusedPragma_ReturnsNoMainIssuesButRaisesAdditionalPragmaIssue()
+    {
+        var filePath = @"C:\TestProject\UnusedPragma.cs";
+        var code = """
+                   #pragma warning disable TEST001
+                   public class GoodClassName { }
+                   #pragma warning restore TEST001
+                   """;
+        EnablePragmaAnalysis();
+        SetUpSolution((code, filePath));
+
+        var request = CreateAnalysisRequest(filePath);
+        var results = (await testSubject.AnalyzeAsync(request, CancellationToken.None)).ToList();
+
+        results.Should().BeEmpty();
+        additionalAnalysisIssueStorageWriter.Received(1).Add(Arg.Is<IEnumerable<RoslynIssue>>(x =>
+            x.Any() && x.All(issue => issue.RuleId == $"csharpsquid:{AdditionalRules.UnusedPragmaRuleKey}")));
+    }
+
+    [TestMethod]
+    public async Task AnalyzeAsync_FileWithIssueAndNoSuppression_ReturnsIssueNormally()
+    {
+        var filePath = @"C:\TestProject\BadClassNameNoPragma.cs";
+        EnablePragmaAnalysis();
+        SetUpSolution(("public class BadClassName { }", filePath));
+
+        var request = CreateAnalysisRequest(filePath);
+        var results = (await testSubject.AnalyzeAsync(request, CancellationToken.None)).ToList();
+
+        results.Should().ContainSingle();
+        results[0].RuleId.Should().Be("csharpsquid:TEST001");
+        additionalAnalysisIssueStorageWriter.Received(1).Add(Arg.Is<IEnumerable<RoslynIssue>>(x => !x.Any()));
     }
 
     private static AdhocWorkspace CreateWorkspaceWithDocuments(params (string code, string filePath)[] documents)
@@ -219,50 +293,16 @@ public class RoslynAnalysisServiceIntegrationTests
         return provider;
     }
 
-    private RoslynAnalysisService CreateTestSubject(AdhocWorkspace workspace)
+    private void EnablePragmaAnalysis()
     {
-        var workspaceWrapper = new RoslynWorkspaceWrapper(
-            workspace,
-            workspaceChangeIndicator,
-            treatWarningsAsErrorsCacheUpdater,
-            treatWarningsAsErrorsChangeIndicator,
-            analysisRequester,
-            logger,
-            threadHandling);
+        sonarLintSettings.PragmaRuleSeverity.Returns(PragmaRuleSeverity.Warn);
+    }
 
-        var analysisCommandProvider = new RoslynSolutionAnalysisCommandProvider(workspaceWrapper, logger);
-        var issueConverter = new DiagnosticToRoslynIssueConverter();
-        var compilationProvider = new RoslynProjectCompilationProvider(logger);
-
-        var quickFixFactory = Substitute.For<IRoslynQuickFixFactory>();
-        quickFixFactory.CreateQuickFixesAsync(
-                Arg.Any<Diagnostic>(),
-                Arg.Any<IRoslynSolutionWrapper>(),
-                Arg.Any<RoslynAnalysisConfiguration>(),
-                Arg.Any<CancellationToken>())
-            .Returns(new List<RoslynQuickFix>());
-
-        var additionalAnalysisIssueStorage = Substitute.For<IAdditionalAnalysisIssueStorageWriter>();
-        var additionalAnalysisConfigurationFactory = Substitute.For<IPragmaSuppressionAnalysisConfigurationFactory>();
-
-        var analysisEngine = new SequentialRoslynAnalysisEngine(
-            issueConverter,
-            compilationProvider,
-            quickFixFactory,
-            additionalAnalysisIssueStorage,
-            additionalAnalysisConfigurationFactory,
-            logger);
-
-        var quickFixStorageWriter = Substitute.For<IRoslynQuickFixStorageWriter>();
-        var configurationProvider = CreateMockedConfigurationProvider();
-
-        return new RoslynAnalysisService(
-            workspaceWrapper,
-            analysisEngine,
-            quickFixStorageWriter,
-            additionalAnalysisIssueStorage,
-            configurationProvider,
-            analysisCommandProvider);
+    private void SetUpSolution(params (string code, string filePath)[] documents)
+    {
+        var workspace = CreateWorkspaceWithDocuments(documents);
+        var solution = new RoslynSolutionWrapper(workspace.CurrentSolution);
+        workspaceWrapper.GetCurrentSolution().Returns(solution);
     }
 
     private static AnalysisRequest CreateAnalysisRequest(params string[] filePaths) =>
