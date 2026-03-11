@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis;
+using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Configuration;
 using SonarLint.VisualStudio.RoslynAnalyzerServer.Analysis.Pragma;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -47,7 +48,7 @@ public class PragmaSuppressionAnalysisConfigurationFactoryTests
         currentAnalysisIssuesStore.GetAll().Returns([]);
 
         var csharpConfig = new RoslynAnalysisConfiguration(
-            null,
+            new SonarLintXmlConfigurationFile("any", "any"),
             ImmutableDictionary.Create<string, ReportDiagnostic>().Add("S1234", ReportDiagnostic.Warn),
             ImmutableArray.Create<DiagnosticAnalyzer>(),
             ImmutableDictionary.Create<string, IReadOnlyCollection<CodeFixProvider>>());
